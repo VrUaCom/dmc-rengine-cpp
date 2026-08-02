@@ -1,14 +1,26 @@
 # CI Validation Branch
 
-This file exists only to trigger and document the first pull-request validation of the expanded C++ foundation.
+This file triggers and documents pull-request validation of the expanded C++ foundation.
 
-Validation scope:
+## Validation iteration 3
+
+Scope:
 
 - Windows and Linux configure/build/test;
-- Evidence Registry and JSON packet tests;
+- Release tests with assertions explicitly enabled;
+- Evidence Registry and deterministic JSON packet tests;
 - GDSpaces local-source vertical slice;
-- synthetic PE reader fixture;
+- revisioned WorkingCopy and undo;
+- bounds-checked binary reader;
+- synthetic PE32+ reader fixture;
 - SHA-256 known vectors;
-- guarded patch-plan tests.
+- guarded atomic patch-plan tests;
+- CLI version, doctor, scan, hash, route, and PE inspection build.
 
-After validation, relevant results are recorded in `docs/status/current.md` and this marker may be removed or retained as provenance.
+Previous findings:
+
+1. The first run exposed an incorrect escaped-newline test expectation.
+2. The second run exposed Release `NDEBUG` removing side-effectful `assert` expressions on Windows.
+3. The CMake test helper now undefines `NDEBUG` for every test target.
+
+After a green matrix run, the results are recorded in `docs/status/current.md`.
