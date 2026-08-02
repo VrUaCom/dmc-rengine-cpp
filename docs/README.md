@@ -26,8 +26,10 @@
 
 ### Evidence, executable, and patching
 
+- [Public evidence registry](../evidence/README.md)
 - [Evidence Packets](evidence/evidence-packets.md)
 - [Read-only PE Inspector](exe/pe-inspector.md)
+- [Known executable targets](exe/known-targets.md)
 - [Guarded patching](patch/guarded-patching.md)
 
 ### Binary Inspector
@@ -63,7 +65,7 @@
 
 - **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, and typed bundles.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
-- **EXE Editor — The Scriptorium:** executable inspection, source recovery, and guarded patch planning.
+- **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, unknown coverage, and annotations.
 - **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
