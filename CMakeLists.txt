@@ -21,16 +21,13 @@ function(dmc_rengine_configure_test target source)
     target_link_libraries(${target} PRIVATE DMCRengine::Core)
     dmc_rengine_enable_warnings(${target})
 
-    # Force a test-only assertion shim before any source includes. It always
-    # evaluates expressions and reports file/line in both Debug and Release.
+    # The current lightweight tests use assert() as the check primitive.
+    # Release configurations define NDEBUG, which removes both the check and
+    # the evaluated expression. Undefine it at compiler level for every test.
     if(MSVC)
-        target_compile_options(
-            ${target}
-            PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/tests/test_support.hpp)
+        target_compile_options(${target} PRIVATE /UNDEBUG)
     else()
-        target_compile_options(
-            ${target}
-            PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_support.hpp)
+        target_compile_options(${target} PRIVATE -UNDEBUG)
     endif()
 endfunction()
 
