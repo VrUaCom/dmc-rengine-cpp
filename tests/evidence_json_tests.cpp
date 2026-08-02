@@ -43,7 +43,7 @@ int main() {
     assert(json.find("\"schema_version\": 1") != std::string::npos);
     assert(json.find("\"confidence\": \"confirmed\"") != std::string::npos);
     assert(json.find("entry\\\"point") != std::string::npos);
-    assert(json.find("Synthetic only.\\n") != std::string::npos);
+    assert(json.find("\\nSynthetic only.") != std::string::npos);
 
     packet.records[0].locations[0].artifact_id = "missing-artifact";
     assert(!packet.valid());
