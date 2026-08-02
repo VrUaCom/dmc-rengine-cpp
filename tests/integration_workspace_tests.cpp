@@ -38,6 +38,7 @@ using dmc::rengine::integration::ToolCapability;
 using dmc::rengine::integration::ToolRegistry;
 using dmc::rengine::integration::ToolRouteRole;
 using dmc::rengine::integration::WorkspaceContext;
+using dmc::rengine::integration::WorkspaceEventType;
 using dmc::rengine::integration::WorkspaceStatus;
 
 void write_u32(
@@ -111,7 +112,15 @@ void write_record(
 
 void test_tool_and_format_registries() {
     const ToolRegistry tools;
-    assert(tools.tools().size() == 9U);
+    assert(tools.tools().size() == 10U);
+
+    const auto* archive = tools.find(ToolTarget::gdspaces);
+    assert(archive != nullptr);
+    assert(archive->product_name == "GDSpaces");
+    assert(archive->lore_name == "The Archive");
+    assert(archive->supports(ToolCapability::browse_resource));
+    assert(archive->supports(ToolCapability::create_working_copy));
+
     const auto* binary = tools.find(ToolTarget::binary_inspector);
     assert(binary != nullptr);
     assert(binary->product_name == "Binary Inspector");
@@ -138,9 +147,9 @@ void test_tool_and_format_registries() {
 void test_hits_full_workspace_flow() {
     const ToolRegistry tools;
     const FormatIntegrationRegistry formats;
-    auto bytes = hits_bytes();
+    const auto bytes = hits_bytes();
     const auto ref = resource("room/st001cfg_006.hits", "hits", bytes.size());
-    ResourcePayload payload{
+    const ResourcePayload payload{
         .resource = ref,
         .bytes = bytes,
         .diagnostics = {},
@@ -159,11 +168,17 @@ void test_hits_full_workspace_flow() {
     assert(workspace.status() == WorkspaceStatus::read_only);
     assert(workspace.format() != nullptr);
     assert(workspace.format()->format == "hits");
+    assert(workspace.events().size() == 2U);
+    assert(workspace.events().by_type(
+        WorkspaceEventType::workspace_created).size() == 1U);
+    assert(workspace.events().by_type(
+        WorkspaceEventType::routes_resolved).size() == 1U);
 
     assert(has_route(
         workspace,
         ToolTarget::stage_ops,
         ToolRouteRole::primary));
+    assert(has_route(workspace, ToolTarget::gdspaces));
     assert(has_route(workspace, ToolTarget::binary_inspector));
     assert(has_route(workspace, ToolTarget::modviz_scene));
     assert(has_route(workspace, ToolTarget::evidence_registry));
@@ -184,6 +199,8 @@ void test_hits_full_workspace_flow() {
     assert(workspace.binary_document() != nullptr);
     assert(workspace.binary_document()->regions().size() == 2U);
     assert(workspace.binary_document()->fields().size() == 16U);
+    assert(workspace.events().by_type(
+        WorkspaceEventType::binary_document_attached).size() == 1U);
 
     EvidenceRegistry evidence;
     assert(evidence.add(EvidenceRecord{
@@ -200,6 +217,8 @@ void test_hits_full_workspace_flow() {
         evidence, "claim-hits-record-layout") == 1U);
     assert(workspace.evidence_record_ids().size() == 1U);
     assert(workspace.evidence_record_ids()[0] == "ev-hits-record-layout");
+    assert(workspace.events().by_type(
+        WorkspaceEventType::evidence_record_linked).size() == 1U);
 
     StageBundle bundle(StageIdentity{
         .profile = "dmc3-hd",
@@ -217,27 +236,78 @@ void test_hits_full_workspace_flow() {
     assert(workspace.stage()->identity.stage_id == "st001");
     assert(workspace.stage()->category == StageResourceCategory::collision);
     assert(workspace.stage()->role == "room-collision-hits");
+    assert(workspace.events().by_type(
+        WorkspaceEventType::stage_context_attached).size() == 1U);
 
     assert(workspace.enable_working_copy());
     assert(workspace.status() == WorkspaceStatus::editable_clean);
-    auto* working = workspace.working_copy();
-    assert(working != nullptr);
-    assert(working->bytes() == payload.bytes);
+    assert(workspace.working_copy() != nullptr);
+    assert(workspace.working_copy()->bytes() == payload.bytes);
+    assert(workspace.events().by_type(
+        WorkspaceEventType::working_copy_enabled).size() == 1U);
 
     const auto original_source_byte = workspace.source_payload().bytes[6U];
-    const auto edit = working->apply(EditOperation{
-        .id = "edit-unknown-padding",
-        .base_revision = working->revision(),
-        .offset = 6U,
-        .expected = {std::byte{0}},
-        .replacement = {std::byte{0x7F}},
-        .description = "Modify unknown padding in the local working copy only.",
-    });
+    const auto rejected = workspace.apply_edit(
+        EditOperation{
+            .id = "rejected-edit",
+            .base_revision = 0U,
+            .offset = 6U,
+            .expected = {std::byte{0}},
+            .replacement = {std::byte{0x55}},
+            .description = "An unrouted tool must not edit this workspace.",
+        },
+        ToolTarget::item_editor);
+    assert(!rejected.applied);
+
+    const auto edit = workspace.apply_edit(
+        EditOperation{
+            .id = "edit-unknown-padding",
+            .base_revision = 0U,
+            .offset = 6U,
+            .expected = {std::byte{0}},
+            .replacement = {std::byte{0x7F}},
+            .description = "Modify unknown padding in the local working copy only.",
+        },
+        ToolTarget::stage_ops);
     assert(edit.applied);
     assert(workspace.status() == WorkspaceStatus::editable_dirty);
     assert(workspace.source_payload().bytes[6U] == original_source_byte);
-    assert(working->bytes()[6U] == std::byte{0x7F});
+    assert(workspace.working_copy()->bytes()[6U] == std::byte{0x7F});
     assert(!workspace.format()->allows_guarded_export());
+    assert(workspace.events().by_type(
+        WorkspaceEventType::edit_applied).size() == 1U);
+
+    assert(workspace.request_validation(
+        ToolTarget::stage_ops,
+        "edit-unknown-padding",
+        "Validate the HITS working-copy change before any future export."));
+    assert(workspace.events().by_type(
+        WorkspaceEventType::validation_requested).size() == 1U);
+    assert(workspace.events().by_tool(
+        ToolTarget::build_test_lab).size() >= 2U);
+
+    assert(workspace.record_manifest_exported(
+        ToolTarget::gdspaces,
+        "workspace-manifest-st001-hits"));
+    assert(workspace.events().by_type(
+        WorkspaceEventType::manifest_exported).size() == 1U);
+
+    assert(workspace.undo_last_edit(ToolTarget::stage_ops));
+    assert(workspace.status() == WorkspaceStatus::editable_clean);
+    assert(workspace.working_copy()->bytes() == payload.bytes);
+    assert(workspace.events().by_type(
+        WorkspaceEventType::edit_undone).size() == 1U);
+
+    const auto* latest = workspace.events().latest();
+    assert(latest != nullptr);
+    assert(latest->type == WorkspaceEventType::edit_undone);
+    assert(latest->revision == 2U);
+
+    for (std::size_t index = 0; index < workspace.events().events().size(); ++index) {
+        assert(workspace.events().events()[index].sequence == index + 1U);
+        assert(workspace.events().events()[index].resource == ref.id);
+        assert(workspace.events().events()[index].valid());
+    }
 }
 
 void test_read_only_format_policy() {
