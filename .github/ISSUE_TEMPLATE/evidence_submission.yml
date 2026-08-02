@@ -1,0 +1,68 @@
+name: Evidence submission
+description: Submit a reproducible reverse-engineering finding or correction
+title: "[Evidence]: "
+labels: ["evidence", "triage"]
+body:
+  - type: input
+    id: claim
+    attributes:
+      label: Claim
+      description: State one precise technical claim.
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: Confidence
+      options:
+        - hypothesis
+        - candidate
+        - low
+        - medium
+        - high
+        - confirmed
+        - corrected
+        - rejected
+    validations:
+      required: true
+  - type: input
+    id: artifact
+    attributes:
+      label: Artifact identity
+      description: Sanitized name/role and cryptographic hash. Do not upload the file.
+      placeholder: dmc3.exe — SHA-256 ...
+    validations:
+      required: true
+  - type: textarea
+    id: locations
+    attributes:
+      label: Evidence locations
+      description: Offsets, RVA/VA, symbols, fields, traces, or resource IDs.
+    validations:
+      required: true
+  - type: textarea
+    id: procedure
+    attributes:
+      label: Reproduction procedure
+    validations:
+      required: true
+  - type: textarea
+    id: observations
+    attributes:
+      label: Observations and competing explanations
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Correction target
+      description: Link previous claims if this corrects or rejects them.
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: Policy confirmation
+      options:
+        - label: No proprietary game file, leaked source, or large copied binary region is attached.
+          required: true
+        - label: The finding is independently reproducible.
+          required: true
