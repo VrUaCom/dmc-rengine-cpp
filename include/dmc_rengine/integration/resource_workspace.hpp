@@ -74,6 +74,10 @@ public:
     [[nodiscard]] const std::vector<gdspaces::Diagnostic>& diagnostics() const noexcept;
     [[nodiscard]] const WorkspaceEventJournal& events() const noexcept;
 
+    [[nodiscard]] bool record_parser_completed(
+        std::string parser_id,
+        bool recognized,
+        gdspaces::ToolTarget consumer);
     [[nodiscard]] bool add_parser_diagnostics(
         std::span<const formats::ParseDiagnostic> diagnostics);
     [[nodiscard]] bool attach_binary_document(binary::Document document);
