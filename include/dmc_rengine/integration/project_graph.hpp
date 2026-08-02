@@ -44,6 +44,8 @@ enum class ProjectNodeKind {
 }
 
 enum class ProjectEdgeKind {
+    contains,
+    depends_on,
     classified_as,
     parsed_by,
     opens_with,
@@ -60,6 +62,8 @@ enum class ProjectEdgeKind {
 [[nodiscard]] constexpr std::string_view to_string(
     ProjectEdgeKind kind) noexcept {
     switch (kind) {
+    case ProjectEdgeKind::contains: return "contains";
+    case ProjectEdgeKind::depends_on: return "depends-on";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
