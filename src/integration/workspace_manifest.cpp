@@ -211,7 +211,38 @@ std::string workspace_manifest_json(
                << "\n  }";
     }
 
-    output << ",\n  \"diagnostics\": [";
+    output << ",\n  \"events\": [";
+    const auto& events = workspace.events().events();
+    if (!events.empty()) {
+        output << '\n';
+        for (std::size_t index = 0; index < events.size(); ++index) {
+            const auto& event = events[index];
+            output << "    {\n      \"sequence\": " << event.sequence
+                   << ",\n      \"type\": ";
+            write_string(output, to_string(event.type));
+            output << ",\n      \"producer\": ";
+            write_string(output, gdspaces::to_string(event.producer));
+            output << ",\n      \"consumer\": ";
+            if (event.consumer.has_value()) {
+                write_string(output, gdspaces::to_string(*event.consumer));
+            } else {
+                output << "null";
+            }
+            output << ",\n      \"revision\": " << event.revision
+                   << ",\n      \"subject_id\": ";
+            write_string(output, event.subject_id);
+            output << ",\n      \"message\": ";
+            write_string(output, event.message);
+            output << "\n    }";
+            if (index + 1U != events.size()) {
+                output << ',';
+            }
+            output << '\n';
+        }
+        output << "  ";
+    }
+
+    output << "],\n  \"diagnostics\": [";
     const auto& diagnostics = workspace.diagnostics();
     if (!diagnostics.empty()) {
         output << '\n';
