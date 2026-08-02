@@ -108,6 +108,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(
         dmc_rengine_evidence_packet_project_tests
         tests/evidence_packet_project_tests.cpp)
+    dmc_rengine_configure_test(
+        dmc_rengine_public_evidence_project_tests
+        tests/public_evidence_project_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_document_tests tests/binary_document_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_fields_tests tests/binary_fields_tests.cpp)
@@ -159,6 +162,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_evidence_packet_project_tests
         COMMAND dmc_rengine_evidence_packet_project_tests)
+    add_test(
+        NAME dmc_rengine_public_evidence_project_tests
+        COMMAND dmc_rengine_public_evidence_project_tests
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
     add_test(NAME dmc_rengine_binary_reader_tests COMMAND dmc_rengine_binary_reader_tests)
     add_test(NAME dmc_rengine_binary_document_tests COMMAND dmc_rengine_binary_document_tests)
     add_test(NAME dmc_rengine_binary_fields_tests COMMAND dmc_rengine_binary_fields_tests)
