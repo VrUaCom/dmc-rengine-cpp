@@ -11,11 +11,10 @@ This validation branch checks the current cross-tool integration architecture ag
 - synchronized multi-resource ProjectWorkspace;
 - Spider Hub ProjectGraph and deterministic graph manifest;
 - unified Stage Workspace Manifest for Stage Ops and ModViz;
+- ModViz route consistency enforced only for visual stage categories;
+- TXT/scripts remain Stage Ops/Binary/Evidence resources without a false direct ModViz requirement;
 - deterministic resource workspace manifest;
-- parent PAC, HITS, and TXT resource sessions with container, stage, evidence, edit, validation, and manifest relations;
-- CLI commands `list-tools`, `list-formats`, `integration-status`, and `inspect-workspace`;
-- CLI smoke tests and all previous foundation tests;
-- pending PAC/PNST/AFS/NBZ formats remaining read-only;
+- integration CLI and smoke tests;
 - Windows and Ubuntu configure/build/test.
 
 ## Architectural invariant
@@ -27,4 +26,4 @@ Sources -> GDSpaces -> ProjectWorkspace -> ResourceWorkspaceSession(s)
         -> Resource, Stage, and Spider Hub manifests + CLI
 ```
 
-Stage Ops and ModViz consume one shared stage read model. Spider Hub consumes one shared project graph. No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
+Stage Ops consumes all stage resources. ModViz consumes the same stage read model and direct routes for visual categories. No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
