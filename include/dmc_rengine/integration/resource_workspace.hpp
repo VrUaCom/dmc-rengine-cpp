@@ -8,6 +8,7 @@
 #include "dmc_rengine/gdspaces/working_copy.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
+#include "dmc_rengine/integration/workspace_event.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -70,6 +71,7 @@ public:
     [[nodiscard]] const FormatIntegrationDescriptor* format() const noexcept;
     [[nodiscard]] const std::vector<ToolRoute>& routes() const noexcept;
     [[nodiscard]] const std::vector<gdspaces::Diagnostic>& diagnostics() const noexcept;
+    [[nodiscard]] const WorkspaceEventJournal& events() const noexcept;
 
     [[nodiscard]] bool add_parser_diagnostics(
         std::span<const formats::ParseDiagnostic> diagnostics);
@@ -91,10 +93,23 @@ public:
     [[nodiscard]] const StageResourceContext* stage() const noexcept;
 
     [[nodiscard]] bool enable_working_copy();
-    [[nodiscard]] gdspaces::WorkingCopy* working_copy() noexcept;
     [[nodiscard]] const gdspaces::WorkingCopy* working_copy() const noexcept;
+    [[nodiscard]] gdspaces::EditResult apply_edit(
+        gdspaces::EditOperation operation,
+        gdspaces::ToolTarget producer);
+    [[nodiscard]] bool undo_last_edit(gdspaces::ToolTarget producer);
+    [[nodiscard]] bool reset_working_copy(gdspaces::ToolTarget producer);
+
+    [[nodiscard]] bool request_validation(
+        gdspaces::ToolTarget producer,
+        std::string subject_id,
+        std::string message);
+    [[nodiscard]] bool record_manifest_exported(
+        gdspaces::ToolTarget producer,
+        std::string manifest_id);
 
 private:
+    [[nodiscard]] bool has_tool_route(gdspaces::ToolTarget target) const noexcept;
     void add_diagnostic(
         gdspaces::DiagnosticSeverity severity,
         std::string code,
@@ -109,6 +124,7 @@ private:
     std::vector<std::string> evidence_record_ids_;
     std::optional<StageResourceContext> stage_;
     std::optional<gdspaces::WorkingCopy> working_copy_;
+    WorkspaceEventJournal events_;
 };
 
 } // namespace dmc::rengine::integration
