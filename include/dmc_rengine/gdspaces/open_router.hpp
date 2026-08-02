@@ -10,22 +10,28 @@
 namespace dmc::rengine::gdspaces {
 
 enum class ToolTarget {
+    spider_hub,
     binary_inspector,
     exe_editor,
+    evidence_registry,
     stage_ops,
     modviz_scene,
     modviz_menu,
     item_editor,
+    build_test_lab,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(ToolTarget target) noexcept {
     switch (target) {
+    case ToolTarget::spider_hub: return "spider-hub";
     case ToolTarget::binary_inspector: return "binary-inspector";
     case ToolTarget::exe_editor: return "exe-editor";
+    case ToolTarget::evidence_registry: return "evidence-registry";
     case ToolTarget::stage_ops: return "stage-ops";
     case ToolTarget::modviz_scene: return "modviz-scene";
     case ToolTarget::modviz_menu: return "modviz-menu";
     case ToolTarget::item_editor: return "item-editor";
+    case ToolTarget::build_test_lab: return "build-test-lab";
     }
     return "binary-inspector";
 }
