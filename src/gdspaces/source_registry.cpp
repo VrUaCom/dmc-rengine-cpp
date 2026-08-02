@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <utility>
 
 namespace dmc::rengine::gdspaces {
