@@ -1,6 +1,9 @@
 #pragma once
 
 #include "dmc_rengine/binary/document.hpp"
+#include "dmc_rengine/evidence/artifact_registry.hpp"
+#include "dmc_rengine/evidence/packet.hpp"
+#include "dmc_rengine/evidence/packet_registry.hpp"
 #include "dmc_rengine/evidence/record.hpp"
 #include "dmc_rengine/evidence/registry.hpp"
 #include "dmc_rengine/formats/diagnostic.hpp"
@@ -25,11 +28,15 @@ public:
 
     [[nodiscard]] const ToolRegistry& tools() const noexcept;
     [[nodiscard]] const FormatIntegrationRegistry& formats() const noexcept;
+    [[nodiscard]] const evidence::ArtifactRegistry& artifacts() const noexcept;
     [[nodiscard]] const evidence::EvidenceRegistry& evidence() const noexcept;
+    [[nodiscard]] const evidence::EvidencePacketRegistry& packets() const noexcept;
     [[nodiscard]] const gdspaces::ResourceGraph& resources() const noexcept;
     [[nodiscard]] const ProjectGraph& graph() const noexcept;
 
     [[nodiscard]] bool add_evidence(evidence::EvidenceRecord record);
+    [[nodiscard]] bool import_evidence_packet(
+        const evidence::EvidencePacket& packet);
     [[nodiscard]] bool create_session(
         gdspaces::ResourcePayload payload,
         WorkspaceContext context = {});
@@ -92,10 +99,14 @@ private:
     [[nodiscard]] ResourceWorkspaceSession* find_session_mutable(
         const gdspaces::ResourceId& resource) noexcept;
     [[nodiscard]] bool sync(ResourceWorkspaceSession& session);
+    [[nodiscard]] bool sync_evidence_packet_graph(
+        const evidence::EvidencePacket& packet);
 
     ToolRegistry tools_;
     FormatIntegrationRegistry formats_;
+    evidence::ArtifactRegistry artifacts_;
     evidence::EvidenceRegistry evidence_;
+    evidence::EvidencePacketRegistry packets_;
     gdspaces::ResourceGraph resources_;
     ProjectGraph graph_;
     std::map<std::string, ResourceWorkspaceSession, std::less<>> sessions_;
