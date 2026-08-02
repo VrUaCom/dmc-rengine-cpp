@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-08-02",
+  "project": "DMC Rengine",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "version": "0.2.0",
+  "generation": "clean-cpp-foundation",
+  "overall_status": "foundation-in-progress",
+  "constitutional_rules": [
+    "gdspaces-is-the-only-resource-api",
+    "no-second-resolver",
+    "evidence-before-canon",
+    "no-proprietary-game-content",
+    "working-copy-before-write",
+    "guarded-exe-patches-only"
+  ],
+  "implemented": [
+    "cpp20-cmake-foundation",
+    "cross-platform-ci-workflow",
+    "cli-version-doctor-scan-route",
+    "resource-id",
+    "resource-ref",
+    "resource-payload",
+    "gdspaces-diagnostics",
+    "source-interface",
+    "local-directory-source-readonly",
+    "source-registry",
+    "resource-graph",
+    "open-router",
+    "typed-stage-bundle",
+    "evidence-confidence",
+    "evidence-records",
+    "evidence-registry",
+    "synthetic-integration-tests",
+    "governance-and-clean-room-policy",
+    "brand-and-lore-canon",
+    "historical-migration-ledger"
+  ],
+  "historical_not_yet_migrated": [
+    "nbz-volume-source",
+    "afs-pac-pnst-container-expansion",
+    "binary-inspector-advanced-model",
+    "stage-ops-editors",
+    "item-editor-production-features",
+    "modviz-ui",
+    "exe-phases-12-to-16-tools",
+    "mcp-obsidian-mempalace-runtime"
+  ],
+  "next_milestone": {
+    "id": "0.3-readonly-platform-inspection",
+    "goals": [
+      "green-windows-linux-ci",
+      "artifact-sha256",
+      "serializable-evidence-packets",
+      "readonly-pe32plus-inspector",
+      "synthetic-pe-fixtures"
+    ]
+  },
+  "blockers": [
+    "ci-result-visibility",
+    "no-evidence-json-schema",
+    "no-artifact-hashing",
+    "no-pe-inspector",
+    "no-container-source",
+    "no-working-copy-api"
+  ]
+}
