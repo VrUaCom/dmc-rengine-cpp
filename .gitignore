@@ -1,0 +1,48 @@
+# Build output
+/build/
+/out/
+/cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+Testing/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.VC.db
+
+# Compiler output
+*.obj
+*.o
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+
+# Local game and reverse-engineering inputs
+*.nbz
+*.afs
+*.pac
+*.pnst
+*.itm
+*.scm
+*.mod
+*.dds
+*.bin
+*.dump
+*.dmp
+/game/
+/local-data/
+/research-private/
+
+# Secrets and environment
+.env
+.env.*
+!.env.example
