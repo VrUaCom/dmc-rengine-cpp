@@ -174,11 +174,11 @@ std::size_t ProjectWorkspace::link_format_evidence(
 std::size_t ProjectWorkspace::attach_stage_bundle(
     const gdspaces::StageBundle& bundle) {
     std::size_t attached = 0U;
-    for (auto& [key, session] : sessions_) {
-        static_cast<void>(key);
-        if (session.attach_stage_bundle(bundle)) {
+    for (const auto& member : bundle.all_members()) {
+        auto* session = find_session_mutable(member.resource.id);
+        if (session != nullptr && session->attach_stage_bundle(bundle)) {
             ++attached;
-            static_cast<void>(sync(session));
+            static_cast<void>(sync(*session));
         }
     }
     return attached;
