@@ -5,7 +5,7 @@
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
   "generation": "clean-cpp-foundation",
-  "overall_status": "foundation-in-progress",
+  "overall_status": "functional-foundation-final-matrix-validation",
   "constitutional_rules": [
     "gdspaces-is-the-only-resource-api",
     "no-second-resolver",
@@ -17,7 +17,11 @@
   "implemented": [
     "cpp20-cmake-foundation",
     "cross-platform-ci-workflow",
-    "cli-version-doctor-scan-route",
+    "cmake-presets",
+    "release-test-assertion-configuration",
+    "cli-version-doctor-scan-hash-route-inspect-exe",
+    "sha256-artifact-identity",
+    "bounded-binary-reader",
     "resource-id",
     "resource-ref",
     "resource-payload",
@@ -28,14 +32,41 @@
     "resource-graph",
     "open-router",
     "typed-stage-bundle",
+    "revisioned-working-copy",
+    "working-copy-undo-reset",
     "evidence-confidence",
     "evidence-records",
     "evidence-registry",
+    "versioned-evidence-packets",
+    "deterministic-evidence-json-export",
+    "readonly-pe32-pe32plus-inspector",
+    "checked-offset-rva-va-conversion",
+    "guarded-patch-plan",
+    "atomic-in-memory-patch-application",
     "synthetic-integration-tests",
     "governance-and-clean-room-policy",
     "brand-and-lore-canon",
-    "historical-migration-ledger"
+    "historical-migration-ledger",
+    "sdd-constitution-and-specifications",
+    "architecture-decision-records"
   ],
+  "ci_validation": {
+    "run_1": {
+      "ubuntu_build": "passed",
+      "result": "failed-test-expectation",
+      "resolution": "corrected-json-newline-assertion"
+    },
+    "run_2": {
+      "ubuntu": "passed",
+      "windows_build": "passed",
+      "windows_tests": "failed-release-assert-elision",
+      "resolution": "undefine-ndebug-for-test-targets"
+    },
+    "run_3": {
+      "status": "queued-or-in-progress",
+      "scope": "latest-complete-foundation"
+    }
+  },
   "historical_not_yet_migrated": [
     "nbz-volume-source",
     "afs-pac-pnst-container-expansion",
@@ -47,21 +78,24 @@
     "mcp-obsidian-mempalace-runtime"
   ],
   "next_milestone": {
-    "id": "0.3-readonly-platform-inspection",
+    "id": "0.3-container-and-stage-readonly-slice",
     "goals": [
       "green-windows-linux-ci",
-      "artifact-sha256",
-      "serializable-evidence-packets",
-      "readonly-pe32plus-inspector",
-      "synthetic-pe-fixtures"
+      "permanent-side-effect-free-test-helper",
+      "strict-evidence-json-import",
+      "sanitized-pe-json-report",
+      "generic-parser-result-interface",
+      "synthetic-pac-pnst-fixtures",
+      "profile-aware-classifier",
+      "stage-bundle-assembly-service"
     ]
   },
   "blockers": [
-    "ci-result-visibility",
-    "no-evidence-json-schema",
-    "no-artifact-hashing",
-    "no-pe-inspector",
+    "latest-matrix-ci-not-yet-green",
+    "no-evidence-json-import",
     "no-container-source",
-    "no-working-copy-api"
+    "no-profile-aware-classifier",
+    "no-stage-bundle-assembly-service",
+    "no-binary-inspector-domain-migration"
   ]
 }
