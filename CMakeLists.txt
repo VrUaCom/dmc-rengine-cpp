@@ -11,6 +11,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(dmc_rengine_core
     src/core/version.cpp
     src/evidence/registry.cpp
+    src/exe/pe_image.cpp
+    src/exe/pe_reader.cpp
     src/gdspaces/local_directory_source.cpp
     src/gdspaces/open_router.cpp
     src/gdspaces/resource_graph.cpp
