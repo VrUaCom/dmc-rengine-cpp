@@ -33,6 +33,7 @@
 
 - [Public evidence registry](../evidence/README.md)
 - [Evidence Packets](evidence/evidence-packets.md)
+- [Strict Evidence JSON import](evidence/json-import.md)
 - [Read-only PE Inspector](exe/pe-inspector.md)
 - [Known executable targets](exe/known-targets.md)
 - [Guarded patching](patch/guarded-patching.md)
