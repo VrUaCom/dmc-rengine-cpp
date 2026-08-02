@@ -41,7 +41,11 @@ add_library(dmc_rengine_core
     src/exe/known_target.cpp
     src/exe/pe_image.cpp
     src/exe/pe_reader.cpp
+    src/formats/container.cpp
+    src/formats/container_parser_registry.cpp
+    src/formats/synthetic/slot_container_parser.cpp
     src/gdspaces/classifier.cpp
+    src/gdspaces/container_expander.cpp
     src/gdspaces/local_directory_source.cpp
     src/gdspaces/open_router.cpp
     src/gdspaces/resource_graph.cpp
@@ -83,6 +87,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(
         dmc_rengine_stage_bundle_assembler_tests
         tests/stage_bundle_assembler_tests.cpp)
+    dmc_rengine_configure_test(
+        dmc_rengine_container_foundation_tests
+        tests/container_foundation_tests.cpp)
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
     add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
@@ -96,4 +103,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_stage_bundle_assembler_tests
         COMMAND dmc_rengine_stage_bundle_assembler_tests)
+    add_test(
+        NAME dmc_rengine_container_foundation_tests
+        COMMAND dmc_rengine_container_foundation_tests)
 endif()
