@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(dmc_rengine_core
+    src/core/sha256.cpp
     src/core/version.cpp
     src/evidence/registry.cpp
     src/exe/pe_image.cpp
