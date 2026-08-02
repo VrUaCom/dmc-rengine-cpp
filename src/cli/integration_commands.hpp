@@ -4,6 +4,9 @@
 
 namespace dmc::rengine::cli {
 
+void print_integration_help();
+int try_run_integration_command(int argc, char** argv);
+
 int run_list_tools();
 int run_list_formats();
 int run_integration_status();
