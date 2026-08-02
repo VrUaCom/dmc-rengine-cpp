@@ -71,6 +71,27 @@ void write_string_array(
         });
 }
 
+[[nodiscard]] bool requires_modviz_route(
+    gdspaces::StageResourceCategory category) noexcept {
+    switch (category) {
+    case gdspaces::StageResourceCategory::models:
+    case gdspaces::StageResourceCategory::textures:
+    case gdspaces::StageResourceCategory::animations:
+    case gdspaces::StageResourceCategory::cameras:
+    case gdspaces::StageResourceCategory::lighting:
+    case gdspaces::StageResourceCategory::positions:
+    case gdspaces::StageResourceCategory::effects:
+    case gdspaces::StageResourceCategory::collision:
+        return true;
+    case gdspaces::StageResourceCategory::scripts:
+    case gdspaces::StageResourceCategory::events:
+    case gdspaces::StageResourceCategory::sounds:
+    case gdspaces::StageResourceCategory::unknown:
+        return false;
+    }
+    return false;
+}
+
 } // namespace
 
 std::string stage_workspace_manifest_json(
@@ -101,6 +122,7 @@ std::string stage_workspace_manifest_json(
     std::size_t evidence_link_count = 0U;
     std::size_t event_count = 0U;
     std::size_t validation_request_count = 0U;
+    std::size_t modviz_relevant_count = 0U;
     bool stage_ops_consistent = true;
     bool modviz_consistent = true;
 
@@ -128,8 +150,12 @@ std::string stage_workspace_manifest_json(
             WorkspaceEventType::validation_requested).size();
         stage_ops_consistent = stage_ops_consistent &&
             has_route(*session, gdspaces::ToolTarget::stage_ops);
-        modviz_consistent = modviz_consistent &&
-            has_route(*session, gdspaces::ToolTarget::modviz_scene);
+
+        if (requires_modviz_route(stage->category)) {
+            ++modviz_relevant_count;
+            modviz_consistent = modviz_consistent &&
+                has_route(*session, gdspaces::ToolTarget::modviz_scene);
+        }
     }
 
     const auto stage_node_id = "stage:" + first_stage->identity.profile + ':' +
@@ -162,6 +188,8 @@ std::string stage_workspace_manifest_json(
            << validation_request_count << ",\n"
            << "    \"stage_graph_edge_count\": "
            << stage_graph_edges << ",\n"
+           << "    \"modviz_relevant_resource_count\": "
+           << modviz_relevant_count << ",\n"
            << "    \"stage_ops_route_consistent\": "
            << (stage_ops_consistent ? "true" : "false") << ",\n"
            << "    \"modviz_scene_route_consistent\": "
@@ -225,7 +253,9 @@ std::string stage_workspace_manifest_json(
             output,
             format == nullptr ? std::string_view{"read-only"}
                               : to_string(format->write_policy));
-        output << ",\n      \"binary_document\": "
+        output << ",\n      \"modviz_relevant\": "
+               << (requires_modviz_route(stage->category) ? "true" : "false")
+               << ",\n      \"binary_document\": "
                << (binary != nullptr ? "true" : "false")
                << ",\n      \"binary_coverage_bytes\": "
                << (binary == nullptr ? 0U : binary->coverage_bytes())
