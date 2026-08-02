@@ -14,6 +14,7 @@ namespace dmc::rengine::integration {
 enum class WorkspaceEventType {
     workspace_created,
     routes_resolved,
+    parser_completed,
     parser_diagnostics_added,
     binary_document_attached,
     evidence_record_linked,
@@ -31,6 +32,7 @@ enum class WorkspaceEventType {
     switch (type) {
     case WorkspaceEventType::workspace_created: return "workspace-created";
     case WorkspaceEventType::routes_resolved: return "routes-resolved";
+    case WorkspaceEventType::parser_completed: return "parser-completed";
     case WorkspaceEventType::parser_diagnostics_added: return "parser-diagnostics-added";
     case WorkspaceEventType::binary_document_attached: return "binary-document-attached";
     case WorkspaceEventType::evidence_record_linked: return "evidence-record-linked";
