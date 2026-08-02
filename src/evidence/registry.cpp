@@ -65,6 +65,22 @@ std::vector<const EvidenceRecord*> EvidenceRegistry::by_confidence(
     return result;
 }
 
+std::vector<const EvidenceRecord*> EvidenceRegistry::by_artifact(
+    std::string_view artifact_id) const {
+    std::vector<const EvidenceRecord*> result;
+    for (const auto& record : records_) {
+        const auto references_artifact = std::any_of(
+            record.locations.begin(), record.locations.end(),
+            [artifact_id](const EvidenceLocation& location) {
+                return location.artifact_id == artifact_id;
+            });
+        if (references_artifact) {
+            result.push_back(&record);
+        }
+    }
+    return result;
+}
+
 std::size_t EvidenceRegistry::size() const noexcept {
     return records_.size();
 }
