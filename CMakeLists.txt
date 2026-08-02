@@ -46,6 +46,8 @@ add_library(dmc_rengine_core
     src/exe/pe_reader.cpp
     src/formats/container.cpp
     src/formats/container_parser_registry.cpp
+    src/formats/hits.cpp
+    src/formats/hits_binary.cpp
     src/formats/synthetic/slot_container_parser.cpp
     src/gdspaces/classifier.cpp
     src/gdspaces/container_expander.cpp
@@ -92,6 +94,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_binary_document_tests tests/binary_document_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_fields_tests tests/binary_fields_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_manifest_tests tests/binary_manifest_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_hits_tests tests/hits_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_hits_binary_tests tests/hits_binary_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_known_target_tests tests/known_target_tests.cpp)
@@ -120,6 +124,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_binary_document_tests COMMAND dmc_rengine_binary_document_tests)
     add_test(NAME dmc_rengine_binary_fields_tests COMMAND dmc_rengine_binary_fields_tests)
     add_test(NAME dmc_rengine_binary_manifest_tests COMMAND dmc_rengine_binary_manifest_tests)
+    add_test(NAME dmc_rengine_hits_tests COMMAND dmc_rengine_hits_tests)
+    add_test(NAME dmc_rengine_hits_binary_tests COMMAND dmc_rengine_hits_binary_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
     add_test(NAME dmc_rengine_known_target_tests COMMAND dmc_rengine_known_target_tests)
