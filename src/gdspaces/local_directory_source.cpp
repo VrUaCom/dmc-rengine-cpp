@@ -1,9 +1,11 @@
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 
+#include "dmc_rengine/gdspaces/classifier.hpp"
+
 #include <algorithm>
-#include <cctype>
 #include <fstream>
 #include <limits>
+#include <span>
 #include <system_error>
 #include <utility>
 
@@ -114,14 +116,17 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
     }
 
     const auto candidate = normalized_path(root_ / resource.logical_path);
+    const auto initial_classification = ResourceClassifier::classify(
+        resource.logical_path);
+
     ResourcePayload payload;
     payload.resource = ResourceRef{
         .id = resource,
         .display_name = std::filesystem::path(resource.logical_path).filename().string(),
-        .format = classify(candidate),
-        .profile = "unknown",
+        .format = initial_classification.format,
+        .profile = std::string(to_string(initial_classification.profile)),
         .synthetic_name = false,
-        .container = is_container_format(classify(candidate)),
+        .container = initial_classification.container,
     };
 
     if (!contains(candidate)) {
@@ -186,6 +191,13 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
         }
     }
 
+    const auto classification = ResourceClassifier::classify(
+        resource.logical_path,
+        std::span<const std::byte>{payload.bytes});
+    payload.resource.format = classification.format;
+    payload.resource.profile = std::string(to_string(classification.profile));
+    payload.resource.container = classification.container;
+
     if (resource.size != 0U && resource.size != raw_size) {
         payload.diagnostics.push_back(Diagnostic{
             .severity = DiagnosticSeverity::warning,
@@ -215,46 +227,26 @@ ResourceRef LocalDirectorySource::describe(
         relative = path.filename();
     }
 
-    const auto format = classify(path);
+    const auto logical_path = relative.generic_string();
+    const auto classification = ResourceClassifier::classify(logical_path);
     return ResourceRef{
         .id = ResourceId{
             .source_id = source_id_,
-            .logical_path = relative.generic_string(),
+            .logical_path = logical_path,
             .container_chain = {},
             .offset = 0,
             .size = size,
         },
         .display_name = path.filename().string(),
-        .format = format,
-        .profile = "unknown",
+        .format = classification.format,
+        .profile = std::string(to_string(classification.profile)),
         .synthetic_name = false,
-        .container = is_container_format(format),
+        .container = classification.container,
     };
 }
 
 bool LocalDirectorySource::contains(const std::filesystem::path& path) const {
     return path_has_prefix(root_, normalized_path(path));
-}
-
-std::string LocalDirectorySource::classify(
-    const std::filesystem::path& path) {
-    auto extension = path.extension().string();
-    if (!extension.empty() && extension.front() == '.') {
-        extension.erase(extension.begin());
-    }
-
-    std::transform(
-        extension.begin(), extension.end(), extension.begin(),
-        [](unsigned char character) {
-            return static_cast<char>(std::tolower(character));
-        });
-
-    return extension.empty() ? "unknown" : extension;
-}
-
-bool LocalDirectorySource::is_container_format(std::string_view format) {
-    return format == "nbz" || format == "afs" || format == "pac" ||
-           format == "pnst";
 }
 
 } // namespace dmc::rengine::gdspaces
