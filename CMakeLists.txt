@@ -52,11 +52,17 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_executable(dmc_rengine_tests tests/core_tests.cpp)
     target_link_libraries(dmc_rengine_tests PRIVATE DMCRengine::Core)
 
+    add_executable(dmc_rengine_sha256_tests tests/sha256_tests.cpp)
+    target_link_libraries(dmc_rengine_sha256_tests PRIVATE DMCRengine::Core)
+
     if(MSVC)
         target_compile_options(dmc_rengine_tests PRIVATE /W4 /permissive-)
+        target_compile_options(dmc_rengine_sha256_tests PRIVATE /W4 /permissive-)
     else()
         target_compile_options(dmc_rengine_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+        target_compile_options(dmc_rengine_sha256_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
     endif()
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
+    add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
 endif()
