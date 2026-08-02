@@ -1,99 +1,149 @@
 # Current Blockers
 
-## B-001 — CI result visibility
+**Snapshot date:** 2026-08-02
+
+## Resolved foundation blockers
+
+### B-001 — Cross-platform CI visibility and validation
+
+**Status:** resolved
+
+GitHub Actions validation is fully visible through PR #1. Final Build #170 passed configure, build, and all tests on both Windows and Ubuntu.
+
+Resolved findings included:
+
+- corrected escaped-newline Evidence JSON test expectation;
+- identified Release `NDEBUG` removal of side-effectful `assert` expressions on Windows;
+- rejected the unreliable forced-include assertion workaround;
+- enforced `/UNDEBUG` / `-UNDEBUG` for every test target.
+
+### B-002 — No serialized evidence packet schema
+
+**Status:** resolved for export; import remains a separate blocker
+
+Implemented:
+
+- versioned `EvidencePacket`;
+- artifact identities;
+- validation;
+- deterministic JSON export;
+- public canonical target Evidence Packet.
+
+Remaining work is strict untrusted JSON import, tracked by issue #2.
+
+### B-003 — Artifact hashing absent
+
+**Status:** resolved
+
+Implemented SHA-256, known-vector tests, CLI `hash`, artifact identity, guarded-patch hash checks, and known executable target matching.
+
+### B-004 — Read-only PE inspection absent
+
+**Status:** resolved at foundation level
+
+Implemented generic PE32/PE32+ parsing, bounds checks, sections, image base, entry point, subsystem, checked offset/RVA/VA conversion, synthetic fixtures, CLI inspection, and DMC3 target recognition.
+
+### B-006 — Working-copy and patch safety absent
+
+**Status:** resolved at foundation level
+
+Implemented revisioned `WorkingCopy`, expected-byte operations, undo/reset, source hash identity, and atomic fixed-size `GuardedPatchPlan`. Export/manifests remain future work.
+
+### B-007 — Legacy evidence not normalized
+
+**Status:** partially resolved
+
+The first canonical DMC3 HD target packet now records the executable hash, PE identity, entry point, `dmc3_main`, stage resource table, and StageSet classifier metadata. Other historical findings still require packet-by-packet migration.
+
+## Active blockers
+
+### B-011 — Strict Evidence Packet JSON import
 
 **Priority:** P0  
-**Status:** open
+**Status:** open  
+**Tracking:** issue #2
 
-The repository workflow is configured for Windows and Linux, but the connected status API has not yet returned check results for the current head.
+The exporter and schema model exist, but public evidence files cannot yet be parsed as untrusted input.
 
-Resolution:
+Required:
 
-- inspect GitHub Actions after the next push;
-- fix compiler-specific diagnostics;
-- require green build/test checks before the first tagged release.
+- strict parser diagnostics;
+- size/depth/count limits;
+- duplicate and reference validation;
+- schema migration policy;
+- round-trip and malformed-input tests;
+- CLI evidence validation.
 
-## B-002 — No serialized evidence packet schema
-
-**Priority:** P0  
-**Status:** open
-
-The in-memory Evidence Registry exists, but evidence cannot yet be saved, reviewed, versioned, or exchanged as a stable JSON document.
-
-Resolution:
-
-- define schema version;
-- add deterministic JSON serialization without binding core types to a UI;
-- validate required IDs, confidence, artifact hashes, and correction links.
-
-## B-003 — Artifact hashing not implemented
+### B-012 — No read-only container source layer
 
 **Priority:** P0  
-**Status:** open
+**Status:** open  
+**Tracking:** issue #3
 
-Historical findings depend on exact executable/resource versions. The C++ repository does not yet calculate or store SHA-256.
+Local directory sources work, but NBZ/AFS/PAC/PNST children are not yet exposed through generic GDSpaces container contracts.
 
-Resolution: introduce an artifact identity service and CLI hash command.
+Required:
 
-## B-004 — PE inspection not implemented
+- generic parser/result interfaces;
+- stable slot/container child identity;
+- synthetic fixtures;
+- partial-failure diagnostics;
+- parent/child graph integration;
+- no writer support in this phase.
+
+### B-013 — `st001` StageBundle is not game-backed yet
+
+**Priority:** P1  
+**Status:** open  
+**Tracking:** issue #4
+
+`StageBundle` and `StageBundleAssembler` are implemented, but the four EXE-backed `st001` resource roles are not yet resolved through container sources.
+
+### B-014 — Binary Inspector field/annotation layer absent
+
+**Priority:** P1  
+**Status:** open  
+**Tracking:** issue #5
+
+Regions, ownership, coverage, unknown gaps, and conflicts exist. Typed fields, nested structures, annotations, owner lookup, and manifest export remain.
+
+### B-015 — Evidence migration coverage is incomplete
 
 **Priority:** P1  
 **Status:** open
 
-Known PE facts are documented but not reproducible by current code.
+TXT parser helpers, Door/Box candidates, format schemas, Item Editor runtime findings, and EXE phases 13–16 remain prose/history rather than validated public packets.
 
-Resolution: implement read-only PE32+ parsing, bounds checks, sections, entry point, image base, and address conversion with synthetic fixtures.
+Resolution: migrate one independently reproducible subsystem per packet and link it to code/tests.
 
-## B-005 — No container source implementation
-
-**Priority:** P1  
-**Status:** open
-
-Only local directories can currently be mounted. NBZ/AFS/PAC/PNST remain migration targets.
-
-Resolution: define parser/source boundaries, begin with synthetic PAC/PNST fixtures, then introduce locally tested read-only volume sources.
-
-## B-006 — Working-copy and writer policy absent in code
+### B-016 — No public synthetic container/format corpus
 
 **Priority:** P1  
 **Status:** open
 
-The no-direct-write rule is documented but not encoded as APIs.
+Synthetic PE and lower-level binary fixtures exist, but PAC/PNST/NBZ/AFS and stage-format corpora are not yet implemented.
 
-Resolution: immutable source payload, mutable operation journal, validation result, export plan, and rollback manifest.
-
-## B-007 — Legacy evidence is not yet normalized
-
-**Priority:** P1  
-**Status:** open
-
-Historical addresses and findings exist in prose and private artifacts, not in machine-readable public evidence packets.
-
-Resolution: migrate one subsystem at a time, starting with PE identity and stage table metadata.
-
-## B-008 — UI technology decision pending
+### B-017 — Export and release pipeline absent
 
 **Priority:** P2  
 **Status:** open
 
-Qt 6, Dear ImGui, rendering backend, plugin model, and deployment constraints are not yet selected.
+No production file exporter, patch manifest format, signed release artifact, or release automation exists. This remains intentionally deferred until container and validation contracts stabilize.
 
-Resolution: defer until core data contracts and read-only inspection are stable; write an ADR comparing viable options.
-
-## B-009 — No public synthetic format corpus
+### B-018 — UI technology decision remains deferred
 
 **Priority:** P2  
-**Status:** open
+**Status:** deferred by ADR-0001
 
-Format work requires legally clean malformed/valid fixtures.
+Qt/ImGui/rendering decisions remain blocked on stable container, Binary Inspector, and first StageBundle vertical slices. CLI/domain-first development continues.
 
-Resolution: build generators for minimal PAC, PNST, HITS$, LIG2, DCA, TXT, and PE samples.
+## Current critical path
 
-## B-010 — No release pipeline
-
-**Priority:** P2  
-**Status:** open
-
-There are no signed/versioned binary artifacts or changelog automation.
-
-Resolution: add only after stable CLI behavior and green matrix CI.
+```text
+Evidence import
+  + container parser/source foundation
+  → game-backed st001 StageBundle
+  → Binary Inspector field/evidence integration
+  → Stage Ops/ModViz migration
+  → validated export pipeline
+```
