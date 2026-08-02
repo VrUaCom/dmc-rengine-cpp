@@ -49,6 +49,7 @@ add_library(dmc_rengine_core
     src/gdspaces/resource_id.cpp
     src/gdspaces/source_registry.cpp
     src/gdspaces/stage_bundle.cpp
+    src/gdspaces/stage_bundle_assembler.cpp
     src/gdspaces/working_copy.cpp
     src/patch/guarded_patch.cpp
 )
@@ -77,6 +78,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
+    dmc_rengine_configure_test(
+        dmc_rengine_stage_bundle_assembler_tests
+        tests/stage_bundle_assembler_tests.cpp)
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
     add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
@@ -85,4 +89,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_binary_reader_tests COMMAND dmc_rengine_binary_reader_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
+    add_test(
+        NAME dmc_rengine_stage_bundle_assembler_tests
+        COMMAND dmc_rengine_stage_bundle_assembler_tests)
 endif()
