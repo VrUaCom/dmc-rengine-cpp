@@ -27,17 +27,17 @@ void add_report_diagnostic(
     });
 }
 
-[[nodiscard]] formats::ParseSeverity parse_severity(
-    gdspaces::DiagnosticSeverity severity) noexcept {
+[[nodiscard]] gdspaces::DiagnosticSeverity map_severity(
+    formats::ParseSeverity severity) noexcept {
     switch (severity) {
-    case gdspaces::DiagnosticSeverity::info:
-        return formats::ParseSeverity::info;
-    case gdspaces::DiagnosticSeverity::warning:
-        return formats::ParseSeverity::warning;
-    case gdspaces::DiagnosticSeverity::error:
-        return formats::ParseSeverity::error;
+    case formats::ParseSeverity::info:
+        return gdspaces::DiagnosticSeverity::info;
+    case formats::ParseSeverity::warning:
+        return gdspaces::DiagnosticSeverity::warning;
+    case formats::ParseSeverity::error:
+        return gdspaces::DiagnosticSeverity::error;
     }
-    return formats::ParseSeverity::error;
+    return gdspaces::DiagnosticSeverity::error;
 }
 
 [[nodiscard]] std::vector<formats::ParseDiagnostic> pe_diagnostics(
@@ -121,11 +121,7 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         for (const auto& diagnostic : scan.diagnostics) {
             add_report_diagnostic(
                 report,
-                diagnostic.severity == formats::ParseSeverity::error
-                    ? gdspaces::DiagnosticSeverity::error
-                    : diagnostic.severity == formats::ParseSeverity::warning
-                        ? gdspaces::DiagnosticSeverity::warning
-                        : gdspaces::DiagnosticSeverity::info,
+                map_severity(diagnostic.severity),
                 diagnostic.code,
                 diagnostic.message);
         }
@@ -158,11 +154,7 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         for (const auto& diagnostic : parser_diagnostics) {
             add_report_diagnostic(
                 report,
-                diagnostic.severity == formats::ParseSeverity::error
-                    ? gdspaces::DiagnosticSeverity::error
-                    : diagnostic.severity == formats::ParseSeverity::warning
-                        ? gdspaces::DiagnosticSeverity::warning
-                        : gdspaces::DiagnosticSeverity::info,
+                map_severity(diagnostic.severity),
                 diagnostic.code,
                 diagnostic.message);
         }
@@ -195,7 +187,8 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
                 "The PE parser succeeded, but EXE Editor context could not be attached.");
             return report;
         }
-        static_cast<void>(project.link_format_evidence(resource));
+
+        static_cast<void>(project.link_artifact_evidence(resource, digest));
         return report;
     }
 
