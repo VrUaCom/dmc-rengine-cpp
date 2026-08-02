@@ -31,6 +31,24 @@ A Monk of Reverse is not defined by seniority, credentials, or access to secret 
 
 The monks do not copy the machine blindly. They reconstruct its logic.
 
+## The Sect of Neuroslop
+
+Inside the Order exists a deliberately absurd, self-ironic community tradition called **The Sect of Neuroslop** (`Секта Нейрошлаку`).
+
+It represents the AI-assisted side of DMC Rengine: prompts, agents, generated drafts, automation, memory systems, graphs, scripts, and neural tools used to help a very small team attack a very large reverse-engineering problem.
+
+The joke carries a strict engineering rule:
+
+> Raw neural output may be slop. Evidence, testing, correction, and human judgment turn it into engineering.
+
+The Sect is not a real cult or religion. It is fictional satire and an internal cultural label for contributors who use AI aggressively without surrendering responsibility or technical standards.
+
+Its canonical pipeline is:
+
+`Neuroslop → Triage → Evidence → Test → Correction → Canon`
+
+See [The Sect of Neuroslop](sect-of-neuroslop.md) for its doctrine, humorous roles, slogans, symbols, and public-use rules.
+
 ## The Reverse Canon
 
 The **Reverse Canon** is the living body of confirmed project knowledge.
@@ -137,3 +155,7 @@ The destination is not a pile of patches. It is understanding deep enough to bui
 ## Internal Motto
 
 > No claim without evidence. No tool outside the graph. No second resolver.
+
+## Sect Motto
+
+> Generate chaos. Commit evidence.
