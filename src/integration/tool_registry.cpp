@@ -89,6 +89,17 @@ bool ToolDescriptor::supports(ToolCapability capability) const noexcept {
 ToolRegistry::ToolRegistry() {
     tools_ = {
         ToolDescriptor{
+            .target = gdspaces::ToolTarget::gdspaces,
+            .product_name = "GDSpaces",
+            .lore_name = "The Archive",
+            .capabilities = {
+                ToolCapability::browse_resource,
+                ToolCapability::inspect_evidence,
+                ToolCapability::create_working_copy,
+                ToolCapability::export_manifest,
+            },
+        },
+        ToolDescriptor{
             .target = gdspaces::ToolTarget::spider_hub,
             .product_name = "Spider Hub",
             .lore_name = "The Nexus",
@@ -226,6 +237,11 @@ std::vector<ToolRoute> ToolRegistry::routes_for(
         primary,
         ToolRouteRole::primary,
         "Primary route selected by the GDSpaces OpenRouter.");
+    add_route(
+        routes,
+        gdspaces::ToolTarget::gdspaces,
+        ToolRouteRole::companion,
+        "GDSpaces owns source access, canonical identity, classification, graph relationships, and working-copy policy.");
     add_route(
         routes,
         gdspaces::ToolTarget::spider_hub,
