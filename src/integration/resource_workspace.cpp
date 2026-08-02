@@ -63,6 +63,23 @@ ResourceWorkspaceSession::ResourceWorkspaceSession(
             "workspace.no-tool-routes",
             "No tool route could be produced for the resource.");
     }
+
+    static_cast<void>(events_.record(
+        WorkspaceEventType::workspace_created,
+        payload_.resource.id,
+        gdspaces::ToolTarget::gdspaces,
+        std::nullopt,
+        0U,
+        payload_.resource.format,
+        "GDSpaces created a resource workspace from the canonical source payload."));
+    static_cast<void>(events_.record(
+        WorkspaceEventType::routes_resolved,
+        payload_.resource.id,
+        gdspaces::ToolTarget::gdspaces,
+        gdspaces::ToolTarget::spider_hub,
+        0U,
+        std::to_string(routes_.size()),
+        "Tool Capability Registry resolved the workspace tool graph."));
 }
 
 bool ResourceWorkspaceSession::valid() const noexcept {
@@ -123,6 +140,11 @@ ResourceWorkspaceSession::diagnostics() const noexcept {
     return diagnostics_;
 }
 
+const WorkspaceEventJournal&
+ResourceWorkspaceSession::events() const noexcept {
+    return events_;
+}
+
 bool ResourceWorkspaceSession::add_parser_diagnostics(
     std::span<const formats::ParseDiagnostic> diagnostics) {
     for (const auto& diagnostic : diagnostics) {
@@ -139,6 +161,17 @@ bool ResourceWorkspaceSession::add_parser_diagnostics(
             diagnostic.code,
             diagnostic.message + " [offset=" +
                 std::to_string(diagnostic.offset) + "]");
+    }
+
+    if (!diagnostics.empty()) {
+        static_cast<void>(events_.record(
+            WorkspaceEventType::parser_diagnostics_added,
+            payload_.resource.id,
+            gdspaces::ToolTarget::gdspaces,
+            gdspaces::ToolTarget::binary_inspector,
+            working_copy_.has_value() ? working_copy_->revision() : 0U,
+            format_.has_value() ? format_->parser_id : std::string{},
+            "Parser diagnostics were attached to the shared workspace."));
     }
     return true;
 }
@@ -171,6 +204,14 @@ bool ResourceWorkspaceSession::attach_binary_document(
     }
 
     binary_document_ = std::move(document);
+    static_cast<void>(events_.record(
+        WorkspaceEventType::binary_document_attached,
+        payload_.resource.id,
+        gdspaces::ToolTarget::binary_inspector,
+        gdspaces::ToolTarget::spider_hub,
+        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        format_->parser_id,
+        "Binary Inspector attached a structural document to the canonical resource."));
     return true;
 }
 
@@ -191,13 +232,22 @@ bool ResourceWorkspaceSession::link_evidence_record(
         return false;
     }
 
+    const std::string record_id_copy(record_id);
     const auto existing = std::find(
         evidence_record_ids_.begin(),
         evidence_record_ids_.end(),
-        record_id);
+        record_id_copy);
     if (existing == evidence_record_ids_.end()) {
-        evidence_record_ids_.emplace_back(record_id);
+        evidence_record_ids_.push_back(record_id_copy);
         std::sort(evidence_record_ids_.begin(), evidence_record_ids_.end());
+        static_cast<void>(events_.record(
+            WorkspaceEventType::evidence_record_linked,
+            payload_.resource.id,
+            gdspaces::ToolTarget::evidence_registry,
+            gdspaces::ToolTarget::spider_hub,
+            working_copy_.has_value() ? working_copy_->revision() : 0U,
+            record_id_copy,
+            "Evidence Registry linked a record to the canonical resource workspace."));
     }
     return true;
 }
@@ -269,6 +319,14 @@ bool ResourceWorkspaceSession::attach_stage_bundle(
         .category = member->category,
         .role = member->role,
     };
+    static_cast<void>(events_.record(
+        WorkspaceEventType::stage_context_attached,
+        payload_.resource.id,
+        gdspaces::ToolTarget::stage_ops,
+        gdspaces::ToolTarget::spider_hub,
+        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        bundle.identity().stage_id,
+        "Stage Ops attached StageBundle membership and role context."));
     return true;
 }
 
@@ -288,17 +346,146 @@ bool ResourceWorkspaceSession::enable_working_copy() {
     }
     if (!working_copy_.has_value()) {
         working_copy_.emplace(payload_);
+        static_cast<void>(events_.record(
+            WorkspaceEventType::working_copy_enabled,
+            payload_.resource.id,
+            gdspaces::ToolTarget::gdspaces,
+            std::nullopt,
+            working_copy_->revision(),
+            working_copy_->source_sha256(),
+            "GDSpaces created a revisioned local WorkingCopy from immutable source bytes."));
     }
     return true;
-}
-
-gdspaces::WorkingCopy* ResourceWorkspaceSession::working_copy() noexcept {
-    return working_copy_.has_value() ? &*working_copy_ : nullptr;
 }
 
 const gdspaces::WorkingCopy*
 ResourceWorkspaceSession::working_copy() const noexcept {
     return working_copy_.has_value() ? &*working_copy_ : nullptr;
+}
+
+gdspaces::EditResult ResourceWorkspaceSession::apply_edit(
+    gdspaces::EditOperation operation,
+    gdspaces::ToolTarget producer) {
+    if (!working_copy_.has_value()) {
+        return gdspaces::EditResult{
+            .applied = false,
+            .revision = 0U,
+            .error = "WorkingCopy is not enabled.",
+        };
+    }
+    if (producer != gdspaces::ToolTarget::gdspaces &&
+        !has_tool_route(producer)) {
+        return gdspaces::EditResult{
+            .applied = false,
+            .revision = working_copy_->revision(),
+            .error = "The producing tool is not part of this workspace route graph.",
+        };
+    }
+
+    const auto operation_id = operation.id;
+    const auto result = working_copy_->apply(std::move(operation));
+    if (result.applied) {
+        static_cast<void>(events_.record(
+            WorkspaceEventType::edit_applied,
+            payload_.resource.id,
+            producer,
+            gdspaces::ToolTarget::build_test_lab,
+            result.revision,
+            operation_id,
+            "A tool applied a guarded edit to the local WorkingCopy; validation is required before export."));
+    }
+    return result;
+}
+
+bool ResourceWorkspaceSession::undo_last_edit(
+    gdspaces::ToolTarget producer) {
+    if (!working_copy_.has_value() ||
+        (producer != gdspaces::ToolTarget::gdspaces &&
+         !has_tool_route(producer))) {
+        return false;
+    }
+
+    if (!working_copy_->undo_last()) {
+        return false;
+    }
+    static_cast<void>(events_.record(
+        WorkspaceEventType::edit_undone,
+        payload_.resource.id,
+        producer,
+        gdspaces::ToolTarget::build_test_lab,
+        working_copy_->revision(),
+        {},
+        "The last WorkingCopy edit was undone without mutating source bytes."));
+    return true;
+}
+
+bool ResourceWorkspaceSession::reset_working_copy(
+    gdspaces::ToolTarget producer) {
+    if (!working_copy_.has_value() ||
+        (producer != gdspaces::ToolTarget::gdspaces &&
+         !has_tool_route(producer))) {
+        return false;
+    }
+
+    working_copy_->reset();
+    static_cast<void>(events_.record(
+        WorkspaceEventType::working_copy_reset,
+        payload_.resource.id,
+        producer,
+        gdspaces::ToolTarget::build_test_lab,
+        working_copy_->revision(),
+        working_copy_->source_sha256(),
+        "The WorkingCopy was reset to the immutable source revision."));
+    return true;
+}
+
+bool ResourceWorkspaceSession::request_validation(
+    gdspaces::ToolTarget producer,
+    std::string subject_id,
+    std::string message) {
+    if (message.empty() ||
+        (producer != gdspaces::ToolTarget::gdspaces &&
+         !has_tool_route(producer)) ||
+        !has_tool_route(gdspaces::ToolTarget::build_test_lab)) {
+        return false;
+    }
+
+    return events_.record(
+        WorkspaceEventType::validation_requested,
+        payload_.resource.id,
+        producer,
+        gdspaces::ToolTarget::build_test_lab,
+        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        std::move(subject_id),
+        std::move(message)) != 0U;
+}
+
+bool ResourceWorkspaceSession::record_manifest_exported(
+    gdspaces::ToolTarget producer,
+    std::string manifest_id) {
+    if (manifest_id.empty() ||
+        (producer != gdspaces::ToolTarget::gdspaces &&
+         !has_tool_route(producer))) {
+        return false;
+    }
+
+    return events_.record(
+        WorkspaceEventType::manifest_exported,
+        payload_.resource.id,
+        producer,
+        gdspaces::ToolTarget::spider_hub,
+        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        std::move(manifest_id),
+        "A deterministic metadata manifest was exported for the workspace state.") != 0U;
+}
+
+bool ResourceWorkspaceSession::has_tool_route(
+    gdspaces::ToolTarget target) const noexcept {
+    return std::any_of(
+        routes_.begin(), routes_.end(),
+        [target](const ToolRoute& route) {
+            return route.target == target;
+        });
 }
 
 void ResourceWorkspaceSession::add_diagnostic(
