@@ -58,6 +58,7 @@ add_library(dmc_rengine_core
     src/gdspaces/working_copy.cpp
     src/patch/guarded_patch.cpp
     src/profiles/dmc3/known_targets.cpp
+    src/profiles/dmc3/stage_table.cpp
 )
 
 add_library(DMCRengine::Core ALIAS dmc_rengine_core)
@@ -91,6 +92,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_known_target_tests tests/known_target_tests.cpp)
     dmc_rengine_configure_test(
+        dmc_rengine_stage_table_descriptor_tests
+        tests/stage_table_descriptor_tests.cpp)
+    dmc_rengine_configure_test(
         dmc_rengine_stage_bundle_assembler_tests
         tests/stage_bundle_assembler_tests.cpp)
     dmc_rengine_configure_test(
@@ -110,6 +114,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
     add_test(NAME dmc_rengine_known_target_tests COMMAND dmc_rengine_known_target_tests)
+    add_test(
+        NAME dmc_rengine_stage_table_descriptor_tests
+        COMMAND dmc_rengine_stage_table_descriptor_tests)
     add_test(
         NAME dmc_rengine_stage_bundle_assembler_tests
         COMMAND dmc_rengine_stage_bundle_assembler_tests)
