@@ -60,6 +60,7 @@ add_library(dmc_rengine_core
     src/gdspaces/stage_bundle_assembler.cpp
     src/gdspaces/working_copy.cpp
     src/integration/format_registry.cpp
+    src/integration/project_graph.cpp
     src/integration/resource_workspace.cpp
     src/integration/tool_registry.cpp
     src/integration/workspace_event.cpp
@@ -107,6 +108,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(
         dmc_rengine_workspace_manifest_tests
         tests/workspace_manifest_tests.cpp)
+    dmc_rengine_configure_test(
+        dmc_rengine_project_graph_tests
+        tests/project_graph_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_known_target_tests tests/known_target_tests.cpp)
@@ -143,6 +147,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_workspace_manifest_tests
         COMMAND dmc_rengine_workspace_manifest_tests)
+    add_test(
+        NAME dmc_rengine_project_graph_tests
+        COMMAND dmc_rengine_project_graph_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
     add_test(NAME dmc_rengine_known_target_tests COMMAND dmc_rengine_known_target_tests)
