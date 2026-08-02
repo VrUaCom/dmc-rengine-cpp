@@ -38,6 +38,7 @@ add_library(dmc_rengine_core
     src/core/version.cpp
     src/evidence/json.cpp
     src/evidence/registry.cpp
+    src/exe/known_target.cpp
     src/exe/pe_image.cpp
     src/exe/pe_reader.cpp
     src/gdspaces/classifier.cpp
@@ -50,6 +51,7 @@ add_library(dmc_rengine_core
     src/gdspaces/stage_bundle_assembler.cpp
     src/gdspaces/working_copy.cpp
     src/patch/guarded_patch.cpp
+    src/profiles/dmc3/known_targets.cpp
 )
 
 add_library(DMCRengine::Core ALIAS dmc_rengine_core)
@@ -77,6 +79,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_binary_document_tests tests/binary_document_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_known_target_tests tests/known_target_tests.cpp)
     dmc_rengine_configure_test(
         dmc_rengine_stage_bundle_assembler_tests
         tests/stage_bundle_assembler_tests.cpp)
@@ -89,6 +92,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_binary_document_tests COMMAND dmc_rengine_binary_document_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
+    add_test(NAME dmc_rengine_known_target_tests COMMAND dmc_rengine_known_target_tests)
     add_test(
         NAME dmc_rengine_stage_bundle_assembler_tests
         COMMAND dmc_rengine_stage_bundle_assembler_tests)
