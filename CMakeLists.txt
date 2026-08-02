@@ -58,6 +58,7 @@ add_library(dmc_rengine_core
     src/gdspaces/working_copy.cpp
     src/patch/guarded_patch.cpp
     src/profiles/dmc3/known_targets.cpp
+    src/profiles/dmc3/stage_resources.cpp
     src/profiles/dmc3/stage_table.cpp
 )
 
@@ -95,6 +96,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_stage_table_descriptor_tests
         tests/stage_table_descriptor_tests.cpp)
     dmc_rengine_configure_test(
+        dmc_rengine_stage_resource_matcher_tests
+        tests/stage_resource_matcher_tests.cpp)
+    dmc_rengine_configure_test(
         dmc_rengine_stage_bundle_assembler_tests
         tests/stage_bundle_assembler_tests.cpp)
     dmc_rengine_configure_test(
@@ -117,6 +121,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_stage_table_descriptor_tests
         COMMAND dmc_rengine_stage_table_descriptor_tests)
+    add_test(
+        NAME dmc_rengine_stage_resource_matcher_tests
+        COMMAND dmc_rengine_stage_resource_matcher_tests)
     add_test(
         NAME dmc_rengine_stage_bundle_assembler_tests
         COMMAND dmc_rengine_stage_bundle_assembler_tests)
