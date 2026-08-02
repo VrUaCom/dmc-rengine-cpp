@@ -4,6 +4,7 @@
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
+#include "dmc_rengine/profiles/dmc3/known_targets.hpp"
 
 #include <cstdint>
 #include <filesystem>
@@ -35,7 +36,7 @@ void print_help() {
         << "  scan <directory>          Mount and enumerate a local directory\n"
         << "  hash <path>               Calculate SHA-256 through GDSpaces\n"
         << "  route <format>            Show the default tool route for a format\n"
-        << "  inspect-exe <path>        Inspect a PE file through GDSpaces\n"
+        << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
         << "  help | --help             Show this help\n";
 }
 
@@ -122,7 +123,8 @@ int run_scan(const std::filesystem::path& root) {
 
     for (const auto& resource : resources) {
         std::cout << "- [" << resource.format << "] "
-                  << resource.id.canonical();
+                  << resource.id.canonical()
+                  << " profile=" << resource.profile;
         if (resource.container) {
             std::cout << " (container)";
         }
@@ -179,8 +181,11 @@ int run_inspect_exe(const std::filesystem::path& path) {
         return 2;
     }
 
-    const auto result = dmc::rengine::exe::PeReader::read(
-        std::span<const std::byte>{payload->bytes});
+    const auto bytes = std::span<const std::byte>{payload->bytes};
+    const auto digest = dmc::rengine::core::Sha256::compute(bytes);
+    const auto digest_hex = digest.hex();
+    const auto result = dmc::rengine::exe::PeReader::read(bytes);
+
     for (const auto& warning : result.warnings) {
         std::cerr << "[warning] " << warning << '\n';
     }
@@ -189,11 +194,18 @@ int run_inspect_exe(const std::filesystem::path& path) {
     }
 
     if (!result.ok()) {
+        std::cerr << "SHA-256: " << digest_hex << '\n';
         return 3;
     }
 
     const auto& image = *result.image;
-    std::cout << "Format: " << dmc::rengine::exe::to_string(image.kind) << '\n'
+    const auto& target =
+        dmc::rengine::profiles::dmc3::phase12_canonical_target();
+    const auto recognized = target.matches_hash(digest_hex);
+    const auto metadata_match = recognized && target.matches_metadata(image);
+
+    std::cout << "SHA-256: " << digest_hex << '\n'
+              << "Format: " << dmc::rengine::exe::to_string(image.kind) << '\n'
               << "Machine: " << dmc::rengine::exe::to_string(image.machine) << '\n'
               << "Sections: " << image.section_count << '\n'
               << "ImageBase: 0x" << std::hex << image.image_base << '\n'
@@ -201,6 +213,18 @@ int run_inspect_exe(const std::filesystem::path& path) {
               << "SizeOfImage: 0x" << image.size_of_image << '\n'
               << "SizeOfHeaders: 0x" << image.size_of_headers << '\n'
               << "Subsystem: 0x" << image.subsystem << std::dec << '\n';
+
+    if (recognized) {
+        std::cout << "Known target: " << target.display_name << '\n'
+                  << "Target metadata: "
+                  << (metadata_match ? "match" : "mismatch") << '\n';
+        if (!metadata_match) {
+            std::cerr
+                << "[warning] SHA-256 matched the known target, but parsed PE metadata did not.\n";
+        }
+    } else {
+        std::cout << "Known target: unrecognized\n";
+    }
 
     for (const auto& section : image.sections) {
         std::cout << "- " << section.name
