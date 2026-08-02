@@ -116,4 +116,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_container_foundation_tests
         COMMAND dmc_rengine_container_foundation_tests)
+    add_test(
+        NAME dmc_rengine_public_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
 endif()
