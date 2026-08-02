@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible defect in DMC Rengine
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not upload game files, executables, proprietary assets, credentials, or private paths.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.x.y or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Subsystem
+      options:
+        - Core
+        - GDSpaces
+        - Evidence Registry
+        - EXE Editor
+        - Binary Inspector
+        - Stage Ops
+        - ModViz
+        - Item Editor
+        - Build/CI
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, compiler, CMake version, architecture
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+    validations:
+      required: true
+  - type: checkboxes
+    id: content
+    attributes:
+      label: Content confirmation
+      options:
+        - label: I have not attached proprietary game files or leaked source code.
+          required: true
+        - label: I checked for an existing issue.
+          required: true
