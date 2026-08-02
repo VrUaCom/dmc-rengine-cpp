@@ -66,6 +66,9 @@ public:
         std::string_view claim_id);
     [[nodiscard]] std::size_t link_format_evidence(
         const gdspaces::ResourceId& resource);
+    [[nodiscard]] std::size_t link_artifact_evidence(
+        const gdspaces::ResourceId& resource,
+        std::string_view sha256);
     [[nodiscard]] std::size_t attach_stage_bundle(
         const gdspaces::StageBundle& bundle);
 
