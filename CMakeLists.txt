@@ -21,13 +21,16 @@ function(dmc_rengine_configure_test target source)
     target_link_libraries(${target} PRIVATE DMCRengine::Core)
     dmc_rengine_enable_warnings(${target})
 
-    # The current lightweight tests use assert() as their check primitive.
-    # Release configurations normally define NDEBUG and would remove both the
-    # check and any expression side effects. Keep assertions active for tests.
+    # Force a test-only assertion shim before any source includes. It always
+    # evaluates expressions and reports file/line in both Debug and Release.
     if(MSVC)
-        target_compile_options(${target} PRIVATE /UNDEBUG)
+        target_compile_options(
+            ${target}
+            PRIVATE /FI${CMAKE_CURRENT_SOURCE_DIR}/tests/test_support.hpp)
     else()
-        target_compile_options(${target} PRIVATE -UNDEBUG)
+        target_compile_options(
+            ${target}
+            PRIVATE -include ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_support.hpp)
     endif()
 endfunction()
 
