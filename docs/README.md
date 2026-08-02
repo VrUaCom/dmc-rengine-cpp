@@ -24,6 +24,10 @@
 - [Working copy](gdspaces/working-copy.md)
 - [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
 
+### Stage reconstruction
+
+- [DMC3 Phase 12 stage resource plan](stage/dmc3-stage-resource-plan.md)
+
 ### Formats and containers
 
 - [Generic container foundation](formats/container-foundation.md)
