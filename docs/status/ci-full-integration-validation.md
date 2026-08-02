@@ -11,8 +11,10 @@ This validation branch checks the current cross-tool integration architecture ag
 - synchronized multi-resource ProjectWorkspace;
 - Spider Hub ProjectGraph and deterministic graph manifest;
 - unified Stage Workspace Manifest for Stage Ops and ModViz;
-- ModViz route consistency enforced only for visual stage categories;
-- TXT/scripts remain Stage Ops/Binary/Evidence resources without a false direct ModViz requirement;
+- ArtifactRegistry and EvidencePacketRegistry;
+- transactional Evidence Packet import with conflict rejection;
+- Evidence Packet, artifact identity, evidence record, and artifact-location provenance nodes/edges;
+- actual public DMC3 Phase 12 packet import into ProjectWorkspace;
 - deterministic resource workspace manifest;
 - integration CLI and smoke tests;
 - Windows and Ubuntu configure/build/test.
@@ -20,10 +22,11 @@ This validation branch checks the current cross-tool integration architecture ag
 ## Architectural invariant
 
 ```text
+Evidence Packet -> Artifact + Record registries -> Spider Hub provenance graph
 Sources -> GDSpaces -> ProjectWorkspace -> ResourceWorkspaceSession(s)
         -> parser / Binary / Evidence / Stage / Tool policies
         -> event-driven WorkingCopy and validation
         -> Resource, Stage, and Spider Hub manifests + CLI
 ```
 
-Stage Ops consumes all stage resources. ModViz consumes the same stage read model and direct routes for visual categories. No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
+Evidence conflicts must fail before partial import. No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
