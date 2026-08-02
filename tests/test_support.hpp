@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <string_view>
@@ -25,3 +26,8 @@ inline void require(
 #define DMC_REQUIRE(expression)                                                   \
     ::dmc::rengine::test::require(                                               \
         static_cast<bool>(expression), #expression, __FILE__, __LINE__)
+
+#ifdef assert
+#undef assert
+#endif
+#define assert(expression) DMC_REQUIRE(expression)
