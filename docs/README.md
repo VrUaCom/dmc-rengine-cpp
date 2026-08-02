@@ -1,0 +1,61 @@
+# DMC Rengine Documentation
+
+## Start here
+
+- [Architecture](architecture.md)
+- [Roadmap](roadmap.md)
+- [Current status](status/current.md)
+- [Phase map](status/phase-map.md)
+- [Constitution](../.specify/memory/constitution.md)
+- [Contributing](../CONTRIBUTING.md)
+
+## Architecture and contracts
+
+- [Canonical decisions](history/canonical-decisions.md)
+- [Deprecated architecture](history/deprecated-architecture.md)
+- [Reverse-engineering rules](reverse-engineering-rules.md)
+- [GDSpaces contract](gdspaces-contract.md)
+- [Clean-room policy](legal/clean-room-policy.md)
+
+## History and Canon migration
+
+- [Project timeline](history/project-timeline.md)
+- [Migrated findings](history/migrated-findings.md)
+- [Artifact registry](history/artifact-registry.md)
+
+## Status and planning
+
+- [Current status](status/current.md)
+- [Phase map](status/phase-map.md)
+- [Blockers](status/blockers.md)
+- [Risk register](status/risks.md)
+- [Machine-readable status](status/canonical-status.json)
+- [Specifications](../specs/)
+
+## Brand and community
+
+- [Brand Canon index](brand/README.md)
+- [Lore](brand/lore.md)
+- [Naming system](brand/naming-system.md)
+- [Voice and marketing](brand/voice-and-marketing.md)
+- [Sect of Neuroslop](brand/sect-of-neuroslop.md)
+
+## Product map
+
+- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, working copies.
+- **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
+- **EXE Editor — The Scriptorium:** executable inspection, source recovery, and guarded patch planning.
+- **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, and annotations.
+- **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
+- **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
+- **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
+- **Build & Test Lab — The Trial Chamber:** reproducibility, validation, regression, and release artifacts.
+
+## Documentation status language
+
+- **implemented:** exists in this repository and is connected to the build/tests;
+- **historical:** existed in an earlier/private generation;
+- **confirmed:** reverse finding supported by recorded evidence;
+- **high/medium/low:** confidence level, not implementation status;
+- **planned:** accepted direction without completed code;
+- **deprecated/rejected:** must not be used as the new architecture.
