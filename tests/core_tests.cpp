@@ -1,5 +1,6 @@
 #include "dmc_rengine/core/version.hpp"
 #include "dmc_rengine/evidence/registry.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/resource_graph.hpp"
@@ -9,10 +10,15 @@
 #include <cassert>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
+#include <span>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace {
 
@@ -20,6 +26,9 @@ using dmc::rengine::evidence::Confidence;
 using dmc::rengine::evidence::EvidenceLocation;
 using dmc::rengine::evidence::EvidenceRecord;
 using dmc::rengine::evidence::EvidenceRegistry;
+using dmc::rengine::exe::PeKind;
+using dmc::rengine::exe::PeMachine;
+using dmc::rengine::exe::PeReader;
 using dmc::rengine::gdspaces::LocalDirectorySource;
 using dmc::rengine::gdspaces::OpenRequest;
 using dmc::rengine::gdspaces::OpenRouter;
@@ -52,6 +61,68 @@ using dmc::rengine::gdspaces::ToolTarget;
         .synthetic_name = false,
         .container = false,
     };
+}
+
+void write_u16(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::uint16_t value) {
+    bytes[offset] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+}
+
+void write_u32(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::uint32_t value) {
+    for (std::size_t index = 0; index < 4U; ++index) {
+        bytes[offset + index] = static_cast<std::byte>(
+            (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
+    }
+}
+
+void write_u64(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::uint64_t value) {
+    for (std::size_t index = 0; index < 8U; ++index) {
+        bytes[offset + index] = static_cast<std::byte>(
+            (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
+    }
+}
+
+[[nodiscard]] std::vector<std::byte> make_synthetic_pe32_plus() {
+    std::vector<std::byte> bytes(0x400U, std::byte{0});
+    bytes[0] = static_cast<std::byte>('M');
+    bytes[1] = static_cast<std::byte>('Z');
+    write_u32(bytes, 0x3CU, 0x80U);
+
+    write_u32(bytes, 0x80U, 0x00004550U);
+    write_u16(bytes, 0x84U, 0x8664U);
+    write_u16(bytes, 0x86U, 1U);
+    write_u16(bytes, 0x94U, 0x00F0U);
+
+    constexpr std::size_t optional = 0x98U;
+    write_u16(bytes, optional, 0x020BU);
+    write_u32(bytes, optional + 16U, 0x1000U);
+    write_u64(bytes, optional + 24U, 0x140000000ULL);
+    write_u32(bytes, optional + 56U, 0x2000U);
+    write_u32(bytes, optional + 60U, 0x0200U);
+    write_u16(bytes, optional + 68U, 2U);
+
+    constexpr std::size_t section = 0x188U;
+    bytes[section] = static_cast<std::byte>('.');
+    bytes[section + 1U] = static_cast<std::byte>('t');
+    bytes[section + 2U] = static_cast<std::byte>('e');
+    bytes[section + 3U] = static_cast<std::byte>('x');
+    bytes[section + 4U] = static_cast<std::byte>('t');
+    write_u32(bytes, section + 8U, 0x0100U);
+    write_u32(bytes, section + 12U, 0x1000U);
+    write_u32(bytes, section + 16U, 0x0200U);
+    write_u32(bytes, section + 20U, 0x0200U);
+    write_u32(bytes, section + 36U, 0x60000020U);
+
+    return bytes;
 }
 
 void test_resource_identity() {
@@ -202,6 +273,28 @@ void test_graph_router_and_stage_bundle() {
     assert(bundle.members(StageResourceCategory::scripts).size() == 1U);
 }
 
+void test_pe_reader() {
+    const auto bytes = make_synthetic_pe32_plus();
+    const auto result = PeReader::read(std::span<const std::byte>{bytes});
+    assert(result.ok());
+    assert(result.errors.empty());
+    assert(result.image->kind == PeKind::pe32_plus);
+    assert(result.image->machine == PeMachine::amd64);
+    assert(result.image->image_base == 0x140000000ULL);
+    assert(result.image->entry_point_rva == 0x1000U);
+    assert(result.image->sections.size() == 1U);
+    assert(result.image->sections[0].name == ".text");
+    assert(result.image->rva_to_file_offset(0x1000U) == 0x200U);
+    assert(result.image->file_offset_to_rva(0x200U) == 0x1000U);
+    assert(result.image->rva_to_va(0x1000U) == 0x140001000ULL);
+
+    std::vector<std::byte> invalid(32U, std::byte{0});
+    const auto invalid_result = PeReader::read(
+        std::span<const std::byte>{invalid});
+    assert(!invalid_result.ok());
+    assert(!invalid_result.errors.empty());
+}
+
 } // namespace
 
 int main() {
@@ -210,5 +303,6 @@ int main() {
     test_evidence_registry();
     test_local_directory_source();
     test_graph_router_and_stage_bundle();
+    test_pe_reader();
     return 0;
 }
