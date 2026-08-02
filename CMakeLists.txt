@@ -61,6 +61,7 @@ add_library(dmc_rengine_core
     src/gdspaces/working_copy.cpp
     src/integration/format_registry.cpp
     src/integration/project_graph.cpp
+    src/integration/project_graph_manifest.cpp
     src/integration/project_workspace.cpp
     src/integration/resource_workspace.cpp
     src/integration/stage_workspace_manifest.cpp
@@ -84,7 +85,11 @@ target_include_directories(dmc_rengine_core
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
-add_executable(dmc-rengine src/cli/main.cpp)
+add_executable(dmc-rengine
+    src/cli/main.cpp
+    src/cli/integration_commands.cpp
+    src/cli/integration_dispatch.cpp
+)
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
 dmc_rengine_enable_warnings(dmc-rengine)
 
@@ -113,6 +118,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(
         dmc_rengine_project_graph_tests
         tests/project_graph_tests.cpp)
+    dmc_rengine_configure_test(
+        dmc_rengine_project_graph_manifest_tests
+        tests/project_graph_manifest_tests.cpp)
     dmc_rengine_configure_test(
         dmc_rengine_project_workspace_tests
         tests/project_workspace_tests.cpp)
@@ -159,6 +167,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_project_graph_tests
         COMMAND dmc_rengine_project_graph_tests)
     add_test(
+        NAME dmc_rengine_project_graph_manifest_tests
+        COMMAND dmc_rengine_project_graph_manifest_tests)
+    add_test(
         NAME dmc_rengine_project_workspace_tests
         COMMAND dmc_rengine_project_workspace_tests)
     add_test(
@@ -183,4 +194,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_public_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
+    add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
+    add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
+    add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
+    add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
 endif()
