@@ -55,6 +55,9 @@ public:
     [[nodiscard]] bool attach_binary_document(
         const gdspaces::ResourceId& resource,
         binary::Document document);
+    [[nodiscard]] bool attach_executable_context(
+        const gdspaces::ResourceId& resource,
+        ExecutableResourceContext context);
     [[nodiscard]] bool link_evidence_record(
         const gdspaces::ResourceId& resource,
         std::string_view record_id);
