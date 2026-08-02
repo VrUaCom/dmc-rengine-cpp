@@ -1,12 +1,17 @@
 #include "dmc_rengine/core/version.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 
+#include <cstdint>
 #include <filesystem>
+#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -19,7 +24,6 @@ using dmc::rengine::gdspaces::OpenRouter;
 using dmc::rengine::gdspaces::ResourceId;
 using dmc::rengine::gdspaces::ResourceRef;
 using dmc::rengine::gdspaces::SourceRegistry;
-using dmc::rengine::gdspaces::to_string;
 
 void print_help() {
     std::cout
@@ -28,6 +32,7 @@ void print_help() {
         << "  doctor                    Print architecture invariants\n"
         << "  scan <directory>          Mount and enumerate a local directory\n"
         << "  route <format>            Show the default tool route for a format\n"
+        << "  inspect-exe <path>        Inspect a PE file through GDSpaces\n"
         << "  help | --help             Show this help\n";
 }
 
@@ -98,7 +103,88 @@ int run_route(std::string format) {
         .evidence_context = true,
     };
 
-    std::cout << to_string(router.route(request)) << '\n';
+    std::cout << dmc::rengine::gdspaces::to_string(router.route(request)) << '\n';
+    return 0;
+}
+
+int run_inspect_exe(const std::filesystem::path& input_path) {
+    std::error_code error;
+    const auto absolute = std::filesystem::absolute(input_path, error);
+    if (error || !std::filesystem::is_regular_file(absolute, error) || error) {
+        std::cerr << "inspect-exe: not a readable file: "
+                  << input_path.string() << '\n';
+        return 2;
+    }
+
+    const auto raw_size = std::filesystem::file_size(absolute, error);
+    if (error || raw_size > std::numeric_limits<std::uint64_t>::max()) {
+        std::cerr << "inspect-exe: file size is unsupported\n";
+        return 3;
+    }
+
+    const auto parent = absolute.parent_path();
+    SourceRegistry registry;
+    if (!registry.mount(std::make_unique<LocalDirectorySource>(
+            "exe-inspect", parent, false))) {
+        std::cerr << "inspect-exe: failed to mount parent directory\n";
+        return 4;
+    }
+
+    const ResourceId resource{
+        .source_id = "exe-inspect",
+        .logical_path = absolute.filename().generic_string(),
+        .container_chain = {},
+        .offset = 0,
+        .size = static_cast<std::uint64_t>(raw_size),
+    };
+
+    const auto payload = registry.read(resource);
+    if (!payload.has_value() || !payload->readable()) {
+        std::cerr << "inspect-exe: GDSpaces could not read the resource\n";
+        if (payload.has_value()) {
+            for (const auto& diagnostic : payload->diagnostics) {
+                std::cerr << "  ["
+                          << dmc::rengine::gdspaces::to_string(diagnostic.severity)
+                          << "] " << diagnostic.code << ": "
+                          << diagnostic.message << '\n';
+            }
+        }
+        return 5;
+    }
+
+    const auto result = dmc::rengine::exe::PeReader::read(
+        std::span<const std::byte>{payload->bytes});
+    for (const auto& warning : result.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+    for (const auto& parse_error : result.errors) {
+        std::cerr << "[error] " << parse_error << '\n';
+    }
+
+    if (!result.ok()) {
+        return 6;
+    }
+
+    const auto& image = *result.image;
+    std::cout << "Format: " << dmc::rengine::exe::to_string(image.kind) << '\n'
+              << "Machine: " << dmc::rengine::exe::to_string(image.machine) << '\n'
+              << "Sections: " << image.section_count << '\n'
+              << "ImageBase: 0x" << std::hex << image.image_base << '\n'
+              << "EntryPoint RVA: 0x" << image.entry_point_rva << '\n'
+              << "SizeOfImage: 0x" << image.size_of_image << '\n'
+              << "SizeOfHeaders: 0x" << image.size_of_headers << '\n'
+              << "Subsystem: 0x" << image.subsystem << std::dec << '\n';
+
+    for (const auto& section : image.sections) {
+        std::cout << "- " << section.name
+                  << " RVA=0x" << std::hex << section.virtual_address
+                  << " VS=0x" << section.virtual_size
+                  << " RAW=0x" << section.raw_offset
+                  << "+0x" << section.raw_size
+                  << " CH=0x" << section.characteristics
+                  << std::dec << '\n';
+    }
+
     return 0;
 }
 
@@ -134,6 +220,14 @@ int main(int argc, char** argv) {
             return 1;
         }
         return run_route(std::string{argv[2]});
+    }
+
+    if (command == "inspect-exe") {
+        if (argc < 3) {
+            std::cerr << "inspect-exe: missing path\n";
+            return 1;
+        }
+        return run_inspect_exe(std::filesystem::path{argv[2]});
     }
 
     if (command == "help" || command == "--help" || command == "-h") {
