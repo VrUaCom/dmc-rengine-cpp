@@ -70,6 +70,7 @@ int main() {
     using dmc::rengine::gdspaces::StageIdentity;
     using dmc::rengine::gdspaces::StageMember;
     using dmc::rengine::gdspaces::StageResourceCategory;
+    using dmc::rengine::gdspaces::ToolTarget;
     using dmc::rengine::integration::FormatIntegrationRegistry;
     using dmc::rengine::integration::ResourceWorkspaceSession;
     using dmc::rengine::integration::ToolRegistry;
@@ -145,16 +146,23 @@ int main() {
     }));
     assert(workspace.attach_stage_bundle(stage));
     assert(workspace.enable_working_copy());
-    auto* working = workspace.working_copy();
-    assert(working != nullptr);
-    assert(working->apply(EditOperation{
-        .id = "manifest-edit",
-        .base_revision = 0U,
-        .offset = 6U,
-        .expected = {std::byte{0}},
-        .replacement = {std::byte{1}},
-        .description = "Create a dirty working-copy state for the manifest.",
-    }).applied);
+    assert(workspace.apply_edit(
+        EditOperation{
+            .id = "manifest-edit",
+            .base_revision = 0U,
+            .offset = 6U,
+            .expected = {std::byte{0}},
+            .replacement = {std::byte{1}},
+            .description = "Create a dirty working-copy state for the manifest.",
+        },
+        ToolTarget::stage_ops).applied);
+    assert(workspace.request_validation(
+        ToolTarget::stage_ops,
+        "manifest-edit",
+        "Validate the synthetic HITS edit."));
+    assert(workspace.record_manifest_exported(
+        ToolTarget::gdspaces,
+        "workspace-manifest-test"));
 
     const auto json = workspace_manifest_json(workspace);
     assert(!json.empty());
@@ -176,7 +184,7 @@ int main() {
     const auto* routes = member(*root, "tool_routes");
     assert(routes != nullptr);
     assert(routes->as_array() != nullptr);
-    assert(routes->as_array()->size() >= 6U);
+    assert(routes->as_array()->size() >= 7U);
 
     const auto* format = member(*root, "format_integration");
     assert(format != nullptr);
@@ -204,6 +212,31 @@ int main() {
     assert(dirty != nullptr);
     assert(dirty->as_bool() != nullptr);
     assert(*dirty->as_bool());
+
+    const auto* events = member(*root, "events");
+    assert(events != nullptr);
+    const auto* event_array = events->as_array();
+    assert(event_array != nullptr);
+    assert(event_array->size() == workspace.events().size());
+    assert(event_array->size() >= 8U);
+
+    const auto* first_event = (*event_array)[0].as_object();
+    assert(first_event != nullptr);
+    const auto* first_sequence = member(*first_event, "sequence");
+    assert(first_sequence != nullptr);
+    assert(first_sequence->as_u64() != nullptr);
+    assert(*first_sequence->as_u64() == 1U);
+    const auto* first_type = member(*first_event, "type");
+    assert(first_type != nullptr);
+    assert(first_type->as_string() != nullptr);
+    assert(*first_type->as_string() == "workspace-created");
+
+    const auto* final_event = event_array->back().as_object();
+    assert(final_event != nullptr);
+    const auto* final_type = member(*final_event, "type");
+    assert(final_type != nullptr);
+    assert(final_type->as_string() != nullptr);
+    assert(*final_type->as_string() == "manifest-exported");
 
     const auto second = workspace_manifest_json(workspace);
     assert(second == json);
