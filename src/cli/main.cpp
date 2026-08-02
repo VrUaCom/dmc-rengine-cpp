@@ -1,3 +1,4 @@
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
@@ -22,6 +23,7 @@ using dmc::rengine::gdspaces::LocalDirectorySource;
 using dmc::rengine::gdspaces::OpenRequest;
 using dmc::rengine::gdspaces::OpenRouter;
 using dmc::rengine::gdspaces::ResourceId;
+using dmc::rengine::gdspaces::ResourcePayload;
 using dmc::rengine::gdspaces::ResourceRef;
 using dmc::rengine::gdspaces::SourceRegistry;
 
@@ -31,6 +33,7 @@ void print_help() {
         << "  version | --version       Print the project version\n"
         << "  doctor                    Print architecture invariants\n"
         << "  scan <directory>          Mount and enumerate a local directory\n"
+        << "  hash <path>               Calculate SHA-256 through GDSpaces\n"
         << "  route <format>            Show the default tool route for a format\n"
         << "  inspect-exe <path>        Inspect a PE file through GDSpaces\n"
         << "  help | --help             Show this help\n";
@@ -44,8 +47,59 @@ int run_doctor() {
         << "[ok] Editors receive ResourceRef/ResourcePayload contracts.\n"
         << "[ok] Reverse claims use confidence and evidence records.\n"
         << "[ok] Original game files remain outside the repository.\n"
-        << "[ok] Writes require future working-copy and validation contracts.\n";
+        << "[ok] Writes require working-copy or guarded-patch contracts.\n";
     return 0;
+}
+
+[[nodiscard]] std::optional<ResourcePayload> load_local_file(
+    const std::filesystem::path& input_path,
+    std::string source_id,
+    std::string_view operation) {
+    std::error_code error;
+    const auto absolute = std::filesystem::absolute(input_path, error);
+    if (error || !std::filesystem::is_regular_file(absolute, error) || error) {
+        std::cerr << operation << ": not a readable file: "
+                  << input_path.string() << '\n';
+        return std::nullopt;
+    }
+
+    const auto raw_size = std::filesystem::file_size(absolute, error);
+    if (error || raw_size > std::numeric_limits<std::uint64_t>::max()) {
+        std::cerr << operation << ": file size is unsupported\n";
+        return std::nullopt;
+    }
+
+    SourceRegistry registry;
+    const auto source_id_copy = source_id;
+    if (!registry.mount(std::make_unique<LocalDirectorySource>(
+            std::move(source_id), absolute.parent_path(), false))) {
+        std::cerr << operation << ": failed to mount parent directory\n";
+        return std::nullopt;
+    }
+
+    const ResourceId resource{
+        .source_id = source_id_copy,
+        .logical_path = absolute.filename().generic_string(),
+        .container_chain = {},
+        .offset = 0,
+        .size = static_cast<std::uint64_t>(raw_size),
+    };
+
+    auto payload = registry.read(resource);
+    if (!payload.has_value() || !payload->readable()) {
+        std::cerr << operation << ": GDSpaces could not read the resource\n";
+        if (payload.has_value()) {
+            for (const auto& diagnostic : payload->diagnostics) {
+                std::cerr << "  ["
+                          << dmc::rengine::gdspaces::to_string(diagnostic.severity)
+                          << "] " << diagnostic.code << ": "
+                          << diagnostic.message << '\n';
+            }
+        }
+        return std::nullopt;
+    }
+
+    return payload;
 }
 
 int run_scan(const std::filesystem::path& root) {
@@ -78,6 +132,18 @@ int run_scan(const std::filesystem::path& root) {
     return 0;
 }
 
+int run_hash(const std::filesystem::path& path) {
+    const auto payload = load_local_file(path, "hash-input", "hash");
+    if (!payload.has_value()) {
+        return 2;
+    }
+
+    const auto digest = dmc::rengine::core::Sha256::compute(
+        std::span<const std::byte>{payload->bytes});
+    std::cout << digest.hex() << "  " << path.string() << '\n';
+    return 0;
+}
+
 int run_route(std::string format) {
     const ResourceRef resource{
         .id = ResourceId{
@@ -107,49 +173,10 @@ int run_route(std::string format) {
     return 0;
 }
 
-int run_inspect_exe(const std::filesystem::path& input_path) {
-    std::error_code error;
-    const auto absolute = std::filesystem::absolute(input_path, error);
-    if (error || !std::filesystem::is_regular_file(absolute, error) || error) {
-        std::cerr << "inspect-exe: not a readable file: "
-                  << input_path.string() << '\n';
+int run_inspect_exe(const std::filesystem::path& path) {
+    const auto payload = load_local_file(path, "exe-inspect", "inspect-exe");
+    if (!payload.has_value()) {
         return 2;
-    }
-
-    const auto raw_size = std::filesystem::file_size(absolute, error);
-    if (error || raw_size > std::numeric_limits<std::uint64_t>::max()) {
-        std::cerr << "inspect-exe: file size is unsupported\n";
-        return 3;
-    }
-
-    const auto parent = absolute.parent_path();
-    SourceRegistry registry;
-    if (!registry.mount(std::make_unique<LocalDirectorySource>(
-            "exe-inspect", parent, false))) {
-        std::cerr << "inspect-exe: failed to mount parent directory\n";
-        return 4;
-    }
-
-    const ResourceId resource{
-        .source_id = "exe-inspect",
-        .logical_path = absolute.filename().generic_string(),
-        .container_chain = {},
-        .offset = 0,
-        .size = static_cast<std::uint64_t>(raw_size),
-    };
-
-    const auto payload = registry.read(resource);
-    if (!payload.has_value() || !payload->readable()) {
-        std::cerr << "inspect-exe: GDSpaces could not read the resource\n";
-        if (payload.has_value()) {
-            for (const auto& diagnostic : payload->diagnostics) {
-                std::cerr << "  ["
-                          << dmc::rengine::gdspaces::to_string(diagnostic.severity)
-                          << "] " << diagnostic.code << ": "
-                          << diagnostic.message << '\n';
-            }
-        }
-        return 5;
     }
 
     const auto result = dmc::rengine::exe::PeReader::read(
@@ -162,7 +189,7 @@ int run_inspect_exe(const std::filesystem::path& input_path) {
     }
 
     if (!result.ok()) {
-        return 6;
+        return 3;
     }
 
     const auto& image = *result.image;
@@ -212,6 +239,14 @@ int main(int argc, char** argv) {
             return 1;
         }
         return run_scan(std::filesystem::path{argv[2]});
+    }
+
+    if (command == "hash") {
+        if (argc < 3) {
+            std::cerr << "hash: missing path\n";
+            return 1;
+        }
+        return run_hash(std::filesystem::path{argv[2]});
     }
 
     if (command == "route") {
