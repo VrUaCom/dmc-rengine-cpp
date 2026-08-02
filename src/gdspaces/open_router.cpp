@@ -19,6 +19,7 @@ namespace {
 } // namespace
 
 OpenRouter::OpenRouter() {
+    set_route("pe", ToolTarget::exe_editor);
     set_route("exe", ToolTarget::exe_editor);
     set_route("dll", ToolTarget::exe_editor);
     set_route("itm", ToolTarget::item_editor);
