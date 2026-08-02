@@ -42,6 +42,7 @@ add_library(dmc_rengine_core
     src/evidence/registry.cpp
     src/exe/pe_image.cpp
     src/exe/pe_reader.cpp
+    src/gdspaces/classifier.cpp
     src/gdspaces/local_directory_source.cpp
     src/gdspaces/open_router.cpp
     src/gdspaces/resource_graph.cpp
@@ -75,6 +76,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
     add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
@@ -82,4 +84,5 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_evidence_json_tests COMMAND dmc_rengine_evidence_json_tests)
     add_test(NAME dmc_rengine_binary_reader_tests COMMAND dmc_rengine_binary_reader_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
+    add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
 endif()
