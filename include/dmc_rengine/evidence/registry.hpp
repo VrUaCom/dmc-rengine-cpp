@@ -18,6 +18,8 @@ public:
         std::string_view claim_id) const;
     [[nodiscard]] std::vector<const EvidenceRecord*> by_confidence(
         Confidence confidence) const;
+    [[nodiscard]] std::vector<const EvidenceRecord*> by_artifact(
+        std::string_view artifact_id) const;
     [[nodiscard]] std::size_t size() const noexcept;
     [[nodiscard]] bool empty() const noexcept;
 
