@@ -1,5 +1,6 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
+#include "dmc_rengine/evidence/json_import.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
@@ -35,6 +36,7 @@ void print_help() {
         << "  doctor                    Print architecture invariants\n"
         << "  scan <directory>          Mount and enumerate a local directory\n"
         << "  hash <path>               Calculate SHA-256 through GDSpaces\n"
+        << "  validate-evidence <path>  Strictly validate an Evidence Packet JSON\n"
         << "  route <format>            Show the default tool route for a format\n"
         << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
         << "  help | --help             Show this help\n";
@@ -143,6 +145,42 @@ int run_hash(const std::filesystem::path& path) {
     const auto digest = dmc::rengine::core::Sha256::compute(
         std::span<const std::byte>{payload->bytes});
     std::cout << digest.hex() << "  " << path.string() << '\n';
+    return 0;
+}
+
+int run_validate_evidence(const std::filesystem::path& path) {
+    const auto payload = load_local_file(
+        path, "evidence-validation", "validate-evidence");
+    if (!payload.has_value()) {
+        return 2;
+    }
+
+    std::string json_text;
+    if (!payload->bytes.empty()) {
+        json_text.assign(
+            reinterpret_cast<const char*>(payload->bytes.data()),
+            payload->bytes.size());
+    }
+
+    const auto imported =
+        dmc::rengine::evidence::evidence_packet_from_json(json_text);
+    if (!imported.ok()) {
+        std::cerr << "Evidence Packet validation failed:\n";
+        for (const auto& diagnostic : imported.diagnostics) {
+            std::cerr << "- " << diagnostic.path << ": "
+                      << diagnostic.message << '\n';
+        }
+        return 3;
+    }
+
+    const auto& packet = *imported.packet;
+    std::cout << "Evidence Packet: valid\n"
+              << "Schema: " << packet.schema_version << '\n'
+              << "ID: " << packet.id << '\n'
+              << "Title: " << packet.title << '\n'
+              << "Project: " << packet.project << '\n'
+              << "Artifacts: " << packet.artifacts.size() << '\n'
+              << "Records: " << packet.records.size() << '\n';
     return 0;
 }
 
@@ -271,6 +309,14 @@ int main(int argc, char** argv) {
             return 1;
         }
         return run_hash(std::filesystem::path{argv[2]});
+    }
+
+    if (command == "validate-evidence") {
+        if (argc < 3) {
+            std::cerr << "validate-evidence: missing path\n";
+            return 1;
+        }
+        return run_validate_evidence(std::filesystem::path{argv[2]});
     }
 
     if (command == "route") {
