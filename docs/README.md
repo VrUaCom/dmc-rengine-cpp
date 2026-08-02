@@ -13,9 +13,26 @@
 
 - [Canonical decisions](history/canonical-decisions.md)
 - [Deprecated architecture](history/deprecated-architecture.md)
+- [Architecture Decision Records](architecture-decisions/README.md)
 - [Reverse-engineering rules](reverse-engineering-rules.md)
-- [GDSpaces contract](gdspaces-contract.md)
 - [Clean-room policy](legal/clean-room-policy.md)
+
+### GDSpaces
+
+- [GDSpaces contract](gdspaces-contract.md)
+- [Resource classification](gdspaces/classification.md)
+- [Working copy](gdspaces/working-copy.md)
+- [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
+
+### Evidence, executable, and patching
+
+- [Evidence Packets](evidence/evidence-packets.md)
+- [Read-only PE Inspector](exe/pe-inspector.md)
+- [Guarded patching](patch/guarded-patching.md)
+
+### Binary Inspector
+
+- [Binary document model](binary/document-model.md)
 
 ## History and Canon migration
 
@@ -30,6 +47,7 @@
 - [Blockers](status/blockers.md)
 - [Risk register](status/risks.md)
 - [Machine-readable status](status/canonical-status.json)
+- [Weekly reports](status/weekly/)
 - [Specifications](../specs/)
 
 ## Brand and community
@@ -37,15 +55,16 @@
 - [Brand Canon index](brand/README.md)
 - [Lore](brand/lore.md)
 - [Naming system](brand/naming-system.md)
+- [Brand glossary](brand/glossary.md)
 - [Voice and marketing](brand/voice-and-marketing.md)
 - [Sect of Neuroslop](brand/sect-of-neuroslop.md)
 
 ## Product map
 
-- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, working copies.
+- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, and typed bundles.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
 - **EXE Editor — The Scriptorium:** executable inspection, source recovery, and guarded patch planning.
-- **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, and annotations.
+- **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, unknown coverage, and annotations.
 - **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
 - **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
