@@ -4,30 +4,25 @@ This validation branch checks the current cross-tool integration architecture ag
 
 ## Scope
 
-- shared format diagnostics;
+- GDSpaces, Tool and Format Integration registries;
 - HITS$ scanner and Binary Inspector adapter;
-- Tool and Format Integration registries;
-- canonical product and lore names;
-- Resource Workspace Session;
-- append-only Workspace Event Journal;
-- producer-aware edit, undo, reset, validation, and manifest events;
-- immutable source payload plus revisioned local WorkingCopy;
-- deterministic event-rich workspace manifest;
-- one canonical ResourceId shared across parser, Binary Inspector, Evidence, StageBundle, ModViz/Stage Ops routes, WorkingCopy, Spider Hub, and Build & Test Lab;
+- Resource Workspace Session and append-only Event Journal;
+- producer-aware WorkingCopy edits and validation;
+- deterministic workspace manifest;
+- Spider Hub ProjectGraph with resource, format, parser, tool, evidence, stage, binary document, working copy, manifest, and event nodes;
+- explicit contains/depends-on/stage/evidence/tool relations;
+- synchronized multi-resource ProjectWorkspace;
+- one ResourceGraph plus one ProjectGraph for parent PAC, HITS, TXT, StageBundle, evidence, edits, validation, and manifests;
 - pending PAC/PNST/AFS/NBZ formats remaining read-only;
 - Windows and Ubuntu configure/build/test.
 
 ## Architectural invariant
 
 ```text
-GDSpaces ResourcePayload
-  -> Format Integration Registry
-  -> parser / Binary Document
-  -> Evidence + StageBundle context
-  -> Tool Capability graph
-  -> event-driven WorkingCopy operations
-  -> Build & Test validation
-  -> deterministic workspace manifest
+Sources -> GDSpaces ResourceGraph -> ResourceWorkspaceSession(s)
+        -> Tool/Format policies -> parser/Binary/Evidence/Stage contexts
+        -> append-only events -> WorkingCopy/validation/manifests
+        -> Spider Hub ProjectGraph
 ```
 
-No tool may introduce an independent resolver, mutate the immutable source payload, or change WorkingCopy state without an append-only event identifying its producer and revision.
+No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
