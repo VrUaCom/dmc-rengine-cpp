@@ -17,6 +17,7 @@ enum class WorkspaceEventType {
     parser_completed,
     parser_diagnostics_added,
     binary_document_attached,
+    executable_context_attached,
     evidence_record_linked,
     stage_context_attached,
     working_copy_enabled,
@@ -35,6 +36,7 @@ enum class WorkspaceEventType {
     case WorkspaceEventType::parser_completed: return "parser-completed";
     case WorkspaceEventType::parser_diagnostics_added: return "parser-diagnostics-added";
     case WorkspaceEventType::binary_document_attached: return "binary-document-attached";
+    case WorkspaceEventType::executable_context_attached: return "executable-context-attached";
     case WorkspaceEventType::evidence_record_linked: return "evidence-record-linked";
     case WorkspaceEventType::stage_context_attached: return "stage-context-attached";
     case WorkspaceEventType::working_copy_enabled: return "working-copy-enabled";
