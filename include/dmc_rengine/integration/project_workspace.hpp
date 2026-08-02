@@ -49,6 +49,11 @@ public:
         sessions_for_stage(std::string_view stage_id) const;
     [[nodiscard]] std::size_t session_count() const noexcept;
 
+    [[nodiscard]] bool record_parser_completed(
+        const gdspaces::ResourceId& resource,
+        std::string parser_id,
+        bool recognized,
+        gdspaces::ToolTarget consumer);
     [[nodiscard]] bool add_parser_diagnostics(
         const gdspaces::ResourceId& resource,
         std::span<const formats::ParseDiagnostic> diagnostics);
