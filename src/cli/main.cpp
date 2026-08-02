@@ -1,3 +1,5 @@
+#include "integration_commands.hpp"
+
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
 #include "dmc_rengine/evidence/json_import.hpp"
@@ -38,8 +40,9 @@ void print_help() {
         << "  hash <path>               Calculate SHA-256 through GDSpaces\n"
         << "  validate-evidence <path>  Strictly validate an Evidence Packet JSON\n"
         << "  route <format>            Show the default tool route for a format\n"
-        << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
-        << "  help | --help             Show this help\n";
+        << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n";
+    dmc::rengine::cli::print_integration_help();
+    std::cout << "  help | --help             Show this help\n";
 }
 
 int run_doctor() {
@@ -50,7 +53,10 @@ int run_doctor() {
         << "[ok] Editors receive ResourceRef/ResourcePayload contracts.\n"
         << "[ok] Reverse claims use confidence and evidence records.\n"
         << "[ok] Original game files remain outside the repository.\n"
-        << "[ok] Writes require working-copy or guarded-patch contracts.\n";
+        << "[ok] Writes require working-copy or guarded-patch contracts.\n"
+        << "[ok] Tool relationships use one capability registry and project graph.\n"
+        << "[ok] Workspace mutations are append-only events with producer identity.\n"
+        << "[ok] Stage Ops and ModViz consume the same Stage Workspace state.\n";
     return 0;
 }
 
@@ -283,6 +289,12 @@ int main(int argc, char** argv) {
     if (argc <= 1) {
         print_help();
         return 0;
+    }
+
+    const auto integration_result =
+        dmc::rengine::cli::try_run_integration_command(argc, argv);
+    if (integration_result != -1) {
+        return integration_result;
     }
 
     const std::string_view command{argv[1]};
