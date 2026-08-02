@@ -11,6 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(dmc_rengine_core
     src/core/sha256.cpp
     src/core/version.cpp
+    src/evidence/json.cpp
     src/evidence/registry.cpp
     src/exe/pe_image.cpp
     src/exe/pe_reader.cpp
@@ -59,17 +60,23 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_executable(dmc_rengine_patch_tests tests/patch_tests.cpp)
     target_link_libraries(dmc_rengine_patch_tests PRIVATE DMCRengine::Core)
 
+    add_executable(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
+    target_link_libraries(dmc_rengine_evidence_json_tests PRIVATE DMCRengine::Core)
+
     if(MSVC)
         target_compile_options(dmc_rengine_tests PRIVATE /W4 /permissive-)
         target_compile_options(dmc_rengine_sha256_tests PRIVATE /W4 /permissive-)
         target_compile_options(dmc_rengine_patch_tests PRIVATE /W4 /permissive-)
+        target_compile_options(dmc_rengine_evidence_json_tests PRIVATE /W4 /permissive-)
     else()
         target_compile_options(dmc_rengine_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
         target_compile_options(dmc_rengine_sha256_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
         target_compile_options(dmc_rengine_patch_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+        target_compile_options(dmc_rengine_evidence_json_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
     endif()
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
     add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
     add_test(NAME dmc_rengine_patch_tests COMMAND dmc_rengine_patch_tests)
+    add_test(NAME dmc_rengine_evidence_json_tests COMMAND dmc_rengine_evidence_json_tests)
 endif()
