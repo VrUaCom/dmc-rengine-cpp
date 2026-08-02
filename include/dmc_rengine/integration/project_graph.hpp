@@ -16,6 +16,8 @@ enum class ProjectNodeKind {
     format,
     parser,
     tool,
+    evidence_packet,
+    artifact,
     evidence_record,
     stage,
     binary_document,
@@ -32,6 +34,8 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::format: return "format";
     case ProjectNodeKind::parser: return "parser";
     case ProjectNodeKind::tool: return "tool";
+    case ProjectNodeKind::evidence_packet: return "evidence-packet";
+    case ProjectNodeKind::artifact: return "artifact";
     case ProjectNodeKind::evidence_record: return "evidence-record";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
@@ -46,6 +50,8 @@ enum class ProjectNodeKind {
 enum class ProjectEdgeKind {
     contains,
     depends_on,
+    declares,
+    references_artifact,
     classified_as,
     parsed_by,
     opens_with,
@@ -64,6 +70,8 @@ enum class ProjectEdgeKind {
     switch (kind) {
     case ProjectEdgeKind::contains: return "contains";
     case ProjectEdgeKind::depends_on: return "depends-on";
+    case ProjectEdgeKind::declares: return "declares";
+    case ProjectEdgeKind::references_artifact: return "references-artifact";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
