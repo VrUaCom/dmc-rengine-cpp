@@ -24,6 +24,11 @@
 - [Working copy](gdspaces/working-copy.md)
 - [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
 
+### Formats and containers
+
+- [Generic container foundation](formats/container-foundation.md)
+- [Synthetic slot container](formats/synthetic-slot-container.md)
+
 ### Evidence, executable, and patching
 
 - [Public evidence registry](../evidence/README.md)
@@ -63,7 +68,7 @@
 
 ## Product map
 
-- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, and typed bundles.
+- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
 - **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, unknown coverage, and annotations.
