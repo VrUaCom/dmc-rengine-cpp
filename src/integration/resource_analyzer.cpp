@@ -1,0 +1,210 @@
+#include "dmc_rengine/integration/resource_analyzer.hpp"
+
+#include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
+#include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/formats/hits_binary.hpp"
+#include "dmc_rengine/profiles/dmc3/known_targets.hpp"
+
+#include <algorithm>
+#include <span>
+#include <string>
+#include <utility>
+
+namespace dmc::rengine::integration {
+namespace {
+
+void add_report_diagnostic(
+    ResourceAnalysisReport& report,
+    gdspaces::DiagnosticSeverity severity,
+    std::string code,
+    std::string message) {
+    report.diagnostics.push_back(gdspaces::Diagnostic{
+        .severity = severity,
+        .code = std::move(code),
+        .message = std::move(message),
+        .resource = report.resource,
+    });
+}
+
+[[nodiscard]] formats::ParseSeverity parse_severity(
+    gdspaces::DiagnosticSeverity severity) noexcept {
+    switch (severity) {
+    case gdspaces::DiagnosticSeverity::info:
+        return formats::ParseSeverity::info;
+    case gdspaces::DiagnosticSeverity::warning:
+        return formats::ParseSeverity::warning;
+    case gdspaces::DiagnosticSeverity::error:
+        return formats::ParseSeverity::error;
+    }
+    return formats::ParseSeverity::error;
+}
+
+[[nodiscard]] std::vector<formats::ParseDiagnostic> pe_diagnostics(
+    const exe::PeReadResult& result) {
+    std::vector<formats::ParseDiagnostic> diagnostics;
+    diagnostics.reserve(result.warnings.size() + result.errors.size());
+    for (const auto& warning : result.warnings) {
+        diagnostics.push_back(formats::ParseDiagnostic{
+            .severity = formats::ParseSeverity::warning,
+            .code = "pe.warning",
+            .message = warning,
+            .offset = 0U,
+        });
+    }
+    for (const auto& error : result.errors) {
+        diagnostics.push_back(formats::ParseDiagnostic{
+            .severity = formats::ParseSeverity::error,
+            .code = "pe.error",
+            .message = error,
+            .offset = 0U,
+        });
+    }
+    return diagnostics;
+}
+
+} // namespace
+
+bool ResourceAnalysisReport::ok() const noexcept {
+    return parser_available && recognized &&
+        std::none_of(
+            diagnostics.begin(), diagnostics.end(),
+            [](const gdspaces::Diagnostic& diagnostic) {
+                return diagnostic.severity == gdspaces::DiagnosticSeverity::error;
+            });
+}
+
+ResourceAnalysisReport ResourceAnalyzer::analyze(
+    ProjectWorkspace& project,
+    const gdspaces::ResourceId& resource) {
+    ResourceAnalysisReport report{
+        .resource = resource,
+        .format = {},
+        .parser_id = {},
+        .parser_available = false,
+        .recognized = false,
+        .binary_document_attached = false,
+        .diagnostics = {},
+    };
+
+    const auto* session = project.find_session(resource);
+    if (session == nullptr) {
+        add_report_diagnostic(
+            report,
+            gdspaces::DiagnosticSeverity::error,
+            "analysis.session-missing",
+            "The canonical resource workspace session was not found.");
+        return report;
+    }
+
+    report.format = session->resource().format;
+    const auto* descriptor = session->format();
+    if (descriptor == nullptr || descriptor->parser_id.empty()) {
+        add_report_diagnostic(
+            report,
+            gdspaces::DiagnosticSeverity::warning,
+            "analysis.parser-unavailable",
+            "No implemented parser is registered for this resource format.");
+        return report;
+    }
+    report.parser_id = descriptor->parser_id;
+
+    const auto bytes = std::span<const std::byte>{
+        session->source_payload().bytes};
+
+    if (descriptor->parser_id == "formats.hits-record-scanner") {
+        report.parser_available = true;
+        const auto scan = formats::hits::RecordScanner::scan(bytes);
+        report.recognized = scan.recognized;
+        static_cast<void>(project.add_parser_diagnostics(
+            resource, scan.diagnostics));
+        for (const auto& diagnostic : scan.diagnostics) {
+            add_report_diagnostic(
+                report,
+                diagnostic.severity == formats::ParseSeverity::error
+                    ? gdspaces::DiagnosticSeverity::error
+                    : diagnostic.severity == formats::ParseSeverity::warning
+                        ? gdspaces::DiagnosticSeverity::warning
+                        : gdspaces::DiagnosticSeverity::info,
+                diagnostic.code,
+                diagnostic.message);
+        }
+
+        if (scan.recognized) {
+            auto document = formats::hits::build_binary_document(
+                session->resource(), bytes, scan);
+            if (document.has_value() &&
+                project.attach_binary_document(resource, std::move(*document))) {
+                report.binary_document_attached = true;
+            } else {
+                add_report_diagnostic(
+                    report,
+                    gdspaces::DiagnosticSeverity::error,
+                    "analysis.binary-adapter-failed",
+                    "The HITS parser succeeded, but the Binary Inspector adapter could not be attached.");
+            }
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    if (descriptor->parser_id == "exe.pe-reader") {
+        report.parser_available = true;
+        const auto parsed = exe::PeReader::read(bytes);
+        report.recognized = parsed.image.has_value();
+        const auto parser_diagnostics = pe_diagnostics(parsed);
+        static_cast<void>(project.add_parser_diagnostics(
+            resource, parser_diagnostics));
+        for (const auto& diagnostic : parser_diagnostics) {
+            add_report_diagnostic(
+                report,
+                diagnostic.severity == formats::ParseSeverity::error
+                    ? gdspaces::DiagnosticSeverity::error
+                    : diagnostic.severity == formats::ParseSeverity::warning
+                        ? gdspaces::DiagnosticSeverity::warning
+                        : gdspaces::DiagnosticSeverity::info,
+                diagnostic.code,
+                diagnostic.message);
+        }
+
+        if (!parsed.ok()) {
+            return report;
+        }
+
+        const auto digest = core::Sha256::compute(bytes).hex();
+        const auto& target = profiles::dmc3::phase12_canonical_target();
+        const auto hash_match = target.matches_hash(digest);
+        const auto metadata_match = hash_match &&
+            target.matches_metadata(*parsed.image);
+        ExecutableResourceContext context{
+            .image = *parsed.image,
+            .sha256 = digest,
+            .known_target_id = hash_match ? target.id : std::string{},
+            .known_target_name = hash_match
+                ? target.display_name
+                : std::string{},
+            .known_target_hash_match = hash_match,
+            .known_target_metadata_match = metadata_match,
+        };
+        if (!project.attach_executable_context(
+                resource, std::move(context))) {
+            add_report_diagnostic(
+                report,
+                gdspaces::DiagnosticSeverity::error,
+                "analysis.executable-context-failed",
+                "The PE parser succeeded, but EXE Editor context could not be attached.");
+            return report;
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    add_report_diagnostic(
+        report,
+        gdspaces::DiagnosticSeverity::warning,
+        "analysis.parser-not-wired",
+        "A parser ID is registered, but ResourceAnalyzer has no adapter for it yet.");
+    return report;
+}
+
+} // namespace dmc::rengine::integration
