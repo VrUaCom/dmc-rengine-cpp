@@ -62,6 +62,7 @@ add_library(dmc_rengine_core
     src/integration/format_registry.cpp
     src/integration/resource_workspace.cpp
     src/integration/tool_registry.cpp
+    src/integration/workspace_event.cpp
     src/integration/workspace_manifest.cpp
     src/patch/guarded_patch.cpp
     src/profiles/dmc3/known_targets.cpp
