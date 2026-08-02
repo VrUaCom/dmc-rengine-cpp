@@ -19,6 +19,7 @@ enum class ProjectNodeKind {
     evidence_packet,
     artifact,
     evidence_record,
+    executable_analysis,
     stage,
     binary_document,
     working_copy,
@@ -37,6 +38,7 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::evidence_packet: return "evidence-packet";
     case ProjectNodeKind::artifact: return "artifact";
     case ProjectNodeKind::evidence_record: return "evidence-record";
+    case ProjectNodeKind::executable_analysis: return "executable-analysis";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
     case ProjectNodeKind::working_copy: return "working-copy";
