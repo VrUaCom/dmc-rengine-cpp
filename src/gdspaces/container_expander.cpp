@@ -144,26 +144,6 @@ ContainerExpansion ContainerExpander::expand(
             parsed.document.format + "/" + slot_component(entry.slot_index) +
             "/" + name;
 
-        std::vector<std::byte> child_bytes;
-        ResourceClassification classification;
-        if (entry.populated) {
-            const auto offset = static_cast<std::size_t>(entry.offset);
-            const auto size = static_cast<std::size_t>(entry.size);
-            child_bytes.assign(
-                parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset),
-                parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset + size));
-            classification = ResourceClassifier::classify(
-                entry.logical_name,
-                std::span<const std::byte>{child_bytes});
-        } else {
-            classification = ResourceClassification{
-                .format = "empty-slot",
-                .profile = GameProfile::unknown,
-                .container = false,
-                .magic_confirmed = false,
-            };
-        }
-
         ResourceRef child_ref{
             .id = ResourceId{
                 .source_id = parent.resource.id.source_id,
@@ -176,18 +156,49 @@ ContainerExpansion ContainerExpander::expand(
                 .size = entry.size,
             },
             .display_name = entry.logical_name,
-            .format = classification.format,
+            .format = "unknown",
             .profile = parent.resource.profile,
             .synthetic_name = entry.synthetic_name,
-            .container = classification.container,
+            .container = false,
         };
+
+        std::vector<std::byte> child_bytes;
+        std::vector<Diagnostic> child_diagnostics;
+        if (entry.populated) {
+            const auto parent_size = static_cast<std::uint64_t>(parent.bytes.size());
+            const auto range_valid = entry.offset <= parent_size &&
+                entry.size <= parent_size - entry.offset;
+            if (!range_valid) {
+                const Diagnostic diagnostic{
+                    .severity = DiagnosticSeverity::error,
+                    .code = "gdspaces.container.child_range_changed",
+                    .message = "A parsed child range is outside the current parent payload.",
+                    .resource = child_ref.id,
+                };
+                expansion.diagnostics.push_back(diagnostic);
+                child_diagnostics.push_back(diagnostic);
+            } else {
+                const auto offset = static_cast<std::size_t>(entry.offset);
+                const auto size = static_cast<std::size_t>(entry.size);
+                child_bytes.assign(
+                    parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset),
+                    parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset + size));
+                const auto classification = ResourceClassifier::classify(
+                    entry.logical_name,
+                    std::span<const std::byte>{child_bytes});
+                child_ref.format = classification.format;
+                child_ref.container = classification.container;
+            }
+        } else {
+            child_ref.format = "empty-slot";
+        }
 
         expansion.children.push_back(ContainerChild{
             .entry = entry,
             .payload = ResourcePayload{
                 .resource = std::move(child_ref),
                 .bytes = std::move(child_bytes),
-                .diagnostics = {},
+                .diagnostics = std::move(child_diagnostics),
             },
         });
     }
