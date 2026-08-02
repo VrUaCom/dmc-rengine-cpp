@@ -15,7 +15,8 @@ This validation branch checks the current cross-tool integration architecture ag
 - parent PAC, HITS, and TXT resource sessions sharing one project graph;
 - explicit container `contains` relations;
 - StageBundle attachment only to matching member sessions;
-- evidence links, Binary Document, edit, validation, and manifest synchronization;
+- unified Stage Workspace Manifest for Stage Ops and ModViz;
+- stage categories, roles, evidence, Binary coverage, dirty revisions, events, and validation summaries;
 - pending PAC/PNST/AFS/NBZ formats remaining read-only;
 - Windows and Ubuntu configure/build/test.
 
@@ -26,7 +27,7 @@ Sources -> GDSpaces ResourceGraph -> ProjectWorkspace
         -> ResourceWorkspaceSession(s)
         -> parser / Binary / Evidence / Stage contexts
         -> event-driven WorkingCopy and validation
-        -> Spider Hub ProjectGraph and manifests
+        -> Resource, Stage, and Spider Hub manifests
 ```
 
-No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
+Stage Ops and ModViz must consume the same stage read model and canonical resource identities. No tool may introduce an independent resolver, mutate immutable source bytes, or maintain a competing copy of project relationships.
