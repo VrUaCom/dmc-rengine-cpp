@@ -8,6 +8,29 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+function(dmc_rengine_enable_warnings target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4 /permissive-)
+    else()
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+    endif()
+endfunction()
+
+function(dmc_rengine_configure_test target source)
+    add_executable(${target} ${source})
+    target_link_libraries(${target} PRIVATE DMCRengine::Core)
+    dmc_rengine_enable_warnings(${target})
+
+    # The current lightweight tests use assert() as their check primitive.
+    # Release configurations normally define NDEBUG and would remove both the
+    # check and any expression side effects. Keep assertions active for tests.
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(${target} PRIVATE -UNDEBUG)
+    endif()
+endfunction()
+
 add_library(dmc_rengine_core
     src/binary/reader.cpp
     src/core/sha256.cpp
@@ -35,57 +58,20 @@ target_include_directories(dmc_rengine_core
 )
 
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
-
-if(MSVC)
-    target_compile_options(dmc_rengine_core PRIVATE /W4 /permissive-)
-else()
-    target_compile_options(dmc_rengine_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-endif()
+dmc_rengine_enable_warnings(dmc_rengine_core)
 
 add_executable(dmc-rengine src/cli/main.cpp)
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
-
-if(MSVC)
-    target_compile_options(dmc-rengine PRIVATE /W4 /permissive-)
-else()
-    target_compile_options(dmc-rengine PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-endif()
+dmc_rengine_enable_warnings(dmc-rengine)
 
 include(CTest)
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
-    add_executable(dmc_rengine_tests tests/core_tests.cpp)
-    target_link_libraries(dmc_rengine_tests PRIVATE DMCRengine::Core)
-
-    add_executable(dmc_rengine_sha256_tests tests/sha256_tests.cpp)
-    target_link_libraries(dmc_rengine_sha256_tests PRIVATE DMCRengine::Core)
-
-    add_executable(dmc_rengine_patch_tests tests/patch_tests.cpp)
-    target_link_libraries(dmc_rengine_patch_tests PRIVATE DMCRengine::Core)
-
-    add_executable(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
-    target_link_libraries(dmc_rengine_evidence_json_tests PRIVATE DMCRengine::Core)
-
-    add_executable(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
-    target_link_libraries(dmc_rengine_binary_reader_tests PRIVATE DMCRengine::Core)
-
-    add_executable(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
-    target_link_libraries(dmc_rengine_working_copy_tests PRIVATE DMCRengine::Core)
-
-    if(MSVC)
-        target_compile_options(dmc_rengine_tests PRIVATE /W4 /permissive-)
-        target_compile_options(dmc_rengine_sha256_tests PRIVATE /W4 /permissive-)
-        target_compile_options(dmc_rengine_patch_tests PRIVATE /W4 /permissive-)
-        target_compile_options(dmc_rengine_evidence_json_tests PRIVATE /W4 /permissive-)
-        target_compile_options(dmc_rengine_binary_reader_tests PRIVATE /W4 /permissive-)
-        target_compile_options(dmc_rengine_working_copy_tests PRIVATE /W4 /permissive-)
-    else()
-        target_compile_options(dmc_rengine_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-        target_compile_options(dmc_rengine_sha256_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-        target_compile_options(dmc_rengine_patch_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-        target_compile_options(dmc_rengine_evidence_json_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-        target_compile_options(dmc_rengine_binary_reader_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-        target_compile_options(dmc_rengine_working_copy_tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
-    endif()
+    dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_sha256_tests tests/sha256_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_patch_tests tests/patch_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
 
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
     add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
