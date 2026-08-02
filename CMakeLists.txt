@@ -35,6 +35,7 @@ function(dmc_rengine_configure_test target source)
 endfunction()
 
 add_library(dmc_rengine_core
+    src/binary/document.cpp
     src/binary/reader.cpp
     src/core/sha256.cpp
     src/core/version.cpp
@@ -76,6 +77,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_patch_tests tests/patch_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
+    dmc_rengine_configure_test(dmc_rengine_binary_document_tests tests/binary_document_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
     dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
     dmc_rengine_configure_test(
@@ -87,6 +89,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_patch_tests COMMAND dmc_rengine_patch_tests)
     add_test(NAME dmc_rengine_evidence_json_tests COMMAND dmc_rengine_evidence_json_tests)
     add_test(NAME dmc_rengine_binary_reader_tests COMMAND dmc_rengine_binary_reader_tests)
+    add_test(NAME dmc_rengine_binary_document_tests COMMAND dmc_rengine_binary_document_tests)
     add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
     add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
     add_test(
