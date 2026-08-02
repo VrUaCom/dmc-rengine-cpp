@@ -1,5 +1,7 @@
 #include "dmc_rengine/integration/project_workspace.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <utility>
 
 namespace dmc::rengine::integration {
@@ -27,6 +29,31 @@ namespace {
     return "resource:" + resource.canonical();
 }
 
+[[nodiscard]] evidence::ArtifactIdentity canonical_artifact(
+    evidence::ArtifactIdentity artifact) {
+    std::transform(
+        artifact.sha256.begin(), artifact.sha256.end(), artifact.sha256.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::tolower(character));
+        });
+    return artifact;
+}
+
+[[nodiscard]] ProjectNode evidence_record_node(
+    const evidence::EvidenceRecord& record) {
+    return ProjectNode{
+        .id = "evidence:" + record.id,
+        .kind = ProjectNodeKind::evidence_record,
+        .label = record.title,
+        .attributes = {
+            {"record_id", record.id},
+            {"claim_id", record.claim_id},
+            {"confidence", std::string(evidence::to_string(record.confidence))},
+            {"summary", record.summary},
+        },
+    };
+}
+
 } // namespace
 
 const ToolRegistry& ProjectWorkspace::tools() const noexcept {
@@ -37,8 +64,17 @@ const FormatIntegrationRegistry& ProjectWorkspace::formats() const noexcept {
     return formats_;
 }
 
+const evidence::ArtifactRegistry& ProjectWorkspace::artifacts() const noexcept {
+    return artifacts_;
+}
+
 const evidence::EvidenceRegistry& ProjectWorkspace::evidence() const noexcept {
     return evidence_;
+}
+
+const evidence::EvidencePacketRegistry&
+ProjectWorkspace::packets() const noexcept {
+    return packets_;
 }
 
 const gdspaces::ResourceGraph& ProjectWorkspace::resources() const noexcept {
@@ -50,7 +86,52 @@ const ProjectGraph& ProjectWorkspace::graph() const noexcept {
 }
 
 bool ProjectWorkspace::add_evidence(evidence::EvidenceRecord record) {
-    return evidence_.add(std::move(record));
+    if (!record.valid() || evidence_.find(record.id) != nullptr) {
+        return false;
+    }
+    const auto graph_node = evidence_record_node(record);
+    if (!evidence_.add(std::move(record))) {
+        return false;
+    }
+    return graph_.upsert(graph_node);
+}
+
+bool ProjectWorkspace::import_evidence_packet(
+    const evidence::EvidencePacket& packet) {
+    if (!packet.valid() || packets_.find(packet.id) != nullptr) {
+        return false;
+    }
+
+    for (const auto& artifact : packet.artifacts) {
+        const auto normalized = canonical_artifact(artifact);
+        const auto* existing = artifacts_.find(artifact.id);
+        if (existing != nullptr && *existing != normalized) {
+            return false;
+        }
+    }
+    for (const auto& record : packet.records) {
+        const auto* existing = evidence_.find(record.id);
+        if (existing != nullptr && *existing != record) {
+            return false;
+        }
+    }
+
+    for (const auto& artifact : packet.artifacts) {
+        if (artifacts_.find(artifact.id) == nullptr &&
+            !artifacts_.add(artifact)) {
+            return false;
+        }
+    }
+    for (const auto& record : packet.records) {
+        if (evidence_.find(record.id) == nullptr &&
+            !evidence_.add(record)) {
+            return false;
+        }
+    }
+    if (!packets_.add(packet)) {
+        return false;
+    }
+    return sync_evidence_packet_graph(packet);
 }
 
 bool ProjectWorkspace::create_session(
@@ -290,6 +371,75 @@ ResourceWorkspaceSession* ProjectWorkspace::find_session_mutable(
 
 bool ProjectWorkspace::sync(ResourceWorkspaceSession& session) {
     return graph_.ingest_workspace(session, tools_);
+}
+
+bool ProjectWorkspace::sync_evidence_packet_graph(
+    const evidence::EvidencePacket& packet) {
+    const auto packet_node_id = "evidence-packet:" + packet.id;
+    if (!graph_.upsert(ProjectNode{
+            .id = packet_node_id,
+            .kind = ProjectNodeKind::evidence_packet,
+            .label = packet.title,
+            .attributes = {
+                {"packet_id", packet.id},
+                {"project", packet.project},
+                {"schema_version", std::to_string(packet.schema_version)},
+                {"artifact_count", std::to_string(packet.artifacts.size())},
+                {"record_count", std::to_string(packet.records.size())},
+            },
+        })) {
+        return false;
+    }
+
+    for (const auto& artifact : packet.artifacts) {
+        const auto normalized = canonical_artifact(artifact);
+        const auto artifact_node_id = "artifact:" + normalized.id;
+        if (!graph_.upsert(ProjectNode{
+                .id = artifact_node_id,
+                .kind = ProjectNodeKind::artifact,
+                .label = normalized.id,
+                .attributes = {
+                    {"artifact_id", normalized.id},
+                    {"role", normalized.role},
+                    {"sha256", normalized.sha256},
+                    {"size", std::to_string(normalized.size)},
+                },
+            })) {
+            return false;
+        }
+        static_cast<void>(graph_.connect(ProjectEdge{
+            .from = packet_node_id,
+            .to = artifact_node_id,
+            .kind = ProjectEdgeKind::declares,
+            .label = "packet artifact",
+        }));
+    }
+
+    for (const auto& record : packet.records) {
+        const auto record_node = evidence_record_node(record);
+        if (!graph_.upsert(record_node)) {
+            return false;
+        }
+        const auto record_node_id = "evidence:" + record.id;
+        static_cast<void>(graph_.connect(ProjectEdge{
+            .from = packet_node_id,
+            .to = record_node_id,
+            .kind = ProjectEdgeKind::declares,
+            .label = record.claim_id,
+        }));
+
+        for (const auto& location : record.locations) {
+            static_cast<void>(graph_.connect(ProjectEdge{
+                .from = record_node_id,
+                .to = "artifact:" + location.artifact_id,
+                .kind = ProjectEdgeKind::references_artifact,
+                .label = location.symbol.empty()
+                    ? location.note
+                    : location.symbol,
+            }));
+        }
+    }
+    return true;
 }
 
 } // namespace dmc::rengine::integration
