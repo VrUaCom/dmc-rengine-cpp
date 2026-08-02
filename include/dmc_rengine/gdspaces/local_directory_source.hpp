@@ -28,9 +28,6 @@ private:
         const std::filesystem::path& path,
         std::uint64_t size) const;
     [[nodiscard]] bool contains(const std::filesystem::path& path) const;
-    [[nodiscard]] static std::string classify(
-        const std::filesystem::path& path);
-    [[nodiscard]] static bool is_container_format(std::string_view format);
 
     std::string source_id_;
     std::filesystem::path root_;
