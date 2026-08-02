@@ -6,6 +6,7 @@
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/gdspaces/stage_bundle.hpp"
 #include "dmc_rengine/gdspaces/working_copy.hpp"
+#include "dmc_rengine/integration/executable_context.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
 #include "dmc_rengine/integration/workspace_event.hpp"
@@ -77,6 +78,10 @@ public:
         std::span<const formats::ParseDiagnostic> diagnostics);
     [[nodiscard]] bool attach_binary_document(binary::Document document);
     [[nodiscard]] const binary::Document* binary_document() const noexcept;
+    [[nodiscard]] bool attach_executable_context(
+        ExecutableResourceContext context);
+    [[nodiscard]] const ExecutableResourceContext*
+        executable_context() const noexcept;
 
     [[nodiscard]] bool link_evidence_record(
         const evidence::EvidenceRegistry& registry,
@@ -121,6 +126,7 @@ private:
     std::vector<ToolRoute> routes_;
     std::vector<gdspaces::Diagnostic> diagnostics_;
     std::optional<binary::Document> binary_document_;
+    std::optional<ExecutableResourceContext> executable_context_;
     std::vector<std::string> evidence_record_ids_;
     std::optional<StageResourceContext> stage_;
     std::optional<gdspaces::WorkingCopy> working_copy_;
