@@ -2,7 +2,7 @@
 
 This file triggers and documents pull-request validation of the expanded C++ foundation.
 
-## Validation iteration 7
+## Validation iteration 8 — final
 
 Scope:
 
@@ -11,8 +11,9 @@ Scope:
 - canonical DMC3 known-target registry;
 - SHA-256 and parsed PE metadata matching;
 - CLI known-target recognition;
-- centralized profile-aware resource classifier;
-- conservative `StageBundleAssembler`;
+- public canonical target Evidence Packet;
+- centralized resource classifier;
+- `StageBundleAssembler`;
 - Binary Inspector `Document` model;
 - Evidence Registry/Packet, WorkingCopy, patch, binary reader, PE, and SHA-256 tests.
 
@@ -24,6 +25,7 @@ Validation history:
 4. Run 4 proved that a forced include alone is insufficient on MSVC.
 5. Run 5 confirmed the expanded resource/stage/binary layer compiles and passes on Ubuntu.
 6. Run 6 passed the complete resource/stage/binary foundation on Windows and Ubuntu.
-7. Run 7 validates the final known-target/evidence integration.
+7. Run 7 passed the same expanded foundation before the final known-target source integration.
+8. Run 8 validates the final current head.
 
 After a green run, the CI blocker is closed and this validation PR is closed as completed provenance.
