@@ -20,6 +20,10 @@
 #include <string_view>
 #include <vector>
 
+namespace dmc::rengine::item {
+struct RuntimeChangeRequest;
+}
+
 namespace dmc::rengine::integration {
 
 class ProjectWorkspace final {
@@ -47,8 +51,13 @@ public:
         std::string_view canonical_id) const noexcept;
     [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
         sessions_for_stage(std::string_view stage_id) const;
+    [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
+        executable_sessions_for_artifact(
+            std::string_view artifact_id) const;
     [[nodiscard]] std::size_t session_count() const noexcept;
 
+    [[nodiscard]] bool register_item_runtime_request(
+        const item::RuntimeChangeRequest& request);
     [[nodiscard]] bool record_parser_completed(
         const gdspaces::ResourceId& resource,
         std::string parser_id,
