@@ -26,6 +26,8 @@ enum class WorkspaceEventType {
     working_copy_reset,
     runtime_change_requested,
     validation_requested,
+    validation_plan_created,
+    patch_plan_compiled,
     manifest_exported,
 };
 
@@ -46,6 +48,8 @@ enum class WorkspaceEventType {
     case WorkspaceEventType::working_copy_reset: return "working-copy-reset";
     case WorkspaceEventType::runtime_change_requested: return "runtime-change-requested";
     case WorkspaceEventType::validation_requested: return "validation-requested";
+    case WorkspaceEventType::validation_plan_created: return "validation-plan-created";
+    case WorkspaceEventType::patch_plan_compiled: return "patch-plan-compiled";
     case WorkspaceEventType::manifest_exported: return "manifest-exported";
     }
     return "workspace-created";
