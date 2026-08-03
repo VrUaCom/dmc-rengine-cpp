@@ -98,6 +98,7 @@ enum class ProjectEdgeKind {
     resolves,
     satisfies,
     governed_by,
+    validated_by,
     classified_as,
     parsed_by,
     opens_with,
@@ -134,6 +135,7 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::resolves: return "resolves";
     case ProjectEdgeKind::satisfies: return "satisfies";
     case ProjectEdgeKind::governed_by: return "governed-by";
+    case ProjectEdgeKind::validated_by: return "validated-by";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
