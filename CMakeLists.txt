@@ -96,6 +96,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
+        copy_executor
         working_copy
         classifier
         known_target
