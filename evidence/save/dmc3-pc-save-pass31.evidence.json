@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-pc-save-pass31",
+  "title": "DMC3 HD PC Save Layout and Integrity — Wide Pass 31",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 3735552
+    },
+    {
+      "id": "dmc3-sav-45379458",
+      "role": "runtime-save-sample",
+      "sha256": "45379458defd048502f3649e86fcb716ef2ca274a89f025d078b7deaa8df501e",
+      "size": 18992
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-save-pass31-exact-layout",
+      "claim_id": "claim-dmc3-save-pass31-exact-layout",
+      "title": "Exact 0x4A30 PC save block layout",
+      "summary": "The canonical DMC3 HD executable and the supplied real dmc3.sav confirm a 0x4A30-byte file containing one 0x134+4 header block, ten 0x3C+4 summary blocks beginning at 0x138, and ten 0x708+4 payload blocks beginning at 0x3B8. The file ends at 0x4A30; there is no standalone 0x28 pre-payload metadata region.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 0,
+          "size": 18992,
+          "symbol": "PCSaveFile",
+          "note": "Exact physical layout validated against all block boundaries."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372028080,
+          "symbol": "pc_save_registration_call",
+          "note": "Registration values: count 10, header 0x134, summary 0x3C, payload 0x708. Layout calculator at VA 0x14033DE90 computes 0x4A30."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "pc-save",
+        "wide-pass-31",
+        "layout",
+        "confirmed"
+      ],
+      "supersedes": [
+        "pass30-standalone-pre-payload-metadata-region"
+      ]
+    },
+    {
+      "id": "ev-dmc3-save-pass31-integrity-abi",
+      "claim_id": "claim-dmc3-save-pass31-integrity-abi",
+      "title": "Per-block four-byte one's-complement integrity trailer",
+      "summary": "Every header, summary and payload data block is followed by {u16 statusOrPresence, u16 integrityWord}. The validator performs little-endian 16-bit one's-complement addition with end-around carry over data plus trailer; a valid block folds to 0xFFFF. All 21 blocks in the supplied save validate.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372099408,
+          "symbol": "pc_save_integrity_validator",
+          "note": "Validator at VA 0x14033BB50. Generation-equivalent formula: integrityWord = ~(folded_sum(data) + statusOrPresence)."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 308,
+          "size": 4,
+          "symbol": "HeaderIntegrityTrailer",
+          "note": "First of 21 independently validated trailers. Summary and payload trailers follow each data block."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "integrity",
+        "ones-complement",
+        "wide-pass-31",
+        "confirmed"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-save-pass31-summary-bcd",
+      "claim_id": "claim-dmc3-save-pass31-summary-bcd",
+      "title": "Summary calendar and save clock use packed BCD",
+      "summary": "The summary fields at +0x01/+0x02/+0x03 and +0x24/+0x25/+0x26 are packed BCD. Playtime at +0x04/+0x05/+0x06 remains binary. This corrects the impossible plain-binary month interpretation from Pass 30.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372031104,
+          "symbol": "pc_save_summary_builder",
+          "note": "Builder at VA 0x14032B080 writes binary playtime and packed-BCD calendar/save-clock values."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 312,
+          "size": 60,
+          "symbol": "SlotSummaryData[0]",
+          "note": "Observed examples include 0x24 0x02 0x04 -> 2024-02-04 and 0x13 0x39 0x24 -> 13:39:24."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "packed-bcd",
+        "summary-record",
+        "wide-pass-31",
+        "confirmed"
+      ],
+      "supersedes": [
+        "pass30-plain-binary-summary-calendar"
+      ]
+    },
+    {
+      "id": "ev-dmc3-save-pass31-open-semantics",
+      "claim_id": "claim-dmc3-save-pass31-open-semantics",
+      "title": "Remaining save semantic frontier",
+      "summary": "Physical layout and integrity are closed, but most header fields, summary fields +0x0C/+0x10/+0x14, semantic segmentation of the 0x708 payload, trailer status values beyond 0/1 and the exact integrity writer remain research required. These unknowns must not receive invented semantic names in editors or source recovery.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "symbol": "pc_save_open_semantic_frontier",
+          "note": "Next canonical research scope is controlled differential saves and payload ownership mapping."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "open-gap",
+        "semantic-boundary",
+        "wide-pass-31"
+      ],
+      "supersedes": []
+    }
+  ]
+}
