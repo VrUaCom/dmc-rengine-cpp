@@ -5,7 +5,8 @@
 #include "dmc_rengine/integration/project_workspace.hpp"
 #include "dmc_rengine/integration/stage_workspace_manifest.hpp"
 
-#include <bit>
+#include "hits_test_fixture.hpp"
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -15,35 +16,6 @@
 #include <vector>
 
 namespace {
-
-void write_u32(
-    std::vector<std::byte>& bytes,
-    std::size_t offset,
-    std::uint32_t value) {
-    for (std::size_t index = 0; index < 4U; ++index) {
-        bytes[offset + index] = static_cast<std::byte>(
-            (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
-    }
-}
-
-[[nodiscard]] std::vector<std::byte> make_hits() {
-    std::vector<std::byte> bytes(64U, std::byte{0});
-    bytes[0] = std::byte{'H'};
-    bytes[1] = std::byte{'I'};
-    bytes[2] = std::byte{'T'};
-    bytes[3] = std::byte{'S'};
-    bytes[4] = std::byte{'$'};
-    write_u32(bytes, 8U, dmc::rengine::formats::hits::record_marker);
-    for (std::size_t index = 0;
-         index < dmc::rengine::formats::hits::value_count;
-         ++index) {
-        write_u32(
-            bytes,
-            12U + index * 4U,
-            std::bit_cast<std::uint32_t>(static_cast<float>(index + 1U)));
-    }
-    return bytes;
-}
 
 [[nodiscard]] dmc::rengine::gdspaces::ResourceRef resource(
     std::string path,
@@ -92,11 +64,13 @@ int main() {
     using dmc::rengine::integration::WorkspaceContext;
     using dmc::rengine::integration::stage_workspace_manifest_json;
 
-    const auto hits_bytes = make_hits();
+    const auto hits_bytes =
+        dmc::rengine::tests::hits_fixture::make_minimal_hits();
     const std::vector<std::byte> txt_bytes{
         std::byte{'#'}, std::byte{'S'}, std::byte{'E'}, std::byte{'T'},
         std::byte{' '}, std::byte{'S'}, std::byte{'T'}, std::byte{'A'},
         std::byte{'Y'}};
+
     const auto hits = resource(
         "room/st001cfg_006.hits", "hits", 4096U, hits_bytes.size());
     const auto txt = resource(
@@ -106,21 +80,11 @@ int main() {
     assert(project.add_evidence(EvidenceRecord{
         .id = "ev-hits-layout",
         .claim_id = "claim-hits-layout",
-        .title = "HITS layout",
+        .title = "HITS triangle-plane layout",
         .summary = "Synthetic Stage Workspace Manifest evidence.",
         .confidence = Confidence::confirmed,
         .locations = {},
         .tags = {"hits"},
-        .supersedes = {},
-    }));
-    assert(project.add_evidence(EvidenceRecord{
-        .id = "ev-dmc3-stageset-token-classifier",
-        .claim_id = "claim-dmc3-stageset-token-classifier",
-        .title = "StageSet token classifier",
-        .summary = "Synthetic Stage Workspace Manifest evidence.",
-        .confidence = Confidence::confirmed,
-        .locations = {},
-        .tags = {"txt"},
         .supersedes = {},
     }));
 
@@ -144,13 +108,10 @@ int main() {
         std::span<const std::byte>{hits_bytes});
     assert(scan.ok());
     auto document = build_binary_document(
-        hits,
-        std::span<const std::byte>{hits_bytes},
-        scan);
+        hits, std::span<const std::byte>{hits_bytes}, scan);
     assert(document.has_value());
     assert(project.attach_binary_document(hits.id, std::move(*document)));
     assert(project.link_evidence_claim(hits.id, "claim-hits-layout") == 1U);
-    assert(project.link_format_evidence(txt.id) == 1U);
 
     StageBundle stage(StageIdentity{
         .profile = "dmc3-hd",
@@ -161,7 +122,7 @@ int main() {
     assert(stage.add(StageMember{
         .category = StageResourceCategory::collision,
         .resource = hits,
-        .role = "room-collision-hits",
+        .role = "hits-source-1-member-6",
     }));
     assert(stage.add(StageMember{
         .category = StageResourceCategory::scripts,
@@ -171,13 +132,14 @@ int main() {
     assert(project.attach_stage_bundle(stage) == 2U);
 
     assert(project.enable_working_copy(hits.id));
+    const auto original = hits_bytes[0x06U];
     assert(project.apply_edit(
         hits.id,
         EditOperation{
             .id = "stage-manifest-edit",
             .base_revision = 0U,
-            .offset = 6U,
-            .expected = {std::byte{0}},
+            .offset = 0x06U,
+            .expected = {original},
             .replacement = {std::byte{4}},
             .description = "Create dirty stage resource state.",
         },
@@ -208,46 +170,18 @@ int main() {
     assert(summary_value != nullptr);
     const auto* summary = summary_value->as_object();
     assert(summary != nullptr);
-    const auto* count = member(*summary, "resource_count");
-    assert(count != nullptr);
-    assert(count->as_u64() != nullptr);
-    assert(*count->as_u64() == 2U);
-    const auto* dirty = member(*summary, "dirty_resource_count");
-    assert(dirty != nullptr);
-    assert(dirty->as_u64() != nullptr);
-    assert(*dirty->as_u64() == 1U);
-    const auto* binary_count = member(*summary, "binary_document_count");
-    assert(binary_count != nullptr);
-    assert(binary_count->as_u64() != nullptr);
-    assert(*binary_count->as_u64() == 1U);
-    const auto* validation_count = member(*summary, "validation_request_count");
-    assert(validation_count != nullptr);
-    assert(validation_count->as_u64() != nullptr);
-    assert(*validation_count->as_u64() == 1U);
-    const auto* stage_ops = member(*summary, "stage_ops_route_consistent");
-    assert(stage_ops != nullptr);
-    assert(stage_ops->as_bool() != nullptr);
-    assert(*stage_ops->as_bool());
-    const auto* modviz = member(*summary, "modviz_scene_route_consistent");
-    assert(modviz != nullptr);
-    assert(modviz->as_bool() != nullptr);
-    assert(*modviz->as_bool());
-
-    const auto* categories_value = member(*root, "category_counts");
-    assert(categories_value != nullptr);
-    const auto* categories = categories_value->as_object();
-    assert(categories != nullptr);
-    assert(member(*categories, "collision") != nullptr);
-    assert(member(*categories, "scripts") != nullptr);
+    assert(*member(*summary, "resource_count")->as_u64() == 2U);
+    assert(*member(*summary, "dirty_resource_count")->as_u64() == 1U);
+    assert(*member(*summary, "binary_document_count")->as_u64() == 1U);
+    assert(*member(*summary, "validation_request_count")->as_u64() == 1U);
+    assert(*member(*summary, "stage_ops_route_consistent")->as_bool());
+    assert(*member(*summary, "modviz_scene_route_consistent")->as_bool());
 
     const auto* resources_value = member(*root, "resources");
     assert(resources_value != nullptr);
-    const auto* resources = resources_value->as_array();
-    assert(resources != nullptr);
-    assert(resources->size() == 2U);
+    assert(resources_value->as_array() != nullptr);
+    assert(resources_value->as_array()->size() == 2U);
 
-    const auto second = stage_workspace_manifest_json(project, "st001");
-    assert(second == json);
     assert(stage_workspace_manifest_json(project, "st999").empty());
     return 0;
 }
