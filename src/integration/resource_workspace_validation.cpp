@@ -45,4 +45,26 @@ bool ResourceWorkspaceSession::record_patch_plan_compiled(
         std::move(message)) != 0U;
 }
 
+bool ResourceWorkspaceSession::record_patch_copy_executed(
+    std::string execution_id,
+    std::string output_sha256,
+    std::string rollback_plan_id) {
+    if (!valid() || execution_id.empty() || output_sha256.size() != 64U ||
+        rollback_plan_id.empty() ||
+        !has_tool_route(gdspaces::ToolTarget::build_test_lab)) {
+        return false;
+    }
+
+    return events_.record(
+        WorkspaceEventType::patch_copy_executed,
+        payload_.resource.id,
+        gdspaces::ToolTarget::build_test_lab,
+        gdspaces::ToolTarget::spider_hub,
+        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        std::move(execution_id),
+        "Trial Chamber executed the guarded patch on a copied byte buffer, produced output SHA-256 " +
+            output_sha256 + ", and verified rollback plan " +
+            rollback_plan_id + ". The immutable source payload was not modified.") != 0U;
+}
+
 } // namespace dmc::rengine::integration
