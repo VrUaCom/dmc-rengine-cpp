@@ -106,7 +106,7 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
             ParseSeverity::warning,
             "hits.no_records",
             "The HITS$ magic was recognized, but no complete confirmed record was found.",
-            magic_size);
+            static_cast<std::uint64_t>(magic_size));
     }
 
     return result;

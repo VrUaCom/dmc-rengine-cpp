@@ -196,10 +196,10 @@ EvidenceAddressResolution resolve_evidence_location(
 
     result.location = ResolvedEvidenceLocation{
         .artifact_id = artifact.id,
-        .file_offset = *file_offset,
-        .rva = *resolved_rva,
-        .va = *va,
-        .size = *location.size,
+        .file_offset = static_cast<std::uint64_t>(*file_offset),
+        .rva = static_cast<std::uint64_t>(*resolved_rva),
+        .va = static_cast<std::uint64_t>(*va),
+        .size = static_cast<std::uint64_t>(*location.size),
         .symbol = location.symbol,
         .note = location.note,
     };
