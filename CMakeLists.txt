@@ -105,6 +105,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         custom_build
         custom_build_graph
         custom_build_manifest
+        custom_build_reopen
         working_copy
         classifier
         known_target
