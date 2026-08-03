@@ -36,6 +36,12 @@ void add_diagnostic(
         .status = RuntimeRequestStatus::rejected,
         .item_resource = workspace.resource.id,
         .item_revision = workspace.working_copy_revision,
+        .producer = gdspaces::ToolTarget::item_editor,
+        .consumer = gdspaces::ToolTarget::exe_editor,
+        .validators = {
+            gdspaces::ToolTarget::evidence_registry,
+            gdspaces::ToolTarget::build_test_lab,
+        },
         .target_artifact_id = std::move(target_artifact_id),
         .requested_value = requested_value,
         .evidence_record_ids = {},
@@ -68,12 +74,6 @@ void add_diagnostic(
             request,
             "item-request.item-editor-route-missing",
             "The ITM workspace is not routed to Item Editor.");
-    }
-    if (!workspace.has_route("exe-editor")) {
-        add_diagnostic(
-            request,
-            "item-request.exe-editor-route-missing",
-            "Runtime-linked item changes require an EXE Editor companion route.");
     }
     if (!workspace.has_route("evidence-registry")) {
         add_diagnostic(
@@ -117,7 +117,6 @@ RuntimeChangeRequest make_slot_registration_request(
     request.required_guards.push_back("slot-range-50-63");
     request.required_guards.push_back("duplicate-item-id-check");
     request.required_guards.push_back("registry-capacity-check");
-    request.required_guards.push_back("slot-50-source-bytes-00-01-08-13");
 
     if (slot < 50U || slot > 63U) {
         add_diagnostic(
@@ -152,6 +151,16 @@ RuntimeChangeRequest make_slot_registration_request(
             request,
             "item-request.slot-guard-location-incomplete",
             "The slot guard must have artifact identity, address, and size before patch planning.");
+    }
+
+    if (slot == 50U) {
+        request.required_guards.push_back(
+            "slot-50-source-bytes-00-01-08-13");
+    } else {
+        add_diagnostic(
+            request,
+            "item-request.slot-location-not-confirmed",
+            "Only slot 50 currently has a confirmed address and expected source-byte guard. Slots 51 through 63 require dedicated evidence before patch planning.");
     }
 
     if (has_structural_errors(request)) {
