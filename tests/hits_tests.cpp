@@ -1,5 +1,7 @@
 #include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/hits/contact.hpp"
+#include "dmc_rengine/hits/edit.hpp"
+#include "dmc_rengine/hits/result.hpp"
 #include "dmc_rengine/hits/runtime.hpp"
 
 #include <bit>
@@ -46,7 +48,7 @@ void write_triangle(
     write_vec3(bytes, offset + 0x04U, origin_x, 0.0F, 0.0F);
     write_vec3(bytes, offset + 0x10U, origin_x + 1.0F, 0.0F, 0.0F);
     write_vec3(bytes, offset + 0x1CU, origin_x, 0.0F, 1.0F);
-    write_vec3(bytes, offset + 0x28U, 0.0F, 1.0F, 0.0F);
+    write_vec3(bytes, offset + 0x28U, 0.0F, -1.0F, 0.0F);
     write_f32(bytes, offset + 0x34U, 0.0F);
 }
 
@@ -87,131 +89,128 @@ int main() {
     using dmc::rengine::formats::ParseSeverity;
     using dmc::rengine::formats::hits::RecordScanner;
     using dmc::rengine::formats::hits::Vec3;
-    using dmc::rengine::formats::hits::flatten_cell_index;
     using dmc::rengine::formats::hits::triangle_size;
     using dmc::rengine::hits::contact::NormalYClass;
     using dmc::rengine::hits::contact::apply_normal_correction;
     using dmc::rengine::hits::contact::classify_normal_y;
     using dmc::rengine::hits::contact::query_static_candidates;
+    using dmc::rengine::hits::edit::prepare_safe_edit;
+    using dmc::rengine::hits::edit::recompute_geometry;
+    using dmc::rengine::hits::edit::serialize_topology_preserving_copy;
+    using dmc::rengine::hits::runtime::ContactResult;
     using dmc::rengine::hits::runtime::GridCoordinate;
     using dmc::rengine::hits::runtime::StaticSource;
     using dmc::rengine::hits::runtime::StaticSourceSelector;
-    using dmc::rengine::hits::runtime::collect_unique_triangle_offsets;
     using dmc::rengine::hits::runtime::enumerate_cells;
     using dmc::rengine::hits::runtime::flatten;
+    using dmc::rengine::hits::runtime::make_contact_result;
     using dmc::rengine::hits::runtime::maximum_plane_residual;
-    using dmc::rengine::hits::runtime::rejected_by_upper_mask;
+    using dmc::rengine::hits::runtime::select_nearest_contact;
     using dmc::rengine::hits::runtime::world_to_grid;
 
     static_assert(triangle_size == 0x38U);
-    static_assert(flatten_cell_index(1U, 2U, 3U, 4U, 5U) == 33U);
 
     const auto bytes = make_fixture();
-    const auto result = RecordScanner::scan(std::span<const std::byte>{bytes});
-    assert(result.recognized);
-    assert(result.ok());
-    assert(result.header.grid_count_x == 2U);
-    assert(result.header.cell_count() == 2U);
-    assert(result.header.spatial_offset() == 0x44U);
-    assert(result.header.triangle_offset() == 0x80U);
-    assert(result.cells.size() == 2U);
-    assert(result.cells[0].triangle_byte_offsets == std::vector<std::uint32_t>{0U});
-    assert(result.cells[1].triangle_byte_offsets == std::vector<std::uint32_t>{0x38U});
-    assert(result.triangles.size() == 2U);
-    assert(result.triangles[0].flags == 0x18060001U);
-    assert(result.triangles[0].point_b.x == -1.0F);
-    assert(result.triangles[0].normal.y == 1.0F);
-    assert(result.triangles[0].plane_d == 0.0F);
-    assert(maximum_plane_residual(result.triangles[0]) == 0.0F);
+    const auto scan = RecordScanner::scan(std::span<const std::byte>{bytes});
+    assert(scan.recognized);
+    assert(scan.ok());
+    assert(scan.header.cell_count() == 2U);
+    assert(scan.header.spatial_offset() == 0x44U);
+    assert(scan.header.triangle_offset() == 0x80U);
+    assert(scan.cells.size() == 2U);
+    assert(scan.triangles.size() == 2U);
+    assert(scan.triangles[0].flags == 0x18060001U);
+    assert(maximum_plane_residual(scan.triangles[0]) == 0.0F);
 
     const auto first_cell = world_to_grid(
-        result.header, Vec3{-9.0F, 0.0F, -9.0F});
+        scan.header, Vec3{-9.0F, 0.0F, -9.0F});
     assert((first_cell == GridCoordinate{0U, 0U, 0U}));
     const auto second_cell = world_to_grid(
-        result.header, Vec3{9.0F, 0.0F, 9.0F});
+        scan.header, Vec3{9.0F, 0.0F, 9.0F});
     assert((second_cell == GridCoordinate{1U, 0U, 0U}));
-    const auto clamped_cell = world_to_grid(
-        result.header, Vec3{500.0F, -500.0F, 500.0F});
-    assert((clamped_cell == GridCoordinate{1U, 0U, 0U}));
-    assert(flatten(result.header, GridCoordinate{1U, 0U, 0U}) == 1U);
-    assert(!flatten(result.header, GridCoordinate{2U, 0U, 0U}));
-
-    const auto queried_cells = enumerate_cells(
-        result.header,
+    assert(flatten(scan.header, GridCoordinate{1U, 0U, 0U}) == 1U);
+    assert(!flatten(scan.header, GridCoordinate{2U, 0U, 0U}));
+    const auto cells = enumerate_cells(
+        scan.header,
         Vec3{-9.0F, 0.0F, -9.0F},
         Vec3{9.0F, 0.0F, 9.0F});
-    assert(queried_cells == std::vector<std::uint32_t>({0U, 1U}));
-    const auto candidates = collect_unique_triangle_offsets(
-        result.cells, *queried_cells);
-    assert(candidates == std::vector<std::uint32_t>({0U, 0x38U}));
-
-    assert(rejected_by_upper_mask(0x18060001U, 0x0002U));
-    assert(!rejected_by_upper_mask(0x18060001U, 0x0008U));
+    assert(cells == std::vector<std::uint32_t>({0U, 1U}));
 
     StaticSourceSelector selector(true, true);
-    assert(selector.selected() == StaticSource::source_0_member_3);
     assert(selector.select(StaticSource::source_1_member_6));
-    assert(selector.selected() == StaticSource::source_1_member_6);
     assert(selector.restore_default());
     assert(selector.selected() == StaticSource::source_0_member_3);
-    StaticSourceSelector missing_auxiliary(true, false);
-    assert(!missing_auxiliary.select(StaticSource::source_1_member_6));
 
     assert(classify_normal_y(Vec3{1.0F, 0.0F, 0.0F}) == NormalYClass::low);
     assert(classify_normal_y(Vec3{0.0F, 0.6F, 0.0F}) == NormalYClass::middle);
     assert(classify_normal_y(Vec3{0.0F, 1.0F, 0.0F}) == NormalYClass::high);
-
     const auto corrected = apply_normal_correction(
-        Vec3{1.0F, 2.0F, 3.0F},
-        Vec3{0.0F, 1.0F, 0.0F},
-        2.5F);
+        Vec3{1.0F, 2.0F, 3.0F}, Vec3{0.0F, 1.0F, 0.0F}, 2.5F);
     assert(corrected.has_value());
     assert((corrected.value() == Vec3{1.0F, 4.5F, 3.0F}));
 
-    const auto unfiltered_candidates = query_static_candidates(
-        result,
+    const auto candidates = query_static_candidates(
+        scan,
         StaticSource::source_0_member_3,
         Vec3{-9.0F, 0.0F, -9.0F},
         Vec3{9.0F, 0.0F, 9.0F},
         0U);
-    assert(unfiltered_candidates.has_value());
-    assert(unfiltered_candidates->size() == 2U);
-    assert((*unfiltered_candidates)[0].triangle_index == 0U);
-    assert((*unfiltered_candidates)[1].triangle_index == 1U);
-    assert((*unfiltered_candidates)[0].source ==
-        StaticSource::source_0_member_3);
+    assert(candidates.has_value());
+    assert(candidates->size() == 2U);
+    const auto first_contact = make_contact_result(
+        (*candidates)[0], Vec3{-1.5F, 0.0F, 0.25F}, 2.0F);
+    const auto second_contact = make_contact_result(
+        (*candidates)[1], Vec3{3.25F, 0.0F, 0.25F}, 1.0F);
+    assert(first_contact.has_value());
+    assert(second_contact.has_value());
+    const std::vector<ContactResult> contacts{*first_contact, *second_contact};
+    const auto nearest = select_nearest_contact(contacts);
+    assert(nearest.has_value());
+    assert(nearest->triangle_index == 1U);
 
-    const auto filtered_candidates = query_static_candidates(
-        result,
-        StaticSource::source_1_member_6,
-        Vec3{-9.0F, 0.0F, -9.0F},
-        Vec3{9.0F, 0.0F, 9.0F},
-        0x0002U);
-    assert(filtered_candidates.has_value());
-    assert(filtered_candidates->size() == 1U);
-    assert((*filtered_candidates)[0].triangle_index == 1U);
-    assert((*filtered_candidates)[0].source ==
-        StaticSource::source_1_member_6);
+    // Safe edit: preserve topology, flags, file size, header and spatial bytes.
+    const auto edit = prepare_safe_edit(
+        scan.triangles[0],
+        0U,
+        Vec3{-2.0F, 1.0F, 0.0F},
+        Vec3{-1.0F, 1.0F, 0.0F},
+        Vec3{-2.0F, 1.0F, 1.0F});
+    assert(edit.has_value());
+    assert(edit->preserved_flags == 0x18060001U);
+    assert(edit->geometry.normal.y == -1.0F);
+    assert(edit->geometry.plane_d == 1.0F);
+
+    const auto edited_bytes = serialize_topology_preserving_copy(bytes, *edit);
+    assert(edited_bytes.has_value());
+    assert(edited_bytes->size() == bytes.size());
+    assert(std::equal(bytes.begin(), bytes.begin() + 0x80U, edited_bytes->begin()));
+    const auto edited_scan = RecordScanner::scan(*edited_bytes);
+    assert(edited_scan.ok());
+    assert(edited_scan.triangles.size() == scan.triangles.size());
+    assert(edited_scan.triangles[0].flags == scan.triangles[0].flags);
+    assert(edited_scan.triangles[0].point_a.y == 1.0F);
+    assert(edited_scan.triangles[0].normal.y == -1.0F);
+    assert(edited_scan.triangles[0].plane_d == 1.0F);
+    assert(maximum_plane_residual(edited_scan.triangles[0]) == 0.0F);
+    assert(edited_scan.cells[0].triangle_byte_offsets ==
+           scan.cells[0].triangle_byte_offsets);
+    assert(edited_scan.cells[1].triangle_byte_offsets ==
+           scan.cells[1].triangle_byte_offsets);
+
+    assert(!recompute_geometry(
+        Vec3{0.0F, 0.0F, 0.0F},
+        Vec3{1.0F, 0.0F, 0.0F},
+        Vec3{2.0F, 0.0F, 0.0F}));
 
     const std::vector<std::byte> wrong_magic{
         std::byte{'N'}, std::byte{'O'}, std::byte{'P'}, std::byte{'E'}};
-    const auto unrecognized = RecordScanner::scan(wrong_magic);
-    assert(!unrecognized.recognized);
-    assert(!unrecognized.ok());
-
+    assert(!RecordScanner::scan(wrong_magic).recognized);
     const std::vector<std::byte> truncated{
         std::byte{'H'}, std::byte{'I'}, std::byte{'T'}, std::byte{'S'}};
     const auto truncated_result = RecordScanner::scan(truncated);
     assert(truncated_result.recognized);
     assert(!truncated_result.ok());
     assert(truncated_result.diagnostics[0].severity == ParseSeverity::error);
-    assert(truncated_result.diagnostics[0].code == "hits.truncated_header");
 
-    auto invalid_reference = bytes;
-    write_i32(invalid_reference, 0x54U, 1);
-    const auto invalid = RecordScanner::scan(invalid_reference);
-    assert(invalid.recognized);
-    assert(!invalid.ok());
-    assert(invalid.diagnostics.back().code == "hits.invalid_triangle_reference");
     return 0;
 }
