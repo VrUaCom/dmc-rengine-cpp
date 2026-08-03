@@ -16,17 +16,16 @@
       "id": "ev-dmc3-item-slot50-guard",
       "claim_id": "claim-dmc3-item-slot50-guard",
       "title": "Item registry slot 50 guarded source bytes",
-      "summary": "For the canonical executable target, item slot 50 is located at file offset 0x005C4CE8 and the guarded source bytes are 00 01 08 13.",
+      "summary": "For the canonical executable target, item slot 50 is identified at RVA 0x005C4CE8 / VA 0x1405C4CE8 and the guarded source bytes are 00 01 08 13. The physical file offset must be resolved through the parsed PE sections.",
       "confidence": "confirmed",
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 6049000,
           "size": 4,
-          "rva": null,
-          "va": null,
+          "rva": 6049000,
+          "va": 5374758120,
           "symbol": "item_registry_slot_50",
-          "note": "Guard bytes: 00 01 08 13. Any patch must verify the artifact SHA-256 and these exact bytes before modification."
+          "note": "Guard bytes: 00 01 08 13. Any patch must verify the artifact SHA-256, resolve the RVA through the parsed PE sections, and verify these exact bytes before modification."
         }
       ],
       "tags": [
@@ -46,10 +45,6 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": null,
-          "size": null,
-          "rva": null,
-          "va": null,
           "symbol": "item_runtime_observations",
           "note": "Evidence source is reproducible game testing rather than one isolated executable region. Non-orb items may depend on event-based spawn or collection behavior."
         }
@@ -71,10 +66,6 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": null,
-          "size": null,
-          "rva": null,
-          "va": null,
           "symbol": "inventory_limit_patch_family",
           "note": "The six exact public locations still require migration into a dedicated location-complete Evidence Packet before production patch generation."
         }
