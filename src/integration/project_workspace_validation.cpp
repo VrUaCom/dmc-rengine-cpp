@@ -16,8 +16,9 @@ namespace {
 
 [[nodiscard]] std::string requirement_node_id(
     const validation::ItemRuntimeValidationPlan& plan,
-    const validation::ValidationRequirement& requirement) {
-    return "validation-requirement:" + plan.id + ':' + requirement.id;
+    std::string_view requirement_id) {
+    return "validation-requirement:" + plan.id + ':' +
+        std::string(requirement_id);
 }
 
 } // namespace
@@ -58,6 +59,11 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
             if (evidence_.find(record_id) == nullptr) {
                 return false;
             }
+        }
+    }
+    for (const auto& blocker : plan.blockers) {
+        if (blocker.empty()) {
+            return false;
         }
     }
 
@@ -148,8 +154,9 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
         }
     }
 
+    std::set<std::string, std::less<>> represented_blockers;
     for (const auto& requirement : plan.requirements) {
-        const auto node_id = requirement_node_id(plan, requirement);
+        const auto node_id = requirement_node_id(plan, requirement.id);
         if (!graph_.upsert(ProjectNode{
                 .id = node_id,
                 .kind = ProjectNodeKind::validation_requirement,
@@ -161,6 +168,7 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
                         requirement.status))},
                     {"mandatory", requirement.mandatory ? "true" : "false"},
                     {"detail", requirement.detail},
+                    {"external_blocker", "false"},
                     {"evidence_count",
                      std::to_string(requirement.evidence_record_ids.size())},
                 },
@@ -174,6 +182,7 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
             .label = requirement.detail,
         }));
         if (requirement.status == validation::RequirementStatus::blocked) {
+            represented_blockers.insert(requirement.id);
             static_cast<void>(graph_.connect(ProjectEdge{
                 .from = node_id,
                 .to = plan.id,
@@ -189,6 +198,43 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
                 .label = "requirement evidence",
             }));
         }
+    }
+
+    std::set<std::string, std::less<>> unique_external_blockers;
+    for (const auto& blocker : plan.blockers) {
+        if (represented_blockers.contains(blocker) ||
+            !unique_external_blockers.insert(blocker).second) {
+            continue;
+        }
+        const auto node_id = requirement_node_id(
+            plan, "external-blocker-" + blocker);
+        if (!graph_.upsert(ProjectNode{
+                .id = node_id,
+                .kind = ProjectNodeKind::validation_requirement,
+                .label = blocker,
+                .attributes = {
+                    {"kind", "external-blocker"},
+                    {"status", "blocked"},
+                    {"mandatory", "true"},
+                    {"detail", blocker},
+                    {"external_blocker", "true"},
+                    {"evidence_count", "0"},
+                },
+            })) {
+            return false;
+        }
+        static_cast<void>(graph_.connect(ProjectEdge{
+            .from = plan.id,
+            .to = node_id,
+            .kind = ProjectEdgeKind::requires,
+            .label = blocker,
+        }));
+        static_cast<void>(graph_.connect(ProjectEdge{
+            .from = node_id,
+            .to = plan.id,
+            .kind = ProjectEdgeKind::blocks,
+            .label = "external validation blocker",
+        }));
     }
 
     if (!session->record_validation_plan_created(
