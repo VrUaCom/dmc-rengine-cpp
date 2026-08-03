@@ -54,6 +54,7 @@ add_executable(dmc-rengine
     src/cli/main.cpp
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
+    src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
 )
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
@@ -79,6 +80,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits
         hits_writer
         hits_spatial_compare
+        hits_spatial_match
         hits_binary
         dca
         lig2
@@ -180,4 +182,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_compare_hits_spatial_usage
+        COMMAND dmc-rengine compare-hits-spatial)
+    set_tests_properties(
+        dmc_rengine_cli_compare_hits_spatial_usage
+        PROPERTIES WILL_FAIL TRUE)
 endif()
