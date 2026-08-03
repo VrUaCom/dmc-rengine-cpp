@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/gdspaces/diagnostic.hpp"
 #include "dmc_rengine/gdspaces/resource_id.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
