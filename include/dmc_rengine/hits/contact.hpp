@@ -129,3 +129,5 @@ query_static_candidates(
 }
 
 } // namespace dmc::rengine::hits::contact
+
+#include "dmc_rengine/hits/result.hpp"
