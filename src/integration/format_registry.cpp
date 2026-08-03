@@ -136,17 +136,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "txt",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.stage-txt-lexer",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::working_copy_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::scripts,
             .evidence_claim_ids = {
                 "claim-dmc3-stageset-token-classifier",
             },
             .limitations = {
-                "TXT parser helpers and StageSet semantics remain evidence migration inputs.",
-                "No validated stage-script writer is available.",
+                "The lexer recognizes safe lexical structure and confirmed StageSet/door tokens only.",
+                "Full script semantics and a validated writer remain unavailable.",
             },
         },
         FormatIntegrationDescriptor{
@@ -201,33 +201,42 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "dca",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.dca-record-scanner",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::unknown,
             .evidence_claim_ids = {},
-            .limitations = {"Confirmed DCA structure exists in history, but the clean parser is pending."},
+            .limitations = {
+                "Only DCA\\0 magic, 0x10-byte header, and 0x410-byte record boundaries are confirmed.",
+                "Header and record field semantics remain raw and no writer is available.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "lig",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.lig2-record-scanner",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::lighting,
             .evidence_claim_ids = {},
-            .limitations = {"Historical LIG2 editor/parser migration is pending."},
+            .limitations = {
+                "Only the 0x20-byte header and 0x30-byte record boundaries are structural facts.",
+                "The confirmed DMC3 corpus uses 48 records; field semantics and writing remain unavailable.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "lig2",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.lig2-record-scanner",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::lighting,
             .evidence_claim_ids = {},
-            .limitations = {"Historical LIG2 editor/parser migration is pending."},
+            .limitations = {
+                "Only the 0x20-byte header and 0x30-byte record boundaries are structural facts.",
+                "The confirmed DMC3 corpus uses 48 records; field semantics and writing remain unavailable.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "sltc",
@@ -258,6 +267,17 @@ const FormatIntegrationDescriptor* FormatIntegrationRegistry::find(
 const std::vector<FormatIntegrationDescriptor>&
 FormatIntegrationRegistry::formats() const noexcept {
     return formats_;
+}
+
+std::vector<const FormatIntegrationDescriptor*>
+FormatIntegrationRegistry::by_maturity(IntegrationMaturity maturity) const {
+    std::vector<const FormatIntegrationDescriptor*> result;
+    for (const auto& descriptor : formats_) {
+        if (descriptor.maturity == maturity) {
+            result.push_back(&descriptor);
+        }
+    }
+    return result;
 }
 
 } // namespace dmc::rengine::integration

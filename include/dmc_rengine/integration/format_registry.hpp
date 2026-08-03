@@ -68,6 +68,8 @@ public:
         std::string_view format) const noexcept;
     [[nodiscard]] const std::vector<FormatIntegrationDescriptor>&
         formats() const noexcept;
+    [[nodiscard]] std::vector<const FormatIntegrationDescriptor*> by_maturity(
+        IntegrationMaturity maturity) const;
 
 private:
     std::vector<FormatIntegrationDescriptor> formats_;

@@ -3,22 +3,12 @@
 #include "dmc_rengine/gdspaces/stage_bundle_assembler.hpp"
 
 #include <algorithm>
+#include <set>
 #include <string>
 #include <utility>
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
-
-[[nodiscard]] gdspaces::DiagnosticSeverity severity_from_text(
-    std::string_view severity) noexcept {
-    if (severity == "error") {
-        return gdspaces::DiagnosticSeverity::error;
-    }
-    if (severity == "warning") {
-        return gdspaces::DiagnosticSeverity::warning;
-    }
-    return gdspaces::DiagnosticSeverity::info;
-}
 
 void add_diagnostic(
     StageWorkspaceBuildResult& result,
@@ -101,15 +91,26 @@ StageWorkspaceBuildResult StageWorkspaceBuilder::build(
         }
     }
 
-    result.match = match_stage_resources(plan, resources);
-    for (const auto& diagnostic : result.match.diagnostics) {
-        add_diagnostic(
-            result,
-            severity_from_text(diagnostic.severity),
-            diagnostic.code,
-            diagnostic.role.empty()
-                ? diagnostic.message
-                : diagnostic.role + ": " + diagnostic.message);
+    result.match = StageResourceMatcher::match(plan, resources);
+    result.diagnostics.insert(
+        result.diagnostics.end(),
+        result.match.diagnostics.begin(),
+        result.match.diagnostics.end());
+
+    auto candidates = result.match.unique_candidates();
+    std::set<std::string, std::less<>> matched_ids;
+    for (const auto& candidate : candidates) {
+        matched_ids.insert(candidate.resource.id.canonical());
+    }
+    for (const auto& resource : resources) {
+        if (matched_ids.contains(resource.id.canonical())) {
+            continue;
+        }
+        candidates.push_back(gdspaces::StageMemberCandidate{
+            .resource = resource,
+            .category = std::nullopt,
+            .role = "discovered:" + resource.id.logical_path,
+        });
     }
 
     const gdspaces::StageIdentity identity{
@@ -118,14 +119,15 @@ StageWorkspaceBuildResult StageWorkspaceBuilder::build(
         .display_name = "Stage " + plan.stage_id,
         .exe_evidence_id = plan.evidence_id,
     };
-    auto assembled = gdspaces::StageBundleAssembler::assemble(
-        identity, resources);
-    for (const auto& diagnostic : assembled.diagnostics) {
-        result.diagnostics.push_back(diagnostic);
-    }
+    auto bundle = gdspaces::StageBundleAssembler::assemble(
+        identity, candidates);
+    result.diagnostics.insert(
+        result.diagnostics.end(),
+        bundle.diagnostics().begin(),
+        bundle.diagnostics().end());
 
-    if (assembled.bundle.valid()) {
-        result.stage = std::move(assembled.bundle);
+    if (bundle.valid()) {
+        result.stage = std::move(bundle);
         const auto attached = result.project.attach_stage_bundle(*result.stage);
         if (attached != result.stage->size()) {
             add_diagnostic(
@@ -155,11 +157,10 @@ StageWorkspaceBuildResult StageWorkspaceBuilder::build(
     }
 
     if (packet != nullptr && !plan.evidence_id.empty()) {
-        for (const auto& match : result.match.matches) {
-            if (match.status == StageResourceMatchStatus::unique &&
-                !match.candidates.empty()) {
+        for (const auto& role : result.match.roles) {
+            if (role.matches.size() == 1U) {
                 static_cast<void>(result.project.link_evidence_record(
-                    match.candidates.front().id,
+                    role.matches.front().id,
                     plan.evidence_id));
             }
         }

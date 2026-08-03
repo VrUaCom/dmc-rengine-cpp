@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
@@ -17,6 +18,6 @@ jobs:
       - name: Configure
         run: cmake -S . -B build -DDMC_RENGINE_BUILD_TESTS=ON
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --parallel 2
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure

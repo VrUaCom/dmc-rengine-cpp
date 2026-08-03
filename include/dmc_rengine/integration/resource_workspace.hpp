@@ -109,6 +109,10 @@ public:
     [[nodiscard]] bool undo_last_edit(gdspaces::ToolTarget producer);
     [[nodiscard]] bool reset_working_copy(gdspaces::ToolTarget producer);
 
+    [[nodiscard]] bool record_runtime_change_requested(
+        std::string request_id,
+        gdspaces::ToolTarget consumer,
+        std::string message);
     [[nodiscard]] bool request_validation(
         gdspaces::ToolTarget producer,
         std::string subject_id,

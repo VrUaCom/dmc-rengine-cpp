@@ -2,14 +2,22 @@
 
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
+#include "dmc_rengine/formats/dca.hpp"
+#include "dmc_rengine/formats/dca_binary.hpp"
 #include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/formats/hits_binary.hpp"
+#include "dmc_rengine/formats/lig2.hpp"
+#include "dmc_rengine/formats/lig2_binary.hpp"
+#include "dmc_rengine/formats/stage_txt.hpp"
+#include "dmc_rengine/formats/stage_txt_binary.hpp"
 #include "dmc_rengine/profiles/dmc3/known_targets.hpp"
 
 #include <algorithm>
+#include <optional>
 #include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace dmc::rengine::integration {
 namespace {
@@ -38,6 +46,42 @@ void add_report_diagnostic(
         return gdspaces::DiagnosticSeverity::error;
     }
     return gdspaces::DiagnosticSeverity::error;
+}
+
+void append_parser_diagnostics(
+    ProjectWorkspace& project,
+    ResourceAnalysisReport& report,
+    const gdspaces::ResourceId& resource,
+    std::span<const formats::ParseDiagnostic> diagnostics) {
+    static_cast<void>(project.add_parser_diagnostics(resource, diagnostics));
+    for (const auto& diagnostic : diagnostics) {
+        add_report_diagnostic(
+            report,
+            map_severity(diagnostic.severity),
+            diagnostic.code,
+            diagnostic.message);
+    }
+}
+
+[[nodiscard]] bool attach_binary_document(
+    ProjectWorkspace& project,
+    ResourceAnalysisReport& report,
+    const gdspaces::ResourceId& resource,
+    std::optional<binary::Document> document,
+    std::string_view format_name) {
+    if (document.has_value() &&
+        project.attach_binary_document(resource, std::move(*document))) {
+        report.binary_document_attached = true;
+        return true;
+    }
+
+    add_report_diagnostic(
+        report,
+        gdspaces::DiagnosticSeverity::error,
+        "analysis.binary-adapter-failed",
+        std::string(format_name) +
+            " analysis completed, but the Binary Inspector document could not be attached.");
+    return false;
 }
 
 [[nodiscard]] std::vector<formats::ParseDiagnostic> pe_diagnostics(
@@ -116,29 +160,97 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         report.parser_available = true;
         const auto scan = formats::hits::RecordScanner::scan(bytes);
         report.recognized = scan.recognized;
-        static_cast<void>(project.add_parser_diagnostics(
-            resource, scan.diagnostics));
-        for (const auto& diagnostic : scan.diagnostics) {
-            add_report_diagnostic(
-                report,
-                map_severity(diagnostic.severity),
-                diagnostic.code,
-                diagnostic.message);
-        }
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, scan.diagnostics);
 
         if (scan.recognized) {
-            auto document = formats::hits::build_binary_document(
-                session->resource(), bytes, scan);
-            if (document.has_value() &&
-                project.attach_binary_document(resource, std::move(*document))) {
-                report.binary_document_attached = true;
-            } else {
-                add_report_diagnostic(
-                    report,
-                    gdspaces::DiagnosticSeverity::error,
-                    "analysis.binary-adapter-failed",
-                    "The HITS parser succeeded, but the Binary Inspector adapter could not be attached.");
-            }
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::hits::build_binary_document(
+                    session->resource(), bytes, scan),
+                "HITS"));
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    if (descriptor->parser_id == "formats.dca-record-scanner") {
+        report.parser_available = true;
+        const auto scan = formats::dca::RecordScanner::scan(bytes);
+        report.recognized = scan.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, scan.diagnostics);
+
+        if (scan.recognized) {
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::dca::build_binary_document(
+                    session->resource(), bytes, scan),
+                "DCA"));
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    if (descriptor->parser_id == "formats.lig2-record-scanner") {
+        report.parser_available = true;
+        const auto scan = formats::lig2::RecordScanner::scan(bytes);
+        report.recognized = scan.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, scan.diagnostics);
+
+        if (scan.recognized) {
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::lig2::build_binary_document(
+                    session->resource(), bytes, scan),
+                "LIG2"));
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    if (descriptor->parser_id == "formats.stage-txt-lexer") {
+        report.parser_available = true;
+        const auto lex = formats::stage_txt::Lexer::scan(bytes);
+        report.recognized = lex.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            lex.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, lex.diagnostics);
+
+        if (lex.recognized) {
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::stage_txt::build_binary_document(
+                    session->resource(), bytes, lex),
+                "Stage TXT"));
         }
         static_cast<void>(project.link_format_evidence(resource));
         return report;
@@ -148,16 +260,14 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         report.parser_available = true;
         const auto parsed = exe::PeReader::read(bytes);
         report.recognized = parsed.image.has_value();
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            report.recognized,
+            gdspaces::ToolTarget::exe_editor));
         const auto parser_diagnostics = pe_diagnostics(parsed);
-        static_cast<void>(project.add_parser_diagnostics(
-            resource, parser_diagnostics));
-        for (const auto& diagnostic : parser_diagnostics) {
-            add_report_diagnostic(
-                report,
-                map_severity(diagnostic.severity),
-                diagnostic.code,
-                diagnostic.message);
-        }
+        append_parser_diagnostics(
+            project, report, resource, parser_diagnostics);
 
         if (!parsed.ok()) {
             return report;

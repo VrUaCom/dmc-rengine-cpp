@@ -118,19 +118,27 @@ EvidenceAddressResolution resolve_evidence_location(
         }
     }
     if (location.file_offset.has_value()) {
-        const auto offset_rva = executable.image.file_offset_to_rva(
-            *location.file_offset);
-        if (!offset_rva.has_value()) {
+        if (*location.file_offset >
+            std::numeric_limits<std::uint32_t>::max()) {
             add_diagnostic(
                 result,
-                "evidence-address.file-offset-unmapped",
-                "The explicit file offset is not mapped by the parsed PE headers or sections.");
+                "evidence-address.file-offset-out-of-range",
+                "The explicit file offset is outside the PE32/PE32+ 32-bit file-offset range.");
         } else {
-            static_cast<void>(merge_rva(
-                result,
-                resolved_rva,
-                *offset_rva,
-                "The explicit file offset"));
+            const auto offset_rva = executable.image.file_offset_to_rva(
+                static_cast<std::uint32_t>(*location.file_offset));
+            if (!offset_rva.has_value()) {
+                add_diagnostic(
+                    result,
+                    "evidence-address.file-offset-unmapped",
+                    "The explicit file offset is not mapped by the parsed PE headers or sections.");
+            } else {
+                static_cast<void>(merge_rva(
+                    result,
+                    resolved_rva,
+                    *offset_rva,
+                    "The explicit file offset"));
+            }
         }
     }
 
@@ -145,9 +153,9 @@ EvidenceAddressResolution resolve_evidence_location(
         return result;
     }
 
-    const auto file_offset = executable.image.rva_to_file_offset(
-        *resolved_rva);
-    const auto va = executable.image.rva_to_va(*resolved_rva);
+    const auto resolved_rva32 = static_cast<std::uint32_t>(*resolved_rva);
+    const auto file_offset = executable.image.rva_to_file_offset(resolved_rva32);
+    const auto va = executable.image.rva_to_va(resolved_rva32);
     if (!file_offset.has_value()) {
         add_diagnostic(
             result,

@@ -206,11 +206,6 @@ ItemRuntimeValidationPlan build_item_runtime_plan(
         RequirementKind::runtime_smoke_test,
         RequirementStatus::pending_execution,
         "Run a controlled game/runtime smoke test against a copied executable artifact.");
-    add_requirement(
-        plan,
-        RequirementKind::manifest_export,
-        RequirementStatus::pending_execution,
-        "Export a deterministic validation and patch-plan manifest.");
     return plan;
 }
 

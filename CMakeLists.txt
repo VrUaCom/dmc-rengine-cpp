@@ -21,9 +21,6 @@ function(dmc_rengine_configure_test target source)
     target_link_libraries(${target} PRIVATE DMCRengine::Core)
     dmc_rengine_enable_warnings(${target})
 
-    # The current lightweight tests use assert() as the check primitive.
-    # Release configurations define NDEBUG, which removes both the check and
-    # the evaluated expression. Undefine it at compiler level for every test.
     if(MSVC)
         target_compile_options(${target} PRIVATE /UNDEBUG)
     else()
@@ -31,51 +28,17 @@ function(dmc_rengine_configure_test target source)
     endif()
 endfunction()
 
-add_library(dmc_rengine_core
-    src/binary/document.cpp
-    src/binary/manifest.cpp
-    src/binary/reader.cpp
-    src/core/json.cpp
-    src/core/sha256.cpp
-    src/core/version.cpp
-    src/evidence/artifact_registry.cpp
-    src/evidence/json.cpp
-    src/evidence/json_import.cpp
-    src/evidence/packet_registry.cpp
-    src/evidence/registry.cpp
-    src/exe/known_target.cpp
-    src/exe/pe_image.cpp
-    src/exe/pe_reader.cpp
-    src/formats/container.cpp
-    src/formats/container_parser_registry.cpp
-    src/formats/hits.cpp
-    src/formats/hits_binary.cpp
-    src/formats/synthetic/slot_container_parser.cpp
-    src/gdspaces/classifier.cpp
-    src/gdspaces/container_expander.cpp
-    src/gdspaces/local_directory_source.cpp
-    src/gdspaces/open_router.cpp
-    src/gdspaces/resource_graph.cpp
-    src/gdspaces/resource_id.cpp
-    src/gdspaces/source_registry.cpp
-    src/gdspaces/stage_bundle.cpp
-    src/gdspaces/stage_bundle_assembler.cpp
-    src/gdspaces/working_copy.cpp
-    src/integration/format_registry.cpp
-    src/integration/project_graph.cpp
-    src/integration/project_graph_manifest.cpp
-    src/integration/project_workspace.cpp
-    src/integration/resource_workspace.cpp
-    src/integration/stage_workspace_manifest.cpp
-    src/integration/tool_registry.cpp
-    src/integration/workspace_event.cpp
-    src/integration/workspace_manifest.cpp
-    src/patch/guarded_patch.cpp
-    src/profiles/dmc3/known_targets.cpp
-    src/profiles/dmc3/stage_resources.cpp
-    src/profiles/dmc3/stage_table.cpp
-)
+function(dmc_rengine_add_simple_test stem)
+    set(target "dmc_rengine_${stem}_tests")
+    dmc_rengine_configure_test(${target} "tests/${stem}_tests.cpp")
+    add_test(NAME ${target} COMMAND ${target})
+endfunction()
 
+file(GLOB_RECURSE DMC_RENGINE_CORE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+list(FILTER DMC_RENGINE_CORE_SOURCES EXCLUDE REGEX "/src/cli/")
+
+add_library(dmc_rengine_core ${DMC_RENGINE_CORE_SOURCES})
 add_library(DMCRengine::Core ALIAS dmc_rengine_core)
 
 target_include_directories(dmc_rengine_core
@@ -91,6 +54,7 @@ add_executable(dmc-rengine
     src/cli/main.cpp
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
+    src/cli/stage_commands.cpp
 )
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
 dmc_rengine_enable_warnings(dmc-rengine)
@@ -98,117 +62,93 @@ dmc_rengine_enable_warnings(dmc-rengine)
 include(CTest)
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_sha256_tests tests/sha256_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_patch_tests tests/patch_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_json_parser_tests tests/json_parser_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_evidence_json_tests tests/evidence_json_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_evidence_json_import_tests
-        tests/evidence_json_import_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_evidence_packet_project_tests
-        tests/evidence_packet_project_tests.cpp)
+    add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
+
+    set(DMC_RENGINE_SIMPLE_TESTS
+        sha256
+        patch
+        json_parser
+        evidence_json
+        evidence_json_import
+        evidence_packet_project
+        evidence_packet_range
+        binary_reader
+        binary_document
+        binary_fields
+        binary_manifest
+        hits
+        hits_binary
+        dca
+        lig2
+        stage_txt
+        resource_analyzer
+        resource_analyzer_structural_formats
+        executable_workspace_manifest
+        evidence_address_resolver
+        integration_workspace
+        workspace_manifest
+        project_graph
+        project_graph_manifest
+        project_workspace
+        stage_workspace_manifest
+        dmc3_stage_workspace_builder
+        stage_tool_views
+        item_runtime_validation_plan
+        working_copy
+        classifier
+        known_target
+        stage_table_descriptor
+        stage_resource_matcher
+        stage_bundle_assembler
+        container_foundation
+    )
+    foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
+        dmc_rengine_add_simple_test(${stem})
+    endforeach()
+
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
         tests/public_evidence_project_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_binary_reader_tests tests/binary_reader_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_binary_document_tests tests/binary_document_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_binary_fields_tests tests/binary_fields_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_binary_manifest_tests tests/binary_manifest_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_hits_tests tests/hits_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_hits_binary_tests tests/hits_binary_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_integration_workspace_tests
-        tests/integration_workspace_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_workspace_manifest_tests
-        tests/workspace_manifest_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_project_graph_tests
-        tests/project_graph_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_project_graph_manifest_tests
-        tests/project_graph_manifest_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_project_workspace_tests
-        tests/project_workspace_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_stage_workspace_manifest_tests
-        tests/stage_workspace_manifest_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_working_copy_tests tests/working_copy_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_classifier_tests tests/classifier_tests.cpp)
-    dmc_rengine_configure_test(dmc_rengine_known_target_tests tests/known_target_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_stage_table_descriptor_tests
-        tests/stage_table_descriptor_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_stage_resource_matcher_tests
-        tests/stage_resource_matcher_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_stage_bundle_assembler_tests
-        tests/stage_bundle_assembler_tests.cpp)
-    dmc_rengine_configure_test(
-        dmc_rengine_container_foundation_tests
-        tests/container_foundation_tests.cpp)
-
-    add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
-    add_test(NAME dmc_rengine_sha256_tests COMMAND dmc_rengine_sha256_tests)
-    add_test(NAME dmc_rengine_patch_tests COMMAND dmc_rengine_patch_tests)
-    add_test(NAME dmc_rengine_json_parser_tests COMMAND dmc_rengine_json_parser_tests)
-    add_test(NAME dmc_rengine_evidence_json_tests COMMAND dmc_rengine_evidence_json_tests)
-    add_test(
-        NAME dmc_rengine_evidence_json_import_tests
-        COMMAND dmc_rengine_evidence_json_import_tests)
-    add_test(
-        NAME dmc_rengine_evidence_packet_project_tests
-        COMMAND dmc_rengine_evidence_packet_project_tests)
     add_test(
         NAME dmc_rengine_public_evidence_project_tests
         COMMAND dmc_rengine_public_evidence_project_tests
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
-    add_test(NAME dmc_rengine_binary_reader_tests COMMAND dmc_rengine_binary_reader_tests)
-    add_test(NAME dmc_rengine_binary_document_tests COMMAND dmc_rengine_binary_document_tests)
-    add_test(NAME dmc_rengine_binary_fields_tests COMMAND dmc_rengine_binary_fields_tests)
-    add_test(NAME dmc_rengine_binary_manifest_tests COMMAND dmc_rengine_binary_manifest_tests)
-    add_test(NAME dmc_rengine_hits_tests COMMAND dmc_rengine_hits_tests)
-    add_test(NAME dmc_rengine_hits_binary_tests COMMAND dmc_rengine_hits_binary_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_item_workspace_tests
+        tests/item_workspace_tests.cpp)
     add_test(
-        NAME dmc_rengine_integration_workspace_tests
-        COMMAND dmc_rengine_integration_workspace_tests)
+        NAME dmc_rengine_item_workspace_tests
+        COMMAND dmc_rengine_item_workspace_tests
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_item_runtime_graph_tests
+        tests/item_runtime_graph_tests.cpp)
     add_test(
-        NAME dmc_rengine_workspace_manifest_tests
-        COMMAND dmc_rengine_workspace_manifest_tests)
+        NAME dmc_rengine_item_runtime_graph_tests
+        COMMAND dmc_rengine_item_runtime_graph_tests
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_item_workspace_manifest_tests
+        tests/item_workspace_manifest_tests.cpp)
     add_test(
-        NAME dmc_rengine_project_graph_tests
-        COMMAND dmc_rengine_project_graph_tests)
-    add_test(
-        NAME dmc_rengine_project_graph_manifest_tests
-        COMMAND dmc_rengine_project_graph_manifest_tests)
-    add_test(
-        NAME dmc_rengine_project_workspace_tests
-        COMMAND dmc_rengine_project_workspace_tests)
-    add_test(
-        NAME dmc_rengine_stage_workspace_manifest_tests
-        COMMAND dmc_rengine_stage_workspace_manifest_tests)
-    add_test(NAME dmc_rengine_working_copy_tests COMMAND dmc_rengine_working_copy_tests)
-    add_test(NAME dmc_rengine_classifier_tests COMMAND dmc_rengine_classifier_tests)
-    add_test(NAME dmc_rengine_known_target_tests COMMAND dmc_rengine_known_target_tests)
-    add_test(
-        NAME dmc_rengine_stage_table_descriptor_tests
-        COMMAND dmc_rengine_stage_table_descriptor_tests)
-    add_test(
-        NAME dmc_rengine_stage_resource_matcher_tests
-        COMMAND dmc_rengine_stage_resource_matcher_tests)
-    add_test(
-        NAME dmc_rengine_stage_bundle_assembler_tests
-        COMMAND dmc_rengine_stage_bundle_assembler_tests)
-    add_test(
-        NAME dmc_rengine_container_foundation_tests
-        COMMAND dmc_rengine_container_foundation_tests)
+        NAME dmc_rengine_item_workspace_manifest_tests
+        COMMAND dmc_rengine_item_workspace_manifest_tests
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+
     add_test(
         NAME dmc_rengine_public_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
+    add_test(
+        NAME dmc_rengine_item_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)

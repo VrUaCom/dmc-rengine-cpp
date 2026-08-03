@@ -1,12 +1,12 @@
-#include "dmc_rengine/evidence/packet.hpp"
+#include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/integration/stage_workspace_manifest.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_workspace_builder.hpp"
 
+#include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <span>
 #include <string>
 #include <vector>
 
@@ -36,7 +36,7 @@ void write_u32(
         write_u32(
             bytes,
             12U + index * 4U,
-            std::bit_cast<std::uint32_t>(static_cast<float>(index + 10U)));
+            std::bit_cast<std::uint32_t>(static_cast<float>(index + 1U)));
     }
     return bytes;
 }
@@ -73,8 +73,6 @@ void write_u32(
     using dmc::rengine::evidence::EvidencePacket;
     using dmc::rengine::evidence::EvidenceRecord;
 
-    constexpr auto hash =
-        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     return EvidencePacket{
         .schema_version = 1U,
         .id = "packet-dmc3-stage-builder-test",
@@ -84,8 +82,9 @@ void write_u32(
             ArtifactIdentity{
                 .id = "artifact-stage-builder-exe",
                 .role = "synthetic-executable",
-                .sha256 = hash,
-                .size = 4096U,
+                .sha256 =
+                    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                .size = 0x10000U,
             },
         },
         .records = {
@@ -93,17 +92,17 @@ void write_u32(
                 .id = "ev-dmc3-stage-resource-table",
                 .claim_id = "claim-dmc3-stage-resource-table",
                 .title = "DMC3 stage resource table",
-                .summary = "Synthetic evidence using the canonical record ID.",
+                .summary = "Synthetic stage table evidence for integration testing.",
                 .confidence = Confidence::confirmed,
                 .locations = {
                     EvidenceLocation{
                         .artifact_id = "artifact-stage-builder-exe",
-                        .file_offset = 0x5C30A8U,
-                        .size = 440U,
-                        .rva = 0x5C4AA8U,
-                        .va = 0x1405C4AA8ULL,
+                        .file_offset = 0x100U,
+                        .size = 16U,
+                        .rva = std::nullopt,
+                        .va = std::nullopt,
                         .symbol = "stage_resource_table",
-                        .note = "Synthetic packet for integration testing.",
+                        .note = "Synthetic fixture.",
                     },
                 },
                 .tags = {"stage", "table"},
@@ -113,17 +112,17 @@ void write_u32(
                 .id = "ev-dmc3-stageset-token-classifier",
                 .claim_id = "claim-dmc3-stageset-token-classifier",
                 .title = "StageSet token classifier",
-                .summary = "Synthetic evidence using the canonical TXT claim ID.",
+                .summary = "Synthetic StageSet classifier evidence.",
                 .confidence = Confidence::confirmed,
                 .locations = {
                     EvidenceLocation{
                         .artifact_id = "artifact-stage-builder-exe",
-                        .file_offset = 0x246680U,
-                        .size = 64U,
-                        .rva = 0x246680U,
-                        .va = 0x140246680ULL,
+                        .file_offset = 0x200U,
+                        .size = 16U,
+                        .rva = std::nullopt,
+                        .va = std::nullopt,
                         .symbol = "stageset_token_classifier",
-                        .note = "Synthetic packet for integration testing.",
+                        .note = "Synthetic fixture.",
                     },
                 },
                 .tags = {"txt", "stage"},
@@ -159,13 +158,14 @@ int main() {
     using dmc::rengine::integration::ProjectNodeKind;
     using dmc::rengine::integration::stage_workspace_manifest_json;
     using dmc::rengine::profiles::dmc3::StageWorkspaceBuilder;
-    using dmc::rengine::profiles::dmc3::st001_stage_plan;
+    using dmc::rengine::profiles::dmc3::phase12_st001_resource_plan;
 
     const auto packet = stage_packet();
     auto result = StageWorkspaceBuilder::build(
-        st001_stage_plan(), complete_payloads(), &packet);
+        phase12_st001_resource_plan(), complete_payloads(), &packet);
     assert(result.complete());
     assert(result.match.complete());
+    assert(result.match.roles.size() == 4U);
     assert(result.stage.has_value());
     assert(result.stage->size() == 6U);
     assert(result.project.session_count() == 6U);
@@ -175,37 +175,39 @@ int main() {
     assert(result.project.graph().nodes(ProjectNodeKind::stage).size() == 1U);
     assert(result.project.graph().nodes(ProjectNodeKind::resource).size() == 6U);
 
+    assert(result.stage->members(StageResourceCategory::collision).size() == 1U);
+    assert(result.stage->members(StageResourceCategory::scripts).size() == 2U);
+    assert(result.stage->members(StageResourceCategory::effects).size() == 1U);
+    assert(result.stage->members(StageResourceCategory::sounds).size() == 1U);
+    assert(result.stage->members(StageResourceCategory::unknown).size() == 1U);
+
     const auto collision = result.stage->members(
         StageResourceCategory::collision);
-    assert(collision.size() == 1U);
-    assert(collision[0]->resource.format == "hits");
-    const auto scripts = result.stage->members(
-        StageResourceCategory::scripts);
-    assert(scripts.size() == 1U);
-    assert(scripts[0]->resource.format == "txt");
-    const auto unknown = result.stage->members(
-        StageResourceCategory::unknown);
-    assert(unknown.size() == 4U);
-
     const auto* hits_session = result.project.find_session(
-        collision[0]->resource.id);
+        collision.front()->resource.id);
     assert(hits_session != nullptr);
     assert(hits_session->binary_document() != nullptr);
     assert(hits_session->stage() != nullptr);
 
-    const auto* txt_session = result.project.find_session(
-        scripts[0]->resource.id);
+    const auto scripts = result.stage->members(StageResourceCategory::scripts);
+    const auto txt = std::find_if(
+        scripts.begin(), scripts.end(),
+        [](const auto* member) {
+            return member->resource.format == "txt";
+        });
+    assert(txt != scripts.end());
+    const auto* txt_session = result.project.find_session((*txt)->resource.id);
     assert(txt_session != nullptr);
-    assert(txt_session->evidence_record_ids().size() == 1U);
-    assert(txt_session->evidence_record_ids()[0] ==
-        "ev-dmc3-stageset-token-classifier");
+    assert(std::find(
+        txt_session->evidence_record_ids().begin(),
+        txt_session->evidence_record_ids().end(),
+        "ev-dmc3-stageset-token-classifier") !=
+        txt_session->evidence_record_ids().end());
 
-    for (const auto& match : result.match.matches) {
-        assert(match.status ==
-            dmc::rengine::profiles::dmc3::StageResourceMatchStatus::unique);
-        assert(match.candidates.size() == 1U);
+    for (const auto& role : result.match.roles) {
+        assert(role.matches.size() == 1U);
         const auto* session = result.project.find_session(
-            match.candidates.front().id);
+            role.matches.front().id);
         assert(session != nullptr);
         assert(std::find(
             session->evidence_record_ids().begin(),
@@ -214,21 +216,19 @@ int main() {
             session->evidence_record_ids().end());
     }
 
-    const auto stage_json = stage_workspace_manifest_json(
-        result.project, "st001");
-    assert(!stage_json.empty());
+    assert(!stage_workspace_manifest_json(result.project, "st001").empty());
 
     auto incomplete = complete_payloads();
     incomplete.erase(incomplete.begin() + 3);
     auto incomplete_result = StageWorkspaceBuilder::build(
-        st001_stage_plan(), std::move(incomplete), &packet);
+        phase12_st001_resource_plan(), std::move(incomplete), &packet);
     assert(!incomplete_result.complete());
     assert(!incomplete_result.match.complete());
     assert(std::any_of(
         incomplete_result.diagnostics.begin(),
         incomplete_result.diagnostics.end(),
         [](const auto& diagnostic) {
-            return diagnostic.code == "dmc3-stage-resource-missing";
+            return diagnostic.code == "dmc3.stage.resource_missing";
         }));
     return 0;
 }
