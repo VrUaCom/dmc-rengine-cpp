@@ -113,6 +113,14 @@ public:
         std::string request_id,
         gdspaces::ToolTarget consumer,
         std::string message);
+    [[nodiscard]] bool record_validation_plan_created(
+        std::string plan_id,
+        bool ready_for_execution,
+        std::size_t requirement_count,
+        std::size_t blocker_count);
+    [[nodiscard]] bool record_patch_plan_compiled(
+        std::string patch_plan_id,
+        std::string message);
     [[nodiscard]] bool request_validation(
         gdspaces::ToolTarget producer,
         std::string subject_id,
