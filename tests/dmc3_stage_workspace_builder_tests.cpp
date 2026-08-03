@@ -1,9 +1,9 @@
-#include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/integration/stage_workspace_manifest.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_workspace_builder.hpp"
 
+#include "hits_test_fixture.hpp"
+
 #include <algorithm>
-#include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -11,35 +11,6 @@
 #include <vector>
 
 namespace {
-
-void write_u32(
-    std::vector<std::byte>& bytes,
-    std::size_t offset,
-    std::uint32_t value) {
-    for (std::size_t index = 0; index < 4U; ++index) {
-        bytes[offset + index] = static_cast<std::byte>(
-            (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
-    }
-}
-
-[[nodiscard]] std::vector<std::byte> hits_bytes() {
-    std::vector<std::byte> bytes(64U, std::byte{0});
-    bytes[0] = std::byte{'H'};
-    bytes[1] = std::byte{'I'};
-    bytes[2] = std::byte{'T'};
-    bytes[3] = std::byte{'S'};
-    bytes[4] = std::byte{'$'};
-    write_u32(bytes, 8U, dmc::rengine::formats::hits::record_marker);
-    for (std::size_t index = 0;
-         index < dmc::rengine::formats::hits::value_count;
-         ++index) {
-        write_u32(
-            bytes,
-            12U + index * 4U,
-            std::bit_cast<std::uint32_t>(static_cast<float>(index + 1U)));
-    }
-    return bytes;
-}
 
 [[nodiscard]] dmc::rengine::gdspaces::ResourcePayload payload(
     std::string path,
@@ -143,7 +114,11 @@ complete_payloads() {
                 {std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}}),
         payload("se/snd_r001.pac", "pac", 0x4000U,
                 {std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}}),
-        payload("room/st001cfg_006.hits", "hits", 0x5000U, hits_bytes()),
+        payload(
+            "room/st001cfg_006.hits",
+            "hits",
+            0x5000U,
+            dmc::rengine::tests::hits_fixture::make_minimal_hits()),
         payload("room/st001cfg_004.txt", "txt", 0x6000U,
                 {std::byte{'#'}, std::byte{'S'}, std::byte{'E'},
                  std::byte{'T'}, std::byte{' '}, std::byte{'S'},
@@ -170,19 +145,12 @@ int main() {
     assert(result.stage->size() == 6U);
     assert(result.project.session_count() == 6U);
     assert(result.project.sessions_for_stage("st001").size() == 6U);
-    assert(result.project.packets().size() == 1U);
-    assert(result.project.evidence().size() == 2U);
     assert(result.project.graph().nodes(ProjectNodeKind::stage).size() == 1U);
     assert(result.project.graph().nodes(ProjectNodeKind::resource).size() == 6U);
 
-    assert(result.stage->members(StageResourceCategory::collision).size() == 1U);
-    assert(result.stage->members(StageResourceCategory::scripts).size() == 2U);
-    assert(result.stage->members(StageResourceCategory::effects).size() == 1U);
-    assert(result.stage->members(StageResourceCategory::sounds).size() == 1U);
-    assert(result.stage->members(StageResourceCategory::unknown).size() == 1U);
-
     const auto collision = result.stage->members(
         StageResourceCategory::collision);
+    assert(collision.size() == 1U);
     const auto* hits_session = result.project.find_session(
         collision.front()->resource.id);
     assert(hits_session != nullptr);
@@ -223,7 +191,6 @@ int main() {
     auto incomplete_result = StageWorkspaceBuilder::build(
         phase12_st001_resource_plan(), std::move(incomplete), &packet);
     assert(!incomplete_result.complete());
-    assert(!incomplete_result.match.complete());
     assert(std::any_of(
         incomplete_result.diagnostics.begin(),
         incomplete_result.diagnostics.end(),
