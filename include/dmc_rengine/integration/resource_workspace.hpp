@@ -121,6 +121,10 @@ public:
     [[nodiscard]] bool record_patch_plan_compiled(
         std::string patch_plan_id,
         std::string message);
+    [[nodiscard]] bool record_patch_copy_executed(
+        std::string execution_id,
+        std::string output_sha256,
+        std::string rollback_plan_id);
     [[nodiscard]] bool request_validation(
         gdspaces::ToolTarget producer,
         std::string subject_id,
