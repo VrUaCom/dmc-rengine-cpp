@@ -111,22 +111,59 @@
   ],
   "current_blockers": [
     {
-      "id": "blocker-pass31-git-receipt-unresolved",
-      "severity": "blocking",
-      "description": "The Pass 31 Knowledge Base row declares Git receipt 784b06b7fef5e526fc98721629fe3c509fe41a228 and repository paths data/manifests/dmc3-wide-pass-31-source-groups.v1.json and data/evidence/dmc3-wide-pass-31-source-coverage-evidence.v1.json, but those objects are not present in the accessible active or legacy repositories.",
-      "policy": "Treat the receipt as unverified until replaced by an existing commit generated through the current migration."
-    },
-    {
-      "id": "blocker-process-control-row-schema-drift",
+      "id": "blocker-source-tree-partially-promoted",
       "severity": "high",
-      "description": "Late Pass Control and Artifact Checklist rows contain values shifted into columns that do not match their sheet headers.",
-      "policy": "Normalize rows without deleting historical source values and append a correction receipt to Sync Log and Decisions & Corrections."
-    },
-    {
-      "id": "blocker-source-tree-not-mirrored",
-      "severity": "high",
-      "description": "Drive reports Recovered Source Skeleton v1.6 through Pass 31 with 210 files, while the active C++ repository lacks the confirmed Pass 31 PC save module and most historical recovered source units.",
+      "description": "Drive reports Recovered Source Skeleton v1.6 through Pass 31 with 210 files. The confirmed Pass 31 PC save layout and integrity unit has been promoted, but most historical recovered source units remain outside the reviewed active C++ tree.",
       "policy": "Migrate evidence-backed modules incrementally; never bulk-promote unreviewed skeleton code."
+    },
+    {
+      "id": "blocker-drive-artifact-hashes-missing",
+      "severity": "high",
+      "description": "The Pass 29 and Pass 30 complete archives, Pass 31 complete archive, steps 01-08 package and 210-file recovered source tree are present in Drive, but their SHA-256 values are not recorded in the canonical artifact checklist.",
+      "policy": "Presence and readback do not equal binary verification. Keep Verified false until each immutable artifact hash is computed and stored."
+    },
+    {
+      "id": "blocker-pass32-save-payload-semantics-open",
+      "severity": "research-required",
+      "description": "The exact 0x4A30 physical save layout and integrity ABI are confirmed, but most header fields, summary fields +0x0C/+0x10/+0x14, semantic segmentation of the 0x708 payload, trailer states beyond 0/1 and the exact production writer remain unresolved.",
+      "policy": "Use controlled differential saves and runtime traces. Do not introduce semantic editor labels or writes before evidence closes each field or region."
+    }
+  ],
+  "resolved_corrections": [
+    {
+      "id": "correction-pass31-git-receipt",
+      "resolved_on": "2026-08-03",
+      "status": "resolved",
+      "previous_receipt": "784b06b7fef5e526fc98721629fe3c509fe41a228",
+      "replacement_receipt": "76ed3b7a02ee83a6285834495ac0e4c9f84845e3",
+      "description": "The unresolved historical receipt and nonexistent declared paths were replaced by reviewed PR 31 outputs that exist in the active repository and passed Windows and Ubuntu CI, 58 of 58 tests on each platform.",
+      "repository_paths": [
+        "docs/architecture/dmc3-reverse-data-authority.md",
+        "data/registries/dmc3-reverse-authorities.v1.json",
+        "evidence/save/dmc3-pc-save-pass31.evidence.json",
+        "include/dmc_rengine/save/pc_save_file.hpp",
+        "src/save/pc_save_file.cpp",
+        "tests/pc_save_file_tests.cpp",
+        "tests/reverse_authority_manifest_tests.cpp"
+      ]
+    },
+    {
+      "id": "correction-process-control-schema-drift",
+      "resolved_on": "2026-08-03",
+      "status": "resolved",
+      "description": "Late Pass Control and Artifact Checklist rows were normalized to their declared columns. Artifact presence is now separated from SHA-256 verification, and the correction is recorded in Sync Log and Decisions & Corrections."
+    },
+    {
+      "id": "correction-knowledge-base-schema-drift",
+      "resolved_on": "2026-08-03",
+      "status": "resolved",
+      "description": "The Passes sheet gained explicit Date, Recovered Source, Drive Sync, Git Receipt and Repository Paths columns; Pass 29-31 rows were normalized. The Artifacts and Overview tabs now record actual reviewed repository outputs and authority roles."
+    },
+    {
+      "id": "correction-pass31-product-source-gap",
+      "resolved_on": "2026-08-03",
+      "status": "resolved-for-confirmed-module",
+      "description": "The confirmed Pass 31 PC save physical layout, 21-block integrity ABI, packed-BCD summary fields and conservative open-semantic boundary were migrated into reviewed C++, tests and machine-readable evidence. This does not imply bulk promotion of the remaining recovered source tree."
     }
   ]
 }
