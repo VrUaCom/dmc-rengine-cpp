@@ -97,6 +97,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         item_runtime_validation_graph
         item_runtime_patch_compiler
         copy_executor
+        source_modification
+        source_integration_project
+        source_integration_graph
+        source_integration_manifest
         working_copy
         classifier
         known_target
