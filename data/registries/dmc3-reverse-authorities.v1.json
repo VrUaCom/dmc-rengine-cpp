@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-reverse-authorities",
+  "target": {
+    "game_profile": "dmc3-hd",
+    "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "authorities": [
+    {
+      "id": "drive-process-control",
+      "display_name": "DMC3_Reverse_Process_Control",
+      "kind": "workflow-control",
+      "status": "canonical",
+      "owns": [
+        "process-step-definitions",
+        "pass-state",
+        "runtime-test-queue",
+        "decisions-and-corrections",
+        "sync-log",
+        "snapshot-log",
+        "artifact-completeness"
+      ],
+      "must_not_own": [
+        "standalone-technical-facts-without-evidence",
+        "recovered-source-files",
+        "binary-artifacts"
+      ]
+    },
+    {
+      "id": "drive-knowledge-base",
+      "display_name": "DMC3_Reverse_Knowledge_Base_through_Pass31",
+      "kind": "research-index",
+      "status": "canonical",
+      "latest_verified_pass": 31,
+      "owns": [
+        "passes",
+        "findings",
+        "open-gaps",
+        "rtti",
+        "inheritance",
+        "globals-and-registries",
+        "artifact-index",
+        "overview-metrics"
+      ],
+      "verification_rule": "Rows are indexes, not proof. Every confirmed row must resolve to Drive evidence and, when a Git receipt is declared, to an existing repository commit and file."
+    },
+    {
+      "id": "drive-reverse-registry-legacy",
+      "display_name": "DMC3_Reverse_Registry",
+      "kind": "historical-registry",
+      "status": "archived-read-only",
+      "cutoff": "pre-pass-23",
+      "must_not_be_used_as": [
+        "current-knowledge-base",
+        "current-pass-state",
+        "write-target-for-new-findings"
+      ]
+    },
+    {
+      "id": "drive-research-artifacts",
+      "display_name": "DMC3 Reverse Engineering / Pass Artifacts and Source Evidence",
+      "kind": "human-readable-and-raw-evidence",
+      "status": "canonical",
+      "owns": [
+        "full-reports",
+        "eight-step-pass-documents",
+        "verified-archives",
+        "raw-analysis-output",
+        "runtime-samples",
+        "source-evidence"
+      ]
+    },
+    {
+      "id": "drive-recovered-source",
+      "display_name": "DMC3 Reverse Engineering / Recovered C_CPP Source Tree",
+      "kind": "recovered-source-history",
+      "status": "canonical-input",
+      "owns": [
+        "historical-recovered-cpp-snapshots",
+        "pass-specific-source-deltas",
+        "source-skeleton-archives"
+      ],
+      "promotion_rule": "Recovered source becomes product code only after evidence packet migration, review, tests and Git commit in the active C++ repository."
+    },
+    {
+      "id": "github-active-cpp",
+      "display_name": "VrUaCom/dmc-rengine-cpp",
+      "kind": "machine-readable-product-source",
+      "status": "canonical-output",
+      "owns": [
+        "reviewed-cpp",
+        "tests",
+        "machine-readable-evidence",
+        "schemas",
+        "manifests",
+        "ci-receipts",
+        "release-lineage"
+      ]
+    }
+  ],
+  "synchronization_order": [
+    "scope-and-input-assessment",
+    "static-analysis-journal",
+    "evidence-validation",
+    "knowledge-base-and-architecture-update",
+    "open-gaps-and-runtime-verification",
+    "artifact-manifest",
+    "github-source-evidence-and-tests",
+    "drive-sync-and-readback",
+    "pass-closure"
+  ],
+  "current_blockers": [
+    {
+      "id": "blocker-pass31-git-receipt-unresolved",
+      "severity": "blocking",
+      "description": "The Pass 31 Knowledge Base row declares Git receipt 784b06b7fef5e526fc98721629fe3c509fe41a228 and repository paths data/manifests/dmc3-wide-pass-31-source-groups.v1.json and data/evidence/dmc3-wide-pass-31-source-coverage-evidence.v1.json, but those objects are not present in the accessible active or legacy repositories.",
+      "policy": "Treat the receipt as unverified until replaced by an existing commit generated through the current migration."
+    },
+    {
+      "id": "blocker-process-control-row-schema-drift",
+      "severity": "high",
+      "description": "Late Pass Control and Artifact Checklist rows contain values shifted into columns that do not match their sheet headers.",
+      "policy": "Normalize rows without deleting historical source values and append a correction receipt to Sync Log and Decisions & Corrections."
+    },
+    {
+      "id": "blocker-source-tree-not-mirrored",
+      "severity": "high",
+      "description": "Drive reports Recovered Source Skeleton v1.6 through Pass 31 with 210 files, while the active C++ repository lacks the confirmed Pass 31 PC save module and most historical recovered source units.",
+      "policy": "Migrate evidence-backed modules incrementally; never bulk-promote unreviewed skeleton code."
+    }
+  ]
+}
