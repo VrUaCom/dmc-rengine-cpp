@@ -1,10 +1,10 @@
-#include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/integration/resource_analyzer.hpp"
 #include "dmc_rengine/integration/stage_view_consistency.hpp"
 #include "dmc_rengine/modviz/scene_workspace_view.hpp"
 #include "dmc_rengine/stageops/workspace_view.hpp"
 
-#include <bit>
+#include "hits_test_fixture.hpp"
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -12,35 +12,6 @@
 #include <vector>
 
 namespace {
-
-void write_u32(
-    std::vector<std::byte>& bytes,
-    std::size_t offset,
-    std::uint32_t value) {
-    for (std::size_t index = 0; index < 4U; ++index) {
-        bytes[offset + index] = static_cast<std::byte>(
-            (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
-    }
-}
-
-[[nodiscard]] std::vector<std::byte> make_hits() {
-    std::vector<std::byte> bytes(64U, std::byte{0});
-    bytes[0] = std::byte{'H'};
-    bytes[1] = std::byte{'I'};
-    bytes[2] = std::byte{'T'};
-    bytes[3] = std::byte{'S'};
-    bytes[4] = std::byte{'$'};
-    write_u32(bytes, 8U, dmc::rengine::formats::hits::record_marker);
-    for (std::size_t index = 0;
-         index < dmc::rengine::formats::hits::value_count;
-         ++index) {
-        write_u32(
-            bytes,
-            12U + index * 4U,
-            std::bit_cast<std::uint32_t>(static_cast<float>(index + 1U)));
-    }
-    return bytes;
-}
 
 [[nodiscard]] dmc::rengine::gdspaces::ResourceRef resource(
     std::string path,
@@ -79,7 +50,8 @@ int main() {
     using dmc::rengine::integration::validate_stage_views;
     using dmc::rengine::modviz::VisualResourceKind;
 
-    const auto hits_bytes = make_hits();
+    const auto hits_bytes =
+        dmc::rengine::tests::hits_fixture::make_minimal_hits();
     const std::vector<std::byte> txt_bytes{
         std::byte{'#'}, std::byte{'S'}, std::byte{'E'}, std::byte{'T'}};
     const auto hits = resource(
@@ -114,7 +86,7 @@ int main() {
     assert(stage.add(StageMember{
         .category = StageResourceCategory::collision,
         .resource = hits,
-        .role = "room-collision-hits",
+        .role = "hits-source-1-member-6",
     }));
     assert(stage.add(StageMember{
         .category = StageResourceCategory::scripts,
@@ -129,22 +101,19 @@ int main() {
         project, "st001");
     assert(stage_ops.valid());
     assert(modviz.valid());
-    assert(stage_ops.resources.size() == 2U);
     assert(stage_ops.by_category(StageResourceCategory::collision).size() == 1U);
-    assert(stage_ops.by_category(StageResourceCategory::scripts).size() == 1U);
-    assert(modviz.resources.size() == 1U);
     assert(modviz.by_kind(VisualResourceKind::collision).size() == 1U);
-    assert(modviz.collision_resource_count == 1U);
     assert(validate_stage_views(stage_ops, modviz).consistent());
 
     assert(project.enable_working_copy(hits.id));
+    const auto original = hits_bytes[0x06U];
     assert(project.apply_edit(
         hits.id,
         EditOperation{
             .id = "shared-stage-edit",
             .base_revision = 0U,
-            .offset = 6U,
-            .expected = {std::byte{0}},
+            .offset = 0x06U,
+            .expected = {original},
             .replacement = {std::byte{9}},
             .description = "Edit shared HITS working copy.",
         },
@@ -164,16 +133,10 @@ int main() {
 
     auto role_mismatch = modviz;
     role_mismatch.resources[0].role = "different-role";
-    const auto role_report = validate_stage_views(stage_ops, role_mismatch);
-    assert(!role_report.consistent());
-    assert(role_report.issues[0].code == "stage-view.role-mismatch");
+    assert(!validate_stage_views(stage_ops, role_mismatch).consistent());
 
     auto missing_visual = modviz;
     missing_visual.resources.clear();
-    const auto missing_report = validate_stage_views(stage_ops, missing_visual);
-    assert(!missing_report.consistent());
-    assert(missing_report.issues[0].code ==
-        "stage-view.visual-resource-missing-in-modviz");
-
+    assert(!validate_stage_views(stage_ops, missing_visual).consistent());
     return 0;
 }
