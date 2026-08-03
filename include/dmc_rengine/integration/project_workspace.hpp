@@ -12,6 +12,8 @@
 #include "dmc_rengine/integration/project_graph.hpp"
 #include "dmc_rengine/integration/resource_workspace.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
+#include "dmc_rengine/source/integration_project.hpp"
+#include "dmc_rengine/source/modification.hpp"
 
 #include <cstddef>
 #include <map>
@@ -64,6 +66,20 @@ public:
         executable_sessions_for_artifact(
             std::string_view artifact_id) const;
     [[nodiscard]] std::size_t session_count() const noexcept;
+
+    [[nodiscard]] bool register_source_modification(
+        source::SourceModificationPackage package);
+    [[nodiscard]] bool register_source_integration_project(
+        source::IntegrationProject project);
+    [[nodiscard]] const source::SourceModificationPackage*
+        find_source_modification(
+            std::string_view modification_id,
+            std::string_view version) const noexcept;
+    [[nodiscard]] const source::IntegrationProject*
+        find_source_integration_project(
+            std::string_view project_id) const noexcept;
+    [[nodiscard]] std::size_t source_modification_count() const noexcept;
+    [[nodiscard]] std::size_t source_integration_project_count() const noexcept;
 
     [[nodiscard]] bool register_item_runtime_request(
         const item::RuntimeChangeRequest& request);
@@ -146,6 +162,10 @@ private:
     gdspaces::ResourceGraph resources_;
     ProjectGraph graph_;
     std::map<std::string, ResourceWorkspaceSession, std::less<>> sessions_;
+    std::map<std::string, source::SourceModificationPackage, std::less<>>
+        source_modifications_;
+    std::map<std::string, source::IntegrationProject, std::less<>>
+        source_integration_projects_;
 };
 
 } // namespace dmc::rengine::integration
