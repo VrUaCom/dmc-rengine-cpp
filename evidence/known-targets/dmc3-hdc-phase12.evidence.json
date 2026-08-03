@@ -8,7 +8,7 @@
       "id": "dmc3-hdc-exe-e454272e",
       "role": "canonical-research-target",
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-      "size": 0
+      "size": 3735552
     }
   ],
   "records": [
@@ -30,7 +30,7 @@
           "artifact_id": "dmc3-hdc-exe-e454272e",
           "file_offset": 0,
           "symbol": "PE headers",
-          "note": "Artifact size was not preserved in the public migration record and is represented as zero until locally regenerated."
+          "note": "The canonical artifact size is 3,735,552 bytes."
         }
       ]
     },
@@ -100,7 +100,7 @@
       "id": "ev-dmc3-stage-resource-table",
       "claim_id": "claim-dmc3-stage-resource-table",
       "title": "Stage resource table",
-      "summary": "The stage resource table begins at file offset 0x5C30A8 / VA 0x1405C4AA8 and contains 440 entries arranged as 110 rows by four resource roles.",
+      "summary": "The stage resource table is identified at RVA 0x5C4AA8 / VA 0x1405C4AA8 and contains 440 entries arranged as 110 rows by four resource roles. The physical file offset must be resolved through the PE section mapping.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -112,7 +112,6 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 6041768,
           "rva": 6048424,
           "va": 5374757544,
           "symbol": "stage_resource_table",
