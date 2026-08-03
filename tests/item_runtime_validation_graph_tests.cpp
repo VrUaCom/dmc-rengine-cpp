@@ -241,7 +241,7 @@ int main() {
         if (edge.from != ready_plan.id) {
             continue;
         }
-        if (edge.kind == ProjectEdgeKind::requires) {
+        if (edge.kind == ProjectEdgeKind::requires_requirement) {
             ++requires_edges;
         }
         if (edge.to == "runtime-request:" + ready_request.id &&
