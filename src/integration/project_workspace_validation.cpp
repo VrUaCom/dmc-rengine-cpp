@@ -178,7 +178,7 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
         static_cast<void>(graph_.connect(ProjectEdge{
             .from = plan.id,
             .to = node_id,
-            .kind = ProjectEdgeKind::requires,
+            .kind = ProjectEdgeKind::requires_requirement,
             .label = requirement.detail,
         }));
         if (requirement.status == validation::RequirementStatus::blocked) {
@@ -226,7 +226,7 @@ bool ProjectWorkspace::register_item_runtime_validation_plan(
         static_cast<void>(graph_.connect(ProjectEdge{
             .from = plan.id,
             .to = node_id,
-            .kind = ProjectEdgeKind::requires,
+            .kind = ProjectEdgeKind::requires_requirement,
             .label = blocker,
         }));
         static_cast<void>(graph_.connect(ProjectEdge{
