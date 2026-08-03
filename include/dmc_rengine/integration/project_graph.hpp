@@ -34,6 +34,9 @@ enum class ProjectNodeKind {
     integration_conflict,
     decision_record,
     integration_gate,
+    custom_build,
+    source_binary_mapping,
+    build_test_result,
     stage,
     binary_document,
     working_copy,
@@ -67,6 +70,9 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::integration_conflict: return "integration-conflict";
     case ProjectNodeKind::decision_record: return "decision-record";
     case ProjectNodeKind::integration_gate: return "integration-gate";
+    case ProjectNodeKind::custom_build: return "custom-build";
+    case ProjectNodeKind::source_binary_mapping: return "source-binary-mapping";
+    case ProjectNodeKind::build_test_result: return "build-test-result";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
     case ProjectNodeKind::working_copy: return "working-copy";
@@ -99,6 +105,12 @@ enum class ProjectEdgeKind {
     satisfies,
     governed_by,
     validated_by,
+    built_from,
+    includes,
+    maps_source_to_binary,
+    tested_by,
+    lineage_from,
+    recognizes,
     classified_as,
     parsed_by,
     opens_with,
@@ -136,6 +148,12 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::satisfies: return "satisfies";
     case ProjectEdgeKind::governed_by: return "governed-by";
     case ProjectEdgeKind::validated_by: return "validated-by";
+    case ProjectEdgeKind::built_from: return "built-from";
+    case ProjectEdgeKind::includes: return "includes";
+    case ProjectEdgeKind::maps_source_to_binary: return "maps-source-to-binary";
+    case ProjectEdgeKind::tested_by: return "tested-by";
+    case ProjectEdgeKind::lineage_from: return "lineage-from";
+    case ProjectEdgeKind::recognizes: return "recognizes";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
