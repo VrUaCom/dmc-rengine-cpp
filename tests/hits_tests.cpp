@@ -94,8 +94,11 @@ int main() {
     using dmc::rengine::hits::contact::apply_normal_correction;
     using dmc::rengine::hits::contact::classify_normal_y;
     using dmc::rengine::hits::contact::query_static_candidates;
+    using dmc::rengine::hits::edit::SpatialSafety;
+    using dmc::rengine::hits::edit::classify_spatial_safety;
     using dmc::rengine::hits::edit::prepare_safe_edit;
     using dmc::rengine::hits::edit::recompute_geometry;
+    using dmc::rengine::hits::edit::serialize_safe_copy;
     using dmc::rengine::hits::edit::serialize_topology_preserving_copy;
     using dmc::rengine::hits::runtime::ContactResult;
     using dmc::rengine::hits::runtime::GridCoordinate;
@@ -168,7 +171,6 @@ int main() {
     assert(nearest.has_value());
     assert(nearest->triangle_index == 1U);
 
-    // Safe edit: preserve topology, flags, file size, header and spatial bytes.
     const auto edit = prepare_safe_edit(
         scan.triangles[0],
         0U,
@@ -179,8 +181,10 @@ int main() {
     assert(edit->preserved_flags == 0x18060001U);
     assert(edit->geometry.normal.y == -1.0F);
     assert(edit->geometry.plane_d == 1.0F);
+    assert(classify_spatial_safety(scan, *edit) ==
+           SpatialSafety::safe_without_rebuild);
 
-    const auto edited_bytes = serialize_topology_preserving_copy(bytes, *edit);
+    const auto edited_bytes = serialize_safe_copy(scan, bytes, *edit);
     assert(edited_bytes.has_value());
     assert(edited_bytes->size() == bytes.size());
     assert(std::equal(bytes.begin(), bytes.begin() + 0x80U, edited_bytes->begin()));
@@ -196,6 +200,18 @@ int main() {
            scan.cells[0].triangle_byte_offsets);
     assert(edited_scan.cells[1].triangle_byte_offsets ==
            scan.cells[1].triangle_byte_offsets);
+
+    const auto moved_to_other_cell = prepare_safe_edit(
+        scan.triangles[0],
+        0U,
+        Vec3{3.0F, 0.0F, 0.0F},
+        Vec3{4.0F, 0.0F, 0.0F},
+        Vec3{3.0F, 0.0F, 1.0F});
+    assert(moved_to_other_cell.has_value());
+    assert(classify_spatial_safety(scan, *moved_to_other_cell) ==
+           SpatialSafety::requires_spatial_rebuild);
+    assert(!serialize_safe_copy(scan, bytes, *moved_to_other_cell));
+    assert(serialize_topology_preserving_copy(bytes, *moved_to_other_cell));
 
     assert(!recompute_geometry(
         Vec3{0.0F, 0.0F, 0.0F},
