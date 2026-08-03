@@ -24,6 +24,7 @@ enum class WorkspaceEventType {
     edit_applied,
     edit_undone,
     working_copy_reset,
+    runtime_change_requested,
     validation_requested,
     manifest_exported,
 };
@@ -43,6 +44,7 @@ enum class WorkspaceEventType {
     case WorkspaceEventType::edit_applied: return "edit-applied";
     case WorkspaceEventType::edit_undone: return "edit-undone";
     case WorkspaceEventType::working_copy_reset: return "working-copy-reset";
+    case WorkspaceEventType::runtime_change_requested: return "runtime-change-requested";
     case WorkspaceEventType::validation_requested: return "validation-requested";
     case WorkspaceEventType::manifest_exported: return "manifest-exported";
     }
