@@ -94,6 +94,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc3_stage_workspace_builder
         stage_tool_views
         item_runtime_validation_plan
+        item_runtime_validation_graph
+        item_runtime_patch_compiler
         working_copy
         classifier
         known_target
