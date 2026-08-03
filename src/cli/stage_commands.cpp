@@ -7,6 +7,7 @@
 #include "dmc_rengine/profiles/dmc3/stage_resources.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_workspace_builder.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -121,7 +122,7 @@ int run_build_stage_workspace(
     }
 
     auto result = profiles::dmc3::StageWorkspaceBuilder::build(
-        profiles::dmc3::st001_stage_plan(),
+        profiles::dmc3::phase12_st001_resource_plan(),
         std::move(payloads),
         evidence_packet.has_value() ? &*evidence_packet : nullptr);
 
