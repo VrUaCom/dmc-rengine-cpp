@@ -24,6 +24,10 @@ namespace dmc::rengine::item {
 struct RuntimeChangeRequest;
 }
 
+namespace dmc::rengine::validation {
+struct ItemRuntimeValidationPlan;
+}
+
 namespace dmc::rengine::integration {
 
 class ProjectWorkspace final {
@@ -57,6 +61,9 @@ public:
     [[nodiscard]] std::size_t session_count() const noexcept;
 
     [[nodiscard]] bool register_item_runtime_request(
+        const item::RuntimeChangeRequest& request);
+    [[nodiscard]] bool register_item_runtime_validation_plan(
+        const validation::ItemRuntimeValidationPlan& plan,
         const item::RuntimeChangeRequest& request);
     [[nodiscard]] bool record_parser_completed(
         const gdspaces::ResourceId& resource,
