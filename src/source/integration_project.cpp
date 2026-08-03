@@ -86,6 +86,29 @@ namespace {
                conflict_id_value) != decision.affected_conflict_ids.end();
 }
 
+[[nodiscard]] bool evidence_references_covered(
+    const std::vector<SourceModificationPackage>& packages,
+    const std::vector<std::string>& record_ids) {
+    std::set<std::string, std::less<>> known;
+    for (const auto& package : packages) {
+        known.insert(
+            package.evidence_record_ids.begin(),
+            package.evidence_record_ids.end());
+        for (const auto& unit : package.change_units) {
+            for (const auto& symbol : unit.affected_symbols) {
+                known.insert(
+                    symbol.evidence_record_ids.begin(),
+                    symbol.evidence_record_ids.end());
+            }
+        }
+    }
+    return std::all_of(
+        record_ids.begin(), record_ids.end(),
+        [&known](const std::string& record_id) {
+            return known.find(record_id) != known.end();
+        });
+}
+
 } // namespace
 
 bool DependencyIssue::valid() const noexcept {
@@ -479,6 +502,8 @@ bool IntegrationProject::resolve_conflict(
     if (status == ConflictResolutionStatus::unresolved || resolution.empty() ||
         !decision.valid() ||
         !decision_contains_conflict(decision, conflict_id_value) ||
+        !evidence_references_covered(
+            selected_modifications_, decision.evidence_record_ids) ||
         std::any_of(
             decisions_.begin(), decisions_.end(),
             [&decision](const DecisionRecord& existing) {
@@ -504,6 +529,8 @@ bool IntegrationProject::resolve_conflict(
 
 bool IntegrationProject::record_gate(IntegrationGateEvidence gate_value) {
     if (!gate_value.valid() ||
+        !evidence_references_covered(
+            selected_modifications_, gate_value.evidence_record_ids) ||
         std::any_of(
             gates_.begin(), gates_.end(),
             [&gate_value](const IntegrationGateEvidence& existing) {
@@ -571,6 +598,18 @@ bool IntegrationProject::valid() const noexcept {
             gates_.begin(), gates_.end(),
             [](const IntegrationGateEvidence& gate_value) {
                 return gate_value.valid();
+            }) ||
+        !std::all_of(
+            decisions_.begin(), decisions_.end(),
+            [this](const DecisionRecord& decision) {
+                return evidence_references_covered(
+                    selected_modifications_, decision.evidence_record_ids);
+            }) ||
+        !std::all_of(
+            gates_.begin(), gates_.end(),
+            [this](const IntegrationGateEvidence& gate_value) {
+                return evidence_references_covered(
+                    selected_modifications_, gate_value.evidence_record_ids);
             })) {
         return false;
     }
