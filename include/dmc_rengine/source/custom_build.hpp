@@ -170,6 +170,7 @@ struct BuildTestResult final {
     std::string id;
     TestLayer layer{TestLayer::unit};
     std::string profile;
+    bool mandatory{true};
     bool passed{false};
     std::string summary;
     std::string report_sha256;
