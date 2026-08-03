@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/resource_id.hpp"
 #include "dmc_rengine/item/workspace_view.hpp"
 
@@ -60,6 +61,12 @@ struct RuntimeChangeRequest final {
     RuntimeRequestStatus status{RuntimeRequestStatus::rejected};
     gdspaces::ResourceId item_resource;
     std::uint64_t item_revision{};
+    gdspaces::ToolTarget producer{gdspaces::ToolTarget::item_editor};
+    gdspaces::ToolTarget consumer{gdspaces::ToolTarget::exe_editor};
+    std::vector<gdspaces::ToolTarget> validators{
+        gdspaces::ToolTarget::evidence_registry,
+        gdspaces::ToolTarget::build_test_lab,
+    };
     std::string target_artifact_id;
     std::uint32_t requested_value{};
     std::vector<std::string> evidence_record_ids;
@@ -68,7 +75,10 @@ struct RuntimeChangeRequest final {
 
     [[nodiscard]] bool valid() const noexcept {
         return !id.empty() && item_resource.valid() &&
-               !target_artifact_id.empty() && !evidence_record_ids.empty();
+               producer == gdspaces::ToolTarget::item_editor &&
+               consumer == gdspaces::ToolTarget::exe_editor &&
+               !validators.empty() && !target_artifact_id.empty() &&
+               !evidence_record_ids.empty();
     }
 };
 
