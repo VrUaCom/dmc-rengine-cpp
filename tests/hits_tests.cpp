@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/hits/contact.hpp"
 #include "dmc_rengine/hits/runtime.hpp"
 
 #include <bit>
@@ -88,6 +89,10 @@ int main() {
     using dmc::rengine::formats::hits::Vec3;
     using dmc::rengine::formats::hits::flatten_cell_index;
     using dmc::rengine::formats::hits::triangle_size;
+    using dmc::rengine::hits::contact::NormalYClass;
+    using dmc::rengine::hits::contact::apply_normal_correction;
+    using dmc::rengine::hits::contact::classify_normal_y;
+    using dmc::rengine::hits::contact::query_static_candidates;
     using dmc::rengine::hits::runtime::GridCoordinate;
     using dmc::rengine::hits::runtime::StaticSource;
     using dmc::rengine::hits::runtime::StaticSourceSelector;
@@ -151,6 +156,42 @@ int main() {
     assert(selector.selected() == StaticSource::source_0_member_3);
     StaticSourceSelector missing_auxiliary(true, false);
     assert(!missing_auxiliary.select(StaticSource::source_1_member_6));
+
+    assert(classify_normal_y(Vec3{1.0F, 0.0F, 0.0F}) == NormalYClass::low);
+    assert(classify_normal_y(Vec3{0.0F, 0.6F, 0.0F}) == NormalYClass::middle);
+    assert(classify_normal_y(Vec3{0.0F, 1.0F, 0.0F}) == NormalYClass::high);
+
+    const auto corrected = apply_normal_correction(
+        Vec3{1.0F, 2.0F, 3.0F},
+        Vec3{0.0F, 1.0F, 0.0F},
+        2.5F);
+    assert(corrected.has_value());
+    assert((corrected.value() == Vec3{1.0F, 4.5F, 3.0F}));
+
+    const auto unfiltered_candidates = query_static_candidates(
+        result,
+        StaticSource::source_0_member_3,
+        Vec3{-9.0F, 0.0F, -9.0F},
+        Vec3{9.0F, 0.0F, 9.0F},
+        0U);
+    assert(unfiltered_candidates.has_value());
+    assert(unfiltered_candidates->size() == 2U);
+    assert((*unfiltered_candidates)[0].triangle_index == 0U);
+    assert((*unfiltered_candidates)[1].triangle_index == 1U);
+    assert((*unfiltered_candidates)[0].source ==
+        StaticSource::source_0_member_3);
+
+    const auto filtered_candidates = query_static_candidates(
+        result,
+        StaticSource::source_1_member_6,
+        Vec3{-9.0F, 0.0F, -9.0F},
+        Vec3{9.0F, 0.0F, 9.0F},
+        0x0002U);
+    assert(filtered_candidates.has_value());
+    assert(filtered_candidates->size() == 1U);
+    assert((*filtered_candidates)[0].triangle_index == 1U);
+    assert((*filtered_candidates)[0].source ==
+        StaticSource::source_1_member_6);
 
     const std::vector<std::byte> wrong_magic{
         std::byte{'N'}, std::byte{'O'}, std::byte{'P'}, std::byte{'E'}};
