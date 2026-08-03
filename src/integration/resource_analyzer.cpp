@@ -116,6 +116,11 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         report.parser_available = true;
         const auto scan = formats::hits::RecordScanner::scan(bytes);
         report.recognized = scan.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
         static_cast<void>(project.add_parser_diagnostics(
             resource, scan.diagnostics));
         for (const auto& diagnostic : scan.diagnostics) {
@@ -148,6 +153,11 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
         report.parser_available = true;
         const auto parsed = exe::PeReader::read(bytes);
         report.recognized = parsed.image.has_value();
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            report.recognized,
+            gdspaces::ToolTarget::exe_editor));
         const auto parser_diagnostics = pe_diagnostics(parsed);
         static_cast<void>(project.add_parser_diagnostics(
             resource, parser_diagnostics));
