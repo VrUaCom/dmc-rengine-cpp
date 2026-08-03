@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/hits/runtime.hpp"
 
 #include <bit>
 #include <cassert>
@@ -64,11 +65,11 @@ void write_triangle(
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 2U);
-    write_u32(bytes, 0x3CU, 0x3CU); // +8 -> 0x44 spatial base
-    write_u32(bytes, 0x40U, 0x78U); // +8 -> 0x80 triangle base
+    write_u32(bytes, 0x3CU, 0x3CU);
+    write_u32(bytes, 0x40U, 0x78U);
 
-    write_i32(bytes, 0x4CU, 0x4CU); // +8 -> 0x54 list 0
-    write_i32(bytes, 0x50U, 0x54U); // +8 -> 0x5C list 1
+    write_i32(bytes, 0x4CU, 0x4CU);
+    write_i32(bytes, 0x50U, 0x54U);
     write_i32(bytes, 0x54U, 0);
     write_i32(bytes, 0x58U, -1);
     write_i32(bytes, 0x5CU, 0x38);
@@ -84,8 +85,18 @@ void write_triangle(
 int main() {
     using dmc::rengine::formats::ParseSeverity;
     using dmc::rengine::formats::hits::RecordScanner;
+    using dmc::rengine::formats::hits::Vec3;
     using dmc::rengine::formats::hits::flatten_cell_index;
     using dmc::rengine::formats::hits::triangle_size;
+    using dmc::rengine::hits::runtime::GridCoordinate;
+    using dmc::rengine::hits::runtime::StaticSource;
+    using dmc::rengine::hits::runtime::StaticSourceSelector;
+    using dmc::rengine::hits::runtime::collect_unique_triangle_offsets;
+    using dmc::rengine::hits::runtime::enumerate_cells;
+    using dmc::rengine::hits::runtime::flatten;
+    using dmc::rengine::hits::runtime::maximum_plane_residual;
+    using dmc::rengine::hits::runtime::rejected_by_upper_mask;
+    using dmc::rengine::hits::runtime::world_to_grid;
 
     static_assert(triangle_size == 0x38U);
     static_assert(flatten_cell_index(1U, 2U, 3U, 4U, 5U) == 33U);
@@ -106,8 +117,40 @@ int main() {
     assert(result.triangles[0].point_b.x == -1.0F);
     assert(result.triangles[0].normal.y == 1.0F);
     assert(result.triangles[0].plane_d == 0.0F);
-    assert(dmc::rengine::formats::hits::evaluate_plane(
-        result.triangles[0], result.triangles[0].point_c) == 0.0F);
+    assert(maximum_plane_residual(result.triangles[0]) == 0.0F);
+
+    const auto first_cell = world_to_grid(
+        result.header, Vec3{-9.0F, 0.0F, -9.0F});
+    assert((first_cell == GridCoordinate{0U, 0U, 0U}));
+    const auto second_cell = world_to_grid(
+        result.header, Vec3{9.0F, 0.0F, 9.0F});
+    assert((second_cell == GridCoordinate{1U, 0U, 0U}));
+    const auto clamped_cell = world_to_grid(
+        result.header, Vec3{500.0F, -500.0F, 500.0F});
+    assert((clamped_cell == GridCoordinate{1U, 0U, 0U}));
+    assert(flatten(result.header, GridCoordinate{1U, 0U, 0U}) == 1U);
+    assert(!flatten(result.header, GridCoordinate{2U, 0U, 0U}));
+
+    const auto queried_cells = enumerate_cells(
+        result.header,
+        Vec3{-9.0F, 0.0F, -9.0F},
+        Vec3{9.0F, 0.0F, 9.0F});
+    assert(queried_cells == std::vector<std::uint32_t>({0U, 1U}));
+    const auto candidates = collect_unique_triangle_offsets(
+        result.cells, *queried_cells);
+    assert(candidates == std::vector<std::uint32_t>({0U, 0x38U}));
+
+    assert(rejected_by_upper_mask(0x18060001U, 0x0002U));
+    assert(!rejected_by_upper_mask(0x18060001U, 0x0008U));
+
+    StaticSourceSelector selector(true, true);
+    assert(selector.selected() == StaticSource::source_0_member_3);
+    assert(selector.select(StaticSource::source_1_member_6));
+    assert(selector.selected() == StaticSource::source_1_member_6);
+    assert(selector.restore_default());
+    assert(selector.selected() == StaticSource::source_0_member_3);
+    StaticSourceSelector missing_auxiliary(true, false);
+    assert(!missing_auxiliary.select(StaticSource::source_1_member_6));
 
     const std::vector<std::byte> wrong_magic{
         std::byte{'N'}, std::byte{'O'}, std::byte{'P'}, std::byte{'E'}};
@@ -115,7 +158,7 @@ int main() {
     assert(!unrecognized.recognized);
     assert(!unrecognized.ok());
 
-    std::vector<std::byte> truncated{
+    const std::vector<std::byte> truncated{
         std::byte{'H'}, std::byte{'I'}, std::byte{'T'}, std::byte{'S'}};
     const auto truncated_result = RecordScanner::scan(truncated);
     assert(truncated_result.recognized);
@@ -129,6 +172,5 @@ int main() {
     assert(invalid.recognized);
     assert(!invalid.ok());
     assert(invalid.diagnostics.back().code == "hits.invalid_triangle_reference");
-
     return 0;
 }
