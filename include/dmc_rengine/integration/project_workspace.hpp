@@ -12,10 +12,12 @@
 #include "dmc_rengine/integration/project_graph.hpp"
 #include "dmc_rengine/integration/resource_workspace.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
+#include "dmc_rengine/source/custom_build.hpp"
 #include "dmc_rengine/source/integration_project.hpp"
 #include "dmc_rengine/source/modification.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <span>
 #include <string>
@@ -80,6 +82,17 @@ public:
             std::string_view project_id) const noexcept;
     [[nodiscard]] std::size_t source_modification_count() const noexcept;
     [[nodiscard]] std::size_t source_integration_project_count() const noexcept;
+
+    [[nodiscard]] bool register_custom_build_record(
+        source::CustomBuildRecord record);
+    [[nodiscard]] const source::CustomBuildRecord* find_custom_build(
+        std::string_view custom_build_id) const noexcept;
+    [[nodiscard]] const source::CustomBuildRecord* find_custom_build_by_sha256(
+        std::string_view executable_sha256) const noexcept;
+    [[nodiscard]] const source::SourceBinaryMapping* find_custom_build_mapping(
+        std::string_view custom_build_id,
+        std::uint64_t rva) const noexcept;
+    [[nodiscard]] std::size_t custom_build_count() const noexcept;
 
     [[nodiscard]] bool register_item_runtime_request(
         const item::RuntimeChangeRequest& request);
@@ -166,6 +179,10 @@ private:
         source_modifications_;
     std::map<std::string, source::IntegrationProject, std::less<>>
         source_integration_projects_;
+    std::map<std::string, source::CustomBuildRecord, std::less<>>
+        custom_builds_;
+    std::map<std::string, std::string, std::less<>>
+        custom_build_ids_by_sha256_;
 };
 
 } // namespace dmc::rengine::integration
