@@ -77,6 +77,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         binary_fields
         binary_manifest
         hits
+        hits_writer
         hits_binary
         dca
         lig2
