@@ -24,6 +24,8 @@ enum class ProjectNodeKind {
     validation_plan,
     validation_requirement,
     patch_plan,
+    patch_execution,
+    rollback_plan,
     stage,
     binary_document,
     working_copy,
@@ -47,6 +49,8 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::validation_plan: return "validation-plan";
     case ProjectNodeKind::validation_requirement: return "validation-requirement";
     case ProjectNodeKind::patch_plan: return "patch-plan";
+    case ProjectNodeKind::patch_execution: return "patch-execution";
+    case ProjectNodeKind::rollback_plan: return "rollback-plan";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
     case ProjectNodeKind::working_copy: return "working-copy";
@@ -66,6 +70,9 @@ enum class ProjectEdgeKind {
     requires_requirement,
     blocks,
     compiled_from,
+    executed_from,
+    produces,
+    rollback_for,
     targets,
     classified_as,
     parsed_by,
@@ -91,6 +98,9 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::requires_requirement: return "requires";
     case ProjectEdgeKind::blocks: return "blocks";
     case ProjectEdgeKind::compiled_from: return "compiled-from";
+    case ProjectEdgeKind::executed_from: return "executed-from";
+    case ProjectEdgeKind::produces: return "produces";
+    case ProjectEdgeKind::rollback_for: return "rollback-for";
     case ProjectEdgeKind::targets: return "targets";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
