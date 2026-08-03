@@ -121,13 +121,13 @@ int main() {
 
     const auto first_cell = world_to_grid(
         result.header, Vec3{-9.0F, 0.0F, -9.0F});
-    assert(first_cell == GridCoordinate{0U, 0U, 0U});
+    assert((first_cell == GridCoordinate{0U, 0U, 0U}));
     const auto second_cell = world_to_grid(
         result.header, Vec3{9.0F, 0.0F, 9.0F});
-    assert(second_cell == GridCoordinate{1U, 0U, 0U});
+    assert((second_cell == GridCoordinate{1U, 0U, 0U}));
     const auto clamped_cell = world_to_grid(
         result.header, Vec3{500.0F, -500.0F, 500.0F});
-    assert(clamped_cell == GridCoordinate{1U, 0U, 0U});
+    assert((clamped_cell == GridCoordinate{1U, 0U, 0U}));
     assert(flatten(result.header, GridCoordinate{1U, 0U, 0U}) == 1U);
     assert(!flatten(result.header, GridCoordinate{2U, 0U, 0U}));
 
