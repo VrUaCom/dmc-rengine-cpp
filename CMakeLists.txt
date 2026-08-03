@@ -101,6 +101,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_integration_project
         source_integration_graph
         source_integration_manifest
+        source_integration_evidence_gate
         working_copy
         classifier
         known_target
