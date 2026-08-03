@@ -1,7 +1,9 @@
 #pragma once
 
 #include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/hits/runtime.hpp"
 
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <cstddef>
@@ -12,6 +14,7 @@
 
 namespace dmc::rengine::hits::edit {
 
+using formats::hits::ScanResult;
 using formats::hits::Triangle;
 using formats::hits::Vec3;
 
@@ -28,6 +31,12 @@ struct SafeTriangleEdit final {
     std::uint64_t record_offset{};
     std::uint32_t preserved_flags{};
     TriangleGeometry geometry;
+};
+
+enum class SpatialSafety : std::uint8_t {
+    safe_without_rebuild = 0,
+    requires_spatial_rebuild = 1,
+    invalid = 2,
 };
 
 [[nodiscard]] inline bool finite(const Vec3& value) noexcept {
@@ -115,6 +124,66 @@ struct SafeTriangleEdit final {
     };
 }
 
+[[nodiscard]] inline std::vector<std::uint32_t> referenced_cells(
+    const ScanResult& scan,
+    std::uint32_t triangle_byte_offset) {
+    std::vector<std::uint32_t> cells;
+    for (const auto& cell : scan.cells) {
+        if (std::find(
+                cell.triangle_byte_offsets.begin(),
+                cell.triangle_byte_offsets.end(),
+                triangle_byte_offset) != cell.triangle_byte_offsets.end()) {
+            cells.push_back(cell.index);
+        }
+    }
+    return cells;
+}
+
+[[nodiscard]] inline SpatialSafety classify_spatial_safety(
+    const ScanResult& scan,
+    const SafeTriangleEdit& edit) {
+    if (!scan.ok() || edit.triangle_index >= scan.triangles.size() ||
+        scan.triangles[edit.triangle_index].offset != edit.record_offset) {
+        return SpatialSafety::invalid;
+    }
+
+    const auto byte_offset = static_cast<std::uint32_t>(
+        edit.triangle_index * formats::hits::triangle_size);
+    auto old_cells = referenced_cells(scan, byte_offset);
+    if (old_cells.empty()) {
+        return SpatialSafety::requires_spatial_rebuild;
+    }
+    std::sort(old_cells.begin(), old_cells.end());
+
+    const Vec3 minimum{
+        .x = std::min({edit.geometry.point_a.x, edit.geometry.point_b.x,
+                       edit.geometry.point_c.x}),
+        .y = std::min({edit.geometry.point_a.y, edit.geometry.point_b.y,
+                       edit.geometry.point_c.y}),
+        .z = std::min({edit.geometry.point_a.z, edit.geometry.point_b.z,
+                       edit.geometry.point_c.z}),
+    };
+    const Vec3 maximum{
+        .x = std::max({edit.geometry.point_a.x, edit.geometry.point_b.x,
+                       edit.geometry.point_c.x}),
+        .y = std::max({edit.geometry.point_a.y, edit.geometry.point_b.y,
+                       edit.geometry.point_c.y}),
+        .z = std::max({edit.geometry.point_a.z, edit.geometry.point_b.z,
+                       edit.geometry.point_c.z}),
+    };
+    const auto new_cells = runtime::enumerate_cells(scan.header, minimum, maximum);
+    if (!new_cells) {
+        return SpatialSafety::invalid;
+    }
+
+    for (const auto cell : *new_cells) {
+        if (!std::binary_search(old_cells.begin(), old_cells.end(), cell)) {
+            return SpatialSafety::requires_spatial_rebuild;
+        }
+    }
+    return SpatialSafety::safe_without_rebuild;
+}
+
 inline void write_u32_le(
     std::span<std::byte> bytes,
     std::size_t offset,
@@ -153,7 +222,6 @@ inline void write_vec3_le(
         return false;
     }
 
-    // Preserve the original raw flags and patch only the 13 float fields.
     write_u32_le(bytes, offset, edit.preserved_flags);
     write_vec3_le(bytes, offset + 0x04U, edit.geometry.point_a);
     write_vec3_le(bytes, offset + 0x10U, edit.geometry.point_b);
@@ -172,6 +240,18 @@ serialize_topology_preserving_copy(
         return std::nullopt;
     }
     return output;
+}
+
+[[nodiscard]] inline std::optional<std::vector<std::byte>>
+serialize_safe_copy(
+    const ScanResult& scan,
+    std::span<const std::byte> source,
+    const SafeTriangleEdit& edit) {
+    if (classify_spatial_safety(scan, edit) !=
+        SpatialSafety::safe_without_rebuild) {
+        return std::nullopt;
+    }
+    return serialize_topology_preserving_copy(source, edit);
 }
 
 } // namespace dmc::rengine::hits::edit
