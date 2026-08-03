@@ -30,6 +30,7 @@ struct ItemRuntimeValidationPlan;
 
 namespace dmc::rengine::patch {
 struct CompiledItemRuntimePatchPlan;
+struct PatchCopyArtifact;
 }
 
 namespace dmc::rengine::integration {
@@ -71,6 +72,8 @@ public:
         const item::RuntimeChangeRequest& request);
     [[nodiscard]] bool register_compiled_item_runtime_patch_plan(
         const patch::CompiledItemRuntimePatchPlan& compiled);
+    [[nodiscard]] bool register_patch_copy_artifact(
+        const patch::PatchCopyArtifact& artifact);
     [[nodiscard]] bool record_parser_completed(
         const gdspaces::ResourceId& resource,
         std::string parser_id,
