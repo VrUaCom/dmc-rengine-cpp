@@ -35,16 +35,27 @@ namespace {
     return true;
 }
 
-[[nodiscard]] bool status_requires_validated_pe(
+[[nodiscard]] bool status_requires_passed_tests(
     CustomBuildStatus status) noexcept {
     return status != CustomBuildStatus::compiled;
 }
 
-[[nodiscard]] bool status_requires_passed_tests(
+[[nodiscard]] bool status_requires_runtime_smoke(
     CustomBuildStatus status) noexcept {
-    return status != CustomBuildStatus::compiled &&
-           status != CustomBuildStatus::revoked &&
-           status != CustomBuildStatus::superseded;
+    return status == CustomBuildStatus::runtime_tested ||
+           status == CustomBuildStatus::release_candidate ||
+           status == CustomBuildStatus::approved ||
+           status == CustomBuildStatus::released;
+}
+
+[[nodiscard]] bool has_passed_mandatory_layer(
+    const std::vector<BuildTestResult>& results,
+    TestLayer layer) {
+    return std::any_of(
+        results.begin(), results.end(),
+        [layer](const BuildTestResult& result) {
+            return result.layer == layer && result.mandatory && result.passed;
+        });
 }
 
 [[nodiscard]] bool ranges_overlap(
@@ -119,19 +130,25 @@ bool CustomBuildIdentity::valid() const noexcept {
 }
 
 bool CustomBuildRecord::valid() const noexcept {
-    if (!identity.valid() || !toolchain.valid() || executable_size == 0U ||
-        included_modifications.empty() || source_binary_mappings.empty() ||
-        test_results.empty() || distribution_permission.empty() ||
+    if (!identity.valid() || !toolchain.valid() || !pe_validation.valid() ||
+        executable_size == 0U || included_modifications.empty() ||
+        source_binary_mappings.empty() || test_results.empty() ||
+        distribution_permission.empty() ||
         !unique_non_empty(resource_package_versions, false) ||
         !unique_non_empty(known_issues, false) ||
         !unique_non_empty(credits, true) ||
         !unique_non_empty(unified_implementation_decision_ids, false)) {
         return false;
     }
-    if (status_requires_validated_pe(status) && !pe_validation.valid()) {
+    if (status_requires_passed_tests(status) && !mandatory_tests_passed()) {
         return false;
     }
-    if (status_requires_passed_tests(status) && !mandatory_tests_passed()) {
+    if (status != CustomBuildStatus::compiled &&
+        !has_passed_mandatory_layer(test_results, TestLayer::pe_structure)) {
+        return false;
+    }
+    if (status_requires_runtime_smoke(status) &&
+        !has_passed_mandatory_layer(test_results, TestLayer::runtime_smoke)) {
         return false;
     }
     if ((attestation_state == AttestationState::hash_attested ||
@@ -142,6 +159,12 @@ bool CustomBuildRecord::valid() const noexcept {
     }
     if (status == CustomBuildStatus::revoked &&
         attestation_state != AttestationState::revoked) {
+        return false;
+    }
+    if (status == CustomBuildStatus::released &&
+        (attestation_state == AttestationState::none ||
+         attestation_state == AttestationState::unsigned_internal ||
+         attestation_state == AttestationState::revoked)) {
         return false;
     }
 
