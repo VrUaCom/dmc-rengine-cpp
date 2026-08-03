@@ -32,7 +32,7 @@ struct ContactResult final {
 };
 
 [[nodiscard]] inline std::optional<ContactResult> make_contact_result(
-    const TriangleCandidate& candidate,
+    const contact::TriangleCandidate& candidate,
     const formats::hits::Vec3& point,
     float metric) noexcept {
     if (candidate.triangle == nullptr || !std::isfinite(metric) || metric < 0.0F) {
