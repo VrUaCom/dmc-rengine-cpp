@@ -28,6 +28,7 @@ enum class WorkspaceEventType {
     validation_requested,
     validation_plan_created,
     patch_plan_compiled,
+    patch_copy_executed,
     manifest_exported,
 };
 
@@ -50,6 +51,7 @@ enum class WorkspaceEventType {
     case WorkspaceEventType::validation_requested: return "validation-requested";
     case WorkspaceEventType::validation_plan_created: return "validation-plan-created";
     case WorkspaceEventType::patch_plan_compiled: return "patch-plan-compiled";
+    case WorkspaceEventType::patch_copy_executed: return "patch-copy-executed";
     case WorkspaceEventType::manifest_exported: return "manifest-exported";
     }
     return "workspace-created";
