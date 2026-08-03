@@ -4,6 +4,7 @@
 #include "dmc_rengine/evidence/record.hpp"
 
 #include <cstdint>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -24,10 +25,12 @@ struct EvidencePacket final {
         }
 
         std::set<std::string> artifact_ids;
+        std::map<std::string, std::uint64_t, std::less<>> artifact_sizes;
         for (const auto& artifact : artifacts) {
             if (!artifact.valid() || !artifact_ids.insert(artifact.id).second) {
                 return false;
             }
+            artifact_sizes.emplace(artifact.id, artifact.size);
         }
 
         std::set<std::string> record_ids;
@@ -36,7 +39,23 @@ struct EvidencePacket final {
                 return false;
             }
             for (const auto& location : record.locations) {
-                if (!artifact_ids.contains(location.artifact_id)) {
+                const auto artifact = artifact_sizes.find(location.artifact_id);
+                if (artifact == artifact_sizes.end()) {
+                    return false;
+                }
+                if (location.size.has_value() && *location.size == 0U) {
+                    return false;
+                }
+                if (!location.file_offset.has_value()) {
+                    continue;
+                }
+
+                const auto offset = *location.file_offset;
+                if (offset >= artifact->second) {
+                    return false;
+                }
+                if (location.size.has_value() &&
+                    *location.size > artifact->second - offset) {
                     return false;
                 }
             }
