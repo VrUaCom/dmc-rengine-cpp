@@ -28,6 +28,10 @@ namespace dmc::rengine::validation {
 struct ItemRuntimeValidationPlan;
 }
 
+namespace dmc::rengine::patch {
+struct CompiledItemRuntimePatchPlan;
+}
+
 namespace dmc::rengine::integration {
 
 class ProjectWorkspace final {
@@ -65,6 +69,8 @@ public:
     [[nodiscard]] bool register_item_runtime_validation_plan(
         const validation::ItemRuntimeValidationPlan& plan,
         const item::RuntimeChangeRequest& request);
+    [[nodiscard]] bool register_compiled_item_runtime_patch_plan(
+        const patch::CompiledItemRuntimePatchPlan& compiled);
     [[nodiscard]] bool record_parser_completed(
         const gdspaces::ResourceId& resource,
         std::string parser_id,
