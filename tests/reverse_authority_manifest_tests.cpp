@@ -138,14 +138,61 @@ int main(int argc, char** argv) {
     const auto* blockers_value = member(*root, "current_blockers");
     assert(blockers_value != nullptr && blockers_value->as_array() != nullptr);
     const auto& blockers = *blockers_value->as_array();
+    assert(blockers.size() == 3U);
     assert(find_object_by_id(
         blockers,
-        "blocker-pass31-git-receipt-unresolved") != nullptr);
+        "blocker-source-tree-partially-promoted") != nullptr);
     assert(find_object_by_id(
         blockers,
-        "blocker-process-control-row-schema-drift") != nullptr);
+        "blocker-drive-artifact-hashes-missing") != nullptr);
     assert(find_object_by_id(
         blockers,
-        "blocker-source-tree-not-mirrored") != nullptr);
+        "blocker-pass32-save-payload-semantics-open") != nullptr);
+    assert(find_object_by_id(
+        blockers,
+        "blocker-pass31-git-receipt-unresolved") == nullptr);
+    assert(find_object_by_id(
+        blockers,
+        "blocker-process-control-row-schema-drift") == nullptr);
+
+    const auto* corrections_value = member(*root, "resolved_corrections");
+    assert(corrections_value != nullptr &&
+           corrections_value->as_array() != nullptr);
+    const auto& corrections = *corrections_value->as_array();
+    assert(corrections.size() == 4U);
+
+    const auto* receipt = find_object_by_id(
+        corrections,
+        "correction-pass31-git-receipt");
+    const auto* process_schema = find_object_by_id(
+        corrections,
+        "correction-process-control-schema-drift");
+    const auto* knowledge_schema = find_object_by_id(
+        corrections,
+        "correction-knowledge-base-schema-drift");
+    const auto* source_gap = find_object_by_id(
+        corrections,
+        "correction-pass31-product-source-gap");
+    assert(receipt != nullptr);
+    assert(process_schema != nullptr);
+    assert(knowledge_schema != nullptr);
+    assert(source_gap != nullptr);
+
+    const auto* previous_receipt = member(*receipt, "previous_receipt");
+    const auto* replacement_receipt = member(*receipt, "replacement_receipt");
+    assert(previous_receipt != nullptr &&
+           previous_receipt->as_string() != nullptr);
+    assert(*previous_receipt->as_string() ==
+        "784b06b7fef5e526fc98721629fe3c509fe41a228");
+    assert(replacement_receipt != nullptr &&
+           replacement_receipt->as_string() != nullptr);
+    assert(*replacement_receipt->as_string() ==
+        "76ed3b7a02ee83a6285834495ac0e4c9f84845e3");
+    assert(string_array_contains(
+        member(*receipt, "repository_paths"),
+        "evidence/save/dmc3-pc-save-pass31.evidence.json"));
+    assert(string_array_contains(
+        member(*receipt, "repository_paths"),
+        "src/save/pc_save_file.cpp"));
     return 0;
 }
