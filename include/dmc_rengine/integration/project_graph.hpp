@@ -20,6 +20,7 @@ enum class ProjectNodeKind {
     artifact,
     evidence_record,
     executable_analysis,
+    runtime_request,
     stage,
     binary_document,
     working_copy,
@@ -39,6 +40,7 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::artifact: return "artifact";
     case ProjectNodeKind::evidence_record: return "evidence-record";
     case ProjectNodeKind::executable_analysis: return "executable-analysis";
+    case ProjectNodeKind::runtime_request: return "runtime-request";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
     case ProjectNodeKind::working_copy: return "working-copy";
@@ -54,6 +56,7 @@ enum class ProjectEdgeKind {
     depends_on,
     declares,
     references_artifact,
+    requests_change,
     classified_as,
     parsed_by,
     opens_with,
@@ -74,6 +77,7 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::depends_on: return "depends-on";
     case ProjectEdgeKind::declares: return "declares";
     case ProjectEdgeKind::references_artifact: return "references-artifact";
+    case ProjectEdgeKind::requests_change: return "requests-change";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
