@@ -21,6 +21,9 @@ enum class ProjectNodeKind {
     evidence_record,
     executable_analysis,
     runtime_request,
+    validation_plan,
+    validation_requirement,
+    patch_plan,
     stage,
     binary_document,
     working_copy,
@@ -41,6 +44,9 @@ enum class ProjectNodeKind {
     case ProjectNodeKind::evidence_record: return "evidence-record";
     case ProjectNodeKind::executable_analysis: return "executable-analysis";
     case ProjectNodeKind::runtime_request: return "runtime-request";
+    case ProjectNodeKind::validation_plan: return "validation-plan";
+    case ProjectNodeKind::validation_requirement: return "validation-requirement";
+    case ProjectNodeKind::patch_plan: return "patch-plan";
     case ProjectNodeKind::stage: return "stage";
     case ProjectNodeKind::binary_document: return "binary-document";
     case ProjectNodeKind::working_copy: return "working-copy";
@@ -57,6 +63,10 @@ enum class ProjectEdgeKind {
     declares,
     references_artifact,
     requests_change,
+    requires,
+    blocks,
+    compiled_from,
+    targets,
     classified_as,
     parsed_by,
     opens_with,
@@ -78,6 +88,10 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::declares: return "declares";
     case ProjectEdgeKind::references_artifact: return "references-artifact";
     case ProjectEdgeKind::requests_change: return "requests-change";
+    case ProjectEdgeKind::requires: return "requires";
+    case ProjectEdgeKind::blocks: return "blocks";
+    case ProjectEdgeKind::compiled_from: return "compiled-from";
+    case ProjectEdgeKind::targets: return "targets";
     case ProjectEdgeKind::classified_as: return "classified-as";
     case ProjectEdgeKind::parsed_by: return "parsed-by";
     case ProjectEdgeKind::opens_with: return "opens-with";
