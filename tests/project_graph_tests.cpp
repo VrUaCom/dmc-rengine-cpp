@@ -26,22 +26,58 @@ void write_u32(
     }
 }
 
+void write_i32(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::int32_t value) {
+    write_u32(bytes, offset, static_cast<std::uint32_t>(value));
+}
+
+void write_f32(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    float value) {
+    write_u32(bytes, offset, std::bit_cast<std::uint32_t>(value));
+}
+
+void write_vec3(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    float x,
+    float y,
+    float z) {
+    write_f32(bytes, offset, x);
+    write_f32(bytes, offset + 4U, y);
+    write_f32(bytes, offset + 8U, z);
+}
+
 [[nodiscard]] std::vector<std::byte> make_hits() {
-    std::vector<std::byte> bytes(64U, std::byte{0});
+    constexpr std::size_t triangle_offset = 0x70U;
+    constexpr std::size_t end_offset = triangle_offset + 0x38U;
+    std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
     bytes[1] = std::byte{'I'};
     bytes[2] = std::byte{'T'};
     bytes[3] = std::byte{'S'};
-    bytes[4] = std::byte{'$'};
-    write_u32(bytes, 8U, dmc::rengine::formats::hits::record_marker);
-    for (std::size_t index = 0;
-         index < dmc::rengine::formats::hits::value_count;
-         ++index) {
-        write_u32(
-            bytes,
-            12U + index * 4U,
-            std::bit_cast<std::uint32_t>(10.0F + static_cast<float>(index)));
-    }
+    write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
+    write_vec3(bytes, 0x08U, -1.0F, -1.0F, -1.0F);
+    write_vec3(bytes, 0x14U, 1.0F, 1.0F, 1.0F);
+    write_vec3(bytes, 0x20U, 2.0F, 2.0F, 2.0F);
+    write_u32(bytes, 0x2CU, 1U);
+    write_u32(bytes, 0x30U, 1U);
+    write_u32(bytes, 0x34U, 1U);
+    write_u32(bytes, 0x38U, 1U);
+    write_u32(bytes, 0x3CU, 0x3CU);
+    write_u32(bytes, 0x40U, 0x68U);
+    write_i32(bytes, 0x4CU, 0x48U);
+    write_i32(bytes, 0x50U, 0);
+    write_i32(bytes, 0x54U, -1);
+    write_u32(bytes, triangle_offset, 0x18060001U);
+    write_vec3(bytes, triangle_offset + 0x04U, 0.0F, 0.0F, 0.0F);
+    write_vec3(bytes, triangle_offset + 0x10U, 1.0F, 0.0F, 0.0F);
+    write_vec3(bytes, triangle_offset + 0x1CU, 0.0F, 0.0F, 1.0F);
+    write_vec3(bytes, triangle_offset + 0x28U, 0.0F, 1.0F, 0.0F);
+    write_f32(bytes, triangle_offset + 0x34U, 0.0F);
     return bytes;
 }
 
@@ -87,8 +123,8 @@ int main() {
     const ResourceRef ref{
         .id = ResourceId{
             .source_id = "graph-test",
-            .logical_path = "room/st001cfg_006.hits",
-            .container_chain = "NBZ[0]/PAC[4]",
+            .logical_path = "room/st001_003.ukn",
+            .container_chain = "NBZ[0]/PAC[3]",
             .offset = 12288U,
             .size = bytes.size(),
         },
@@ -148,7 +184,7 @@ int main() {
     assert(stage.add(StageMember{
         .category = StageResourceCategory::collision,
         .resource = ref,
-        .role = "room-collision-hits",
+        .role = "stage-collision-source-0",
     }));
     assert(workspace.attach_stage_bundle(stage));
     assert(workspace.enable_working_copy());
@@ -156,7 +192,7 @@ int main() {
         EditOperation{
             .id = "graph-edit",
             .base_revision = 0U,
-            .offset = 6U,
+            .offset = 0x58U,
             .expected = {std::byte{0}},
             .replacement = {std::byte{2}},
             .description = "Create a graph-visible WorkingCopy revision.",

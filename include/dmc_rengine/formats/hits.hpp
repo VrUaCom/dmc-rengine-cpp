@@ -2,7 +2,6 @@
 
 #include "dmc_rengine/formats/diagnostic.hpp"
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -10,19 +9,58 @@
 
 namespace dmc::rengine::formats::hits {
 
-inline constexpr std::uint32_t record_marker = 0x18060001U;
-inline constexpr std::size_t record_size = 56U;
-inline constexpr std::size_t value_count = 13U;
+inline constexpr std::size_t magic_size = 4U;
+inline constexpr std::size_t header_size = 0x44U;
+inline constexpr std::size_t triangle_size = 0x38U;
+inline constexpr std::int32_t cell_list_terminator = -1;
 
-struct Record final {
+struct Vec3 final {
+    float x{};
+    float y{};
+    float z{};
+
+    friend bool operator==(const Vec3&, const Vec3&) = default;
+};
+
+struct Header final {
+    std::uint32_t end_offset{};
+    Vec3 bounds_min;
+    Vec3 bounds_max;
+    Vec3 cell_size;
+    std::uint32_t grid_count_x{};
+    std::uint32_t grid_count_y{};
+    std::uint32_t grid_count_z{};
+    std::uint32_t triangle_count{};
+    std::uint32_t spatial_relative_offset{};
+    std::uint32_t triangle_relative_offset{};
+
+    [[nodiscard]] std::uint64_t cell_count() const noexcept;
+    [[nodiscard]] std::uint64_t spatial_offset() const noexcept;
+    [[nodiscard]] std::uint64_t triangle_offset() const noexcept;
+};
+
+struct Triangle final {
     std::uint64_t offset{};
-    std::uint32_t marker{};
-    std::array<float, value_count> values{};
+    std::uint32_t flags{};
+    Vec3 point_a;
+    Vec3 point_b;
+    Vec3 point_c;
+    Vec3 normal;
+    float plane_d{};
+};
+
+struct Cell final {
+    std::uint32_t index{};
+    std::uint64_t pointer_offset{};
+    std::uint64_t list_offset{};
+    std::vector<std::uint32_t> triangle_byte_offsets;
 };
 
 struct ScanResult final {
     bool recognized{false};
-    std::vector<Record> records;
+    Header header;
+    std::vector<Cell> cells;
+    std::vector<Triangle> triangles;
     std::vector<ParseDiagnostic> diagnostics;
 
     [[nodiscard]] bool ok() const noexcept;
@@ -32,5 +70,18 @@ class RecordScanner final {
 public:
     [[nodiscard]] static ScanResult scan(std::span<const std::byte> bytes);
 };
+
+[[nodiscard]] constexpr std::uint32_t flatten_cell_index(
+    std::uint32_t x,
+    std::uint32_t y,
+    std::uint32_t z,
+    std::uint32_t grid_count_y,
+    std::uint32_t grid_count_z) noexcept {
+    return ((x * grid_count_y) + y) * grid_count_z + z;
+}
+
+[[nodiscard]] float evaluate_plane(
+    const Triangle& triangle,
+    const Vec3& point) noexcept;
 
 } // namespace dmc::rengine::formats::hits

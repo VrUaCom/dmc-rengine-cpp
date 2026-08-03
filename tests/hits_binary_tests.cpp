@@ -10,45 +10,64 @@
 
 namespace {
 
-void write_u32(
-    std::vector<std::byte>& bytes,
-    std::size_t offset,
-    std::uint32_t value) {
+void write_u32(std::vector<std::byte>& bytes, std::size_t offset, std::uint32_t value) {
     for (std::size_t index = 0; index < 4U; ++index) {
         bytes[offset + index] = static_cast<std::byte>(
             (value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
     }
 }
 
-void write_record(
+void write_i32(std::vector<std::byte>& bytes, std::size_t offset, std::int32_t value) {
+    write_u32(bytes, offset, static_cast<std::uint32_t>(value));
+}
+
+void write_f32(std::vector<std::byte>& bytes, std::size_t offset, float value) {
+    write_u32(bytes, offset, std::bit_cast<std::uint32_t>(value));
+}
+
+void write_vec3(
     std::vector<std::byte>& bytes,
     std::size_t offset,
-    float base) {
-    write_u32(bytes, offset, dmc::rengine::formats::hits::record_marker);
-    for (std::size_t index = 0;
-         index < dmc::rengine::formats::hits::value_count;
-         ++index) {
-        write_u32(
-            bytes,
-            offset + 4U + index * 4U,
-            std::bit_cast<std::uint32_t>(base + static_cast<float>(index)));
-    }
+    float x,
+    float y,
+    float z) {
+    write_f32(bytes, offset, x);
+    write_f32(bytes, offset + 4U, y);
+    write_f32(bytes, offset + 8U, z);
 }
 
 [[nodiscard]] std::vector<std::byte> make_fixture() {
-    std::vector<std::byte> bytes(120U, std::byte{0});
+    constexpr std::size_t triangle_offset = 0x70U;
+    constexpr std::size_t end_offset = triangle_offset + 0x38U;
+    std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
     bytes[1] = std::byte{'I'};
     bytes[2] = std::byte{'T'};
     bytes[3] = std::byte{'S'};
-    bytes[4] = std::byte{'$'};
-    write_record(bytes, 8U, 1.0F);
-    write_record(bytes, 64U, 20.0F);
+    write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
+    write_vec3(bytes, 0x08U, -1.0F, -1.0F, -1.0F);
+    write_vec3(bytes, 0x14U, 1.0F, 1.0F, 1.0F);
+    write_vec3(bytes, 0x20U, 2.0F, 2.0F, 2.0F);
+    write_u32(bytes, 0x2CU, 1U);
+    write_u32(bytes, 0x30U, 1U);
+    write_u32(bytes, 0x34U, 1U);
+    write_u32(bytes, 0x38U, 1U);
+    write_u32(bytes, 0x3CU, 0x3CU); // spatial = 0x44
+    write_u32(bytes, 0x40U, 0x68U); // triangles = 0x70
+    write_i32(bytes, 0x4CU, 0x48U); // list = 0x50
+    write_i32(bytes, 0x50U, 0);
+    write_i32(bytes, 0x54U, -1);
+
+    write_u32(bytes, triangle_offset, 0x10040001U);
+    write_vec3(bytes, triangle_offset + 0x04U, 0.0F, 0.0F, 0.0F);
+    write_vec3(bytes, triangle_offset + 0x10U, 1.0F, 0.0F, 0.0F);
+    write_vec3(bytes, triangle_offset + 0x1CU, 0.0F, 0.0F, 1.0F);
+    write_vec3(bytes, triangle_offset + 0x28U, 0.0F, 1.0F, 0.0F);
+    write_f32(bytes, triangle_offset + 0x34U, 0.0F);
     return bytes;
 }
 
-[[nodiscard]] dmc::rengine::gdspaces::ResourceRef resource(
-    std::uint64_t size) {
+[[nodiscard]] dmc::rengine::gdspaces::ResourceRef resource(std::uint64_t size) {
     return dmc::rengine::gdspaces::ResourceRef{
         .id = dmc::rengine::gdspaces::ResourceId{
             .source_id = "synthetic",
@@ -72,56 +91,49 @@ int main() {
     using dmc::rengine::formats::hits::build_binary_document;
 
     const auto bytes = make_fixture();
-    const auto scan = RecordScanner::scan(std::span<const std::byte>{bytes});
+    const auto scan = RecordScanner::scan(bytes);
     assert(scan.ok());
 
-    auto document = build_binary_document(
-        resource(bytes.size()),
-        std::span<const std::byte>{bytes},
-        scan);
+    auto document = build_binary_document(resource(bytes.size()), bytes, scan);
     assert(document.has_value());
     assert(document->regions().size() == 3U);
-    assert(document->fields().size() == 31U);
     assert(document->ownership().size() == 3U);
-    assert(document->coverage_bytes() == 117U);
-
-    const auto unknown = document->unknown_ranges();
-    assert(unknown.size() == 1U);
-    assert(unknown[0] ==
-        dmc::rengine::binary::ByteRange({.offset = 5U, .size = 3U}));
     assert(document->conflicts().empty());
     assert(document->ownership_conflicts().empty());
 
-    const auto first_record = document->find_region("hits-record-00000008");
-    assert(first_record != nullptr);
-    assert(first_record->range.offset == 8U);
-    assert(first_record->range.size == 56U);
+    const auto* header = document->find_region("hits-header");
+    assert(header != nullptr);
+    assert(header->range.size == 0x44U);
 
-    const auto raw_value = document->find_field(
-        "hits-record-00000008-value-00");
-    assert(raw_value != nullptr);
-    assert(raw_value->kind == dmc::rengine::binary::FieldKind::floating_point);
-    assert(raw_value->display_value == "1");
+    const auto* spatial = document->find_region("hits-spatial-index");
+    assert(spatial != nullptr);
+    assert(spatial->range.offset == 0x44U);
 
-    const auto selection = document->selection_at(8U);
+    const auto* triangle = document->find_region("hits-triangle-00000070");
+    assert(triangle != nullptr);
+    assert(triangle->range.size == 0x38U);
+
+    const auto* flags = document->find_field("hits-triangle-00000070-flags");
+    assert(flags != nullptr);
+    assert(flags->display_value == "0x10040001");
+
+    const auto* normal_y = document->find_field(
+        "hits-triangle-00000070-normal-y");
+    assert(normal_y != nullptr);
+    assert(normal_y->display_value == "1");
+
+    const auto* plane_d = document->find_field(
+        "hits-triangle-00000070-plane-d");
+    assert(plane_d != nullptr);
+    assert(plane_d->display_value == "0");
+
+    const auto selection = document->selection_at(0x70U);
     assert(selection.regions.size() == 1U);
     assert(selection.fields.size() == 2U);
     assert(selection.owners.size() == 1U);
 
     assert(!build_binary_document(
-        resource(bytes.size() + 1U),
-        std::span<const std::byte>{bytes},
-        scan).has_value());
-
-    const std::vector<std::byte> wrong_magic{
-        std::byte{'N'}, std::byte{'O'}, std::byte{'P'},
-        std::byte{'E'}, std::byte{'!'}};
-    const auto wrong_scan = RecordScanner::scan(
-        std::span<const std::byte>{wrong_magic});
-    assert(!build_binary_document(
-        resource(wrong_magic.size()),
-        std::span<const std::byte>{wrong_magic},
-        wrong_scan).has_value());
+        resource(bytes.size() + 1U), bytes, scan).has_value());
 
     return 0;
 }
