@@ -25,6 +25,8 @@ namespace {
     std::string id,
     char result_hash) {
     using namespace dmc::rengine::source;
+    const auto source_path = std::string("recovered/evidence_gate_") +
+        result_hash + ".cpp";
     return SourceModificationPackage{
         .id = std::move(id),
         .version = "1.0.0",
@@ -35,8 +37,8 @@ namespace {
         .semantic_intent = "Validate that integration records cannot cite unknown evidence.",
         .change_units = {
             SourceChangeUnit{
-                .id = "evidence-gate-unit",
-                .source_path = "recovered/evidence_gate.cpp",
+                .id = "evidence-gate-unit-" + std::string(1U, result_hash),
+                .source_path = source_path,
                 .baseline_sha256 = hash('a'),
                 .result_sha256 = hash(result_hash),
                 .semantic_intent = "Change one evidence-backed recovered function.",
