@@ -11,11 +11,23 @@
 
 namespace dmc::rengine::source {
 
-enum class CustomBuildStatus { compiled, structurally_validated, runtime_tested, release_candidate, approved, released, revoked, superseded };
-[[nodiscard]] constexpr std::string_view to_string(CustomBuildStatus status) noexcept {
+enum class CustomBuildStatus {
+    compiled,
+    structurally_validated,
+    runtime_tested,
+    release_candidate,
+    approved,
+    released,
+    revoked,
+    superseded,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    CustomBuildStatus status) noexcept {
     switch (status) {
     case CustomBuildStatus::compiled: return "compiled";
-    case CustomBuildStatus::structurally_validated: return "structurally-validated";
+    case CustomBuildStatus::structurally_validated:
+        return "structurally-validated";
     case CustomBuildStatus::runtime_tested: return "runtime-tested";
     case CustomBuildStatus::release_candidate: return "release-candidate";
     case CustomBuildStatus::approved: return "approved";
@@ -26,37 +38,65 @@ enum class CustomBuildStatus { compiled, structurally_validated, runtime_tested,
     return "compiled";
 }
 
-enum class DistributionForm { private_test_build, full_custom_executable, binary_delta, source_modification_package, local_reconstruction_installer };
-[[nodiscard]] constexpr std::string_view to_string(DistributionForm form) noexcept {
+enum class DistributionForm {
+    private_test_build,
+    full_custom_executable,
+    binary_delta,
+    source_modification_package,
+    local_reconstruction_installer,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    DistributionForm form) noexcept {
     switch (form) {
-    case DistributionForm::private_test_build: return "private-test-build";
-    case DistributionForm::full_custom_executable: return "full-custom-executable";
+    case DistributionForm::private_test_build:
+        return "private-test-build";
+    case DistributionForm::full_custom_executable:
+        return "full-custom-executable";
     case DistributionForm::binary_delta: return "binary-delta";
-    case DistributionForm::source_modification_package: return "source-modification-package";
-    case DistributionForm::local_reconstruction_installer: return "local-reconstruction-installer";
+    case DistributionForm::source_modification_package:
+        return "source-modification-package";
+    case DistributionForm::local_reconstruction_installer:
+        return "local-reconstruction-installer";
     }
     return "private-test-build";
 }
 
-enum class AttestationState { none, unsigned_internal, hash_attested, signed, revoked };
-[[nodiscard]] constexpr std::string_view to_string(AttestationState state) noexcept {
+enum class AttestationState {
+    none,
+    unsigned_internal,
+    hash_attested,
+    signed_build,
+    revoked,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    AttestationState state) noexcept {
     switch (state) {
     case AttestationState::none: return "none";
     case AttestationState::unsigned_internal: return "unsigned-internal";
     case AttestationState::hash_attested: return "hash-attested";
-    case AttestationState::signed: return "signed";
+    case AttestationState::signed_build: return "signed";
     case AttestationState::revoked: return "revoked";
     }
     return "none";
 }
 
-enum class SourceBinaryMappingConfidence { confirmed, high, candidate, research_required };
-[[nodiscard]] constexpr std::string_view to_string(SourceBinaryMappingConfidence confidence) noexcept {
+enum class SourceBinaryMappingConfidence {
+    confirmed,
+    high,
+    candidate,
+    research_required,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    SourceBinaryMappingConfidence confidence) noexcept {
     switch (confidence) {
     case SourceBinaryMappingConfidence::confirmed: return "confirmed";
     case SourceBinaryMappingConfidence::high: return "high";
     case SourceBinaryMappingConfidence::candidate: return "candidate";
-    case SourceBinaryMappingConfidence::research_required: return "research-required";
+    case SourceBinaryMappingConfidence::research_required:
+        return "research-required";
     }
     return "research-required";
 }
@@ -66,7 +106,9 @@ struct IncludedModification final {
     std::string version;
     std::string package_manifest_sha256;
     [[nodiscard]] bool valid() const noexcept;
-    friend bool operator==(const IncludedModification&, const IncludedModification&) = default;
+    friend bool operator==(
+        const IncludedModification&,
+        const IncludedModification&) = default;
 };
 
 struct ToolchainIdentity final {
@@ -112,9 +154,12 @@ struct SourceBinaryMapping final {
     std::uint64_t output_rva{};
     std::uint64_t output_va{};
     std::uint64_t byte_size{};
-    SourceBinaryMappingConfidence confidence{SourceBinaryMappingConfidence::research_required};
+    SourceBinaryMappingConfidence confidence{
+        SourceBinaryMappingConfidence::research_required};
     std::vector<std::string> evidence_record_ids;
-    [[nodiscard]] bool valid(std::uint64_t output_size, std::uint64_t image_base) const noexcept;
+    [[nodiscard]] bool valid(
+        std::uint64_t output_size,
+        std::uint64_t image_base) const noexcept;
 };
 
 struct BuildTestResult final {
@@ -159,17 +204,23 @@ struct CustomBuildRecord final {
     std::vector<std::string> resource_package_versions;
     std::vector<std::string> known_issues;
     std::vector<std::string> credits;
-    DistributionForm distribution_form{DistributionForm::private_test_build};
+    DistributionForm distribution_form{
+        DistributionForm::private_test_build};
     std::string distribution_permission;
     AttestationState attestation_state{AttestationState::none};
     std::string attestation_reference;
     std::string rollback_build_id;
+
     [[nodiscard]] bool valid() const noexcept;
     [[nodiscard]] bool mandatory_tests_passed() const noexcept;
-    [[nodiscard]] const SourceBinaryMapping* mapping_for_rva(std::uint64_t rva) const noexcept;
-    [[nodiscard]] const IncludedModification* included_modification(std::string_view modification_id) const noexcept;
+    [[nodiscard]] const SourceBinaryMapping* mapping_for_rva(
+        std::uint64_t rva) const noexcept;
+    [[nodiscard]] const IncludedModification* included_modification(
+        std::string_view modification_id) const noexcept;
 };
 
-[[nodiscard]] bool custom_build_status_matches_project_state(CustomBuildStatus build_status, IntegrationProjectState project_state) noexcept;
+[[nodiscard]] bool custom_build_status_matches_project_state(
+    CustomBuildStatus build_status,
+    IntegrationProjectState project_state) noexcept;
 
 } // namespace dmc::rengine::source
