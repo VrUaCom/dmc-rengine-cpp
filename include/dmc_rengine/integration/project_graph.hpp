@@ -12,16 +12,41 @@
 namespace dmc::rengine::integration {
 
 enum class ProjectNodeKind {
-    resource, format, parser, tool, evidence_packet, artifact, evidence_record,
-    executable_analysis, runtime_request, validation_plan, validation_requirement,
-    patch_plan, patch_execution, rollback_plan, source_baseline,
-    source_modification, source_change_unit, source_symbol, integration_project,
-    integration_conflict, decision_record, integration_gate, custom_build,
-    source_binary_mapping, build_test_result, stage, binary_document,
-    working_copy, manifest, event, specification,
+    resource,
+    format,
+    parser,
+    tool,
+    evidence_packet,
+    artifact,
+    evidence_record,
+    executable_analysis,
+    runtime_request,
+    validation_plan,
+    validation_requirement,
+    patch_plan,
+    patch_execution,
+    rollback_plan,
+    source_baseline,
+    source_modification,
+    source_change_unit,
+    source_symbol,
+    integration_project,
+    integration_conflict,
+    decision_record,
+    integration_gate,
+    custom_build,
+    source_binary_mapping,
+    build_test_result,
+    stage,
+    binary_document,
+    working_copy,
+    manifest,
+    event,
+    specification,
 };
 
-[[nodiscard]] constexpr std::string_view to_string(ProjectNodeKind kind) noexcept {
+[[nodiscard]] constexpr std::string_view to_string(
+    ProjectNodeKind kind) noexcept {
     switch (kind) {
     case ProjectNodeKind::resource: return "resource";
     case ProjectNodeKind::format: return "format";
@@ -59,16 +84,48 @@ enum class ProjectNodeKind {
 }
 
 enum class ProjectEdgeKind {
-    contains, depends_on, declares, references_artifact, requests_change,
-    requires_requirement, blocks, compiled_from, executed_from, produces,
-    rollback_for, targets, based_on, selects, changes, affects, conflicts_with,
-    resolves, satisfies, governed_by, validated_by, built_from, includes,
-    maps_source_to_binary, tested_by, lineage_from, recognizes, classified_as,
-    parsed_by, opens_with, evidence_for, stage_member, derived_from, produced_by,
-    delivered_to, records_event, validates, related_to,
+    contains,
+    depends_on,
+    declares,
+    references_artifact,
+    requests_change,
+    requires_requirement,
+    blocks,
+    compiled_from,
+    executed_from,
+    produces,
+    rollback_for,
+    targets,
+    based_on,
+    selects,
+    changes,
+    affects,
+    conflicts_with,
+    resolves,
+    satisfies,
+    governed_by,
+    validated_by,
+    built_from,
+    includes,
+    maps_source_to_binary,
+    tested_by,
+    lineage_from,
+    recognizes,
+    classified_as,
+    parsed_by,
+    opens_with,
+    evidence_for,
+    stage_member,
+    derived_from,
+    produced_by,
+    delivered_to,
+    records_event,
+    validates,
+    related_to,
 };
 
-[[nodiscard]] constexpr std::string_view to_string(ProjectEdgeKind kind) noexcept {
+[[nodiscard]] constexpr std::string_view to_string(
+    ProjectEdgeKind kind) noexcept {
     switch (kind) {
     case ProjectEdgeKind::contains: return "contains";
     case ProjectEdgeKind::depends_on: return "depends-on";
@@ -117,31 +174,50 @@ struct ProjectNode final {
     ProjectNodeKind kind{ProjectNodeKind::resource};
     std::string label;
     std::map<std::string, std::string, std::less<>> attributes;
-    [[nodiscard]] bool valid() const noexcept { return !id.empty() && !label.empty(); }
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !id.empty() && !label.empty();
+    }
 };
+
 struct ProjectEdge final {
     std::string from;
     std::string to;
     ProjectEdgeKind kind{ProjectEdgeKind::related_to};
     std::string label;
-    [[nodiscard]] bool valid() const noexcept { return !from.empty() && !to.empty() && from != to; }
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !from.empty() && !to.empty() && from != to;
+    }
+
     friend bool operator==(const ProjectEdge&, const ProjectEdge&) = default;
 };
+
 class ProjectGraph final {
 public:
     [[nodiscard]] bool upsert(ProjectNode node);
     [[nodiscard]] bool connect(ProjectEdge edge);
     [[nodiscard]] const ProjectNode* find(std::string_view id) const noexcept;
-    [[nodiscard]] std::vector<const ProjectNode*> nodes(ProjectNodeKind kind) const;
-    [[nodiscard]] std::vector<const ProjectEdge*> outgoing(std::string_view node_id) const;
-    [[nodiscard]] std::vector<const ProjectEdge*> incoming(std::string_view node_id) const;
-    [[nodiscard]] bool ingest_workspace(const ResourceWorkspaceSession& workspace, const ToolRegistry& tools);
-    [[nodiscard]] const std::map<std::string, ProjectNode, std::less<>>& all_nodes() const noexcept;
+    [[nodiscard]] std::vector<const ProjectNode*> nodes(
+        ProjectNodeKind kind) const;
+    [[nodiscard]] std::vector<const ProjectEdge*> outgoing(
+        std::string_view node_id) const;
+    [[nodiscard]] std::vector<const ProjectEdge*> incoming(
+        std::string_view node_id) const;
+
+    [[nodiscard]] bool ingest_workspace(
+        const ResourceWorkspaceSession& workspace,
+        const ToolRegistry& tools);
+
+    [[nodiscard]] const std::map<
+        std::string, ProjectNode, std::less<>>& all_nodes() const noexcept;
     [[nodiscard]] const std::vector<ProjectEdge>& all_edges() const noexcept;
     [[nodiscard]] std::size_t node_count() const noexcept;
     [[nodiscard]] std::size_t edge_count() const noexcept;
+
 private:
     std::map<std::string, ProjectNode, std::less<>> nodes_;
     std::vector<ProjectEdge> edges_;
 };
+
 } // namespace dmc::rengine::integration
