@@ -4,6 +4,7 @@
 
 #include <string>
 #include <string_view>
+#include <tuple>
 
 namespace dmc::rengine::source {
 
