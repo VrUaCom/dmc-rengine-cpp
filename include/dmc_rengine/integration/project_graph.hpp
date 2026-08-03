@@ -63,7 +63,7 @@ enum class ProjectEdgeKind {
     declares,
     references_artifact,
     requests_change,
-    requires,
+    requires_requirement,
     blocks,
     compiled_from,
     targets,
@@ -88,7 +88,7 @@ enum class ProjectEdgeKind {
     case ProjectEdgeKind::declares: return "declares";
     case ProjectEdgeKind::references_artifact: return "references-artifact";
     case ProjectEdgeKind::requests_change: return "requests-change";
-    case ProjectEdgeKind::requires: return "requires";
+    case ProjectEdgeKind::requires_requirement: return "requires";
     case ProjectEdgeKind::blocks: return "blocks";
     case ProjectEdgeKind::compiled_from: return "compiled-from";
     case ProjectEdgeKind::targets: return "targets";
