@@ -19,6 +19,23 @@ void add_diagnostic(
     });
 }
 
+[[nodiscard]] std::string patch_errors_message(
+    const PatchResult& patch_result,
+    std::string fallback) {
+    if (patch_result.errors.empty()) {
+        return fallback;
+    }
+
+    std::string message;
+    for (const auto& error : patch_result.errors) {
+        if (!message.empty()) {
+            message += "; ";
+        }
+        message += error;
+    }
+    return message.empty() ? std::move(fallback) : message;
+}
+
 } // namespace
 
 PatchCopyExecutionResult PatchCopyExecutor::execute(
@@ -78,9 +95,9 @@ PatchCopyExecutionResult PatchCopyExecutor::execute(
         add_diagnostic(
             result,
             "copy-executor.guarded-apply-failed",
-            applied.error.empty()
-                ? "GuardedPatchPlan rejected the copy execution."
-                : applied.error);
+            patch_errors_message(
+                applied,
+                "GuardedPatchPlan rejected the copy execution."));
         return result;
     }
     if (applied.output == source_bytes) {
@@ -111,7 +128,16 @@ PatchCopyExecutionResult PatchCopyExecutor::execute(
 
     const auto rollback_check = rollback.apply(
         std::span<const std::byte>{applied.output});
-    if (!rollback_check.applied || rollback_check.output != source_bytes) {
+    if (!rollback_check.applied) {
+        add_diagnostic(
+            result,
+            "copy-executor.rollback-verification-failed",
+            patch_errors_message(
+                rollback_check,
+                "The generated rollback plan could not be applied to the copied output."));
+        return result;
+    }
+    if (rollback_check.output != source_bytes) {
         add_diagnostic(
             result,
             "copy-executor.rollback-verification-failed",
