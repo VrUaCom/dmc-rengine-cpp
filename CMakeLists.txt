@@ -28,76 +28,11 @@ function(dmc_rengine_configure_test target source)
     endif()
 endfunction()
 
-add_library(dmc_rengine_core
-    src/binary/document.cpp
-    src/binary/manifest.cpp
-    src/binary/reader.cpp
-    src/core/json.cpp
-    src/core/sha256.cpp
-    src/core/version.cpp
-    src/evidence/artifact_registry.cpp
-    src/evidence/json.cpp
-    src/evidence/json_import.cpp
-    src/evidence/packet_range_validation.cpp
-    src/evidence/packet_registry.cpp
-    src/evidence/registry.cpp
-    src/exe/evidence_address_resolver.cpp
-    src/exe/known_target.cpp
-    src/exe/pe_image.cpp
-    src/exe/pe_reader.cpp
-    src/formats/container.cpp
-    src/formats/container_parser_registry.cpp
-    src/formats/dca.cpp
-    src/formats/dca_binary.cpp
-    src/formats/hits.cpp
-    src/formats/hits_binary.cpp
-    src/formats/lig2.cpp
-    src/formats/lig2_binary.cpp
-    src/formats/stage_txt.cpp
-    src/formats/stage_txt_binary.cpp
-    src/formats/synthetic/slot_container_parser.cpp
-    src/gdspaces/classifier.cpp
-    src/gdspaces/container_expander.cpp
-    src/gdspaces/local_directory_source.cpp
-    src/gdspaces/open_router.cpp
-    src/gdspaces/resource_graph.cpp
-    src/gdspaces/resource_id.cpp
-    src/gdspaces/source_registry.cpp
-    src/gdspaces/stage_bundle.cpp
-    src/gdspaces/stage_bundle_assembler.cpp
-    src/gdspaces/working_copy.cpp
-    src/integration/executable_context.cpp
-    src/integration/executable_evidence.cpp
-    src/integration/executable_workspace_manifest.cpp
-    src/integration/format_registry.cpp
-    src/integration/project_graph.cpp
-    src/integration/project_graph_manifest.cpp
-    src/integration/project_workspace.cpp
-    src/integration/project_workspace_evidence.cpp
-    src/integration/project_workspace_executable.cpp
-    src/integration/project_workspace_parser.cpp
-    src/integration/resource_analyzer.cpp
-    src/integration/resource_workspace.cpp
-    src/integration/resource_workspace_executable.cpp
-    src/integration/resource_workspace_parser.cpp
-    src/integration/stage_view_consistency.cpp
-    src/integration/stage_workspace_manifest.cpp
-    src/integration/tool_registry.cpp
-    src/integration/workspace_event.cpp
-    src/integration/workspace_manifest.cpp
-    src/item/runtime_request.cpp
-    src/item/workspace_manifest.cpp
-    src/item/workspace_view.cpp
-    src/modviz/scene_workspace_view.cpp
-    src/patch/guarded_patch.cpp
-    src/profiles/dmc3/known_targets.cpp
-    src/profiles/dmc3/stage_resources.cpp
-    src/profiles/dmc3/stage_table.cpp
-    src/profiles/dmc3/stage_workspace_builder.cpp
-    src/stageops/workspace_view.cpp
-    src/validation/item_runtime_plan.cpp
-)
+file(GLOB_RECURSE DMC_RENGINE_CORE_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+list(FILTER DMC_RENGINE_CORE_SOURCES EXCLUDE REGEX "/src/cli/")
 
+add_library(dmc_rengine_core ${DMC_RENGINE_CORE_SOURCES})
 add_library(DMCRengine::Core ALIAS dmc_rengine_core)
 
 target_include_directories(dmc_rengine_core
