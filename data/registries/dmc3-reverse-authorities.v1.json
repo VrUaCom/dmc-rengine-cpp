@@ -3,7 +3,8 @@
   "id": "dmc3-reverse-authorities",
   "target": {
     "game_profile": "dmc3-hd",
-    "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "canonical_executable_size": 3735552
   },
   "authorities": [
     {
@@ -28,10 +29,10 @@
     },
     {
       "id": "drive-knowledge-base",
-      "display_name": "DMC3_Reverse_Knowledge_Base_through_Pass31",
+      "display_name": "DMC3_Reverse_Knowledge_Base_through_Pass32",
       "kind": "research-index",
       "status": "canonical",
-      "latest_verified_pass": 31,
+      "latest_verified_pass": 32,
       "owns": [
         "passes",
         "findings",
@@ -75,6 +76,9 @@
       "display_name": "DMC3 Reverse Engineering / Recovered C_CPP Source Tree",
       "kind": "recovered-source-history",
       "status": "canonical-input",
+      "latest_snapshot": "Recovered_Source_Skeleton_v1_7_Pass32.zip",
+      "latest_snapshot_sha256": "978fd6c8c8c1e1de1cf2a50bf9328fce6be345b9f3c70ab30ffb92c195ac22d6",
+      "latest_snapshot_file_count": 217,
       "owns": [
         "historical-recovered-cpp-snapshots",
         "pass-specific-source-deltas",
@@ -109,24 +113,54 @@
     "drive-sync-and-readback",
     "pass-closure"
   ],
+  "verified_artifacts": [
+    {
+      "id": "pass32-complete-zip",
+      "drive_file_id": "1fjK4bjXiRv7dHMd-yhXyaTdjkD2xr4aj",
+      "sha256": "75802006890ccd2185dfc5df237bce5adc3841d0635a2269a885ab7561ce1dcd",
+      "size": 106508
+    },
+    {
+      "id": "recovered-source-v1-7-pass32",
+      "drive_file_id": "14ShoZhaqym7ifcpaJk7KBJivCG42rXvd",
+      "sha256": "978fd6c8c8c1e1de1cf2a50bf9328fce6be345b9f3c70ab30ffb92c195ac22d6",
+      "size": 83912,
+      "file_count": 217
+    }
+  ],
+  "excluded_builds": [
+    {
+      "id": "drive-vanilla-dmc3-2026-01-23",
+      "drive_file_id": "1-GouJYQyltnQqXMd0BvxEmOh9a1RQg1q",
+      "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+      "size": 6567320,
+      "reason": "Different executable build; canonical VA locators from e454... must not be applied without rebasing and independent verification."
+    }
+  ],
   "current_blockers": [
     {
       "id": "blocker-source-tree-partially-promoted",
       "severity": "high",
-      "description": "Drive reports Recovered Source Skeleton v1.6 through Pass 31 with 210 files. The confirmed Pass 31 PC save layout and integrity unit has been promoted, but most historical recovered source units remain outside the reviewed active C++ tree.",
+      "description": "Drive reports Recovered Source Skeleton v1.7 through Pass 32 with 217 files. Confirmed save ABI units are being promoted incrementally, but most historical recovered source units remain outside the reviewed active C++ tree.",
       "policy": "Migrate evidence-backed modules incrementally; never bulk-promote unreviewed skeleton code."
     },
     {
       "id": "blocker-drive-artifact-hashes-missing",
       "severity": "high",
-      "description": "The Pass 29 and Pass 30 complete archives, Pass 31 complete archive, steps 01-08 package and 210-file recovered source tree are present in Drive, but their SHA-256 values are not recorded in the canonical artifact checklist.",
-      "policy": "Presence and readback do not equal binary verification. Keep Verified false until each immutable artifact hash is computed and stored."
+      "description": "Pass 32 complete ZIP and Recovered Source Skeleton v1.7 now have verified SHA-256 receipts, but older immutable Pass 29-31 archives and related packages still lack complete canonical hashes.",
+      "policy": "Presence and readback do not equal binary verification. Keep each older artifact unverified until its immutable hash is computed and stored."
     },
     {
-      "id": "blocker-pass32-save-payload-semantics-open",
+      "id": "blocker-pass33-save-payload-semantics-open",
       "severity": "research-required",
-      "description": "The exact 0x4A30 physical save layout and integrity ABI are confirmed, but most header fields, summary fields +0x0C/+0x10/+0x14, semantic segmentation of the 0x708 payload, trailer states beyond 0/1 and the exact production writer remain unresolved.",
+      "description": "The exact 0x4A30 physical layout and generic integrity ABI are closed, but global-field ownership, summary +0x0C/+0x10/+0x14, payload +0x000..+0x6EB semantics, recordState values beyond 0/1 and writer lifecycle remain unresolved.",
       "policy": "Use controlled differential saves and runtime traces. Do not introduce semantic editor labels or writes before evidence closes each field or region."
+    },
+    {
+      "id": "blocker-pass32-function-byte-provenance-incomplete",
+      "severity": "high",
+      "description": "The Pass 32 report and checksum corpus identify generator VA 0x14033EED0, but the packaged checksum ASM is not a trustworthy bounded dump of that function and the recovered source addresses manifest retains stale through_pass metadata. All confirmed production records are even-sized, so odd-tail behavior is not required by the promoted ABI.",
+      "policy": "Promote only behavior corroborated by the even-sized 21-record corpus and report. Do not claim odd-length checksum semantics until direct canonical function bytes or an equivalent independent trace are available."
     }
   ],
   "resolved_corrections": [
@@ -136,7 +170,7 @@
       "status": "resolved",
       "previous_receipt": "784b06b7fef5e526fc98721629fe3c509fe41a228",
       "replacement_receipt": "76ed3b7a02ee83a6285834495ac0e4c9f84845e3",
-      "description": "The unresolved historical receipt and nonexistent declared paths were replaced by reviewed PR 31 outputs that exist in the active repository and passed Windows and Ubuntu CI, 58 of 58 tests on each platform.",
+      "description": "The unresolved historical receipt and nonexistent declared paths were replaced by reviewed outputs that exist in the active repository and passed Windows and Ubuntu CI, 58 of 58 tests on each platform.",
       "repository_paths": [
         "docs/architecture/dmc3-reverse-data-authority.md",
         "data/registries/dmc3-reverse-authorities.v1.json",
@@ -151,19 +185,35 @@
       "id": "correction-process-control-schema-drift",
       "resolved_on": "2026-08-03",
       "status": "resolved",
-      "description": "Late Pass Control and Artifact Checklist rows were normalized to their declared columns. Artifact presence is now separated from SHA-256 verification, and the correction is recorded in Sync Log and Decisions & Corrections."
+      "description": "Late Pass Control and Artifact Checklist rows were normalized to their declared columns. Artifact presence is separated from SHA-256 verification, and the correction is recorded in Sync Log and Decisions & Corrections."
     },
     {
       "id": "correction-knowledge-base-schema-drift",
       "resolved_on": "2026-08-03",
       "status": "resolved",
-      "description": "The Passes sheet gained explicit Date, Recovered Source, Drive Sync, Git Receipt and Repository Paths columns; Pass 29-31 rows were normalized. The Artifacts and Overview tabs now record actual reviewed repository outputs and authority roles."
+      "description": "The Passes sheet gained explicit Date, Recovered Source, Drive Sync, Git Receipt and Repository Paths columns; Pass 29-31 rows were normalized. The Artifacts and Overview tabs record reviewed repository outputs and authority roles."
     },
     {
       "id": "correction-pass31-product-source-gap",
       "resolved_on": "2026-08-03",
       "status": "resolved-for-confirmed-module",
       "description": "The confirmed Pass 31 PC save physical layout, 21-block integrity ABI, packed-BCD summary fields and conservative open-semantic boundary were migrated into reviewed C++, tests and machine-readable evidence. This does not imply bulk promotion of the remaining recovered source tree."
+    }
+  ],
+  "pending_promotions": [
+    {
+      "id": "promotion-pass32-record-envelope",
+      "branch": "ai/pass32-pc-save-record-envelope",
+      "status": "implementation-and-ci-pending",
+      "required_outputs": [
+        "evidence/save/dmc3-pc-save-pass32.evidence.json",
+        "include/dmc_rengine/save/pc_save_file.hpp",
+        "src/save/pc_save_file.cpp",
+        "tests/pc_save_file_tests.cpp",
+        "docs/reverse/dmc3-pc-save-pass32-implementation.md",
+        "ci-receipt",
+        "drive-readback-receipt"
+      ]
     }
   ]
 }
