@@ -178,6 +178,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_save_pass31_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass31.evidence.json)
+    add_test(
+        NAME dmc_rengine_save_pass32_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass32.evidence.json)
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
