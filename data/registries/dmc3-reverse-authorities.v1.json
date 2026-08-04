@@ -128,6 +128,27 @@
       "file_count": 217
     }
   ],
+  "implementation_receipts": [
+    {
+      "id": "pass32-pc-save-product-promotion-pr42",
+      "drive_file_id": "1jtbyj7OmYA6rnwlzQ5iHgy6ZBKhTHH9OwqDH_e05PfY",
+      "drive_parent_folder_id": "1Chdmz09Fhy9LKcUTy3K-yuz4uQjo80xt",
+      "drive_revision_id": "AIroW3407QpJFABGaaxIRncrsNwEjyTSqzP2vzC_kfPG-5r3GEg-5T6lS9jEJP09nAHoWpqdLy0DkE3rVEL5bAfnC9uLcIeRqiQa5gvG43s",
+      "readback_verified": true,
+      "repository": "VrUaCom/dmc-rengine-cpp",
+      "pull_request": 42,
+      "branch": "ai/pass32-pc-save-record-envelope",
+      "implementation_content_head_sha": "b91b1408bbc26e097107c14fed78dfa343ce948b",
+      "ci_workflow": "Build",
+      "ci_run_id": 30949044678,
+      "ci_run_number": 473,
+      "ubuntu_job_id": 92126214196,
+      "windows_job_id": 92126214093,
+      "ci_conclusion": "success",
+      "tests_per_platform": 67,
+      "status": "drive-readback-verified-final-metadata-ci-pending"
+    }
+  ],
   "excluded_builds": [
     {
       "id": "drive-vanilla-dmc3-2026-01-23",
@@ -204,7 +225,15 @@
     {
       "id": "promotion-pass32-record-envelope",
       "branch": "ai/pass32-pc-save-record-envelope",
-      "status": "implementation-and-ci-pending",
+      "pull_request": 42,
+      "status": "drive-receipt-synchronized-final-ci-pending",
+      "implementation_receipt_id": "pass32-pc-save-product-promotion-pr42",
+      "remaining_gates": [
+        "final-metadata-ci",
+        "human-review",
+        "merge",
+        "post-merge-drive-and-canon-sync"
+      ],
       "required_outputs": [
         "evidence/save/dmc3-pc-save-pass32.evidence.json",
         "include/dmc_rengine/save/pc_save_file.hpp",
