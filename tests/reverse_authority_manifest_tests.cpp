@@ -75,9 +75,13 @@ int main(int argc, char** argv) {
     const auto* target = target_value->as_object();
     const auto* target_hash = member(
         *target, "canonical_executable_sha256");
+    const auto* target_size = member(
+        *target, "canonical_executable_size");
     assert(target_hash != nullptr && target_hash->as_string() != nullptr);
     assert(*target_hash->as_string() ==
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082");
+    assert(target_size != nullptr && target_size->as_u64() != nullptr);
+    assert(*target_size->as_u64() == 3735552U);
 
     const auto* authorities_value = member(*root, "authorities");
     assert(authorities_value != nullptr &&
@@ -91,11 +95,14 @@ int main(int argc, char** argv) {
         authorities, "drive-knowledge-base");
     const auto* legacy_registry = find_object_by_id(
         authorities, "drive-reverse-registry-legacy");
+    const auto* recovered_source = find_object_by_id(
+        authorities, "drive-recovered-source");
     const auto* github = find_object_by_id(
         authorities, "github-active-cpp");
     assert(process_control != nullptr);
     assert(knowledge_base != nullptr);
     assert(legacy_registry != nullptr);
+    assert(recovered_source != nullptr);
     assert(github != nullptr);
 
     assert(string_array_contains(
@@ -107,10 +114,25 @@ int main(int argc, char** argv) {
 
     const auto* latest_pass = member(*knowledge_base, "latest_verified_pass");
     assert(latest_pass != nullptr && latest_pass->as_u64() != nullptr);
-    assert(*latest_pass->as_u64() == 31U);
+    assert(*latest_pass->as_u64() == 32U);
     assert(string_array_contains(
         member(*knowledge_base, "owns"),
         "open-gaps"));
+
+    const auto* source_snapshot = member(*recovered_source, "latest_snapshot");
+    const auto* source_hash = member(
+        *recovered_source, "latest_snapshot_sha256");
+    const auto* source_count = member(
+        *recovered_source, "latest_snapshot_file_count");
+    assert(source_snapshot != nullptr &&
+           source_snapshot->as_string() != nullptr);
+    assert(*source_snapshot->as_string() ==
+        "Recovered_Source_Skeleton_v1_7_Pass32.zip");
+    assert(source_hash != nullptr && source_hash->as_string() != nullptr);
+    assert(*source_hash->as_string() ==
+        "978fd6c8c8c1e1de1cf2a50bf9328fce6be345b9f3c70ab30ffb92c195ac22d6");
+    assert(source_count != nullptr && source_count->as_u64() != nullptr);
+    assert(*source_count->as_u64() == 217U);
 
     const auto* legacy_status = member(*legacy_registry, "status");
     assert(legacy_status != nullptr && legacy_status->as_string() != nullptr);
@@ -135,10 +157,31 @@ int main(int argc, char** argv) {
         synchronization_order,
         "drive-sync-and-readback"));
 
+    const auto* artifacts_value = member(*root, "verified_artifacts");
+    assert(artifacts_value != nullptr && artifacts_value->as_array() != nullptr);
+    const auto& artifacts = *artifacts_value->as_array();
+    assert(artifacts.size() == 2U);
+    assert(find_object_by_id(artifacts, "pass32-complete-zip") != nullptr);
+    assert(find_object_by_id(
+        artifacts,
+        "recovered-source-v1-7-pass32") != nullptr);
+
+    const auto* excluded_value = member(*root, "excluded_builds");
+    assert(excluded_value != nullptr && excluded_value->as_array() != nullptr);
+    const auto& excluded = *excluded_value->as_array();
+    const auto* vanilla = find_object_by_id(
+        excluded,
+        "drive-vanilla-dmc3-2026-01-23");
+    assert(vanilla != nullptr);
+    const auto* vanilla_hash = member(*vanilla, "sha256");
+    assert(vanilla_hash != nullptr && vanilla_hash->as_string() != nullptr);
+    assert(*vanilla_hash->as_string() ==
+        "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6");
+
     const auto* blockers_value = member(*root, "current_blockers");
     assert(blockers_value != nullptr && blockers_value->as_array() != nullptr);
     const auto& blockers = *blockers_value->as_array();
-    assert(blockers.size() == 3U);
+    assert(blockers.size() == 4U);
     assert(find_object_by_id(
         blockers,
         "blocker-source-tree-partially-promoted") != nullptr);
@@ -147,7 +190,10 @@ int main(int argc, char** argv) {
         "blocker-drive-artifact-hashes-missing") != nullptr);
     assert(find_object_by_id(
         blockers,
-        "blocker-pass32-save-payload-semantics-open") != nullptr);
+        "blocker-pass33-save-payload-semantics-open") != nullptr);
+    assert(find_object_by_id(
+        blockers,
+        "blocker-pass32-function-byte-provenance-incomplete") != nullptr);
     assert(find_object_by_id(
         blockers,
         "blocker-pass31-git-receipt-unresolved") == nullptr);
@@ -194,5 +240,19 @@ int main(int argc, char** argv) {
     assert(string_array_contains(
         member(*receipt, "repository_paths"),
         "src/save/pc_save_file.cpp"));
+
+    const auto* pending_value = member(*root, "pending_promotions");
+    assert(pending_value != nullptr && pending_value->as_array() != nullptr);
+    const auto& pending = *pending_value->as_array();
+    const auto* pass32 = find_object_by_id(
+        pending,
+        "promotion-pass32-record-envelope");
+    assert(pass32 != nullptr);
+    assert(string_array_contains(
+        member(*pass32, "required_outputs"),
+        "evidence/save/dmc3-pc-save-pass32.evidence.json"));
+    assert(string_array_contains(
+        member(*pass32, "required_outputs"),
+        "drive-readback-receipt"));
     return 0;
 }
