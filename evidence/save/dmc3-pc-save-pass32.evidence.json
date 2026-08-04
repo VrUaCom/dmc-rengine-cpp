@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-pc-save-pass32",
+  "title": "DMC3 HD PC Save Record Envelope and Checksum ABI — Wide Pass 32",
+  "project": "DMC Rengine",
+  "target": {
+    "game_profile": "dmc3-hd",
+    "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "canonical_executable_size": 3735552
+  },
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 3735552
+    },
+    {
+      "id": "dmc3-sav-45379458",
+      "role": "runtime-save-sample",
+      "sha256": "45379458defd048502f3649e86fcb716ef2ca274a89f025d078b7deaa8df501e",
+      "size": 18992
+    },
+    {
+      "id": "drive-pass32-report",
+      "role": "canonical-human-readable-report",
+      "drive_file_id": "1_QTgYctE1hCCBOBfmK9Hv6mPyIt-yL-Lk5Q2M1EBPWs",
+      "revision_id": "AIroW35WkagLhW_oWEpdI2SRHnoQES4ATGzpjOKneP_0gXGxeeZ4oYGGdSz1VRsKfNn3uR5msMRlT58ALqOTRGrdHURox6HLNncqqsOYh7E"
+    },
+    {
+      "id": "drive-pass32-complete-zip",
+      "role": "immutable-pass-artifact",
+      "drive_file_id": "1fjK4bjXiRv7dHMd-yhXyaTdjkD2xr4aj",
+      "sha256": "75802006890ccd2185dfc5df237bce5adc3841d0635a2269a885ab7561ce1dcd",
+      "size": 106508
+    },
+    {
+      "id": "drive-recovered-source-v1-7",
+      "role": "recovered-source-input",
+      "drive_file_id": "14ShoZhaqym7ifcpaJk7KBJivCG42rXvd",
+      "sha256": "978fd6c8c8c1e1de1cf2a50bf9328fce6be345b9f3c70ab30ffb92c195ac22d6",
+      "size": 83912,
+      "file_count": 217
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-save-pass32-record-envelope-layout",
+      "claim_id": "claim-dmc3-save-pass32-record-envelope-layout",
+      "title": "Exact 21-record envelope layout",
+      "summary": "The 0x4A30 save consists exactly of one 0x134+4 global record, ten 0x3C+4 summary records and ten 0x708+4 payload records. Payload records begin at 0x3B8 and use stride 0x70C; the previously proposed standalone 0x28 pre-payload block is rejected.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 0,
+          "size": 18992,
+          "symbol": "PCSaveFile",
+          "note": "All 21 physical record boundaries and file-end identity validated."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372028080,
+          "symbol": "pc_save_package_builder",
+          "note": "VA 0x14032A4B0 provides count 10 and internal sizes 0x134, 0x3C and 0x708."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "pc-save",
+        "wide-pass-32",
+        "record-envelope",
+        "layout",
+        "confirmed"
+      ],
+      "supersedes": [
+        "pass30-standalone-pre-payload-metadata-region",
+        "pass31-standalone-pre-payload-metadata-region"
+      ]
+    },
+    {
+      "id": "ev-dmc3-save-pass32-generic-checksum-abi",
+      "claim_id": "claim-dmc3-save-pass32-generic-checksum-abi",
+      "title": "Generic recordState/checksum trailer and checksum generator",
+      "summary": "Every serialized record ends with {u16 recordState, u16 checksum}. The generator at VA 0x14033EED0 computes a 16-bit one's-complement checksum with end-around carry; a complete valid record folds to 0xFFFF. All 21 records in the canonical save validate and the stored checksum equals the independently calculated checksum.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372112592,
+          "symbol": "pc_save_checksum_generator",
+          "note": "VA 0x14033EED0; called for global, summary and payload records."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372101012,
+          "symbol": "pc_save_checksum_global_call",
+          "note": "VA 0x14033C194, internal length 0x134."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372101064,
+          "symbol": "pc_save_checksum_summary_call",
+          "note": "VA 0x14033C1C8, internal length 0x3C."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372101114,
+          "symbol": "pc_save_checksum_payload_call",
+          "note": "VA 0x14033C1FA, internal length 0x708."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 0,
+          "size": 18992,
+          "symbol": "PCSaveFile",
+          "note": "Pass 32 CSV/JSON independently validates 21/21 records."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "integrity",
+        "ones-complement",
+        "record-state",
+        "wide-pass-32",
+        "confirmed"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-save-pass32-record-state-observations",
+      "claim_id": "claim-dmc3-save-pass32-record-state-observations",
+      "title": "Observed recordState behavior",
+      "summary": "The canonical sample uses recordState 1 for the global record, occupied summaries and every payload record, while empty summaries use 0. A payload record therefore exists even when the corresponding summary is empty. Values beyond 0/1 remain research required and must not be rejected by product code solely for being unobserved.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 308,
+          "size": 4,
+          "symbol": "GlobalRecordTrailer",
+          "note": "Global recordState is 1."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 312,
+          "size": 640,
+          "symbol": "SummaryRecordArray",
+          "note": "Observed summary recordState distribution contains both 0 and 1."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 952,
+          "size": 18040,
+          "symbol": "PayloadRecordArray",
+          "note": "All ten observed payload recordState values are 1."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "record-state",
+        "observed-domain",
+        "wide-pass-32"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-save-pass32-global-partial-layout",
+      "claim_id": "claim-dmc3-save-pass32-global-partial-layout",
+      "title": "Partial global-record structural map",
+      "summary": "The global 0x134 body has a confirmed compatibilityTag 0xDEC0 at +0x108, a writer-cleared region +0x046..+0x106, a runtime flag at +0x107, separate legacy fallback bytes at +0x10A/+0x10B and a reserved tail +0x10C..+0x133. Other fields retain neutral names pending semantic ownership recovery.",
+      "confidence": "high",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372031348,
+          "symbol": "pc_save_global_compatibility_tag_writer",
+          "note": "VA 0x14032B174 writes WORD [globalRecord+0x108] = 0xDEC0."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 0,
+          "size": 308,
+          "symbol": "GlobalSaveRecordBody",
+          "note": "File observation corroborates offsets and zero/reserved regions."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "global-record",
+        "layout",
+        "compatibility-tag",
+        "wide-pass-32"
+      ],
+      "supersedes": [
+        "pass30-four-byte-save-magic"
+      ]
+    },
+    {
+      "id": "ev-dmc3-save-pass32-payload-boundary",
+      "claim_id": "claim-dmc3-save-pass32-payload-boundary",
+      "title": "Payload active and reserved-region boundary",
+      "summary": "Within each 0x708 payload body, +0x000..+0x6EB is active serialized data, +0x6EC..+0x705 is explicitly cleared by the observed writer, and +0x706..+0x707 is zero in the sample but writer ownership remains unresolved. This is a structural boundary only, not semantic editing authority.",
+      "confidence": "high",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372024800,
+          "symbol": "pc_save_payload_loader",
+          "note": "VA 0x1403297E0 participates in payload loading."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5372031104,
+          "symbol": "pc_save_serializer_family",
+          "note": "VA 0x14032B080 family supplies writer evidence."
+        },
+        {
+          "artifact_id": "dmc3-sav-45379458",
+          "file_offset": 952,
+          "size": 1800,
+          "symbol": "DetailedSlotPayload[0]",
+          "note": "Sample boundary and zero-tail observation."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "payload",
+        "boundary",
+        "reserved-region",
+        "wide-pass-32"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-save-pass32-open-semantic-frontier",
+      "claim_id": "claim-dmc3-save-pass32-open-semantic-frontier",
+      "title": "Pass 33 semantic frontier remains gated",
+      "summary": "Runtime ownership for global fields, global +0x1C..+0x45, semantic segmentation of payload +0x000..+0x6EB, summary +0x0C/+0x10/+0x14, recordState values beyond 0/1 and exact writer lifecycle remain unresolved. Product code may expose neutral structural observations but must not provide semantic mutation APIs before controlled differential-save evidence and runtime traces.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "drive-pass32-report",
+          "symbol": "Pass32.NextTarget",
+          "note": "Canonical next target explicitly requires semantic recovery through at least two save versions and runtime ownership mapping."
+        }
+      ],
+      "tags": [
+        "save-progression",
+        "open-gap",
+        "semantic-boundary",
+        "wide-pass-33"
+      ],
+      "supersedes": []
+    }
+  ],
+  "implementation_constraints": [
+    "Do not reinterpret raw file bytes through native structs; use explicit little-endian reads.",
+    "Do not reject recordState values beyond 0/1 solely because they are not present in the canonical sample.",
+    "Do not expose semantic writes for the 0x708 payload before Pass 33 evidence closes the relevant fields.",
+    "All confirmed record sizes are even; odd-tail checksum behavior is outside the promoted product contract until direct function-byte evidence is reconciled.",
+    "The current vanilla Drive executable SHA-256 81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6 is a different build and must not be used with canonical VA locators."
+  ]
+}
