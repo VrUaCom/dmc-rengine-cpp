@@ -133,20 +133,24 @@
       "id": "pass32-pc-save-product-promotion-pr42",
       "drive_file_id": "1jtbyj7OmYA6rnwlzQ5iHgy6ZBKhTHH9OwqDH_e05PfY",
       "drive_parent_folder_id": "1Chdmz09Fhy9LKcUTy3K-yuz4uQjo80xt",
-      "drive_revision_id": "AIroW3407QpJFABGaaxIRncrsNwEjyTSqzP2vzC_kfPG-5r3GEg-5T6lS9jEJP09nAHoWpqdLy0DkE3rVEL5bAfnC9uLcIeRqiQa5gvG43s",
+      "drive_revision_id": "AIroW35iIIUzcJGmqnFIv7vF7kXjWMljRih6YqEbBHqK8ioX1CrXY4P8OGnKidC1gn7hoj2fzGicRjac_gDuDLTLISMVpCww958Tx5_m_Lg",
       "readback_verified": true,
       "repository": "VrUaCom/dmc-rengine-cpp",
       "pull_request": 42,
       "branch": "ai/pass32-pc-save-record-envelope",
       "implementation_content_head_sha": "b91b1408bbc26e097107c14fed78dfa343ce948b",
-      "ci_workflow": "Build",
-      "ci_run_id": 30949044678,
-      "ci_run_number": 473,
-      "ubuntu_job_id": 92126214196,
-      "windows_job_id": 92126214093,
+      "implementation_ci_run_id": 30949044678,
+      "implementation_ci_run_number": 473,
+      "implementation_ubuntu_job_id": 92126214196,
+      "implementation_windows_job_id": 92126214093,
+      "receipt_sync_head_sha": "192b2254885dfce304ea6922ab83d3391208e9f6",
+      "receipt_sync_ci_run_id": 30949736308,
+      "receipt_sync_ci_run_number": 475,
+      "receipt_sync_ubuntu_job_id": 92128542204,
+      "receipt_sync_windows_job_id": 92128542119,
       "ci_conclusion": "success",
       "tests_per_platform": 67,
-      "status": "drive-readback-verified-final-metadata-ci-pending"
+      "status": "technical-gates-green-human-review-pending"
     }
   ],
   "excluded_builds": [
@@ -226,10 +230,9 @@
       "id": "promotion-pass32-record-envelope",
       "branch": "ai/pass32-pc-save-record-envelope",
       "pull_request": 42,
-      "status": "drive-receipt-synchronized-final-ci-pending",
+      "status": "technical-gates-green-human-review-pending",
       "implementation_receipt_id": "pass32-pc-save-product-promotion-pr42",
       "remaining_gates": [
-        "final-metadata-ci",
         "human-review",
         "merge",
         "post-merge-drive-and-canon-sync"
