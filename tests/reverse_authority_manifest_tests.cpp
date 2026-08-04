@@ -166,6 +166,42 @@ int main(int argc, char** argv) {
         artifacts,
         "recovered-source-v1-7-pass32") != nullptr);
 
+    const auto* receipts_value = member(*root, "implementation_receipts");
+    assert(receipts_value != nullptr && receipts_value->as_array() != nullptr);
+    const auto& receipts = *receipts_value->as_array();
+    assert(receipts.size() == 1U);
+    const auto* pass32_receipt = find_object_by_id(
+        receipts,
+        "pass32-pc-save-product-promotion-pr42");
+    assert(pass32_receipt != nullptr);
+    const auto* receipt_drive_id = member(*pass32_receipt, "drive_file_id");
+    const auto* receipt_parent = member(
+        *pass32_receipt, "drive_parent_folder_id");
+    const auto* receipt_head = member(
+        *pass32_receipt, "implementation_content_head_sha");
+    const auto* receipt_run = member(*pass32_receipt, "ci_run_id");
+    const auto* receipt_conclusion = member(
+        *pass32_receipt, "ci_conclusion");
+    const auto* receipt_status = member(*pass32_receipt, "status");
+    assert(receipt_drive_id != nullptr &&
+           receipt_drive_id->as_string() != nullptr);
+    assert(*receipt_drive_id->as_string() ==
+        "1jtbyj7OmYA6rnwlzQ5iHgy6ZBKhTHH9OwqDH_e05PfY");
+    assert(receipt_parent != nullptr && receipt_parent->as_string() != nullptr);
+    assert(*receipt_parent->as_string() ==
+        "1Chdmz09Fhy9LKcUTy3K-yuz4uQjo80xt");
+    assert(receipt_head != nullptr && receipt_head->as_string() != nullptr);
+    assert(*receipt_head->as_string() ==
+        "b91b1408bbc26e097107c14fed78dfa343ce948b");
+    assert(receipt_run != nullptr && receipt_run->as_u64() != nullptr);
+    assert(*receipt_run->as_u64() == 30949044678ULL);
+    assert(receipt_conclusion != nullptr &&
+           receipt_conclusion->as_string() != nullptr);
+    assert(*receipt_conclusion->as_string() == "success");
+    assert(receipt_status != nullptr && receipt_status->as_string() != nullptr);
+    assert(*receipt_status->as_string() ==
+        "drive-readback-verified-final-metadata-ci-pending");
+
     const auto* excluded_value = member(*root, "excluded_builds");
     assert(excluded_value != nullptr && excluded_value->as_array() != nullptr);
     const auto& excluded = *excluded_value->as_array();
@@ -248,6 +284,17 @@ int main(int argc, char** argv) {
         pending,
         "promotion-pass32-record-envelope");
     assert(pass32 != nullptr);
+    const auto* promotion_status = member(*pass32, "status");
+    assert(promotion_status != nullptr &&
+           promotion_status->as_string() != nullptr);
+    assert(*promotion_status->as_string() ==
+        "drive-receipt-synchronized-final-ci-pending");
+    assert(string_array_contains(
+        member(*pass32, "remaining_gates"),
+        "final-metadata-ci"));
+    assert(string_array_contains(
+        member(*pass32, "remaining_gates"),
+        "human-review"));
     assert(string_array_contains(
         member(*pass32, "required_outputs"),
         "evidence/save/dmc3-pc-save-pass32.evidence.json"));
