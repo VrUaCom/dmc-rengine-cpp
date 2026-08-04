@@ -3,11 +3,6 @@
   "id": "dmc3-pc-save-pass32",
   "title": "DMC3 HD PC Save Record Envelope and Checksum ABI — Wide Pass 32",
   "project": "DMC Rengine",
-  "target": {
-    "game_profile": "dmc3-hd",
-    "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-    "canonical_executable_size": 3735552
-  },
   "artifacts": [
     {
       "id": "dmc3-hdc-exe-e454272e",
@@ -22,25 +17,22 @@
       "size": 18992
     },
     {
-      "id": "drive-pass32-report",
+      "id": "pass32-report-b3a9527e",
       "role": "canonical-human-readable-report",
-      "drive_file_id": "1_QTgYctE1hCCBOBfmK9Hv6mPyIt-yL-Lk5Q2M1EBPWs",
-      "revision_id": "AIroW35WkagLhW_oWEpdI2SRHnoQES4ATGzpjOKneP_0gXGxeeZ4oYGGdSz1VRsKfNn3uR5msMRlT58ALqOTRGrdHURox6HLNncqqsOYh7E"
+      "sha256": "b3a9527e32bf885ed33d50c67c658cdc4a55083d232dcf59f2aed5c34c37a24c",
+      "size": 6680
     },
     {
-      "id": "drive-pass32-complete-zip",
+      "id": "pass32-complete-zip-75802006",
       "role": "immutable-pass-artifact",
-      "drive_file_id": "1fjK4bjXiRv7dHMd-yhXyaTdjkD2xr4aj",
       "sha256": "75802006890ccd2185dfc5df237bce5adc3841d0635a2269a885ab7561ce1dcd",
       "size": 106508
     },
     {
-      "id": "drive-recovered-source-v1-7",
+      "id": "recovered-source-v1-7-978fd6c8",
       "role": "recovered-source-input",
-      "drive_file_id": "14ShoZhaqym7ifcpaJk7KBJivCG42rXvd",
       "sha256": "978fd6c8c8c1e1de1cf2a50bf9328fce6be345b9f3c70ab30ffb92c195ac22d6",
-      "size": 83912,
-      "file_count": 217
+      "size": 83912
     }
   ],
   "records": [
@@ -114,7 +106,7 @@
           "file_offset": 0,
           "size": 18992,
           "symbol": "PCSaveFile",
-          "note": "Pass 32 CSV/JSON independently validates 21/21 records."
+          "note": "Pass 32 CSV/JSON independently validates 21/21 records. All promoted record lengths are even."
         }
       ],
       "tags": [
@@ -240,9 +232,11 @@
       "confidence": "confirmed",
       "locations": [
         {
-          "artifact_id": "drive-pass32-report",
+          "artifact_id": "pass32-report-b3a9527e",
+          "file_offset": 0,
+          "size": 6680,
           "symbol": "Pass32.NextTarget",
-          "note": "Canonical next target explicitly requires semantic recovery through at least two save versions and runtime ownership mapping."
+          "note": "Canonical next target requires semantic recovery through at least two save versions and runtime ownership mapping."
         }
       ],
       "tags": [
@@ -253,12 +247,5 @@
       ],
       "supersedes": []
     }
-  ],
-  "implementation_constraints": [
-    "Do not reinterpret raw file bytes through native structs; use explicit little-endian reads.",
-    "Do not reject recordState values beyond 0/1 solely because they are not present in the canonical sample.",
-    "Do not expose semantic writes for the 0x708 payload before Pass 33 evidence closes the relevant fields.",
-    "All confirmed record sizes are even; odd-tail checksum behavior is outside the promoted product contract until direct function-byte evidence is reconciled.",
-    "The current vanilla Drive executable SHA-256 81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6 is a different build and must not be used with canonical VA locators."
   ]
 }
