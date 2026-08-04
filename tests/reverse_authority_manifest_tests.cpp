@@ -177,9 +177,14 @@ int main(int argc, char** argv) {
     const auto* receipt_drive_id = member(*pass32_receipt, "drive_file_id");
     const auto* receipt_parent = member(
         *pass32_receipt, "drive_parent_folder_id");
-    const auto* receipt_head = member(
+    const auto* implementation_head = member(
         *pass32_receipt, "implementation_content_head_sha");
-    const auto* receipt_run = member(*pass32_receipt, "ci_run_id");
+    const auto* implementation_run = member(
+        *pass32_receipt, "implementation_ci_run_id");
+    const auto* sync_head = member(
+        *pass32_receipt, "receipt_sync_head_sha");
+    const auto* sync_run = member(
+        *pass32_receipt, "receipt_sync_ci_run_id");
     const auto* receipt_conclusion = member(
         *pass32_receipt, "ci_conclusion");
     const auto* receipt_status = member(*pass32_receipt, "status");
@@ -190,17 +195,24 @@ int main(int argc, char** argv) {
     assert(receipt_parent != nullptr && receipt_parent->as_string() != nullptr);
     assert(*receipt_parent->as_string() ==
         "1Chdmz09Fhy9LKcUTy3K-yuz4uQjo80xt");
-    assert(receipt_head != nullptr && receipt_head->as_string() != nullptr);
-    assert(*receipt_head->as_string() ==
+    assert(implementation_head != nullptr &&
+           implementation_head->as_string() != nullptr);
+    assert(*implementation_head->as_string() ==
         "b91b1408bbc26e097107c14fed78dfa343ce948b");
-    assert(receipt_run != nullptr && receipt_run->as_u64() != nullptr);
-    assert(*receipt_run->as_u64() == 30949044678ULL);
+    assert(implementation_run != nullptr &&
+           implementation_run->as_u64() != nullptr);
+    assert(*implementation_run->as_u64() == 30949044678ULL);
+    assert(sync_head != nullptr && sync_head->as_string() != nullptr);
+    assert(*sync_head->as_string() ==
+        "192b2254885dfce304ea6922ab83d3391208e9f6");
+    assert(sync_run != nullptr && sync_run->as_u64() != nullptr);
+    assert(*sync_run->as_u64() == 30949736308ULL);
     assert(receipt_conclusion != nullptr &&
            receipt_conclusion->as_string() != nullptr);
     assert(*receipt_conclusion->as_string() == "success");
     assert(receipt_status != nullptr && receipt_status->as_string() != nullptr);
     assert(*receipt_status->as_string() ==
-        "drive-readback-verified-final-metadata-ci-pending");
+        "technical-gates-green-human-review-pending");
 
     const auto* excluded_value = member(*root, "excluded_builds");
     assert(excluded_value != nullptr && excluded_value->as_array() != nullptr);
@@ -288,13 +300,16 @@ int main(int argc, char** argv) {
     assert(promotion_status != nullptr &&
            promotion_status->as_string() != nullptr);
     assert(*promotion_status->as_string() ==
-        "drive-receipt-synchronized-final-ci-pending");
-    assert(string_array_contains(
+        "technical-gates-green-human-review-pending");
+    assert(!string_array_contains(
         member(*pass32, "remaining_gates"),
         "final-metadata-ci"));
     assert(string_array_contains(
         member(*pass32, "remaining_gates"),
         "human-review"));
+    assert(string_array_contains(
+        member(*pass32, "remaining_gates"),
+        "merge"));
     assert(string_array_contains(
         member(*pass32, "required_outputs"),
         "evidence/save/dmc3-pc-save-pass32.evidence.json"));
