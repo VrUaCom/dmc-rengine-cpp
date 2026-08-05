@@ -7,11 +7,12 @@ DMC Rengine should sound:
 - technically serious;
 - evidence-driven;
 - dark but not melodramatic;
-- ambitious without claiming work is complete;
-- welcoming to researchers, modders, programmers, artists, and tool builders;
-- precise about legal and technical boundaries.
+- ambitious without claiming incomplete work is finished;
+- welcoming to researchers, modders, programmers, artists, testers, and tool builders;
+- precise about legal and technical boundaries;
+- confident enough to use its lore without hiding functional meaning.
 
-The fictional Order/monk language is a brand layer. Technical documentation must remain explicit and unambiguous.
+Sect, Monk, Order, Monastery, chamber, ritual, and canon language is a public brand layer. Technical documentation must remain explicit and unambiguous.
 
 ## Core Messages
 
@@ -25,7 +26,15 @@ DMC Rengine connects game resources, executable evidence, scene reconstruction, 
 
 ### Long pitch
 
-DMC Rengine is not another isolated format editor or patch collection. It is a clean C++20 platform designed to map Devil May Cry 3 HD from sealed resource archives and executable behavior to typed resources, reconstructed systems, guarded modifications, and eventually recompilable engine modules. GDSpaces provides one resource law for every tool; EXE Editor and Binary Inspector preserve evidence; Stage Ops and ModViz rebuild scenes and interfaces; the Reverse Canon records what is known, corrected, or still uncertain.
+DMC Rengine is not another isolated format editor or patch collection. It is a clean C++20 platform designed to map Devil May Cry 3 HD from sealed resource archives and executable behavior to typed resources, reconstructed systems, guarded modifications, and eventually recompilable engine modules. GDSpaces provides one resource law for every tool; EXE Editor and Binary Inspector preserve evidence; Stage Ops and ModViz reconstruct scenes and interfaces; the Reverse Canon records what is known, corrected, rejected, or still uncertain.
+
+### Community identity
+
+The **Sect of Neuroslop** is the DMC Rengine community.
+
+The **Monks of Binary Code** are its creators and evidence-backed recognized core contributors.
+
+The **Order of the Inverted Triangle** is the lore-facing alias for the core DMC Rengine Team, whose development hub is the **Monastery of Binary Code**.
 
 ## Approved Taglines
 
@@ -40,10 +49,17 @@ Lore:
 Technical:
 
 - **One resource graph. One evidence chain. One path to recompilation.**
+- **No claim without evidence. No source without lineage. No return without trial.**
 
 Community:
 
-- **Join the Monks of Reverse. Map what the machine forgot to explain.**
+- **Built by the Sect of Neuroslop and the Monks of Binary Code.**
+- **Join the Sect. Follow the evidence.**
+
+AI-assisted experimentation:
+
+- **Generate freely. Believe nothing. Test everything.**
+- **Neural assistance. Human accountability.**
 
 Short UI lines:
 
@@ -51,6 +67,7 @@ Short UI lines:
 - **Trace the evidence.**
 - **Open the Scriptorium.**
 - **Reconstruct the stage.**
+- **Begin the Trial.**
 - **No second resolver.**
 
 ## Language to Avoid
@@ -63,37 +80,87 @@ Do not claim:
 - that reconstructed C++ is original Capcom source code;
 - that a hypothesis is confirmed;
 - that the project is affiliated with Capcom;
-- that the fictional Order is a real cult, religion, or secret organization.
+- that Sect membership grants technical authority;
+- that Monk recognition grants repository or platform permissions;
+- that the Sect is only an AI subgroup;
+- that the Order of the Inverted Triangle is the entire community;
+- that fictional lore describes a real cult, religion, coercive group, or secret organization.
 
-## Community Ranks
+Do not publish personal disputes, private origin stories, or identifiable third-party conflict as brand explanation. Public lore must stand on its own.
 
-These are optional community/lore labels, not permission levels.
+## Contributor Recognition
 
-- **Observer** — follows research and validates public findings.
-- **Novice of the Archive** — contributes documentation, fixtures, or reproducible observations.
-- **Monk of Reverse** — produces evidence-backed technical work.
-- **Keeper of Evidence** — maintains evidence quality, confidence labels, and reproducibility.
-- **Cartographer of Spaces** — works on GDSpaces, resource identity, graphs, and archive mapping.
-- **Scribe of the EXE** — works on executable analysis and source recovery.
-- **Stage Warden** — works on Stage Ops and stage reconstruction.
-- **Hex Artisan** — works on Binary Inspector and binary format tooling.
-- **Observer of Forms** — works on ModViz, models, HUD, menus, and visual reconstruction.
-- **Canon Keeper** — maintains accepted findings and corrections.
+**Monk of Binary Code** is the umbrella title for creators and evidence-backed recognized core contributors.
 
-These titles must never substitute for repository roles such as maintainer, reviewer, or administrator.
+Recognition may be supported by:
+
+- accepted source commits;
+- verified reverse-engineering findings integrated into the project;
+- maintained core architecture or subsystem ownership;
+- test, build, security, release, or evidence stewardship;
+- canonical technical documentation with traceable authorship.
+
+Optional contribution-backed discipline epithets may include:
+
+- **Cartographer of Functions**;
+- **Warden of Boundaries**;
+- **Keeper of Ownership**;
+- **Restorer of Source**;
+- **Witness of Behavior**;
+- **Canon Corrector**.
+
+These titles are recognition overlays, not repository roles, security levels, popularity ranks, or purchasable status.
+
+## Terminology Modes
+
+### Balanced — default
+
+Lore name plus functional explanation:
+
+- **The Archive — GDSpaces resource system**;
+- **Monastery of Binary Code — DMC Rengine Core Development Hub**;
+- **Sect of Neuroslop — DMC Rengine community**.
+
+### Full Lore — optional
+
+Atmospheric names may lead in campaign pages, community events, Easter eggs, and optional UI themes, while functional meaning remains available.
+
+### Standard Professional
+
+Use direct conventional terminology for:
+
+- legal and licence text;
+- security and account recovery;
+- privacy and consent;
+- moderation and appeals;
+- payments and financial records;
+- destructive actions;
+- API contracts and stored technical state.
 
 ## Visual Language
 
 - Inverted triangle: descent from surface behavior into implementation.
-- Hexagon: a bounded technical work cell.
+- Hexagon: a bounded technical work chamber.
 - Spider web: verified relations across tools and evidence.
 - Metallic ring: controlled boundary and ownership.
 - Glass center: inspectable internal state.
 - Edge illumination: evidence becoming visible.
+- Noisy-to-clean signal: community experimentation becoming verified structure.
 - Orange: ModViz and visual reconstruction.
 - Hex/web motif: Binary Inspector.
-- Inverted triangle: master DMC Rengine identity.
+- Inverted triangle: master DMC Rengine identity and core Order sigil.
+
+Visual marks must not imitate verification, repository access, maintainer authority, release signing, or security state.
 
 ## Sample Repository Intro
 
-> DMC Rengine is the public workshop of the Order of the Inverted Triangle: an open community of reverse engineers and modders reconstructing Devil May Cry 3 HD through evidence, typed resources, safe tooling, and C++20. The Order is fictional; the engineering discipline is real.
+> DMC Rengine is an open-source C++20 framework for reconstructing Devil May Cry 3 HD through evidence, typed resources, safe tooling, and recovered source. It is built by the Sect of Neuroslop—the DMC Rengine community—and the Monks of Binary Code, its creators and recognized core contributors. The lore is fictional; the engineering discipline is real.
+
+## Public-use safeguards
+
+- Public lore never replaces individual credits or Git authorship.
+- Popularity, donations, reactions, and self-description do not grant Monk recognition.
+- Community language never changes permissions.
+- AI-generated work remains unconfirmed until ordinary evidence, review, and testing complete.
+- Corrections preserve attribution and explain what changed.
+- Professional terminology is always available.
