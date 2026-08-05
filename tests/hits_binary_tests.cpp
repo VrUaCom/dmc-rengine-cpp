@@ -37,7 +37,9 @@ void write_vec3(
 }
 
 [[nodiscard]] std::vector<std::byte> make_fixture() {
-    constexpr std::size_t triangle_offset = 0x70U;
+    constexpr std::size_t pointer_table_offset = 0x44U;
+    constexpr std::size_t list_offset = 0x48U;
+    constexpr std::size_t triangle_offset = 0x50U;
     constexpr std::size_t end_offset = triangle_offset + 0x38U;
     std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
@@ -52,11 +54,12 @@ void write_vec3(
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 1U);
-    write_u32(bytes, 0x3CU, 0x3CU); // spatial = 0x44
-    write_u32(bytes, 0x40U, 0x68U); // triangles = 0x70
-    write_i32(bytes, 0x4CU, 0x48U); // list = 0x50
-    write_i32(bytes, 0x50U, 0);
-    write_i32(bytes, 0x54U, -1);
+    write_u32(bytes, 0x3CU, 0x3CU);
+    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
+    write_i32(bytes, pointer_table_offset,
+              static_cast<std::int32_t>(list_offset - 8U));
+    write_i32(bytes, list_offset, 0);
+    write_i32(bytes, list_offset + 4U, -1);
 
     write_u32(bytes, triangle_offset, 0x10040001U);
     write_vec3(bytes, triangle_offset + 0x04U, 0.0F, 0.0F, 0.0F);
@@ -109,25 +112,25 @@ int main() {
     assert(spatial != nullptr);
     assert(spatial->range.offset == 0x44U);
 
-    const auto* triangle = document->find_region("hits-triangle-00000070");
+    const auto* triangle = document->find_region("hits-triangle-00000050");
     assert(triangle != nullptr);
     assert(triangle->range.size == 0x38U);
 
-    const auto* flags = document->find_field("hits-triangle-00000070-flags");
+    const auto* flags = document->find_field("hits-triangle-00000050-flags");
     assert(flags != nullptr);
     assert(flags->display_value == "0x10040001");
 
     const auto* normal_y = document->find_field(
-        "hits-triangle-00000070-normal-y");
+        "hits-triangle-00000050-normal-y");
     assert(normal_y != nullptr);
     assert(normal_y->display_value == "1");
 
     const auto* plane_d = document->find_field(
-        "hits-triangle-00000070-plane-d");
+        "hits-triangle-00000050-plane-d");
     assert(plane_d != nullptr);
     assert(plane_d->display_value == "0");
 
-    const auto selection = document->selection_at(0x70U);
+    const auto selection = document->selection_at(0x50U);
     assert(selection.regions.size() == 1U);
     assert(selection.fields.size() == 2U);
     assert(selection.owners.size() == 1U);
