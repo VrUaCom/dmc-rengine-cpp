@@ -207,4 +207,4 @@ Professional workflow names remain canonical in APIs and stored records.
 9. Experimental names must be labeled experimental.
 10. Legal, security, moderation, recovery, payment, and destructive-operation language remains direct and professional.
 11. Old PAC Editor/PAC Manager terminology is retained only in historical migration documents.
-12. Public lore must not expose private personal history or imply technical claims beyond evidence.
+12. Public lore must remain self-contained and must not imply technical claims beyond the available evidence.
