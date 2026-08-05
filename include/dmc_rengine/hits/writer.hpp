@@ -17,7 +17,7 @@ enum class GridPolicy : std::uint8_t {
 };
 
 enum class AssignmentPolicy : std::uint8_t {
-    rengine_triangle_box_sat = 0,
+    capcom_triangle_box_sat = 0,
 };
 
 struct Surface final {
@@ -31,7 +31,7 @@ struct Surface final {
 struct RebuildOptions final {
     GridPolicy grid_policy{GridPolicy::preserve_source_grid};
     AssignmentPolicy assignment_policy{
-        AssignmentPolicy::rengine_triangle_box_sat};
+        AssignmentPolicy::capcom_triangle_box_sat};
     float bounds_padding{};
     double overlap_epsilon{1.0e-7};
 };
