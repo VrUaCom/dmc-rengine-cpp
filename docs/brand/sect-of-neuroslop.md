@@ -1,89 +1,136 @@
 # The Sect of Neuroslop
 
-> **The Sect of Neuroslop** (`Секта Нейрошлаку`) is the deliberately absurd, self-ironic community layer of DMC Rengine lore. It is fictional, satirical, and not a real cult, religion, or organization.
+> **The Sect of Neuroslop** (`Секта Нейрошлаку`) is the public community identity of DMC Rengine. It is fictional, satirical brand language—not a real cult, religion, coercive group, or permission system.
 
 ## What it means
 
-The name began as an inside joke about people who use neural networks, automation, generated drafts, reverse-engineering assistants, prompts, scripts, and every available tool to attack problems that would normally require a much larger team.
+The Sect is the community gathered around DMC Rengine:
 
-“Neuroslop” does not mean accepting low-quality AI output. Inside the DMC Rengine culture, the joke is the opposite:
+- reverse engineers;
+- modders;
+- C++ and web developers;
+- artists and interface designers;
+- testers and runtime researchers;
+- technical writers and archivists;
+- tool builders;
+- supporters and community participants.
 
-> Raw neural output may be slop. Evidence, testing, correction, and human judgment turn it into engineering.
+Joining the Sect simply means joining the DMC Rengine community. It does not automatically grant repository access, project membership, technical authority, moderation rights, verification, or contributor recognition.
 
-The Sect exists wherever an apparently chaotic mix of AI agents, reverse engineers, artists, modders, scripts, graphs, notes, and hex dumps is disciplined into a reproducible system.
+## Relationship to the Monks of Binary Code
 
-## Relationship to the Order
+**The Monks of Binary Code** are the creators and evidence-backed core contributors who build, maintain, test, document, and reconstruct DMC Rengine systems.
 
-- **The Order of the Inverted Triangle** is the serious public mythos of the project.
-- **The Monks of Reverse** are the disciplined technical contributors.
-- **The Sect of Neuroslop** is the self-aware inner joke shared by people building the impossible with AI-assisted workflows.
+The distinction is simple:
 
-A member may be all three at once:
+- **Sect of Neuroslop** = the wider DMC Rengine community;
+- **Monks of Binary Code** = creators and recognized core contributors;
+- **Order of the Inverted Triangle** = lore-facing alias for the core DMC Rengine team;
+- **Monastery of Binary Code** = the DMC Rengine Core Development Hub.
 
-- a member of the Order by project identity;
-- a Monk of Reverse by discipline;
-- a member of the Sect by humor, improvisation, and shameless use of neural tools.
+A Sect member does not become a Monk through popularity, payment, self-selection, or use of AI. Monk recognition requires accepted, traceable contribution evidence.
 
-## Doctrine of the Sect
+## Built by the Sect and the Monks
 
-1. Generate widely, verify ruthlessly.
-2. A confident hallucination is still wrong.
-3. Prompts are not evidence.
-4. AI output enters the Canon only after review, testing, and traceable support.
-5. Automation should remove repetition, not responsibility.
-6. The human remains accountable for every accepted change.
-7. Bad first drafts are permitted; silent falsehoods are not.
-8. Never confuse speed with certainty.
-9. Never let one model become the only memory of the project.
-10. Preserve the useful fragments. Burn the unsupported claims.
+The approved public authorship line is:
 
-## The Sacred Pipeline
+> **DMC Rengine is built by the Sect of Neuroslop and the Monks of Binary Code.**
 
-The Sect jokingly describes the working process as:
+This statement celebrates collective community effort while preserving individual authorship, Git history, contribution records, and credits.
 
-`Neuroslop → Triage → Evidence → Test → Correction → Canon`
+## Community doctrine
+
+The Sect welcomes experimentation, but it does not confuse generation with truth.
+
+1. Generate freely.
+2. Believe nothing without support.
+3. Test everything that matters.
+4. Prompts are not evidence.
+5. Confidence is not confirmation.
+6. Automation removes repetition, not responsibility.
+7. The human remains accountable for accepted changes.
+8. Correction is part of progress.
+9. Preserve authorship and provenance.
+10. Never let one tool or model become the only memory of the project.
+
+The public engineering pipeline is:
+
+`Generated → Suspect → Triaged → Tested → Corrected → Reviewed → Canon`
 
 Nothing may jump directly from generated output into the Reverse Canon.
 
-## Roles of the Sect
+## AI-assisted work
 
-These are humorous community labels, not GitHub permissions or technical authority.
+AI-assisted workflows are part of DMC Rengine culture, but they do not define the whole community.
 
-- **Slop Acolyte** — learns to distinguish useful generation from plausible nonsense.
-- **Prompt Monk** — designs repeatable research prompts and agent workflows.
-- **Neural Scribe** — converts discussions and findings into structured documentation.
-- **Hallucination Hunter** — actively searches for unsupported claims and contradictions.
-- **Context Keeper** — maintains project memory across MemPalace, Obsidian, SDD, and code.
-- **Agent Shepherd** — coordinates multiple AI agents without allowing architectural drift.
-- **Slop Purifier** — turns generated prototypes into reviewed, tested implementation.
-- **Grand Recycler of Tokens** — honorary title for surviving exceptionally long research sessions.
+AI may help with:
+
+- research planning;
+- code and documentation drafts;
+- hypothesis generation;
+- repetitive analysis;
+- cross-document reconciliation;
+- testing ideas;
+- diagrams, UI concepts, and communication.
+
+AI may not replace:
+
+- evidence;
+- human review;
+- runtime validation;
+- authorship records;
+- security decisions;
+- legal judgment;
+- repository permissions.
+
+## Community presentation
+
+The Sect may appear in:
+
+- the repository README;
+- community pages;
+- contributor profiles;
+- devlogs and release notes;
+- Easter eggs;
+- optional lore-mode UI;
+- event, campaign, and onboarding presentation.
+
+Legal, security, moderation, privacy, billing, recovery, and destructive-operation surfaces use direct professional language.
 
 ## Symbols
 
-The Sect shares the inverted triangle, but adds the motif of a noisy signal becoming a clean graph:
+The Sect shares the inverted-triangle identity of DMC Rengine and may use a secondary motif of noisy information becoming a verified structure:
 
-- static at the outer edge;
-- fragmented tokens and hex values;
-- converging lines;
-- a clear resource node or recovered function at the center.
+- fragmented tokens and hex values at the edge;
+- converging graph lines;
+- a resolved resource, function, or evidence node at the center.
 
-Its visual tone may be more playful than the main DMC Rengine identity, but must remain compatible with the metallic, hexagonal, spider-web, and evidence-oriented design system.
+The visual style remains compatible with the metallic, glass, hexagonal, graph, and evidence-oriented DMC Rengine design system.
 
 ## Approved slogans
 
+Primary:
+
+- **Built by the Sect of Neuroslop and the Monks of Binary Code.**
+- **Generate freely. Believe nothing. Test everything.**
+- **Descend to the bytes. Return with the source.**
+
+Secondary:
+
 - **From slop to source.**
-- **Generate chaos. Commit evidence.**
-- **In tokens we wander; by tests we return.**
 - **The model proposes. The evidence disposes.**
-- **Neural assistance, human accountability.**
-- **Praise the context window. Fear the hallucination.**
+- **Neural assistance. Human accountability.**
+- **No claim without evidence.**
 
-## Public-use rule
+## Safeguards
 
-The term “Sect of Neuroslop” may appear in community pages, Easter eggs, contributor lore, informal release notes, internal dashboards, and humorous UI copy.
-
-It should not replace the professional project description in legal, security, architecture, or external partnership contexts.
+- The Sect is voluntary.
+- No lore title measures human worth.
+- No payment purchases trust, evidence, access, or contributor recognition.
+- No member must use lore terminology.
+- The term may not be used to harass or belittle contributors.
+- The same professional Account, Team, Project, Evidence, Build, Release, and repository identities remain canonical underneath the lore.
 
 ## Canonical disclaimer
 
-The Sect of Neuroslop is fictional satire. DMC Rengine does not promote coercive groups, religious manipulation, or blind obedience. Its actual values are open research, evidence, reproducibility, correction, and responsible use of AI-assisted tools.
+The Sect of Neuroslop is fictional community branding for DMC Rengine. The project does not promote coercive groups, religious manipulation, blind obedience, or the replacement of engineering judgment with AI output. Its actual operating values are evidence, reproducibility, correction, traceable authorship, responsible experimentation, and collaborative creation.
