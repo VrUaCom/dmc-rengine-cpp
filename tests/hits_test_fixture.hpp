@@ -27,18 +27,20 @@ inline void write_f32(
 [[nodiscard]] inline std::vector<std::byte> make_minimal_hits(
     std::uint32_t flags = 0x00000001U) {
     constexpr std::size_t spatial_offset = 0x44U;
-    constexpr std::size_t pointer_table_offset = 0x4CU;
-    constexpr std::size_t list_offset = 0x50U;
-    constexpr std::size_t triangle_offset = 0x58U;
-    constexpr std::size_t end_offset = 0x90U;
+    constexpr std::size_t pointer_table_offset = spatial_offset;
+    constexpr std::size_t list_offset = 0x48U;
+    constexpr std::size_t triangle_offset = 0x50U;
+    constexpr std::size_t logical_end_offset = triangle_offset + 0x38U;
+    constexpr std::size_t aligned_file_size = 0x90U;
 
-    std::vector<std::byte> bytes(end_offset, std::byte{0});
+    std::vector<std::byte> bytes(aligned_file_size, std::byte{0});
     bytes[0] = std::byte{'H'};
     bytes[1] = std::byte{'I'};
     bytes[2] = std::byte{'T'};
     bytes[3] = std::byte{'S'};
 
-    write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
+    write_u32(bytes, 0x04U,
+              static_cast<std::uint32_t>(logical_end_offset));
 
     write_f32(bytes, 0x08U, 0.0F);
     write_f32(bytes, 0x0CU, 0.0F);
@@ -55,11 +57,13 @@ inline void write_f32(
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 1U);
-    write_u32(bytes, 0x3CU, static_cast<std::uint32_t>(spatial_offset - 8U));
-    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
+    write_u32(bytes, 0x3CU,
+              static_cast<std::uint32_t>(spatial_offset - 8U));
+    write_u32(bytes, 0x40U,
+              static_cast<std::uint32_t>(triangle_offset - 8U));
 
     write_u32(bytes, pointer_table_offset,
-        static_cast<std::uint32_t>(list_offset - 8U));
+              static_cast<std::uint32_t>(list_offset - 8U));
     write_u32(bytes, list_offset, 0U);
     write_u32(bytes, list_offset + 4U, 0xFFFFFFFFU);
 
