@@ -40,10 +40,6 @@ Examples:
 
 Technical code, schemas, tests, APIs, security controls, legal text, and stored workflow state use canonical professional names.
 
-## Public/private boundary
-
-The public repository contains the developed fictional lore and its operational safeguards. Private personal history behind the earliest naming is not part of the public brand canon and must not be added to repository documentation, issues, release notes, or marketing copy.
-
 ## Canon status
 
 The technical product names predate this repository and remain established project canon. The Sect, Monks of Binary Code, core Order, Monastery, mottos, campaigns, rituals, and extended mythology in this directory define the public C++ repository lore.
