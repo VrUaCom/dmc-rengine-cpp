@@ -148,7 +148,8 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - DMC Rengine Constitution;
 - SDD specifications and ADR system;
 - architecture, phase map, blockers, risks, JSON status, history, and Canon documents;
-- public brand Canon: Order of the Inverted Triangle, Monks of Reverse, and Sect of Neuroslop;
+- public brand Canon defining the Sect of Neuroslop as the DMC Rengine community, the Monks of Binary Code as creators and recognized core contributors, and the Order of the Inverted Triangle as the core Team alias;
+- public Long Descent, Monastery, chamber, ritual, campaign, and evidence-presentation vocabulary;
 - GitHub implementation truth separated from newer Drive research truth;
 - current documentation reconciled to `main` after merged PR #42.
 
@@ -158,7 +159,8 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - fixed Windows Release test crashes caused by `NDEBUG` removing side-effectful `assert` expressions;
 - rejected an unreliable forced-include assertion workaround and standardized `/UNDEBUG` / `-UNDEBUG` for test targets;
 - removed stale status claims that strict Evidence import, Binary Inspector fields, guarded copy execution, source integration, HITS runtime/writer work, and PC-save Pass 31/32 were still planned;
-- documented that `HITS$` and `0x18060001` as a universal record marker are rejected historical assumptions.
+- documented that `HITS$` and `0x18060001` as a universal record marker are rejected historical assumptions;
+- removed the obsolete public-lore model that treated the Sect as an AI-only inner wing and used `Monks of Reverse` as the contributor identity.
 
 ### Research boundaries
 
