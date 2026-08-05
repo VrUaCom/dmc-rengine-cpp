@@ -128,12 +128,12 @@ std::optional<binary::Document> build_binary_document(
         !add_field(document, "hits-triangle-count", "Triangle count", 0x38U, 4U,
             binary::FieldKind::unsigned_integer, "u32_le",
             number_text(scan.header.triangle_count), header_parent) ||
-        !add_field(document, "hits-spatial-relative", "Spatial relative offset", 0x3CU, 4U,
-            binary::FieldKind::pointer, "u32_le relative to +8",
-            number_text(scan.header.spatial_relative_offset), header_parent) ||
-        !add_field(document, "hits-triangle-relative", "Triangle relative offset", 0x40U, 4U,
-            binary::FieldKind::pointer, "u32_le relative to +8",
-            number_text(scan.header.triangle_relative_offset), header_parent)) {
+        !add_field(document, "hits-spatial-relative", "Spatial table relative offset", 0x3CU, 4U,
+            binary::FieldKind::pointer, "u32_le relative to fileBase + 8",
+            number_text(scan.header.spatial_table_relative_offset), header_parent) ||
+        !add_field(document, "hits-triangle-relative", "Triangle array relative offset", 0x40U, 4U,
+            binary::FieldKind::pointer, "u32_le relative to fileBase + 8",
+            number_text(scan.header.triangle_array_relative_offset), header_parent)) {
         return std::nullopt;
     }
 
