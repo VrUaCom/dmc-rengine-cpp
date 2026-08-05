@@ -22,9 +22,7 @@ using formats::hits::Triangle;
 using formats::hits::Vec3;
 
 constexpr std::size_t canonical_spatial_offset = 0x44U;
-constexpr std::size_t spatial_prefix_size = 8U;
-constexpr std::size_t pointer_table_offset =
-    canonical_spatial_offset + spatial_prefix_size;
+constexpr std::size_t pointer_table_offset = canonical_spatial_offset;
 
 struct DVec3 final {
     double x{};
@@ -147,8 +145,7 @@ void add_diagnostic(
         }
     }
     const auto triangle_normal = cross(edges[0], edges[1]);
-    if (!overlap_on_axis(
-            vertices, half_extents, triangle_normal, epsilon)) {
+    if (!overlap_on_axis(vertices, half_extents, triangle_normal, epsilon)) {
         return false;
     }
     for (const auto& edge : edges) {
@@ -185,35 +182,17 @@ void add_diagnostic(
 
 [[nodiscard]] Vec3 minimum_point(const Triangle& triangle) noexcept {
     return Vec3{
-        .x = std::min({
-            triangle.point_a.x,
-            triangle.point_b.x,
-            triangle.point_c.x}),
-        .y = std::min({
-            triangle.point_a.y,
-            triangle.point_b.y,
-            triangle.point_c.y}),
-        .z = std::min({
-            triangle.point_a.z,
-            triangle.point_b.z,
-            triangle.point_c.z}),
+        .x = std::min({triangle.point_a.x, triangle.point_b.x, triangle.point_c.x}),
+        .y = std::min({triangle.point_a.y, triangle.point_b.y, triangle.point_c.y}),
+        .z = std::min({triangle.point_a.z, triangle.point_b.z, triangle.point_c.z}),
     };
 }
 
 [[nodiscard]] Vec3 maximum_point(const Triangle& triangle) noexcept {
     return Vec3{
-        .x = std::max({
-            triangle.point_a.x,
-            triangle.point_b.x,
-            triangle.point_c.x}),
-        .y = std::max({
-            triangle.point_a.y,
-            triangle.point_b.y,
-            triangle.point_c.y}),
-        .z = std::max({
-            triangle.point_a.z,
-            triangle.point_b.z,
-            triangle.point_c.z}),
+        .x = std::max({triangle.point_a.x, triangle.point_b.x, triangle.point_c.x}),
+        .y = std::max({triangle.point_a.y, triangle.point_b.y, triangle.point_c.y}),
+        .z = std::max({triangle.point_a.z, triangle.point_b.z, triangle.point_c.z}),
     };
 }
 
@@ -258,21 +237,18 @@ void add_diagnostic(
         }
         const auto extent = static_cast<double>(maximum_value) -
                             static_cast<double>(minimum_value);
-        const auto raw = std::max(1.0, std::ceil(
-            extent / static_cast<double>(cell_size)));
-        if (raw > static_cast<double>(
-                std::numeric_limits<std::uint32_t>::max())) {
+        const auto raw = std::max(
+            1.0,
+            std::ceil(extent / static_cast<double>(cell_size)));
+        if (raw > static_cast<double>(std::numeric_limits<std::uint32_t>::max())) {
             return std::nullopt;
         }
         return static_cast<std::uint32_t>(raw);
     };
 
-    const auto count_x = count_for_axis(
-        minimum.x, maximum.x, header.cell_size.x);
-    const auto count_y = count_for_axis(
-        minimum.y, maximum.y, header.cell_size.y);
-    const auto count_z = count_for_axis(
-        minimum.z, maximum.z, header.cell_size.z);
+    const auto count_x = count_for_axis(minimum.x, maximum.x, header.cell_size.x);
+    const auto count_y = count_for_axis(minimum.y, maximum.y, header.cell_size.y);
+    const auto count_z = count_for_axis(minimum.z, maximum.z, header.cell_size.z);
     if (!count_x || !count_y || !count_z) {
         return false;
     }
@@ -282,12 +258,9 @@ void add_diagnostic(
     header.grid_count_y = *count_y;
     header.grid_count_z = *count_z;
     header.bounds_max = Vec3{
-        .x = minimum.x + header.cell_size.x *
-            static_cast<float>(*count_x),
-        .y = minimum.y + header.cell_size.y *
-            static_cast<float>(*count_y),
-        .z = minimum.z + header.cell_size.z *
-            static_cast<float>(*count_z),
+        .x = minimum.x + header.cell_size.x * static_cast<float>(*count_x),
+        .y = minimum.y + header.cell_size.y * static_cast<float>(*count_y),
+        .z = minimum.z + header.cell_size.z * static_cast<float>(*count_z),
     };
     return finite(header.bounds_max);
 }
@@ -337,8 +310,7 @@ void write_vec3(
 [[nodiscard]] std::optional<std::size_t> checked_multiply(
     std::size_t left,
     std::size_t right) noexcept {
-    if (left != 0U &&
-        right > std::numeric_limits<std::size_t>::max() / left) {
+    if (left != 0U && right > std::numeric_limits<std::size_t>::max() / left) {
         return std::nullopt;
     }
     return left * right;
@@ -398,17 +370,6 @@ RebuildResult SpatialWriter::rebuild(
             "The source HITS scan must be recognized and free of structural errors.");
         return result;
     }
-    const auto source_prefix_offset = source_scan.header.spatial_offset();
-    if (source_prefix_offset > source_bytes.size() ||
-        spatial_prefix_size > source_bytes.size() - source_prefix_offset) {
-        add_diagnostic(
-            result,
-            ParseSeverity::error,
-            "hits.writer.spatial_prefix_out_of_range",
-            "The source HITS resource does not contain the eight-byte spatial prefix.",
-            source_prefix_offset);
-        return result;
-    }
     if (!std::isfinite(options.bounds_padding) ||
         options.bounds_padding < 0.0F ||
         !std::isfinite(options.overlap_epsilon) ||
@@ -420,8 +381,7 @@ RebuildResult SpatialWriter::rebuild(
             "Bounds padding and overlap epsilon must be finite and non-negative.");
         return result;
     }
-    if (options.assignment_policy !=
-        AssignmentPolicy::rengine_triangle_box_sat) {
+    if (options.assignment_policy != AssignmentPolicy::capcom_triangle_box_sat) {
         add_diagnostic(
             result,
             ParseSeverity::error,
@@ -444,8 +404,7 @@ RebuildResult SpatialWriter::rebuild(
     prepared.reserve(surfaces.size());
     for (std::size_t index = 0U; index < surfaces.size(); ++index) {
         const auto& surface = surfaces[index];
-        if (surface.stable_id == 0U ||
-            !stable_ids.insert(surface.stable_id).second) {
+        if (surface.stable_id == 0U || !stable_ids.insert(surface.stable_id).second) {
             add_diagnostic(
                 result,
                 ParseSeverity::error,
@@ -483,12 +442,9 @@ RebuildResult SpatialWriter::rebuild(
 
     result.header = source_scan.header;
     result.header.triangle_count = static_cast<std::uint32_t>(prepared.size());
-    result.header.spatial_relative_offset = 0x3CU;
+    result.header.spatial_table_relative_offset = 0x3CU;
     if (options.grid_policy == GridPolicy::fit_bounds_preserve_cell_size) {
-        if (!compute_fit_grid(
-                result.header,
-                prepared,
-                options.bounds_padding)) {
+        if (!compute_fit_grid(result.header, prepared, options.bounds_padding)) {
             add_diagnostic(
                 result,
                 ParseSeverity::error,
@@ -499,18 +455,9 @@ RebuildResult SpatialWriter::rebuild(
     } else if (options.grid_policy == GridPolicy::preserve_source_grid) {
         for (std::size_t index = 0U; index < prepared.size(); ++index) {
             const auto& triangle = prepared[index].triangle;
-            if (!point_within_bounds(
-                    result.header,
-                    triangle.point_a,
-                    options.overlap_epsilon) ||
-                !point_within_bounds(
-                    result.header,
-                    triangle.point_b,
-                    options.overlap_epsilon) ||
-                !point_within_bounds(
-                    result.header,
-                    triangle.point_c,
-                    options.overlap_epsilon)) {
+            if (!point_within_bounds(result.header, triangle.point_a, options.overlap_epsilon) ||
+                !point_within_bounds(result.header, triangle.point_b, options.overlap_epsilon) ||
+                !point_within_bounds(result.header, triangle.point_c, options.overlap_epsilon)) {
                 add_diagnostic(
                     result,
                     ParseSeverity::error,
@@ -531,9 +478,8 @@ RebuildResult SpatialWriter::rebuild(
 
     const auto cell_count_u64 = result.header.cell_count();
     if (cell_count_u64 == 0U ||
-        cell_count_u64 >
-            static_cast<std::uint64_t>(
-                std::numeric_limits<std::size_t>::max())) {
+        cell_count_u64 > static_cast<std::uint64_t>(
+            std::numeric_limits<std::size_t>::max())) {
         add_diagnostic(
             result,
             ParseSeverity::error,
@@ -548,10 +494,8 @@ RebuildResult SpatialWriter::rebuild(
          triangle_index < prepared.size();
          ++triangle_index) {
         const auto relative_offset_u64 =
-            static_cast<std::uint64_t>(triangle_index) *
-            formats::hits::triangle_size;
-        if (relative_offset_u64 >
-            static_cast<std::uint64_t>(
+            static_cast<std::uint64_t>(triangle_index) * formats::hits::triangle_size;
+        if (relative_offset_u64 > static_cast<std::uint64_t>(
                 std::numeric_limits<std::int32_t>::max())) {
             add_diagnostic(
                 result,
@@ -561,8 +505,7 @@ RebuildResult SpatialWriter::rebuild(
                 triangle_index);
             return result;
         }
-        const auto relative_offset =
-            static_cast<std::uint32_t>(relative_offset_u64);
+        const auto relative_offset = static_cast<std::uint32_t>(relative_offset_u64);
         const auto& triangle = prepared[triangle_index].triangle;
         const auto range = runtime::world_range_to_grid(
             result.header,
@@ -654,15 +597,11 @@ RebuildResult SpatialWriter::rebuild(
     for (const auto& list : references) {
         list_offsets.push_back(cursor);
         const auto entries = checked_add(list.size(), 1U);
-        const auto list_bytes = entries
-            ? checked_multiply(*entries, 4U)
-            : std::nullopt;
-        const auto next = list_bytes
-            ? checked_add(cursor, *list_bytes)
-            : std::nullopt;
-        if (!next || cursor < 8U ||
-            cursor - 8U > static_cast<std::size_t>(
-                std::numeric_limits<std::int32_t>::max())) {
+        const auto list_bytes = entries ? checked_multiply(*entries, 4U) : std::nullopt;
+        const auto next = list_bytes ? checked_add(cursor, *list_bytes) : std::nullopt;
+        if (!next || cursor < formats::hits::relative_offset_base ||
+            cursor - formats::hits::relative_offset_base >
+                static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max())) {
             add_diagnostic(
                 result,
                 ParseSeverity::error,
@@ -673,16 +612,17 @@ RebuildResult SpatialWriter::rebuild(
         cursor = *next;
     }
 
-    const auto guard_offset = cursor;
-    const auto triangle_offset = checked_add(guard_offset, 8U);
+    const auto triangle_offset = cursor;
     const auto triangle_bytes = checked_multiply(
         prepared.size(), formats::hits::triangle_size);
-    const auto end_offset = triangle_offset && triangle_bytes
-        ? checked_add(*triangle_offset, *triangle_bytes)
+    const auto end_offset = triangle_bytes
+        ? checked_add(triangle_offset, *triangle_bytes)
         : std::nullopt;
     const auto file_size = end_offset ? align16(*end_offset) : std::nullopt;
-    if (!triangle_offset || !triangle_bytes || !end_offset || !file_size ||
-        guard_offset > std::numeric_limits<std::uint32_t>::max() ||
+    if (!triangle_bytes || !end_offset || !file_size ||
+        triangle_offset < formats::hits::relative_offset_base ||
+        triangle_offset - formats::hits::relative_offset_base >
+            std::numeric_limits<std::uint32_t>::max() ||
         *end_offset > std::numeric_limits<std::uint32_t>::max()) {
         add_diagnostic(
             result,
@@ -692,8 +632,8 @@ RebuildResult SpatialWriter::rebuild(
         return result;
     }
 
-    result.header.triangle_relative_offset =
-        static_cast<std::uint32_t>(guard_offset);
+    result.header.triangle_array_relative_offset = static_cast<std::uint32_t>(
+        triangle_offset - formats::hits::relative_offset_base);
     result.header.end_offset = static_cast<std::uint32_t>(*end_offset);
     result.bytes.assign(*file_size, std::byte{0});
     auto output = std::span<std::byte>{result.bytes};
@@ -710,50 +650,30 @@ RebuildResult SpatialWriter::rebuild(
     write_u32(output, 0x30U, result.header.grid_count_y);
     write_u32(output, 0x34U, result.header.grid_count_z);
     write_u32(output, 0x38U, result.header.triangle_count);
-    write_u32(output, 0x3CU, result.header.spatial_relative_offset);
-    write_u32(output, 0x40U, result.header.triangle_relative_offset);
-
-    std::copy_n(
-        source_bytes.begin() +
-            static_cast<std::ptrdiff_t>(source_prefix_offset),
-        spatial_prefix_size,
-        result.bytes.begin() +
-            static_cast<std::ptrdiff_t>(canonical_spatial_offset));
+    write_u32(output, 0x3CU, result.header.spatial_table_relative_offset);
+    write_u32(output, 0x40U, result.header.triangle_array_relative_offset);
 
     for (std::size_t cell_index = 0U;
          cell_index < cell_count;
          ++cell_index) {
-        const auto relative = list_offsets[cell_index] - 8U;
+        const auto relative =
+            list_offsets[cell_index] - formats::hits::relative_offset_base;
         write_i32(
             output,
             pointer_table_offset + cell_index * 4U,
             static_cast<std::int32_t>(relative));
         auto list_cursor = list_offsets[cell_index];
         for (const auto reference : references[cell_index]) {
-            write_i32(
-                output,
-                list_cursor,
-                static_cast<std::int32_t>(reference));
+            write_i32(output, list_cursor, static_cast<std::int32_t>(reference));
             list_cursor += 4U;
         }
-        write_i32(
-            output,
-            list_cursor,
-            formats::hits::cell_list_terminator);
+        write_i32(output, list_cursor, formats::hits::cell_list_terminator);
     }
-    write_i32(
-        output,
-        guard_offset,
-        formats::hits::cell_list_terminator);
-    write_i32(
-        output,
-        guard_offset + 4U,
-        formats::hits::cell_list_terminator);
 
     result.locations.reserve(prepared.size());
     for (std::size_t index = 0U; index < prepared.size(); ++index) {
         const auto record_offset =
-            *triangle_offset + index * formats::hits::triangle_size;
+            triangle_offset + index * formats::hits::triangle_size;
         auto& triangle = prepared[index].triangle;
         triangle.offset = record_offset;
         write_u32(output, record_offset, triangle.flags);
@@ -787,8 +707,8 @@ RebuildResult SpatialWriter::rebuild(
     add_diagnostic(
         result,
         ParseSeverity::warning,
-        "hits.writer.original_builder_equivalence_research_required",
-        "The SAT spatial assignment is deterministic DMC Rengine behavior; byte-equivalence with Capcom's unknown offline builder remains RESEARCH REQUIRED.");
+        "hits.writer.modified_topology_game_validation_required",
+        "The file-level spatial algorithm is corpus-verified; modified topology still requires controlled in-game validation.");
     return result;
 }
 
