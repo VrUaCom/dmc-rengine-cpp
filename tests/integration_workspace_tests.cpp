@@ -63,7 +63,9 @@ void write_vec3(
 }
 
 [[nodiscard]] std::vector<std::byte> hits_bytes() {
-    constexpr std::size_t triangle_offset = 0x70U;
+    constexpr std::size_t pointer_table_offset = 0x44U;
+    constexpr std::size_t list_offset = 0x48U;
+    constexpr std::size_t triangle_offset = 0x50U;
     constexpr std::size_t end_offset = triangle_offset + 0x38U;
     std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
@@ -79,10 +81,11 @@ void write_vec3(
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 1U);
     write_u32(bytes, 0x3CU, 0x3CU);
-    write_u32(bytes, 0x40U, 0x68U);
-    write_i32(bytes, 0x4CU, 0x48U);
-    write_i32(bytes, 0x50U, 0);
-    write_i32(bytes, 0x54U, -1);
+    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
+    write_i32(bytes, pointer_table_offset,
+              static_cast<std::int32_t>(list_offset - 8U));
+    write_i32(bytes, list_offset, 0);
+    write_i32(bytes, list_offset + 4U, -1);
     write_u32(bytes, triangle_offset, 0x18060001U);
     write_vec3(bytes, triangle_offset + 0x04U, 0.0F, 0.0F, 0.0F);
     write_vec3(bytes, triangle_offset + 0x10U, 1.0F, 0.0F, 0.0F);
@@ -175,7 +178,7 @@ void test_hits_workspace() {
     assert(workspace.binary_document() != nullptr);
     assert(workspace.binary_document()->find_region("hits-header") != nullptr);
     assert(workspace.binary_document()->find_region(
-        "hits-triangle-00000070") != nullptr);
+        "hits-triangle-00000050") != nullptr);
 
     StageBundle bundle(StageIdentity{
         .profile = "dmc3-hd",
@@ -195,18 +198,18 @@ void test_hits_workspace() {
     assert(workspace.status() == WorkspaceStatus::editable_clean);
     const auto edit = workspace.apply_edit(
         EditOperation{
-            .id = "edit-padding",
+            .id = "edit-local-hits-byte",
             .base_revision = 0U,
-            .offset = 0x58U,
+            .offset = 0x54U,
             .expected = {std::byte{0}},
             .replacement = {std::byte{0x7F}},
-            .description = "Modify unowned padding in the local working copy.",
+            .description = "Modify local HITS working-copy bytes.",
         },
         ToolTarget::stage_ops);
     assert(edit.applied);
     assert(workspace.status() == WorkspaceStatus::editable_dirty);
-    assert(workspace.source_payload().bytes[0x58U] == std::byte{0});
-    assert(workspace.working_copy()->bytes()[0x58U] == std::byte{0x7F});
+    assert(workspace.source_payload().bytes[0x54U] == std::byte{0});
+    assert(workspace.working_copy()->bytes()[0x54U] == std::byte{0x7F});
     assert(workspace.undo_last_edit(ToolTarget::stage_ops));
     assert(workspace.status() == WorkspaceStatus::editable_clean);
     assert(workspace.events().by_type(

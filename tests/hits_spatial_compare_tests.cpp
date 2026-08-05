@@ -63,7 +63,9 @@ void write_triangle(
 }
 
 [[nodiscard]] std::vector<std::byte> make_fixture() {
-    constexpr std::size_t triangle_offset = 0x80U;
+    constexpr std::size_t pointer_table_offset = 0x44U;
+    constexpr std::size_t lists_offset = 0x4CU;
+    constexpr std::size_t triangle_offset = 0x64U;
     constexpr std::size_t end_offset = triangle_offset + 2U * 0x38U;
     std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
@@ -79,16 +81,15 @@ void write_triangle(
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 2U);
     write_u32(bytes, 0x3CU, 0x3CU);
-    write_u32(bytes, 0x40U, 0x78U);
-    for (std::size_t index = 0U; index < 8U; ++index) {
-        bytes[0x44U + index] = static_cast<std::byte>(0xB0U + index);
-    }
-    write_i32(bytes, 0x4CU, 0x4CU);
-    write_i32(bytes, 0x50U, 0x54U);
-    write_i32(bytes, 0x54U, 0);
-    write_i32(bytes, 0x58U, -1);
-    write_i32(bytes, 0x5CU, 0x38);
-    write_i32(bytes, 0x60U, -1);
+    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
+    write_i32(bytes, pointer_table_offset,
+              static_cast<std::int32_t>(lists_offset - 8U));
+    write_i32(bytes, pointer_table_offset + 4U,
+              static_cast<std::int32_t>(lists_offset + 8U - 8U));
+    write_i32(bytes, lists_offset, 0);
+    write_i32(bytes, lists_offset + 4U, -1);
+    write_i32(bytes, lists_offset + 8U, 0x38);
+    write_i32(bytes, lists_offset + 12U, -1);
     write_triangle(bytes, triangle_offset, 0x18060001U, -2.0F);
     write_triangle(bytes, triangle_offset + 0x38U, 0x00000001U, 3.0F);
     return bytes;
@@ -168,7 +169,7 @@ int main() {
         "hits-spatial-exact",
         "synthetic-original",
         "synthetic-sat-writer",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(exact_report.comparable());
     assert(exact_report.exact());
     assert(exact_report.status == ComparisonStatus::comparable);
@@ -226,7 +227,7 @@ int main() {
         "hits-spatial-reordered",
         "synthetic-original",
         "synthetic-reordered",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(reordered_report.comparable());
     assert(reordered_report.exact());
 
@@ -245,7 +246,7 @@ int main() {
         "hits-spatial-extra",
         "synthetic-original",
         "synthetic-cross-cell",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(crossing_report.comparable());
     assert(!crossing_report.exact());
     assert(crossing_report.metrics.original_reference_count == 2U);
@@ -278,7 +279,7 @@ int main() {
         "hits-spatial-moved",
         "synthetic-original",
         "synthetic-moved",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(moved_report.comparable());
     assert(!moved_report.exact());
     assert(moved_report.metrics.original_reference_count == 2U);
@@ -305,7 +306,7 @@ int main() {
         RebuildOptions{
             .grid_policy = GridPolicy::fit_bounds_preserve_cell_size,
             .assignment_policy =
-                hits::writer::AssignmentPolicy::rengine_triangle_box_sat,
+                hits::writer::AssignmentPolicy::capcom_triangle_box_sat,
             .bounds_padding = 1.0F,
             .overlap_epsilon = 1.0e-7,
         });
@@ -318,7 +319,7 @@ int main() {
         "hits-spatial-incompatible-grid",
         "synthetic-original",
         "synthetic-fit-grid",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(!incompatible.comparable());
     assert(incompatible.status == ComparisonStatus::incompatible_grid);
     assert(has_diagnostic(
@@ -333,7 +334,7 @@ int main() {
         "hits-spatial-invalid-mapping",
         "synthetic-original",
         "synthetic-candidate",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(!invalid_mapping.comparable());
     assert(invalid_mapping.status ==
            ComparisonStatus::invalid_surface_mapping);
@@ -349,7 +350,7 @@ int main() {
         "hits-spatial-duplicate-reference",
         "synthetic-original",
         "synthetic-invalid-reference",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(!invalid_reference.comparable());
     assert(invalid_reference.status ==
            ComparisonStatus::invalid_reference_stream);
@@ -366,7 +367,7 @@ int main() {
         "hits-spatial-incomplete-mapping",
         "synthetic-original",
         "synthetic-candidate",
-        "rengine-triangle-box-sat-v1");
+        "capcom-triangle-box-sat-v1");
     assert(!incomplete.comparable());
     assert(has_diagnostic(
         incomplete, "hits.spatial_compare.mapping_count_mismatch"));

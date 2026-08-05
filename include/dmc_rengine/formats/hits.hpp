@@ -13,6 +13,7 @@ inline constexpr std::size_t magic_size = 4U;
 inline constexpr std::size_t header_size = 0x44U;
 inline constexpr std::size_t triangle_size = 0x38U;
 inline constexpr std::int32_t cell_list_terminator = -1;
+inline constexpr std::uint64_t relative_offset_base = 8U;
 
 struct Vec3 final {
     float x{};
@@ -31,8 +32,8 @@ struct Header final {
     std::uint32_t grid_count_y{};
     std::uint32_t grid_count_z{};
     std::uint32_t triangle_count{};
-    std::uint32_t spatial_relative_offset{};
-    std::uint32_t triangle_relative_offset{};
+    std::uint32_t spatial_table_relative_offset{};
+    std::uint32_t triangle_array_relative_offset{};
 
     [[nodiscard]] std::uint64_t cell_count() const noexcept;
     [[nodiscard]] std::uint64_t spatial_offset() const noexcept;
@@ -78,6 +79,16 @@ public:
     std::uint32_t grid_count_y,
     std::uint32_t grid_count_z) noexcept {
     return ((x * grid_count_y) + y) * grid_count_z + z;
+}
+
+[[nodiscard]] constexpr std::uint16_t upper_flag_mask(
+    std::uint32_t flags) noexcept {
+    return static_cast<std::uint16_t>(flags >> 16U);
+}
+
+[[nodiscard]] constexpr std::uint16_t lower_flag_value(
+    std::uint32_t flags) noexcept {
+    return static_cast<std::uint16_t>(flags & 0xFFFFU);
 }
 
 [[nodiscard]] float evaluate_plane(
