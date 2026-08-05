@@ -40,6 +40,8 @@
 - [Strict Evidence JSON import](evidence/json-import.md)
 - [Read-only PE Inspector](exe/pe-inspector.md)
 - [Known executable targets](exe/known-targets.md)
+- [Phase 0.01a C++20 EXE Domain Foundation](exe/phase-0.01a-exe-domain-foundation.md)
+- [Pass 0–32 executable authority index](../data/registries/dmc3-exe-pass-0-32.v1.json)
 - [Guarded patching](patch/guarded-patching.md)
 
 ### Binary Inspector
@@ -75,7 +77,7 @@
 
 - **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
-- **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
+- **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, persistent C++20 executable projects, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, unknown coverage, and annotations.
 - **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
