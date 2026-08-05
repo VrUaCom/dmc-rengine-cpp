@@ -88,6 +88,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_analyzer
         resource_analyzer_structural_formats
         executable_workspace_manifest
+        exe_domain_foundation
         evidence_address_resolver
         integration_workspace
         workspace_manifest
