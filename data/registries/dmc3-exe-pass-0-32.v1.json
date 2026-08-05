@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "project": "DMC Rengine",
+  "phase": "0.01a",
+  "language_standard": "C++20",
+  "target": {
+    "profile": "dmc3-hd",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000",
+    "entry_point_va": "0x14034615C"
+  },
+  "authority_rule": "GitHub main is reviewed implementation truth; Drive is newer research truth until narrow evidence-gated promotion.",
+  "passes": [
+    {"pass":0,"domain":"baseline","status":"confirmed","summary":"Canonical executable identity, PE baseline and clean-room evidence method."},
+    {"pass":1,"domain":"pe-startup","status":"confirmed","summary":"Entry, exports, sections, address conversion and initial startup anchors."},
+    {"pass":2,"domain":"rtti","status":"confirmed","summary":"RTTI descriptors and initial class identity recovery."},
+    {"pass":3,"domain":"vtable","status":"confirmed","summary":"Vtable instances, inheritance and constructor-time vfptr installation."},
+    {"pass":4,"domain":"classes","status":"confirmed","summary":"Major scene, actor, player, stage and interface hierarchies."},
+    {"pass":5,"domain":"functions","status":"confirmed","summary":"Function evidence, address maps and recovered-source seed units."},
+    {"pass":6,"domain":"crt","status":"confirmed","summary":"CRT entry chain and security-cookie startup."},
+    {"pass":7,"domain":"global-init","status":"confirmed","summary":"Dynamic initializer census and global object construction graph."},
+    {"pass":8,"domain":"lifetime","status":"confirmed","summary":"Atexit, vector construction/destruction and global lifetime contracts."},
+    {"pass":9,"domain":"globals","status":"confirmed","summary":"Global managers, registries and runtime singleton evidence."},
+    {"pass":10,"domain":"coverage","status":"confirmed","summary":"Subsystem census and broad architecture coverage."},
+    {"pass":11,"domain":"logical-functions","status":"confirmed","summary":"Runtime ranges separated from fragments and logical functions."},
+    {"pass":12,"domain":"whole-exe","status":"confirmed","summary":"Maximum whole-EXE architecture assessment and canonical target model."},
+    {"pass":13,"domain":"runtime-topology","status":"confirmed","summary":"Threads, synchronization, AsyncIO worker and file-slot pool."},
+    {"pass":14,"domain":"resource-io","status":"confirmed","summary":"Namespaces, mounts, ZIP/NBZ backends, requests and callbacks."},
+    {"pass":15,"domain":"container-runtime","status":"confirmed","summary":"PAC/PNST sparse slots, inline access, bindings and static catalogs."},
+    {"pass":16,"domain":"textures","status":"confirmed","summary":"PTX/TIM2, DDS representation boundary, CPtxManager and gfxTexture."},
+    {"pass":17,"domain":"texture-lifecycle","status":"high","summary":"COM ownership, cache domains, invalidation and reload transaction model."},
+    {"pass":18,"domain":"platform-services","status":"confirmed","summary":"Steam, input, media and platform integration roots."},
+    {"pass":19,"domain":"scene-lifecycle","status":"confirmed","summary":"Scene transitions, ownership and lifecycle coordination."},
+    {"pass":20,"domain":"events","status":"confirmed","summary":"Event tables, state transitions and runtime dispatch evidence."},
+    {"pass":21,"domain":"registries","status":"confirmed","summary":"Factory and metadata registries."},
+    {"pass":22,"domain":"factories","status":"confirmed","summary":"Scene, enemy, draw and texture factory contracts."},
+    {"pass":23,"domain":"application-runtime","status":"confirmed","summary":"CMcAppli, scene factory map and remaining utility roots."},
+    {"pass":24,"domain":"saturation","status":"confirmed","summary":"Independent root-system scan and correction control."},
+    {"pass":25,"domain":"runtime-utilities","status":"confirmed","summary":"Utility classes, buffers and spline/runtime support layouts."},
+    {"pass":26,"domain":"saturation-control","status":"confirmed","summary":"Architecture saturation checks and remaining-gap classification."},
+    {"pass":27,"domain":"save-ui","status":"implemented","summary":"Memory-card compatibility ABI, save summaries and UI binding."},
+    {"pass":28,"domain":"save-backend","status":"implemented","summary":"Legacy package entries, Steam RemoteStorage and persistence topology."},
+    {"pass":29,"domain":"save-envelope","status":"implemented","summary":"dmc3.sav envelope and serialization boundaries."},
+    {"pass":30,"domain":"save-comparison","status":"implemented","summary":"Controlled save comparison and header-state investigation."},
+    {"pass":31,"domain":"save-integrity","status":"implemented","summary":"Exact block layout, BCD timestamps and integrity validation."},
+    {"pass":32,"domain":"save-checksum","status":"implemented","summary":"Generic checksum ABI, 21 validated records and reviewed C++ promotion."}
+  ],
+  "promotion_contract": {
+    "required_outputs": [
+      "evidence records",
+      "semantic model",
+      "recovered C++20 unit",
+      "source-binary mappings",
+      "tests",
+      "CI receipt",
+      "supersession and correction history"
+    ],
+    "bulk_import_forbidden": true
+  }
+}
