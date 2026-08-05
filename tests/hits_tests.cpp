@@ -53,7 +53,9 @@ void write_triangle(
 }
 
 [[nodiscard]] std::vector<std::byte> make_fixture() {
-    constexpr std::size_t triangle_offset = 0x80U;
+    constexpr std::size_t pointer_table_offset = 0x44U;
+    constexpr std::size_t lists_offset = 0x4CU;
+    constexpr std::size_t triangle_offset = 0x64U;
     constexpr std::size_t end_offset = triangle_offset + 2U * 0x38U;
     std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
@@ -69,14 +71,16 @@ void write_triangle(
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 2U);
     write_u32(bytes, 0x3CU, 0x3CU);
-    write_u32(bytes, 0x40U, 0x78U);
+    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
 
-    write_i32(bytes, 0x4CU, 0x4CU);
-    write_i32(bytes, 0x50U, 0x54U);
-    write_i32(bytes, 0x54U, 0);
-    write_i32(bytes, 0x58U, -1);
-    write_i32(bytes, 0x5CU, 0x38);
-    write_i32(bytes, 0x60U, -1);
+    write_i32(bytes, pointer_table_offset,
+              static_cast<std::int32_t>(lists_offset - 8U));
+    write_i32(bytes, pointer_table_offset + 4U,
+              static_cast<std::int32_t>(lists_offset + 8U - 8U));
+    write_i32(bytes, lists_offset, 0);
+    write_i32(bytes, lists_offset + 4U, -1);
+    write_i32(bytes, lists_offset + 8U, 0x38);
+    write_i32(bytes, lists_offset + 12U, -1);
 
     write_triangle(bytes, triangle_offset, 0x18060001U, -2.0F);
     write_triangle(bytes, triangle_offset + 0x38U, 0x00000001U, 3.0F);
@@ -119,7 +123,7 @@ int main() {
     assert(scan.ok());
     assert(scan.header.cell_count() == 2U);
     assert(scan.header.spatial_offset() == 0x44U);
-    assert(scan.header.triangle_offset() == 0x80U);
+    assert(scan.header.triangle_offset() == 0x64U);
     assert(scan.cells.size() == 2U);
     assert(scan.triangles.size() == 2U);
     assert(scan.triangles[0].flags == 0x18060001U);
@@ -187,7 +191,7 @@ int main() {
     const auto edited_bytes = serialize_safe_copy(scan, bytes, *edit);
     assert(edited_bytes.has_value());
     assert(edited_bytes->size() == bytes.size());
-    assert(std::equal(bytes.begin(), bytes.begin() + 0x80U, edited_bytes->begin()));
+    assert(std::equal(bytes.begin(), bytes.begin() + 0x64U, edited_bytes->begin()));
     const auto edited_scan = RecordScanner::scan(*edited_bytes);
     assert(edited_scan.ok());
     assert(edited_scan.triangles.size() == scan.triangles.size());
