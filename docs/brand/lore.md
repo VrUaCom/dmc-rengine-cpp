@@ -2,9 +2,60 @@
 
 > This document defines the public fictional brand lore of DMC Rengine. It is a creative identity layer for the community and product language, not a real religious organization.
 
+## The Sect of Neuroslop
+
+**The Sect of Neuroslop** (`Секта Нейрошлаку`) is the DMC Rengine community.
+
+It brings together reverse engineers, modders, programmers, artists, testers, researchers, tool builders, technical writers, and supporters who help the project grow.
+
+The Sect is not an AI-only subgroup and not a second organization hidden inside another community. It is the shared public identity of the people gathered around DMC Rengine.
+
+Its work may use AI, automation, prompts, agents, scripts, graphs, notes, and generated drafts, but generated output never becomes technical truth by appearance or confidence alone.
+
+> Generate freely. Believe nothing. Test everything.
+
+The canonical discipline is:
+
+`Generated → Suspect → Triaged → Tested → Corrected → Reviewed → Canon`
+
+## The Monks of Binary Code
+
+**The Monks of Binary Code** (`Монахи Бінарного Коду`) are the creators and evidence-backed core contributors of DMC Rengine.
+
+A Monk of Binary Code may contribute through:
+
+- accepted source code;
+- verified reverse-engineering findings;
+- architecture and resource-system work;
+- tests, build systems, security, and release stewardship;
+- canonical technical documentation;
+- sustained maintenance of a core subsystem.
+
+The title recognizes accepted work. It is not a permission role, initiation level, popularity badge, or purchasable rank.
+
+A Monk follows a practical discipline:
+
+1. Observe before changing.
+2. Preserve evidence.
+3. Separate facts from hypotheses.
+4. Reproduce before claiming.
+5. Preserve unknown structures until evidence justifies change.
+6. Leave a trace another researcher can follow.
+7. Accept correction as part of the Canon.
+
+## Built by the Sect and the Monks
+
+The public authorship line is:
+
+> **DMC Rengine is built by the Sect of Neuroslop and the Monks of Binary Code.**
+
+The Sect names the community around the project. The Monks name its creators and recognized core contributors. Neither phrase replaces individual authorship, contribution records, Git history, credits, or repository permissions.
+
 ## The Order of the Inverted Triangle
 
-DMC Rengine presents its community as **The Order of the Inverted Triangle**: an open order of reverse engineers, modders, tool builders, archivists, artists, and technical explorers who descend into closed systems to recover structure, meaning, and possibility.
+**The Order of the Inverted Triangle** is a lore-facing alias for the core DMC Rengine team.
+
+It is not the entire community. The wider community is the Sect of Neuroslop.
 
 The inverted triangle represents descent:
 
@@ -14,55 +65,44 @@ The inverted triangle represents descent:
 - from executable output to reconstructed source;
 - from rumor to evidence.
 
-The Order does not worship obscurity. It studies it.
+The Order does not worship code or obscurity. It trusts evidence that survives trial.
 
-## The Monks of Reverse
+Its development home is the **Monastery of Binary Code**: the lore-facing name for the DMC Rengine Core Development Hub.
 
-Contributors are informally called **Monks of Reverse**.
+## The Long Descent
 
-A Monk of Reverse is not defined by seniority, credentials, or access to secret files. The title describes a working discipline:
+The shared engineering journey is called **The Long Descent**:
 
-1. Observe before changing.
-2. Preserve evidence.
-3. Separate facts from hypotheses.
-4. Reproduce before claiming.
-5. Never destroy an unknown structure merely because it is inconvenient.
-6. Leave a trace another researcher can follow.
+1. Surface.
+2. Behavior.
+3. Resources.
+4. Structures.
+5. Ownership.
+6. Functions.
+7. Source.
+8. The Return.
 
-The monks do not copy the machine blindly. They reconstruct its logic.
+The Long Descent may label roadmaps, progress views, research campaigns, and public devlogs. It does not replace technical phases, Project states, Evidence statuses, or release gates.
 
-## The Sect of Neuroslop
+**The Return** begins when recovered source is behavior-tested and enters a controlled build or replacement boundary.
 
-Inside the Order exists a deliberately absurd, self-ironic community tradition called **The Sect of Neuroslop** (`Секта Нейрошлаку`).
-
-It represents the AI-assisted side of DMC Rengine: prompts, agents, generated drafts, automation, memory systems, graphs, scripts, and neural tools used to help a very small team attack a very large reverse-engineering problem.
-
-The joke carries a strict engineering rule:
-
-> Raw neural output may be slop. Evidence, testing, correction, and human judgment turn it into engineering.
-
-The Sect is not a real cult or religion. It is fictional satire and an internal cultural label for contributors who use AI aggressively without surrendering responsibility or technical standards.
-
-Its canonical pipeline is:
-
-`Neuroslop → Triage → Evidence → Test → Correction → Canon`
-
-See [The Sect of Neuroslop](sect-of-neuroslop.md) for its doctrine, humorous roles, slogans, symbols, and public-use rules.
+> Descend to the bytes. Return with the source.
 
 ## The Reverse Canon
 
-The **Reverse Canon** is the living body of confirmed project knowledge.
+The **Reverse Canon** is the living body of accepted project knowledge.
 
-Every important conclusion must carry an evidence state:
+Every important conclusion must carry an explicit evidence state, such as:
 
-- `hypothesis`
-- `candidate`
-- `low`
-- `medium`
-- `high`
-- `confirmed`
-- `corrected`
-- `rejected`
+- `hypothesis`;
+- `candidate`;
+- `low`;
+- `medium`;
+- `high`;
+- `confirmed`;
+- `corrected`;
+- `rejected`;
+- `research required`.
 
 The Canon may change when stronger evidence appears. Correction is not failure; silent drift is.
 
@@ -79,38 +119,29 @@ The **Evidence Registry** binds claims to artifacts:
 - screenshots and diagrams;
 - test cases;
 - recovered types and functions;
-- confidence labels.
+- confidence labels;
+- supersession records.
 
 No recovered function becomes doctrine merely because it looks plausible.
 
-## The Spider Hub
+## Chambers of the Monastery
 
-The **Spider Hub** is the visible center of the Order.
+The tools use atmospheric chamber aliases while retaining their professional names:
 
-Its nodes represent tools and disciplines. Its edges represent verified relationships between resources, executable behavior, formats, scenes, patches, and research evidence.
+- **GDSpaces — The Archive**;
+- **Spider Hub — The Nexus**;
+- **EXE Editor — The Scriptorium**;
+- **Binary Inspector — The Reliquary**;
+- **Stage Ops — The Theatre**;
+- **ModViz — The Observatory**;
+- **Item Editor — The Forge**;
+- **Build & Test Lab — The Trial Chamber**.
 
-The Spider does not own the data. It reveals the paths.
-
-## The Hex Cells
-
-The interface uses hexagonal cells as symbolic work chambers.
-
-Each cell is a specialized discipline:
-
-- GDSpaces — the Archive;
-- EXE Editor — the Scriptorium;
-- Binary Inspector — the Reliquary;
-- Stage Ops — the Theatre;
-- ModViz — the Observatory;
-- Item Editor — the Forge;
-- Build and Test — the Trial Chamber;
-- MemPalace and Obsidian — the Memory Vaults.
-
-The cells are connected, but none may secretly become a second source of truth.
+These are tool aliases, not separate Orders, Teams, roles, or sources of truth.
 
 ## The Heresy of the Second Resolver
 
-Within the lore, the gravest architectural heresy is **The Second Resolver**.
+The gravest architectural anti-pattern is **The Second Resolver**.
 
 It appears whenever an editor bypasses GDSpaces and starts resolving files, containers, paths, or identities independently.
 
@@ -121,7 +152,7 @@ The result is fragmentation:
 - two ownership models;
 - two incompatible truths.
 
-Therefore the Order keeps one resource law:
+Therefore the project keeps one resource law:
 
 > All tools receive resources through GDSpaces.
 
@@ -129,33 +160,22 @@ Therefore the Order keeps one resource law:
 
 PAC, PNST, NBZ, and AFS are called **the Sealed Archives**.
 
-They are not products, kingdoms, or top-level tools. They are internal historical layers that GDSpaces mounts, identifies, expands, and presents safely.
+They are internal historical container layers that GDSpaces mounts, identifies, expands, and presents safely. They are not top-level products or architecture domains.
 
-The old PAC Editor/PAC Manager worldview belongs to the previous age and must not return as the architecture of the new engine.
+Legacy PAC Editor/PAC Manager logic remains historical and excluded from the active design.
 
-## The Long Descent
+## Public doctrine
 
-The long-term journey of DMC Rengine is called **The Long Descent**:
+Primary motto:
 
-1. Map the archives.
-2. Recover identities.
-3. Recover structures.
-4. Recover behavior.
-5. Recover source-level intent.
-6. Rebuild isolated systems.
-7. Recompile a working engine.
-8. Open the architecture to controlled transformation.
+> **Descend to the bytes. Return with the source.**
 
-The destination is not a pile of patches. It is understanding deep enough to build again.
+Engineering doctrine:
 
-## Public Motto
+> **No claim without evidence. No source without lineage. No return without trial.**
 
-> Descend to the bytes. Return with the source.
+Community authorship line:
 
-## Internal Motto
+> **Built by the Sect of Neuroslop and the Monks of Binary Code.**
 
-> No claim without evidence. No tool outside the graph. No second resolver.
-
-## Sect Motto
-
-> Generate chaos. Commit evidence.
+All Sect, Monk, Order, Monastery, ritual, chamber, heresy, and canon language is fictional public branding. It never replaces legal language, security controls, permissions, technical evidence, individual credits, or professional documentation.
