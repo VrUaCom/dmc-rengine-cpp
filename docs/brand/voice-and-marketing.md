@@ -86,7 +86,7 @@ Do not claim:
 - that the Order of the Inverted Triangle is the entire community;
 - that fictional lore describes a real cult, religion, coercive group, or secret organization.
 
-Do not publish personal disputes, private origin stories, or identifiable third-party conflict as brand explanation. Public lore must stand on its own.
+Public lore should stand on its own and remain focused on the project, its community, and its engineering values.
 
 ## Contributor Recognition
 
