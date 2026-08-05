@@ -61,11 +61,11 @@ std::uint64_t Header::cell_count() const noexcept {
 }
 
 std::uint64_t Header::spatial_offset() const noexcept {
-    return 8U + spatial_relative_offset;
+    return relative_offset_base + spatial_table_relative_offset;
 }
 
 std::uint64_t Header::triangle_offset() const noexcept {
-    return 8U + triangle_relative_offset;
+    return relative_offset_base + triangle_array_relative_offset;
 }
 
 bool ScanResult::ok() const noexcept {
@@ -120,8 +120,8 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
     result.header.grid_count_y = *grid_y;
     result.header.grid_count_z = *grid_z;
     result.header.triangle_count = *triangle_count;
-    result.header.spatial_relative_offset = *spatial_relative;
-    result.header.triangle_relative_offset = *triangle_relative;
+    result.header.spatial_table_relative_offset = *spatial_relative;
+    result.header.triangle_array_relative_offset = *triangle_relative;
 
     if (*grid_x == 0U || *grid_y == 0U || *grid_z == 0U ||
         !finite(result.header.bounds_min) || !finite(result.header.bounds_max) ||
@@ -151,7 +151,7 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
             "hits.end_offset_mismatch", "The declared end offset does not equal triangleBase + triangleCount * 0x38.", 0x04U);
     }
 
-    const auto pointer_table = spatial_offset + 8U;
+    const auto pointer_table = spatial_offset;
     const auto pointer_bytes = cell_count * 4U;
     if (pointer_table > bytes.size() || pointer_bytes > bytes.size() - pointer_table) {
         add_diagnostic(result, ParseSeverity::error,
@@ -168,10 +168,10 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
                 "hits.invalid_cell_pointer", "A spatial cell contains a negative or unreadable list pointer.", pointer_offset);
             return result;
         }
-        const auto list_offset = 8U + static_cast<std::uint64_t>(*relative);
-        if (list_offset >= bytes.size()) {
+        const auto list_offset = relative_offset_base + static_cast<std::uint64_t>(*relative);
+        if (list_offset >= triangle_offset || list_offset >= bytes.size()) {
             add_diagnostic(result, ParseSeverity::error,
-                "hits.cell_list_out_of_range", "A spatial cell list pointer exceeds the resource.", pointer_offset);
+                "hits.cell_list_out_of_range", "A spatial cell list pointer exceeds the spatial section.", pointer_offset);
             return result;
         }
 
@@ -183,7 +183,7 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
         };
         auto cursor = list_offset;
         bool terminated = false;
-        while (cursor + 4U <= bytes.size()) {
+        while (cursor + 4U <= triangle_offset) {
             const auto reference = read_i32(reader, static_cast<std::size_t>(cursor));
             if (!reference) {
                 break;
@@ -203,7 +203,7 @@ ScanResult RecordScanner::scan(std::span<const std::byte> bytes) {
         }
         if (!terminated) {
             add_diagnostic(result, ParseSeverity::error,
-                "hits.unterminated_cell_list", "A spatial cell reference list has no -1 terminator.", list_offset);
+                "hits.unterminated_cell_list", "A spatial cell reference list has no -1 terminator before the triangle array.", list_offset);
             return result;
         }
         result.cells.push_back(std::move(cell));
