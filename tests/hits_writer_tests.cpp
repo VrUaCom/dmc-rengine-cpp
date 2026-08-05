@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/hits.hpp"
+#include "dmc_rengine/hits/evidence_profile.hpp"
 #include "dmc_rengine/hits/runtime.hpp"
 #include "dmc_rengine/hits/writer.hpp"
 
@@ -62,7 +63,9 @@ void write_triangle(
 }
 
 [[nodiscard]] std::vector<std::byte> make_fixture() {
-    constexpr std::size_t triangle_offset = 0x80U;
+    constexpr std::size_t pointer_table_offset = 0x44U;
+    constexpr std::size_t lists_offset = 0x4CU;
+    constexpr std::size_t triangle_offset = 0x64U;
     constexpr std::size_t end_offset = triangle_offset + 2U * 0x38U;
     std::vector<std::byte> bytes(end_offset, std::byte{0});
     bytes[0] = std::byte{'H'};
@@ -78,17 +81,14 @@ void write_triangle(
     write_u32(bytes, 0x34U, 1U);
     write_u32(bytes, 0x38U, 2U);
     write_u32(bytes, 0x3CU, 0x3CU);
-    write_u32(bytes, 0x40U, 0x78U);
+    write_u32(bytes, 0x40U, static_cast<std::uint32_t>(triangle_offset - 8U));
 
-    for (std::size_t index = 0U; index < 8U; ++index) {
-        bytes[0x44U + index] = static_cast<std::byte>(0xA0U + index);
-    }
-    write_i32(bytes, 0x4CU, 0x4CU);
-    write_i32(bytes, 0x50U, 0x54U);
-    write_i32(bytes, 0x54U, 0);
-    write_i32(bytes, 0x58U, -1);
-    write_i32(bytes, 0x5CU, 0x38);
-    write_i32(bytes, 0x60U, -1);
+    write_i32(bytes, pointer_table_offset, static_cast<std::int32_t>(lists_offset - 8U));
+    write_i32(bytes, pointer_table_offset + 4U, static_cast<std::int32_t>(lists_offset + 8U - 8U));
+    write_i32(bytes, lists_offset, 0);
+    write_i32(bytes, lists_offset + 4U, -1);
+    write_i32(bytes, lists_offset + 8U, 0x38);
+    write_i32(bytes, lists_offset + 12U, -1);
 
     write_triangle(bytes, triangle_offset, 0x18060001U, -2.0F);
     write_triangle(bytes, triangle_offset + 0x38U, 0x00000001U, 3.0F);
@@ -121,6 +121,9 @@ void write_triangle(
 int main() {
     using dmc::rengine::formats::hits::RecordScanner;
     using dmc::rengine::formats::hits::Vec3;
+    using dmc::rengine::hits::evidence::StaticSourceProfile;
+    using dmc::rengine::hits::evidence::profile;
+    using dmc::rengine::hits::evidence::split_flags;
     using dmc::rengine::hits::runtime::maximum_plane_residual;
     using dmc::rengine::hits::writer::GridPolicy;
     using dmc::rengine::hits::writer::SpatialWriter;
@@ -129,6 +132,20 @@ int main() {
     const auto source_bytes = make_fixture();
     const auto source_scan = RecordScanner::scan(source_bytes);
     assert(source_scan.ok());
+    assert(source_scan.header.spatial_offset() == 0x44U);
+    assert(source_scan.header.triangle_offset() == 0x64U);
+    assert(source_scan.cells[0].pointer_offset == 0x44U);
+    assert(source_scan.cells[0].list_offset == 0x4CU);
+    assert(source_scan.cells[1].pointer_offset == 0x48U);
+    assert(source_scan.cells[1].list_offset == 0x54U);
+
+    const auto flags = split_flags(0x182E0001U);
+    assert(flags.raw == 0x182E0001U);
+    assert(flags.upper_query_mask == 0x182EU);
+    assert(flags.lower_surface_value == 0x0001U);
+    const auto source_1 = profile(StaticSourceProfile::source_1_member_6);
+    assert(source_1.label == "Source 1 / PAC member 6");
+    assert(source_1.semantic_boundary.find("RESEARCH REQUIRED") != std::string_view::npos);
 
     auto surfaces = SpatialWriter::surfaces_from_scan(source_scan, 100U);
     assert(surfaces.size() == 2U);
@@ -142,7 +159,7 @@ int main() {
     assert(rebuilt.ok());
     assert(has_diagnostic(
         rebuilt,
-        "hits.writer.original_builder_equivalence_research_required"));
+        "hits.writer.modified_topology_game_validation_required"));
     assert(rebuilt.bytes.size() % 16U == 0U);
     assert(rebuilt.header.end_offset <= rebuilt.bytes.size());
     assert(rebuilt.header.spatial_offset() == 0x44U);
@@ -154,16 +171,9 @@ int main() {
     assert(rebuilt.locations[1].stable_id == 101U);
     assert(rebuilt.locations[1].triangle_byte_offset == 0x38U);
 
-    assert(std::equal(
-        source_bytes.begin() + 0x44U,
-        source_bytes.begin() + 0x4CU,
-        rebuilt.bytes.begin() + 0x44U));
-    assert(read_i32(
-        rebuilt.bytes,
-        static_cast<std::size_t>(rebuilt.header.triangle_offset()) - 8U) == -1);
-    assert(read_i32(
-        rebuilt.bytes,
-        static_cast<std::size_t>(rebuilt.header.triangle_offset()) - 4U) == -1);
+    const auto triangle_offset = static_cast<std::size_t>(
+        rebuilt.header.triangle_offset());
+    assert(read_i32(rebuilt.bytes, triangle_offset - 4U) == -1);
     assert(std::all_of(
         rebuilt.bytes.begin() +
             static_cast<std::ptrdiff_t>(rebuilt.header.end_offset),
@@ -173,6 +183,8 @@ int main() {
     const auto parsed = RecordScanner::scan(rebuilt.bytes);
     assert(parsed.ok());
     assert(parsed.cells.size() == 2U);
+    assert(parsed.cells[0].pointer_offset == 0x44U);
+    assert(parsed.cells[1].pointer_offset == 0x48U);
     assert(parsed.cells[0].list_offset != parsed.cells[1].list_offset);
     assert(parsed.cells[0].triangle_byte_offsets ==
            std::vector<std::uint32_t>{0U});
@@ -269,7 +281,7 @@ int main() {
             .grid_policy = GridPolicy::fit_bounds_preserve_cell_size,
             .assignment_policy =
                 dmc::rengine::hits::writer::AssignmentPolicy::
-                    rengine_triangle_box_sat,
+                    capcom_triangle_box_sat,
             .bounds_padding = 1.0F,
             .overlap_epsilon = 1.0e-7,
         });
