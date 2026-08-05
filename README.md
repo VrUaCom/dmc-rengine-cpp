@@ -1,7 +1,8 @@
 # DMC Rengine
 
 > **Reverse the engine. Rebuild the possibilities.**  
-> *Descend to the bytes. Return with the source.*
+> *Descend to the bytes. Return with the source.*  
+> **Built by the Sect of Neuroslop and the Monks of Binary Code.**
 
 DMC Rengine is an open-source C++20 framework for reverse engineering, decompiling, editing, and eventually recompiling Devil May Cry 3: Special Edition from the HD Collection.
 
@@ -42,11 +43,15 @@ Drive research currently extends through Wide Pass 33. Reviewed product promotio
 
 ## The public lore
 
-The community-facing fictional identity of DMC Rengine is **The Order of the Inverted Triangle**. Contributors may informally call themselves **Monks of Reverse**: researchers who descend from visible behavior to bytes, structure, ownership, and recovered source.
+**The Sect of Neuroslop / Секта Нейрошлаку** is the DMC Rengine community: reverse engineers, modders, programmers, artists, testers, researchers, tool builders, and supporters gathered around the project.
 
-**The Sect of Neuroslop / Секта Нейрошлаку** is the satirical AI-assisted experimentation wing. Generated output is not evidence until it survives triage, testing, correction, and review.
+**The Monks of Binary Code / Монахи Бінарного Коду** are the creators and evidence-backed core contributors who build, maintain, test, document, and reconstruct DMC Rengine systems. The title is recognition of accepted work, not a permission level or social rank.
 
-The Order and Sect are creative brand layers, not real religions, cults, or secret organizations.
+**The Order of the Inverted Triangle** is a lore-facing alias for the core DMC Rengine team. It is not the whole community. Its development home is the **Monastery of Binary Code**.
+
+The shared engineering journey is **The Long Descent**: moving from visible behavior through resources, structures, ownership, functions, and recovered source toward **The Return**—behavior-tested source entering a controlled build.
+
+All Sect, Monk, Order, Monastery, ritual, chamber, and canon language is fictional public branding. It does not replace technical identities, evidence states, repository permissions, legal language, or professional security controls.
 
 - [DMC Rengine Lore](docs/brand/lore.md)
 - [Sect of Neuroslop](docs/brand/sect-of-neuroslop.md)
