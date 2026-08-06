@@ -77,6 +77,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         binary_document
         binary_fields
         binary_manifest
+        binary_analysis
         hits
         hits_writer
         hits_spatial_compare

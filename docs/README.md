@@ -45,6 +45,7 @@
 ### Binary Inspector
 
 - [Binary document model](binary/document-model.md)
+- [Web-to-C++20 cross-port plan](binary/web-crossport.md)
 
 ## History and Canon migration
 
@@ -76,7 +77,7 @@
 - **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
 - **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
-- **Binary Inspector — The Reliquary:** regions, fields, ownership, conflicts, unknown coverage, and annotations.
+- **Binary Inspector — The Reliquary:** regions, fields, ownership, range selection, conflicts, unknown coverage, annotations, byte diff, and entropy analysis.
 - **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
 - **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
