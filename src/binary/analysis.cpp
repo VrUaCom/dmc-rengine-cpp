@@ -44,6 +44,11 @@ ByteDiffResult aligned_byte_diff(
     ByteDiffResult result{
         .left_size = static_cast<std::uint64_t>(left.size()),
         .right_size = static_cast<std::uint64_t>(right.size()),
+        .equal_bytes = 0U,
+        .modified_bytes = 0U,
+        .inserted_bytes = 0U,
+        .removed_bytes = 0U,
+        .spans = {},
     };
 
     const auto shared_size = std::min(left.size(), right.size());
