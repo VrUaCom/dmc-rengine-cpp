@@ -16,7 +16,7 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - compiler-level `/UNDEBUG` / `-UNDEBUG` test invariant;
 - SHA-256 implementation and known-vector tests;
 - bounds-checked binary reader;
-- expanded CTest integration stack, reaching 67 validated tests per platform for the Pass 32 promotion.
+- expanded CTest integration stack, reaching 68 validated tests per platform after Binary Inspector Cross-Port Wave 1.
 
 #### Evidence and Canon
 
@@ -48,11 +48,18 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - structural regions and kinds;
 - typed fields and parent-child structures;
 - ownership claims;
-- annotations and evidence links;
+- annotations and Evidence links;
 - owner, field, and annotation selection context;
+- selected-range overlap context across regions, fields, ownership, and annotations;
 - union coverage, unknown gaps, structural conflicts, and ownership conflicts;
 - deterministic metadata manifests;
-- format adapters including the canonical HITS model.
+- format adapters including the canonical HITS model;
+- deterministic offset-aligned byte diff with equal, modified, inserted, and removed spans;
+- byte-diff summary counters and stable left/right ranges;
+- Shannon entropy maps with configurable windows and step size;
+- entropy-window zero ratio, unique-byte count, and visualization bands;
+- explicit heuristic boundaries for entropy and non-resynchronizing diff behavior;
+- web-to-C++20 Binary Inspector capability parity matrix and staged cross-port roadmap.
 
 #### EXE and patching
 
@@ -151,7 +158,8 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - public brand Canon defining the Sect of Neuroslop as the DMC Rengine community, the Monks of Binary Code as creators and recognized core contributors, and the Order of the Inverted Triangle as the core Team alias;
 - public Long Descent, Monastery, chamber, ritual, campaign, and evidence-presentation vocabulary;
 - GitHub implementation truth separated from newer Drive research truth;
-- current documentation reconciled to `main` after merged PR #42.
+- Binary Inspector Web → C++20 cross-port rules, parity tracking, and Wave 1–4 plan;
+- current status and machine-readable state reconciled after PR #47.
 
 ### Fixed
 
@@ -160,13 +168,17 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - rejected an unreliable forced-include assertion workaround and standardized `/UNDEBUG` / `-UNDEBUG` for test targets;
 - removed stale status claims that strict Evidence import, Binary Inspector fields, guarded copy execution, source integration, HITS runtime/writer work, and PC-save Pass 31/32 were still planned;
 - documented that `HITS$` and `0x18060001` as a universal record marker are rejected historical assumptions;
-- removed the obsolete public-lore model that treated the Sect as an AI-only inner wing and used `Monks of Reverse` as the contributor identity.
+- removed the obsolete public-lore model that treated the Sect as an AI-only inner wing and used `Monks of Reverse` as the contributor identity;
+- removed the new Binary Inspector aggregate-initialization warning by fully initializing `ByteDiffResult`;
+- corrected status documentation that still described Binary Inspector Diff and entropy analysis as unimplemented after Wave 1.
 
 ### Research boundaries
 
 - production PAC/PNST/NBZ/AFS source expansion remains incomplete;
 - the first game-backed `st001` StageBundle remains open;
 - HITS Capcom offline-builder equivalence is not confirmed;
+- Binary Inspector diff is currently offset-aligned and not structure-aware or resynchronizing;
+- Binary Inspector Analysis Cache, generic diagnostics, unknown-region analysis, templates, EXE bridges, and native UI remain open;
 - Wide Pass 33 remains research-ready and product-promotion-pending;
 - full DMC3 decompilation and a working rebuilt executable are not complete.
 

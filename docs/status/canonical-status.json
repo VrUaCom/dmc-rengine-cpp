@@ -1,17 +1,22 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-08-05",
+  "snapshot_date": "2026-08-06",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "1f77e2076a79216e015a3ddc83b1d1ed89c121c8",
+  "snapshot_main_sha": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
   "generation": "evidence-backed-cpp-platform",
-  "overall_status": "foundation-green-integrated-domain-stack-active-production-game-backed-and-recompilation-gates-open",
+  "overall_status": "foundation-green-integrated-domain-stack-active-binary-inspector-crossport-active-production-game-backed-and-recompilation-gates-open",
   "truth_layers": {
     "github_main": "reviewed-implemented-product-truth",
     "google_drive": "newest-reverse-research-and-recovered-source-input",
     "drive_latest_pass": 33,
     "github_latest_promoted_pass": 32
+  },
+  "product_relationship": {
+    "installed_web_generation": "independent-product-and-capability-reference",
+    "open_cpp20_generation": "independent-open-source-project",
+    "crossport_policy": "port-capabilities-and-domain-contracts-not-framework-code-or-identical-architecture"
   },
   "constitutional_rules": [
     "gdspaces-is-the-only-resource-api",
@@ -21,18 +26,20 @@
     "working-copy-before-write",
     "guarded-exe-patches-only",
     "item-layer-does-not-patch-exe-directly",
+    "binary-inspector-does-not-write-original-files",
+    "heuristics-are-not-evidence-states",
     "recovered-source-is-not-original-source",
     "no-compatibility-claim-without-runtime-evidence"
   ],
   "latest_reviewed_promotion": {
-    "pull_request": 42,
-    "title": "Promote DMC3 PC save Wide Pass 32 record-envelope ABI",
-    "merged_at": "2026-08-04T22:57:16Z",
-    "merge_commit": "1f77e2076a79216e015a3ddc83b1d1ed89c121c8",
-    "ubuntu_tests": 67,
-    "windows_tests": 67,
+    "pull_request": 47,
+    "title": "Binary Inspector cross-port Wave 1: diff, entropy, and range selection",
+    "merged_at": "2026-08-06T08:27:51Z",
+    "merge_commit": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
+    "ubuntu_tests": 68,
+    "windows_tests": 68,
     "ci_conclusion": "success",
-    "drive_receipt_readback": true
+    "drive_receipt_readback": false
   },
   "implemented": [
     "cpp20-cmake-core-library-and-cli",
@@ -71,8 +78,14 @@
     "binary-document-ownership",
     "binary-annotations-and-evidence-links",
     "binary-selection-owner-field-annotation-lookup",
+    "binary-selected-range-overlap-context",
     "binary-coverage-unknown-structural-and-ownership-conflicts",
     "binary-deterministic-manifest",
+    "binary-offset-aligned-byte-diff",
+    "binary-diff-equal-modified-inserted-removed-spans",
+    "binary-shannon-entropy-map",
+    "binary-entropy-zero-ratio-and-unique-byte-count",
+    "binary-web-to-cpp20-crossport-plan",
     "readonly-pe32-pe32plus-inspector",
     "checked-offset-rva-va-conversion",
     "known-executable-target-model",
@@ -118,6 +131,9 @@
     "artifact-hashing",
     "readonly-pe-inspection",
     "binary-inspector-fields-annotations-owner-lookup",
+    "binary-inspector-selected-range-context",
+    "binary-inspector-diff-domain-foundation",
+    "binary-inspector-entropy-domain-foundation",
     "working-copy-foundation",
     "guarded-patch-foundation",
     "copy-execution-and-verified-rollback",
@@ -145,8 +161,13 @@
     {
       "number": 13,
       "id": "real-hits-corpus-and-runtime-validation",
+      "state": "open"
+    },
+    {
+      "number": 48,
+      "id": "binary-inspector-crossport-wave2",
       "state": "open",
-      "note": "original issue body requires reconciliation because HITS$ assumptions were rejected"
+      "note": "Analysis Cache, generic diagnostics, unknown-region analysis, binary templates, and deterministic result export"
     }
   ],
   "active_blockers": [
@@ -160,6 +181,9 @@
     "no-working-recompiled-dmc3-executable",
     "no-production-output-file-and-container-export-pipeline",
     "no-public-signed-binary-release-pipeline",
+    "binary-inspector-analysis-cache-pending",
+    "binary-inspector-generic-diagnostics-pending",
+    "binary-inspector-native-interaction-ui-pending",
     "complete-desktop-ui-pending"
   ],
   "research_ready_product_promotion_pending": [
@@ -172,6 +196,10 @@
     "production-pac-pnst-nbz-afs-read-write-suite",
     "game-backed-st001-stage-workspace",
     "hits-original-builder-equivalence",
+    "binary-inspector-structure-aware-resynchronizing-diff",
+    "binary-inspector-persistent-analysis-cache",
+    "binary-inspector-generic-unknown-region-analyzer",
+    "binary-inspector-exe-address-and-patch-bridges",
     "complete-binary-inspector-desktop-ui",
     "complete-stage-ops-desktop-ui",
     "complete-modviz-scene-and-menu-ui",
@@ -193,6 +221,19 @@
       "first-behavior-tested-recovered-subsystem"
     ]
   },
+  "parallel_milestones": [
+    {
+      "id": "binary-inspector-crossport-wave2",
+      "issue": 48,
+      "goals": [
+        "artifact-identity-keyed-analysis-cache",
+        "generic-offset-order-overlap-alignment-stride-diagnostics",
+        "unknown-region-zero-repetition-entropy-analysis",
+        "versioned-binary-template-schema",
+        "deterministic-analysis-result-json"
+      ]
+    }
+  ],
   "critical_path": [
     "production-readonly-container-subset",
     "game-backed-st001-stage-bundle",

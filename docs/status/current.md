@@ -1,29 +1,30 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-05  
+**Snapshot date:** 2026-08-06  
 **Repository generation:** evidence-backed C++ platform  
 **Version:** 0.2.0  
-**Snapshot base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`  
-**Overall status:** cross-platform foundation green; integrated domain stack active; production archive sources, game-backed stage assembly, runtime validation, and recompilation remain open
+**Snapshot base:** `main` at `f54703bc8c2b19da01818b3b39505cb96919c1ac`  
+**Overall status:** cross-platform foundation green; integrated domain stack active; Binary Inspector cross-port active; production archive sources, game-backed stage assembly, runtime validation, and recompilation remain open
 
 ## Executive result
 
-DMC Rengine C++ is no longer a placeholder scaffold. The repository contains a functioning C++20 platform with a core library, CLI, cross-platform tests, Evidence Packets, GDSpaces contracts, Binary Inspector models, PE/EXE inspection, stage and item integration, guarded modification workflows, source-integration provenance, a substantial HITS vertical slice, and the reviewed DMC3 PC-save Pass 31/32 ABI.
+DMC Rengine C++ is no longer a placeholder scaffold. The repository contains a functioning C++20 platform with a core library, CLI, cross-platform tests, Evidence Packets, GDSpaces contracts, Binary Inspector analysis models, PE/EXE inspection, stage and item integration, guarded modification workflows, source-integration provenance, a substantial HITS vertical slice, and the reviewed DMC3 PC-save Pass 31/32 ABI.
 
 GitHub `main` is the implementation truth for reviewed code. Google Drive remains the research truth for newer reverse-engineering results and recovered-source snapshots. Wide Pass 33 exists in Drive research but has not yet been promoted into the reviewed product tree.
 
+The installed web generation and the open C++20 project remain independent products. Useful Binary Inspector capabilities are cross-ported at the behavior and domain-contract level; React state, browser file access, and web-specific architecture are not copied into the C++ core.
+
 ## Validation baseline
 
-The latest reviewed promotion is PR #42, merged on 2026-08-04.
+The latest reviewed capability promotion is PR #47, merged on 2026-08-06.
 
 Its recorded gates passed on both platforms:
 
-- Ubuntu — 67/67 tests;
-- Windows — 67/67 tests;
-- strict Pass 32 Evidence Packet validation;
-- reverse-authority manifest validation;
-- final immutable review CI;
-- Drive implementation-receipt readback.
+- Ubuntu — 68/68 tests;
+- Windows — 68/68 tests;
+- Binary Inspector diff, entropy, and range-selection regression coverage;
+- existing Evidence Packet and reverse-authority validation;
+- existing stage, item, HITS, save, source-integration, custom-build, and rollback tests.
 
 All future changes must preserve Windows and Ubuntu builds and the rule that no tool creates a second resource resolver outside GDSpaces.
 
@@ -71,13 +72,33 @@ The generic container foundation is implemented. Production PAC/PNST/NBZ/AFS sou
 - structural regions and region kinds;
 - typed fields and parent-child structures;
 - ownership claims;
-- annotations and evidence links;
-- selection lookup for field, owner, and annotation context;
-- union coverage, unknown gaps, structural conflicts, and ownership conflicts;
+- annotations and Evidence links;
+- single-offset selection context;
+- selected-range overlap queries for regions, fields, owners, and annotations;
+- union coverage and unknown structural gaps;
+- structural and ownership conflict reports;
 - deterministic metadata manifest export;
-- adapters for integrated formats including HITS.
+- adapters for integrated formats including HITS;
+- deterministic offset-aligned byte diff with equal, modified, inserted, and removed spans;
+- byte-diff summary counters and stable ranges;
+- Shannon entropy map with configurable window and step size;
+- entropy-window zero ratio and unique-byte count;
+- zero-fill, low, medium, and high visualization bands;
+- explicit safety rule that entropy bands are heuristics, not Evidence states or format proof;
+- web-to-C++20 capability parity matrix and staged cross-port plan.
 
-The desktop hex/visual UI, entropy UI, and full diff interaction remain future product work.
+The current diff deliberately does not guess resynchronization after a middle insertion. A future structure-aware or resynchronizing mode must be exposed separately as heuristic behavior.
+
+Still pending:
+
+- persistent Analysis Cache;
+- generic duplicate-offset, stride, order, alignment, and range diagnostics;
+- unknown-region feature analysis;
+- reusable binary template schema;
+- deterministic analysis-result JSON export;
+- EXE file-offset/RVA/VA bridge panels;
+- guarded-patch safety bridge;
+- production native hex/structure/diff/entropy interaction UI.
 
 ### PE, EXE, and address evidence
 
@@ -202,21 +223,25 @@ dmc-rengine inspect-workspace <path> [--stage] [--menu]
 dmc-rengine compare-hits-spatial <original> <candidate> [report.json]
 ```
 
+Diff and entropy are currently native library APIs. CLI report/export commands are planned for a later cross-port wave after deterministic analysis-result serialization is defined.
+
 Local files are acquired through GDSpaces-backed sources rather than tool-specific filesystem loaders.
 
 ## Active GitHub work
 
 - issue #3 — advance the generic container foundation into a production read-only PAC/PNST/NBZ/AFS subset;
 - issue #4 — complete the first game-backed `st001` StageBundle;
-- issue #13 — reconcile into real HITS corpus and runtime validation; its obsolete `HITS$` assumptions must not be reused.
-
-There are no open pull requests at this snapshot.
+- issue #13 — real HITS corpus and runtime validation;
+- issue #48 — Binary Inspector Cross-Port Wave 2: Analysis Cache, generic diagnostics, unknown-region analysis, templates, and deterministic result export.
 
 ## Explicitly not complete
 
 - production PAC/PNST/NBZ/AFS read/write suite;
 - game-backed `st001` end-to-end assembly;
 - proof that the HITS writer matches Capcom's offline builder;
+- complete Binary Inspector desktop interaction UI;
+- structure-aware or resynchronizing binary diff;
+- persistent Binary Inspector Analysis Cache;
 - complete Stage Ops or ModViz desktop UI;
 - complete production Item Editor UI/export flow;
 - bulk promotion of the recovered-source skeleton;
@@ -235,8 +260,15 @@ production read-only container subset
   → controlled recompilation milestones
 ```
 
-Parallel HITS work should prioritize real corpus comparison and controlled game-runtime validation rather than stronger compatibility claims.
+Binary Inspector proceeds in parallel through capability waves:
+
+```text
+Wave 1: diff + entropy + range selection [implemented]
+  → Wave 2: cache + diagnostics + unknown analysis + templates
+  → Wave 3: EXE address and guarded-patch bridges
+  → Wave 4: native desktop interaction layer
+```
 
 ## Milestone gate
 
-The 0.2 C++ foundation and integrated domain stack are green. The next milestone should preserve the existing natural architecture, remove documentation drift, and complete demonstrable game-backed vertical slices without bulk-importing unreviewed recovered source.
+The 0.2 C++ foundation and integrated domain stack are green. Binary Inspector Wave 1 is complete at the native domain level. The next Binary Inspector milestone is Wave 2, while the project-wide critical path remains production resource access, a game-backed stage slice, runtime validation, and behavior-tested recovered subsystems.
