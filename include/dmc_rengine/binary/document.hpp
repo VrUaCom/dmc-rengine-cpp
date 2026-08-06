@@ -159,6 +159,8 @@ public:
 
     [[nodiscard]] std::vector<const Field*> child_fields(
         std::string_view parent_id) const;
+    [[nodiscard]] std::vector<const Region*> regions_at(
+        std::uint64_t offset) const;
     [[nodiscard]] std::vector<const Field*> fields_at(
         std::uint64_t offset) const;
     [[nodiscard]] std::vector<const OwnershipClaim*> owners_at(
@@ -166,6 +168,16 @@ public:
     [[nodiscard]] std::vector<const Annotation*> annotations_at(
         std::uint64_t offset) const;
     [[nodiscard]] SelectionContext selection_at(std::uint64_t offset) const;
+
+    [[nodiscard]] std::vector<const Region*> regions_overlapping(
+        ByteRange range) const;
+    [[nodiscard]] std::vector<const Field*> fields_overlapping(
+        ByteRange range) const;
+    [[nodiscard]] std::vector<const OwnershipClaim*> owners_overlapping(
+        ByteRange range) const;
+    [[nodiscard]] std::vector<const Annotation*> annotations_overlapping(
+        ByteRange range) const;
+    [[nodiscard]] SelectionContext selection_for_range(ByteRange range) const;
 
     [[nodiscard]] std::uint64_t coverage_bytes() const;
     [[nodiscard]] std::vector<ByteRange> unknown_ranges() const;
