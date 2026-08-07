@@ -112,6 +112,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         custom_build_manifest
         custom_build_reopen
         pc_save_file
+        mission_result_policy
         working_copy
         classifier
         known_target
