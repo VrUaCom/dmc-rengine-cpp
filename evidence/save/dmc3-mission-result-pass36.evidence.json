@@ -52,7 +52,7 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "va": 5371137680,
+          "va": 5371133584,
           "symbol": "rank_label_function",
           "note": "VA 0x14024FE90; raw XREF/CFG evidence from the canonical executable is required before semantic binding."
         },
