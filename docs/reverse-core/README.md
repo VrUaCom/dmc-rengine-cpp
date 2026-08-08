@@ -3,7 +3,7 @@
 **Status:** canonical architecture direction / implementation pending  
 **Snapshot date:** 2026-08-08
 
-Reverse Core is the reusable reverse-engineering subsystem that DMC Rengine will exercise first. It is not a replacement for DMC Rengine, GDSpaces, Binary Inspector, EXE Editor, Stage Ops, ModViz, SDD, or the MCP coordination layer. It formalizes the shared lifecycle that turns binary observations into evidence-backed recovered source.
+Reverse Core is the reusable reverse-engineering subsystem that DMC Rengine will exercise first. It is not a replacement for DMC Rengine, the recovered game source tree, GDSpaces, Binary Inspector, EXE Editor, Stage Ops, ModViz, SDD, or the MCP coordination layer. It formalizes the shared lifecycle that turns binary observations into evidence-backed recovered source.
 
 ## Platform relationship
 
@@ -15,10 +15,31 @@ Triangle Forge
   -> Reverse Core
        -> binary/function/type/evidence/reconstruction lifecycle
   -> DMC Rengine workspace
-       -> DMC-specific resources, formats, runtime findings, editors, and validation
+       -> Recovered Game Source Tree
+       -> GDSpaces
+       -> EXE Editor
+       -> Binary Inspector
+       -> Stage Ops
+       -> ModViz
+       -> Item Editor
+       -> Build & Test Lab
 ```
 
 DMC Rengine remains an independent project/workspace. Reverse Core must stay game-agnostic: it may know what a `BinaryArtifact`, `Function`, `DataObject`, `Type`, `EvidenceRecord`, `Claim`, `Experiment`, `Reconstruction`, or `ValidationReceipt` is, but it must not contain DMC-specific concepts such as Red Orbs, stage IDs, HITS semantics, or DMC3 item rules.
+
+## Recovered game code is not tool-owned
+
+The reconstructed source of DMC3 is a separate **Recovered Game Source Tree**. Functions, globals, types, classes, tables, and source units represent the game itself and are not owned by Reverse Core or by whichever editor currently displays them.
+
+Three relationships must remain separate:
+
+1. game source identity;
+2. semantic membership in a reconstructed game subsystem;
+3. tool relationships used to inspect, edit, validate, or consume the finding.
+
+A resource-loader function may belong semantically to the game's resource runtime while being viewed by EXE Editor, structurally inspected by Binary Inspector, represented by Reverse Core records, and used to guide GDSpaces implementation. None of those tools becomes the owner of the game function.
+
+See [Recovered Game Source Tree](game-source-tree.md).
 
 ## Canonical reverse lifecycle
 
@@ -30,7 +51,7 @@ Binary artifact
   -> type and ABI hypotheses
   -> evidence and experiments
   -> reviewed reconstruction
-  -> recovered C++ source unit
+  -> recovered C++ source unit in the game source tree
   -> isolated compilation
   -> behavioral comparison
   -> validation receipt
@@ -45,16 +66,16 @@ Reverse Core must provide stable identities and links for at least:
 
 - `BinaryArtifact` — immutable artifact identity including SHA-256, size, profile/build metadata, and provenance;
 - `AddressRange` — file offset/RVA/VA-aware range scoped to one artifact identity;
-- `Function` — discovered or recovered function with entry identity, ranges, calls, data references, and confidence;
-- `DataObject` — global/static/table/string/vtable/other data identity and ownership;
+- `Function` — discovered or recovered game function with entry identity, ranges, calls, data references, and confidence;
+- `DataObject` — game global/static/table/string/vtable/other data identity and relationships;
 - `RecoveredType` — struct/class/enum/function signature/ABI model with evidence links;
 - `EvidenceRecord` — claim support tied to exact artifact/range/runtime/test provenance;
 - `Hypothesis` — explicit unresolved statement with confidence and competing alternatives;
 - `Experiment` — reproducible static or runtime test intended to discriminate hypotheses;
-- `TaskClaim` — temporary ownership of a function/range/type/subsystem by an agent or contributor;
+- `TaskClaim` — temporary coordination ownership of work on a function/range/type/subsystem reconstruction by an agent or contributor;
 - `Reconstruction` — source-level representation derived from evidence, including status and provenance;
 - `ValidationReceipt` — compile/test/runtime/binary-comparison result for a reconstruction;
-- `Subsystem` — logical grouping of functions, data, types, resources, tests, and reconstructed units.
+- `Subsystem` — semantic grouping in the reconstructed target program, not ownership by a DMC Rengine tool.
 
 Every object must use stable IDs. Display names are never canonical identity.
 
@@ -72,7 +93,7 @@ An AI agent must not promote a finding to `confirmed` merely because multiple ge
 
 ## Ownership and parallel-agent protocol
 
-Before mutating a recovered source unit or claiming authority over an unresolved binary region, an agent must create or acquire a `TaskClaim`.
+Before mutating a canonical reconstruction or claiming authority over an unresolved binary region, an agent must create or acquire a `TaskClaim`.
 
 Minimum claim fields:
 
@@ -84,44 +105,51 @@ Minimum claim fields:
 - status (`active`, `released`, `superseded`, `blocked`);
 - dependencies and conflicting claims.
 
-Claims are coordination metadata, not evidence. Two agents may independently analyze the same bytes when explicitly requested, but they must not race to mutate the same canonical reconstruction without a negotiated ownership rule.
+Claims are coordination metadata, not evidence and not semantic ownership of game code. Two agents may independently analyze the same bytes when explicitly requested, but they must not race to mutate the same canonical reconstruction without a negotiated ownership rule. Releasing or transferring a claim never changes the underlying game function identity.
 
 ## Recovered source tree contract
 
-Recovered source must be exportable as a normal C++ project that can be opened in VS Code or another IDE and built without requiring the UI application as the compiler.
+Recovered game source must be exportable as a normal C++ project that can be opened in VS Code or another IDE and built without requiring the UI application as the compiler.
 
-Proposed logical structure:
+The recovered source organization follows the reconstructed architecture of the game, not tool names. Conceptually:
 
 ```text
-recovered/
-  artifacts/
-  subsystems/
-    <subsystem-id>/
-      include/
-      src/
-      evidence/
-      tests/
-      reconstruction.json
-  types/
-  generated/
+recovered-game/
+  bootstrap/
+  runtime/
+    resources/
+    stage/
+    renderer/
+    collision/
+    ui/
+    audio/
+    input/
+  gameplay/
+  save/
+  shared/
+  unknown/
   validation/
 ```
 
-The exact filesystem layout may evolve, but each source unit must preserve provenance to binary identity, address/range evidence, source reconstruction status, ABI assumptions, and validation receipts.
+The exact filesystem layout and subsystem names remain evidence-driven. Unknown functions must not be forced into `gdspaces`, `modviz`, `binary-inspector`, or other tool-named folders.
+
+Each source unit must preserve provenance to binary identity, address/range evidence, source reconstruction status, ABI assumptions, and validation receipts.
+
+See [Recovered Game Source Tree](game-source-tree.md).
 
 ## Integration boundaries
 
 ### Binary Inspector
 
-Binary Inspector supplies structural ranges, fields, ownership, annotations, byte diff, entropy, diagnostics, and future templates. Reverse Core adds durable reverse objects and cross-analysis provenance. Binary Inspector must not become a second project database.
+Binary Inspector supplies structural ranges, fields, ownership, annotations, byte diff, entropy, diagnostics, and future templates. Reverse Core adds durable reverse objects and cross-analysis provenance. Binary Inspector must not become a second project database or semantic owner of game code.
 
 ### EXE Editor
 
-EXE Editor is the primary DMC Rengine UI/domain consumer for executable source recovery. A recovered function shown in EXE Editor must map to the same Reverse Core `Function`, `EvidenceRecord`, `RecoveredType`, and `Reconstruction` identities used by automated agents and validation tools.
+EXE Editor is the primary DMC Rengine UI/domain consumer for executable source recovery. A recovered function shown in EXE Editor must map to the same Reverse Core `Function`, `EvidenceRecord`, `RecoveredType`, and `Reconstruction` identities used by automated agents and validation tools. The function remains part of the recovered game source tree, not EXE Editor source.
 
 ### GDSpaces
 
-GDSpaces remains the only game-resource authority. Reverse Core may link evidence to `ResourceId`, but it must not resolve game paths or expand containers independently.
+GDSpaces remains the only game-resource authority. Reverse Core may link evidence to `ResourceId`, but it must not resolve game paths or expand containers independently. Recovered game resource-runtime functions remain game code; GDSpaces may separately implement safe product behavior based on confirmed findings.
 
 ### SDD, Kanban, MemPalace, Obsidian, and MCP
 
@@ -146,7 +174,7 @@ The first proof must be one isolated real DMC3 executable subsystem that complet
 canonical dmc3.exe bytes
   -> Reverse Core identities
   -> evidence-backed recovered types/functions
-  -> reviewed C++ source unit
+  -> reviewed C++ source unit in Recovered Game Source Tree
   -> isolated build
   -> behavioral comparison against canonical executable
   -> ValidationReceipt
@@ -160,6 +188,8 @@ This is the gate before scaling to hundreds or thousands of functions.
 - full automated DMC3 decompilation;
 - replacing Ghidra/IDA/Binary Ninja or other external analysis engines;
 - game-specific resource resolution;
+- tool ownership of recovered game functions;
+- organizing recovered game code by editor names;
 - automatic confidence promotion without evidence;
 - direct original-file modification;
 - a monolithic all-in-one Triangle Forge application;
