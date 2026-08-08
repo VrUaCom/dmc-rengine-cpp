@@ -5,11 +5,34 @@
 
 ## Purpose
 
-GDSpaces is not merely a virtual filesystem or archive browser. It is the DMC Rengine authority for reconstructing how the game discovers, identifies, resolves, loads, expands, classifies, links, owns, caches, instantiates, reloads, and unloads resources.
+GDSpaces is not merely a virtual filesystem or archive browser. It is the DMC Rengine **product authority for resource access and resource behavior**: discovery, identity, resolution, loading, expansion, classification, dependency relationships, runtime metadata, and working-copy integration.
 
-The current C++ implementation is intentionally incomplete. Completing GDSpaces requires reverse engineering the executable-side resource runtime, not inventing replacement behavior from file formats alone.
+This does **not** mean the game's resource-runtime functions belong to GDSpaces. Recovered executable functions, data, types, factories, caches, and lifetime code remain part of the **Recovered Game Source Tree** under the reconstructed game architecture.
 
-Reverse Core may store evidence about resource-runtime functions and recovered source, but it must not create a second resource layer. Confirmed resource behavior is implemented behind GDSpaces contracts.
+Completing GDSpaces requires reverse engineering the executable-side resource runtime, then implementing or exposing the confirmed behavior behind GDSpaces contracts. Reverse Core stores generic evidence/reconstruction records; the recovered game source tree stores the reconstructed game code; GDSpaces consumes those findings as product infrastructure.
+
+See [Recovered Game Source Tree](../reverse-core/game-source-tree.md).
+
+## Separation of responsibilities
+
+```text
+DMC3 executable resource-runtime code
+        |
+        v
+Recovered Game Source Tree
+  resource-runtime functions / data / types
+        |
+        v
+Reverse Core evidence + reconstruction identities
+        |
+        v
+GDSpaces product implementation and resource API
+        |
+        v
+Binary Inspector / Stage Ops / ModViz / Item Editor / other consumers
+```
+
+A game loader function may inform GDSpaces behavior without becoming a `GDSpaces` function. Tool linkage and game-subsystem membership are separate relationships.
 
 ## Reconstruction target
 
@@ -48,6 +71,8 @@ Determine from executable evidence:
 - profile differences between DMC1/DMC2/DMC3/launcher where relevant;
 - failure and fallback behavior when expected sources are missing.
 
+Recovered functions discovered here remain game bootstrap/resource-runtime source, even when GDSpaces later reproduces the behavior.
+
 ### 2. Request and lookup ABI
 
 Recover the request path from a gameplay/system caller to the resource runtime:
@@ -85,7 +110,7 @@ For each layer recover:
 - malformed-data behavior;
 - ownership of buffers returned to upper layers.
 
-Container formats remain implementation details inside GDSpaces rather than top-level editors.
+Container formats remain implementation details inside GDSpaces rather than top-level editors. The original game parsing/loading functions remain recovered game code.
 
 ### 4. Byte acquisition and transformation
 
@@ -181,9 +206,11 @@ Each recovered runtime behavior must link to:
 - runtime observation or controlled experiment when needed;
 - confidence state;
 - correction/supersession history;
-- reconstructed source revision when promoted.
+- reconstructed source revision when promoted;
+- semantic game-subsystem membership where known;
+- tool relationships separately from subsystem membership.
 
-Reverse Core owns these generic evidence/reconstruction records. GDSpaces owns the resulting game-resource behavior and public resource API.
+Reverse Core owns the generic evidence/reconstruction records. The Recovered Game Source Tree holds the reconstructed game source. GDSpaces owns the resulting DMC Rengine resource API and product behavior.
 
 ## Product mapping
 
@@ -191,7 +218,9 @@ Reverse Core owns these generic evidence/reconstruction records. GDSpaces owns t
 Recovered executable resource behavior
         |
         v
-Reverse Core evidence + reconstruction records
+Recovered Game Source Tree
+        |
+        +--> Reverse Core evidence + reconstruction records
         |
         v
 GDSpaces implementation
@@ -227,13 +256,13 @@ Request -> source -> bytes -> transform -> typed resource is understood and beha
 
 ### Level D — lifetime reconstruction
 
-Cache, reuse, ownership, dependency, reload, and unload behavior are recovered for the subsystem.
+Cache, reuse, ownership, dependency, reload, and unload behavior are recovered for the game resource-runtime subsystem.
 
 ### Level E — validated runtime model
 
 Representative game lifecycle tests agree with the reconstructed model and produce ValidationReceipts.
 
-A subsystem is not called "fully reversed" until the relevant Level E gates are satisfied or unresolved behavior is explicitly documented.
+A resource-runtime subsystem is not called "fully reversed" until the relevant Level E gates are satisfied or unresolved behavior is explicitly documented.
 
 ## First practical slice
 
@@ -241,6 +270,7 @@ Use the existing `st001` path as the first integrated proof:
 
 ```text
 canonical EXE stage request/table
+  -> recovered game resource-runtime call path
   -> evidenced logical resource identities
   -> production NBZ/AFS/PAC/PNST read path
   -> nested typed resources
@@ -251,10 +281,11 @@ canonical EXE stage request/table
   -> deterministic validation receipt
 ```
 
-This closes both file-level and executable-runtime understanding without creating a parallel resource subsystem.
+This closes both file-level and executable-runtime understanding without creating a parallel resource subsystem or reassigning game code to a tool.
 
 ## Non-goals
 
+- treating recovered game loader functions as GDSpaces-owned code;
 - inventing a new resource runtime unrelated to observed game behavior;
 - moving archive/resource resolution into Reverse Core;
 - tool-local archive readers or path resolvers;
