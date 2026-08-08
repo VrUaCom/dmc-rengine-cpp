@@ -98,6 +98,7 @@
   },
   "reverse_core": {
     "status": "canonical-architecture-accepted-implementation-pending",
+    "tracking_issue": 51,
     "objects_v0_1": [
       "BinaryArtifact",
       "AddressRange",
@@ -123,6 +124,7 @@
   },
   "gdspaces_next_milestone": {
     "id": "resource-identity-v1-and-production-read-path",
+    "tracking_issues": [3, 4],
     "goals": [
       "stable-logical-resource-id-across-physical-representations",
       "production-readonly-pac-pnst-subset",
@@ -146,6 +148,7 @@
   },
   "stage_next_milestone": {
     "id": "stage-semantic-graph-v1",
+    "issue": 53,
     "graph": [
       "stage",
       "room",
@@ -162,6 +165,7 @@
   },
   "modviz_next_milestone": {
     "id": "red-orb-menu-editor-vertical-slice",
+    "issue": 52,
     "goals": [
       "gdspaces-backed-hud-resource",
       "hierarchy-mesh-digit-uv-editing",
@@ -175,7 +179,10 @@
     {"number": 3, "id": "production-readonly-container-source-subset", "state": "open"},
     {"number": 4, "id": "game-backed-st001-stage-bundle", "state": "open"},
     {"number": 13, "id": "real-hits-corpus-and-runtime-validation", "state": "open"},
-    {"number": 48, "id": "binary-inspector-crossport-wave2", "state": "open"}
+    {"number": 48, "id": "binary-inspector-crossport-wave2", "state": "open"},
+    {"number": 51, "id": "reverse-core-v0-1-and-first-validated-subsystem", "state": "open"},
+    {"number": 52, "id": "modviz-red-orb-menu-editor-vertical-slice", "state": "open"},
+    {"number": 53, "id": "stage-semantic-graph-v1", "state": "open"}
   ],
   "active_blockers": [
     "production-gdspaces-container-source-expansion-incomplete",
