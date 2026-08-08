@@ -142,7 +142,7 @@
   },
   "gdspaces_next_milestone": {
     "id": "resource-runtime-reconstruction-and-resource-identity-v1",
-    "tracking_issues": [3, 4],
+    "tracking_issues": [3, 4, 55],
     "goals": [
       "stable-logical-resource-id-across-physical-representations",
       "production-readonly-pac-pnst-subset",
@@ -206,7 +206,8 @@
     {"number": 48, "id": "binary-inspector-crossport-wave2", "state": "open"},
     {"number": 51, "id": "reverse-core-v0-1-and-first-validated-subsystem", "state": "open"},
     {"number": 52, "id": "modviz-red-orb-menu-editor-vertical-slice", "state": "open"},
-    {"number": 53, "id": "stage-semantic-graph-v1", "state": "open"}
+    {"number": 53, "id": "stage-semantic-graph-v1", "state": "open"},
+    {"number": 55, "id": "gdspaces-full-game-resource-runtime-reconstruction", "state": "open"}
   ],
   "active_blockers": [
     "production-gdspaces-container-source-expansion-incomplete",
