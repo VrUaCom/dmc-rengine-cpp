@@ -136,9 +136,9 @@ DMC-specific concepts must remain outside Reverse Core.
 
 **Status:** confirmed architecture direction / implementation pending
 
-Parallel agents or contributors may independently inspect the same evidence when intentionally requested, but canonical mutation of the same function/range/type/subsystem/source unit requires a `TaskClaim`/ownership protocol.
+Parallel agents or contributors may independently inspect the same evidence when intentionally requested, but canonical mutation of the same function/range/type/subsystem reconstruction requires a `TaskClaim`/ownership protocol.
 
-Claims coordinate work and prevent races. They do not constitute Evidence and do not raise confidence.
+Claims coordinate work and prevent races. They do not constitute Evidence, do not raise confidence, and do not grant semantic ownership of game code.
 
 ## CD-018 — Recovered source must preserve binary provenance and remain exportable as ordinary C++
 
@@ -173,3 +173,22 @@ All nodes retain GDSpaces identity; inferred edges retain confidence/evidence; u
 **Status:** confirmed milestone rule
 
 A logical resource must not receive unrelated canonical identities merely because it is seen through filesystem, NBZ, AFS, PAC, PNST, extracted working-copy, or EXE-backed references. Path and display identity remain separate from canonical `ResourceId`.
+
+## CD-022 — Recovered game source is independent of tool ownership
+
+**Status:** confirmed, active architecture rule
+
+Recovered DMC3 functions, data, types, classes, tables, and source units belong to the **Recovered Game Source Tree**, which represents the reconstructed architecture of the game itself.
+
+The following concepts are separate and must never be collapsed:
+
+1. game source identity;
+2. semantic membership in a reconstructed game subsystem;
+3. tool relationships used to inspect, edit, validate, or consume the finding;
+4. temporary `TaskClaim` coordination ownership.
+
+A resource-loader function may belong semantically to the game's resource runtime while being displayed in EXE Editor, structurally inspected by Binary Inspector, represented by Reverse Core records, used to inform GDSpaces behavior, and validated by Build & Test Lab. This remains one recovered game function.
+
+Recovered source folders are organized according to evidence-driven game architecture, not editor/tool names. `TaskClaim` transfer or release does not change the identity or semantic ownership of the underlying game function.
+
+The future recompilation target is assembled from the Recovered Game Source Tree plus controlled replacement/rebinding infrastructure, not by treating DMC Rengine tool implementation folders as recovered game source.
