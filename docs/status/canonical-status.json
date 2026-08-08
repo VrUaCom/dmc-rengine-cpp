@@ -1,190 +1,198 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-08-06",
+  "snapshot_date": "2026-08-08",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
+  "snapshot_main_sha": "6eb6a07975753e2bbe9414893a76e13c946fa78e",
   "generation": "evidence-backed-cpp-platform",
-  "overall_status": "foundation-green-integrated-domain-stack-active-binary-inspector-crossport-active-production-game-backed-and-recompilation-gates-open",
+  "overall_phase": "evidence-gated-reconstruction-and-architecture-consolidation",
+  "overall_status": "foundation-green-domain-stack-active-reverse-core-architecture-accepted-production-resource-game-backed-and-recompilation-gates-open",
+  "platform_relationship": {
+    "triangle_forge": "broader-platform-context",
+    "reverse_core": "reusable-game-agnostic-reverse-subsystem",
+    "dmc_rengine": "independent-dmc-domain-workspace-and-first-reverse-core-validation-target"
+  },
   "truth_layers": {
     "github_main": "reviewed-implemented-product-truth",
     "google_drive": "newest-reverse-research-and-recovered-source-input",
     "drive_latest_pass": 33,
     "github_latest_promoted_pass": 32
   },
-  "product_relationship": {
-    "installed_web_generation": "independent-product-and-capability-reference",
-    "open_cpp20_generation": "independent-open-source-project",
-    "crossport_policy": "port-capabilities-and-domain-contracts-not-framework-code-or-identical-architecture"
-  },
   "constitutional_rules": [
-    "gdspaces-is-the-only-resource-api",
+    "gdspaces-is-the-only-game-resource-api",
     "no-second-resolver",
     "evidence-before-canon",
     "no-proprietary-game-content",
     "working-copy-before-write",
     "guarded-exe-patches-only",
-    "item-layer-does-not-patch-exe-directly",
-    "binary-inspector-does-not-write-original-files",
-    "heuristics-are-not-evidence-states",
     "recovered-source-is-not-original-source",
-    "no-compatibility-claim-without-runtime-evidence"
+    "heuristics-and-agent-consensus-are-not-evidence",
+    "reverse-core-remains-game-agnostic",
+    "canonical-reconstruction-mutation-requires-ownership-coordination",
+    "no-compatibility-or-recompilation-claim-without-behavioral-evidence"
   ],
-  "latest_reviewed_promotion": {
-    "pull_request": 47,
-    "title": "Binary Inspector cross-port Wave 1: diff, entropy, and range selection",
-    "merged_at": "2026-08-06T08:27:51Z",
-    "merge_commit": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
-    "ubuntu_tests": 68,
-    "windows_tests": 68,
-    "ci_conclusion": "success",
-    "drive_receipt_readback": false
+  "reviewed_main": {
+    "latest_commit": "6eb6a07975753e2bbe9414893a76e13c946fa78e",
+    "latest_commit_title": "Reconcile Binary Inspector Wave 1 status and warning policy (#49)",
+    "latest_capability_promotion_pr": 47,
+    "latest_capability_promotion": "Binary Inspector cross-port Wave 1: diff, entropy, and range selection",
+    "wave1_ubuntu_tests": 68,
+    "wave1_windows_tests": 68
   },
-  "implemented": [
-    "cpp20-cmake-core-library-and-cli",
-    "windows-ubuntu-ci-green",
-    "cmake-presets-and-warning-policy",
-    "release-test-assertion-invariant",
-    "sha256-artifact-identity",
-    "bounded-binary-reader",
-    "strict-json-parser-limits",
-    "evidence-confidence-locations-records-registry",
-    "versioned-evidence-packets",
-    "deterministic-evidence-json-export",
-    "strict-untrusted-evidence-json-import",
-    "cli-validate-evidence",
-    "resource-id-ref-payload",
-    "gdspaces-diagnostics",
-    "local-directory-source-readonly",
-    "root-containment-guards",
-    "source-registry",
-    "profile-aware-resource-classifier",
-    "resource-graph",
-    "open-router",
-    "tool-and-format-capability-registries",
-    "typed-stage-bundle",
-    "stage-bundle-assembler",
-    "generic-container-contracts",
-    "container-parser-registry",
-    "synthetic-slot-container-fixtures",
-    "container-child-identity-and-graph-edges",
-    "revisioned-working-copy",
-    "working-copy-expected-byte-edits-undo-reset",
-    "project-workspace-and-events",
-    "project-graph-and-manifests",
-    "binary-document-regions",
-    "binary-document-typed-fields",
-    "binary-document-ownership",
-    "binary-annotations-and-evidence-links",
-    "binary-selection-owner-field-annotation-lookup",
-    "binary-selected-range-overlap-context",
-    "binary-coverage-unknown-structural-and-ownership-conflicts",
-    "binary-deterministic-manifest",
-    "binary-offset-aligned-byte-diff",
-    "binary-diff-equal-modified-inserted-removed-spans",
-    "binary-shannon-entropy-map",
-    "binary-entropy-zero-ratio-and-unique-byte-count",
-    "binary-web-to-cpp20-crossport-plan",
-    "readonly-pe32-pe32plus-inspector",
-    "checked-offset-rva-va-conversion",
-    "known-executable-target-model",
-    "dmc3-phase12-known-target-registry",
-    "evidence-address-resolver",
-    "executable-workspace-manifests",
-    "dmc3-stage-table-descriptor",
-    "st001-resource-plan-and-matcher",
-    "dmc3-stage-workspace-builder",
-    "shared-stage-ops-modviz-views",
-    "formats-hits-dca-lig2-stage-txt",
-    "item-workspace-and-runtime-evidence",
-    "item-runtime-requests-graphs-and-manifests",
-    "trial-chamber-validation-plans",
-    "guarded-patch-plan-compiler",
-    "in-memory-copy-patch-execution",
-    "verified-rollback-plan",
-    "source-modification-package",
-    "integration-project-dependency-conflict-graph",
-    "custom-build-identity-and-record",
-    "source-line-symbol-to-output-address-mapping",
-    "custom-exe-reopen-lineage",
-    "hits-header-driven-parser",
-    "hits-0x38-triangle-plane-records",
-    "hits-spatial-grid-and-reference-lists",
-    "hits-runtime-grid-broadphase-and-reject-masks",
-    "hits-candidate-and-contact-contracts",
-    "hits-topology-preserving-safe-edits",
-    "hits-deterministic-sat-spatial-writer",
-    "hits-parser-writer-roundtrip",
-    "hits-spatial-differential-validator",
-    "hits-local-corpus-comparison-cli",
-    "dmc3-pc-save-pass31-abi",
-    "dmc3-pc-save-pass32-record-envelope-checksum-abi",
-    "public-evidence-packets-for-exe-item-and-save",
-    "governance-security-clean-room-and-canon"
-  ],
-  "resolved_blockers": [
-    "ci-result-visibility",
-    "cross-platform-foundation-validation",
-    "evidence-packet-export-schema",
-    "strict-evidence-json-import",
-    "artifact-hashing",
-    "readonly-pe-inspection",
-    "binary-inspector-fields-annotations-owner-lookup",
-    "binary-inspector-selected-range-context",
-    "binary-inspector-diff-domain-foundation",
-    "binary-inspector-entropy-domain-foundation",
-    "working-copy-foundation",
-    "guarded-patch-foundation",
-    "copy-execution-and-verified-rollback",
-    "source-modification-architecture",
-    "custom-build-lineage-model",
-    "initial-canonical-target-evidence-normalization",
-    "profile-aware-classifier-foundation",
-    "stage-bundle-assembler-foundation",
-    "hits-obsolete-model-corrected-in-code",
-    "pc-save-pass31-product-promotion",
-    "pc-save-pass32-product-promotion"
-  ],
+  "implemented_domains": {
+    "core": [
+      "cpp20-cmake-core-library-and-cli",
+      "windows-ubuntu-ci",
+      "sha256-artifact-identity",
+      "evidence-confidence-registry-and-packets",
+      "strict-evidence-json-import-export",
+      "project-workspace-graph-events-and-manifests"
+    ],
+    "gdspaces": [
+      "resource-id-ref-payload",
+      "readonly-local-source-and-containment-guards",
+      "source-registry-and-profile-aware-classification",
+      "resource-graph-and-open-router",
+      "typed-stage-bundle-and-assembler",
+      "generic-container-contracts-and-synthetic-fixtures",
+      "working-copy-history-undo-reset"
+    ],
+    "binary_inspector": [
+      "regions-and-typed-fields",
+      "ownership-annotations-and-evidence-links",
+      "selection-and-range-context",
+      "coverage-unknown-and-conflict-analysis",
+      "deterministic-manifests",
+      "offset-aligned-byte-diff",
+      "shannon-entropy-map"
+    ],
+    "exe": [
+      "readonly-pe32-pe32plus-inspector",
+      "checked-offset-rva-va-conversion",
+      "known-executable-target-model",
+      "evidence-address-resolver",
+      "executable-workspace-and-reopen-lineage",
+      "guarded-patch-foundation",
+      "custom-build-and-source-to-output-lineage-models"
+    ],
+    "stage": [
+      "dmc3-110x4-stage-table-descriptor",
+      "st001-resource-plan-and-matching",
+      "dmc3-stage-workspace-builder",
+      "shared-stage-ops-modviz-views",
+      "hits-dca-lig2-stage-txt-modules",
+      "hits-header-driven-parser-runtime-safe-edit-sat-writer-and-comparison"
+    ],
+    "item_and_patch": [
+      "item-workspace-and-runtime-evidence",
+      "validation-plans-and-runtime-requests",
+      "guarded-patch-plan-compiler",
+      "copied-output-execution",
+      "verified-rollback"
+    ],
+    "save": [
+      "dmc3-pc-save-pass31-abi",
+      "dmc3-pc-save-pass32-record-envelope-checksum-abi"
+    ]
+  },
+  "reverse_core": {
+    "status": "canonical-architecture-accepted-implementation-pending",
+    "objects_v0_1": [
+      "BinaryArtifact",
+      "AddressRange",
+      "Function",
+      "DataObject",
+      "RecoveredType",
+      "EvidenceRecord",
+      "Hypothesis",
+      "Experiment",
+      "TaskClaim",
+      "Reconstruction",
+      "ValidationReceipt",
+      "Subsystem"
+    ],
+    "required_bridges": [
+      "binary-inspector-to-reverse-core",
+      "exe-editor-to-reverse-core",
+      "gdspaces-resource-evidence-links",
+      "mcp-kanban-task-claim-coordination"
+    ],
+    "source_contract": "subsystem-oriented-recovered-source-tree-exportable-to-vscode-cmake-with-provenance",
+    "first_gate": "one-real-dmc3-subsystem-completes-binary-to-cpp-to-build-to-behavioral-validation-loop"
+  },
+  "gdspaces_next_milestone": {
+    "id": "resource-identity-v1-and-production-read-path",
+    "goals": [
+      "stable-logical-resource-id-across-physical-representations",
+      "production-readonly-pac-pnst-subset",
+      "nbz-afs-source-exposure",
+      "nested-child-classification-and-diagnostics",
+      "index-as-metadata-not-runtime-truth",
+      "game-backed-st001-identity-reuse-across-consumers"
+    ]
+  },
+  "binary_inspector_next_milestone": {
+    "id": "wave2-and-reverse-core-bridge",
+    "issue": 48,
+    "goals": [
+      "artifact-keyed-analysis-cache",
+      "generic-structural-diagnostics",
+      "unknown-region-analysis",
+      "versioned-binary-templates",
+      "deterministic-analysis-result-json",
+      "reverse-core-object-bridge"
+    ]
+  },
+  "stage_next_milestone": {
+    "id": "stage-semantic-graph-v1",
+    "graph": [
+      "stage",
+      "room",
+      "geometry",
+      "collision",
+      "lighting",
+      "camera",
+      "door-transition",
+      "event",
+      "effect",
+      "audio",
+      "runtime-reference"
+    ]
+  },
+  "modviz_next_milestone": {
+    "id": "red-orb-menu-editor-vertical-slice",
+    "goals": [
+      "gdspaces-backed-hud-resource",
+      "hierarchy-mesh-digit-uv-editing",
+      "runtime-value-preview",
+      "linked-exe-formatting-limit-evidence",
+      "guarded-runtime-patch-request-when-required",
+      "working-copy-validation-and-export"
+    ]
+  },
   "active_issues": [
-    {
-      "number": 3,
-      "id": "production-readonly-container-source-subset",
-      "state": "open",
-      "note": "generic foundation implemented; production PAC/PNST/NBZ/AFS path remains"
-    },
-    {
-      "number": 4,
-      "id": "game-backed-st001-stage-bundle",
-      "state": "open"
-    },
-    {
-      "number": 13,
-      "id": "real-hits-corpus-and-runtime-validation",
-      "state": "open"
-    },
-    {
-      "number": 48,
-      "id": "binary-inspector-crossport-wave2",
-      "state": "open",
-      "note": "Analysis Cache, generic diagnostics, unknown-region analysis, binary templates, and deterministic result export"
-    }
+    {"number": 3, "id": "production-readonly-container-source-subset", "state": "open"},
+    {"number": 4, "id": "game-backed-st001-stage-bundle", "state": "open"},
+    {"number": 13, "id": "real-hits-corpus-and-runtime-validation", "state": "open"},
+    {"number": 48, "id": "binary-inspector-crossport-wave2", "state": "open"}
   ],
   "active_blockers": [
-    "production-pac-pnst-nbz-afs-source-expansion-incomplete",
+    "production-gdspaces-container-source-expansion-incomplete",
     "no-game-backed-st001-end-to-end-bundle",
-    "real-hits-corpus-and-runtime-validation-incomplete",
-    "capcom-hits-offline-builder-equivalence-unproven",
+    "reverse-core-canonical-object-contract-not-implemented",
+    "taskclaim-agent-ownership-protocol-absent",
+    "recovered-source-tree-export-contract-absent",
+    "first-complete-recovered-subsystem-validation-loop-absent",
+    "real-hits-and-stage-runtime-validation-incomplete",
     "wide-pass33-not-promoted-to-reviewed-cpp",
     "recovered-source-skeleton-mostly-unpromoted",
-    "full-recovered-subsystem-behavioral-validation-loop-absent",
-    "no-working-recompiled-dmc3-executable",
-    "no-production-output-file-and-container-export-pipeline",
-    "no-public-signed-binary-release-pipeline",
-    "binary-inspector-analysis-cache-pending",
-    "binary-inspector-generic-diagnostics-pending",
-    "binary-inspector-native-interaction-ui-pending",
-    "complete-desktop-ui-pending"
+    "no-working-behaviorally-equivalent-recompiled-dmc3-executable",
+    "production-output-and-signed-release-pipeline-incomplete"
+  ],
+  "external_infrastructure_concerns": [
+    "mcp-native-bootstrap-stdout-stderr-logging-path-diverges-from-powershell-launcher",
+    "signed-installer-production-depends-on-private-rsa-release-key-availability"
   ],
   "research_ready_product_promotion_pending": [
     "wide-pass33-detailed-slot-payload-partition",
@@ -196,50 +204,28 @@
     "production-pac-pnst-nbz-afs-read-write-suite",
     "game-backed-st001-stage-workspace",
     "hits-original-builder-equivalence",
-    "binary-inspector-structure-aware-resynchronizing-diff",
-    "binary-inspector-persistent-analysis-cache",
-    "binary-inspector-generic-unknown-region-analyzer",
-    "binary-inspector-exe-address-and-patch-bridges",
-    "complete-binary-inspector-desktop-ui",
-    "complete-stage-ops-desktop-ui",
-    "complete-modviz-scene-and-menu-ui",
-    "complete-production-item-editor-ui-and-export",
+    "reverse-core-v0-1-implementation",
+    "first-behavior-tested-recovered-subsystem",
+    "complete-stage-semantic-graph",
+    "complete-modviz-menu-editor-red-orb-slice",
+    "complete-desktop-ui",
     "full-dmc3-decompilation",
     "behaviorally-equivalent-recompiled-dmc3-executable",
-    "public-binary-release"
-  ],
-  "next_milestone": {
-    "id": "production-container-and-game-backed-stage-slice",
-    "goals": [
-      "production-readonly-pac-pnst-subset",
-      "nbz-afs-gdspaces-source-exposure",
-      "legal-local-game-backed-st001-stage-bundle",
-      "deterministic-stage-integration-report",
-      "real-hits-corpus-comparison-receipts",
-      "controlled-hits-game-runtime-validation",
-      "wide-pass33-evidence-packet-and-narrow-cpp-promotion",
-      "first-behavior-tested-recovered-subsystem"
-    ]
-  },
-  "parallel_milestones": [
-    {
-      "id": "binary-inspector-crossport-wave2",
-      "issue": 48,
-      "goals": [
-        "artifact-identity-keyed-analysis-cache",
-        "generic-offset-order-overlap-alignment-stride-diagnostics",
-        "unknown-region-zero-repetition-entropy-analysis",
-        "versioned-binary-template-schema",
-        "deterministic-analysis-result-json"
-      ]
-    }
+    "public-signed-binary-release"
   ],
   "critical_path": [
-    "production-readonly-container-subset",
+    "gdspaces-production-read-path-and-resource-identity-v1",
     "game-backed-st001-stage-bundle",
-    "real-stage-and-hits-corpus-runtime-validation",
-    "narrow-drive-research-promotions",
-    "behavior-tested-recovered-subsystems",
+    "reverse-core-v0-1-schema-claims-source-tree",
+    "binary-inspector-and-exe-editor-reverse-core-bridges",
+    "first-behavior-tested-recovered-subsystem",
+    "broader-stage-semantic-and-runtime-validation",
     "controlled-recompilation-milestones"
+  ],
+  "parallel_work": [
+    "binary-inspector-wave2",
+    "hits-real-corpus-and-runtime-validation",
+    "wide-pass33-narrow-promotion",
+    "modviz-red-orb-vertical-slice-after-shared-contract-gates"
   ]
 }
