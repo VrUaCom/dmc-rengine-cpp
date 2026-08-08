@@ -10,8 +10,9 @@
   "overall_status": "foundation-green-domain-stack-active-reverse-core-architecture-accepted-production-resource-game-backed-and-recompilation-gates-open",
   "platform_relationship": {
     "triangle_forge": "broader-platform-context",
-    "reverse_core": "reusable-game-agnostic-reverse-subsystem",
-    "dmc_rengine": "independent-dmc-domain-workspace-and-first-reverse-core-validation-target"
+    "reverse_core": "reusable-game-agnostic-reverse-metadata-and-reconstruction-lifecycle",
+    "dmc_rengine": "independent-dmc-domain-workspace-and-first-reverse-core-validation-target",
+    "recovered_game_source_tree": "reconstructed-dmc3-program-independent-of-tool-ownership"
   },
   "truth_layers": {
     "github_main": "reviewed-implemented-product-truth",
@@ -27,6 +28,9 @@
     "working-copy-before-write",
     "guarded-exe-patches-only",
     "recovered-source-is-not-original-source",
+    "recovered-game-code-is-not-tool-owned",
+    "game-subsystem-membership-is-separate-from-tool-relationships",
+    "taskclaims-coordinate-work-not-semantic-code-ownership",
     "heuristics-and-agent-consensus-are-not-evidence",
     "reverse-core-remains-game-agnostic",
     "canonical-reconstruction-mutation-requires-ownership-coordination",
@@ -96,6 +100,19 @@
       "dmc3-pc-save-pass32-record-envelope-checksum-abi"
     ]
   },
+  "recovered_game_source": {
+    "status": "canonical-separation-rule-accepted-source-recovery-partial",
+    "identity_rule": "game-artifact-and-reconstruction-lineage-not-tool-or-agent",
+    "organization_rule": "evidence-driven-game-architecture-not-editor-or-tool-folders",
+    "membership_axes": [
+      "game-source-identity",
+      "semantic-game-subsystem-membership",
+      "tool-relationships",
+      "temporary-taskclaim-coordination"
+    ],
+    "tool_ownership": false,
+    "recompilation_target": "recovered-game-source-tree-plus-controlled-replacement-rebinding-infrastructure"
+  },
   "reverse_core": {
     "status": "canonical-architecture-accepted-implementation-pending",
     "tracking_issue": 51,
@@ -119,20 +136,27 @@
       "gdspaces-resource-evidence-links",
       "mcp-kanban-task-claim-coordination"
     ],
-    "source_contract": "subsystem-oriented-recovered-source-tree-exportable-to-vscode-cmake-with-provenance",
+    "source_contract": "recovered-game-source-tree-exportable-to-vscode-cmake-with-provenance-and-game-architecture-membership",
+    "ownership_rule": "reverse-core-records-and-coordinates-reconstruction-but-does-not-own-recovered-game-code",
     "first_gate": "one-real-dmc3-subsystem-completes-binary-to-cpp-to-build-to-behavioral-validation-loop"
   },
   "gdspaces_next_milestone": {
-    "id": "resource-identity-v1-and-production-read-path",
+    "id": "resource-runtime-reconstruction-and-resource-identity-v1",
     "tracking_issues": [3, 4],
     "goals": [
       "stable-logical-resource-id-across-physical-representations",
       "production-readonly-pac-pnst-subset",
       "nbz-afs-source-exposure",
       "nested-child-classification-and-diagnostics",
-      "index-as-metadata-not-runtime-truth",
-      "game-backed-st001-identity-reuse-across-consumers"
-    ]
+      "index-role-derived-from-executable-evidence",
+      "game-resource-request-and-lookup-abi-reconstruction",
+      "resource-byte-acquisition-and-transformation-reconstruction",
+      "resource-factory-classification-dispatch-reconstruction",
+      "resource-cache-ownership-lifetime-reload-unload-reconstruction",
+      "game-backed-st001-identity-reuse-across-consumers",
+      "validation-receipts-for-representative-resource-lifecycle"
+    ],
+    "source_separation_rule": "recovered-game-resource-runtime-functions-remain-in-recovered-game-source-tree-gdspaces-consumes-confirmed-behavior"
   },
   "binary_inspector_next_milestone": {
     "id": "wave2-and-reverse-core-bridge",
@@ -186,10 +210,11 @@
   ],
   "active_blockers": [
     "production-gdspaces-container-source-expansion-incomplete",
+    "game-resource-runtime-not-fully-reconstructed",
     "no-game-backed-st001-end-to-end-bundle",
     "reverse-core-canonical-object-contract-not-implemented",
-    "taskclaim-agent-ownership-protocol-absent",
-    "recovered-source-tree-export-contract-absent",
+    "taskclaim-agent-coordination-protocol-absent",
+    "recovered-game-source-tree-export-contract-not-implemented",
     "first-complete-recovered-subsystem-validation-loop-absent",
     "real-hits-and-stage-runtime-validation-incomplete",
     "wide-pass33-not-promoted-to-reviewed-cpp",
@@ -209,6 +234,7 @@
   ],
   "explicitly_not_complete": [
     "production-pac-pnst-nbz-afs-read-write-suite",
+    "full-game-resource-runtime-reconstruction",
     "game-backed-st001-stage-workspace",
     "hits-original-builder-equivalence",
     "reverse-core-v0-1-implementation",
@@ -221,11 +247,11 @@
     "public-signed-binary-release"
   ],
   "critical_path": [
-    "gdspaces-production-read-path-and-resource-identity-v1",
+    "gdspaces-production-read-path-resource-identity-and-game-resource-runtime-reconstruction",
     "game-backed-st001-stage-bundle",
-    "reverse-core-v0-1-schema-claims-source-tree",
+    "reverse-core-v0-1-schema-claims-and-recovered-game-source-contract",
     "binary-inspector-and-exe-editor-reverse-core-bridges",
-    "first-behavior-tested-recovered-subsystem",
+    "first-behavior-tested-recovered-game-subsystem",
     "broader-stage-semantic-and-runtime-validation",
     "controlled-recompilation-milestones"
   ],
