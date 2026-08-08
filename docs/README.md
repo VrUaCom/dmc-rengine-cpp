@@ -7,6 +7,7 @@
 - [Current status](status/current.md)
 - [Phase map](status/phase-map.md)
 - [Reverse Core](reverse-core/README.md)
+- [Recovered Game Source Tree](reverse-core/game-source-tree.md)
 - [Constitution](../.specify/memory/constitution.md)
 - [Contributing](../CONTRIBUTING.md)
 
@@ -21,6 +22,7 @@
 ### Reverse Core and source recovery
 
 - [Reverse Core v0.1](reverse-core/README.md)
+- [Recovered Game Source Tree](reverse-core/game-source-tree.md)
 - [EXE reconstruction pipeline](exe/reconstruction-pipeline.md)
 - [Read-only PE Inspector](exe/pe-inspector.md)
 - [Known executable targets](exe/known-targets.md)
@@ -29,6 +31,7 @@
 
 - [GDSpaces contract](gdspaces-contract.md)
 - [Resource Identity v1](gdspaces/resource-identity-v1.md)
+- [Resource Runtime Reconstruction](gdspaces/runtime-reconstruction.md)
 - [Resource classification](gdspaces/classification.md)
 - [Working copy](gdspaces/working-copy.md)
 - [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
@@ -77,15 +80,18 @@
 
 ## Product map
 
-- **GDSpaces — The Archive:** only game-resource access authority; sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
-- **Reverse Core:** reusable, game-agnostic binary/function/type/evidence/reconstruction/validation lifecycle used first by DMC Rengine.
+- **Recovered Game Source Tree:** reconstructed DMC3 source organized by the game's architecture; not owned by DMC Rengine tools.
+- **GDSpaces — The Archive:** only DMC Rengine game-resource access authority; sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
+- **Reverse Core:** reusable, game-agnostic reverse metadata/lifecycle for binary/function/type/evidence/reconstruction/validation; it does not own recovered game code.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, specifications, tasks, and project provenance.
-- **EXE Editor — The Scriptorium:** executable inspection, recovered-source work, address mappings, Reverse Core integration, and guarded patch planning.
+- **EXE Editor — The Scriptorium:** executable inspection, recovered-source workflow, address mappings, Reverse Core integration, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, range selection, conflicts, unknown coverage, annotations, byte diff, entropy, and future Reverse Core bridge.
 - **Stage Ops — The Theatre:** typed stage workflows over `StageBundle` and the Stage Semantic Graph.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor over shared GDSpaces/workspace state.
 - **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
 - **Build & Test Lab — The Trial Chamber:** reproducibility, validation, regression, rollback, and release artifacts.
+
+A recovered game function can be linked to several tools at once. Tool linkage is not semantic ownership or game-subsystem membership.
 
 PAC, PNST, NBZ, and AFS are internal resource/container layers. Legacy PAC Editor/PAC Manager logic is intentionally excluded from the product architecture.
 
