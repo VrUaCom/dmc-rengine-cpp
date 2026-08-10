@@ -115,6 +115,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         working_copy
         classifier
         known_target
+        resource_lookup_policy
         stage_table_descriptor
         stage_table_reader
         stage_resource_matcher
@@ -172,6 +173,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_public_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
+    add_test(
+        NAME dmc_rengine_resource_vfs_phase14_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-vfs-phase14.evidence.json)
     add_test(
         NAME dmc_rengine_item_evidence_validation
         COMMAND dmc-rengine validate-evidence
