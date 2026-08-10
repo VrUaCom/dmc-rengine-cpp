@@ -120,6 +120,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_bundle_assembler
         container_foundation
         pac_container_parser
+        pnst_container_parser
         container_tree_expander
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
