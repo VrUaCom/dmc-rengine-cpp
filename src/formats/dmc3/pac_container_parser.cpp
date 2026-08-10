@@ -167,7 +167,7 @@ ContainerParseResult PacContainerParser::parse(
             result,
             ParseSeverity::warning,
             "dmc3.pac.duplicate_offset",
-            "Multiple PAC slots reference the same relative offset; aliasing is preserved.",
+            "Multiple PAC slots reference the same relative offset; the shared offset is preserved without assigning alias semantics.",
             8U);
     }
 
