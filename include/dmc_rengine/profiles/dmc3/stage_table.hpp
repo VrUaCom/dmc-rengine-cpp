@@ -31,14 +31,18 @@ struct StageResourceTableDescriptor final {
     std::string id;
     std::string evidence_packet_id;
     std::string artifact_sha256;
+    std::uint64_t artifact_size{};
     std::uint64_t file_offset{};
     std::uint32_t rva{};
     std::uint64_t va{};
     std::uint32_t row_count{};
+    std::uint32_t cell_stride{};
+    std::uint32_t path_pointer_offset{};
     std::array<StageResourceRole, 4> columns{};
 
     [[nodiscard]] bool valid() const noexcept;
     [[nodiscard]] std::uint32_t entry_count() const noexcept;
+    [[nodiscard]] std::uint64_t table_size_bytes() const noexcept;
     [[nodiscard]] std::optional<StageResourceRole> role_for_column(
         std::size_t column) const noexcept;
 };
