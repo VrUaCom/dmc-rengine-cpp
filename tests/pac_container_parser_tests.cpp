@@ -126,8 +126,9 @@ int main() {
     // Production profile registration -> generic GDSpaces expansion. This is
     // deliberately independent of Stage Ops/Binary Inspector ownership.
     auto registry = make_container_parser_registry();
-    assert(registry.size() == 1U);
+    assert(registry.size() == 2U);
     assert(registry.find_by_id("dmc3-pac-runtime-v1") != nullptr);
+    assert(registry.find_by_id("dmc3-pnst-runtime-v1") != nullptr);
     const auto registered_parse = registry.parse(
         std::span<const std::byte>{bytes}, "DMC3/scr/st777.pac");
     assert(registered_parse.ok());
