@@ -197,6 +197,15 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
     payload.resource.format = classification.format;
     payload.resource.profile = std::string(to_string(classification.profile));
     payload.resource.container = classification.container;
+    payload.byte_provenance = ByteProvenance{
+        .kind = ByteOriginKind::direct_source_span,
+        .authority_id = resource.id.canonical(),
+        .offset = 0U,
+        .stored_size = static_cast<std::uint64_t>(raw_size),
+        .materialized_size = static_cast<std::uint64_t>(raw_size),
+        .transform = ByteTransform::none,
+        .crc32 = std::nullopt,
+    };
 
     if (resource.size != 0U && resource.size != raw_size) {
         payload.diagnostics.push_back(Diagnostic{
