@@ -122,6 +122,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pac_container_parser
         pnst_container_parser
         container_tree_expander
+        index_manifest
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
