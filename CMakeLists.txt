@@ -114,6 +114,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pc_save_file
         working_copy
         byte_provenance
+        nbz_zip_source
         classifier
         known_target
         stage_table_descriptor
@@ -180,6 +181,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_pac_runtime_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-pac-runtime.evidence.json)
+    add_test(
+        NAME dmc_rengine_nbz_zip_phase14_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-nbz-zip-phase14.evidence.json)
     add_test(
         NAME dmc_rengine_item_evidence_validation
         COMMAND dmc-rengine validate-evidence

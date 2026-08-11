@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-nbz-zip-phase14",
+  "title": "DMC3 HD NBZ ZIP Backend — Phase 14",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-nbz-standard-zip-index",
+      "claim_id": "claim-dmc3-nbz-standard-zip-index",
+      "title": "NBZ archive backend uses standard ZIP EOCD, central and local headers",
+      "summary": "The canonical DMC3 archive backend indexes NBZ volumes through standard ZIP structures: EOCD signature 0x06054B50, central-directory signature 0x02014B50 and local-file signature 0x04034B50. The index stores entry name, compression metadata, sizes, CRC32 and local-header/data relationships for later lookup/read.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3305664,
+          "size": 1184,
+          "rva": 3308736,
+          "va": 5372017856,
+          "symbol": "ZipArchiveBuildIndex",
+          "note": "VA 0x140327CC0. Phase-14 disassembly contains the standard EOCD/central/local ZIP constants and builds the archive entry index from those structures."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3306848,
+          "size": 304,
+          "rva": 3309920,
+          "va": 5372019040,
+          "symbol": "ZipArchiveLookup",
+          "note": "VA 0x140328160. Lookup operates over the built archive entry index."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "nbz",
+        "zip",
+        "central-directory",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-nbz-stored-vs-inflate-read",
+      "claim_id": "claim-dmc3-nbz-stored-vs-inflate-read",
+      "title": "NBZ entry read separates direct stored reads from compressed inflate reads",
+      "summary": "The ZIP entry stream distinguishes direct stored-byte reads from compressed-entry reads that pass through a dedicated inflater path. This establishes a transformation boundary: compressed archive storage offsets are not equivalent to offsets inside the materialized resource bytes.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3310416,
+          "size": 576,
+          "rva": 3313488,
+          "va": 5372022608,
+          "symbol": "ZipEntryRead",
+          "note": "VA 0x140328F50. The read path uses direct archive bytes for stored entries and the inflater state for compressed entries."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3308576,
+          "size": 464,
+          "rva": 3311648,
+          "va": 5372020768,
+          "symbol": "InflateRead",
+          "note": "VA 0x140328820. Dedicated compressed-entry materialization path. The complete real-corpus compression-method domain remains a separate validation question."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "nbz",
+        "zip",
+        "inflate",
+        "byte-provenance",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-nbz-volume-mount-family",
+      "claim_id": "claim-dmc3-nbz-volume-mount-family",
+      "title": "DMC3 NBZ volumes are mounted as an ordered archive family",
+      "summary": "The DMC3 resource bootstrap mounts numbered DMC3-N.nbz archive volumes through the archive-mount backend. Archive mounts participate in the VFS archive-provider pass rather than becoming a separate top-level asset authority.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3301792,
+          "size": 960,
+          "rva": 3304864,
+          "va": 5372013984,
+          "symbol": "ArchiveMountOpen",
+          "note": "VA 0x140326DA0. Phase-14 bootstrap evidence links numbered DMC3 NBZ volumes to this ZIP-compatible archive backend."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "nbz",
+        "mount",
+        "source-registry",
+        "phase14"
+      ],
+      "supersedes": []
+    }
+  ]
+}
