@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-resource-path-normalization-phase14",
+  "title": "DMC3 HD Resource Path Normalization — Phase 14",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-resource-path-normalizer-flags",
+      "claim_id": "claim-dmc3-resource-path-normalizer-flags",
+      "title": "Resource path normalizer flag ABI and unconditional separator canonicalization",
+      "summary": "The canonical resource path normalizer uses flag bit 0x04 to strip leading slash/backslash separators, bit 0x08 to strip trailing separators, bit 0x01 to uppercase ASCII, and otherwise bit 0x02 to lowercase ASCII. After the optional flag-controlled stages it always converts forward slashes to backslashes and collapses repeated backslashes. When both case bits are set, the uppercase branch wins because the lowercase branch is only reached when bit 0x01 is clear.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3302752,
+          "size": 312,
+          "rva": 3305824,
+          "va": 5372014944,
+          "symbol": "ResourcePathNormalize",
+          "note": "VA 0x140327160. Disassembly exposes the four flag bits, their execution order, slash conversion and duplicate-backslash collapse."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "path-normalization",
+        "slash-normalization",
+        "case-normalization",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-archive-path-normalization",
+      "claim_id": "claim-dmc3-archive-path-normalization",
+      "title": "ZIP/NBZ indexing and lookup both normalize names with flags 0x0E",
+      "summary": "Archive index construction normalizes each indexed entry name with flags 0x0E before sorting. Archive lookup copies the request into a bounded 0x400-byte buffer and applies the same flags 0x0E before binary search. Therefore archive keys are lowercased ASCII, stripped of leading/trailing separators, use backslashes, and contain no repeated backslashes before bytewise comparison.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3305664,
+          "size": 1184,
+          "rva": 3308736,
+          "va": 5372017856,
+          "symbol": "ZipArchiveBuildIndex",
+          "note": "VA 0x140327CC0. The index walk calls ResourcePathNormalize with EDX=0x0E for every entry before creating and sorting the 0x10-byte lookup array."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3306848,
+          "size": 304,
+          "rva": 3309920,
+          "va": 5372019040,
+          "symbol": "ZipArchiveLookup",
+          "note": "VA 0x140328160. Lookup first performs a bounded 0x400-byte copy, then calls ResourcePathNormalize with EDX=0x0E before binary search."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3311056,
+          "size": 41,
+          "rva": 3314128,
+          "va": 5372023248,
+          "symbol": "ZipEntryNameCompare",
+          "note": "VA 0x1403291D0. Comparator performs bytewise NUL-terminated string comparison; normalization therefore defines archive key equivalence before qsort/bsearch."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "nbz",
+        "zip",
+        "archive-lookup",
+        "normalized-key",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-physical-path-normalization",
+      "claim_id": "claim-dmc3-physical-path-normalization",
+      "title": "DMC3 physical data root uses path-normalization flags 0x0C",
+      "summary": "The DMC3 bootstrap registers its executable-relative physical data root with normalization flags 0x0C. The physical resolver later applies those stored flags to the candidate before joining it to the root. Thus leading/trailing separators are stripped and slash runs are canonicalized to single backslashes, while the normalizer itself performs no ASCII case conversion for the physical provider.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 187696,
+          "size": 261,
+          "rva": 190768,
+          "va": 5368899888,
+          "symbol": "Dmc3ResourceBootstrap",
+          "note": "VA 0x14002E930. Bootstrap passes EDX=0x0C when registering the physical \\data\\dmc3\\ root."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3303472,
+          "size": 397,
+          "rva": 3306544,
+          "va": 5372015664,
+          "symbol": "ResourceMountResolve",
+          "note": "VA 0x140327430. Physical-provider branch loads node+0x04 normalizationFlags and calls ResourcePathNormalize before path join/open."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "physical-provider",
+        "path-normalization",
+        "phase14"
+      ],
+      "supersedes": []
+    }
+  ]
+}
