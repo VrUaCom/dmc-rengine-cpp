@@ -35,8 +35,40 @@ int main() {
     using dmc::rengine::gdspaces::StageIdentity;
     using dmc::rengine::gdspaces::StageResourceCategory;
     using dmc::rengine::profiles::dmc3::StageResourceMatcher;
+    using dmc::rengine::profiles::dmc3::make_stage_resource_plan_from_table_row;
     using dmc::rengine::profiles::dmc3::phase12_st001_resource_plan;
 
+    // Generic recovered-row path: the stage identity deliberately does not match
+    // any resource-name pattern. Exact EXE row paths are the authority.
+    const auto recovered_row_plan = make_stage_resource_plan_from_table_row(
+        "stage-row-17",
+        {
+            "scr/shared_intro.pac",
+            "room/st777cfg_alias.pac",
+            "room/common_effects.pac",
+            "se/snd_shared.pac",
+        },
+        "ev-dmc3-stage-row-17");
+    assert(recovered_row_plan.valid());
+    assert(recovered_row_plan.stage_id == "stage-row-17");
+    assert(recovered_row_plan.resources[0].logical_path == "scr/shared_intro.pac");
+    assert(recovered_row_plan.resources[1].logical_path == "room/st777cfg_alias.pac");
+    assert(recovered_row_plan.resources[2].logical_path == "room/common_effects.pac");
+    assert(recovered_row_plan.resources[3].logical_path == "se/snd_shared.pac");
+
+    const std::vector<dmc::rengine::gdspaces::ResourceRef> recovered_row_resources{
+        resource("game", "DMC3/SCR/SHARED_INTRO.PAC"),
+        resource("game", "data\\room\\st777cfg_alias.pac"),
+        resource("game", "room/common_effects.pac"),
+        resource("game", "se/snd_shared.pac"),
+    };
+    const auto recovered_row_report = StageResourceMatcher::match(
+        recovered_row_plan,
+        std::span<const dmc::rengine::gdspaces::ResourceRef>{recovered_row_resources});
+    assert(recovered_row_report.complete());
+    assert(recovered_row_report.roles.size() == 4U);
+
+    // st001 remains only the first evidence-backed compatibility fixture.
     const auto& plan = phase12_st001_resource_plan();
     assert(plan.valid());
     assert(plan.stage_id == "st001");
