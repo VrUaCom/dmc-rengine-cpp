@@ -117,6 +117,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         byte_provenance
         nbz_zip_source
         resource_path_normalizer
+        resource_lookup_policy
         classifier
         known_target
         stage_table_descriptor
@@ -196,6 +197,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_resource_path_phase14_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-path-normalization-phase14.evidence.json)
+    add_test(
+        NAME dmc_rengine_resource_vfs_phase14_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-vfs-phase14.evidence.json)
     add_test(
         NAME dmc_rengine_item_evidence_validation
         COMMAND dmc-rengine validate-evidence
