@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-resource-vfs-phase14",
+  "title": "DMC3 HD Resource VFS Lookup Policy — Phase 14",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-vfs-prefix-table-phase14",
+      "claim_id": "claim-dmc3-vfs-prefix-table-phase14",
+      "title": "Six resource namespace prefixes and order",
+      "summary": "The canonical executable stores six fixed resource namespace prefix pointers in this exact order: GDataX360.afs/, GData.afs/, Video/, afs/sound/, SAVEDATA/, and the empty prefix.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 5608696,
+          "size": 48,
+          "rva": 5615352,
+          "va": 5374324472,
+          "symbol": "resource_namespace_prefix_table",
+          "note": "Six qword pointers in search order. The strings themselves reside elsewhere in the image."
+        }
+      ],
+      "tags": ["gdspaces","resource-runtime","vfs","lookup","prefix-table","phase14"],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-open-game-resource-vfs-order",
+      "claim_id": "claim-dmc3-open-game-resource-vfs-order",
+      "title": "OpenGameResource VFS basename and 12-attempt order",
+      "summary": "In the evidenced VFS branch, OpenGameResource strips directory components at the last slash or backslash, then tries the six namespace prefixes twice. Pass 0 calls the mount resolver with provider mask 1; pass 1 uses provider mask 2. Candidate construction uses a 0x400-byte destination bound.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 192672,
+          "size": 712,
+          "rva": 195744,
+          "va": 5368904864,
+          "symbol": "OpenGameResource",
+          "note": "VA 0x14002FCA0. Backward scan checks both 0x5C and 0x2F, then nested loops perform 2 x 6 calls to 0x140327430."
+        }
+      ],
+      "tags": ["gdspaces","resource-runtime","vfs","basename","lookup-order","phase14"],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-vfs-provider-mask-semantics",
+      "claim_id": "claim-dmc3-vfs-provider-mask-semantics",
+      "title": "VFS provider masks select archive then physical providers",
+      "summary": "The mount resolver walks the linked mount list. Archive mounts (type 1) are skipped when provider-mask bit 2 is set; physical mounts (type 0) are skipped when bit 1 is set. Therefore mask 1 is archive-only and mask 2 is physical-only for the OpenGameResource two-pass search.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3303472,
+          "size": 384,
+          "rva": 3306544,
+          "va": 5372015664,
+          "symbol": "VfsOpenMountedResource",
+          "note": "VA 0x140327430. Archive branch tests mask bit 2; physical branch tests mask bit 1."
+        }
+      ],
+      "tags": ["gdspaces","resource-runtime","vfs","archive","physical","provider-mask","phase14"],
+      "supersedes": []
+    }
+  ]
+}
