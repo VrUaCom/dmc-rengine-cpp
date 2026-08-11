@@ -8,7 +8,7 @@
       "id": "dmc3-hdc-exe-e454272e",
       "role": "canonical-research-target",
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-      "size": 3735552
+      "size": 6356432
     }
   ],
   "records": [
@@ -18,130 +18,27 @@
       "title": "Executable platform identity",
       "summary": "The canonical research target is a Windows PE32+ x86-64 GUI executable.",
       "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "pe32-plus",
-        "x86-64",
-        "canonical-target"
-      ],
+      "tags": ["exe","pe32-plus","x86-64","canonical-target"],
       "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 0,
-          "symbol": "PE headers",
-          "note": "The canonical artifact size is 3,735,552 bytes."
-        }
-      ]
+      "locations": [{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":0,"symbol":"PE headers","note":"The canonical artifact size is 6,356,432 bytes. The previously recorded 3,735,552-byte size was corrected by direct SHA-256-matched artifact readback."}]
     },
     {
-      "id": "ev-dmc3-image-base",
-      "claim_id": "claim-dmc3-image-base",
-      "title": "Image base",
-      "summary": "The canonical target uses ImageBase 0x140000000.",
-      "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "addressing",
-        "image-base"
-      ],
-      "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "va": 5368709120,
-          "symbol": "ImageBase",
-          "note": "VA decimal value corresponds to 0x140000000."
-        }
-      ]
+      "id":"ev-dmc3-image-base","claim_id":"claim-dmc3-image-base","title":"Image base","summary":"The canonical target uses ImageBase 0x140000000.","confidence":"confirmed","tags":["exe","addressing","image-base"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","va":5368709120,"symbol":"ImageBase","note":"VA decimal value corresponds to 0x140000000."}]
     },
     {
-      "id": "ev-dmc3-entry-point",
-      "claim_id": "claim-dmc3-entry-point",
-      "title": "Executable entry point",
-      "summary": "The canonical target entry point is VA 0x14034615C, RVA 0x34615C.",
-      "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "entry-point"
-      ],
-      "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "rva": 3432796,
-          "va": 5372141916,
-          "symbol": "AddressOfEntryPoint"
-        }
-      ]
+      "id":"ev-dmc3-entry-point","claim_id":"claim-dmc3-entry-point","title":"Executable entry point","summary":"The canonical target entry point is VA 0x14034615C, RVA 0x34615C.","confidence":"confirmed","tags":["exe","entry-point"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","rva":3432796,"va":5372141916,"symbol":"AddressOfEntryPoint"}]
     },
     {
-      "id": "ev-dmc3-main-export",
-      "claim_id": "claim-dmc3-main-export",
-      "title": "dmc3_main export",
-      "summary": "The exported dmc3_main function is located at VA 0x1402C5DF0, RVA 0x2C5DF0.",
-      "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "export",
-        "dmc3-main"
-      ],
-      "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "rva": 2907632,
-          "va": 5371616752,
-          "symbol": "dmc3_main"
-        }
-      ]
+      "id":"ev-dmc3-main-export","claim_id":"claim-dmc3-main-export","title":"dmc3_main export","summary":"The exported dmc3_main function is located at VA 0x1402C5DF0, RVA 0x2C5DF0.","confidence":"confirmed","tags":["exe","export","dmc3-main"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","rva":2907632,"va":5371616752,"symbol":"dmc3_main"}]
     },
     {
-      "id": "ev-dmc3-stage-resource-table",
-      "claim_id": "claim-dmc3-stage-resource-table",
-      "title": "Stage resource table",
-      "summary": "The stage resource table is identified at RVA 0x5C4AA8 / VA 0x1405C4AA8 and contains 440 entries arranged as 110 rows by four resource roles. The physical file offset must be resolved through the PE section mapping.",
-      "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "stage",
-        "resource-table",
-        "gdspaces"
-      ],
-      "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "rva": 6048424,
-          "va": 5374757544,
-          "symbol": "stage_resource_table",
-          "note": "Recorded role order: scr/stXXX.pac, room/stXXXcfg.pac, room/stXXX_effect.pac, se/snd_rXXX.pac."
-        }
-      ]
+      "id":"ev-dmc3-stage-resource-table","claim_id":"claim-dmc3-stage-resource-table","title":"Stage resource table","summary":"The canonical executable contains a 110 x 4 stage resource path table at file offset 0x5C30A8 / RVA 0x5C4AA8 / VA 0x1405C4AA8. Each of the 440 observed cells has stride 0x10 and a relocatable 64-bit path pointer at cell +0x00. All 440 pointers resolve to bounded NUL-terminated ASCII paths matching the four column roles. Bytes at cell +0x08 are intentionally left semantically unresolved.","confidence":"confirmed","tags":["exe","stage","resource-table","gdspaces","cell-layout","dir64-relocation"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041768,"size":7040,"rva":6048424,"va":5374757544,"symbol":"stage_resource_table","note":"440 DIR64 relocation sites occur at the path-pointer field with exact 0x10 stride. Recorded role order: scr\\stXXX.pac, room\\stXXXcfg.pac, room\\stXXX_effect.pac, se\\snd_rXXX.pac. The +0x08 bytes are not assigned a meaning by this claim."}]
     },
     {
-      "id": "ev-dmc3-stageset-token-classifier",
-      "claim_id": "claim-dmc3-stageset-token-classifier",
-      "title": "StageSet token classifier",
-      "summary": "The function at VA 0x140246680 classifies StageSet tokens into runtime enum values. The public migration record confirms DUMMY=1, STAY=2, BREAK=3, ORBREAK=4, SEAL=5, and SWITCH=6; the remaining map is incomplete.",
-      "confidence": "confirmed",
-      "tags": [
-        "exe",
-        "stage",
-        "txt",
-        "token-classifier",
-        "partial-map"
-      ],
-      "supersedes": [],
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "rva": 2385536,
-          "va": 5371094656,
-          "symbol": "StageSetTokenClassifier",
-          "note": "Function identity is confirmed; the enum map remains partial."
-        }
-      ]
+      "id":"ev-dmc3-stage-resource-table-row-set","claim_id":"claim-dmc3-stage-resource-table-row-set","title":"Observed stage resource row set","summary":"The 110 script-column paths expose 110 distinct observed stage tokens arranged in four contiguous numeric blocks: 000-012, 100-146, 200-241, and 300-307. This records table content only and does not claim that every row is a semantically independent gameplay stage.","confidence":"confirmed","tags":["exe","stage","resource-table","row-set","identity"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041768,"size":7040,"rva":6048424,"va":5374757544,"symbol":"stage_resource_table","note":"Derived from the exact 110 x 4 table observation. Aliases, shared resources, service rows, and higher-level stage semantics remain separate reverse-engineering questions."}]
+    },
+    {
+      "id":"ev-dmc3-stageset-token-classifier","claim_id":"claim-dmc3-stageset-token-classifier","title":"StageSet token classifier","summary":"The function at VA 0x140246680 classifies StageSet tokens into runtime enum values. The public migration record confirms DUMMY=1, STAY=2, BREAK=3, ORBREAK=4, SEAL=5, and SWITCH=6; the remaining map is incomplete.","confidence":"confirmed","tags":["exe","stage","txt","token-classifier","partial-map"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","rva":2385536,"va":5371094656,"symbol":"StageSetTokenClassifier","note":"Function identity is confirmed; the enum map remains partial."}]
     }
   ]
 }
