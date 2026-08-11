@@ -185,15 +185,17 @@ public:
             for (unsigned depth = 0U; depth < length; ++depth) {
                 const auto shift = static_cast<unsigned>(length - depth - 1U);
                 const auto bit = static_cast<unsigned>((symbol_code >> shift) & 1U);
-                auto& node = nodes_[static_cast<std::size_t>(node_index)];
-                if (node.symbol >= 0) {
+                if (nodes_[static_cast<std::size_t>(node_index)].symbol >= 0) {
                     return false;
                 }
-                if (node.child[bit] < 0) {
-                    node.child[bit] = static_cast<int>(nodes_.size());
+
+                auto child = nodes_[static_cast<std::size_t>(node_index)].child[bit];
+                if (child < 0) {
+                    child = static_cast<int>(nodes_.size());
+                    nodes_[static_cast<std::size_t>(node_index)].child[bit] = child;
                     nodes_.push_back(Node{});
                 }
-                node_index = node.child[bit];
+                node_index = child;
             }
 
             auto& leaf = nodes_[static_cast<std::size_t>(node_index)];
