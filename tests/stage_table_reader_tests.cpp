@@ -51,7 +51,7 @@ struct Fixture final {
 
     constexpr std::uint64_t image_base = 0x140000000ULL;
     constexpr std::uint32_t table_rva = 0x2000U;
-    constexpr std::uint32_t strings_rva = 0x3000U;
+    constexpr std::uint32_t strings_rva = 0x5000U;
     constexpr std::uint32_t section_raw = 0x400U;
     constexpr std::uint32_t section_rva = 0x1000U;
     constexpr std::size_t table_file_offset =
@@ -59,7 +59,9 @@ struct Fixture final {
     constexpr std::size_t strings_file_offset =
         section_raw + (strings_rva - section_rva);
 
-    std::vector<std::byte> bytes(0x4000U, std::byte{0});
+    // Allocate the final synthetic artifact size before populating either the
+    // canonical 110x4 table span or the non-overlapping string pool.
+    std::vector<std::byte> bytes(0x10000U, std::byte{0});
     const std::array<std::string, 8> paths{
         "scr/st000.pac",
         "room/st000cfg.pac",
@@ -125,19 +127,14 @@ struct Fixture final {
     };
 
     // The production descriptor validity contract intentionally pins 110x4.
-    // For the reader fixture, use a copy of the canonical descriptor shape and
-    // expand the synthetic byte buffer/table to the canonical row count below.
+    // Repeat the two logical fixture rows across the canonical row count.
     descriptor.row_count = 110U;
-    descriptor.artifact_size = 0x10000U;
+    descriptor.artifact_size = bytes.size();
     descriptor.file_offset = table_file_offset;
     descriptor.rva = table_rva;
     descriptor.va = image_base + table_rva;
     descriptor.cell_stride = 0x10U;
 
-    bytes.resize(static_cast<std::size_t>(descriptor.artifact_size), std::byte{0});
-
-    // Repeat the two logical rows across all 110 rows so the reader exercises
-    // the exact canonical row-count/stride contract without proprietary bytes.
     for (std::uint32_t row = 0U; row < descriptor.row_count; ++row) {
         for (std::uint32_t column = 0U; column < 4U; ++column) {
             const auto source_index = static_cast<std::size_t>((row % 2U) * 4U + column);
@@ -197,13 +194,12 @@ int main() {
     assert(!size_failure.complete(wrong_size.descriptor));
     assert(!size_failure.diagnostics.empty());
 
-    auto short_limit = fixture;
     const auto path_failure = StageResourceTableReader::read(
-        std::span<const std::byte>{short_limit.bytes},
-        short_limit.image,
-        short_limit.descriptor,
+        std::span<const std::byte>{fixture.bytes},
+        fixture.image,
+        fixture.descriptor,
         4U);
-    assert(!path_failure.complete(short_limit.descriptor));
+    assert(!path_failure.complete(fixture.descriptor));
     assert(!path_failure.diagnostics.empty());
 
     return 0;
