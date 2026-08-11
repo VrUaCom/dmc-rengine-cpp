@@ -21,31 +21,24 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 3301568,
+          "file_offset": 3305664,
           "size": 1184,
-          "rva": 3304640,
-          "va": 5372013760,
+          "rva": 3308736,
+          "va": 5372017856,
           "symbol": "ZipArchiveBuildIndex",
           "note": "VA 0x140327CC0. Phase-14 disassembly contains the standard EOCD/central/local ZIP constants and builds the archive entry index from those structures."
         },
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 3302752,
+          "file_offset": 3306848,
           "size": 304,
-          "rva": 3305824,
-          "va": 5372014944,
+          "rva": 3309920,
+          "va": 5372019040,
           "symbol": "ZipArchiveLookup",
           "note": "VA 0x140328160. Lookup operates over the built archive entry index."
         }
       ],
-      "tags": [
-        "gdspaces",
-        "resource-runtime",
-        "nbz",
-        "zip",
-        "central-directory",
-        "phase14"
-      ],
+      "tags": ["gdspaces","resource-runtime","nbz","zip","central-directory","phase14"],
       "supersedes": []
     },
     {
@@ -57,32 +50,24 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 3306320,
+          "file_offset": 3310416,
           "size": 576,
-          "rva": 3309392,
-          "va": 5372018512,
+          "rva": 3313488,
+          "va": 5372022608,
           "symbol": "ZipEntryRead",
           "note": "VA 0x140328F50. The read path uses direct archive bytes for stored entries and the inflater state for compressed entries."
         },
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 3304496,
+          "file_offset": 3308576,
           "size": 464,
-          "rva": 3307568,
-          "va": 5372016688,
+          "rva": 3311648,
+          "va": 5372020768,
           "symbol": "InflateRead",
           "note": "VA 0x140328820. Dedicated compressed-entry materialization path. The complete real-corpus compression-method domain remains a separate validation question."
         }
       ],
-      "tags": [
-        "gdspaces",
-        "resource-runtime",
-        "nbz",
-        "zip",
-        "inflate",
-        "byte-provenance",
-        "phase14"
-      ],
+      "tags": ["gdspaces","resource-runtime","nbz","zip","inflate","byte-provenance","phase14"],
       "supersedes": []
     },
     {
@@ -94,22 +79,15 @@
       "locations": [
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "file_offset": 3297696,
+          "file_offset": 3301792,
           "size": 960,
-          "rva": 3300768,
-          "va": 5372009888,
+          "rva": 3304864,
+          "va": 5372013984,
           "symbol": "ArchiveMountOpen",
           "note": "VA 0x140326DA0. Phase-14 bootstrap evidence links numbered DMC3 NBZ volumes to this ZIP-compatible archive backend."
         }
       ],
-      "tags": [
-        "gdspaces",
-        "resource-runtime",
-        "nbz",
-        "mount",
-        "source-registry",
-        "phase14"
-      ],
+      "tags": ["gdspaces","resource-runtime","nbz","mount","source-registry","phase14"],
       "supersedes": []
     }
   ]
