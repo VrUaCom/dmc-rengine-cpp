@@ -67,6 +67,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
 
     set(DMC_RENGINE_SIMPLE_TESTS
         sha256
+        raw_deflate
         patch
         json_parser
         evidence_json
