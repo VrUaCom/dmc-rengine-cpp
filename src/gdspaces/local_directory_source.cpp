@@ -199,7 +199,7 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
     payload.resource.container = classification.container;
     payload.byte_provenance = ByteProvenance{
         .kind = ByteOriginKind::direct_source_span,
-        .authority_id = resource.id.canonical(),
+        .authority_id = resource.canonical(),
         .offset = 0U,
         .stored_size = static_cast<std::uint64_t>(raw_size),
         .materialized_size = static_cast<std::uint64_t>(raw_size),
