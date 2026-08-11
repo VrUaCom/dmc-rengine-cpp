@@ -7,7 +7,6 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <utility>
 
 namespace dmc::rengine::profiles::dmc3 {
@@ -19,20 +18,23 @@ bool RuntimeSourceBindings::valid_for(
         return false;
     }
 
-    std::unordered_set<std::uint32_t> indices;
-    std::unordered_set<std::string> source_ids;
-    source_ids.insert(physical_source_id);
-
-    for (const auto& binding : archives) {
+    for (std::size_t index = 0U; index < archives.size(); ++index) {
+        const auto& binding = archives[index];
         if (!binding.valid() || binding.volume_index >= bootstrap.first_missing_index ||
-            !indices.insert(binding.volume_index).second ||
-            !source_ids.insert(binding.source_id).second) {
+            binding.source_id == physical_source_id) {
             return false;
+        }
+
+        for (std::size_t other = index + 1U; other < archives.size(); ++other) {
+            if (archives[other].volume_index == binding.volume_index ||
+                archives[other].source_id == binding.source_id) {
+                return false;
+            }
         }
     }
 
     for (const auto& volume : bootstrap.registered_archives) {
-        if (!indices.contains(volume.index)) {
+        if (archive(volume.index) == nullptr) {
             return false;
         }
     }
