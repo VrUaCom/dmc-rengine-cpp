@@ -8,7 +8,7 @@
       "id": "dmc3-hdc-exe-e454272e",
       "role": "canonical-research-target",
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-      "size": 3735552
+      "size": 6356432
     }
   ],
   "records": [
@@ -18,65 +18,15 @@
       "title": "Item registry slot 50 guarded source bytes",
       "summary": "For the canonical executable target, item slot 50 is identified at RVA 0x005C4CE8 / VA 0x1405C4CE8 and the guarded source bytes are 00 01 08 13. The physical file offset must be resolved through the parsed PE sections.",
       "confidence": "confirmed",
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "size": 4,
-          "rva": 6049000,
-          "va": 5374758120,
-          "symbol": "item_registry_slot_50",
-          "note": "Guard bytes: 00 01 08 13. Any patch must verify the artifact SHA-256, resolve the RVA through the parsed PE sections, and verify these exact bytes before modification."
-        }
-      ],
-      "tags": [
-        "item-editor",
-        "item-registry",
-        "guarded-patch",
-        "slot-50"
-      ],
+      "locations": [{"artifact_id":"dmc3-hdc-exe-e454272e","size":4,"rva":6049000,"va":5374758120,"symbol":"item_registry_slot_50","note":"Guard bytes: 00 01 08 13. Any patch must verify the artifact SHA-256, resolve the RVA through the parsed PE sections, and verify these exact bytes before modification."}],
+      "tags": ["item-editor","item-registry","guarded-patch","slot-50"],
       "supersedes": []
     },
     {
-      "id": "ev-dmc3-item-id-runtime-tests",
-      "claim_id": "claim-dmc3-item-id-runtime-tests",
-      "title": "Game-verified item ID observations",
-      "summary": "Runtime tests confirmed red orb IDs 1-3, green orb IDs 9-11, white orb IDs 12-14, star ID 17, and holy water ID 19 in the tested DMC3 HD build and workflows.",
-      "confidence": "confirmed",
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "symbol": "item_runtime_observations",
-          "note": "Evidence source is reproducible game testing rather than one isolated executable region. Non-orb items may depend on event-based spawn or collection behavior."
-        }
-      ],
-      "tags": [
-        "item-editor",
-        "game-verified",
-        "runtime-test",
-        "item-id"
-      ],
-      "supersedes": []
+      "id":"ev-dmc3-item-id-runtime-tests","claim_id":"claim-dmc3-item-id-runtime-tests","title":"Game-verified item ID observations","summary":"Runtime tests confirmed red orb IDs 1-3, green orb IDs 9-11, white orb IDs 12-14, star ID 17, and holy water ID 19 in the tested DMC3 HD build and workflows.","confidence":"confirmed","locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","symbol":"item_runtime_observations","note":"Evidence source is reproducible game testing rather than one isolated executable region. Non-orb items may depend on event-based spawn or collection behavior."}],"tags":["item-editor","game-verified","runtime-test","item-id"],"supersedes":[]
     },
     {
-      "id": "ev-dmc3-inventory-limit-patch-family",
-      "claim_id": "claim-dmc3-inventory-limit-patch-family",
-      "title": "Inventory limit immediate-comparison patch family",
-      "summary": "Historical reverse-engineering identified six inventory-limit comparison sites using the 83 F8 imm8 pattern. The established guarded implementation supports values 1-127 directly, treats 128-255 as a separate controlled range, and blocks 256 or greater.",
-      "confidence": "high",
-      "locations": [
-        {
-          "artifact_id": "dmc3-hdc-exe-e454272e",
-          "symbol": "inventory_limit_patch_family",
-          "note": "The six exact public locations still require migration into a dedicated location-complete Evidence Packet before production patch generation."
-        }
-      ],
-      "tags": [
-        "item-editor",
-        "inventory-limit",
-        "exe-patch",
-        "migration-incomplete"
-      ],
-      "supersedes": []
+      "id":"ev-dmc3-inventory-limit-patch-family","claim_id":"claim-dmc3-inventory-limit-patch-family","title":"Inventory limit immediate-comparison patch family","summary":"Historical reverse-engineering identified six inventory-limit comparison sites using the 83 F8 imm8 pattern. The established guarded implementation supports values 1-127 directly, treats 128-255 as a separate controlled range, and blocks 256 or greater.","confidence":"high","locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","symbol":"inventory_limit_patch_family","note":"The six exact public locations still require migration into a dedicated location-complete Evidence Packet before production patch generation."}],"tags":["item-editor","inventory-limit","exe-patch","migration-incomplete"],"supersedes":[]
     }
   ]
 }
