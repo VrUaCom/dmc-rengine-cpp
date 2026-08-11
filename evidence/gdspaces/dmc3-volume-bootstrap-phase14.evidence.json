@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-volume-bootstrap-phase14",
+  "title": "DMC3 HD Resource Volume Bootstrap and Mount Precedence — Phase 14",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-volume-bootstrap-path-family",
+      "claim_id": "claim-dmc3-volume-bootstrap-path-family",
+      "title": "DMC3 resource bootstrap targets the executable-relative data/dmc3 directory and DMC3-N.nbz family",
+      "summary": "The canonical bootstrap derives the executable directory, appends the literal \\data\\dmc3\\ suffix, registers that physical root, and formats archive candidates with the literal %sDMC3-%d.nbz pattern.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 187696,
+          "size": 261,
+          "rva": 190768,
+          "va": 5368899888,
+          "symbol": "Dmc3ResourceBootstrap",
+          "note": "VA 0x14002E930. Builds the executable-relative data root, registers the physical root, then enters the numbered NBZ probe/mount loop."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3595040,
+          "size": 12,
+          "rva": 3598624,
+          "va": 5372307744,
+          "symbol": "Dmc3DataDirectorySuffix",
+          "note": "VA 0x14036E920: literal \\data\\dmc3\\ including the terminating NUL."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3595056,
+          "size": 14,
+          "rva": 3598640,
+          "va": 5372307760,
+          "symbol": "Dmc3NbzVolumeFormat",
+          "note": "VA 0x14036E930: literal %sDMC3-%d.nbz including the terminating NUL."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "bootstrap",
+        "nbz",
+        "path-family",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-volume-contiguous-probe",
+      "claim_id": "claim-dmc3-volume-contiguous-probe",
+      "title": "Numbered NBZ probing starts at zero and stops at the first missing volume",
+      "summary": "The bootstrap initializes the archive index to 0, formats DMC3-0.nbz, checks existence, mounts it when present, increments the index and repeats. A failed existence check exits the loop immediately, so later numbered archives after the first gap are not runtime-mounted by this bootstrap.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 187696,
+          "size": 261,
+          "rva": 190768,
+          "va": 5368899888,
+          "symbol": "Dmc3ResourceBootstrap",
+          "note": "VA 0x14002E930. The loop uses EBX=0 as the first %d argument, calls the existence helper, mounts on success, INC EBX, formats the next path, and exits on the first zero result."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3304224,
+          "size": 150,
+          "rva": 3307296,
+          "va": 5372016416,
+          "symbol": "ResourcePathExists",
+          "note": "VA 0x140327720. The helper returns false for ordinary missing/path-not-found outcomes used to terminate the bootstrap probe."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "nbz",
+        "contiguous-probe",
+        "runtime-equivalence",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-mount-list-prepend",
+      "claim_id": "claim-dmc3-mount-list-prepend",
+      "title": "Physical and archive mounts are prepended to one global mount list",
+      "summary": "Both the physical-root registration helper and the archive registration helper read the current global mount head, store it in the new node at +0x50, then replace the global head with the new node. The bootstrap registers the physical root before the numbered archives, so each later archive is placed ahead of every earlier mount.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3301664,
+          "size": 126,
+          "rva": 3304736,
+          "va": 5372013856,
+          "symbol": "PhysicalMountAdd",
+          "note": "VA 0x140326D20. New physical node stores the prior global head at node+0x50 and becomes the new head. Bootstrap calls this before any numbered NBZ archive is added."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3301792,
+          "size": 245,
+          "rva": 3304864,
+          "va": 5372013984,
+          "symbol": "ArchiveMountAdd",
+          "note": "VA 0x140326DA0. Successful ZIP/NBZ archive node stores the prior global head at node+0x50 and becomes the new head."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "va": 5382287744,
+          "symbol": "ResourceMountListHead",
+          "note": "VA 0x140CF3180. Zero-initialized runtime global head used by physical mount registration, archive mount registration and resolution traversal."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "mount-list",
+        "prepend",
+        "physical-provider",
+        "archive-provider",
+        "phase14"
+      ],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-archive-effective-precedence",
+      "claim_id": "claim-dmc3-archive-effective-precedence",
+      "title": "Effective archive resolution order is highest contiguous volume index down to zero",
+      "summary": "The resolver begins at the global mount-list head and advances through node+0x50. Combined with ascending registration and head insertion, a contiguous mounted family DMC3-0.nbz through DMC3-N.nbz is traversed as N, N-1, ..., 0 before the earlier physical-root node. This precedence is mechanically derived from confirmed registration and traversal instructions, not from filename sorting.",
+      "confidence": "confirmed",
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3303472,
+          "size": 397,
+          "rva": 3306544,
+          "va": 5372015664,
+          "symbol": "ResourceMountResolve",
+          "note": "VA 0x140327430. Loads the global head at function entry, checks each node provider type, and advances with MOV RBX,[RBX+0x50]."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 187696,
+          "size": 261,
+          "rva": 190768,
+          "va": 5368899888,
+          "symbol": "Dmc3ResourceBootstrap",
+          "note": "Ascending registration order 0,1,2,... supplies the registration half of the effective reverse traversal proof."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 3301792,
+          "size": 245,
+          "rva": 3304864,
+          "va": 5372013984,
+          "symbol": "ArchiveMountAdd",
+          "note": "Head insertion supplies the ordering half of the proof: each newly mounted higher index precedes all previously registered archives."
+        }
+      ],
+      "tags": [
+        "gdspaces",
+        "resource-runtime",
+        "archive-precedence",
+        "lookup-equivalence",
+        "mount-list",
+        "phase14"
+      ],
+      "supersedes": []
+    }
+  ]
+}
