@@ -18,7 +18,6 @@ namespace {
     using dmc::rengine::formats::ContainerParseResult;
 
     return ContainerParseResult{
-        .recognized = true,
         .document = ContainerDocument{
             .format = "pac",
             .schema_version = 1U,
@@ -36,6 +35,7 @@ namespace {
             },
         },
         .diagnostics = {},
+        .recognized = true,
     };
 }
 
