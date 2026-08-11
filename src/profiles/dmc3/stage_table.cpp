@@ -8,7 +8,9 @@ namespace dmc::rengine::profiles::dmc3 {
 
 bool StageResourceTableDescriptor::valid() const noexcept {
     if (id.empty() || evidence_packet_id.empty() ||
-        artifact_sha256.size() != 64U || row_count == 0U) {
+        artifact_sha256.size() != 64U || artifact_size == 0U ||
+        row_count == 0U || cell_stride < 8U ||
+        path_pointer_offset > cell_stride - 8U) {
         return false;
     }
 
@@ -16,7 +18,10 @@ bool StageResourceTableDescriptor::valid() const noexcept {
     return target.matches_hash(artifact_sha256) &&
         target.image_base <= va &&
         va - target.image_base == rva &&
-        entry_count() == 440U;
+        entry_count() == 440U &&
+        table_size_bytes() == 0x1B80ULL &&
+        file_offset < artifact_size &&
+        table_size_bytes() <= artifact_size - file_offset;
 }
 
 std::uint32_t StageResourceTableDescriptor::entry_count() const noexcept {
@@ -25,6 +30,17 @@ std::uint32_t StageResourceTableDescriptor::entry_count() const noexcept {
         return 0U;
     }
     return row_count * column_count;
+}
+
+std::uint64_t StageResourceTableDescriptor::table_size_bytes() const noexcept {
+    if (cell_stride == 0U) {
+        return 0U;
+    }
+    const auto count = static_cast<std::uint64_t>(entry_count());
+    if (count > std::numeric_limits<std::uint64_t>::max() / cell_stride) {
+        return 0U;
+    }
+    return count * cell_stride;
 }
 
 std::optional<StageResourceRole>
@@ -43,10 +59,13 @@ phase12_stage_resource_table() noexcept {
         .evidence_packet_id = "dmc3-hdc-phase12-canonical-target",
         .artifact_sha256 =
             "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+        .artifact_size = 6356432ULL,
         .file_offset = 0x005C30A8ULL,
         .rva = 0x005C4AA8U,
         .va = 0x1405C4AA8ULL,
         .row_count = 110U,
+        .cell_stride = 0x10U,
+        .path_pointer_offset = 0U,
         .columns = {
             StageResourceRole::script,
             StageResourceRole::room_config,
