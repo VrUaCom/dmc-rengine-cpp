@@ -119,6 +119,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_path_normalizer
         resource_lookup_policy
         source_lookup
+        runtime_resource_resolver
         classifier
         known_target
         stage_table_descriptor
