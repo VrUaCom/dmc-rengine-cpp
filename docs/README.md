@@ -47,6 +47,10 @@
 - [Binary document model](binary/document-model.md)
 - [Web-to-C++20 cross-port plan](binary/web-crossport.md)
 
+## Research baselines
+
+- [DMC3 Vanilla Research Baseline](research/dmc3-vanilla-research-baseline.md) — pre-roadmap reconciled authority for vanilla runtime/resource architecture, cross-build identity, ST namespace coverage, HD-port translation, HITS corrections, and remaining research frontiers.
+
 ## History and Canon migration
 
 - [Project timeline](history/project-timeline.md)
