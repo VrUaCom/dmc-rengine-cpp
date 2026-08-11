@@ -88,6 +88,18 @@ int main() {
     assert(direct.valid());
     assert(direct.direct_byte_mapping());
 
+    const ByteProvenance zip_stored{
+        .kind = ByteOriginKind::direct_source_span,
+        .authority_id = "DMC3-0.nbz",
+        .offset = 50000U,
+        .stored_size = 160U,
+        .materialized_size = 160U,
+        .transform = ByteTransform::zip_stored,
+        .crc32 = 0x12345678U,
+    };
+    assert(zip_stored.valid());
+    assert(zip_stored.direct_byte_mapping());
+
     const auto parsed = parsed_child(160U, 96U, 16U);
     const auto direct_expansion = ContainerExpander::expand(
         parent_payload(1000U, direct), parsed);
@@ -103,6 +115,19 @@ int main() {
     assert(direct_child.byte_provenance->offset == 1096U);
     assert(direct_child.byte_provenance->stored_size == 16U);
     assert(direct_child.byte_provenance->materialized_size == 16U);
+
+    const auto zip_stored_expansion = ContainerExpander::expand(
+        parent_payload(0U, zip_stored), parsed);
+    assert(zip_stored_expansion.usable());
+    assert(zip_stored_expansion.children.size() == 1U);
+    const auto& zip_stored_child = zip_stored_expansion.children.front().payload;
+    assert(zip_stored_child.resource.id.offset == 96U);
+    assert(zip_stored_child.byte_provenance.has_value());
+    assert(zip_stored_child.byte_provenance->valid());
+    assert(zip_stored_child.byte_provenance->kind ==
+        ByteOriginKind::direct_source_span);
+    assert(zip_stored_child.byte_provenance->authority_id == "DMC3-0.nbz");
+    assert(zip_stored_child.byte_provenance->offset == 50096U);
 
     const ByteProvenance deflated{
         .kind = ByteOriginKind::transformed_source_span,
