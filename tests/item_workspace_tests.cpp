@@ -71,10 +71,10 @@ int main(int argc, char** argv) {
     assert(project.import_evidence_packet(item_packet));
     assert(project.artifacts().size() == 1U);
     assert(project.packets().size() == 2U);
-    assert(project.evidence().size() == 9U);
+    assert(project.evidence().size() == 10U);
     assert(project.graph().nodes(ProjectNodeKind::evidence_packet).size() == 2U);
     assert(project.graph().nodes(ProjectNodeKind::artifact).size() == 1U);
-    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 9U);
+    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 10U);
 
     const std::vector<std::byte> itm_bytes{
         std::byte{'I'}, std::byte{'T'}, std::byte{'M'}, std::byte{0},
