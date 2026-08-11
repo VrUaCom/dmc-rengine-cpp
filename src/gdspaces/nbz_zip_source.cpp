@@ -1,5 +1,6 @@
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 
+#include "dmc_rengine/core/raw_deflate.hpp"
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include <algorithm>
@@ -87,7 +88,8 @@ void add_diagnostic(
     });
 }
 
-[[nodiscard]] bool has_error(const std::vector<Diagnostic>& diagnostics) noexcept {
+[[nodiscard]] bool has_error(
+    const std::vector<Diagnostic>& diagnostics) noexcept {
     return std::any_of(
         diagnostics.begin(), diagnostics.end(),
         [](const Diagnostic& diagnostic) {
@@ -111,7 +113,8 @@ void add_diagnostic(
     };
 }
 
-[[nodiscard]] std::uint32_t crc32_of(std::span<const std::byte> bytes) noexcept {
+[[nodiscard]] std::uint32_t crc32_of(
+    std::span<const std::byte> bytes) noexcept {
     std::uint32_t crc = 0xFFFFFFFFU;
     for (const auto value : bytes) {
         crc ^= std::to_integer<std::uint8_t>(value);
@@ -131,6 +134,16 @@ void add_diagnostic(
         return std::nullopt;
     }
     return left + right;
+}
+
+[[nodiscard]] ByteTransform transform_for(std::uint16_t method) noexcept {
+    if (method == 0U) {
+        return ByteTransform::zip_stored;
+    }
+    if (method == 8U) {
+        return ByteTransform::zip_deflate;
+    }
+    return ByteTransform::unknown;
 }
 
 } // namespace
@@ -209,26 +222,17 @@ std::optional<ResourcePayload> NbzZipSource::read(
         },
         .bytes = {},
         .diagnostics = {},
-        .byte_provenance = std::nullopt,
-    };
-
-    const auto transform = entry->compression_method == 0U
-        ? ByteTransform::zip_stored
-        : entry->compression_method == 8U
-            ? ByteTransform::zip_deflate
-            : ByteTransform::unknown;
-    payload.byte_provenance = ByteProvenance{
-        .kind = entry->compression_method == 0U
-            ? ByteOriginKind::direct_source_span
-            : ByteOriginKind::transformed_source_span,
-        .authority_id = source_id_,
-        .offset = entry->data_offset,
-        .stored_size = entry->compressed_size,
-        .materialized_size = entry->uncompressed_size,
-        .transform = entry->compression_method == 0U
-            ? ByteTransform::none
-            : transform,
-        .crc32 = entry->crc32,
+        .byte_provenance = ByteProvenance{
+            .kind = entry->compression_method == 0U
+                ? ByteOriginKind::direct_source_span
+                : ByteOriginKind::transformed_source_span,
+            .authority_id = source_id_,
+            .offset = entry->data_offset,
+            .stored_size = entry->compressed_size,
+            .materialized_size = entry->uncompressed_size,
+            .transform = transform_for(entry->compression_method),
+            .crc32 = entry->crc32,
+        },
     };
 
     if (entry->encrypted()) {
@@ -241,17 +245,7 @@ std::optional<ResourcePayload> NbzZipSource::read(
         return payload;
     }
 
-    if (entry->compression_method == 8U) {
-        add_diagnostic(
-            payload.diagnostics,
-            DiagnosticSeverity::error,
-            "gdspaces.nbz.deflate-materialization-pending",
-            "The entry is indexed with verified storage provenance, but DEFLATE materialization is intentionally gated until the decompressor path is promoted.",
-            payload.resource.id);
-        return payload;
-    }
-
-    if (entry->compression_method != 0U) {
+    if (entry->compression_method != 0U && entry->compression_method != 8U) {
         add_diagnostic(
             payload.diagnostics,
             DiagnosticSeverity::error,
@@ -261,7 +255,8 @@ std::optional<ResourcePayload> NbzZipSource::read(
         return payload;
     }
 
-    if (entry->compressed_size != entry->uncompressed_size) {
+    if (entry->compression_method == 0U &&
+        entry->compressed_size != entry->uncompressed_size) {
         add_diagnostic(
             payload.diagnostics,
             DiagnosticSeverity::error,
@@ -282,17 +277,62 @@ std::optional<ResourcePayload> NbzZipSource::read(
         return payload;
     }
 
-    payload.bytes.resize(entry->uncompressed_size);
-    if (!read_exact(
-            stream,
-            entry->data_offset,
-            std::span<std::byte>{payload.bytes})) {
+    if (entry->compression_method == 0U) {
+        payload.bytes.resize(entry->uncompressed_size);
+        if (!read_exact(
+                stream,
+                entry->data_offset,
+                std::span<std::byte>{payload.bytes})) {
+            payload.bytes.clear();
+            add_diagnostic(
+                payload.diagnostics,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.entry-read-failed",
+                "The stored ZIP/NBZ entry could not be read completely.",
+                payload.resource.id);
+            return payload;
+        }
+    } else {
+        std::vector<std::byte> compressed(entry->compressed_size);
+        if (!read_exact(
+                stream,
+                entry->data_offset,
+                std::span<std::byte>{compressed})) {
+            add_diagnostic(
+                payload.diagnostics,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.compressed-entry-read-failed",
+                "The compressed ZIP/NBZ entry could not be read completely.",
+                payload.resource.id);
+            return payload;
+        }
+
+        auto inflated = core::RawDeflate::inflate(
+            std::span<const std::byte>{compressed},
+            entry->uncompressed_size);
+        if (!inflated.ok()) {
+            add_diagnostic(
+                payload.diagnostics,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.deflate-failed",
+                std::string{"Raw DEFLATE materialization failed: "} +
+                    std::string{core::to_string(inflated.status)} +
+                    (inflated.detail.empty()
+                        ? std::string{}
+                        : std::string{" ("} + inflated.detail + ")"),
+                payload.resource.id);
+            return payload;
+        }
+        payload.bytes = std::move(inflated.bytes);
+    }
+
+    if (payload.bytes.size() != entry->uncompressed_size) {
         payload.bytes.clear();
         add_diagnostic(
             payload.diagnostics,
             DiagnosticSeverity::error,
-            "gdspaces.nbz.entry-read-failed",
-            "The stored ZIP/NBZ entry could not be read completely.",
+            "gdspaces.nbz.materialized-size-mismatch",
+            "The ZIP/NBZ entry materialized to a size different from the central-directory contract.",
             payload.resource.id);
         return payload;
     }
@@ -303,7 +343,7 @@ std::optional<ResourcePayload> NbzZipSource::read(
             payload.diagnostics,
             DiagnosticSeverity::error,
             "gdspaces.nbz.crc32-mismatch",
-            "The materialized stored ZIP/NBZ entry failed CRC32 validation.",
+            "The materialized ZIP/NBZ entry failed central-directory CRC32 validation.",
             payload.resource.id);
         return payload;
     }
@@ -407,6 +447,7 @@ void NbzZipSource::build_index() {
         return;
     }
 
+    const auto eocd_absolute = archive_size_ - tail_size + *eocd_index;
     const auto eocd = std::span<const std::byte>{tail}.subspan(*eocd_index);
     const auto disk_number = u16_le(eocd, 4U);
     const auto central_disk = u16_le(eocd, 6U);
@@ -435,12 +476,12 @@ void NbzZipSource::build_index() {
     }
 
     const auto central_end = checked_add(central_offset, central_size);
-    if (!central_end.has_value() || *central_end > archive_size_) {
+    if (!central_end.has_value() || *central_end > eocd_absolute) {
         add_diagnostic(
             diagnostics_,
             DiagnosticSeverity::error,
             "gdspaces.nbz.central-range-invalid",
-            "The ZIP central-directory range extends outside the NBZ archive.");
+            "The ZIP central-directory range extends outside its bounded pre-EOCD region.");
         return;
     }
 
@@ -486,7 +527,7 @@ void NbzZipSource::build_index() {
             extra_length + comment_length;
         const auto next_cursor = checked_add(
             cursor,
-            central_fixed_size + variable_size);
+            static_cast<std::uint64_t>(central_fixed_size) + variable_size);
         if (!next_cursor.has_value() || *next_cursor > *central_end) {
             add_diagnostic(
                 diagnostics_,
@@ -558,9 +599,8 @@ void NbzZipSource::build_index() {
 
         const auto data_offset = checked_add(
             local_header_offset,
-            local_fixed_size +
-                static_cast<std::uint64_t>(local_name_length) +
-                local_extra_length);
+            static_cast<std::uint64_t>(local_fixed_size) +
+                local_name_length + local_extra_length);
         if (!data_offset.has_value()) {
             add_diagnostic(
                 diagnostics_,
