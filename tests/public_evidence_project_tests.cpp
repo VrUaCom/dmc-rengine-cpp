@@ -26,19 +26,20 @@ int main(int argc, char** argv) {
     assert(project.import_evidence_packet(*imported.packet));
     assert(project.packets().size() == 1U);
     assert(project.artifacts().size() == 1U);
-    assert(project.evidence().size() == 6U);
+    assert(project.evidence().size() == 7U);
 
     const auto* packet = project.packets().find(
         "dmc3-hdc-phase12-canonical-target");
     assert(packet != nullptr);
     assert(packet->artifact_ids.size() == 1U);
-    assert(packet->record_ids.size() == 6U);
+    assert(packet->record_ids.size() == 7U);
 
     const auto* artifact = project.artifacts().find(
         "dmc3-hdc-exe-e454272e");
     assert(artifact != nullptr);
     assert(artifact->sha256 ==
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082");
+    assert(artifact->size == 6356432ULL);
     assert(artifact->role == "canonical-research-target");
 
     assert(project.evidence().find("ev-dmc3-pe-identity") != nullptr);
@@ -46,6 +47,8 @@ int main(int argc, char** argv) {
     assert(project.evidence().find("ev-dmc3-entry-point") != nullptr);
     assert(project.evidence().find("ev-dmc3-main-export") != nullptr);
     assert(project.evidence().find("ev-dmc3-stage-resource-table") != nullptr);
+    assert(project.evidence().find(
+        "ev-dmc3-stage-resource-table-row-set") != nullptr);
     assert(project.evidence().find(
         "ev-dmc3-stageset-token-classifier") != nullptr);
 
@@ -55,7 +58,7 @@ int main(int argc, char** argv) {
         "artifact:dmc3-hdc-exe-e454272e") != nullptr);
     assert(project.graph().nodes(ProjectNodeKind::evidence_packet).size() == 1U);
     assert(project.graph().nodes(ProjectNodeKind::artifact).size() == 1U);
-    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 6U);
+    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 7U);
 
     std::size_t declared_records = 0U;
     std::size_t artifact_references = 0U;
@@ -71,8 +74,8 @@ int main(int argc, char** argv) {
             ++artifact_references;
         }
     }
-    assert(declared_records == 6U);
-    assert(artifact_references == 6U);
+    assert(declared_records == 7U);
+    assert(artifact_references == 7U);
 
     assert(!project.import_evidence_packet(*imported.packet));
     return 0;
