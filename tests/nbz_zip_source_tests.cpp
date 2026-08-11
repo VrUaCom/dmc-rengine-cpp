@@ -1,4 +1,6 @@
+#include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
+#include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -6,7 +8,9 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -38,6 +42,38 @@ void write_u32(
     }
 }
 
+void write_ascii(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::string_view value) {
+    for (std::size_t index = 0U; index < value.size(); ++index) {
+        bytes[offset + index] = static_cast<std::byte>(value[index]);
+    }
+}
+
+[[nodiscard]] std::vector<std::byte> from_hex(std::string_view hex) {
+    assert((hex.size() % 2U) == 0U);
+    const auto nibble = [](char value) -> std::uint8_t {
+        if (value >= '0' && value <= '9') {
+            return static_cast<std::uint8_t>(value - '0');
+        }
+        if (value >= 'a' && value <= 'f') {
+            return static_cast<std::uint8_t>(10 + value - 'a');
+        }
+        assert(false);
+        return 0U;
+    };
+
+    std::vector<std::byte> bytes;
+    bytes.reserve(hex.size() / 2U);
+    for (std::size_t index = 0U; index < hex.size(); index += 2U) {
+        bytes.push_back(static_cast<std::byte>(
+            static_cast<std::uint8_t>((nibble(hex[index]) << 4U) |
+                nibble(hex[index + 1U]))));
+    }
+    return bytes;
+}
+
 [[nodiscard]] std::uint32_t crc32_of(const std::vector<std::byte>& bytes) {
     std::uint32_t crc = 0xFFFFFFFFU;
     for (const auto value : bytes) {
@@ -51,6 +87,21 @@ void write_u32(
     return ~crc;
 }
 
+[[nodiscard]] std::vector<std::byte> make_pac_payload() {
+    std::vector<std::byte> bytes(80U, std::byte{0});
+    write_ascii(bytes, 0U, std::string_view{"PAC\0", 4U});
+    write_u32(bytes, 4U, 5U);
+    write_u32(bytes, 8U, 32U);
+    write_u32(bytes, 12U, 0U);
+    write_u32(bytes, 16U, 48U);
+    write_u32(bytes, 20U, 48U);
+    write_u32(bytes, 24U, 64U);
+    write_ascii(bytes, 32U, "DDS ");
+    write_ascii(bytes, 48U, std::string_view{"SCM\0", 4U});
+    write_ascii(bytes, 64U, std::string_view{"PAC\0", 4U});
+    return bytes;
+}
+
 struct FixtureEntry final {
     std::string name;
     std::uint16_t method{};
@@ -61,6 +112,7 @@ struct FixtureEntry final {
 };
 
 [[nodiscard]] std::vector<std::byte> make_zip_fixture() {
+    const auto pac_payload = make_pac_payload();
     std::vector<FixtureEntry> entries{
         FixtureEntry{
             .name = "scr/st001.pac",
@@ -76,11 +128,10 @@ struct FixtureEntry final {
         FixtureEntry{
             .name = "room/st001cfg.pac",
             .method = 8U,
-            .stored_bytes = {
-                std::byte{0x11}, std::byte{0x22}, std::byte{0x33},
-            },
-            .uncompressed_size = 32U,
-            .crc32 = 0xAABBCCDDU,
+            .stored_bytes = from_hex(
+                "0b707466606560605060800003287680f25d5c8261526010ecec8bcc650800ea470600"),
+            .uncompressed_size = static_cast<std::uint32_t>(pac_payload.size()),
+            .crc32 = crc32_of(pac_payload),
             .local_offset = 0U,
         },
     };
@@ -168,7 +219,9 @@ struct FixtureEntry final {
 int main() {
     using dmc::rengine::gdspaces::ByteOriginKind;
     using dmc::rengine::gdspaces::ByteTransform;
+    using dmc::rengine::gdspaces::ContainerExpander;
     using dmc::rengine::gdspaces::NbzZipSource;
+    using dmc::rengine::profiles::dmc3::make_container_parser_registry;
 
     const auto fixture = make_zip_fixture();
     const auto path = write_fixture(fixture, "valid");
@@ -190,7 +243,7 @@ int main() {
     assert(resources[0].id.size == 8U);
     assert(resources[1].id.container_chain == "nbz[1]");
     assert(resources[1].id.offset == 0U);
-    assert(resources[1].id.size == 32U);
+    assert(resources[1].id.size == 80U);
 
     const auto stored = source.read(resources[0].id);
     assert(stored.has_value());
@@ -201,7 +254,7 @@ int main() {
     assert(stored->byte_provenance.has_value());
     assert(stored->byte_provenance->valid());
     assert(stored->byte_provenance->kind == ByteOriginKind::direct_source_span);
-    assert(stored->byte_provenance->transform == ByteTransform::none);
+    assert(stored->byte_provenance->transform == ByteTransform::zip_stored);
     assert(stored->byte_provenance->authority_id == "dmc3-nbz-0");
     assert(stored->byte_provenance->stored_size == 8U);
     assert(stored->byte_provenance->materialized_size == 8U);
@@ -209,22 +262,46 @@ int main() {
 
     const auto deflated = source.read(resources[1].id);
     assert(deflated.has_value());
-    assert(!deflated->readable());
-    assert(deflated->bytes.empty());
+    assert(deflated->readable());
+    assert(deflated->bytes == make_pac_payload());
+    assert(deflated->resource.format == "pac");
+    assert(deflated->resource.container);
     assert(deflated->byte_provenance.has_value());
     assert(deflated->byte_provenance->valid());
     assert(deflated->byte_provenance->kind ==
         ByteOriginKind::transformed_source_span);
     assert(deflated->byte_provenance->transform == ByteTransform::zip_deflate);
-    assert(deflated->byte_provenance->stored_size == 3U);
-    assert(deflated->byte_provenance->materialized_size == 32U);
-    assert(has_code(
-        deflated->diagnostics,
-        "gdspaces.nbz.deflate-materialization-pending"));
+    assert(deflated->byte_provenance->stored_size == 35U);
+    assert(deflated->byte_provenance->materialized_size == 80U);
+    assert(deflated->byte_provenance->crc32 == source.entries()[1].crc32);
+
+    auto registry = make_container_parser_registry();
+    const auto parsed = registry.parse(
+        std::span<const std::byte>{deflated->bytes},
+        deflated->resource.id.logical_path);
+    assert(parsed.ok());
+    assert(parsed.document.declared_slot_count == 5U);
+
+    const auto expansion = ContainerExpander::expand(*deflated, parsed);
+    assert(expansion.usable());
+    assert(expansion.children.size() == 5U);
+    assert(expansion.children[0].payload.resource.id.offset == 32U);
+    assert(expansion.children[0].payload.resource.format == "dds");
+    assert(expansion.children[0].payload.byte_provenance.has_value());
+    assert(expansion.children[0].payload.byte_provenance->kind ==
+        ByteOriginKind::materialized_parent_span);
+    assert(expansion.children[0].payload.byte_provenance->offset == 32U);
+    assert(expansion.children[0].payload.byte_provenance->authority_id ==
+        deflated->resource.id.canonical());
+    assert(expansion.children[0].payload.byte_provenance->offset !=
+        source.entries()[1].data_offset + 32U);
+    assert(expansion.children[1].payload.resource.format == "empty-slot");
+    assert(expansion.children[2].payload.resource.format == "scm");
+    assert(expansion.children[3].payload.resource.format == "scm");
+    assert(expansion.children[4].payload.resource.format == "pac");
+    assert(expansion.children[4].payload.resource.container);
 
     auto corrupt_crc = fixture;
-    // First local/central CRC value is not used for source validity consistency,
-    // so corrupt the stored entry data itself. The read path must catch it.
     const auto first_data_offset = source.entries()[0].data_offset;
     corrupt_crc[static_cast<std::size_t>(first_data_offset)] ^= std::byte{0x01};
     const auto corrupt_path = write_fixture(corrupt_crc, "bad-crc");
@@ -236,9 +313,23 @@ int main() {
     assert(!bad_payload->readable());
     assert(has_code(bad_payload->diagnostics, "gdspaces.nbz.crc32-mismatch"));
 
+    auto corrupt_deflate = fixture;
+    const auto deflate_data_offset = source.entries()[1].data_offset;
+    corrupt_deflate[static_cast<std::size_t>(deflate_data_offset)] ^= std::byte{0x80};
+    const auto corrupt_deflate_path = write_fixture(
+        corrupt_deflate, "bad-deflate");
+    NbzZipSource bad_deflate_source(
+        "dmc3-nbz-bad-deflate", corrupt_deflate_path);
+    assert(bad_deflate_source.valid());
+    const auto bad_deflate_resources = bad_deflate_source.enumerate();
+    const auto bad_deflate_payload = bad_deflate_source.read(
+        bad_deflate_resources[1].id);
+    assert(bad_deflate_payload.has_value());
+    assert(!bad_deflate_payload->readable());
+    assert(has_code(bad_deflate_payload->diagnostics, "gdspaces.nbz.deflate-failed") ||
+        has_code(bad_deflate_payload->diagnostics, "gdspaces.nbz.crc32-mismatch"));
+
     auto zip64 = fixture;
-    // EOCD central-directory offset field is 6 bytes before the final comment
-    // length field in this zero-comment synthetic archive.
     const auto eocd_offset = zip64.size() - 22U;
     write_u32(zip64, eocd_offset + 16U, 0xFFFFFFFFU);
     const auto zip64_path = write_fixture(zip64, "zip64-sentinel");
@@ -250,6 +341,7 @@ int main() {
     std::error_code error;
     std::filesystem::remove(path, error);
     std::filesystem::remove(corrupt_path, error);
+    std::filesystem::remove(corrupt_deflate_path, error);
     std::filesystem::remove(zip64_path, error);
     return 0;
 }
