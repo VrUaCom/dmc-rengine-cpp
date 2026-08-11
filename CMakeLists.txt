@@ -126,6 +126,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pnst_container_parser
         container_tree_expander
         index_manifest
+        volume_bootstrap_policy
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
@@ -186,6 +187,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_nbz_zip_phase14_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-nbz-zip-phase14.evidence.json)
+    add_test(
+        NAME dmc_rengine_volume_bootstrap_phase14_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-volume-bootstrap-phase14.evidence.json)
     add_test(
         NAME dmc_rengine_item_evidence_validation
         COMMAND dmc-rengine validate-evidence
