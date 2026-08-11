@@ -50,6 +50,7 @@
 ## Research baselines
 
 - [DMC3 Vanilla Research Baseline](research/dmc3-vanilla-research-baseline.md) — pre-roadmap reconciled authority for vanilla runtime/resource architecture, cross-build identity, ST namespace coverage, HD-port translation, HITS corrections, and remaining research frontiers.
+- [DMC3 Vanilla Deep Research Wave 2](research/dmc3-vanilla-deep-research-wave-2.md) — direct cross-build evidence for the full 189-descriptor Stage surface, numeric Stage-ID resolver, cross-stage aliases, `.lst` fallback, 363-entry resource lifecycle manager, typed post-load fixups, and HD ADX→OGG / SFD→WMV translation.
 
 ## History and Canon migration
 
