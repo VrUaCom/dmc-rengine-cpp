@@ -38,7 +38,8 @@
 
 ### Stage reconstruction
 
-- [DMC3 Phase 12 stage resource plan](stage/dmc3-stage-resource-plan.md)
+- [DMC3 Stage Catalog](stage/stage-catalog.md)
+- [DMC3 Phase 12 stage resource catalog](stage/dmc3-stage-resource-plan.md)
 - [Stage Semantic Graph v1](stage/stage-semantic-graph.md)
 
 ### ModViz
@@ -86,7 +87,7 @@
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, specifications, tasks, and project provenance.
 - **EXE Editor — The Scriptorium:** executable inspection, recovered-source workflow, address mappings, Reverse Core integration, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, range selection, conflicts, unknown coverage, annotations, byte diff, entropy, and future Reverse Core bridge.
-- **Stage Ops — The Theatre:** typed stage workflows over `StageBundle` and the Stage Semantic Graph.
+- **Stage Ops — The Theatre:** catalog-driven stage workflows over `StageCatalog`, selected `StageBundle` objects, and the Stage Semantic Graph.
 - **ModViz — The Observatory:** Scene/Model Editor and Menu Editor over shared GDSpaces/workspace state.
 - **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
 - **Build & Test Lab — The Trial Chamber:** reproducibility, validation, regression, rollback, and release artifacts.
