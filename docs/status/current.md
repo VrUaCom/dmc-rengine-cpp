@@ -1,6 +1,6 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-08  
+**Snapshot date:** 2026-08-12  
 **Repository generation:** evidence-backed C++ platform  
 **Version:** 0.2.0  
 **Reviewed `main` baseline before this documentation branch:** `6eb6a07975753e2bbe9414893a76e13c946fa78e`  
@@ -92,18 +92,22 @@ The identity milestone remains [GDSpaces Resource Identity v1](../gdspaces/resou
 
 ### Near-term gate
 
-Use one legal local `st001` resource set as the first integrated proof:
+Drive stage-related resource validation from the complete executable-derived [Stage Catalog](../stage/stage-catalog.md), not from one fixed stage.
 
 ```text
-canonical EXE stage request/table
+canonical EXE stage-resource table
+  -> StageCatalog[110 rows]
+  -> select representative catalog entries/variants
   -> recovered game resource-runtime call path
   -> production GDSpaces source/container path
   -> canonical resource identities
-  -> StageBundle
+  -> StageBundle per selected entry
   -> Stage Semantic Graph
   -> load/transition/cache/lifetime observations
-  -> ValidationReceipt
+  -> ValidationReceipts
 ```
+
+`st001` may remain one regression fixture but is not the architecture or completion gate.
 
 ## Binary Inspector
 
@@ -196,10 +200,13 @@ See [Reverse Core](../reverse-core/README.md).
 ### Implemented foundation
 
 - confirmed DMC3 110 x 4 stage-table descriptor;
-- stage resource matching and `st001` plan;
+- executable-row/resource-role modeling;
 - StageBundle/Stage Workspace construction;
 - shared Stage Ops/ModViz views;
-- HITS, DCA, LIG2, and Stage TXT modules/tests.
+- HITS, DCA, LIG2, and Stage TXT modules/tests;
+- historical `st001` fixture support used only as one regression example.
+
+The canonical target is now the complete [DMC3 Stage Catalog](../stage/stage-catalog.md): all 110 executable rows, their four observed resource references, shared/duplicate relations, variants/special cases where evidence supports them, and deterministic arbitrary-entry selection.
 
 HITS is already a substantial evidence-driven vertical slice: corrected header-driven format model, runtime-derived spatial behavior, safe edits, deterministic SAT writer, round trips, and spatial comparison tooling. Capcom offline-builder equivalence remains research-required pending real corpus and controlled runtime validation.
 
@@ -207,9 +214,9 @@ HITS is already a substantial evidence-driven vertical slice: corrected header-d
 
 Stage Ops should evolve toward [Stage Semantic Graph v1](../stage/stage-semantic-graph.md):
 
-`Stage -> Room -> Geometry -> Collision -> Lighting -> Camera -> Door/Transition -> Event -> Effect -> Audio -> Runtime reference`.
+`StageCatalog -> StageCatalogEntry -> Stage -> Room -> Geometry -> Collision -> Lighting -> Camera -> Door/Transition -> Event -> Effect -> Audio -> Runtime reference`.
 
-Unknown resources remain first-class nodes with diagnostics/evidence rather than being discarded.
+Unknown resources remain first-class nodes with diagnostics/evidence rather than being discarded. Shared resources can connect multiple catalog entries without being duplicated into invented per-stage identities.
 
 Stage-related recovered executable functions remain game code and are linked into the graph/evidence model; they do not become Stage Ops implementation merely because Stage Ops consumes their semantics.
 
@@ -249,7 +256,7 @@ P0/P1 blockers are:
 
 1. production read-only container source expansion is incomplete;
 2. the DMC3 resource runtime is not fully reconstructed from request through cache/lifetime/unload;
-3. `st001` is not game-backed end-to-end through GDSpaces;
+3. the complete 110-row Stage Catalog is not yet game-backed end-to-end through GDSpaces across representative entry/variant types;
 4. no single canonical binary/range/function/type/reconstruction contract is implemented across EXE Editor/Binary Inspector/agents yet;
 5. no complete recovered-game-subsystem compile + behavioral validation loop exists;
 6. Reverse Core TaskClaim and Recovered Game Source Tree contracts are not implemented as shared code/export machinery;
@@ -272,6 +279,7 @@ The highest current risks are:
 - AI/agent races on functions, ranges, types, or source units;
 - premature confidence promotion from generated agreement rather than evidence;
 - forcing uncertain game functions into tool-shaped subsystem folders;
+- treating a convenient fixture such as `st001` or a filename pattern such as `stNNN` as the canonical stage architecture;
 - scope dispersion before one complete reconstruction loop is proven;
 - GitHub/research/status drift;
 - UI concerns redefining domain identity or write policy.
@@ -282,11 +290,12 @@ See [Risk Register](risks.md).
 
 ```text
 full GDSpaces resource-runtime reverse + production read path + Resource Identity v1
-  -> legal local game-backed st001 StageBundle
+  -> complete executable-derived StageCatalog[110] + representative game-backed entry/variant validation
+  -> arbitrary StageCatalogEntry -> StageBundle pipeline
   -> Reverse Core v0.1 schema + TaskClaims + Recovered Game Source Tree contract
   -> Binary Inspector / EXE Editor Reverse Core bridges
   -> first isolated behavior-tested recovered game subsystem
-  -> broader stage semantic/runtime validation
+  -> broader Stage Semantic Graph/runtime validation
   -> controlled source-integration/recompilation milestones
 ```
 
@@ -301,4 +310,4 @@ ModViz Red Orb vertical slice after shared identity/evidence gates are ready
 
 ## Milestone statement
 
-The next high-value proof is not "500 more decompiled functions". It is one real DMC3 subsystem whose exact bytes, game-semantic membership, evidence, recovered types/functions, C++ source in the Recovered Game Source Tree, build, behavioral comparison, and validation receipt are all connected and reviewable end-to-end.
+The next high-value proof is not "500 more decompiled functions" and not "one `st001` loads". It is a generic evidence-backed system in which the complete Stage Catalog is recoverable from the executable, representative different catalog entries travel through the same GDSpaces/StageBundle pipeline, and recovered game subsystems remain connected to exact bytes, evidence, source, builds, behavioral comparison, and ValidationReceipts.
