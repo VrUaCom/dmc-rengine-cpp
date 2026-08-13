@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-pac-runtime-v1",
+  "title": "DMC3 HD PAC runtime slot-table evidence",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 3735552
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-pac-slot-table-runtime",
+      "claim_id": "claim-dmc3-pac-slot-table-runtime",
+      "title": "PAC slot table uses 32-bit base-relative offsets",
+      "summary": "The DMC3 stage-PAC consumer reads slotCount from the PAC header and resolves members through the relative-offset table beginning at +0x08. In the confirmed stage consumer, member 3 is read from PAC+0x14 and member 6 from PAC+0x20, proving a four-byte offset-table stride; a zero offset represents an empty slot in the reconciled PAC/PNST runtime model.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "gdspaces",
+        "pac",
+        "resource-runtime",
+        "slot-table",
+        "relative-offset"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2383328,
+          "va": 5371092448,
+          "symbol": "StagePacMemberConsumer",
+          "note": "Function 0x140245DE0 resolves multiple main-stage PAC members directly from the PAC offset table; member 3 uses PAC+0x14 and member 6 uses PAC+0x20. No proprietary PAC bytes are included in this packet."
+        }
+      ]
+    }
+  ]
+}
