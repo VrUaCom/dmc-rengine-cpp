@@ -44,6 +44,17 @@ struct StageResourceMatchReport final {
     unique_candidates() const;
 };
 
+// Build a stage resource plan from one recovered four-column EXE stage-table row.
+// The supplied paths are authoritative row values; no stXXX naming pattern is
+// generated or inferred here.
+[[nodiscard]] StageResourceRowPlan make_stage_resource_plan_from_table_row(
+    std::string stage_id,
+    std::array<std::string, 4> logical_paths,
+    std::string evidence_id);
+
+// Compatibility fixture for the first evidence-backed integration slice.
+// Production stage handling must use recovered table rows rather than this
+// st001-specific helper.
 [[nodiscard]] const StageResourceRowPlan& phase12_st001_resource_plan() noexcept;
 
 class StageResourceMatcher final {

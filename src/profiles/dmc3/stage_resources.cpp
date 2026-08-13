@@ -125,29 +125,37 @@ StageResourceMatchReport::unique_candidates() const {
     return candidates;
 }
 
-const StageResourceRowPlan& phase12_st001_resource_plan() noexcept {
-    static const StageResourceRowPlan plan{
-        .stage_id = "st001",
-        .evidence_id = "ev-dmc3-stage-resource-table",
-        .resources = {
-            StageResourceReference{
-                .role = StageResourceRole::script,
-                .logical_path = "scr/st001.pac",
-            },
-            StageResourceReference{
-                .role = StageResourceRole::room_config,
-                .logical_path = "room/st001cfg.pac",
-            },
-            StageResourceReference{
-                .role = StageResourceRole::room_effects,
-                .logical_path = "room/st001_effect.pac",
-            },
-            StageResourceReference{
-                .role = StageResourceRole::room_sound,
-                .logical_path = "se/snd_r001.pac",
-            },
-        },
+StageResourceRowPlan make_stage_resource_plan_from_table_row(
+    std::string stage_id,
+    std::array<std::string, 4> logical_paths,
+    std::string evidence_id) {
+    StageResourceRowPlan plan{
+        .stage_id = std::move(stage_id),
+        .evidence_id = std::move(evidence_id),
+        .resources = {},
     };
+
+    const auto& descriptor = phase12_stage_resource_table();
+    for (std::size_t index = 0; index < plan.resources.size(); ++index) {
+        const auto role = descriptor.role_for_column(index);
+        plan.resources[index] = StageResourceReference{
+            .role = role.value_or(StageResourceRole::script),
+            .logical_path = std::move(logical_paths[index]),
+        };
+    }
+    return plan;
+}
+
+const StageResourceRowPlan& phase12_st001_resource_plan() noexcept {
+    static const StageResourceRowPlan plan = make_stage_resource_plan_from_table_row(
+        "st001",
+        {
+            "scr/st001.pac",
+            "room/st001cfg.pac",
+            "room/st001_effect.pac",
+            "se/snd_r001.pac",
+        },
+        "ev-dmc3-stage-resource-table");
     return plan;
 }
 
