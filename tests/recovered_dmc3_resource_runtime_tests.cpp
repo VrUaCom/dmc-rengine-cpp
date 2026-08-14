@@ -50,6 +50,12 @@ int main() {
     assert(to_string(ResourceLoadState::teardown_or_cancel_pending) ==
         "teardown-or-cancel-pending");
 
+    assert(model.cleanup_transition.from ==
+        ResourceLoadState::teardown_or_cancel_pending);
+    assert(model.cleanup_transition.to ==
+        ResourceLoadState::free_or_unstarted);
+    assert(!model.teardown_source_state_domain_complete);
+
     const auto* mod = model.fixup(PostLoadFormat::mod);
     const auto* efm = model.fixup(PostLoadFormat::efm);
     const auto* scm = model.fixup(PostLoadFormat::scm);
