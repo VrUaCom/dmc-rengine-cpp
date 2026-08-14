@@ -1,6 +1,7 @@
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
 #include "runtime/resources/shw_postload.hpp"
+#include "recovered_dmc3_mod_efm_postload_cases.hpp"
 #include "recovered_dmc3_wave3_execution_cases.hpp"
 
 #include <array>
@@ -122,9 +123,6 @@ int main() {
     static_assert(offsetof(ResourceRuntimeEntry, loaded_payload) == 0x20U);
     static_assert(offsetof(ResourceRuntimeEntry, owned_state) == 0x28U);
 
-    // Exercise only transitions directly supported by Wave-2 evidence. Known
-    // non-state fields are seeded independently to prove that these transition
-    // helpers do not invent writer ownership or field-clearing behavior.
     ResourceRuntimeEntry entry{};
     entry.group_index = 5U;
     entry.subtype_index = 12U;
@@ -176,8 +174,6 @@ int main() {
         entry, PostLoadFormat::mod, bytes, backend) ==
         ResourceTransitionResult::wrong_state);
 
-    // All four confirmed helpers can cross the same explicit typed-postload
-    // boundary. This does not claim how the original dispatcher selected them.
     constexpr std::array<PostLoadFormat, 4> formats{
         PostLoadFormat::mod,
         PostLoadFormat::efm,
@@ -192,8 +188,6 @@ int main() {
         assert(typed.state == ResourceLoadState::ready_postprocessed);
     }
 
-    // SHW is the first confirmed typed post-load helper whose body is now
-    // reconstructed rather than represented only by an interface boundary.
     std::array<std::byte, 0xB0> shw_bytes{};
     shw_bytes[shw_record_count_offset] = std::byte{2};
     constexpr std::array<std::uint64_t, 8> shw_relative_offsets{
@@ -232,7 +226,6 @@ int main() {
             shw_base + shw_relative_offsets[index + 4U]);
     }
 
-    // A truncated record table fails closed and cannot promote state 2 to 3.
     std::array<std::byte, 0x50> truncated_shw{};
     truncated_shw[shw_record_count_offset] = std::byte{2};
     ResourceRuntimeEntry truncated_shw_entry{};
@@ -246,8 +239,6 @@ int main() {
     assert(truncated_shw_entry.state ==
         ResourceLoadState::io_complete_pending_postprocess);
 
-    // The SHW backend rejects a mismatched explicit format instead of silently
-    // acting as a generic dispatcher.
     ResourceRuntimeEntry wrong_shw_format{};
     wrong_shw_format.state =
         ResourceLoadState::io_complete_pending_postprocess;
@@ -259,8 +250,6 @@ int main() {
     assert(wrong_shw_format.state ==
         ResourceLoadState::io_complete_pending_postprocess);
 
-    // State-4 entry is intentionally seeded rather than synthesized because the
-    // source-state domain entering teardown remains unresolved.
     ResourceRuntimeEntry teardown_entry{};
     teardown_entry.group_index = 6U;
     teardown_entry.state = ResourceLoadState::teardown_or_cancel_pending;
@@ -273,8 +262,11 @@ int main() {
     assert(apply_observed_cleanup_transition(teardown_entry) ==
         ResourceTransitionResult::wrong_state);
 
-    // Wave-3 executable slices are compiled and executed by this already
-    // registered recovered-runtime CTest target.
+    // Disassembly-complete MOD/EFM helper bodies are now compiled and executed.
+    // Corpus validation remains a separate evidence gate.
+    dmc::recovered::dmc3::tests::mod_efm::run();
+
+    // Directly recovered and evidence-bounded Wave-3 slices execute here too.
     dmc::recovered::dmc3::tests::wave3::run();
 
     return 0;
