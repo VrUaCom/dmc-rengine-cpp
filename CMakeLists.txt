@@ -50,7 +50,7 @@ target_include_directories(dmc_rengine_core
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
-# Recovered game code is compiled as its own target. It must not be silently
+# Recovered game code is compiled as separate targets. It must not be silently
 # absorbed into the DMC Rengine product core merely because the product consumes
 # its reverse-engineering findings.
 add_library(dmc_recovered_dmc3_resource_runtime
@@ -65,6 +65,19 @@ target_include_directories(dmc_recovered_dmc3_resource_runtime
 )
 target_compile_features(dmc_recovered_dmc3_resource_runtime PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_recovered_dmc3_resource_runtime)
+
+add_library(dmc_recovered_dmc3_stage_runtime
+    recovered-game/runtime/stage/door_parser_contract.cpp
+)
+add_library(
+    DMCRecovered::DMC3StageRuntime
+    ALIAS dmc_recovered_dmc3_stage_runtime)
+target_include_directories(dmc_recovered_dmc3_stage_runtime
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/recovered-game>
+)
+target_compile_features(dmc_recovered_dmc3_stage_runtime PUBLIC cxx_std_20)
+dmc_rengine_enable_warnings(dmc_recovered_dmc3_stage_runtime)
 
 add_executable(dmc-rengine
     src/cli/main.cpp
@@ -185,6 +198,24 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_recovered_dmc3_resource_runtime_tests
         COMMAND dmc_recovered_dmc3_resource_runtime_tests)
+
+    add_executable(
+        dmc_recovered_dmc3_door_parser_contract_tests
+        tests/recovered_dmc3_door_parser_contract_tests.cpp)
+    target_link_libraries(
+        dmc_recovered_dmc3_door_parser_contract_tests
+        PRIVATE DMCRecovered::DMC3StageRuntime)
+    dmc_rengine_enable_warnings(dmc_recovered_dmc3_door_parser_contract_tests)
+    if(MSVC)
+        target_compile_options(
+            dmc_recovered_dmc3_door_parser_contract_tests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(
+            dmc_recovered_dmc3_door_parser_contract_tests PRIVATE -UNDEBUG)
+    endif()
+    add_test(
+        NAME dmc_recovered_dmc3_door_parser_contract_tests
+        COMMAND dmc_recovered_dmc3_door_parser_contract_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
