@@ -13,9 +13,11 @@ struct RecoveredStageLinkReport final {
     std::vector<stageops::StageRuntimeLink> links;
     std::size_t door_marker_count{};
     std::size_t box_in_marker_count{};
+    bool recovered_contract_valid{false};
 
     [[nodiscard]] bool valid() const noexcept {
-        return links.size() == door_marker_count + box_in_marker_count;
+        return recovered_contract_valid &&
+            links.size() == door_marker_count + box_in_marker_count;
     }
 };
 
