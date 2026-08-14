@@ -1,14 +1,10 @@
 #pragma once
 
-#include <filesystem>
-#include <optional>
-#include <string_view>
-
 namespace dmc::rengine::cli {
 
-int run_build_stage_workspace(
-    std::string_view stage_id,
-    const std::filesystem::path& root,
-    const std::optional<std::filesystem::path>& evidence_path);
+void print_stage_help();
+
+// Returns -1 when argv does not select a stage command.
+[[nodiscard]] int try_run_stage_command(int argc, char** argv);
 
 } // namespace dmc::rengine::cli
