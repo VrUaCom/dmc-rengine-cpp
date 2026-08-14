@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/stageops/domain_workspace.hpp"
 #include "dmc_rengine/stageops/runtime_links.hpp"
+#include "dmc_rengine/stageops/scene_controller.hpp"
 
 #include <cstddef>
 #include <vector>
@@ -26,6 +27,16 @@ class RecoveredStageLinkProvider final {
 public:
     [[nodiscard]] static RecoveredStageLinkReport build(
         const stageops::StageDomainWorkspace& domains);
+};
+
+// DMC3 composition root for one canonical scene refresh. Runtime links are
+// generated from the exact post-analysis StageDomainWorkspace@revision inside
+// StageSceneController, then validated and published through the same guarded
+// transaction as every other Stage Ops consumer.
+class RecoveredStageSceneController final {
+public:
+    [[nodiscard]] static stageops::StageSceneRefreshResult refresh(
+        stageops::StageOperationsSession& session);
 };
 
 } // namespace dmc::rengine::bridges::dmc3
