@@ -1,5 +1,6 @@
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
+#include "runtime/stage/stage_dependency_executor.hpp"
 
 #include <array>
 #include <cassert>
@@ -7,6 +8,7 @@
 #include <cstdint>
 #include <optional>
 #include <span>
+#include <vector>
 
 namespace {
 
@@ -45,6 +47,75 @@ public:
         std::byte{4},
     };
 }
+
+class FixtureEnemyResolver final
+    : public dmc::recovered::dmc3::runtime::stage::IEnemyResourceResolver {
+public:
+    [[nodiscard]] std::optional<
+        dmc::recovered::dmc3::runtime::stage::EnemyResourceSelection>
+    resolve(std::uint32_t external_enemy_id) override {
+        using dmc::recovered::dmc3::runtime::stage::EnemyResourceSelection;
+        switch (external_enemy_id) {
+        case 10U:
+            return EnemyResourceSelection{
+                .external_enemy_id = 10U,
+                .class_selector = 1U,
+                .resource_set_selector = 12U,
+            };
+        case 11U:
+            return EnemyResourceSelection{
+                .external_enemy_id = 11U,
+                .class_selector = 2U,
+                .resource_set_selector = 12U,
+            };
+        case 20U:
+            return EnemyResourceSelection{
+                .external_enemy_id = 20U,
+                .class_selector = 3U,
+                .resource_set_selector = 20U,
+            };
+        default:
+            return std::nullopt;
+        }
+    }
+};
+
+class RecordingStageDependencySink final
+    : public dmc::recovered::dmc3::runtime::stage::IStageDependencySink {
+public:
+    std::vector<std::uint32_t> events;
+    std::optional<std::uint32_t> reject_event;
+
+    [[nodiscard]] bool preload_enemy_object(
+        const dmc::recovered::dmc3::runtime::stage::EnemyResourceSelection&
+            selection) override {
+        return record(1000U + selection.resource_set_selector);
+    }
+
+    [[nodiscard]] bool preload_enemy_sound(
+        const dmc::recovered::dmc3::runtime::stage::EnemyResourceSelection&
+            selection) override {
+        return record(2000U + selection.resource_set_selector);
+    }
+
+    [[nodiscard]] bool request_stage_script() override {
+        return record(3000U);
+    }
+
+    [[nodiscard]] bool request_stage_effect() override {
+        return record(3001U);
+    }
+
+    [[nodiscard]] bool wait_pending_dependencies() override {
+        return record(3002U);
+    }
+
+private:
+    [[nodiscard]] bool record(std::uint32_t event) {
+        events.push_back(event);
+        return !reject_event.has_value() || *reject_event != event;
+    }
+};
 
 } // namespace
 
@@ -109,8 +180,6 @@ int main() {
     assert(scm != nullptr && scm->function_va == 0x1403051B0ULL);
     assert(shw != nullptr && shw->function_va == 0x1403204C0ULL);
 
-    // The recovered entry now has the exact known x64 ABI, not merely a layout
-    // description stored beside an unrelated C++ object.
     static_assert(sizeof(ResourceRuntimeEntry) == 0x48U);
     static_assert(offsetof(ResourceRuntimeEntry, group_index) == 0x00U);
     static_assert(offsetof(ResourceRuntimeEntry, state) == 0x04U);
@@ -135,8 +204,6 @@ int main() {
     assert(manager.group_for_slot(362U) == 6U);
     assert(!manager.group_for_slot(363U).has_value());
 
-    // Execute the confirmed successful lifecycle on one real pool slot:
-    // 0 -> 1 -> 2 -> typed post-load -> 3.
     constexpr std::size_t enemy_object_slot = 229U;
     assert(manager.start_loading(
         enemy_object_slot, 12U, static_cast<std::uintptr_t>(0x11110000ULL)) ==
@@ -147,11 +214,9 @@ int main() {
     assert(entry->subtype_index == 12U);
     assert(entry->source_descriptor == 0x11110000ULL);
 
-    // A second 0->1 start is rejected instead of silently rewriting an active slot.
     assert(manager.start_loading(enemy_object_slot, 13U, 0x22220000ULL) ==
         ResourceTransitionResult::wrong_state);
 
-    // A null payload cannot advance state 1 -> 2.
     assert(manager.mark_io_complete(enemy_object_slot, 0U) ==
         ResourceTransitionResult::payload_missing);
     assert(entry->state == ResourceLoadState::io_scheduled_or_loading);
@@ -185,12 +250,10 @@ int main() {
     assert(backend.call_count == 2U);
     assert(mod_bytes[3] == std::byte{0x7F});
 
-    // The same post-load cannot be applied twice after state 3 is reached.
     assert(manager.run_confirmed_postload(
         enemy_object_slot, mod_bytes, backend) ==
         ResourceTransitionResult::wrong_state);
 
-    // Unknown formats are fail-closed and do not promote state 2 to READY.
     constexpr std::size_t enemy_sound_slot = 357U;
     assert(manager.start_loading(enemy_sound_slot, 2U, 0x55550000ULL) ==
         ResourceTransitionResult::applied);
@@ -205,7 +268,6 @@ int main() {
     assert(sound_entry->state ==
         ResourceLoadState::io_complete_pending_postprocess);
 
-    // Magic dispatch is executable for all four directly confirmed fixup families.
     auto efm_bytes = make_magic('E', 'F', 'M');
     auto scm_bytes = make_magic('S', 'C', 'M');
     auto shw_bytes = make_magic('S', 'H', 'W');
@@ -214,9 +276,6 @@ int main() {
     assert(confirmed_postload_format(shw_bytes) == PostLoadFormat::shw);
     assert(!confirmed_postload_format(unknown_bytes).has_value());
 
-    // State-4 entry is intentionally not synthesized by the manager because the
-    // complete source-state domain is still unresolved. The directly observed
-    // cleanup edge itself is executable and independently tested.
     ResourceRuntimeEntry teardown_entry{};
     teardown_entry.group_index = 6U;
     teardown_entry.state = ResourceLoadState::teardown_or_cancel_pending;
@@ -224,12 +283,51 @@ int main() {
     assert(apply_observed_cleanup_transition(teardown_entry) ==
         ResourceTransitionResult::applied);
     assert(teardown_entry.state == ResourceLoadState::free_or_unstarted);
-    // Other fields are deliberately not cleared because that destructor/cleanup
-    // behavior has not yet been recovered.
     assert(teardown_entry.loaded_payload == 0x77770000ULL);
 
     assert(manager.start_loading(363U, 0U, 0U) ==
         ResourceTransitionResult::slot_out_of_range);
+
+    // Wave-3 executable dependency slice. Input begins after cfg enemy-ID
+    // extraction because the binary cfg-record parser is not yet reconstructed.
+    using namespace dmc::recovered::dmc3::runtime::stage;
+    FixtureEnemyResolver enemy_resolver;
+    RecordingStageDependencySink dependency_sink;
+    constexpr std::array<std::uint32_t, 4> enemy_ids{10U, 11U, 20U, 10U};
+    const auto dependency_report = StageDependencyExecutor::execute_after_config_scan(
+        enemy_ids, enemy_resolver, dependency_sink);
+    assert(dependency_report.complete());
+    assert(dependency_report.unique_resource_sets.size() == 2U);
+    assert(dependency_report.unique_resource_sets[0].resource_set_selector == 12U);
+    assert(dependency_report.unique_resource_sets[1].resource_set_selector == 20U);
+    const std::vector<std::uint32_t> expected_dependency_events{
+        1012U, 2012U, 1020U, 2020U, 3000U, 3001U, 3002U,
+    };
+    assert(dependency_sink.events == expected_dependency_events);
+
+    // Different external enemy IDs that map to one resource set are deduplicated
+    // before any object/sound preload is emitted.
+    assert(dependency_report.unique_resource_sets[0].external_enemy_id == 10U);
+
+    // Unresolved mapping fails before preload/script/effect side effects occur.
+    RecordingStageDependencySink unresolved_sink;
+    constexpr std::array<std::uint32_t, 2> unresolved_ids{10U, 99U};
+    const auto unresolved_report = StageDependencyExecutor::execute_after_config_scan(
+        unresolved_ids, enemy_resolver, unresolved_sink);
+    assert(unresolved_report.status ==
+        StageDependencyExecutionStatus::unresolved_enemy_id);
+    assert(unresolved_report.unresolved_enemy_id == 99U);
+    assert(unresolved_sink.events.empty());
+
+    // Backend rejection is fail-closed and prevents later dependency phases.
+    RecordingStageDependencySink rejecting_sink;
+    rejecting_sink.reject_event = 2012U;
+    const auto rejected_report = StageDependencyExecutor::execute_after_config_scan(
+        enemy_ids, enemy_resolver, rejecting_sink);
+    assert(rejected_report.status ==
+        StageDependencyExecutionStatus::backend_rejected);
+    const std::vector<std::uint32_t> expected_rejected_events{1012U, 2012U};
+    assert(rejecting_sink.events == expected_rejected_events);
 
     return 0;
 }
