@@ -113,7 +113,8 @@ public:
         const gdspaces::ResourceId& resource,
         std::string parser_id,
         bool recognized,
-        gdspaces::ToolTarget consumer);
+        gdspaces::ToolTarget consumer,
+        std::uint64_t byte_revision = 0U);
     [[nodiscard]] bool add_parser_diagnostics(
         const gdspaces::ResourceId& resource,
         std::span<const formats::ParseDiagnostic> diagnostics);
