@@ -88,21 +88,19 @@ private:
     };
 }
 
-[[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry entry() {
+[[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry make_entry(
+    std::uint32_t row_index,
+    const std::array<std::string, 4>& paths,
+    const std::array<std::uint16_t, 4>& kind16,
+    std::string semantic_stage_id) {
     using dmc::rengine::profiles::dmc3::StageCatalogEntry;
     using dmc::rengine::profiles::dmc3::StageResourceRole;
     using dmc::rengine::profiles::dmc3::StageResourceTableCellObservation;
     using dmc::rengine::profiles::dmc3::StageResourceTableRowObservation;
 
     StageResourceTableRowObservation row{
-        .row_index = 23U,
+        .row_index = row_index,
         .cells = {},
-    };
-    const std::array<std::string, 4> paths{
-        "scr/shared.pac",
-        "room/shared.pac",
-        "room/effects.pac",
-        "se/sound.pac",
     };
     const std::array<StageResourceRole, 4> roles{
         StageResourceRole::script,
@@ -119,6 +117,7 @@ private:
             .cell_file_offset = 0x5000U + column * 0x10U,
             .cell_rva = 0x6000U + column * 0x10U,
             .cell_va = 0x140006000ULL + column * 0x10U,
+            .kind16 = kind16[column],
             .path_pointer_va = 0x140007000ULL + column * 0x20U,
             .path_file_offset = 0x7000U + column * 0x20U,
             .logical_path = paths[column],
@@ -126,12 +125,39 @@ private:
     }
 
     return StageCatalogEntry{
-        .catalog_entry_id = "dmc3-stage-resource-table/row/23",
+        .catalog_entry_id = "dmc3-stage-resource-table/row/" +
+            std::to_string(row_index),
         .row_index = row.row_index,
-        .evidence_id = "ev-dmc3-stage-resource-table",
+        .evidence_id = "dmc3-stage-wave2",
         .observation = std::move(row),
-        .semantic_stage_id = std::string{"semantic-stage-review"},
+        .semantic_stage_id = std::move(semantic_stage_id),
     };
+}
+
+[[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry duplicate_entry() {
+    return make_entry(
+        23U,
+        {
+            "scr/shared.pac",
+            "room/shared.pac",
+            "room/effects.pac",
+            "se/sound.pac",
+        },
+        {1U, 2U, 3U, 4U},
+        "semantic-stage-review");
+}
+
+[[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry fallback_entry() {
+    return make_entry(
+        24U,
+        {
+            "scr/missing.pac",
+            "room/config.pac",
+            "room/effects.pac",
+            "se/sound.pac",
+        },
+        {0U, 1U, 1U, 1U},
+        "semantic-stage-list-fallback");
 }
 
 [[nodiscard]] dmc::rengine::profiles::dmc3::VolumeBootstrapPlan bootstrap() {
@@ -146,16 +172,29 @@ private:
     };
 }
 
-[[nodiscard]] dmc::rengine::gdspaces::SourceRegistry sources() {
+[[nodiscard]] dmc::rengine::gdspaces::SourceRegistry mount_sources(
+    std::vector<dmc::rengine::gdspaces::ResourceRef> resources) {
     dmc::rengine::gdspaces::SourceRegistry registry;
-    std::vector<dmc::rengine::gdspaces::ResourceRef> resources{
-        resource("GDataX360.afs/shared.pac"),
-        resource("GDataX360.afs/effects.pac"),
-        resource("GDataX360.afs/sound.pac"),
-    };
     assert(registry.mount(std::make_unique<ReviewSource>(
         "physical-review", std::move(resources))));
     return registry;
+}
+
+[[nodiscard]] dmc::rengine::gdspaces::SourceRegistry duplicate_sources() {
+    return mount_sources({
+        resource("GDataX360.afs/shared.pac"),
+        resource("GDataX360.afs/effects.pac"),
+        resource("GDataX360.afs/sound.pac"),
+    });
+}
+
+[[nodiscard]] dmc::rengine::gdspaces::SourceRegistry fallback_sources() {
+    return mount_sources({
+        resource("GDataX360.afs/missing.lst"),
+        resource("GDataX360.afs/config.pac"),
+        resource("GDataX360.afs/effects.pac"),
+        resource("GDataX360.afs/sound.pac"),
+    });
 }
 
 [[nodiscard]] bool has_diagnostic(
@@ -172,21 +211,22 @@ private:
 } // namespace
 
 int main() {
+    using dmc::rengine::profiles::dmc3::RuntimeResolutionStatus;
     using dmc::rengine::profiles::dmc3::StageRuntimeLoader;
     using dmc::rengine::profiles::dmc3::StageRuntimeResolver;
     using dmc::rengine::profiles::dmc3::make_container_parser_registry;
 
-    const auto catalog_entry = entry();
+    const auto catalog_entry = duplicate_entry();
     const auto load_bootstrap = bootstrap();
     const auto load_bindings = bindings();
     assert(catalog_entry.complete());
     assert(load_bootstrap.valid());
     assert(load_bindings.valid_for(load_bootstrap));
 
-    // Canonical StageCatalog semantics must survive the compatibility raw-row
-    // resolver bridge without replacing the technical resource-set identity.
+    // Separately evidenced semantic identity and Wave-2 kind16 must survive the
+    // raw-row compatibility bridge without replacing technical resource-set ID.
     {
-        auto registry = sources();
+        auto registry = duplicate_sources();
         const auto report = StageRuntimeResolver::resolve_entry(
             catalog_entry,
             load_bootstrap,
@@ -196,6 +236,9 @@ int main() {
         assert(report.plan.resource_set_key() == catalog_entry.catalog_entry_id);
         assert(report.plan.semantic_stage_known());
         assert(report.plan.semantic_stage_id == "semantic-stage-review");
+        assert(report.plan.resources[0].kind16 == 1U);
+        assert(report.plan.resources[3].kind16 == 4U);
+        assert(report.resources[0].reference.kind16 == 1U);
 
         // The two requests intentionally share one basename and therefore
         // resolve to the same canonical physical resource under the evidenced
@@ -207,11 +250,10 @@ int main() {
     }
 
     // Current StageBundle/workspace semantics store one role per canonical
-    // resource. A duplicate root binding must therefore fail Level-C instead of
-    // silently dropping one role and reporting completion. Materialized data is
-    // still preserved for diagnosis and later model evolution.
+    // resource. A duplicate root binding must therefore fail materialized
+    // StageBundle completion instead of silently dropping one role.
     {
-        auto registry = sources();
+        auto registry = duplicate_sources();
         const auto parsers = make_container_parser_registry();
         const auto report = StageRuntimeLoader::load_entry(
             catalog_entry,
@@ -235,6 +277,34 @@ int main() {
             report.diagnostics,
             "dmc3.stage-load.duplicate-root-identity"));
         assert(!report.complete());
+    }
+
+    // Wave 2 confirms that kind16 == 0 probes a .lst rewrite after the original
+    // path is unavailable. The fallback resource can be found by the central
+    // VFS resolver, but must not be promoted to a normal root because list
+    // parsing/recursive ownership/lifetime remain open.
+    {
+        const auto list_entry = fallback_entry();
+        auto registry = fallback_sources();
+        const auto report = StageRuntimeResolver::resolve_entry(
+            list_entry,
+            load_bootstrap,
+            load_bindings,
+            registry);
+
+        assert(report.plan.resources[0].kind16 == 0U);
+        assert(report.resources[0].reference.kind16 == 0U);
+        assert(report.resources[0].runtime.status == RuntimeResolutionStatus::not_found);
+        assert(report.resources[0].list_fallback.has_value());
+        assert(report.resources[0].list_fallback->ok());
+        assert(report.resources[0].list_fallback_required());
+        assert(report.resources[0].list_fallback->resolved->id.logical_path ==
+               "GDataX360.afs/missing.lst");
+        assert(has_diagnostic(
+            report.diagnostics,
+            "dmc3.stage-runtime.list-fallback-required"));
+        assert(!report.complete());
+        assert(report.resolved_candidates().empty());
     }
 
     return 0;
