@@ -6,6 +6,8 @@
 #include "dmc_rengine/profiles/dmc3/stage_table.hpp"
 
 #include <array>
+#include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -16,6 +18,12 @@ namespace dmc::rengine::profiles::dmc3 {
 struct StageResourceReference final {
     StageResourceRole role{StageResourceRole::script};
     std::string logical_path;
+
+    // Wave-2 runtime descriptor field. Exact enum semantics remain unresolved,
+    // but kind16 == 0 is already behaviorally relevant because a primary miss
+    // enters the evidenced .lst fallback path. Synthetic/path-only fixtures may
+    // leave this unset; canonical executable observations preserve it.
+    std::optional<std::uint16_t> kind16;
 
     [[nodiscard]] bool valid() const noexcept {
         return !logical_path.empty();
@@ -65,10 +73,10 @@ struct StageResourceMatchReport final {
     unique_candidates() const;
 };
 
-// Build a resource-set plan from one recovered four-column EXE stage-table row.
-// resource_set_id is technical table/catalog identity, not gameplay semantics.
-// The supplied paths are authoritative row values; no stXXX naming pattern is
-// generated or inferred here.
+// Build a resource-set plan from four authoritative logical paths when no
+// Wave-2 cell observations are available. kind16 remains unset in this
+// compatibility helper. Canonical StageCatalog entries restore kind16 from the
+// executable observations before runtime resolution.
 [[nodiscard]] StageResourceRowPlan make_stage_resource_plan_from_table_row(
     std::string resource_set_id,
     std::array<std::string, 4> logical_paths,
