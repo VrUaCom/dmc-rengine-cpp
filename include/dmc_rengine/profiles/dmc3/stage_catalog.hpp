@@ -47,10 +47,14 @@ struct StageCatalogRepeatedReference final {
 };
 
 struct StageCatalogEntry final {
+    // Technical row identity and selector-facing numeric identity are separate.
     std::string catalog_entry_id;
     std::uint32_t row_index{};
+    std::optional<std::uint16_t> numeric_stage_id;
     std::string evidence_id;
     StageResourceTableRowObservation observation;
+
+    // Gameplay semantics remain a third, separately evidenced axis.
     std::optional<std::string> semantic_stage_id;
 
     [[nodiscard]] bool complete() const noexcept;
@@ -78,8 +82,6 @@ struct StageCatalog final {
 
 class StageCatalogBuilder final {
 public:
-    // Deterministic Wave-2 Bank-A compatibility builder. No selector mapping,
-    // variant semantics, aliases, or gameplay-stage identity are inferred.
     [[nodiscard]] static StageCatalog build(
         const StageResourceTableReadResult& table,
         const StageResourceTableDescriptor& descriptor);
@@ -90,7 +92,6 @@ struct StageCatalogLoadResult final {
     bool canonical_artifact{};
     StageCatalog catalog;
 
-    // Compatibility name: complete for advertised catalog coverage.
     [[nodiscard]] bool complete() const noexcept;
 
     [[nodiscard]] bool bank_a_complete() const noexcept {
@@ -105,11 +106,7 @@ struct StageCatalogLoadResult final {
 
 class StageCatalogLoader final {
 public:
-    // Production canonical gate. The PE image is deliberately parsed inside
-    // this function from the exact same byte span that is SHA-256 verified, so
-    // callers cannot pair canonical bytes with an unrelated injected PeImage.
-    // Current coverage remains corrected Wave-2 Bank A, not the full selector
-    // universe.
+    // The PE image is parsed internally from the exact SHA-verified byte span.
     [[nodiscard]] static StageCatalogLoadResult load_canonical(
         std::span<const std::byte> executable_bytes,
         std::size_t max_path_bytes = 260U);
