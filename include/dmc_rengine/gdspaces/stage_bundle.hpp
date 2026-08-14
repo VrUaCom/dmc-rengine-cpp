@@ -47,19 +47,21 @@ enum class StageResourceCategory {
 struct StageIdentity final {
     std::string profile;
 
-    // Evidence-backed semantic gameplay-stage identity when known. This may be
-    // empty for an executable-derived resource-set/catalog row whose gameplay
-    // meaning has not yet been established.
+    // Legacy technical key retained for source compatibility. New code must not
+    // interpret this field as evidence-backed gameplay semantics. During the
+    // compatibility period it mirrors resource_set_key().
     std::string stage_id;
 
     std::string display_name;
     std::string exe_evidence_id;
 
     // Stable technical identity for the resource grouping represented by this
-    // StageBundle. DMC3 StageCatalog entries use their catalog_entry_id here.
-    // It is intentionally separate from semantic stage_id. Trailing placement
-    // preserves source compatibility with existing aggregate initializers.
+    // StageBundle. DMC3 StageCatalog entries use catalog_entry_id here.
     std::string resource_set_id;
+
+    // Evidence-backed gameplay-stage identity when separately established.
+    // Catalog row identity alone never populates this field.
+    std::string semantic_stage_id;
 
     [[nodiscard]] std::string_view resource_set_key() const noexcept {
         return resource_set_id.empty()
@@ -68,7 +70,7 @@ struct StageIdentity final {
     }
 
     [[nodiscard]] bool semantic_stage_known() const noexcept {
-        return !stage_id.empty();
+        return !semantic_stage_id.empty();
     }
 
     [[nodiscard]] bool valid() const noexcept {
