@@ -3,16 +3,13 @@
 #include <utility>
 
 namespace dmc::rengine::stageops {
-namespace {
 
-[[nodiscard]] bool byte_state_changed(
-    const StageOperationsSession::ObservedResourceState& left,
-    const StageOperationsSession::ObservedResourceState& right) noexcept {
+bool StageOperationsSession::byte_state_changed(
+    const ObservedResourceState& left,
+    const ObservedResourceState& right) noexcept {
     return left.working_copy_revision != right.working_copy_revision ||
         left.dirty != right.dirty;
 }
-
-} // namespace
 
 StageOperationsSession::StageOperationsSession(
     StageAssemblyWorkspace assembly,
