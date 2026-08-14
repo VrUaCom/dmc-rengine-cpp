@@ -79,4 +79,14 @@ RecoveredStageLinkReport RecoveredStageLinkProvider::build(
     return report;
 }
 
+stageops::StageSceneRefreshResult RecoveredStageSceneController::refresh(
+    stageops::StageOperationsSession& session) {
+    return stageops::StageSceneController::refresh_with_provider(
+        session,
+        [](const stageops::StageDomainWorkspace& domains) {
+            auto report = RecoveredStageLinkProvider::build(domains);
+            return std::move(report.links);
+        });
+}
+
 } // namespace dmc::rengine::bridges::dmc3
