@@ -11,14 +11,14 @@ using dmc::rengine::evidence::RuntimeTracePlan;
 using dmc::rengine::evidence::RuntimeTraceTarget;
 
 int main() {
-    constexpr auto canonical_sha =
-        "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
+    constexpr auto synthetic_sha =
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
     RuntimeTracePlan plan{
-        canonical_sha,
+        synthetic_sha,
         {
-            RuntimeTraceTarget{0x14005E7A0ULL, {0x40, 0x53, 0x48, 0x83}, 64},
-            RuntimeTraceTarget{0x14005B460ULL, {0x48, 0x89}, 64},
+            RuntimeTraceTarget{0x10001000ULL, {0xAA, 0xBB, 0xCC, 0xDD}, 64},
+            RuntimeTraceTarget{0x10002000ULL, {0x11, 0x22}, 64},
         },
     };
     assert(plan.valid());
@@ -34,8 +34,8 @@ int main() {
     RuntimeTraceEvent event{};
     event.sequence = 7;
     event.phase = RuntimeTracePhase::after_call;
-    event.function_va = 0x14005E7A0ULL;
-    event.caller_va = 0x140123456ULL;
+    event.function_va = 0x10001000ULL;
+    event.caller_va = 0x10000080ULL;
     event.selected_source = 1;
     event.reject_mask = 0x0008;
     event.dynamic_category = 0x0E;
