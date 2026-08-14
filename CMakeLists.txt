@@ -123,7 +123,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         classifier
         known_target
         stage_table_descriptor
+        stage_table_reader
+        stage_catalog
         stage_resource_matcher
+        stage_runtime_resolution
         stage_bundle_assembler
         container_foundation
         pac_container_parser

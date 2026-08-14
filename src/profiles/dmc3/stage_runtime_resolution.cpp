@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -42,7 +43,7 @@ namespace {
 } // namespace
 
 bool StageRuntimeResolutionReport::complete() const noexcept {
-    if (!plan.valid() ||
+    if (catalog_entry_id.empty() || !plan.valid() ||
         std::any_of(
             diagnostics.begin(), diagnostics.end(),
             [](const gdspaces::Diagnostic& diagnostic) {
@@ -76,19 +77,61 @@ StageRuntimeResolutionReport::resolved_candidates() const {
     return candidates;
 }
 
+StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
+    const StageCatalogEntry& entry,
+    const VolumeBootstrapPlan& bootstrap,
+    const RuntimeSourceBindings& bindings,
+    const gdspaces::SourceRegistry& sources) {
+    if (!entry.complete()) {
+        StageRuntimeResolutionReport report{
+            .catalog_entry_id = entry.catalog_entry_id,
+            .table_row_index = entry.row_index,
+            .plan = {},
+            .resources = {},
+            .diagnostics = {},
+        };
+        report.diagnostics.push_back(gdspaces::Diagnostic{
+            .severity = gdspaces::DiagnosticSeverity::error,
+            .code = "dmc3.stage-runtime.invalid-catalog-entry",
+            .message = "The StageCatalog entry is incomplete and cannot be resolved.",
+            .resource = std::nullopt,
+        });
+        return report;
+    }
+
+    return resolve_row(
+        entry.catalog_entry_id,
+        entry.evidence_id,
+        entry.observation,
+        bootstrap,
+        bindings,
+        sources);
+}
+
 StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
-    std::string stage_id,
+    std::string catalog_entry_id,
     std::string evidence_id,
     const StageResourceTableRowObservation& row,
     const VolumeBootstrapPlan& bootstrap,
     const RuntimeSourceBindings& bindings,
     const gdspaces::SourceRegistry& sources) {
     StageRuntimeResolutionReport report{
+        .catalog_entry_id = catalog_entry_id,
         .table_row_index = row.row_index,
         .plan = {},
         .resources = {},
         .diagnostics = {},
     };
+
+    if (catalog_entry_id.empty()) {
+        report.diagnostics.push_back(gdspaces::Diagnostic{
+            .severity = gdspaces::DiagnosticSeverity::error,
+            .code = "dmc3.stage-runtime.missing-catalog-entry-id",
+            .message = "A stable executable table-row identity is required before stage resources can be resolved.",
+            .resource = std::nullopt,
+        });
+        return report;
+    }
 
     if (!row.complete()) {
         report.diagnostics.push_back(gdspaces::Diagnostic{
@@ -101,12 +144,12 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
     }
 
     report.plan = make_stage_resource_plan_from_table_row(
-        std::move(stage_id), row.logical_paths(), std::move(evidence_id));
+        catalog_entry_id, row.logical_paths(), std::move(evidence_id));
     if (!report.plan.valid()) {
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
             .code = "dmc3.stage-runtime.invalid-row-plan",
-            .message = "The executable stage-table row did not produce a valid four-role stage plan.",
+            .message = "The executable stage-table row did not produce a valid four-role resource plan.",
             .resource = std::nullopt,
         });
         return report;
