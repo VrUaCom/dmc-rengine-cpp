@@ -1,4 +1,5 @@
 #include "dmc_rengine/integration/resource_analyzer.hpp"
+#include "dmc_rengine/stageops/domain_queries.hpp"
 #include "dmc_rengine/stageops/domain_workspace.hpp"
 
 #include "hits_test_fixture.hpp"
@@ -214,8 +215,8 @@ int main() {
     assert(scripts[0]->attributes.at("next_room_count") == "1");
     assert(scripts[0]->attributes.at("stage_set_value_count") == "2");
 
-    const auto directives = domains.by_kind(
-        stageops::StageDomainKind::stage_set_directive_token);
+    const auto directives = stageops::domain_objects_by_kind_source_order(
+        domains, stageops::StageDomainKind::stage_set_directive_token);
     assert(directives.size() == 1U);
     assert(directives[0]->attributes.at("value") == "#SET");
     assert(directives[0]->attributes.at("offset") == "0");
@@ -224,8 +225,8 @@ int main() {
     assert(directives[0]->attributes.at("runtime_object_claim") == "false");
     assert(directives[0]->id.find(":offset/0") != std::string::npos);
 
-    const auto stage_set_values = domains.by_kind(
-        stageops::StageDomainKind::stage_set_value_token);
+    const auto stage_set_values = stageops::domain_objects_by_kind_source_order(
+        domains, stageops::StageDomainKind::stage_set_value_token);
     assert(stage_set_values.size() == 2U);
     assert(stage_set_values[0]->attributes.at("value") == "STAY");
     assert(stage_set_values[0]->attributes.at("offset") == "5");
@@ -235,22 +236,24 @@ int main() {
     assert(stage_set_values[1]->attributes.at("line") == "3");
     assert(stage_set_values[1]->attributes.at("column") == "1");
 
-    const auto doors = domains.by_kind(stageops::StageDomainKind::door_token);
+    const auto doors = stageops::domain_objects_by_kind_source_order(
+        domains, stageops::StageDomainKind::door_token);
     assert(doors.size() == 1U);
     assert(doors[0]->attributes.at("value") == "DOOR");
     assert(doors[0]->attributes.at("offset") == "10");
     assert(doors[0]->attributes.at("line") == "2");
     assert(doors[0]->attributes.at("column") == "1");
 
-    const auto box_in = domains.by_kind(stageops::StageDomainKind::box_in_token);
+    const auto box_in = stageops::domain_objects_by_kind_source_order(
+        domains, stageops::StageDomainKind::box_in_token);
     assert(box_in.size() == 1U);
     assert(box_in[0]->attributes.at("value") == "BoxIn");
     assert(box_in[0]->attributes.at("offset") == "15");
     assert(box_in[0]->attributes.at("line") == "2");
     assert(box_in[0]->attributes.at("column") == "6");
 
-    const auto next_room = domains.by_kind(
-        stageops::StageDomainKind::next_room_token);
+    const auto next_room = stageops::domain_objects_by_kind_source_order(
+        domains, stageops::StageDomainKind::next_room_token);
     assert(next_room.size() == 1U);
     assert(next_room[0]->attributes.at("value") == "NextRoom");
     assert(next_room[0]->attributes.at("offset") == "21");
