@@ -2,6 +2,7 @@
 
 #include "runtime/media/hd_media_translation.hpp"
 #include "runtime/scenes/scene_transition_spine.hpp"
+#include "runtime/stage/numeric_stage_resolver.hpp"
 #include "runtime/stage/stage_dependency_execution.hpp"
 
 #include <array>
@@ -9,6 +10,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <unordered_map>
 #include <vector>
 
 namespace dmc::recovered::dmc3::tests::wave3 {
@@ -70,6 +72,25 @@ private:
     }
 };
 
+class FixtureAddressSpace final : public runtime::stage::IReadOnlyAddressSpace {
+public:
+    void write_u64(std::uint64_t address, std::uint64_t value) {
+        values_[address] = value;
+    }
+
+    [[nodiscard]] std::optional<std::uint64_t> read_u64(
+        std::uint64_t virtual_address) const override {
+        const auto iterator = values_.find(virtual_address);
+        if (iterator == values_.end()) {
+            return std::nullopt;
+        }
+        return iterator->second;
+    }
+
+private:
+    std::unordered_map<std::uint64_t, std::uint64_t> values_;
+};
+
 class RecordingScene final : public runtime::scenes::IScene {
 public:
     RecordingScene(
@@ -114,6 +135,53 @@ private:
 inline void run() {
     using namespace runtime::stage;
 
+    // Directly recovered numeric Stage algorithm. The fixture is only a memory
+    // provider; the division, group lookup, selector lookup and bank/row
+    // identification are executed by recovered-game code.
+    FixtureAddressSpace address_space;
+    constexpr std::uint64_t group3_selector_base = 0x140700000ULL;
+    address_space.write_u64(
+        stage_group_base_table_va + 3ULL * 8ULL,
+        group3_selector_base);
+    address_space.write_u64(
+        group3_selector_base + 8ULL * 8ULL,
+        stage_bank_b.base_va + 0ULL * stage_descriptor_stride);
+
+    const auto stage308 = NumericStageResolver::resolve(308U, address_space);
+    assert(stage308.resolved());
+    assert(stage308.group_index == 3U);
+    assert(stage308.remainder == 8U);
+    assert(stage308.selector_base_va == group3_selector_base);
+    assert(stage308.selector_slot_va == group3_selector_base + 8ULL * 8ULL);
+    assert(stage308.descriptor_va == stage_bank_b.base_va);
+    assert(stage308.bank == StageDescriptorBankId::bank_b);
+    assert(stage308.source_row == 0U);
+
+    // Group outside the ten recovered hundreds entries fails without memory I/O.
+    const auto stage1000 = NumericStageResolver::resolve(1000U, address_space);
+    assert(stage1000.status == NumericStageResolutionStatus::group_out_of_range);
+
+    // Missing selector slot is fail-closed.
+    address_space.write_u64(
+        stage_group_base_table_va + 4ULL * 8ULL,
+        0x140710000ULL);
+    const auto stage400 = NumericStageResolver::resolve(400U, address_space);
+    assert(stage400.status ==
+        NumericStageResolutionStatus::unreadable_selector_slot);
+
+    // Descriptor must belong exactly to one of the two recovered banks.
+    constexpr std::uint64_t group9_selector_base = 0x140720000ULL;
+    address_space.write_u64(
+        stage_group_base_table_va + 9ULL * 8ULL,
+        group9_selector_base);
+    address_space.write_u64(group9_selector_base, 0x140123456ULL);
+    const auto stage900 = NumericStageResolver::resolve(900U, address_space);
+    assert(stage900.status ==
+        NumericStageResolutionStatus::descriptor_outside_recovered_banks);
+
+    // Provisional Wave-3 dependency execution begins after cfg enemy-ID
+    // extraction and deliberately keeps lower-level object/sound and
+    // script/effect sub-ordering outside the recovered contract.
     FixtureEnemyResolver enemy_resolver;
     RecordingDependencySink dependency_sink;
     constexpr std::array<std::uint32_t, 4> enemy_ids{10U, 11U, 20U, 10U};
