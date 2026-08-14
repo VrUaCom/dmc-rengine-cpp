@@ -94,18 +94,15 @@ void append_nested_candidates(
 
 bool StageRuntimeLoadedResource::payload_valid() const noexcept {
     if (!resolution.resolved() || !payload.has_value() ||
-        !payload->readable() || has_error(diagnostics)) {
+        !payload->readable()) {
         return false;
     }
-    if (!payload_identity_matches(*payload, *resolution.runtime.resolved) ||
-        !provenance_matches_payload(*payload)) {
-        return false;
-    }
-    return true;
+    return payload_identity_matches(*payload, *resolution.runtime.resolved) &&
+        provenance_matches_payload(*payload);
 }
 
 bool StageRuntimeLoadedResource::complete() const noexcept {
-    if (!payload_valid()) {
+    if (!payload_valid() || has_error(diagnostics)) {
         return false;
     }
     if (payload->resource.container) {
