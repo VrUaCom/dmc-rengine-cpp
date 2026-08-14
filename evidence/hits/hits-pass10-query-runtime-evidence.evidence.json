@@ -1,15 +1,16 @@
 {
   "schema_version": 1,
   "id": "hits-pass10-query-runtime-evidence-2026-08-14",
-  "title": "HITS Pass 10 — Canonical Query, Runtime Topology and Dynamic Update Evidence",
+  "title": "HITS Pass 10 — Canonical Query, Dynamic Update and Source-1 ABI Evidence",
   "date": "2026-08-14",
+  "status": "TOP_LEVEL_P0_ABI_CLOSED_VALIDATION_ACTIVE",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
   "excluded_executable": {
     "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
-    "reason": "Different packed build; canonical HITS VAs and body hashes require independent rebasing and verification before use."
+    "reason": "Different packed build; canonical HITS VAs, function-body hashes and ABIs require independent rebasing and verification."
   },
   "canonical_byte_provenance": {
     "preserved_project_artifact": "dmc3_phase17_reng_probe.exe",
@@ -25,19 +26,21 @@
     "google_drive_mega_synthesis_document_id": "1SZJTdabme_rumGCEHznXEMOoNMgX4e54IyqpW7GCivQ",
     "google_drive_registry_document_id": "1hIQ40_SXByc15pXj4Mq3cMQcgs8cFEx2RtuYRM8adnE",
     "github_slice4_document": "docs/research/hits-pass10-slice4-canonical-combined-query-abi.md",
+    "github_slice5_document": "docs/research/hits-pass10-slice5-dynamic-world-update-topology.md",
+    "github_slice6_document": "docs/research/hits-pass10-slice6-source1-query-abi.md",
     "github_coordination_issue": 25,
     "github_pull_request": 85
   },
   "query_family": [
     {"va":"0x14005E460","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
-    {"va":"0x14005E7A0","direct_callers":51,"status":"EXE CONFIRMED","observed_abi":"Six-argument combined point query; ordered static + category 0x0E + category 0x11 passes; last successful pass has caller-visible output precedence; total miss copies working point to output."},
-    {"va":"0x14005EBE0","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed; mutable 16-byte object+0x130 in/out path confirmed."},
-    {"va":"0x14005EE40","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."},
-    {"va":"0x14005F070","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."},
+    {"va":"0x14005E7A0","direct_callers":51,"status":"ABI CLOSED","abi_kind":"combined_point_query"},
+    {"va":"0x14005EBE0","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"mutable_vec4_inout"},
+    {"va":"0x14005EE40","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"bool_observed_in_al"},
+    {"va":"0x14005F070","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"mutable_vec4_inout_plus_aux"},
     {"va":"0x14005FD10","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
-    {"va":"0x14005FEC0","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."},
-    {"va":"0x1400601E0","direct_callers":5,"status":"EXE CONFIRMED","boundary":"Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."},
-    {"va":"0x140060790","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."}
+    {"va":"0x14005FEC0","direct_callers":1,"status":"ABI CLOSED","abi_kind":"source1_segment_correction"},
+    {"va":"0x1400601E0","direct_callers":5,"status":"ABI CLOSED","abi_kind":"source1_displacement_accumulator"},
+    {"va":"0x140060790","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"bool_observed_in_al"}
   ],
   "combined_query": {
     "va": "0x14005E7A0",
@@ -56,7 +59,7 @@
       {"index":6,"location":"stack","role":"raw reject mask"}
     ],
     "working_and_output_may_alias": true,
-    "return": "boolean success in AL",
+    "return": "boolean any-pass success in AL",
     "total_miss": "copy arg3 working point to arg4 output and return false",
     "passes": [
       {"order":0,"kind":"static_hits","helper_va":"0x14005E880"},
@@ -65,7 +68,7 @@
     ],
     "dynamic_pass_baseline": "both dynamic passes receive the same static-hit output if static succeeded, otherwise the same arg3 input baseline",
     "caller_visible_output_precedence": "last successful pass wins: static < category 0x0E < category 0x11",
-    "rejected_model": "No E7A0 metric comparison/equality/tie-break arbitration exists."
+    "rejected_model": "No E7A0 metric comparison, equality branch or tie-break arbitration exists."
   },
   "static_query_pass": {
     "va":"0x14005E880",
@@ -135,14 +138,65 @@
       {"select":"0x1400568F0","query":"0x14005FEC0","restore":"0x140056936"}
     ]
   },
-  "dynamic_world_update_reacquisition": {
-    "status":"EXE CONFIRMED / CODE PROMOTION PENDING",
+  "dynamic_world_update": {
+    "status":"ABI CLOSED / IMPLEMENTED",
     "separate_from_combined_query_path":true,
     "dispatcher":{"va":"0x14005B7B0","end_va":"0x14005B8DD","size_bytes":301,"sha256":"ea1025e96121a3b117f53412d5d3e6439d81e97a23928f1417793e37ba6efbf3"},
     "pair_resolver":{"va":"0x14005B460","end_va":"0x14005B6E6","size_bytes":646,"sha256":"cba77cf4bc20dedfbd590991012fa471e6b5ae02b9cec57c66fce69333a67972"},
     "category_compatibility":{"va":"0x14005B6F0","end_va":"0x14005B7A8","size_bytes":184,"sha256":"c6eaaea738b317c9d92b3e06ff4ba47ec2d39610cb16a19dc21a96651024ae34"},
     "post_update_step":{"va":"0x14005B8E0","end_va":"0x14005BA64","size_bytes":388,"sha256":"1d149357ffa3fe5024c0a6264e356f476c14c6366d89b38bb50a1a3f18e2f477"},
+    "pair_resolver_abi": {
+      "arguments":["manager/context","source object","candidate-list head","source category","target category"],
+      "candidate_next_offset":"0x328",
+      "required_candidate_base_type":2,
+      "owner_pointer_offset":"0xD0",
+      "reciprocal_category_bits_offset":"0x10",
+      "rejects_self_pair":true,
+      "rejects_shared_owner":true
+    },
+    "category_0x0e_mask_bridge": {
+      "0x02":"0x0040",
+      "0x05":"0x0002",
+      "0x08":"0x0010",
+      "0x0B":"0x0020"
+    },
     "superseded_description":"B460 is not E7A0 candidate production; it is a dynamic object-pair resolution/update routine."
+  },
+  "source1_segment_correction_fec0": {
+    "status":"ABI CLOSED / IMPLEMENTED",
+    "va":"0x14005FEC0",
+    "body":{"begin_va":"0x14005FEC0","end_va":"0x1400601D3","size_bytes":787,"sha256":"cfaca9752adf3a581969875e99c6c1b9ffaa7f83d19d22fddbe8dec2d5cab09e"},
+    "arguments":[
+      {"index":1,"location":"RCX","role":"selected HITS runtime"},
+      {"index":2,"location":"RDX","role":"mutable 16-byte point in/out"},
+      {"index":3,"location":"R8","role":"read-only 16-byte reference/target point"}
+    ],
+    "temporary_source1_route":{"select":"0x1400568F0","restore":"0x140056936"},
+    "hard_rejected_raw_record_bit":"0x00080000",
+    "direction_fourth_component":"explicitly zeroed after XYZ normalization",
+    "return_semantics":"false only for degenerate near-zero XYZ segment; nondegenerate processing returns true even with no accepted record correction",
+    "return_is_hit_boolean":false
+  },
+  "source1_displacement_accumulator_601e0": {
+    "status":"ABI CLOSED / IMPLEMENTED",
+    "va":"0x1400601E0",
+    "direct_callers":5,
+    "body":{"begin_va":"0x1400601E0","end_va":"0x14006078E","size_bytes":1454,"sha256":"7fb7fb7ce9447a5e200ba1471774eafe7e5f21877da71902f047563bd9f7597a"},
+    "arguments":[
+      {"index":1,"location":"RCX","role":"selected/current HITS runtime"},
+      {"index":2,"location":"RDX","role":"mutable 16-byte point in/out"},
+      {"index":3,"location":"R8","role":"read-only 16-byte reference/anchor point"}
+    ],
+    "temporary_source1_route":{"select":"0x140056832","restore":"0x14005686E"},
+    "stages":["initial raw-record correction pass","secondary record-vector displacement accumulation"],
+    "fourth_component_operational_semantics": {
+      "included_in_xyz_norm":false,
+      "included_in_xyz_dot":false,
+      "transported_by_four_component_normalize_scale_add":true,
+      "may_accumulate_into_mutable_point":true,
+      "gameplay_semantic_name":"UNRESOLVED"
+    },
+    "return_semantics":"true only when final point is displaced from original by more than epsilon in XYZ"
   },
   "corrections": [
     {"id":"hits.pass10.profile-layer-ownership","status":"CORRECTED","statement":"DMC3-specific HITS VAs belong in profiles/dmc3, not generic HITS core."},
@@ -150,32 +204,38 @@
     {"id":"hits.pass10.detail-namespace-access-control","status":"CORRECTED","statement":"namespace detail is not access control; backing tables are private EvidenceStore members."},
     {"id":"hits.pass10.e7a0-metric-tiebreak","status":"REJECTED","statement":"E7A0 has ordered last-successful-writer output precedence; no wrapper-level metric/equality/tie-break arbitration exists."},
     {"id":"hits.pass10.e7a0-cross-category-progressive-baseline","status":"CORRECTED","statement":"BCF0 does not write back through its R8 baseline; categories 0x0E and 0x11 receive the same static-or-input baseline."},
-    {"id":"hits.pass10.b460-query-candidate-role","status":"REJECTED","statement":"B460 belongs to the dynamic-world object-pair update path, not the E7A0 combined-query candidate path."}
+    {"id":"hits.pass10.b460-query-candidate-role","status":"REJECTED","statement":"B460 belongs to the dynamic-world object-pair update path, not the E7A0 combined-query candidate path."},
+    {"id":"hits.pass10.fec0-return-hit-boolean","status":"REJECTED","statement":"FEC0 AL reports nondegenerate segment processing, not collision hit/no-hit."},
+    {"id":"hits.pass10.601e0-return-generic-success","status":"CORRECTED","statement":"601E0 AL reports material final XYZ displacement from the original point."},
+    {"id":"hits.pass10.fourth-component-spatial-norm","status":"CORRECTED","statement":"The fourth component is excluded from XYZ length/dot gates but can be transported, scaled and accumulated by 601E0 correction math."}
   ],
   "implementation": {
     "branch":"docs/hits-pass10-evidence-reacquisition",
     "pull_request":85,
     "slice3_hash_gate_fix":"4845120fbe9a3362d4040a0e37e32387411411d7",
     "slice4_initial":"e191acf631cc96dedc5a4910f1ded05cc436744e",
-    "slice4_initial_tests":"bb04f4f19c1e1c63be4ff19dbd199ed2b878d4d2",
     "slice4_review_correction":"123ce6331a34d994e3f0121804568efc5ce5c5a4",
     "slice4_corrected_tests":"1f0360661624acf41dfdfe776fe8229c5f2edb0b",
     "slice4_document":"0b2bb87d25aeaf096700bad3902b26ad5b953221",
-    "main_pass10_sync":"f061951403d17c062235a59050ea7833662545f7",
-    "slice4_ci_run_id":31811589147,
-    "paths":[
-      "include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp",
-      "tests/hits_query_evidence_tests.cpp",
-      "docs/research/hits-pass10-slice4-canonical-combined-query-abi.md",
-      "docs/research/hits-pass10-evidence-reacquisition-runtime-instrumentation.md"
-    ]
+    "slice5_profile_evidence":"7e3f532e84c7a3e24f2282a0dee0e6123b9c93bb",
+    "slice5_tests":"a565d196f94055c9bfb3003e44ed1b442d8b8272",
+    "slice5_ctest_registration":"3a9049b655f5c4c0d35a5b9308b72a150afbda45",
+    "slice5_document":"b15fb4a4579351c104c27026423457c651f99987",
+    "slice6_profile_evidence":"2cd8c302ead5718f291309968c0c06bd961fbfeb",
+    "slice6_tests":"9875b61cc6d07fe9a745f6c116b6a5f3117eff73",
+    "slice6_ctest_registration":"6e667afe50b9aa9d774062d213a9fe475a933495",
+    "slice6_document":"c67de1d3032c277aa382b6778439718bd1077c60",
+    "query_summary_reconciliation":"67f74864864184a27a6c2c05e0b0cc204fb57f83",
+    "query_summary_tests_reconciliation":"bb254fbd9c0eeaf34c77732953f239a40832bef1",
+    "main_pass10_top_level_closure":"dca37890797e2b99a37e0e10349a33ae55c1bff4",
+    "ci_state":"CURRENT_HEAD_VALIDATION_ACTIVE"
   },
-  "remaining_p0": [
-    "Promote/review separate dynamic-world update topology B7B0 -> B460 -> B6F0 -> B8E0",
-    "0x14005FEC0 exact source-1 output ABI",
-    "0x1400601E0 exact in/out layout/fourth-component/accumulation semantics",
-    "dynamic primitive type 2..6 semantic names only if direct evidence supports them",
-    "common metadata +0x28/+0x2C/+0x30 vector semantic name only after cross-producer proof"
+  "remaining_work": [
+    "semantic identity of dynamic primitive/object type values 2..6 only with direct evidence",
+    "semantic identity of common metadata vector +0x28/+0x2C/+0x30 and related fourth component only after cross-producer proof",
+    "geometry/contact helper reconstruction required for source-equivalent implementation",
+    "controlled runtime validation of reconstructed C++ behavior against canonical executable",
+    "do not reopen E7A0/B460/FEC0/601E0 top-level ABI descriptions without contradictory direct evidence"
   ],
   "proprietary_bytes_committed": false
 }
