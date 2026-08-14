@@ -120,6 +120,7 @@ int main() {
         .exe_evidence_id = "ev-dmc3-stage-resource-table",
         .resource_set_id = "st001",
         .semantic_stage_id = "st001",
+        .numeric_stage_id = 1U,
     });
     assert(stage.add(StageMember{
         .category = StageResourceCategory::collision,
@@ -158,7 +159,7 @@ int main() {
     assert(parsed.ok());
     const auto* root = parsed.value->as_object();
     assert(root != nullptr);
-    assert(*member(*root, "schema_version")->as_u64() == 2U);
+    assert(*member(*root, "schema_version")->as_u64() == 3U);
 
     const auto* stage_value = member(*root, "stage");
     assert(stage_value != nullptr);
@@ -168,6 +169,11 @@ int main() {
     assert(resource_set_id != nullptr);
     assert(resource_set_id->as_string() != nullptr);
     assert(*resource_set_id->as_string() == "st001");
+    const auto* numeric_stage_id = member(*stage_object, "numeric_stage_id");
+    assert(numeric_stage_id != nullptr);
+    assert(numeric_stage_id->as_u64() != nullptr);
+    assert(*numeric_stage_id->as_u64() == 1U);
+    assert(*member(*stage_object, "numeric_stage_known")->as_bool());
     const auto* semantic_stage_id = member(*stage_object, "semantic_stage_id");
     assert(semantic_stage_id != nullptr);
     assert(semantic_stage_id->as_string() != nullptr);
