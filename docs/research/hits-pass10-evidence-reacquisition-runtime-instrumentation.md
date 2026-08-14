@@ -6,7 +6,7 @@ Status: **ACTIVE — REVERSE / IMPLEMENT / REVIEW / DEBUG LOOP**
 
 Canonical detailed working authority: Google Drive document `DMC Rengine — HITS Raw Reverse Pass 10 — Evidence Reacquisition and Runtime Instrumentation — 2026-08-14`.
 
-The required workflow is also codified in `docs/research/reverse-pass-implementation-review-loop.md`.
+The required workflow is also codified in `docs/research/reverse-pass-implementation-review-loop.md` and in Google Drive document `DMC Rengine — Canonical Reverse Pass Implementation Review Debug Loop — 2026-08-14`.
 
 ## Why Pass 10 exists
 
