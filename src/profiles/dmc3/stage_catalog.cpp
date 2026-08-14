@@ -58,6 +58,7 @@ StageResourceRowPlan StageCatalogEntry::resource_plan() const {
     for (std::size_t index = 0U; index < plan.resources.size(); ++index) {
         plan.resources[index].kind16 = observation.cells[index].kind16;
     }
+    plan.numeric_stage_id = numeric_stage_id;
     if (semantic_stage_id.has_value()) {
         plan.semantic_stage_id = *semantic_stage_id;
     }
@@ -114,6 +115,16 @@ StageCatalog StageCatalogBuilder::build(
         return catalog;
     }
 
+    const auto& universe = wave2_stage_descriptor_universe();
+    if (!universe.valid() || universe.banks[0].row_count != descriptor.row_count) {
+        add_diagnostic(
+            catalog,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.bank-a-metadata-invalid",
+            "Wave-2 Bank-A numeric identity metadata does not match the compatibility descriptor.");
+        return catalog;
+    }
+
     if (table.rows.size() != descriptor.row_count) {
         add_diagnostic(
             catalog,
@@ -133,9 +144,21 @@ StageCatalog StageCatalogBuilder::build(
                 "Bank-A observations are not in deterministic executable row order.");
         }
 
+        std::optional<std::uint16_t> numeric_stage_id;
+        if (row.row_index < universe.banks[0].numeric_stage_ids.size()) {
+            numeric_stage_id = universe.banks[0].numeric_stage_ids[row.row_index];
+        } else {
+            add_diagnostic(
+                catalog,
+                gdspaces::DiagnosticSeverity::error,
+                "dmc3.stage-catalog.numeric-stage-id-missing",
+                "A Bank-A descriptor row has no corresponding Wave-2 numeric identity.");
+        }
+
         catalog.entries.push_back(StageCatalogEntry{
             .catalog_entry_id = make_catalog_entry_id(descriptor, row.row_index),
             .row_index = row.row_index,
+            .numeric_stage_id = numeric_stage_id,
             .evidence_id = descriptor.evidence_packet_id,
             .observation = row,
             .semantic_stage_id = std::nullopt,
