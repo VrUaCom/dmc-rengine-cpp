@@ -64,6 +64,8 @@ void add_diagnostic(
 } // namespace
 
 bool StageOpsIngressResult::valid() const noexcept {
+    // Parser/domain incompleteness lives in analysis/assembly state. This gate is
+    // intentionally about ingress integrity so a partial stage remains usable.
     return assembly.valid() && !has_error(diagnostics);
 }
 
@@ -75,7 +77,6 @@ StageOpsIngressResult StageOpsIngress::attach(
     // Build the Stage Ops authority before payload ownership is moved out of the
     // runtime report. This consumes only already-resolved/materialized facts.
     result.assembly = StageOpsAssembler::assemble(report);
-    result.diagnostics = result.assembly.diagnostics;
     if (!result.assembly.valid()) {
         add_diagnostic(
             result,
@@ -88,28 +89,13 @@ StageOpsIngressResult StageOpsIngress::attach(
     std::set<std::string, std::less<>> processed;
     std::vector<gdspaces::ResourceId> ingress_resources;
 
-    const auto ingest = [&](gdspaces::ResourcePayload payload) mutable {
+    auto ingest = [&](gdspaces::ResourcePayload payload) {
         if (!payload.resource.valid()) {
             add_diagnostic(
                 result,
                 gdspaces::DiagnosticSeverity::error,
                 "stageops.ingress.invalid-resource",
                 "A materialized Stage runtime payload has an invalid canonical resource identity.");
-            return;
-        }
-
-        const auto canonical = payload.resource.id.canonical();
-        if (!processed.insert(canonical).second) {
-            const auto* existing = project.find_session(payload.resource.id);
-            if (existing != nullptr &&
-                !same_immutable_payload(existing->source_payload(), payload)) {
-                add_diagnostic(
-                    result,
-                    gdspaces::DiagnosticSeverity::error,
-                    "stageops.ingress.shared-resource-payload-mismatch",
-                    "The same canonical Stage ResourceId was observed with different immutable payload bytes/provenance.",
-                    payload.resource.id);
-            }
             return;
         }
 
@@ -121,6 +107,21 @@ StageOpsIngressResult StageOpsIngress::attach(
                 "stageops.ingress.payload-not-canonical-materialized",
                 "A Stage Ops materialized resource cannot enter ProjectWorkspace without readable bytes and valid ByteProvenance.",
                 payload.resource.id);
+            return;
+        }
+
+        const auto canonical = payload.resource.id.canonical();
+        if (!processed.insert(canonical).second) {
+            const auto* existing = project.find_session(payload.resource.id);
+            if (existing == nullptr ||
+                !same_immutable_payload(existing->source_payload(), payload)) {
+                add_diagnostic(
+                    result,
+                    gdspaces::DiagnosticSeverity::error,
+                    "stageops.ingress.shared-resource-payload-mismatch",
+                    "The same canonical Stage ResourceId was observed more than once without one identical shared immutable payload.",
+                    payload.resource.id);
+            }
             return;
         }
 
@@ -180,8 +181,8 @@ StageOpsIngressResult StageOpsIngress::attach(
     }
 
     // Execute each implemented canonical parser at most once per ingress when a
-    // retained typed result is not already available. Unknown/read-only formats
-    // remain valid Stage Ops resources without invented parsing semantics.
+    // retained typed result is not already available. Parser failure stays a
+    // domain/analysis fact; it does not destroy the stage aggregate transport.
     for (const auto& resource_id : ingress_resources) {
         const auto* session = project.find_session(resource_id);
         if (session == nullptr) {
@@ -193,14 +194,8 @@ StageOpsIngressResult StageOpsIngress::attach(
             continue;
         }
 
-        auto analysis = integration::ResourceAnalyzer::analyze(
-            project, resource_id);
-        for (const auto& diagnostic : analysis.diagnostics) {
-            if (diagnostic.severity == gdspaces::DiagnosticSeverity::error) {
-                result.diagnostics.push_back(diagnostic);
-            }
-        }
-        result.analyses.push_back(std::move(analysis));
+        result.analyses.push_back(
+            integration::ResourceAnalyzer::analyze(project, resource_id));
     }
 
     // Assembly truth is stronger than ingestion convenience: every resource the
