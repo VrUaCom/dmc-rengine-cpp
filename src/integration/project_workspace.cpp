@@ -187,6 +187,21 @@ ProjectWorkspace::sessions_for_stage(std::string_view stage_id) const {
     return result;
 }
 
+std::vector<const ResourceWorkspaceSession*>
+ProjectWorkspace::sessions_for_stage_resource_set(
+    std::string_view resource_set_id) const {
+    std::vector<const ResourceWorkspaceSession*> result;
+    for (const auto& [key, session] : sessions_) {
+        static_cast<void>(key);
+        const auto* stage = session.stage();
+        if (stage != nullptr &&
+            stage->identity.resource_set_key() == resource_set_id) {
+            result.push_back(&session);
+        }
+    }
+    return result;
+}
+
 std::size_t ProjectWorkspace::session_count() const noexcept {
     return sessions_.size();
 }
