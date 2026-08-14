@@ -1,10 +1,10 @@
-#include "dmc_rengine/hits/query_evidence.hpp"
+#include "dmc_rengine/profiles/dmc3/hits_query_evidence.hpp"
 
 #include <cassert>
 #include <cstdint>
 
 int main() {
-    using namespace dmc::rengine::hits::evidence;
+    using namespace dmc::rengine::profiles::dmc3::hits_evidence;
 
     static_assert(k_dynamic_category_bindings.size() == 6U);
     static_assert(k_query_evidence.size() == 9U);
