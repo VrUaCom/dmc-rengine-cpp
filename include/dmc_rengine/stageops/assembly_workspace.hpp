@@ -70,7 +70,7 @@ struct StageAssemblyResource final {
 
 // A resource may participate in more than one relationship while preserving one
 // ResourceId. descriptor_root has no parent; nested children retain the exact
-// parent ResourceId selected by GDSpaces/container expansion.
+// parent ResourceId and container slot selected by GDSpaces/container expansion.
 struct StageAssemblyMembership final {
     std::string resource_id;
     gdspaces::StageResourceCategory category{
@@ -79,6 +79,7 @@ struct StageAssemblyMembership final {
     StageAssemblyMembershipKind kind{
         StageAssemblyMembershipKind::descriptor_root};
     std::optional<std::string> parent_resource_id;
+    std::optional<std::uint32_t> container_slot;
 
     [[nodiscard]] bool valid() const noexcept {
         if (resource_id.empty() || role.empty()) {
@@ -86,9 +87,9 @@ struct StageAssemblyMembership final {
         }
         if (kind == StageAssemblyMembershipKind::nested_container_child) {
             return parent_resource_id.has_value() &&
-                !parent_resource_id->empty();
+                !parent_resource_id->empty() && container_slot.has_value();
         }
-        return !parent_resource_id.has_value();
+        return !parent_resource_id.has_value() && !container_slot.has_value();
     }
 };
 
