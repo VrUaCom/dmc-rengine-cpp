@@ -47,7 +47,7 @@ StageSceneProjection StageSceneProjectionBuilder::build(
     if (!session.valid() || !snapshot.valid() ||
         snapshot.stage_revision() != session.stage_revision() ||
         !same_identity(
-            snapshot.domains.identity,
+            snapshot.knowledge.identity(),
             session.assembly().identity)) {
         return projection;
     }
@@ -92,7 +92,7 @@ StageSceneProjection StageSceneProjectionBuilder::build(
         projection.resources.push_back(std::move(resource));
     }
 
-    for (const auto& object : snapshot.domains.objects) {
+    for (const auto& object : snapshot.domains().objects) {
         if (!visual_domain(object.kind)) {
             continue;
         }
