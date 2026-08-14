@@ -191,6 +191,9 @@ int main() {
     assert(project.session_count() == 5U);
     assert(ingress.analyses.size() == 1U);
     assert(ingress.analyses[0].ok());
+    assert(ingress.analyses[0].byte_source ==
+        integration::ParsedByteSource::immutable_source);
+    assert(ingress.analyses[0].byte_revision == 0U);
 
     const auto hits_members = ingress.assembly.by_category(
         gdspaces::StageResourceCategory::collision);
@@ -200,10 +203,11 @@ int main() {
     assert(hits_session != nullptr);
     assert(hits_session->parsed_resource() != nullptr);
     assert(hits_session->parsed_resource()->recognized());
+    assert(hits_session->parsed_resource()->byte_source ==
+        integration::ParsedByteSource::immutable_source);
+    assert(hits_session->parsed_resource()->byte_revision == 0U);
     assert(hits_session->binary_document() != nullptr);
 
-    // Full canonical vertical slice: runtime materialization report -> Stage Ops
-    // aggregate -> shared project sessions -> typed domain -> Semantic Graph.
     stageops::StageOperationsSession operations(ingress.assembly, project);
     assert(operations.valid());
     assert(operations.stage_revision() == 0U);
@@ -224,9 +228,7 @@ int main() {
     assert(domain_node != nullptr);
     assert(domain_node->attributes.at("current_for_active_bytes") == "true");
 
-    // An edit is owned/orchestrated by Stage Ops, bytes stay in ProjectWorkspace,
-    // and derived typed domain/graph state becomes visibly stale rather than
-    // silently reparsing through a competing scene path.
+    // edit -> stale
     assert(operations.enable_editing(hits_id));
     hits_session = project.find_session(hits_id);
     assert(hits_session != nullptr);
@@ -249,8 +251,8 @@ int main() {
         ingress.assembly, project, operations.stage_revision());
     assert(domains.stale_typed_result_count == 1U);
     assert(!domains.current_for_active_bytes());
-    assert(domains.by_kind(stageops::StageDomainKind::hits_collision)[0]
-        ->current_for_active_bytes == false);
+    assert(!domains.by_kind(stageops::StageDomainKind::hits_collision)[0]
+        ->current_for_active_bytes);
 
     semantic = stageops::semantic::StageSemanticGraphBuilder::build(
         ingress.assembly, domains, operations.stage_revision());
@@ -259,8 +261,49 @@ int main() {
     assert(domain_node != nullptr);
     assert(domain_node->attributes.at("current_for_active_bytes") == "false");
 
+    // stale -> canonical WorkingCopy reparse@1 -> current typed domain/graph
+    const auto refreshed_analysis = operations.refresh_resource_analysis();
+    assert(refreshed_analysis.stage_revision == 1U);
+    assert(refreshed_analysis.attempted == 1U);
+    assert(refreshed_analysis.succeeded == 1U);
+    assert(refreshed_analysis.skipped_without_parser == 4U);
+    assert(refreshed_analysis.missing_project_session_count == 0U);
+    assert(refreshed_analysis.complete_for_attempted());
+    assert(refreshed_analysis.reports.size() == 1U);
+    assert(refreshed_analysis.reports[0].byte_source ==
+        integration::ParsedByteSource::working_copy);
+    assert(refreshed_analysis.reports[0].byte_revision == 1U);
+
+    hits_session = project.find_session(hits_id);
+    assert(hits_session != nullptr);
+    assert(hits_session->parsed_resource() != nullptr);
+    assert(hits_session->parsed_resource()->byte_source ==
+        integration::ParsedByteSource::working_copy);
+    assert(hits_session->parsed_resource()->byte_revision == 1U);
+
+    domains = stageops::StageDomainAssembler::assemble(
+        ingress.assembly, project, operations.stage_revision());
+    assert(domains.stale_typed_result_count == 0U);
+    assert(domains.current_for_active_bytes());
+    assert(domains.by_kind(stageops::StageDomainKind::hits_collision)[0]
+        ->current_for_active_bytes);
+
+    semantic = stageops::semantic::StageSemanticGraphBuilder::build(
+        ingress.assembly, domains, operations.stage_revision());
+    assert(semantic.valid());
+    domain_node = semantic.find_node(domains.objects.front().id);
+    assert(domain_node != nullptr);
+    assert(domain_node->attributes.at("byte_source") == "working-copy");
+    assert(domain_node->attributes.at("byte_revision") == "1");
+    assert(domain_node->attributes.at("current_for_active_bytes") == "true");
+
+    // Rebuild completed against the same scene revision; only now clear stale.
+    assert(operations.commit_derived_refresh(1U));
+    assert(!operations.derived_state_stale());
+
     // Reopening the exact same runtime report reuses canonical resource sessions
-    // and does not re-run parsers that already retained a typed result.
+    // and does not replace the active WorkingCopy-derived typed result with a
+    // redundant source parse.
     const auto second = profiles::dmc3::StageOpsIngress::attach(
         make_report(), project);
     assert(second.valid());
@@ -268,9 +311,13 @@ int main() {
     assert(second.sessions_reused == 5U);
     assert(second.analyses.empty());
     assert(project.session_count() == 5U);
+    hits_session = project.find_session(hits_id);
+    assert(hits_session != nullptr);
+    assert(hits_session->parsed_resource() != nullptr);
+    assert(hits_session->parsed_resource()->byte_source ==
+        integration::ParsedByteSource::working_copy);
+    assert(hits_session->parsed_resource()->byte_revision == 1U);
 
-    // Same ResourceId with different immutable bytes is an integrity violation,
-    // not a second scene/resource copy.
     integration::ProjectWorkspace conflicting_project;
     auto conflict_report = make_report();
     const auto conflict_root = *conflict_report.resources[1].payload;
