@@ -17,6 +17,11 @@ enum class StageDomainKind {
     dca_records,
     lighting_records,
     stage_script_tokens,
+    stage_set_directive_token,
+    stage_set_value_token,
+    door_token,
+    box_in_token,
+    next_room_token,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(
@@ -26,6 +31,13 @@ enum class StageDomainKind {
     case StageDomainKind::dca_records: return "dca-records";
     case StageDomainKind::lighting_records: return "lighting-records";
     case StageDomainKind::stage_script_tokens: return "stage-script-tokens";
+    case StageDomainKind::stage_set_directive_token:
+        return "stage-set-directive-token";
+    case StageDomainKind::stage_set_value_token:
+        return "stage-set-value-token";
+    case StageDomainKind::door_token: return "door-token";
+    case StageDomainKind::box_in_token: return "box-in-token";
+    case StageDomainKind::next_room_token: return "next-room-token";
     }
     return "stage-script-tokens";
 }
@@ -74,6 +86,11 @@ struct StageDomainWorkspace final {
 // Builds Stage Ops domain projections strictly from the canonical typed parser
 // results retained by ProjectWorkspace. It never reparses bytes and never
 // discovers resources outside StageAssemblyWorkspace.
+//
+// Stage TXT token objects are structural lexical markers only. A DOOR token is
+// not an original runtime Door object, and a StageSet value token is not a
+// recovered StageSet instance until separate executable/runtime evidence links
+// that lexical marker to a recovered-game consumer/object lifecycle.
 class StageDomainAssembler final {
 public:
     [[nodiscard]] static StageDomainWorkspace assemble(
