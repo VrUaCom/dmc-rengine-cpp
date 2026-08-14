@@ -30,22 +30,6 @@ public:
     }
 };
 
-[[nodiscard]] std::array<std::byte, 8> make_magic(
-    char a,
-    char b,
-    char c) {
-    return {
-        static_cast<std::byte>(a),
-        static_cast<std::byte>(b),
-        static_cast<std::byte>(c),
-        std::byte{0},
-        std::byte{1},
-        std::byte{2},
-        std::byte{3},
-        std::byte{4},
-    };
-}
-
 } // namespace
 
 int main() {
@@ -91,9 +75,6 @@ int main() {
         ResourceLoadState::ready_postprocessed,
     };
     assert(model.successful_state_chain == expected_state_chain);
-    assert(to_string(ResourceLoadState::teardown_or_cancel_pending) ==
-        "teardown-or-cancel-pending");
-
     assert(model.cleanup_transition.from ==
         ResourceLoadState::teardown_or_cancel_pending);
     assert(model.cleanup_transition.to ==
@@ -109,8 +90,6 @@ int main() {
     assert(scm != nullptr && scm->function_va == 0x1403051B0ULL);
     assert(shw != nullptr && shw->function_va == 0x1403204C0ULL);
 
-    // The recovered entry now has the exact known x64 ABI, not merely a layout
-    // description stored beside an unrelated C++ object.
     static_assert(sizeof(ResourceRuntimeEntry) == 0x48U);
     static_assert(offsetof(ResourceRuntimeEntry, group_index) == 0x00U);
     static_assert(offsetof(ResourceRuntimeEntry, state) == 0x04U);
@@ -119,104 +98,78 @@ int main() {
     static_assert(offsetof(ResourceRuntimeEntry, loaded_payload) == 0x20U);
     static_assert(offsetof(ResourceRuntimeEntry, owned_state) == 0x28U);
 
-    ResourceRuntimeManager manager;
-    assert(manager.group_for_slot(0U) == 0U);
-    assert(manager.group_for_slot(3U) == 0U);
-    assert(manager.group_for_slot(4U) == 1U);
-    assert(manager.group_for_slot(139U) == 1U);
-    assert(manager.group_for_slot(140U) == 2U);
-    assert(manager.group_for_slot(199U) == 2U);
-    assert(manager.group_for_slot(200U) == 3U);
-    assert(manager.group_for_slot(227U) == 3U);
-    assert(manager.group_for_slot(228U) == 4U);
-    assert(manager.group_for_slot(229U) == 5U);
-    assert(manager.group_for_slot(356U) == 5U);
-    assert(manager.group_for_slot(357U) == 6U);
-    assert(manager.group_for_slot(362U) == 6U);
-    assert(!manager.group_for_slot(363U).has_value());
+    // Exercise only transitions directly supported by Wave-2 evidence. Known
+    // non-state fields are seeded independently to prove that these transition
+    // helpers do not invent writer ownership or field-clearing behavior.
+    ResourceRuntimeEntry entry{};
+    entry.group_index = 5U;
+    entry.subtype_index = 12U;
+    entry.source_descriptor = 0x11110000ULL;
+    entry.loaded_payload = 0x33330000ULL;
+    entry.owned_state = 0x44440000ULL;
 
-    // Execute the confirmed successful lifecycle on one real pool slot:
-    // 0 -> 1 -> 2 -> typed post-load -> 3.
-    constexpr std::size_t enemy_object_slot = 229U;
-    assert(manager.start_loading(
-        enemy_object_slot, 12U, static_cast<std::uintptr_t>(0x11110000ULL)) ==
+    assert(transition_free_to_loading(entry) ==
         ResourceTransitionResult::applied);
-    auto* entry = manager.entry(enemy_object_slot);
-    assert(entry != nullptr);
-    assert(entry->state == ResourceLoadState::io_scheduled_or_loading);
-    assert(entry->subtype_index == 12U);
-    assert(entry->source_descriptor == 0x11110000ULL);
+    assert(entry.state == ResourceLoadState::io_scheduled_or_loading);
+    assert(entry.subtype_index == 12U);
+    assert(entry.source_descriptor == 0x11110000ULL);
+    assert(entry.loaded_payload == 0x33330000ULL);
+    assert(entry.owned_state == 0x44440000ULL);
 
-    // A second 0->1 start is rejected instead of silently rewriting an active slot.
-    assert(manager.start_loading(enemy_object_slot, 13U, 0x22220000ULL) ==
+    assert(transition_free_to_loading(entry) ==
         ResourceTransitionResult::wrong_state);
 
-    // A null payload cannot advance state 1 -> 2.
-    assert(manager.mark_io_complete(enemy_object_slot, 0U) ==
-        ResourceTransitionResult::payload_missing);
-    assert(entry->state == ResourceLoadState::io_scheduled_or_loading);
-
-    assert(manager.mark_io_complete(
-        enemy_object_slot,
-        static_cast<std::uintptr_t>(0x33330000ULL),
-        static_cast<std::uintptr_t>(0x44440000ULL)) ==
+    assert(transition_loading_to_io_complete(entry) ==
         ResourceTransitionResult::applied);
-    assert(entry->state ==
+    assert(entry.state ==
         ResourceLoadState::io_complete_pending_postprocess);
-    assert(entry->loaded_payload == 0x33330000ULL);
-    assert(entry->owned_state == 0x44440000ULL);
+    assert(entry.loaded_payload == 0x33330000ULL);
+    assert(entry.owned_state == 0x44440000ULL);
 
-    auto mod_bytes = make_magic('M', 'O', 'D');
+    std::array<std::byte, 8> bytes{
+        std::byte{'M'}, std::byte{'O'}, std::byte{'D'}, std::byte{0},
+        std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4},
+    };
     RecordingPostLoadBackend backend;
     backend.succeed = false;
-    assert(manager.run_confirmed_postload(
-        enemy_object_slot, mod_bytes, backend) ==
+    assert(run_confirmed_postload(
+        entry, PostLoadFormat::mod, bytes, backend) ==
         ResourceTransitionResult::postload_failed);
-    assert(entry->state ==
+    assert(entry.state ==
         ResourceLoadState::io_complete_pending_postprocess);
     assert(backend.call_count == 1U);
     assert(backend.last_format == PostLoadFormat::mod);
 
     backend.succeed = true;
-    assert(manager.run_confirmed_postload(
-        enemy_object_slot, mod_bytes, backend) ==
+    assert(run_confirmed_postload(
+        entry, PostLoadFormat::mod, bytes, backend) ==
         ResourceTransitionResult::applied);
-    assert(entry->state == ResourceLoadState::ready_postprocessed);
+    assert(entry.state == ResourceLoadState::ready_postprocessed);
     assert(backend.call_count == 2U);
-    assert(mod_bytes[3] == std::byte{0x7F});
+    assert(bytes[3] == std::byte{0x7F});
 
-    // The same post-load cannot be applied twice after state 3 is reached.
-    assert(manager.run_confirmed_postload(
-        enemy_object_slot, mod_bytes, backend) ==
+    assert(run_confirmed_postload(
+        entry, PostLoadFormat::mod, bytes, backend) ==
         ResourceTransitionResult::wrong_state);
 
-    // Unknown formats are fail-closed and do not promote state 2 to READY.
-    constexpr std::size_t enemy_sound_slot = 357U;
-    assert(manager.start_loading(enemy_sound_slot, 2U, 0x55550000ULL) ==
-        ResourceTransitionResult::applied);
-    assert(manager.mark_io_complete(enemy_sound_slot, 0x66660000ULL) ==
-        ResourceTransitionResult::applied);
-    auto unknown_bytes = make_magic('X', 'Y', 'Z');
-    assert(manager.run_confirmed_postload(
-        enemy_sound_slot, unknown_bytes, backend) ==
-        ResourceTransitionResult::unsupported_postload_format);
-    const auto* sound_entry = manager.entry(enemy_sound_slot);
-    assert(sound_entry != nullptr);
-    assert(sound_entry->state ==
-        ResourceLoadState::io_complete_pending_postprocess);
+    // All four confirmed helpers can cross the same explicit typed-postload
+    // boundary. This does not claim how the original dispatcher selected them.
+    constexpr std::array<PostLoadFormat, 4> formats{
+        PostLoadFormat::mod,
+        PostLoadFormat::efm,
+        PostLoadFormat::scm,
+        PostLoadFormat::shw,
+    };
+    for (const auto format : formats) {
+        ResourceRuntimeEntry typed{};
+        typed.state = ResourceLoadState::io_complete_pending_postprocess;
+        assert(run_confirmed_postload(typed, format, bytes, backend) ==
+            ResourceTransitionResult::applied);
+        assert(typed.state == ResourceLoadState::ready_postprocessed);
+    }
 
-    // Magic dispatch is executable for all four directly confirmed fixup families.
-    auto efm_bytes = make_magic('E', 'F', 'M');
-    auto scm_bytes = make_magic('S', 'C', 'M');
-    auto shw_bytes = make_magic('S', 'H', 'W');
-    assert(confirmed_postload_format(efm_bytes) == PostLoadFormat::efm);
-    assert(confirmed_postload_format(scm_bytes) == PostLoadFormat::scm);
-    assert(confirmed_postload_format(shw_bytes) == PostLoadFormat::shw);
-    assert(!confirmed_postload_format(unknown_bytes).has_value());
-
-    // State-4 entry is intentionally not synthesized by the manager because the
-    // complete source-state domain is still unresolved. The directly observed
-    // cleanup edge itself is executable and independently tested.
+    // State-4 entry is intentionally seeded rather than synthesized because the
+    // source-state domain entering teardown remains unresolved.
     ResourceRuntimeEntry teardown_entry{};
     teardown_entry.group_index = 6U;
     teardown_entry.state = ResourceLoadState::teardown_or_cancel_pending;
@@ -224,12 +177,10 @@ int main() {
     assert(apply_observed_cleanup_transition(teardown_entry) ==
         ResourceTransitionResult::applied);
     assert(teardown_entry.state == ResourceLoadState::free_or_unstarted);
-    // Other fields are deliberately not cleared because that destructor/cleanup
-    // behavior has not yet been recovered.
     assert(teardown_entry.loaded_payload == 0x77770000ULL);
 
-    assert(manager.start_loading(363U, 0U, 0U) ==
-        ResourceTransitionResult::slot_out_of_range);
+    assert(apply_observed_cleanup_transition(teardown_entry) ==
+        ResourceTransitionResult::wrong_state);
 
     return 0;
 }
