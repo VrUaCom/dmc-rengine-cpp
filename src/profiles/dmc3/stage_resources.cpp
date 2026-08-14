@@ -129,11 +129,13 @@ StageResourceRowPlan make_stage_resource_plan_from_table_row(
     std::string resource_set_id,
     std::array<std::string, 4> logical_paths,
     std::string evidence_id) {
+    const auto legacy_key = resource_set_id;
     StageResourceRowPlan plan{
-        .stage_id = {},
+        .stage_id = legacy_key,
         .evidence_id = std::move(evidence_id),
         .resources = {},
         .resource_set_id = std::move(resource_set_id),
+        .semantic_stage_id = {},
     };
 
     const auto& descriptor = phase12_stage_resource_table();
@@ -148,9 +150,9 @@ StageResourceRowPlan make_stage_resource_plan_from_table_row(
 }
 
 const StageResourceRowPlan& phase12_st001_resource_plan() noexcept {
-    // Historical compatibility fixture only. It intentionally carries semantic
-    // stage_id because this helper predates executable StageCatalog ingestion.
-    // Production catalog rows use resource_set_id and leave stage_id unresolved.
+    // Historical compatibility fixture only. Production catalog rows carry
+    // resource-set identity from the executable table and leave semantic stage
+    // identity unresolved until separately evidenced.
     static const StageResourceRowPlan plan{
         .stage_id = "st001",
         .evidence_id = "ev-dmc3-stage-resource-table",
@@ -172,7 +174,8 @@ const StageResourceRowPlan& phase12_st001_resource_plan() noexcept {
                 .logical_path = "se/snd_r001.pac",
             },
         },
-        .resource_set_id = {},
+        .resource_set_id = "st001",
+        .semantic_stage_id = "st001",
     };
     return plan;
 }
