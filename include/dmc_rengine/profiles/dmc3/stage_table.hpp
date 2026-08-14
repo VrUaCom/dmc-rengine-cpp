@@ -28,9 +28,15 @@ enum class StageResourceRole {
     return "script";
 }
 
-// One exact contiguous bank of 0x40-byte StageResourceDescriptor records.
-// Each descriptor has four 0x10 cells: script/config/effect/sound. Wave-2
-// direct code evidence establishes kind16 @ +0x00 and path pointer @ +0x08.
+// Structural description of one contiguous bank of 0x40-byte
+// StageResourceDescriptor records. Each descriptor has four 0x10 cells:
+// script/config/effect/sound. Wave-2 direct code evidence establishes kind16
+// @ +0x00 and path pointer @ +0x08 for the promoted DMC3 layout.
+//
+// `valid()` means the descriptor is internally bounded/structurally coherent
+// enough for the shared reader and synthetic reverse fixtures.
+// `is_promoted_wave2_authority()` is the stronger executable-evidence gate and
+// accepts only the two exact canonical DMC3 Wave-2 banks.
 struct StageResourceTableDescriptor final {
     std::string id;
     std::string evidence_packet_id;
@@ -46,6 +52,7 @@ struct StageResourceTableDescriptor final {
     std::array<StageResourceRole, 4> columns{};
 
     [[nodiscard]] bool valid() const noexcept;
+    [[nodiscard]] bool is_promoted_wave2_authority() const noexcept;
     [[nodiscard]] std::uint32_t entry_count() const noexcept;
     [[nodiscard]] std::uint64_t row_size_bytes() const noexcept;
     [[nodiscard]] std::uint64_t table_size_bytes() const noexcept;
@@ -90,7 +97,7 @@ phase12_stage_resource_table() noexcept;
 [[nodiscard]] const StageDescriptorUniverseMetadata&
 wave2_stage_descriptor_universe() noexcept;
 
-// Maps a row in either recovered descriptor bank to its primary observed
+// Maps a row in either promoted descriptor bank to its primary observed
 // numeric Stage identity. This is executable descriptor identity, not
 // mission/room/gameplay semantics.
 [[nodiscard]] std::optional<std::uint16_t> runtime_stage_id_for_table_row(
