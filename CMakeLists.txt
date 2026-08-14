@@ -115,6 +115,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         project_workspace
         stage_workspace_manifest
         dmc3_stage_workspace_builder
+        dmc3_stageops_ingress
         stage_tool_views
         stageops_assembly_workspace
         stageops_operations_session
