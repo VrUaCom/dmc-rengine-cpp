@@ -1,5 +1,6 @@
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
+#include "recovered_dmc3_wave3_execution_cases.hpp"
 
 #include <array>
 #include <cassert>
@@ -181,6 +182,10 @@ int main() {
 
     assert(apply_observed_cleanup_transition(teardown_entry) ==
         ResourceTransitionResult::wrong_state);
+
+    // Wave-3 executable slices are compiled and executed by this already
+    // registered recovered-runtime CTest target.
+    dmc::recovered::dmc3::tests::wave3::run();
 
     return 0;
 }
