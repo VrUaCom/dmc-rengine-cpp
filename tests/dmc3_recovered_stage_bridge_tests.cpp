@@ -2,13 +2,28 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
-int main() {
-    using namespace dmc::rengine;
+namespace {
 
-    stageops::StageDomainWorkspace domains;
-    domains.identity = stageops::StageAssemblyIdentity{
+using namespace dmc::rengine;
+
+[[nodiscard]] std::vector<std::byte> text_bytes(std::string_view text) {
+    std::vector<std::byte> result;
+    result.reserve(text.size());
+    for (const auto character : text) {
+        result.push_back(static_cast<std::byte>(character));
+    }
+    return result;
+}
+
+[[nodiscard]] stageops::StageAssemblyIdentity identity() {
+    return stageops::StageAssemblyIdentity{
         .stage = gdspaces::StageIdentity{
             .profile = "dmc3-hd",
             .stage_id = "dmc3-recovered-bridge-fixture",
@@ -23,6 +38,17 @@ int main() {
         .source_table_id = "fixture-stage-table",
         .source_row_index = 0U,
     };
+}
+
+} // namespace
+
+int main() {
+    using namespace dmc::rengine;
+
+    // Unit-level bridge contract: only exact Door/BoxIn marker kinds receive
+    // Door parser links. Co-located StageSet markers must remain unrelated.
+    stageops::StageDomainWorkspace domains;
+    domains.identity = identity();
     domains.source_stage_revision = 7U;
 
     const auto make_object = [](std::string id, stageops::StageDomainKind kind) {
@@ -88,8 +114,6 @@ int main() {
         std::string::npos);
     assert(box_in_link->claim_id == "claim-dmc3-door-box-grammar");
 
-    // No lexical StageSet marker may inherit Door parser semantics merely by
-    // coexisting in the same TXT resource/domain workspace.
     assert(std::none_of(
         report.links.begin(), report.links.end(),
         [](const stageops::StageRuntimeLink& link) {
@@ -102,6 +126,110 @@ int main() {
     assert(workspace.valid());
     assert(workspace.source_stage_revision == 7U);
     assert(workspace.links.size() == 2U);
+
+    // End-to-end composition: recovered links are generated only after the
+    // controller has parsed the exact active TXT bytes for the target revision.
+    const auto bytes = text_bytes("DOOR BoxIn NextRoom\n");
+    const gdspaces::ResourceRef txt{
+        .id = gdspaces::ResourceId{
+            .source_id = "dmc3-recovered-bridge-scene-test",
+            .logical_path = "room/st001cfg_000.txt",
+            .container_chain = "PAC[0]",
+            .offset = 0x3000U,
+            .size = static_cast<std::uint64_t>(bytes.size()),
+        },
+        .display_name = "Door TXT fixture",
+        .format = "txt",
+        .profile = "dmc3-hd",
+        .synthetic_name = false,
+        .container = false,
+    };
+    const gdspaces::ByteProvenance provenance{
+        .kind = gdspaces::ByteOriginKind::direct_source_span,
+        .authority_id = "dmc3-recovered-bridge-source",
+        .offset = txt.id.offset,
+        .stored_size = static_cast<std::uint64_t>(bytes.size()),
+        .materialized_size = static_cast<std::uint64_t>(bytes.size()),
+        .transform = gdspaces::ByteTransform::none,
+        .crc32 = std::nullopt,
+    };
+
+    integration::ProjectWorkspace project;
+    assert(project.create_session(
+        gdspaces::ResourcePayload{
+            .resource = txt,
+            .bytes = bytes,
+            .diagnostics = {},
+            .byte_provenance = provenance,
+        },
+        integration::WorkspaceContext{
+            .stage_context = true,
+            .menu_context = false,
+            .evidence_context = true,
+        }));
+
+    stageops::StageAssemblyWorkspace assembly;
+    assembly.identity = identity();
+    assembly.requirements.push_back(stageops::StageAssemblyRequirement{
+        .requirement_id = "fixture/door-txt",
+        .category = gdspaces::StageResourceCategory::scripts,
+        .role = "door-script",
+        .requested_logical_path = txt.id.logical_path,
+        .resource_id = txt.id.canonical(),
+        .materialized = true,
+    });
+    assembly.resources.push_back(stageops::StageAssemblyResource{
+        .resource = txt,
+        .byte_provenance = provenance,
+        .materialized = true,
+        .descriptor_root = true,
+        .nested_container_child = false,
+        .container_expansion_observed = false,
+    });
+    assembly.memberships.push_back(stageops::StageAssemblyMembership{
+        .resource_id = txt.id.canonical(),
+        .category = gdspaces::StageResourceCategory::scripts,
+        .role = "door-script",
+        .kind = stageops::StageAssemblyMembershipKind::descriptor_root,
+        .parent_resource_id = std::nullopt,
+        .container_slot = std::nullopt,
+    });
+    assembly.product_materialization_complete = true;
+    assert(assembly.valid());
+
+    stageops::StageOperationsSession session(std::move(assembly), project);
+    const auto refreshed =
+        bridges::dmc3::RecoveredStageSceneController::refresh(session);
+    assert(refreshed.refreshed());
+    assert(refreshed.runtime_link_validation.valid());
+    assert(refreshed.runtime_link_validation.accepted_link_count == 2U);
+    assert(refreshed.snapshot.runtime_links().links.size() == 2U);
+    assert(refreshed.snapshot.semantic_graph.by_kind(
+        stageops::semantic::NodeKind::recovered_runtime).size() == 1U);
+
+    const auto door_domains = refreshed.snapshot.domains().by_kind(
+        stageops::StageDomainKind::door_token);
+    const auto box_in_domains = refreshed.snapshot.domains().by_kind(
+        stageops::StageDomainKind::box_in_token);
+    const auto next_room_domains = refreshed.snapshot.domains().by_kind(
+        stageops::StageDomainKind::next_room_token);
+    assert(door_domains.size() == 1U);
+    assert(box_in_domains.size() == 1U);
+    assert(next_room_domains.size() == 1U);
+
+    assert(refreshed.snapshot.semantic_graph.outgoing(
+        door_domains[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).size() == 1U);
+    assert(refreshed.snapshot.semantic_graph.outgoing(
+        box_in_domains[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).size() == 1U);
+
+    // NextRoom remains a structural lexical marker until its exact parser/runtime
+    // ownership is separately promoted. It must not inherit the Door parser link
+    // merely because it appears on the same line/resource.
+    assert(refreshed.snapshot.semantic_graph.outgoing(
+        next_room_domains[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).empty());
 
     return 0;
 }
