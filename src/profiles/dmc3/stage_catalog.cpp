@@ -38,10 +38,14 @@ bool StageCatalogEntry::complete() const noexcept {
 }
 
 StageResourceRowPlan StageCatalogEntry::resource_plan() const {
-    return make_stage_resource_plan_from_table_row(
+    auto plan = make_stage_resource_plan_from_table_row(
         catalog_entry_id,
         observation.logical_paths(),
         evidence_id);
+    if (semantic_stage_id.has_value()) {
+        plan.semantic_stage_id = *semantic_stage_id;
+    }
+    return plan;
 }
 
 bool StageCatalog::complete(
