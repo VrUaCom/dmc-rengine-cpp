@@ -48,6 +48,8 @@ int main() {
     const auto& banks = wave2_stage_resource_banks();
     assert(banks[0].valid());
     assert(banks[1].valid());
+    assert(banks[0].is_promoted_wave2_authority());
+    assert(banks[1].is_promoted_wave2_authority());
     assert(banks[0].row_count == 110U);
     assert(banks[1].row_count == 79U);
     assert(banks[0].row_size_bytes() == 0x40ULL);
@@ -97,17 +99,29 @@ int main() {
     assert(st910 != nullptr);
     assert(st910->row_index == 188U);
 
-    // Exact descriptor validation remains fail-closed: being in-bounds is not
-    // enough to invent a third Stage bank or shift a promoted bank.
+    // Structural validity and canonical authority are distinct. These mutated
+    // descriptors remain bounded/readable schemas but cannot drive promoted
+    // Stage identity or catalog construction.
     auto shifted = banks[1];
     shifted.va += 0x40ULL;
     shifted.rva += 0x40U;
     shifted.file_offset += 0x40ULL;
-    assert(!shifted.valid());
+    assert(shifted.valid());
+    assert(!shifted.is_promoted_wave2_authority());
+    assert(!runtime_stage_id_for_table_row(shifted, 0U).has_value());
 
     auto wrong_count = banks[1];
     wrong_count.row_count = 78U;
-    assert(!wrong_count.valid());
+    assert(wrong_count.valid());
+    assert(!wrong_count.is_promoted_wave2_authority());
+    assert(!runtime_stage_id_for_table_row(wrong_count, 0U).has_value());
+
+    const std::array<StageResourceTableDescriptor, 2> shifted_banks{
+        banks[0], shifted,
+    };
+    const auto rejected = StageCatalogBuilder::build_full_universe(
+        tables, shifted_banks);
+    assert(!rejected.complete_full_universe());
 
     return 0;
 }
