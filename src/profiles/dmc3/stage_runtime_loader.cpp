@@ -348,7 +348,7 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
         add_diagnostic(
             report.diagnostics,
             gdspaces::DiagnosticSeverity::error,
-            "dmc3.stage-load.materialization-incomplete",
+            "dmc3.stage-load.incomplete",
             "The StageBundle contains the safely materialized subset; materialization/expansion completion was not reached.");
     }
 
