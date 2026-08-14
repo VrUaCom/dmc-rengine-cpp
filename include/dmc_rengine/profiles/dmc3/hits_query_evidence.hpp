@@ -3,14 +3,16 @@
 #include "dmc_rengine/profiles/dmc3/known_targets.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
 
 namespace dmc::rengine::profiles::dmc3::hits_evidence {
 
-// DMC3 HD profile evidence only. These descriptors are not a universal HITS ABI
-// and intentionally do not model one monolithic original-game CollisionResult.
+// DMC3 HD canonical-build profile evidence only. These descriptors are not a
+// universal HITS ABI and intentionally do not model one monolithic original-
+// game CollisionResult.
 [[nodiscard]] inline bool matches_canonical_target(std::string_view sha256) noexcept {
     return phase12_canonical_target().matches_hash(sha256);
 }
@@ -45,6 +47,57 @@ struct QueryEvidenceDescriptor final {
     std::optional<std::uint32_t> independently_rejected_raw_flag_bit;
 };
 
+struct DynamicCategoryBinding final {
+    std::uint32_t activation_flag{};
+    std::uint32_t manager_field_offset{};
+    std::uint32_t category_id{};
+    std::uint16_t dispatcher_static_hits_reject_mask{};
+};
+
+enum class WrapperSourceIndex : std::uint8_t {
+    stage_member_3 = 0,
+    stage_member_6 = 1,
+    external_global_source = 2,
+};
+
+struct WrapperSourceEvidence final {
+    WrapperSourceIndex source{};
+    bool structurally_present{};
+    bool stage_pac_backed_confirmed{};
+    bool direct_static_selection_confirmed{};
+};
+
+struct SourceSelectorCallsiteEvidence final {
+    std::uint64_t callsite_va{};
+    WrapperSourceIndex requested_source{};
+};
+
+struct TemporarySource1QueryPathEvidence final {
+    std::uint64_t select_callsite_va{};
+    QueryVariant query_variant{};
+    std::uint64_t restore_callsite_va{};
+};
+
+enum class RuntimeHelperObservedRole : std::uint8_t {
+    hits_runtime_initializer,
+    hits_runtime_teardown,
+    source_binder,
+    source_selector,
+    candidate_cell_collector,
+    cell_list_resolver,
+    record_resolver,
+    plane_evaluator,
+    normal_classifier,
+};
+
+struct RuntimeHelperEvidence final {
+    RuntimeHelperObservedRole observed_role{};
+    std::uint64_t function_va{};
+    std::uint32_t static_call_count{};
+};
+
+namespace detail {
+
 inline constexpr std::array<QueryEvidenceDescriptor, 9> k_query_evidence{{
     {QueryVariant::vertical_probe_05e460, 0x14005E460ULL, 1U,
      SpecializedAbiKind::unresolved, false, false, false, std::nullopt},
@@ -66,23 +119,6 @@ inline constexpr std::array<QueryEvidenceDescriptor, 9> k_query_evidence{{
      SpecializedAbiKind::bool_observed_in_al, true, false, false, std::nullopt},
 }};
 
-[[nodiscard]] constexpr std::optional<QueryEvidenceDescriptor>
-query_evidence(QueryVariant variant) noexcept {
-    for (const auto& descriptor : k_query_evidence) {
-        if (descriptor.variant == variant) {
-            return descriptor;
-        }
-    }
-    return std::nullopt;
-}
-
-struct DynamicCategoryBinding final {
-    std::uint32_t activation_flag{};
-    std::uint32_t manager_field_offset{};
-    std::uint32_t category_id{};
-    std::uint16_t dispatcher_static_hits_reject_mask{};
-};
-
 inline constexpr std::array<DynamicCategoryBinding, 6> k_dynamic_category_bindings{{
     {0x00001000U, 0x10U, 0x02U, 0x0040U},
     {0x00002000U, 0x28U, 0x05U, 0x0002U},
@@ -92,49 +128,11 @@ inline constexpr std::array<DynamicCategoryBinding, 6> k_dynamic_category_bindin
     {0x00020000U, 0x88U, 0x11U, 0x0000U},
 }};
 
-[[nodiscard]] constexpr std::optional<DynamicCategoryBinding>
-dynamic_category_binding(std::uint32_t category_id) noexcept {
-    for (const auto& binding : k_dynamic_category_bindings) {
-        if (binding.category_id == category_id) {
-            return binding;
-        }
-    }
-    return std::nullopt;
-}
-
-[[nodiscard]] constexpr std::optional<DynamicCategoryBinding>
-dynamic_category_binding_from_activation(std::uint32_t activation_flag) noexcept {
-    for (const auto& binding : k_dynamic_category_bindings) {
-        if (binding.activation_flag == activation_flag) {
-            return binding;
-        }
-    }
-    return std::nullopt;
-}
-
-enum class WrapperSourceIndex : std::uint8_t {
-    stage_member_3 = 0,
-    stage_member_6 = 1,
-    external_global_source = 2,
-};
-
-struct WrapperSourceEvidence final {
-    WrapperSourceIndex source{};
-    bool structurally_present{};
-    bool stage_pac_backed_confirmed{};
-    bool direct_static_selection_confirmed{};
-};
-
 inline constexpr std::array<WrapperSourceEvidence, 3> k_wrapper_sources{{
     {WrapperSourceIndex::stage_member_3, true, true, true},
     {WrapperSourceIndex::stage_member_6, true, true, true},
     {WrapperSourceIndex::external_global_source, true, false, false},
 }};
-
-struct SourceSelectorCallsiteEvidence final {
-    std::uint64_t callsite_va{};
-    WrapperSourceIndex requested_source{};
-};
 
 inline constexpr std::array<SourceSelectorCallsiteEvidence, 4>
     k_direct_source_selector_callsites{{
@@ -144,35 +142,11 @@ inline constexpr std::array<SourceSelectorCallsiteEvidence, 4>
         {0x140056936ULL, WrapperSourceIndex::stage_member_3},
     }};
 
-struct TemporarySource1QueryPathEvidence final {
-    std::uint64_t select_callsite_va{};
-    QueryVariant query_variant{};
-    std::uint64_t restore_callsite_va{};
-};
-
 inline constexpr std::array<TemporarySource1QueryPathEvidence, 2>
     k_temporary_source1_query_paths{{
         {0x140056832ULL, QueryVariant::positional_correction_0601e0, 0x14005686EULL},
         {0x1400568F0ULL, QueryVariant::source_selectable_segment_05fec0, 0x140056936ULL},
     }};
-
-enum class RuntimeHelperObservedRole : std::uint8_t {
-    hits_runtime_initializer,
-    hits_runtime_teardown,
-    source_binder,
-    source_selector,
-    candidate_cell_collector,
-    cell_list_resolver,
-    record_resolver,
-    plane_evaluator,
-    normal_classifier,
-};
-
-struct RuntimeHelperEvidence final {
-    RuntimeHelperObservedRole observed_role{};
-    std::uint64_t function_va{};
-    std::uint32_t static_call_count{};
-};
 
 inline constexpr std::array<RuntimeHelperEvidence, 9> k_runtime_helper_evidence{{
     {RuntimeHelperObservedRole::hits_runtime_initializer, 0x1402D3060ULL, 2U},
@@ -186,9 +160,88 @@ inline constexpr std::array<RuntimeHelperEvidence, 9> k_runtime_helper_evidence{
     {RuntimeHelperObservedRole::normal_classifier, 0x1402CCF20ULL, 6U},
 }};
 
-[[nodiscard]] constexpr std::optional<RuntimeHelperEvidence>
-runtime_helper_evidence(RuntimeHelperObservedRole observed_role) noexcept {
-    for (const auto& descriptor : k_runtime_helper_evidence) {
+} // namespace detail
+
+[[nodiscard]] inline std::size_t query_evidence_count(std::string_view sha256) noexcept {
+    return matches_canonical_target(sha256) ? detail::k_query_evidence.size() : 0U;
+}
+
+[[nodiscard]] inline std::optional<QueryEvidenceDescriptor>
+query_evidence(std::string_view sha256, QueryVariant variant) noexcept {
+    if (!matches_canonical_target(sha256)) {
+        return std::nullopt;
+    }
+    for (const auto& descriptor : detail::k_query_evidence) {
+        if (descriptor.variant == variant) {
+            return descriptor;
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline std::optional<DynamicCategoryBinding>
+dynamic_category_binding(std::string_view sha256, std::uint32_t category_id) noexcept {
+    if (!matches_canonical_target(sha256)) {
+        return std::nullopt;
+    }
+    for (const auto& binding : detail::k_dynamic_category_bindings) {
+        if (binding.category_id == category_id) {
+            return binding;
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline std::optional<DynamicCategoryBinding>
+dynamic_category_binding_from_activation(std::string_view sha256,
+                                         std::uint32_t activation_flag) noexcept {
+    if (!matches_canonical_target(sha256)) {
+        return std::nullopt;
+    }
+    for (const auto& binding : detail::k_dynamic_category_bindings) {
+        if (binding.activation_flag == activation_flag) {
+            return binding;
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline std::optional<WrapperSourceEvidence>
+wrapper_source_evidence(std::string_view sha256, WrapperSourceIndex source) noexcept {
+    if (!matches_canonical_target(sha256)) {
+        return std::nullopt;
+    }
+    for (const auto& descriptor : detail::k_wrapper_sources) {
+        if (descriptor.source == source) {
+            return descriptor;
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] inline std::optional<SourceSelectorCallsiteEvidence>
+direct_source_selector_callsite(std::string_view sha256, std::size_t index) noexcept {
+    if (!matches_canonical_target(sha256) || index >= detail::k_direct_source_selector_callsites.size()) {
+        return std::nullopt;
+    }
+    return detail::k_direct_source_selector_callsites[index];
+}
+
+[[nodiscard]] inline std::optional<TemporarySource1QueryPathEvidence>
+temporary_source1_query_path(std::string_view sha256, std::size_t index) noexcept {
+    if (!matches_canonical_target(sha256) || index >= detail::k_temporary_source1_query_paths.size()) {
+        return std::nullopt;
+    }
+    return detail::k_temporary_source1_query_paths[index];
+}
+
+[[nodiscard]] inline std::optional<RuntimeHelperEvidence>
+runtime_helper_evidence(std::string_view sha256,
+                        RuntimeHelperObservedRole observed_role) noexcept {
+    if (!matches_canonical_target(sha256)) {
+        return std::nullopt;
+    }
+    for (const auto& descriptor : detail::k_runtime_helper_evidence) {
         if (descriptor.observed_role == observed_role) {
             return descriptor;
         }
