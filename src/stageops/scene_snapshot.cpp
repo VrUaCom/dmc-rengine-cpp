@@ -1,5 +1,7 @@
 #include "dmc_rengine/stageops/scene_snapshot.hpp"
 
+#include <utility>
+
 namespace dmc::rengine::stageops {
 namespace {
 
@@ -20,14 +22,14 @@ namespace {
 } // namespace
 
 bool StageSceneSnapshot::valid() const noexcept {
-    if (!operations.valid() || !domains.valid() || !semantic_graph.valid()) {
+    if (!operations.valid() || !knowledge.valid() || !semantic_graph.valid()) {
         return false;
     }
-    if (domains.source_stage_revision != operations.stage_revision ||
+    if (knowledge.source_stage_revision() != operations.stage_revision ||
         semantic_graph.source_stage_revision != operations.stage_revision) {
         return false;
     }
-    if (!same_identity(domains.identity, semantic_graph.source_identity)) {
+    if (!same_identity(knowledge.identity(), semantic_graph.source_identity)) {
         return false;
     }
     if (operations.assembly_status != semantic_graph.assembly_status ||
@@ -38,24 +40,32 @@ bool StageSceneSnapshot::valid() const noexcept {
 }
 
 StageSceneSnapshot StageSceneSnapshotBuilder::build(
-    const StageOperationsSession& session) {
+    const StageOperationsSession& session,
+    std::vector<StageRuntimeLink> explicit_runtime_links) {
     StageSceneSnapshot snapshot;
     if (!session.valid()) {
         return snapshot;
     }
 
     snapshot.operations = session.snapshot();
-    snapshot.domains = StageDomainAssembler::assemble(
+    auto domains = StageDomainAssembler::assemble(
         session.assembly(),
         session.project(),
         snapshot.operations.stage_revision);
-    if (!snapshot.domains.valid()) {
+    if (!domains.valid()) {
+        return StageSceneSnapshot{};
+    }
+
+    snapshot.knowledge = StageDomainKnowledgeBuilder::build(
+        std::move(domains),
+        std::move(explicit_runtime_links));
+    if (!snapshot.knowledge.valid()) {
         return StageSceneSnapshot{};
     }
 
     snapshot.semantic_graph = semantic::StageSemanticGraphBuilder::build(
         session.assembly(),
-        snapshot.domains,
+        snapshot.knowledge,
         snapshot.operations.stage_revision);
     if (!snapshot.semantic_graph.valid()) {
         return StageSceneSnapshot{};
