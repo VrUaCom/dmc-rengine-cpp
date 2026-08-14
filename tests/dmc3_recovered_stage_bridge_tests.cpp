@@ -216,12 +216,18 @@ int main() {
     assert(door_domains.size() == 1U);
     assert(box_in_domains.size() == 1U);
     assert(next_room_domains.size() == 1U);
+    assert(door_domains[0]->attributes.at("offset") == "0");
+    assert(box_in_domains[0]->attributes.at("offset") == "5");
+    assert(next_room_domains[0]->attributes.at("offset") == "11");
+
+    const std::string source_door_domain_id = door_domains[0]->id;
+    const std::string source_box_in_domain_id = box_in_domains[0]->id;
 
     assert(refreshed.snapshot.semantic_graph.outgoing(
-        door_domains[0]->id,
+        source_door_domain_id,
         stageops::semantic::EdgeKind::runtime_link).size() == 1U);
     assert(refreshed.snapshot.semantic_graph.outgoing(
-        box_in_domains[0]->id,
+        source_box_in_domain_id,
         stageops::semantic::EdgeKind::runtime_link).size() == 1U);
 
     // NextRoom remains a structural lexical marker until its exact parser/runtime
@@ -230,6 +236,71 @@ int main() {
     assert(refreshed.snapshot.semantic_graph.outgoing(
         next_room_domains[0]->id,
         stageops::semantic::EdgeKind::runtime_link).empty());
+
+    // Offset-shifting edit regression. Inserting a lexer comment changes every
+    // subsequent token byte offset while preserving the Door/BoxIn token stream.
+    // Runtime links must therefore be regenerated from domains@WorkingCopy-1;
+    // precomputed revision-0 links would point at stale, nonexistent domain IDs.
+    assert(session.enable_editing(txt.id.canonical()));
+    const auto insert_comment = session.apply_edit(
+        txt.id.canonical(),
+        gdspaces::EditOperation{
+            .id = "shift-door-token-offsets",
+            .base_revision = 0U,
+            .offset = 0U,
+            .expected = {},
+            .replacement = {
+                std::byte{'/'}, std::byte{'/'}, std::byte{'x'}, std::byte{'\n'}},
+            .description =
+                "Insert an ignored lexer comment before Door tokens to shift exact source offsets.",
+        });
+    assert(insert_comment.applied);
+    assert(insert_comment.stage_revision == 1U);
+    assert(session.derived_state_stale());
+
+    const auto shifted =
+        bridges::dmc3::RecoveredStageSceneController::refresh(session);
+    assert(shifted.refreshed());
+    assert(shifted.target_stage_revision == 1U);
+    assert(shifted.final_stage_revision == 1U);
+    assert(shifted.analysis.reports.size() == 1U);
+    assert(shifted.analysis.reports[0].byte_source ==
+        integration::ParsedByteSource::working_copy);
+    assert(shifted.analysis.reports[0].byte_revision == 1U);
+    assert(shifted.runtime_link_validation.accepted_link_count == 2U);
+
+    const auto shifted_doors = shifted.snapshot.domains().by_kind(
+        stageops::StageDomainKind::door_token);
+    const auto shifted_box_in = shifted.snapshot.domains().by_kind(
+        stageops::StageDomainKind::box_in_token);
+    const auto shifted_next_room = shifted.snapshot.domains().by_kind(
+        stageops::StageDomainKind::next_room_token);
+    assert(shifted_doors.size() == 1U);
+    assert(shifted_box_in.size() == 1U);
+    assert(shifted_next_room.size() == 1U);
+    assert(shifted_doors[0]->attributes.at("offset") == "4");
+    assert(shifted_box_in[0]->attributes.at("offset") == "9");
+    assert(shifted_next_room[0]->attributes.at("offset") == "15");
+    assert(shifted_doors[0]->id != source_door_domain_id);
+    assert(shifted_box_in[0]->id != source_box_in_domain_id);
+
+    assert(shifted.snapshot.semantic_graph.find_node(source_door_domain_id) == nullptr);
+    assert(shifted.snapshot.semantic_graph.find_node(source_box_in_domain_id) == nullptr);
+    assert(shifted.snapshot.semantic_graph.outgoing(
+        shifted_doors[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).size() == 1U);
+    assert(shifted.snapshot.semantic_graph.outgoing(
+        shifted_box_in[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).size() == 1U);
+    assert(shifted.snapshot.semantic_graph.outgoing(
+        shifted_next_room[0]->id,
+        stageops::semantic::EdgeKind::runtime_link).empty());
+
+    for (const auto& link : shifted.snapshot.runtime_links().links) {
+        assert(link.domain_object_id != source_door_domain_id);
+        assert(link.domain_object_id != source_box_in_domain_id);
+        assert(link.runtime.evidence_ids.size() == 4U);
+    }
 
     return 0;
 }
