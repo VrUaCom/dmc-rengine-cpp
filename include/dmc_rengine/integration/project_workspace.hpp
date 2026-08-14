@@ -123,8 +123,7 @@ public:
         ParsedResourceResult parsed);
     [[nodiscard]] bool attach_binary_document(
         const gdspaces::ResourceId& resource,
-        binary::Document document,
-        std::uint64_t byte_revision = 0U);
+        binary::Document document);
     [[nodiscard]] bool attach_executable_context(
         const gdspaces::ResourceId& resource,
         ExecutableResourceContext context);
