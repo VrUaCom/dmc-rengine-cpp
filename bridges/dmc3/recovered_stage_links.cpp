@@ -4,7 +4,6 @@
 
 #include <string>
 #include <string_view>
-#include <utility>
 
 namespace dmc::rengine::bridges::dmc3 {
 namespace {
@@ -21,8 +20,6 @@ namespace {
 }
 
 [[nodiscard]] stageops::RecoveredRuntimeIdentity runtime_identity() {
-    const auto& contract =
-        dmc::recovered::dmc3::runtime::stage::door_parser_contract();
     return stageops::RecoveredRuntimeIdentity{
         .id = "dmc3/runtime/stage/door-txt-parser",
         .source_tree_path =
