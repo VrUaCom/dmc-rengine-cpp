@@ -1,13 +1,19 @@
 #pragma once
 
+#include "runtime/stage/stage_descriptor.hpp"
+
 #include <cstdint>
 #include <optional>
 
 namespace dmc::recovered::dmc3::runtime::stage {
 
+inline constexpr std::uint64_t numeric_stage_resolver_code_va = 0x1401B985DULL;
 inline constexpr std::uint64_t stage_group_base_table_va = 0x1405C4A50ULL;
 inline constexpr std::uint32_t stage_group_count = 10U;
-inline constexpr std::uint32_t stage_descriptor_stride = 0x40U;
+inline constexpr std::uint32_t stage_descriptor_stride =
+    static_cast<std::uint32_t>(sizeof(StageResourceDescriptor));
+
+static_assert(stage_descriptor_stride == 0x40U);
 
 struct StageDescriptorBank final {
     std::uint64_t base_va{};
