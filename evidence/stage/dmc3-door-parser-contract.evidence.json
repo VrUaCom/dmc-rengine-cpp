@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-door-parser-contract",
+  "title": "DMC3 HD Door TXT Parser Contract — Reconciled Pass 0–34",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-door-parser-logical-function",
+      "claim_id": "claim-dmc3-door-parser-logical-function",
+      "title": "Door parser logical function starts near VA 0x1401A9DE0",
+      "summary": "The reconciled Door TXT parser logical function begins near VA 0x1401A9DE0. The older 0x1401A9E3B anchor lies inside the parser loop and must not be treated as the logical function start.",
+      "confidence": "confirmed",
+      "tags": ["exe", "stage", "door", "txt-parser", "corrected", "pass-34"],
+      "supersedes": ["door-parser-start-0x1401A9E3B"],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1744352,
+          "va": 5370453472,
+          "symbol": "door_txt_parser",
+          "note": "Corrected logical start anchor near VA 0x1401A9DE0; reconciled logical CFG has 68 blocks / 340 instructions."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-door-table-capacity",
+      "claim_id": "claim-dmc3-door-table-capacity",
+      "title": "Door parser table capacity is 12",
+      "summary": "The vanilla Door parser stores at most 12 Door records in the confirmed table/capacity path. This is a parser/runtime capacity observation, not a claim that the complete Door record ABI has been recovered.",
+      "confidence": "confirmed",
+      "tags": ["exe", "stage", "door", "capacity", "parser"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1744352,
+          "va": 5370453472,
+          "symbol": "door_txt_parser",
+          "note": "Capacity check belongs to the reconciled Door parser path."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-door-box-grammar",
+      "claim_id": "claim-dmc3-door-box-grammar",
+      "title": "Door BoxIn, BoxLoad and AUTO grammar",
+      "summary": "BoxIn consumes x y z radiusX radiusY radiusZ yaw. BoxLoad consumes four x,z pairs followed by yMin and yMax, for ten floats total. The AUTO path is observed through VA 0x1401AB6D0.",
+      "confidence": "confirmed",
+      "tags": ["exe", "stage", "door", "boxin", "boxload", "auto", "grammar"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1744352,
+          "va": 5370453472,
+          "symbol": "door_txt_parser",
+          "note": "Reconciled Door grammar owner."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1742544,
+          "va": 5370451664,
+          "symbol": "door_auto_path",
+          "note": "AUTO path anchor at VA 0x1401AB6D0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-door-selected-record-writes",
+      "claim_id": "claim-dmc3-door-selected-record-writes",
+      "title": "Corrected selected Door runtime record field offsets",
+      "summary": "Reconciled runtime writes use Door record offsets +0xC8 and +0xD4. Their exact semantic field names and the complete record/class layout remain unresolved, so this evidence must not be expanded into a full Door ABI.",
+      "confidence": "confirmed",
+      "tags": ["exe", "stage", "door", "record", "offset", "corrected", "partial-layout"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1744352,
+          "va": 5370453472,
+          "symbol": "door_txt_parser",
+          "note": "Selected downstream record writes corrected to +0xC8 and +0xD4; complete Door record ABI remains open."
+        }
+      ]
+    }
+  ]
+}
