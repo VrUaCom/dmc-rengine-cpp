@@ -1,11 +1,14 @@
+#include "runtime/media/hd_media_translation.hpp"
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
+#include "runtime/scenes/scene_manager.hpp"
 #include "runtime/stage/stage_dependency_executor.hpp"
 
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <span>
 #include <vector>
@@ -115,6 +118,55 @@ private:
         events.push_back(event);
         return !reject_event.has_value() || *reject_event != event;
     }
+};
+
+class RecordingScene final
+    : public dmc::recovered::dmc3::runtime::scenes::IScene {
+public:
+    RecordingScene(
+        std::uint32_t id,
+        std::vector<std::uint32_t>& events) noexcept
+        : id_{id}, events_{events} {}
+
+    ~RecordingScene() override {
+        events_.push_back(300U + id_);
+    }
+
+    void enter() override {
+        events_.push_back(100U + id_);
+    }
+
+    void exit() override {
+        events_.push_back(200U + id_);
+    }
+
+private:
+    std::uint32_t id_{};
+    std::vector<std::uint32_t>& events_;
+};
+
+class RecordingSceneFactory final
+    : public dmc::recovered::dmc3::runtime::scenes::ISceneFactory {
+public:
+    explicit RecordingSceneFactory(
+        std::vector<std::uint32_t>& events) noexcept
+        : events_{events} {}
+
+    std::optional<dmc::recovered::dmc3::runtime::scenes::SceneId> reject_id;
+
+    [[nodiscard]] std::unique_ptr<
+        dmc::recovered::dmc3::runtime::scenes::IScene>
+    create(dmc::recovered::dmc3::runtime::scenes::SceneId id) override {
+        const auto numeric = static_cast<std::uint32_t>(id);
+        events_.push_back(400U + numeric);
+        if (reject_id.has_value() && *reject_id == id) {
+            return nullptr;
+        }
+        return std::make_unique<RecordingScene>(numeric, events_);
+    }
+
+private:
+    std::vector<std::uint32_t>& events_;
 };
 
 } // namespace
@@ -288,8 +340,6 @@ int main() {
     assert(manager.start_loading(363U, 0U, 0U) ==
         ResourceTransitionResult::slot_out_of_range);
 
-    // Wave-3 executable dependency slice. Input begins after cfg enemy-ID
-    // extraction because the binary cfg-record parser is not yet reconstructed.
     using namespace dmc::recovered::dmc3::runtime::stage;
     FixtureEnemyResolver enemy_resolver;
     RecordingStageDependencySink dependency_sink;
@@ -304,12 +354,8 @@ int main() {
         1012U, 2012U, 1020U, 2020U, 3000U, 3001U, 3002U,
     };
     assert(dependency_sink.events == expected_dependency_events);
-
-    // Different external enemy IDs that map to one resource set are deduplicated
-    // before any object/sound preload is emitted.
     assert(dependency_report.unique_resource_sets[0].external_enemy_id == 10U);
 
-    // Unresolved mapping fails before preload/script/effect side effects occur.
     RecordingStageDependencySink unresolved_sink;
     constexpr std::array<std::uint32_t, 2> unresolved_ids{10U, 99U};
     const auto unresolved_report = StageDependencyExecutor::execute_after_config_scan(
@@ -319,7 +365,6 @@ int main() {
     assert(unresolved_report.unresolved_enemy_id == 99U);
     assert(unresolved_sink.events.empty());
 
-    // Backend rejection is fail-closed and prevents later dependency phases.
     RecordingStageDependencySink rejecting_sink;
     rejecting_sink.reject_event = 2012U;
     const auto rejected_report = StageDependencyExecutor::execute_after_config_scan(
@@ -328,6 +373,76 @@ int main() {
         StageDependencyExecutionStatus::backend_rejected);
     const std::vector<std::uint32_t> expected_rejected_events{1012U, 2012U};
     assert(rejecting_sink.events == expected_rejected_events);
+
+    // Directly recovered HD-port translation behavior now executes in the
+    // recovered tree rather than existing only as catalog observations.
+    using namespace dmc::recovered::dmc3::runtime::media;
+    const std::array<HdAudioDescriptor, 2> audio_descriptors{{
+        HdAudioDescriptor{
+            .physical_name = "battle_01.ogg",
+            .loop_start_ms = 15253U,
+            .loop_end_ms = 117653U,
+        },
+        HdAudioDescriptor{
+            .physical_name = "system_00.ogg",
+            .loop_start_ms = kNoExplicitLoop,
+            .loop_end_ms = kNoExplicitLoop,
+        },
+    }};
+    const auto ogg_key = make_ogg_lookup_key("afs\\sound\\BATTLE_01.ADX");
+    assert(ogg_key.has_value());
+    assert(*ogg_key == "battle_01.ogg");
+    const auto* audio = find_hd_audio_descriptor(
+        "afs\\sound\\BATTLE_01.ADX", audio_descriptors);
+    assert(audio != nullptr);
+    assert(audio->has_explicit_loop());
+    assert(audio->loop_start_ms == 15253U);
+    assert(audio->loop_end_ms == 117653U);
+    assert(!audio_descriptors[1].has_explicit_loop());
+    assert(find_hd_audio_descriptor(
+        "afs\\sound\\missing.adx", audio_descriptors) == nullptr);
+    assert(!make_ogg_lookup_key("no-extension").has_value());
+
+    const auto wmv = rewrite_sfd_to_wmv("Video\\m14_s00.sfd");
+    assert(wmv.has_value());
+    assert(*wmv == "Video\\m14_s00.wmv");
+    assert(!rewrite_sfd_to_wmv("Video\\no-extension").has_value());
+
+    // Recovered scene manager executes the observed transition order:
+    // exit current -> destroy current -> create replacement -> enter replacement.
+    using namespace dmc::recovered::dmc3::runtime::scenes;
+    std::vector<std::uint32_t> scene_events;
+    RecordingSceneFactory scene_factory{scene_events};
+    SceneManager scene_manager{scene_factory};
+    assert(scene_manager.transition_to(SceneId::boot) ==
+        SceneTransitionResult::applied);
+    assert(scene_manager.current_id() == SceneId::boot);
+    const std::vector<std::uint32_t> expected_boot_events{400U, 100U};
+    assert(scene_events == expected_boot_events);
+
+    assert(scene_manager.transition_to(SceneId::game) ==
+        SceneTransitionResult::applied);
+    assert(scene_manager.current_id() == SceneId::game);
+    const std::vector<std::uint32_t> expected_game_events{
+        400U, 100U,
+        200U, 300U,
+        404U, 104U,
+    };
+    assert(scene_events == expected_game_events);
+
+    scene_factory.reject_id = SceneId::result;
+    assert(scene_manager.transition_to(SceneId::result) ==
+        SceneTransitionResult::factory_failed);
+    assert(!scene_manager.has_scene());
+    assert(!scene_manager.current_id().has_value());
+    const std::vector<std::uint32_t> expected_failed_transition_events{
+        400U, 100U,
+        200U, 300U,
+        404U, 104U,
+        204U, 304U,
+        408U,
+    };
+    assert(scene_events == expected_failed_transition_events);
 
     return 0;
 }
