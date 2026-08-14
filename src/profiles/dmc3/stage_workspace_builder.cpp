@@ -124,6 +124,7 @@ StageWorkspaceBuildResult StageWorkspaceBuilder::build(
         .exe_evidence_id = plan.evidence_id,
         .resource_set_id = resource_set_id,
         .semantic_stage_id = plan.semantic_stage_id,
+        .numeric_stage_id = plan.numeric_stage_id,
     };
     auto bundle = gdspaces::StageBundleAssembler::assemble(
         identity, candidates);
