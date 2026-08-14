@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/stageops/assembly_workspace.hpp"
+#include "dmc_rengine/stageops/domain_knowledge.hpp"
 #include "dmc_rengine/stageops/domain_workspace.hpp"
 
 #include <cstddef>
@@ -17,6 +18,7 @@ enum class NodeKind {
     requirement,
     resource,
     domain_object,
+    recovered_runtime,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(NodeKind kind) noexcept {
@@ -25,6 +27,7 @@ enum class NodeKind {
     case NodeKind::requirement: return "requirement";
     case NodeKind::resource: return "resource";
     case NodeKind::domain_object: return "domain-object";
+    case NodeKind::recovered_runtime: return "recovered-runtime";
     }
     return "resource";
 }
@@ -35,6 +38,8 @@ enum class EdgeKind {
     stage_member,
     contains,
     projects_domain,
+    domain_relation,
+    runtime_link,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(EdgeKind kind) noexcept {
@@ -44,16 +49,20 @@ enum class EdgeKind {
     case EdgeKind::stage_member: return "stage-member";
     case EdgeKind::contains: return "contains";
     case EdgeKind::projects_domain: return "projects-domain";
+    case EdgeKind::domain_relation: return "domain-relation";
+    case EdgeKind::runtime_link: return "runtime-link";
     }
     return "stage-member";
 }
 
-// Semantic/evidence authority is explicit even in the first structural slice so
-// later runtime or inferred edges cannot silently look equivalent to facts
-// emitted directly from Stage Ops assembly state.
+// Semantic/evidence authority stays explicit so a structural parser fact, a
+// fully reconstructed vanilla-runtime contract and an executable candidate can
+// never become visually or programmatically indistinguishable in the graph.
 enum class Authority {
     structural_product_fact,
     recovered_runtime_fact,
+    recovered_runtime_partial,
+    recovered_runtime_candidate,
     semantic_confirmed,
     semantic_inferred,
     unresolved,
@@ -63,6 +72,8 @@ enum class Authority {
     switch (authority) {
     case Authority::structural_product_fact: return "structural-product-fact";
     case Authority::recovered_runtime_fact: return "recovered-runtime-fact";
+    case Authority::recovered_runtime_partial: return "recovered-runtime-partial";
+    case Authority::recovered_runtime_candidate: return "recovered-runtime-candidate";
     case Authority::semantic_confirmed: return "semantic-confirmed";
     case Authority::semantic_inferred: return "semantic-inferred";
     case Authority::unresolved: return "unresolved";
@@ -126,12 +137,20 @@ public:
         const StageAssemblyWorkspace& assembly,
         std::uint64_t source_stage_revision = 0U);
 
-    // Adds Stage Ops typed domain projections without transferring their
-    // ownership to the graph. Domain identity/resource links remain derived and
-    // rebuildable from Stage Ops state.
+    // Compatibility structural projection. New scene snapshots use the full
+    // StageDomainKnowledgeWorkspace overload below so relations/runtime links
+    // cannot live in a side channel outside the scene revision.
     [[nodiscard]] static StageSemanticGraph build(
         const StageAssemblyWorkspace& assembly,
         const StageDomainWorkspace& domains,
+        std::uint64_t source_stage_revision);
+
+    // Canonical Stage Ops knowledge projection. Structural relations and
+    // recovered-runtime links are represented exactly as supplied by Stage Ops;
+    // the graph performs no parser, filename, token or gameplay inference.
+    [[nodiscard]] static StageSemanticGraph build(
+        const StageAssemblyWorkspace& assembly,
+        const StageDomainKnowledgeWorkspace& knowledge,
         std::uint64_t source_stage_revision);
 };
 
