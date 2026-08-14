@@ -6,6 +6,7 @@
 #include <cctype>
 #include <cstdint>
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -104,6 +105,26 @@ void add_diagnostic(
         static_cast<std::uint64_t>(payload.bytes.size());
 }
 
+[[nodiscard]] std::vector<gdspaces::ResourceId> duplicate_root_identities(
+    const StageRuntimeResolutionReport& resolution) {
+    std::set<std::string, std::less<>> seen;
+    std::set<std::string, std::less<>> reported;
+    std::vector<gdspaces::ResourceId> duplicates;
+
+    for (const auto& resource : resolution.resources) {
+        if (!resource.resolved()) {
+            continue;
+        }
+        const auto& id = resource.runtime.resolved->id;
+        const auto key = id.canonical();
+        if (seen.insert(key).second || !reported.insert(key).second) {
+            continue;
+        }
+        duplicates.push_back(id);
+    }
+    return duplicates;
+}
+
 void append_nested_candidates(
     const StageRuntimeLoadedResource& loaded,
     std::vector<gdspaces::StageMemberCandidate>& candidates) {
@@ -188,6 +209,21 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             "dmc3.stage-load.resolution-incomplete",
             "Stage Level-C loading stopped because one or more catalog resource references did not resolve uniquely.");
         return report;
+    }
+
+    // Four EXE roles may theoretically collapse to the same resolved ResourceId
+    // after runtime basename/namespace lookup. The current StageBundle/workspace
+    // model stores one role context per canonical resource, so silently treating
+    // such a collapse as complete would lose a role binding. Preserve/materialize
+    // the resource below, but fail Level-C until multi-role identity is evidenced
+    // and represented explicitly.
+    for (const auto& duplicate : duplicate_root_identities(report.resolution)) {
+        add_diagnostic(
+            report.diagnostics,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-load.duplicate-root-identity",
+            "More than one executable stage-resource role resolved to the same canonical root ResourceId; current single-role StageBundle semantics cannot represent this as a complete Level-C result.",
+            duplicate);
     }
 
     std::vector<gdspaces::StageMemberCandidate> candidates;
