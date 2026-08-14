@@ -26,6 +26,7 @@ StageSceneValidationReceipt StageSceneValidationReceiptBuilder::build(
 
     const auto& identity = session.assembly().identity;
     const auto operations = session.snapshot();
+    const auto& domains = snapshot.domains();
     receipt.receipt_id = std::move(receipt_id);
     receipt.profile = identity.stage.profile;
     receipt.catalog_entry_id = identity.catalog_entry_id;
@@ -55,11 +56,10 @@ StageSceneValidationReceipt StageSceneValidationReceiptBuilder::build(
     receipt.dirty_resource_count = operations.dirty_resource_count;
     receipt.missing_project_session_count =
         operations.missing_project_session_count;
-    receipt.domain_object_count = snapshot.domains.objects.size();
-    receipt.stale_typed_result_count =
-        snapshot.domains.stale_typed_result_count;
+    receipt.domain_object_count = domains.objects.size();
+    receipt.stale_typed_result_count = domains.stale_typed_result_count;
 
-    for (const auto& object : snapshot.domains.objects) {
+    for (const auto& object : domains.objects) {
         ++receipt.domain_counts[
             std::string{stageops::to_string(object.kind)}];
     }
