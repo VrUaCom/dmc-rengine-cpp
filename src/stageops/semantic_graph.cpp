@@ -1,6 +1,7 @@
 #include "dmc_rengine/stageops/semantic_graph.hpp"
 
 #include <algorithm>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>
@@ -27,6 +28,10 @@ namespace {
 
 [[nodiscard]] std::string resource_node_id(std::string_view canonical_id) {
     return "resource:" + std::string{canonical_id};
+}
+
+[[nodiscard]] std::string runtime_node_id(std::string_view runtime_id) {
+    return "recovered-runtime:" + std::string{runtime_id};
 }
 
 [[nodiscard]] std::string edge_id(
@@ -76,6 +81,44 @@ namespace {
         return gdspaces::StageResourceCategory::unknown;
     }
     return gdspaces::StageResourceCategory::unknown;
+}
+
+[[nodiscard]] const StageDomainObject* find_domain(
+    const StageDomainWorkspace& domains,
+    std::string_view id) noexcept {
+    const auto iterator = std::find_if(
+        domains.objects.begin(), domains.objects.end(),
+        [id](const StageDomainObject& object) {
+            return object.id == id;
+        });
+    return iterator == domains.objects.end() ? nullptr : &*iterator;
+}
+
+[[nodiscard]] Authority runtime_authority(
+    StageRuntimeLinkAuthority authority) noexcept {
+    switch (authority) {
+    case StageRuntimeLinkAuthority::direct_reconstructed:
+        return Authority::recovered_runtime_fact;
+    case StageRuntimeLinkAuthority::disassembly_complete_corpus_pending:
+        return Authority::recovered_runtime_partial;
+    case StageRuntimeLinkAuthority::executable_candidate:
+        return Authority::recovered_runtime_candidate;
+    }
+    return Authority::recovered_runtime_candidate;
+}
+
+[[nodiscard]] int runtime_authority_strength(Authority authority) noexcept {
+    switch (authority) {
+    case Authority::recovered_runtime_fact: return 2;
+    case Authority::recovered_runtime_partial: return 1;
+    case Authority::recovered_runtime_candidate: return 0;
+    case Authority::structural_product_fact:
+    case Authority::semantic_confirmed:
+    case Authority::semantic_inferred:
+    case Authority::unresolved:
+        return -1;
+    }
+    return -1;
 }
 
 void add_stage_node(
@@ -307,6 +350,116 @@ void add_domain_nodes_and_edges(
     }
 }
 
+void add_domain_relation_edges(
+    StageSemanticGraph& graph,
+    const StageDomainKnowledgeWorkspace& knowledge) {
+    for (const auto& relation : knowledge.relations.relations) {
+        const auto* source = find_domain(
+            knowledge.domains, relation.from_domain_id);
+        const auto category = source == nullptr
+            ? gdspaces::StageResourceCategory::unknown
+            : domain_category(source->kind);
+        graph.edges.push_back(Edge{
+            .id = "stage-edge:domain-relation:" + relation.id,
+            .from = relation.from_domain_id,
+            .to = relation.to_domain_id,
+            .kind = EdgeKind::domain_relation,
+            .authority = Authority::structural_product_fact,
+            .role = std::string{stageops::to_string(relation.kind)},
+            .category = category,
+            .attributes = {
+                {"relation_kind", std::string{stageops::to_string(relation.kind)}},
+                {"relation_authority", std::string{
+                    stageops::to_string(relation.authority)}},
+                {"resource_id", relation.resource_id},
+            },
+            .evidence_ids = {},
+        });
+    }
+}
+
+[[nodiscard]] bool add_runtime_nodes_and_edges(
+    StageSemanticGraph& graph,
+    const StageDomainKnowledgeWorkspace& knowledge) {
+    struct RuntimeProjection final {
+        const RecoveredRuntimeIdentity* runtime{nullptr};
+        Authority authority{Authority::recovered_runtime_fact};
+    };
+
+    std::map<std::string, RuntimeProjection, std::less<>> runtimes;
+    for (const auto& link : knowledge.runtime_links.links) {
+        const auto link_authority = runtime_authority(link.authority);
+        const auto [iterator, inserted] = runtimes.emplace(
+            link.runtime.id,
+            RuntimeProjection{
+                .runtime = &link.runtime,
+                .authority = link_authority,
+            });
+        if (!inserted) {
+            const auto* existing = iterator->second.runtime;
+            if (existing == nullptr ||
+                existing->source_tree_path != link.runtime.source_tree_path ||
+                existing->symbol != link.runtime.symbol ||
+                existing->executable_artifact_id !=
+                    link.runtime.executable_artifact_id ||
+                existing->evidence_ids != link.runtime.evidence_ids) {
+                // One stable recovered-runtime identity cannot describe two
+                // incompatible artifacts/contracts in one graph revision.
+                return false;
+            }
+            if (runtime_authority_strength(link_authority) <
+                runtime_authority_strength(iterator->second.authority)) {
+                iterator->second.authority = link_authority;
+            }
+        }
+    }
+
+    for (const auto& [id, projection] : runtimes) {
+        const auto* runtime = projection.runtime;
+        if (runtime == nullptr) {
+            return false;
+        }
+        graph.nodes.push_back(Node{
+            .id = runtime_node_id(id),
+            .kind = NodeKind::recovered_runtime,
+            .authority = projection.authority,
+            .label = runtime->symbol,
+            .attributes = {
+                {"runtime_id", runtime->id},
+                {"source_tree_path", runtime->source_tree_path},
+                {"symbol", runtime->symbol},
+                {"executable_artifact_id", runtime->executable_artifact_id},
+            },
+            .evidence_ids = runtime->evidence_ids,
+        });
+    }
+
+    for (const auto& link : knowledge.runtime_links.links) {
+        const auto* domain = find_domain(knowledge.domains, link.domain_object_id);
+        if (domain == nullptr) {
+            return false;
+        }
+        graph.edges.push_back(Edge{
+            .id = "stage-edge:runtime-link:" + link.id,
+            .from = link.domain_object_id,
+            .to = runtime_node_id(link.runtime.id),
+            .kind = EdgeKind::runtime_link,
+            .authority = runtime_authority(link.authority),
+            .role = std::string{stageops::to_string(link.kind)},
+            .category = domain_category(domain->kind),
+            .attributes = {
+                {"claim_id", link.claim_id},
+                {"runtime_link_kind", std::string{
+                    stageops::to_string(link.kind)}},
+                {"runtime_link_authority", std::string{
+                    stageops::to_string(link.authority)}},
+            },
+            .evidence_ids = link.runtime.evidence_ids,
+        });
+    }
+    return true;
+}
+
 void finalize(StageSemanticGraph& graph) {
     std::sort(
         graph.nodes.begin(), graph.nodes.end(),
@@ -418,6 +571,29 @@ StageSemanticGraph StageSemanticGraphBuilder::build(
     }
 
     add_domain_nodes_and_edges(graph, domains);
+    finalize(graph);
+    return graph.valid() ? graph : StageSemanticGraph{};
+}
+
+StageSemanticGraph StageSemanticGraphBuilder::build(
+    const StageAssemblyWorkspace& assembly,
+    const StageDomainKnowledgeWorkspace& knowledge,
+    std::uint64_t source_stage_revision) {
+    if (!assembly.valid() || !knowledge.valid() ||
+        !same_identity(assembly.identity, knowledge.identity()) ||
+        knowledge.source_stage_revision() != source_stage_revision) {
+        return StageSemanticGraph{};
+    }
+
+    auto graph = build(assembly, knowledge.domains, source_stage_revision);
+    if (!graph.valid()) {
+        return StageSemanticGraph{};
+    }
+
+    add_domain_relation_edges(graph, knowledge);
+    if (!add_runtime_nodes_and_edges(graph, knowledge)) {
+        return StageSemanticGraph{};
+    }
     finalize(graph);
     return graph.valid() ? graph : StageSemanticGraph{};
 }
