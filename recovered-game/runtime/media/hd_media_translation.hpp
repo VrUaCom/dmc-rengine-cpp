@@ -46,6 +46,10 @@ struct HdAudioDescriptorView final {
     }
 };
 
+// Compatibility name for host-side decoded descriptors. The exact game ABI is
+// HdAudioRuntimeDescriptor above; this alias must not be used as an ABI claim.
+using HdAudioDescriptor = HdAudioDescriptorView;
+
 [[nodiscard]] inline std::string ascii_lower(std::string value) {
     std::transform(
         value.begin(), value.end(), value.begin(),
