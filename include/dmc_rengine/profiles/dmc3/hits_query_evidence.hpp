@@ -35,6 +35,8 @@ enum class SpecializedAbiKind : std::uint8_t {
     mutable_vec4_inout,
     mutable_vec4_inout_plus_aux,
     combined_point_query,
+    source1_segment_correction,
+    source1_displacement_accumulator,
 };
 
 struct QueryEvidenceDescriptor final {
@@ -320,9 +322,9 @@ private:
         {QueryVariant::local_cell_05fd10, 0x14005FD10ULL, 1U,
          SpecializedAbiKind::unresolved, false, false, false, std::nullopt},
         {QueryVariant::source_selectable_segment_05fec0, 0x14005FEC0ULL, 1U,
-         SpecializedAbiKind::unresolved, false, false, false, 0x00080000U},
+         SpecializedAbiKind::source1_segment_correction, true, true, false, 0x00080000U},
         {QueryVariant::positional_correction_0601e0, 0x1400601E0ULL, 5U,
-         SpecializedAbiKind::unresolved, false, false, false, std::nullopt},
+         SpecializedAbiKind::source1_displacement_accumulator, true, true, false, std::nullopt},
         {QueryVariant::local_list_060790, 0x140060790ULL, 1U,
          SpecializedAbiKind::bool_observed_in_al, true, false, false, std::nullopt},
     }};
