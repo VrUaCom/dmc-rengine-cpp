@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -40,6 +41,7 @@ struct StageOperationsSnapshot final {
     StageGameReadiness game_readiness{StageGameReadiness::unproven};
     bool derived_state_stale{false};
     std::size_t dirty_resource_count{};
+    std::size_t pending_changed_resource_count{};
     std::size_t missing_project_session_count{};
     std::size_t validation_request_count{};
 
@@ -69,6 +71,12 @@ public:
     [[nodiscard]] std::uint64_t stage_revision() const noexcept;
     [[nodiscard]] bool derived_state_stale() const noexcept;
     [[nodiscard]] StageOperationsSnapshot snapshot() const;
+
+    // Exact canonical ResourceIds whose byte state changed since the last
+    // successful derived refresh commit. The list is deterministic and is a
+    // seed set for evidence-backed fine-grained invalidation; the conservative
+    // stage-wide stale gate remains authoritative until refresh commits.
+    [[nodiscard]] std::vector<std::string> pending_changed_resources() const;
 
     // Creates/retains the shared ProjectWorkspace WorkingCopy for one resource
     // already owned by this StageAssemblyWorkspace. It does not mutate bytes and
@@ -100,12 +108,15 @@ public:
 
     // Detects byte-state changes performed through another tool/session after
     // the last observed revision. One or more changes increment the Stage Ops
-    // stage revision once and mark derived scene/domain state stale.
+    // stage revision once and mark derived scene/domain state stale. Every exact
+    // changed canonical ResourceId is retained in pending_changed_resources().
     [[nodiscard]] bool detect_external_project_changes();
 
     // Called only after Stage Ops derived/domain projections have actually been
     // rebuilt against the expected revision. This clears the conservative stale
-    // gate and establishes a new observed WorkingCopy baseline.
+    // gate, clears the pending changed-resource journal and establishes a new
+    // observed WorkingCopy baseline. A concurrent change keeps both stale state
+    // and its ResourceId pending.
     [[nodiscard]] bool commit_derived_refresh(
         std::uint64_t expected_stage_revision);
 
@@ -131,6 +142,7 @@ private:
         const StageAssemblyResource& resource) const noexcept;
     void capture_observed_state();
     void update_observed_state(const StageAssemblyResource& resource);
+    void mark_resource_changed(const StageAssemblyResource& resource);
     [[nodiscard]] StageOperationResult rejected(
         std::string error,
         std::uint64_t resource_revision = 0U) const;
@@ -142,6 +154,7 @@ private:
     std::uint64_t stage_revision_{};
     bool derived_state_stale_{false};
     std::map<std::string, ObservedResourceState, std::less<>> observed_;
+    std::set<std::string, std::less<>> pending_changed_resources_;
 };
 
 } // namespace dmc::rengine::stageops
