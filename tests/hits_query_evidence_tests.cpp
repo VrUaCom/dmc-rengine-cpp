@@ -141,12 +141,16 @@ int main() {
     assert(fec0->direct_static_caller_count == 1U);
     assert(fec0->independently_rejected_raw_flag_bit.has_value());
     assert(*fec0->independently_rejected_raw_flag_bit == 0x00080000U);
-    assert(fec0->abi_kind == SpecializedAbiKind::unresolved);
+    assert(fec0->abi_kind == SpecializedAbiKind::source1_segment_correction);
+    assert(fec0->success_observed_in_al);
+    assert(fec0->mutable_16_byte_inout_confirmed);
 
     const auto correction = query_evidence(canonical_sha, QueryVariant::positional_correction_0601e0);
     assert(correction.has_value());
     assert(correction->direct_static_caller_count == 5U);
-    assert(correction->abi_kind == SpecializedAbiKind::unresolved);
+    assert(correction->abi_kind == SpecializedAbiKind::source1_displacement_accumulator);
+    assert(correction->success_observed_in_al);
+    assert(correction->mutable_16_byte_inout_confirmed);
 
     assert(!query_evidence(packed_sha, QueryVariant::generic_combined_05e7a0).has_value());
 
