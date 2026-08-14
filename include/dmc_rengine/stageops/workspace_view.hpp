@@ -1,23 +1,25 @@
 #pragma once
 
-#include "dmc_rengine/gdspaces/resource_ref.hpp"
-#include "dmc_rengine/gdspaces/stage_bundle.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
 #include "dmc_rengine/integration/resource_workspace.hpp"
+#include "dmc_rengine/stageops/assembly_workspace.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
 #include <string_view>
 #include <vector>
 
 namespace dmc::rengine::stageops {
 
 struct StageResourceView final {
-    gdspaces::StageResourceCategory category{
-        gdspaces::StageResourceCategory::unknown};
-    std::string role;
     gdspaces::ResourceRef resource;
+    std::vector<StageAssemblyMembership> memberships;
+    bool materialized{false};
+    bool byte_provenance_valid{false};
+
+    // Per-resource operational substrate projected from ProjectWorkspace when a
+    // matching session exists. These fields do not define scene membership.
+    bool project_session_attached{false};
     integration::WorkspaceStatus workspace_status{
         integration::WorkspaceStatus::invalid};
     bool binary_document{false};
@@ -28,28 +30,43 @@ struct StageResourceView final {
     bool dirty{false};
 
     [[nodiscard]] bool valid() const noexcept {
-        return resource.valid() && !role.empty();
+        return resource.valid() && !memberships.empty();
     }
+
+    [[nodiscard]] bool has_category(
+        gdspaces::StageResourceCategory category) const noexcept;
 };
 
 struct StageWorkspaceView final {
-    gdspaces::StageIdentity identity;
+    StageAssemblyIdentity identity;
+    StageAssemblyStatus assembly_status{StageAssemblyStatus::invalid};
+    StageGameReadiness game_readiness{StageGameReadiness::unproven};
+    std::vector<StageAssemblyRequirement> requirements;
     std::vector<StageResourceView> resources;
+    std::size_t unresolved_requirement_count{};
     std::size_t error_count{};
     std::size_t warning_count{};
     std::size_t dirty_resource_count{};
     std::size_t validation_request_count{};
 
     [[nodiscard]] bool valid() const noexcept {
-        return identity.valid() && !resources.empty();
+        return identity.valid() && assembly_status != StageAssemblyStatus::invalid;
     }
 
     [[nodiscard]] std::vector<const StageResourceView*> by_category(
         gdspaces::StageResourceCategory category) const;
 };
 
-// resource_set_id is the canonical technical grouping identity. It does not
-// require or imply a known semantic gameplay-stage id.
+// Canonical projection. Scene membership/identity comes only from the Stage Ops
+// aggregate. ProjectWorkspace contributes per-resource parser/evidence/edit
+// state when supplied; it is not queried to discover the scene.
+[[nodiscard]] StageWorkspaceView build_workspace_view(
+    const StageAssemblyWorkspace& assembly,
+    const integration::ProjectWorkspace* project = nullptr);
+
+// Legacy compatibility adapter for pre-ADR-0003 callers. New code must supply a
+// StageAssemblyWorkspace. This path is intentionally marked as partial/unproven
+// because project stage tags alone are not the canonical scene assembly.
 [[nodiscard]] StageWorkspaceView build_workspace_view(
     const integration::ProjectWorkspace& project,
     std::string_view resource_set_id);
