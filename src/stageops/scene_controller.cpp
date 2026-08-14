@@ -21,11 +21,9 @@ namespace {
     return result;
 }
 
-} // namespace
-
-StageSceneRefreshResult StageSceneController::refresh(
+[[nodiscard]] StageSceneRefreshResult refresh_impl(
     StageOperationsSession& session,
-    std::vector<StageRuntimeLink> explicit_runtime_links) {
+    StageRuntimeLinkProvider provider) {
     StageSceneRefreshResult result;
     if (!session.valid()) {
         return failed(
@@ -60,9 +58,9 @@ StageSceneRefreshResult StageSceneController::refresh(
             &session);
     }
 
-    // Build domains explicitly before the snapshot so evidence links can be
-    // validated against the exact post-analysis domain identities. High-level
-    // refresh must never silently drop a stale/malformed runtime link.
+    // Runtime links are generated only after the exact active-byte domain
+    // workspace exists. This is required for offset-sensitive token identities:
+    // insertion/removal edits may legitimately change domain IDs at revision N.
     auto domains = StageDomainAssembler::assemble(
         session.assembly(),
         session.project(),
@@ -75,11 +73,14 @@ StageSceneRefreshResult StageSceneController::refresh(
             &session);
     }
 
+    auto runtime_links = provider
+        ? provider(domains)
+        : std::vector<StageRuntimeLink>{};
     result.runtime_link_validation = StageRuntimeLinkValidator::validate(
-        domains, explicit_runtime_links);
+        domains, runtime_links);
     if (!result.runtime_link_validation.valid() ||
         result.runtime_link_validation.accepted_link_count !=
-            explicit_runtime_links.size()) {
+            runtime_links.size()) {
         return failed(
             std::move(result),
             StageSceneRefreshStatus::runtime_links_invalid,
@@ -88,7 +89,7 @@ StageSceneRefreshResult StageSceneController::refresh(
     }
 
     auto knowledge = StageDomainKnowledgeBuilder::build(
-        std::move(domains), explicit_runtime_links);
+        std::move(domains), runtime_links);
     if (!knowledge.valid() || !knowledge.current_for_active_bytes()) {
         return failed(
             std::move(result),
@@ -112,7 +113,7 @@ StageSceneRefreshResult StageSceneController::refresh(
     // Rebuild the published immutable snapshot after the commit rather than
     // publishing the provisional object assembled before the concurrency gate.
     result.snapshot = StageSceneSnapshotBuilder::build(
-        session, std::move(explicit_runtime_links));
+        session, std::move(runtime_links));
     result.final_stage_revision = session.stage_revision();
     if (!result.snapshot.valid() ||
         result.snapshot.stage_revision() != result.target_stage_revision ||
@@ -127,6 +128,25 @@ StageSceneRefreshResult StageSceneController::refresh(
     result.status = StageSceneRefreshStatus::refreshed;
     result.error.clear();
     return result;
+}
+
+} // namespace
+
+StageSceneRefreshResult StageSceneController::refresh(
+    StageOperationsSession& session,
+    std::vector<StageRuntimeLink> explicit_runtime_links) {
+    return refresh_impl(
+        session,
+        [links = std::move(explicit_runtime_links)](
+            const StageDomainWorkspace&) mutable {
+            return std::move(links);
+        });
+}
+
+StageSceneRefreshResult StageSceneController::refresh_with_provider(
+    StageOperationsSession& session,
+    StageRuntimeLinkProvider provider) {
+    return refresh_impl(session, std::move(provider));
 }
 
 } // namespace dmc::rengine::stageops
