@@ -40,13 +40,13 @@ int main() {
     assert(pool.group(7U) == nullptr);
     assert(pool.groups.back().end_entry() == 363U);
 
-    assert(model.successful_state_chain ==
-        std::array<ResourceLoadState, 4>{
-            ResourceLoadState::free_or_unstarted,
-            ResourceLoadState::io_scheduled_or_loading,
-            ResourceLoadState::io_complete_pending_postprocess,
-            ResourceLoadState::ready_postprocessed,
-        });
+    constexpr std::array<ResourceLoadState, 4> expected_state_chain{
+        ResourceLoadState::free_or_unstarted,
+        ResourceLoadState::io_scheduled_or_loading,
+        ResourceLoadState::io_complete_pending_postprocess,
+        ResourceLoadState::ready_postprocessed,
+    };
+    assert(model.successful_state_chain == expected_state_chain);
     assert(to_string(ResourceLoadState::teardown_or_cancel_pending) ==
         "teardown-or-cancel-pending");
 
