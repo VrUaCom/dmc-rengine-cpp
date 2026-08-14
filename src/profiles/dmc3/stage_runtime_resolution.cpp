@@ -4,6 +4,7 @@
 #include <array>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -38,6 +39,36 @@ namespace {
         return gdspaces::DiagnosticSeverity::error;
     }
     return gdspaces::DiagnosticSeverity::error;
+}
+
+[[nodiscard]] std::optional<std::string> list_fallback_request(
+    std::string_view logical_path) {
+    const auto slash = logical_path.find_last_of("/\\");
+    const auto dot = logical_path.find_last_of('.');
+    if (dot == std::string_view::npos ||
+        (slash != std::string_view::npos && dot < slash)) {
+        return std::nullopt;
+    }
+
+    std::string result{logical_path.substr(0U, dot)};
+    result += ".lst";
+    return result;
+}
+
+void add_resolution_diagnostic(
+    StageRuntimeResolutionReport& report,
+    StageResourceRole role,
+    RuntimeResolutionStatus status,
+    std::string_view prefix,
+    std::string_view detail) {
+    report.diagnostics.push_back(gdspaces::Diagnostic{
+        .severity = severity_for(status),
+        .code = "dmc3.stage-runtime." + std::string{prefix} + "-" +
+            std::string{to_string(status)},
+        .message = "Stage resource role " + std::string{to_string(role)} +
+            " did not resolve uniquely: " + std::string{detail},
+        .resource = std::nullopt,
+    });
 }
 
 } // namespace
@@ -107,10 +138,9 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
         bindings,
         sources);
 
-    // resolve_row() is the compatibility path for a raw structural table row and
-    // therefore cannot know gameplay semantics. The canonical StageCatalog path
-    // must restore any separately evidenced semantic identity carried by the
-    // entry without replacing its technical catalog/resource-set identity.
+    // Raw-row resolution carries structural kind16/path evidence but cannot know
+    // gameplay semantics. Restore only the separately evidenced semantic stage
+    // identity from the catalog entry, without replacing technical row identity.
     if (report.plan.valid() && entry.semantic_stage_id.has_value()) {
         report.plan.semantic_stage_id = *entry.semantic_stage_id;
     }
@@ -136,7 +166,7 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
             .code = "dmc3.stage-runtime.missing-catalog-entry-id",
-            .message = "A stable executable table-row identity is required before stage resources can be resolved.",
+            .message = "A stable executable descriptor-row identity is required before Stage resources can be resolved.",
             .resource = std::nullopt,
         });
         return report;
@@ -146,7 +176,7 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
             .code = "dmc3.stage-runtime.incomplete-exe-row",
-            .message = "The executable stage-table row is incomplete and cannot be resolved.",
+            .message = "The executable Stage descriptor row is incomplete and cannot be resolved.",
             .resource = std::nullopt,
         });
         return report;
@@ -154,11 +184,15 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
 
     report.plan = make_stage_resource_plan_from_table_row(
         catalog_entry_id, row.logical_paths(), std::move(evidence_id));
+    for (std::size_t index = 0U; index < report.plan.resources.size(); ++index) {
+        report.plan.resources[index].kind16 = row.cells[index].kind16;
+    }
+
     if (!report.plan.valid()) {
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
             .code = "dmc3.stage-runtime.invalid-row-plan",
-            .message = "The executable stage-table row did not produce a valid four-role resource plan.",
+            .message = "The executable Stage descriptor row did not produce a valid four-role resource plan.",
             .resource = std::nullopt,
         });
         return report;
@@ -175,20 +209,59 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
         report.resources[index] = StageRuntimeResourceResolution{
             .reference = reference,
             .runtime = std::move(runtime),
+            .list_fallback = std::nullopt,
         };
+        auto& resolved_role = report.resources[index];
 
-        if (!report.resources[index].runtime.ok()) {
-            const auto status = report.resources[index].runtime.status;
+        if (!resolved_role.runtime.ok()) {
+            add_resolution_diagnostic(
+                report,
+                reference.role,
+                resolved_role.runtime.status,
+                "resource",
+                resolved_role.runtime.detail);
+        }
+
+        // Wave 2 directly confirms this branch only after the original path is
+        // unavailable and only for kind16 == 0. We reproduce the fallback lookup
+        // itself, but a found .lst is not promoted to a normal Stage root because
+        // list parsing, recursive ownership and lifetime are still open research.
+        if (resolved_role.runtime.status != RuntimeResolutionStatus::not_found ||
+            reference.kind16 != 0U) {
+            continue;
+        }
+
+        const auto fallback_request = list_fallback_request(reference.logical_path);
+        if (!fallback_request.has_value()) {
             report.diagnostics.push_back(gdspaces::Diagnostic{
-                .severity = severity_for(status),
-                .code = "dmc3.stage-runtime.resource-" +
-                    std::string{to_string(status)},
-                .message = "Stage resource role " +
-                    std::string{to_string(reference.role)} +
-                    " did not resolve uniquely: " +
-                    report.resources[index].runtime.detail,
+                .severity = gdspaces::DiagnosticSeverity::error,
+                .code = "dmc3.stage-runtime.list-fallback-path-unresolved",
+                .message = "Wave-2 kind16==0 requires extension rewrite to .lst, but the logical path has no evidenced replaceable extension.",
                 .resource = std::nullopt,
             });
+            continue;
+        }
+
+        resolved_role.list_fallback = RuntimeResourceResolver::resolve(
+            *fallback_request,
+            bootstrap,
+            bindings,
+            sources);
+
+        if (resolved_role.list_fallback->ok()) {
+            report.diagnostics.push_back(gdspaces::Diagnostic{
+                .severity = gdspaces::DiagnosticSeverity::error,
+                .code = "dmc3.stage-runtime.list-fallback-required",
+                .message = "The primary Stage resource is absent and the evidenced kind16==0 .lst fallback resolves, but list expansion/ownership is not yet reconstructed strongly enough to claim equivalent resolution.",
+                .resource = resolved_role.list_fallback->resolved->id,
+            });
+        } else {
+            add_resolution_diagnostic(
+                report,
+                reference.role,
+                resolved_role.list_fallback->status,
+                "list-fallback",
+                resolved_role.list_fallback->detail);
         }
     }
 
