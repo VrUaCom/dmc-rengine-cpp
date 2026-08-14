@@ -16,6 +16,7 @@ enum class StageSceneRefreshStatus {
     invalid_session,
     analysis_failed,
     missing_project_sessions,
+    runtime_link_provider_failed,
     runtime_links_invalid,
     provisional_snapshot_invalid,
     concurrent_change,
@@ -32,6 +33,8 @@ enum class StageSceneRefreshStatus {
         return "analysis-failed";
     case StageSceneRefreshStatus::missing_project_sessions:
         return "missing-project-sessions";
+    case StageSceneRefreshStatus::runtime_link_provider_failed:
+        return "runtime-link-provider-failed";
     case StageSceneRefreshStatus::runtime_links_invalid:
         return "runtime-links-invalid";
     case StageSceneRefreshStatus::provisional_snapshot_invalid:
@@ -67,12 +70,25 @@ struct StageSceneRefreshResult final {
     }
 };
 
+// Provider failure is not equivalent to an empty, valid runtime-link set. A
+// profile/reverse integration that cannot validate its recovered contract must
+// fail closed rather than silently publishing a scene without those semantics.
+struct StageRuntimeLinkProviderResult final {
+    bool valid{true};
+    std::vector<StageRuntimeLink> links;
+    std::string error;
+
+    [[nodiscard]] bool coherent() const noexcept {
+        return valid ? error.empty() : !error.empty();
+    }
+};
+
 // Called only after canonical analysis has rebuilt StageDomainWorkspace for the
 // exact target Stage Ops revision. Profile/reverse integrations can therefore
 // derive offset-sensitive runtime links from current domain identities without
 // duplicating the Stage Ops refresh transaction.
 using StageRuntimeLinkProvider = std::function<
-    std::vector<StageRuntimeLink>(const StageDomainWorkspace&)>;
+    StageRuntimeLinkProviderResult(const StageDomainWorkspace&)>;
 
 // Canonical high-level Stage Ops refresh transaction.
 //
