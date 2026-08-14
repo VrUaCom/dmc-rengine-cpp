@@ -1,6 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/hits_query_evidence.hpp"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 
 int main() {
@@ -41,13 +42,15 @@ int main() {
     for (std::size_t i = 0; i < k_dynamic_category_bindings.size(); ++i) {
         const auto& binding = k_dynamic_category_bindings[i];
         assert(binding.category_id == expected_categories[i]);
-        assert(binding.static_hits_reject_mask == expected_masks[i]);
+        assert(binding.dispatcher_static_hits_reject_mask == expected_masks[i]);
         assert(binding.activation_flag == expected_flags[i]);
         assert(binding.manager_field_offset == expected_offsets[i]);
 
         const auto by_category = dynamic_category_binding(binding.category_id);
         assert(by_category.has_value());
         assert(by_category->activation_flag == binding.activation_flag);
+        assert(by_category->dispatcher_static_hits_reject_mask ==
+               binding.dispatcher_static_hits_reject_mask);
 
         const auto by_activation = dynamic_category_binding_from_activation(binding.activation_flag);
         assert(by_activation.has_value());
