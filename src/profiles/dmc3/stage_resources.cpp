@@ -75,7 +75,7 @@ namespace {
 } // namespace
 
 bool StageResourceRowPlan::valid() const noexcept {
-    if (stage_id.empty() || evidence_id.empty()) {
+    if (resource_set_key().empty() || evidence_id.empty()) {
         return false;
     }
 
@@ -126,13 +126,14 @@ StageResourceMatchReport::unique_candidates() const {
 }
 
 StageResourceRowPlan make_stage_resource_plan_from_table_row(
-    std::string stage_id,
+    std::string resource_set_id,
     std::array<std::string, 4> logical_paths,
     std::string evidence_id) {
     StageResourceRowPlan plan{
-        .stage_id = std::move(stage_id),
+        .stage_id = {},
         .evidence_id = std::move(evidence_id),
         .resources = {},
+        .resource_set_id = std::move(resource_set_id),
     };
 
     const auto& descriptor = phase12_stage_resource_table();
@@ -147,15 +148,32 @@ StageResourceRowPlan make_stage_resource_plan_from_table_row(
 }
 
 const StageResourceRowPlan& phase12_st001_resource_plan() noexcept {
-    static const StageResourceRowPlan plan = make_stage_resource_plan_from_table_row(
-        "st001",
-        {
-            "scr/st001.pac",
-            "room/st001cfg.pac",
-            "room/st001_effect.pac",
-            "se/snd_r001.pac",
+    // Historical compatibility fixture only. It intentionally carries semantic
+    // stage_id because this helper predates executable StageCatalog ingestion.
+    // Production catalog rows use resource_set_id and leave stage_id unresolved.
+    static const StageResourceRowPlan plan{
+        .stage_id = "st001",
+        .evidence_id = "ev-dmc3-stage-resource-table",
+        .resources = {
+            StageResourceReference{
+                .role = StageResourceRole::script,
+                .logical_path = "scr/st001.pac",
+            },
+            StageResourceReference{
+                .role = StageResourceRole::room_config,
+                .logical_path = "room/st001cfg.pac",
+            },
+            StageResourceReference{
+                .role = StageResourceRole::room_effects,
+                .logical_path = "room/st001_effect.pac",
+            },
+            StageResourceReference{
+                .role = StageResourceRole::room_sound,
+                .logical_path = "se/snd_r001.pac",
+            },
         },
-        "ev-dmc3-stage-resource-table");
+        .resource_set_id = {},
+    };
     return plan;
 }
 
