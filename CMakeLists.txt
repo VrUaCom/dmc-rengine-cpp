@@ -79,6 +79,28 @@ target_include_directories(dmc_recovered_dmc3_stage_runtime
 target_compile_features(dmc_recovered_dmc3_stage_runtime PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_recovered_dmc3_stage_runtime)
 
+# DMC3 recovered/runtime integration is a composition target, not a Core
+# dependency. This preserves the boundary generic Stage Ops -> explicit bridge
+# -> recovered vanilla contracts.
+add_library(dmc_rengine_dmc3_recovered_stage_bridge
+    bridges/dmc3/recovered_stage_links.cpp
+)
+add_library(
+    DMCRengine::DMC3RecoveredStageBridge
+    ALIAS dmc_rengine_dmc3_recovered_stage_bridge)
+target_include_directories(dmc_rengine_dmc3_recovered_stage_bridge
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_link_libraries(dmc_rengine_dmc3_recovered_stage_bridge
+    PUBLIC
+        DMCRengine::Core
+        DMCRecovered::DMC3StageRuntime
+)
+target_compile_features(
+    dmc_rengine_dmc3_recovered_stage_bridge PUBLIC cxx_std_20)
+dmc_rengine_enable_warnings(dmc_rengine_dmc3_recovered_stage_bridge)
+
 add_executable(dmc-rengine
     src/cli/main.cpp
     src/cli/integration_commands.cpp
@@ -216,6 +238,24 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_recovered_dmc3_door_parser_contract_tests
         COMMAND dmc_recovered_dmc3_door_parser_contract_tests)
+
+    add_executable(
+        dmc_rengine_dmc3_recovered_stage_bridge_tests
+        tests/dmc3_recovered_stage_bridge_tests.cpp)
+    target_link_libraries(
+        dmc_rengine_dmc3_recovered_stage_bridge_tests
+        PRIVATE DMCRengine::DMC3RecoveredStageBridge)
+    dmc_rengine_enable_warnings(dmc_rengine_dmc3_recovered_stage_bridge_tests)
+    if(MSVC)
+        target_compile_options(
+            dmc_rengine_dmc3_recovered_stage_bridge_tests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(
+            dmc_rengine_dmc3_recovered_stage_bridge_tests PRIVATE -UNDEBUG)
+    endif()
+    add_test(
+        NAME dmc_rengine_dmc3_recovered_stage_bridge_tests
+        COMMAND dmc_rengine_dmc3_recovered_stage_bridge_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
