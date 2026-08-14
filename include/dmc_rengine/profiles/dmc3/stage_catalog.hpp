@@ -5,8 +5,10 @@
 #include "dmc_rengine/profiles/dmc3/stage_table.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_table_reader.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -74,6 +76,26 @@ public:
     [[nodiscard]] static StageCatalog build(
         const StageResourceTableReadResult& table,
         const StageResourceTableDescriptor& descriptor);
+};
+
+struct StageCatalogLoadResult final {
+    std::string artifact_sha256;
+    bool canonical_artifact{};
+    StageCatalog catalog;
+
+    [[nodiscard]] bool complete() const noexcept;
+};
+
+class StageCatalogLoader final {
+public:
+    // Production gate for the canonical DMC3 catalog. Unlike the structural
+    // reader used by synthetic tests, this path computes SHA-256 over the
+    // supplied executable bytes and refuses non-canonical artifacts before any
+    // table observation can be promoted into the catalog.
+    [[nodiscard]] static StageCatalogLoadResult load_canonical(
+        std::span<const std::byte> executable_bytes,
+        const exe::PeImage& image,
+        std::size_t max_path_bytes = 260U);
 };
 
 } // namespace dmc::rengine::profiles::dmc3
