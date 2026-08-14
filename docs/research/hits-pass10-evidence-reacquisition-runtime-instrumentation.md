@@ -2,184 +2,261 @@
 
 Date: 2026-08-14  
 Canonical executable SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **ACTIVE — REVERSE / IMPLEMENT / REVIEW / DEBUG LOOP**
+Status: **ACTIVE — TOP-LEVEL P0 ABI CLOSED; DEEP SEMANTICS / VALIDATION CONTINUE**
 
 Canonical detailed working authority: Google Drive document `DMC Rengine — HITS Raw Reverse Pass 10 — Evidence Reacquisition and Runtime Instrumentation — 2026-08-14`.
 
 Companion research:
 - `docs/research/reverse-pass-implementation-review-loop.md`
 - `docs/research/hits-pass10-slice4-canonical-combined-query-abi.md`
+- `docs/research/hits-pass10-slice5-dynamic-world-update-topology.md`
+- `docs/research/hits-pass10-slice6-source1-query-abi.md`
 
 ## Why Pass 10 exists
 
-Pass 9 reached static ABI/ownership saturation for the evidence then materialized. Pass 10 changes method: reacquire canonical instruction windows from preserved project artifacts with explicit provenance, and use hash-gated runtime traces only where static evidence still cannot close behavior.
+Pass 9 reached static ABI/ownership saturation for the evidence then materialized. Pass 10 changed method: reacquire canonical instruction windows from preserved project artifacts with explicit provenance, review complete callers/callees and write/read contracts, and use hash-gated runtime traces only where static evidence still cannot close behavior.
 
 ## Mandatory loop
 
 1. acquire direct evidence;
 2. review assumptions;
 3. deepen through callers/callees/writers/readers/ownership/state/corpus;
-4. define a promotion boundary;
+4. define the exact promotion boundary;
 5. implement only the promoted subset;
 6. review implementation against evidence;
-7. debug/test without weakening gates;
-8. consolidate into Pass-10 authority;
+7. debug/test without weakening evidence gates;
+8. consolidate into the Pass-10 authority;
 9. perform a second independent review/debug cycle;
 10. synchronize code, GitHub, machine evidence and Google Drive authorities.
 
 No material correction may remain only in chat.
 
-## Current P0 state
+## Canonical-byte provenance
 
-### CLOSED at wrapper ABI level — `0x14005E7A0`
+The ChatGPT Project/Library corpus contains `dmc3_phase17_reng_probe.exe` and its Phase-17 verifier receipt. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and preserves the original PE raw section range `0x400..0x60E600` byte-identically. Every Pass-10 Slice-4/5/6 function body promoted below maps inside that preserved range.
 
-Canonical bytes have now been reacquired and reviewed. `E7A0` is **not** a metric/tie-break result comparator.
+`dmc3_phase18_red_orb_x2_hook.exe` independently matches the promoted body windows and serves as a second consistency check. It is not used to replace canonical target identity.
 
-Confirmed:
-- exact body `0x14005E7A0..0x14005E880`, 224 bytes;
-- body SHA-256 `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
-- six-argument ABI;
-- 51 direct callers;
-- static pass `0x14005E880` followed by dynamic category passes `0x14005BCF0` for `0x0E`, then `0x11`;
-- overall boolean success in `AL`;
-- total miss copies working point to output;
-- common optional `0x38` hit-metadata output;
-- both dynamic passes receive the same static-or-input baseline;
-- caller-visible precedence is ordered last-successful-writer: `static < 0x0E < 0x11`.
+No proprietary instruction bytes are committed. We preserve VAs, ranges, body hashes, ABIs, field offsets, topology and reconstructed behavior.
 
-The earlier Pass-10 wording that asked for an `E7A0` comparison metric, equality branch or tie-break is **REJECTED / SUPERSEDED**.
+# Top-level P0 status
 
-Detailed receipt: `docs/research/hits-pass10-slice4-canonical-combined-query-abi.md`.
+The original top-level Pass-10 target set `E7A0 / B460 / FEC0 / 601E0` is now **ABI-closed or correctly reclassified**. Future work must not reopen the old descriptions unless contradictory direct evidence appears.
 
-### RECLASSIFIED — `0x14005B460`
+## CLOSED — `0x14005E7A0` combined query wrapper
 
-Canonical reacquisition shows that `B460` is not the missing `E7A0` candidate producer. It belongs to a separate dynamic-world update path.
+Canonical body:
+- `0x14005E7A0..0x14005E880`;
+- 224 bytes;
+- SHA-256 `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
+- 51 direct callers.
 
-Current recovered topology:
-- `0x14005B7B0` — dynamic update dispatcher;
-- `0x14005B460` — object-pair resolution/update loop;
-- `0x14005B6F0` — category-pair compatibility filter;
-- `0x14005B8E0` — per-object post/update query/constraint step.
+Exact six-argument ABI:
+1. `RCX` — HITS/runtime wrapper/context;
+2. `RDX` — reference/start 16-byte point;
+3. `R8` — requested/working 16-byte point;
+4. `R9` — corrected/output 16-byte point;
+5. stack arg 5 — optional common `0x38` hit-metadata output;
+6. stack arg 6 — raw reject mask.
 
-The prior P0 wording “B460 category-list candidate production/result contract” is superseded. This topology is being promoted as the next review slice and must remain separate from query-path `E7A0 -> E880 + BCF0`.
+Ordered passes:
+1. static HITS `0x14005E880`;
+2. dynamic category `0x0E` through `0x14005BCF0`;
+3. dynamic category `0x11` through `0x14005BCF0`.
 
-### OPEN — `0x14005FEC0`
+Both dynamic passes receive the same static-or-input baseline. `BCF0` copies that baseline into an internal local and does not write it back through `R8`.
 
-Need exact source-1 segment-query input/output ABI, write-set and result propagation. Raw reject bit `0x00080000` is already independently confirmed.
+Caller-visible output precedence is therefore:
 
-### OPEN — `0x1400601E0`
+`static HITS < category 0x0E < category 0x11`
 
-Need exact in/out layout, fourth-component semantics, triangle iteration and accumulation/convergence behavior.
+where a later successful pass overwrites an earlier successful output. If all passes fail, `E7A0` copies arg3 to arg4 and returns false.
 
-## Canonical byte provenance
+**REJECTED old model:** there is no wrapper-level candidate metric comparison, equality branch or tie-break in `E7A0`.
 
-The ChatGPT project Library contains `dmc3_phase17_reng_probe.exe` plus the Phase-17 verifier report. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and that original raw PE section bytes over file range `0x400..0x60E600` remained byte-identical. Slice-4 functions and the newly reacquired dynamic-update functions map inside that preserved range.
+### Common `0x38` metadata bridge
 
-A second derivative, `dmc3_phase18_red_orb_x2_hook.exe`, independently matches the promoted function windows. It is used as a consistency check, not as the source of target identity.
+- static `E880` accepted hit copies a complete 56-byte raw HITS record;
+- dynamic `BCF0` writes compatible partial metadata;
+- dynamic identity/key is copied `object+0xD8 -> metadata+0x00`;
+- a three-float caller-visible vector is written at metadata `+0x28/+0x2C/+0x30`;
+- caller `0x1402C65B2` reads those floats after successful `E7A0`.
 
-No proprietary instruction bytes are committed. Evidence stores VAs, ranges, hashes, field offsets and reconstructed behavior.
+The exact semantic name of that vector remains **UNRESOLVED**.
 
-## Runtime instrumentation fallback
+Detailed authority: `hits-pass10-slice4-canonical-combined-query-abi.md`.
 
-The generic observation contract remains in:
-- `include/dmc_rengine/evidence/runtime_trace.hpp`
-- `tests/runtime_trace_tests.cpp`
+## RECLASSIFIED AND ABI-CLOSED — dynamic world update `B7B0/B460/B6F0/B8E0`
 
-It models instrumentation metadata, not original DMC3 structures:
-- exact executable SHA;
-- function VA;
-- expected hook bytes;
-- capture sequence/phase;
-- optional caller/source/mask/category/result metadata;
-- raw memory snapshots.
+`0x14005B460` is **not** an `E7A0` candidate producer. It belongs to a separate dynamic-world object-pair update pipeline:
 
-`capture_window_bytes` is tooling-only and is not evidence of an original structure size.
+`0x14005B7B0 dispatcher -> 0x14005B460 pair resolver -> 0x14005B6F0 compatibility`, followed by `0x14005B8E0` post/update handling per source object.
 
-## Slice 1 receipt — generic trace contract
+Canonical bodies:
+- `B460..B6E6`, 646 bytes, SHA `cba77cf4bc20dedfbd590991012fa471e6b5ae02b9cec57c66fce69333a67972`;
+- `B6F0..B7A8`, 184 bytes, SHA `c6eaaea738b317c9d92b3e06ff4ba47ec2d39610cb16a19dc21a96651024ae34`;
+- `B7B0..B8DD`, 301 bytes, SHA `ea1025e96121a3b117f53412d5d3e6439d81e97a23928f1417793e37ba6efbf3`;
+- `B8E0..BA64`, 388 bytes, SHA `1d149357ffa3fe5024c0a6264e356f476c14c6366d89b38bb50a1a3f18e2f477`.
 
-Implementation added the generic trace contract and CTest regression.
+The older truncated `B8E0..B93F` range is not a complete function and must not be used as its canonical body hash.
 
-Correction: the first synthetic regression paired canonical-looking HITS VAs with synthetic bytes. It was replaced by fully synthetic SHA/VAs/bytes so test fixtures cannot masquerade as canonical byte evidence.
+### `B460` ABI
 
-## Slice 2 receipt — DMC3 query/dynamic evidence
+1. `RCX` — manager/context;
+2. `RDX` — source object;
+3. `R8` — candidate-list head;
+4. `R9D` — source category;
+5. stack arg 5 — target category.
 
-Promoted into `profiles/dmc3`:
-- nine HITS query-family VAs;
-- confirmed mutable 16-byte paths for `EBE0/F070`;
-- `AL`-observed success paths for `EE40/60790` without claiming non-mutation;
-- dynamic categories `0x02/0x05/0x08/0x0B/0x0E/0x11`;
-- activation flags and `0x18`-spaced manager offsets;
-- dispatcher-level static-HITS reject-mask bridge `0x0040/0x0002/0x0010/0x0020/0/0`;
-- three wrapper source slots.
+Confirmed pair logic includes:
+- candidate list linked by `+0x328`;
+- candidate base type `+0x00 == 2` requirement;
+- self rejection;
+- shared-owner rejection using owner pointer `+0xD0`;
+- category-pair compatibility through `B6F0`;
+- accepted contact displacement/update helpers;
+- reciprocal category bits written at `+0x10`.
 
-Corrections:
-1. DMC3 VAs moved out of generic HITS core into `profiles/dmc3`.
-2. `static_hits_reject_mask` narrowed to `dispatcher_static_hits_reject_mask`.
-3. all build-specific lookups use canonical SHA gating.
+### `B6F0` category compatibility
 
-## Slice 3 receipt — runtime topology
+Category `0x0E` is the special bridge:
+- neither side `0x0E` -> allow;
+- both sides `0x0E` -> allow;
+- exactly one side `0x0E` -> map the other category to raw flag mask and test opposite object flags `+0xDA/+0xDB`.
 
-Promoted:
-- four direct `0x14005EBC0` source-selector callsites;
-- two temporary source-1 paths:
-  - `0x140056832 -> 0x1400601E0 -> 0x14005686E`;
-  - `0x1400568F0 -> 0x14005FEC0 -> 0x140056936`;
-- query-family caller census `1/51/1/1/1/1/1/5/1`;
-- runtime helper VA/caller census;
-- repeated static xref saturation receipt.
+Mask bridge:
+- `0x02 -> 0x0040`;
+- `0x05 -> 0x0002`;
+- `0x08 -> 0x0010`;
+- `0x0B -> 0x0020`.
 
-Correction: `namespace detail` was initially treated as if it provided access control. It does not. Backing tables are now private static members of `detail::EvidenceStore`, while public access remains exact-SHA-gated. Fix commit: `4845120fbe9a3362d4040a0e37e32387411411d7`.
+### `B7B0` activation/category bindings
 
-## Slice 4 receipt — canonical combined-query ABI
+- `0x00001000`, manager `+0x10` -> category `0x02`;
+- `0x00002000`, `+0x28` -> `0x05`;
+- `0x00004000`, `+0x40` -> `0x08`;
+- `0x00008000`, `+0x58` -> `0x0B`;
+- `0x00010000`, `+0x70` -> `0x0E`;
+- `0x00020000`, `+0x88` -> `0x11`.
 
-Canonical function bodies:
-- `E7A0..E880`, 224 bytes, SHA `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
-- `E880..EB95`, 789 bytes, SHA `b3fdeac674795752492e1eca9e7a9d21837552aa6cf90f0a02a14e3546136e8a`;
-- `BCF0..C0D6`, 998 bytes, SHA `e7e1c1a56425e0a3c5ef5a5a4fff9105d5e073effeae6fcb268829ec3b451d02`.
+### `B8E0` post/update bridge
 
-`E7A0` ABI:
-1. runtime wrapper/context;
-2. reference/start 16-byte point;
-3. working/requested 16-byte point;
-4. corrected/output 16-byte point;
-5. optional common `0x38` hit metadata;
-6. raw reject mask.
+`B8E0` maps source categories `0x02/0x05/0x08/0x0B` to reject masks `0x0040/0x0002/0x0010/0x0020`, calls specialized HITS queries including `60790/F070/EE40/EBE0`, may apply correction/update helpers, and successful handling ORs `0x00020000` into object state/category bits at `+0x10`.
 
-Common metadata bridge:
-- static accepted hit copies a complete `0x38` raw HITS record;
-- dynamic accepted hit writes compatible metadata, including identity source `object+0xD8 -> metadata+0x00` and a three-float caller-visible vector at `+0x28/+0x2C/+0x30`;
-- exact semantic name of this vector remains unresolved.
+Implementation is kept in separate profile evidence `hits_dynamic_update_evidence.hpp`; this separation is architectural, not cosmetic.
 
-`BCF0` direct layout evidence:
-- list head = `RCX[category]`;
-- next `+0x328`;
-- primitive/object type `+0x120`, handled values `2..6`;
-- raw 16-bit filter flags `+0xDA/+0xDB`;
-- identity/key `+0xD8`.
+Detailed authority: `hits-pass10-slice5-dynamic-world-update-topology.md`.
 
-Second-review correction: the first Slice-4 descriptor incorrectly claimed cross-category progressive working-point mutation. `BCF0` uses an internal local copy of its `R8` baseline. Both `0x0E` and `0x11` therefore start from the same baseline, while later successful passes overwrite caller-visible output. Corrected by commits `123ce6331a34d994e3f0121804568efc5ce5c5a4` and `1f0360661624acf41dfdfe776fe8229c5f2edb0b`.
+## CLOSED — `0x14005FEC0` source-1 segment correction ABI
 
-## Safety gates
+Canonical body:
+- `0x14005FEC0..0x1400601D3`;
+- 787 bytes;
+- SHA `cfaca9752adf3a581969875e99c6c1b9ffaa7f83d19d22fddbe8dec2d5cab09e`.
 
-- exact canonical SHA required for build-specific evidence;
-- expected bytes required before any real hook;
-- no hooks on unknown/custom executables;
-- no semantic field names without direct write/read/runtime evidence;
-- DMC3 addresses remain profile-specific;
-- no proprietary game bytes committed;
-- tests are not weakened merely to become green.
+Exact three-argument ABI:
+1. `RCX` — currently selected HITS runtime;
+2. `RDX` — mutable 16-byte point, input/output;
+3. `R8` — read-only 16-byte reference/target point.
 
-## Next execution order
+Exact temporary-source1 route:
 
-1. finish/promote the dynamic-world update slice `B7B0 -> B460 -> B6F0 -> B8E0` with exact body hashes and ABI separation from query-path `BCF0`;
-2. reverse `0x14005FEC0` exact source-1 ABI;
-3. reverse `0x1400601E0` exact in/out/fourth-component/accumulation semantics;
-4. only then descend further into geometry helpers where source-equivalent reconstruction requires it.
+`0x1400568F0 select source1 -> FEC0 -> 0x140056936 restore source0`.
+
+Confirmed behavior:
+- computes `R8 - RDX`;
+- XYZ length controls degenerate-segment rejection;
+- direction normalizer explicitly zeroes fourth component;
+- broadphase/record traversal runs against selected source runtime;
+- raw HITS bit `0x00080000` is directly rejected;
+- accepted correction updates internal point;
+- non-degenerate path writes final 16-byte point through `RDX`.
+
+**Return correction:** `AL` is not hit/no-hit. It is false for a degenerate near-zero XYZ segment; a non-degenerate processed segment returns true even when no raw record changes the point.
+
+## CLOSED — `0x1400601E0` displacement accumulator ABI
+
+Canonical body:
+- `0x1400601E0..0x14006078E`;
+- 1454 bytes;
+- SHA `7fb7fb7ce9447a5e200ba1471774eafe7e5f21877da71902f047563bd9f7597a`;
+- five direct callers.
+
+Exact three-argument ABI:
+1. `RCX` — selected/current HITS runtime;
+2. `RDX` — mutable 16-byte point, input/output;
+3. `R8` — read-only reference/anchor point.
+
+One canonical caller explicitly selects source1 before `601E0` and restores source0 afterward.
+
+Two-stage model:
+1. initial raw-record correction pass mutates the working point;
+2. secondary record-vector displacement accumulation applies accepted scaled 16-byte displacements repeatedly.
+
+### Fourth component — operational semantics closed, gameplay name unresolved
+
+- XYZ norm helpers ignore component `+0x0C`;
+- XYZ dot helper ignores component `+0x0C`;
+- `601E0` normalization derives magnitude from XYZ but can scale all four components;
+- scale/add path carries all four components into the mutable 16-byte point.
+
+Therefore component 4 is **excluded from spatial length/dot gating but transported/scaled/accumulated through correction math**. No gameplay name is assigned yet.
+
+`FEC0` is different: its direction-normalization path explicitly zeroes component 4.
+
+### `601E0` return contract
+
+At exit, XYZ distance between the preserved original point and final `RDX` is measured. `AL` is true only when the final point materially moved beyond epsilon in XYZ.
+
+So `601E0` return means **material XYZ displacement/correction occurred**, not candidate existence and not raw hit count.
+
+Detailed authority: `hits-pass10-slice6-source1-query-abi.md`.
+
+# Implementation architecture
+
+Pass-10 profile evidence is now deliberately split by runtime responsibility:
+
+- `hits_query_evidence.hpp` — query-family summary, combined query, source switching and query topology;
+- `hits_dynamic_update_evidence.hpp` — dynamic world pair/update pipeline;
+- `hits_source1_query_evidence.hpp` — exact `FEC0/601E0` specialized source/current-runtime contracts;
+- `runtime_trace.hpp` — generic observation-only instrumentation contract.
+
+`hits_query_evidence.hpp` has been reconciled so `FEC0/601E0` are no longer labeled `unresolved`; they use specialized ABI kinds backed by Slice-6 detailed evidence.
+
+All build-specific evidence APIs are SHA-gated against the canonical target. Packed SHA `81c7...c7d6` must receive no canonical VA/body ABI descriptors.
+
+# Major Pass-10 corrections preserved as canonical
+
+1. **CORRECTED:** DMC3 VAs belong under `profiles/dmc3`, not generic HITS core.
+2. **CORRECTED:** `dispatcher_static_hits_reject_mask` is dispatcher-scoped, not a global category property.
+3. **CORRECTED:** `namespace detail` is not access control; raw backing tables moved to private `EvidenceStore` members.
+4. **REJECTED:** `E7A0` metric/equality/tie-break arbitration model.
+5. **CORRECTED:** `BCF0` does not chain category `0x0E` output as category `0x11` input baseline.
+6. **REJECTED:** `B460` as `E7A0` candidate producer; it is dynamic-world pair/update logic.
+7. **CORRECTED:** `FEC0 AL` is not a hit boolean.
+8. **CORRECTED:** `601E0 AL` reports material XYZ displacement, not generic query success.
+9. **CORRECTED:** fourth component is not part of XYZ norm/dot gating, but `601E0` can transport and accumulate it.
+
+# Validation state
+
+The branch remains under GitHub Actions validation after Slice-5/6 code and regression additions. Do not promote a CI receipt to “green” until the exact current head has passed both Ubuntu and Windows jobs.
+
+# Remaining work after top-level P0 closure
+
+The next work is **not another restart of `E7A0/B460/FEC0/601E0` ABI discovery**. It moves one layer deeper and toward behavioral validation:
+
+1. close semantic identity of dynamic primitive/object type values `2..6` only if direct evidence supports names;
+2. close exact semantics of the common metadata vector `+0x28/+0x2C/+0x30` and the related fourth component across static/dynamic producers;
+3. reconstruct geometry/contact helpers required for source-equivalent implementation, especially where current descriptors only state an observed role;
+4. build controlled canonical runtime traces for edge cases and compare them against the reconstructed C++ behavior;
+5. implement executable/source-equivalent collision behavior only when the evidence packet is sufficient, preserving profile isolation and exact-build gates.
 
 ## Explicit non-goals
 
 - no guessed monolithic original `CollisionResult`;
 - no invented gameplay names for dynamic primitive values `2..6`;
-- no invented name for metadata vector `+0x28..+0x30`;
+- no invented semantic name for metadata vector `+0x28..+0x30` or fourth component;
 - no conflation of query path (`E7A0/E880/BCF0`) with dynamic-world update path (`B7B0/B460/B6F0/B8E0`);
-- no GDSpaces ownership of recovered collision runtime.
+- no reopening superseded Pass-10 P0 descriptions without contradictory direct evidence;
+- no GDSpaces ownership of recovered collision runtime;
+- no proprietary game bytes committed.
