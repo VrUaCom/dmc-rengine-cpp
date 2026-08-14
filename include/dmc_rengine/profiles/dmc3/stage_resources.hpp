@@ -23,21 +23,28 @@ struct StageResourceReference final {
 };
 
 struct StageResourceRowPlan final {
-    // Evidence-backed semantic gameplay-stage id when known. Catalog-derived
-    // row plans leave this empty until separate evidence establishes semantics.
+    // Legacy technical key retained for source compatibility. New catalog code
+    // mirrors resource_set_id here; it is not gameplay semantics.
     std::string stage_id;
     std::string evidence_id;
     std::array<StageResourceReference, 4> resources;
 
     // Stable technical identity of the exact executable-derived resource set.
     // For StageCatalog-driven plans this is StageCatalogEntry::catalog_entry_id.
-    // Trailing placement preserves aggregate-source compatibility.
     std::string resource_set_id;
+
+    // Optional evidence-backed gameplay-stage identity. It remains empty when
+    // only the executable row/resource set is known.
+    std::string semantic_stage_id;
 
     [[nodiscard]] std::string_view resource_set_key() const noexcept {
         return resource_set_id.empty()
             ? std::string_view{stage_id}
             : std::string_view{resource_set_id};
+    }
+
+    [[nodiscard]] bool semantic_stage_known() const noexcept {
+        return !semantic_stage_id.empty();
     }
 
     [[nodiscard]] bool valid() const noexcept;
@@ -59,7 +66,7 @@ struct StageResourceMatchReport final {
 };
 
 // Build a resource-set plan from one recovered four-column EXE stage-table row.
-// resource_set_id is technical table/catalog identity, not gameplay stage_id.
+// resource_set_id is technical table/catalog identity, not gameplay semantics.
 // The supplied paths are authoritative row values; no stXXX naming pattern is
 // generated or inferred here.
 [[nodiscard]] StageResourceRowPlan make_stage_resource_plan_from_table_row(
