@@ -50,38 +50,20 @@ void append_stage_id_range(
     };
 }
 
-[[nodiscard]] bool exact_known_bank(
-    const StageResourceTableDescriptor& descriptor) noexcept {
-    if (descriptor.id == "dmc3-hdc-phase12-stage-resource-table") {
-        return descriptor.file_offset == 0x005C30A0ULL &&
-            descriptor.rva == 0x005C4AA0U &&
-            descriptor.va == 0x1405C4AA0ULL &&
-            descriptor.row_count == 110U;
-    }
-    if (descriptor.id == "dmc3-stage-descriptor-bank-b") {
-        return descriptor.file_offset == 0x005C1680ULL &&
-            descriptor.rva == 0x005C3080U &&
-            descriptor.va == 0x1405C3080ULL &&
-            descriptor.row_count == 79U;
-    }
-    return false;
-}
-
 } // namespace
 
 bool StageResourceTableDescriptor::valid() const noexcept {
-    if (id.empty() || evidence_packet_id != "dmc3-stage-wave2" ||
-        artifact_sha256.size() != 64U || artifact_size != 6356432ULL ||
-        cell_stride != 0x10U || kind16_offset != 0U ||
-        path_pointer_offset != 0x08U || !exact_known_bank(*this)) {
+    if (id.empty() || evidence_packet_id.empty() ||
+        artifact_sha256.size() != 64U || artifact_size == 0U ||
+        row_count == 0U || cell_stride < 0x10U ||
+        kind16_offset > cell_stride - 2U ||
+        path_pointer_offset > cell_stride - 8U) {
         return false;
     }
 
     const auto& target = phase12_canonical_target();
     return target.matches_hash(artifact_sha256) &&
         target.image_base <= va && va - target.image_base == rva &&
-        entry_count() == row_count * 4U &&
-        row_size_bytes() == 0x40ULL &&
         file_offset < artifact_size &&
         table_size_bytes() <= artifact_size - file_offset;
 }
@@ -95,7 +77,13 @@ std::uint32_t StageResourceTableDescriptor::entry_count() const noexcept {
 }
 
 std::uint64_t StageResourceTableDescriptor::row_size_bytes() const noexcept {
-    return static_cast<std::uint64_t>(cell_stride) * 4ULL;
+    constexpr auto column_count = 4ULL;
+    if (cell_stride == 0U ||
+        static_cast<std::uint64_t>(cell_stride) >
+            std::numeric_limits<std::uint64_t>::max() / column_count) {
+        return 0U;
+    }
+    return static_cast<std::uint64_t>(cell_stride) * column_count;
 }
 
 std::uint64_t StageResourceTableDescriptor::table_size_bytes() const noexcept {
@@ -157,8 +145,7 @@ bool StageDescriptorUniverseMetadata::valid() const noexcept {
     return all_ids.size() == observed_descriptor_count();
 }
 
-const StageResourceTableDescriptor&
-wave2_stage_resource_bank_a() noexcept {
+const StageResourceTableDescriptor& wave2_stage_resource_bank_a() noexcept {
     static const StageResourceTableDescriptor descriptor{
         .id = "dmc3-hdc-phase12-stage-resource-table",
         .evidence_packet_id = "dmc3-stage-wave2",
@@ -177,13 +164,11 @@ wave2_stage_resource_bank_a() noexcept {
     return descriptor;
 }
 
-const StageResourceTableDescriptor&
-phase12_stage_resource_table() noexcept {
+const StageResourceTableDescriptor& phase12_stage_resource_table() noexcept {
     return wave2_stage_resource_bank_a();
 }
 
-const StageResourceTableDescriptor&
-wave3_stage_resource_bank_b() noexcept {
+const StageResourceTableDescriptor& wave3_stage_resource_bank_b() noexcept {
     static const StageResourceTableDescriptor descriptor{
         .id = "dmc3-stage-descriptor-bank-b",
         .evidence_packet_id = "dmc3-stage-wave2",
@@ -211,8 +196,7 @@ wave3_stage_resource_banks() noexcept {
     return banks;
 }
 
-const StageDescriptorUniverseMetadata&
-wave2_stage_descriptor_universe() noexcept {
+const StageDescriptorUniverseMetadata& wave2_stage_descriptor_universe() noexcept {
     static const StageDescriptorUniverseMetadata metadata{
         .evidence_packet_id = "dmc3-stage-wave2",
         .banks = {
