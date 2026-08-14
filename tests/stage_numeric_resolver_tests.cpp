@@ -1,10 +1,12 @@
 #include "dmc_rengine/profiles/dmc3/stage_numeric_resolver.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_table.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -13,6 +15,16 @@ void write_u64(std::vector<std::byte>& bytes, std::size_t offset, std::uint64_t 
         bytes[offset + i] = static_cast<std::byte>(
             (value >> static_cast<unsigned>(i * 8U)) & 0xFFU);
     }
+}
+
+bool has_diagnostic(
+    const std::vector<dmc::rengine::gdspaces::Diagnostic>& diagnostics,
+    std::string_view code) {
+    return std::any_of(
+        diagnostics.begin(), diagnostics.end(),
+        [code](const dmc::rengine::gdspaces::Diagnostic& diagnostic) {
+            return diagnostic.code == code;
+        });
 }
 }
 
@@ -66,33 +78,44 @@ int main() {
     // An otherwise unused family can alias the st000 selector base.
     write_u64(bytes, file_offset_for_va(topology.group_base_table_va + 5ULL * 8ULL), selector_prefix);
 
-    const auto st000 = StageNumericResolver::resolve(
+    // Synthetic fixtures must use the explicitly low-level API. Product paths
+    // cannot combine fixture bytes with an injected PeImage.
+    const auto st000 = StageNumericResolver::resolve_from_image(
         std::span<const std::byte>{bytes}, image, 0U);
     assert(st000.resolved());
     assert(st000.descriptor_primary_stage_id == 0U);
     assert(!st000.aliases_another_primary_stage());
 
-    const auto st001 = StageNumericResolver::resolve(
+    const auto st001 = StageNumericResolver::resolve_from_image(
         std::span<const std::byte>{bytes}, image, 1U);
     assert(st001.resolved());
     assert(st001.descriptor_primary_stage_id == 1U);
 
-    const auto st600 = StageNumericResolver::resolve(
+    const auto st600 = StageNumericResolver::resolve_from_image(
         std::span<const std::byte>{bytes}, image, 600U);
     assert(st600.resolved());
     assert(st600.source_table_id == banks[1].id);
     assert(st600.source_row_index == 55U);
     assert(st600.descriptor_primary_stage_id == 600U);
 
-    const auto fallback500 = StageNumericResolver::resolve(
+    const auto fallback500 = StageNumericResolver::resolve_from_image(
         std::span<const std::byte>{bytes}, image, 500U);
     assert(fallback500.resolved());
     assert(fallback500.descriptor_primary_stage_id == 0U);
     assert(fallback500.aliases_another_primary_stage());
 
-    const auto invalid = StageNumericResolver::resolve(
+    const auto invalid = StageNumericResolver::resolve_from_image(
         std::span<const std::byte>{bytes}, image, 1000U);
     assert(!invalid.resolved());
     assert(!invalid.diagnostics.empty());
+
+    // The canonical API refuses synthetic/non-authority bytes before applying
+    // any recovered executable VAs.
+    const auto rejected = StageNumericResolver::resolve_canonical(
+        std::span<const std::byte>{bytes}, 0U);
+    assert(!rejected.resolved());
+    assert(has_diagnostic(
+        rejected.diagnostics,
+        "dmc3.stage-numeric.artifact-hash-mismatch"));
     return 0;
 }
