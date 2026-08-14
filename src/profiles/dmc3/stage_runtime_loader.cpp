@@ -275,7 +275,11 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             }
         }
 
-        if (!has_error(loaded.diagnostics) && loaded.payload_valid()) {
+        // Preserve all safely materialized data even if a later expansion step
+        // fails. Completion remains false through scoped diagnostics, but a
+        // partial failure must not erase a valid root resource or readable
+        // children that were already bounded and classified successfully.
+        if (loaded.payload_valid()) {
             candidates.push_back(gdspaces::StageMemberCandidate{
                 .resource = loaded.payload->resource,
                 .category = category_for_role(loaded.resolution.reference.role),
@@ -318,7 +322,7 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             report.diagnostics,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-load.incomplete",
-            "The StageBundle contains only the successfully materialized subset; Level-C completion was not reached.");
+            "The StageBundle contains the safely materialized subset; Level-C completion was not reached.");
     }
 
     return report;
