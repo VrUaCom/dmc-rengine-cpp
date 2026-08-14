@@ -51,6 +51,7 @@ StageOperationsSnapshot StageOperationsSession::snapshot() const {
         .game_readiness = assembly_.game_readiness(),
         .derived_state_stale = derived_state_stale_,
         .dirty_resource_count = 0U,
+        .pending_changed_resource_count = pending_changed_resources_.size(),
         .missing_project_session_count = 0U,
         .validation_request_count = 0U,
     };
@@ -76,6 +77,12 @@ StageOperationsSnapshot StageOperationsSession::snapshot() const {
     return result;
 }
 
+std::vector<std::string> StageOperationsSession::pending_changed_resources() const {
+    return std::vector<std::string>{
+        pending_changed_resources_.begin(),
+        pending_changed_resources_.end()};
+}
+
 bool StageOperationsSession::enable_editing(
     std::string_view canonical_resource_id) {
     const auto* resource = stage_resource(canonical_resource_id);
@@ -85,8 +92,6 @@ bool StageOperationsSession::enable_editing(
     if (!project_->enable_working_copy(resource->resource.id)) {
         return false;
     }
-    // Enabling a revision-0 clean WorkingCopy does not alter scene bytes. Record
-    // it as the new operational baseline without invalidating derived state.
     update_observed_state(*resource);
     return true;
 }
@@ -165,6 +170,7 @@ StageOperationResult StageOperationsSession::reset_resource(
     if (byte_state_changed(before, after)) {
         ++stage_revision_;
         derived_state_stale_ = true;
+        mark_resource_changed(*resource);
     }
     return StageOperationResult{
         .applied = true,
@@ -251,12 +257,14 @@ bool StageOperationsSession::detect_external_project_changes() {
             observed_.emplace(canonical, current);
             if (current.working_copy_revision != 0U || current.dirty) {
                 changed = true;
+                mark_resource_changed(resource);
             }
             continue;
         }
 
         if (byte_state_changed(iterator->second, current)) {
             changed = true;
+            mark_resource_changed(resource);
         }
         iterator->second = current;
     }
@@ -274,11 +282,6 @@ bool StageOperationsSession::commit_derived_refresh(
         return false;
     }
 
-    // Final optimistic-concurrency gate. Another tool/agent may mutate a shared
-    // WorkingCopy after Stage Ops rebuilt parser/domain/graph state but before
-    // this commit. Never absorb that change into a new baseline and mark stale
-    // state current. Detect it first; detection advances the stage revision and
-    // preserves the stale gate, causing the caller's old revision commit to fail.
     if (detect_external_project_changes()) {
         return false;
     }
@@ -287,6 +290,7 @@ bool StageOperationsSession::commit_derived_refresh(
     }
 
     capture_observed_state();
+    pending_changed_resources_.clear();
     derived_state_stale_ = false;
     return true;
 }
@@ -335,6 +339,11 @@ void StageOperationsSession::update_observed_state(
     observed_[resource.resource.id.canonical()] = observe(resource);
 }
 
+void StageOperationsSession::mark_resource_changed(
+    const StageAssemblyResource& resource) {
+    pending_changed_resources_.insert(resource.resource.id.canonical());
+}
+
 StageOperationResult StageOperationsSession::rejected(
     std::string error,
     std::uint64_t resource_revision) const {
@@ -350,6 +359,7 @@ StageOperationResult StageOperationsSession::committed(
     const StageAssemblyResource& resource) {
     ++stage_revision_;
     derived_state_stale_ = true;
+    mark_resource_changed(resource);
     update_observed_state(resource);
 
     const auto* session = project_->find_session(resource.resource.id);
