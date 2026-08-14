@@ -280,5 +280,59 @@ int main() {
     assert(!rejected.applied);
     assert(rejected.stage_revision == 4U);
 
+    // TOCTOU regression: an external edit can arrive after derived state was
+    // rebuilt for stage revision 1 but before commit_derived_refresh(1). The
+    // commit itself must detect the WorkingCopy revision change, advance the
+    // Stage Ops revision, preserve stale state, and reject the obsolete commit.
+    integration::ProjectWorkspace race_project;
+    assert(race_project.create_session(
+        gdspaces::ResourcePayload{
+            .resource = editable,
+            .bytes = bytes,
+            .diagnostics = {},
+            .byte_provenance = provenance(
+                editable.id.offset,
+                static_cast<std::uint64_t>(bytes.size())),
+        },
+        integration::WorkspaceContext{
+            .stage_context = true,
+            .menu_context = false,
+            .evidence_context = true,
+        }));
+    auto race_assembly = make_assembly(editable, no_session);
+    stageops::StageOperationsSession race_session(
+        std::move(race_assembly), race_project);
+    assert(race_session.enable_editing(editable.id.canonical()));
+
+    const auto race_first = race_session.apply_edit(
+        editable.id.canonical(),
+        gdspaces::EditOperation{
+            .id = "race-first-edit",
+            .base_revision = 0U,
+            .offset = 0x06U,
+            .expected = {source_06},
+            .replacement = {std::byte{0x09}},
+            .description = "Derived state is notionally rebuilt for revision one.",
+        });
+    assert(race_first.applied && race_first.stage_revision == 1U);
+
+    const auto race_external = race_project.apply_edit(
+        editable.id,
+        gdspaces::EditOperation{
+            .id = "race-external-edit",
+            .base_revision = 1U,
+            .offset = 0x07U,
+            .expected = {source_07},
+            .replacement = {std::byte{0x0A}},
+            .description = "Concurrent edit after rebuild and before commit.",
+        },
+        gdspaces::ToolTarget::binary_inspector);
+    assert(race_external.applied);
+    assert(race_session.stage_revision() == 1U);
+    assert(!race_session.commit_derived_refresh(1U));
+    assert(race_session.stage_revision() == 2U);
+    assert(race_session.derived_state_stale());
+    assert(!race_session.detect_external_project_changes());
+
     return 0;
 }
