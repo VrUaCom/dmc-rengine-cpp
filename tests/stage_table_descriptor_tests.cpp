@@ -7,6 +7,8 @@ int main() {
     using dmc::rengine::profiles::dmc3::phase12_stage_resource_table;
     using dmc::rengine::profiles::dmc3::wave2_stage_descriptor_universe;
     using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_a;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_b;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_banks;
 
     const auto& descriptor = wave2_stage_resource_bank_a();
     assert(descriptor.valid());
@@ -21,12 +23,28 @@ int main() {
     assert(descriptor.kind16_offset == 0U);
     assert(descriptor.path_pointer_offset == 0x08U);
     assert(descriptor.entry_count() == 440U);
+    assert(descriptor.row_size_bytes() == 0x40ULL);
     assert(descriptor.table_size_bytes() == 0x1B80ULL);
     assert(descriptor.role_for_column(0U) == StageResourceRole::script);
     assert(descriptor.role_for_column(1U) == StageResourceRole::room_config);
     assert(descriptor.role_for_column(2U) == StageResourceRole::room_effects);
     assert(descriptor.role_for_column(3U) == StageResourceRole::room_sound);
     assert(!descriptor.role_for_column(4U).has_value());
+
+    const auto& bank_b = wave2_stage_resource_bank_b();
+    assert(bank_b.valid());
+    assert(bank_b.evidence_packet_id == "dmc3-stage-wave2");
+    assert(bank_b.file_offset == 0x005C1680ULL);
+    assert(bank_b.rva == 0x005C3080U);
+    assert(bank_b.va == 0x1405C3080ULL);
+    assert(bank_b.row_count == 79U);
+    assert(bank_b.entry_count() == 316U);
+    assert(bank_b.row_size_bytes() == 0x40ULL);
+    assert(bank_b.table_size_bytes() == 0x13C0ULL);
+
+    const auto& banks = wave2_stage_resource_banks();
+    assert(banks[0].va == descriptor.va);
+    assert(banks[1].va == bank_b.va);
 
     const auto& universe = wave2_stage_descriptor_universe();
     assert(universe.valid());
@@ -57,6 +75,17 @@ int main() {
     auto invalid_path_offset = descriptor;
     invalid_path_offset.path_pointer_offset = 9U;
     assert(!invalid_path_offset.valid());
+
+    // An in-bounds but shifted Bank-B-looking descriptor is not an authority.
+    auto shifted_bank_b = bank_b;
+    shifted_bank_b.file_offset += 0x40ULL;
+    shifted_bank_b.rva += 0x40U;
+    shifted_bank_b.va += 0x40ULL;
+    assert(!shifted_bank_b.valid());
+
+    auto wrong_bank_b_count = bank_b;
+    wrong_bank_b_count.row_count = 78U;
+    assert(!wrong_bank_b_count.valid());
 
     return 0;
 }
