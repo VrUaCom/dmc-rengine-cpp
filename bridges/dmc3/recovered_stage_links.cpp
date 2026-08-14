@@ -4,6 +4,7 @@
 
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace dmc::rengine::bridges::dmc3 {
 namespace {
