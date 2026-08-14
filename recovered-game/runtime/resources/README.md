@@ -4,20 +4,21 @@ This directory belongs to the **Recovered Game Source Tree**. It represents reco
 
 ## Executable recovered slice
 
-The Wave-2 foundation is no longer only a table of evidence constants. `resource_manager.hpp` now provides an executable reconstruction of the directly evidenced resource-load lifecycle boundary:
+The Wave-2 foundation is no longer only a table of evidence constants. `resource_manager.hpp` now provides a deliberately narrow executable reconstruction of the **directly evidenced lifecycle boundaries**, without claiming an original C++ manager class or unevidenced writer side effects:
 
 - exact x64 `ResourceRuntimeEntry` ABI size `0x48`;
 - exact known offsets `+0x00/+0x04/+0x08/+0x18/+0x20/+0x28` with unknown bytes preserved explicitly;
-- all 363 runtime slots initialized according to the seven recovered partitions `[4, 136, 60, 28, 1, 128, 6]`;
-- executable confirmed transitions:
+- seven recovered pool partitions `[4, 136, 60, 28, 1, 128, 6]` remain represented by the Wave-2 evidence model;
+- executable confirmed state edges:
   - `0 free -> 1 loading`;
   - `1 loading -> 2 I/O complete / post-load pending`;
-  - `2 -> typed confirmed post-load -> 3 ready`;
+  - `2 -> explicitly selected confirmed typed post-load -> 3 ready`;
   - observed cleanup `4 teardown/cancel pending -> 0 free`;
-- state 3 is fail-closed: it is reached only when the payload has one of the directly confirmed MOD/EFM/SCM/SHW magics and the corresponding recovered post-load backend succeeds;
-- unsupported magic, null payload, wrong-state reuse and out-of-range slots do not silently advance the lifecycle.
+- state 3 is reached only after a caller-selected confirmed MOD/EFM/SCM/SHW post-load backend succeeds.
 
-The manager intentionally does **not** invent slot-selection policy: callers provide the exact pool slot. It also does not invent the still-unrecovered source-state domain that enters state 4.
+The executable helpers intentionally do **not** claim which original transition writer assigns `subtype_index`, `source_descriptor`, `loaded_payload`, `owned_state`, callbacks, or ownership fields. Those field locations are known; their complete writer/ordering ownership is not.
+
+Likewise the helper does not infer the original typed dispatcher key from three-byte file magic. Wave-2 confirms typed dispatch and the four helper identities, but the complete dispatcher ABI/selection mechanism remains a reverse target.
 
 ## Evidence foundation
 
@@ -37,15 +38,16 @@ Confirmed Wave-2 authorities retained by the executable slice:
 
 ## Still not reconstructed
 
-The executable manager stops exactly where evidence stops. These remain reverse targets:
+The executable slice stops exactly where evidence stops. These remain reverse targets:
 
 - exact original slot-allocation/search policy;
+- exact writers and ordering for the known non-state entry fields;
 - callback/completion fields;
 - full per-group subtype ABI;
 - cache keys, duplicate-request reuse and complete refcount/ownership behavior;
 - exact source-state domain entering state 4;
-- PAC/PNST dispatcher source reconstruction;
-- actual MOD/EFM/SCM/SHW in-place pointer-fixup algorithms — the manager currently exposes the dispatch/backend boundary but does not fake the algorithms;
+- PAC/PNST dispatcher source reconstruction and exact selection ABI;
+- actual MOD/EFM/SCM/SHW in-place pointer-fixup algorithms — the slice exposes the backend boundary but does not fake the algorithms;
 - higher-level factory/object construction after normalized bytes are ready;
 - room/stage transition retention and unload behavior.
 
