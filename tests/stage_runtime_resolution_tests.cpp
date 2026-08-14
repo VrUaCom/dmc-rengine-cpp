@@ -106,6 +106,17 @@ void mount(
     return result;
 }
 
+[[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry catalog_entry() {
+    const auto observation = row();
+    return dmc::rengine::profiles::dmc3::StageCatalogEntry{
+        .catalog_entry_id = "dmc3-stage-resource-table/row/17",
+        .row_index = observation.row_index,
+        .evidence_id = "ev-dmc3-stage-resource-table",
+        .observation = observation,
+        .semantic_stage_id = std::nullopt,
+    };
+}
+
 [[nodiscard]] dmc::rengine::profiles::dmc3::VolumeBootstrapPlan bootstrap() {
     constexpr std::array<std::uint32_t, 2> present{0U, 1U};
     return dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy::plan(present);
@@ -149,8 +160,9 @@ int main() {
     using dmc::rengine::profiles::dmc3::RuntimeResolutionStatus;
     using dmc::rengine::profiles::dmc3::StageRuntimeResolver;
 
-    const auto executable_row = row();
-    assert(executable_row.complete());
+    const auto entry = catalog_entry();
+    assert(entry.complete());
+    assert(!entry.semantic_stage_id.has_value());
     const auto runtime_bootstrap = bootstrap();
     const auto runtime_bindings = bindings();
     assert(runtime_bootstrap.valid());
@@ -158,18 +170,17 @@ int main() {
 
     {
         auto registry = complete_sources();
-        const auto report = StageRuntimeResolver::resolve_row(
-            "stage-row-17",
-            "ev-dmc3-stage-resource-table",
-            executable_row,
+        const auto report = StageRuntimeResolver::resolve_entry(
+            entry,
             runtime_bootstrap,
             runtime_bindings,
             registry);
 
         assert(report.complete());
+        assert(report.catalog_entry_id == entry.catalog_entry_id);
         assert(report.table_row_index == 17U);
         assert(report.plan.valid());
-        assert(report.plan.stage_id == "stage-row-17");
+        assert(report.plan.stage_id == entry.catalog_entry_id);
         assert(report.plan.evidence_id == "ev-dmc3-stage-resource-table");
         assert(report.plan.resources[0].logical_path == "scr/shared_intro.pac");
         assert(report.plan.resources[1].logical_path == "room/st777cfg_alias.pac");
@@ -190,11 +201,14 @@ int main() {
         assert(candidates[2].category == StageResourceCategory::effects);
         assert(candidates[3].category == StageResourceCategory::sounds);
 
+        // StageIdentity still exposes a field named stage_id. Until that generic
+        // schema is split, catalog row identity is carried here explicitly as a
+        // technical identity, not as an inferred semantic gameplay stage id.
         const auto bundle = StageBundleAssembler::assemble(
             StageIdentity{
                 .profile = "dmc3-hd",
-                .stage_id = report.plan.stage_id,
-                .display_name = "Recovered row 17",
+                .stage_id = report.catalog_entry_id,
+                .display_name = "Catalog row 17",
                 .exe_evidence_id = report.plan.evidence_id,
             },
             candidates);
@@ -217,10 +231,8 @@ int main() {
                 "archive-1", "snd_shared.pac", "nbz[9]"),
         });
 
-        const auto report = StageRuntimeResolver::resolve_row(
-            "stage-row-17",
-            "ev-dmc3-stage-resource-table",
-            executable_row,
+        const auto report = StageRuntimeResolver::resolve_entry(
+            entry,
             runtime_bootstrap,
             runtime_bindings,
             registry);
@@ -234,8 +246,6 @@ int main() {
     // Ambiguity is preserved at the stage-role level and never converted into
     // an arbitrary StageBundle member.
     {
-        auto registry = complete_sources();
-        // Rebuild with an ambiguous highest-volume script key.
         dmc::rengine::gdspaces::SourceRegistry ambiguous_registry;
         mount(ambiguous_registry, "physical", {
             make_resource(
@@ -254,10 +264,8 @@ int main() {
                 "archive-1", "snd_shared.pac", "nbz[9]"),
         });
 
-        const auto report = StageRuntimeResolver::resolve_row(
-            "stage-row-17",
-            "ev-dmc3-stage-resource-table",
-            executable_row,
+        const auto report = StageRuntimeResolver::resolve_entry(
+            entry,
             runtime_bootstrap,
             runtime_bindings,
             ambiguous_registry);
@@ -267,15 +275,13 @@ int main() {
         assert(report.resolved_candidates().empty());
     }
 
-    // An incomplete executable row is rejected before any VFS request is made.
+    // An incomplete catalog entry is rejected before any VFS request is made.
     {
-        auto incomplete = executable_row;
-        incomplete.cells[2].logical_path.clear();
+        auto incomplete_entry = entry;
+        incomplete_entry.observation.cells[2].logical_path.clear();
         auto registry = complete_sources();
-        const auto report = StageRuntimeResolver::resolve_row(
-            "stage-row-17",
-            "ev-dmc3-stage-resource-table",
-            incomplete,
+        const auto report = StageRuntimeResolver::resolve_entry(
+            incomplete_entry,
             runtime_bootstrap,
             runtime_bindings,
             registry);
@@ -284,6 +290,21 @@ int main() {
         for (const auto& resource : report.resources) {
             assert(resource.runtime.probes.empty());
         }
+    }
+
+    // Raw-row compatibility requires an explicit catalog row identity and does
+    // not infer any semantic stage id from filenames.
+    {
+        auto registry = complete_sources();
+        const auto report = StageRuntimeResolver::resolve_row(
+            "dmc3-stage-resource-table/row/17",
+            "ev-dmc3-stage-resource-table",
+            entry.observation,
+            runtime_bootstrap,
+            runtime_bindings,
+            registry);
+        assert(report.complete());
+        assert(report.catalog_entry_id == "dmc3-stage-resource-table/row/17");
     }
 
     return 0;
