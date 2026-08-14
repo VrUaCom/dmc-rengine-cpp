@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/gdspaces/working_copy.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
+#include "dmc_rengine/integration/resource_analyzer.hpp"
 #include "dmc_rengine/stageops/assembly_workspace.hpp"
 
 #include <cstddef>
@@ -9,6 +10,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace dmc::rengine::stageops {
 
@@ -17,6 +19,19 @@ struct StageOperationResult final {
     std::uint64_t stage_revision{};
     std::uint64_t resource_revision{};
     std::string error;
+};
+
+struct StageAnalysisRefreshResult final {
+    std::uint64_t stage_revision{};
+    std::size_t attempted{};
+    std::size_t succeeded{};
+    std::size_t skipped_without_parser{};
+    std::size_t missing_project_session_count{};
+    std::vector<integration::ResourceAnalysisReport> reports;
+
+    [[nodiscard]] bool complete_for_attempted() const noexcept {
+        return attempted == succeeded;
+    }
 };
 
 struct StageOperationsSnapshot final {
@@ -69,6 +84,12 @@ public:
 
     [[nodiscard]] StageOperationResult reset_resource(
         std::string_view canonical_resource_id);
+
+    // Re-runs the shared canonical structural analyzer for every assembled
+    // resource with an implemented parser. Dirty WorkingCopies are parsed at
+    // their exact revision; clean/no-WorkingCopy resources use immutable source
+    // revision 0. Formats without a parser are explicitly skipped.
+    [[nodiscard]] StageAnalysisRefreshResult refresh_resource_analysis();
 
     // Emits Build & Test Lab validation requests for every assembled resource
     // that currently has a ProjectWorkspace session and a Stage Ops tool route.
