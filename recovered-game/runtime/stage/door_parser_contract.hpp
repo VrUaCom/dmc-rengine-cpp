@@ -37,6 +37,9 @@ enum class DoorBoxLoadField : std::uint32_t {
 struct DoorParserContract final {
     std::string_view artifact_sha256;
 
+    // Stable repo-local evidence records supporting this recovered contract.
+    std::array<std::string_view, 4> evidence_ids{};
+
     // Corrected logical function start. The older 0x1401A9E3B anchor is an
     // internal loop location and must not be treated as the function start.
     std::uint64_t logical_start_va{};
