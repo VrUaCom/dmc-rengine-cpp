@@ -117,6 +117,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_tool_views
         stageops_assembly_workspace
         stageops_operations_session
+        stage_semantic_graph
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
