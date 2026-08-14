@@ -63,7 +63,10 @@ bool ResourceRuntimeEvidenceModel::valid() const noexcept {
             ResourceLoadState::io_scheduled_or_loading,
             ResourceLoadState::io_complete_pending_postprocess,
             ResourceLoadState::ready_postprocessed,
-        }) {
+        } ||
+        cleanup_transition.from != ResourceLoadState::teardown_or_cancel_pending ||
+        cleanup_transition.to != ResourceLoadState::free_or_unstarted ||
+        teardown_source_state_domain_complete) {
         return false;
     }
 
@@ -138,6 +141,11 @@ wave2_resource_runtime_model() noexcept {
             ResourceLoadState::io_complete_pending_postprocess,
             ResourceLoadState::ready_postprocessed,
         },
+        .cleanup_transition = ObservedStateTransition{
+            .from = ResourceLoadState::teardown_or_cancel_pending,
+            .to = ResourceLoadState::free_or_unstarted,
+        },
+        .teardown_source_state_domain_complete = false,
     };
     return model;
 }
