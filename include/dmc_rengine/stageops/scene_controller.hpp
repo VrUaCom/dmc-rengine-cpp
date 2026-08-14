@@ -5,6 +5,7 @@
 #include "dmc_rengine/stageops/scene_snapshot.hpp"
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -66,6 +67,13 @@ struct StageSceneRefreshResult final {
     }
 };
 
+// Called only after canonical analysis has rebuilt StageDomainWorkspace for the
+// exact target Stage Ops revision. Profile/reverse integrations can therefore
+// derive offset-sensitive runtime links from current domain identities without
+// duplicating the Stage Ops refresh transaction.
+using StageRuntimeLinkProvider = std::function<
+    std::vector<StageRuntimeLink>(const StageDomainWorkspace&)>;
+
 // Canonical high-level Stage Ops refresh transaction.
 //
 // UI, ModViz and MCP/agent callers should use this instead of manually ordering
@@ -79,6 +87,13 @@ public:
     [[nodiscard]] static StageSceneRefreshResult refresh(
         StageOperationsSession& session,
         std::vector<StageRuntimeLink> explicit_runtime_links = {});
+
+    // Preferred composition form for profile/recovered-runtime bridges. The
+    // provider executes against the exact post-analysis domains@revision before
+    // runtime-link validation and the guarded commit.
+    [[nodiscard]] static StageSceneRefreshResult refresh_with_provider(
+        StageOperationsSession& session,
+        StageRuntimeLinkProvider provider);
 };
 
 } // namespace dmc::rengine::stageops
