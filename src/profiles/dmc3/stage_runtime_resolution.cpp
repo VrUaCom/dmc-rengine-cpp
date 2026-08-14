@@ -138,11 +138,15 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
         bindings,
         sources);
 
-    // Raw-row resolution carries structural kind16/path evidence but cannot know
-    // gameplay semantics. Restore only the separately evidenced semantic stage
-    // identity from the catalog entry, without replacing technical row identity.
-    if (report.plan.valid() && entry.semantic_stage_id.has_value()) {
-        report.plan.semantic_stage_id = *entry.semantic_stage_id;
+    // Raw-row resolution knows structural kind16/path evidence but not the
+    // selector-facing numeric identity or separately evidenced gameplay
+    // semantics carried by the catalog entry. Restore both without replacing
+    // the technical descriptor-row/resource-set identity.
+    if (report.plan.valid()) {
+        report.plan.numeric_stage_id = entry.numeric_stage_id;
+        if (entry.semantic_stage_id.has_value()) {
+            report.plan.semantic_stage_id = *entry.semantic_stage_id;
+        }
     }
     return report;
 }
@@ -222,10 +226,6 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
                 resolved_role.runtime.detail);
         }
 
-        // Wave 2 directly confirms this branch only after the original path is
-        // unavailable and only for kind16 == 0. We reproduce the fallback lookup
-        // itself, but a found .lst is not promoted to a normal Stage root because
-        // list parsing, recursive ownership and lifetime are still open research.
         if (resolved_role.runtime.status != RuntimeResolutionStatus::not_found ||
             reference.kind16 != 0U) {
             continue;
