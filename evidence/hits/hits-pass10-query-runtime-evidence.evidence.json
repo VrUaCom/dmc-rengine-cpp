@@ -22,15 +22,60 @@
     "github_pull_request": 85
   },
   "query_family": [
-    {"va": "0x14005E460", "direct_callers": 1, "status": "EXE CONFIRMED", "boundary": "Exact result ABI unresolved."},
-    {"va": "0x14005E7A0", "direct_callers": 51, "status": "EXE CONFIRMED", "boundary": "Static/dynamic arbitration, no-hit initialization, tie-break and caller-visible result layout remain RESEARCH REQUIRED."},
-    {"va": "0x14005EBE0", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path confirmed."},
-    {"va": "0x14005EE40", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."},
-    {"va": "0x14005F070", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."},
-    {"va": "0x14005FD10", "direct_callers": 1, "status": "EXE CONFIRMED", "boundary": "Exact result ABI unresolved."},
-    {"va": "0x14005FEC0", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."},
-    {"va": "0x1400601E0", "direct_callers": 5, "status": "EXE CONFIRMED", "boundary": "Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."},
-    {"va": "0x140060790", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."}
+    {
+      "va": "0x14005E460",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "boundary": "Exact result ABI unresolved."
+    },
+    {
+      "va": "0x14005E7A0",
+      "direct_callers": 51,
+      "status": "EXE CONFIRMED",
+      "boundary": "Static/dynamic arbitration, no-hit initialization, tie-break and caller-visible result layout remain RESEARCH REQUIRED."
+    },
+    {
+      "va": "0x14005EBE0",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path confirmed."
+    },
+    {
+      "va": "0x14005EE40",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."
+    },
+    {
+      "va": "0x14005F070",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."
+    },
+    {
+      "va": "0x14005FD10",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "boundary": "Exact result ABI unresolved."
+    },
+    {
+      "va": "0x14005FEC0",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "observed_abi": "Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."
+    },
+    {
+      "va": "0x1400601E0",
+      "direct_callers": 5,
+      "status": "EXE CONFIRMED",
+      "boundary": "Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."
+    },
+    {
+      "va": "0x140060790",
+      "direct_callers": 1,
+      "status": "EXE CONFIRMED",
+      "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."
+    }
   ],
   "dynamic_dispatcher": {
     "dispatcher_va": "0x14005B8E0",
@@ -45,20 +90,157 @@
       "boundary": "Operation body, return semantics, list-entry layout, ownership and candidate production remain RESEARCH REQUIRED."
     },
     "bindings": [
-      {"activation_flag": "0x00001000", "manager_offset": "0x10", "category": "0x02", "dispatcher_static_hits_reject_mask": "0x0040"},
-      {"activation_flag": "0x00002000", "manager_offset": "0x28", "category": "0x05", "dispatcher_static_hits_reject_mask": "0x0002"},
-      {"activation_flag": "0x00004000", "manager_offset": "0x40", "category": "0x08", "dispatcher_static_hits_reject_mask": "0x0010"},
-      {"activation_flag": "0x00008000", "manager_offset": "0x58", "category": "0x0B", "dispatcher_static_hits_reject_mask": "0x0020"},
-      {"activation_flag": "0x00010000", "manager_offset": "0x70", "category": "0x0E", "dispatcher_static_hits_reject_mask": "0x0000"},
-      {"activation_flag": "0x00020000", "manager_offset": "0x88", "category": "0x11", "dispatcher_static_hits_reject_mask": "0x0000"}
+      {
+        "activation_flag": "0x00001000",
+        "manager_offset": "0x10",
+        "category": "0x02",
+        "dispatcher_static_hits_reject_mask": "0x0040"
+      },
+      {
+        "activation_flag": "0x00002000",
+        "manager_offset": "0x28",
+        "category": "0x05",
+        "dispatcher_static_hits_reject_mask": "0x0002"
+      },
+      {
+        "activation_flag": "0x00004000",
+        "manager_offset": "0x40",
+        "category": "0x08",
+        "dispatcher_static_hits_reject_mask": "0x0010"
+      },
+      {
+        "activation_flag": "0x00008000",
+        "manager_offset": "0x58",
+        "category": "0x0B",
+        "dispatcher_static_hits_reject_mask": "0x0020"
+      },
+      {
+        "activation_flag": "0x00010000",
+        "manager_offset": "0x70",
+        "category": "0x0E",
+        "dispatcher_static_hits_reject_mask": "0x0000"
+      },
+      {
+        "activation_flag": "0x00020000",
+        "manager_offset": "0x88",
+        "category": "0x11",
+        "dispatcher_static_hits_reject_mask": "0x0000"
+      }
     ],
     "scope_note": "The reject-mask values are dispatcher-level evidence. A zero mask for 0x0E/0x11 is not a claim that those categories are never filtered elsewhere."
   },
   "wrapper_sources": [
-    {"index": 0, "identity": "stage member 3", "structurally_present": true, "stage_pac_backed_confirmed": true, "direct_static_selection_confirmed": true},
-    {"index": 1, "identity": "stage member 6", "structurally_present": true, "stage_pac_backed_confirmed": true, "direct_static_selection_confirmed": true},
-    {"index": 2, "identity": "external/global source", "structurally_present": true, "stage_pac_backed_confirmed": false, "direct_static_selection_confirmed": false}
+    {
+      "index": 0,
+      "identity": "stage member 3",
+      "structurally_present": true,
+      "stage_pac_backed_confirmed": true,
+      "direct_static_selection_confirmed": true
+    },
+    {
+      "index": 1,
+      "identity": "stage member 6",
+      "structurally_present": true,
+      "stage_pac_backed_confirmed": true,
+      "direct_static_selection_confirmed": true
+    },
+    {
+      "index": 2,
+      "identity": "external/global source",
+      "structurally_present": true,
+      "stage_pac_backed_confirmed": false,
+      "direct_static_selection_confirmed": false
+    }
   ],
+  "runtime_topology": {
+    "source_selector_va": "0x14005EBC0",
+    "direct_selector_callsites": [
+      {
+        "callsite_va": "0x140056832",
+        "requested_source": 1,
+        "meaning": "select source1 / stage member 6"
+      },
+      {
+        "callsite_va": "0x14005686E",
+        "requested_source": 0,
+        "meaning": "restore source0 / stage member 3"
+      },
+      {
+        "callsite_va": "0x1400568F0",
+        "requested_source": 1,
+        "meaning": "select source1 / stage member 6"
+      },
+      {
+        "callsite_va": "0x140056936",
+        "requested_source": 0,
+        "meaning": "restore source0 / stage member 3"
+      }
+    ],
+    "temporary_source1_paths": [
+      {
+        "select_callsite_va": "0x140056832",
+        "query_va": "0x1400601E0",
+        "restore_callsite_va": "0x14005686E"
+      },
+      {
+        "select_callsite_va": "0x1400568F0",
+        "query_va": "0x14005FEC0",
+        "restore_callsite_va": "0x140056936"
+      }
+    ],
+    "runtime_helpers": [
+      {
+        "role": "hits_runtime_initializer",
+        "va": "0x1402D3060",
+        "direct_static_callers": 2
+      },
+      {
+        "role": "hits_runtime_teardown",
+        "va": "0x1402D29C0",
+        "direct_static_callers": 2
+      },
+      {
+        "role": "source_binder",
+        "va": "0x14005EBA0",
+        "direct_static_callers": 1
+      },
+      {
+        "role": "source_selector",
+        "va": "0x14005EBC0",
+        "direct_static_callers": 4
+      },
+      {
+        "role": "candidate_cell_collector",
+        "va": "0x1402D2A10",
+        "direct_static_callers": 7
+      },
+      {
+        "role": "cell_list_resolver",
+        "va": "0x1402D29F0",
+        "direct_static_callers": 13
+      },
+      {
+        "role": "record_resolver",
+        "va": "0x1402D3050",
+        "direct_static_callers": 13
+      },
+      {
+        "role": "plane_evaluator",
+        "va": "0x1402CF820",
+        "direct_static_callers": 6
+      },
+      {
+        "role": "normal_classifier",
+        "va": "0x1402CCF20",
+        "direct_static_callers": 6
+      }
+    ],
+    "static_saturation_receipt": {
+      "repeat_scan_count": 2,
+      "identical_results": true,
+      "boundary": "Static structural saturation only; does not prove runtime saturation or resolve missing E7A0/B460/FEC0/601E0 ABIs."
+    }
+  },
   "corrections": [
     {
       "id": "hits.pass10.profile-layer-ownership",
@@ -74,16 +256,22 @@
       "id": "hits.pass10.delta-direction",
       "status": "CORRECTED",
       "statement": "Canonical correction direction for EBE0/F070 caller consumption is postQuery - original; older opposite prose is superseded."
+    },
+    {
+      "id": "hits.pass10.detail-namespace-access-control",
+      "status": "CORRECTED",
+      "statement": "namespace detail is a naming convention, not C++ access control. Backing evidence tables were moved to private EvidenceStore members so raw table access cannot bypass the intended SHA-gated lookup surface."
     }
   ],
   "implementation": {
     "branch": "docs/hits-pass10-evidence-reacquisition",
     "pull_request": 85,
-    "validated_content_head": "55bed03707c39fa1158685af75f3298770ae4faf",
-    "ci_run_id": 31806960391,
-    "ubuntu_job_id": 94788086657,
-    "windows_job_id": 94788086673,
-    "ci_conclusion": "success",
+    "slice3_topology_head": "5ff60d33d0722a5798fc1f31c9e3fac2634b3e99",
+    "hash_gate_fix_head": "4845120fbe9a3362d4040a0e37e32387411411d7",
+    "hash_gate_fix_ci_run_id": 31809938519,
+    "hash_gate_fix_ubuntu_job_id": 94797870333,
+    "hash_gate_fix_windows_job_id": 94797870208,
+    "hash_gate_fix_ci_conclusion": "success",
     "paths": [
       "include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp",
       "tests/hits_query_evidence_tests.cpp",
