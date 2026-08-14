@@ -269,6 +269,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-stage-wave2.evidence.json)
     add_test(
+        NAME dmc_rengine_door_parser_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/stage/dmc3-door-parser-contract.evidence.json)
+    add_test(
         NAME dmc_rengine_pac_runtime_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-pac-runtime.evidence.json)
