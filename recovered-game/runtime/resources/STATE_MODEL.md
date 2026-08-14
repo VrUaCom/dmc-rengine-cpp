@@ -37,6 +37,17 @@ state 0
 
 Wave 2 confirms cleanup `4 -> 0`. It does **not** yet close the exact set of active source states that are permitted to enter state 4. The compiled evidence model therefore records `teardown_source_state_domain_complete = false` rather than inventing a transition table.
 
+### Compiled invariant
+
+The C++ evidence model must explicitly encode both facts:
+
+```text
+cleanup_transition = 4 -> 0
+teardown_source_state_domain_complete = false
+```
+
+`ResourceRuntimeEvidenceModel::valid()` checks them. This prevents a default-initialized transition or a future refactor from silently converting an unresolved lifecycle domain into a stronger claim than the executable evidence supports.
+
 ## Still unresolved
 
 - exact scheduler/completion function ABI;
