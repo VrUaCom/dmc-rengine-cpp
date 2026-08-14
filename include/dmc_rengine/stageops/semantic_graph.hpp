@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/stageops/assembly_workspace.hpp"
+#include "dmc_rengine/stageops/domain_workspace.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +16,7 @@ enum class NodeKind {
     stage_assembly,
     requirement,
     resource,
+    domain_object,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(NodeKind kind) noexcept {
@@ -22,6 +24,7 @@ enum class NodeKind {
     case NodeKind::stage_assembly: return "stage-assembly";
     case NodeKind::requirement: return "requirement";
     case NodeKind::resource: return "resource";
+    case NodeKind::domain_object: return "domain-object";
     }
     return "resource";
 }
@@ -31,6 +34,7 @@ enum class EdgeKind {
     resolves_to,
     stage_member,
     contains,
+    projects_domain,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(EdgeKind kind) noexcept {
@@ -39,6 +43,7 @@ enum class EdgeKind {
     case EdgeKind::resolves_to: return "resolves-to";
     case EdgeKind::stage_member: return "stage-member";
     case EdgeKind::contains: return "contains";
+    case EdgeKind::projects_domain: return "projects-domain";
     }
     return "stage-member";
 }
@@ -113,13 +118,21 @@ public:
 };
 
 // Deterministic, resolution-free projection. This builder consumes only the
-// already assembled Stage Ops aggregate and never calls GDSpaces lookup, source
+// already assembled Stage Ops state and never calls GDSpaces lookup, source
 // mounting, archive traversal or ProjectWorkspace scene discovery.
 class StageSemanticGraphBuilder final {
 public:
     [[nodiscard]] static StageSemanticGraph build(
         const StageAssemblyWorkspace& assembly,
         std::uint64_t source_stage_revision = 0U);
+
+    // Adds Stage Ops typed domain projections without transferring their
+    // ownership to the graph. Domain identity/resource links remain derived and
+    // rebuildable from Stage Ops state.
+    [[nodiscard]] static StageSemanticGraph build(
+        const StageAssemblyWorkspace& assembly,
+        const StageDomainWorkspace& domains,
+        std::uint64_t source_stage_revision);
 };
 
 } // namespace dmc::rengine::stageops::semantic
