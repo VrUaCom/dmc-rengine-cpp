@@ -99,13 +99,12 @@ bool StageResourceTableDescriptor::valid() const noexcept {
 }
 
 bool StageResourceTableDescriptor::is_promoted_wave2_authority() const noexcept {
-    if (!matches_exact_wave2_bank(*this)) {
+    if (!matches_exact_wave2_bank(*this) || artifact_size != 6356432ULL) {
         return false;
     }
 
     const auto& target = phase12_canonical_target();
-    return artifact_size == target.size &&
-        target.matches_hash(artifact_sha256) &&
+    return target.matches_hash(artifact_sha256) &&
         target.image_base <= va && va - target.image_base == rva;
 }
 
