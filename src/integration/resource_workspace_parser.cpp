@@ -7,7 +7,8 @@ namespace dmc::rengine::integration {
 bool ResourceWorkspaceSession::record_parser_completed(
     std::string parser_id,
     bool recognized,
-    gdspaces::ToolTarget consumer) {
+    gdspaces::ToolTarget consumer,
+    std::uint64_t byte_revision) {
     if (!valid() || parser_id.empty() || !has_tool_route(consumer)) {
         return false;
     }
@@ -17,11 +18,11 @@ bool ResourceWorkspaceSession::record_parser_completed(
         payload_.resource.id,
         gdspaces::ToolTarget::gdspaces,
         consumer,
-        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        byte_revision,
         std::move(parser_id),
         recognized
-            ? "The registered parser recognized and completed analysis of the canonical resource."
-            : "The registered parser completed without recognizing the canonical resource.") != 0U;
+            ? "The registered parser recognized and completed analysis of the explicitly identified byte revision."
+            : "The registered parser completed without recognizing the explicitly identified byte revision.") != 0U;
 }
 
 } // namespace dmc::rengine::integration
