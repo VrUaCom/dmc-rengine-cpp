@@ -32,16 +32,10 @@ namespace {
             "Stage Ops session is invalid.");
     }
 
-    // Establish the exact stage revision this refresh intends to rebuild.
-    // External changes are promoted into one Stage Ops revision before any
-    // parser/domain work begins.
     result.external_change_detected =
         session.detect_external_project_changes();
     result.target_stage_revision = session.stage_revision();
 
-    // Re-run only the shared canonical format analyzers. Formats without an
-    // analyzer remain legitimate partial/untyped scene resources; failed
-    // analyzers do not.
     result.analysis = session.refresh_resource_analysis();
     if (!result.analysis.complete_for_attempted()) {
         return failed(
@@ -58,9 +52,6 @@ namespace {
             &session);
     }
 
-    // Runtime links are generated only after the exact active-byte domain
-    // workspace exists. This is required for offset-sensitive token identities:
-    // insertion/removal edits may legitimately change domain IDs at revision N.
     auto domains = StageDomainAssembler::assemble(
         session.assembly(),
         session.project(),
@@ -73,9 +64,20 @@ namespace {
             &session);
     }
 
-    auto runtime_links = provider
+    auto provider_result = provider
         ? provider(domains)
-        : std::vector<StageRuntimeLink>{};
+        : StageRuntimeLinkProviderResult{};
+    if (!provider_result.coherent() || !provider_result.valid) {
+        return failed(
+            std::move(result),
+            StageSceneRefreshStatus::runtime_link_provider_failed,
+            provider_result.error.empty()
+                ? "The runtime-link provider failed without a diagnostic."
+                : std::move(provider_result.error),
+            &session);
+    }
+
+    auto runtime_links = std::move(provider_result.links);
     result.runtime_link_validation = StageRuntimeLinkValidator::validate(
         domains, runtime_links);
     if (!result.runtime_link_validation.valid() ||
@@ -98,10 +100,6 @@ namespace {
             &session);
     }
 
-    // The actual mutation/TOCTOU gate lives in StageOperationsSession. If any
-    // ProjectWorkspace bytes changed between analysis and this commit, the
-    // session advances its revision, preserves stale state and rejects this
-    // exact target revision.
     if (!session.commit_derived_refresh(result.target_stage_revision)) {
         return failed(
             std::move(result),
@@ -110,8 +108,6 @@ namespace {
             &session);
     }
 
-    // Rebuild the published immutable snapshot after the commit rather than
-    // publishing the provisional object assembled before the concurrency gate.
     result.snapshot = StageSceneSnapshotBuilder::build(
         session, std::move(runtime_links));
     result.final_stage_revision = session.stage_revision();
@@ -139,7 +135,11 @@ StageSceneRefreshResult StageSceneController::refresh(
         session,
         [links = std::move(explicit_runtime_links)](
             const StageDomainWorkspace&) mutable {
-            return std::move(links);
+            return StageRuntimeLinkProviderResult{
+                .valid = true,
+                .links = std::move(links),
+                .error = {},
+            };
         });
 }
 
