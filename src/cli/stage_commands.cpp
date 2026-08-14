@@ -192,7 +192,13 @@ int run_list_stage_catalog(const std::filesystem::path& executable_path) {
     for (const auto& entry : catalog.entries) {
         std::cout << "bank_a_row=" << entry.row_index
                   << " id=" << entry.catalog_entry_id
-                  << " semantic_stage="
+                  << " numeric_stage_id=";
+        if (entry.numeric_stage_id.has_value()) {
+            std::cout << *entry.numeric_stage_id;
+        } else {
+            std::cout << "unresolved";
+        }
+        std::cout << " semantic_stage="
                   << (entry.semantic_stage_id.has_value()
                         ? *entry.semantic_stage_id : "unresolved")
                   << '\n';
