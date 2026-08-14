@@ -84,6 +84,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_spatial_compare
         hits_spatial_match
         hits_binary
+        hits_query_evidence
         dca
         lig2
         stage_txt
