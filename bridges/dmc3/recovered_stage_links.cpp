@@ -62,6 +62,13 @@ RecoveredStageLinkReport RecoveredStageLinkProvider::build(
         return report;
     }
 
+    const auto& contract =
+        dmc::recovered::dmc3::runtime::stage::door_parser_contract();
+    report.recovered_contract_valid = contract.valid();
+    if (!report.recovered_contract_valid) {
+        return report;
+    }
+
     append_links(
         report,
         domains,
@@ -86,7 +93,19 @@ stageops::StageSceneRefreshResult RecoveredStageSceneController::refresh(
         session,
         [](const stageops::StageDomainWorkspace& domains) {
             auto report = RecoveredStageLinkProvider::build(domains);
-            return std::move(report.links);
+            if (!report.valid()) {
+                return stageops::StageRuntimeLinkProviderResult{
+                    .valid = false,
+                    .links = {},
+                    .error =
+                        "DMC3 recovered Door parser contract is invalid or the recovered-link projection is inconsistent.",
+                };
+            }
+            return stageops::StageRuntimeLinkProviderResult{
+                .valid = true,
+                .links = std::move(report.links),
+                .error = {},
+            };
         });
 }
 
