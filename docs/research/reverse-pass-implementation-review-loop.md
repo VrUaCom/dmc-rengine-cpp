@@ -135,6 +135,8 @@ For active HITS reverse work update, as applicable:
 
 No material finding, correction, implementation decision, failure/debug lesson, or open gate may remain only in chat.
 
+Google Drive canonical mirror: `DMC Rengine — Canonical Reverse Pass Implementation Review Debug Loop — 2026-08-14`, document ID `1ubJpKLOjI7o1KH-BUK36md8hOGBqZ6uVd1xP2fVHcSE`.
+
 ## Closure rule
 
 A pass closes only when one of these is true:
