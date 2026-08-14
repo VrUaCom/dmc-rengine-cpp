@@ -105,7 +105,8 @@ struct CombinedQueryAbiEvidence final {
     bool returns_any_hit_in_al{};
     bool working_and_output_may_alias{};
     bool total_miss_copies_working_point_to_output{};
-    bool downstream_passes_share_progressive_working_point{};
+    bool dynamic_passes_share_same_static_or_input_baseline{};
+    bool last_successful_pass_has_output_precedence{};
 };
 
 enum class CombinedQueryPassKind : std::uint8_t {
@@ -143,7 +144,7 @@ struct DynamicCategoryQueryEvidence final {
     std::uint32_t minimum_observed_primitive_type{};
     std::uint32_t maximum_observed_primitive_type{};
     bool category_indexes_pointer_table_directly{};
-    bool accepted_hit_updates_working_point{};
+    bool accepted_hit_updates_internal_working_point{};
     bool accepted_hit_writes_output_point{};
 };
 
@@ -374,6 +375,7 @@ private:
         4U,
         5U,
         6U,
+        true,
         true,
         true,
         true,
