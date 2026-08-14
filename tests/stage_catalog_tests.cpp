@@ -2,8 +2,11 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
+#include <utility>
 
 namespace {
 
@@ -70,6 +73,7 @@ make_table_observations() {
 
 int main() {
     using dmc::rengine::profiles::dmc3::StageCatalogBuilder;
+    using dmc::rengine::profiles::dmc3::StageCatalogLoader;
     using dmc::rengine::profiles::dmc3::phase12_stage_resource_table;
 
     const auto& descriptor = phase12_stage_resource_table();
@@ -120,6 +124,19 @@ int main() {
     const auto* incomplete_entry = partial_catalog.find(42U);
     assert(incomplete_entry != nullptr);
     assert(!incomplete_entry->complete());
+
+    // Production catalog loading is hash-gated before the structural reader is
+    // trusted. Public synthetic bytes must therefore fail the canonical gate.
+    constexpr std::array<std::byte, 4> noncanonical_bytes{
+        std::byte{0x44}, std::byte{0x4D}, std::byte{0x43}, std::byte{0x33},
+    };
+    const auto rejected = StageCatalogLoader::load_canonical(
+        std::span<const std::byte>{noncanonical_bytes},
+        dmc::rengine::exe::PeImage{});
+    assert(!rejected.canonical_artifact);
+    assert(!rejected.complete());
+    assert(rejected.catalog.entries.empty());
+    assert(!rejected.catalog.diagnostics.empty());
 
     return 0;
 }
