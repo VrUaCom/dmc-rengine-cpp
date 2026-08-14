@@ -102,7 +102,7 @@ This correction is part of the Pass-10 evidence record and must not be silently 
 
 ### Evidence promoted
 
-Pass 7B/7C already EXE-confirmed the specialized query-family identities, the six dynamic category bindings, the category-to-static-HITS reject-mask bridge, the `AL`-observed success paths, the explicit 16-byte in/out correction paths, and the three wrapper source slots. Those facts were safe to promote without inventing the unresolved generic result ABI.
+Pass 7B/7C already EXE-confirmed the specialized query-family identities, the six dynamic category bindings, the category-to-static-HITS reject-mask bridge at dispatcher `0x14005B8E0`, the `AL`-observed success paths, the explicit 16-byte in/out correction paths, and the three wrapper source slots. Those facts were safe to promote without inventing the unresolved generic result ABI.
 
 ### Implementation
 
@@ -119,10 +119,11 @@ The profile now records:
 - dynamic category bindings `0x02/0x05/0x08/0x0B/0x0E/0x11`;
 - activation flags `0x1000..0x20000`;
 - manager offsets `+0x10..+0x88` in `0x18` steps;
-- category-to-static-HITS masks `0x0040/0x0002/0x0010/0x0020/0/0`;
-- wrapper source 0/member 3, source 1/member 6, and structurally present external/global source 2 with its selection/backing uncertainty preserved.
+- dispatcher-level static-HITS masks `0x0040/0x0002/0x0010/0x0020/0/0`;
+- wrapper source 0/member 3, source 1/member 6, and structurally present external/global source 2 with its selection/backing uncertainty preserved;
+- an exact-build guard through the existing `phase12_canonical_target().matches_hash(...)` contract, so these VA descriptors are accepted only for canonical SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` and reject the packed build SHA `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`.
 
-### Review finding and correction
+### Review finding 1 — ownership and correction
 
 The first version placed DMC3-specific function VAs under generic `include/dmc_rengine/hits/`. This violated the project-wide game-profile architecture rule: universal/generic HITS code must not own DMC3 addresses or profile-specific runtime identities.
 
@@ -133,6 +134,16 @@ The implementation was corrected immediately:
 - regression updated to consume the DMC3 profile layer.
 
 This correction is canonical and must not be reverted by moving hardcoded DMC3 VAs back into generic HITS core.
+
+### Review finding 2 — dispatcher evidence scope
+
+The first profile field name `static_hits_reject_mask` was too broad: especially for categories `0x0E` and `0x11`, evidence proves only that dispatcher `0x14005B8E0` passes zero in this branch; it does not prove that those categories never participate in filtering elsewhere.
+
+The field was renamed to `dispatcher_static_hits_reject_mask`. Tests assert the dispatcher-level mapping and do not promote zero to a global category property.
+
+### Review finding 3 — build identity gate
+
+Profile namespace alone was insufficient protection because the recovered VAs belong to one exact DMC3 HD executable build. The profile now delegates hash matching to the existing canonical known-target contract instead of duplicating target identity. Regression explicitly accepts the canonical SHA, rejects the packed SHA, and rejects malformed hash input.
 
 ## Safety gates
 
