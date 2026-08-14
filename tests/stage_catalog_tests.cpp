@@ -15,9 +15,9 @@ make_table_observations() {
     using dmc::rengine::profiles::dmc3::StageResourceTableCellObservation;
     using dmc::rengine::profiles::dmc3::StageResourceTableReadResult;
     using dmc::rengine::profiles::dmc3::StageResourceTableRowObservation;
-    using dmc::rengine::profiles::dmc3::phase12_stage_resource_table;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_a;
 
-    const auto& descriptor = phase12_stage_resource_table();
+    const auto& descriptor = wave2_stage_resource_bank_a();
     StageResourceTableReadResult result;
     result.rows.reserve(descriptor.row_count);
 
@@ -50,6 +50,7 @@ make_table_observations() {
                 .cell_va = descriptor.va +
                     (static_cast<std::uint64_t>(row_index) * 4U + column_index) *
                         descriptor.cell_stride,
+                .kind16 = static_cast<std::uint16_t>(column_index),
                 .path_pointer_va = 0x140700000ULL +
                     static_cast<std::uint64_t>(row_index) * 0x100U +
                     static_cast<std::uint64_t>(column_index) * 0x20U,
@@ -68,15 +69,18 @@ make_table_observations() {
 
 int main() {
     using dmc::rengine::profiles::dmc3::StageCatalogBuilder;
+    using dmc::rengine::profiles::dmc3::StageCatalogCoverage;
     using dmc::rengine::profiles::dmc3::StageCatalogLoader;
-    using dmc::rengine::profiles::dmc3::phase12_stage_resource_table;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_a;
 
-    const auto& descriptor = phase12_stage_resource_table();
+    const auto& descriptor = wave2_stage_resource_bank_a();
     const auto observations = make_table_observations();
     assert(observations.complete(descriptor));
 
     const auto catalog = StageCatalogBuilder::build(observations, descriptor);
     assert(catalog.complete(descriptor));
+    assert(catalog.coverage == StageCatalogCoverage::wave2_bank_a_compatibility);
+    assert(!catalog.covers_full_stage_universe());
     assert(catalog.entries.size() == 110U);
     assert(catalog.table_id == descriptor.id);
     assert(catalog.evidence_id == descriptor.evidence_packet_id);
@@ -97,6 +101,8 @@ int main() {
     assert(first_plan.semantic_stage_id.empty());
     assert(first_plan.resources[0].logical_path ==
         "resource/row_0_column_0.pac");
+    assert(first_plan.resources[0].kind16 == 0U);
+    assert(first_plan.resources[3].kind16 == 3U);
 
     assert(catalog.find(109U) != nullptr);
     assert(catalog.find(110U) == nullptr);
@@ -125,10 +131,11 @@ int main() {
         std::byte{0x44}, std::byte{0x4D}, std::byte{0x43}, std::byte{0x33},
     };
     const auto rejected = StageCatalogLoader::load_canonical(
-        std::span<const std::byte>{noncanonical_bytes},
-        dmc::rengine::exe::PeImage{});
+        std::span<const std::byte>{noncanonical_bytes});
     assert(!rejected.canonical_artifact);
     assert(!rejected.complete());
+    assert(!rejected.bank_a_complete());
+    assert(!rejected.full_stage_universe_complete());
     assert(rejected.catalog.entries.empty());
     assert(!rejected.catalog.diagnostics.empty());
 
