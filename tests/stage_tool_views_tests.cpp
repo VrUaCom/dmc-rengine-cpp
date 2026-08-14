@@ -82,6 +82,8 @@ int main() {
         .stage_id = "st001",
         .display_name = "Stage 001",
         .exe_evidence_id = "ev-dmc3-stage-resource-table",
+        .resource_set_id = "st001",
+        .semantic_stage_id = "st001",
     });
     assert(stage.add(StageMember{
         .category = StageResourceCategory::collision,
@@ -101,6 +103,8 @@ int main() {
         project, "st001");
     assert(stage_ops.valid());
     assert(modviz.valid());
+    assert(stage_ops.identity.resource_set_key() == "st001");
+    assert(stage_ops.identity.semantic_stage_id == "st001");
     assert(stage_ops.by_category(StageResourceCategory::collision).size() == 1U);
     assert(modviz.by_kind(VisualResourceKind::collision).size() == 1U);
     assert(validate_stage_views(stage_ops, modviz).consistent());
@@ -119,10 +123,8 @@ int main() {
         },
         ToolTarget::stage_ops).applied);
 
-    stage_ops = dmc::rengine::stageops::build_workspace_view(
-        project, "st001");
-    modviz = dmc::rengine::modviz::build_scene_workspace_view(
-        project, "st001");
+    stage_ops = dmc::rengine::stageops::build_workspace_view(project, "st001");
+    modviz = dmc::rengine::modviz::build_scene_workspace_view(project, "st001");
     assert(stage_ops.dirty_resource_count == 1U);
     assert(modviz.dirty_resource_count == 1U);
     assert(stage_ops.by_category(
@@ -138,5 +140,50 @@ int main() {
     auto missing_visual = modviz;
     missing_visual.resources.clear();
     assert(!validate_stage_views(stage_ops, missing_visual).consistent());
+
+    // A catalog/resource-set entry must be fully consumable even when no
+    // semantic gameplay-stage identity has been established yet.
+    const auto catalog_hits = resource(
+        "room/common_effects.hits", "hits", 12288U, hits_bytes.size());
+    ProjectWorkspace unresolved_project;
+    assert(unresolved_project.create_session(ResourcePayload{
+        .resource = catalog_hits,
+        .bytes = hits_bytes,
+        .diagnostics = {},
+    }, context));
+    assert(ResourceAnalyzer::analyze(unresolved_project, catalog_hits.id).ok());
+
+    const std::string catalog_row_id = "dmc3-stage-resource-table/row/17";
+    StageBundle unresolved(StageIdentity{
+        .profile = "dmc3-hd",
+        .stage_id = catalog_row_id, // legacy technical alias only
+        .display_name = "Stage resource set " + catalog_row_id,
+        .exe_evidence_id = "ev-dmc3-stage-resource-table",
+        .resource_set_id = catalog_row_id,
+        .semantic_stage_id = {},
+    });
+    assert(unresolved.identity().valid());
+    assert(!unresolved.identity().semantic_stage_known());
+    assert(unresolved.add(StageMember{
+        .category = StageResourceCategory::collision,
+        .resource = catalog_hits,
+        .role = "catalog-collision",
+    }));
+    assert(unresolved_project.attach_stage_bundle(unresolved) == 1U);
+    assert(unresolved_project.sessions_for_stage_resource_set(catalog_row_id).size() == 1U);
+
+    const auto unresolved_stage_ops =
+        dmc::rengine::stageops::build_workspace_view(
+            unresolved_project, catalog_row_id);
+    const auto unresolved_modviz =
+        dmc::rengine::modviz::build_scene_workspace_view(
+            unresolved_project, catalog_row_id);
+    assert(unresolved_stage_ops.valid());
+    assert(unresolved_modviz.valid());
+    assert(unresolved_stage_ops.identity.resource_set_key() == catalog_row_id);
+    assert(unresolved_stage_ops.identity.semantic_stage_id.empty());
+    assert(unresolved_modviz.identity.semantic_stage_id.empty());
+    assert(validate_stage_views(unresolved_stage_ops, unresolved_modviz).consistent());
+
     return 0;
 }

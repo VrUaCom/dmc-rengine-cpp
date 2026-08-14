@@ -1,7 +1,9 @@
 #include "dmc_rengine/integration/stage_workspace_manifest.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -39,6 +41,24 @@ namespace {
 
 void write_string(std::ostringstream& output, std::string_view value) {
     output << '"' << escape_json(value) << '"';
+}
+
+void write_optional_string(std::ostringstream& output, std::string_view value) {
+    if (value.empty()) {
+        output << "null";
+    } else {
+        write_string(output, value);
+    }
+}
+
+void write_optional_u16(
+    std::ostringstream& output,
+    const std::optional<std::uint16_t>& value) {
+    if (!value.has_value()) {
+        output << "null";
+    } else {
+        output << *value;
+    }
 }
 
 void write_string_array(
@@ -96,8 +116,8 @@ void write_string_array(
 
 std::string stage_workspace_manifest_json(
     const ProjectWorkspace& project,
-    std::string_view stage_id) {
-    auto sessions = project.sessions_for_stage(stage_id);
+    std::string_view resource_set_id) {
+    auto sessions = project.sessions_for_stage_resource_set(resource_set_id);
     if (sessions.empty()) {
         return {};
     }
@@ -129,8 +149,10 @@ std::string stage_workspace_manifest_json(
     for (const auto* session : sessions) {
         const auto* stage = session->stage();
         if (stage == nullptr ||
-            stage->identity.stage_id != first_stage->identity.stage_id ||
-            stage->identity.profile != first_stage->identity.profile) {
+            stage->identity.resource_set_key() != first_stage->identity.resource_set_key() ||
+            stage->identity.profile != first_stage->identity.profile ||
+            stage->identity.numeric_stage_id != first_stage->identity.numeric_stage_id ||
+            stage->identity.semantic_stage_id != first_stage->identity.semantic_stage_id) {
             return {};
         }
 
@@ -158,18 +180,27 @@ std::string stage_workspace_manifest_json(
         }
     }
 
+    const auto resource_set_key = std::string{first_stage->identity.resource_set_key()};
     const auto stage_node_id = "stage:" + first_stage->identity.profile + ':' +
-        first_stage->identity.stage_id;
+        resource_set_key;
     const auto stage_graph_edges = project.graph().outgoing(stage_node_id).size();
 
     std::ostringstream output;
     output << "{\n"
-           << "  \"schema_version\": 1,\n"
+           << "  \"schema_version\": 3,\n"
            << "  \"stage\": {\n"
            << "    \"profile\": ";
     write_string(output, first_stage->identity.profile);
-    output << ",\n    \"stage_id\": ";
-    write_string(output, first_stage->identity.stage_id);
+    output << ",\n    \"resource_set_id\": ";
+    write_string(output, resource_set_key);
+    output << ",\n    \"numeric_stage_id\": ";
+    write_optional_u16(output, first_stage->identity.numeric_stage_id);
+    output << ",\n    \"numeric_stage_known\": "
+           << (first_stage->identity.numeric_stage_known() ? "true" : "false");
+    output << ",\n    \"semantic_stage_id\": ";
+    write_optional_string(output, first_stage->identity.semantic_stage_id);
+    output << ",\n    \"semantic_stage_known\": "
+           << (first_stage->identity.semantic_stage_known() ? "true" : "false");
     output << ",\n    \"display_name\": ";
     write_string(output, first_stage->identity.display_name);
     output << ",\n    \"exe_evidence_id\": ";

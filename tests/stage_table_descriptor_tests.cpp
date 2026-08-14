@@ -5,17 +5,26 @@
 int main() {
     using dmc::rengine::profiles::dmc3::StageResourceRole;
     using dmc::rengine::profiles::dmc3::phase12_stage_resource_table;
+    using dmc::rengine::profiles::dmc3::wave2_stage_descriptor_universe;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_a;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_bank_b;
+    using dmc::rengine::profiles::dmc3::wave2_stage_resource_banks;
 
-    const auto& descriptor = phase12_stage_resource_table();
+    const auto& descriptor = wave2_stage_resource_bank_a();
     assert(descriptor.valid());
+    assert(descriptor.is_promoted_wave2_authority());
+    assert(&descriptor == &phase12_stage_resource_table());
+    assert(descriptor.evidence_packet_id == "dmc3-stage-wave2");
     assert(descriptor.artifact_size == 6356432ULL);
-    assert(descriptor.file_offset == 0x005C30A8ULL);
-    assert(descriptor.rva == 0x005C4AA8U);
-    assert(descriptor.va == 0x1405C4AA8ULL);
+    assert(descriptor.file_offset == 0x005C30A0ULL);
+    assert(descriptor.rva == 0x005C4AA0U);
+    assert(descriptor.va == 0x1405C4AA0ULL);
     assert(descriptor.row_count == 110U);
     assert(descriptor.cell_stride == 0x10U);
-    assert(descriptor.path_pointer_offset == 0U);
+    assert(descriptor.kind16_offset == 0U);
+    assert(descriptor.path_pointer_offset == 0x08U);
     assert(descriptor.entry_count() == 440U);
+    assert(descriptor.row_size_bytes() == 0x40ULL);
     assert(descriptor.table_size_bytes() == 0x1B80ULL);
     assert(descriptor.role_for_column(0U) == StageResourceRole::script);
     assert(descriptor.role_for_column(1U) == StageResourceRole::room_config);
@@ -23,14 +32,69 @@ int main() {
     assert(descriptor.role_for_column(3U) == StageResourceRole::room_sound);
     assert(!descriptor.role_for_column(4U).has_value());
 
+    const auto& bank_b = wave2_stage_resource_bank_b();
+    assert(bank_b.valid());
+    assert(bank_b.is_promoted_wave2_authority());
+    assert(bank_b.evidence_packet_id == "dmc3-stage-wave2");
+    assert(bank_b.file_offset == 0x005C1680ULL);
+    assert(bank_b.rva == 0x005C3080U);
+    assert(bank_b.va == 0x1405C3080ULL);
+    assert(bank_b.row_count == 79U);
+    assert(bank_b.entry_count() == 316U);
+    assert(bank_b.row_size_bytes() == 0x40ULL);
+    assert(bank_b.table_size_bytes() == 0x13C0ULL);
+
+    const auto& banks = wave2_stage_resource_banks();
+    assert(banks[0].va == descriptor.va);
+    assert(banks[1].va == bank_b.va);
+
+    const auto& universe = wave2_stage_descriptor_universe();
+    assert(universe.valid());
+    assert(universe.evidence_packet_id == "dmc3-stage-wave2");
+    assert(universe.observed_descriptor_count() == 189U);
+    assert(universe.banks[0].va == 0x1405C4AA0ULL);
+    assert(universe.banks[0].row_count == 110U);
+    assert(universe.banks[0].numeric_stage_ids.front() == 0U);
+    assert(universe.banks[0].numeric_stage_ids.back() == 307U);
+    assert(universe.banks[1].va == 0x1405C3080ULL);
+    assert(universe.banks[1].row_count == 79U);
+    assert(universe.banks[1].numeric_stage_ids.front() == 308U);
+    assert(universe.banks[1].numeric_stage_ids.back() == 910U);
+    assert(universe.selector_table_va == 0x1405C4440ULL);
+    assert(universe.selector_entry_count == 193U);
+    assert(universe.group_base_table_va == 0x1405C4A50ULL);
+    assert(universe.group_base_count == 10U);
+
     auto wrong_size = descriptor;
     wrong_size.artifact_size =
         descriptor.file_offset + descriptor.table_size_bytes() - 1U;
     assert(!wrong_size.valid());
+    assert(!wrong_size.is_promoted_wave2_authority());
 
     auto invalid = descriptor;
     invalid.cell_stride = 0U;
     assert(!invalid.valid());
+    assert(!invalid.is_promoted_wave2_authority());
+
+    auto invalid_path_offset = descriptor;
+    invalid_path_offset.path_pointer_offset = 9U;
+    assert(!invalid_path_offset.valid());
+    assert(!invalid_path_offset.is_promoted_wave2_authority());
+
+    // These remain structurally readable descriptor schemas, but they are not
+    // promoted executable authorities and therefore cannot drive StageCatalog
+    // or numeric identity promotion.
+    auto shifted_bank_b = bank_b;
+    shifted_bank_b.file_offset += 0x40ULL;
+    shifted_bank_b.rva += 0x40U;
+    shifted_bank_b.va += 0x40ULL;
+    assert(shifted_bank_b.valid());
+    assert(!shifted_bank_b.is_promoted_wave2_authority());
+
+    auto wrong_bank_b_count = bank_b;
+    wrong_bank_b_count.row_count = 78U;
+    assert(wrong_bank_b_count.valid());
+    assert(!wrong_bank_b_count.is_promoted_wave2_authority());
 
     return 0;
 }

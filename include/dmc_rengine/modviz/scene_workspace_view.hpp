@@ -70,8 +70,10 @@ struct SceneWorkspaceView final {
         VisualResourceKind kind) const;
 };
 
+// resource_set_id is the canonical technical grouping identity. A semantic
+// gameplay-stage id is optional and is not inferred by ModViz.
 [[nodiscard]] SceneWorkspaceView build_scene_workspace_view(
     const integration::ProjectWorkspace& project,
-    std::string_view stage_id);
+    std::string_view resource_set_id);
 
 } // namespace dmc::rengine::modviz

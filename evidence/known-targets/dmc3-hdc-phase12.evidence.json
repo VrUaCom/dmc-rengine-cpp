@@ -32,10 +32,24 @@
       "id":"ev-dmc3-main-export","claim_id":"claim-dmc3-main-export","title":"dmc3_main export","summary":"The exported dmc3_main function is located at VA 0x1402C5DF0, RVA 0x2C5DF0.","confidence":"confirmed","tags":["exe","export","dmc3-main"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","rva":2907632,"va":5371616752,"symbol":"dmc3_main"}]
     },
     {
-      "id":"ev-dmc3-stage-resource-table","claim_id":"claim-dmc3-stage-resource-table","title":"Stage resource table","summary":"The canonical executable contains a 110 x 4 stage resource path table at file offset 0x5C30A8 / RVA 0x5C4AA8 / VA 0x1405C4AA8. Each of the 440 observed cells has stride 0x10 and a relocatable 64-bit path pointer at cell +0x00. All 440 pointers resolve to bounded NUL-terminated ASCII paths matching the four column roles. Bytes at cell +0x08 are intentionally left semantically unresolved.","confidence":"confirmed","tags":["exe","stage","resource-table","gdspaces","cell-layout","dir64-relocation"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041768,"size":7040,"rva":6048424,"va":5374757544,"symbol":"stage_resource_table","note":"440 DIR64 relocation sites occur at the path-pointer field with exact 0x10 stride. Recorded role order: scr\\stXXX.pac, room\\stXXXcfg.pac, room\\stXXX_effect.pac, se\\snd_rXXX.pac. The +0x08 bytes are not assigned a meaning by this claim."}]
+      "id":"ev-dmc3-stage-resource-table",
+      "claim_id":"claim-dmc3-stage-resource-table",
+      "title":"Stage descriptor Bank-A path matrix (Wave-2 corrected)",
+      "summary":"The original Phase-12 observation correctly recovered 110 x 4 Bank-A resource paths, but its cell boundary was shifted by eight bytes. Wave 2 establishes the true Bank-A row base at file offset 0x5C30A0 / RVA 0x5C4AA0 / VA 0x1405C4AA0 and the minimum 0x10-byte cell ABI as u16 kind16 at +0x00, semantically unresolved bytes at +0x02..+0x07, and a relocatable 64-bit path pointer at +0x08. The old 0x1405C4AA8 address remains the first path-pointer field, not the row base. This record describes Bank A only; the stronger dmc3-stage-wave2 packet is authoritative for the corrected descriptor universe.",
+      "confidence":"confirmed",
+      "tags":["exe","stage","descriptor","bank-a","gdspaces","cell-layout","corrected","wave2"],
+      "supersedes":[],
+      "locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041760,"size":7040,"rva":6048416,"va":5374757536,"symbol":"stage_descriptor_bank_a","note":"110 descriptors x four 0x10-byte role cells. Path pointers occur at cell +0x08; kind16 is at +0x00. Exact kind16 enum semantics remain unresolved. See dmc3-stage-wave2 for the superseding full-bank topology claim."}]
     },
     {
-      "id":"ev-dmc3-stage-resource-table-row-set","claim_id":"claim-dmc3-stage-resource-table-row-set","title":"Observed stage resource row set","summary":"The 110 script-column paths expose 110 distinct observed stage tokens arranged in four contiguous numeric blocks: 000-012, 100-146, 200-241, and 300-307. This records table content only and does not claim that every row is a semantically independent gameplay stage.","confidence":"confirmed","tags":["exe","stage","resource-table","row-set","identity"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041768,"size":7040,"rva":6048424,"va":5374757544,"symbol":"stage_resource_table","note":"Derived from the exact 110 x 4 table observation. Aliases, shared resources, service rows, and higher-level stage semantics remain separate reverse-engineering questions."}]
+      "id":"ev-dmc3-stage-resource-table-row-set",
+      "claim_id":"claim-dmc3-stage-resource-table-row-set",
+      "title":"Observed Stage descriptor Bank-A row set",
+      "summary":"Bank A exposes 110 observed numeric Stage descriptor identities arranged in four blocks: 000-012, 100-146, 200-241, and 300-307. Wave 2 later established that this is only one of two descriptor banks; the complete observed descriptor universe contains 189 descriptors before selector/fallback semantics are applied. Neither count is a claim of that many independent gameplay stages.",
+      "confidence":"confirmed",
+      "tags":["exe","stage","descriptor","bank-a","row-set","identity","corrected","wave2"],
+      "supersedes":[],
+      "locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","file_offset":6041760,"size":7040,"rva":6048416,"va":5374757536,"symbol":"stage_descriptor_bank_a","note":"Bank-A descriptor identities only. Bank B and selector/group topology are promoted separately in dmc3-stage-wave2."}]
     },
     {
       "id":"ev-dmc3-stageset-token-classifier","claim_id":"claim-dmc3-stageset-token-classifier","title":"StageSet token classifier","summary":"The function at VA 0x140246680 classifies StageSet tokens into runtime enum values. The public migration record confirms DUMMY=1, STAY=2, BREAK=3, ORBREAK=4, SEAL=5, and SWITCH=6; the remaining map is incomplete.","confidence":"confirmed","tags":["exe","stage","txt","token-classifier","partial-map"],"supersedes":[],"locations":[{"artifact_id":"dmc3-hdc-exe-e454272e","rva":2385536,"va":5371094656,"symbol":"StageSetTokenClassifier","note":"Function identity is confirmed; the enum map remains partial."}]

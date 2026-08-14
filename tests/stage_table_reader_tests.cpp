@@ -7,20 +7,14 @@
 #include <cstring>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
 
 void write_u16(std::vector<std::byte>& bytes, std::size_t offset, std::uint16_t value) {
-    bytes[offset + 0U] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset] = static_cast<std::byte>(value & 0xFFU);
     bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
-}
-
-void write_u32(std::vector<std::byte>& bytes, std::size_t offset, std::uint32_t value) {
-    for (std::size_t index = 0U; index < 4U; ++index) {
-        bytes[offset + index] = static_cast<std::byte>(
-            (value >> (index * 8U)) & 0xFFU);
-    }
 }
 
 void write_u64(std::vector<std::byte>& bytes, std::size_t offset, std::uint64_t value) {
@@ -45,6 +39,8 @@ struct Fixture final {
 };
 
 [[nodiscard]] Fixture make_fixture() {
+    using dmc::rengine::exe::PeKind;
+    using dmc::rengine::exe::PeMachine;
     using dmc::rengine::exe::PeSection;
     using dmc::rengine::profiles::dmc3::StageResourceRole;
     using dmc::rengine::profiles::dmc3::StageResourceTableDescriptor;
@@ -59,8 +55,6 @@ struct Fixture final {
     constexpr std::size_t strings_file_offset =
         section_raw + (strings_rva - section_rva);
 
-    // Allocate the final synthetic artifact size before populating either the
-    // canonical 110x4 table span or the non-overlapping string pool.
     std::vector<std::byte> bytes(0x10000U, std::byte{0});
     const std::array<std::string, 8> paths{
         "scr/st000.pac",
@@ -83,24 +77,22 @@ struct Fixture final {
         string_rva_cursor += static_cast<std::uint32_t>(paths[index].size() + 1U);
     }
 
-    for (std::size_t index = 0U; index < paths.size(); ++index) {
-        const auto cell = table_file_offset + index * 0x10U;
-        write_u64(bytes, cell, image_base + path_rvas[index]);
-        write_u64(bytes, cell + 8U, 0U);
-    }
-
     dmc::rengine::exe::PeImage image{
+        .kind = PeKind::pe32_plus,
+        .machine = PeMachine::amd64,
+        .section_count = 1U,
         .image_base = image_base,
         .entry_point_rva = 0x1000U,
-        .entry_point_va = image_base + 0x1000U,
-        .size_of_image = 0x5000U,
+        .size_of_image = 0x10000U,
+        .size_of_headers = section_raw,
+        .subsystem = 2U,
         .sections = {
             PeSection{
                 .name = ".data",
+                .virtual_size = 0xF000U,
                 .virtual_address = section_rva,
-                .virtual_size = 0x3000U,
+                .raw_size = 0xF000U,
                 .raw_offset = section_raw,
-                .raw_size = 0x3000U,
                 .characteristics = 0U,
             },
         },
@@ -115,9 +107,10 @@ struct Fixture final {
         .file_offset = table_file_offset,
         .rva = table_rva,
         .va = image_base + table_rva,
-        .row_count = 2U,
+        .row_count = 110U,
         .cell_stride = 0x10U,
-        .path_pointer_offset = 0U,
+        .kind16_offset = 0U,
+        .path_pointer_offset = 0x08U,
         .columns = {
             StageResourceRole::script,
             StageResourceRole::room_config,
@@ -126,28 +119,21 @@ struct Fixture final {
         },
     };
 
-    // The production descriptor validity contract intentionally pins 110x4.
-    // Repeat the two logical fixture rows across the canonical row count.
-    descriptor.row_count = 110U;
-    descriptor.artifact_size = bytes.size();
-    descriptor.file_offset = table_file_offset;
-    descriptor.rva = table_rva;
-    descriptor.va = image_base + table_rva;
-    descriptor.cell_stride = 0x10U;
-
+    // Repeat two deliberately different logical rows across all 110 observed
+    // Bank-A rows. Each cell follows the corrected Wave-2 ABI: kind16 at +0,
+    // six unresolved bytes, and the path pointer at +8.
     for (std::uint32_t row = 0U; row < descriptor.row_count; ++row) {
         for (std::uint32_t column = 0U; column < 4U; ++column) {
             const auto source_index = static_cast<std::size_t>((row % 2U) * 4U + column);
             const auto cell = table_file_offset +
                 (static_cast<std::size_t>(row) * 4U + column) * 0x10U;
-            write_u64(bytes, cell, image_base + path_rvas[source_index]);
-            write_u64(bytes, cell + 8U, 0U);
+            write_u16(
+                bytes,
+                cell,
+                static_cast<std::uint16_t>(row * 4U + column));
+            write_u64(bytes, cell + 8U, image_base + path_rvas[source_index]);
         }
     }
-
-    image.sections[0].raw_size = 0xF000U;
-    image.sections[0].virtual_size = 0xF000U;
-    image.size_of_image = 0x10000U;
 
     return Fixture{
         .bytes = std::move(bytes),
@@ -177,6 +163,9 @@ int main() {
     assert(result.rows[0].cells[1].role == StageResourceRole::room_config);
     assert(result.rows[0].cells[2].role == StageResourceRole::room_effects);
     assert(result.rows[0].cells[3].role == StageResourceRole::room_sound);
+    assert(result.rows[0].cells[0].kind16 == 0U);
+    assert(result.rows[0].cells[3].kind16 == 3U);
+    assert(result.rows[1].cells[0].kind16 == 4U);
     assert(result.rows[0].cells[0].logical_path == "scr/st000.pac");
     assert(result.rows[1].cells[0].logical_path == "scr/shared_intro.pac");
     assert(result.rows[1].cells[1].logical_path == "room/st777cfg_alias.pac");
