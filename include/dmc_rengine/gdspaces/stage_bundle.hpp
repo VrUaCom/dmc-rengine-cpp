@@ -4,6 +4,8 @@
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
 
 #include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -60,8 +62,12 @@ struct StageIdentity final {
     std::string resource_set_id;
 
     // Evidence-backed gameplay-stage identity when separately established.
-    // Catalog row identity alone never populates this field.
     std::string semantic_stage_id;
+
+    // Wave-2 selector-facing numeric Stage ID when established by executable
+    // descriptor/selector evidence. This is structural runtime identity, not a
+    // replacement for semantic_stage_id.
+    std::optional<std::uint16_t> numeric_stage_id;
 
     [[nodiscard]] std::string_view resource_set_key() const noexcept {
         return resource_set_id.empty()
@@ -71,6 +77,10 @@ struct StageIdentity final {
 
     [[nodiscard]] bool semantic_stage_known() const noexcept {
         return !semantic_stage_id.empty();
+    }
+
+    [[nodiscard]] bool numeric_stage_known() const noexcept {
+        return numeric_stage_id.has_value();
     }
 
     [[nodiscard]] bool valid() const noexcept {

@@ -1,6 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/stage_catalog.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -30,6 +31,18 @@ void add_diagnostic(
     });
 }
 
+[[nodiscard]] StageCatalog empty_bank_a_catalog(
+    const StageResourceTableDescriptor& descriptor) {
+    return StageCatalog{
+        .coverage = StageCatalogCoverage::wave2_bank_a_compatibility,
+        .table_id = descriptor.id,
+        .evidence_id = descriptor.evidence_packet_id,
+        .entries = {},
+        .repeated_references = {},
+        .diagnostics = {},
+    };
+}
+
 } // namespace
 
 bool StageCatalogEntry::complete() const noexcept {
@@ -42,6 +55,10 @@ StageResourceRowPlan StageCatalogEntry::resource_plan() const {
         catalog_entry_id,
         observation.logical_paths(),
         evidence_id);
+    for (std::size_t index = 0U; index < plan.resources.size(); ++index) {
+        plan.resources[index].kind16 = observation.cells[index].kind16;
+    }
+    plan.numeric_stage_id = numeric_stage_id;
     if (semantic_stage_id.has_value()) {
         plan.semantic_stage_id = *semantic_stage_id;
     }
@@ -50,7 +67,8 @@ StageResourceRowPlan StageCatalogEntry::resource_plan() const {
 
 bool StageCatalog::complete(
     const StageResourceTableDescriptor& descriptor) const noexcept {
-    if (!descriptor.valid() || table_id != descriptor.id ||
+    if (coverage != StageCatalogCoverage::wave2_bank_a_compatibility ||
+        !descriptor.valid() || table_id != descriptor.id ||
         evidence_id != descriptor.evidence_packet_id ||
         entries.size() != descriptor.row_count) {
         return false;
@@ -85,20 +103,25 @@ const StageCatalogEntry* StageCatalog::find(
 StageCatalog StageCatalogBuilder::build(
     const StageResourceTableReadResult& table,
     const StageResourceTableDescriptor& descriptor) {
-    StageCatalog catalog{
-        .table_id = descriptor.id,
-        .evidence_id = descriptor.evidence_packet_id,
-        .entries = {},
-        .repeated_references = {},
-        .diagnostics = table.diagnostics,
-    };
+    auto catalog = empty_bank_a_catalog(descriptor);
+    catalog.diagnostics = table.diagnostics;
 
     if (!descriptor.valid()) {
         add_diagnostic(
             catalog,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.invalid-descriptor",
-            "The stage catalog cannot be built from an invalid table descriptor.");
+            "The Stage catalog cannot be built from an invalid Bank-A descriptor.");
+        return catalog;
+    }
+
+    const auto& universe = wave2_stage_descriptor_universe();
+    if (!universe.valid() || universe.banks[0].row_count != descriptor.row_count) {
+        add_diagnostic(
+            catalog,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.bank-a-metadata-invalid",
+            "Wave-2 Bank-A numeric identity metadata does not match the compatibility descriptor.");
         return catalog;
     }
 
@@ -107,7 +130,7 @@ StageCatalog StageCatalogBuilder::build(
             catalog,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.row-count-mismatch",
-            "The observed stage-table row count does not match the canonical descriptor.");
+            "The observed Bank-A descriptor row count does not match the corrected Wave-2 descriptor.");
     }
 
     catalog.entries.reserve(table.rows.size());
@@ -118,12 +141,24 @@ StageCatalog StageCatalogBuilder::build(
                 catalog,
                 gdspaces::DiagnosticSeverity::error,
                 "dmc3.stage-catalog.row-order-mismatch",
-                "Stage-table observations are not in deterministic executable row order.");
+                "Bank-A observations are not in deterministic executable row order.");
+        }
+
+        std::optional<std::uint16_t> numeric_stage_id;
+        if (row.row_index < universe.banks[0].numeric_stage_ids.size()) {
+            numeric_stage_id = universe.banks[0].numeric_stage_ids[row.row_index];
+        } else {
+            add_diagnostic(
+                catalog,
+                gdspaces::DiagnosticSeverity::error,
+                "dmc3.stage-catalog.numeric-stage-id-missing",
+                "A Bank-A descriptor row has no corresponding Wave-2 numeric identity.");
         }
 
         catalog.entries.push_back(StageCatalogEntry{
             .catalog_entry_id = make_catalog_entry_id(descriptor, row.row_index),
             .row_index = row.row_index,
+            .numeric_stage_id = numeric_stage_id,
             .evidence_id = descriptor.evidence_packet_id,
             .observation = row,
             .semantic_stage_id = std::nullopt,
@@ -166,24 +201,17 @@ StageCatalog StageCatalogBuilder::build(
 
 bool StageCatalogLoadResult::complete() const noexcept {
     return canonical_artifact &&
-        catalog.complete(phase12_stage_resource_table());
+        catalog.complete(wave2_stage_resource_bank_a());
 }
 
 StageCatalogLoadResult StageCatalogLoader::load_canonical(
     std::span<const std::byte> executable_bytes,
-    const exe::PeImage& image,
     std::size_t max_path_bytes) {
-    const auto& descriptor = phase12_stage_resource_table();
+    const auto& descriptor = wave2_stage_resource_bank_a();
     StageCatalogLoadResult result{
         .artifact_sha256 = core::Sha256::compute(executable_bytes).hex(),
         .canonical_artifact = false,
-        .catalog = StageCatalog{
-            .table_id = descriptor.id,
-            .evidence_id = descriptor.evidence_packet_id,
-            .entries = {},
-            .repeated_references = {},
-            .diagnostics = {},
-        },
+        .catalog = empty_bank_a_catalog(descriptor),
     };
 
     if (result.artifact_sha256 != descriptor.artifact_sha256) {
@@ -191,14 +219,33 @@ StageCatalogLoadResult StageCatalogLoader::load_canonical(
             result.catalog,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.artifact-hash-mismatch",
-            "The supplied executable SHA-256 does not match the canonical DMC3 stage-table artifact.");
+            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact.");
         return result;
     }
 
     result.canonical_artifact = true;
+    const auto pe = exe::PeReader::read(executable_bytes);
+    for (const auto& warning : pe.warnings) {
+        add_diagnostic(
+            result.catalog,
+            gdspaces::DiagnosticSeverity::warning,
+            "dmc3.stage-catalog.pe-warning",
+            warning);
+    }
+    for (const auto& error : pe.errors) {
+        add_diagnostic(
+            result.catalog,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.pe-error",
+            error);
+    }
+    if (!pe.ok()) {
+        return result;
+    }
+
     const auto table = StageResourceTableReader::read(
         executable_bytes,
-        image,
+        *pe.image,
         descriptor,
         max_path_bytes);
     result.catalog = StageCatalogBuilder::build(table, descriptor);

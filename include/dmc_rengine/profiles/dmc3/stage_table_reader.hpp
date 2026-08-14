@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -20,6 +21,10 @@ struct StageResourceTableCellObservation final {
     std::uint64_t cell_file_offset{};
     std::uint32_t cell_rva{};
     std::uint64_t cell_va{};
+
+    // Wave 2 corrected the minimum cell ABI to kind16 @ +0x00 and path @
+    // +0x08. The exact enum meaning of kind16 is intentionally unresolved.
+    std::optional<std::uint16_t> kind16;
     std::uint64_t path_pointer_va{};
     std::uint64_t path_file_offset{};
     std::string logical_path;

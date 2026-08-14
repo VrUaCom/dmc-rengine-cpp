@@ -18,6 +18,10 @@ struct StageRuntimeLoadedResource final {
     std::vector<gdspaces::Diagnostic> diagnostics;
 
     [[nodiscard]] bool payload_valid() const noexcept;
+
+    // Complete for the current product-side materialization/expansion boundary.
+    // It does not mean the original game state-2 -> state-3 typed post-load path
+    // has executed.
     [[nodiscard]] bool complete() const noexcept;
 };
 
@@ -27,14 +31,32 @@ struct StageRuntimeLoadReport final {
     std::optional<gdspaces::StageBundle> bundle;
     std::vector<gdspaces::Diagnostic> diagnostics;
 
-    [[nodiscard]] bool complete() const noexcept;
+    // The strongest behavior the current loader actually proves: primary Stage
+    // references resolved, bytes/provenance validated, required containers fully
+    // expanded, and a valid product StageBundle assembled.
+    [[nodiscard]] bool materialization_complete() const noexcept;
+
+    // Source-compatibility alias. Callers that need game-runtime equivalence must
+    // use game_ready_equivalent() rather than interpreting complete() as Level C.
+    [[nodiscard]] bool complete() const noexcept {
+        return materialization_complete();
+    }
+
+    // Wave 2 confirms that state 2 performs typed in-place post-load
+    // normalization before state 3 ready. That phase is not yet reconstructed in
+    // this product loader, so the answer must remain false until a later recovered
+    // game-runtime integration explicitly proves otherwise.
+    [[nodiscard]] bool game_ready_equivalent() const noexcept {
+        return false;
+    }
 };
 
 class StageRuntimeLoader final {
 public:
-    // Level-C composition only. This consumes the already-evidenced resolver,
-    // source read/materialization, byte provenance and container parser stack.
-    // It does not claim cache/lifetime/unload equivalence.
+    // Product-side materialization composition. It consumes the evidenced
+    // resolver, source read/materialization, ByteProvenance and container parser
+    // stack. It deliberately stops before the recovered game's typed post-load,
+    // factory, cache/lifetime and teardown phases.
     [[nodiscard]] static StageRuntimeLoadReport load_entry(
         const StageCatalogEntry& entry,
         const VolumeBootstrapPlan& bootstrap,

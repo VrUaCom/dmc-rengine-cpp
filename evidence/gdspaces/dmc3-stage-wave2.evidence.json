@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-stage-wave2",
+  "title": "DMC3 HD Stage Descriptor and Resource Lifecycle — Wave 2",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-stage-cell-abi-wave2",
+      "claim_id": "claim-dmc3-stage-cell-abi-wave2",
+      "title": "Corrected Stage resource cell ABI",
+      "summary": "The minimum runtime StageResourceCell ABI is 0x10 bytes with u16 kind16 at cell +0x00, six semantically unresolved bytes at +0x02..+0x07, and a relocatable 64-bit resource path pointer at cell +0x08. The previously promoted path-at-cell+0 interpretation was shifted by eight bytes.",
+      "confidence": "confirmed",
+      "tags": ["exe","stage","descriptor","abi","corrected","wave2"],
+      "supersedes": ["claim-dmc3-stage-resource-table"],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 6041760,
+          "size": 7040,
+          "rva": 6048416,
+          "va": 5374757536,
+          "symbol": "stage_descriptor_bank_a",
+          "note": "Bank-A row base is file 0x5C30A0 / RVA 0x5C4AA0 / VA 0x1405C4AA0. The old 0x...AA8 address is the first path-pointer field, not the row base. kind16 enum semantics remain unresolved."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-stage-descriptor-banks-wave2",
+      "claim_id": "claim-dmc3-stage-descriptor-banks-wave2",
+      "title": "Two Stage descriptor banks expose 189 observed descriptors",
+      "summary": "The executable exposes two StageResourceDescriptor banks: Bank A has 110 descriptors and Bank B has 79, totaling 189 observed descriptor identities. This is a descriptor-universe observation and does not claim 189 independent gameplay stages.",
+      "confidence": "confirmed",
+      "tags": ["exe","stage","descriptor","bank-a","bank-b","wave2"],
+      "supersedes": ["claim-dmc3-stage-resource-table-row-set"],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6048416,
+          "va": 5374757536,
+          "symbol": "stage_descriptor_bank_a",
+          "note": "110 descriptors: numeric Stage IDs 000-012, 100-146, 200-241, 300-307."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6041728,
+          "va": 5374750848,
+          "symbol": "stage_descriptor_bank_b",
+          "note": "79 descriptors: numeric Stage IDs 308-313, 400-446, 448-449, 600-612, 900-910."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-stage-selector-topology-wave2",
+      "claim_id": "claim-dmc3-stage-selector-topology-wave2",
+      "title": "Numeric Stage ID resolves through selector and group-base indirection",
+      "summary": "Canonical code computes stageId/100 and stageId%100, uses a 10-pointer group-base table and a 193-entry selector space, resolves a Stage resource descriptor, selects a role cell and invokes the resource loader. Exact fallback semantics for invalid or missing IDs remain open.",
+      "confidence": "confirmed",
+      "tags": ["exe","stage","selector","numeric-stage-id","resolver","wave2"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6046784,
+          "va": 5374755904,
+          "symbol": "stage_selector_table",
+          "note": "193-entry selector space at VA 0x1405C4440."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6048336,
+          "va": 5374757456,
+          "symbol": "stage_group_base_table",
+          "note": "10-pointer group-base table at VA 0x1405C4A50. Direct resolver code around VA 0x1401B985D/0x1401B9860 performs hundreds/remainder selection."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-resource-pool-lifecycle-wave2",
+      "claim_id": "claim-dmc3-resource-pool-lifecycle-wave2",
+      "title": "Higher-level 363-entry resource lifecycle pool",
+      "summary": "A higher-level resource/load manager at VA 0x140C99D30 contains 363 entries with stride 0x48 partitioned into seven groups [4,136,60,28,1,128,6]. Direct state transitions support 0 free -> 1 loading -> 2 I/O complete/pending postprocess -> 3 ready, with state 4 used for cancellation/teardown before cleanup returns the entry to 0.",
+      "confidence": "confirmed",
+      "tags": ["exe","resource-runtime","pool","lifecycle","level-c","level-d","wave2"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 13212976,
+          "va": 5381922096,
+          "symbol": "resource_load_manager_pool",
+          "note": "Runtime pool base VA 0x140C99D30; 363 entries x 0x48. Minimum stable fields include group +0x00, state +0x04, u16 subtype/index +0x08, descriptor pointer +0x18, loaded payload +0x20, owned allocation/container state +0x28."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-resource-postload-fixup-wave2",
+      "claim_id": "claim-dmc3-resource-postload-fixup-wave2",
+      "title": "Typed post-load normalization occurs before ready state",
+      "summary": "Resources in lifecycle state 2 undergo typed in-place post-load normalization before state 3 ready. Confirmed dispatch includes MOD, EFM, SCM and SHW helpers; PNST recursively dispatches populated members and PAC roots are traversed member-by-member. The observed helpers convert stored relative offsets into in-memory pointers by adding the resource base and writing resolved pointers back in place.",
+      "confidence": "confirmed",
+      "tags": ["exe","resource-runtime","postload","fixup","mod","efm","scm","shw","pnst","pac","wave2"],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3138480,
+          "va": 5371847600,
+          "symbol": "MOD_postload_fixup"
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3111568,
+          "va": 5371820688,
+          "symbol": "EFM_postload_fixup"
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3166640,
+          "va": 5371875760,
+          "symbol": "SCM_postload_fixup"
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3278016,
+          "va": 5371987136,
+          "symbol": "SHW_postload_fixup"
+        }
+      ]
+    }
+  ]
+}

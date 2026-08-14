@@ -170,7 +170,7 @@ bool StageRuntimeLoadedResource::complete() const noexcept {
     return !expansion.has_value();
 }
 
-bool StageRuntimeLoadReport::complete() const noexcept {
+bool StageRuntimeLoadReport::materialization_complete() const noexcept {
     if (!resolution.complete() || !bundle.has_value() || !bundle->valid() ||
         has_error(diagnostics)) {
         return false;
@@ -207,22 +207,16 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             report.diagnostics,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-load.resolution-incomplete",
-            "Stage Level-C loading stopped because one or more catalog resource references did not resolve uniquely.");
+            "Stage materialization stopped because one or more descriptor resource references did not resolve uniquely through the currently reconstructed lookup boundary.");
         return report;
     }
 
-    // Four EXE roles may theoretically collapse to the same resolved ResourceId
-    // after runtime basename/namespace lookup. The current StageBundle/workspace
-    // model stores one role context per canonical resource, so silently treating
-    // such a collapse as complete would lose a role binding. Preserve/materialize
-    // the resource below, but fail Level-C until multi-role identity is evidenced
-    // and represented explicitly.
     for (const auto& duplicate : duplicate_root_identities(report.resolution)) {
         add_diagnostic(
             report.diagnostics,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-load.duplicate-root-identity",
-            "More than one executable stage-resource role resolved to the same canonical root ResourceId; current single-role StageBundle semantics cannot represent this as a complete Level-C result.",
+            "More than one executable Stage-resource role resolved to the same canonical root ResourceId; current single-role StageBundle semantics cannot represent this as a complete materialization result.",
             duplicate);
     }
 
@@ -306,15 +300,11 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
                     loaded.diagnostics,
                     gdspaces::DiagnosticSeverity::error,
                     "dmc3.stage-load.container-expansion-incomplete",
-                    "The resolved stage container could not be fully expanded within the evidence-bounded parser/limit contract.",
+                    "The resolved Stage container could not be fully expanded within the evidence-bounded parser/limit contract.",
                     resolved.id);
             }
         }
 
-        // Preserve all safely materialized data even if a later expansion step
-        // fails. Completion remains false through scoped diagnostics, but a
-        // partial failure must not erase a valid root resource or readable
-        // children that were already bounded and classified successfully.
         if (loaded.payload_valid()) {
             candidates.push_back(gdspaces::StageMemberCandidate{
                 .resource = loaded.payload->resource,
@@ -341,6 +331,7 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             .exe_evidence_id = entry.evidence_id,
             .resource_set_id = entry.catalog_entry_id,
             .semantic_stage_id = semantic_stage_id,
+            .numeric_stage_id = entry.numeric_stage_id,
         },
         candidates);
 
@@ -358,7 +349,7 @@ StageRuntimeLoadReport StageRuntimeLoader::load_entry(
             report.diagnostics,
             gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-load.incomplete",
-            "The StageBundle contains the safely materialized subset; Level-C completion was not reached.");
+            "The StageBundle contains the safely materialized subset; materialization/expansion completion was not reached.");
     }
 
     return report;

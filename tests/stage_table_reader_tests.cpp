@@ -12,6 +12,11 @@
 
 namespace {
 
+void write_u16(std::vector<std::byte>& bytes, std::size_t offset, std::uint16_t value) {
+    bytes[offset] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+}
+
 void write_u64(std::vector<std::byte>& bytes, std::size_t offset, std::uint64_t value) {
     for (std::size_t index = 0U; index < 8U; ++index) {
         bytes[offset + index] = static_cast<std::byte>(
@@ -50,8 +55,6 @@ struct Fixture final {
     constexpr std::size_t strings_file_offset =
         section_raw + (strings_rva - section_rva);
 
-    // Allocate the final synthetic artifact size before populating either the
-    // canonical 110x4 table span or the non-overlapping string pool.
     std::vector<std::byte> bytes(0x10000U, std::byte{0});
     const std::array<std::string, 8> paths{
         "scr/st000.pac",
@@ -106,7 +109,8 @@ struct Fixture final {
         .va = image_base + table_rva,
         .row_count = 110U,
         .cell_stride = 0x10U,
-        .path_pointer_offset = 0U,
+        .kind16_offset = 0U,
+        .path_pointer_offset = 0x08U,
         .columns = {
             StageResourceRole::script,
             StageResourceRole::room_config,
@@ -116,17 +120,18 @@ struct Fixture final {
     };
 
     // Repeat two deliberately different logical rows across all 110 observed
-    // table rows. The second row is intentionally non-pattern/shared-looking so
-    // the reader regression cannot depend on an stNNN naming convention.
+    // Bank-A rows. Each cell follows the corrected Wave-2 ABI: kind16 at +0,
+    // six unresolved bytes, and the path pointer at +8.
     for (std::uint32_t row = 0U; row < descriptor.row_count; ++row) {
         for (std::uint32_t column = 0U; column < 4U; ++column) {
             const auto source_index = static_cast<std::size_t>((row % 2U) * 4U + column);
             const auto cell = table_file_offset +
                 (static_cast<std::size_t>(row) * 4U + column) * 0x10U;
-            write_u64(bytes, cell, image_base + path_rvas[source_index]);
-            // Preserve the unresolved +0x08 field as zero in the synthetic
-            // fixture; the production reader deliberately does not interpret it.
-            write_u64(bytes, cell + 8U, 0U);
+            write_u16(
+                bytes,
+                cell,
+                static_cast<std::uint16_t>(row * 4U + column));
+            write_u64(bytes, cell + 8U, image_base + path_rvas[source_index]);
         }
     }
 
@@ -158,6 +163,9 @@ int main() {
     assert(result.rows[0].cells[1].role == StageResourceRole::room_config);
     assert(result.rows[0].cells[2].role == StageResourceRole::room_effects);
     assert(result.rows[0].cells[3].role == StageResourceRole::room_sound);
+    assert(result.rows[0].cells[0].kind16 == 0U);
+    assert(result.rows[0].cells[3].kind16 == 3U);
+    assert(result.rows[1].cells[0].kind16 == 4U);
     assert(result.rows[0].cells[0].logical_path == "scr/st000.pac");
     assert(result.rows[1].cells[0].logical_path == "scr/shared_intro.pac");
     assert(result.rows[1].cells[1].logical_path == "room/st777cfg_alias.pac");
