@@ -1,9 +1,9 @@
 #include "dmc_rengine/stageops/semantic_graph.hpp"
 
 #include <algorithm>
+#include <optional>
 #include <set>
 #include <string>
-#include <tuple>
 #include <utility>
 
 namespace dmc::rengine::stageops::semantic {
@@ -44,6 +44,35 @@ namespace {
     return result;
 }
 
+[[nodiscard]] bool same_identity(
+    const StageAssemblyIdentity& left,
+    const StageAssemblyIdentity& right) noexcept {
+    return left.catalog_entry_id == right.catalog_entry_id &&
+        left.global_catalog_row == right.global_catalog_row &&
+        left.source_table_id == right.source_table_id &&
+        left.source_row_index == right.source_row_index &&
+        left.stage.profile == right.stage.profile &&
+        left.stage.resource_set_key() == right.stage.resource_set_key() &&
+        left.stage.numeric_stage_id == right.stage.numeric_stage_id &&
+        left.stage.semantic_stage_id == right.stage.semantic_stage_id &&
+        left.stage.exe_evidence_id == right.stage.exe_evidence_id;
+}
+
+[[nodiscard]] gdspaces::StageResourceCategory domain_category(
+    StageDomainKind kind) noexcept {
+    switch (kind) {
+    case StageDomainKind::hits_collision:
+        return gdspaces::StageResourceCategory::collision;
+    case StageDomainKind::lighting_records:
+        return gdspaces::StageResourceCategory::lighting;
+    case StageDomainKind::stage_script_tokens:
+        return gdspaces::StageResourceCategory::scripts;
+    case StageDomainKind::dca_records:
+        return gdspaces::StageResourceCategory::unknown;
+    }
+    return gdspaces::StageResourceCategory::unknown;
+}
+
 void add_stage_node(
     StageSemanticGraph& graph,
     const StageAssemblyWorkspace& assembly) {
@@ -62,8 +91,8 @@ void add_stage_node(
             {"global_catalog_row", std::to_string(identity.global_catalog_row)},
             {"source_table_id", identity.source_table_id},
             {"source_row_index", std::to_string(identity.source_row_index)},
-            {"assembly_status", std::string{to_string(assembly.status())}},
-            {"game_readiness", std::string{to_string(assembly.game_readiness())}},
+            {"assembly_status", std::string{stageops::to_string(assembly.status())}},
+            {"game_readiness", std::string{stageops::to_string(assembly.game_readiness())}},
         },
         .evidence_ids = {},
     };
@@ -223,6 +252,65 @@ void add_membership_edges(
     }
 }
 
+void add_domain_nodes_and_edges(
+    StageSemanticGraph& graph,
+    const StageDomainWorkspace& domains) {
+    for (const auto& object : domains.objects) {
+        auto attributes = object.attributes;
+        attributes.emplace("domain_kind", std::string{stageops::to_string(object.kind)});
+        attributes.emplace("parser_id", object.parser_id);
+        attributes.emplace(
+            "byte_source",
+            std::string{integration::to_string(object.byte_source)});
+        attributes.emplace("byte_revision", std::to_string(object.byte_revision));
+        attributes.emplace(
+            "current_for_active_bytes",
+            bool_text(object.current_for_active_bytes));
+
+        graph.nodes.push_back(Node{
+            .id = object.id,
+            .kind = NodeKind::domain_object,
+            .authority = Authority::structural_product_fact,
+            .label = std::string{stageops::to_string(object.kind)},
+            .attributes = std::move(attributes),
+            .evidence_ids = {},
+        });
+
+        const auto resource = resource_node_id(object.resource_id);
+        graph.edges.push_back(Edge{
+            .id = edge_id(
+                EdgeKind::projects_domain,
+                resource,
+                object.id,
+                stageops::to_string(object.kind)),
+            .from = resource,
+            .to = object.id,
+            .kind = EdgeKind::projects_domain,
+            .authority = Authority::structural_product_fact,
+            .role = std::string{stageops::to_string(object.kind)},
+            .category = domain_category(object.kind),
+            .attributes = {
+                {"current_for_active_bytes", bool_text(
+                    object.current_for_active_bytes)},
+            },
+            .evidence_ids = {},
+        });
+    }
+}
+
+void finalize(StageSemanticGraph& graph) {
+    std::sort(
+        graph.nodes.begin(), graph.nodes.end(),
+        [](const Node& left, const Node& right) {
+            return left.id < right.id;
+        });
+    std::sort(
+        graph.edges.begin(), graph.edges.end(),
+        [](const Edge& left, const Edge& right) {
+            return left.id < right.id;
+        });
+}
+
 } // namespace
 
 bool StageSemanticGraph::valid() const noexcept {
@@ -297,22 +385,32 @@ StageSemanticGraph StageSemanticGraphBuilder::build(
     add_resource_nodes(graph, assembly);
     add_requirement_nodes_and_edges(graph, assembly);
     add_membership_edges(graph, assembly);
-
-    std::sort(
-        graph.nodes.begin(), graph.nodes.end(),
-        [](const Node& left, const Node& right) {
-            return left.id < right.id;
-        });
-    std::sort(
-        graph.edges.begin(), graph.edges.end(),
-        [](const Edge& left, const Edge& right) {
-            return left.id < right.id;
-        });
+    finalize(graph);
 
     if (!graph.valid()) {
         return StageSemanticGraph{};
     }
     return graph;
+}
+
+StageSemanticGraph StageSemanticGraphBuilder::build(
+    const StageAssemblyWorkspace& assembly,
+    const StageDomainWorkspace& domains,
+    std::uint64_t source_stage_revision) {
+    if (!assembly.valid() || !domains.valid() ||
+        !same_identity(assembly.identity, domains.identity) ||
+        domains.source_stage_revision != source_stage_revision) {
+        return StageSemanticGraph{};
+    }
+
+    auto graph = build(assembly, source_stage_revision);
+    if (!graph.valid()) {
+        return StageSemanticGraph{};
+    }
+
+    add_domain_nodes_and_edges(graph, domains);
+    finalize(graph);
+    return graph.valid() ? graph : StageSemanticGraph{};
 }
 
 } // namespace dmc::rengine::stageops::semantic
