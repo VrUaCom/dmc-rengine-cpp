@@ -66,6 +66,11 @@ namespace {
     case StageDomainKind::lighting_records:
         return gdspaces::StageResourceCategory::lighting;
     case StageDomainKind::stage_script_tokens:
+    case StageDomainKind::stage_set_directive_token:
+    case StageDomainKind::stage_set_value_token:
+    case StageDomainKind::door_token:
+    case StageDomainKind::box_in_token:
+    case StageDomainKind::next_room_token:
         return gdspaces::StageResourceCategory::scripts;
     case StageDomainKind::dca_records:
         return gdspaces::StageResourceCategory::unknown;
