@@ -33,9 +33,18 @@ struct NumericStageResolution final {
 
 class StageNumericResolver final {
 public:
-    // Reproduce the recovered executable-side algorithm read-only:
-    // stageId / 100 -> group-base pointer -> selector[remainder] -> descriptor.
-    [[nodiscard]] static NumericStageResolution resolve(
+    // Production/research gate for the canonical executable. SHA-256
+    // verification and PE parsing are performed from the same byte span before
+    // executable VAs are interpreted.
+    [[nodiscard]] static NumericStageResolution resolve_canonical(
+        std::span<const std::byte> executable_bytes,
+        std::uint16_t stage_id);
+
+    // Low-level structural entry point for synthetic fixtures and bounded
+    // reverse experiments. The caller must guarantee that `image` was parsed
+    // from the exact `executable_bytes` span. Product paths must use
+    // resolve_canonical().
+    [[nodiscard]] static NumericStageResolution resolve_from_image(
         std::span<const std::byte> executable_bytes,
         const exe::PeImage& image,
         std::uint16_t stage_id);
