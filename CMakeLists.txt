@@ -115,6 +115,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_workspace_manifest
         dmc3_stage_workspace_builder
         stage_tool_views
+        stageops_assembly_workspace
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
