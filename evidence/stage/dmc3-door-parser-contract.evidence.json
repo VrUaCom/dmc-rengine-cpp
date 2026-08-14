@@ -66,8 +66,8 @@
         },
         {
           "artifact_id": "dmc3-hdc-exe-e454272e",
-          "rva": 1742544,
-          "va": 5370451664,
+          "rva": 1750736,
+          "va": 5370459856,
           "symbol": "door_auto_path",
           "note": "AUTO path anchor at VA 0x1401AB6D0."
         }
