@@ -1,6 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/stage_catalog.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -28,6 +29,18 @@ void add_diagnostic(
         .message = std::move(message),
         .resource = std::nullopt,
     });
+}
+
+[[nodiscard]] StageCatalog empty_bank_a_catalog(
+    const StageResourceTableDescriptor& descriptor) {
+    return StageCatalog{
+        .coverage = StageCatalogCoverage::wave2_bank_a_compatibility,
+        .table_id = descriptor.id,
+        .evidence_id = descriptor.evidence_packet_id,
+        .entries = {},
+        .repeated_references = {},
+        .diagnostics = {},
+    };
 }
 
 } // namespace
@@ -89,14 +102,8 @@ const StageCatalogEntry* StageCatalog::find(
 StageCatalog StageCatalogBuilder::build(
     const StageResourceTableReadResult& table,
     const StageResourceTableDescriptor& descriptor) {
-    StageCatalog catalog{
-        .coverage = StageCatalogCoverage::wave2_bank_a_compatibility,
-        .table_id = descriptor.id,
-        .evidence_id = descriptor.evidence_packet_id,
-        .entries = {},
-        .repeated_references = {},
-        .diagnostics = table.diagnostics,
-    };
+    auto catalog = empty_bank_a_catalog(descriptor);
+    catalog.diagnostics = table.diagnostics;
 
     if (!descriptor.valid()) {
         add_diagnostic(
@@ -176,20 +183,12 @@ bool StageCatalogLoadResult::complete() const noexcept {
 
 StageCatalogLoadResult StageCatalogLoader::load_canonical(
     std::span<const std::byte> executable_bytes,
-    const exe::PeImage& image,
     std::size_t max_path_bytes) {
     const auto& descriptor = wave2_stage_resource_bank_a();
     StageCatalogLoadResult result{
         .artifact_sha256 = core::Sha256::compute(executable_bytes).hex(),
         .canonical_artifact = false,
-        .catalog = StageCatalog{
-            .coverage = StageCatalogCoverage::wave2_bank_a_compatibility,
-            .table_id = descriptor.id,
-            .evidence_id = descriptor.evidence_packet_id,
-            .entries = {},
-            .repeated_references = {},
-            .diagnostics = {},
-        },
+        .catalog = empty_bank_a_catalog(descriptor),
     };
 
     if (result.artifact_sha256 != descriptor.artifact_sha256) {
@@ -202,9 +201,28 @@ StageCatalogLoadResult StageCatalogLoader::load_canonical(
     }
 
     result.canonical_artifact = true;
+    const auto pe = exe::PeReader::read(executable_bytes);
+    for (const auto& warning : pe.warnings) {
+        add_diagnostic(
+            result.catalog,
+            gdspaces::DiagnosticSeverity::warning,
+            "dmc3.stage-catalog.pe-warning",
+            warning);
+    }
+    for (const auto& error : pe.errors) {
+        add_diagnostic(
+            result.catalog,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.pe-error",
+            error);
+    }
+    if (!pe.ok()) {
+        return result;
+    }
+
     const auto table = StageResourceTableReader::read(
         executable_bytes,
-        image,
+        *pe.image,
         descriptor,
         max_path_bytes);
     result.catalog = StageCatalogBuilder::build(table, descriptor);
