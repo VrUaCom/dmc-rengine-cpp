@@ -1,7 +1,6 @@
 #include "dmc_rengine/profiles/dmc3/stage_runtime_resolution.hpp"
 
 #include <algorithm>
-#include <array>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,14 +13,10 @@ namespace {
 [[nodiscard]] gdspaces::StageResourceCategory category_for_role(
     StageResourceRole role) noexcept {
     switch (role) {
-    case StageResourceRole::script:
-        return gdspaces::StageResourceCategory::scripts;
-    case StageResourceRole::room_config:
-        return gdspaces::StageResourceCategory::unknown;
-    case StageResourceRole::room_effects:
-        return gdspaces::StageResourceCategory::effects;
-    case StageResourceRole::room_sound:
-        return gdspaces::StageResourceCategory::sounds;
+    case StageResourceRole::script: return gdspaces::StageResourceCategory::scripts;
+    case StageResourceRole::room_config: return gdspaces::StageResourceCategory::unknown;
+    case StageResourceRole::room_effects: return gdspaces::StageResourceCategory::effects;
+    case StageResourceRole::room_sound: return gdspaces::StageResourceCategory::sounds;
     }
     return gdspaces::StageResourceCategory::unknown;
 }
@@ -29,10 +24,8 @@ namespace {
 [[nodiscard]] gdspaces::DiagnosticSeverity severity_for(
     RuntimeResolutionStatus status) noexcept {
     switch (status) {
-    case RuntimeResolutionStatus::resolved:
-        return gdspaces::DiagnosticSeverity::info;
-    case RuntimeResolutionStatus::not_found:
-        return gdspaces::DiagnosticSeverity::warning;
+    case RuntimeResolutionStatus::resolved: return gdspaces::DiagnosticSeverity::info;
+    case RuntimeResolutionStatus::not_found: return gdspaces::DiagnosticSeverity::warning;
     case RuntimeResolutionStatus::ambiguous:
     case RuntimeResolutionStatus::invalid_request:
     case RuntimeResolutionStatus::invalid_source_configuration:
@@ -49,7 +42,6 @@ namespace {
         (slash != std::string_view::npos && dot < slash)) {
         return std::nullopt;
     }
-
     std::string result{logical_path.substr(0U, dot)};
     result += ".lst";
     return result;
@@ -82,7 +74,6 @@ bool StageRuntimeResolutionReport::complete() const noexcept {
             })) {
         return false;
     }
-
     return std::all_of(
         resources.begin(), resources.end(),
         [](const StageRuntimeResourceResolution& resource) {
@@ -96,7 +87,6 @@ StageRuntimeResolutionReport::resolved_candidates() const {
     if (!complete()) {
         return candidates;
     }
-
     candidates.reserve(resources.size());
     for (const auto& resource : resources) {
         candidates.push_back(gdspaces::StageMemberCandidate{
@@ -117,6 +107,10 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
         StageRuntimeResolutionReport report{
             .catalog_entry_id = entry.catalog_entry_id,
             .table_row_index = entry.row_index,
+            .source_table_id = entry.source_table_id,
+            .source_row_index = entry.source_row_index,
+            .numeric_stage_id = entry.numeric_stage_id,
+            .semantic_stage_id = entry.semantic_stage_id,
             .plan = {},
             .resources = {},
             .diagnostics = {},
@@ -137,11 +131,13 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
         bootstrap,
         bindings,
         sources);
+    report.table_row_index = entry.row_index;
+    report.source_table_id = entry.source_table_id;
+    report.source_row_index = entry.source_table_id.empty()
+        ? entry.row_index : entry.source_row_index;
+    report.numeric_stage_id = entry.numeric_stage_id;
+    report.semantic_stage_id = entry.semantic_stage_id;
 
-    // Raw-row resolution knows structural kind16/path evidence but not the
-    // selector-facing numeric identity or separately evidenced gameplay
-    // semantics carried by the catalog entry. Restore both without replacing
-    // the technical descriptor-row/resource-set identity.
     if (report.plan.valid()) {
         report.plan.numeric_stage_id = entry.numeric_stage_id;
         if (entry.semantic_stage_id.has_value()) {
@@ -161,6 +157,10 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
     StageRuntimeResolutionReport report{
         .catalog_entry_id = catalog_entry_id,
         .table_row_index = row.row_index,
+        .source_table_id = {},
+        .source_row_index = row.row_index,
+        .numeric_stage_id = std::nullopt,
+        .semantic_stage_id = std::nullopt,
         .plan = {},
         .resources = {},
         .diagnostics = {},
@@ -175,7 +175,6 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
         });
         return report;
     }
-
     if (!row.complete()) {
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
@@ -191,7 +190,6 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
     for (std::size_t index = 0U; index < report.plan.resources.size(); ++index) {
         report.plan.resources[index].kind16 = row.cells[index].kind16;
     }
-
     if (!report.plan.valid()) {
         report.diagnostics.push_back(gdspaces::Diagnostic{
             .severity = gdspaces::DiagnosticSeverity::error,
@@ -205,10 +203,7 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
     for (std::size_t index = 0U; index < report.resources.size(); ++index) {
         const auto& reference = report.plan.resources[index];
         auto runtime = RuntimeResourceResolver::resolve(
-            reference.logical_path,
-            bootstrap,
-            bindings,
-            sources);
+            reference.logical_path, bootstrap, bindings, sources);
 
         report.resources[index] = StageRuntimeResourceResolution{
             .reference = reference,
@@ -219,15 +214,12 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
 
         if (!resolved_role.runtime.ok()) {
             add_resolution_diagnostic(
-                report,
-                reference.role,
-                resolved_role.runtime.status,
-                "resource",
-                resolved_role.runtime.detail);
+                report, reference.role, resolved_role.runtime.status,
+                "resource", resolved_role.runtime.detail);
         }
 
         if (resolved_role.runtime.status != RuntimeResolutionStatus::not_found ||
-            reference.kind16 != 0U) {
+            !reference.kind16.has_value() || *reference.kind16 != 0U) {
             continue;
         }
 
@@ -236,35 +228,27 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
             report.diagnostics.push_back(gdspaces::Diagnostic{
                 .severity = gdspaces::DiagnosticSeverity::error,
                 .code = "dmc3.stage-runtime.list-fallback-path-unresolved",
-                .message = "Wave-2 kind16==0 requires extension rewrite to .lst, but the logical path has no evidenced replaceable extension.",
+                .message = "kind16==0 requires extension rewrite to .lst, but the logical path has no replaceable extension.",
                 .resource = std::nullopt,
             });
             continue;
         }
 
         resolved_role.list_fallback = RuntimeResourceResolver::resolve(
-            *fallback_request,
-            bootstrap,
-            bindings,
-            sources);
-
+            *fallback_request, bootstrap, bindings, sources);
         if (resolved_role.list_fallback->ok()) {
             report.diagnostics.push_back(gdspaces::Diagnostic{
                 .severity = gdspaces::DiagnosticSeverity::error,
                 .code = "dmc3.stage-runtime.list-fallback-required",
-                .message = "The primary Stage resource is absent and the evidenced kind16==0 .lst fallback resolves, but list expansion/ownership is not yet reconstructed strongly enough to claim equivalent resolution.",
+                .message = "The primary Stage resource is absent and its evidenced .lst fallback resolves, but list expansion/ownership is not yet game-ready equivalent.",
                 .resource = resolved_role.list_fallback->resolved->id,
             });
         } else {
             add_resolution_diagnostic(
-                report,
-                reference.role,
-                resolved_role.list_fallback->status,
-                "list-fallback",
-                resolved_role.list_fallback->detail);
+                report, reference.role, resolved_role.list_fallback->status,
+                "list-fallback", resolved_role.list_fallback->detail);
         }
     }
-
     return report;
 }
 
