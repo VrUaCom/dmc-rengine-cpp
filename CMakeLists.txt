@@ -104,6 +104,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         lig2
         stage_txt
         resource_analyzer
+        parsed_resource_workspace
         resource_analyzer_structural_formats
         executable_workspace_manifest
         evidence_address_resolver
@@ -118,6 +119,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stageops_assembly_workspace
         stageops_operations_session
         stage_semantic_graph
+        stage_domain_workspace
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
