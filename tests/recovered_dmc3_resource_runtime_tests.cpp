@@ -1,5 +1,6 @@
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
+#include "runtime/resources/shw_postload.hpp"
 #include "recovered_dmc3_wave3_execution_cases.hpp"
 
 #include <array>
@@ -30,6 +31,28 @@ public:
         return succeed;
     }
 };
+
+[[nodiscard]] std::uint64_t read_u64_le_for_test(
+    std::span<const std::byte> bytes,
+    std::size_t offset) {
+    std::uint64_t value{};
+    for (std::size_t index = 0U; index < 8U; ++index) {
+        value |= static_cast<std::uint64_t>(
+            std::to_integer<std::uint8_t>(bytes[offset + index])) <<
+            (index * 8U);
+    }
+    return value;
+}
+
+void write_u64_le_for_test(
+    std::span<std::byte> bytes,
+    std::size_t offset,
+    std::uint64_t value) {
+    for (std::size_t index = 0U; index < 8U; ++index) {
+        bytes[offset + index] = static_cast<std::byte>(
+            (value >> (index * 8U)) & 0xFFU);
+    }
+}
 
 } // namespace
 
@@ -168,6 +191,73 @@ int main() {
             ResourceTransitionResult::applied);
         assert(typed.state == ResourceLoadState::ready_postprocessed);
     }
+
+    // SHW is the first confirmed typed post-load helper whose body is now
+    // reconstructed rather than represented only by an interface boundary.
+    std::array<std::byte, 0xB0> shw_bytes{};
+    shw_bytes[shw_record_count_offset] = std::byte{2};
+    constexpr std::array<std::uint64_t, 8> shw_relative_offsets{
+        0x10ULL, 0x20ULL, 0x30ULL, 0x40ULL,
+        0x50ULL, 0x60ULL, 0x70ULL, 0x80ULL,
+    };
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        write_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + index * 8U,
+            shw_relative_offsets[index]);
+        write_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + shw_record_stride + index * 8U,
+            shw_relative_offsets[index + 4U]);
+    }
+
+    ResourceRuntimeEntry shw_entry{};
+    shw_entry.state = ResourceLoadState::io_complete_pending_postprocess;
+    ShwPostLoadBackend shw_backend;
+    assert(run_confirmed_postload(
+        shw_entry, PostLoadFormat::shw, shw_bytes, shw_backend) ==
+        ResourceTransitionResult::applied);
+    assert(shw_entry.state == ResourceLoadState::ready_postprocessed);
+
+    const auto shw_base = static_cast<std::uint64_t>(
+        reinterpret_cast<std::uintptr_t>(shw_bytes.data()));
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        assert(read_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + index * 8U) ==
+            shw_base + shw_relative_offsets[index]);
+        assert(read_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + shw_record_stride + index * 8U) ==
+            shw_base + shw_relative_offsets[index + 4U]);
+    }
+
+    // A truncated record table fails closed and cannot promote state 2 to 3.
+    std::array<std::byte, 0x50> truncated_shw{};
+    truncated_shw[shw_record_count_offset] = std::byte{2};
+    ResourceRuntimeEntry truncated_shw_entry{};
+    truncated_shw_entry.state =
+        ResourceLoadState::io_complete_pending_postprocess;
+    assert(run_confirmed_postload(
+        truncated_shw_entry,
+        PostLoadFormat::shw,
+        truncated_shw,
+        shw_backend) == ResourceTransitionResult::postload_failed);
+    assert(truncated_shw_entry.state ==
+        ResourceLoadState::io_complete_pending_postprocess);
+
+    // The SHW backend rejects a mismatched explicit format instead of silently
+    // acting as a generic dispatcher.
+    ResourceRuntimeEntry wrong_shw_format{};
+    wrong_shw_format.state =
+        ResourceLoadState::io_complete_pending_postprocess;
+    assert(run_confirmed_postload(
+        wrong_shw_format,
+        PostLoadFormat::mod,
+        shw_bytes,
+        shw_backend) == ResourceTransitionResult::postload_failed);
+    assert(wrong_shw_format.state ==
+        ResourceLoadState::io_complete_pending_postprocess);
 
     // State-4 entry is intentionally seeded rather than synthesized because the
     // source-state domain entering teardown remains unresolved.
