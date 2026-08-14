@@ -1,13 +1,20 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/known_targets.hpp"
+
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <string_view>
 
 namespace dmc::rengine::profiles::dmc3::hits_evidence {
 
 // DMC3 HD profile evidence only. These descriptors are not a universal HITS ABI
 // and intentionally do not model one monolithic original-game CollisionResult.
+[[nodiscard]] inline bool matches_canonical_target(std::string_view sha256) noexcept {
+    return phase12_canonical_target().matches_hash(sha256);
+}
+
 enum class QueryVariant : std::uint8_t {
     vertical_probe_05e460,
     generic_combined_05e7a0,
