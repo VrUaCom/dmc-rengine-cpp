@@ -6,232 +6,180 @@ Status: **ACTIVE — REVERSE / IMPLEMENT / REVIEW / DEBUG LOOP**
 
 Canonical detailed working authority: Google Drive document `DMC Rengine — HITS Raw Reverse Pass 10 — Evidence Reacquisition and Runtime Instrumentation — 2026-08-14`.
 
-The required workflow is also codified in `docs/research/reverse-pass-implementation-review-loop.md` and in Google Drive document `DMC Rengine — Canonical Reverse Pass Implementation Review Debug Loop — 2026-08-14`.
+Companion research:
+- `docs/research/reverse-pass-implementation-review-loop.md`
+- `docs/research/hits-pass10-slice4-canonical-combined-query-abi.md`
 
 ## Why Pass 10 exists
 
-Pass 9 reached static ABI/ownership saturation for the currently materialized canonical evidence. Repeating the same summary/xref corpus no longer yields instruction-level fields for the remaining P0 functions. Pass 10 therefore changes method: reacquire missing instruction windows or gather hash-gated runtime traces without changing collision semantics.
+Pass 9 reached static ABI/ownership saturation for the evidence then materialized. Pass 10 changes method: reacquire canonical instruction windows from preserved project artifacts with explicit provenance, and use hash-gated runtime traces only where static evidence still cannot close behavior.
 
-## Required loop for every Pass-10 step
+## Mandatory loop
 
-1. acquire evidence;
-2. review the direct evidence and assumptions;
+1. acquire direct evidence;
+2. review assumptions;
 3. deepen through callers/callees/writers/readers/ownership/state/corpus;
-4. review again and define the exact promotion boundary;
+4. define a promotion boundary;
 5. implement only the promoted subset;
 6. review implementation against evidence;
-7. debug/test without weakening evidence gates;
-8. consolidate the step into the Pass-10 authority;
+7. debug/test without weakening gates;
+8. consolidate into Pass-10 authority;
 9. perform a second independent review/debug cycle;
-10. update code, GitHub research/issue/PR documentation, Google Drive Pass document, Mega Synthesis and Preservation Registry as applicable.
+10. synchronize code, GitHub, machine evidence and Google Drive authorities.
 
-No material correction or debug lesson may remain only in chat.
+No material correction may remain only in chat.
 
-## P0 targets
+## Current P0 state
 
-- `0x14005E7A0`: complete argument ABI, stack locals, static/dynamic temporary results, no-hit initialization, metric comparison, arbitration, equality/tie-break and caller-visible writes;
-- `0x14005B460`: body, category-list entry structure, list ownership/lifetime, candidate production and return contract;
-- `0x14005FEC0`: exact source-1 segment-query input/output ABI and result propagation;
-- `0x1400601E0`: exact in/out layout, fourth component semantics, triangle iteration and accumulation/convergence behavior.
+### CLOSED at wrapper ABI level — `0x14005E7A0`
 
-## Static reacquisition order
+Canonical bytes have now been reacquired and reviewed. `E7A0` is **not** a metric/tie-break result comparator.
 
-1. Materialize canonical EXE bytes for the exact SHA.
-2. Extract complete disassembly windows for each P0 target.
-3. Extract direct caller windows with register/stack setup.
-4. Extract direct callee windows for geometry/candidate/result helpers.
-5. Record VA/RVA/file-offset and expected-byte anchors.
-6. Repeat disassembly independently and compare control-flow/write-set output.
+Confirmed:
+- exact body `0x14005E7A0..0x14005E880`, 224 bytes;
+- body SHA-256 `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
+- six-argument ABI;
+- 51 direct callers;
+- static pass `0x14005E880` followed by dynamic category passes `0x14005BCF0` for `0x0E`, then `0x11`;
+- overall boolean success in `AL`;
+- total miss copies working point to output;
+- common optional `0x38` hit-metadata output;
+- both dynamic passes receive the same static-or-input baseline;
+- caller-visible precedence is ordered last-successful-writer: `static < 0x0E < 0x11`.
 
-## Required field-offset matrix
+The earlier Pass-10 wording that asked for an `E7A0` comparison metric, equality branch or tie-break is **REJECTED / SUPERSEDED**.
 
-For every target function record:
+Detailed receipt: `docs/research/hits-pass10-slice4-canonical-combined-query-abi.md`.
 
-- RCX/RDX/R8/R9 and stack arguments;
-- local stack allocation and saved registers;
-- every write to caller-owned memory;
-- every temporary result-buffer offset and width;
-- initialization values/sentinels;
-- candidate source/identity;
-- comparison metric and branch relation;
-- copy/overwrite order;
-- return register/value;
-- exact caller read-back offsets.
+### RECLASSIFIED — `0x14005B460`
 
-No semantic CollisionResult field name may be assigned before write+read or runtime-delta evidence supports it.
+Canonical reacquisition shows that `B460` is not the missing `E7A0` candidate producer. It belongs to a separate dynamic-world update path.
+
+Current recovered topology:
+- `0x14005B7B0` — dynamic update dispatcher;
+- `0x14005B460` — object-pair resolution/update loop;
+- `0x14005B6F0` — category-pair compatibility filter;
+- `0x14005B8E0` — per-object post/update query/constraint step.
+
+The prior P0 wording “B460 category-list candidate production/result contract” is superseded. This topology is being promoted as the next review slice and must remain separate from query-path `E7A0 -> E880 + BCF0`.
+
+### OPEN — `0x14005FEC0`
+
+Need exact source-1 segment-query input/output ABI, write-set and result propagation. Raw reject bit `0x00080000` is already independently confirmed.
+
+### OPEN — `0x1400601E0`
+
+Need exact in/out layout, fourth-component semantics, triangle iteration and accumulation/convergence behavior.
+
+## Canonical byte provenance
+
+The ChatGPT project Library contains `dmc3_phase17_reng_probe.exe` plus the Phase-17 verifier report. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and that original raw PE section bytes over file range `0x400..0x60E600` remained byte-identical. Slice-4 functions and the newly reacquired dynamic-update functions map inside that preserved range.
+
+A second derivative, `dmc3_phase18_red_orb_x2_hook.exe`, independently matches the promoted function windows. It is used as a consistency check, not as the source of target identity.
+
+No proprietary instruction bytes are committed. Evidence stores VAs, ranges, hashes, field offsets and reconstructed behavior.
 
 ## Runtime instrumentation fallback
 
-If canonical instruction bytes cannot be materialized from project sources, use a guarded observation-only design.
+The generic observation contract remains in:
+- `include/dmc_rengine/evidence/runtime_trace.hpp`
+- `tests/runtime_trace_tests.cpp`
 
-The production-side generic evidence contract is now implemented in:
-
-- `include/dmc_rengine/evidence/runtime_trace.hpp`;
-- regression: `tests/runtime_trace_tests.cpp`.
-
-The contract intentionally models instrumentation metadata, not original DMC3 ABI:
-
-- exact target SHA-256;
+It models instrumentation metadata, not original DMC3 structures:
+- exact executable SHA;
 - function VA;
-- expected bytes for a target/hook site;
-- tooling capture-window size;
-- sequence and trace phase;
-- optional caller VA;
-- optional selected source/reject mask/dynamic category/result code;
-- one or more raw memory snapshots.
+- expected hook bytes;
+- capture sequence/phase;
+- optional caller/source/mask/category/result metadata;
+- raw memory snapshots.
 
-`capture_window_bytes` is a tooling parameter only. It is not evidence of any original structure size.
+`capture_window_bytes` is tooling-only and is not evidence of an original structure size.
 
-## First implementation / review / debug receipt
+## Slice 1 receipt — generic trace contract
 
-### Implementation
+Implementation added the generic trace contract and CTest regression.
 
-Added a generic runtime-trace evidence contract and registered a regression test in CTest.
+Correction: the first synthetic regression paired canonical-looking HITS VAs with synthetic bytes. It was replaced by fully synthetic SHA/VAs/bytes so test fixtures cannot masquerade as canonical byte evidence.
 
-### Review finding
+## Slice 2 receipt — DMC3 query/dynamic evidence
 
-The initial regression fixture paired canonical HITS function VAs with synthetic expected bytes. Although the bytes existed only in a test, that presentation could be misread as an evidence claim about the canonical executable.
+Promoted into `profiles/dmc3`:
+- nine HITS query-family VAs;
+- confirmed mutable 16-byte paths for `EBE0/F070`;
+- `AL`-observed success paths for `EE40/60790` without claiming non-mutation;
+- dynamic categories `0x02/0x05/0x08/0x0B/0x0E/0x11`;
+- activation flags and `0x18`-spaced manager offsets;
+- dispatcher-level static-HITS reject-mask bridge `0x0040/0x0002/0x0010/0x0020/0/0`;
+- three wrapper source slots.
 
-### Debug/correction
+Corrections:
+1. DMC3 VAs moved out of generic HITS core into `profiles/dmc3`.
+2. `static_hits_reject_mask` narrowed to `dispatcher_static_hits_reject_mask`.
+3. all build-specific lookups use canonical SHA gating.
 
-The fixture was corrected to use a fully synthetic SHA, synthetic VAs and synthetic bytes. Canonical addresses may only be paired with expected-byte anchors after those bytes are actually reacquired from the exact canonical artifact.
+## Slice 3 receipt — runtime topology
 
-This correction is part of the Pass-10 evidence record and must not be silently discarded.
-
-## Second implementation / review / debug receipt — profile-specific HITS runtime evidence
-
-### Evidence promoted
-
-Pass 7B/7C already EXE-confirmed the specialized query-family identities, the six dynamic category bindings, the category-to-static-HITS reject-mask bridge at dispatcher `0x14005B8E0`, the `AL`-observed success paths, the explicit 16-byte in/out correction paths, and the three wrapper source slots. Those facts were safe to promote without inventing the unresolved generic result ABI.
-
-### Implementation
-
-Added DMC3-profile evidence descriptors in:
-
-- `include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp`;
-- regression: `tests/hits_query_evidence_tests.cpp`.
-
-The profile records:
-
-- nine known HITS query-family VAs with unresolved fields kept unresolved;
-- `EBE0` and `F070` as confirmed mutable 16-byte in/out paths;
-- `EE40` and `60790` only as `AL`-observed success at the preserved caller, without claiming non-mutation;
-- dynamic category bindings `0x02/0x05/0x08/0x0B/0x0E/0x11`;
-- activation flags `0x1000..0x20000`;
-- manager offsets `+0x10..+0x88` in `0x18` steps;
-- dispatcher-level static-HITS masks `0x0040/0x0002/0x0010/0x0020/0/0`;
-- wrapper source 0/member 3, source 1/member 6, and structurally present external/global source 2 with its selection/backing uncertainty preserved;
-- an exact-build guard through the existing `phase12_canonical_target().matches_hash(...)` contract, so these VA descriptors are accepted only for canonical SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` and reject the packed build SHA `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`.
-
-### Review finding 1 — ownership and correction
-
-The first version placed DMC3-specific function VAs under generic `include/dmc_rengine/hits/`. This violated the project-wide game-profile architecture rule: universal/generic HITS code must not own DMC3 addresses or profile-specific runtime identities.
-
-The implementation was corrected immediately:
-
-- DMC3-specific descriptor moved to `include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp`;
-- generic `include/dmc_rengine/hits/query_evidence.hpp` removed;
-- regression updated to consume the DMC3 profile layer.
-
-This correction is canonical and must not be reverted by moving hardcoded DMC3 VAs back into generic HITS core.
-
-### Review finding 2 — dispatcher evidence scope
-
-The first profile field name `static_hits_reject_mask` was too broad: especially for categories `0x0E` and `0x11`, evidence proves only that dispatcher `0x14005B8E0` passes zero in this branch; it does not prove that those categories never participate in filtering elsewhere.
-
-The field was renamed to `dispatcher_static_hits_reject_mask`. Tests assert the dispatcher-level mapping and do not promote zero to a global category property.
-
-### Review finding 3 — build identity gate
-
-Profile namespace alone was insufficient protection because the recovered VAs belong to one exact DMC3 HD executable build. The profile delegates hash matching to the existing canonical known-target contract instead of duplicating target identity. Regression explicitly accepts the canonical SHA, rejects the packed SHA, and rejects malformed hash input.
-
-## Third implementation / review / debug receipt — runtime topology promotion
-
-### Evidence promoted
-
-Phase-4 static saturation and the Pass-7/Pass-9 preserved corpus support a stronger topology layer without resolving the still-open generic result ABI:
-
-- source selector `0x14005EBC0` has exactly four direct callsites:
-  - `0x140056832`: select source 1/member 6;
-  - `0x14005686E`: restore source 0/member 3;
-  - `0x1400568F0`: select source 1/member 6;
-  - `0x140056936`: restore source 0/member 3;
-- two exact temporary source-1 paths are therefore preserved:
+Promoted:
+- four direct `0x14005EBC0` source-selector callsites;
+- two temporary source-1 paths:
   - `0x140056832 -> 0x1400601E0 -> 0x14005686E`;
   - `0x1400568F0 -> 0x14005FEC0 -> 0x140056936`;
-- query-family direct caller census is preserved as `1/51/1/1/1/1/1/5/1` for `E460/E7A0/EBE0/EE40/F070/FD10/FEC0/601E0/60790`;
-- runtime-helper static call census is preserved for initializer, teardown, binder, selector, broadphase collector, cell-list resolver, record resolver, plane evaluator and normal classifier;
-- two final static xref scans produced the same result, so no additional direct source selector, HITS owner, initializer/teardown or raw-record resolver is promoted from the current static corpus.
+- query-family caller census `1/51/1/1/1/1/1/5/1`;
+- runtime helper VA/caller census;
+- repeated static xref saturation receipt.
 
-This is topology evidence only. It does not close source-2 selection/lifetime, `E7A0` arbitration, `B460` candidate production, `FEC0` output ABI or `601E0` accumulation semantics.
+Correction: `namespace detail` was initially treated as if it provided access control. It does not. Backing tables are now private static members of `detail::EvidenceStore`, while public access remains exact-SHA-gated. Fix commit: `4845120fbe9a3362d4040a0e37e32387411411d7`.
 
-### Implementation
+## Slice 4 receipt — canonical combined-query ABI
 
-The DMC3 profile evidence API now exposes SHA-gated lookup for:
+Canonical function bodies:
+- `E7A0..E880`, 224 bytes, SHA `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
+- `E880..EB95`, 789 bytes, SHA `b3fdeac674795752492e1eca9e7a9d21837552aa6cf90f0a02a14e3546136e8a`;
+- `BCF0..C0D6`, 998 bytes, SHA `e7e1c1a56425e0a3c5ef5a5a4fff9105d5e073effeae6fcb268829ec3b451d02`.
 
-- exact direct selector callsites;
-- the two temporary source-1 query paths;
-- runtime helper roles/VAs/static caller counts;
-- query-family caller counts and the existing dynamic/source evidence.
+`E7A0` ABI:
+1. runtime wrapper/context;
+2. reference/start 16-byte point;
+3. working/requested 16-byte point;
+4. corrected/output 16-byte point;
+5. optional common `0x38` hit metadata;
+6. raw reject mask.
 
-Packed build SHA `81c7...c7d6` receives no profile evidence through these lookup APIs.
+Common metadata bridge:
+- static accepted hit copies a complete `0x38` raw HITS record;
+- dynamic accepted hit writes compatible metadata, including identity source `object+0xD8 -> metadata+0x00` and a three-float caller-visible vector at `+0x28/+0x2C/+0x30`;
+- exact semantic name of this vector remains unresolved.
 
-### Second-review finding 4 — `namespace detail` was not access control
+`BCF0` direct layout evidence:
+- list head = `RCX[category]`;
+- next `+0x328`;
+- primitive/object type `+0x120`, handled values `2..6`;
+- raw 16-bit filter flags `+0xDA/+0xDB`;
+- identity/key `+0xD8`.
 
-The first Slice-3 correction moved backing evidence tables into `namespace detail` and then described them as non-bypassable. That statement was too strong: C++ namespaces do not provide access control, so external code could still name `hits_evidence::detail::k_*` and bypass the intended SHA-gated lookup surface.
-
-Correction commit: `4845120fbe9a3362d4040a0e37e32387411411d7`.
-
-The backing tables now live as `private inline static constexpr` members of `detail::EvidenceStore`. Public lookups delegate to `EvidenceStore` methods that require the exact executable SHA. The intent is not to hide addresses from source code; it is to prevent the library API from exposing an ungated raw-table path that could accidentally apply canonical-build VAs to another executable.
-
-### P0 evidence boundary after Slice 3
-
-The preserved corpus is sufficient to promote caller counts, mask routing, source switching and helper topology. It is not sufficient to fabricate the missing instruction-level body of `0x14005E7A0`.
-
-For `0x14005E7A0`, still `RESEARCH REQUIRED`:
-
-- full prologue and exact RCX/RDX/R8/R9/stack ABI;
-- local stack frame and temporary result offsets;
-- no-hit sentinel initialization;
-- complete static candidate write-set;
-- complete dynamic candidate write-set for categories `0x0E/0x11`;
-- the metric used to compare candidates;
-- branch relation and equality/tie-break behavior;
-- copy/overwrite order into caller-visible output;
-- exact caller read-back offsets.
-
-The known 51-caller mask census and static/dynamic split constrain this future reverse step but do not substitute for the missing instruction window.
+Second-review correction: the first Slice-4 descriptor incorrectly claimed cross-category progressive working-point mutation. `BCF0` uses an internal local copy of its `R8` baseline. Both `0x0E` and `0x11` therefore start from the same baseline, while later successful passes overwrite caller-visible output. Corrected by commits `123ce6331a34d994e3f0121804568efc5ce5c5a4` and `1f0360661624acf41dfdfe776fe8229c5f2edb0b`.
 
 ## Safety gates
 
-- exact canonical SHA required;
-- expected bytes required for every hook site;
-- no hooks on unknown/custom EXEs;
-- reversible patch/trampoline only;
-- logging must not change arguments, selected source, masks, geometry, result data or branch outcomes;
-- preserve event ordering to reconstruct static/dynamic arbitration;
-- runtime observations stay `DERIVED FROM VERIFIED RUNTIME` until trace integrity and controlled game validation.
+- exact canonical SHA required for build-specific evidence;
+- expected bytes required before any real hook;
+- no hooks on unknown/custom executables;
+- no semantic field names without direct write/read/runtime evidence;
+- DMC3 addresses remain profile-specific;
+- no proprietary game bytes committed;
+- tests are not weakened merely to become green.
 
-## Control experiment matrix
+## Next execution order
 
-- source0 generic query with mask 0;
-- source0 mask `0x0008` family;
-- source0 mask `0x0010` family;
-- source1 `0x14005FEC0` path;
-- source1 `0x1400601E0` path;
-- dynamic categories `0x02/0x05/0x08/0x0B/0x0E/0x11` where reachable;
-- hit/no-hit pairs through the same caller;
-- static-only vs dynamic-present cases;
-- equal or near-equal candidate cases if controllable, to expose tie-break behavior.
-
-## Pass-9 handoff
-
-Pass 9 already established stage-local source ownership, source2 structural HitsRuntime compatibility, specialized query register ABI, dynamic category/mask routing, correction direction and the static evidence boundary. Pass 10 owns evidence reacquisition and runtime proof for unresolved original-game P0 ABI.
+1. finish/promote the dynamic-world update slice `B7B0 -> B460 -> B6F0 -> B8E0` with exact body hashes and ABI separation from query-path `BCF0`;
+2. reverse `0x14005FEC0` exact source-1 ABI;
+3. reverse `0x1400601E0` exact in/out/fourth-component/accumulation semantics;
+4. only then descend further into geometry helpers where source-equivalent reconstruction requires it.
 
 ## Explicit non-goals
 
-- no guessed original `CollisionResult` layout;
-- no invented gameplay names for dynamic categories or source 1/source 2;
-- no product `ContactResult` promoted as Capcom ABI;
-- no GDSpaces ownership of recovered collision runtime;
-- no proprietary EXE/PAC/HITS bytes committed.
+- no guessed monolithic original `CollisionResult`;
+- no invented gameplay names for dynamic primitive values `2..6`;
+- no invented name for metadata vector `+0x28..+0x30`;
+- no conflation of query path (`E7A0/E880/BCF0`) with dynamic-world update path (`B7B0/B460/B6F0/B8E0`);
+- no GDSpaces ownership of recovered collision runtime.
