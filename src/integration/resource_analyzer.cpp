@@ -16,6 +16,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -61,6 +62,25 @@ void append_parser_diagnostics(
             diagnostic.code,
             diagnostic.message);
     }
+}
+
+[[nodiscard]] bool attach_typed_result(
+    ProjectWorkspace& project,
+    ResourceAnalysisReport& report,
+    const gdspaces::ResourceId& resource,
+    ParsedResourceResult parsed,
+    std::string_view format_name) {
+    if (project.attach_parsed_resource(resource, std::move(parsed))) {
+        return true;
+    }
+
+    add_report_diagnostic(
+        report,
+        gdspaces::DiagnosticSeverity::error,
+        "analysis.parsed-resource-attach-failed",
+        std::string(format_name) +
+            " parser executed, but its canonical typed result could not be retained in the shared resource workspace.");
+    return false;
 }
 
 [[nodiscard]] bool attach_binary_document(
@@ -167,6 +187,15 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
             gdspaces::ToolTarget::binary_inspector));
         append_parser_diagnostics(
             project, report, resource, scan.diagnostics);
+        static_cast<void>(attach_typed_result(
+            project,
+            report,
+            resource,
+            ParsedResourceResult{
+                .parser_id = descriptor->parser_id,
+                .data = scan,
+            },
+            "HITS"));
 
         if (scan.recognized) {
             static_cast<void>(attach_binary_document(
@@ -192,6 +221,15 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
             gdspaces::ToolTarget::binary_inspector));
         append_parser_diagnostics(
             project, report, resource, scan.diagnostics);
+        static_cast<void>(attach_typed_result(
+            project,
+            report,
+            resource,
+            ParsedResourceResult{
+                .parser_id = descriptor->parser_id,
+                .data = scan,
+            },
+            "DCA"));
 
         if (scan.recognized) {
             static_cast<void>(attach_binary_document(
@@ -217,6 +255,15 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
             gdspaces::ToolTarget::binary_inspector));
         append_parser_diagnostics(
             project, report, resource, scan.diagnostics);
+        static_cast<void>(attach_typed_result(
+            project,
+            report,
+            resource,
+            ParsedResourceResult{
+                .parser_id = descriptor->parser_id,
+                .data = scan,
+            },
+            "LIG2"));
 
         if (scan.recognized) {
             static_cast<void>(attach_binary_document(
@@ -242,6 +289,15 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
             gdspaces::ToolTarget::binary_inspector));
         append_parser_diagnostics(
             project, report, resource, lex.diagnostics);
+        static_cast<void>(attach_typed_result(
+            project,
+            report,
+            resource,
+            ParsedResourceResult{
+                .parser_id = descriptor->parser_id,
+                .data = lex,
+            },
+            "Stage TXT"));
 
         if (lex.recognized) {
             static_cast<void>(attach_binary_document(
