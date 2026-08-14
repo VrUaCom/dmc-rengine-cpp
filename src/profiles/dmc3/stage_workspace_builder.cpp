@@ -113,11 +113,17 @@ StageWorkspaceBuildResult StageWorkspaceBuilder::build(
         });
     }
 
+    const auto resource_set_id = std::string{plan.resource_set_key()};
+    const auto display_name = plan.semantic_stage_known()
+        ? "Stage " + plan.semantic_stage_id
+        : "Stage resource set " + resource_set_id;
     const gdspaces::StageIdentity identity{
         .profile = "dmc3-hd",
-        .stage_id = plan.stage_id,
-        .display_name = "Stage " + plan.stage_id,
+        .stage_id = resource_set_id,
+        .display_name = display_name,
         .exe_evidence_id = plan.evidence_id,
+        .resource_set_id = resource_set_id,
+        .semantic_stage_id = plan.semantic_stage_id,
     };
     auto bundle = gdspaces::StageBundleAssembler::assemble(
         identity, candidates);

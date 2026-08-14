@@ -62,13 +62,14 @@ StageViewConsistencyReport validate_stage_views(
             "The ModViz scene workspace view is invalid.");
         return report;
     }
-    if (stage_ops.identity.stage_id != modviz.identity.stage_id ||
+    if (stage_ops.identity.resource_set_key() !=
+            modviz.identity.resource_set_key() ||
         stage_ops.identity.profile != modviz.identity.profile) {
         add_issue(
             report,
             "stage-view.identity-mismatch",
             {},
-            "Stage Ops and ModViz do not reference the same stage identity.");
+            "Stage Ops and ModViz do not reference the same resource-set identity.");
         return report;
     }
 

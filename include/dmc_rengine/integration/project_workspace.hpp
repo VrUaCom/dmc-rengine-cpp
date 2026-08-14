@@ -62,8 +62,14 @@ public:
         const gdspaces::ResourceId& resource) const noexcept;
     [[nodiscard]] const ResourceWorkspaceSession* find_session(
         std::string_view canonical_id) const noexcept;
+
+    // Legacy technical-key query retained for compatibility with older callers.
+    // New stage/catalog consumers should query the explicit resource-set id.
     [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
         sessions_for_stage(std::string_view stage_id) const;
+    [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
+        sessions_for_stage_resource_set(std::string_view resource_set_id) const;
+
     [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
         executable_sessions_for_artifact(
             std::string_view artifact_id) const;

@@ -17,9 +17,9 @@ std::vector<const StageResourceView*> StageWorkspaceView::by_category(
 
 StageWorkspaceView build_workspace_view(
     const integration::ProjectWorkspace& project,
-    std::string_view stage_id) {
+    std::string_view resource_set_id) {
     StageWorkspaceView view;
-    auto sessions = project.sessions_for_stage(stage_id);
+    auto sessions = project.sessions_for_stage_resource_set(resource_set_id);
     std::sort(
         sessions.begin(), sessions.end(),
         [](const integration::ResourceWorkspaceSession* left,
@@ -36,7 +36,7 @@ StageWorkspaceView build_workspace_view(
         if (!view.identity.valid()) {
             view.identity = stage->identity;
         }
-        if (stage->identity.stage_id != view.identity.stage_id ||
+        if (stage->identity.resource_set_key() != view.identity.resource_set_key() ||
             stage->identity.profile != view.identity.profile) {
             return StageWorkspaceView{};
         }

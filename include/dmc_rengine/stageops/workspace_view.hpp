@@ -48,8 +48,10 @@ struct StageWorkspaceView final {
         gdspaces::StageResourceCategory category) const;
 };
 
+// resource_set_id is the canonical technical grouping identity. It does not
+// require or imply a known semantic gameplay-stage id.
 [[nodiscard]] StageWorkspaceView build_workspace_view(
     const integration::ProjectWorkspace& project,
-    std::string_view stage_id);
+    std::string_view resource_set_id);
 
 } // namespace dmc::rengine::stageops
