@@ -1,7 +1,6 @@
 #include "stage_commands.hpp"
 
 #include "dmc_rengine/evidence/json_import.hpp"
-#include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/integration/stage_workspace_manifest.hpp"
@@ -109,19 +108,7 @@ load_stage_catalog(const std::filesystem::path& executable_path) {
     }
 
     const auto bytes = std::span<const std::byte>{payload->bytes};
-    const auto pe = exe::PeReader::read(bytes);
-    for (const auto& warning : pe.warnings) {
-        std::cerr << "stage-catalog [warning] " << warning << '\n';
-    }
-    for (const auto& parse_error : pe.errors) {
-        std::cerr << "stage-catalog [error] " << parse_error << '\n';
-    }
-    if (!pe.ok()) {
-        return std::nullopt;
-    }
-
-    auto loaded = profiles::dmc3::StageCatalogLoader::load_canonical(
-        bytes, *pe.image);
+    auto loaded = profiles::dmc3::StageCatalogLoader::load_canonical(bytes);
     for (const auto& diagnostic : loaded.catalog.diagnostics) {
         std::cerr << "stage-catalog ["
                   << gdspaces::to_string(diagnostic.severity) << "] "
