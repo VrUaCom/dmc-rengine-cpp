@@ -85,19 +85,20 @@ int main() {
     assert(session->events().by_type(
         integration::WorkspaceEventType::binary_document_attached).size() == 1U);
 
-    // Source re-analysis remains explicitly source@0 even if a WorkingCopy later
-    // exists. Parser provenance must never be inferred from session state.
+    // Keep the edit structurally valid: triangle.flags @ 0x50 is data, while
+    // header offsets/sizes remain unchanged. Source re-analysis must still be
+    // explicitly source@0 even though a dirty WorkingCopy exists.
     assert(project.enable_working_copy(resource.id));
-    const auto source_06 = bytes[0x06U];
+    const auto source_flags = bytes[0x50U];
     const auto edit = project.apply_edit(
         resource.id,
         gdspaces::EditOperation{
             .id = "working-copy-parser-revision",
             .base_revision = 0U,
-            .offset = 0x06U,
-            .expected = {source_06},
-            .replacement = {std::byte{0x09}},
-            .description = "Create WorkingCopy revision one for parser lineage.",
+            .offset = 0x50U,
+            .expected = {source_flags},
+            .replacement = {std::byte{0x03}},
+            .description = "Create WorkingCopy revision one by changing HITS triangle flags.",
         },
         gdspaces::ToolTarget::stage_ops);
     assert(edit.applied && edit.revision == 1U);
@@ -135,6 +136,7 @@ int main() {
     assert(parsed->byte_revision == 1U);
     hits = parsed->get_if<formats::hits::ScanResult>();
     assert(hits != nullptr && hits->triangles.size() == 1U);
+    assert(hits->triangles[0].flags == 0x00000003U);
 
     parser_events = session->events().by_type(
         integration::WorkspaceEventType::parser_completed);
