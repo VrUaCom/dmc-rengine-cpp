@@ -75,10 +75,14 @@ public:
     [[nodiscard]] const std::vector<gdspaces::Diagnostic>& diagnostics() const noexcept;
     [[nodiscard]] const WorkspaceEventJournal& events() const noexcept;
 
+    // byte_revision identifies the exact byte revision analyzed. Immutable
+    // source parsing is revision 0. WorkingCopy parsing supplies its explicit
+    // current revision; the event must never infer this from session state.
     [[nodiscard]] bool record_parser_completed(
         std::string parser_id,
         bool recognized,
-        gdspaces::ToolTarget consumer);
+        gdspaces::ToolTarget consumer,
+        std::uint64_t byte_revision = 0U);
     [[nodiscard]] bool add_parser_diagnostics(
         std::span<const formats::ParseDiagnostic> diagnostics);
 
