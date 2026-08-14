@@ -1,5 +1,8 @@
 #include "runtime/resources/resource_lifecycle.hpp"
 #include "runtime/resources/resource_manager.hpp"
+#include "runtime/resources/shw_postload.hpp"
+#include "recovered_dmc3_mod_efm_postload_cases.hpp"
+#include "recovered_dmc3_wave3_execution_cases.hpp"
 
 #include <array>
 #include <cassert>
@@ -29,6 +32,28 @@ public:
         return succeed;
     }
 };
+
+[[nodiscard]] std::uint64_t read_u64_le_for_test(
+    std::span<const std::byte> bytes,
+    std::size_t offset) {
+    std::uint64_t value{};
+    for (std::size_t index = 0U; index < 8U; ++index) {
+        value |= static_cast<std::uint64_t>(
+            std::to_integer<std::uint8_t>(bytes[offset + index])) <<
+            (index * 8U);
+    }
+    return value;
+}
+
+void write_u64_le_for_test(
+    std::span<std::byte> bytes,
+    std::size_t offset,
+    std::uint64_t value) {
+    for (std::size_t index = 0U; index < 8U; ++index) {
+        bytes[offset + index] = static_cast<std::byte>(
+            (value >> (index * 8U)) & 0xFFU);
+    }
+}
 
 } // namespace
 
@@ -98,9 +123,6 @@ int main() {
     static_assert(offsetof(ResourceRuntimeEntry, loaded_payload) == 0x20U);
     static_assert(offsetof(ResourceRuntimeEntry, owned_state) == 0x28U);
 
-    // Exercise only transitions directly supported by Wave-2 evidence. Known
-    // non-state fields are seeded independently to prove that these transition
-    // helpers do not invent writer ownership or field-clearing behavior.
     ResourceRuntimeEntry entry{};
     entry.group_index = 5U;
     entry.subtype_index = 12U;
@@ -152,8 +174,6 @@ int main() {
         entry, PostLoadFormat::mod, bytes, backend) ==
         ResourceTransitionResult::wrong_state);
 
-    // All four confirmed helpers can cross the same explicit typed-postload
-    // boundary. This does not claim how the original dispatcher selected them.
     constexpr std::array<PostLoadFormat, 4> formats{
         PostLoadFormat::mod,
         PostLoadFormat::efm,
@@ -168,8 +188,68 @@ int main() {
         assert(typed.state == ResourceLoadState::ready_postprocessed);
     }
 
-    // State-4 entry is intentionally seeded rather than synthesized because the
-    // source-state domain entering teardown remains unresolved.
+    std::array<std::byte, 0xB0> shw_bytes{};
+    shw_bytes[shw_record_count_offset] = std::byte{2};
+    constexpr std::array<std::uint64_t, 8> shw_relative_offsets{
+        0x10ULL, 0x20ULL, 0x30ULL, 0x40ULL,
+        0x50ULL, 0x60ULL, 0x70ULL, 0x80ULL,
+    };
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        write_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + index * 8U,
+            shw_relative_offsets[index]);
+        write_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + shw_record_stride + index * 8U,
+            shw_relative_offsets[index + 4U]);
+    }
+
+    ResourceRuntimeEntry shw_entry{};
+    shw_entry.state = ResourceLoadState::io_complete_pending_postprocess;
+    ShwPostLoadBackend shw_backend;
+    assert(run_confirmed_postload(
+        shw_entry, PostLoadFormat::shw, shw_bytes, shw_backend) ==
+        ResourceTransitionResult::applied);
+    assert(shw_entry.state == ResourceLoadState::ready_postprocessed);
+
+    const auto shw_base = static_cast<std::uint64_t>(
+        reinterpret_cast<std::uintptr_t>(shw_bytes.data()));
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        assert(read_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + index * 8U) ==
+            shw_base + shw_relative_offsets[index]);
+        assert(read_u64_le_for_test(
+            shw_bytes,
+            shw_first_record_offset + shw_record_stride + index * 8U) ==
+            shw_base + shw_relative_offsets[index + 4U]);
+    }
+
+    std::array<std::byte, 0x50> truncated_shw{};
+    truncated_shw[shw_record_count_offset] = std::byte{2};
+    ResourceRuntimeEntry truncated_shw_entry{};
+    truncated_shw_entry.state =
+        ResourceLoadState::io_complete_pending_postprocess;
+    assert(run_confirmed_postload(
+        truncated_shw_entry,
+        PostLoadFormat::shw,
+        truncated_shw,
+        shw_backend) == ResourceTransitionResult::postload_failed);
+    assert(truncated_shw_entry.state ==
+        ResourceLoadState::io_complete_pending_postprocess);
+
+    ResourceRuntimeEntry wrong_shw_format{};
+    wrong_shw_format.state =
+        ResourceLoadState::io_complete_pending_postprocess;
+    assert(run_confirmed_postload(
+        wrong_shw_format,
+        PostLoadFormat::mod,
+        shw_bytes,
+        shw_backend) == ResourceTransitionResult::postload_failed);
+    assert(wrong_shw_format.state ==
+        ResourceLoadState::io_complete_pending_postprocess);
+
     ResourceRuntimeEntry teardown_entry{};
     teardown_entry.group_index = 6U;
     teardown_entry.state = ResourceLoadState::teardown_or_cancel_pending;
@@ -181,6 +261,13 @@ int main() {
 
     assert(apply_observed_cleanup_transition(teardown_entry) ==
         ResourceTransitionResult::wrong_state);
+
+    // Disassembly-complete MOD/EFM helper bodies are now compiled and executed.
+    // Corpus validation remains a separate evidence gate.
+    dmc::recovered::dmc3::tests::mod_efm::run();
+
+    // Directly recovered and evidence-bounded Wave-3 slices execute here too.
+    dmc::recovered::dmc3::tests::wave3::run();
 
     return 0;
 }
