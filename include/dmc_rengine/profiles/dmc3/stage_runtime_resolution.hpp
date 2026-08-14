@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/gdspaces/stage_bundle_assembler.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
+#include "dmc_rengine/profiles/dmc3/stage_catalog.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_resources.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_table_reader.hpp"
 
@@ -23,6 +24,9 @@ struct StageRuntimeResourceResolution final {
 };
 
 struct StageRuntimeResolutionReport final {
+    // Stable executable table-row identity. It is separate from any later
+    // evidence-backed semantic gameplay-stage identity.
+    std::string catalog_entry_id;
     std::uint32_t table_row_index{};
     StageResourceRowPlan plan;
     std::array<StageRuntimeResourceResolution, 4> resources{};
@@ -38,8 +42,19 @@ struct StageRuntimeResolutionReport final {
 
 class StageRuntimeResolver final {
 public:
+    // Canonical production entry point: stage resolution begins with one exact
+    // StageCatalog entry, not an inferred stNNN identifier or filename family.
+    [[nodiscard]] static StageRuntimeResolutionReport resolve_entry(
+        const StageCatalogEntry& entry,
+        const VolumeBootstrapPlan& bootstrap,
+        const RuntimeSourceBindings& bindings,
+        const gdspaces::SourceRegistry& sources);
+
+    // Compatibility bridge for callers that already hold one raw table row.
+    // catalog_entry_id is row identity only and must not be interpreted as a
+    // semantic gameplay stage id.
     [[nodiscard]] static StageRuntimeResolutionReport resolve_row(
-        std::string stage_id,
+        std::string catalog_entry_id,
         std::string evidence_id,
         const StageResourceTableRowObservation& row,
         const VolumeBootstrapPlan& bootstrap,
