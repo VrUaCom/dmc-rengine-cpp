@@ -1,4 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/stageops_ingress.hpp"
+#include "dmc_rengine/stageops/domain_workspace.hpp"
+#include "dmc_rengine/stageops/operations_session.hpp"
+#include "dmc_rengine/stageops/semantic_graph.hpp"
 
 #include "hits_test_fixture.hpp"
 
@@ -192,12 +195,69 @@ int main() {
     const auto hits_members = ingress.assembly.by_category(
         gdspaces::StageResourceCategory::collision);
     assert(hits_members.size() == 1U);
-    const auto* hits_session = project.find_session(
-        hits_members[0]->resource_id);
+    const auto hits_id = hits_members[0]->resource_id;
+    const auto* hits_session = project.find_session(hits_id);
     assert(hits_session != nullptr);
     assert(hits_session->parsed_resource() != nullptr);
     assert(hits_session->parsed_resource()->recognized());
     assert(hits_session->binary_document() != nullptr);
+
+    // Full canonical vertical slice: runtime materialization report -> Stage Ops
+    // aggregate -> shared project sessions -> typed domain -> Semantic Graph.
+    stageops::StageOperationsSession operations(ingress.assembly, project);
+    assert(operations.valid());
+    assert(operations.stage_revision() == 0U);
+
+    auto domains = stageops::StageDomainAssembler::assemble(
+        ingress.assembly, project, operations.stage_revision());
+    assert(domains.valid());
+    assert(domains.by_kind(stageops::StageDomainKind::hits_collision).size() == 1U);
+    assert(domains.stale_typed_result_count == 0U);
+
+    auto semantic = stageops::semantic::StageSemanticGraphBuilder::build(
+        ingress.assembly, domains, operations.stage_revision());
+    assert(semantic.valid());
+    assert(semantic.by_kind(
+        stageops::semantic::NodeKind::domain_object).size() == 1U);
+    const auto domain_id = domains.objects.front().id;
+    const auto* domain_node = semantic.find_node(domain_id);
+    assert(domain_node != nullptr);
+    assert(domain_node->attributes.at("current_for_active_bytes") == "true");
+
+    // An edit is owned/orchestrated by Stage Ops, bytes stay in ProjectWorkspace,
+    // and derived typed domain/graph state becomes visibly stale rather than
+    // silently reparsing through a competing scene path.
+    assert(operations.enable_editing(hits_id));
+    hits_session = project.find_session(hits_id);
+    assert(hits_session != nullptr);
+    const auto& source_bytes = hits_session->source_payload().bytes;
+    const auto edit = operations.apply_edit(
+        hits_id,
+        gdspaces::EditOperation{
+            .id = "vertical-stageops-edit",
+            .base_revision = 0U,
+            .offset = 0x06U,
+            .expected = {source_bytes[0x06U]},
+            .replacement = {std::byte{0x09}},
+            .description = "Invalidate Stage Ops derived collision state.",
+        });
+    assert(edit.applied);
+    assert(operations.stage_revision() == 1U);
+    assert(operations.derived_state_stale());
+
+    domains = stageops::StageDomainAssembler::assemble(
+        ingress.assembly, project, operations.stage_revision());
+    assert(domains.stale_typed_result_count == 1U);
+    assert(!domains.current_for_active_bytes());
+    assert(domains.by_kind(stageops::StageDomainKind::hits_collision)[0]
+        ->current_for_active_bytes == false);
+
+    semantic = stageops::semantic::StageSemanticGraphBuilder::build(
+        ingress.assembly, domains, operations.stage_revision());
+    assert(semantic.valid());
+    domain_node = semantic.find_node(domains.objects.front().id);
+    assert(domain_node != nullptr);
+    assert(domain_node->attributes.at("current_for_active_bytes") == "false");
 
     // Reopening the exact same runtime report reuses canonical resource sessions
     // and does not re-run parsers that already retained a typed result.
