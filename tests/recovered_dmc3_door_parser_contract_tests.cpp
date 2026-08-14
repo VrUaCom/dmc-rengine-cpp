@@ -11,6 +11,15 @@ int main() {
     assert(contract.valid());
     assert(contract.artifact_sha256 ==
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082");
+
+    constexpr std::array<std::string_view, 4> expected_evidence_ids{
+        "ev-dmc3-door-parser-logical-function",
+        "ev-dmc3-door-table-capacity",
+        "ev-dmc3-door-box-grammar",
+        "ev-dmc3-door-selected-record-writes",
+    };
+    assert(contract.evidence_ids == expected_evidence_ids);
+
     assert(contract.logical_start_va == 0x1401A9DE0ULL);
     assert(contract.door_capacity == 12U);
     assert(contract.auto_path_va == 0x1401AB6D0ULL);
