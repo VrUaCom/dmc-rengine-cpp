@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "id": "hits-pass10-query-runtime-evidence-2026-08-14",
-  "title": "HITS Pass 10 — Canonical Query, Dynamic Update and Source-1 ABI Evidence",
+  "title": "HITS Pass 10 — Canonical Query, Dynamic Update, Source-1 ABI and Primitive Shape Evidence",
   "date": "2026-08-14",
-  "status": "TOP_LEVEL_P0_ABI_CLOSED_VALIDATION_ACTIVE",
+  "status": "TOP_LEVEL_P0_ABI_CLOSED_DEEP_SEMANTICS_ACTIVE",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -28,6 +28,7 @@
     "github_slice4_document": "docs/research/hits-pass10-slice4-canonical-combined-query-abi.md",
     "github_slice5_document": "docs/research/hits-pass10-slice5-dynamic-world-update-topology.md",
     "github_slice6_document": "docs/research/hits-pass10-slice6-source1-query-abi.md",
+    "github_slice7_document": "docs/research/hits-pass10-slice7-primitive-shape-mapping.md",
     "github_coordination_issue": 25,
     "github_pull_request": 85
   },
@@ -44,12 +45,7 @@
   ],
   "combined_query": {
     "va": "0x14005E7A0",
-    "body": {
-      "begin_va":"0x14005E7A0",
-      "end_va":"0x14005E880",
-      "size_bytes":224,
-      "sha256":"3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f"
-    },
+    "body": {"begin_va":"0x14005E7A0","end_va":"0x14005E880","size_bytes":224,"sha256":"3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f"},
     "arguments": [
       {"index":1,"location":"RCX","role":"runtime wrapper/context"},
       {"index":2,"location":"RDX","role":"reference/start 16-byte point"},
@@ -87,7 +83,7 @@
     "linked_next_offset":"0x328",
     "primitive_type_offset":"0x120",
     "observed_primitive_types":[2,3,4,5,6],
-    "primitive_type_semantics":"UNRESOLVED",
+    "primitive_type_semantics":"PARTIALLY_RESOLVED_BY_SLICE7",
     "raw_flags_offset":"0xDA",
     "raw_flags_width_bytes":2,
     "identity_source_offset":"0xD8",
@@ -154,12 +150,7 @@
       "rejects_self_pair":true,
       "rejects_shared_owner":true
     },
-    "category_0x0e_mask_bridge": {
-      "0x02":"0x0040",
-      "0x05":"0x0002",
-      "0x08":"0x0010",
-      "0x0B":"0x0020"
-    },
+    "category_0x0e_mask_bridge": {"0x02":"0x0040","0x05":"0x0002","0x08":"0x0010","0x0B":"0x0020"},
     "superseded_description":"B460 is not E7A0 candidate production; it is a dynamic object-pair resolution/update routine."
   },
   "source1_segment_correction_fec0": {
@@ -198,6 +189,55 @@
     },
     "return_semantics":"true only when final point is displaced from original by more than epsilon in XYZ"
   },
+  "primitive_shape_mapping": {
+    "status":"EXE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE",
+    "parser_cluster":{"begin_va":"0x140247AD0","end_va":"0x1402481E0","size_bytes":1808,"sha256":"1bd8a8e369105512166e5f2557d274c86e3801b56631f0d4f7022983adfda6e2"},
+    "converter":{"begin_va":"0x1402481E0","end_va":"0x1402482C5","size_bytes":229,"sha256":"ed50d780aa2bd2868b783c4924edcac6c2af9b4269225ce92b7c778535d7c58a"},
+    "runtime_constructor_dispatcher":{"begin_va":"0x1402CC530","end_va":"0x1402CC5EF","size_bytes":191,"sha256":"e8e0065e0aeb76b6839d0506e09623b48091d853bd9ccee3127bd0bec7e19364"},
+    "parser_to_converter_flow": {
+      "parser_va":"0x140247AD0",
+      "builder_va":"0x140249710",
+      "converter_va":"0x1402481E0",
+      "parser_frame_shape_offset":"-0x38",
+      "builder_shape_member_offset":"0x98",
+      "same_parsed_shape_storage_proven":true
+    },
+    "source_to_runtime": [
+      {"token":"sphere","parser_enum":0,"internal_descriptor":2,"primary_runtime_type":2},
+      {"token":"box","parser_enum":1,"internal_descriptor":3,"primary_runtime_type":3},
+      {"token":"cylinder","parser_enum":2,"internal_descriptor":6,"primary_runtime_type":6},
+      {"token":"capsule","parser_enum":3,"internal_descriptor":4,"primary_runtime_type":4}
+    ],
+    "constructors": {
+      "descriptor2_sphere_or_swept_sphere":{"begin_va":"0x1402CCB50","end_va":"0x1402CCCB0","size_bytes":352,"sha256":"6c8735293b9040d4b44405b45a64dabebbcbe3be0bf873a2159f79747493c189"},
+      "descriptor3_box":{"begin_va":"0x1402CC610","end_va":"0x1402CC884","size_bytes":628,"sha256":"d5d6e4d714626cafeaee21697d856887c4d6505c092c3498f14e82a838eea821"},
+      "descriptor4_capsule":{"begin_va":"0x1402CC890","end_va":"0x1402CC994","size_bytes":260,"sha256":"61b2966fe7ff3766ec821f3e5704e0e1d11568e796b22513c27b990c79981bd3"},
+      "descriptor6_cylinder":{"begin_va":"0x1402CC9A0","end_va":"0x1402CCA26","size_bytes":134,"sha256":"d53e4ecb5e91dfc0fedcf8c77648cb6c9074646e8853ee8f26e9a2b0add056a6"},
+      "descriptor5_three_vertex_face":{"begin_va":"0x1402CCCB0","end_va":"0x1402CCD5B","size_bytes":171,"sha256":"766bf79c39056c7baaa6bb1cc097fab863651f7b5350edd2b07ff0509f432a2e"}
+    },
+    "runtime_type4": {
+      "semantic_scope":"capsule_or_swept_sphere_representation",
+      "parsed_capsule_descriptor":4,
+      "swept_sphere_descriptor":2,
+      "first_endpoint_offset":"0x130",
+      "second_endpoint_offset":"0x140",
+      "radius_offset":"0x150",
+      "moving_sphere_may_promote_to_type4":true,
+      "sphere_promotion_threshold":"displacement > 2 * radius"
+    },
+    "runtime_type5": {
+      "semantic_scope":"three_vertex_face_structural_representation",
+      "internal_descriptor":5,
+      "first_vertex_offset":"0x130",
+      "second_vertex_offset":"0x140",
+      "third_vertex_offset":"0x150",
+      "auxiliary_vector_offset":"0x160",
+      "vertex_count":3,
+      "auxiliary_vector_normalized":true,
+      "source_text_shape_name":"UNRESOLVED"
+    },
+    "boundary":"Do not collapse parser enum, descriptor type and runtime type into one enum; runtime type4 has two proven origins; type5 text/source name remains unproven."
+  },
   "corrections": [
     {"id":"hits.pass10.profile-layer-ownership","status":"CORRECTED","statement":"DMC3-specific HITS VAs belong in profiles/dmc3, not generic HITS core."},
     {"id":"hits.pass10.dispatcher-mask-scope","status":"CORRECTED","statement":"dispatcher_static_hits_reject_mask is dispatcher-scoped, not a global category property."},
@@ -207,7 +247,10 @@
     {"id":"hits.pass10.b460-query-candidate-role","status":"REJECTED","statement":"B460 belongs to the dynamic-world object-pair update path, not the E7A0 combined-query candidate path."},
     {"id":"hits.pass10.fec0-return-hit-boolean","status":"REJECTED","statement":"FEC0 AL reports nondegenerate segment processing, not collision hit/no-hit."},
     {"id":"hits.pass10.601e0-return-generic-success","status":"CORRECTED","statement":"601E0 AL reports material final XYZ displacement from the original point."},
-    {"id":"hits.pass10.fourth-component-spatial-norm","status":"CORRECTED","statement":"The fourth component is excluded from XYZ length/dot gates but can be transported, scaled and accumulated by 601E0 correction math."}
+    {"id":"hits.pass10.fourth-component-spatial-norm","status":"CORRECTED","statement":"The fourth component is excluded from XYZ length/dot gates but can be transported, scaled and accumulated by 601E0 correction math."},
+    {"id":"hits.pass10.parser-runtime-type-collapse","status":"REJECTED","statement":"Parsed shape enum values are remapped to descriptor types before runtime construction; parser enum is not runtime primitive type."},
+    {"id":"hits.pass10.runtime-type4-single-origin","status":"REJECTED","statement":"Runtime type4 is produced by parsed capsule descriptor4 and may also be produced from moving sphere descriptor2 as a swept-sphere representation."},
+    {"id":"hits.pass10.runtime-type5-text-name","status":"UNRESOLVED","statement":"Runtime/descriptor type5 is structurally a three-vertex face representation, but no canonical source-text shape name is proven."}
   ],
   "implementation": {
     "branch":"docs/hits-pass10-evidence-reacquisition",
@@ -228,10 +271,19 @@
     "query_summary_reconciliation":"67f74864864184a27a6c2c05e0b0cc204fb57f83",
     "query_summary_tests_reconciliation":"bb254fbd9c0eeaf34c77732953f239a40832bef1",
     "main_pass10_top_level_closure":"dca37890797e2b99a37e0e10349a33ae55c1bff4",
-    "ci_state":"CURRENT_HEAD_VALIDATION_ACTIVE"
+    "slices4_6_validated_head":"db7a557de428d4e379ecd51b9670e97dc8c435f7",
+    "slices4_6_ci_run_id":31813329645,
+    "slices4_6_ci_conclusion":"success_ubuntu_windows",
+    "slice7_profile_evidence":"0f7599d77c698dd6b430fdf97d2850f6c0d7f303",
+    "slice7_tests":"72cd6caa0c330687717479ca0f8c74fa0d492435",
+    "slice7_ctest_registration":"cccb5fc45c0c4cb1746cd5630d474533fadb6f76",
+    "slice7_document":"bd6303b5fa1b00b0fe820b59ed25d2bc8ea62f9b",
+    "slice7_current_ci_run_id":31815677268,
+    "slice7_ci_state":"VALIDATION_ACTIVE"
   },
   "remaining_work": [
-    "semantic identity of dynamic primitive/object type values 2..6 only with direct evidence",
+    "identify upstream producer/source vocabulary for descriptor/runtime type5 if direct evidence exists",
+    "resolve source semantics of descriptor/runtime types 0 and 1 without assuming they duplicate parsed sphere/box",
     "semantic identity of common metadata vector +0x28/+0x2C/+0x30 and related fourth component only after cross-producer proof",
     "geometry/contact helper reconstruction required for source-equivalent implementation",
     "controlled runtime validation of reconstructed C++ behavior against canonical executable",
