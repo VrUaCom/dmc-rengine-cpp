@@ -129,7 +129,9 @@ StageResourceRowPlan StageCatalogEntry::resource_plan() const {
 bool StageCatalog::complete(
     const StageResourceTableDescriptor& descriptor) const noexcept {
     if (coverage != StageCatalogCoverage::wave2_bank_a_compatibility ||
-        !descriptor.valid() || table_id != descriptor.id ||
+        !descriptor.is_promoted_wave2_authority() ||
+        descriptor.va != wave2_stage_resource_bank_a().va ||
+        table_id != descriptor.id ||
         evidence_id != descriptor.evidence_packet_id ||
         entries.size() != descriptor.row_count || has_error(*this)) {
         return false;
@@ -159,7 +161,7 @@ bool StageCatalog::complete_full_universe() const noexcept {
 
     std::uint32_t global_row{};
     for (const auto& descriptor : descriptors) {
-        if (!descriptor.valid()) {
+        if (!descriptor.is_promoted_wave2_authority()) {
             return false;
         }
         for (std::uint32_t source_row = 0U; source_row < descriptor.row_count;
@@ -204,10 +206,11 @@ StageCatalog StageCatalogBuilder::build(
     auto catalog = empty_bank_a_catalog(descriptor);
     catalog.diagnostics = table.diagnostics;
 
-    if (!descriptor.valid() || descriptor.va != wave2_stage_resource_bank_a().va) {
+    if (!descriptor.is_promoted_wave2_authority() ||
+        descriptor.va != wave2_stage_resource_bank_a().va) {
         add_diagnostic(catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.invalid-descriptor",
-            "The Bank-A compatibility catalog requires the exact promoted Wave-2 Bank-A descriptor.");
+            "The Bank-A compatibility catalog requires the exact promoted Wave-2 Bank-A descriptor authority.");
         return catalog;
     }
 
@@ -257,12 +260,16 @@ StageCatalog StageCatalogBuilder::build_full_universe(
         catalog.diagnostics.insert(
             catalog.diagnostics.end(), table.diagnostics.begin(), table.diagnostics.end());
 
-        if (!descriptor.valid() || descriptor.id != authority[bank_index].id ||
+        if (!descriptor.is_promoted_wave2_authority() ||
+            descriptor.id != authority[bank_index].id ||
             descriptor.va != authority[bank_index].va ||
+            descriptor.file_offset != authority[bank_index].file_offset ||
+            descriptor.rva != authority[bank_index].rva ||
+            descriptor.row_count != authority[bank_index].row_count ||
             table.rows.size() != descriptor.row_count) {
             add_diagnostic(catalog, gdspaces::DiagnosticSeverity::error,
                 "dmc3.stage-catalog.full-bank-invalid",
-                "A promoted Wave-2 Stage descriptor bank is invalid or incomplete.");
+                "A promoted Wave-2 Stage descriptor bank authority is invalid or incomplete.");
         }
 
         for (std::size_t source_index = 0U; source_index < table.rows.size(); ++source_index) {
@@ -312,10 +319,11 @@ StageCatalogLoadResult StageCatalogLoader::load_canonical(
         .catalog = empty_bank_a_catalog(descriptor),
     };
 
-    if (result.artifact_sha256 != descriptor.artifact_sha256) {
+    if (!descriptor.is_promoted_wave2_authority() ||
+        result.artifact_sha256 != descriptor.artifact_sha256) {
         add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.artifact-hash-mismatch",
-            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact.");
+            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact authority.");
         return result;
     }
 
@@ -349,10 +357,12 @@ StageCatalogLoadResult StageCatalogLoader::load_canonical_full_universe(
         .catalog = empty_full_catalog(),
     };
 
-    if (result.artifact_sha256 != descriptors[0].artifact_sha256) {
+    if (!descriptors[0].is_promoted_wave2_authority() ||
+        !descriptors[1].is_promoted_wave2_authority() ||
+        result.artifact_sha256 != descriptors[0].artifact_sha256) {
         add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.artifact-hash-mismatch",
-            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact.");
+            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact authority.");
         return result;
     }
 
