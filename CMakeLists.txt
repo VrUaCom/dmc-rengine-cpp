@@ -50,6 +50,22 @@ target_include_directories(dmc_rengine_core
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
+# Recovered game code is compiled as its own target. It must not be silently
+# absorbed into the DMC Rengine product core merely because the product consumes
+# its reverse-engineering findings.
+add_library(dmc_recovered_dmc3_resource_runtime
+    recovered-game/runtime/resources/resource_lifecycle.cpp
+)
+add_library(
+    DMCRecovered::DMC3ResourceRuntime
+    ALIAS dmc_recovered_dmc3_resource_runtime)
+target_include_directories(dmc_recovered_dmc3_resource_runtime
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/recovered-game>
+)
+target_compile_features(dmc_recovered_dmc3_resource_runtime PUBLIC cxx_std_20)
+dmc_rengine_enable_warnings(dmc_recovered_dmc3_resource_runtime)
+
 add_executable(dmc-rengine
     src/cli/main.cpp
     src/cli/integration_commands.cpp
@@ -128,9 +144,6 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_resource_matcher
         stage_runtime_resolution
         stage_runtime_review
-        stage_numeric_resolver
-        stage_full_universe
-        stage_runtime_provenance
         stage_bundle_assembler
         container_foundation
         pac_container_parser
@@ -142,6 +155,24 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
     endforeach()
+
+    add_executable(
+        dmc_recovered_dmc3_resource_runtime_tests
+        tests/recovered_dmc3_resource_runtime_tests.cpp)
+    target_link_libraries(
+        dmc_recovered_dmc3_resource_runtime_tests
+        PRIVATE DMCRecovered::DMC3ResourceRuntime)
+    dmc_rengine_enable_warnings(dmc_recovered_dmc3_resource_runtime_tests)
+    if(MSVC)
+        target_compile_options(
+            dmc_recovered_dmc3_resource_runtime_tests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(
+            dmc_recovered_dmc3_resource_runtime_tests PRIVATE -UNDEBUG)
+    endif()
+    add_test(
+        NAME dmc_recovered_dmc3_resource_runtime_tests
+        COMMAND dmc_recovered_dmc3_resource_runtime_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
