@@ -93,16 +93,39 @@ int main() {
     assert(stage_parts.remainder == 12U);
 
     // Global loader plus owner-local cache/refcount evidence.
+    assert(wave3.owner_cache.valid());
     assert(wave3.owner_cache.observed_node_capacity == 32U);
     assert(wave3.owner_cache.refcount_offset == 0x2CU);
     assert(resource_domain_evidence()[0].domain == ResourceDomain::stage_script);
     assert(resource_domain_evidence()[5].domain == ResourceDomain::enemy_object);
     assert(resource_domain_evidence()[6].domain == ResourceDomain::enemy_sound);
 
+    // Stage cfg participates in the actual dependency/preload graph.
+    assert(wave3.stage_preload.valid());
+    assert(wave3.stage_preload.config_must_be_ready_before_scan);
+    assert(wave3.stage_preload.extracts_enemy_ids_from_config_records);
+    assert(wave3.stage_preload.maps_enemy_ids_to_resource_sets);
+    assert(wave3.stage_preload.deduplicates_resource_sets);
+    assert(wave3.stage_preload.enemy_object_domain == ResourceDomain::enemy_object);
+    assert(wave3.stage_preload.enemy_sound_domain == ResourceDomain::enemy_sound);
+    assert(wave3.stage_preload.schedules_stage_script_after_enemy_preload);
+    assert(wave3.stage_preload.schedules_stage_effect_after_enemy_preload);
+    assert(wave3.stage_preload.waits_for_pending_dependencies);
+
     // .lst is a recursive manifest/fallback layer, not a filename alias.
+    assert(wave3.list_manifest.valid());
     assert(wave3.list_manifest.primary_or_list_probe_va == 0x1401B79E0ULL);
     assert(wave3.list_manifest.nested_lists);
     assert(wave3.list_manifest.rewrites_entries_to_pac);
+
+    // Byte acquisition is followed by recursive typed post-load normalization.
+    assert(wave3.typed_postload.valid());
+    assert(wave3.typed_postload.pac_member_traversal);
+    assert(wave3.typed_postload.pnst_recursive_non_empty_traversal);
+    assert(wave3.typed_postload.mod_in_place_relative_pointer_fixup);
+    assert(wave3.typed_postload.efm_in_place_relative_pointer_fixup);
+    assert(wave3.typed_postload.scm_in_place_relative_pointer_fixup);
+    assert(wave3.typed_postload.shw_in_place_relative_pointer_fixup);
 
     // Concrete gameplay construction boundaries.
     assert(wave3.player_factory.entries[0].class_name == "CPlDante");
@@ -118,6 +141,7 @@ int main() {
     assert(wave3.scene.root_scene_manager_offset == 0x1478U);
     assert(wave3.scene.scenes[5].class_name == "CSceneGameMain");
     assert(wave3.scene.nested_gameplay_scene_manager);
+    assert(wave3.scene.transition_calls_exit_destroy_create_enter);
 
     // Animation/demo registry and CMotion anchors.
     assert(wave3.animation.demo_registry_capacity == 1024U);
@@ -139,11 +163,22 @@ int main() {
     assert(wave3.media.embedded_sample_magic == "VAGp");
     assert(wave3.media.codec_export == "FMODGetCodecDescription");
 
-    // String catalog and semantic numeric resolver remain separate layers.
+    // String catalog and numeric semantic resolver are separate authority layers.
     assert(wave3.master_catalog.pointer_count == 4039U);
     assert(wave3.master_catalog.pac_count == 3398U);
+    assert(wave3.master_catalog.id_pac_entry_count == 2368U);
+    assert(wave3.master_catalog.unique_id_pac_count == 2367U);
     assert(wave3.numeric_resource_resolver.function_va == 0x1402C07F0ULL);
     assert(wave3.numeric_resource_resolver.valid_id_count == 932U);
+    assert(wave3.numeric_resource_resolver.valid_range_count == 145U);
+    assert(wave3.numeric_resource_resolver.controls[0].resource_id == 100U);
+    assert(wave3.numeric_resource_resolver.controls[0].expected_name == "id100");
+    assert(wave3.numeric_resource_resolver.controls[0].expected_found);
+    assert(wave3.numeric_resource_resolver.controls[1].expected_name == "id200J");
+    assert(wave3.numeric_resource_resolver.controls[2].expected_name == "id420J");
+    assert(wave3.numeric_resource_resolver.controls[5].expected_name == "id6500");
+    assert(wave3.numeric_resource_resolver.controls.back().resource_id == 9999U);
+    assert(!wave3.numeric_resource_resolver.controls.back().expected_found);
 
     // Process/runtime memory evidence.
     assert(wave3.memory.central_arena_bytes == 256ULL * 1024ULL * 1024ULL);
