@@ -11,6 +11,12 @@ int main() {
     static_assert(k_query_evidence.size() == 9U);
     static_assert(k_wrapper_sources.size() == 3U);
 
+    assert(matches_canonical_target(
+        "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"));
+    assert(!matches_canonical_target(
+        "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6"));
+    assert(!matches_canonical_target("not-a-sha256"));
+
     const auto ebe0 = query_evidence(QueryVariant::inout_correction_05ebe0);
     assert(ebe0.has_value());
     assert(ebe0->function_va == 0x14005EBE0ULL);
