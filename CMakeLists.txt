@@ -123,6 +123,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_domain_workspace
         stage_txt_domain_semantic
         stage_scene_snapshot
+        stage_scene_controller
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
