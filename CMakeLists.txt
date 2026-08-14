@@ -20,7 +20,6 @@ function(dmc_rengine_configure_test target source)
     add_executable(${target} ${source})
     target_link_libraries(${target} PRIVATE DMCRengine::Core)
     dmc_rengine_enable_warnings(${target})
-
     if(MSVC)
         target_compile_options(${target} PRIVATE /UNDEBUG)
     else()
@@ -46,7 +45,6 @@ target_include_directories(dmc_rengine_core
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
@@ -56,6 +54,7 @@ add_executable(dmc-rengine
     src/cli/integration_dispatch.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
+    src/cli/vanilla_commands.cpp
 )
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
 dmc_rengine_enable_warnings(dmc-rengine)
@@ -135,6 +134,13 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_tree_expander
         index_manifest
         volume_bootstrap_policy
+        vanilla_runtime
+        vanilla_runtime_queries
+        vanilla_static_tables
+        vanilla_dependency_runtime
+        stage_numeric_resolver
+        stage_full_universe
+        stage_runtime_provenance
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
@@ -148,89 +154,49 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc_rengine_public_evidence_project_tests
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
 
-    dmc_rengine_configure_test(
-        dmc_rengine_item_workspace_tests
-        tests/item_workspace_tests.cpp)
-    add_test(
-        NAME dmc_rengine_item_workspace_tests
-        COMMAND dmc_rengine_item_workspace_tests
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+    dmc_rengine_configure_test(dmc_rengine_item_workspace_tests tests/item_workspace_tests.cpp)
+    add_test(NAME dmc_rengine_item_workspace_tests COMMAND dmc_rengine_item_workspace_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
 
-    dmc_rengine_configure_test(
-        dmc_rengine_item_runtime_graph_tests
-        tests/item_runtime_graph_tests.cpp)
-    add_test(
-        NAME dmc_rengine_item_runtime_graph_tests
-        COMMAND dmc_rengine_item_runtime_graph_tests
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+    dmc_rengine_configure_test(dmc_rengine_item_runtime_graph_tests tests/item_runtime_graph_tests.cpp)
+    add_test(NAME dmc_rengine_item_runtime_graph_tests COMMAND dmc_rengine_item_runtime_graph_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
 
-    dmc_rengine_configure_test(
-        dmc_rengine_item_workspace_manifest_tests
-        tests/item_workspace_manifest_tests.cpp)
-    add_test(
-        NAME dmc_rengine_item_workspace_manifest_tests
-        COMMAND dmc_rengine_item_workspace_manifest_tests
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+    dmc_rengine_configure_test(dmc_rengine_item_workspace_manifest_tests tests/item_workspace_manifest_tests.cpp)
+    add_test(NAME dmc_rengine_item_workspace_manifest_tests COMMAND dmc_rengine_item_workspace_manifest_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
 
-    dmc_rengine_configure_test(
-        dmc_rengine_reverse_authority_manifest_tests
-        tests/reverse_authority_manifest_tests.cpp)
-    add_test(
-        NAME dmc_rengine_reverse_authority_manifest_tests
-        COMMAND dmc_rengine_reverse_authority_manifest_tests
-                ${CMAKE_CURRENT_SOURCE_DIR}/data/registries/dmc3-reverse-authorities.v1.json)
+    dmc_rengine_configure_test(dmc_rengine_reverse_authority_manifest_tests tests/reverse_authority_manifest_tests.cpp)
+    add_test(NAME dmc_rengine_reverse_authority_manifest_tests COMMAND dmc_rengine_reverse_authority_manifest_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/data/registries/dmc3-reverse-authorities.v1.json)
 
-    add_test(
-        NAME dmc_rengine_public_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
-    add_test(
-        NAME dmc_rengine_stage_wave2_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-stage-wave2.evidence.json)
-    add_test(
-        NAME dmc_rengine_pac_runtime_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-pac-runtime.evidence.json)
-    add_test(
-        NAME dmc_rengine_nbz_zip_phase14_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-nbz-zip-phase14.evidence.json)
-    add_test(
-        NAME dmc_rengine_volume_bootstrap_phase14_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-volume-bootstrap-phase14.evidence.json)
-    add_test(
-        NAME dmc_rengine_resource_path_phase14_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-path-normalization-phase14.evidence.json)
-    add_test(
-        NAME dmc_rengine_resource_vfs_phase14_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-vfs-phase14.evidence.json)
-    add_test(
-        NAME dmc_rengine_item_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
-    add_test(
-        NAME dmc_rengine_save_pass31_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass31.evidence.json)
-    add_test(
-        NAME dmc_rengine_save_pass32_evidence_validation
-        COMMAND dmc-rengine validate-evidence
-                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass32.evidence.json)
+    add_test(NAME dmc_rengine_public_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/known-targets/dmc3-hdc-phase12.evidence.json)
+    add_test(NAME dmc_rengine_stage_wave2_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-stage-wave2.evidence.json)
+    add_test(NAME dmc_rengine_pac_runtime_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-pac-runtime.evidence.json)
+    add_test(NAME dmc_rengine_nbz_zip_phase14_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-nbz-zip-phase14.evidence.json)
+    add_test(NAME dmc_rengine_volume_bootstrap_phase14_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-volume-bootstrap-phase14.evidence.json)
+    add_test(NAME dmc_rengine_resource_path_phase14_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-path-normalization-phase14.evidence.json)
+    add_test(NAME dmc_rengine_resource_vfs_phase14_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-resource-vfs-phase14.evidence.json)
+    add_test(NAME dmc_rengine_item_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+    add_test(NAME dmc_rengine_save_pass31_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass31.evidence.json)
+    add_test(NAME dmc_rengine_save_pass32_evidence_validation COMMAND dmc-rengine validate-evidence
+        ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass32.evidence.json)
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
-    add_test(
-        NAME dmc_rengine_cli_compare_hits_spatial_usage
-        COMMAND dmc-rengine compare-hits-spatial)
-    set_tests_properties(
-        dmc_rengine_cli_compare_hits_spatial_usage
-        PROPERTIES WILL_FAIL TRUE)
+    add_test(NAME dmc_rengine_cli_compare_hits_spatial_usage COMMAND dmc-rengine compare-hits-spatial)
+    set_tests_properties(dmc_rengine_cli_compare_hits_spatial_usage PROPERTIES WILL_FAIL TRUE)
 endif()

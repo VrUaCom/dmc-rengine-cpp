@@ -1,6 +1,7 @@
 #include "integration_commands.hpp"
 #include "hits_commands.hpp"
 #include "stage_commands.hpp"
+#include "vanilla_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -15,11 +16,17 @@ void print_integration_help() {
         << "  integration-status         Summarize the cross-tool integration layer\n"
         << "  inspect-workspace <path> [--stage] [--menu]\n"
         << "                             Build a GDSpaces workspace manifest for a local resource\n";
+    print_vanilla_help();
     print_stage_help();
     print_hits_help();
 }
 
 int try_run_integration_command(int argc, char** argv) {
+    const auto vanilla_result = try_run_vanilla_command(argc, argv);
+    if (vanilla_result != -1) {
+        return vanilla_result;
+    }
+
     const auto stage_result = try_run_stage_command(argc, argv);
     if (stage_result != -1) {
         return stage_result;
