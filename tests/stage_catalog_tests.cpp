@@ -89,14 +89,24 @@ int main() {
     assert(first != nullptr);
     assert(first->catalog_entry_id == descriptor.id + "/row/0");
     assert(first->row_index == 0U);
+    assert(first->numeric_stage_id == 0U);
     assert(!first->semantic_stage_id.has_value());
     assert(first->complete());
+
+    const auto* first_100 = catalog.find(13U);
+    assert(first_100 != nullptr);
+    assert(first_100->numeric_stage_id == 100U);
+    const auto* last = catalog.find(109U);
+    assert(last != nullptr);
+    assert(last->numeric_stage_id == 307U);
 
     const auto first_plan = first->resource_plan();
     assert(first_plan.valid());
     assert(first_plan.resource_set_id == first->catalog_entry_id);
     assert(first_plan.resource_set_key() == first->catalog_entry_id);
     assert(first_plan.stage_id == first->catalog_entry_id); // legacy technical alias
+    assert(first_plan.numeric_stage_known());
+    assert(first_plan.numeric_stage_id == 0U);
     assert(!first_plan.semantic_stage_known());
     assert(first_plan.semantic_stage_id.empty());
     assert(first_plan.resources[0].logical_path ==
@@ -104,7 +114,6 @@ int main() {
     assert(first_plan.resources[0].kind16 == 0U);
     assert(first_plan.resources[3].kind16 == 3U);
 
-    assert(catalog.find(109U) != nullptr);
     assert(catalog.find(110U) == nullptr);
 
     assert(catalog.repeated_references.size() == 1U);
