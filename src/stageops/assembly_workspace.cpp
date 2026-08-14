@@ -14,6 +14,17 @@ bool StageAssemblyIdentity::valid() const noexcept {
         stage.resource_set_key() == catalog_entry_id;
 }
 
+bool StageAssemblyRequirement::valid() const noexcept {
+    if (requirement_id.empty() || role.empty() || requested_logical_path.empty()) {
+        return false;
+    }
+    if (materialized &&
+        (!resource_id.has_value() || resource_id->empty())) {
+        return false;
+    }
+    return !resource_id.has_value() || !resource_id->empty();
+}
+
 bool StageAssemblyResource::valid() const noexcept {
     if (!resource.valid()) {
         return false;
@@ -23,8 +34,6 @@ bool StageAssemblyResource::valid() const noexcept {
             return false;
         }
     } else if (byte_provenance.has_value()) {
-        // Provenance describes materialized bytes. Keeping provenance on a
-        // resource declared non-materialized would create two conflicting facts.
         return false;
     }
     return true;
@@ -47,10 +56,9 @@ StageAssemblyStatus StageAssemblyWorkspace::status() const noexcept {
     if (!valid()) {
         return StageAssemblyStatus::invalid;
     }
-    if (product_materialization_complete) {
-        return StageAssemblyStatus::product_materialized;
-    }
-    return StageAssemblyStatus::partial;
+    return product_materialization_complete
+        ? StageAssemblyStatus::product_materialized
+        : StageAssemblyStatus::partial;
 }
 
 StageGameReadiness StageAssemblyWorkspace::game_readiness() const noexcept {
@@ -63,9 +71,6 @@ bool StageAssemblyWorkspace::valid() const noexcept {
     if (!identity.valid()) {
         return false;
     }
-
-    // Original-game readiness is strictly stronger than the product
-    // materialization gate. A workspace may never claim the former alone.
     if (game_ready_equivalent && !product_materialization_complete) {
         return false;
     }
@@ -77,6 +82,24 @@ bool StageAssemblyWorkspace::valid() const noexcept {
         }
         const auto canonical = resource.resource.id.canonical();
         if (canonical.empty() || !by_id.emplace(canonical, &resource).second) {
+            return false;
+        }
+    }
+
+    std::set<std::string, std::less<>> requirement_ids;
+    for (const auto& requirement : requirements) {
+        if (!requirement.valid() ||
+            !requirement_ids.insert(requirement.requirement_id).second) {
+            return false;
+        }
+        if (!requirement.resource_id.has_value()) {
+            continue;
+        }
+        const auto resource = by_id.find(*requirement.resource_id);
+        if (resource == by_id.end()) {
+            return false;
+        }
+        if (requirement.materialized && !resource->second->materialized) {
             return false;
         }
     }
@@ -118,9 +141,6 @@ bool StageAssemblyWorkspace::valid() const noexcept {
         resources_with_membership.insert(membership.resource_id);
     }
 
-    // Every resource in the Stage Ops aggregate must be reachable through at
-    // least one explicit membership, and the denormalized membership flags on
-    // the resource must agree with those relationships.
     for (const auto& [canonical, resource] : by_id) {
         if (!resources_with_membership.contains(canonical)) {
             return false;
@@ -131,16 +151,21 @@ bool StageAssemblyWorkspace::valid() const noexcept {
         }
     }
 
-    // A supplying load report may only advertise complete product
-    // materialization when every ResourceId retained in the assembled workspace
-    // has actual validated bytes/provenance. Partial workspaces remain valid.
-    if (product_materialization_complete &&
-        std::any_of(
-            resources.begin(), resources.end(),
-            [](const StageAssemblyResource& resource) {
-                return !resource.materialized;
-            })) {
-        return false;
+    if (product_materialization_complete) {
+        if (std::any_of(
+                requirements.begin(), requirements.end(),
+                [](const StageAssemblyRequirement& requirement) {
+                    return !requirement.materialized;
+                })) {
+            return false;
+        }
+        if (std::any_of(
+                resources.begin(), resources.end(),
+                [](const StageAssemblyResource& resource) {
+                    return !resource.materialized;
+                })) {
+            return false;
+        }
     }
 
     return true;
@@ -152,6 +177,16 @@ bool StageAssemblyWorkspace::product_ready() const noexcept {
 
 bool StageAssemblyWorkspace::original_game_ready() const noexcept {
     return product_ready() && game_ready_equivalent;
+}
+
+const StageAssemblyRequirement* StageAssemblyWorkspace::find_requirement(
+    std::string_view requirement_id) const noexcept {
+    const auto iterator = std::find_if(
+        requirements.begin(), requirements.end(),
+        [requirement_id](const StageAssemblyRequirement& requirement) {
+            return requirement.requirement_id == requirement_id;
+        });
+    return iterator == requirements.end() ? nullptr : &*iterator;
 }
 
 const StageAssemblyResource* StageAssemblyWorkspace::find_resource(
@@ -185,6 +220,14 @@ StageAssemblyWorkspace::memberships_for(
         }
     }
     return result;
+}
+
+std::size_t StageAssemblyWorkspace::unresolved_requirement_count() const noexcept {
+    return static_cast<std::size_t>(std::count_if(
+        requirements.begin(), requirements.end(),
+        [](const StageAssemblyRequirement& requirement) {
+            return !requirement.materialized;
+        }));
 }
 
 std::size_t StageAssemblyWorkspace::descriptor_root_count() const noexcept {
