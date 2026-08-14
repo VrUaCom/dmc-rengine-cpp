@@ -1,6 +1,8 @@
 #include "dmc_rengine/profiles/dmc3/stage_numeric_resolver.hpp"
 
 #include "dmc_rengine/binary/reader.hpp"
+#include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/profiles/dmc3/stage_table.hpp"
 
 #include <limits>
@@ -10,6 +12,21 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
+
+[[nodiscard]] NumericStageResolution make_result(std::uint16_t stage_id) {
+    return NumericStageResolution{
+        .requested_stage_id = stage_id,
+        .group_index = static_cast<std::uint32_t>(stage_id / 100U),
+        .remainder = static_cast<std::uint32_t>(stage_id % 100U),
+        .selector_base_va = 0U,
+        .selector_slot_va = 0U,
+        .descriptor_va = 0U,
+        .source_table_id = {},
+        .source_row_index = 0U,
+        .descriptor_primary_stage_id = std::nullopt,
+        .diagnostics = {},
+    };
+}
 
 void add_diagnostic(
     NumericStageResolution& result,
@@ -77,23 +94,54 @@ bool NumericStageResolution::resolved() const noexcept {
     return true;
 }
 
-NumericStageResolution StageNumericResolver::resolve(
+NumericStageResolution StageNumericResolver::resolve_canonical(
+    std::span<const std::byte> executable_bytes,
+    std::uint16_t stage_id) {
+    auto result = make_result(stage_id);
+    const auto& canonical_bank = wave2_stage_resource_bank_a();
+    const auto artifact_sha256 = core::Sha256::compute(executable_bytes).hex();
+    if (artifact_sha256 != canonical_bank.artifact_sha256) {
+        add_diagnostic(
+            result,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-numeric.artifact-hash-mismatch",
+            "The supplied executable SHA-256 does not match the canonical DMC3 Stage artifact; recovered selector VAs were not applied.");
+        return result;
+    }
+
+    const auto pe = exe::PeReader::read(executable_bytes);
+    for (const auto& warning : pe.warnings) {
+        add_diagnostic(
+            result,
+            gdspaces::DiagnosticSeverity::warning,
+            "dmc3.stage-numeric.pe-warning",
+            warning);
+    }
+    for (const auto& error : pe.errors) {
+        add_diagnostic(
+            result,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-numeric.pe-error",
+            error);
+    }
+    if (!pe.ok()) {
+        return result;
+    }
+
+    auto resolved = resolve_from_image(executable_bytes, *pe.image, stage_id);
+    resolved.diagnostics.insert(
+        resolved.diagnostics.begin(),
+        result.diagnostics.begin(),
+        result.diagnostics.end());
+    return resolved;
+}
+
+NumericStageResolution StageNumericResolver::resolve_from_image(
     std::span<const std::byte> executable_bytes,
     const exe::PeImage& image,
     std::uint16_t stage_id) {
     const auto& topology = wave2_stage_descriptor_universe();
-    NumericStageResolution result{
-        .requested_stage_id = stage_id,
-        .group_index = static_cast<std::uint32_t>(stage_id / 100U),
-        .remainder = static_cast<std::uint32_t>(stage_id % 100U),
-        .selector_base_va = 0U,
-        .selector_slot_va = 0U,
-        .descriptor_va = 0U,
-        .source_table_id = {},
-        .source_row_index = 0U,
-        .descriptor_primary_stage_id = std::nullopt,
-        .diagnostics = {},
-    };
+    auto result = make_result(stage_id);
 
     if (!topology.valid() || result.group_index >= topology.group_base_count) {
         add_diagnostic(result, gdspaces::DiagnosticSeverity::error,
