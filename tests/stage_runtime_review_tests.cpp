@@ -90,6 +90,7 @@ private:
 
 [[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry make_entry(
     std::uint32_t row_index,
+    std::uint16_t numeric_stage_id,
     const std::array<std::string, 4>& paths,
     const std::array<std::uint16_t, 4>& kind16,
     std::string semantic_stage_id) {
@@ -128,6 +129,7 @@ private:
         .catalog_entry_id = "dmc3-stage-resource-table/row/" +
             std::to_string(row_index),
         .row_index = row.row_index,
+        .numeric_stage_id = numeric_stage_id,
         .evidence_id = "dmc3-stage-wave2",
         .observation = std::move(row),
         .semantic_stage_id = std::move(semantic_stage_id),
@@ -137,6 +139,7 @@ private:
 [[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry duplicate_entry() {
     return make_entry(
         23U,
+        123U,
         {
             "scr/shared.pac",
             "room/shared.pac",
@@ -150,6 +153,7 @@ private:
 [[nodiscard]] dmc::rengine::profiles::dmc3::StageCatalogEntry fallback_entry() {
     return make_entry(
         24U,
+        124U,
         {
             "scr/missing.pac",
             "room/config.pac",
@@ -223,8 +227,8 @@ int main() {
     assert(load_bootstrap.valid());
     assert(load_bindings.valid_for(load_bootstrap));
 
-    // Separately evidenced semantic identity and Wave-2 kind16 must survive the
-    // raw-row compatibility bridge without replacing technical resource-set ID.
+    // Technical row key, selector-facing numeric ID, and semantic identity are
+    // independent and must all survive the StageCatalog -> Level-B bridge.
     {
         auto registry = duplicate_sources();
         const auto report = StageRuntimeResolver::resolve_entry(
@@ -234,24 +238,20 @@ int main() {
             registry);
         assert(report.complete());
         assert(report.plan.resource_set_key() == catalog_entry.catalog_entry_id);
+        assert(report.plan.numeric_stage_known());
+        assert(report.plan.numeric_stage_id == 123U);
         assert(report.plan.semantic_stage_known());
         assert(report.plan.semantic_stage_id == "semantic-stage-review");
         assert(report.plan.resources[0].kind16 == 1U);
         assert(report.plan.resources[3].kind16 == 4U);
         assert(report.resources[0].reference.kind16 == 1U);
 
-        // The two requests intentionally share one basename and therefore
-        // resolve to the same canonical physical resource under the evidenced
-        // runtime lookup policy. Resolution itself remains valid.
         assert(report.resources[0].runtime.resolved.has_value());
         assert(report.resources[1].runtime.resolved.has_value());
         assert(report.resources[0].runtime.resolved->id.canonical() ==
                report.resources[1].runtime.resolved->id.canonical());
     }
 
-    // Current StageBundle/workspace semantics store one role per canonical
-    // resource. A duplicate root binding must therefore fail materialized
-    // StageBundle completion instead of silently dropping one role.
     {
         auto registry = duplicate_sources();
         const auto parsers = make_container_parser_registry();
@@ -279,10 +279,6 @@ int main() {
         assert(!report.complete());
     }
 
-    // Wave 2 confirms that kind16 == 0 probes a .lst rewrite after the original
-    // path is unavailable. The fallback resource can be found by the central
-    // VFS resolver, but must not be promoted to a normal root because list
-    // parsing/recursive ownership/lifetime remain open.
     {
         const auto list_entry = fallback_entry();
         auto registry = fallback_sources();
@@ -292,6 +288,7 @@ int main() {
             load_bindings,
             registry);
 
+        assert(report.plan.numeric_stage_id == 124U);
         assert(report.plan.resources[0].kind16 == 0U);
         assert(report.resources[0].reference.kind16 == 0U);
         assert(report.resources[0].runtime.status == RuntimeResolutionStatus::not_found);
