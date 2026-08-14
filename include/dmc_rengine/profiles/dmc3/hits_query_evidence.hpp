@@ -71,7 +71,7 @@ struct DynamicCategoryBinding final {
     std::uint32_t activation_flag{};
     std::uint32_t manager_field_offset{};
     std::uint32_t category_id{};
-    std::uint16_t static_hits_reject_mask{};
+    std::uint16_t dispatcher_static_hits_reject_mask{};
 };
 
 inline constexpr std::array<DynamicCategoryBinding, 6> k_dynamic_category_bindings{{
