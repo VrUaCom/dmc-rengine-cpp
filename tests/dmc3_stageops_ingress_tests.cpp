@@ -2,6 +2,7 @@
 
 #include "hits_test_fixture.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
