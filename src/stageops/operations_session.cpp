@@ -273,6 +273,19 @@ bool StageOperationsSession::commit_derived_refresh(
     if (!valid() || expected_stage_revision != stage_revision_) {
         return false;
     }
+
+    // Final optimistic-concurrency gate. Another tool/agent may mutate a shared
+    // WorkingCopy after Stage Ops rebuilt parser/domain/graph state but before
+    // this commit. Never absorb that change into a new baseline and mark stale
+    // state current. Detect it first; detection advances the stage revision and
+    // preserves the stale gate, causing the caller's old revision commit to fail.
+    if (detect_external_project_changes()) {
+        return false;
+    }
+    if (expected_stage_revision != stage_revision_) {
+        return false;
+    }
+
     capture_observed_state();
     derived_state_stale_ = false;
     return true;
