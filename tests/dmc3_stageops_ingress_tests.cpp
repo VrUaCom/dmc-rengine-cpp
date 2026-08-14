@@ -228,7 +228,8 @@ int main() {
     assert(domain_node != nullptr);
     assert(domain_node->attributes.at("current_for_active_bytes") == "true");
 
-    // edit -> stale
+    // Edit a semantic HITS record field rather than structural header offsets.
+    // triangle.flags @ 0x50 may change while file/layout validity remains intact.
     assert(operations.enable_editing(hits_id));
     hits_session = project.find_session(hits_id);
     assert(hits_session != nullptr);
@@ -238,10 +239,10 @@ int main() {
         gdspaces::EditOperation{
             .id = "vertical-stageops-edit",
             .base_revision = 0U,
-            .offset = 0x06U,
-            .expected = {source_bytes[0x06U]},
-            .replacement = {std::byte{0x09}},
-            .description = "Invalidate Stage Ops derived collision state.",
+            .offset = 0x50U,
+            .expected = {source_bytes[0x50U]},
+            .replacement = {std::byte{0x03}},
+            .description = "Change HITS triangle flags without invalidating its structural layout.",
         });
     assert(edit.applied);
     assert(operations.stage_revision() == 1U);
@@ -261,7 +262,6 @@ int main() {
     assert(domain_node != nullptr);
     assert(domain_node->attributes.at("current_for_active_bytes") == "false");
 
-    // stale -> canonical WorkingCopy reparse@1 -> current typed domain/graph
     const auto refreshed_analysis = operations.refresh_resource_analysis();
     assert(refreshed_analysis.stage_revision == 1U);
     assert(refreshed_analysis.attempted == 1U);
@@ -280,6 +280,11 @@ int main() {
     assert(hits_session->parsed_resource()->byte_source ==
         integration::ParsedByteSource::working_copy);
     assert(hits_session->parsed_resource()->byte_revision == 1U);
+    const auto* reparsed_hits = hits_session->parsed_resource()
+        ->get_if<formats::hits::ScanResult>();
+    assert(reparsed_hits != nullptr);
+    assert(reparsed_hits->triangles.size() == 1U);
+    assert(reparsed_hits->triangles[0].flags == 0x00000003U);
 
     domains = stageops::StageDomainAssembler::assemble(
         ingress.assembly, project, operations.stage_revision());
@@ -297,13 +302,9 @@ int main() {
     assert(domain_node->attributes.at("byte_revision") == "1");
     assert(domain_node->attributes.at("current_for_active_bytes") == "true");
 
-    // Rebuild completed against the same scene revision; only now clear stale.
     assert(operations.commit_derived_refresh(1U));
     assert(!operations.derived_state_stale());
 
-    // Reopening the exact same runtime report reuses canonical resource sessions
-    // and does not replace the active WorkingCopy-derived typed result with a
-    // redundant source parse.
     const auto second = profiles::dmc3::StageOpsIngress::attach(
         make_report(), project);
     assert(second.valid());
