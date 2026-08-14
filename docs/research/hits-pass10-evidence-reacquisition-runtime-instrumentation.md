@@ -98,6 +98,42 @@ The fixture was corrected to use a fully synthetic SHA, synthetic VAs and synthe
 
 This correction is part of the Pass-10 evidence record and must not be silently discarded.
 
+## Second implementation / review / debug receipt — profile-specific HITS runtime evidence
+
+### Evidence promoted
+
+Pass 7B/7C already EXE-confirmed the specialized query-family identities, the six dynamic category bindings, the category-to-static-HITS reject-mask bridge, the `AL`-observed success paths, the explicit 16-byte in/out correction paths, and the three wrapper source slots. Those facts were safe to promote without inventing the unresolved generic result ABI.
+
+### Implementation
+
+Added DMC3-profile evidence descriptors in:
+
+- `include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp`;
+- regression: `tests/hits_query_evidence_tests.cpp`.
+
+The profile now records:
+
+- nine known HITS query-family VAs with unresolved fields kept unresolved;
+- `EBE0` and `F070` as confirmed mutable 16-byte in/out paths;
+- `EE40` and `60790` only as `AL`-observed success at the preserved caller, without claiming non-mutation;
+- dynamic category bindings `0x02/0x05/0x08/0x0B/0x0E/0x11`;
+- activation flags `0x1000..0x20000`;
+- manager offsets `+0x10..+0x88` in `0x18` steps;
+- category-to-static-HITS masks `0x0040/0x0002/0x0010/0x0020/0/0`;
+- wrapper source 0/member 3, source 1/member 6, and structurally present external/global source 2 with its selection/backing uncertainty preserved.
+
+### Review finding and correction
+
+The first version placed DMC3-specific function VAs under generic `include/dmc_rengine/hits/`. This violated the project-wide game-profile architecture rule: universal/generic HITS code must not own DMC3 addresses or profile-specific runtime identities.
+
+The implementation was corrected immediately:
+
+- DMC3-specific descriptor moved to `include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp`;
+- generic `include/dmc_rengine/hits/query_evidence.hpp` removed;
+- regression updated to consume the DMC3 profile layer.
+
+This correction is canonical and must not be reverted by moving hardcoded DMC3 VAs back into generic HITS core.
+
 ## Safety gates
 
 - exact canonical SHA required;
