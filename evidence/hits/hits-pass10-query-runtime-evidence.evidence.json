@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "hits-pass10-query-runtime-evidence-2026-08-14",
-  "title": "HITS Pass 10 — Query Family, Dynamic Dispatcher and Runtime Evidence Promotion",
+  "title": "HITS Pass 10 — Canonical Query, Runtime Topology and Dynamic Update Evidence",
   "date": "2026-08-14",
   "canonical_executable": {
     "name": "dmc3.exe",
@@ -9,280 +9,173 @@
   },
   "excluded_executable": {
     "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
-    "reason": "Different packed build; canonical HITS VAs must not be applied to it without independent rebasing and verification."
+    "reason": "Different packed build; canonical HITS VAs and body hashes require independent rebasing and verification before use."
+  },
+  "canonical_byte_provenance": {
+    "preserved_project_artifact": "dmc3_phase17_reng_probe.exe",
+    "source_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "verifier_preserved_raw_range": "0x400..0x60E600",
+    "preserved_range_byte_identical": true,
+    "secondary_consistency_artifact": "dmc3_phase18_red_orb_x2_hook.exe",
+    "proprietary_bytes_committed": false
   },
   "authority": {
     "google_drive_pass10_document_id": "1LxFHCPIxLmFr66f7uou2AisQjdbco4hZh9hjN27g2mI",
     "google_drive_phase4_document_id": "1zzGpotzC5M4BGOfoz8mJ8tGkSuRPKzNw6TerevSqdWM",
-    "google_drive_pass7b_document_id": "1KwMUYukwm_KppHlEgX5Ta3WG47tOs8X8tz83xzMWEuQ",
-    "google_drive_pass7c_document_id": "1HS4v2PqbMPqVH8TSXNsI2Yno41_1R6DxjH8_JYGl2Ls",
     "google_drive_mega_synthesis_document_id": "1SZJTdabme_rumGCEHznXEMOoNMgX4e54IyqpW7GCivQ",
     "google_drive_registry_document_id": "1hIQ40_SXByc15pXj4Mq3cMQcgs8cFEx2RtuYRM8adnE",
+    "github_slice4_document": "docs/research/hits-pass10-slice4-canonical-combined-query-abi.md",
     "github_coordination_issue": 25,
     "github_pull_request": 85
   },
   "query_family": [
-    {
-      "va": "0x14005E460",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "boundary": "Exact result ABI unresolved."
-    },
-    {
-      "va": "0x14005E7A0",
-      "direct_callers": 51,
-      "status": "EXE CONFIRMED",
-      "boundary": "Static/dynamic arbitration, no-hit initialization, tie-break and caller-visible result layout remain RESEARCH REQUIRED."
-    },
-    {
-      "va": "0x14005EBE0",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path confirmed."
-    },
-    {
-      "va": "0x14005EE40",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."
-    },
-    {
-      "va": "0x14005F070",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."
-    },
-    {
-      "va": "0x14005FD10",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "boundary": "Exact result ABI unresolved."
-    },
-    {
-      "va": "0x14005FEC0",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "observed_abi": "Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."
-    },
-    {
-      "va": "0x1400601E0",
-      "direct_callers": 5,
-      "status": "EXE CONFIRMED",
-      "boundary": "Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."
-    },
-    {
-      "va": "0x140060790",
-      "direct_callers": 1,
-      "status": "EXE CONFIRMED",
-      "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."
-    }
+    {"va":"0x14005E460","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
+    {"va":"0x14005E7A0","direct_callers":51,"status":"EXE CONFIRMED","observed_abi":"Six-argument combined point query; ordered static + category 0x0E + category 0x11 passes; last successful pass has caller-visible output precedence; total miss copies working point to output."},
+    {"va":"0x14005EBE0","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed; mutable 16-byte object+0x130 in/out path confirmed."},
+    {"va":"0x14005EE40","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."},
+    {"va":"0x14005F070","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."},
+    {"va":"0x14005FD10","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
+    {"va":"0x14005FEC0","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."},
+    {"va":"0x1400601E0","direct_callers":5,"status":"EXE CONFIRMED","boundary":"Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."},
+    {"va":"0x140060790","direct_callers":1,"status":"EXE CONFIRMED","observed_abi":"AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."}
   ],
-  "dynamic_dispatcher": {
-    "dispatcher_va": "0x14005B8E0",
-    "operation_va": "0x14005B460",
-    "operation_call_abi": {
-      "rcx": "manager",
-      "rdx": "object",
-      "r8": "channel/list pointer",
-      "r9d": "object index/slot",
-      "stack_plus_0x20": "category id",
-      "status": "EXE CONFIRMED",
-      "boundary": "Operation body, return semantics, list-entry layout, ownership and candidate production remain RESEARCH REQUIRED."
+  "combined_query": {
+    "va": "0x14005E7A0",
+    "body": {
+      "begin_va":"0x14005E7A0",
+      "end_va":"0x14005E880",
+      "size_bytes":224,
+      "sha256":"3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f"
     },
-    "bindings": [
-      {
-        "activation_flag": "0x00001000",
-        "manager_offset": "0x10",
-        "category": "0x02",
-        "dispatcher_static_hits_reject_mask": "0x0040"
-      },
-      {
-        "activation_flag": "0x00002000",
-        "manager_offset": "0x28",
-        "category": "0x05",
-        "dispatcher_static_hits_reject_mask": "0x0002"
-      },
-      {
-        "activation_flag": "0x00004000",
-        "manager_offset": "0x40",
-        "category": "0x08",
-        "dispatcher_static_hits_reject_mask": "0x0010"
-      },
-      {
-        "activation_flag": "0x00008000",
-        "manager_offset": "0x58",
-        "category": "0x0B",
-        "dispatcher_static_hits_reject_mask": "0x0020"
-      },
-      {
-        "activation_flag": "0x00010000",
-        "manager_offset": "0x70",
-        "category": "0x0E",
-        "dispatcher_static_hits_reject_mask": "0x0000"
-      },
-      {
-        "activation_flag": "0x00020000",
-        "manager_offset": "0x88",
-        "category": "0x11",
-        "dispatcher_static_hits_reject_mask": "0x0000"
-      }
+    "arguments": [
+      {"index":1,"location":"RCX","role":"runtime wrapper/context"},
+      {"index":2,"location":"RDX","role":"reference/start 16-byte point"},
+      {"index":3,"location":"R8","role":"working/requested 16-byte point"},
+      {"index":4,"location":"R9","role":"corrected/output 16-byte point"},
+      {"index":5,"location":"stack","role":"optional 0x38 common hit metadata output"},
+      {"index":6,"location":"stack","role":"raw reject mask"}
     ],
-    "scope_note": "The reject-mask values are dispatcher-level evidence. A zero mask for 0x0E/0x11 is not a claim that those categories are never filtered elsewhere."
+    "working_and_output_may_alias": true,
+    "return": "boolean success in AL",
+    "total_miss": "copy arg3 working point to arg4 output and return false",
+    "passes": [
+      {"order":0,"kind":"static_hits","helper_va":"0x14005E880"},
+      {"order":1,"kind":"dynamic_category","helper_va":"0x14005BCF0","category":"0x0E"},
+      {"order":2,"kind":"dynamic_category","helper_va":"0x14005BCF0","category":"0x11"}
+    ],
+    "dynamic_pass_baseline": "both dynamic passes receive the same static-hit output if static succeeded, otherwise the same arg3 input baseline",
+    "caller_visible_output_precedence": "last successful pass wins: static < category 0x0E < category 0x11",
+    "rejected_model": "No E7A0 metric comparison/equality/tie-break arbitration exists."
   },
-  "wrapper_sources": [
-    {
-      "index": 0,
-      "identity": "stage member 3",
-      "structurally_present": true,
-      "stage_pac_backed_confirmed": true,
-      "direct_static_selection_confirmed": true
-    },
-    {
-      "index": 1,
-      "identity": "stage member 6",
-      "structurally_present": true,
-      "stage_pac_backed_confirmed": true,
-      "direct_static_selection_confirmed": true
-    },
-    {
-      "index": 2,
-      "identity": "external/global source",
-      "structurally_present": true,
-      "stage_pac_backed_confirmed": false,
-      "direct_static_selection_confirmed": false
-    }
+  "static_query_pass": {
+    "va":"0x14005E880",
+    "body":{"begin_va":"0x14005E880","end_va":"0x14005EB95","size_bytes":789,"sha256":"b3fdeac674795752492e1eca9e7a9d21837552aa6cf90f0a02a14e3546136e8a"},
+    "accepted_hit_writes_corrected_point": true,
+    "accepted_hit_copies_complete_raw_hits_record_to_metadata": true,
+    "metadata_size_bytes":56
+  },
+  "dynamic_category_query": {
+    "va":"0x14005BCF0",
+    "body":{"begin_va":"0x14005BCF0","end_va":"0x14005C0D6","size_bytes":998,"sha256":"e7e1c1a56425e0a3c5ef5a5a4fff9105d5e073effeae6fcb268829ec3b451d02"},
+    "category_index_arg":6,
+    "raw_reject_mask_arg":7,
+    "mode_byte_arg":8,
+    "category_indexes_pointer_table_directly":true,
+    "linked_next_offset":"0x328",
+    "primitive_type_offset":"0x120",
+    "observed_primitive_types":[2,3,4,5,6],
+    "primitive_type_semantics":"UNRESOLVED",
+    "raw_flags_offset":"0xDA",
+    "raw_flags_width_bytes":2,
+    "identity_source_offset":"0xD8",
+    "accepted_hit_updates_internal_working_point":true,
+    "writes_back_through_r8_baseline":false,
+    "accepted_hit_writes_output_point":true
+  },
+  "common_hit_metadata": {
+    "size_bytes":56,
+    "static_path":"complete raw HITS record copy",
+    "dynamic_path":"compatible partial metadata write",
+    "dynamic_identity":{"source_offset":"0xD8","output_offset":"0x00"},
+    "caller_visible_vector":{"offsets":["0x28","0x2C","0x30"],"component_count":3,"semantic_name":"UNRESOLVED"}
+  },
+  "reject_mask_census_e7a0": {
+    "immediate_0x0000":5,
+    "immediate_0x0002":2,
+    "immediate_0x0004":1,
+    "immediate_0x0008":14,
+    "immediate_0x0010":13,
+    "immediate_0x0040":2,
+    "runtime_derived":14,
+    "total":51
+  },
+  "dynamic_category_bindings": [
+    {"activation_flag":"0x00001000","manager_offset":"0x10","category":"0x02","dispatcher_static_hits_reject_mask":"0x0040"},
+    {"activation_flag":"0x00002000","manager_offset":"0x28","category":"0x05","dispatcher_static_hits_reject_mask":"0x0002"},
+    {"activation_flag":"0x00004000","manager_offset":"0x40","category":"0x08","dispatcher_static_hits_reject_mask":"0x0010"},
+    {"activation_flag":"0x00008000","manager_offset":"0x58","category":"0x0B","dispatcher_static_hits_reject_mask":"0x0020"},
+    {"activation_flag":"0x00010000","manager_offset":"0x70","category":"0x0E","dispatcher_static_hits_reject_mask":"0x0000"},
+    {"activation_flag":"0x00020000","manager_offset":"0x88","category":"0x11","dispatcher_static_hits_reject_mask":"0x0000"}
   ],
-  "runtime_topology": {
-    "source_selector_va": "0x14005EBC0",
-    "direct_selector_callsites": [
-      {
-        "callsite_va": "0x140056832",
-        "requested_source": 1,
-        "meaning": "select source1 / stage member 6"
-      },
-      {
-        "callsite_va": "0x14005686E",
-        "requested_source": 0,
-        "meaning": "restore source0 / stage member 3"
-      },
-      {
-        "callsite_va": "0x1400568F0",
-        "requested_source": 1,
-        "meaning": "select source1 / stage member 6"
-      },
-      {
-        "callsite_va": "0x140056936",
-        "requested_source": 0,
-        "meaning": "restore source0 / stage member 3"
-      }
+  "wrapper_sources": [
+    {"index":0,"identity":"stage member 3","stage_pac_backed_confirmed":true,"direct_static_selection_confirmed":true},
+    {"index":1,"identity":"stage member 6","stage_pac_backed_confirmed":true,"direct_static_selection_confirmed":true},
+    {"index":2,"identity":"external/global source","stage_pac_backed_confirmed":false,"direct_static_selection_confirmed":false}
+  ],
+  "source_switch_topology": {
+    "selector_va":"0x14005EBC0",
+    "direct_selector_callsites":[
+      {"callsite_va":"0x140056832","requested_source":1},
+      {"callsite_va":"0x14005686E","requested_source":0},
+      {"callsite_va":"0x1400568F0","requested_source":1},
+      {"callsite_va":"0x140056936","requested_source":0}
     ],
-    "temporary_source1_paths": [
-      {
-        "select_callsite_va": "0x140056832",
-        "query_va": "0x1400601E0",
-        "restore_callsite_va": "0x14005686E"
-      },
-      {
-        "select_callsite_va": "0x1400568F0",
-        "query_va": "0x14005FEC0",
-        "restore_callsite_va": "0x140056936"
-      }
-    ],
-    "runtime_helpers": [
-      {
-        "role": "hits_runtime_initializer",
-        "va": "0x1402D3060",
-        "direct_static_callers": 2
-      },
-      {
-        "role": "hits_runtime_teardown",
-        "va": "0x1402D29C0",
-        "direct_static_callers": 2
-      },
-      {
-        "role": "source_binder",
-        "va": "0x14005EBA0",
-        "direct_static_callers": 1
-      },
-      {
-        "role": "source_selector",
-        "va": "0x14005EBC0",
-        "direct_static_callers": 4
-      },
-      {
-        "role": "candidate_cell_collector",
-        "va": "0x1402D2A10",
-        "direct_static_callers": 7
-      },
-      {
-        "role": "cell_list_resolver",
-        "va": "0x1402D29F0",
-        "direct_static_callers": 13
-      },
-      {
-        "role": "record_resolver",
-        "va": "0x1402D3050",
-        "direct_static_callers": 13
-      },
-      {
-        "role": "plane_evaluator",
-        "va": "0x1402CF820",
-        "direct_static_callers": 6
-      },
-      {
-        "role": "normal_classifier",
-        "va": "0x1402CCF20",
-        "direct_static_callers": 6
-      }
-    ],
-    "static_saturation_receipt": {
-      "repeat_scan_count": 2,
-      "identical_results": true,
-      "boundary": "Static structural saturation only; does not prove runtime saturation or resolve missing E7A0/B460/FEC0/601E0 ABIs."
-    }
+    "temporary_source1_paths":[
+      {"select":"0x140056832","query":"0x1400601E0","restore":"0x14005686E"},
+      {"select":"0x1400568F0","query":"0x14005FEC0","restore":"0x140056936"}
+    ]
+  },
+  "dynamic_world_update_reacquisition": {
+    "status":"EXE CONFIRMED / CODE PROMOTION PENDING",
+    "separate_from_combined_query_path":true,
+    "dispatcher":{"va":"0x14005B7B0","end_va":"0x14005B8DD","size_bytes":301,"sha256":"ea1025e96121a3b117f53412d5d3e6439d81e97a23928f1417793e37ba6efbf3"},
+    "pair_resolver":{"va":"0x14005B460","end_va":"0x14005B6E6","size_bytes":646,"sha256":"cba77cf4bc20dedfbd590991012fa471e6b5ae02b9cec57c66fce69333a67972"},
+    "category_compatibility":{"va":"0x14005B6F0","end_va":"0x14005B7A8","size_bytes":184,"sha256":"c6eaaea738b317c9d92b3e06ff4ba47ec2d39610cb16a19dc21a96651024ae34"},
+    "post_update_step":{"va":"0x14005B8E0","end_va":"0x14005BA64","size_bytes":388,"sha256":"1d149357ffa3fe5024c0a6264e356f476c14c6366d89b38bb50a1a3f18e2f477"},
+    "superseded_description":"B460 is not E7A0 candidate production; it is a dynamic object-pair resolution/update routine."
   },
   "corrections": [
-    {
-      "id": "hits.pass10.profile-layer-ownership",
-      "status": "CORRECTED",
-      "statement": "DMC3-specific HITS VAs belong in profiles/dmc3, not generic HITS core."
-    },
-    {
-      "id": "hits.pass10.dispatcher-mask-scope",
-      "status": "CORRECTED",
-      "statement": "The code field is dispatcher_static_hits_reject_mask rather than a global category mask."
-    },
-    {
-      "id": "hits.pass10.delta-direction",
-      "status": "CORRECTED",
-      "statement": "Canonical correction direction for EBE0/F070 caller consumption is postQuery - original; older opposite prose is superseded."
-    },
-    {
-      "id": "hits.pass10.detail-namespace-access-control",
-      "status": "CORRECTED",
-      "statement": "namespace detail is a naming convention, not C++ access control. Backing evidence tables were moved to private EvidenceStore members so raw table access cannot bypass the intended SHA-gated lookup surface."
-    }
+    {"id":"hits.pass10.profile-layer-ownership","status":"CORRECTED","statement":"DMC3-specific HITS VAs belong in profiles/dmc3, not generic HITS core."},
+    {"id":"hits.pass10.dispatcher-mask-scope","status":"CORRECTED","statement":"dispatcher_static_hits_reject_mask is dispatcher-scoped, not a global category property."},
+    {"id":"hits.pass10.detail-namespace-access-control","status":"CORRECTED","statement":"namespace detail is not access control; backing tables are private EvidenceStore members."},
+    {"id":"hits.pass10.e7a0-metric-tiebreak","status":"REJECTED","statement":"E7A0 has ordered last-successful-writer output precedence; no wrapper-level metric/equality/tie-break arbitration exists."},
+    {"id":"hits.pass10.e7a0-cross-category-progressive-baseline","status":"CORRECTED","statement":"BCF0 does not write back through its R8 baseline; categories 0x0E and 0x11 receive the same static-or-input baseline."},
+    {"id":"hits.pass10.b460-query-candidate-role","status":"REJECTED","statement":"B460 belongs to the dynamic-world object-pair update path, not the E7A0 combined-query candidate path."}
   ],
   "implementation": {
-    "branch": "docs/hits-pass10-evidence-reacquisition",
-    "pull_request": 85,
-    "slice3_topology_head": "5ff60d33d0722a5798fc1f31c9e3fac2634b3e99",
-    "hash_gate_fix_head": "4845120fbe9a3362d4040a0e37e32387411411d7",
-    "hash_gate_fix_ci_run_id": 31809938519,
-    "hash_gate_fix_ubuntu_job_id": 94797870333,
-    "hash_gate_fix_windows_job_id": 94797870208,
-    "hash_gate_fix_ci_conclusion": "success",
-    "paths": [
+    "branch":"docs/hits-pass10-evidence-reacquisition",
+    "pull_request":85,
+    "slice3_hash_gate_fix":"4845120fbe9a3362d4040a0e37e32387411411d7",
+    "slice4_initial":"e191acf631cc96dedc5a4910f1ded05cc436744e",
+    "slice4_initial_tests":"bb04f4f19c1e1c63be4ff19dbd199ed2b878d4d2",
+    "slice4_review_correction":"123ce6331a34d994e3f0121804568efc5ce5c5a4",
+    "slice4_corrected_tests":"1f0360661624acf41dfdfe776fe8229c5f2edb0b",
+    "slice4_document":"0b2bb87d25aeaf096700bad3902b26ad5b953221",
+    "main_pass10_sync":"f061951403d17c062235a59050ea7833662545f7",
+    "slice4_ci_run_id":31811589147,
+    "paths":[
       "include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp",
       "tests/hits_query_evidence_tests.cpp",
+      "docs/research/hits-pass10-slice4-canonical-combined-query-abi.md",
       "docs/research/hits-pass10-evidence-reacquisition-runtime-instrumentation.md"
     ]
   },
   "remaining_p0": [
-    "0x14005E7A0 exact argument/write-set/no-hit/arbitration/tie-break ABI",
-    "0x14005B460 body/list-entry ownership/candidate ABI",
+    "Promote/review separate dynamic-world update topology B7B0 -> B460 -> B6F0 -> B8E0",
     "0x14005FEC0 exact source-1 output ABI",
-    "0x1400601E0 exact in/out layout/fourth-component/accumulation semantics"
+    "0x1400601E0 exact in/out layout/fourth-component/accumulation semantics",
+    "dynamic primitive type 2..6 semantic names only if direct evidence supports them",
+    "common metadata +0x28/+0x2C/+0x30 vector semantic name only after cross-producer proof"
   ],
   "proprietary_bytes_committed": false
 }
