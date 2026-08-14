@@ -194,7 +194,9 @@ int main() {
     assert(domains.unrecognized_typed_result_count == 0U);
     assert(domains.stale_typed_result_count == 0U);
     assert(domains.current_for_active_bytes());
-    assert(domains.objects.size() == 2U);
+
+    // 2 aggregate structural domains + 6 exact Stage TXT lexical markers.
+    assert(domains.objects.size() == 8U);
 
     const auto collisions = domains.by_kind(
         stageops::StageDomainKind::hits_collision);
@@ -212,19 +214,63 @@ int main() {
     assert(scripts[0]->attributes.at("next_room_count") == "1");
     assert(scripts[0]->attributes.at("stage_set_value_count") == "2");
 
+    const auto directives = domains.by_kind(
+        stageops::StageDomainKind::stage_set_directive_token);
+    assert(directives.size() == 1U);
+    assert(directives[0]->attributes.at("value") == "#SET");
+    assert(directives[0]->attributes.at("offset") == "0");
+    assert(directives[0]->attributes.at("line") == "1");
+    assert(directives[0]->attributes.at("column") == "1");
+    assert(directives[0]->attributes.at("runtime_object_claim") == "false");
+    assert(directives[0]->id.find(":offset/0") != std::string::npos);
+
+    const auto stage_set_values = domains.by_kind(
+        stageops::StageDomainKind::stage_set_value_token);
+    assert(stage_set_values.size() == 2U);
+    assert(stage_set_values[0]->attributes.at("value") == "STAY");
+    assert(stage_set_values[0]->attributes.at("offset") == "5");
+    assert(stage_set_values[0]->attributes.at("line") == "1");
+    assert(stage_set_values[0]->attributes.at("column") == "6");
+    assert(stage_set_values[1]->attributes.at("value") == "ORBREAK");
+    assert(stage_set_values[1]->attributes.at("line") == "3");
+    assert(stage_set_values[1]->attributes.at("column") == "1");
+
+    const auto doors = domains.by_kind(stageops::StageDomainKind::door_token);
+    assert(doors.size() == 1U);
+    assert(doors[0]->attributes.at("value") == "DOOR");
+    assert(doors[0]->attributes.at("offset") == "10");
+    assert(doors[0]->attributes.at("line") == "2");
+    assert(doors[0]->attributes.at("column") == "1");
+
+    const auto box_in = domains.by_kind(stageops::StageDomainKind::box_in_token);
+    assert(box_in.size() == 1U);
+    assert(box_in[0]->attributes.at("value") == "BoxIn");
+    assert(box_in[0]->attributes.at("offset") == "15");
+    assert(box_in[0]->attributes.at("line") == "2");
+    assert(box_in[0]->attributes.at("column") == "6");
+
+    const auto next_room = domains.by_kind(
+        stageops::StageDomainKind::next_room_token);
+    assert(next_room.size() == 1U);
+    assert(next_room[0]->attributes.at("value") == "NextRoom");
+    assert(next_room[0]->attributes.at("offset") == "21");
+    assert(next_room[0]->attributes.at("line") == "2");
+    assert(next_room[0]->attributes.at("column") == "12");
+
     // Edit collision bytes through the shared WorkingCopy. Stage Ops must not
-    // reparse independently and must not present the old source parse as current.
+    // reparse independently and script markers remain current because only HITS
+    // changed. Use triangle.flags rather than structural HITS header bytes.
     assert(project.enable_working_copy(hits.id));
-    const auto source_06 = hits_bytes[0x06U];
+    const auto source_flags = hits_bytes[0x50U];
     const auto edit = project.apply_edit(
         hits.id,
         gdspaces::EditOperation{
             .id = "domain-stale-edit",
             .base_revision = 0U,
-            .offset = 0x06U,
-            .expected = {source_06},
-            .replacement = {std::byte{0x09}},
-            .description = "Make the cached immutable-source parse stale.",
+            .offset = 0x50U,
+            .expected = {source_flags},
+            .replacement = {std::byte{0x03}},
+            .description = "Make only the retained HITS source parse stale.",
         },
         gdspaces::ToolTarget::stage_ops);
     assert(edit.applied);
@@ -233,11 +279,13 @@ int main() {
         assembly, project, 1U);
     assert(domains.stale_typed_result_count == 1U);
     assert(!domains.current_for_active_bytes());
-    assert(domains.by_kind(
+    assert(!domains.by_kind(
         stageops::StageDomainKind::hits_collision)[0]
-        ->current_for_active_bytes == false);
+        ->current_for_active_bytes);
     assert(domains.by_kind(
         stageops::StageDomainKind::stage_script_tokens)[0]
+        ->current_for_active_bytes);
+    assert(domains.by_kind(stageops::StageDomainKind::door_token)[0]
         ->current_for_active_bytes);
 
     // Reset restores immutable source bytes. The retained source parse becomes
