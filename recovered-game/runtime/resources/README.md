@@ -1,30 +1,29 @@
 # DMC3 Recovered Resource Runtime
 
-This directory belongs to the **Recovered Game Source Tree**. It represents reconstructed DMC3 game-runtime code/data/types and is deliberately compiled as a separate target from `dmc_rengine_core`.
+This area belongs to the **Recovered Game Source Tree**. It represents reconstructed DMC3 game-runtime evidence and stays separate from `dmc_rengine_core`.
 
-Current Wave-2 foundation is evidence-only and intentionally narrow:
+The compiled Wave-2 model in `resource_lifecycle.*` preserves the first recovered `363 x 0x48` load-pool ABI and its `0 -> 1 -> 2 -> 3` lifecycle.
 
-- higher-level resource/load pool base `VA 0x140C99D30`;
-- 363 entries with stride `0x48`;
-- seven observed pool partitions `[4, 136, 60, 28, 1, 128, 6]`;
-- minimum stable entry field offsets `+0x00/+0x04/+0x08/+0x18/+0x20/+0x28`;
-- observed successful lifecycle `0 -> 1 -> 2 -> 3`;
-- state `4` as teardown/cancellation pending and observed cleanup `4 -> 0`;
-- confirmed typed post-load helper identities for MOD, EFM, SCM and SHW;
-- Wave-2 evidence that typed normalization occurs after I/O completion and before ready state.
+Wave 3 extends the recovered runtime through `../wave3_runtime.hpp` with additional directly evidenced architecture:
 
-Not reconstructed here yet:
+- corrected Stage cell ABI: `u16 kind16 @ +0x00`, path pointer `@ +0x08`, stride `0x10`;
+- two Stage descriptor banks: 110 + 79 = 189 descriptors;
+- 193-entry selector space + 10 group-base pointers + numeric Stage resolver;
+- 13 confirmed `st600..st612` cross-stage effect/sound aliases;
+- `.lst` recursive manifest fallback with `dummy`, nested lists and `.pac` rewrite;
+- owner-local 32-node resource cache keyed by `(group,index)` with observed refcount at `+0x2C`;
+- seven resource domains: stage script/config/effect, demo/event, localized message, enemy object and enemy sound;
+- player and enemy factory evidence, including the 64-entry external enemy mapping boundary;
+- root/nested scene-manager evidence and ten-scene factory map;
+- demo asset type registry (`MOT/MCV/CAM/HID/CLT/TSC`) and `CMotion` ABI anchors;
+- D3D11 graphics-object pointer offsets and the `2 x 450` `gfxTexture` pool;
+- HD ADX->OGG lookup/loop metadata, SFD->WMV translation, legacy `VAGp` sample path and FMOD codec export;
+- 4,039-entry master resource-name catalog and numeric semantic resource resolver;
+- central memory-arena and registry-lookup anchors.
 
-- exact callback/completion fields;
-- full per-group subtype ABI;
-- cache keys or duplicate-request reuse;
-- reference counting or equivalent ownership;
-- exact source-state domain entering state 4;
-- PAC/PNST dispatcher source reconstruction;
-- the actual MOD/EFM/SCM/SHW pointer-fixup algorithms;
-- higher-level factory/object construction after normalized bytes are ready;
-- room/stage transition retention and unload behavior.
+Wave 3 is still an **evidence model**, not a claim that the whole game is reconstructed. It deliberately does not invent unknown Stage `kind16` semantics, full `.lst` error/lifetime behavior, complete enemy AI/combat logic, post-load algorithms, factory implementations, or final shutdown/transition ownership.
 
-Those remain reverse targets and must not be filled with product assumptions from GDSpaces.
-
-Authority: `docs/research/dmc3-vanilla-deep-research-wave-2.md` and promoted packet `evidence/gdspaces/dmc3-stage-wave2.evidence.json`.
+Authority:
+- `docs/research/dmc3-vanilla-deep-research-wave-2.md`
+- `docs/research/dmc3-vanilla-deep-research-wave-3.md`
+- canonical executable SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
