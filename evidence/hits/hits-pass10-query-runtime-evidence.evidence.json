@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-query-runtime-evidence-2026-08-14",
+  "title": "HITS Pass 10 — Query Family, Dynamic Dispatcher and Runtime Evidence Promotion",
+  "date": "2026-08-14",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "excluded_executable": {
+    "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+    "reason": "Different packed build; canonical HITS VAs must not be applied to it without independent rebasing and verification."
+  },
+  "authority": {
+    "google_drive_pass10_document_id": "1LxFHCPIxLmFr66f7uou2AisQjdbco4hZh9hjN27g2mI",
+    "google_drive_phase4_document_id": "1zzGpotzC5M4BGOfoz8mJ8tGkSuRPKzNw6TerevSqdWM",
+    "google_drive_pass7b_document_id": "1KwMUYukwm_KppHlEgX5Ta3WG47tOs8X8tz83xzMWEuQ",
+    "google_drive_pass7c_document_id": "1HS4v2PqbMPqVH8TSXNsI2Yno41_1R6DxjH8_JYGl2Ls",
+    "google_drive_mega_synthesis_document_id": "1SZJTdabme_rumGCEHznXEMOoNMgX4e54IyqpW7GCivQ",
+    "google_drive_registry_document_id": "1hIQ40_SXByc15pXj4Mq3cMQcgs8cFEx2RtuYRM8adnE",
+    "github_coordination_issue": 25,
+    "github_pull_request": 85
+  },
+  "query_family": [
+    {"va": "0x14005E460", "direct_callers": 1, "status": "EXE CONFIRMED", "boundary": "Exact result ABI unresolved."},
+    {"va": "0x14005E7A0", "direct_callers": 51, "status": "EXE CONFIRMED", "boundary": "Static/dynamic arbitration, no-hit initialization, tie-break and caller-visible result layout remain RESEARCH REQUIRED."},
+    {"va": "0x14005EBE0", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path confirmed."},
+    {"va": "0x14005EE40", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."},
+    {"va": "0x14005F070", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed; mutable 16-byte object+0x130 in/out path and object+0xF0 argument confirmed."},
+    {"va": "0x14005FD10", "direct_callers": 1, "status": "EXE CONFIRMED", "boundary": "Exact result ABI unresolved."},
+    {"va": "0x14005FEC0", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "Directly rejects raw HITS bit 0x00080000; exact source-1 output ABI remains RESEARCH REQUIRED."},
+    {"va": "0x1400601E0", "direct_callers": 5, "status": "EXE CONFIRMED", "boundary": "Exact in/out layout, fourth component and accumulation semantics remain RESEARCH REQUIRED."},
+    {"va": "0x140060790", "direct_callers": 1, "status": "EXE CONFIRMED", "observed_abi": "AL success observed at preserved caller; absence of confirmed mutation is not evidence of non-mutation."}
+  ],
+  "dynamic_dispatcher": {
+    "dispatcher_va": "0x14005B8E0",
+    "operation_va": "0x14005B460",
+    "operation_call_abi": {
+      "rcx": "manager",
+      "rdx": "object",
+      "r8": "channel/list pointer",
+      "r9d": "object index/slot",
+      "stack_plus_0x20": "category id",
+      "status": "EXE CONFIRMED",
+      "boundary": "Operation body, return semantics, list-entry layout, ownership and candidate production remain RESEARCH REQUIRED."
+    },
+    "bindings": [
+      {"activation_flag": "0x00001000", "manager_offset": "0x10", "category": "0x02", "dispatcher_static_hits_reject_mask": "0x0040"},
+      {"activation_flag": "0x00002000", "manager_offset": "0x28", "category": "0x05", "dispatcher_static_hits_reject_mask": "0x0002"},
+      {"activation_flag": "0x00004000", "manager_offset": "0x40", "category": "0x08", "dispatcher_static_hits_reject_mask": "0x0010"},
+      {"activation_flag": "0x00008000", "manager_offset": "0x58", "category": "0x0B", "dispatcher_static_hits_reject_mask": "0x0020"},
+      {"activation_flag": "0x00010000", "manager_offset": "0x70", "category": "0x0E", "dispatcher_static_hits_reject_mask": "0x0000"},
+      {"activation_flag": "0x00020000", "manager_offset": "0x88", "category": "0x11", "dispatcher_static_hits_reject_mask": "0x0000"}
+    ],
+    "scope_note": "The reject-mask values are dispatcher-level evidence. A zero mask for 0x0E/0x11 is not a claim that those categories are never filtered elsewhere."
+  },
+  "wrapper_sources": [
+    {"index": 0, "identity": "stage member 3", "structurally_present": true, "stage_pac_backed_confirmed": true, "direct_static_selection_confirmed": true},
+    {"index": 1, "identity": "stage member 6", "structurally_present": true, "stage_pac_backed_confirmed": true, "direct_static_selection_confirmed": true},
+    {"index": 2, "identity": "external/global source", "structurally_present": true, "stage_pac_backed_confirmed": false, "direct_static_selection_confirmed": false}
+  ],
+  "corrections": [
+    {
+      "id": "hits.pass10.profile-layer-ownership",
+      "status": "CORRECTED",
+      "statement": "DMC3-specific HITS VAs belong in profiles/dmc3, not generic HITS core."
+    },
+    {
+      "id": "hits.pass10.dispatcher-mask-scope",
+      "status": "CORRECTED",
+      "statement": "The code field is dispatcher_static_hits_reject_mask rather than a global category mask."
+    },
+    {
+      "id": "hits.pass10.delta-direction",
+      "status": "CORRECTED",
+      "statement": "Canonical correction direction for EBE0/F070 caller consumption is postQuery - original; older opposite prose is superseded."
+    }
+  ],
+  "implementation": {
+    "branch": "docs/hits-pass10-evidence-reacquisition",
+    "pull_request": 85,
+    "validated_content_head": "55bed03707c39fa1158685af75f3298770ae4faf",
+    "ci_run_id": 31806960391,
+    "ubuntu_job_id": 94788086657,
+    "windows_job_id": 94788086673,
+    "ci_conclusion": "success",
+    "paths": [
+      "include/dmc_rengine/profiles/dmc3/hits_query_evidence.hpp",
+      "tests/hits_query_evidence_tests.cpp",
+      "docs/research/hits-pass10-evidence-reacquisition-runtime-instrumentation.md"
+    ]
+  },
+  "remaining_p0": [
+    "0x14005E7A0 exact argument/write-set/no-hit/arbitration/tie-break ABI",
+    "0x14005B460 body/list-entry ownership/candidate ABI",
+    "0x14005FEC0 exact source-1 output ABI",
+    "0x1400601E0 exact in/out layout/fourth-component/accumulation semantics"
+  ],
+  "proprietary_bytes_committed": false
+}
