@@ -162,7 +162,9 @@ int main() {
     assert(unresolved->attributes.at("resolved") == "false");
     assert(unresolved->attributes.at("materialized") == "false");
 
-    const auto stage_requirements = graph.outgoing(stage_id, EdgeKind::requires);
+    const auto stage_requirements = graph.outgoing(
+        stage_id,
+        EdgeKind::requires_requirement);
     assert(stage_requirements.size() == 2U);
     const auto stage_members = graph.outgoing(stage_id, EdgeKind::stage_member);
     assert(stage_members.size() == 1U);
