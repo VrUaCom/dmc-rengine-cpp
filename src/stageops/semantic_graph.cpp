@@ -138,10 +138,14 @@ void add_requirement_nodes_and_edges(
         });
 
         graph.edges.push_back(Edge{
-            .id = edge_id(EdgeKind::requires, root, id, requirement.role),
+            .id = edge_id(
+                EdgeKind::requires_requirement,
+                root,
+                id,
+                requirement.role),
             .from = root,
             .to = id,
-            .kind = EdgeKind::requires,
+            .kind = EdgeKind::requires_requirement,
             .authority = requirement.resource_id.has_value()
                 ? Authority::structural_product_fact
                 : Authority::unresolved,
