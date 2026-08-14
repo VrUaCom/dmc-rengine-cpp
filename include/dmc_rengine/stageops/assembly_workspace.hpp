@@ -33,9 +33,9 @@ enum class StageAssemblyStatus {
     return "invalid";
 }
 
-// This is deliberately binary and evidence-conservative: `unproven` means
-// Stage Ops must not present the assembled product workspace as equivalent to a
-// vanilla ready scene. It does not assert that equivalence is impossible.
+// `unproven` means Stage Ops must not present the product workspace as
+// equivalent to a vanilla ready scene. It does not assert equivalence is
+// impossible; it says recovered-game evidence has not closed that gate.
 enum class StageGameReadiness {
     unproven,
     equivalent,
@@ -84,6 +84,21 @@ struct StageAssemblyIdentity final {
     }
 };
 
+// One required stage root/dependency at the Stage Ops boundary. Requirements
+// exist even when resolution/materialization failed, so a partial scene cannot
+// silently lose the fact that something is missing.
+struct StageAssemblyRequirement final {
+    std::string requirement_id;
+    gdspaces::StageResourceCategory category{
+        gdspaces::StageResourceCategory::unknown};
+    std::string role;
+    std::string requested_logical_path;
+    std::optional<std::string> resource_id;
+    bool materialized{false};
+
+    [[nodiscard]] bool valid() const noexcept;
+};
+
 // One canonical ResourceId inside the assembled stage workspace. Relationships
 // and roles are kept separately so shared resources are represented once even
 // when several parents/roles reference them.
@@ -125,11 +140,12 @@ struct StageAssemblyMembership final {
 class StageAssemblyWorkspace final {
 public:
     StageAssemblyIdentity identity;
+    std::vector<StageAssemblyRequirement> requirements;
     std::vector<StageAssemblyResource> resources;
     std::vector<StageAssemblyMembership> memberships;
     std::vector<gdspaces::Diagnostic> diagnostics;
 
-    // Product boundary: all resources required by the supplying materialization
+    // Product boundary: every required input in the supplying materialization
     // report crossed its validated read/provenance/container-expansion gates.
     bool product_materialization_complete{false};
 
@@ -144,6 +160,9 @@ public:
     [[nodiscard]] bool product_ready() const noexcept;
     [[nodiscard]] bool original_game_ready() const noexcept;
 
+    [[nodiscard]] const StageAssemblyRequirement* find_requirement(
+        std::string_view requirement_id) const noexcept;
+
     [[nodiscard]] const StageAssemblyResource* find_resource(
         std::string_view canonical_resource_id) const noexcept;
 
@@ -153,6 +172,7 @@ public:
     [[nodiscard]] std::vector<const StageAssemblyMembership*> memberships_for(
         std::string_view canonical_resource_id) const;
 
+    [[nodiscard]] std::size_t unresolved_requirement_count() const noexcept;
     [[nodiscard]] std::size_t descriptor_root_count() const noexcept;
     [[nodiscard]] std::size_t nested_resource_count() const noexcept;
 };
