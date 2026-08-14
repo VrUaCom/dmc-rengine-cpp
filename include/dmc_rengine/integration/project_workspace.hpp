@@ -63,8 +63,8 @@ public:
     [[nodiscard]] const ResourceWorkspaceSession* find_session(
         std::string_view canonical_id) const noexcept;
 
-    // Semantic gameplay-stage query. Catalog/resource-set identity is queried
-    // separately so unresolved rows are never mislabeled as stage ids.
+    // Legacy technical-key query retained for compatibility with older callers.
+    // New stage/catalog consumers should query the explicit resource-set id.
     [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
         sessions_for_stage(std::string_view stage_id) const;
     [[nodiscard]] std::vector<const ResourceWorkspaceSession*>
