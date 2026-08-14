@@ -14,8 +14,8 @@ namespace {
 
 [[nodiscard]] std::string make_catalog_entry_id(
     const StageResourceTableDescriptor& descriptor,
-    std::uint32_t row_index) {
-    return descriptor.id + "/row/" + std::to_string(row_index);
+    std::uint32_t source_row_index) {
+    return descriptor.id + "/row/" + std::to_string(source_row_index);
 }
 
 void add_diagnostic(
@@ -31,6 +31,51 @@ void add_diagnostic(
     });
 }
 
+[[nodiscard]] bool has_error(const StageCatalog& catalog) noexcept {
+    return std::any_of(
+        catalog.diagnostics.begin(), catalog.diagnostics.end(),
+        [](const gdspaces::Diagnostic& diagnostic) {
+            return diagnostic.severity == gdspaces::DiagnosticSeverity::error;
+        });
+}
+
+void add_reference(
+    StageCatalog& catalog,
+    const StageResourceTableCellObservation& cell,
+    std::uint32_t global_row_index,
+    const StageResourceTableDescriptor& descriptor) {
+    if (!cell.valid()) {
+        return;
+    }
+    auto group = std::find_if(
+        catalog.repeated_references.begin(), catalog.repeated_references.end(),
+        [&cell](const StageCatalogRepeatedReference& candidate) {
+            return candidate.logical_path == cell.logical_path;
+        });
+    if (group == catalog.repeated_references.end()) {
+        catalog.repeated_references.push_back(StageCatalogRepeatedReference{
+            .logical_path = cell.logical_path,
+            .uses = {},
+        });
+        group = std::prev(catalog.repeated_references.end());
+    }
+    group->uses.push_back(StageCatalogReferenceUse{
+        .row_index = global_row_index,
+        .column_index = cell.column_index,
+        .role = cell.role,
+        .source_table_id = descriptor.id,
+        .source_row_index = cell.row_index,
+    });
+}
+
+void finalize_repeated_references(StageCatalog& catalog) {
+    std::erase_if(
+        catalog.repeated_references,
+        [](const StageCatalogRepeatedReference& reference) {
+            return !reference.repeated();
+        });
+}
+
 [[nodiscard]] StageCatalog empty_bank_a_catalog(
     const StageResourceTableDescriptor& descriptor) {
     return StageCatalog{
@@ -43,11 +88,27 @@ void add_diagnostic(
     };
 }
 
+[[nodiscard]] StageCatalog empty_full_catalog() {
+    return StageCatalog{
+        .coverage = StageCatalogCoverage::full_selector_universe,
+        .table_id = "dmc3-stage-descriptor-universe",
+        .evidence_id = wave2_stage_descriptor_universe().evidence_packet_id,
+        .entries = {},
+        .repeated_references = {},
+        .diagnostics = {},
+    };
+}
+
 } // namespace
 
 bool StageCatalogEntry::complete() const noexcept {
-    return !catalog_entry_id.empty() && !evidence_id.empty() &&
-        observation.row_index == row_index && observation.complete();
+    if (catalog_entry_id.empty() || evidence_id.empty() || !observation.complete()) {
+        return false;
+    }
+    if (source_table_id.empty()) {
+        return observation.row_index == row_index;
+    }
+    return observation.row_index == source_row_index;
 }
 
 StageResourceRowPlan StageCatalogEntry::resource_plan() const {
@@ -70,24 +131,45 @@ bool StageCatalog::complete(
     if (coverage != StageCatalogCoverage::wave2_bank_a_compatibility ||
         !descriptor.valid() || table_id != descriptor.id ||
         evidence_id != descriptor.evidence_packet_id ||
-        entries.size() != descriptor.row_count) {
-        return false;
-    }
-
-    if (std::any_of(
-            diagnostics.begin(), diagnostics.end(),
-            [](const gdspaces::Diagnostic& diagnostic) {
-                return diagnostic.severity == gdspaces::DiagnosticSeverity::error;
-            })) {
+        entries.size() != descriptor.row_count || has_error(*this)) {
         return false;
     }
 
     for (std::uint32_t row_index = 0U; row_index < descriptor.row_count; ++row_index) {
-        if (entries[row_index].row_index != row_index || !entries[row_index].complete()) {
+        const auto& entry = entries[row_index];
+        if (entry.row_index != row_index || !entry.complete()) {
             return false;
         }
     }
     return true;
+}
+
+bool StageCatalog::complete_full_universe() const noexcept {
+    const auto& metadata = wave2_stage_descriptor_universe();
+    const auto& descriptors = wave3_stage_resource_banks();
+    if (coverage != StageCatalogCoverage::full_selector_universe ||
+        !metadata.valid() || table_id != "dmc3-stage-descriptor-universe" ||
+        evidence_id != metadata.evidence_packet_id ||
+        entries.size() != metadata.observed_descriptor_count() || has_error(*this)) {
+        return false;
+    }
+
+    std::uint32_t global_row{};
+    for (std::size_t bank_index = 0U; bank_index < descriptors.size(); ++bank_index) {
+        const auto& descriptor = descriptors[bank_index];
+        for (std::uint32_t source_row = 0U; source_row < descriptor.row_count;
+             ++source_row, ++global_row) {
+            const auto& entry = entries[global_row];
+            if (!entry.complete() || entry.row_index != global_row ||
+                entry.source_table_id != descriptor.id ||
+                entry.source_row_index != source_row ||
+                entry.numeric_stage_id !=
+                    runtime_stage_id_for_table_row(descriptor, source_row)) {
+                return false;
+            }
+        }
+    }
+    return global_row == metadata.observed_descriptor_count();
 }
 
 const StageCatalogEntry* StageCatalog::find(
@@ -100,6 +182,17 @@ const StageCatalogEntry* StageCatalog::find(
     return iterator == entries.end() ? nullptr : &*iterator;
 }
 
+const StageCatalogEntry* StageCatalog::find_numeric_stage(
+    std::uint16_t numeric_stage_id_value) const noexcept {
+    const auto iterator = std::find_if(
+        entries.begin(), entries.end(),
+        [numeric_stage_id_value](const StageCatalogEntry& entry) {
+            return entry.numeric_stage_id.has_value() &&
+                *entry.numeric_stage_id == numeric_stage_id_value;
+        });
+    return iterator == entries.end() ? nullptr : &*iterator;
+}
+
 StageCatalog StageCatalogBuilder::build(
     const StageResourceTableReadResult& table,
     const StageResourceTableDescriptor& descriptor) {
@@ -107,101 +200,91 @@ StageCatalog StageCatalogBuilder::build(
     catalog.diagnostics = table.diagnostics;
 
     if (!descriptor.valid()) {
-        add_diagnostic(
-            catalog,
-            gdspaces::DiagnosticSeverity::error,
+        add_diagnostic(catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.invalid-descriptor",
             "The Stage catalog cannot be built from an invalid Bank-A descriptor.");
         return catalog;
     }
 
-    const auto& universe = wave2_stage_descriptor_universe();
-    if (!universe.valid() || universe.banks[0].row_count != descriptor.row_count) {
-        add_diagnostic(
-            catalog,
-            gdspaces::DiagnosticSeverity::error,
-            "dmc3.stage-catalog.bank-a-metadata-invalid",
-            "Wave-2 Bank-A numeric identity metadata does not match the compatibility descriptor.");
-        return catalog;
-    }
-
     if (table.rows.size() != descriptor.row_count) {
-        add_diagnostic(
-            catalog,
-            gdspaces::DiagnosticSeverity::error,
+        add_diagnostic(catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.row-count-mismatch",
-            "The observed Bank-A descriptor row count does not match the corrected Wave-2 descriptor.");
+            "The observed Bank-A descriptor row count does not match the corrected descriptor.");
     }
 
     catalog.entries.reserve(table.rows.size());
     for (std::size_t index = 0U; index < table.rows.size(); ++index) {
         const auto& row = table.rows[index];
-        if (row.row_index != index) {
-            add_diagnostic(
-                catalog,
-                gdspaces::DiagnosticSeverity::error,
-                "dmc3.stage-catalog.row-order-mismatch",
-                "Bank-A observations are not in deterministic executable row order.");
-        }
-
-        std::optional<std::uint16_t> numeric_stage_id;
-        if (row.row_index < universe.banks[0].numeric_stage_ids.size()) {
-            numeric_stage_id = universe.banks[0].numeric_stage_ids[row.row_index];
-        } else {
-            add_diagnostic(
-                catalog,
-                gdspaces::DiagnosticSeverity::error,
-                "dmc3.stage-catalog.numeric-stage-id-missing",
-                "A Bank-A descriptor row has no corresponding Wave-2 numeric identity.");
-        }
-
+        const auto numeric_stage_id = runtime_stage_id_for_table_row(
+            descriptor, row.row_index);
         catalog.entries.push_back(StageCatalogEntry{
             .catalog_entry_id = make_catalog_entry_id(descriptor, row.row_index),
-            .row_index = row.row_index,
+            .row_index = static_cast<std::uint32_t>(index),
             .numeric_stage_id = numeric_stage_id,
             .evidence_id = descriptor.evidence_packet_id,
             .observation = row,
             .semantic_stage_id = std::nullopt,
+            .source_table_id = descriptor.id,
+            .source_row_index = row.row_index,
         });
-
         for (const auto& cell : row.cells) {
-            if (!cell.valid()) {
-                continue;
-            }
-
-            auto group = std::find_if(
-                catalog.repeated_references.begin(),
-                catalog.repeated_references.end(),
-                [&cell](const StageCatalogRepeatedReference& candidate) {
-                    return candidate.logical_path == cell.logical_path;
-                });
-            if (group == catalog.repeated_references.end()) {
-                catalog.repeated_references.push_back(StageCatalogRepeatedReference{
-                    .logical_path = cell.logical_path,
-                    .uses = {},
-                });
-                group = std::prev(catalog.repeated_references.end());
-            }
-            group->uses.push_back(StageCatalogReferenceUse{
-                .row_index = row.row_index,
-                .column_index = cell.column_index,
-                .role = cell.role,
-            });
+            add_reference(catalog, cell, static_cast<std::uint32_t>(index), descriptor);
         }
     }
+    finalize_repeated_references(catalog);
+    return catalog;
+}
 
-    std::erase_if(
-        catalog.repeated_references,
-        [](const StageCatalogRepeatedReference& reference) {
-            return !reference.repeated();
-        });
+StageCatalog StageCatalogBuilder::build_full_universe(
+    const std::array<StageResourceTableReadResult, 2>& tables,
+    const std::array<StageResourceTableDescriptor, 2>& descriptors) {
+    auto catalog = empty_full_catalog();
+    std::uint32_t global_row{};
+    catalog.entries.reserve(189U);
 
+    for (std::size_t bank_index = 0U; bank_index < descriptors.size(); ++bank_index) {
+        const auto& descriptor = descriptors[bank_index];
+        const auto& table = tables[bank_index];
+        catalog.diagnostics.insert(
+            catalog.diagnostics.end(), table.diagnostics.begin(), table.diagnostics.end());
+
+        if (!descriptor.valid() || table.rows.size() != descriptor.row_count) {
+            add_diagnostic(catalog, gdspaces::DiagnosticSeverity::error,
+                "dmc3.stage-catalog.full-bank-invalid",
+                "A recovered Stage descriptor bank is invalid or incomplete.");
+        }
+
+        for (const auto& row : table.rows) {
+            const auto numeric_stage_id = runtime_stage_id_for_table_row(
+                descriptor, row.row_index);
+            catalog.entries.push_back(StageCatalogEntry{
+                .catalog_entry_id = make_catalog_entry_id(descriptor, row.row_index),
+                .row_index = global_row,
+                .numeric_stage_id = numeric_stage_id,
+                .evidence_id = descriptor.evidence_packet_id,
+                .observation = row,
+                .semantic_stage_id = std::nullopt,
+                .source_table_id = descriptor.id,
+                .source_row_index = row.row_index,
+            });
+            for (const auto& cell : row.cells) {
+                add_reference(catalog, cell, global_row, descriptor);
+            }
+            ++global_row;
+        }
+    }
+    finalize_repeated_references(catalog);
     return catalog;
 }
 
 bool StageCatalogLoadResult::complete() const noexcept {
-    return canonical_artifact &&
-        catalog.complete(wave2_stage_resource_bank_a());
+    if (!canonical_artifact) {
+        return false;
+    }
+    if (catalog.coverage == StageCatalogCoverage::full_selector_universe) {
+        return catalog.complete_full_universe();
+    }
+    return catalog.complete(wave2_stage_resource_bank_a());
 }
 
 StageCatalogLoadResult StageCatalogLoader::load_canonical(
@@ -215,40 +298,69 @@ StageCatalogLoadResult StageCatalogLoader::load_canonical(
     };
 
     if (result.artifact_sha256 != descriptor.artifact_sha256) {
-        add_diagnostic(
-            result.catalog,
-            gdspaces::DiagnosticSeverity::error,
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
             "dmc3.stage-catalog.artifact-hash-mismatch",
-            "The supplied executable SHA-256 does not match the canonical DMC3 Wave-2 Stage artifact.");
+            "The supplied executable SHA-256 does not match the canonical DMC3 Stage artifact.");
         return result;
     }
 
     result.canonical_artifact = true;
     const auto pe = exe::PeReader::read(executable_bytes);
     for (const auto& warning : pe.warnings) {
-        add_diagnostic(
-            result.catalog,
-            gdspaces::DiagnosticSeverity::warning,
-            "dmc3.stage-catalog.pe-warning",
-            warning);
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::warning,
+            "dmc3.stage-catalog.pe-warning", warning);
     }
     for (const auto& error : pe.errors) {
-        add_diagnostic(
-            result.catalog,
-            gdspaces::DiagnosticSeverity::error,
-            "dmc3.stage-catalog.pe-error",
-            error);
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.pe-error", error);
     }
     if (!pe.ok()) {
         return result;
     }
 
     const auto table = StageResourceTableReader::read(
-        executable_bytes,
-        *pe.image,
-        descriptor,
-        max_path_bytes);
+        executable_bytes, *pe.image, descriptor, max_path_bytes);
     result.catalog = StageCatalogBuilder::build(table, descriptor);
+    return result;
+}
+
+StageCatalogLoadResult StageCatalogLoader::load_canonical_full_universe(
+    std::span<const std::byte> executable_bytes,
+    std::size_t max_path_bytes) {
+    const auto& descriptors = wave3_stage_resource_banks();
+    StageCatalogLoadResult result{
+        .artifact_sha256 = core::Sha256::compute(executable_bytes).hex(),
+        .canonical_artifact = false,
+        .catalog = empty_full_catalog(),
+    };
+
+    if (result.artifact_sha256 != descriptors[0].artifact_sha256) {
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.artifact-hash-mismatch",
+            "The supplied executable SHA-256 does not match the canonical DMC3 Stage artifact.");
+        return result;
+    }
+
+    result.canonical_artifact = true;
+    const auto pe = exe::PeReader::read(executable_bytes);
+    for (const auto& warning : pe.warnings) {
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::warning,
+            "dmc3.stage-catalog.pe-warning", warning);
+    }
+    for (const auto& error : pe.errors) {
+        add_diagnostic(result.catalog, gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.pe-error", error);
+    }
+    if (!pe.ok()) {
+        return result;
+    }
+
+    std::array<StageResourceTableReadResult, 2> tables{};
+    for (std::size_t index = 0U; index < descriptors.size(); ++index) {
+        tables[index] = StageResourceTableReader::read(
+            executable_bytes, *pe.image, descriptors[index], max_path_bytes);
+    }
+    result.catalog = StageCatalogBuilder::build_full_universe(tables, descriptors);
     return result;
 }
 

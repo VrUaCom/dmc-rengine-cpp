@@ -75,7 +75,8 @@ namespace {
 
 [[nodiscard]] std::optional<evidence::EvidencePacket> load_evidence_packet(
     const std::filesystem::path& path) {
-    const auto payload = load_local_file(path, "stage-evidence", "build-stage-workspace");
+    const auto payload = load_local_file(
+        path, "stage-evidence", "build-stage-workspace");
     if (!payload.has_value()) {
         return std::nullopt;
     }
@@ -99,7 +100,7 @@ namespace {
 }
 
 [[nodiscard]] std::optional<profiles::dmc3::StageCatalogLoadResult>
-load_stage_catalog(const std::filesystem::path& executable_path) {
+load_full_stage_catalog(const std::filesystem::path& executable_path) {
     constexpr std::string_view operation = "stage-catalog";
     const auto payload = load_local_file(
         executable_path, "stage-catalog-exe", operation);
@@ -108,14 +109,14 @@ load_stage_catalog(const std::filesystem::path& executable_path) {
     }
 
     const auto bytes = std::span<const std::byte>{payload->bytes};
-    auto loaded = profiles::dmc3::StageCatalogLoader::load_canonical(bytes);
+    auto loaded = profiles::dmc3::StageCatalogLoader::load_canonical_full_universe(bytes);
     for (const auto& diagnostic : loaded.catalog.diagnostics) {
         std::cerr << "stage-catalog ["
                   << gdspaces::to_string(diagnostic.severity) << "] "
                   << diagnostic.code << ": " << diagnostic.message << '\n';
     }
-    if (!loaded.bank_a_complete()) {
-        std::cerr << "stage-catalog: canonical Wave-2 Bank-A compatibility load failed; sha256="
+    if (!loaded.full_stage_universe_complete()) {
+        std::cerr << "stage-catalog: canonical full 189-descriptor load failed; sha256="
                   << loaded.artifact_sha256 << '\n';
         return std::nullopt;
     }
@@ -169,20 +170,21 @@ load_workspace_payloads(const std::filesystem::path& root) {
 }
 
 int run_list_stage_catalog(const std::filesystem::path& executable_path) {
-    const auto loaded = load_stage_catalog(executable_path);
+    const auto loaded = load_full_stage_catalog(executable_path);
     if (!loaded.has_value()) {
         return 2;
     }
 
     const auto& catalog = loaded->catalog;
     const auto& universe = profiles::dmc3::wave2_stage_descriptor_universe();
-    std::cout << "DMC3 Stage Catalog — Wave 2 reconciled coverage\n"
+    std::cout << "DMC3 Stage Catalog — full recovered descriptor universe\n"
               << "artifact_sha256=" << loaded->artifact_sha256 << '\n'
               << "coverage=" << profiles::dmc3::to_string(catalog.coverage) << '\n'
-              << "bank_a_entries=" << catalog.entries.size() << '\n'
+              << "entries=" << catalog.entries.size() << '\n'
               << "observed_descriptor_universe="
               << universe.observed_descriptor_count() << '\n'
               << "selector_entries=" << universe.selector_entry_count << '\n'
+              << "group_bases=" << universe.group_base_count << '\n'
               << "full_selector_universe_complete="
               << (loaded->full_stage_universe_complete() ? "true" : "false") << '\n'
               << "table_id=" << catalog.table_id << '\n'
@@ -190,7 +192,10 @@ int run_list_stage_catalog(const std::filesystem::path& executable_path) {
               << catalog.repeated_references.size() << '\n';
 
     for (const auto& entry : catalog.entries) {
-        std::cout << "bank_a_row=" << entry.row_index
+        std::cout << "row=" << entry.row_index
+                  << " source_table="
+                  << (entry.source_table_id.empty() ? "legacy" : entry.source_table_id)
+                  << " source_row=" << entry.source_row_index
                   << " id=" << entry.catalog_entry_id
                   << " numeric_stage_id=";
         if (entry.numeric_stage_id.has_value()) {
@@ -202,6 +207,7 @@ int run_list_stage_catalog(const std::filesystem::path& executable_path) {
                   << (entry.semantic_stage_id.has_value()
                         ? *entry.semantic_stage_id : "unresolved")
                   << '\n';
+
         for (const auto& cell : entry.observation.cells) {
             std::cout << "  " << profiles::dmc3::to_string(cell.role)
                       << " kind16=";
@@ -219,8 +225,11 @@ int run_list_stage_catalog(const std::filesystem::path& executable_path) {
         for (const auto& repeated : catalog.repeated_references) {
             std::cout << "  " << repeated.logical_path << " <-";
             for (const auto& use : repeated.uses) {
-                std::cout << " bank_a_row=" << use.row_index
-                          << ":" << profiles::dmc3::to_string(use.role);
+                std::cout << " row=" << use.row_index
+                          << " source="
+                          << (use.source_table_id.empty() ? "legacy" : use.source_table_id)
+                          << ':' << use.source_row_index
+                          << ':' << profiles::dmc3::to_string(use.role);
             }
             std::cout << '\n';
         }
@@ -233,14 +242,14 @@ int run_build_stage_workspace(
     std::uint32_t row_index,
     const std::filesystem::path& root,
     const std::optional<std::filesystem::path>& evidence_path) {
-    const auto loaded = load_stage_catalog(executable_path);
+    const auto loaded = load_full_stage_catalog(executable_path);
     if (!loaded.has_value()) {
         return 2;
     }
 
     const auto* entry = loaded->catalog.find(row_index);
     if (entry == nullptr) {
-        std::cerr << "build-stage-workspace: Bank-A row index is outside current compatibility coverage: "
+        std::cerr << "build-stage-workspace: global catalog row index is outside 0..188: "
                   << row_index << '\n';
         return 3;
     }
@@ -283,9 +292,9 @@ int run_build_stage_workspace(
 void print_stage_help() {
     std::cout
         << "  list-stage-catalog <dmc3.exe>\n"
-        << "                             Read Wave-2-corrected Bank-A coverage (110 of 189 observed descriptors)\n"
-        << "  build-stage-workspace <dmc3.exe> <bank-a-row-index> <resource-root> [evidence.json]\n"
-        << "                             Build from one exact Bank-A compatibility entry; selector-derived full coverage is pending\n";
+        << "                             Read the full recovered 189-descriptor Stage universe\n"
+        << "  build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n"
+        << "                             Build from one exact catalog row across Bank A or Bank B\n";
 }
 
 int try_run_stage_command(int argc, char** argv) {
@@ -305,12 +314,12 @@ int try_run_stage_command(int argc, char** argv) {
     if (command == "build-stage-workspace") {
         if (argc < 5 || argc > 6) {
             std::cerr
-                << "build-stage-workspace: usage: build-stage-workspace <dmc3.exe> <bank-a-row-index> <resource-root> [evidence.json]\n";
+                << "build-stage-workspace: usage: build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n";
             return 1;
         }
         const auto row_index = parse_row_index(argv[3]);
         if (!row_index.has_value()) {
-            std::cerr << "build-stage-workspace: invalid Bank-A row index: "
+            std::cerr << "build-stage-workspace: invalid catalog row index: "
                       << argv[3] << '\n';
             return 1;
         }

@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -19,10 +20,8 @@ struct StageRuntimeResourceResolution final {
     StageResourceReference reference;
     RuntimeResolutionReport runtime;
 
-    // Wave 2: kind16 == 0 performs a second lookup after rewriting the original
-    // extension to .lst when the primary path is absent. We preserve that probe
-    // separately because list parsing/recursion/ownership is not yet fully
-    // reconstructed and therefore cannot be promoted to a normal resolved root.
+    // kind16==0 may probe a sibling .lst when the primary path is absent. The
+    // list is preserved separately until its full manifest lifetime is modeled.
     std::optional<RuntimeResolutionReport> list_fallback;
 
     [[nodiscard]] bool resolved() const noexcept {
@@ -30,43 +29,40 @@ struct StageRuntimeResourceResolution final {
     }
 
     [[nodiscard]] bool list_fallback_required() const noexcept {
-        return !runtime.ok() && reference.kind16 == 0U &&
-            list_fallback.has_value() && list_fallback->ok();
+        return !runtime.ok() && reference.kind16.has_value() &&
+            *reference.kind16 == 0U && list_fallback.has_value() &&
+            list_fallback->ok();
     }
 };
 
 struct StageRuntimeResolutionReport final {
-    // Stable executable descriptor-row identity inside this catalog coverage.
-    // It is separate from any later evidence-backed gameplay-stage identity.
+    // Four distinct identity layers are preserved through runtime lookup.
     std::string catalog_entry_id;
-    std::uint32_t table_row_index{};
+    std::uint32_t table_row_index{}; // global catalog row
+    std::string source_table_id;
+    std::uint32_t source_row_index{};
+    std::optional<std::uint16_t> numeric_stage_id;
+    std::optional<std::string> semantic_stage_id;
     StageResourceRowPlan plan;
     std::array<StageRuntimeResourceResolution, 4> resources{};
     std::vector<gdspaces::Diagnostic> diagnostics;
 
     [[nodiscard]] bool complete() const noexcept;
 
-    // Produce the four resolved StageBundle candidates only when every role is
-    // uniquely resolved through the primary path. A located .lst fallback is
-    // intentionally not treated as an equivalent root until list semantics are
-    // reconstructed beyond lookup existence.
     [[nodiscard]] std::vector<gdspaces::StageMemberCandidate>
     resolved_candidates() const;
 };
 
 class StageRuntimeResolver final {
 public:
-    // Current production entry point begins with one exact entry from the
-    // Wave-2-corrected Bank-A compatibility catalog. Full selector/group-derived
-    // Stage-universe mapping remains a separate reconciliation step.
     [[nodiscard]] static StageRuntimeResolutionReport resolve_entry(
         const StageCatalogEntry& entry,
         const VolumeBootstrapPlan& bootstrap,
         const RuntimeSourceBindings& bindings,
         const gdspaces::SourceRegistry& sources);
 
-    // Compatibility bridge for callers that already hold one observed Bank-A
-    // row. catalog_entry_id is technical resource-set identity only.
+    // Compatibility bridge for callers that hold a raw descriptor row. Bank
+    // provenance and selector-facing numeric identity are unavailable here.
     [[nodiscard]] static StageRuntimeResolutionReport resolve_row(
         std::string catalog_entry_id,
         std::string evidence_id,
