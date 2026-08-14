@@ -83,7 +83,8 @@ int main() {
     assert(combined_abi->returns_any_hit_in_al);
     assert(combined_abi->working_and_output_may_alias);
     assert(combined_abi->total_miss_copies_working_point_to_output);
-    assert(combined_abi->downstream_passes_share_progressive_working_point);
+    assert(combined_abi->dynamic_passes_share_same_static_or_input_baseline);
+    assert(combined_abi->last_successful_pass_has_output_precedence);
 
     const auto pass0 = combined_query_pass_evidence(canonical_sha, 0U);
     const auto pass1 = combined_query_pass_evidence(canonical_sha, 1U);
@@ -125,7 +126,7 @@ int main() {
     assert(dynamic_query->minimum_observed_primitive_type == 2U);
     assert(dynamic_query->maximum_observed_primitive_type == 6U);
     assert(dynamic_query->category_indexes_pointer_table_directly);
-    assert(dynamic_query->accepted_hit_updates_working_point);
+    assert(dynamic_query->accepted_hit_updates_internal_working_point);
     assert(dynamic_query->accepted_hit_writes_output_point);
 
     assert(!canonical_function_body(packed_sha, CanonicalBodyRole::combined_query_wrapper)
