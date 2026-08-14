@@ -92,12 +92,7 @@ public:
     [[nodiscard]] bool attach_parsed_resource(ParsedResourceResult parsed);
     [[nodiscard]] const ParsedResourceResult* parsed_resource() const noexcept;
 
-    // Binary Inspector document produced from the same explicit byte revision as
-    // its parser result. Immutable-source adapters use revision 0; WorkingCopy
-    // adapters pass the active WorkingCopy revision.
-    [[nodiscard]] bool attach_binary_document(
-        binary::Document document,
-        std::uint64_t byte_revision = 0U);
+    [[nodiscard]] bool attach_binary_document(binary::Document document);
     [[nodiscard]] const binary::Document* binary_document() const noexcept;
     [[nodiscard]] bool attach_executable_context(
         ExecutableResourceContext context);
