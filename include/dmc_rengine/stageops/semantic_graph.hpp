@@ -30,7 +30,7 @@ enum class NodeKind {
 }
 
 enum class EdgeKind {
-    requires,
+    requires_requirement,
     resolves_to,
     stage_member,
     contains,
@@ -39,7 +39,7 @@ enum class EdgeKind {
 
 [[nodiscard]] constexpr std::string_view to_string(EdgeKind kind) noexcept {
     switch (kind) {
-    case EdgeKind::requires: return "requires";
+    case EdgeKind::requires_requirement: return "requires";
     case EdgeKind::resolves_to: return "resolves-to";
     case EdgeKind::stage_member: return "stage-member";
     case EdgeKind::contains: return "contains";
