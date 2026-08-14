@@ -23,15 +23,18 @@ bool ResourceWorkspaceSession::attach_parsed_resource(
     }
 
     const auto parser_id = parsed.parser_id;
+    const auto byte_revision = parsed.byte_revision;
+    const auto byte_source = std::string{to_string(parsed.byte_source)};
     parsed_resource_ = std::move(parsed);
     static_cast<void>(events_.record(
         WorkspaceEventType::parsed_resource_attached,
         payload_.resource.id,
         gdspaces::ToolTarget::gdspaces,
-        gdspaces::ToolTarget::stage_ops,
-        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        std::nullopt,
+        byte_revision,
         parser_id,
-        "The canonical typed parser result was retained for shared Stage Ops and inspection consumers."));
+        "The canonical typed parser result for " + byte_source +
+            " bytes was retained for shared Stage Ops and inspection consumers."));
     return true;
 }
 
