@@ -60,7 +60,7 @@ bool StageResourceTableRowObservation::complete() const noexcept {
     return std::all_of(
         cells.begin(), cells.end(),
         [](const StageResourceTableCellObservation& cell) {
-            return cell.valid();
+            return cell.valid() && cell.kind16.has_value();
         });
 }
 
@@ -165,6 +165,22 @@ StageResourceTableReadResult StageResourceTableReader::read(
             cell.cell_rva = cell_rva64 <= std::numeric_limits<std::uint32_t>::max()
                 ? static_cast<std::uint32_t>(cell_rva64) : 0U;
             cell.cell_va = image.image_base + cell_rva64;
+
+            const auto kind_field_offset = cell_file_offset + descriptor.kind16_offset;
+            if (kind_field_offset > std::numeric_limits<std::size_t>::max()) {
+                add_diagnostic(result, gdspaces::DiagnosticSeverity::error,
+                    "dmc3.stage-table.kind-field-overflow",
+                    "A stage table kind16 field offset exceeds the host addressable range.");
+                continue;
+            }
+            const auto kind16 = reader.u16_le(static_cast<std::size_t>(kind_field_offset));
+            if (!kind16.has_value()) {
+                add_diagnostic(result, gdspaces::DiagnosticSeverity::error,
+                    "dmc3.stage-table.invalid-kind16",
+                    "A Stage resource cell does not contain a readable Wave-2 kind16 field.");
+                continue;
+            }
+            cell.kind16 = *kind16;
 
             const auto pointer_field_offset = cell_file_offset + descriptor.path_pointer_offset;
             if (pointer_field_offset > std::numeric_limits<std::size_t>::max()) {
