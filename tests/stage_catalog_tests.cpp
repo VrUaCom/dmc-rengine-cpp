@@ -28,14 +28,9 @@ make_table_observations() {
                 std::to_string(row_index) + "_column_" +
                 std::to_string(column_index) + ".pac";
 
-            // Exact repeated EXE reference across two rows. This should be
-            // recorded structurally without inventing semantic stage sharing.
             if ((row_index == 3U || row_index == 77U) && column_index == 2U) {
                 logical_path = "room/shared_effects.pac";
             }
-
-            // Case-different text is intentionally not grouped by StageCatalog.
-            // Runtime provider normalization belongs to GDSpaces resolution.
             if (row_index == 8U && column_index == 0U) {
                 logical_path = "SCR/CASE_SENSITIVE_OBSERVATION.PAC";
             }
@@ -95,9 +90,11 @@ int main() {
 
     const auto first_plan = first->resource_plan();
     assert(first_plan.valid());
-    // Existing StageResourceRowPlan calls this field stage_id. For catalog-driven
-    // resolution it carries row identity only, never an inferred gameplay id.
-    assert(first_plan.stage_id == first->catalog_entry_id);
+    assert(first_plan.resource_set_id == first->catalog_entry_id);
+    assert(first_plan.resource_set_key() == first->catalog_entry_id);
+    assert(first_plan.stage_id == first->catalog_entry_id); // legacy technical alias
+    assert(!first_plan.semantic_stage_known());
+    assert(first_plan.semantic_stage_id.empty());
     assert(first_plan.resources[0].logical_path ==
         "resource/row_0_column_0.pac");
 
@@ -111,7 +108,6 @@ int main() {
     assert(catalog.repeated_references[0].uses[0].row_index == 3U);
     assert(catalog.repeated_references[0].uses[1].row_index == 77U);
 
-    // The catalog does not normalize case or infer alias/variant relationships.
     for (const auto& repeated : catalog.repeated_references) {
         assert(repeated.logical_path != "SCR/CASE_SENSITIVE_OBSERVATION.PAC");
         assert(repeated.logical_path != "scr/case_sensitive_observation.pac");
@@ -125,8 +121,6 @@ int main() {
     assert(incomplete_entry != nullptr);
     assert(!incomplete_entry->complete());
 
-    // Production catalog loading is hash-gated before the structural reader is
-    // trusted. Public synthetic bytes must therefore fail the canonical gate.
     constexpr std::array<std::byte, 4> noncanonical_bytes{
         std::byte{0x44}, std::byte{0x4D}, std::byte{0x43}, std::byte{0x33},
     };
