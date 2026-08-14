@@ -100,6 +100,10 @@ private:
             const ObservedResourceState&) = default;
     };
 
+    [[nodiscard]] static bool byte_state_changed(
+        const ObservedResourceState& left,
+        const ObservedResourceState& right) noexcept;
+
     [[nodiscard]] const StageAssemblyResource* stage_resource(
         std::string_view canonical_resource_id) const noexcept;
     [[nodiscard]] ObservedResourceState observe(
