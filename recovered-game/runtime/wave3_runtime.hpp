@@ -191,6 +191,48 @@ struct OwnerResourceCacheEvidence final {
     }
 };
 
+struct StageDependencyPreloadEvidence final {
+    bool config_must_be_ready_before_scan{};
+    bool extracts_enemy_ids_from_config_records{};
+    bool maps_enemy_ids_to_resource_sets{};
+    bool deduplicates_resource_sets{};
+    ResourceDomain enemy_object_domain{ResourceDomain::enemy_object};
+    ResourceDomain enemy_sound_domain{ResourceDomain::enemy_sound};
+    bool schedules_stage_script_after_enemy_preload{};
+    bool schedules_stage_effect_after_enemy_preload{};
+    bool waits_for_pending_dependencies{};
+
+    [[nodiscard]] constexpr bool valid() const noexcept {
+        return config_must_be_ready_before_scan &&
+            extracts_enemy_ids_from_config_records &&
+            maps_enemy_ids_to_resource_sets &&
+            deduplicates_resource_sets &&
+            enemy_object_domain == ResourceDomain::enemy_object &&
+            enemy_sound_domain == ResourceDomain::enemy_sound &&
+            schedules_stage_script_after_enemy_preload &&
+            schedules_stage_effect_after_enemy_preload &&
+            waits_for_pending_dependencies;
+    }
+};
+
+struct TypedPostLoadTraversalEvidence final {
+    bool pac_member_traversal{};
+    bool pnst_recursive_non_empty_traversal{};
+    bool mod_in_place_relative_pointer_fixup{};
+    bool efm_in_place_relative_pointer_fixup{};
+    bool scm_in_place_relative_pointer_fixup{};
+    bool shw_in_place_relative_pointer_fixup{};
+
+    [[nodiscard]] constexpr bool valid() const noexcept {
+        return pac_member_traversal &&
+            pnst_recursive_non_empty_traversal &&
+            mod_in_place_relative_pointer_fixup &&
+            efm_in_place_relative_pointer_fixup &&
+            scm_in_place_relative_pointer_fixup &&
+            shw_in_place_relative_pointer_fixup;
+    }
+};
+
 struct ResourceDomainEvidence final {
     ResourceDomain domain{ResourceDomain::stage_script};
     std::string_view source;
@@ -461,6 +503,8 @@ struct MasterResourceCatalogEvidence final {
     std::uint32_t adx_count{};
     std::uint32_t bin_count{};
     std::uint32_t sfd_count{};
+    std::uint32_t id_pac_entry_count{};
+    std::uint32_t unique_id_pac_count{};
 
     [[nodiscard]] constexpr bool valid() const noexcept {
         return pointer_table_va == 0x140553050ULL &&
@@ -469,8 +513,19 @@ struct MasterResourceCatalogEvidence final {
             txt_count == 424U &&
             adx_count == 154U &&
             bin_count == 24U &&
-            sfd_count == 19U;
+            sfd_count == 19U &&
+            id_pac_entry_count == 2368U &&
+            unique_id_pac_count == 2367U;
     }
+};
+
+struct NumericResourceControlExample final {
+    std::uint32_t resource_id{};
+    std::string_view expected_name;
+    bool expected_found{};
+
+    [[nodiscard]] constexpr bool operator==(
+        const NumericResourceControlExample&) const noexcept = default;
 };
 
 struct NumericResourceResolverEvidence final {
@@ -479,13 +534,26 @@ struct NumericResourceResolverEvidence final {
     std::uint32_t scan_end_exclusive{};
     std::uint32_t valid_id_count{};
     std::uint32_t valid_range_count{};
+    std::array<NumericResourceControlExample, 7> controls{};
 
-    [[nodiscard]] constexpr bool valid() const noexcept {
-        return function_va == 0x1402C07F0ULL &&
-            scan_begin == 0U &&
-            scan_end_exclusive == 10001U &&
-            valid_id_count == 932U &&
-            valid_range_count == 145U;
+    [[nodiscard]] bool valid() const noexcept {
+        if (function_va != 0x1402C07F0ULL ||
+            scan_begin != 0U ||
+            scan_end_exclusive != 10001U ||
+            valid_id_count != 932U ||
+            valid_range_count != 145U) {
+            return false;
+        }
+        constexpr std::array<NumericResourceControlExample, 7> expected{{
+            {100U, "id100", true},
+            {200U, "id200J", true},
+            {420U, "id420J", true},
+            {899U, "id899", true},
+            {920U, "id920", true},
+            {6500U, "id6500", true},
+            {9999U, "", false},
+        }};
+        return controls == expected;
     }
 };
 
@@ -512,6 +580,8 @@ struct Wave3RuntimeEvidenceModel final {
     StageRuntimeEvidence stage;
     ListManifestEvidence list_manifest;
     OwnerResourceCacheEvidence owner_cache;
+    StageDependencyPreloadEvidence stage_preload;
+    TypedPostLoadTraversalEvidence typed_postload;
     PlayerFactoryEvidence player_factory;
     EnemyFactoryEvidence enemy_factory;
     SceneRuntimeEvidence scene;
@@ -525,13 +595,23 @@ struct Wave3RuntimeEvidenceModel final {
     [[nodiscard]] bool valid() const noexcept {
         if (artifact_sha256 != kCanonicalDmc3Sha256 ||
             evidence_id != "dmc3-vanilla-wave3" ||
-            !stage.valid() || !list_manifest.valid() || !owner_cache.valid() ||
-            !player_factory.valid() || !enemy_factory.valid() || !scene.valid() ||
-            !animation.valid() || !graphics.valid() || !media.valid() ||
-            !master_catalog.valid() || !numeric_resource_resolver.valid() ||
+            !stage.valid() ||
+            !list_manifest.valid() ||
+            !owner_cache.valid() ||
+            !stage_preload.valid() ||
+            !typed_postload.valid() ||
+            !player_factory.valid() ||
+            !enemy_factory.valid() ||
+            !scene.valid() ||
+            !animation.valid() ||
+            !graphics.valid() ||
+            !media.valid() ||
+            !master_catalog.valid() ||
+            !numeric_resource_resolver.valid() ||
             !memory.valid()) {
             return false;
         }
+
         std::uint32_t stage_count = 0U;
         for (const auto& range : observed_stage_id_ranges()) {
             stage_count += range.count();
@@ -556,8 +636,14 @@ wave3_runtime_evidence_model() noexcept {
                 .path_pointer_offset = 0x08U,
             },
             .descriptor_stride = 0x40U,
-            .bank_a = StageDescriptorBank{.base_va = 0x1405C4AA0ULL, .descriptor_count = 110U},
-            .bank_b = StageDescriptorBank{.base_va = 0x1405C3080ULL, .descriptor_count = 79U},
+            .bank_a = StageDescriptorBank{
+                .base_va = 0x1405C4AA0ULL,
+                .descriptor_count = 110U,
+            },
+            .bank_b = StageDescriptorBank{
+                .base_va = 0x1405C3080ULL,
+                .descriptor_count = 79U,
+            },
             .selector_table_va = 0x1405C4440ULL,
             .selector_count = 193U,
             .group_base_table_va = 0x1405C4A50ULL,
@@ -580,6 +666,25 @@ wave3_runtime_evidence_model() noexcept {
             .has_ready_and_pending_lists = true,
             .release_decrements_refcount = true,
         },
+        .stage_preload = StageDependencyPreloadEvidence{
+            .config_must_be_ready_before_scan = true,
+            .extracts_enemy_ids_from_config_records = true,
+            .maps_enemy_ids_to_resource_sets = true,
+            .deduplicates_resource_sets = true,
+            .enemy_object_domain = ResourceDomain::enemy_object,
+            .enemy_sound_domain = ResourceDomain::enemy_sound,
+            .schedules_stage_script_after_enemy_preload = true,
+            .schedules_stage_effect_after_enemy_preload = true,
+            .waits_for_pending_dependencies = true,
+        },
+        .typed_postload = TypedPostLoadTraversalEvidence{
+            .pac_member_traversal = true,
+            .pnst_recursive_non_empty_traversal = true,
+            .mod_in_place_relative_pointer_fixup = true,
+            .efm_in_place_relative_pointer_fixup = true,
+            .scm_in_place_relative_pointer_fixup = true,
+            .shw_in_place_relative_pointer_fixup = true,
+        },
         .player_factory = PlayerFactoryEvidence{
             .factory_va = 0x1401DE820ULL,
             .entries = {{
@@ -594,7 +699,10 @@ wave3_runtime_evidence_model() noexcept {
             .selector_count = 46U,
             .external_mapping_count = 64U,
             .null_selectors = {{9U, 15U, 24U, 26U, 38U, 41U, 42U, 43U}},
-            .shared_cases = {{{17U, 20U, 17U}, {29U, 31U, 28U}}},
+            .shared_cases = {{
+                {17U, 20U, 17U},
+                {29U, 31U, 28U},
+            }},
             .resource_examples = {{
                 {12U, "obj\\em017.pac", "se\\snd_em17.pac"},
                 {20U, "obj\\em029.pac", "se\\snd_em29.pac"},
@@ -667,6 +775,8 @@ wave3_runtime_evidence_model() noexcept {
             .adx_count = 154U,
             .bin_count = 24U,
             .sfd_count = 19U,
+            .id_pac_entry_count = 2368U,
+            .unique_id_pac_count = 2367U,
         },
         .numeric_resource_resolver = NumericResourceResolverEvidence{
             .function_va = 0x1402C07F0ULL,
@@ -674,6 +784,15 @@ wave3_runtime_evidence_model() noexcept {
             .scan_end_exclusive = 10001U,
             .valid_id_count = 932U,
             .valid_range_count = 145U,
+            .controls = {{
+                {100U, "id100", true},
+                {200U, "id200J", true},
+                {420U, "id420J", true},
+                {899U, "id899", true},
+                {920U, "id920", true},
+                {6500U, "id6500", true},
+                {9999U, "", false},
+            }},
         },
         .memory = MemoryRuntimeEvidence{
             .registry_lookup_va = 0x1402C6150ULL,
