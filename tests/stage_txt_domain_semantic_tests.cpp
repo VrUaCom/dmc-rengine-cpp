@@ -141,10 +141,16 @@ int main() {
     assert(values[0]->attributes.at("offset") == "5");
     assert(values[1]->attributes.at("value") == "ORBREAK");
 
+    // Never retain pointers into a domain workspace across its move into the
+    // canonical knowledge aggregate. Graph identities are stable strings, so
+    // copy them before the ownership transfer and use those IDs afterward.
+    const std::string script_domain_id = scripts[0]->id;
+    const std::string stay_domain_id = values[0]->id;
+
     std::vector<stageops::StageRuntimeLink> runtime_links;
     runtime_links.push_back(stageops::StageRuntimeLink{
         .id = "fixture/stage-set-stay-classifier-link",
-        .domain_object_id = values[0]->id,
+        .domain_object_id = stay_domain_id,
         .runtime = stageops::RecoveredRuntimeIdentity{
             .id = "fixture/runtime/stage-set-token-classifier",
             .source_tree_path =
@@ -200,7 +206,7 @@ int main() {
     assert(door_node->attributes.at("runtime_object_claim") == "false");
 
     const auto contains_markers = graph.outgoing(
-        scripts[0]->id,
+        script_domain_id,
         stageops::semantic::EdgeKind::domain_relation);
     assert(contains_markers.size() == 6U);
     assert(std::all_of(
@@ -212,7 +218,7 @@ int main() {
         }));
 
     const auto runtime_edges = graph.outgoing(
-        values[0]->id,
+        stay_domain_id,
         stageops::semantic::EdgeKind::runtime_link);
     assert(runtime_edges.size() == 1U);
     assert(runtime_edges[0]->authority ==
