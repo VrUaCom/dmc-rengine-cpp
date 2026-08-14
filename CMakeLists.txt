@@ -71,6 +71,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         json_parser
         evidence_json
         evidence_json_import
+        runtime_trace
         evidence_packet_project
         evidence_packet_range
         binary_reader
