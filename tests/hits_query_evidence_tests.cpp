@@ -43,8 +43,97 @@ int main() {
     const auto e7a0 = query_evidence(canonical_sha, QueryVariant::generic_combined_05e7a0);
     assert(e7a0.has_value());
     assert(e7a0->direct_static_caller_count == 51U);
-    assert(e7a0->abi_kind == SpecializedAbiKind::unresolved);
+    assert(e7a0->abi_kind == SpecializedAbiKind::combined_point_query);
+    assert(e7a0->success_observed_in_al);
     assert(!e7a0->mutable_16_byte_inout_confirmed);
+
+    const auto combined_body =
+        canonical_function_body(canonical_sha, CanonicalBodyRole::combined_query_wrapper);
+    assert(combined_body.has_value());
+    assert(combined_body->begin_va == 0x14005E7A0ULL);
+    assert(combined_body->end_va == 0x14005E880ULL);
+    assert(combined_body->size_bytes == 224U);
+    assert(combined_body->sha256 ==
+           "3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f");
+
+    const auto static_body =
+        canonical_function_body(canonical_sha, CanonicalBodyRole::static_hits_pass);
+    assert(static_body.has_value());
+    assert(static_body->begin_va == 0x14005E880ULL);
+    assert(static_body->end_va == 0x14005EB95ULL);
+    assert(static_body->size_bytes == 789U);
+
+    const auto dynamic_body =
+        canonical_function_body(canonical_sha, CanonicalBodyRole::dynamic_category_pass);
+    assert(dynamic_body.has_value());
+    assert(dynamic_body->begin_va == 0x14005BCF0ULL);
+    assert(dynamic_body->end_va == 0x14005C0D6ULL);
+    assert(dynamic_body->size_bytes == 998U);
+
+    const auto combined_abi = combined_query_abi_evidence(canonical_sha);
+    assert(combined_abi.has_value());
+    assert(combined_abi->function_va == 0x14005E7A0ULL);
+    assert(combined_abi->argument_count == 6U);
+    assert(combined_abi->runtime_wrapper_arg_index == 1U);
+    assert(combined_abi->reference_point_16_byte_arg_index == 2U);
+    assert(combined_abi->working_point_16_byte_arg_index == 3U);
+    assert(combined_abi->output_point_16_byte_arg_index == 4U);
+    assert(combined_abi->optional_hit_metadata_arg_index == 5U);
+    assert(combined_abi->raw_reject_mask_arg_index == 6U);
+    assert(combined_abi->returns_any_hit_in_al);
+    assert(combined_abi->working_and_output_may_alias);
+    assert(combined_abi->total_miss_copies_working_point_to_output);
+    assert(combined_abi->downstream_passes_share_progressive_working_point);
+
+    const auto pass0 = combined_query_pass_evidence(canonical_sha, 0U);
+    const auto pass1 = combined_query_pass_evidence(canonical_sha, 1U);
+    const auto pass2 = combined_query_pass_evidence(canonical_sha, 2U);
+    assert(pass0.has_value());
+    assert(pass0->kind == CombinedQueryPassKind::static_hits);
+    assert(pass0->helper_va == 0x14005E880ULL);
+    assert(!pass0->dynamic_category_id.has_value());
+    assert(pass1.has_value());
+    assert(pass1->kind == CombinedQueryPassKind::dynamic_category);
+    assert(pass1->helper_va == 0x14005BCF0ULL);
+    assert(pass1->dynamic_category_id.has_value() && *pass1->dynamic_category_id == 0x0EU);
+    assert(pass2.has_value());
+    assert(pass2->kind == CombinedQueryPassKind::dynamic_category);
+    assert(pass2->dynamic_category_id.has_value() && *pass2->dynamic_category_id == 0x11U);
+    assert(!combined_query_pass_evidence(canonical_sha, 3U).has_value());
+
+    const auto metadata = combined_hit_metadata_evidence(canonical_sha);
+    assert(metadata.has_value());
+    assert(metadata->size_bytes == 0x38U);
+    assert(metadata->static_hit_copies_complete_record);
+    assert(metadata->dynamic_hit_writes_compatible_partial_record);
+    assert(metadata->dynamic_identity_source_offset == 0xD8U);
+    assert(metadata->dynamic_identity_output_offset == 0x00U);
+    assert(metadata->dynamic_vector_output_offset == 0x28U);
+    assert(metadata->dynamic_vector_component_count == 3U);
+
+    const auto dynamic_query = dynamic_category_query_evidence(canonical_sha);
+    assert(dynamic_query.has_value());
+    assert(dynamic_query->function_va == 0x14005BCF0ULL);
+    assert(dynamic_query->category_index_arg_index == 6U);
+    assert(dynamic_query->raw_reject_mask_arg_index == 7U);
+    assert(dynamic_query->mode_byte_arg_index == 8U);
+    assert(dynamic_query->linked_next_offset == 0x328U);
+    assert(dynamic_query->primitive_type_offset == 0x120U);
+    assert(dynamic_query->raw_flags_offset == 0xDAU);
+    assert(dynamic_query->raw_flags_width_bytes == 2U);
+    assert(dynamic_query->identity_source_offset == 0xD8U);
+    assert(dynamic_query->minimum_observed_primitive_type == 2U);
+    assert(dynamic_query->maximum_observed_primitive_type == 6U);
+    assert(dynamic_query->category_indexes_pointer_table_directly);
+    assert(dynamic_query->accepted_hit_updates_working_point);
+    assert(dynamic_query->accepted_hit_writes_output_point);
+
+    assert(!canonical_function_body(packed_sha, CanonicalBodyRole::combined_query_wrapper)
+                .has_value());
+    assert(!combined_query_abi_evidence(packed_sha).has_value());
+    assert(!combined_query_pass_evidence(packed_sha, 0U).has_value());
+    assert(!combined_hit_metadata_evidence(packed_sha).has_value());
+    assert(!dynamic_category_query_evidence(packed_sha).has_value());
 
     const auto fec0 = query_evidence(canonical_sha, QueryVariant::source_selectable_segment_05fec0);
     assert(fec0.has_value());
