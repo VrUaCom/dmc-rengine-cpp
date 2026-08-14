@@ -11,6 +11,7 @@ Companion research:
 - `docs/research/hits-pass10-slice4-canonical-combined-query-abi.md`
 - `docs/research/hits-pass10-slice5-dynamic-world-update-topology.md`
 - `docs/research/hits-pass10-slice6-source1-query-abi.md`
+- `docs/research/hits-pass10-slice7-primitive-shape-mapping.md`
 
 ## Why Pass 10 exists
 
@@ -33,7 +34,7 @@ No material correction may remain only in chat.
 
 ## Canonical-byte provenance
 
-The ChatGPT Project/Library corpus contains `dmc3_phase17_reng_probe.exe` and its Phase-17 verifier receipt. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and preserves the original PE raw section range `0x400..0x60E600` byte-identically. Every Pass-10 Slice-4/5/6 function body promoted below maps inside that preserved range.
+The ChatGPT Project/Library corpus contains `dmc3_phase17_reng_probe.exe` and its Phase-17 verifier receipt. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and preserves the original PE raw section range `0x400..0x60E600` byte-identically. Every Pass-10 Slice-4/5/6/7 function body promoted below maps inside that preserved range.
 
 `dmc3_phase18_red_orb_x2_hook.exe` independently matches the promoted body windows and serves as a second consistency check. It is not used to replace canonical target identity.
 
@@ -212,13 +213,59 @@ So `601E0` return means **material XYZ displacement/correction occurred**, not c
 
 Detailed authority: `hits-pass10-slice6-source1-query-abi.md`.
 
+# Slice 7 — parsed shape → descriptor → runtime primitive
+
+The parser/runtime semantic layer is now partially closed with direct data-flow proof. Parser enum, internal descriptor type and runtime primitive type are three different layers and must not be collapsed.
+
+Canonical source mapping:
+- `sphere`, parser enum `0` -> descriptor `2` -> primary runtime type `2`;
+- `box`, enum `1` -> descriptor `3` -> runtime type `3`;
+- `cylinder`, enum `2` -> descriptor `6` -> runtime type `6`;
+- `capsule`, enum `3` -> descriptor `4` -> runtime type `4`.
+
+The data-flow bridge is exact: the shape structure written by parser `0x140247AD0` at caller frame `[rbp-0x38]` is the same storage passed through builder `0x140249710` member `+0x98` into converter `0x1402481E0`.
+
+Canonical bodies:
+- parser cluster `247AD0..2481E0`, 1808 B, SHA `1bd8a8e369105512166e5f2557d274c86e3801b56631f0d4f7022983adfda6e2`;
+- converter `2481E0..2482C5`, 229 B, SHA `ed50d780aa2bd2868b783c4924edcac6c2af9b4269225ce92b7c778535d7c58a`;
+- runtime constructor dispatcher `2CC530..2CC5EF`, 191 B, SHA `e8e0065e0aeb76b6839d0506e09623b48091d853bd9ccee3127bd0bec7e19364`.
+
+## Runtime type `4` dual origin
+
+Runtime type `4` is not semantically equivalent to the text token `capsule` alone.
+
+- parsed `capsule` -> descriptor `4` -> runtime type `4`;
+- parsed `sphere` -> descriptor `2` normally produces runtime type `2`, but the descriptor-2 constructor may promote a sufficiently moving sphere to runtime type `4` when displacement is greater than `2 × radius`.
+
+Both origins use endpoint/radius representation at runtime offsets `+0x130`, `+0x140`, `+0x150`. Canonical wording is **capsule / swept-sphere representation**.
+
+## Runtime type `5`
+
+Descriptor/runtime type `5` is structurally confirmed as a **three-vertex face representation**:
+- vertices at runtime `+0x130/+0x140/+0x150`;
+- auxiliary vector at `+0x160`;
+- auxiliary vector is normalized;
+- the associated geometry path uses a three-element contract.
+
+No direct canonical source-text token/name for type `5` is proven. `three-vertex face` is a structural description, not a claimed game-authored token.
+
+Second review also rejected an unrelated state-machine immediate `=5` as collision-descriptor evidence.
+
+Implementation:
+- `hits_primitive_shape_evidence.hpp`;
+- `hits_primitive_shape_evidence_tests.cpp`;
+- CTest `hits_primitive_shape_evidence`.
+
+Detailed authority: `hits-pass10-slice7-primitive-shape-mapping.md`.
+
 # Implementation architecture
 
-Pass-10 profile evidence is now deliberately split by runtime responsibility:
+Pass-10 profile evidence is deliberately split by runtime responsibility:
 
 - `hits_query_evidence.hpp` — query-family summary, combined query, source switching and query topology;
 - `hits_dynamic_update_evidence.hpp` — dynamic world pair/update pipeline;
 - `hits_source1_query_evidence.hpp` — exact `FEC0/601E0` specialized source/current-runtime contracts;
+- `hits_primitive_shape_evidence.hpp` — parser/descriptor/runtime primitive mapping and shape-constructor evidence;
 - `runtime_trace.hpp` — generic observation-only instrumentation contract.
 
 `hits_query_evidence.hpp` has been reconciled so `FEC0/601E0` are no longer labeled `unresolved`; they use specialized ABI kinds backed by Slice-6 detailed evidence.
@@ -236,26 +283,35 @@ All build-specific evidence APIs are SHA-gated against the canonical target. Pac
 7. **CORRECTED:** `FEC0 AL` is not a hit boolean.
 8. **CORRECTED:** `601E0 AL` reports material XYZ displacement, not generic query success.
 9. **CORRECTED:** fourth component is not part of XYZ norm/dot gating, but `601E0` can transport and accumulate it.
+10. **REJECTED:** parser shape enum equals runtime primitive type.
+11. **REJECTED:** runtime type `4` has only capsule origin; swept moving sphere is a second proven origin.
+12. **UNRESOLVED:** runtime/descriptor type `5` has structural three-vertex-face semantics, but its source-text name is not proven.
 
 # Validation state
 
-The branch remains under GitHub Actions validation after Slice-5/6 code and regression additions. Do not promote a CI receipt to “green” until the exact current head has passed both Ubuntu and Windows jobs.
+Exact Slices-4–6 implementation head `db7a557de428d4e379ecd51b9670e97dc8c435f7` passed GitHub Actions run `31813329645` on Ubuntu and Windows.
 
-# Remaining work after top-level P0 closure
+Exact Slice-7 code head `cccb5fc45c0c4cb1746cd5630d474533fadb6f76` passed GitHub Actions run `31815597161` on Ubuntu and Windows, including the new `hits_primitive_shape_evidence` regression.
 
-The next work is **not another restart of `E7A0/B460/FEC0/601E0` ABI discovery**. It moves one layer deeper and toward behavioral validation:
+Documentation/machine-evidence commits after those heads do not alter the validated C++ code.
 
-1. close semantic identity of dynamic primitive/object type values `2..6` only if direct evidence supports names;
-2. close exact semantics of the common metadata vector `+0x28/+0x2C/+0x30` and the related fourth component across static/dynamic producers;
-3. reconstruct geometry/contact helpers required for source-equivalent implementation, especially where current descriptors only state an observed role;
-4. build controlled canonical runtime traces for edge cases and compare them against the reconstructed C++ behavior;
-5. implement executable/source-equivalent collision behavior only when the evidence packet is sufficient, preserving profile isolation and exact-build gates.
+# Remaining work after top-level P0 closure and Slice 7
+
+The next work is **not another restart of `E7A0/B460/FEC0/601E0` ABI discovery**. It moves deeper into semantic identity and source-equivalent behavior:
+
+1. identify upstream producer/source vocabulary for descriptor/runtime type `5` if direct evidence exists;
+2. resolve source semantics of descriptor/runtime types `0` and `1` without assuming they duplicate parsed sphere/box;
+3. close exact semantics of the common metadata vector `+0x28/+0x2C/+0x30` and the related fourth component across static/dynamic producers;
+4. reconstruct geometry/contact helpers required for source-equivalent implementation;
+5. build controlled canonical runtime traces for edge cases and compare them against reconstructed C++ behavior;
+6. implement executable/source-equivalent collision behavior only when the evidence packet is sufficient, preserving profile isolation and exact-build gates.
 
 ## Explicit non-goals
 
 - no guessed monolithic original `CollisionResult`;
-- no invented gameplay names for dynamic primitive values `2..6`;
+- no invented text/gameplay name for runtime type `5`;
 - no invented semantic name for metadata vector `+0x28..+0x30` or fourth component;
+- no conflation of parser enum, descriptor enum and runtime primitive enum;
 - no conflation of query path (`E7A0/E880/BCF0`) with dynamic-world update path (`B7B0/B460/B6F0/B8E0`);
 - no reopening superseded Pass-10 P0 descriptions without contradictory direct evidence;
 - no GDSpaces ownership of recovered collision runtime;
