@@ -232,6 +232,22 @@ int main() {
     assert(recovered_values.size() == 1U);
     assert(recovered_values[0]->attributes.at("value") == "STAY");
 
+    const auto provider_failed = stageops::StageSceneController::refresh_with_provider(
+        session,
+        [](const stageops::StageDomainWorkspace&) {
+            return stageops::StageRuntimeLinkProviderResult{
+                .valid = false,
+                .links = {},
+                .error = "fixture recovered-runtime provider failure",
+            };
+        });
+    assert(!provider_failed.refreshed());
+    assert(provider_failed.status ==
+        stageops::StageSceneRefreshStatus::runtime_link_provider_failed);
+    assert(provider_failed.error == "fixture recovered-runtime provider failure");
+    assert(session.stage_revision() == 2U);
+    assert(!session.derived_state_stale());
+
     // A structurally invalid TXT WorkingCopy must fail at the canonical analyzer
     // gate. No derived refresh commit is allowed and the stale flag survives.
     const auto bad_edit = session.apply_edit(
