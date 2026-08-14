@@ -3,6 +3,7 @@
 #include "dmc_rengine/gdspaces/stage_bundle_assembler.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -50,6 +51,43 @@ void add_diagnostic(
     return gdspaces::StageResourceCategory::unknown;
 }
 
+[[nodiscard]] std::string lower_copy(std::string value) {
+    std::transform(
+        value.begin(), value.end(), value.begin(),
+        [](unsigned char character) {
+            return static_cast<char>(std::tolower(character));
+        });
+    return value;
+}
+
+[[nodiscard]] gdspaces::StageResourceCategory nested_category_for(
+    const gdspaces::ResourceRef& resource) {
+    const auto format = lower_copy(resource.format);
+    if (format == "txt") {
+        return gdspaces::StageResourceCategory::scripts;
+    }
+    if (format == "scm" || format == "mod") {
+        return gdspaces::StageResourceCategory::models;
+    }
+    if (format == "dds" || format == "ptx") {
+        return gdspaces::StageResourceCategory::textures;
+    }
+    if (format == "cam") {
+        return gdspaces::StageResourceCategory::cameras;
+    }
+    if (format == "lig" || format == "lig2") {
+        return gdspaces::StageResourceCategory::lighting;
+    }
+    if (format == "hits") {
+        return gdspaces::StageResourceCategory::collision;
+    }
+    if (format == "wav" || format == "ogg" || format == "snd" ||
+        format == "se") {
+        return gdspaces::StageResourceCategory::sounds;
+    }
+    return gdspaces::StageResourceCategory::unknown;
+}
+
 [[nodiscard]] bool payload_identity_matches(
     const gdspaces::ResourcePayload& payload,
     const gdspaces::ResourceRef& resolved) {
@@ -82,7 +120,7 @@ void append_nested_candidates(
             }
             candidates.push_back(gdspaces::StageMemberCandidate{
                 .resource = child.payload.resource,
-                .category = std::nullopt,
+                .category = nested_category_for(child.payload.resource),
                 .role = "nested:" + parent_role + ":slot/" +
                     std::to_string(child.entry.slot_index),
             });
