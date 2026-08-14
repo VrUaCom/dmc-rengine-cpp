@@ -1,6 +1,9 @@
 #include "dmc_rengine/profiles/dmc3/stage_catalog.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
+
 #include <algorithm>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <utility>
@@ -155,6 +158,47 @@ StageCatalog StageCatalogBuilder::build(
         });
 
     return catalog;
+}
+
+bool StageCatalogLoadResult::complete() const noexcept {
+    return canonical_artifact &&
+        catalog.complete(phase12_stage_resource_table());
+}
+
+StageCatalogLoadResult StageCatalogLoader::load_canonical(
+    std::span<const std::byte> executable_bytes,
+    const exe::PeImage& image,
+    std::size_t max_path_bytes) {
+    const auto& descriptor = phase12_stage_resource_table();
+    StageCatalogLoadResult result{
+        .artifact_sha256 = core::Sha256::compute(executable_bytes).hex(),
+        .canonical_artifact = false,
+        .catalog = StageCatalog{
+            .table_id = descriptor.id,
+            .evidence_id = descriptor.evidence_packet_id,
+            .entries = {},
+            .repeated_references = {},
+            .diagnostics = {},
+        },
+    };
+
+    if (result.artifact_sha256 != descriptor.artifact_sha256) {
+        add_diagnostic(
+            result.catalog,
+            gdspaces::DiagnosticSeverity::error,
+            "dmc3.stage-catalog.artifact-hash-mismatch",
+            "The supplied executable SHA-256 does not match the canonical DMC3 stage-table artifact.");
+        return result;
+    }
+
+    result.canonical_artifact = true;
+    const auto table = StageResourceTableReader::read(
+        executable_bytes,
+        image,
+        descriptor,
+        max_path_bytes);
+    result.catalog = StageCatalogBuilder::build(table, descriptor);
+    return result;
 }
 
 } // namespace dmc::rengine::profiles::dmc3
