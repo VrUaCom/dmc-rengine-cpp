@@ -174,6 +174,46 @@ StageOperationResult StageOperationsSession::reset_resource(
     };
 }
 
+StageAnalysisRefreshResult StageOperationsSession::refresh_resource_analysis() {
+    StageAnalysisRefreshResult result{
+        .stage_revision = stage_revision_,
+        .attempted = 0U,
+        .succeeded = 0U,
+        .skipped_without_parser = 0U,
+        .missing_project_session_count = 0U,
+        .reports = {},
+    };
+    if (!valid()) {
+        return result;
+    }
+
+    for (const auto& resource : assembly_.resources) {
+        const auto* session = project_->find_session(resource.resource.id);
+        if (session == nullptr) {
+            ++result.missing_project_session_count;
+            continue;
+        }
+        const auto* format = session->format();
+        if (format == nullptr || format->parser_id.empty()) {
+            ++result.skipped_without_parser;
+            continue;
+        }
+
+        ++result.attempted;
+        const auto* working = session->working_copy();
+        auto report = working != nullptr && working->dirty()
+            ? integration::ResourceAnalyzer::analyze_working_copy(
+                *project_, resource.resource.id)
+            : integration::ResourceAnalyzer::analyze(
+                *project_, resource.resource.id);
+        if (report.ok()) {
+            ++result.succeeded;
+        }
+        result.reports.push_back(std::move(report));
+    }
+    return result;
+}
+
 std::size_t StageOperationsSession::request_validation(
     std::string validation_id,
     std::string message) {
