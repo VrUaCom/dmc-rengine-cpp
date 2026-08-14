@@ -1,4 +1,4 @@
-#include "dmc_rengine/stageops/dmc3_stage_assembler.hpp"
+#include "dmc_rengine/profiles/dmc3/stageops_assembler.hpp"
 
 #include <array>
 #include <cassert>
@@ -105,8 +105,6 @@ using namespace dmc::rengine;
         report.resources[index].payload = payload(roots[index]);
     }
 
-    // First root is a container with one materialized child. Stage Ops must keep
-    // the child-parent-slot relationship without promoting gameplay semantics.
     const auto child_ref = resource(
         "scr/st308.pac::PAC/slot-0003/collision.hits",
         "hits",
@@ -158,20 +156,24 @@ int main() {
     assert(report.materialization_complete());
     assert(!report.game_ready_equivalent());
 
-    const auto assembled = stageops::DMC3StageAssembler::assemble(report);
+    const auto assembled = profiles::dmc3::StageOpsAssembler::assemble(report);
     assert(assembled.valid());
     assert(assembled.status() == stageops::StageAssemblyStatus::product_materialized);
+    assert(assembled.game_readiness() == stageops::StageGameReadiness::unproven);
     assert(assembled.product_ready());
     assert(!assembled.original_game_ready());
-    assert(!assembled.game_ready_equivalent);
 
     assert(assembled.identity.catalog_entry_id == "dmc3-stage-row-110");
+    assert(assembled.identity.stage.resource_set_key() == "dmc3-stage-row-110");
     assert(assembled.identity.global_catalog_row == 110U);
     assert(assembled.identity.source_table_id == "dmc3-stage-wave2-bank-b");
     assert(assembled.identity.source_row_index == 0U);
-    assert(assembled.identity.numeric_stage_id == 308U);
-    assert(!assembled.identity.semantic_stage_id.has_value());
+    assert(assembled.identity.numeric_stage_id() == 308U);
+    assert(!assembled.identity.semantic_stage_id().has_value());
 
+    assert(assembled.requirements.size() == 4U);
+    assert(assembled.unresolved_requirement_count() == 0U);
+    assert(assembled.find_requirement("descriptor-root/script") != nullptr);
     assert(assembled.descriptor_root_count() == 4U);
     assert(assembled.nested_resource_count() == 1U);
     assert(assembled.resources.size() == 5U);
@@ -183,9 +185,13 @@ int main() {
     const auto* child = assembled.find_resource(child_id);
     assert(child != nullptr);
     assert(child->materialized);
+    assert(child->byte_provenance.has_value());
     assert(child->nested_container_child);
     assert(!child->descriptor_root);
-    assert(!child->game_ready);
+
+    const auto* parent = assembled.find_resource(parent_id);
+    assert(parent != nullptr);
+    assert(parent->container_expansion_observed);
 
     const auto child_memberships = assembled.memberships_for(child_id);
     assert(child_memberships.size() == 1U);
@@ -201,15 +207,16 @@ int main() {
     assert(assembled.by_category(gdspaces::StageResourceCategory::sounds).size() == 1U);
     assert(assembled.by_category(gdspaces::StageResourceCategory::collision).size() == 1U);
 
-    // Partial materialization remains a valid operational Stage Ops workspace,
-    // but it cannot cross either product-complete or original-game-ready gates.
+    // A resolved-but-unmaterialized root remains visible both as a requirement
+    // and as a canonical ResourceId in a structurally valid partial workspace.
     auto partial_report = make_report();
     partial_report.resources[2].payload.reset();
-    const auto partial = stageops::DMC3StageAssembler::assemble(partial_report);
+    const auto partial = profiles::dmc3::StageOpsAssembler::assemble(partial_report);
     assert(partial.valid());
     assert(partial.status() == stageops::StageAssemblyStatus::partial);
     assert(!partial.product_ready());
     assert(!partial.original_game_ready());
+    assert(partial.unresolved_requirement_count() == 1U);
     assert(partial.descriptor_root_count() == 4U);
 
     const auto missing_root_id =
@@ -218,7 +225,42 @@ int main() {
         missing_root_id.id.canonical());
     assert(missing_root != nullptr);
     assert(!missing_root->materialized);
+    assert(!missing_root->byte_provenance.has_value());
     assert(missing_root->descriptor_root);
+
+    // An unresolved descriptor requirement must not disappear merely because no
+    // ResourceId exists yet.
+    auto unresolved_report = make_report();
+    auto& unresolved_resolution = unresolved_report.resolution.resources[1];
+    unresolved_resolution.runtime.status =
+        profiles::dmc3::RuntimeResolutionStatus::not_found;
+    unresolved_resolution.runtime.resolved.reset();
+    unresolved_report.resources[1].resolution = unresolved_resolution;
+    unresolved_report.resources[1].payload.reset();
+    const auto unresolved =
+        profiles::dmc3::StageOpsAssembler::assemble(unresolved_report);
+    assert(unresolved.valid());
+    assert(unresolved.status() == stageops::StageAssemblyStatus::partial);
+    assert(unresolved.unresolved_requirement_count() == 1U);
+    const auto* room_config =
+        unresolved.find_requirement("descriptor-root/room-config");
+    assert(room_config != nullptr);
+    assert(!room_config->resource_id.has_value());
+    assert(!room_config->materialized);
+    assert(unresolved.descriptor_root_count() == 3U);
+
+    // Central authority invariants reject duplicate ResourceId copies rather
+    // than allowing consumer views to diverge silently.
+    auto corrupted = assembled;
+    corrupted.resources.push_back(corrupted.resources.front());
+    assert(!corrupted.valid());
+    assert(corrupted.status() == stageops::StageAssemblyStatus::invalid);
+
+    // Original-game readiness may never be claimed without the stronger product
+    // materialization gate.
+    auto impossible = partial;
+    impossible.game_ready_equivalent = true;
+    assert(!impossible.valid());
 
     return 0;
 }
