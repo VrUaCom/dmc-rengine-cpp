@@ -99,13 +99,22 @@ StageRuntimeResolutionReport StageRuntimeResolver::resolve_entry(
         return report;
     }
 
-    return resolve_row(
+    auto report = resolve_row(
         entry.catalog_entry_id,
         entry.evidence_id,
         entry.observation,
         bootstrap,
         bindings,
         sources);
+
+    // resolve_row() is the compatibility path for a raw structural table row and
+    // therefore cannot know gameplay semantics. The canonical StageCatalog path
+    // must restore any separately evidenced semantic identity carried by the
+    // entry without replacing its technical catalog/resource-set identity.
+    if (report.plan.valid() && entry.semantic_stage_id.has_value()) {
+        report.plan.semantic_stage_id = *entry.semantic_stage_id;
+    }
+    return report;
 }
 
 StageRuntimeResolutionReport StageRuntimeResolver::resolve_row(
