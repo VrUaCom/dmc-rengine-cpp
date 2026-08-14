@@ -44,11 +44,13 @@ void append_stage_id_range(
 } // namespace
 
 bool StageResourceTableDescriptor::valid() const noexcept {
+    // This descriptor type currently represents the corrected Wave-2 Bank-A
+    // compatibility layout, not an arbitrary table schema. Keep the ABI exact
+    // so a semantically shifted path-only view can never validate again.
     if (id.empty() || evidence_packet_id.empty() ||
         artifact_sha256.size() != 64U || artifact_size == 0U ||
-        row_count == 0U || cell_stride < 8U ||
-        kind16_offset > cell_stride - 2U ||
-        path_pointer_offset > cell_stride - 8U) {
+        row_count != 110U || cell_stride != 0x10U ||
+        kind16_offset != 0U || path_pointer_offset != 0x08U) {
         return false;
     }
 
