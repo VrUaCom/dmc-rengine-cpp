@@ -34,6 +34,7 @@ enum class SpecializedAbiKind : std::uint8_t {
     bool_observed_in_al,
     mutable_vec4_inout,
     mutable_vec4_inout_plus_aux,
+    combined_point_query,
 };
 
 struct QueryEvidenceDescriptor final {
@@ -76,6 +77,74 @@ struct TemporarySource1QueryPathEvidence final {
     std::uint64_t select_callsite_va{};
     QueryVariant query_variant{};
     std::uint64_t restore_callsite_va{};
+};
+
+enum class CanonicalBodyRole : std::uint8_t {
+    combined_query_wrapper,
+    static_hits_pass,
+    dynamic_category_pass,
+};
+
+struct CanonicalFunctionBodyEvidence final {
+    CanonicalBodyRole role{};
+    std::uint64_t begin_va{};
+    std::uint64_t end_va{};
+    std::uint32_t size_bytes{};
+    std::string_view sha256{};
+};
+
+struct CombinedQueryAbiEvidence final {
+    std::uint64_t function_va{};
+    std::uint8_t argument_count{};
+    std::uint8_t runtime_wrapper_arg_index{};
+    std::uint8_t reference_point_16_byte_arg_index{};
+    std::uint8_t working_point_16_byte_arg_index{};
+    std::uint8_t output_point_16_byte_arg_index{};
+    std::uint8_t optional_hit_metadata_arg_index{};
+    std::uint8_t raw_reject_mask_arg_index{};
+    bool returns_any_hit_in_al{};
+    bool working_and_output_may_alias{};
+    bool total_miss_copies_working_point_to_output{};
+    bool downstream_passes_share_progressive_working_point{};
+};
+
+enum class CombinedQueryPassKind : std::uint8_t {
+    static_hits,
+    dynamic_category,
+};
+
+struct CombinedQueryPassEvidence final {
+    std::uint8_t order{};
+    CombinedQueryPassKind kind{};
+    std::uint64_t helper_va{};
+    std::optional<std::uint32_t> dynamic_category_id;
+};
+
+struct CombinedHitMetadataEvidence final {
+    std::uint32_t size_bytes{};
+    bool static_hit_copies_complete_record{};
+    bool dynamic_hit_writes_compatible_partial_record{};
+    std::uint32_t dynamic_identity_source_offset{};
+    std::uint32_t dynamic_identity_output_offset{};
+    std::uint32_t dynamic_vector_output_offset{};
+    std::uint32_t dynamic_vector_component_count{};
+};
+
+struct DynamicCategoryQueryEvidence final {
+    std::uint64_t function_va{};
+    std::uint8_t category_index_arg_index{};
+    std::uint8_t raw_reject_mask_arg_index{};
+    std::uint8_t mode_byte_arg_index{};
+    std::uint32_t linked_next_offset{};
+    std::uint32_t primitive_type_offset{};
+    std::uint32_t raw_flags_offset{};
+    std::uint32_t raw_flags_width_bytes{};
+    std::uint32_t identity_source_offset{};
+    std::uint32_t minimum_observed_primitive_type{};
+    std::uint32_t maximum_observed_primitive_type{};
+    bool category_indexes_pointer_table_directly{};
+    bool accepted_hit_updates_working_point{};
+    bool accepted_hit_writes_output_point{};
 };
 
 enum class RuntimeHelperObservedRole : std::uint8_t {
@@ -177,6 +246,51 @@ public:
         return k_temporary_source1_query_paths[index];
     }
 
+    [[nodiscard]] static std::optional<CanonicalFunctionBodyEvidence>
+    canonical_body(std::string_view sha256, CanonicalBodyRole role) noexcept {
+        if (!matches_canonical_target(sha256)) {
+            return std::nullopt;
+        }
+        for (const auto& descriptor : k_canonical_function_bodies) {
+            if (descriptor.role == role) {
+                return descriptor;
+            }
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] static std::optional<CombinedQueryAbiEvidence>
+    combined_query_abi(std::string_view sha256) noexcept {
+        if (!matches_canonical_target(sha256)) {
+            return std::nullopt;
+        }
+        return k_combined_query_abi;
+    }
+
+    [[nodiscard]] static std::optional<CombinedQueryPassEvidence>
+    combined_query_pass(std::string_view sha256, std::size_t index) noexcept {
+        if (!matches_canonical_target(sha256) || index >= k_combined_query_passes.size()) {
+            return std::nullopt;
+        }
+        return k_combined_query_passes[index];
+    }
+
+    [[nodiscard]] static std::optional<CombinedHitMetadataEvidence>
+    combined_hit_metadata(std::string_view sha256) noexcept {
+        if (!matches_canonical_target(sha256)) {
+            return std::nullopt;
+        }
+        return k_combined_hit_metadata;
+    }
+
+    [[nodiscard]] static std::optional<DynamicCategoryQueryEvidence>
+    dynamic_category_query(std::string_view sha256) noexcept {
+        if (!matches_canonical_target(sha256)) {
+            return std::nullopt;
+        }
+        return k_dynamic_category_query;
+    }
+
     [[nodiscard]] static std::optional<RuntimeHelperEvidence>
     runtime_helper(std::string_view sha256, RuntimeHelperObservedRole observed_role) noexcept {
         if (!matches_canonical_target(sha256)) {
@@ -195,7 +309,7 @@ private:
         {QueryVariant::vertical_probe_05e460, 0x14005E460ULL, 1U,
          SpecializedAbiKind::unresolved, false, false, false, std::nullopt},
         {QueryVariant::generic_combined_05e7a0, 0x14005E7A0ULL, 51U,
-         SpecializedAbiKind::unresolved, false, false, false, std::nullopt},
+         SpecializedAbiKind::combined_point_query, true, false, false, std::nullopt},
         {QueryVariant::inout_correction_05ebe0, 0x14005EBE0ULL, 1U,
          SpecializedAbiKind::mutable_vec4_inout, true, true, false, std::nullopt},
         {QueryVariant::bool_observed_05ee40, 0x14005EE40ULL, 1U,
@@ -240,6 +354,64 @@ private:
             {0x140056832ULL, QueryVariant::positional_correction_0601e0, 0x14005686EULL},
             {0x1400568F0ULL, QueryVariant::source_selectable_segment_05fec0, 0x140056936ULL},
         }};
+
+    inline static constexpr std::array<CanonicalFunctionBodyEvidence, 3>
+        k_canonical_function_bodies{{
+            {CanonicalBodyRole::combined_query_wrapper, 0x14005E7A0ULL, 0x14005E880ULL, 224U,
+             "3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f"},
+            {CanonicalBodyRole::static_hits_pass, 0x14005E880ULL, 0x14005EB95ULL, 789U,
+             "b3fdeac674795752492e1eca9e7a9d21837552aa6cf90f0a02a14e3546136e8a"},
+            {CanonicalBodyRole::dynamic_category_pass, 0x14005BCF0ULL, 0x14005C0D6ULL, 998U,
+             "e7e1c1a56425e0a3c5ef5a5a4fff9105d5e073effeae6fcb268829ec3b451d02"},
+        }};
+
+    inline static constexpr CombinedQueryAbiEvidence k_combined_query_abi{
+        0x14005E7A0ULL,
+        6U,
+        1U,
+        2U,
+        3U,
+        4U,
+        5U,
+        6U,
+        true,
+        true,
+        true,
+        true,
+    };
+
+    inline static constexpr std::array<CombinedQueryPassEvidence, 3> k_combined_query_passes{{
+        {0U, CombinedQueryPassKind::static_hits, 0x14005E880ULL, std::nullopt},
+        {1U, CombinedQueryPassKind::dynamic_category, 0x14005BCF0ULL, 0x0EU},
+        {2U, CombinedQueryPassKind::dynamic_category, 0x14005BCF0ULL, 0x11U},
+    }};
+
+    inline static constexpr CombinedHitMetadataEvidence k_combined_hit_metadata{
+        0x38U,
+        true,
+        true,
+        0xD8U,
+        0x00U,
+        0x28U,
+        3U,
+    };
+
+    inline static constexpr DynamicCategoryQueryEvidence k_dynamic_category_query{
+        0x14005BCF0ULL,
+        6U,
+        7U,
+        8U,
+        0x328U,
+        0x120U,
+        0xDAU,
+        2U,
+        0xD8U,
+        2U,
+        6U,
+        true,
+        true,
+        true,
+    };
 
     inline static constexpr std::array<RuntimeHelperEvidence, 9> k_runtime_helper_evidence{{
         {RuntimeHelperObservedRole::hits_runtime_initializer, 0x1402D3060ULL, 2U},
@@ -289,6 +461,31 @@ direct_source_selector_callsite(std::string_view sha256, std::size_t index) noex
 [[nodiscard]] inline std::optional<TemporarySource1QueryPathEvidence>
 temporary_source1_query_path(std::string_view sha256, std::size_t index) noexcept {
     return detail::EvidenceStore::temporary_source1_path(sha256, index);
+}
+
+[[nodiscard]] inline std::optional<CanonicalFunctionBodyEvidence>
+canonical_function_body(std::string_view sha256, CanonicalBodyRole role) noexcept {
+    return detail::EvidenceStore::canonical_body(sha256, role);
+}
+
+[[nodiscard]] inline std::optional<CombinedQueryAbiEvidence>
+combined_query_abi_evidence(std::string_view sha256) noexcept {
+    return detail::EvidenceStore::combined_query_abi(sha256);
+}
+
+[[nodiscard]] inline std::optional<CombinedQueryPassEvidence>
+combined_query_pass_evidence(std::string_view sha256, std::size_t index) noexcept {
+    return detail::EvidenceStore::combined_query_pass(sha256, index);
+}
+
+[[nodiscard]] inline std::optional<CombinedHitMetadataEvidence>
+combined_hit_metadata_evidence(std::string_view sha256) noexcept {
+    return detail::EvidenceStore::combined_hit_metadata(sha256);
+}
+
+[[nodiscard]] inline std::optional<DynamicCategoryQueryEvidence>
+dynamic_category_query_evidence(std::string_view sha256) noexcept {
+    return detail::EvidenceStore::dynamic_category_query(sha256);
 }
 
 [[nodiscard]] inline std::optional<RuntimeHelperEvidence>
