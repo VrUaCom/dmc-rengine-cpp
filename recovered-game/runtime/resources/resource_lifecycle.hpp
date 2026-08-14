@@ -19,6 +19,11 @@ enum class ResourceLoadState : std::uint32_t {
     teardown_or_cancel_pending = 4U,
 };
 
+struct ObservedStateTransition final {
+    ResourceLoadState from{ResourceLoadState::free_or_unstarted};
+    ResourceLoadState to{ResourceLoadState::free_or_unstarted};
+};
+
 struct ResourceEntryLayout final {
     std::uint32_t stride{};
     std::uint32_t group_index_offset{};
@@ -71,10 +76,15 @@ struct ResourceRuntimeEvidenceModel final {
     ResourcePoolLayout pool;
     std::array<PostLoadFixup, 4> typed_fixups{};
 
-    // Directly observed state chain for successful byte acquisition and typed
-    // post-load normalization. Entry into state 4 is known to represent
-    // teardown/cancellation, but the exact source-state domain remains open.
+    // Directly observed successful chain for byte acquisition and typed
+    // post-load normalization.
     std::array<ResourceLoadState, 4> successful_state_chain{};
+
+    // Cleanup from state 4 back to a free slot is directly observed. The exact
+    // set of active source states that may enter state 4 is not yet closed by
+    // evidence, so that domain is represented explicitly as incomplete.
+    ObservedStateTransition cleanup_transition;
+    bool teardown_source_state_domain_complete{};
 
     [[nodiscard]] bool valid() const noexcept;
     [[nodiscard]] const PostLoadFixup* fixup(
