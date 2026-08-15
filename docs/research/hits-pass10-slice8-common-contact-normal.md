@@ -2,7 +2,7 @@
 
 Date: 2026-08-15  
 Canonical target SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **EXE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE**
+Status: **EXE CONFIRMED / IMPLEMENTED / VALIDATED**
 
 ## Promotion
 
@@ -102,6 +102,12 @@ Profile-specific implementation:
 - CTest `hits_contact_normal_evidence`
 
 All lookup APIs are exact-canonical-SHA gated. The packed SHA `81c7...c7d6` receives no canonical VA/body or semantic descriptors.
+
+## Validation receipt
+
+Exact code head `63a2782bb18649f0b7a19e0110671897721f16da` passed GitHub Actions run `31852876030` on both Ubuntu and Windows, including the new `hits_contact_normal_evidence` regression.
+
+Later documentation/evidence commits do not change the validated C++ code.
 
 ## Correction
 
