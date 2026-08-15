@@ -5,14 +5,13 @@
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 
-#include <algorithm>
 #include <charconv>
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
-#include <iomanip>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <span>
@@ -23,13 +22,17 @@ namespace dmc::rengine::cli {
 namespace {
 
 struct LoadedLocalFile final {
-    gdspaces::ResourceRef ref;
     gdspaces::ResourcePayload payload;
 };
 
 [[nodiscard]] std::optional<LoadedLocalFile> load_local_file(
     const std::filesystem::path& path) {
-    const auto absolute = std::filesystem::absolute(path);
+    std::error_code error;
+    const auto absolute = std::filesystem::absolute(path, error);
+    if (error || !std::filesystem::is_regular_file(absolute, error) || error) {
+        return std::nullopt;
+    }
+
     const auto root = absolute.has_parent_path()
         ? absolute.parent_path()
         : std::filesystem::current_path();
@@ -43,7 +46,7 @@ struct LoadedLocalFile final {
         if (!payload || !payload->readable()) {
             return std::nullopt;
         }
-        return LoadedLocalFile{.ref = ref, .payload = *payload};
+        return LoadedLocalFile{.payload = *payload};
     }
     return std::nullopt;
 }
@@ -146,7 +149,9 @@ int run_extract_exe_window(
 
     const auto va = parse_u64(va_text);
     const auto size64 = parse_u64(size_text);
-    if (!va || !size64 || *size64 > static_cast<std::uint64_t>(SIZE_MAX)) {
+    if (!va || !size64 ||
+        *size64 > static_cast<std::uint64_t>(
+            std::numeric_limits<std::size_t>::max())) {
         std::cerr << "VA and size must be decimal or 0x-prefixed unsigned integers.\n";
         return 2;
     }
@@ -157,7 +162,8 @@ int run_extract_exe_window(
         return 2;
     }
 
-    const auto actual_sha = core::Sha256::compute(loaded->payload.bytes).hex();
+    const auto file_bytes = std::span<const std::byte>{loaded->payload.bytes};
+    const auto actual_sha = core::Sha256::compute(file_bytes).hex();
     if (actual_sha != *expected_sha) {
         std::cerr << "Executable SHA-256 mismatch.\n"
                   << "  expected: " << *expected_sha << '\n'
@@ -165,17 +171,20 @@ int run_extract_exe_window(
         return 3;
     }
 
-    const auto pe = exe::PeReader::read(loaded->payload.bytes);
+    const auto pe = exe::PeReader::read(file_bytes);
+    for (const auto& warning : pe.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
     if (!pe.ok()) {
         std::cerr << "PE inspection failed:\n";
-        for (const auto& diagnostic : pe.diagnostics) {
-            std::cerr << "  - " << diagnostic.message << '\n';
+        for (const auto& parse_error : pe.errors) {
+            std::cerr << "  - " << parse_error << '\n';
         }
         return 4;
     }
 
     const auto window = exe::ExeByteWindowExtractor::extract(
-        loaded->payload.bytes,
+        file_bytes,
         *pe.image,
         *va,
         static_cast<std::size_t>(*size64));
@@ -186,7 +195,8 @@ int run_extract_exe_window(
         return 5;
     }
 
-    const auto window_sha = core::Sha256::compute(window.window->bytes).hex();
+    const auto window_bytes = std::span<const std::byte>{window.window->bytes};
+    const auto window_sha = core::Sha256::compute(window_bytes).hex();
 
     if (include_hex) {
         std::cerr
@@ -206,7 +216,7 @@ int run_extract_exe_window(
               << "  \"window_sha256\": \"" << window_sha << "\"";
     if (include_hex) {
         std::cout << ",\n  \"bytes_hex\": \""
-                  << bytes_to_hex(window.window->bytes) << "\"";
+                  << bytes_to_hex(window_bytes) << "\"";
     }
     std::cout << "\n}\n";
     return 0;
