@@ -2,7 +2,7 @@
 
 Date: 2026-08-15  
 Canonical target SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **EXE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE**
+Status: **EXE CONFIRMED / IMPLEMENTED / VALIDATED**
 
 ## Promotion boundary
 
@@ -72,6 +72,12 @@ The promoted names are structural reconstruction terminology only.
 - CTest `hits_primitive_type01_evidence`
 
 All public evidence remains exact-canonical-SHA gated. Packed SHA `81c7...c7d6` receives no canonical type0/type1 descriptors.
+
+## Validation receipt
+
+Exact code head `9ec763dd2016c9d52b9aa7ad5467d2df1b3ec89c` passed GitHub Actions run `31854177561` on both Ubuntu and Windows, including `hits_primitive_type01_evidence`.
+
+Later documentation/observation-plan commits do not alter the validated C++ code.
 
 ## Related type-5 boundary
 
