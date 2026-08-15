@@ -1,304 +1,171 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-08  
-**Repository generation:** evidence-backed C++ platform  
+**Snapshot date:** 2026-08-15  
 **Version:** 0.2.0  
-**Reviewed `main` baseline before this documentation branch:** `6eb6a07975753e2bbe9414893a76e13c946fa78e`  
-**Overall phase:** Evidence-Gated Reconstruction / Architecture Consolidation
+**Overall phase:** Evidence-Gated Reconstruction / Runtime Reconstruction / Stage Assembly Consolidation  
+**Status authority rule:** distinguish `main`, the active GDSpaces integration spine, active PR stacks, and Drive research evidence. A green feature branch is not automatically `main` truth.
 
 ## Executive result
 
-DMC Rengine is a functioning C++20 reverse-engineering platform with cross-platform tests, artifact identity, Evidence Packets, GDSpaces contracts, Binary Inspector domain analysis, PE/EXE inspection, stage/resource integration, guarded modification workflows, source/build provenance, HITS reconstruction work, and promoted DMC3 PC-save ABI findings.
-
-The project is not yet a complete DMC3 decompilation or a behaviorally equivalent rebuilt executable. The current constraint is no longer simply "add more parsers/editors". The critical problem is converting accumulated reverse knowledge into a controlled, provenance-preserving reconstruction system.
-
-The accepted architectural response is **Reverse Core**: a reusable, game-agnostic reverse lifecycle built on existing evidence, SDD, MCP/Kanban coordination, and validation concepts. DMC Rengine is its first domain workspace and remains a separate project.
-
-A second canonical distinction is now explicit: **Recovered Game Source Tree** represents the reconstructed DMC3 program itself. Recovered functions/data/types are not owned by EXE Editor, Reverse Core, GDSpaces, Binary Inspector, ModViz, Stage Ops, or any other tool. Tool relationships, semantic game-subsystem membership, and temporary TaskClaim coordination are separate concepts.
-
-## Validation baseline
-
-The latest reviewed implementation on `main` is commit `6eb6a07975753e2bbe9414893a76e13c946fa78e`, following Binary Inspector Wave 1. The preceding Wave 1 merge recorded 68/68 tests on Ubuntu and Windows. HITS Raw Reverse Pass 5/6 was previously validated with 67 tests per platform before the later test-count increase.
-
-All future work must preserve:
-
-- Windows and Ubuntu build/test support;
-- GDSpaces as the only DMC Rengine game-resource authority;
-- recovered game code independent from tool ownership;
-- evidence status separate from heuristic confidence;
-- working-copy/guarded-output safety;
-- exact artifact identity for executable claims;
-- no representation of recovered source as original Capcom source.
-
-## Recovered Game Source Tree
-
-**Status:** canonical architecture rule accepted; source recovery remains partial.
-
-The recovered source tree follows the reconstructed architecture of the game rather than editor names. A recovered function may be classified under game resource runtime, stage runtime, renderer, collision, UI/HUD, save, input, audio, gameplay, or an unresolved subsystem while still being referenced by multiple DMC Rengine tools.
-
-The same game function can simultaneously have:
-
-- source/disassembly workflow in EXE Editor;
-- byte/structure evidence in Binary Inspector;
-- stable reconstruction/evidence identities in Reverse Core;
-- behavior consumed by GDSpaces or another product subsystem;
-- compile/runtime validation in Build & Test Lab.
-
-This remains one game function. A `TaskClaim` only coordinates who may mutate the canonical reconstruction; it does not grant semantic ownership.
-
-See [Recovered Game Source Tree](../reverse-core/game-source-tree.md).
-
-## GDSpaces
-
-### Implemented foundation
-
-- stable resource/reference/payload contracts;
-- read-only local source with containment guards;
-- source registry;
-- profile-aware classification and post-read correction;
-- resource graph and OpenRouter;
-- typed StageBundle assembly;
-- generic read-only container contracts and synthetic fixtures;
-- child identity, empty-slot preservation, diagnostics, and graph edges;
-- revisioned working copies and deterministic workspace manifests.
-
-### Current gap
-
-Production PAC/PNST/NBZ/AFS expansion remains incomplete. More importantly, the executable-side DMC3 resource runtime is not yet fully reconstructed.
-
-GDSpaces must be completed from evidence of how the game actually performs:
+DMC Rengine is an active C++20 reverse-engineering and editing platform. The project has moved beyond a file/parser/editor model toward an evidence-backed reconstruction pipeline:
 
 ```text
-request
-  -> lookup / tables / indexes
-  -> source/archive selection
-  -> byte acquisition / decompression
-  -> nested resource expansion
-  -> classification / factory dispatch
-  -> dependencies
-  -> allocation / construction
-  -> cache / ownership / lifetime
-  -> reload / transition
-  -> release / unload
-```
-
-Recovered game loader/cache/factory functions remain in the Recovered Game Source Tree. GDSpaces separately implements the DMC Rengine product API based on confirmed behavior.
-
-The canonical reverse program is [GDSpaces Resource Runtime Reconstruction](../gdspaces/runtime-reconstruction.md), tracked by issue #55.
-
-The identity milestone remains [GDSpaces Resource Identity v1](../gdspaces/resource-identity-v1.md): a logical resource must retain stable identity across filesystem, nested container, extracted working-copy, and EXE-backed semantic representations.
-
-`.index` may contribute evidence-backed metadata/linkage but must not become runtime truth or a second asset authority.
-
-### Near-term gate
-
-Use one legal local `st001` resource set as the first integrated proof:
-
-```text
-canonical EXE stage request/table
-  -> recovered game resource-runtime call path
-  -> production GDSpaces source/container path
-  -> canonical resource identities
-  -> StageBundle
+canonical dmc3.exe
+  -> Reverse Core evidence / reconstruction identities
+  -> Recovered Game Source Tree
+  -> executable-backed resource / selector authority
+  -> GDSpaces
+  -> Stage Ops
   -> Stage Semantic Graph
-  -> load/transition/cache/lifetime observations
-  -> ValidationReceipt
+  -> ModViz
 ```
 
-## Binary Inspector
+Binary Inspector and EXE Editor are inspection/reconstruction frontends over the same evidence and identity model; they are not independent truth stores.
 
-### Implemented
+The project is not yet a complete DMC3 decompilation and does not yet produce a behaviorally equivalent rebuilt game executable.
 
-- regions and typed fields;
-- ownership and annotations;
-- selected-offset/range context;
-- coverage, unknown gaps, structural/ownership conflicts;
-- deterministic manifests;
-- format adapters including HITS;
-- offset-aligned byte diff;
-- Shannon entropy analysis with zero-ratio and unique-byte metrics.
+## Truth and ownership boundaries
 
-Wave 1 is implemented in native C++20. Entropy remains a heuristic visualization, not an Evidence state.
+- **GDSpaces** is the only product-side game-resource authority: resolution, identity, provenance, materialization, expansion, and product resource access.
+- **Recovered Game Source Tree** owns reconstructed original DMC3 runtime behavior. Resource factories, post-load fixups, cache/lifetime code, collision consumers, and other recovered vanilla code do not become GDSpaces/Stage Ops/ModViz implementation merely because those tools consume the findings.
+- **Reverse Core** owns generic reverse identities, evidence, hypotheses, experiments, TaskClaims, reconstructions, and ValidationReceipts. Agent consensus is never evidence.
+- **Stage Ops** owns complete product-side stage/scene assembly and mutable operational stage state through `StageAssemblyWorkspace` and `StageOperationsSession`.
+- **Stage Semantic Graph** is a deterministic representation/index projected from Stage Ops state. It does not resolve resources or assemble a second scene.
+- **ModViz** consumes Stage Ops state and semantic/runtime evidence for editing. It does not independently resolve resources or originate scene assembly.
+- **Binary Inspector** owns byte/structure/evidence inspection. **EXE Editor** owns function/type/reconstruction editing over shared reverse identities and recovered source.
 
-### Next
+## GDSpaces and Stage catalog
 
-Wave 2 remains the active domain milestone:
+The active executable-backed model is not `st001`-centric.
 
-- persistent/artifact-keyed Analysis Cache;
-- generic duplicate/order/overlap/alignment/stride diagnostics;
-- unknown-region feature analysis;
-- reusable versioned binary templates;
-- deterministic analysis-result JSON.
+Confirmed Stage/resource authority includes:
 
-After that, Binary Inspector should bridge its ranges/fields/owners/annotations into Reverse Core durable objects. It must not become a competing reverse database or owner of recovered game functions.
+- 189 EXE-derived resource descriptors;
+- Bank A: 110 descriptors;
+- Bank B: 79 descriptors;
+- a separate 193-entry selector space;
+- a separate table of 10 group-base pointers;
+- numeric Stage resolution through selector/group logic;
+- exact four-role descriptor planning;
+- source-bank/source-row/global-row provenance;
+- recursive materialization/expansion with partial-result preservation.
 
-## EXE Editor and decompilation
-
-### Implemented foundation
-
-- bounded PE32/PE32+ inspection;
-- checked file offset/RVA/VA conversion;
-- canonical executable target identity and SHA-256 matching;
-- Evidence Address Resolver;
-- executable workspace/reopen lineage;
-- selected promoted runtime evidence;
-- guarded patch contracts;
-- source-to-output mapping and Custom Build identity models.
-
-### Current state
-
-The repository contains strong executable research footholds, but there is no complete production pipeline from arbitrary DMC3 functions to reviewed, behaviorally validated recovered C++.
-
-The canonical chain is documented in [EXE Reconstruction Pipeline](../exe/reconstruction-pipeline.md):
+The following identity axes remain independent and must never be automatically equated:
 
 ```text
-bytes -> range/function/data -> CFG/xrefs -> game-subsystem membership
-      -> types/ABI -> evidence -> reconstruction
-      -> C++ source unit in Recovered Game Source Tree
-      -> isolated build -> behavioral comparison -> ValidationReceipt
+resource_set_id / catalog_entry_id
+numeric_stage_id
+semantic_stage_id
 ```
 
-Readable decompiler output is not a completion criterion. EXE Editor is a workflow/view over recovered game code, not its semantic owner.
+`st001` is a regression fixture only. It is not the architecture, catalog universe, or completion gate.
 
-### Next gate
+## Resource-runtime readiness
 
-Select one bounded game subsystem and complete the first full `binary -> recovered C++ -> build -> behavioral validation` loop before scaling mass decompilation.
+GDSpaces materialization is ahead of full vanilla-runtime reconstruction. The completion model remains:
 
-## Reverse Core
+```text
+A — structural read
+B — lookup equivalence
+C — load-path reconstruction
+D — lifetime reconstruction
+E — validated runtime model
+```
 
-**Status:** architecture accepted; shared implementation pending.
+Open evidence still includes source/archive registration and priority, `.lst` fallback details, typed MOD/EFM/SCM/SHW post-load behavior, recursive typed dispatch, factory/construction boundaries, cache/reuse, state-4 cleanup, and lifecycle behavior across transitions/restart/menu/shutdown.
 
-Reverse Core formalizes:
-
-- BinaryArtifact;
-- AddressRange;
-- Function;
-- DataObject;
-- RecoveredType;
-- EvidenceRecord;
-- Hypothesis;
-- Experiment;
-- TaskClaim;
-- Reconstruction;
-- ValidationReceipt;
-- Subsystem.
-
-It reuses SDD/Spec Kit, Kanban/MCP coordination, evidence workflows, Obsidian human-readable research, and long-term memory systems rather than creating a second project-management stack.
-
-Reverse Core stores/coordinates reverse identities and reconstruction metadata. The recovered game source itself remains the Recovered Game Source Tree.
-
-Parallel agents must use claims/ownership for canonical reconstruction mutation to avoid function/range/source races. Claims coordinate work; they do not constitute evidence or semantic ownership of game code.
-
-See [Reverse Core](../reverse-core/README.md).
+**Materialized bytes are not an original DMC3 state-3/game-ready object.** `game_ready_equivalent` must remain false until recovered-runtime evidence validates post-load/factory/cache/ownership/consumer/lifetime equivalence.
 
 ## Stage Ops
 
-### Implemented foundation
+PR #91 restores Stage Ops as the product-side stage/scene assembly authority and already implements the central Phase-A architecture on its active branch:
 
-- confirmed DMC3 110 x 4 stage-table descriptor;
-- stage resource matching and `st001` plan;
-- StageBundle/Stage Workspace construction;
-- shared Stage Ops/ModViz views;
-- HITS, DCA, LIG2, and Stage TXT modules/tests.
+- `StageAssemblyWorkspace`;
+- DMC3 `StageOpsIngress` from `StageRuntimeLoadReport` without a second resource resolution pass;
+- `StageOperationsSession` over shared WorkingCopies/events;
+- retained canonical typed parser results and byte lineage;
+- Stage domain workspaces and exact source spans;
+- structural domain relations;
+- explicit recovered-runtime links and validation;
+- deterministic Stage Semantic Graph projection;
+- Stage scene snapshots;
+- ModViz projection/edit plumbing with revision guards;
+- invalidation and validation/receipt plumbing.
 
-HITS is already a substantial evidence-driven vertical slice: corrected header-driven format model, runtime-derived spatial behavior, safe edits, deterministic SAT writer, round trips, and spatial comparison tooling. Capcom offline-builder equivalence remains research-required pending real corpus and controlled runtime validation.
+This is active PR-stack implementation, not yet equivalent to promotion into `main`.
 
-### Next
+A size-changing Stage TXT WorkingCopy regression exposed an invalid coupling between immutable `ResourceId::size` and mutable working bytes. The binary-document adapter now sizes itself from the active byte view while retaining source-span identity, with a regression test for insertion/deletion-sized views.
 
-Stage Ops should evolve toward [Stage Semantic Graph v1](../stage/stage-semantic-graph.md):
+## Stage Semantic Graph
 
-`Stage -> Room -> Geometry -> Collision -> Lighting -> Camera -> Door/Transition -> Event -> Effect -> Audio -> Runtime reference`.
+The graph is now a Stage Ops-derived representation, not a scene assembler. It preserves resource, numeric Stage, semantic Stage, domain-object, recovered-runtime, and evidence identities without manufacturing missing semantics.
 
-Unknown resources remain first-class nodes with diagnostics/evidence rather than being discarded.
+Structural/product facts, recovered-runtime facts, confirmed semantics, inferred semantics, and unresolved relationships remain distinguishable.
 
-Stage-related recovered executable functions remain game code and are linked into the graph/evidence model; they do not become Stage Ops implementation merely because Stage Ops consumes their semantics.
+## HITS / collision reverse
+
+HITS remains one of the strongest reverse vertical slices:
+
+- verified deterministic parser/writer;
+- `0x38` triangle/plane records;
+- reconstructed spatial table behavior;
+- exact 13-axis inclusive triangle-box SAT;
+- real-corpus verification;
+- deterministic topology rebuild;
+- source0/source1 separation.
+
+Current runtime ownership evidence includes `StageCollisionWorld` and two embedded static HITS sources. Source2 remains external/global with unresolved backing/lifetime.
+
+Highest-value open reverse target remains `0x14005E7A0`, followed by `0x14005B460`, `0x14005FEC0`, and `0x1400601E0`, to close arbitration, candidate ABI, and caller-visible result semantics.
+
+## Reverse Core and recovered source
+
+The required reconstruction chain is:
+
+```text
+dmc3.exe
+  -> stable artifact/range/function/type identity
+  -> evidence
+  -> reconstruction
+  -> recovered-game C++
+  -> isolated compilation
+  -> behavioral comparison
+  -> ValidationReceipt
+  -> canon promotion / correction / rejection
+```
+
+Recovered C++ is an evidence-backed executable specification until behavior and provenance gates justify stronger claims. It is never represented as original Capcom source.
+
+The first acceptance milestone remains one bounded subsystem completing the full chain through a ValidationReceipt.
 
 ## ModViz
 
-**Status:** architecture/shared-view contracts implemented; complete desktop UI pending.
-
-ModViz retains two top-level modes:
-
-1. Scene/Model Editor;
-2. Menu Editor.
-
-The first Menu Editor vertical slice is the [Red Orb HUD counter](../modviz/menu-editor.md), exercising resource identity, hierarchy/mesh/UV editing, runtime-value preview, linked EXE formatting/limit evidence, guarded patch requests where required, and explicit validation/export.
-
-ModViz must never directly resolve/rewrite PAC/NBZ/AFS topology, patch the EXE independently, or become the owner of recovered UI/HUD game functions.
-
-## Item and guarded modification
-
-The Item layer already demonstrates the intended separation of concerns:
-
-- item semantics create typed runtime requests;
-- evidence gates patch-plan compilation;
-- patch plans carry source hash, expected bytes, ranges, and overlap checks;
-- execution occurs on copied bytes;
-- rollback is verified;
-- manifests record provenance and non-modification of originals.
-
-This remains a reference pattern for other editor/runtime bridges.
-
-## DMC3 PC-save promotion
-
-Pass 31/32 record-envelope/checksum ABI is reviewed in C++ with compile-time layouts, diagnostics, Evidence Packets, and regression tests. Wide Pass 33 remains research-ready/product-promotion-pending and should be promoted narrowly, not bulk-imported with unrelated recovered-source snapshots.
+ModViz remains the 3D scene/asset editor consuming Stage Ops state. Its active Menu Editor vertical slice is the Red Orb HUD counter through GDSpaces identity, hierarchy/mesh/UV editing, WorkingCopy, runtime/EXE evidence, guarded modifications, preview, validation, and export.
 
 ## Current blockers
 
-P0/P1 blockers are:
+P0/P1 work is now centered on:
 
-1. production read-only container source expansion is incomplete;
-2. the DMC3 resource runtime is not fully reconstructed from request through cache/lifetime/unload;
-3. `st001` is not game-backed end-to-end through GDSpaces;
-4. no single canonical binary/range/function/type/reconstruction contract is implemented across EXE Editor/Binary Inspector/agents yet;
-5. no complete recovered-game-subsystem compile + behavioral validation loop exists;
-6. Reverse Core TaskClaim and Recovered Game Source Tree contracts are not implemented as shared code/export machinery;
-7. real HITS/stage corpus and controlled runtime validation remain incomplete;
-8. Wide Pass 33 and much recovered-source research remain unpromoted;
-9. no working behaviorally equivalent rebuilt DMC3 executable exists.
-
-A separate infrastructure concern exists around MCP desktop/bootstrap logging and signed release-key availability. It does not block DMC3 binary research itself, but it can block reliable distribution/reinstallation of the broader local coordination platform.
-
-See [Blockers](blockers.md).
-
-## Architecture risks
-
-The highest current risks are:
-
-- confusing recovered game code with DMC Rengine tool implementation;
-- creating Reverse Core as a second DMC Rengine instead of a reusable game-agnostic metadata/lifecycle layer;
-- duplicate parsers/types/identity stores across editors;
-- recovered C++ drifting away from binary truth;
-- AI/agent races on functions, ranges, types, or source units;
-- premature confidence promotion from generated agreement rather than evidence;
-- forcing uncertain game functions into tool-shaped subsystem folders;
-- scope dispersion before one complete reconstruction loop is proven;
-- GitHub/research/status drift;
-- UI concerns redefining domain identity or write policy.
-
-See [Risk Register](risks.md).
+1. full resource-runtime lifecycle closure from request to state-3 readiness and teardown;
+2. raw reverse evidence for collision arbitration (`0x14005E7A0` family);
+3. representative Bank-A, Bank-B, selector/shared/alias/partial validation receipts;
+4. first complete recovered-game compile + behavioral-validation receipt;
+5. SCM post-load conflict around `mesh+0x28`;
+6. source2 collision backing/lifetime;
+7. Reverse Core shared TaskClaim/reconstruction infrastructure and bridge completion;
+8. integration-stack promotion without losing branch-specific fixes or evidence provenance;
+9. no behaviorally equivalent rebuilt DMC3 executable yet.
 
 ## Current critical path
 
 ```text
-full GDSpaces resource-runtime reverse + production read path + Resource Identity v1
-  -> legal local game-backed st001 StageBundle
-  -> Reverse Core v0.1 schema + TaskClaims + Recovered Game Source Tree contract
-  -> Binary Inspector / EXE Editor Reverse Core bridges
-  -> first isolated behavior-tested recovered game subsystem
-  -> broader stage semantic/runtime validation
-  -> controlled source-integration/recompilation milestones
+close high-value raw reverse evidence
+  + recovered-game compile proof
+  -> resource state-2 -> state-3 lifecycle closure
+  -> StageAssemblyWorkspace representative game validation
+  -> Semantic Graph / ModViz consumption of the same Stage Ops state
+  -> Reverse Core validated subsystem receipt
+  -> controlled broader reconstruction / recompilation
 ```
 
-Parallel work:
-
-```text
-Binary Inspector Wave 2
-Wide Pass 33 narrow promotion
-HITS real-corpus/runtime validation
-ModViz Red Orb vertical slice after shared identity/evidence gates are ready
-```
-
-## Milestone statement
-
-The next high-value proof is not "500 more decompiled functions". It is one real DMC3 subsystem whose exact bytes, game-semantic membership, evidence, recovered types/functions, C++ source in the Recovered Game Source Tree, build, behavioral comparison, and validation receipt are all connected and reviewable end-to-end.
+UI breadth is deliberately downstream of these evidence and lifecycle gates.
