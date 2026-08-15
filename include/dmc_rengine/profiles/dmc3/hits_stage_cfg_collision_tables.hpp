@@ -8,6 +8,7 @@
 #include <optional>
 #include <span>
 #include <string_view>
+#include <vector>
 
 namespace dmc::rengine::profiles::dmc3::hits_stage_cfg_collision_tables {
 
@@ -36,6 +37,45 @@ struct DescriptorReferenceValidation final {
 
     [[nodiscard]] constexpr bool valid() const noexcept {
         return descriptor_index_in_range;
+    }
+};
+
+struct ReferencedDescriptorSummary final {
+    std::size_t descriptor_index{};
+    std::uint8_t primitive_type{};
+    std::size_t reference_count{};
+};
+
+struct ReferenceCensus final {
+    std::size_t total_entry_count{};
+    std::size_t valid_reference_count{};
+    std::vector<std::size_t> invalid_entry_indices;
+    std::vector<ReferencedDescriptorSummary> referenced_descriptors;
+
+    [[nodiscard]] bool all_references_valid() const noexcept {
+        return invalid_entry_indices.empty();
+    }
+
+    [[nodiscard]] std::size_t referenced_descriptor_count_for_type(
+        std::uint8_t primitive_type) const noexcept {
+        std::size_t count = 0U;
+        for (const auto& descriptor : referenced_descriptors) {
+            if (descriptor.primitive_type == primitive_type) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    [[nodiscard]] std::size_t reference_count_for_type(
+        std::uint8_t primitive_type) const noexcept {
+        std::size_t count = 0U;
+        for (const auto& descriptor : referenced_descriptors) {
+            if (descriptor.primitive_type == primitive_type) {
+                count += descriptor.reference_count;
+            }
+        }
+        return count;
     }
 };
 
@@ -161,6 +201,47 @@ public:
             }
         }
         return true;
+    }
+
+    [[nodiscard]] ReferenceCensus referenced_descriptor_census() const {
+        ReferenceCensus census;
+        census.total_entry_count = entry_count();
+
+        std::vector<std::size_t> reference_counts(primitive_descriptor_count(), 0U);
+        for (std::size_t entry_index = 0; entry_index < entry_count(); ++entry_index) {
+            const auto decoded = entry(entry_index);
+            if (!decoded ||
+                static_cast<std::size_t>(decoded->descriptor_index) >=
+                    primitive_descriptor_count()) {
+                census.invalid_entry_indices.push_back(entry_index);
+                continue;
+            }
+
+            ++reference_counts[decoded->descriptor_index];
+            ++census.valid_reference_count;
+        }
+
+        census.referenced_descriptors.reserve(primitive_descriptor_count());
+        for (std::size_t descriptor_index = 0;
+             descriptor_index < primitive_descriptor_count();
+             ++descriptor_index) {
+            if (reference_counts[descriptor_index] == 0U) {
+                continue;
+            }
+
+            const auto type = primitive_type(descriptor_index);
+            if (!type) {
+                continue;
+            }
+
+            census.referenced_descriptors.push_back(ReferencedDescriptorSummary{
+                .descriptor_index = descriptor_index,
+                .primitive_type = *type,
+                .reference_count = reference_counts[descriptor_index],
+            });
+        }
+
+        return census;
     }
 
     [[nodiscard]] constexpr bool transform_selector_bounds_available() const noexcept {
