@@ -2,38 +2,78 @@
 
 ## Start here
 
+1. [Completion & Evidence Policy](status/completion-and-evidence-policy.md)
+2. [Current status](status/current.md)
+3. [Architecture](architecture.md)
+4. [Roadmap](roadmap.md)
+5. [Reverse-engineering rules](reverse-engineering-rules.md)
+6. [Constitution](../.specify/memory/constitution.md)
+7. [Contributing](../CONTRIBUTING.md)
+
+## Mandatory interpretation rule
+
+DMC Rengine contains many real implemented/tested/EXE-confirmed/validated slices, but **no major end-to-end subsystem is currently COMPLETE or proven equivalent to the original DMC3 runtime**.
+
+Historical documents remain evidence snapshots. Later `CORRECTED`, `REJECTED`, `BOUNDED CLOSED`, `VALIDATED`, or supersession records override conflicting older wording without deleting history.
+
+An active PR is branch-scoped truth, not merged `main` truth. Green synthetic CI is not original-game behavioral proof.
+
+## Architecture and ownership
+
 - [Architecture](architecture.md)
-- [Roadmap](roadmap.md)
-- [Current status](status/current.md)
-- [Phase map](status/phase-map.md)
-- [Constitution](../.specify/memory/constitution.md)
-- [Contributing](../CONTRIBUTING.md)
-
-## Architecture and contracts
-
 - [Canonical decisions](history/canonical-decisions.md)
 - [Deprecated architecture](history/deprecated-architecture.md)
 - [Architecture Decision Records](architecture-decisions/README.md)
 - [Reverse-engineering rules](reverse-engineering-rules.md)
 - [Clean-room policy](legal/clean-room-policy.md)
 
-### GDSpaces
+Canonical ownership:
+
+- **GDSpaces** — product resource identity/resolution/materialization/provenance;
+- **Recovered Game Source Tree** — reconstructed original DMC3 runtime behavior;
+- **Reverse Core** — generic reverse/evidence/reconstruction/claim infrastructure;
+- **Stage Ops** — product-side stage/scene assembly and operational state;
+- **Stage Semantic Graph** — derived representation/index over Stage Ops state;
+- **ModViz** — scene/asset/HUD editing consumer;
+- **Binary Inspector** — bytes/structure/ownership/evidence inspection;
+- **EXE Editor** — executable/reconstruction editing frontend over shared authorities.
+
+No tool creates a second resource resolver or competing stage/reconstruction truth.
+
+## GDSpaces
 
 - [GDSpaces contract](gdspaces-contract.md)
 - [Resource classification](gdspaces/classification.md)
 - [Working copy](gdspaces/working-copy.md)
 - [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
 
-### Stage reconstruction
+A product `StageBundle` is not automatically an original DMC3 state-3/game-ready runtime object.
 
-- [DMC3 Phase 12 stage resource plan](stage/dmc3-stage-resource-plan.md)
+## Stage reconstruction
 
-### Formats and containers
+Current Stage authority is catalog/selector driven, not `st001`-driven:
+
+- 110 Bank-A observed descriptors;
+- 79 Bank-B observed descriptors;
+- 189 observed descriptors total;
+- 193 selector entries;
+- 10 group-base pointers;
+- independent resource-set/catalog, numeric Stage and separately evidenced semantic Stage identities.
+
+`st001` is regression/compatibility data only.
+
+Relevant current coordination: issue #4, #55, #90 and active Stage/GDSpaces/Stage Ops stacks.
+
+Historical/compatibility documents such as [DMC3 Phase 12 stage resource plan](stage/dmc3-stage-resource-plan.md) must be interpreted through the current completion/Stage-identity policy.
+
+## Formats and containers
 
 - [Generic container foundation](formats/container-foundation.md)
 - [Synthetic slot container](formats/synthetic-slot-container.md)
 
-### Evidence, executable, and patching
+Format parsing or a deterministic writer is a bounded capability; it does not by itself prove original runtime/offline-builder equivalence.
+
+## Evidence, Reverse Core, executable and patching
 
 - [Public evidence registry](../evidence/README.md)
 - [Evidence Packets](evidence/evidence-packets.md)
@@ -42,15 +82,21 @@
 - [Known executable targets](exe/known-targets.md)
 - [Guarded patching](patch/guarded-patching.md)
 
-### Binary Inspector
+Recovered C++ is evidence-backed reconstruction, not automatically original Capcom source. Agent consensus is not evidence.
+
+## Binary Inspector
 
 - [Binary document model](binary/document-model.md)
 - [Web-to-C++20 cross-port plan](binary/web-crossport.md)
 
 ## Research baselines
 
-- [DMC3 Vanilla Research Baseline](research/dmc3-vanilla-research-baseline.md) — pre-roadmap reconciled authority for vanilla runtime/resource architecture, cross-build identity, ST namespace coverage, HD-port translation, HITS corrections, and remaining research frontiers.
-- [DMC3 Vanilla Deep Research Wave 2](research/dmc3-vanilla-deep-research-wave-2.md) — direct cross-build evidence for the full 189-descriptor Stage surface, numeric Stage-ID resolver, cross-stage aliases, `.lst` fallback, 363-entry resource lifecycle manager, typed post-load fixups, and HD ADX→OGG / SFD→WMV translation.
+Research baselines are chronological evidence records, not whole-project completion claims.
+
+- [DMC3 Vanilla Research Baseline](research/dmc3-vanilla-research-baseline.md)
+- [DMC3 Vanilla Deep Research Wave 2](research/dmc3-vanilla-deep-research-wave-2.md)
+
+Later active research may supersede older target lists. For HITS specifically, current Pass-10 work in PR #85 supersedes the earlier Pass-8/Pass-9 statement that the entire E7A0/B460/FEC0/601E0 upper wrapper set is still open; those bounded closures do not make collision complete.
 
 ## History and Canon migration
 
@@ -60,6 +106,7 @@
 
 ## Status and planning
 
+- [Completion & Evidence Policy](status/completion-and-evidence-policy.md)
 - [Current status](status/current.md)
 - [Phase map](status/phase-map.md)
 - [Blockers](status/blockers.md)
@@ -68,31 +115,17 @@
 - [Weekly reports](status/weekly/)
 - [Specifications](../specs/)
 
-## Brand and community
-
-- [Brand Canon index](brand/README.md)
-- [Lore](brand/lore.md)
-- [Naming system](brand/naming-system.md)
-- [Brand glossary](brand/glossary.md)
-- [Voice and marketing](brand/voice-and-marketing.md)
-- [Sect of Neuroslop](brand/sect-of-neuroslop.md)
-
-## Product map
-
-- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
-- **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
-- **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
-- **Binary Inspector — The Reliquary:** regions, fields, ownership, range selection, conflicts, unknown coverage, annotations, byte diff, and entropy analysis.
-- **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
-- **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
-- **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
-- **Build & Test Lab — The Trial Chamber:** reproducibility, validation, regression, and release artifacts.
-
 ## Documentation status language
 
-- **implemented:** exists in this repository and is connected to the build/tests;
-- **historical:** existed in an earlier/private generation;
-- **confirmed:** reverse finding supported by recorded evidence;
-- **high/medium/low:** confidence level, not implementation status;
-- **planned:** accepted direction without completed code;
-- **deprecated/rejected:** must not be used as the new architecture.
+Use the vocabulary defined in the completion policy. In particular:
+
+- `IMPLEMENTED` — code exists for the bounded scope;
+- `TESTED` — deterministic tests pass for that scope;
+- `EXE CONFIRMED` — directly supported by canonical executable evidence;
+- `BOUNDED CLOSED` — the specified reverse target is closed at that boundary;
+- `VALIDATED` — a reproducible validation receipt exists for the stated bounded behavior;
+- `NOT PROVEN` / `RESEARCH REQUIRED` — stronger semantics/equivalence remain withheld;
+- `CORRECTED` / `REJECTED` — older claims are superseded/disproved;
+- `COMPLETE` — reserved for the full applicable completion gate.
+
+Never infer `COMPLETE` from `IMPLEMENTED`, `TESTED`, green CI, or a readable recovered C++ unit.
