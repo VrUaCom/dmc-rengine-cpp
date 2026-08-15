@@ -61,7 +61,7 @@ public:
         const formats::ContainerDocument& container,
         SlotGeneration generation) noexcept {
         if (!matches_canonical_target(executable_sha256) || !container.valid() ||
-            container.container_size > container_bytes.size()) {
+            container.container_size > static_cast<std::uint64_t>(container_bytes.size())) {
             return std::nullopt;
         }
 
@@ -70,7 +70,8 @@ public:
         const auto* descriptor_slot =
             find_slot(container, slots.primitive_descriptor_table_slot);
         if (entry_slot == nullptr || descriptor_slot == nullptr ||
-            !entry_slot->valid || !descriptor_slot->valid ||
+            !entry_slot->valid(container.container_size) ||
+            !descriptor_slot->valid(container.container_size) ||
             (entry_slot->size % k_entry_stride) != 0U ||
             (descriptor_slot->size % k_primitive_descriptor_stride) != 0U ||
             !range_fits(container_bytes, *entry_slot) ||
@@ -78,11 +79,16 @@ public:
             return std::nullopt;
         }
 
+        const auto entry_offset = static_cast<std::size_t>(entry_slot->offset);
+        const auto entry_size = static_cast<std::size_t>(entry_slot->size);
+        const auto descriptor_offset = static_cast<std::size_t>(descriptor_slot->offset);
+        const auto descriptor_size = static_cast<std::size_t>(descriptor_slot->size);
+
         return View(
             generation,
             slots,
-            container_bytes.subspan(entry_slot->offset, entry_slot->size),
-            container_bytes.subspan(descriptor_slot->offset, descriptor_slot->size));
+            container_bytes.subspan(entry_offset, entry_size),
+            container_bytes.subspan(descriptor_offset, descriptor_size));
     }
 
     [[nodiscard]] constexpr SlotGeneration generation() const noexcept {
@@ -165,7 +171,7 @@ private:
     [[nodiscard]] static const formats::ContainerEntry*
     find_slot(const formats::ContainerDocument& container, std::size_t slot_index) noexcept {
         for (const auto& entry : container.entries) {
-            if (entry.slot_index == slot_index) {
+            if (static_cast<std::size_t>(entry.slot_index) == slot_index) {
                 return &entry;
             }
         }
@@ -175,7 +181,8 @@ private:
     [[nodiscard]] static bool range_fits(
         std::span<const std::byte> bytes,
         const formats::ContainerEntry& entry) noexcept {
-        return entry.offset <= bytes.size() && entry.size <= bytes.size() - entry.offset;
+        const auto byte_count = static_cast<std::uint64_t>(bytes.size());
+        return entry.offset <= byte_count && entry.size <= byte_count - entry.offset;
     }
 
     constexpr View(
