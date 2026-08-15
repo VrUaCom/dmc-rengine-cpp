@@ -91,6 +91,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_contact_normal_evidence
         hits_primitive_descriptor_ownership_evidence
         hits_primitive_type01_evidence
+        hits_stage_cfg_pac_evidence
         dca
         lig2
         stage_txt
