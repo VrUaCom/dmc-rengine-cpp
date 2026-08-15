@@ -2,7 +2,7 @@
 
 Date: 2026-08-15  
 Canonical target SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **EXE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE**
+Status: **EXE CONFIRMED / IMPLEMENTED / VALIDATED**
 
 ## Promotion
 
@@ -117,6 +117,12 @@ The offsets still contain u32 values relative to the PAC base, but their semanti
 - CTest `hits_stage_cfg_pac_evidence`
 
 All public evidence is exact-canonical-SHA gated. Packed SHA `81c7...c7d6` receives no canonical stage/PAC collision-slot descriptors.
+
+## Validation receipt
+
+Exact code head `63acd1bd2e311b7978c0d455e3a7279cc28dfcff` passed GitHub Actions run `31854936132` on both Ubuntu and Windows, including `hits_stage_cfg_pac_evidence`.
+
+Later documentation/evidence corrections do not alter the validated C++ code.
 
 ## Current raw-data boundary
 
