@@ -86,6 +86,17 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
     const auto requested_begin = static_cast<std::uint64_t>(rva);
     const auto requested_end = requested_begin + static_cast<std::uint64_t>(size);
 
+    if (image.size_of_image == 0U || rva >= image.size_of_image) {
+        return fail(
+            ExeByteWindowError::unmapped_rva,
+            "requested RVA lies outside the PE SizeOfImage runtime boundary");
+    }
+    if (requested_end > static_cast<std::uint64_t>(image.size_of_image)) {
+        return fail(
+            ExeByteWindowError::crosses_file_backed_mapping,
+            "requested window crosses the PE SizeOfImage runtime boundary");
+    }
+
     const PeSection* mapped_section = nullptr;
     std::uint32_t mapped_delta = 0U;
     for (const auto& section : image.sections) {
