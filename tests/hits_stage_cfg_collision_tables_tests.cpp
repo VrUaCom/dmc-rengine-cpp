@@ -61,12 +61,13 @@ int main() {
 
     std::vector<std::byte> modern_bytes(0x800U, std::byte{0});
     auto modern_document = make_document(41U, modern_bytes.size());
-    set_slot(modern_document, 39U, 0x200U, 8U);
+    set_slot(modern_document, 39U, 0x200U, 12U);
     set_slot(modern_document, 40U, 0x300U, 2U * stage::k_primitive_descriptor_stride);
     assert(modern_document.valid());
 
     write_entry(modern_bytes, 0x200U, 0x06U, 250U, 0U);
     write_entry(modern_bytes, 0x204U, 0x02U, 3U, 1U);
+    write_entry(modern_bytes, 0x208U, 0x04U, 4U, 1U);
     modern_bytes[0x300U] = std::byte{2};
     modern_bytes[0x300U + stage::k_primitive_descriptor_stride] = std::byte{5};
 
@@ -78,7 +79,7 @@ int main() {
     assert(modern.has_value());
     assert(modern->slots().entry_table_slot == 39U);
     assert(modern->slots().primitive_descriptor_table_slot == 40U);
-    assert(modern->entry_count() == 2U);
+    assert(modern->entry_count() == 3U);
     assert(modern->primitive_descriptor_count() == 2U);
     assert(modern->all_descriptor_references_valid());
     assert(!modern->transform_selector_bounds_available());
@@ -90,6 +91,23 @@ int main() {
     assert(first->descriptor_index == 0U);
     assert(modern->primitive_type(0U).has_value() && *modern->primitive_type(0U) == 2U);
     assert(modern->primitive_type(1U).has_value() && *modern->primitive_type(1U) == 5U);
+
+    const auto census = modern->referenced_descriptor_census();
+    assert(census.total_entry_count == 3U);
+    assert(census.valid_reference_count == 3U);
+    assert(census.all_references_valid());
+    assert(census.invalid_entry_indices.empty());
+    assert(census.referenced_descriptors.size() == 2U);
+    assert(census.referenced_descriptors[0U].descriptor_index == 0U);
+    assert(census.referenced_descriptors[0U].primitive_type == 2U);
+    assert(census.referenced_descriptors[0U].reference_count == 1U);
+    assert(census.referenced_descriptors[1U].descriptor_index == 1U);
+    assert(census.referenced_descriptors[1U].primitive_type == 5U);
+    assert(census.referenced_descriptors[1U].reference_count == 2U);
+    assert(census.referenced_descriptor_count_for_type(5U) == 1U);
+    assert(census.reference_count_for_type(5U) == 2U);
+    assert(census.referenced_descriptor_count_for_type(6U) == 0U);
+    assert(census.reference_count_for_type(6U) == 0U);
 
     // The raw transform selector is intentionally preserved even when no
     // transform table has been proven for this Stage-CFG slot path.
@@ -105,7 +123,7 @@ int main() {
                 .has_value());
 
     auto bad_descriptor_bytes = modern_bytes;
-    write_entry(bad_descriptor_bytes, 0x204U, 0U, 0U, 2U);
+    write_entry(bad_descriptor_bytes, 0x208U, 0U, 0U, 2U);
     const auto bad_descriptor = stage::View::open(
         canonical_sha,
         bad_descriptor_bytes,
@@ -113,6 +131,15 @@ int main() {
         stage::SlotGeneration::modern_cem_stage_cfg);
     assert(bad_descriptor.has_value());
     assert(!bad_descriptor->all_descriptor_references_valid());
+
+    const auto bad_census = bad_descriptor->referenced_descriptor_census();
+    assert(bad_census.total_entry_count == 3U);
+    assert(bad_census.valid_reference_count == 2U);
+    assert(!bad_census.all_references_valid());
+    assert(bad_census.invalid_entry_indices.size() == 1U);
+    assert(bad_census.invalid_entry_indices[0U] == 2U);
+    assert(bad_census.referenced_descriptors.size() == 2U);
+    assert(bad_census.reference_count_for_type(5U) == 1U);
 
     auto malformed_document = modern_document;
     malformed_document.entries[40U].size =
@@ -144,6 +171,15 @@ int main() {
     assert(legacy->primitive_descriptor_count() == 1U);
     assert(legacy->primitive_type(0U).has_value() && *legacy->primitive_type(0U) == 4U);
     assert(legacy->all_descriptor_references_valid());
+
+    const auto legacy_census = legacy->referenced_descriptor_census();
+    assert(legacy_census.all_references_valid());
+    assert(legacy_census.total_entry_count == 1U);
+    assert(legacy_census.valid_reference_count == 1U);
+    assert(legacy_census.referenced_descriptors.size() == 1U);
+    assert(legacy_census.referenced_descriptors[0U].descriptor_index == 0U);
+    assert(legacy_census.referenced_descriptors[0U].primitive_type == 4U);
+    assert(legacy_census.referenced_descriptors[0U].reference_count == 1U);
 
     assert(!stage::View::open(
                 canonical_sha,
