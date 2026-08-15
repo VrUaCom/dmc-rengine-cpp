@@ -1,5 +1,6 @@
 #include "dmc_rengine/exe/byte_window.hpp"
 
+#include <algorithm>
 #include <limits>
 #include <utility>
 
@@ -24,25 +25,33 @@ namespace {
     return offset <= file_bytes.size() && size <= file_bytes.size() - offset;
 }
 
-[[nodiscard]] bool section_maps_raw_rva(
+[[nodiscard]] std::uint32_t file_backed_virtual_extent(
+    const PeSection& section) noexcept {
+    const auto virtual_extent =
+        section.virtual_size == 0U ? section.raw_size : section.virtual_size;
+    return std::min(section.raw_size, virtual_extent);
+}
+
+[[nodiscard]] bool section_maps_file_backed_va(
     const PeSection& section,
     std::uint32_t rva) noexcept {
     if (rva < section.virtual_address) {
         return false;
     }
     const auto delta = rva - section.virtual_address;
-    return delta < section.raw_size;
+    return delta < file_backed_virtual_extent(section);
 }
 
-[[nodiscard]] bool raw_rva_range_overlaps(
+[[nodiscard]] bool file_backed_rva_range_overlaps(
     const PeSection& section,
     std::uint64_t begin,
     std::uint64_t end) noexcept {
-    if (section.raw_size == 0U) {
+    const auto extent = file_backed_virtual_extent(section);
+    if (extent == 0U) {
         return false;
     }
     const auto section_begin = static_cast<std::uint64_t>(section.virtual_address);
-    const auto section_end = section_begin + static_cast<std::uint64_t>(section.raw_size);
+    const auto section_end = section_begin + static_cast<std::uint64_t>(extent);
     return begin < section_end && section_begin < end;
 }
 
@@ -80,13 +89,13 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
     const PeSection* mapped_section = nullptr;
     std::uint32_t mapped_delta = 0U;
     for (const auto& section : image.sections) {
-        if (!section_maps_raw_rva(section, rva)) {
+        if (!section_maps_file_backed_va(section, rva)) {
             continue;
         }
         if (mapped_section != nullptr) {
             return fail(
                 ExeByteWindowError::ambiguous_raw_mapping,
-                "requested RVA is backed by more than one PE section raw mapping");
+                "requested RVA is backed by more than one PE section file-backed VA mapping");
         }
         mapped_section = &section;
         mapped_delta = rva - section.virtual_address;
@@ -102,10 +111,11 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
         }
 
         for (const auto& section : image.sections) {
-            if (raw_rva_range_overlaps(section, requested_begin, requested_end)) {
+            if (file_backed_rva_range_overlaps(
+                    section, requested_begin, requested_end)) {
                 return fail(
                     ExeByteWindowError::ambiguous_raw_mapping,
-                    "requested header window overlaps section-backed RVA data");
+                    "requested header window overlaps section-backed VA data");
             }
         }
 
@@ -134,25 +144,27 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
     if (mapped_section == nullptr) {
         return fail(
             ExeByteWindowError::unmapped_rva,
-            "requested RVA is not backed by PE header or section raw data");
+            "requested RVA is not backed by both PE virtual section extent and raw file data");
     }
 
-    const auto raw_remaining =
-        static_cast<std::size_t>(mapped_section->raw_size - mapped_delta);
-    if (size > raw_remaining) {
+    const auto mapped_extent = file_backed_virtual_extent(*mapped_section);
+    const auto mapped_remaining =
+        static_cast<std::size_t>(mapped_extent - mapped_delta);
+    if (size > mapped_remaining) {
         return fail(
             ExeByteWindowError::crosses_raw_mapping,
-            "requested window crosses the containing PE section raw-data boundary");
+            "requested window crosses the containing PE section file-backed VA boundary");
     }
 
     for (const auto& section : image.sections) {
         if (&section == mapped_section) {
             continue;
         }
-        if (raw_rva_range_overlaps(section, requested_begin, requested_end)) {
+        if (file_backed_rva_range_overlaps(
+                section, requested_begin, requested_end)) {
             return fail(
                 ExeByteWindowError::ambiguous_raw_mapping,
-                "requested window overlaps another PE section raw RVA mapping");
+                "requested window overlaps another PE section file-backed VA mapping");
         }
     }
 
