@@ -1,62 +1,109 @@
 name: Evidence submission
-description: Submit a reproducible reverse-engineering finding or correction
+description: Submit a reproducible reverse-engineering finding, bounded closure, correction, or rejection
 title: "[Evidence]: "
 labels: ["evidence", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Evidence submissions describe exact bounded claims. `BOUNDED CLOSED` or `VALIDATED` for one target does not make the containing major subsystem `COMPLETE`. Read `docs/status/completion-and-evidence-policy.md` before submitting.
+
   - type: input
     id: claim
     attributes:
-      label: Claim
-      description: State one precise technical claim.
+      label: Exact bounded claim
+      description: State one precise technical claim. Avoid whole-subsystem completion wording unless the full completion gate is satisfied.
     validations:
       required: true
+
   - type: dropdown
-    id: confidence
+    id: status
     attributes:
-      label: Confidence
+      label: Evidence / closure status
       options:
-        - hypothesis
-        - candidate
-        - low
-        - medium
-        - high
-        - confirmed
-        - corrected
-        - rejected
+        - HYPOTHESIS
+        - CANDIDATE
+        - LOW
+        - MEDIUM
+        - HIGH
+        - EXE CONFIRMED
+        - DERIVED FROM VERIFIED RUNTIME
+        - BOUNDED CLOSED
+        - VALIDATED
+        - RESEARCH REQUIRED
+        - NOT PROVEN
+        - CORRECTED
+        - REJECTED
     validations:
       required: true
+
   - type: input
     id: artifact
     attributes:
       label: Artifact identity
-      description: Sanitized name/role and cryptographic hash. Do not upload the file.
-      placeholder: dmc3.exe — SHA-256 ...
+      description: Sanitized role, exact SHA-256 and size/build identity when applicable. Do not upload proprietary bytes.
+      placeholder: dmc3.exe — SHA-256 ... — size ...
     validations:
       required: true
+
   - type: textarea
     id: locations
     attributes:
-      label: Evidence locations
-      description: Offsets, RVA/VA, symbols, fields, traces, or resource IDs.
+      label: Evidence locations / identities
+      description: File offsets, RVA/VA/address ranges, functions, types, callers/callees, resource IDs, runtime trace IDs, corpus identities, etc.
     validations:
       required: true
+
+  - type: dropdown
+    id: evidence_source
+    attributes:
+      label: Strongest evidence source
+      options:
+        - raw artifact / exact disassembly
+        - verified runtime observation
+        - real corpus / structural observation
+        - sanitized Evidence Packet / prior project evidence
+        - reconstruction / behavioral comparison
+        - synthetic test only
+    validations:
+      required: true
+
   - type: textarea
     id: procedure
     attributes:
       label: Reproduction procedure
+      description: Explain how another contributor can reproduce or challenge the claim.
     validations:
       required: true
+
   - type: textarea
     id: observations
     attributes:
       label: Observations and competing explanations
+      description: Include unknowns, negative evidence, scope limits, and interpretations that remain possible.
     validations:
       required: true
+
+  - type: textarea
+    id: still_open
+    attributes:
+      label: Explicitly still open
+      description: Nearby ABI, semantic, ownership, lifetime, corpus, runtime-validation, or integration questions this claim does not close.
+    validations:
+      required: true
+
   - type: textarea
     id: correction
     attributes:
-      label: Correction target
-      description: Link previous claims if this corrects or rejects them.
+      label: Correction / supersession target
+      description: Link previous claims/checklists/pass records if this corrects, rejects, or supersedes them. Preserve historical evidence.
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation receipt / comparison
+      description: Link deterministic test, CI, corpus, runtime comparison, or ValidationReceipt. State clearly when only synthetic tests exist.
+
   - type: checkboxes
     id: policy
     attributes:
@@ -64,5 +111,11 @@ body:
       options:
         - label: No proprietary game file, leaked source, or large copied binary region is attached.
           required: true
-        - label: The finding is independently reproducible.
+        - label: Artifact/evidence provenance is reproducible or explicitly identified as prior project evidence.
+          required: true
+        - label: If raw bytes were not actually mounted for this pass, I did not claim a fresh independent re-hash/re-disassembly.
+          required: true
+        - label: I did not convert agent/model consensus into evidence.
+          required: true
+        - label: I did not promote this bounded claim into a major-subsystem COMPLETE/game-equivalent claim without the full completion gate and ValidationReceipt.
           required: true
