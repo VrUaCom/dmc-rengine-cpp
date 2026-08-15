@@ -195,11 +195,31 @@ bool ResourceWorkspaceSession::attach_binary_document(
             "The Binary Inspector document belongs to a different canonical resource identity.");
         return false;
     }
-    if (document.byte_size() != payload_.bytes.size()) {
+
+    std::size_t expected_byte_size = payload_.bytes.size();
+    std::uint64_t document_byte_revision = 0U;
+    if (parsed_resource_.has_value() &&
+        parsed_resource_->byte_source == ParsedByteSource::working_copy) {
+        if (!working_copy_.has_value() ||
+            parsed_resource_->byte_revision != working_copy_->revision()) {
+            add_diagnostic(
+                gdspaces::DiagnosticSeverity::error,
+                "workspace.binary-working-copy-stale",
+                "The Binary Inspector document cannot be attached because its canonical typed parser result does not describe the active WorkingCopy revision.");
+            return false;
+        }
+        expected_byte_size = working_copy_->bytes().size();
+        document_byte_revision = working_copy_->revision();
+    }
+
+    if (document.byte_size() != expected_byte_size) {
         add_diagnostic(
             gdspaces::DiagnosticSeverity::error,
             "workspace.binary-size-mismatch",
-            "The Binary Inspector document size does not match the source payload.");
+            parsed_resource_.has_value() &&
+                    parsed_resource_->byte_source == ParsedByteSource::working_copy
+                ? "The Binary Inspector document size does not match the active WorkingCopy byte view."
+                : "The Binary Inspector document size does not match the immutable source payload.");
         return false;
     }
 
@@ -209,9 +229,9 @@ bool ResourceWorkspaceSession::attach_binary_document(
         payload_.resource.id,
         gdspaces::ToolTarget::binary_inspector,
         gdspaces::ToolTarget::spider_hub,
-        working_copy_.has_value() ? working_copy_->revision() : 0U,
+        document_byte_revision,
         format_->parser_id,
-        "Binary Inspector attached a structural document to the canonical resource."));
+        "Binary Inspector attached a structural document to the exact byte lineage represented by the canonical typed parser result."));
     return true;
 }
 
