@@ -71,6 +71,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         json_parser
         evidence_json
         evidence_json_import
+        runtime_trace
         evidence_packet_project
         evidence_packet_range
         binary_reader
@@ -83,6 +84,16 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_spatial_compare
         hits_spatial_match
         hits_binary
+        hits_query_evidence
+        hits_dynamic_update_evidence
+        hits_source1_query_evidence
+        hits_primitive_shape_evidence
+        hits_contact_normal_evidence
+        hits_primitive_descriptor_ownership_evidence
+        hits_primitive_type01_evidence
+        hits_stage_cfg_pac_evidence
+        hits_collision_triplet
+        hits_stage_cfg_collision_tables
         dca
         lig2
         stage_txt
