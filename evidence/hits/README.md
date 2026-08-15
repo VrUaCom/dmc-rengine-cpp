@@ -1,6 +1,6 @@
 # HITS Evidence Records
 
-This directory stores public, non-proprietary evidence metadata for HITS reverse-engineering promotions.
+This directory stores public, non-proprietary evidence metadata for HITS reverse-engineering promotions and active bounded acquisition plans.
 
 - `hits-pass8-wide-runtime-integration-review.evidence.json` — Pass 8 authority record linking the canonical executable hash, Drive preservation documents, retained findings, implementation freezes and then-remaining reverse targets.
 - `hits-pass10-query-runtime-evidence.evidence.json` — aggregate Pass-10 query/runtime snapshot. Some historical labels in this aggregate are superseded by later slice-specific evidence.
@@ -12,6 +12,7 @@ This directory stores public, non-proprietary evidence metadata for HITS reverse
 - `hits-pass10-slice13-collision-triplet.evidence.json` — validated `0x40 / 0x04 / 0x50` serialized dynamic-collision three-span ABI with Phase-15 `em000.pac` data-side confirmation and `id100.pac` negative control. PAC slot numbers are not globally semantic, and Stage-CFG slot38 is not promoted as the transform table.
 - `hits-pass10-slice14-stage-cfg-collision-view.evidence.json` — validated Stage-CFG entry/primitive-descriptor adapter over the existing `ContainerDocument`; exposes flags, raw transform selector, descriptor index/type and broken descriptor references without inventing transform-selector bounds. Includes the failed-first-head → real-container-API fix → green Ubuntu/Windows debug receipt.
 - `hits-pass10-slice15-referenced-stage-cfg-descriptor-census.evidence.json` — validated referenced-only census implementation over the Slice-14 Stage-CFG view. It counts only actually referenced descriptors, preserves raw type/reference counts and broken references, and deliberately makes no real Stage-CFG type-5 presence/absence claim until representative proprietary corpus data is supplied through the canonical GDSpaces/container path.
+- `hits-pass10-slice16-stage-cfg-transform-source-provenance-plan.evidence.json` — active evidence-reacquisition plan for the unresolved Stage-CFG `entry+0x01` transform source. It preserves the proven C630/C740/C8D0 contracts, representative Stage-CFG setup anchors, rejected slot38 shortcuts, exact promotion gates and the implementation freeze that keeps transform-selector bounds unavailable until provider/count provenance is direct.
 
 ## Evidence precedence
 
@@ -25,7 +26,8 @@ When a later slice-specific record explicitly marks an earlier statement `SUPERS
 - do not infer that matching PAC slot numbers imply matching schemas: Slice 13 proves `em000.pac` 38/39/40 is a valid collision three-table set while `id100.pac` 38/39/40 is not;
 - do not wire Stage-CFG slot38 as a transform table without new direct evidence. Stage-CFG entry/descriptor slots remain confirmed independently;
 - do not validate Stage-CFG `entry+0x01` transform selectors merely because the raw selector byte is decoded. Slice 14 explicitly leaves transform provenance unresolved;
-- do not interpret Slice-15 synthetic raw type-5 regression as evidence that a real Stage-CFG resource contains type 5. Real presence or absence requires a provenance-preserving representative corpus census.
+- do not interpret Slice-15 synthetic raw type-5 regression as evidence that a real Stage-CFG resource contains type 5. Real presence or absence requires a provenance-preserving representative corpus census;
+- do not infer that C740's proven `0x40` transform-table contract means Stage-CFG uses C740. Slice 16 requires the Stage-CFG route and exact C8D0 stack-arg5 producer to be reacquired directly before transform bounds or a three-table Stage-CFG adapter can be promoted.
 
 All DMC3 build-specific VAs/body hashes here are profile evidence for canonical executable SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` unless a record explicitly states otherwise.
 
