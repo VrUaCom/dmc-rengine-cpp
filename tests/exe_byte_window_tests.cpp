@@ -102,6 +102,44 @@ int main() {
     assert(!virtual_only.ok());
     assert(virtual_only.error == exe::ExeByteWindowError::unmapped_rva);
 
+    auto ambiguous_sections = image;
+    ambiguous_sections.sections.push_back(exe::PeSection{
+        .name = ".alt",
+        .virtual_size = 0x100U,
+        .virtual_address = 0x1070U,
+        .raw_size = 0x100U,
+        .raw_offset = 0x600U,
+        .characteristics = 0U,
+    });
+    const auto ambiguous_section_result = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        ambiguous_sections,
+        image.image_base + 0x1080U,
+        0x10U);
+    assert(!ambiguous_section_result.ok());
+    assert(
+        ambiguous_section_result.error ==
+        exe::ExeByteWindowError::ambiguous_raw_mapping);
+
+    auto ambiguous_headers = image;
+    ambiguous_headers.sections.push_back(exe::PeSection{
+        .name = ".hdr",
+        .virtual_size = 0x100U,
+        .virtual_address = 0x20U,
+        .raw_size = 0x100U,
+        .raw_offset = 0x600U,
+        .characteristics = 0U,
+    });
+    const auto ambiguous_header_result = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        ambiguous_headers,
+        image.image_base + 0x40U,
+        0x10U);
+    assert(!ambiguous_header_result.ok());
+    assert(
+        ambiguous_header_result.error ==
+        exe::ExeByteWindowError::ambiguous_raw_mapping);
+
     auto truncated = bytes;
     truncated.resize(0x490U);
     const auto truncated_result = exe::ExeByteWindowExtractor::extract(
