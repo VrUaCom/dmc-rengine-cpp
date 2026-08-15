@@ -1,7 +1,7 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-15  
-**Rule:** a bounded slice may be implemented or closed while the major subsystem remains blocked from `COMPLETE`.
+**Rule:** a bounded slice may be implemented/validated while the major subsystem remains blocked from `COMPLETE`.
 
 Read `completion-and-evidence-policy.md` before interpreting blocker closure.
 
@@ -58,7 +58,7 @@ PR #91 provides substantial Stage Ops assembly/operations implementation, but co
 
 **Status:** OPEN
 
-Selected recovered units compile and pass deterministic tests. That is not enough for original-game equivalence.
+Selected recovered units compile/pass deterministic tests. That is not enough for original-game equivalence.
 
 Required:
 
@@ -71,19 +71,36 @@ Required:
 ## P0/P1 — HITS/collision deeper reconstruction
 
 **Status:** OPEN  
-**Tracking:** #25 / PR #85
+**Tracking:** #25 / PR #85 / Drive Pass 10
 
-Correction: the older Pass-8/Pass-9 blocker list that treated the entire top-level `0x14005E7A0/FEC0/601E0` wrapper layer as unknown is superseded by later Pass-10 bounded closure/reclassification in PR #85.
+The older Pass-8/Pass-9 blocker list that treated the entire top-level `0x14005E7A0 / 0x14005B460 / 0x14005FEC0 / 0x1400601E0` layer as unknown is superseded by later Pass-10 bounded closure/reclassification.
 
-Do not restart those closed wrapper questions without contradictory evidence.
+Do not restart those wrapper questions without contradictory direct evidence.
 
-Remaining HITS/collision blockers include:
+Later Pass-10 also validates/corrects:
 
-- deeper primitive producer/helper reconstruction;
-- manager primitive-descriptor population/writers;
-- actually referenced type-5 producer/source semantics;
+- primitive-shape layer separation and several parser->descriptor->runtime mappings;
+- common contact normal at metadata `+0x28/+0x2C/+0x30`;
+- manager `+0x108` entry table, manager `+0x110` descriptor table, `0x04` entry stride, `u16 @ entry+0x02` descriptor index, `0x50` descriptor stride;
+- runtime `+0x118` primitive descriptor vs runtime `+0x20` transform pointer;
+- runtime type 0 one-point and type 1 two-endpoint structural representations;
+- Stage-CFG PAC provenance for collision tables.
+
+### Concrete current type-5 target
+
+Slice 12 corrects the earlier abstract-blob model. For observed Stage-CFG PAC layouts:
+
+- modern: slot 38 related source block, slot 39 C260 entry table, **slot 40 primitive descriptor table**;
+- legacy observed: slot 21 related source block, slot 22 entry table, **slot 23 primitive descriptor table**.
+
+Therefore the next evidence target is not an unbounded type-5/global scan. It is the concrete Stage-CFG primitive descriptor table at modern slot 40 / legacy slot 23 across representative real stage resources, with C8D0 as preferred runtime observation when raw slot data is unavailable.
+
+Remaining HITS/collision blockers:
+
+- identify actually referenced type-5 descriptors and upstream authored/population path from those concrete tables;
+- deeper primitive-specific geometry/contact producer/helper reconstruction;
 - remaining fourth-component semantics where still unresolved;
-- source2 backing resource, ownership, lifetime and live selection semantics;
+- source2 backing resource, ownership, lifetime and live-selection semantics;
 - controlled canonical runtime traces vs reconstructed behavior;
 - modified-topology game validation;
 - original Capcom offline-builder equivalence.
@@ -108,7 +125,7 @@ Canonical executable metadata correction in PR #92 must be deliberately promoted
 
 **Status:** OPEN WHEN NEW BYTE-LEVEL CLAIMS ARE REQUIRED
 
-The project has sanitized executable evidence and reconstructed results, but independent fresh byte-level verification requires the canonical raw artifact or a sanitized disassembly/xref packet materialized for the target.
+The project has sanitized executable evidence/reconstructed results, but independent fresh byte-level verification requires the canonical raw artifact or a sanitized disassembly/xref packet materialized for the target.
 
 Do not claim a fresh independent re-hash/disassembly when the raw executable was not actually available in that pass.
 
@@ -122,7 +139,7 @@ Generic evidence/reconstruction/claim infrastructure is not complete until bound
 
 **Status:** OPEN
 
-Strong domain foundations exist, but the complete native interaction/editor/reconstruction workflow is not finished. Remaining work includes persistent analysis/cache, broad diagnostics/templates, complete EXE bridges, reconstruction editing, behavioral validation integration and product UI.
+Strong domain foundations exist, but the complete native interaction/editor/reconstruction workflow is unfinished. Remaining work includes persistent analysis/cache, broad diagnostics/templates, complete EXE bridges, reconstruction editing, behavioral-validation integration and product UI.
 
 ## P1 — ModViz / Item / HUD editor completion
 
@@ -165,4 +182,4 @@ artifact/evidence integrity
   -> progressive recompilation milestones
 ```
 
-Parallel HITS work continues below the already-closed wrapper layer toward primitive/contact/source2/runtime-equivalence closure.
+Parallel HITS work continues below the already-closed wrapper layer, starting from concrete Stage-CFG descriptor-table provenance rather than global scanning.
