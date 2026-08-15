@@ -34,6 +34,18 @@ namespace {
     return delta < section.raw_size;
 }
 
+[[nodiscard]] bool raw_rva_range_overlaps(
+    const PeSection& section,
+    std::uint64_t begin,
+    std::uint64_t end) noexcept {
+    if (section.raw_size == 0U) {
+        return false;
+    }
+    const auto section_begin = static_cast<std::uint64_t>(section.virtual_address);
+    const auto section_end = section_begin + static_cast<std::uint64_t>(section.raw_size);
+    return begin < section_end && section_begin < end;
+}
+
 } // namespace
 
 ExeByteWindowResult ExeByteWindowExtractor::extract(
@@ -62,6 +74,8 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
             "requested VA cannot be represented as a PE32/PE32+ RVA");
     }
     const auto rva = static_cast<std::uint32_t>(rva64);
+    const auto requested_begin = static_cast<std::uint64_t>(rva);
+    const auto requested_end = requested_begin + static_cast<std::uint64_t>(size);
 
     const PeSection* mapped_section = nullptr;
     std::uint32_t mapped_delta = 0U;
@@ -79,12 +93,6 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
     }
 
     if (rva < image.size_of_headers) {
-        if (mapped_section != nullptr) {
-            return fail(
-                ExeByteWindowError::ambiguous_raw_mapping,
-                "requested RVA is backed by both PE headers and section raw data");
-        }
-
         const auto remaining_header_bytes =
             static_cast<std::size_t>(image.size_of_headers - rva);
         if (size > remaining_header_bytes) {
@@ -92,6 +100,15 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
                 ExeByteWindowError::crosses_raw_mapping,
                 "requested window crosses the PE header mapping boundary");
         }
+
+        for (const auto& section : image.sections) {
+            if (raw_rva_range_overlaps(section, requested_begin, requested_end)) {
+                return fail(
+                    ExeByteWindowError::ambiguous_raw_mapping,
+                    "requested header window overlaps section-backed RVA data");
+            }
+        }
+
         if (!file_range_fits(file_bytes, rva, size)) {
             return fail(
                 ExeByteWindowError::file_range_out_of_bounds,
@@ -127,6 +144,18 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
             ExeByteWindowError::crosses_raw_mapping,
             "requested window crosses the containing PE section raw-data boundary");
     }
+
+    for (const auto& section : image.sections) {
+        if (&section == mapped_section) {
+            continue;
+        }
+        if (raw_rva_range_overlaps(section, requested_begin, requested_end)) {
+            return fail(
+                ExeByteWindowError::ambiguous_raw_mapping,
+                "requested window overlaps another PE section raw RVA mapping");
+        }
+    }
+
     if (mapped_section->raw_offset >
         std::numeric_limits<std::uint32_t>::max() - mapped_delta) {
         return fail(
