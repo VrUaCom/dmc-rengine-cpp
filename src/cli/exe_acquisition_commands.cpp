@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/exe/byte_window.hpp"
+#include "dmc_rengine/exe/byte_window_receipt.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -15,7 +16,6 @@
 #include <limits>
 #include <memory>
 #include <optional>
-#include <sstream>
 #include <span>
 #include <string>
 #include <string_view>
@@ -102,12 +102,6 @@ namespace {
     return normalized;
 }
 
-[[nodiscard]] std::string hex_u64(std::uint64_t value) {
-    std::ostringstream stream;
-    stream << "0x" << std::hex << std::uppercase << value;
-    return stream.str();
-}
-
 [[nodiscard]] std::string bytes_to_hex(std::span<const std::byte> bytes) {
     static constexpr char k_hex[] = "0123456789abcdef";
     std::string result;
@@ -116,30 +110,6 @@ namespace {
         const auto value = std::to_integer<std::uint8_t>(bytes[index]);
         result[index * 2U] = k_hex[(value >> 4U) & 0x0FU];
         result[index * 2U + 1U] = k_hex[value & 0x0FU];
-    }
-    return result;
-}
-
-[[nodiscard]] std::string json_escape(std::string_view value) {
-    std::string result;
-    result.reserve(value.size());
-    for (const auto ch : value) {
-        switch (ch) {
-        case '\\': result += "\\\\"; break;
-        case '"': result += "\\\""; break;
-        case '\b': result += "\\b"; break;
-        case '\f': result += "\\f"; break;
-        case '\n': result += "\\n"; break;
-        case '\r': result += "\\r"; break;
-        case '\t': result += "\\t"; break;
-        default:
-            if (static_cast<unsigned char>(ch) < 0x20U) {
-                result += "?";
-            } else {
-                result.push_back(ch);
-            }
-            break;
-        }
     }
     return result;
 }
@@ -207,28 +177,33 @@ int run_extract_exe_window(
     const auto window_bytes = std::span<const std::byte>{window.window->bytes};
     const auto window_sha = core::Sha256::compute(window_bytes).hex();
 
+    std::string bytes_hex;
     if (include_hex) {
         std::cerr
             << "Warning: --hex emits raw executable bytes for local reverse evidence. "
                "Do not commit proprietary byte output to the public repository.\n";
+        bytes_hex = bytes_to_hex(window_bytes);
     }
 
-    std::cout << "{\n"
-              << "  \"schema\": \"dmc-rengine.exe-byte-window.v1\",\n"
-              << "  \"artifact_sha256\": \"" << actual_sha << "\",\n"
-              << "  \"artifact_size\": " << payload->bytes.size() << ",\n"
-              << "  \"image_base\": \"" << hex_u64(pe.image->image_base) << "\",\n"
-              << "  \"va\": \"" << hex_u64(window.window->va) << "\",\n"
-              << "  \"rva\": \"" << hex_u64(window.window->rva) << "\",\n"
-              << "  \"file_offset\": \"" << hex_u64(window.window->file_offset) << "\",\n"
-              << "  \"size\": " << window.window->bytes.size() << ",\n"
-              << "  \"section\": \"" << json_escape(window.window->section_name) << "\",\n"
-              << "  \"window_sha256\": \"" << window_sha << "\"";
-    if (include_hex) {
-        std::cout << ",\n  \"bytes_hex\": \""
-                  << bytes_to_hex(window_bytes) << "\"";
+    const exe::ExeByteWindowReceipt receipt{
+        .artifact_sha256 = actual_sha,
+        .artifact_size = static_cast<std::uint64_t>(payload->bytes.size()),
+        .image_base = pe.image->image_base,
+        .va = window.window->va,
+        .rva = window.window->rva,
+        .file_offset = window.window->file_offset,
+        .size = static_cast<std::uint64_t>(window.window->bytes.size()),
+        .section_name = window.window->section_name,
+        .window_sha256 = window_sha,
+    };
+
+    const auto json = exe::byte_window_receipt_to_json(receipt, bytes_hex);
+    if (json.empty()) {
+        std::cerr << "Failed to construct a valid executable byte-window receipt.\n";
+        return 6;
     }
-    std::cout << "\n}\n";
+
+    std::cout << json;
     return 0;
 }
 
