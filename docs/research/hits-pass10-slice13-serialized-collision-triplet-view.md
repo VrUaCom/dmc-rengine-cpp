@@ -2,19 +2,15 @@
 
 Date: 2026-08-15  
 Canonical DMC3 target SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **EXE + DATA-SIDE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE**
+Status: **EXE + DATA-SIDE CONFIRMED / IMPLEMENTED / VALIDATED**
 
 ## Purpose
 
-Slices 9 and 12 recovered how dynamic collision runtime resolves three serialized tables:
+Slice 9 recovered the serialized dynamic-collision entry/descriptor ABI and the runtime bridge into C8D0/CC530. Independent Phase-15 PAC evidence then exposed a complete serialized table set in `em000.pac` with exact `0x40 / 0x04 / 0x50` record strides.
 
-1. transform table;
-2. 4-byte entry table;
-3. primitive descriptor table.
+Slice 13 turns that proven three-span ABI into a read-only C++ view suitable for Binary Inspector/PAC tooling when a transform table, entry table and primitive descriptor table have each been independently identified.
 
-Slice 13 turns that recovered ABI into a read-only C++ view suitable for later Binary Inspector / Stage-CFG / PAC tooling.
-
-The implementation is deliberately profile-scoped under `profiles/dmc3`. The format is proven reusable inside DMC3 PAC resources, but portability to other games/DMC versions is not yet established.
+The implementation is deliberately profile-scoped under `profiles/dmc3`. Portability to other games/DMC versions is not yet established.
 
 ## Serialized ABI
 
@@ -30,7 +26,7 @@ The implementation is deliberately profile-scoped under `profiles/dmc3`. The for
 ### Primitive descriptor table
 - record stride: `0x50` bytes;
 - `+0x00`: primitive type byte;
-- currently observed runtime constructor type range: `0..6`, but the parser preserves unknown raw type values rather than rejecting them.
+- observed runtime constructor types are `0..6`, but the parser preserves unknown raw type values instead of rejecting them.
 
 Reference validation:
 - `transform_selector < transform_count`;
@@ -42,15 +38,15 @@ Slice 9 established:
 
 `descriptor = descriptor_table + u16(entry+0x02) * 0x50`
 
-and C740 uses the entry transform selector independently from the primitive descriptor index. Runtime C8D0/CC530 then preserve the descriptor pointer at runtime `+0x118` and dispatch descriptor byte `+0x00`.
+C740 independently uses `entry+0x01` as an index into a transform source with `0x40` stride, while C8D0/CC530 preserve the selected primitive descriptor at runtime `+0x118` and dispatch descriptor byte `+0x00`.
 
-Slice 12 established container-specific Stage-CFG slot mappings, but slot numbers are **not** part of this parser.
+This proves the runtime relationships and strides independently of any PAC slot number.
 
 ## Independent data-side validation — Phase-15 `em000.pac`
 
-Preserved Phase-15 PAC metadata contains an exact serialized triplet:
+Preserved Phase-15 PAC metadata contains a complete matching table set:
 
-### slot 38 — transform table candidate
+### slot 38 — `0x40` table
 - size: `6144` bytes;
 - `6144 / 0x40 = 96` exact records;
 - SHA-1 `088d32720e5c3c970d96012b03c4e1c3c301ffe7`.
@@ -69,7 +65,7 @@ The preserved first four entry records decode as:
 | 2 | `0x01` | 9 | 2 |
 | 3 | `0x04` | 17 | 3 |
 
-All four selectors are valid against the 96-record transform table and all descriptor indices are valid against the descriptor count below.
+All four selectors are in range for the 96-record `0x40` table and all descriptor indices are in range for the descriptor count below.
 
 ### slot 40 — primitive descriptor table
 - size: `1840` bytes;
@@ -77,24 +73,33 @@ All four selectors are valid against the 96-record transform table and all descr
 - SHA-1 `d8948c18e4eb0432e42078962cf7835e6fa5a8d2`;
 - preserved first descriptor type byte = `2`.
 
-This is an independent data-side match for the EXE-recovered `0x40 / 0x04 / 0x50` ABI.
+This independently validates the EXE-recovered `0x40 / 0x04 / 0x50` serialized ABI.
 
 ## Negative control — Phase-15 `id100.pac`
 
 The same PAC slot numbers are **not** globally semantic:
-
 - slot 38 size `12288`;
-- slot 39 size `448` and starts with a MOD-like payload;
+- slot 39 size `448` and begins with a MOD-like payload;
 - slot 40 size `4096`;
-- `4096 % 0x50 = 16`, so slot 40 cannot be parsed as an exact primitive-descriptor table.
+- `4096 % 0x50 = 16`.
+
+Therefore `id100.pac` slots 38/39/40 must not be accepted as this collision table set merely because the slot numbers match `em000.pac`.
+
+**Canonical rule: PAC slot number alone never selects the parser.** A container/profile path or independent structural evidence must first identify the input spans.
+
+## Stage-CFG boundary correction
+
+Slice 12 proves that reviewed Stage-CFG paths use `room\\stXXXcfg.pac` slot 39 as the C260 entry table and slot 40 as the primitive descriptor table (legacy observed slots 22/23).
+
+However, a deeper representative-path review shows Stage-CFG slot 38 is consumed by `0x1400594B0`, whose payload starts with its own `u16` relative-offset structure. It is **not proven to be the `0x40` transform table** consumed by C740.
 
 Therefore:
+- Stage-CFG slot 39/40 -> entry/descriptor pair remains confirmed;
+- Stage-CFG slot 38 remains a related collision/source block, not a promoted transform table;
+- do **not** wire Stage-CFG slots 38/39/40 directly into this three-span view until the transform-table provenance is independently closed;
+- `em000.pac` remains the current direct data-side three-table validation sample.
 
-**PAC slot number alone must never select the collision-triplet parser.**
-
-A container/profile path or structural evidence must first identify the three relevant table spans.
-
-This is why Slice-12 Stage-CFG slot mapping remains profile evidence, while Slice-13 only parses already-resolved table spans.
+This correction prevents a correct parser from being attached to an unproven Stage-CFG transform source.
 
 ## Implementation
 
@@ -109,31 +114,34 @@ This is why Slice-12 Stage-CFG slot mapping remains profile evidence, while Slic
 - raw `primitive_descriptor(index)` span;
 - `primitive_type(index)`;
 - per-entry reference validation;
-- whole-triplet reference validation.
+- whole-table reference validation.
 
-No PAC slot number and no DMC3 EXE VA is hardcoded in the parser.
+No PAC slot number and no executable VA is hardcoded in the parser.
 
 Regression:
 - `tests/hits_collision_triplet_tests.cpp`;
 - CTest `hits_collision_triplet`.
 
-The regression uses synthetic bytes only. Its dimensions mirror the preserved `em000.pac` counts but it does not copy proprietary game records.
+Synthetic fixtures mirror only the preserved Phase-15 dimensions/decoded indices; no proprietary records are committed. The regression also uses an `id100.pac`-sized 4096-byte synthetic descriptor span as a negative stride check.
+
+## Validation receipt
+
+Exact code head `cc64f6ffdffc96a5c92596f37f33ba4a3769a37f` passed GitHub Actions run `31855809613` on Ubuntu and Windows, including `hits_collision_triplet`.
+
+Later documentation/evidence corrections do not alter the validated C++ implementation.
 
 ## Architecture boundary
 
-This is a **serialized dynamic collision table view**, not the static HITS triangle parser and not a guessed monolithic `CollisionResult`.
-
-Do not merge these three layers:
+Keep separate:
 - static HITS triangles/cells;
-- serialized dynamic primitive triplet;
+- serialized dynamic primitive tables;
 - runtime collision objects produced by C8D0/CC530.
 
-The view is the bridge from PAC slot data into the runtime primitive reconstruction already recovered in Slices 7–10.
+The view is a data-layer bridge only after its three spans have been identified by profile/container evidence.
 
-## Next step after validation
+## Next step
 
-Once CI is green:
-1. expose a profile-aware Stage-CFG/PAC adapter that resolves the Slice-12 slot generation and feeds the three slot spans into this view;
-2. add Binary Inspector regions/fields for entries and primitive descriptor type/index relationships;
-3. when actual Stage-CFG slot 40/23 bytes become available, perform a real type distribution census, especially descriptor type `5`;
+1. expose Binary Inspector fields for entry flags, transform selector, descriptor index and primitive type on independently identified table spans;
+2. close Stage-CFG transform-source provenance before making a Stage-CFG three-table adapter;
+3. when actual Stage-CFG slot40/23 bytes become available, perform real descriptor-type census, especially type `5`;
 4. keep unknown primitive type bytes visible rather than coercing them to known enums.
