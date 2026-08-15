@@ -88,6 +88,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_dynamic_update_evidence
         hits_source1_query_evidence
         hits_primitive_shape_evidence
+        hits_contact_normal_evidence
         dca
         lig2
         stage_txt
