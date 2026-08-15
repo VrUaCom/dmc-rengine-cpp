@@ -1,8 +1,8 @@
 # HITS Raw Reverse Pass 10 — Evidence Reacquisition and Runtime Instrumentation
 
-Date: 2026-08-14  
+Date: 2026-08-14 / updated 2026-08-15  
 Canonical executable SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **ACTIVE — TOP-LEVEL P0 ABI CLOSED; DEEP SEMANTICS / VALIDATION CONTINUE**
+Status: **ACTIVE — TOP-LEVEL P0 ABI CLOSED; DEEP SEMANTICS / SOURCE-EQUIVALENT RECONSTRUCTION CONTINUE**
 
 Canonical detailed working authority: Google Drive document `DMC Rengine — HITS Raw Reverse Pass 10 — Evidence Reacquisition and Runtime Instrumentation — 2026-08-14`.
 
@@ -12,307 +12,225 @@ Companion research:
 - `docs/research/hits-pass10-slice5-dynamic-world-update-topology.md`
 - `docs/research/hits-pass10-slice6-source1-query-abi.md`
 - `docs/research/hits-pass10-slice7-primitive-shape-mapping.md`
+- `docs/research/hits-pass10-slice8-common-contact-normal.md`
+- `docs/research/hits-pass10-slice9-primitive-descriptor-ownership.md`
 
-## Why Pass 10 exists
+## Method and evidence boundary
 
-Pass 9 reached static ABI/ownership saturation for the evidence then materialized. Pass 10 changed method: reacquire canonical instruction windows from preserved project artifacts with explicit provenance, review complete callers/callees and write/read contracts, and use hash-gated runtime traces only where static evidence still cannot close behavior.
+Pass 10 follows the canonical reverse → review → deepen → promotion gate → implement → implementation review → debug/test → consolidate → second review/debug → authority sync loop.
 
-## Mandatory loop
+Canonical instruction windows are reacquired from project artifacts with explicit provenance. The preserved Phase-17 probe was cloned from canonical `dmc3.exe` SHA `e454...d082`, and the Phase-17 verifier preserved original PE raw section bytes over file range `0x400..0x60E600` byte-identically. Phase-18 derivative bytes are used only as an independent consistency check.
 
-1. acquire direct evidence;
-2. review assumptions;
-3. deepen through callers/callees/writers/readers/ownership/state/corpus;
-4. define the exact promotion boundary;
-5. implement only the promoted subset;
-6. review implementation against evidence;
-7. debug/test without weakening evidence gates;
-8. consolidate into the Pass-10 authority;
-9. perform a second independent review/debug cycle;
-10. synchronize code, GitHub, machine evidence and Google Drive authorities.
+No proprietary instruction bytes are committed. Public evidence stores VAs, ranges, hashes, ABI/layout facts, topology and reconstructed behavior.
 
-No material correction may remain only in chat.
+# Top-level P0 closure
 
-## Canonical-byte provenance
+The original Pass-10 target set `E7A0 / B460 / FEC0 / 601E0` is closed or correctly reclassified. Do not reopen the old descriptions unless contradictory direct evidence appears.
 
-The ChatGPT Project/Library corpus contains `dmc3_phase17_reng_probe.exe` and its Phase-17 verifier receipt. Phase 17 records that the probe was cloned from canonical `dmc3.exe` SHA `e454...d082` and preserves the original PE raw section range `0x400..0x60E600` byte-identically. Every Pass-10 Slice-4/5/6/7 function body promoted below maps inside that preserved range.
+## `0x14005E7A0` — combined point query
 
-`dmc3_phase18_red_orb_x2_hook.exe` independently matches the promoted body windows and serves as a second consistency check. It is not used to replace canonical target identity.
+Canonical body `0x14005E7A0..0x14005E880`, 224 bytes, SHA `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`, 51 direct callers.
 
-No proprietary instruction bytes are committed. We preserve VAs, ranges, body hashes, ABIs, field offsets, topology and reconstructed behavior.
-
-# Top-level P0 status
-
-The original top-level Pass-10 target set `E7A0 / B460 / FEC0 / 601E0` is now **ABI-closed or correctly reclassified**. Future work must not reopen the old descriptions unless contradictory direct evidence appears.
-
-## CLOSED — `0x14005E7A0` combined query wrapper
-
-Canonical body:
-- `0x14005E7A0..0x14005E880`;
-- 224 bytes;
-- SHA-256 `3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f`;
-- 51 direct callers.
-
-Exact six-argument ABI:
-1. `RCX` — HITS/runtime wrapper/context;
-2. `RDX` — reference/start 16-byte point;
-3. `R8` — requested/working 16-byte point;
-4. `R9` — corrected/output 16-byte point;
-5. stack arg 5 — optional common `0x38` hit-metadata output;
-6. stack arg 6 — raw reject mask.
+Six-argument ABI:
+1. runtime wrapper/context;
+2. reference/start 16-byte point;
+3. requested/working 16-byte point;
+4. corrected/output 16-byte point;
+5. optional common `0x38` hit metadata;
+6. raw reject mask.
 
 Ordered passes:
 1. static HITS `0x14005E880`;
-2. dynamic category `0x0E` through `0x14005BCF0`;
-3. dynamic category `0x11` through `0x14005BCF0`.
+2. dynamic `0x14005BCF0` category `0x0E`;
+3. dynamic `0x14005BCF0` category `0x11`.
 
-Both dynamic passes receive the same static-or-input baseline. `BCF0` copies that baseline into an internal local and does not write it back through `R8`.
+Both dynamic passes start from the same static-or-input baseline. Caller-visible output precedence is last-successful-writer: `static < 0x0E < 0x11`. Total miss copies arg3 to arg4 and returns false.
 
-Caller-visible output precedence is therefore:
+**REJECTED:** wrapper-level metric/equality/tie-break model.
 
-`static HITS < category 0x0E < category 0x11`
+## Dynamic world update — separate pipeline
 
-where a later successful pass overwrites an earlier successful output. If all passes fail, `E7A0` copies arg3 to arg4 and returns false.
+`B460` is not an `E7A0` candidate producer. Separate dynamic-world path:
 
-**REJECTED old model:** there is no wrapper-level candidate metric comparison, equality branch or tie-break in `E7A0`.
+`B7B0 dispatcher -> B460 pair resolver -> B6F0 compatibility`, followed by `B8E0` post/update processing.
 
-### Common `0x38` metadata bridge
+This evidence remains isolated in `hits_dynamic_update_evidence.hpp` so query and world-update contracts cannot collapse into one abstraction.
 
-- static `E880` accepted hit copies a complete 56-byte raw HITS record;
-- dynamic `BCF0` writes compatible partial metadata;
-- dynamic identity/key is copied `object+0xD8 -> metadata+0x00`;
-- a three-float caller-visible vector is written at metadata `+0x28/+0x2C/+0x30`;
-- caller `0x1402C65B2` reads those floats after successful `E7A0`.
+## `0x14005FEC0` — source/current-runtime segment correction
 
-The exact semantic name of that vector remains **UNRESOLVED**.
+Canonical body `FEC0..601D3`, 787 bytes, SHA `cfaca9752adf3a581969875e99c6c1b9ffaa7f83d19d22fddbe8dec2d5cab09e`.
 
-Detailed authority: `hits-pass10-slice4-canonical-combined-query-abi.md`.
+ABI: selected runtime, mutable 16-byte point in/out, reference/target point. Direct raw HITS bit `0x00080000` reject confirmed. Direction normalization zeroes component 4.
 
-## RECLASSIFIED AND ABI-CLOSED — dynamic world update `B7B0/B460/B6F0/B8E0`
+`AL` is **not** hit/no-hit: false is the degenerate near-zero XYZ-segment case; a non-degenerate processed segment can return true without a record correction.
 
-`0x14005B460` is **not** an `E7A0` candidate producer. It belongs to a separate dynamic-world object-pair update pipeline:
+## `0x1400601E0` — displacement accumulator
 
-`0x14005B7B0 dispatcher -> 0x14005B460 pair resolver -> 0x14005B6F0 compatibility`, followed by `0x14005B8E0` post/update handling per source object.
+Canonical body `601E0..6078E`, 1454 bytes, SHA `7fb7fb7ce9447a5e200ba1471774eafe7e5f21877da71902f047563bd9f7597a`.
 
-Canonical bodies:
-- `B460..B6E6`, 646 bytes, SHA `cba77cf4bc20dedfbd590991012fa471e6b5ae02b9cec57c66fce69333a67972`;
-- `B6F0..B7A8`, 184 bytes, SHA `c6eaaea738b317c9d92b3e06ff4ba47ec2d39610cb16a19dc21a96651024ae34`;
-- `B7B0..B8DD`, 301 bytes, SHA `ea1025e96121a3b117f53412d5d3e6439d81e97a23928f1417793e37ba6efbf3`;
-- `B8E0..BA64`, 388 bytes, SHA `1d149357ffa3fe5024c0a6264e356f476c14c6366d89b38bb50a1a3f18e2f477`.
+ABI: selected/current runtime, mutable 16-byte point in/out, reference/anchor point. Two-stage record correction plus vector displacement accumulation. Return true means material final XYZ displacement from the original point.
 
-The older truncated `B8E0..B93F` range is not a complete function and must not be used as its canonical body hash.
+Component 4 is excluded from XYZ norm/dot gates but may be transported/scaled/accumulated. Its gameplay-specific semantic name remains unresolved.
 
-### `B460` ABI
+# Slice 7 — parsed shape → primitive descriptor → runtime representation
 
-1. `RCX` — manager/context;
-2. `RDX` — source object;
-3. `R8` — candidate-list head;
-4. `R9D` — source category;
-5. stack arg 5 — target category.
+Direct data flow proves three separate enum/representation layers:
 
-Confirmed pair logic includes:
-- candidate list linked by `+0x328`;
-- candidate base type `+0x00 == 2` requirement;
-- self rejection;
-- shared-owner rejection using owner pointer `+0xD0`;
-- category-pair compatibility through `B6F0`;
-- accepted contact displacement/update helpers;
-- reciprocal category bits written at `+0x10`.
+| Source token | parser enum | primitive descriptor | primary runtime type |
+|---|---:|---:|---:|
+| `sphere` | 0 | 2 | 2 |
+| `box` | 1 | 3 | 3 |
+| `cylinder` | 2 | 6 | 6 |
+| `capsule` | 3 | 4 | 4 |
 
-### `B6F0` category compatibility
+Runtime type 4 has dual origin: parsed capsule/descriptor4, or a moving sphere promoted to a swept representation when displacement exceeds `2 × radius`.
 
-Category `0x0E` is the special bridge:
-- neither side `0x0E` -> allow;
-- both sides `0x0E` -> allow;
-- exactly one side `0x0E` -> map the other category to raw flag mask and test opposite object flags `+0xDA/+0xDB`.
+Runtime type 5 is structurally a three-vertex face representation with vertices at runtime `+0x130/+0x140/+0x150` and a normalized direction at `+0x160`. No source-text token/name for descriptor type 5 is promoted.
 
-Mask bridge:
-- `0x02 -> 0x0040`;
-- `0x05 -> 0x0002`;
-- `0x08 -> 0x0010`;
-- `0x0B -> 0x0020`.
+Validated code head `cccb5fc45c0c4cb1746cd5630d474533fadb6f76`; GitHub Actions run `31815597161` passed Ubuntu + Windows.
 
-### `B7B0` activation/category bindings
+# Slice 8 — common collision/contact surface normal
 
-- `0x00001000`, manager `+0x10` -> category `0x02`;
-- `0x00002000`, `+0x28` -> `0x05`;
-- `0x00004000`, `+0x40` -> `0x08`;
-- `0x00008000`, `+0x58` -> `0x0B`;
-- `0x00010000`, `+0x70` -> `0x0E`;
-- `0x00020000`, `+0x88` -> `0x11`.
+The previous label for common metadata `+0x28/+0x2C/+0x30` as an unresolved vector is **SUPERSEDED**.
 
-### `B8E0` post/update bridge
+Canonical semantic promotion:
 
-`B8E0` maps source categories `0x02/0x05/0x08/0x0B` to reject masks `0x0040/0x0002/0x0010/0x0020`, calls specialized HITS queries including `60790/F070/EE40/EBE0`, may apply correction/update helpers, and successful handling ORs `0x00020000` into object state/category bits at `+0x10`.
+**metadata `+0x28/+0x2C/+0x30` = common collision/contact surface normal float3.**
 
-Implementation is kept in separate profile evidence `hits_dynamic_update_evidence.hpp`; this separation is architectural, not cosmetic.
+Independent proof chains:
+- static `E880` normalizes query direction and computes XYZ dot product against raw HITS record `+0x28..+0x30` as a facing gate;
+- dynamic type 2 emits normalized `contact point - sphere center`;
+- dynamic type 5 emits its normalized face vector from runtime `+0x160`;
+- dynamic type 6 emits axial `±Y` cap normals or normalized radial side normals;
+- downstream consumer around `0x1402C65B2` uses the same metadata vector in `v' = v - 2 * dot(v,n) * n`, the vector-reflection formula.
 
-Detailed authority: `hits-pass10-slice5-dynamic-world-update-topology.md`.
+Relevant canonical helper bodies:
+- static XYZ dot3 `0x14032E5C0..0x14032E5E5`, SHA `d9dba88696b4f17f15617eb2dd1b2e39713da0d0225f4e2130e0efc0931c0779`;
+- XYZ direction normalize `0x140330390..0x14033044A`, SHA `568543ebcb3a7ea60b09e65c54da9f9364417d3679f5e9101a80722472f1a9d4`;
+- direction-only 3×3 transform `0x14032DC70..0x14032DCF6`, SHA `46a253c0b7824d5ac26104947597961ff4d1399cabbd069b732ad43bab29fe1d`;
+- reflection dot3 `0x140030D30..0x140030DB1`, SHA `7a1a584ecdd42d4c0af7c9f5bfdb02a47d32facd4d0c75efd777e11cac5cdae8`;
+- XYZ scale/preserve-W `0x1400311E0..0x1400311FE`, SHA `c4a58e73cfb2af640f32fad70956b98f58038c4d28b23c62ea74a6f239300e40`;
+- reflection consumer `0x1402C64F0..0x1402C6805`, SHA `86b77b7431411f7b2ed1c6f7b1109aebd36c305e2e8684c6d6897f915b76e7c4`.
 
-## CLOSED — `0x14005FEC0` source-1 segment correction ABI
-
-Canonical body:
-- `0x14005FEC0..0x1400601D3`;
-- 787 bytes;
-- SHA `cfaca9752adf3a581969875e99c6c1b9ffaa7f83d19d22fddbe8dec2d5cab09e`.
-
-Exact three-argument ABI:
-1. `RCX` — currently selected HITS runtime;
-2. `RDX` — mutable 16-byte point, input/output;
-3. `R8` — read-only 16-byte reference/target point.
-
-Exact temporary-source1 route:
-
-`0x1400568F0 select source1 -> FEC0 -> 0x140056936 restore source0`.
-
-Confirmed behavior:
-- computes `R8 - RDX`;
-- XYZ length controls degenerate-segment rejection;
-- direction normalizer explicitly zeroes fourth component;
-- broadphase/record traversal runs against selected source runtime;
-- raw HITS bit `0x00080000` is directly rejected;
-- accepted correction updates internal point;
-- non-degenerate path writes final 16-byte point through `RDX`.
-
-**Return correction:** `AL` is not hit/no-hit. It is false for a degenerate near-zero XYZ segment; a non-degenerate processed segment returns true even when no raw record changes the point.
-
-## CLOSED — `0x1400601E0` displacement accumulator ABI
-
-Canonical body:
-- `0x1400601E0..0x14006078E`;
-- 1454 bytes;
-- SHA `7fb7fb7ce9447a5e200ba1471774eafe7e5f21877da71902f047563bd9f7597a`;
-- five direct callers.
-
-Exact three-argument ABI:
-1. `RCX` — selected/current HITS runtime;
-2. `RDX` — mutable 16-byte point, input/output;
-3. `R8` — read-only reference/anchor point.
-
-One canonical caller explicitly selects source1 before `601E0` and restores source0 afterward.
-
-Two-stage model:
-1. initial raw-record correction pass mutates the working point;
-2. secondary record-vector displacement accumulation applies accepted scaled 16-byte displacements repeatedly.
-
-### Fourth component — operational semantics closed, gameplay name unresolved
-
-- XYZ norm helpers ignore component `+0x0C`;
-- XYZ dot helper ignores component `+0x0C`;
-- `601E0` normalization derives magnitude from XYZ but can scale all four components;
-- scale/add path carries all four components into the mutable 16-byte point.
-
-Therefore component 4 is **excluded from spatial length/dot gating but transported/scaled/accumulated through correction math**. No gameplay name is assigned yet.
-
-`FEC0` is different: its direction-normalization path explicitly zeroes component 4.
-
-### `601E0` return contract
-
-At exit, XYZ distance between the preserved original point and final `RDX` is measured. `AL` is true only when the final point materially moved beyond epsilon in XYZ.
-
-So `601E0` return means **material XYZ displacement/correction occurred**, not candidate existence and not raw hit count.
-
-Detailed authority: `hits-pass10-slice6-source1-query-abi.md`.
-
-# Slice 7 — parsed shape → descriptor → runtime primitive
-
-The parser/runtime semantic layer is now partially closed with direct data-flow proof. Parser enum, internal descriptor type and runtime primitive type are three different layers and must not be collapsed.
-
-Canonical source mapping:
-- `sphere`, parser enum `0` -> descriptor `2` -> primary runtime type `2`;
-- `box`, enum `1` -> descriptor `3` -> runtime type `3`;
-- `cylinder`, enum `2` -> descriptor `6` -> runtime type `6`;
-- `capsule`, enum `3` -> descriptor `4` -> runtime type `4`.
-
-The data-flow bridge is exact: the shape structure written by parser `0x140247AD0` at caller frame `[rbp-0x38]` is the same storage passed through builder `0x140249710` member `+0x98` into converter `0x1402481E0`.
-
-Canonical bodies:
-- parser cluster `247AD0..2481E0`, 1808 B, SHA `1bd8a8e369105512166e5f2557d274c86e3801b56631f0d4f7022983adfda6e2`;
-- converter `2481E0..2482C5`, 229 B, SHA `ed50d780aa2bd2868b783c4924edcac6c2af9b4269225ce92b7c778535d7c58a`;
-- runtime constructor dispatcher `2CC530..2CC5EF`, 191 B, SHA `e8e0065e0aeb76b6839d0506e09623b48091d853bd9ccee3127bd0bec7e19364`.
-
-## Runtime type `4` dual origin
-
-Runtime type `4` is not semantically equivalent to the text token `capsule` alone.
-
-- parsed `capsule` -> descriptor `4` -> runtime type `4`;
-- parsed `sphere` -> descriptor `2` normally produces runtime type `2`, but the descriptor-2 constructor may promote a sufficiently moving sphere to runtime type `4` when displacement is greater than `2 × radius`.
-
-Both origins use endpoint/radius representation at runtime offsets `+0x130`, `+0x140`, `+0x150`. Canonical wording is **capsule / swept-sphere representation**.
-
-## Runtime type `5`
-
-Descriptor/runtime type `5` is structurally confirmed as a **three-vertex face representation**:
-- vertices at runtime `+0x130/+0x140/+0x150`;
-- auxiliary vector at `+0x160`;
-- auxiliary vector is normalized;
-- the associated geometry path uses a three-element contract.
-
-No direct canonical source-text token/name for type `5` is proven. `three-vertex face` is a structural description, not a claimed game-authored token.
-
-Second review also rejected an unrelated state-machine immediate `=5` as collision-descriptor evidence.
+Exact global outward/inward orientation and coordinate-system handedness are **not** promoted.
 
 Implementation:
-- `hits_primitive_shape_evidence.hpp`;
-- `hits_primitive_shape_evidence_tests.cpp`;
-- CTest `hits_primitive_shape_evidence`.
+- `include/dmc_rengine/profiles/dmc3/hits_contact_normal_evidence.hpp`
+- `tests/hits_contact_normal_evidence_tests.cpp`
+- CTest `hits_contact_normal_evidence`
 
-Detailed authority: `hits-pass10-slice7-primitive-shape-mapping.md`.
+Validated exact code head `63a2782bb18649f0b7a19e0110671897721f16da`; GitHub Actions run `31852876030` passed Ubuntu + Windows.
 
-# Implementation architecture
+Detailed authority: `hits-pass10-slice8-common-contact-normal.md`.
 
-Pass-10 profile evidence is deliberately split by runtime responsibility:
+# Slice 9 — primitive descriptor ownership/runtime bridge
 
-- `hits_query_evidence.hpp` — query-family summary, combined query, source switching and query topology;
-- `hits_dynamic_update_evidence.hpp` — dynamic world pair/update pipeline;
-- `hits_source1_query_evidence.hpp` — exact `FEC0/601E0` specialized source/current-runtime contracts;
-- `hits_primitive_shape_evidence.hpp` — parser/descriptor/runtime primitive mapping and shape-constructor evidence;
-- `runtime_trace.hpp` — generic observation-only instrumentation contract.
+Primitive descriptor ownership is closed separately from transform ownership.
 
-`hits_query_evidence.hpp` has been reconciled so `FEC0/601E0` are no longer labeled `unresolved`; they use specialized ABI kinds backed by Slice-6 detailed evidence.
+## Manager tables
 
-All build-specific evidence APIs are SHA-gated against the canonical target. Packed SHA `81c7...c7d6` must receive no canonical VA/body ABI descriptors.
+`0x14005C260` writes:
+- arg2 / `RDX` -> manager `+0x108` entry-table pointer;
+- arg3 / `R8` -> manager `+0x110` primitive-descriptor-table pointer;
+- arg4 / `R9D` -> manager `+0x04` entry count.
 
-# Major Pass-10 corrections preserved as canonical
+Entry layout:
+- stride `0x04`;
+- raw flag byte `+0x00`;
+- transform selector `+0x01`;
+- primitive descriptor index `u16 +0x02`.
 
-1. **CORRECTED:** DMC3 VAs belong under `profiles/dmc3`, not generic HITS core.
-2. **CORRECTED:** `dispatcher_static_hits_reject_mask` is dispatcher-scoped, not a global category property.
-3. **CORRECTED:** `namespace detail` is not access control; raw backing tables moved to private `EvidenceStore` members.
-4. **REJECTED:** `E7A0` metric/equality/tie-break arbitration model.
-5. **CORRECTED:** `BCF0` does not chain category `0x0E` output as category `0x11` input baseline.
-6. **REJECTED:** `B460` as `E7A0` candidate producer; it is dynamic-world pair/update logic.
-7. **CORRECTED:** `FEC0 AL` is not a hit boolean.
-8. **CORRECTED:** `601E0 AL` reports material XYZ displacement, not generic query success.
-9. **CORRECTED:** fourth component is not part of XYZ norm/dot gating, but `601E0` can transport and accumulate it.
-10. **REJECTED:** parser shape enum equals runtime primitive type.
-11. **REJECTED:** runtime type `4` has only capsule origin; swept moving sphere is a second proven origin.
-12. **UNRESOLVED:** runtime/descriptor type `5` has structural three-vertex-face semantics, but its source-text name is not proven.
+Primitive descriptor resolution:
 
-# Validation state
+`descriptor = manager+0x110 + u16(entry+0x02) * 0x50`
 
-Exact Slices-4–6 implementation head `db7a557de428d4e379ecd51b9670e97dc8c435f7` passed GitHub Actions run `31813329645` on Ubuntu and Windows.
+so the primitive descriptor stride is directly confirmed as **`0x50`**.
 
-Exact Slice-7 code head `cccb5fc45c0c4cb1746cd5630d474533fadb6f76` passed GitHub Actions run `31815597161` on Ubuntu and Windows, including the new `hits_primitive_shape_evidence` regression.
+Canonical ownership bodies:
+- manager source initializer `C260..C318`, SHA `9f405b59574c4575813b9c15aa146aad62815ff01258e4fca8fa1e34338f93e7`;
+- indirect-transform builder `C630..C731`, SHA `97dbb8f5e6cace93530a30c936796a35fca80235467a3a0885f71c8593990d1a`;
+- inline-transform builder `C740..C83D`, SHA `0778fa7ecce7855712b1d0bd5cb8ef5b32998e1d4629ee0d5d35e951318e06b6`;
+- runtime object initializer `C8D0..C99D`, SHA `f779db92f9fee9d1492ef7208eb9950784d782e51542dd65d551ecdf6b950bfe`.
 
-Documentation/machine-evidence commits after those heads do not alter the validated C++ code.
+## Runtime ownership
 
-# Remaining work after top-level P0 closure and Slice 7
+`0x14005C8D0` stores:
+- entry/source pointer -> runtime object `+0x110`;
+- primitive descriptor pointer -> runtime object **`+0x118`**;
+- transform pointer -> runtime object **`+0x20`**.
 
-The next work is **not another restart of `E7A0/B460/FEC0/601E0` ABI discovery**. It moves deeper into semantic identity and source-equivalent behavior:
+`0x1402CC530` uses `runtime+0x20` for transform/matrix construction and separately reads `runtime+0x118`, then descriptor byte `+0x00`, to dispatch primitive types `0..6`.
 
-1. identify upstream producer/source vocabulary for descriptor/runtime type `5` if direct evidence exists;
-2. resolve source semantics of descriptor/runtime types `0` and `1` without assuming they duplicate parsed sphere/box;
-3. close exact semantics of the common metadata vector `+0x28/+0x2C/+0x30` and the related fourth component across static/dynamic producers;
-4. reconstruct geometry/contact helpers required for source-equivalent implementation;
-5. build controlled canonical runtime traces for edge cases and compare them against reconstructed C++ behavior;
-6. implement executable/source-equivalent collision behavior only when the evidence packet is sufficient, preserving profile isolation and exact-build gates.
+**CORRECTED / REJECTED transient model:** `runtime+0x20` is not the primitive descriptor pointer.
+
+Current ownership graph:
+
+`entry -> u16 descriptor index -> manager descriptor table (0x50 stride) -> runtime +0x118 -> CC530 type dispatch`
+
+Transform graph remains independent:
+
+`transform source -> runtime +0x20 -> runtime matrix +0x30`.
+
+## Bounded descriptor census
+
+Only C260 callsites with statically resolved entry table, descriptor table and exact R9 entry count were accepted:
+- 14 fully bounded static callsites;
+- 18 actually referenced entries;
+- observed primitive type set `{2}`;
+- no type 5 in this bounded static subset.
+
+This is negative evidence, not proof of absence. Unbounded `0x50` scans are rejected because they cross neighboring unrelated data. Type-5 upstream work must follow actual referenced indices into runtime/object-populated descriptor sources.
+
+Implementation:
+- `include/dmc_rengine/profiles/dmc3/hits_primitive_descriptor_ownership_evidence.hpp`
+- `tests/hits_primitive_descriptor_ownership_evidence_tests.cpp`
+- CTest `hits_primitive_descriptor_ownership_evidence`
+
+Validated exact code head `b919e89084d5583a940fc1fe8ecc8f90cb1968fd`; GitHub Actions run `31853246146` passed Ubuntu + Windows.
+
+Detailed authority: `hits-pass10-slice9-primitive-descriptor-ownership.md`.
+
+# Profile implementation architecture
+
+Current DMC3-specific responsibilities are deliberately split:
+- `hits_query_evidence.hpp` — query family, combined query, source selection/topology;
+- `hits_dynamic_update_evidence.hpp` — dynamic-world pair/update pipeline;
+- `hits_source1_query_evidence.hpp` — exact `FEC0/601E0` contracts;
+- `hits_primitive_shape_evidence.hpp` — parser/descriptor/runtime primitive mapping;
+- `hits_contact_normal_evidence.hpp` — common surface-normal semantic contract;
+- `hits_primitive_descriptor_ownership_evidence.hpp` — descriptor-table and runtime ownership bridge;
+- `runtime_trace.hpp` — generic observation-only trace contract.
+
+All build-specific lookup APIs remain exact-canonical-SHA gated. Packed SHA `81c7...c7d6` receives no canonical VA/body/layout evidence.
+
+# Major canonical corrections
+
+1. DMC3 HITS VAs belong under `profiles/dmc3`, not generic HITS core.
+2. Dispatcher reject-mask mapping is dispatcher-scoped, not a global category property.
+3. `namespace detail` is not access control; backing tables use private `EvidenceStore` members.
+4. `E7A0` metric/equality/tie-break model rejected.
+5. BCF0 categories `0x0E/0x11` share one static-or-input baseline rather than progressive chaining.
+6. `B460` candidate-producer role rejected; dynamic-world update role confirmed.
+7. `FEC0 AL == hit` rejected.
+8. `601E0 AL` narrowed to material XYZ displacement.
+9. metadata `+0x28..+0x30` promoted from unresolved to collision/contact surface normal.
+10. runtime object `+0x20` primitive-descriptor interpretation rejected; descriptor pointer is `+0x118`, transform pointer is `+0x20`.
+
+# Current next reverse boundary
+
+Do **not** restart top-level ABI discovery. Next work is:
+1. trace population/writers of manager `+0x110` primitive descriptor tables and locate actually referenced descriptor type 5 producers;
+2. resolve type 5 source/origin vocabulary only if direct evidence exists;
+3. continue source-equivalent reconstruction of primitive-specific geometry/contact helpers;
+4. close remaining component-4 semantics where cross-producer/consumer proof allows;
+5. run controlled canonical runtime traces against reconstructed C++ behavior.
 
 ## Explicit non-goals
 
 - no guessed monolithic original `CollisionResult`;
-- no invented text/gameplay name for runtime type `5`;
-- no invented semantic name for metadata vector `+0x28..+0x30` or fourth component;
-- no conflation of parser enum, descriptor enum and runtime primitive enum;
-- no conflation of query path (`E7A0/E880/BCF0`) with dynamic-world update path (`B7B0/B460/B6F0/B8E0`);
-- no reopening superseded Pass-10 P0 descriptions without contradictory direct evidence;
+- no invented source-text name for primitive type 5;
+- no unbounded descriptor-table scans treated as semantic evidence;
+- no conflation of transform selectors with primitive types;
+- no reopening superseded `E7A0/B460/FEC0/601E0` claims without contradictory direct evidence;
 - no GDSpaces ownership of recovered collision runtime;
 - no proprietary game bytes committed.
