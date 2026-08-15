@@ -24,6 +24,16 @@ namespace {
     return offset <= file_bytes.size() && size <= file_bytes.size() - offset;
 }
 
+[[nodiscard]] bool section_maps_raw_rva(
+    const PeSection& section,
+    std::uint32_t rva) noexcept {
+    if (rva < section.virtual_address) {
+        return false;
+    }
+    const auto delta = rva - section.virtual_address;
+    return delta < section.raw_size;
+}
+
 } // namespace
 
 ExeByteWindowResult ExeByteWindowExtractor::extract(
@@ -53,7 +63,28 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
     }
     const auto rva = static_cast<std::uint32_t>(rva64);
 
+    const PeSection* mapped_section = nullptr;
+    std::uint32_t mapped_delta = 0U;
+    for (const auto& section : image.sections) {
+        if (!section_maps_raw_rva(section, rva)) {
+            continue;
+        }
+        if (mapped_section != nullptr) {
+            return fail(
+                ExeByteWindowError::ambiguous_raw_mapping,
+                "requested RVA is backed by more than one PE section raw mapping");
+        }
+        mapped_section = &section;
+        mapped_delta = rva - section.virtual_address;
+    }
+
     if (rva < image.size_of_headers) {
+        if (mapped_section != nullptr) {
+            return fail(
+                ExeByteWindowError::ambiguous_raw_mapping,
+                "requested RVA is backed by both PE headers and section raw data");
+        }
+
         const auto remaining_header_bytes =
             static_cast<std::size_t>(image.size_of_headers - rva);
         if (size > remaining_header_bytes) {
@@ -83,55 +114,47 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
         };
     }
 
-    for (const auto& section : image.sections) {
-        if (rva < section.virtual_address) {
-            continue;
-        }
-
-        const auto delta = rva - section.virtual_address;
-        if (delta >= section.raw_size) {
-            continue;
-        }
-
-        const auto raw_remaining = static_cast<std::size_t>(section.raw_size - delta);
-        if (size > raw_remaining) {
-            return fail(
-                ExeByteWindowError::crosses_raw_mapping,
-                "requested window crosses the containing PE section raw-data boundary");
-        }
-        if (section.raw_offset >
-            std::numeric_limits<std::uint32_t>::max() - delta) {
-            return fail(
-                ExeByteWindowError::unmapped_rva,
-                "requested RVA cannot be mapped to a file offset");
-        }
-
-        const auto file_offset = section.raw_offset + delta;
-        if (!file_range_fits(file_bytes, file_offset, size)) {
-            return fail(
-                ExeByteWindowError::file_range_out_of_bounds,
-                "requested section window exceeds the supplied file bytes");
-        }
-
-        const auto offset = static_cast<std::size_t>(file_offset);
-        return ExeByteWindowResult{
-            .window = ExeByteWindow{
-                .va = va,
-                .rva = rva,
-                .file_offset = file_offset,
-                .section_name = section.name,
-                .bytes = std::vector<std::byte>(
-                    file_bytes.begin() + static_cast<std::ptrdiff_t>(offset),
-                    file_bytes.begin() + static_cast<std::ptrdiff_t>(offset + size)),
-            },
-            .error = ExeByteWindowError::none,
-            .message = {},
-        };
+    if (mapped_section == nullptr) {
+        return fail(
+            ExeByteWindowError::unmapped_rva,
+            "requested RVA is not backed by PE header or section raw data");
     }
 
-    return fail(
-        ExeByteWindowError::unmapped_rva,
-        "requested RVA is not backed by PE header or section raw data");
+    const auto raw_remaining =
+        static_cast<std::size_t>(mapped_section->raw_size - mapped_delta);
+    if (size > raw_remaining) {
+        return fail(
+            ExeByteWindowError::crosses_raw_mapping,
+            "requested window crosses the containing PE section raw-data boundary");
+    }
+    if (mapped_section->raw_offset >
+        std::numeric_limits<std::uint32_t>::max() - mapped_delta) {
+        return fail(
+            ExeByteWindowError::unmapped_rva,
+            "requested RVA cannot be mapped to a file offset");
+    }
+
+    const auto file_offset = mapped_section->raw_offset + mapped_delta;
+    if (!file_range_fits(file_bytes, file_offset, size)) {
+        return fail(
+            ExeByteWindowError::file_range_out_of_bounds,
+            "requested section window exceeds the supplied file bytes");
+    }
+
+    const auto offset = static_cast<std::size_t>(file_offset);
+    return ExeByteWindowResult{
+        .window = ExeByteWindow{
+            .va = va,
+            .rva = rva,
+            .file_offset = file_offset,
+            .section_name = mapped_section->name,
+            .bytes = std::vector<std::byte>(
+                file_bytes.begin() + static_cast<std::ptrdiff_t>(offset),
+                file_bytes.begin() + static_cast<std::ptrdiff_t>(offset + size)),
+        },
+        .error = ExeByteWindowError::none,
+        .message = {},
+    };
 }
 
 } // namespace dmc::rengine::exe
