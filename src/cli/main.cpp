@@ -1,3 +1,4 @@
+#include "exe_acquisition_commands.hpp"
 #include "integration_commands.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
@@ -40,7 +41,9 @@ void print_help() {
         << "  hash <path>               Calculate SHA-256 through GDSpaces\n"
         << "  validate-evidence <path>  Strictly validate an Evidence Packet JSON\n"
         << "  route <format>            Show the default tool route for a format\n"
-        << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n";
+        << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
+        << "  extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]\n"
+        << "                            Hash-gated reverse-evidence byte window\n";
     dmc::rengine::cli::print_integration_help();
     std::cout << "  help | --help             Show this help\n";
 }
@@ -295,6 +298,12 @@ int main(int argc, char** argv) {
         dmc::rengine::cli::try_run_integration_command(argc, argv);
     if (integration_result != -1) {
         return integration_result;
+    }
+
+    const auto acquisition_result =
+        dmc::rengine::cli::try_run_exe_acquisition_command(argc, argv);
+    if (acquisition_result != -1) {
+        return acquisition_result;
     }
 
     const std::string_view command{argv[1]};
