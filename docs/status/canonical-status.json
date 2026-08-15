@@ -1,9 +1,10 @@
 {
   "schema_version": 2,
   "snapshot_date": "2026-08-15",
+  "synchronization_cutoff": "post-pr98-merge-post-pr99-creation",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "562e14179723598e09e58c9baded998a2b79e1a3",
+  "snapshot_main_sha": "25bd70092503cc6ca3be51f05582dcd33af1523d",
   "overall_completion": "no-major-end-to-end-subsystem-complete",
   "completion_policy": "docs/status/completion-and-evidence-policy.md",
   "truth_layers": {
@@ -29,7 +30,17 @@
     "working-copy-before-write",
     "guarded-exe-patches-only",
     "agent-consensus-is-not-evidence",
-    "st001-is-regression-fixture-not-stage-architecture"
+    "st001-is-regression-fixture-not-stage-architecture",
+    "pac-slot-index-is-container-schema-scoped-not-global-semantic-identity"
+  ],
+  "merged_main_capabilities": [
+    {
+      "pr": 98,
+      "merge_sha": "25bd70092503cc6ca3be51f05582dcd33af1523d",
+      "scope": "hash-gated-executable-byte-window-acquisition",
+      "status": "merged-main-bounded-primitive",
+      "proof_boundary": "artifact-range-byte-identity-only-not-function-abi-semantics-equivalence"
+    }
   ],
   "stage_authority": {
     "status": "strong-partial-not-complete",
@@ -54,7 +65,7 @@
     },
     {
       "pr": 85,
-      "scope": "hits-pass10-evidence-reacquisition-and-bounded-runtime-closures-through-slice12",
+      "scope": "hits-pass10-base-evidence-stack-through-validated-slice14",
       "status": "draft-branch-scoped-not-hits-complete"
     },
     {
@@ -65,11 +76,14 @@
     {
       "pr": 91,
       "scope": "stage-ops-scene-assembly-and-operations",
-      "status": "draft-substantial-implementation-green-ci-not-complete-not-main"
+      "head_sha": "b0994436457a7ae26e3083a4a13461f50db6e76d",
+      "ci_run": "31877176748",
+      "status": "draft-green-106-of-106-windows-and-ubuntu-not-complete-not-main"
     },
     {
       "pr": 92,
       "scope": "canonical-executable-identity-correction",
+      "ci_run": "31877266101",
       "status": "draft-green-ci-promotion-pending"
     },
     {
@@ -80,14 +94,41 @@
     {
       "pr": 94,
       "scope": "completion-evidence-ownership-governance-reconciliation",
-      "status": "draft-current-authority-promotion-pending-final-ci"
+      "status": "draft-current-authority-being-resynchronized-post-pr98"
+    },
+    {
+      "pr": 96,
+      "scope": "hits-pass10-slice15-referenced-stage-cfg-descriptor-census",
+      "head_sha": "a4be42d5ea73c9e120febd8a9b1b0654d5858dbc",
+      "ci_run": "31886670409",
+      "status": "bounded-complete-implementation-evidence-tooling-green-ci-not-hits-complete"
+    },
+    {
+      "pr": 97,
+      "scope": "hits-pass10-slice16-stage-cfg-transform-source-provenance",
+      "head_sha": "298a15d58cbadd370c4fbac300ab67812a29efa6",
+      "status": "research-required-no-production-transform-resolution"
+    },
+    {
+      "pr": 99,
+      "scope": "production-oriented-readonly-pac-structural-parser",
+      "head_sha": "d2eb0c59a3c80d7dd580c18e1e2ef48429e064cf",
+      "status": "draft-structural-parser-real-corpus-gate-pending-not-issue3-complete"
+    }
+  ],
+  "superseded_coordination": [
+    {
+      "pr": 95,
+      "status": "closed-unmerged",
+      "reason": "slice-number-collision",
+      "continued_as_pr": 96
     }
   ],
   "subsystems": {
     "gdspaces": {
       "status": "not-complete",
-      "implemented": "substantial-structural-lookup-materialization-provenance-workingcopy-slices",
-      "missing": "full-request-to-unload-typedpostload-factory-cache-lifetime-game-validation"
+      "implemented": "substantial-structural-lookup-materialization-provenance-workingcopy-slices-plus-pr99-pac-structural-parser",
+      "missing": "representative-real-pac-validation-pnst-nbz-afs-lst-repack-plus-full-request-to-unload-typedpostload-factory-cache-lifetime-game-validation"
     },
     "recovered_game_source_tree": {
       "status": "not-complete",
@@ -96,12 +137,12 @@
     },
     "reverse_core": {
       "status": "not-complete",
-      "implemented": "architecture-and-evidence-reconstruction-direction",
+      "implemented": "architecture-evidence-reconstruction-direction-plus-merged-pr98-byte-window-acquisition",
       "missing": "mature-generic-claim-coordination-and-subsystem-validationreceipt-program"
     },
     "stage_ops": {
       "status": "not-complete",
-      "implemented": "substantial-pr91-assembly-operations-domain-projection-stack",
+      "implemented": "substantial-pr91-assembly-operations-domain-projection-stack-green-106-of-106-windows-and-ubuntu",
       "missing": "complete-domain-runtime-lifecycle-representative-validation-and-promotion"
     },
     "semantic_graph": {
@@ -126,18 +167,44 @@
         "primitive-descriptor-ownership-slice9",
         "runtime-type0-one-point-structural-semantics-slice10",
         "runtime-type1-two-endpoint-structural-semantics-slice10",
-        "stage-cfg-pac-collision-table-provenance-slice12"
+        "stage-cfg-pac-collision-table-provenance-slice12",
+        "serialized-collision-triplet-view-slice13",
+        "stage-cfg-entry-primitive-descriptor-view-slice14",
+        "referenced-stage-cfg-descriptor-census-tooling-slice15"
       ],
       "corrected_or_rejected": [
         "old-e7a0-metric-equality-tiebreak-arbitration-model",
         "b460-as-e7a0-dynamic-candidate-producer",
         "runtime-plus-0x20-as-primitive-descriptor",
         "stage-cfg-plus-0xa4-plus-0xa8-as-abstract-inner-blob-fields",
-        "stage-cfg-plus-0x60-plus-0x64-as-abstract-inner-blob-fields"
+        "stage-cfg-plus-0x60-plus-0x64-as-abstract-inner-blob-fields",
+        "stage-cfg-slot38-as-proven-c740-style-transform-table"
       ],
+      "latest_validated_slice": {
+        "slice": 15,
+        "pr": 96,
+        "scope": "referenced-descriptor-census-implementation-evidence-tooling",
+        "real_type5_presence_claimed": false,
+        "real_type5_absence_claimed": false
+      },
+      "active_reverse_frontier": {
+        "slice": 16,
+        "pr": 97,
+        "status": "research-required",
+        "primary_function": "0x1400594B0",
+        "targets": [
+          "full-function-body-callers-slot38-dataflow",
+          "modern-route-around-0x14009823F",
+          "legacy-observed-route-around-0x1400B6483",
+          "complete-c630-c740-caller-census-by-manager-source",
+          "exact-c8d0-stack-arg5-producer-base-object-bounds-count-lifecycle"
+        ],
+        "transform_selector_bounds_available": false,
+        "stage_cfg_slot38_proven_c740_style_transform_table": false
+      },
       "current_concrete_data_frontier": {
         "resource": "room/stXXXcfg.pac",
-        "modern_related_source_slot": 38,
+        "modern_slot38": "0x1400594B0-consumed-related-source-structure-transform-role-unproven",
         "modern_entry_table_slot": 39,
         "modern_primitive_descriptor_slot": 40,
         "legacy_related_source_slot": 21,
@@ -146,7 +213,8 @@
         "preferred_runtime_observation_when_raw_slot_unavailable": "0x14005C8D0"
       },
       "missing": [
-        "actually-referenced-type5-descriptors-and-authored-population-path",
+        "representative-real-stage-cfg-referenced-descriptor-census",
+        "stage-cfg-transform-provider-bounds-lifecycle-slice16",
         "deeper-primitive-producers-and-geometry-contact-helpers",
         "source2-backing-ownership-lifetime-live-selection",
         "remaining-fourth-component-semantics-where-unresolved",
@@ -162,7 +230,7 @@
     },
     "exe_editor_decompilation_recompilation": {
       "status": "not-complete",
-      "implemented": "pe-address-evidence-recovered-source-build-lineage-selected-units",
+      "implemented": "pe-address-evidence-recovered-source-build-lineage-selected-units-plus-merged-byte-window-acquisition",
       "missing": "full-decompilation-behaviorally-equivalent-rebuilt-executable"
     },
     "item_hud_editors": {
@@ -176,6 +244,8 @@
     "size_bytes": 6356432,
     "stale_rejected_size_bytes": 3735552,
     "correction_pr": 92,
+    "correction_branch_ci": "31877266101",
+    "merged_to_main": false,
     "independent_fresh_rehash_requires_raw_artifact_mounted": true
   },
   "active_blockers": [
@@ -184,22 +254,30 @@
     "representative-bank-a-bank-b-shared-alias-partial-stage-validation",
     "stage-ops-complete-domain-and-vanilla-lifecycle-bridge",
     "recovered-game-controlled-behavioral-validationreceipts",
-    "hits-type5-referenced-descriptor-and-authored-population-path-from-stage-cfg-slot40-or-slot23",
+    "pr99-representative-real-pac-multi-family-validation-and-broader-container-runtime-gates",
+    "hits-slice15-representative-real-stage-cfg-referenced-descriptor-census",
+    "hits-slice16-stage-cfg-transform-provider-bounds-count-lifecycle",
     "hits-deeper-primitive-source2-runtime-equivalence",
     "scm-mesh-plus-0x28-reconciliation",
     "global-sha-level-evidence-metadata-invariant",
-    "raw-artifact-reacquisition-when-new-byte-level-reverse-is-required",
+    "raw-artifact-availability-for-new-byte-level-reverse-even-though-acquisition-tooling-is-merged",
     "reverse-core-mature-claim-and-validation-program",
     "complete-editor-export-reintegration",
     "full-decompilation-and-behaviorally-equivalent-recompilation"
   ],
   "critical_path": [
     "artifact-and-evidence-integrity",
+    "use-merged-byte-window-acquisition-for-new-exe-evidence",
     "resource-runtime-lifecycle-factory-cache-closure",
     "evidence-backed-recovered-runtime-behavioral-receipts",
     "representative-stage-catalog-validation",
     "stage-ops-complete-domain-runtime-bridge",
     "validated-editor-export-verticals",
     "progressive-recompilation-milestones"
+  ],
+  "parallel_hints": [
+    "hits-slice16-transform-source-provenance",
+    "representative-stage-cfg-slice15-census",
+    "pr99-real-pac-corpus-validation"
   ]
 }
