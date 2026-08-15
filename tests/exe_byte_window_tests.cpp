@@ -12,6 +12,7 @@ int main() {
     image.kind = exe::PeKind::pe32_plus;
     image.machine = exe::PeMachine::amd64;
     image.image_base = 0x140000000ULL;
+    image.size_of_image = 0x4000U;
     image.size_of_headers = 0x200U;
     image.sections.push_back(exe::PeSection{
         .name = ".text",
@@ -76,13 +77,45 @@ int main() {
     assert(!below_base.ok());
     assert(below_base.error == exe::ExeByteWindowError::va_below_image_base);
 
+    auto zero_image_size = image;
+    zero_image_size.size_of_image = 0U;
+    const auto missing_image_boundary = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        zero_image_size,
+        image.image_base + 0x40U,
+        0x10U);
+    assert(!missing_image_boundary.ok());
+    assert(missing_image_boundary.error == exe::ExeByteWindowError::unmapped_rva);
+
+    auto small_image = image;
+    small_image.size_of_image = 0x1100U;
+    const auto outside_image = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        small_image,
+        image.image_base + 0x1100U,
+        0x10U);
+    assert(!outside_image.ok());
+    assert(outside_image.error == exe::ExeByteWindowError::unmapped_rva);
+
+    const auto crosses_image = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        small_image,
+        image.image_base + 0x10F0U,
+        0x20U);
+    assert(!crosses_image.ok());
+    assert(
+        crosses_image.error ==
+        exe::ExeByteWindowError::crosses_file_backed_mapping);
+
     const auto crosses_headers = exe::ExeByteWindowExtractor::extract(
         bytes,
         image,
         image.image_base + 0x1F0U,
         0x20U);
     assert(!crosses_headers.ok());
-    assert(crosses_headers.error == exe::ExeByteWindowError::crosses_raw_mapping);
+    assert(
+        crosses_headers.error ==
+        exe::ExeByteWindowError::crosses_file_backed_mapping);
 
     const auto crosses_text_raw = exe::ExeByteWindowExtractor::extract(
         bytes,
@@ -90,7 +123,9 @@ int main() {
         image.image_base + 0x11F0U,
         0x20U);
     assert(!crosses_text_raw.ok());
-    assert(crosses_text_raw.error == exe::ExeByteWindowError::crosses_raw_mapping);
+    assert(
+        crosses_text_raw.error ==
+        exe::ExeByteWindowError::crosses_file_backed_mapping);
 
     // The section has virtual_size 0x300 but only 0x200 raw bytes. A VA in
     // the virtual-only tail is deliberately rejected for file-byte acquisition.
@@ -102,6 +137,8 @@ int main() {
     assert(!virtual_only.ok());
     assert(virtual_only.error == exe::ExeByteWindowError::unmapped_rva);
 
+    // A section may have raw padding beyond VirtualSize. Because acquisition
+    // starts from a VA, raw-only padding is not accepted as runtime VA data.
     auto raw_padding = image;
     raw_padding.sections.clear();
     raw_padding.sections.push_back(exe::PeSection{
@@ -126,8 +163,12 @@ int main() {
         image.image_base + 0x20F0U,
         0x20U);
     assert(!crosses_virtual_extent.ok());
-    assert(crosses_virtual_extent.error == exe::ExeByteWindowError::crosses_raw_mapping);
+    assert(
+        crosses_virtual_extent.error ==
+        exe::ExeByteWindowError::crosses_file_backed_mapping);
 
+    // PE sections with VirtualSize zero fall back to SizeOfRawData for their
+    // file-backed VA extent.
     auto zero_virtual_size = image;
     zero_virtual_size.sections.clear();
     zero_virtual_size.sections.push_back(exe::PeSection{
@@ -163,7 +204,7 @@ int main() {
     assert(!ambiguous_section_result.ok());
     assert(
         ambiguous_section_result.error ==
-        exe::ExeByteWindowError::ambiguous_raw_mapping);
+        exe::ExeByteWindowError::ambiguous_file_backed_mapping);
 
     auto mid_window_overlap = image;
     mid_window_overlap.sections.push_back(exe::PeSection{
@@ -182,7 +223,7 @@ int main() {
     assert(!mid_window_result.ok());
     assert(
         mid_window_result.error ==
-        exe::ExeByteWindowError::ambiguous_raw_mapping);
+        exe::ExeByteWindowError::ambiguous_file_backed_mapping);
 
     auto ambiguous_headers = image;
     ambiguous_headers.sections.push_back(exe::PeSection{
@@ -201,7 +242,7 @@ int main() {
     assert(!ambiguous_header_result.ok());
     assert(
         ambiguous_header_result.error ==
-        exe::ExeByteWindowError::ambiguous_raw_mapping);
+        exe::ExeByteWindowError::ambiguous_file_backed_mapping);
 
     auto truncated = bytes;
     truncated.resize(0x490U);
