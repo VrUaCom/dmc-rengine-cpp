@@ -92,6 +92,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         executable_workspace_manifest
         evidence_address_resolver
         exe_byte_window
+        exe_byte_window_receipt
         integration_workspace
         workspace_manifest
         project_graph
