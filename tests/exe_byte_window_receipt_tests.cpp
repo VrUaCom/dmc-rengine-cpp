@@ -1,9 +1,15 @@
 #include "dmc_rengine/exe/byte_window_receipt.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
+
+#include <array>
 #include <cassert>
+#include <cstddef>
+#include <span>
 #include <string>
 
 int main() {
+    namespace core = dmc::rengine::core;
     namespace exe = dmc::rengine::exe;
 
     const exe::ExeByteWindowReceipt receipt{
@@ -30,14 +36,32 @@ int main() {
     assert(metadata_json.find("\"section\": \".te\\\"xt\"") != std::string::npos);
     assert(metadata_json.find("bytes_hex") == std::string::npos);
 
-    const auto bytes_json = exe::byte_window_receipt_to_json(receipt, "7f80");
+    const std::array<std::byte, 2> window_bytes{
+        std::byte{0x7F},
+        std::byte{0x80},
+    };
+    auto receipt_with_bytes = receipt;
+    receipt_with_bytes.window_sha256 = core::Sha256::compute(
+        std::span<const std::byte>{window_bytes}).hex();
+    assert(receipt_with_bytes.valid());
+
+    // Raw bytes are accepted only when their canonical lowercase hex payload
+    // hashes exactly to the receipt's window SHA-256.
+    assert(exe::byte_window_receipt_to_json(receipt, "7f80").empty());
+    const auto bytes_json =
+        exe::byte_window_receipt_to_json(receipt_with_bytes, "7f80");
     assert(!bytes_json.empty());
     assert(bytes_json.find("\"bytes_hex\": \"7f80\"") != std::string::npos);
+    assert(exe::byte_window_receipt_to_json(receipt_with_bytes, "7F80").empty());
 
     auto bad_sha = receipt;
     bad_sha.artifact_sha256[3U] = 'x';
     assert(!bad_sha.valid());
     assert(exe::byte_window_receipt_to_json(bad_sha).empty());
+
+    auto uppercase_sha = receipt;
+    uppercase_sha.artifact_sha256[0U] = 'A';
+    assert(!uppercase_sha.valid());
 
     auto bad_mapping = receipt;
     ++bad_mapping.rva;
@@ -48,8 +72,8 @@ int main() {
     bad_range.size = 2U;
     assert(!bad_range.valid());
 
-    assert(exe::byte_window_receipt_to_json(receipt, "7f").empty());
-    assert(exe::byte_window_receipt_to_json(receipt, "7g80").empty());
+    assert(exe::byte_window_receipt_to_json(receipt_with_bytes, "7f").empty());
+    assert(exe::byte_window_receipt_to_json(receipt_with_bytes, "7g80").empty());
 
     return 0;
 }
