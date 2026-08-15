@@ -54,7 +54,7 @@ dmc-rengine extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]
 
 See [Executable Byte-Window Acquisition](byte-window-acquisition.md).
 
-The byte-window extractor is stricter than generic address conversion: it requires one deterministic file-backed raw mapping across the entire requested RVA interval, rejects ambiguous/virtual-only/cross-boundary ranges, and produces a deterministic receipt containing artifact/window hashes and address mappings.
+The byte-window extractor is intentionally stricter than generic address conversion. A section-backed request must stay inside `SizeOfImage` and inside the intersection of the section virtual extent and raw file extent, and the entire requested RVA interval must have one unambiguous file-backed VA mapping authority. Virtual-only tails, raw-only padding beyond `VirtualSize`, ambiguous overlaps and mapping-boundary crossings are rejected.
 
 Raw bytes are omitted by default. `--hex` is an explicit local reverse mode and must not be used to commit proprietary executable bytes to the public repository.
 
@@ -62,7 +62,7 @@ Raw bytes are omitted by default. `--hex` is an explicit local reverse mode and 
 
 The repository generates original synthetic PE32+ byte vectors in tests. No original game bytes are included.
 
-PE and acquisition regressions cover normal mappings, malformed/truncated ranges, virtual-only tails, ambiguous section mappings, deterministic acquisition receipts and optional raw-byte SHA binding.
+PE and acquisition regressions cover normal mappings, malformed/truncated ranges, `SizeOfImage`, virtual/raw intersection boundaries, virtual-only tails, raw-only padding, ambiguous section mappings, deterministic acquisition receipts and optional raw-byte SHA binding.
 
 ## Known DMC3 target
 
