@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "hits-pass10-slice12-stage-cfg-pac-2026-08-15",
   "date": "2026-08-15",
-  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATION_ACTIVE",
+  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATED",
   "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
   "stage_cfg_resource_selector": {
@@ -83,7 +83,9 @@
     "ctest": "hits_stage_cfg_pac_evidence",
     "code_head": "63acd1bd2e311b7978c0d455e3a7279cc28dfcff",
     "ci_run_id": 31854936132,
-    "ci_state": "QUEUED_OR_IN_PROGRESS"
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
   },
   "proprietary_bytes_committed": false
 }
