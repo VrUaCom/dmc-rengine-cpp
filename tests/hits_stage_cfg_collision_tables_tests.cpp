@@ -26,14 +26,13 @@ formats::ContainerDocument make_document(
     std::size_t slot_count,
     std::size_t container_size) {
     formats::ContainerDocument document;
-    document.source_name = "synthetic-stage-cfg.pac";
-    document.header.magic = formats::ContainerMagic::Pac;
-    document.header.slot_count = slot_count;
-    document.header.header_size = 8U + slot_count * 4U;
-    document.container_size = container_size;
+    document.format = "PAC";
+    document.schema_version = 1U;
+    document.declared_slot_count = static_cast<std::uint32_t>(slot_count);
+    document.container_size = static_cast<std::uint64_t>(container_size);
     document.entries.resize(slot_count);
     for (std::size_t index = 0; index < slot_count; ++index) {
-        document.entries[index].slot_index = index;
+        document.entries[index].slot_index = static_cast<std::uint32_t>(index);
     }
     return document;
 }
@@ -44,9 +43,10 @@ void set_slot(
     std::size_t offset,
     std::size_t size) {
     auto& entry = document.entries[slot];
-    entry.offset = offset;
-    entry.size = size;
-    entry.valid = true;
+    entry.offset = static_cast<std::uint64_t>(offset);
+    entry.size = static_cast<std::uint64_t>(size);
+    entry.logical_name = "synthetic-slot-" + std::to_string(slot);
+    entry.populated = true;
 }
 
 } // namespace
@@ -63,6 +63,7 @@ int main() {
     auto modern_document = make_document(41U, modern_bytes.size());
     set_slot(modern_document, 39U, 0x200U, 8U);
     set_slot(modern_document, 40U, 0x300U, 2U * stage::k_primitive_descriptor_stride);
+    assert(modern_document.valid());
 
     write_entry(modern_bytes, 0x200U, 0x06U, 250U, 0U);
     write_entry(modern_bytes, 0x204U, 0x02U, 3U, 1U);
@@ -114,7 +115,8 @@ int main() {
     assert(!bad_descriptor->all_descriptor_references_valid());
 
     auto malformed_document = modern_document;
-    malformed_document.entries[40U].size = 2U * stage::k_primitive_descriptor_stride + 1U;
+    malformed_document.entries[40U].size =
+        static_cast<std::uint64_t>(2U * stage::k_primitive_descriptor_stride + 1U);
     assert(!stage::View::open(
                 canonical_sha,
                 modern_bytes,
@@ -126,6 +128,7 @@ int main() {
     auto legacy_document = make_document(24U, legacy_bytes.size());
     set_slot(legacy_document, 22U, 0x100U, 4U);
     set_slot(legacy_document, 23U, 0x200U, stage::k_primitive_descriptor_stride);
+    assert(legacy_document.valid());
     write_entry(legacy_bytes, 0x100U, 0x01U, 7U, 0U);
     legacy_bytes[0x200U] = std::byte{4};
 
