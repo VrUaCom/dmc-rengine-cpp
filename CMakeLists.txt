@@ -52,6 +52,7 @@ dmc_rengine_enable_warnings(dmc_rengine_core)
 
 add_executable(dmc-rengine
     src/cli/main.cpp
+    src/cli/exe_acquisition_commands.cpp
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
     src/cli/hits_commands.cpp
@@ -90,6 +91,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_analyzer_structural_formats
         executable_workspace_manifest
         evidence_address_resolver
+        exe_byte_window
+        exe_byte_window_receipt
         integration_workspace
         workspace_manifest
         project_graph
@@ -187,6 +190,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_extract_exe_window_usage
+        COMMAND dmc-rengine extract-exe-window)
+    set_tests_properties(
+        dmc_rengine_cli_extract_exe_window_usage
+        PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_compare_hits_spatial_usage
         COMMAND dmc-rengine compare-hits-spatial)
