@@ -3,6 +3,7 @@
 #include "dmc_rengine/profiles/dmc3/known_targets.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string_view>
@@ -18,7 +19,7 @@ struct StageCfgResourceSelectionEvidence final {
     std::uint32_t resource_kind{};
     std::uint64_t stage_resource_group_table_va{};
     std::uint32_t stage_group_divisor{};
-    std::uint32_t stage_cfg_descriptor_offset_in_row{};
+    std::uint32_t stage_cfg_resource_subrecord_offset_in_row{};
     std::uint32_t stage_cfg_filename_pointer_offset_in_row{};
     std::string_view filename_pattern{};
 };
