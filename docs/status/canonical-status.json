@@ -54,7 +54,7 @@
     },
     {
       "pr": 85,
-      "scope": "hits-pass10-evidence-reacquisition-and-bounded-runtime-closures",
+      "scope": "hits-pass10-evidence-reacquisition-and-bounded-runtime-closures-through-slice12",
       "status": "draft-branch-scoped-not-hits-complete"
     },
     {
@@ -76,13 +76,18 @@
       "pr": 93,
       "scope": "hits-classifier-and-format-authority-correction",
       "status": "draft-green-ci-promotion-pending"
+    },
+    {
+      "pr": 94,
+      "scope": "completion-evidence-ownership-governance-reconciliation",
+      "status": "draft-current-authority-promotion-pending-final-ci"
     }
   ],
   "subsystems": {
     "gdspaces": {
       "status": "not-complete",
-      "implemented": "substantial-structural-lookup-materialization-provenance-slices",
-      "missing": "full-request-to-unload-typed-postload-factory-cache-lifetime-game-validation"
+      "implemented": "substantial-structural-lookup-materialization-provenance-workingcopy-slices",
+      "missing": "full-request-to-unload-typedpostload-factory-cache-lifetime-game-validation"
     },
     "recovered_game_source_tree": {
       "status": "not-complete",
@@ -110,19 +115,39 @@
     },
     "hits_collision": {
       "status": "not-complete",
-      "implemented": "strong-format-spatial-writer-source-and-runtime-evidence",
-      "bounded_closed": [
+      "implemented": "strong-format-spatial-writer-source-runtime-and-pass10-primitive-evidence",
+      "bounded_closed_or_validated": [
         "0x14005E7A0-upper-wrapper-contract-per-pr85",
         "0x14005FEC0-top-level-contract-per-pr85",
         "0x1400601E0-top-level-contract-per-pr85",
         "0x14005B460-reclassified-separate-dynamic-world-pipeline-per-pr85",
-        "common-contact-normal-semantics-per-pr85",
-        "primitive-descriptor-ownership-per-pr85"
+        "primitive-shape-layer-mappings-slice7",
+        "common-contact-normal-semantics-slice8",
+        "primitive-descriptor-ownership-slice9",
+        "runtime-type0-one-point-structural-semantics-slice10",
+        "runtime-type1-two-endpoint-structural-semantics-slice10",
+        "stage-cfg-pac-collision-table-provenance-slice12"
       ],
+      "corrected_or_rejected": [
+        "old-e7a0-metric-equality-tiebreak-arbitration-model",
+        "b460-as-e7a0-dynamic-candidate-producer",
+        "runtime-plus-0x20-as-primitive-descriptor",
+        "stage-cfg-plus-0xa4-plus-0xa8-as-abstract-inner-blob-fields",
+        "stage-cfg-plus-0x60-plus-0x64-as-abstract-inner-blob-fields"
+      ],
+      "current_concrete_data_frontier": {
+        "resource": "room/stXXXcfg.pac",
+        "modern_related_source_slot": 38,
+        "modern_entry_table_slot": 39,
+        "modern_primitive_descriptor_slot": 40,
+        "legacy_related_source_slot": 21,
+        "legacy_entry_table_slot": 22,
+        "legacy_primitive_descriptor_slot": 23,
+        "preferred_runtime_observation_when_raw_slot_unavailable": "0x14005C8D0"
+      },
       "missing": [
-        "deeper-primitive-producers-and-geometry-helpers",
-        "primitive-descriptor-population-writers",
-        "type5-producer-source-semantics",
+        "actually-referenced-type5-descriptors-and-authored-population-path",
+        "deeper-primitive-producers-and-geometry-contact-helpers",
         "source2-backing-ownership-lifetime-live-selection",
         "remaining-fourth-component-semantics-where-unresolved",
         "controlled-runtime-comparison",
@@ -159,6 +184,7 @@
     "representative-bank-a-bank-b-shared-alias-partial-stage-validation",
     "stage-ops-complete-domain-and-vanilla-lifecycle-bridge",
     "recovered-game-controlled-behavioral-validationreceipts",
+    "hits-type5-referenced-descriptor-and-authored-population-path-from-stage-cfg-slot40-or-slot23",
     "hits-deeper-primitive-source2-runtime-equivalence",
     "scm-mesh-plus-0x28-reconciliation",
     "global-sha-level-evidence-metadata-invariant",
