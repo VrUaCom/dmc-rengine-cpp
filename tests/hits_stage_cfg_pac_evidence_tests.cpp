@@ -17,7 +17,7 @@ int main() {
     assert(selection->resource_kind == 1U);
     assert(selection->stage_resource_group_table_va == 0x1405C4A50ULL);
     assert(selection->stage_group_divisor == 100U);
-    assert(selection->stage_cfg_descriptor_offset_in_row == 0x10U);
+    assert(selection->stage_cfg_resource_subrecord_offset_in_row == 0x10U);
     assert(selection->stage_cfg_filename_pointer_offset_in_row == 0x18U);
     assert(selection->filename_pattern == "room\\stXXXcfg.pac");
 
