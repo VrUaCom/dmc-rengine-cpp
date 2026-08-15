@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "hits-pass10-slice13-collision-triplet-2026-08-15",
   "date": "2026-08-15",
-  "status": "EXE_AND_DATA_CONFIRMED_IMPLEMENTED_VALIDATION_ACTIVE",
+  "status": "EXE_AND_DATA_CONFIRMED_IMPLEMENTED_VALIDATED",
   "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "serialized_abi": {
     "transform_stride": "0x40",
@@ -58,13 +58,21 @@
     "slot40_mod_0x50": 16,
     "collision_triplet_by_slot_number_rejected": true
   },
+  "stage_cfg_boundary": {
+    "entry_table_slots": {"modern":39,"legacy_observed":22},
+    "primitive_descriptor_table_slots": {"modern":40,"legacy_observed":23},
+    "slot38_transform_table_confirmed": false,
+    "representative_slot38_consumer_va": "0x1400594B0",
+    "correction": "Stage-CFG slot38 is a related collision/source block with its own u16-relative-offset structure; do not feed Stage-CFG slots38/39/40 into the three-span view as an assumed transform/entry/descriptor triplet."
+  },
   "architecture": {
-    "parser_scope": "DMC3 profile-specific serialized dynamic collision triplet",
+    "parser_scope": "DMC3 profile-specific serialized dynamic collision three-span view",
     "hardcoded_pac_slot_numbers": false,
     "hardcoded_executable_vas": false,
     "unknown_primitive_types_preserved": true,
     "static_hits_parser_separate": true,
-    "runtime_object_model_separate": true
+    "runtime_object_model_separate": true,
+    "span_identity_must_be_proven_before_open": true
   },
   "implementation": {
     "header": "include/dmc_rengine/profiles/dmc3/hits_collision_triplet.hpp",
@@ -72,7 +80,9 @@
     "ctest": "hits_collision_triplet",
     "code_head": "cc64f6ffdffc96a5c92596f37f33ba4a3769a37f",
     "ci_run_id": 31855809613,
-    "ci_state": "IN_PROGRESS"
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
   },
   "proprietary_bytes_committed": false
 }
