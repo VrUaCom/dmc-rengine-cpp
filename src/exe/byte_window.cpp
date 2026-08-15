@@ -94,7 +94,7 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
         }
         if (mapped_section != nullptr) {
             return fail(
-                ExeByteWindowError::ambiguous_raw_mapping,
+                ExeByteWindowError::ambiguous_file_backed_mapping,
                 "requested RVA is backed by more than one PE section file-backed VA mapping");
         }
         mapped_section = &section;
@@ -106,7 +106,7 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
             static_cast<std::size_t>(image.size_of_headers - rva);
         if (size > remaining_header_bytes) {
             return fail(
-                ExeByteWindowError::crosses_raw_mapping,
+                ExeByteWindowError::crosses_file_backed_mapping,
                 "requested window crosses the PE header mapping boundary");
         }
 
@@ -114,7 +114,7 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
             if (file_backed_rva_range_overlaps(
                     section, requested_begin, requested_end)) {
                 return fail(
-                    ExeByteWindowError::ambiguous_raw_mapping,
+                    ExeByteWindowError::ambiguous_file_backed_mapping,
                     "requested header window overlaps section-backed VA data");
             }
         }
@@ -152,7 +152,7 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
         static_cast<std::size_t>(mapped_extent - mapped_delta);
     if (size > mapped_remaining) {
         return fail(
-            ExeByteWindowError::crosses_raw_mapping,
+            ExeByteWindowError::crosses_file_backed_mapping,
             "requested window crosses the containing PE section file-backed VA boundary");
     }
 
@@ -163,7 +163,7 @@ ExeByteWindowResult ExeByteWindowExtractor::extract(
         if (file_backed_rva_range_overlaps(
                 section, requested_begin, requested_end)) {
             return fail(
-                ExeByteWindowError::ambiguous_raw_mapping,
+                ExeByteWindowError::ambiguous_file_backed_mapping,
                 "requested window overlaps another PE section file-backed VA mapping");
         }
     }
