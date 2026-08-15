@@ -1,7 +1,7 @@
 # HITS Pass 10 — Slice 15: Referenced Stage-CFG Primitive Descriptor Census
 
 **Date:** 2026-08-15  
-**Status:** IMPLEMENTED / SYNTHETICALLY TESTED; REAL STAGE-CFG CORPUS EVIDENCE PENDING
+**Status:** IMPLEMENTED / REVIEWED / SYNTHETICALLY VALIDATED; REAL STAGE-CFG CORPUS EVIDENCE PENDING
 
 ## Position in Pass 10
 
@@ -101,6 +101,25 @@ Regression covers:
 
 Synthetic tests validate the implementation contract only. They are **not evidence that a real Stage-CFG resource contains a referenced type-5 descriptor**.
 
+## Implementation validation receipt
+
+Validated code content head:
+
+`70b54f57d98b60845a6ad5e1072aa31c470ff5c0`
+
+GitHub Actions run `31886442850`:
+
+- Ubuntu configure/build/test — **SUCCESS**;
+- Windows configure/build/test — **SUCCESS**.
+
+The reviewed diff introduces no private PAC parser, no second resolver, no gameplay naming for raw primitive types, and no real-data type-5 claim.
+
+A machine-readable non-proprietary receipt is stored at:
+
+`evidence/hits/hits-pass10-slice15-referenced-stage-cfg-descriptor-census.evidence.json`
+
+The later evidence/index/document commits change the branch head but do not alter the validated C++ implementation. A fresh exact-head CI pass remains required before PR #96 exits draft.
+
 ## Production PAC / CLI boundary
 
 The Pass-10 branch contains generic container contracts and the Slice-14 adapter, but a production PAC parser is not owned by this HITS slice. Do not add a private/direct PAC parser to HITS CLI code merely to run the census.
@@ -132,3 +151,7 @@ If referenced type-5 descriptors are found, continue with targeted upstream auth
 ## Separate open boundary
 
 Stage-CFG transform-source provenance remains a separate reverse target from Slice 14. Slot 38 is a related collision/source block and is not promoted as the `0x40` transform table. Slice 15 does not change that boundary.
+
+## Numbering / coordination correction
+
+A temporary PR #95 was initially labeled Slice 13 because the coordination surfaces had not yet been synchronized with the complete PR #85 tree. Full tree readback showed that validated Slice 13 and Slice 14 already existed. PR #95 was closed unmerged and superseded by correctly numbered PR #96 / Slice 15. This is an evidence-identity correction, not a rejection of the census implementation.
