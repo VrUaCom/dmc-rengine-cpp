@@ -4,7 +4,7 @@
   "target": {
     "game_profile": "dmc3-hd",
     "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-    "canonical_executable_size": 3735552
+    "canonical_executable_size": 6356432
   },
   "authorities": [
     {
@@ -189,6 +189,15 @@
     }
   ],
   "resolved_corrections": [
+    {
+      "id": "correction-canonical-executable-size",
+      "resolved_on": "2026-08-15",
+      "status": "resolved",
+      "previous_size": 3735552,
+      "replacement_size": 6356432,
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "description": "The stale 3,735,552-byte metadata for the canonical e454... artifact was superseded by direct SHA-256-matched artifact readback establishing 6,356,432 bytes. Machine-readable authority must use the corrected immutable artifact identity tuple."
+    },
     {
       "id": "correction-pass31-git-receipt",
       "resolved_on": "2026-08-03",
