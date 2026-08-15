@@ -1,39 +1,68 @@
 #include "dmc_rengine/exe/byte_window_receipt.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <span>
 #include <sstream>
+#include <vector>
 
 namespace dmc::rengine::exe {
 namespace {
 
-[[nodiscard]] bool is_hex_digit(char value) noexcept {
+[[nodiscard]] bool is_lower_hex_digit(char value) noexcept {
     return (value >= '0' && value <= '9') ||
-        (value >= 'a' && value <= 'f') ||
-        (value >= 'A' && value <= 'F');
+        (value >= 'a' && value <= 'f');
 }
 
-[[nodiscard]] bool is_sha256(std::string_view value) noexcept {
+[[nodiscard]] bool is_canonical_sha256(std::string_view value) noexcept {
     if (value.size() != 64U) {
         return false;
     }
     for (const auto character : value) {
-        if (!is_hex_digit(character)) {
+        if (!is_lower_hex_digit(character)) {
             return false;
         }
     }
     return true;
 }
 
-[[nodiscard]] bool is_hex_bytes(std::string_view value, std::uint64_t size) noexcept {
+[[nodiscard]] bool is_canonical_hex_bytes(
+    std::string_view value,
+    std::uint64_t size) noexcept {
     if (size > k_max_exe_byte_window_size ||
         value.size() != static_cast<std::size_t>(size) * 2U) {
         return false;
     }
     for (const auto character : value) {
-        if (!is_hex_digit(character)) {
+        if (!is_lower_hex_digit(character)) {
             return false;
         }
     }
     return true;
+}
+
+[[nodiscard]] std::uint8_t hex_nibble(char value) noexcept {
+    if (value >= '0' && value <= '9') {
+        return static_cast<std::uint8_t>(value - '0');
+    }
+    return static_cast<std::uint8_t>(10 + value - 'a');
+}
+
+[[nodiscard]] bool bytes_hex_matches_sha256(
+    std::string_view bytes_hex,
+    std::string_view expected_sha256) {
+    std::vector<std::byte> bytes(bytes_hex.size() / 2U);
+    for (std::size_t index = 0; index < bytes.size(); ++index) {
+        const auto high = hex_nibble(bytes_hex[index * 2U]);
+        const auto low = hex_nibble(bytes_hex[index * 2U + 1U]);
+        bytes[index] = static_cast<std::byte>(
+            static_cast<std::uint8_t>((high << 4U) | low));
+    }
+
+    return core::Sha256::compute(std::span<const std::byte>{bytes}).hex() ==
+        expected_sha256;
 }
 
 [[nodiscard]] std::string escape_json(std::string_view value) {
@@ -71,8 +100,9 @@ namespace {
 } // namespace
 
 bool ExeByteWindowReceipt::valid() const noexcept {
-    if (!is_sha256(artifact_sha256) || !is_sha256(window_sha256) ||
-        artifact_size == 0U || size == 0U || size > k_max_exe_byte_window_size ||
+    if (!is_canonical_sha256(artifact_sha256) ||
+        !is_canonical_sha256(window_sha256) || artifact_size == 0U ||
+        size == 0U || size > k_max_exe_byte_window_size ||
         section_name.empty() || va < image_base) {
         return false;
     }
@@ -89,8 +119,12 @@ bool ExeByteWindowReceipt::valid() const noexcept {
 std::string byte_window_receipt_to_json(
     const ExeByteWindowReceipt& receipt,
     std::string_view bytes_hex) {
-    if (!receipt.valid() ||
-        (!bytes_hex.empty() && !is_hex_bytes(bytes_hex, receipt.size))) {
+    if (!receipt.valid()) {
+        return {};
+    }
+    if (!bytes_hex.empty() &&
+        (!is_canonical_hex_bytes(bytes_hex, receipt.size) ||
+         !bytes_hex_matches_sha256(bytes_hex, receipt.window_sha256))) {
         return {};
     }
 
