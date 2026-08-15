@@ -6,6 +6,8 @@
 #include <string_view>
 #include <vector>
 
+namespace formats = dmc::rengine::formats;
+
 namespace {
 
 void write_entry(
