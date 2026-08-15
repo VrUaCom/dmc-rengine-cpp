@@ -1,262 +1,244 @@
 # Current Blockers
 
-**Snapshot date:** 2026-08-05  
-**Snapshot base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`
+**Snapshot date:** 2026-08-15  
+**Synchronization cutoff:** after merge PR #98 and creation of PR #99  
+**Rule:** a bounded slice may be implemented/validated while the major subsystem remains blocked from `COMPLETE`.
 
-This file lists blockers against the current reviewed product tree. Historical research gaps are not described as implementation gaps unless they still block a tested product path.
+Read `completion-and-evidence-policy.md` before interpreting blocker closure.
 
-## Resolved blockers
+## P0 — Resource runtime lifecycle equivalence
 
-### B-001 — Cross-platform CI visibility and validation
+**Status:** OPEN  
+**Tracking:** #55 and recovered-runtime workstreams
 
-**Status:** resolved
-
-Windows and Ubuntu validation is established. The latest reviewed Pass 32 promotion recorded 67/67 tests per platform and a final immutable review run before merge.
-
-### B-002 — Evidence Packet serialization and strict import
-
-**Status:** resolved
-
-Implemented:
-
-- versioned Evidence Packets;
-- deterministic JSON export;
-- strict untrusted JSON import;
-- input/depth/count limits;
-- duplicate-key and duplicate-ID rejection;
-- artifact/location cross-reference validation;
-- CLI `validate-evidence`;
-- round-trip and malformed-input tests.
-
-Issue #2 is closed as completed.
-
-### B-003 — Artifact hashing absent
-
-**Status:** resolved
-
-SHA-256, known-vector tests, artifact identity, CLI hashing, target matching, guarded-patch hash checks, and build/reopen lineage are implemented.
-
-### B-004 — Read-only PE inspection absent
-
-**Status:** resolved at platform-foundation level
-
-Generic PE32/PE32+ parsing, sections, checked file offset/RVA/VA conversion, target recognition, diagnostics, and executable workspace manifests are implemented.
-
-### B-005 — Binary Inspector fields and selection context absent
-
-**Status:** resolved at domain-foundation level
-
-Typed fields, parent-child structures, annotations, owner lookup, selection context, conflict analysis, and deterministic manifests are implemented. Issue #5 is closed.
-
-The full desktop hex/visual UI remains product work, not a blocker on the domain model.
-
-### B-006 — Working-copy and patch safety absent
-
-**Status:** resolved at integrated-workflow level
-
-Implemented:
-
-- revisioned `WorkingCopy`;
-- exact expected-byte guards;
-- source SHA-256 guards;
-- overlap/range validation;
-- evidence-gated patch compilation;
-- in-memory copy execution;
-- output hashing;
-- verified rollback;
-- provenance manifests stating that original-file writes were not performed.
-
-### B-007 — No source-integration or rebuilt-output lineage model
-
-**Status:** resolved as architecture/model
-
-`SourceModificationPackage`, `IntegrationProject`, `CustomBuildIdentity`, `CustomBuildRecord`, source-to-binary mappings, test gates, distribution identity, and executable reopen lineage are implemented.
-
-A real rebuilt DMC3 executable remains an open long-term milestone.
-
-## Active blockers
-
-### B-012 — Production read-only container source layer incomplete
-
-**Priority:** P0  
-**Status:** open  
-**Tracking:** issue #3
-
-The generic parser/source foundation is implemented with synthetic legal fixtures, stable child identity, empty-slot preservation, partial-failure diagnostics, and graph integration.
+Current product-side materialization and selected recovered lifecycle/post-load slices are not the full DMC3 resource runtime.
 
 Still required:
 
-- evidence-bounded production read-only PAC/PNST subset;
-- NBZ/AFS source exposure through GDSpaces;
-- nested child classification on real user-supplied resources;
-- `.index` metadata linking without treating it as a runtime asset;
-- sanitized malformed and corpus reports;
-- deterministic local integration commands.
+- exact request/source/fallback semantics where unresolved;
+- typed post-load dispatcher/factory handoff;
+- cache/reuse/ownership semantics;
+- state-4 and unload/shutdown behavior;
+- room/stage transition retention/release behavior;
+- representative game-backed lifecycle ValidationReceipts.
 
-No writer support should be added before the read path and validation contracts stabilize.
+`StageBundle` materialization must not be used as a game-ready/state-3 completion claim.
 
-### B-013 — `st001` StageBundle is not game-backed end-to-end
+## P0 — Representative Stage Catalog validation
 
-**Priority:** P0  
-**Status:** open  
-**Tracking:** issue #4
+**Status:** OPEN  
+**Tracking:** #4
 
-Implemented:
+The active Wave-2 model supports 189 observed descriptors, 193 selectors and 10 group-base pointers, but completion still requires representative real validation across:
 
-- confirmed 110 × 4 stage-table descriptor;
-- `st001` role plan;
-- path normalization and resource matcher;
-- typed bundle assembler;
-- Stage Workspace builder and manifests.
+- Bank A;
+- Bank B;
+- shared/repeated resources;
+- selector alias/fallback cases where evidenced;
+- partial/unresolved cases;
+- semantic/gameplay mapping only where separately proven;
+- lifecycle linkage to #55.
+
+`st001` is only a fixture and is not an exit gate.
+
+## P0 — Stage Ops vanilla lifecycle/domain completeness
+
+**Status:** OPEN  
+**Tracking:** #90 / PR #91
+
+PR #91 provides substantial Stage Ops assembly/operations implementation. Final current-head branch receipt: head `b0994436457a7ae26e3083a4a13461f50db6e76d`, Actions `31877176748`, Ubuntu 106/106 and Windows 106/106. This removes the old pending-CI wording but does not close Stage Ops completion.
+
+Completion still requires:
+
+- complete evidence-backed domain coverage;
+- recovered typed-postload/factory/lifecycle bridges;
+- representative Stage Catalog receipts;
+- deterministic reload/transition validation;
+- complete ModViz/Semantic Graph consumption without parallel authority;
+- deliberate promotion after branch-scoped validation.
+
+## P0 — Recovered Game behavioral equivalence
+
+**Status:** OPEN
+
+Selected recovered units compile/pass deterministic tests. That is not enough for original-game equivalence.
+
+Required:
+
+- direct artifact identity/evidence for each reconstructed unit;
+- exact ABI/ownership/lifetime boundaries;
+- controlled original-vs-reconstruction behavioral comparison;
+- correction/rejection handling;
+- subsystem-level ValidationReceipts.
+
+## P0/P1 — HITS/collision deeper reconstruction
+
+**Status:** OPEN  
+**Tracking:** #25 / PR #85 / PR #96 / PR #97 / Drive Pass 10
+
+The older Pass-8/Pass-9 blocker list that treated the entire top-level `0x14005E7A0 / 0x14005B460 / 0x14005FEC0 / 0x1400601E0` layer as unknown is superseded by later Pass-10 bounded closure/reclassification.
+
+Do not restart those wrapper questions without contradictory direct evidence.
+
+Validated/bounded Pass-10 work now extends through:
+
+- Slice 7 primitive-shape layer separation and parser->descriptor->runtime mappings;
+- Slice 8 common contact normal;
+- Slice 9 primitive-descriptor ownership and runtime `+0x118` descriptor vs `+0x20` transform separation;
+- Slice 10 runtime type 0 one-point and type 1 two-endpoint structural semantics;
+- Slice 12 Stage-CFG PAC provenance;
+- Slice 13 serialized `0x40 / 0x04 / 0x50` collision-triplet view with independent data-side validation;
+- Slice 14 Stage-CFG entry/primitive-descriptor adapter with transform bounds intentionally unavailable;
+- Slice 15 referenced Stage-CFG descriptor census tooling.
+
+### Slice 15 real-corpus gate
+
+**Status:** OPEN DATA GATE  
+**Tracking:** PR #96
+
+PR #96 is bounded-complete at implementation/evidence-tooling scope. Final evidence/documentation head `a4be42d5ea73c9e120febd8a9b1b0654d5858dbc`; Actions `31886670409`: Ubuntu + Windows success.
 
 Still required:
 
-- resolve the four roles from legally supplied local game data through production container sources;
-- preserve partial failures and unknown children;
-- generate a deterministic local report;
-- prove one canonical resource identity is reused by all consumers.
+- representative legal real `room/stXXXcfg.pac` census selected through catalog/resource provenance;
+- resource-set/numeric-stage/source provenance on every census receipt;
+- no claim of real type-5 presence or absence until the census actually observes it;
+- follow referenced raw type-5 descriptors to their authored/population path only after they are directly observed.
 
-### B-015 — Reverse research promotion coverage is incomplete
+### Slice 16 transform-source provenance
 
-**Priority:** P1  
-**Status:** open
+**Status:** RESEARCH REQUIRED  
+**Tracking:** PR #97
 
-The active product tree contains reviewed packets and code for selected systems, including canonical EXE evidence, Item runtime, HITS, and PC-save Pass 31/32.
+Current facts:
 
-Still outside reviewed product source:
+- `entry+0x01` is a transform selector, not primitive type;
+- modern Stage-CFG slots 39/40 are entry/primitive-descriptor tables;
+- legacy observed 22/23 are entry/primitive-descriptor tables;
+- modern slot38 is consumed by `0x1400594B0` and has its own relative-offset structure;
+- slot38 is **NOT proven** to be the C740-style `0x40` transform table;
+- C8D0 stack arg5 becomes runtime `+0x20` transform pointer;
+- `transform_selector_bounds_available() == false` remains a hard freeze.
 
-- Wide Pass 33 payload semantics;
-- most of Recovered Source Skeleton v1.8;
-- much of the Phase 12–17 supporting reverse branch;
-- additional TXT, Door/Box, texture, runtime ownership, and subsystem findings.
+Required direct evidence:
 
-Policy: promote one independently reproducible subsystem at a time through Evidence Packet → reviewed C++ → tests → CI → provenance receipt. Do not bulk-import recovered skeleton snapshots.
+1. full `0x1400594B0` body + callers + slot38 dataflow;
+2. modern Stage-CFG route around C260 callsite `0x14009823F` through downstream builder/C8D0;
+3. legacy observed route around `0x1400B6483`;
+4. complete C630/C740 caller census classified by manager/source identity;
+5. exact producer/base/object, bounds/count and lifecycle of C8D0 stack arg5.
 
-### B-016 — Real public-safe corpus validation is incomplete
+Forbidden until that evidence exists:
 
-**Priority:** P1  
-**Status:** open
+- Stage-CFG slot38 transform parser;
+- Stage-CFG three-table adapter;
+- assumption that C740 support proves Stage-CFG uses C740;
+- original runtime transform construction inside GDSpaces.
 
-Synthetic format and integration fixtures are strong, but broader sanitized reports from user-supplied legal resources remain limited.
+### Remaining HITS/collision blockers
 
-Required:
+- deeper primitive-specific geometry/contact producer/helper reconstruction;
+- remaining fourth-component semantics where still unresolved;
+- source2 backing resource, ownership, lifetime and live-selection semantics;
+- controlled canonical runtime traces vs reconstructed behavior;
+- modified-topology game validation;
+- original Capcom offline-builder equivalence.
 
-- PAC/PNST/NBZ/AFS malformed and structural corpus;
-- stage-level local reports;
-- HITS original/candidate corpus comparison receipts;
-- artifact hashes and evidence links without publishing copyrighted bytes.
+HITS/collision as a whole is NOT COMPLETE.
 
-### B-019 — HITS original-builder/runtime equivalence is unproven
+## P1 — PAC production-path real-corpus validation
 
-**Priority:** P1  
-**Status:** research required
+**Status:** OPEN  
+**Tracking:** #3 / PR #99
 
-The header-driven parser, runtime grid specification, safe editing, deterministic SAT writer, spatial differential validator, and local comparison CLI are implemented.
+PR #99 adds the current-generation production-oriented structural `PAC\0` parser into the shared `ContainerDocument` path. It preserves declared slot identity and empty slots, infers extents from the next greater distinct populated offset, preserves duplicate populated offsets as separate slot identities over the same bounded span, and fails closed on malformed structure.
 
-Still required before stronger compatibility claims:
+Still required before stronger PAC compatibility claims:
 
-- compare real source 0/source 1 corpora;
-- explain original versus candidate cell ownership differences;
-- controlled room-transition, restart, and reload tests;
-- game-runtime validation manifests;
-- explicit retention of `RESEARCH REQUIRED` for Capcom offline-builder equivalence.
+- representative legal real PAC validation across multiple resource families;
+- sanitized slot/index/offset/size/hash receipts;
+- prove the structural extent policy against real corpus cases;
+- keep PAC slot index schema/container-scoped and never global semantic identity;
+- integrate/promote only through the canonical GDSpaces container path.
 
-The rejected `HITS$` and fixed record-marker model must not re-enter the project.
+PR #99 does not close PNST/NBZ/AFS, recursive expansion policy, `.lst`, source priority, write/repack/export, issue #3 as a whole, or original runtime equivalence.
 
-### B-020 — Wide Pass 33 is not promoted into reviewed product C++
+## P1 — SCM post-load conflict
 
-**Priority:** P1  
-**Status:** product-promotion-pending
+**Status:** RESEARCH REQUIRED
 
-Drive research records the `0x708` DetailedSlotPayload partition, including two six-record mode banks and the MissionResultMatrix at `+0x66C`.
+SCM remains gated until the `mesh +0x28` behavior is reconciled against representative real SCM resources and stale fixed-stride assumptions are explicitly superseded/qualified.
 
-Required:
+## P1 — Evidence authority consistency
 
-- immutable Pass 33 artifact identities and authority checks;
-- a strict Evidence Packet;
-- conservative public C++ structures with open semantic labels where required;
-- focused tests;
-- Windows/Ubuntu CI;
-- Drive/GitHub reconciliation receipt.
+**Status:** OPEN
 
-### B-021 — Recovered-source coverage remains partial
+Same-artifact-ID conflicting metadata is fail-closed in current import paths, but a stronger global normalized-SHA immutable-metadata invariant across distinct artifact IDs remains incomplete.
 
-**Priority:** P1  
-**Status:** open
+Canonical executable metadata correction in PR #92 has final green Ubuntu/Windows validation in Actions `31877266101` but must still be deliberately promoted. Current `main` at the synchronization cutoff includes PR #98, not an implied merge of #92.
 
-Recovered Source Skeleton v1.8 exists in Drive, but only selected evidence-backed modules are promoted into active product source.
+## P1 — Raw canonical artifact availability for new reverse
 
-Required:
+**Status:** OPEN WHEN NEW BYTE-LEVEL CLAIMS ARE REQUIRED
 
-- per-unit authority and artifact identity;
-- ABI, ownership, and lifetime review;
-- compile isolation;
-- behavioral comparison tests;
-- rejection or correction records for invalid recovered units.
+The tooling blocker is reduced: merged PR #98 provides generic exact expected-SHA-gated executable byte-window acquisition with deterministic receipts.
 
-### B-022 — Full behavioral validation and recompilation frontier
+The evidence blocker remains: the legal canonical raw executable must actually be locally available to acquire new windows. A receipt proves artifact/range/byte identity only and cannot turn a guessed discovery window into a full function body.
 
-**Priority:** P1 / long-term  
-**Status:** open
+Do not claim a fresh independent re-hash/disassembly when the raw executable was not actually available in that pass.
 
-The repository has strong provenance and custom-build models, but it does not yet contain a complete behaviorally equivalent DMC3 executable.
+## P1 — Reverse Core acceptance program
 
-Required milestone order:
+**Status:** OPEN
 
-1. isolate a recovered subsystem;
-2. compile it as reviewed C++;
-3. compare behavior against the canonical executable;
-4. record ABI/lifetime evidence;
-5. establish a replacement/rebinding boundary;
-6. only then claim an incremental recompilation milestone.
+Generic evidence/reconstruction/claim infrastructure is not complete until bounded subsystem reconstructions can be claimed, compiled, behaviorally compared and promoted with ValidationReceipts while parallel-agent ownership conflicts are prevented. Merged PR #98 is one infrastructure primitive, not acceptance-program completion.
 
-### B-017 — Production export and public release pipeline absent
+## P1 — Binary Inspector / EXE Editor product completion
 
-**Priority:** P2  
-**Status:** open
+**Status:** OPEN
 
-In-memory guarded copy execution and rollback are implemented. Missing:
+Strong domain foundations exist, but the complete native interaction/editor/reconstruction workflow is unfinished. Remaining work includes persistent analysis/cache, broad diagnostics/templates, complete EXE bridges, reconstruction editing, behavioral-validation integration and product UI.
 
-- production output-file export contract;
-- container repack path;
-- release artifact signing/attestation automation;
-- public binary packaging;
-- reproducible release validation.
+## P1 — ModViz / Item / HUD editor completion
 
-This remains intentionally behind container and game-backed integration work.
+**Status:** OPEN
 
-### B-018 — Complete desktop UI remains deferred
+Bounded editor slices exist. Complete scene/model/HUD workflows, representative runtime validation, deterministic export/reintegration and full product UX remain open.
 
-**Priority:** P2  
-**Status:** deferred
+## P1 / long-term — Full decompilation and recompilation
 
-Domain and shared-view contracts exist, but the complete Binary Inspector, Stage Ops, ModViz, and Item desktop interfaces are not implemented in this repository.
+**Status:** OPEN
 
-UI work must consume existing domain contracts and must not redefine resource identity, ownership, or write policy.
+No fully decompiled, behaviorally equivalent, rebuilt DMC3 executable exists today.
 
-## Documentation and backlog reconciliation
+Required progression:
 
-This documentation refresh resolves the 2026-08-02 status drift for:
+1. evidence-backed recovered unit;
+2. isolated compile;
+3. behavioral comparison;
+4. ValidationReceipt;
+5. replacement/rebinding boundary;
+6. progressive composite builds;
+7. controlled game validation;
+8. only then larger recompilation milestones.
 
-- strict Evidence import;
-- Binary Inspector fields/annotations/owner lookup;
-- integrated stage/item/workspace stack;
-- guarded copy execution and rollback;
-- source modification and custom-build lineage;
-- HITS parser/runtime/writer/comparison work;
-- PC-save Pass 31/32 promotion.
+## P2 — Production export/release/reintegration
 
-Issue #13 requires direct backlog reconciliation because its original body contains the rejected `HITS$` model.
+**Status:** OPEN
+
+Working-copy and guarded copied-output foundations exist, but complete container repack/reintegration, release artifact validation, signing/attestation, packaging and public binary release are not complete.
 
 ## Current critical path
 
 ```text
-production read-only PAC/PNST/NBZ/AFS subset
-  → legal local game-backed st001 StageBundle
-  → real stage/HITS corpus and runtime validation
-  → narrow promotion of Pass 33 and other Drive research
-  → behavior-tested recovered subsystems
-  → controlled recompilation milestones
+artifact/evidence integrity
+  -> use merged PR #98 acquisition for exact EXE windows when raw artifact is available
+  -> resource runtime lifecycle/factory/cache closure
+  -> evidence-backed recovered runtime slices + behavioral receipts
+  -> representative Stage Catalog validation
+  -> Stage Ops full domain/lifecycle bridge
+  -> validated editor/export verticals
+  -> progressive recompilation milestones
 ```
 
-Production export and complete UI remain downstream of these evidence and integration gates.
+Parallel HITS work is now explicitly split into: representative Slice-15 Stage-CFG census and Slice-16 transform-source provenance. PR #99 real-PAC corpus validation proceeds in parallel through the canonical GDSpaces path.

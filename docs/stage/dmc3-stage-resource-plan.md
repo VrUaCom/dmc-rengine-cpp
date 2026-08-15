@@ -1,32 +1,27 @@
-# DMC3 Phase 12 Stage Resource Plan
+# DMC3 Phase 12 Stage Resource Plan — Historical Compatibility Slice
 
-This layer represents confirmed stage-table metadata and the first `st001` resource plan without claiming knowledge of the complete executable pointer-table encoding.
+**Status:** historical bounded implementation / superseded as Stage architecture authority.
 
-## Stage table descriptor
+This document preserves the earlier Phase-12 Bank-A / `st001` compatibility slice. It must be interpreted through the current Stage Catalog authority and `docs/status/completion-and-evidence-policy.md`.
 
-`phase12_stage_resource_table()` records:
+## What this slice established
 
-- canonical executable SHA-256;
-- public Evidence Packet ID;
-- file offset `0x005C30A8`;
-- RVA `0x005C4AA8`;
-- VA `0x1405C4AA8`;
-- 110 rows;
-- four roles per row;
-- 440 total entries.
+The original Phase-12 implementation recorded a Bank-A-oriented descriptor view and a first four-role `st001` compatibility plan.
 
-Column order:
+It preserved:
 
-1. script;
-2. room configuration;
-3. room effects;
-4. room sound.
+- canonical executable target identity;
+- a Stage resource descriptor/table location for the then-scoped model;
+- four resource roles per descriptor:
+  1. script;
+  2. room configuration;
+  3. room effects;
+  4. room sound;
+- normalized matching through already-enumerated GDSpaces `ResourceRef` values;
+- missing/ambiguous diagnostics;
+- no independent file/archive/source resolver in Stage matching.
 
-The descriptor validates its artifact hash against the profile-specific known executable target and checks the VA/ImageBase/RVA relationship.
-
-## `st001` plan
-
-`phase12_st001_resource_plan()` records the confirmed first target paths in normalized public form:
+The historical `st001` compatibility paths were:
 
 ```text
 scr/st001.pac
@@ -35,64 +30,72 @@ room/st001_effect.pac
 se/snd_r001.pac
 ```
 
-The plan links to evidence record `ev-dmc3-stage-resource-table`.
+They remain useful regression data only.
 
-## Matching model
+## Current Stage authority superseding the architectural scope
 
-`StageResourceMatcher` consumes:
+Later Wave-2 executable evidence expanded the model to:
 
-- a typed row plan;
-- a span of already enumerated `ResourceRef` values.
+- Bank A: 110 observed descriptors;
+- Bank B: 79 observed descriptors;
+- **189 observed descriptors total**;
+- descriptor stride `0x40`;
+- four role cells per descriptor;
+- separate **193-entry selector space**;
+- separate **10-pointer group-base table**;
+- numeric Stage resolution through `stageId / 100` and `stageId % 100` group/selector indirection.
 
-It does not:
+Therefore:
 
-- open files;
-- scan folders;
-- parse NBZ/AFS/PAC;
-- read the executable;
-- create an independent resolver.
+> `st001` is not the architectural Stage target and 189 descriptors are not automatically 189 gameplay stages.
 
-Matching normalizes:
+Keep these identities separate:
 
-- ASCII case;
-- `\` and `/` separators;
-- repeated separators;
-- leading `./` or `/`;
-- optional source-root prefixes.
+1. `resource_set_id / catalog_entry_id`;
+2. `numeric_stage_id`;
+3. semantic/gameplay Stage/room/variant identity only when independently evidenced.
 
-## Diagnostics
+Do not derive the catalog from `stNNN` filename templates.
 
-- zero matches for a role → warning `dmc3.stage.resource_missing`;
-- more than one match → error `dmc3.stage.resource_ambiguous`;
-- invalid plan → error `dmc3.stage.invalid_resource_plan`.
+## Matching model that remains valid
 
-Only roles with exactly one match become `StageMemberCandidate` values.
+A Stage resource matcher may consume:
 
-## Stage categories
+- an evidence-backed selected descriptor/resource plan;
+- already enumerated/resolved GDSpaces resource identities.
 
-- script → scripts;
-- room config → unknown until nested evidence/classification resolves it;
-- room effects → effects;
-- room sound → sounds.
+It must not:
 
-The room configuration PAC is intentionally not overclassified. Its child resources will later provide cameras, lighting, collision, events, positions, and unknown categories through container expansion.
+- open files independently;
+- scan directories as a second resolver;
+- parse/mount archives to discover its own resources;
+- invent semantic Stage identity from filenames.
 
-## Current completion boundary
+Normalization/matching is a product lookup helper, not Stage authority.
 
-Implemented and tested:
+## Current pipeline
 
-- descriptor;
-- fixed `st001` row plan;
-- matching and ambiguity diagnostics;
-- conversion to unique candidates;
-- `StageBundleAssembler` integration using synthetic `ResourceRef` inputs.
+```text
+canonical executable Stage descriptor + selector authority
+  -> selected catalog/resource-set identity
+  -> exact four descriptor-role references
+  -> GDSpaces resolution/materialization/provenance/container expansion
+  -> StageBundle / runtime load report
+  -> Stage Ops StageAssemblyWorkspace
+  -> Semantic Graph / ModViz projections
+```
 
-Not yet implemented:
+Recovered original-game typed post-load/factory/cache/lifetime behavior remains a separate Recovered Game Source Tree bridge. Product materialization is not automatically game-ready/state-3 equivalence.
 
-- parsing the real executable table/pointers;
-- resolving the four parents from a user game installation;
-- PAC/PNST/AFS/NBZ production parsers;
-- nested child expansion for actual `st001` data;
-- game-backed integration test.
+## Completion boundary
 
-This distinction prevents documented historical addresses from being misrepresented as a finished runtime parser.
+This historical document must **not** be used to claim:
+
+- a complete Stage universe;
+- `st001` as the Stage exit gate;
+- complete game-backed Stage semantics;
+- complete resource runtime lifecycle;
+- Stage Ops completion;
+- original-game state-3 equivalence.
+
+Current Stage completion/validation is tracked by issue #4, issue #55, issue #90 and the active Stage/GDSpaces/Stage Ops implementation stacks.

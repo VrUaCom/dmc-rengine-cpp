@@ -1,280 +1,317 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-05  
-**Snapshot base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`
+**Snapshot date:** 2026-08-15  
+**Synchronization cutoff:** after merge PR #98 and creation of PR #99  
+**Primary policy:** `completion-and-evidence-policy.md`
 
-## R-001 — Second resolver regression
+## R-001 — Completion inflation
 
 **Severity:** critical
 
-A subsystem may reintroduce direct path or container loading for convenience.
+A bounded implemented/tested/EXE-confirmed slice may be described as a complete subsystem.
+
+Examples of invalid promotion:
+
+- green CI -> original-game equivalence;
+- compiled recovered C++ -> original Capcom source;
+- StageBundle materialization -> vanilla state-3/game-ready object;
+- closed wrapper ABI -> whole collision system complete;
+- deterministic DMC Rengine writer -> Capcom offline-builder equivalence;
+- merged acquisition primitive -> Reverse Core or decompilation completion;
+- structural PAC parser -> full PAC/runtime compatibility.
 
 Mitigation:
 
-- public tool contracts accept `ResourceRef`, `ResourcePayload`, shared workspaces, or typed bundles;
-- parsers consume supplied byte spans rather than opening paths;
-- architecture tests and review checklist;
-- no filesystem handles in editor identity;
-- GDSpaces-backed CLI loading;
-- no tool-specific archive mount path.
+- mandatory completion policy;
+- separate bounded-slice status from subsystem status;
+- require representative behavioral ValidationReceipts before equivalence claims;
+- keep unresolved lifecycle/ownership/semantic gaps explicit.
 
-## R-002 — Historical claim inflation
+## R-002 — Stale evidence/status surfaces
+
+**Severity:** critical
+
+Issue bodies, historical pass documents, `main`, active stacked PRs and Drive research can disagree within hours.
+
+Observed examples:
+
+- older HITS Pass-8/Pass-9 coordination text listed top-level `0x14005E7A0/B460/FEC0/601E0` questions as wholly open after later PR #85 bounded closure/reclassification;
+- the first 2026-08-15 synchronization stopped at HITS Slice 12, then #96/#97 advanced the frontier to validated Slice 15 / active Slice 16;
+- PR #98 merged after the first status pass, changing `main` to `25bd70092503cc6ca3be51f05582dcd33af1523d`;
+- PR #99 appeared after that pass, reopening resource-status drift around the current-generation PAC parser.
+
+Mitigation:
+
+- record an explicit synchronization cutoff and exact `main` SHA;
+- maintain one current status snapshot and machine-readable status;
+- add supersession/correction notices instead of erasing history;
+- update canonical coordination issue/PR bodies when current-target lists change;
+- create a synchronization receipt after material status changes;
+- never treat historical pass documents as latest authority by date-independent reading.
+
+## R-003 — Second resolver / duplicated authority
+
+**Severity:** critical
+
+Stage Ops, ModViz, Semantic Graph, Binary Inspector, HITS tooling or another tool may resolve resources independently for convenience.
+
+Mitigation:
+
+- GDSpaces remains the only product resource resolver/materializer;
+- PR #99 PAC work feeds the shared `ContainerDocument` path rather than a private HITS parser;
+- consumers receive stable resource identities, payloads, Stage Ops state or typed projections;
+- recovered original runtime behavior remains in recovered-game, not product tools.
+
+## R-004 — Ownership collapse
 
 **Severity:** high
 
-Old research summaries or recovered source may be interpreted as implemented, fully confirmed, or original Capcom source.
+Recovered DMC3 runtime code may be moved into GDSpaces/Stage Ops/ModViz, or Semantic Graph may become scene assembly authority.
 
 Mitigation:
 
-- GitHub `main` is implementation truth;
-- Drive is newer research input;
-- explicit confidence and implementation states;
-- Evidence Packets tied to artifact hashes and locations;
-- corrections and rejected models remain visible;
-- recovered C++ is described as independent evidence-backed reconstruction.
+- GDSpaces: resource authority;
+- Recovered Game Source Tree: original runtime reconstruction;
+- Reverse Core: generic evidence/reconstruction infrastructure;
+- Stage Ops: product-side scene assembly/operations authority;
+- Semantic Graph: derived semantic/evidence representation;
+- ModViz: editor consumer;
+- Binary Inspector/EXE Editor: inspection/reconstruction tooling.
 
-## R-003 — Parser vulnerabilities
+Ownership wording must not use `complete` as a synonym for scope ownership.
+
+## R-005 — Stage identity collapse
 
 **Severity:** high
 
-Malformed binary or JSON inputs may trigger out-of-bounds reads, integer overflows, path traversal, excessive allocation, recursion abuse, or inconsistent partial state.
+`st001`, `stNNN` filenames, descriptor rows, numeric selectors and semantic gameplay stages may be conflated.
 
 Mitigation:
 
-- bounded binary reader;
-- checked arithmetic and ranges;
-- root-containment guards;
-- strict JSON size/depth/count limits;
-- deterministic diagnostics;
-- synthetic malformed corpora;
-- fuzzing after production parser interfaces stabilize.
+- keep resource-set/catalog, numeric selector and semantic gameplay identities separate;
+- treat `st001` only as regression/compatibility data;
+- never infer gameplay semantics from filename patterns;
+- never equate 189 observed descriptors with 189 gameplay stages.
 
-## R-004 — Premature production write support
+## R-006 — Decompiled-code false confidence
 
 **Severity:** high
 
-Adding archive or executable write-back before production source, validation, export, backup, and rollback contracts stabilize may corrupt user files.
+Readable recovered C++ can hide incorrect ABI, ownership, lifetime, side effects or incomplete behavior.
 
 Mitigation:
 
-- immutable source payloads;
-- revisioned working copies;
-- copied-output execution only in the current patch path;
-- exact source hash and expected-byte guards;
-- verified rollback before accepting a copied output;
-- no archive writer accepted without an evidence-backed specification and game validation.
-
-## R-005 — Decompiled-code false confidence
-
-**Severity:** high
-
-Readable recovered C++ may hide wrong ABI, types, ownership, lifetimes, side effects, or behavior.
-
-Mitigation:
-
-- promote recovered units incrementally rather than bulk-importing snapshots;
-- source units reference Evidence records and artifact identities;
-- ABI, ownership, and lifetime assumptions remain explicit;
-- compile isolation and behavioral comparison tests;
+- evidence-linked recovered identities;
+- status per unit: direct reconstructed / corpus-pending / executable candidate / research required;
+- compile isolation;
+- controlled behavioral comparison;
 - correction/rejection history;
-- no recompilation milestone without runtime evidence.
+- no subsystem equivalence claim without ValidationReceipt.
 
-## R-006 — Public repository content contamination
+## R-007 — Synthetic-test overclaim
 
 **Severity:** high
 
-Contributors may accidentally commit game binaries, extracted assets, saves, executable bytes, or leaked source.
+Synthetic tests validate implementation contracts but may be mistaken for real-game compatibility.
+
+Current examples include PR #99 PAC structural tests and Slice-15 census-tool regressions: both can be green while real corpus gates remain open.
 
 Mitigation:
 
-- `.gitignore` exclusions;
-- clean-room and repository policies;
+- label synthetic CI separately from corpus/game validation;
+- require representative real-resource receipts where compatibility is claimed;
+- require runtime observations for lifecycle/gameplay equivalence.
+
+## R-008 — Raw-artifact absence hidden by acquisition tooling
+
+**Severity:** high
+
+Merged PR #98 makes exact executable-window acquisition available, but a pass may still appear to perform new byte-level reverse when the legal canonical raw executable is not actually mounted.
+
+A deterministic acquisition receipt proves only artifact/range/byte identity. It does not prove that a discovery window is a full function body or establish ABI/semantics.
+
+Mitigation:
+
+- record whether raw canonical `dmc3.exe`/resource bytes were actually mounted;
+- distinguish fresh direct re-measurement from project-evidence confirmation;
+- require exact expected-SHA-gated acquisition or sanitized disassembly/xref packets for genuinely new byte-level claims;
+- distinguish known-body verification windows from probe/discovery windows;
+- never invent a function size/hash for `0x1400594B0` before direct evidence supplies it.
+
+## R-009 — HITS wrapper closure extrapolated to collision completion
+
+**Severity:** high
+
+Later Pass-10 closure of top-level wrapper contracts may be interpreted as complete collision reconstruction.
+
+Mitigation:
+
+- keep Slice-15 real-corpus census, Slice-16 transform provider/bounds/lifecycle, deeper primitive producers/helpers, source2 backing/lifetime, remaining component semantics and runtime comparison explicitly open;
+- preserve `BOUNDED CLOSED` for wrapper targets rather than `COMPLETE` for the subsystem.
+
+## R-010 — HITS original-builder overclaim
+
+**Severity:** high
+
+The deterministic DMC Rengine HITS writer may be presented as Capcom's original builder.
+
+Mitigation:
+
+- call it a DMC Rengine deterministic writer;
+- preserve original-builder equivalence as `NOT PROVEN`;
+- require real corpus differential evidence and controlled game-runtime validation.
+
+## R-011 — Rejected HITS model regression
+
+**Severity:** high
+
+Stale documents may reintroduce `HITS$`, `0x18060001` as a universal record marker, E7A0 metric/tie-break arbitration, runtime `+0x20` as primitive descriptor, or Stage-CFG abstract-inner-blob interpretations.
+
+Mitigation:
+
+- current classifier/format authority uses four-byte `HITS` and header-driven structure;
+- raw flag values remain raw unless separately evidenced;
+- correction/supersession records remain visible;
+- `runtime+0x118` descriptor and `runtime+0x20` transform remain separate;
+- Stage-CFG slot39/40 and legacy 22/23 table provenance remains explicit.
+
+## R-012 — Resource materialization promoted to game-ready
+
+**Severity:** critical
+
+Product bytes/container expansion may be mistaken for original DMC3 state-3 runtime objects.
+
+Mitigation:
+
+- keep materialized vs typed-postload vs factory/consumer/cache/lifetime states distinct;
+- `game_ready_equivalent=false` until recovered-runtime evidence and validation close the boundary.
+
+## R-013 — Executable identity drift
+
+**Severity:** high
+
+One SHA may be paired with inconsistent sizes/metadata, or canonical VAs may be applied to a different build.
+
+Mitigation:
+
+- exact SHA-256, size and PE trust boundary;
+- PR #92 correction for the stale `3,735,552` size paired with canonical `e454...` SHA;
+- PR #92 final branch CI `31877266101` does not imply it is merged to current `main`;
+- PR #98 requires an explicit expected SHA for acquisition;
+- fail-closed artifact identity checks;
+- future global normalized-SHA immutable-metadata invariant across distinct artifact IDs.
+
+## R-014 — Premature production writes
+
+**Severity:** high
+
+Archive/EXE writes may be added before validation, export, backup, rollback and reintegration semantics stabilize.
+
+Mitigation:
+
+- immutable sources;
+- WorkingCopy first;
+- guarded expected-byte/hash checks;
+- copied-output validation;
+- no direct original-file writes by default;
+- writer/repack claims require evidence and game validation;
+- PR #99 remains read-only structural parsing only.
+
+## R-015 — Public repository contamination
+
+**Severity:** high
+
+Proprietary executable/resource/save bytes may be committed.
+
+Mitigation:
+
 - synthetic public fixtures;
-- user-supplied legal local files only;
-- PR and issue confirmations;
-- future artifact scanning in CI;
-- immediate removal procedure.
+- sanitized Evidence Packets;
+- legal user-supplied local files only;
+- PR #98 raw hex is explicit local-only mode and must not be committed;
+- clean-room policy and review.
 
-## R-007 — Architecture monolith
-
-**Severity:** medium
-
-GDSpaces or Project Workspace could become oversized because they coordinate broad resource and provenance responsibilities.
-
-Mitigation:
-
-- modular internal services for sources, identity, classification, containers, graph, routing, diagnostics, working copies, events, and manifests;
-- small typed public contracts;
-- domain services remain independent consumers;
-- no UI-specific state in core resource services.
-
-## R-008 — UI drives domain design
-
-**Severity:** medium
-
-Visual workflows may redefine resource identity, ownership, write policy, or project state around widgets.
-
-Mitigation:
-
-- domain APIs and CLI vertical slices precede complete GUI implementation;
-- Stage Ops and ModViz consume shared Stage Workspace state;
-- Binary Inspector UI must consume the existing document model;
-- Item UI produces runtime requests rather than direct patches.
-
-## R-009 — AI-generated churn
-
-**Severity:** medium
-
-High-volume generated code or documentation may create duplicated abstractions, stale claims, unsupported names, or accidental scope expansion.
-
-Mitigation:
-
-- generate → triage → test → correct → review → Canon;
-- narrow branches and PRs;
-- explicit non-goals and evidence boundaries;
-- machine-readable status and deterministic manifests;
-- human review before promotion.
-
-## R-010 — GitHub/Drive/status drift
+## R-016 — AI/parallel-agent drift
 
 **Severity:** high
 
-GitHub code, GitHub status documents, Drive research, recovered-source snapshots, issues, and implementation receipts may diverge.
-
-Observed example:
-
-- the 2026-08-02 status snapshot still described strict Evidence import and Binary Inspector fields as open after those systems were implemented;
-- Drive advanced to Wide Pass 33 while GitHub product code remained reviewed through Pass 32;
-- issue #13 retained the rejected `HITS$` model after the canonical HITS architecture was merged.
+Parallel agents may create duplicate models, race on the same function/type/file, or promote consensus as evidence.
 
 Mitigation:
 
-- GitHub `main` is product implementation truth;
-- Drive is newest research truth;
-- explicit `research-ready` versus `product-promotion-pending` states;
-- status refresh after significant merges;
-- Drive/GitHub implementation receipts;
-- issue reconciliation when a model is corrected;
-- append-only decision and correction records.
+- Reverse Core task claims/ownership coordination;
+- narrow PR scopes;
+- one authority per function/type/resource domain;
+- agent consensus is never evidence;
+- review -> evidence reconciliation -> promotion.
 
-## R-011 — Scope dispersion
-
-**Severity:** medium
-
-Simultaneous work on containers, stages, EXE recovery, HITS, Item, ModViz, UI, save semantics, and recompilation may prevent game-backed vertical completion.
-
-Mitigation:
-
-- prioritize production container read path and one game-backed `st001` slice;
-- require demonstrable vertical results;
-- keep research promotion narrow;
-- avoid bulk source-tree migration;
-- maintain explicit critical path and exit gates.
-
-## R-012 — HITS compatibility overclaim
-
-**Severity:** high
-
-A structurally valid DMC Rengine SAT writer may be presented as equivalent to Capcom's unknown offline builder.
-
-Mitigation:
-
-- label the writer as a DMC Rengine deterministic policy;
-- retain `RESEARCH REQUIRED` for original-builder equivalence;
-- compare real corpus spatial ownership;
-- emit exact/missing/extra cell and surface reports;
-- perform controlled game-runtime, transition, restart, and reload tests;
-- separate structural validity from game verification.
-
-## R-013 — Rejected HITS model regression
-
-**Severity:** high
-
-Stale documents or issues may reintroduce `HITS$`, `0x18060001` as a universal marker, or the false AABB interpretation.
-
-Mitigation:
-
-- canonical parser uses `HITS` header-driven topology;
-- records are raw flags plus triangle A/B/C, normal, and plane D;
-- issue #13 must be reconciled;
-- tests and docs preserve corrected assumptions;
-- no parallel HITS parser or resolver.
-
-## R-014 — Executable-build mismatch
-
-**Severity:** high
-
-Canonical VAs or expected bytes may be applied to a different executable build.
-
-Mitigation:
-
-- exact executable SHA-256 and size;
-- parsed PE metadata checks;
-- evidence locations scoped to artifact identity;
-- expected-byte guards;
-- explicit excluded-build records;
-- no automatic rebasing or cross-build patch claim.
-
-## R-015 — Generic container foundation overclaim
+## R-017 — UI-first architecture regression
 
 **Severity:** medium to high
 
-Synthetic generic container contracts may be mistaken for completed production PAC/PNST/NBZ/AFS compatibility.
+Editor convenience may redefine resource identity, mutable state, scene ownership or write policy.
 
 Mitigation:
 
-- status distinguishes generic foundation from production source implementations;
-- issue #3 remains open;
-- real format support requires evidence-bounded parsers and sanitized local reports;
-- no writer/repack claim before read paths stabilize.
+- domain/runtime contracts precede GUI work;
+- UI consumes Stage Ops/WorkingCopy/Binary Document/reconstruction identities;
+- no UI-local resource or scene model.
 
-## R-016 — Recovered-source bulk import
+## R-018 — Scope dispersion
 
 **Severity:** high
 
-Importing Recovered Source Skeleton snapshots wholesale may place stale, speculative, uncompilable, or ABI-incorrect units into active product source.
+Many partially advanced systems can create the appearance of progress while no end-to-end vertical reaches behavioral validation.
 
 Mitigation:
 
-- treat snapshots as research inputs;
-- hash and identify immutable source packages;
-- promote one subsystem at a time;
-- require Evidence Packets, code review, tests, CI, and provenance receipts;
-- preserve unpromoted units outside the product authority tree.
+- prioritize evidence-backed vertical receipts;
+- run the current three concrete evidence-heavy tracks without broadening them: HITS Slice 16 transform provenance, HITS Slice-15 representative census, PR #99 real-PAC corpus validation;
+- use explicit completion gates;
+- finish bounded validation loops before broadening UI/features;
+- track the project-wide `no major subsystem complete` state until a real exit gate is met.
 
-## R-017 — Recursive source discovery hides accidental production inclusion
+## R-019 — Full recompilation claim too early
 
-**Severity:** medium
+**Severity:** critical
 
-Recursive CMake source globbing simplifies integration but may silently compile newly added `.cpp` files.
-
-Mitigation:
-
-- review changed-file lists in every PR;
-- require test registration and explicit module documentation;
-- consider moving mature subsystems to explicit target source lists when repository scale makes accidental inclusion harder to audit.
-
-## R-018 — Incomplete release and distribution boundary
-
-**Severity:** medium
-
-Custom-build identity and in-memory patch execution may be mistaken for a finished public build/release system.
+Source/build lineage and EXE acquisition infrastructure may be confused with a behaviorally equivalent rebuilt DMC3 executable.
 
 Mitigation:
 
-- distinguish architecture/model from produced artifacts;
-- no release claim without deterministic output, package validation, signing/attestation, rollback, and runtime testing;
-- keep public binary release explicitly incomplete.
+- progressive subsystem reconstruction;
+- isolated compile;
+- behavioral receipt;
+- rebinding/replacement boundary;
+- composite build validation;
+- no full recompilation claim before all required gates are actually satisfied.
 
-## R-019 — Trademark and community confusion
+## R-020 — PAC slot-number semantic globalization
 
-**Severity:** low to medium
+**Severity:** critical for resource/HITS integration
 
-Lore or naming may imply affiliation, a real religious group, leaked source, or a completed engine replacement.
+Matching PAC slot numbers across unrelated PAC resources may be treated as globally equivalent schemas. Slice 13 already has a negative control showing that the same slot numbers can represent different structures in another PAC family.
 
 Mitigation:
 
-- explicit fictional-brand and non-affiliation statements;
-- accurate completion language;
-- independent-research wording;
-- no representation of recovered units as original Capcom source.
+- PAC slot index is physical/container-scoped identity only;
+- semantic roles require resource/schema evidence;
+- PR #99 structural parser must not infer Stage/HITS/model/texture/audio semantics;
+- Stage-CFG 39/40 and legacy 22/23 meaning is profile/evidence-specific, not generic PAC behavior;
+- representative multi-family corpus validation before broader promotion.
+
+## R-021 — Stage-CFG slot38 transform overclaim
+
+**Severity:** critical for HITS Slice 16
+
+Because slot38 is adjacent to the proven Stage-CFG entry/descriptor tables and because a separate serialized collision sample has a `0x40` transform span, an implementation may incorrectly wire Stage-CFG slot38 as the C740-style transform table.
+
+Current evidence does not support that conclusion. Slot38 is consumed by `0x1400594B0` and has its own relative-offset structure.
+
+Mitigation:
+
+- `transform_selector_bounds_available() == false` remains a hard gate;
+- no slot38 transform parser;
+- no Stage-CFG three-table adapter;
+- recover full `0x1400594B0` body/callers/slot38 dataflow;
+- close exact C8D0 stack-arg5 producer/base/object/bounds/count/lifecycle before promotion.

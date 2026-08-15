@@ -1,269 +1,217 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-05  
-**Snapshot base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`
+**Snapshot date:** 2026-08-15  
+**Synchronization cutoff:** after merge PR #98 and creation of PR #99  
+**Policy:** phase gates describe bounded maturity; they do not imply that the containing major subsystem or the whole project is complete.
 
-The phases describe the natural evolution of the current C++ repository. They do not redefine the project or force work into the closed-source DMC Rengine product roadmap.
+Read `completion-and-evidence-policy.md` first.
 
 ## Phase 0 — Public C++ foundation
 
-**Status:** complete / maintained
+**Status:** foundation gate satisfied / maintained, project still incomplete.
 
 Implemented:
 
-- public repository, MIT license, governance, security, support, and clean-room policy;
-- C++20/CMake core library and CLI;
+- C++20/CMake core and CLI;
 - Windows/Ubuntu CI;
-- presets, warning policy, formatting, and test invariants;
-- Constitution, SDD specifications, ADRs, architecture, history, brand, and Canon documents.
+- governance, security, clean-room policy;
+- evidence/status vocabulary;
+- repository and build foundations.
 
-Exit gate: satisfied. The foundation must remain green as later systems evolve.
+This is a bounded platform-foundation gate only.
 
 ## Phase 1 — Evidence and resource contracts
 
-**Status:** complete at foundation level / expanding by subsystem
+**Status:** foundation gate satisfied / expanding.
 
-Implemented:
+Implemented foundation includes artifact identity, Evidence records/packets, strict import/export, `ResourceId`/`ResourceRef`/`ResourcePayload`, diagnostics, source registry, graph and routing contracts.
 
-- artifact SHA-256 identity;
-- confidence model;
-- Evidence records, locations, registry, tags, and supersession;
-- versioned Evidence Packets;
-- deterministic export and strict untrusted import;
-- `ResourceId`, `ResourceRef`, `ResourcePayload`;
-- diagnostics, source registry, classifier, graph, router, and typed bundles;
-- public packets for selected executable, Item, and save findings.
-
-Remaining work belongs to subsystem-specific evidence promotion, not the base contract.
-
-Exit gate: satisfied for versioned schemas and stable public APIs.
+Still open at project level: global content-addressed evidence consistency, broader reverse coverage, subsystem receipts and lifecycle-backed promotion.
 
 ## Phase 2 — Read-only platform and EXE inspection
 
-**Status:** substantially implemented
+**Status:** substantial partial implementation.
 
-Implemented:
+Implemented includes bounded readers, PE32/PE32+ parsing, offset/RVA/VA conversion, target recognition and executable evidence/workspace contracts.
 
-- bounded binary reader;
-- generic PE32/PE32+ parser;
-- section and header models;
-- checked file offset/RVA/VA conversion;
-- hash-gated target metadata;
-- Evidence Address Resolver;
-- executable workspace manifests;
-- EXE reopen lineage by SHA-256;
-- synthetic malformed PE fixtures and CLI inspection.
+Merged PR #98 adds a production generic exact expected-SHA-gated executable byte-window acquisition primitive through the canonical source path. It validates PE VA/RVA/file-backed mapping across the entire requested interval, fails closed on ambiguous/virtual-only/raw-only/boundary-crossing mappings, produces deterministic metadata receipts, and exposes raw hex only in explicit local mode.
 
-Still open:
+PR #98 closes a tooling/acquisition responsibility only. Its receipt proves artifact/range/byte identity, not function boundaries, ABI, semantics or behavioral equivalence.
 
-- broad recovered function/type database;
-- full decompilation coverage;
-- behavior-tested recovered subsystems.
+Still open: broad function/type recovery, complete EXE Editor workflows, full decompilation and behavior-tested reconstructed subsystems.
 
-Exit gate for safe user-supplied executable inspection: satisfied.
+## Phase 3 — Production resource/container runtime
 
-## Phase 3 — Container and format foundation
+**Status:** active / not complete.
 
-**Status:** active
+Implemented across active stacks includes generic containers, production-oriented source/provenance work, NBZ ZIP indexing/materialization slices, path normalization, source lookup, runtime resolver composition and recursive expansion.
 
-Implemented:
+PR #99 adds the current-generation production-oriented structural `PAC\0` decoder into the shared `ContainerDocument` path:
 
-- generic container document/entry/result contracts;
-- parser registry consuming byte spans only;
-- stable child and slot identity;
+- exact declared slot space;
 - empty-slot preservation;
-- fallback names and diagnostics;
-- GDSpaces child exposure and graph edges;
-- child magic reclassification;
-- synthetic legal container fixtures.
+- absolute populated PAC offsets;
+- next-greater-distinct-offset bounded extent inference;
+- duplicate populated offsets preserved as separate slot identities without semantic alias inference;
+- fail-closed malformed/truncated/out-of-range handling.
 
-Still open:
+PR #99 remains branch-scoped and real-corpus-gated. It is not full PAC compatibility and does not close issue #3.
 
-- production evidence-bounded PAC/PNST parser subset;
-- NBZ/AFS source contracts and nested exposure;
-- `.index` metadata linking;
-- real sanitized corpus reports;
-- production writer/repack support.
+Still required for DMC3 runtime equivalence:
 
-Exit gate: one production read-only archive path must expose nested resources through GDSpaces without tool-local loading.
+- representative multi-family real-PAC validation for #99;
+- complete PAC/PNST/NBZ/AFS evidence-bounded behavior in the promoted current path;
+- complete request/source/fallback semantics;
+- `.lst` grammar/recursion/ownership behavior;
+- typed post-load/factory/cache/lifetime/unload closure;
+- representative game-backed ValidationReceipts;
+- write/repack/export only after evidence and safety gates.
 
-## Phase 4 — Stage identity and StageBundle
+## Phase 4 — Stage Catalog and identity
 
-**Status:** active / model and workspace implemented
+**Status:** strong partial reverse/implementation / not complete.
 
-Implemented:
+Current Wave-2 authority:
 
-- confirmed 110 × 4 stage-table descriptor;
-- stage identity and four canonical resource roles;
-- `st001` resource plan;
-- path normalization and deterministic resource matching;
-- typed `StageBundleAssembler`;
-- `DMC3StageWorkspaceBuilder`;
-- shared Stage Workspace and deterministic manifests;
-- partial-failure and ambiguity diagnostics.
+- Bank A: 110 observed descriptors;
+- Bank B: 79 observed descriptors;
+- 189 observed descriptors total;
+- 193 selector entries;
+- 10 group-base pointers;
+- numeric `stageId / 100` and `% 100` selector/group indirection.
 
-Still open:
+Identity axes remain separate: resource-set/catalog identity, numeric Stage identity, and separately evidenced semantic/gameplay identity.
 
-- resolve a complete `st001` bundle from legally supplied game files through production container sources;
-- record deterministic game-backed local reports;
-- prove all consumers reuse one canonical resource identity.
+`st001` is a regression fixture, not the architectural stage target.
 
-Exit gate: Stage Ops consumes one complete game-backed typed bundle without resolving files independently.
+Exit still requires representative Bank-A/Bank-B/shared/alias/partial validation plus lifecycle linkage and semantic evidence where claimed.
 
-## Phase 5 — Binary Inspector core
+## Phase 5 — Binary Inspector
 
-**Status:** substantially implemented at domain level
+**Status:** substantial domain implementation / not complete.
 
-Implemented:
+Implemented: regions, fields, ownership, annotations, evidence links, selection, coverage/conflicts, diff, entropy, manifests and format adapters.
 
-- structural regions and typed fields;
-- parent-child structures;
-- ownership claims;
-- annotations and evidence links;
-- owner/field/annotation selection lookup;
-- coverage, unknown gaps, structural conflicts, and ownership conflicts;
-- deterministic manifest export;
-- format adapters including HITS.
+Still open: persistent cache, broader diagnostics/templates/unknown analysis, complete EXE/patch bridges and final native interaction/UI.
 
-Still open:
+## Phase 6 — Working copy, guarded modification and source/build lineage
 
-- complete desktop hex UI;
-- interactive diff and entropy views;
-- broader format schemas and EXE navigation UI.
+**Status:** bounded safety foundations implemented / full production flow not complete.
 
-Exit gate for shared resource/evidence/ownership domain: satisfied. UI completion remains separate.
+Implemented: immutable source + revisioned WorkingCopy, expected-byte guards, guarded patch plans, copied-output execution, rollback, provenance, source modification packages and custom-build lineage models.
 
-## Phase 6 — Working copy, guarded patching, and source integration
+Still open: complete production output/reintegration, container repack, full editor export and release validation.
 
-**Status:** substantially implemented / production export pending
+## Phase 7 — Recovered Game Source Tree
 
-Implemented:
+**Status:** selected executable slices implemented/tested / not complete.
 
-- immutable source payload and revisioned `WorkingCopy`;
-- expected-byte operations, history, reset, and undo;
-- guarded patch plans with source hash, range, expected-byte, and overlap validation;
-- evidence-gated patch compiler;
-- in-memory copied-output execution;
-- output SHA-256 and verified rollback;
-- deterministic manifests and Project Graph provenance;
-- `SourceModificationPackage` and `IntegrationProject`;
-- dependency/conflict analysis;
-- `CustomBuildIdentity`, `CustomBuildRecord`, source-to-binary mappings, and EXE reopen lineage.
+Selected recovered units compile and run deterministic tests in active branches. Evidence levels differ per unit: direct reconstructed, disassembly-complete/corpus-pending, executable candidate, or research required.
 
-Still open:
+Still open: broad ABI/body coverage, ownership/lifetime closure, controlled original-vs-reconstruction behavioral comparisons and subsystem ValidationReceipts.
 
-- production output-file export contract;
-- container repack integration;
-- reproducible signed public releases;
-- an actual rebuilt DMC3 executable.
+## Phase 8 — Stage Ops / Semantic Graph
 
-Exit gate for safe in-memory guarded modification and provenance: satisfied. Production export gate remains open.
+**Status:** substantial branch-scoped implementation / not complete.
 
-## Phase 7 — Stage Ops and format-system integration
+PR #91 implements Stage assembly/operations, shared WorkingCopy/parser lineage, domain projections, Semantic Graph projection and ModViz projection.
 
-**Status:** active / substantial modules implemented
+Final current-head branch receipt: `b0994436457a7ae26e3083a4a13461f50db6e76d`, Actions `31877176748`, Ubuntu 106/106 and Windows 106/106.
 
-Implemented C++ modules and tests include:
+Still open: complete domain assembly, recovered runtime factory/lifecycle bridges, representative catalog validation, vanilla-ready equivalence and deliberate promotion.
 
-- canonical HITS parser/runtime/safe-edit/writer/comparison stack;
-- DCA;
-- LIG2;
-- Stage TXT;
-- resource analysis;
-- Stage Workspace builder and shared Stage Ops/ModViz views.
+Semantic Graph remains a derived representation, not scene assembly authority.
 
-HITS has advanced beyond a parser into a tested vertical slice, but Capcom offline-builder equivalence remains unproven.
+## Phase 9 — ModViz and editors
 
-Still open:
+**Status:** partial / not complete.
 
-- game-backed stage integration across production archive sources;
-- complete format editors and desktop Stage Ops workspace;
-- CAM and broader effect/model/collision links;
-- runtime and restart/reload validation.
+Editor integration slices and shared projections exist. Complete scene/model/HUD workflows, validated runtime behavior, deterministic export and broad UX remain open.
 
-Exit gate: selected stage formats operate end-to-end through GDSpaces, shared workspace state, working copies, validation, and guarded export.
+## Phase 10 — HITS/collision reconstruction
 
-## Phase 8 — ModViz
+**Status:** strong bounded reverse/implementation / not complete.
 
-**Status:** architecture and shared-view contracts implemented; complete UI pending
+Implemented/validated slices include HITS format structure, spatial reconstruction, deterministic DMC Rengine writer, source0/source1 ownership and multiple EXE-backed runtime contracts.
 
-Implemented foundation:
+Pass-10 correction: the older statement that `0x14005E7A0`, `0x14005B460`, `0x14005FEC0` and `0x1400601E0` remain a wholly open top-level P0 set is superseded by PR #85 bounded closures/reclassification.
 
-- shared Stage Workspace consumption;
-- shared Stage Ops/ModViz tool views;
-- tool and capability registry;
-- resource/evidence provenance contracts.
+Validated evidence progression now includes:
 
-Planned product areas:
+- Slice 7 shape-layer mappings;
+- Slice 8 common contact normal;
+- Slice 9 primitive-descriptor ownership;
+- Slice 10 runtime type0/type1 structural semantics;
+- Slice 12 Stage-CFG PAC provenance;
+- Slice 13 serialized `0x40 / 0x04 / 0x50` collision-triplet view;
+- Slice 14 Stage-CFG entry/primitive-descriptor view with transform bounds intentionally unavailable;
+- Slice 15 referenced Stage-CFG descriptor census tooling.
 
-- Scene/Model Editor;
-- Menu/HUD Editor;
-- hierarchy and properties;
-- viewport/rendering layer;
-- HUD digit/icon workflows;
-- visual HITS and stage editing;
-- source/evidence panels.
+### Latest validated slice: Slice 15 / PR #96
 
-Exit gate: first visual edit travels through the existing working-copy, validation, and export contracts without adding a second resolver.
+**Status:** bounded-complete implementation/evidence-tooling gate.
 
-## Phase 9 — EXE source recovery
+Final evidence/documentation head `a4be42d5ea73c9e120febd8a9b1b0654d5858dbc`, Actions `31886670409`, Ubuntu + Windows success.
 
-**Status:** active long-term research with selected product promotions
+Real-corpus referenced-descriptor census remains an open data gate. No real type-5 presence/absence claim is permitted until representative Stage-CFG resources are actually censused.
 
-Research state:
+### Active reverse frontier: Slice 16 / PR #97
 
-- Drive reverse canon extends through Wide Pass 33;
-- supporting whole-system work includes Phases 12–17;
-- Recovered Source Skeleton v1.8 exists as research input.
+**Status:** `RESEARCH REQUIRED`.
 
-Promoted into reviewed product C++:
+Current frontier is Stage-CFG transform-source provenance:
 
-- selected executable identity and address evidence;
-- Item runtime evidence and patch boundaries;
-- HITS runtime-derived specifications;
-- DMC3 PC-save Pass 31 and Pass 32 ABI;
-- source/build lineage contracts.
+- `entry+0x01` is a transform selector;
+- modern Stage-CFG slots 39/40 and legacy observed 22/23 are entry/primitive-descriptor tables;
+- modern slot38 is consumed by `0x1400594B0` and has its own relative-offset structure;
+- slot38 is not proven to be the C740-style `0x40` transform table;
+- C8D0 stack arg5 becomes runtime `+0x20` transform pointer;
+- `transform_selector_bounds_available() == false` remains mandatory.
 
-Product-promotion-pending:
+Required acquisition/reverse targets:
 
-- Wide Pass 33 payload partition and MissionResultMatrix;
-- most recovered source units;
-- broader runtime ownership and texture/resource systems.
+1. full `0x1400594B0` body/callers/slot38 dataflow;
+2. modern route around `0x14009823F`;
+3. legacy observed route around `0x1400B6483`;
+4. complete C630/C740 caller census by manager/source identity;
+5. exact C8D0 stack-arg5 producer/base/object/bounds/count/lifecycle.
 
-Exit gate: one recovered subsystem compiles as reviewed C++, has explicit ABI/lifetime evidence, and passes behavioral comparison with the canonical executable.
+Still open after Slice 16: deeper primitive producer/helper reconstruction, source2 backing/lifetime/live semantics, controlled runtime comparison, modified-topology game validation and original Capcom builder equivalence.
 
-## Phase 10 — Recompilation frontier
+## Phase 11 — Reverse Core
 
-**Status:** long-term / architecture prepared, executable milestone not achieved
+**Status:** architecture/foundation active / not complete.
 
-Implemented preparation:
+Target flow:
 
-- source modification packages;
-- integration project state and dependency/conflict graph;
-- custom build identity and records;
-- compiler/linker/dependency identity;
-- source-line/symbol to output-address mappings;
-- test, release, attestation, revocation, rollback, and reopen lineage.
+`artifact -> range/function/type -> evidence -> hypothesis -> experiment -> reconstruction -> behavioral validation -> ValidationReceipt`
 
-Still required:
+plus claim/ownership coordination for parallel agents.
 
-- linkable behavior-tested recovered modules;
-- runtime replacement/rebinding boundaries;
-- deterministic composite source builds;
-- first working rebuilt executable milestone;
-- controlled game validation and release criteria.
+Merged PR #98 is now one concrete generic acquisition primitive in this flow. Exit still requires multiple bounded subsystem proofs and stable generic infrastructure, not only DMC-specific records or acquisition tooling.
 
-Exit gate: defined only through evidence and behavior-tested build receipts. No recompilation-complete claim exists today.
+## Phase 12 — Decompilation and recompilation frontier
 
-## Current near-term sequence
+**Status:** long-term / not complete.
+
+Build-lineage architecture and selected recovered modules exist. A fully decompiled, behaviorally equivalent, rebuilt DMC3 executable does not exist.
+
+## Current sequence
 
 ```text
-production read-only container subset
-  → legal local game-backed st001 StageBundle
-  → real HITS/stage corpus and runtime validation
-  → narrow Pass 33 promotion
-  → first behavior-tested recovered subsystem
-  → controlled recompilation milestone
+exact artifact/evidence authority
+  -> merged hash-gated EXE acquisition for new byte windows when raw artifact is available
+  -> resource lifecycle/factory/cache closure
+  -> evidence-bounded recovered runtime reconstruction
+  -> representative Stage Catalog + lifecycle validation
+  -> Stage Ops complete domain/runtime bridging
+  -> behavioral ValidationReceipts
+  -> validated editor/export verticals
+  -> progressive recompilation milestones
 ```
 
-Complete UI and public release automation remain downstream and must consume the established domain, identity, provenance, and safety contracts.
+Parallel tracks at this cutoff:
+
+- HITS Slice 16 transform-source provenance;
+- representative real Stage-CFG Slice-15 census;
+- PR #99 representative real-PAC corpus validation.

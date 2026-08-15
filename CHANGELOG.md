@@ -2,185 +2,138 @@
 
 All notable changes to the clean C++ generation of DMC Rengine are documented here.
 
-The project is pre-1.0 and may change APIs rapidly. Historical research is recorded in `docs/history/`, public Evidence Packets, and Drive authority records rather than presented as completed releases.
+The project is pre-1.0. Historical reverse research is preserved in `docs/history/`, public Evidence Packets and Google Drive pass records. A historical record is not automatically current authority after explicit correction/supersession.
 
 ## [Unreleased]
 
-### Added
+### 2026-08-15 — Completion, evidence and ownership reconciliation
 
-#### Core and build
+#### Added
+
+- canonical `docs/status/completion-and-evidence-policy.md`;
+- machine-readable status schema v2 with explicit `no-major-end-to-end-subsystem-complete` state;
+- exact bounded statuses including `EXE CONFIRMED`, `BOUNDED CLOSED`, `VALIDATED`, `NOT PROVEN`, `CORRECTED`, `REJECTED` and strictly gated `COMPLETE`;
+- explicit truth-layer separation between raw artifact/runtime evidence, Evidence Packets, recovered-game reconstruction, active PR heads, merged `main` and Drive research history;
+- PR/evidence-submission template requirements for exact bounded claim, still-open scope, evidence provenance, fresh-artifact statement, truth-layer/promotion state and ValidationReceipt when equivalence is claimed;
+- Google Drive canonical Completion & Evidence Policy and `Current Canon 2026-08-15` sheet in the reverse Knowledge Base.
+
+#### Changed
+
+- Constitution amended to **1.1.0**;
+- governance/contribution/reverse rules now prohibit completion inflation and agent-consensus-as-evidence;
+- root README, documentation index, architecture, cross-tool integration, GDSpaces contract, StageBundle assembly, roadmap, phase map, blockers, risks and canonical decisions reconciled to the live ownership model;
+- `docs/stage/dmc3-stage-resource-plan.md` is now explicitly a historical `st001` compatibility slice rather than Stage architecture authority;
+- Stage authority is catalog/selector driven: 110 Bank-A + 79 Bank-B = 189 observed descriptors, separate 193 selectors and 10 group-base pointers;
+- resource-set/catalog identity, numeric Stage identity and semantic/gameplay identity remain separate;
+- `st001` is regression/compatibility data only and is not an architectural or acceptance gate;
+- Stage Ops is documented as product-side scene/stage assembly + operational authority; Semantic Graph is a derived projection; ModViz is an editor consumer;
+- reconstructed original DMC3 runtime code ownership moved explicitly to the Recovered Game Source Tree; EXE Editor is a reconstruction/executable frontend and Reverse Core remains generic infrastructure;
+- immutable `ResourceId` source identity is explicitly separated from mutable WorkingCopy byte size/revision and Binary Document/parser lineage.
+
+#### HITS reverse correction
+
+Later Pass-10 evidence in PR #85 supersedes older Pass-8/Pass-9 wording that the full upper P0 wrapper set remained open:
+
+- `0x14005E7A0` bounded-closed at the combined-query wrapper contract;
+- `0x14005B460` reclassified into the separate dynamic-world update pipeline;
+- `0x14005FEC0` and `0x1400601E0` bounded-closed at their stated top-level contracts;
+- later contact-normal semantics and primitive-descriptor ownership slices validated.
+
+This does **not** make HITS/collision complete. Deeper primitive producers/helpers, type-5 source path, source2 backing/ownership/lifetime/live selection, controlled runtime comparison, modified-topology validation and Capcom offline-builder equivalence remain open.
+
+#### Canonical executable evidence correction
+
+- canonical project Evidence Packets are being corrected in PR #92 to pair SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` with size `6,356,432` bytes;
+- stale `3,735,552` pairing for the same SHA is corrected/rejected;
+- a fresh independent re-hash/disassembly claim still requires the raw artifact to be actually mounted in that pass.
+
+#### HITS format authority correction
+
+PR #93 corrects current product metadata to:
+
+- four-byte `HITS` magic;
+- reject obsolete `HITS$` classification;
+- reject `0x18060001` as a universal record marker;
+- describe the deterministic DMC Rengine writer without claiming Capcom offline-builder equivalence.
+
+#### Project-wide completion statement
+
+As of 2026-08-15 **no major DMC Rengine end-to-end subsystem is `COMPLETE` or proven behaviorally equivalent to the original DMC3 runtime**.
+
+This statement does not mean nothing works. Many bounded components are implemented, tested, EXE-confirmed, bounded-closed or validated.
+
+### Existing implemented foundations
+
+#### Core / evidence / executable
 
 - C++20/CMake core library and CLI;
-- Windows/Ubuntu CI validation;
-- CMake presets, warning policy, formatting, and editor configuration;
-- compiler-level `/UNDEBUG` / `-UNDEBUG` test invariant;
-- SHA-256 implementation and known-vector tests;
-- bounds-checked binary reader;
-- expanded CTest integration stack, reaching 68 validated tests per platform after Binary Inspector Cross-Port Wave 1.
+- Windows/Ubuntu CI;
+- SHA-256 artifact identity;
+- bounded binary/PE32/PE32+ readers and RVA/VA/file-offset mapping;
+- Evidence Registry / Evidence Packets / strict JSON import-export;
+- Artifact, executable workspace and guarded patch infrastructure;
+- copied-output execution and rollback lineage;
+- source modification / Integration Project / Custom Build lineage foundations.
 
-#### Evidence and Canon
+#### GDSpaces / project integration
 
-- confidence model, locations, records, tags, supersession, and `EvidenceRegistry`;
-- `ArtifactIdentity` and versioned `EvidencePacket`;
-- deterministic Evidence Packet JSON export;
-- strict untrusted Evidence Packet JSON import;
-- parser size/depth/count limits, duplicate-key and duplicate-ID rejection, and cross-reference validation;
-- CLI `validate-evidence`;
-- public packets for the canonical DMC3 executable, Item runtime, and PC-save Pass 31/32 findings;
-- Drive/GitHub reverse-authority registry and implementation receipts.
+- `ResourceId`, `ResourceRef`, `ResourcePayload`, diagnostics and source registry;
+- product path/format classification, resource graph and routing;
+- generic container contracts and production-oriented container/source work in active stacks;
+- revisioned WorkingCopy with guarded variable-size edits and undo/reset;
+- ProjectWorkspace / events / manifests;
+- Stage resource matching/materialization foundations.
 
-#### GDSpaces and integration
+#### Binary Inspector
 
-- `ResourceId`, `ResourceRef`, `ResourcePayload`, and diagnostics;
-- safe read-only `LocalDirectorySource` with root-containment protection;
-- `SourceRegistry`, `ResourceGraph`, `OpenRouter`, and game profiles;
-- centralized path/extension/magic classification and post-read correction;
-- typed `StageBundle` and deterministic `StageBundleAssembler`;
-- generic read-only container contracts, parser registry, synthetic slot-container fixtures, stable child identity, empty-slot preservation, diagnostics, and graph edges;
-- revisioned `WorkingCopy` with expected-byte edits, variable-size replacement, history, reset, and undo;
-- Project Workspace, Project Graph, append-only workspace events, and deterministic manifests;
-- canonical tool and format capability registries;
-- shared Stage Ops/ModViz stage views.
-
-#### Binary Inspector domain
-
-- overflow-safe `ByteRange`;
-- structural regions and kinds;
-- typed fields and parent-child structures;
-- ownership claims;
-- annotations and Evidence links;
-- owner, field, and annotation selection context;
-- selected-range overlap context across regions, fields, ownership, and annotations;
-- union coverage, unknown gaps, structural conflicts, and ownership conflicts;
-- deterministic metadata manifests;
-- format adapters including the canonical HITS model;
-- deterministic offset-aligned byte diff with equal, modified, inserted, and removed spans;
-- byte-diff summary counters and stable left/right ranges;
-- Shannon entropy maps with configurable windows and step size;
-- entropy-window zero ratio, unique-byte count, and visualization bands;
-- explicit heuristic boundaries for entropy and non-resynchronizing diff behavior;
-- web-to-C++20 Binary Inspector capability parity matrix and staged cross-port roadmap.
-
-#### EXE and patching
-
-- generic read-only PE32/PE32+ parser;
-- checked file offset, RVA, and VA conversions;
-- PE section/range diagnostics;
-- known executable target model and DMC3 Phase 12 registry;
-- target recognition by SHA-256 and PE metadata;
-- Evidence Address Resolver and executable workspace manifests;
-- `GuardedPatchPlan` with source hash, expected bytes, ranges, overlap, and atomicity checks;
-- evidence-gated patch-plan compilation;
-- copied-output in-memory patch execution;
-- output SHA-256 and verified rollback plans;
-- manifests proving that the original file was not written.
-
-#### Stage and formats
-
-- DMC3 110 × 4 stage-table descriptor;
-- `st001` role plan, path normalization, and resource matching;
-- `DMC3StageWorkspaceBuilder` and Stage Workspace manifests;
-- compiled modules and tests for HITS, DCA, LIG2, and Stage TXT;
-- Resource Analyzer integration.
-
-#### Item and Trial Chamber
-
-- Item Workspace and Item runtime Evidence Packet;
-- runtime requests, graph nodes, events, and manifests;
-- validation plans and requirements;
-- evidence-gated Item runtime patch compilation;
-- guarded copied-output and rollback provenance.
-
-#### Source integration and custom builds
-
-- `SourceModificationPackage`;
-- `IntegrationProject` state and dependency/conflict graph;
-- deterministic source-integration manifests;
-- `CustomBuildIdentity` and `CustomBuildRecord`;
-- compiler, linker, target, flags, dependency-lock, and recovered-source identity;
-- source-unit/source-line/recovered-symbol mappings to output offsets, RVAs, and VAs;
-- test, release, attestation, revocation, and rollback gates;
-- EXE reopen lineage by executable SHA-256.
+- regions, fields, ownership, annotations and evidence links;
+- selection context, coverage/unknown gaps and conflicts;
+- deterministic manifests;
+- byte diff and entropy analysis;
+- structural format adapters.
 
 #### HITS
 
-- correction of the obsolete `HITS$`/fixed-marker model;
-- header-driven `HITS` parser;
-- exact `0x38` triangle-plane records;
-- spatial grid and signed `-1`-terminated reference lists;
-- source 0/member 3 and source 1/member 6 identity;
-- Binary Inspector semantic adapter;
-- runtime-derived grid conversion, flattening, broadphase, deduplication, and reject-mask behavior;
-- candidate and contact result contracts;
-- topology-preserving safe editing;
-- normal and plane-D recomputation;
-- deterministic DMC Rengine SAT spatial writer;
-- canonical parser/writer round trips and stable surface identity;
-- spatial corpus differential validator;
-- deterministic per-cell/per-surface JSON reports and precision/recall/Jaccard metrics;
-- GDSpaces-backed `compare-hits-spatial` CLI with SHA-256 identities and unique bit-exact geometry mapping across reorder.
+- header-driven `HITS` parsing;
+- exact `0x38` raw-flags + triangle/plane records;
+- spatial grids/reference lists;
+- source0/member3 and source1/member6 identity evidence;
+- deterministic DMC Rengine spatial writer;
+- topology-safe editing and spatial comparison/report tooling;
+- substantial EXE-backed runtime query/source/primitive reverse evidence.
 
-#### DMC3 PC save
+#### Stage / recovered runtime / Stage Ops
 
-- exact `0x4A30` file model;
-- 21 integrity envelopes;
-- global, summary, and detailed-payload record layouts;
-- four-byte `recordState + checksum` trailers;
-- one's-complement end-around-carry checksum validation and generation;
-- packed-BCD date/time handling;
-- rejection of the former standalone `0x28` block interpretation;
-- conservative open-semantic boundaries;
-- Pass 31 and Pass 32 Evidence Packets, tests, CI, and Drive receipts.
+Active stacked PRs add substantially newer implementation than `main`, including:
 
-#### CLI
+- full 189-descriptor / 193-selector Stage authority and runtime resolution;
+- recovered resource/Stage runtime units;
+- StageAssemblyWorkspace / StageOpsIngress / StageOperationsSession;
+- domain workspaces, runtime links and invalidation;
+- Semantic Graph and ModViz Stage Ops projections;
+- edit -> reanalysis -> derived-refresh regression paths.
 
-- `version`;
-- `doctor`;
-- `scan`;
-- `hash`;
-- `validate-evidence`;
-- `route`;
-- `inspect-exe`;
-- `list-tools`;
-- `list-formats`;
-- `integration-status`;
-- `inspect-workspace`;
-- `compare-hits-spatial`.
+These remain branch-scoped until deliberately promoted and do not establish vanilla game-ready equivalence.
 
-#### Process and documentation
+#### Item / save / other bounded slices
 
-- MIT license;
-- governance, maintainer, contribution, security, support, conduct, and clean-room policies;
-- issue and pull-request templates;
-- DMC Rengine Constitution;
-- SDD specifications and ADR system;
-- architecture, phase map, blockers, risks, JSON status, history, and Canon documents;
-- public brand Canon defining the Sect of Neuroslop as the DMC Rengine community, the Monks of Binary Code as creators and recognized core contributors, and the Order of the Inverted Triangle as the core Team alias;
-- public Long Descent, Monastery, chamber, ritual, campaign, and evidence-presentation vocabulary;
-- GitHub implementation truth separated from newer Drive research truth;
-- Binary Inspector Web → C++20 cross-port rules, parity tracking, and Wave 1–4 plan;
-- current status and machine-readable state reconciled after PR #47.
+- guarded Item runtime request/patch foundations;
+- PC-save Pass 31/32 structural/checksum envelopes;
+- format/parser/editor integration slices for HITS, DCA, LIG2, Stage TXT and other active areas.
 
-### Fixed
+### Current research/completion boundaries
 
-- corrected Evidence JSON escaped-newline test expectation;
-- fixed Windows Release test crashes caused by `NDEBUG` removing side-effectful `assert` expressions;
-- rejected an unreliable forced-include assertion workaround and standardized `/UNDEBUG` / `-UNDEBUG` for test targets;
-- removed stale status claims that strict Evidence import, Binary Inspector fields, guarded copy execution, source integration, HITS runtime/writer work, and PC-save Pass 31/32 were still planned;
-- documented that `HITS$` and `0x18060001` as a universal record marker are rejected historical assumptions;
-- removed the obsolete public-lore model that treated the Sect as an AI-only inner wing and used `Monks of Reverse` as the contributor identity;
-- removed the new Binary Inspector aggregate-initialization warning by fully initializing `ByteDiffResult`;
-- corrected status documentation that still described Binary Inspector Diff and entropy analysis as unimplemented after Wave 1.
-
-### Research boundaries
-
-- production PAC/PNST/NBZ/AFS source expansion remains incomplete;
-- the first game-backed `st001` StageBundle remains open;
-- HITS Capcom offline-builder equivalence is not confirmed;
-- Binary Inspector diff is currently offset-aligned and not structure-aware or resynchronizing;
-- Binary Inspector Analysis Cache, generic diagnostics, unknown-region analysis, templates, EXE bridges, and native UI remain open;
-- Wide Pass 33 remains research-ready and product-promotion-pending;
-- full DMC3 decompilation and a working rebuilt executable are not complete.
+- full GDSpaces DMC3 request-to-unload runtime equivalence remains open;
+- typed post-load/factory/cache/ownership/lifetime/transition/unload closure remains open;
+- representative Bank-A/Bank-B/shared/alias/partial Stage validation remains open;
+- Stage Ops complete domain + vanilla lifecycle/game-ready equivalence remains open;
+- Recovered Game broad behavioral equivalence and subsystem ValidationReceipts remain open;
+- Reverse Core mature generic claim/reconstruction validation program remains open;
+- HITS deeper primitive/source2/runtime/original-builder equivalence remains open;
+- SCM `mesh+0x28` reconciliation remains open;
+- Binary Inspector/EXE Editor/ModViz/Item-HUD complete product workflows remain open;
+- production reintegration/export/release pipeline remains open;
+- full DMC3 decompilation and behaviorally equivalent rebuilt executable do not exist today.
 
 ## [0.1.0] — 2026-08-02
 
@@ -190,5 +143,5 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - minimal CLI;
 - initial `ResourceId` model;
 - cross-platform build workflow;
-- initial architecture, roadmap, reverse-engineering rules, and README;
+- initial architecture, roadmap, reverse-engineering rules and README;
 - proprietary-data exclusions.

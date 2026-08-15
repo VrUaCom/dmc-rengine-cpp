@@ -2,231 +2,228 @@
 
 ## Purpose
 
-DMC Rengine tools are cooperating views over one canonical resource and evidence model. They are not independent applications joined by file paths.
+DMC Rengine tools are cooperating consumers/projections over shared resource, evidence, recovered-runtime and Stage Ops authorities. They are not independent applications joined by file paths or duplicated scene models.
 
-The integration architecture exists to prevent:
+This architecture prevents:
 
-- duplicate resolvers;
-- divergent resource identities;
-- editor-owned copies of container structure;
-- hidden mutable byte buffers;
-- untraceable EXE patches;
-- Stage Ops and ModViz disagreeing about the same stage;
-- evidence claims being attached to the wrong executable build.
+- second resource resolvers;
+- divergent `ResourceId` identities;
+- tool-owned copies of original-game runtime logic;
+- multiple stage/scene assembly models;
+- stale WorkingCopy/parser/Binary Document lineage;
+- untraceable EXE edits;
+- Stage Ops / Semantic Graph / ModViz disagreement;
+- executable evidence being attached to the wrong build;
+- branch-scoped implementation being mistaken for whole-project completion.
 
-## Canonical flow
+See `docs/status/completion-and-evidence-policy.md`.
+
+## Canonical authority flow
 
 ```text
-Source mounting / container expansion
-        |
-        v
-GDSpaces ResourceRef + ResourcePayload
-        |
-        v
-ProjectWorkspace
-        |
-        +--> ResourceWorkspaceSession
-        |      +--> FormatIntegrationDescriptor
-        |      +--> Tool routes and capabilities
-        |      +--> parser diagnostics
-        |      +--> Binary Inspector Document
-        |      +--> ExecutableResourceContext
-        |      +--> Evidence record links
-        |      +--> StageResourceContext
-        |      +--> WorkingCopy
-        |      +--> append-only WorkspaceEventJournal
-        |
-        +--> GDSpaces ResourceGraph
-        +--> Spider Hub ProjectGraph
-        +--> Resource / Stage / EXE / Graph manifests
+canonical executable / runtime evidence
+        │
+        ├── Reverse Core identities / claims / reconstructions / receipts
+        └── Recovered Game Source Tree original-runtime reconstruction
+
+Mounted sources / executable Stage-resource authority
+        │
+        ▼
+GDSpaces
+  ResourceId / ResourceRef / ResourcePayload
+  resolution / provenance / container expansion
+        │
+        ▼
+ProjectWorkspace / resource sessions
+        │
+        ├── Binary Inspector Document / evidence links
+        ├── WorkingCopy / parser byte lineage
+        └── Stage materialization / StageRuntimeLoadReport
+                        │
+                        ▼
+                     Stage Ops
+               StageAssemblyWorkspace
+                 / operations state
+                  ┌─────┴─────┐
+                  ▼           ▼
+          Semantic Graph     ModViz
+          derived projection editor projection
 ```
 
-No tool may skip this flow and open a source independently.
+No consumer may skip the authority chain and independently open/resolve a game source.
 
 ## ResourceWorkspaceSession
 
-A `ResourceWorkspaceSession` is the canonical working context for one `ResourceId`.
+A `ResourceWorkspaceSession` is a product working context for one canonical source resource identity.
 
-It binds:
+It binds, as available:
 
 - immutable source payload;
-- format maturity and write policy;
-- primary and companion tool routes;
-- parser execution and diagnostics;
-- shared structural interpretation;
+- active WorkingCopy and revision;
+- format integration policy;
+- parser result and byte-source lineage;
+- Binary Inspector Document;
 - evidence links;
-- optional stage membership;
-- optional executable analysis;
-- optional revisioned WorkingCopy;
-- append-only events.
+- Stage membership/context;
+- executable context;
+- tool routes/capabilities;
+- append-only workspace events.
 
-The source payload remains immutable for the life of the session.
+### Mutable-byte lineage correction
+
+`ResourceId` source-span identity is immutable. A WorkingCopy may legally change byte size.
+
+Therefore an attached parser/Binary Document for dirty data must match the **active WorkingCopy revision and active byte size**, not be rejected merely because that size differs from the immutable source payload.
+
+This rule is required for size-changing Stage TXT and other future edits.
 
 ## ProjectWorkspace
 
-A `ProjectWorkspace` coordinates many resource sessions.
+A `ProjectWorkspace` coordinates product resource sessions and shared registries/graphs. It is coordination infrastructure, not original DMC3 runtime ownership.
 
-It owns:
+It may own or coordinate:
 
-- Tool Registry;
-- Format Integration Registry;
-- Artifact Registry;
-- Evidence Registry;
-- Evidence Packet Registry;
+- Tool/Format Integration registries;
+- Artifact/Evidence registries;
+- Evidence Packet imports;
 - GDSpaces ResourceGraph;
-- Spider Hub ProjectGraph;
-- all active resource sessions.
+- product ProjectGraph;
+- resource sessions and deterministic manifests/events.
 
-Every mutation is applied through the ProjectWorkspace so both graphs and manifests remain synchronized.
+Original executable functions/types/factories/cache/lifetime remain Recovered Game Source Tree concerns even when ProjectWorkspace links to their evidence identities.
 
 ## Tool roles
 
-### GDSpaces — The Archive
+### GDSpaces
 
-Owns source mounting, canonical resource identity, bytes, container expansion, classification, ResourceGraph, WorkingCopy creation, and write policy boundaries.
+Owns product resource identity, source lookup/resolution, bytes, provenance, classification, container expansion and WorkingCopy resource boundaries.
 
-### Spider Hub — The Nexus
+It does not own reconstructed original DMC3 resource lifecycle/factory/cache or collision/gameplay runtime.
 
-Consumes the ProjectGraph. It displays verified relationships but does not resolve or mutate resources independently.
+### Reverse Core
 
-### Binary Inspector — The Reliquary
+Owns generic reverse identities/evidence/hypotheses/experiments/task claims/reconstructions/ValidationReceipts and parallel-agent coordination.
 
-Consumes resource identity and supplied bytes. It owns structural regions, fields, ownership, unknown gaps, annotations, and deterministic manifests.
+### Recovered Game Source Tree
 
-### EXE Editor — The Scriptorium
+Owns evidence-backed reconstruction of original DMC3 runtime code. Recovered code may be compiled/tested without being declared original-source or behaviorally equivalent.
 
-Consumes PE resources through GDSpaces. It owns executable analysis, recovered source, RVA/VA evidence, target identification, and guarded patch plans.
+### Spider Hub
 
-### Evidence Registry
+Displays/navigates shared graph relationships, tasks, evidence and tools. It does not become resource or reconstruction authority.
 
-Owns claims, confidence, artifact identity, Evidence Packets, corrections, and provenance.
+### Binary Inspector
 
-### Stage Ops — The Theatre
+Consumes supplied exact byte lineage plus stable resource/artifact identity. Owns structural/ownership/evidence inspection views and deterministic analysis representations.
 
-Consumes shared StageBundle and Stage Workspace state. It coordinates stage-oriented editors but never resolves stage files itself.
+### EXE Editor
 
-### ModViz — The Observatory
+Consumes executable bytes/address evidence, Reverse Core reconstruction identities and recovered-source units. It is an editing frontend, not a separate reconstruction truth store.
 
-Consumes the same Stage Workspace state as Stage Ops. Direct ModViz routes are required only for visual categories such as models, textures, cameras, lighting, effects, positions, and collision.
+### Stage Ops
 
-### Item Editor — The Forge
+Owns product-side stage/scene assembly and operational state through `StageAssemblyWorkspace` and related operations/session/domain structures.
 
-Consumes ITM resources and runtime evidence through shared contracts. It may create WorkingCopy changes and guarded EXE patch requests, but not bypass GDSpaces or Patch Engine policy.
+It consumes GDSpaces outputs and recovered-runtime links. It must not resolve game resources again or implement original-game runtime functions locally.
 
-### Build & Test Lab — The Trial Chamber
+### Stage Semantic Graph
 
-Consumes validation requests, manifests, patch plans, test fixtures, and reproducibility metadata.
+Consumes Stage Ops assembly state and emits a derived semantic/evidence graph. It does not assemble a second scene or traverse archives/resources independently.
+
+### ModViz
+
+Consumes the same Stage Ops assembly/scene state for 3D/asset/HUD editing. It does not maintain a parallel Stage membership/resource graph.
+
+### Item/HUD editors
+
+Consume shared resource/runtime/evidence contracts and create WorkingCopy changes or guarded runtime/EXE requests. They do not directly patch original files or independently resolve sources.
+
+### Build & Test Lab
+
+Consumes validation requests, manifests, comparison inputs, guarded patch plans and reproducibility metadata. It owns validation/receipt workflow, not reverse truth by itself.
 
 ## Tool Capability Registry
 
-A format may route to several tools simultaneously:
+A resource/format may route to multiple tools. A route means **capability/visibility**, not resource ownership.
 
-- one primary tool;
-- companion inspection tools;
-- Evidence Registry;
-- Build & Test validation.
-
-Example for HITS:
-
-```text
-Primary: Stage Ops
-Companions: GDSpaces, Binary Inspector, ModViz Scene, Spider Hub
-Evidence: Evidence Registry
-Validation: Build & Test Lab
-```
-
-A route is a capability relationship, not a license to open the source independently.
+For example HITS may be visible in Stage Ops, Binary Inspector and ModViz while original collision ABI remains in recovered-game and resource bytes remain in GDSpaces.
 
 ## Format Integration Registry
 
-Every known format declares:
+Format descriptors may declare parser/adapters, product maturity, Stage/domain hints, evidence links, write policy and limitations.
 
-- maturity;
-- parser ID;
-- Binary Inspector adapter availability;
-- stage category;
-- evidence claims;
-- write policy;
-- limitations.
-
-Write policies:
-
-- `read-only`;
-- `working-copy-only`;
-- `guarded-export`.
-
-PAC, PNST, AFS, and NBZ remain read-only until exact evidence-backed implementations exist.
-
-## Event-driven mutations
-
-WorkingCopy mutations are not exposed as a generic mutable buffer.
-
-The workspace records:
-
-- parser completion;
-- parser diagnostics;
-- Binary Document attachment;
-- executable context attachment;
-- evidence linking;
-- stage attachment;
-- WorkingCopy creation;
-- edit application;
-- undo/reset;
-- validation requests;
-- manifest exports.
-
-Every event identifies:
-
-- canonical resource;
-- producer;
-- optional consumer;
-- revision;
-- subject;
-- human-readable message.
-
-This preserves the conveyor principle used by MCP, Obsidian, MemPalace, SDD, and future UI modules: tools exchange events instead of silently overwriting each other.
-
-## Evidence boundaries
-
-A generic PE resource does not inherit DMC3 evidence because its format is PE.
-
-Executable evidence attaches through:
-
-```text
-resource SHA-256
-  -> ArtifactRegistry match
-  -> EvidenceRecord locations referencing that artifact
-  -> ResourceWorkspaceSession
-```
-
-This prevents findings from one executable build being treated as facts about another build.
+Format maturity does not imply original-runtime equivalence. A deterministic product writer does not imply an original Capcom offline-builder reconstruction unless separately proven.
 
 ## Stage integration
 
-The DMC3 StageWorkspaceBuilder accepts already-read GDSpaces payloads. It does not search directories or containers.
+The canonical Stage path is catalog/selector driven:
 
-It performs:
+```text
+EXE descriptor + selector authority
+  -> resource_set/catalog identity
+  -> GDSpaces exact resource resolution/materialization
+  -> StageRuntimeLoadReport / StageBundle
+  -> Stage Ops StageAssemblyWorkspace
+  -> Semantic Graph / ModViz
+```
 
-1. session creation;
-2. Phase 12 parent-path matching;
-3. StageBundle assembly;
-4. resource analysis where parsers exist;
-5. Evidence Packet import;
-6. evidence linking;
-7. Stage context attachment;
-8. ProjectGraph synchronization.
+Keep resource-set/catalog, numeric Stage and semantic/gameplay identities separate.
 
-Stage Ops and ModViz consume the resulting Stage Workspace Manifest.
+`st001` is a regression/compatibility fixture only. It is not the Stage architecture or completion gate.
+
+## Event-driven mutations
+
+WorkingCopy mutation is never an untracked mutable-buffer side channel.
+
+Record enough event/revision context for:
+
+- edit application;
+- undo/reset;
+- parser reanalysis;
+- Binary Document refresh;
+- stale derived-state invalidation;
+- Stage Ops refresh;
+- validation request/receipt;
+- guarded export/reintegration.
+
+Consumers must be able to detect when a projection/parser result belongs to an older WorkingCopy revision.
+
+## Evidence boundaries
+
+A generic PE/resource format does not inherit DMC3 evidence just because its bytes look compatible.
+
+Evidence attaches through exact artifact/build/resource identities and location records. Build-specific addresses remain hash-gated.
+
+If a pass did not actually mount the raw artifact, project evidence may be reused but must not be described as a fresh independent byte-level measurement.
+
+## Completion boundary
+
+Cross-tool integration can have implemented/tested flows while DMC3 runtime equivalence remains incomplete.
+
+Do not infer major-subsystem `COMPLETE` from:
+
+- shared workspace existence;
+- green CI;
+- Stage Ops assembly success;
+- compiled recovered targets;
+- parser/writer round trips;
+- bounded ABI closure.
+
+Whole-subsystem completion requires the applicable evidence/corpus/runtime/lifecycle/ValidationReceipt gate.
 
 ## Forbidden patterns
 
-- editor opens local path directly;
-- format parser mounts a source;
-- Binary Inspector resolves a container;
-- Stage Ops searches for PAC files;
-- ModViz stores a parallel resource graph;
-- Item Editor writes original bytes;
-- EXE Editor attaches DMC3 evidence to an unrecognized binary;
-- UI treats display name as resource identity;
-- WorkingCopy mutation without an event;
-- new PAC Editor/PAC Manager as a top-level architecture.
+- editor opens a local source path independently;
+- parser mounts/discovers sources;
+- Binary Inspector resolves archives;
+- Stage Ops searches for Stage PAC files;
+- Semantic Graph discovers scene membership independently;
+- ModViz stores a parallel Stage/resource model;
+- original-game recovered functions are placed into GDSpaces/Stage Ops/ModViz;
+- EXE Editor stores a disconnected second reconstruction truth;
+- display name becomes canonical identity;
+- WorkingCopy edit is not revision/event tracked;
+- green CI is cited as original-game equivalence;
+- `st001` is used as the canonical Stage universe;
+- a bounded reverse closure is advertised as complete subsystem reconstruction;
+- PAC Editor/PAC Manager is reintroduced as top-level architecture.

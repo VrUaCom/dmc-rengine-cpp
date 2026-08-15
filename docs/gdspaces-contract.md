@@ -1,121 +1,149 @@
 # GDSpaces Contract
 
-GDSpaces is the single public resource-access architecture of DMC Rengine.
+GDSpaces is the single **product-side resource authority** of DMC Rengine.
 
-## Current C++ contracts
+It is not the original DMC3 resource runtime and must not become a home for reconstructed Capcom runtime functions/types/factories/cache/lifetime behavior. Those belong to the Recovered Game Source Tree.
+
+See also `docs/status/completion-and-evidence-policy.md`.
+
+## Current resource contracts
 
 ### `ResourceId`
 
-Canonical identity fields:
+Canonical source/resource identity includes stable source, logical path/container lineage and source-span identity. It is not a display label or transient OS handle.
 
-- source ID;
-- logical path;
-- container chain;
-- byte offset;
-- byte size.
+A critical mutation rule follows:
 
-`ResourceId` is not a display label and does not contain transient OS handles.
+> `ResourceId` identifies immutable source identity. A revisioned `WorkingCopy` may change active byte length without changing that source identity.
+
+Binary/parser views over edited content therefore track the active byte lineage/revision rather than treating source-span size as mutable identity.
 
 ### `ResourceRef`
 
-Adds presentation and classification metadata:
-
-- display name;
-- format;
-- game/profile label;
-- synthetic-name flag;
-- container flag.
+Carries presentation/classification metadata over a stable identity, including display name, format/profile classification, synthetic-name state and container metadata as applicable.
 
 ### `ResourcePayload`
 
-Carries:
+Carries a resolved reference, immutable source bytes and diagnostics. Source payload bytes are read-only.
 
-- the resolved reference;
-- owned read-only bytes;
-- diagnostics.
+### Sources / providers
 
-A payload is readable only when its reference is valid and it has no error diagnostics.
+Sources own access to mounted origins and expose deterministic enumeration/read contracts through GDSpaces.
 
-### `ISource`
-
-A source owns transient access to a mounted origin. It can enumerate references and read a resource by canonical ID.
-
-Current implementation:
-
-- `LocalDirectorySource` — recursive/non-recursive read-only local mount with root-containment checks.
-
-Planned implementations:
-
-- game-folder source;
-- NBZ volume source;
-- AFS source;
-- nested PAC/PNST expansion;
-- generated/in-memory test source.
+Current/active stacks include local-directory and production-oriented provider/container work for game files and nested resource sources. Exact support level varies by provider and must be described by its own evidence/tests; the existence of generic source/container contracts does not mean complete PAC/PNST/NBZ/AFS runtime equivalence.
 
 ### `SourceRegistry`
 
-Owns mounted sources, rejects duplicate source IDs, enumerates all sources deterministically, and routes reads to the owning source.
+Owns mounted product sources, rejects conflicting source identity, enumerates deterministically and dispatches reads to the owning source.
+
+Source precedence, duplicate behavior, fallback and original DMC3 registration semantics are only claimed where separately evidenced under the resource-runtime reconstruction program.
 
 ### `ResourceGraph`
 
-Stores stable resources and typed edges:
-
-- contains;
-- depends-on;
-- stage-member;
-- evidence-for;
-- opens-with.
+Stores stable resource nodes and typed relationships such as containment, dependency, Stage membership, evidence and tool routes. Graph edges do not redefine source identity or original-game ownership.
 
 ### `OpenRouter`
 
-Maps a resource/context to a tool target. Explicit preferred targets override defaults. Menu and stage contexts are first-class.
-
-Unknown formats route to Binary Inspector rather than disappearing.
+Maps stable resources/context to product tools. Unknown resources remain inspectable rather than disappearing. Routing is not resource resolution.
 
 ### `StageBundle`
 
-Groups resolved resources under one stage identity and typed categories. It accepts unknown resources and scoped diagnostics.
+A StageBundle groups **product-side materialized resources** for an exact Stage resource-set/catalog selection and preserves diagnostics/provenance/unknowns.
+
+It is not automatically an original DMC3 runtime Stage object.
+
+```text
+StageBundle materialized bytes
+        !=
+original DMC3 typed-postload/factory/state-3 game-ready object
+```
+
+The game-ready boundary remains in recovered resource-runtime/factory/lifecycle evidence and Stage Ops integration.
+
+## Stage Catalog interaction
+
+GDSpaces does not derive Stage identity from `st001` or `stNNN` filename patterns.
+
+The active executable-derived Stage model distinguishes:
+
+- 110 Bank-A observed descriptors;
+- 79 Bank-B observed descriptors;
+- 189 observed descriptors total;
+- separate 193-entry selector space;
+- separate 10-pointer group-base table;
+- numeric Stage group/remainder selector indirection.
+
+GDSpaces consumes the selected exact descriptor/resource references and preserves resource identity/provenance. It does not invent semantic gameplay Stage identity.
+
+Keep separate:
+
+1. `resource_set_id / catalog_entry_id`;
+2. `numeric_stage_id`;
+3. separately evidenced semantic/gameplay identity.
+
+`st001` is only a regression/compatibility fixture.
+
+## WorkingCopy boundary
+
+Editing never mutates immutable source payloads in place.
+
+A `WorkingCopy` owns:
+
+- mutable active bytes;
+- revision identity;
+- operation history;
+- expected-byte guards;
+- undo/reset behavior;
+- dirty state.
+
+A size-changing edit is legal if permitted by the format/workflow. Parser/Binary Document attachments must correspond to the exact active WorkingCopy revision and byte view.
 
 ## Dependency direction
 
 ```text
-Source implementation
-  → ResourceId / ResourceRef / ResourcePayload
-  → SourceRegistry
-  → ResourceGraph / OpenRouter / StageBundle
-  → Tool-specific parser/editor
+Mounted source/provider
+  -> ResourceId / ResourceRef / ResourcePayload
+  -> SourceRegistry / resolver / provenance / container expansion
+  -> Stage/resource materialization
+  -> Stage Ops / domain workspaces / tool projections
+  -> editors / validation / guarded export
 ```
 
-The direction may not be reversed. UI and format editors do not own source resolution.
+Original-game runtime reconstruction is parallel evidence consumed by product layers, not an implementation dependency that moves original functions into GDSpaces:
 
-## Identity rules
+```text
+canonical dmc3.exe
+  -> Recovered Game Source Tree
+  -> original lookup/postload/factory/cache/lifetime contracts
+  -> product equivalence tests / Stage Ops readiness gates
+```
 
-1. Display name is presentation only.
-2. Synthetic names are explicit.
-3. Container slots/offsets remain distinct from names.
-4. EXE-backed semantic identity may link to, but does not erase, source identity.
-5. Re-enumeration should reproduce canonical IDs for unchanged sources.
-6. Future source revision/hash fields must extend identity without making tools source-aware.
+## Read-only/source safety rules
 
-## Read-only rules
-
-- source bytes are immutable;
-- reads return owned payloads;
-- malformed or inaccessible resources produce diagnostics;
-- traversal outside a mounted root is rejected;
-- a resource may remain visible even if its format is unknown.
-
-## Future working-copy boundary
-
-Editing will create a separate working copy with operation history and validation. A `ResourcePayload` will never silently become mutable original storage.
+- source bytes remain immutable;
+- malformed/unavailable resources produce bounded diagnostics;
+- path traversal outside mounted roots is rejected;
+- unknown formats/resources remain representable;
+- product tools do not reopen source paths independently;
+- direct original-file writes are forbidden by default.
 
 ## Architecture anti-patterns
 
-- editor opens a local path directly;
-- editor parses an archive to locate its own child resources;
-- UI stores `FileSystemHandle` as canonical identity;
-- Binary Inspector reopens a path instead of consuming bytes;
-- stage loader special-cases PAC inside generic source resolution;
-- display names are used as map keys across tools.
+Rejected patterns include:
 
-These patterns are rejected as the Second Resolver.
+- editor opens a local path directly as its primary resource contract;
+- Stage Ops or ModViz performs its own archive/path resolution;
+- Semantic Graph traverses containers or discovers scene membership independently;
+- UI-local file handles become canonical identity;
+- Binary Inspector reopens a path instead of consuming supplied bytes;
+- recovered DMC3 factory/cache/lifetime code is implemented inside GDSpaces;
+- product StageBundle is labeled game-ready without recovered-runtime evidence;
+- `st001` or `stNNN` filenames are used as the canonical Stage universe.
+
+These are Second Resolver / ownership-collapse regressions.
+
+## Completion status
+
+GDSpaces has substantial implemented/tested product infrastructure, but the **full DMC3 resource runtime request-to-unload equivalence is NOT COMPLETE**.
+
+Open equivalence areas include typed post-load/factory handoff, cache/reuse/ownership, source/fallback details where unresolved, lifecycle transitions and representative game-backed ValidationReceipts.

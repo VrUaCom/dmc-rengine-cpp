@@ -1,245 +1,283 @@
 {
-  "schema_version": 1,
-  "snapshot_date": "2026-08-06",
+  "schema_version": 2,
+  "snapshot_date": "2026-08-15",
+  "synchronization_cutoff": "post-pr98-merge-post-pr99-creation",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "version": "0.2.0",
-  "snapshot_main_sha": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
-  "generation": "evidence-backed-cpp-platform",
-  "overall_status": "foundation-green-integrated-domain-stack-active-binary-inspector-crossport-active-production-game-backed-and-recompilation-gates-open",
+  "snapshot_main_sha": "25bd70092503cc6ca3be51f05582dcd33af1523d",
+  "overall_completion": "no-major-end-to-end-subsystem-complete",
+  "completion_policy": "docs/status/completion-and-evidence-policy.md",
   "truth_layers": {
-    "github_main": "reviewed-implemented-product-truth",
-    "google_drive": "newest-reverse-research-and-recovered-source-input",
-    "drive_latest_pass": 33,
-    "github_latest_promoted_pass": 32
-  },
-  "product_relationship": {
-    "installed_web_generation": "independent-product-and-capability-reference",
-    "open_cpp20_generation": "independent-open-source-project",
-    "crossport_policy": "port-capabilities-and-domain-contracts-not-framework-code-or-identical-architecture"
+    "raw_artifact_runtime_evidence": "strongest-reverse-evidence-for-exact-artifact",
+    "evidence_packets": "sanitized-reproducible-evidence-authority",
+    "recovered_game": "evidence-backed-executable-reconstruction-not-original-source-by-default",
+    "active_pull_request": "branch-scoped-implementation-truth-only",
+    "github_main": "merged-product-implementation-truth",
+    "google_drive": "research-history-and-newer-reverse-material-may-supersede-older-documents"
   },
   "constitutional_rules": [
-    "gdspaces-is-the-only-resource-api",
-    "no-second-resolver",
-    "evidence-before-canon",
+    "no-major-subsystem-complete-without-applicable-validationreceipt-gates",
+    "bounded-closed-does-not-imply-subsystem-complete",
+    "green-ci-does-not-prove-original-game-equivalence",
+    "recovered-source-is-not-original-source",
+    "gdspaces-is-the-only-product-resource-resolver-materializer",
+    "recovered-game-owns-original-runtime-reconstruction",
+    "reverse-core-owns-generic-evidence-reconstruction-infrastructure",
+    "stage-ops-owns-product-scene-assembly-and-operations",
+    "semantic-graph-is-derived-representation-not-assembly-authority",
+    "modviz-consumes-stage-ops-state",
     "no-proprietary-game-content",
     "working-copy-before-write",
     "guarded-exe-patches-only",
-    "item-layer-does-not-patch-exe-directly",
-    "binary-inspector-does-not-write-original-files",
-    "heuristics-are-not-evidence-states",
-    "recovered-source-is-not-original-source",
-    "no-compatibility-claim-without-runtime-evidence"
+    "agent-consensus-is-not-evidence",
+    "st001-is-regression-fixture-not-stage-architecture",
+    "pac-slot-index-is-container-schema-scoped-not-global-semantic-identity"
   ],
-  "latest_reviewed_promotion": {
-    "pull_request": 47,
-    "title": "Binary Inspector cross-port Wave 1: diff, entropy, and range selection",
-    "merged_at": "2026-08-06T08:27:51Z",
-    "merge_commit": "f54703bc8c2b19da01818b3b39505cb96919c1ac",
-    "ubuntu_tests": 68,
-    "windows_tests": 68,
-    "ci_conclusion": "success",
-    "drive_receipt_readback": false
-  },
-  "implemented": [
-    "cpp20-cmake-core-library-and-cli",
-    "windows-ubuntu-ci-green",
-    "cmake-presets-and-warning-policy",
-    "release-test-assertion-invariant",
-    "sha256-artifact-identity",
-    "bounded-binary-reader",
-    "strict-json-parser-limits",
-    "evidence-confidence-locations-records-registry",
-    "versioned-evidence-packets",
-    "deterministic-evidence-json-export",
-    "strict-untrusted-evidence-json-import",
-    "cli-validate-evidence",
-    "resource-id-ref-payload",
-    "gdspaces-diagnostics",
-    "local-directory-source-readonly",
-    "root-containment-guards",
-    "source-registry",
-    "profile-aware-resource-classifier",
-    "resource-graph",
-    "open-router",
-    "tool-and-format-capability-registries",
-    "typed-stage-bundle",
-    "stage-bundle-assembler",
-    "generic-container-contracts",
-    "container-parser-registry",
-    "synthetic-slot-container-fixtures",
-    "container-child-identity-and-graph-edges",
-    "revisioned-working-copy",
-    "working-copy-expected-byte-edits-undo-reset",
-    "project-workspace-and-events",
-    "project-graph-and-manifests",
-    "binary-document-regions",
-    "binary-document-typed-fields",
-    "binary-document-ownership",
-    "binary-annotations-and-evidence-links",
-    "binary-selection-owner-field-annotation-lookup",
-    "binary-selected-range-overlap-context",
-    "binary-coverage-unknown-structural-and-ownership-conflicts",
-    "binary-deterministic-manifest",
-    "binary-offset-aligned-byte-diff",
-    "binary-diff-equal-modified-inserted-removed-spans",
-    "binary-shannon-entropy-map",
-    "binary-entropy-zero-ratio-and-unique-byte-count",
-    "binary-web-to-cpp20-crossport-plan",
-    "readonly-pe32-pe32plus-inspector",
-    "checked-offset-rva-va-conversion",
-    "known-executable-target-model",
-    "dmc3-phase12-known-target-registry",
-    "evidence-address-resolver",
-    "executable-workspace-manifests",
-    "dmc3-stage-table-descriptor",
-    "st001-resource-plan-and-matcher",
-    "dmc3-stage-workspace-builder",
-    "shared-stage-ops-modviz-views",
-    "formats-hits-dca-lig2-stage-txt",
-    "item-workspace-and-runtime-evidence",
-    "item-runtime-requests-graphs-and-manifests",
-    "trial-chamber-validation-plans",
-    "guarded-patch-plan-compiler",
-    "in-memory-copy-patch-execution",
-    "verified-rollback-plan",
-    "source-modification-package",
-    "integration-project-dependency-conflict-graph",
-    "custom-build-identity-and-record",
-    "source-line-symbol-to-output-address-mapping",
-    "custom-exe-reopen-lineage",
-    "hits-header-driven-parser",
-    "hits-0x38-triangle-plane-records",
-    "hits-spatial-grid-and-reference-lists",
-    "hits-runtime-grid-broadphase-and-reject-masks",
-    "hits-candidate-and-contact-contracts",
-    "hits-topology-preserving-safe-edits",
-    "hits-deterministic-sat-spatial-writer",
-    "hits-parser-writer-roundtrip",
-    "hits-spatial-differential-validator",
-    "hits-local-corpus-comparison-cli",
-    "dmc3-pc-save-pass31-abi",
-    "dmc3-pc-save-pass32-record-envelope-checksum-abi",
-    "public-evidence-packets-for-exe-item-and-save",
-    "governance-security-clean-room-and-canon"
-  ],
-  "resolved_blockers": [
-    "ci-result-visibility",
-    "cross-platform-foundation-validation",
-    "evidence-packet-export-schema",
-    "strict-evidence-json-import",
-    "artifact-hashing",
-    "readonly-pe-inspection",
-    "binary-inspector-fields-annotations-owner-lookup",
-    "binary-inspector-selected-range-context",
-    "binary-inspector-diff-domain-foundation",
-    "binary-inspector-entropy-domain-foundation",
-    "working-copy-foundation",
-    "guarded-patch-foundation",
-    "copy-execution-and-verified-rollback",
-    "source-modification-architecture",
-    "custom-build-lineage-model",
-    "initial-canonical-target-evidence-normalization",
-    "profile-aware-classifier-foundation",
-    "stage-bundle-assembler-foundation",
-    "hits-obsolete-model-corrected-in-code",
-    "pc-save-pass31-product-promotion",
-    "pc-save-pass32-product-promotion"
-  ],
-  "active_issues": [
+  "merged_main_capabilities": [
     {
-      "number": 3,
-      "id": "production-readonly-container-source-subset",
-      "state": "open",
-      "note": "generic foundation implemented; production PAC/PNST/NBZ/AFS path remains"
-    },
-    {
-      "number": 4,
-      "id": "game-backed-st001-stage-bundle",
-      "state": "open"
-    },
-    {
-      "number": 13,
-      "id": "real-hits-corpus-and-runtime-validation",
-      "state": "open"
-    },
-    {
-      "number": 48,
-      "id": "binary-inspector-crossport-wave2",
-      "state": "open",
-      "note": "Analysis Cache, generic diagnostics, unknown-region analysis, binary templates, and deterministic result export"
+      "pr": 98,
+      "merge_sha": "25bd70092503cc6ca3be51f05582dcd33af1523d",
+      "scope": "hash-gated-executable-byte-window-acquisition",
+      "status": "merged-main-bounded-primitive",
+      "proof_boundary": "artifact-range-byte-identity-only-not-function-abi-semantics-equivalence"
     }
   ],
-  "active_blockers": [
-    "production-pac-pnst-nbz-afs-source-expansion-incomplete",
-    "no-game-backed-st001-end-to-end-bundle",
-    "real-hits-corpus-and-runtime-validation-incomplete",
-    "capcom-hits-offline-builder-equivalence-unproven",
-    "wide-pass33-not-promoted-to-reviewed-cpp",
-    "recovered-source-skeleton-mostly-unpromoted",
-    "full-recovered-subsystem-behavioral-validation-loop-absent",
-    "no-working-recompiled-dmc3-executable",
-    "no-production-output-file-and-container-export-pipeline",
-    "no-public-signed-binary-release-pipeline",
-    "binary-inspector-analysis-cache-pending",
-    "binary-inspector-generic-diagnostics-pending",
-    "binary-inspector-native-interaction-ui-pending",
-    "complete-desktop-ui-pending"
-  ],
-  "research_ready_product_promotion_pending": [
-    "wide-pass33-detailed-slot-payload-partition",
-    "wide-pass33-mission-result-matrix",
-    "recovered-source-skeleton-v1.8",
-    "phase12-to17-supporting-runtime-resource-and-texture-findings"
-  ],
-  "explicitly_not_complete": [
-    "production-pac-pnst-nbz-afs-read-write-suite",
-    "game-backed-st001-stage-workspace",
-    "hits-original-builder-equivalence",
-    "binary-inspector-structure-aware-resynchronizing-diff",
-    "binary-inspector-persistent-analysis-cache",
-    "binary-inspector-generic-unknown-region-analyzer",
-    "binary-inspector-exe-address-and-patch-bridges",
-    "complete-binary-inspector-desktop-ui",
-    "complete-stage-ops-desktop-ui",
-    "complete-modviz-scene-and-menu-ui",
-    "complete-production-item-editor-ui-and-export",
-    "full-dmc3-decompilation",
-    "behaviorally-equivalent-recompiled-dmc3-executable",
-    "public-binary-release"
-  ],
-  "next_milestone": {
-    "id": "production-container-and-game-backed-stage-slice",
-    "goals": [
-      "production-readonly-pac-pnst-subset",
-      "nbz-afs-gdspaces-source-exposure",
-      "legal-local-game-backed-st001-stage-bundle",
-      "deterministic-stage-integration-report",
-      "real-hits-corpus-comparison-receipts",
-      "controlled-hits-game-runtime-validation",
-      "wide-pass33-evidence-packet-and-narrow-cpp-promotion",
-      "first-behavior-tested-recovered-subsystem"
-    ]
+  "stage_authority": {
+    "status": "strong-partial-not-complete",
+    "bank_a_descriptors": 110,
+    "bank_b_descriptors": 79,
+    "observed_descriptors_total": 189,
+    "selector_entries": 193,
+    "group_base_pointers": 10,
+    "identity_axes": [
+      "resource_set_id_or_catalog_entry_id",
+      "numeric_stage_id",
+      "separately_evidenced_semantic_stage_id"
+    ],
+    "st001_role": "regression-compatibility-fixture-only",
+    "descriptors_are_gameplay_stages": false
   },
-  "parallel_milestones": [
+  "active_branch_truth": [
     {
-      "id": "binary-inspector-crossport-wave2",
-      "issue": 48,
-      "goals": [
-        "artifact-identity-keyed-analysis-cache",
-        "generic-offset-order-overlap-alignment-stride-diagnostics",
-        "unknown-region-zero-repetition-entropy-analysis",
-        "versioned-binary-template-schema",
-        "deterministic-analysis-result-json"
+      "pr": 74,
+      "scope": "stage-descriptors-gdspaces-materialization-runtime-stack",
+      "status": "draft-branch-scoped-not-main-not-complete"
+    },
+    {
+      "pr": 85,
+      "scope": "hits-pass10-base-evidence-stack-through-validated-slice14",
+      "status": "draft-branch-scoped-not-hits-complete"
+    },
+    {
+      "pr": 89,
+      "scope": "recovered-game-wave3-executable-slices",
+      "status": "draft-selected-units-compile-test-not-whole-game-equivalent"
+    },
+    {
+      "pr": 91,
+      "scope": "stage-ops-scene-assembly-and-operations",
+      "head_sha": "b0994436457a7ae26e3083a4a13461f50db6e76d",
+      "ci_run": "31877176748",
+      "status": "draft-green-106-of-106-windows-and-ubuntu-not-complete-not-main"
+    },
+    {
+      "pr": 92,
+      "scope": "canonical-executable-identity-correction",
+      "ci_run": "31877266101",
+      "status": "draft-green-ci-promotion-pending"
+    },
+    {
+      "pr": 93,
+      "scope": "hits-classifier-and-format-authority-correction",
+      "status": "draft-green-ci-promotion-pending"
+    },
+    {
+      "pr": 94,
+      "scope": "completion-evidence-ownership-governance-reconciliation",
+      "status": "draft-current-authority-being-resynchronized-post-pr98"
+    },
+    {
+      "pr": 96,
+      "scope": "hits-pass10-slice15-referenced-stage-cfg-descriptor-census",
+      "head_sha": "a4be42d5ea73c9e120febd8a9b1b0654d5858dbc",
+      "ci_run": "31886670409",
+      "status": "bounded-complete-implementation-evidence-tooling-green-ci-not-hits-complete"
+    },
+    {
+      "pr": 97,
+      "scope": "hits-pass10-slice16-stage-cfg-transform-source-provenance",
+      "head_sha": "298a15d58cbadd370c4fbac300ab67812a29efa6",
+      "status": "research-required-no-production-transform-resolution"
+    },
+    {
+      "pr": 99,
+      "scope": "production-oriented-readonly-pac-structural-parser",
+      "head_sha": "d2eb0c59a3c80d7dd580c18e1e2ef48429e064cf",
+      "status": "draft-structural-parser-real-corpus-gate-pending-not-issue3-complete"
+    }
+  ],
+  "superseded_coordination": [
+    {
+      "pr": 95,
+      "status": "closed-unmerged",
+      "reason": "slice-number-collision",
+      "continued_as_pr": 96
+    }
+  ],
+  "subsystems": {
+    "gdspaces": {
+      "status": "not-complete",
+      "implemented": "substantial-structural-lookup-materialization-provenance-workingcopy-slices-plus-pr99-pac-structural-parser",
+      "missing": "representative-real-pac-validation-pnst-nbz-afs-lst-repack-plus-full-request-to-unload-typedpostload-factory-cache-lifetime-game-validation"
+    },
+    "recovered_game_source_tree": {
+      "status": "not-complete",
+      "implemented": "selected-evidence-backed-units-compile-and-test",
+      "missing": "broad-abi-ownership-lifetime-and-controlled-behavioral-equivalence"
+    },
+    "reverse_core": {
+      "status": "not-complete",
+      "implemented": "architecture-evidence-reconstruction-direction-plus-merged-pr98-byte-window-acquisition",
+      "missing": "mature-generic-claim-coordination-and-subsystem-validationreceipt-program"
+    },
+    "stage_ops": {
+      "status": "not-complete",
+      "implemented": "substantial-pr91-assembly-operations-domain-projection-stack-green-106-of-106-windows-and-ubuntu",
+      "missing": "complete-domain-runtime-lifecycle-representative-validation-and-promotion"
+    },
+    "semantic_graph": {
+      "status": "not-complete",
+      "role": "derived-stage-ops-representation"
+    },
+    "modviz": {
+      "status": "not-complete",
+      "implemented": "shared-projection-and-bounded-editor-slices",
+      "missing": "complete-scene-asset-hud-editing-validation-export"
+    },
+    "hits_collision": {
+      "status": "not-complete",
+      "implemented": "strong-format-spatial-writer-source-runtime-and-pass10-primitive-evidence",
+      "bounded_closed_or_validated": [
+        "0x14005E7A0-upper-wrapper-contract-per-pr85",
+        "0x14005FEC0-top-level-contract-per-pr85",
+        "0x1400601E0-top-level-contract-per-pr85",
+        "0x14005B460-reclassified-separate-dynamic-world-pipeline-per-pr85",
+        "primitive-shape-layer-mappings-slice7",
+        "common-contact-normal-semantics-slice8",
+        "primitive-descriptor-ownership-slice9",
+        "runtime-type0-one-point-structural-semantics-slice10",
+        "runtime-type1-two-endpoint-structural-semantics-slice10",
+        "stage-cfg-pac-collision-table-provenance-slice12",
+        "serialized-collision-triplet-view-slice13",
+        "stage-cfg-entry-primitive-descriptor-view-slice14",
+        "referenced-stage-cfg-descriptor-census-tooling-slice15"
+      ],
+      "corrected_or_rejected": [
+        "old-e7a0-metric-equality-tiebreak-arbitration-model",
+        "b460-as-e7a0-dynamic-candidate-producer",
+        "runtime-plus-0x20-as-primitive-descriptor",
+        "stage-cfg-plus-0xa4-plus-0xa8-as-abstract-inner-blob-fields",
+        "stage-cfg-plus-0x60-plus-0x64-as-abstract-inner-blob-fields",
+        "stage-cfg-slot38-as-proven-c740-style-transform-table"
+      ],
+      "latest_validated_slice": {
+        "slice": 15,
+        "pr": 96,
+        "scope": "referenced-descriptor-census-implementation-evidence-tooling",
+        "real_type5_presence_claimed": false,
+        "real_type5_absence_claimed": false
+      },
+      "active_reverse_frontier": {
+        "slice": 16,
+        "pr": 97,
+        "status": "research-required",
+        "primary_function": "0x1400594B0",
+        "targets": [
+          "full-function-body-callers-slot38-dataflow",
+          "modern-route-around-0x14009823F",
+          "legacy-observed-route-around-0x1400B6483",
+          "complete-c630-c740-caller-census-by-manager-source",
+          "exact-c8d0-stack-arg5-producer-base-object-bounds-count-lifecycle"
+        ],
+        "transform_selector_bounds_available": false,
+        "stage_cfg_slot38_proven_c740_style_transform_table": false
+      },
+      "current_concrete_data_frontier": {
+        "resource": "room/stXXXcfg.pac",
+        "modern_slot38": "0x1400594B0-consumed-related-source-structure-transform-role-unproven",
+        "modern_entry_table_slot": 39,
+        "modern_primitive_descriptor_slot": 40,
+        "legacy_related_source_slot": 21,
+        "legacy_entry_table_slot": 22,
+        "legacy_primitive_descriptor_slot": 23,
+        "preferred_runtime_observation_when_raw_slot_unavailable": "0x14005C8D0"
+      },
+      "missing": [
+        "representative-real-stage-cfg-referenced-descriptor-census",
+        "stage-cfg-transform-provider-bounds-lifecycle-slice16",
+        "deeper-primitive-producers-and-geometry-contact-helpers",
+        "source2-backing-ownership-lifetime-live-selection",
+        "remaining-fourth-component-semantics-where-unresolved",
+        "controlled-runtime-comparison",
+        "modified-topology-game-validation",
+        "capcom-offline-builder-equivalence"
       ]
+    },
+    "binary_inspector": {
+      "status": "not-complete",
+      "implemented": "substantial-domain-and-analysis-foundation",
+      "missing": "persistent-cache-broad-diagnostics-templates-complete-exe-bridges-native-product-ui"
+    },
+    "exe_editor_decompilation_recompilation": {
+      "status": "not-complete",
+      "implemented": "pe-address-evidence-recovered-source-build-lineage-selected-units-plus-merged-byte-window-acquisition",
+      "missing": "full-decompilation-behaviorally-equivalent-rebuilt-executable"
+    },
+    "item_hud_editors": {
+      "status": "not-complete",
+      "implemented": "bounded-guarded-runtime-editor-slices",
+      "missing": "complete-production-editor-runtime-validation-export-reintegration"
     }
+  },
+  "canonical_executable_project_evidence": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size_bytes": 6356432,
+    "stale_rejected_size_bytes": 3735552,
+    "correction_pr": 92,
+    "correction_branch_ci": "31877266101",
+    "merged_to_main": false,
+    "independent_fresh_rehash_requires_raw_artifact_mounted": true
+  },
+  "active_blockers": [
+    "resource-runtime-request-to-unload-equivalence",
+    "typed-postload-factory-cache-lifetime-transition-unload-closure",
+    "representative-bank-a-bank-b-shared-alias-partial-stage-validation",
+    "stage-ops-complete-domain-and-vanilla-lifecycle-bridge",
+    "recovered-game-controlled-behavioral-validationreceipts",
+    "pr99-representative-real-pac-multi-family-validation-and-broader-container-runtime-gates",
+    "hits-slice15-representative-real-stage-cfg-referenced-descriptor-census",
+    "hits-slice16-stage-cfg-transform-provider-bounds-count-lifecycle",
+    "hits-deeper-primitive-source2-runtime-equivalence",
+    "scm-mesh-plus-0x28-reconciliation",
+    "global-sha-level-evidence-metadata-invariant",
+    "raw-artifact-availability-for-new-byte-level-reverse-even-though-acquisition-tooling-is-merged",
+    "reverse-core-mature-claim-and-validation-program",
+    "complete-editor-export-reintegration",
+    "full-decompilation-and-behaviorally-equivalent-recompilation"
   ],
   "critical_path": [
-    "production-readonly-container-subset",
-    "game-backed-st001-stage-bundle",
-    "real-stage-and-hits-corpus-runtime-validation",
-    "narrow-drive-research-promotions",
-    "behavior-tested-recovered-subsystems",
-    "controlled-recompilation-milestones"
+    "artifact-and-evidence-integrity",
+    "use-merged-byte-window-acquisition-for-new-exe-evidence",
+    "resource-runtime-lifecycle-factory-cache-closure",
+    "evidence-backed-recovered-runtime-behavioral-receipts",
+    "representative-stage-catalog-validation",
+    "stage-ops-complete-domain-runtime-bridge",
+    "validated-editor-export-verticals",
+    "progressive-recompilation-milestones"
+  ],
+  "parallel_hints": [
+    "hits-slice16-transform-source-provenance",
+    "representative-stage-cfg-slice15-census",
+    "pr99-real-pac-corpus-validation"
   ]
 }
