@@ -121,6 +121,25 @@ int main() {
         ambiguous_section_result.error ==
         exe::ExeByteWindowError::ambiguous_raw_mapping);
 
+    auto mid_window_overlap = image;
+    mid_window_overlap.sections.push_back(exe::PeSection{
+        .name = ".mid",
+        .virtual_size = 0x80U,
+        .virtual_address = 0x1100U,
+        .raw_size = 0x80U,
+        .raw_offset = 0x680U,
+        .characteristics = 0U,
+    });
+    const auto mid_window_result = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        mid_window_overlap,
+        image.image_base + 0x1080U,
+        0x100U);
+    assert(!mid_window_result.ok());
+    assert(
+        mid_window_result.error ==
+        exe::ExeByteWindowError::ambiguous_raw_mapping);
+
     auto ambiguous_headers = image;
     ambiguous_headers.sections.push_back(exe::PeSection{
         .name = ".hdr",
