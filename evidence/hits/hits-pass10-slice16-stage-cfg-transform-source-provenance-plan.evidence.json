@@ -13,10 +13,41 @@
     "c8d0_transform_pointer_arg_index": 5,
     "stage_cfg_transform_bounds_available": false
   },
+  "known_body_windows": [
+    {
+      "id": "manager-source-initializer-c260",
+      "va": "0x14005C260",
+      "end_va": "0x14005C318",
+      "size_bytes": 184,
+      "sha256": "9f405b59574c4575813b9c15aa146aad62815ff01258e4fca8fa1e34338f93e7"
+    },
+    {
+      "id": "indirect-transform-builder-c630",
+      "va": "0x14005C630",
+      "end_va": "0x14005C731",
+      "size_bytes": 257,
+      "sha256": "97dbb8f5e6cace93530a30c936796a35fca80235467a3a0885f71c8593990d1a"
+    },
+    {
+      "id": "direct-transform-table-builder-c740",
+      "va": "0x14005C740",
+      "end_va": "0x14005C83D",
+      "size_bytes": 253,
+      "sha256": "0778fa7ecce7855712b1d0bd5cb8ef5b32998e1d4629ee0d5d35e951318e06b6"
+    },
+    {
+      "id": "runtime-object-initializer-c8d0",
+      "va": "0x14005C8D0",
+      "end_va": "0x14005C99D",
+      "size_bytes": 205,
+      "sha256": "f779db92f9fee9d1492ef7208eb9950784d782e51542dd65d551ecdf6b950bfe"
+    }
+  ],
   "builder_variants": [
     {
       "va": "0x14005C630",
       "end_va": "0x14005C731",
+      "size_bytes": 257,
       "body_sha256": "97dbb8f5e6cace93530a30c936796a35fca80235467a3a0885f71c8593990d1a",
       "bounded_contract": "entry+0x01 selects an indirect external source; selected source object +0x110 supplies transform source to C8D0",
       "stage_cfg_route_proven": false
@@ -24,6 +55,7 @@
     {
       "va": "0x14005C740",
       "end_va": "0x14005C83D",
+      "size_bytes": 253,
       "body_sha256": "0778fa7ecce7855712b1d0bd5cb8ef5b32998e1d4629ee0d5d35e951318e06b6",
       "bounded_contract": "entry+0x01 indexes an external/direct transform table with 0x40 stride and supplies the selected transform to C8D0",
       "stage_cfg_route_proven": false
@@ -32,6 +64,7 @@
   "runtime_bridge": {
     "va": "0x14005C8D0",
     "end_va": "0x14005C99D",
+    "size_bytes": 205,
     "body_sha256": "f779db92f9fee9d1492ef7208eb9950784d782e51542dd65d551ecdf6b950bfe",
     "entry_arg_index": 2,
     "descriptor_arg_index": 3,
@@ -55,6 +88,8 @@
   },
   "stage_cfg_slot38_boundary": {
     "consumer_va": "0x1400594B0",
+    "body_size_bytes": null,
+    "body_sha256": null,
     "payload_has_u16_relative_offset_structure": true,
     "proven_0x40_transform_table": false,
     "semantic_role": "RESEARCH_REQUIRED"
@@ -70,6 +105,7 @@
     {
       "id": "594b0-full-body-and-callers",
       "va": "0x1400594B0",
+      "known_exact_body_window": false,
       "required": [
         "complete_body",
         "caller_register_and_stack_setup",
@@ -130,10 +166,10 @@
     "no_original_runtime_transform_construction_in_gdspaces"
   ],
   "acceptable_next_evidence": [
-    "canonical_exe_bytes_or_verified_byte_identical_target_windows",
-    "sanitized_disassembly_windows_with_artifact_provenance",
-    "exact_sha_observation_only_runtime_trace",
-    "private_raw_stage_cfg_data_with_public_hash_offset_count_reports"
+    "canonical_exe_bytes_or verified-byte-identical target windows",
+    "sanitized disassembly windows with artifact provenance",
+    "exact-SHA observation-only runtime trace",
+    "private raw Stage-CFG data with public hash/offset/count reports"
   ],
   "major_hits_subsystem_complete": false,
   "proprietary_bytes_committed": false
