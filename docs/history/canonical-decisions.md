@@ -1,156 +1,219 @@
 # Canonical Project Decisions
 
-This document records architecture decisions that are treated as current project law until explicitly replaced through governance and a reviewed specification.
+This document records current project law until explicitly superseded through evidence/governance. Historical corrections remain visible rather than being silently erased.
 
-## CD-001 — GDSpaces is the single resource API
+For completion terminology, `docs/status/completion-and-evidence-policy.md` is authoritative.
 
-**Status:** confirmed, active
-
-All tools consume resources through GDSpaces contracts. GDSpaces owns:
-
-- source mounting;
-- game-folder scanning;
-- NBZ/AFS/PAC/PNST access and expansion;
-- namespaces and logical paths;
-- resource identity and display identity;
-- classification;
-- resource graph;
-- diagnostics;
-- evidence context;
-- OpenRouter;
-- typed stage bundles;
-- working-copy and future write policy.
-
-Tools own format-specific interpretation, visualization, editing, and validation.
-
-## CD-002 — Containers are internal layers
+## CD-001 — GDSpaces is the single product resource authority
 
 **Status:** confirmed, active
 
-PAC, PNST, NBZ, and AFS are formats inside the resource architecture. They are not top-level products and do not define editor boundaries.
+All product tools consume resources through GDSpaces contracts. GDSpaces owns product source/resource identity, lookup/resolution, materialization, provenance, classification, container expansion, resource graph/diagnostics, routing and WorkingCopy resource boundaries.
 
-A stage PAC and a non-stage PAC receive the same generic container treatment. Stage semantics are added through stage identity and `GDStageBundle`.
+GDSpaces does **not** own reconstructed original DMC3 factories, caches, lifetimes, collision runtime or other original-game code.
+
+## CD-002 — Containers are internal resource layers
+
+**Status:** confirmed, active
+
+PAC, PNST, NBZ and AFS are resource/container layers inside GDSpaces, not top-level editor products. Stage and non-Stage containers use the same generic resource principles; semantic Stage meaning is layered above stable resource identity.
+
+Legacy PAC Editor/PAC Manager top-level architecture is rejected.
 
 ## CD-003 — No second resolver
 
 **Status:** confirmed, active
 
-Stage Ops, ModViz, Item Editor, Binary Inspector, texture tooling, and future editors may not create independent path/container resolution systems.
+Stage Ops, Semantic Graph, ModViz, Binary Inspector, Item/HUD editors and other tools may not create independent path/container/resource resolution systems.
 
-Direct `FileSystemHandle`, raw path, or archive ownership in UI state is prohibited as canonical resource identity.
+Direct path/file-handle state is not canonical resource identity.
 
 ## CD-004 — Identity is layered
 
 **Status:** confirmed, active
 
-The project distinguishes:
-
-- source identity;
-- logical path;
-- container chain;
-- slot/index identity;
-- byte offset and size;
-- canonical resource ID;
-- display name;
-- synthetic fallback name;
-- EXE-backed semantic identity.
+Distinguish source identity, logical path, container/slot lineage, immutable source byte span, canonical resource ID, presentation labels and evidence-backed executable/semantic identities.
 
 Display names never replace canonical IDs.
 
 ## CD-005 — Evidence precedes Canon
 
-**Status:** confirmed, active
+**Status:** confirmed, active; vocabulary extended by CD-015
 
-Reverse-engineering conclusions must carry confidence and evidence. The accepted states are:
+Reverse conclusions require explicit evidence/status and reproducibility. Corrections/rejections preserve history.
 
-- hypothesis;
-- candidate;
-- low;
-- medium;
-- high;
-- confirmed;
-- corrected;
-- rejected.
+Agent/model consensus is not evidence.
 
-A correction preserves history rather than silently rewriting it.
+## CD-006 — Recovered C++ is durable reconstruction, not EXE-Editor-owned game code
 
-## CD-006 — C++ is the permanent source-recovery center
+**Status:** corrected, active
 
-**Status:** confirmed, active
+Earlier wording treated EXE Editor as the owner of recovered source. The corrected ownership is:
 
-EXE Editor is ultimately a source-recovery and recompilation environment. Decompiled C/C++ is the central durable representation; disassembly, hex, bytes, symbols, ownership, and evidence are supporting views.
+- reconstructed original DMC3 game code lives in the **Recovered Game Source Tree**;
+- Reverse Core owns generic reconstruction/evidence identities;
+- EXE Editor is a frontend/editor over those shared authorities.
 
-Recovered source units are not described as original source and are not considered complete until ABI, ownership, behavior, and tests support them.
+Readable or compilable recovered C++ is an evidence-backed executable specification, not automatically original Capcom source or behaviorally equivalent code.
 
-## CD-007 — Binary Inspector is an evidence consumer
+## CD-007 — Binary Inspector is an evidence/structure consumer
 
 **Status:** confirmed, active
 
-Binary Inspector receives bytes, regions, resource identity, diagnostics, and evidence from GDSpaces or EXE services. It does not independently resolve sources.
+Binary Inspector receives exact byte lineage, stable resource/artifact identity, structures, ownership, diagnostics and evidence. It does not independently resolve sources.
 
-## CD-008 — Stage Ops consumes typed bundles
+For edited data it must track the exact active WorkingCopy revision/byte view.
 
-**Status:** confirmed, active
+## CD-008 — Stage Ops owns product-side stage/scene assembly
 
-Stage Ops receives `GDStageBundle`/`StageBundle`, not a list of raw files. A bundle can contain scripts, models, textures, animation, cameras, lighting, events, positions, effects, collision, sounds, and unknown resources.
+**Status:** corrected/expanded, active
 
-Partial failures must not erase the rest of a stage bundle.
+Earlier wording described Stage Ops mainly as a consumer of typed bundles. The current responsibility is broader:
 
-## CD-009 — ModViz has two product modes
+- Stage Ops consumes selected/materialized GDSpaces Stage data plus recovered-runtime links;
+- it owns `StageAssemblyWorkspace`, product scene/domain assembly and operational state;
+- it coordinates edit/reanalysis/invalidation/validation state;
+- it exposes stable Stage state to Semantic Graph and ModViz.
 
-**Status:** confirmed, active
+Stage Ops does not resolve resources independently and does not own original DMC3 runtime code.
 
-ModViz contains:
+## CD-009 — ModViz is an editor consumer, not scene authority
 
-1. Scene/Model Editor;
-2. Menu Editor.
+**Status:** confirmed/corrected, active
 
-The Menu Editor handles HUD/menu models, hierarchy, screen-space layout, transforms, UV atlas regions, draw order, visibility, counter layouts, digit/icon slots, and runtime-value preview.
-
-Executable behavior remains linked through EXE evidence and guarded patch plans.
+ModViz provides Scene/Model and Menu/HUD editing workflows over shared Stage Ops/resource/evidence state. It does not build a competing Stage scene model or perform direct source/EXE writes.
 
 ## CD-010 — Writes are explicit and guarded
 
-**Status:** confirmed, planned implementation
+**Status:** confirmed, active foundation / full production reintegration incomplete
 
-No tool silently overwrites original game content. The write path requires:
+Original source bytes remain immutable by default. Edits require WorkingCopy/revision identity, validation, conflict/capacity checks, manifests, explicit copied-output/export targets and rollback.
 
-1. working copy;
-2. edit operations;
-3. validation;
-4. conflict and capacity checks;
-5. manifest;
-6. explicit export/build;
-7. backup/rollback information.
-
-Executable patches additionally require source hash, source bytes, target bytes, address mapping, dependencies, rollback, and runtime tests.
+Executable modifications additionally require exact artifact identity, expected bytes/ranges, address mapping and runtime validation appropriate to the change.
 
 ## CD-011 — Public repository remains content-clean
 
 **Status:** confirmed, active
 
-The repository contains original implementation, documentation, evidence metadata, and synthetic fixtures. It does not contain proprietary game files, leaked source, or redistributed extracted assets.
+The public repository contains original implementation, documentation, sanitized evidence metadata and synthetic fixtures, not proprietary game files, leaked source or redistributed assets.
 
-## CD-012 — The clean C++ repository is not a blind port
+## CD-012 — The C++ repository is not a blind legacy port
 
 **Status:** confirmed, active
 
-Legacy functionality is migrated only when its responsibility, evidence, architecture fit, and tests are understood. Old code is not imported merely because it already exists.
+Legacy/private functionality is migrated only when ownership, evidence, architecture fit and tests are understood. Existing code is not canonical merely because it already exists.
 
 ## CD-013 — Knowledge systems have distinct responsibilities
 
 **Status:** confirmed, active workflow
 
-- Obsidian: human-readable project chronicle.
-- Knowledge graph: machine-readable relations.
-- MemPalace: long-term contextual memory.
-- SDD: specifications and acceptance criteria.
-- Git repository: implementation and public canonical documents.
-
-No system silently overwrites another. Changes move through explicit events/proposals.
+Human documentation, machine-readable evidence/graphs, long-term memory, SDD/specifications, Drive research and Git implementation remain distinct layers with explicit synchronization/supersession rather than silent overwrite.
 
 ## CD-014 — Brand lore never overrides engineering language
 
 **Status:** confirmed, active
 
-The Order, monks, sect, chambers, and mottos are fictional brand language. APIs, schemas, tests, permissions, governance, and security use direct technical names.
+Lore/community names are presentation. APIs, schemas, status, evidence, permissions, governance and security use direct technical identities.
+
+## CD-015 — Bounded closure does not imply subsystem completion
+
+**Status:** confirmed, active
+
+Use the narrowest truthful state: hypothesis/candidate/confidence, EXE confirmed, runtime-derived, implemented, tested, bounded closed, validated, research required/not proven, corrected/rejected.
+
+`COMPLETE` for a major subsystem is reserved for the full applicable completion gate, including representative evidence/runtime/lifecycle validation and a deterministic ValidationReceipt where equivalence is claimed.
+
+Green CI, parser/writer round trips, compiled recovered C++, or one closed ABI do not establish whole-subsystem completion.
+
+As of 2026-08-15 no major DMC Rengine end-to-end subsystem is `COMPLETE` or proven equivalent to the original DMC3 runtime.
+
+## CD-016 — Recovered Game Source Tree owns original-runtime reconstruction
+
+**Status:** confirmed, active
+
+Original DMC3 runtime functions/types/behavior reconstructed from executable evidence belong under `recovered-game/...`.
+
+This includes, when recovered, resource typed post-load/factories/cache/lifetime, collision runtime, Stage consumers and other original systems.
+
+Tool consumption does not transfer ownership of those functions into GDSpaces, Stage Ops, ModViz or Binary Inspector.
+
+## CD-017 — Reverse Core is generic reverse infrastructure
+
+**Status:** confirmed, active direction
+
+Reverse Core owns generic identities/workflows such as artifact, address range, function, data object, recovered type, evidence, hypothesis, experiment, task claim, reconstruction and ValidationReceipt.
+
+It must remain reusable across games/projects and must not become a DMC3-specific gameplay-code tree.
+
+Parallel agents use claims/coordination to avoid racing on the same function/type/file. Consensus is not evidence.
+
+## CD-018 — Semantic Graph is a projection of Stage Ops
+
+**Status:** confirmed, active
+
+Stage Semantic Graph represents/indexes assembled Stage Ops state and evidence relationships. It does not resolve resources, traverse archives, instantiate original runtime objects or assemble a second scene.
+
+## CD-019 — Stage identity has three independent axes
+
+**Status:** confirmed, active
+
+The current Wave-2 Stage authority distinguishes:
+
+- 110 Bank-A observed descriptors;
+- 79 Bank-B observed descriptors;
+- 189 observed descriptors total;
+- separate 193-entry selector space;
+- separate 10-pointer group-base table;
+- numeric group/remainder selector indirection.
+
+Keep separate:
+
+1. resource-set/catalog-entry identity;
+2. numeric Stage identity;
+3. semantic/gameplay Stage identity only when separately evidenced.
+
+189 descriptors are not automatically 189 gameplay stages. `st001` is regression/compatibility data only and is not the Stage architecture or completion gate.
+
+## CD-020 — Materialized Stage data is not original game-ready state
+
+**Status:** confirmed, active
+
+GDSpaces materialization/container expansion and product `StageBundle`/Stage Ops assembly must remain distinct from original DMC3 typed post-load, factory construction, cache/ownership/lifetime and consumer-ready state.
+
+`game_ready_equivalent` cannot become true solely because bytes were found/parsed/assembled.
+
+## CD-021 — Source identity is immutable; WorkingCopy byte lineage is revisioned
+
+**Status:** confirmed, active
+
+`ResourceId` represents immutable source identity/span. A WorkingCopy may change active byte size/revision while retaining that source identity.
+
+Parser/Binary Document/derived Stage state must track the active WorkingCopy byte source and revision rather than requiring immutable source size equality after insert/delete edits.
+
+## CD-022 — Truth layers remain separate
+
+**Status:** confirmed, active
+
+Do not collapse:
+
+- raw canonical artifact/runtime evidence;
+- sanitized Evidence Packets/reconciliation;
+- recovered-game reconstruction;
+- branch-scoped PR implementation;
+- merged GitHub `main` implementation;
+- Google Drive research history.
+
+A green active PR is not merged-main truth. A historical Drive pass is not current authority after explicit supersession. Raw direct evidence outranks summaries for the exact artifact.
+
+## CD-023 — Historical reverse records are preserved through supersession
+
+**Status:** confirmed, active
+
+When later evidence closes/corrects/rejects an older target:
+
+- preserve the historical record;
+- add correction/supersession links/notices;
+- update current coordination/status surfaces;
+- do not restart the old target merely because an older document still lists it as open.
+
+Reopening a bounded-closed claim requires contradictory/new evidence, not status drift.
