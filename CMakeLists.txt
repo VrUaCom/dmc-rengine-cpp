@@ -93,6 +93,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_primitive_type01_evidence
         hits_stage_cfg_pac_evidence
         hits_collision_triplet
+        hits_stage_cfg_collision_tables
         dca
         lig2
         stage_txt
