@@ -11,6 +11,7 @@ This directory stores public, non-proprietary evidence metadata for HITS reverse
 - `hits-pass10-slice12-stage-cfg-pac.evidence.json` — validated Stage-CFG PAC collision-slot bridge: resource kind 1 -> `room\\stXXXcfg.pac`; modern entry/descriptor slots 39/40, legacy observed slots 22/23. This record supersedes the earlier abstract inner-blob interpretation of `+0xA4/+0xA8` and `+0x60/+0x64`.
 - `hits-pass10-slice13-collision-triplet.evidence.json` — validated `0x40 / 0x04 / 0x50` serialized dynamic-collision three-span ABI with Phase-15 `em000.pac` data-side confirmation and `id100.pac` negative control. PAC slot numbers are not globally semantic, and Stage-CFG slot38 is not promoted as the transform table.
 - `hits-pass10-slice14-stage-cfg-collision-view.evidence.json` — validated Stage-CFG entry/primitive-descriptor adapter over the existing `ContainerDocument`; exposes flags, raw transform selector, descriptor index/type and broken descriptor references without inventing transform-selector bounds. Includes the failed-first-head → real-container-API fix → green Ubuntu/Windows debug receipt.
+- `hits-pass10-slice15-referenced-stage-cfg-descriptor-census.evidence.json` — validated referenced-only census implementation over the Slice-14 Stage-CFG view. It counts only actually referenced descriptors, preserves raw type/reference counts and broken references, and deliberately makes no real Stage-CFG type-5 presence/absence claim until representative proprietary corpus data is supplied through the canonical GDSpaces/container path.
 
 ## Evidence precedence
 
@@ -23,7 +24,8 @@ When a later slice-specific record explicitly marks an earlier statement `SUPERS
 - do not model `+0xA4/+0xA8` or `+0x60/+0x64` as universal inner resource-header fields after Slice 12: they are PAC slot-offset table entries in the current stage `room\\stXXXcfg.pac`;
 - do not infer that matching PAC slot numbers imply matching schemas: Slice 13 proves `em000.pac` 38/39/40 is a valid collision three-table set while `id100.pac` 38/39/40 is not;
 - do not wire Stage-CFG slot38 as a transform table without new direct evidence. Stage-CFG entry/descriptor slots remain confirmed independently;
-- do not validate Stage-CFG `entry+0x01` transform selectors merely because the raw selector byte is decoded. Slice 14 explicitly leaves transform provenance unresolved.
+- do not validate Stage-CFG `entry+0x01` transform selectors merely because the raw selector byte is decoded. Slice 14 explicitly leaves transform provenance unresolved;
+- do not interpret Slice-15 synthetic raw type-5 regression as evidence that a real Stage-CFG resource contains type 5. Real presence or absence requires a provenance-preserving representative corpus census.
 
 All DMC3 build-specific VAs/body hashes here are profile evidence for canonical executable SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` unless a record explicitly states otherwise.
 
