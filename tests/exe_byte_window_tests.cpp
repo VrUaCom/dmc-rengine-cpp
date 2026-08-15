@@ -102,6 +102,50 @@ int main() {
     assert(!virtual_only.ok());
     assert(virtual_only.error == exe::ExeByteWindowError::unmapped_rva);
 
+    auto raw_padding = image;
+    raw_padding.sections.clear();
+    raw_padding.sections.push_back(exe::PeSection{
+        .name = ".pad",
+        .virtual_size = 0x100U,
+        .virtual_address = 0x2000U,
+        .raw_size = 0x200U,
+        .raw_offset = 0x400U,
+        .characteristics = 0U,
+    });
+    const auto raw_padding_only = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        raw_padding,
+        image.image_base + 0x2180U,
+        0x10U);
+    assert(!raw_padding_only.ok());
+    assert(raw_padding_only.error == exe::ExeByteWindowError::unmapped_rva);
+
+    const auto crosses_virtual_extent = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        raw_padding,
+        image.image_base + 0x20F0U,
+        0x20U);
+    assert(!crosses_virtual_extent.ok());
+    assert(crosses_virtual_extent.error == exe::ExeByteWindowError::crosses_raw_mapping);
+
+    auto zero_virtual_size = image;
+    zero_virtual_size.sections.clear();
+    zero_virtual_size.sections.push_back(exe::PeSection{
+        .name = ".zero",
+        .virtual_size = 0U,
+        .virtual_address = 0x3000U,
+        .raw_size = 0x100U,
+        .raw_offset = 0x500U,
+        .characteristics = 0U,
+    });
+    const auto zero_virtual_fallback = exe::ExeByteWindowExtractor::extract(
+        bytes,
+        zero_virtual_size,
+        image.image_base + 0x3080U,
+        0x10U);
+    assert(zero_virtual_fallback.ok());
+    assert(zero_virtual_fallback.window->file_offset == 0x580U);
+
     auto ambiguous_sections = image;
     ambiguous_sections.sections.push_back(exe::PeSection{
         .name = ".alt",
