@@ -20,6 +20,7 @@ enum class ExeByteWindowError : std::uint8_t {
     va_below_image_base,
     rva_overflow,
     unmapped_rva,
+    ambiguous_raw_mapping,
     crosses_raw_mapping,
     file_range_out_of_bounds,
 };
@@ -32,6 +33,7 @@ enum class ExeByteWindowError : std::uint8_t {
     case ExeByteWindowError::va_below_image_base: return "va-below-image-base";
     case ExeByteWindowError::rva_overflow: return "rva-overflow";
     case ExeByteWindowError::unmapped_rva: return "unmapped-rva";
+    case ExeByteWindowError::ambiguous_raw_mapping: return "ambiguous-raw-mapping";
     case ExeByteWindowError::crosses_raw_mapping: return "crosses-raw-mapping";
     case ExeByteWindowError::file_range_out_of_bounds: return "file-range-out-of-bounds";
     }
