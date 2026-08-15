@@ -4,6 +4,7 @@
 #include "dmc_rengine/exe/byte_window.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
+#include "dmc_rengine/gdspaces/source_registry.hpp"
 
 #include <charconv>
 #include <cctype>
@@ -12,6 +13,7 @@
 #include <filesystem>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <span>
@@ -21,11 +23,7 @@
 namespace dmc::rengine::cli {
 namespace {
 
-struct LoadedLocalFile final {
-    gdspaces::ResourcePayload payload;
-};
-
-[[nodiscard]] std::optional<LoadedLocalFile> load_local_file(
+[[nodiscard]] std::optional<gdspaces::ResourcePayload> load_local_file(
     const std::filesystem::path& path) {
     std::error_code error;
     const auto absolute = std::filesystem::absolute(path, error);
@@ -33,22 +31,33 @@ struct LoadedLocalFile final {
         return std::nullopt;
     }
 
-    const auto root = absolute.has_parent_path()
-        ? absolute.parent_path()
-        : std::filesystem::current_path();
-
-    gdspaces::LocalDirectorySource source("cli-exe-acquisition", root, false);
-    for (const auto& ref : source.enumerate()) {
-        if (ref.id.logical_path != absolute.filename().generic_string()) {
-            continue;
-        }
-        const auto payload = source.read(ref.id);
-        if (!payload || !payload->readable()) {
-            return std::nullopt;
-        }
-        return LoadedLocalFile{.payload = *payload};
+    const auto raw_size = std::filesystem::file_size(absolute, error);
+    if (error ||
+        raw_size > static_cast<std::uintmax_t>(
+            std::numeric_limits<std::uint64_t>::max())) {
+        return std::nullopt;
     }
-    return std::nullopt;
+
+    constexpr std::string_view source_id = "cli-exe-acquisition";
+    gdspaces::SourceRegistry registry;
+    if (!registry.mount(std::make_unique<gdspaces::LocalDirectorySource>(
+            std::string{source_id}, absolute.parent_path(), false))) {
+        return std::nullopt;
+    }
+
+    const gdspaces::ResourceId resource{
+        .source_id = std::string{source_id},
+        .logical_path = absolute.filename().generic_string(),
+        .container_chain = {},
+        .offset = 0U,
+        .size = static_cast<std::uint64_t>(raw_size),
+    };
+
+    auto payload = registry.read(resource);
+    if (!payload || !payload->readable()) {
+        return std::nullopt;
+    }
+    return payload;
 }
 
 [[nodiscard]] std::optional<std::uint64_t> parse_u64(std::string_view text) {
@@ -156,13 +165,13 @@ int run_extract_exe_window(
         return 2;
     }
 
-    const auto loaded = load_local_file(path);
-    if (!loaded) {
+    const auto payload = load_local_file(path);
+    if (!payload) {
         std::cerr << "Could not read executable through GDSpaces: " << path << '\n';
         return 2;
     }
 
-    const auto file_bytes = std::span<const std::byte>{loaded->payload.bytes};
+    const auto file_bytes = std::span<const std::byte>{payload->bytes};
     const auto actual_sha = core::Sha256::compute(file_bytes).hex();
     if (actual_sha != *expected_sha) {
         std::cerr << "Executable SHA-256 mismatch.\n"
@@ -207,7 +216,8 @@ int run_extract_exe_window(
     std::cout << "{\n"
               << "  \"schema\": \"dmc-rengine.exe-byte-window.v1\",\n"
               << "  \"artifact_sha256\": \"" << actual_sha << "\",\n"
-              << "  \"artifact_size\": " << loaded->payload.bytes.size() << ",\n"
+              << "  \"artifact_size\": " << payload->bytes.size() << ",\n"
+              << "  \"image_base\": \"" << hex_u64(pe.image->image_base) << "\",\n"
               << "  \"va\": \"" << hex_u64(window.window->va) << "\",\n"
               << "  \"rva\": \"" << hex_u64(window.window->rva) << "\",\n"
               << "  \"file_offset\": \"" << hex_u64(window.window->file_offset) << "\",\n"
