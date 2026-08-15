@@ -11,7 +11,7 @@ local executable
   -> GDSpaces SourceRegistry / LocalDirectorySource
   -> exact artifact SHA-256 gate
   -> read-only PE parse
-  -> checked VA -> RVA -> file-backed raw mapping
+  -> checked VA -> RVA -> SizeOfImage + file-backed VA/raw mapping
   -> bounded byte window
   -> deterministic metadata receipt
   -> optional local-only raw hex
@@ -56,7 +56,7 @@ Without `--hex`, the command emits deterministic JSON metadata only:
 
 The example values above are schema illustrations only, not evidence for any game binary.
 
-The metadata receipt is safe to use as an acquisition identity because it binds:
+The metadata receipt binds:
 
 - exact artifact SHA-256;
 - artifact size;
@@ -86,25 +86,38 @@ This prevents a receipt from claiming one byte-window hash while carrying differ
 
 ## PE mapping safety
 
-The extractor is deliberately stricter than a convenience RVA converter.
+The extractor is deliberately stricter than a convenience RVA-to-file-offset converter because its input identity is a runtime-style **VA**.
 
-It rejects:
+An accepted section interval must be inside all applicable boundaries simultaneously:
+
+1. the PE `SizeOfImage` runtime image boundary;
+2. the section virtual extent (`VirtualSize`, with `SizeOfRawData` fallback when `VirtualSize == 0`);
+3. the section raw file extent;
+4. the supplied artifact byte span;
+5. one unambiguous file-backed VA mapping authority across the whole requested interval.
+
+For a section, the usable file-backed VA extent is therefore the intersection of virtual and raw coverage. This rejects both virtual-only tails and raw padding that lies beyond `VirtualSize`.
+
+The extractor rejects:
 
 - zero-sized windows;
 - windows larger than `0x10000` bytes / 64 KiB;
 - VA below the PE image base;
 - RVA overflow;
-- RVA not backed by PE headers or section raw data;
+- missing/zero `SizeOfImage` or RVA outside `SizeOfImage`;
+- a window that crosses `SizeOfImage`;
+- RVA not backed by PE headers or a section's file-backed VA extent;
 - virtual-only section tails;
-- header-to-section or section raw-boundary crossing;
+- raw-only section padding beyond `VirtualSize`;
+- header-to-section or section file-backed-boundary crossing;
 - file spans outside the supplied artifact;
-- ambiguous raw RVA mappings.
+- ambiguous file-backed VA mappings.
 
-Ambiguity is checked across the **entire requested RVA interval**, not only the first byte. A malformed/odd PE whose requested window overlaps two raw section mappings is rejected instead of selecting the first section by header order.
+Ambiguity is checked across the **entire requested RVA interval**, not only the first byte. A malformed/odd PE whose requested window overlaps two section mappings is rejected instead of selecting the first section by header order.
 
-A header-backed acquisition is also rejected if the same requested RVA interval overlaps section-backed raw data.
+A header-backed acquisition is also rejected if the same requested RVA interval overlaps section-backed VA data.
 
-These rules are important for evidence work: the same artifact/range request must have one deterministic raw-byte authority.
+These rules are important for evidence work: the same artifact/range request must have one deterministic runtime-to-file byte authority.
 
 ## GDSpaces boundary
 
@@ -200,8 +213,11 @@ Likewise the Stage-CFG setup anchors around `0x14009823F` and `0x1400B6483` requ
 Synthetic tests cover:
 
 - PE-header and section-backed extraction;
-- raw boundary crossing;
+- `SizeOfImage` boundaries;
+- section virtual/raw intersection behavior;
 - virtual-only section tails;
+- raw-only padding beyond `VirtualSize`;
+- file-backed boundary crossing;
 - truncated files;
 - ambiguous mappings at the first RVA and later inside the requested interval;
 - deterministic receipt generation;
@@ -215,6 +231,6 @@ No proprietary game bytes are required by these tests.
 
 The byte-window acquisition primitive may be considered complete only at its bounded responsibility:
 
-> exact-hash-gated, deterministic, read-only extraction of one file-backed PE byte window and production of a self-consistent acquisition receipt.
+> exact-hash-gated, deterministic, read-only extraction of one unambiguously file-backed PE VA window and production of a self-consistent acquisition receipt.
 
 It does **not** complete Reverse Core, EXE Editor, decompilation, HITS Slice 16 or any original-game behavioral-equivalence gate.
