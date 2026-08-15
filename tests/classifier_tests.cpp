@@ -32,9 +32,10 @@ int main() {
     assert(pac_by_magic.container);
     assert(pac_by_magic.magic_confirmed);
 
+    // Canonical HITS magic is exactly the four-byte prefix "HITS".
+    // The following header byte is format data, not a '$' magic suffix.
     const std::vector<std::byte> hits_bytes{
-        std::byte{'H'}, std::byte{'I'}, std::byte{'T'},
-        std::byte{'S'}, std::byte{'$'}};
+        std::byte{'H'}, std::byte{'I'}, std::byte{'T'}, std::byte{'S'}};
     const auto hits = ResourceClassifier::classify(
         "stage/collision.ukn", std::span<const std::byte>{hits_bytes});
     assert(hits.format == "hits");
