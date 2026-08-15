@@ -1,256 +1,186 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-08  
-**Reviewed `main` baseline before this documentation branch:** `6eb6a07975753e2bbe9414893a76e13c946fa78e`
+**Snapshot date:** 2026-08-15
 
-## R-001 — Second resolver regression
+## Critical risks
 
-**Severity:** critical
+### R-001 — Second resource resolver regression
 
-A subsystem may reintroduce direct path/container loading for convenience.
+A consumer may bypass GDSpaces for direct path/archive lookup.
 
-Mitigation: public tool contracts use GDSpaces identities/payloads/workspaces; parsers consume supplied byte spans; no tool-specific archive mount path; architecture review/tests enforce one resource authority.
+**Mitigation:** GDSpaces remains the only product resource resolver/materializer; Stage Ops receives resolved/materialized state; Semantic Graph and ModViz never perform their own archive discovery.
 
-## R-002 — Historical claim inflation
+### R-002 — Tool ownership absorbs recovered vanilla code
 
-**Severity:** high
+Recovered resource, collision, stage, UI, cache, factory, or lifecycle functions may be placed under the tool that consumes their semantics.
 
-Research summaries or recovered source may be misrepresented as implemented, confirmed, or original Capcom source.
+**Mitigation:** original DMC3 runtime reconstruction belongs to the Recovered Game Source Tree. Tool relationship, game-subsystem membership, and temporary TaskClaim ownership remain distinct axes.
 
-Mitigation: explicit implementation/evidence states, Evidence Packets, correction/rejection history, exact artifact provenance, and controlled promotion into reviewed C++.
+### R-003 — Duplicate reverse truth stores
 
-## R-003 — Parser vulnerabilities
+EXE Editor, Binary Inspector, agents, or recovered-source tooling may create independent function/type/evidence identities.
 
-**Severity:** high
+**Mitigation:** one Reverse Core identity/reconstruction contract with adapters/bridges; no editor-local canonical function database.
 
-Malformed binary/JSON inputs may trigger bounds, overflow, traversal, allocation, recursion, or inconsistent-state bugs.
+### R-004 — Recovered C++ drifts from binary behavior
 
-Mitigation: bounded readers, checked arithmetic, containment guards, parser limits, deterministic diagnostics, malformed corpora, and later fuzzing.
+Readable/clean C++ can preserve neither ABI nor semantics.
 
-## R-004 — Premature production write support
+**Mitigation:** exact artifact/range provenance, recorded ABI/lifetime assumptions, isolated builds, behavioral comparison, ValidationReceipt, correction/rejection history.
 
-**Severity:** high
+### R-005 — Canonical artifact identity corruption
 
-Archive/executable write-back before read/validation/export/rollback contracts stabilize can corrupt user files.
+The same SHA may be paired with conflicting sizes/metadata, causing real evidence to be rejected or false tuples to be accepted.
 
-Mitigation: immutable source payloads, working copies, copied-output execution, expected-byte/source-hash guards, manifests, rollback, and evidence-backed writer specifications.
+**Mitigation:** one canonical artifact record per immutable SHA, explicit correction/supersession records, repository invariant tests across machine-readable authorities, no silent metadata forks.
 
-## R-005 — Decompiled-code false confidence
+### R-006 — Integration-stack divergence
 
-**Severity:** high
+`main`, long-lived integration branches, recovered-runtime stacks, Stage Ops, and research can each be internally green while mutually stale.
 
-Readable C++ may still have wrong ABI, types, ownership, lifetime, side effects, or behavior.
+**Mitigation:** one explicit integration spine, overlap review, whole-stack CI, promotion receipt, and status regenerated only against the composed commit.
 
-Mitigation: per-unit provenance, explicit assumptions, isolated builds, behavioral comparisons, validation receipts, and correction/rejection history.
+### R-007 — Agent consensus masquerades as evidence
 
-## R-006 — Public repository content contamination
+Parallel models may agree on the same wrong hypothesis.
 
-**Severity:** high
+**Mitigation:** agent agreement and TaskClaims are workflow metadata, never Evidence. Promotion requires artifact/runtime/test provenance.
 
-Game binaries/assets/saves/extracted proprietary bytes or leaked source may be committed accidentally.
+### R-008 — TaskClaim liveness/deadlock
 
-Mitigation: clean-room rules, synthetic fixtures, ignore/scanning policy, local user-supplied legal resources, and removal procedure.
+Claims may prevent duplicate mutation but become abandoned, circular, or permanently blocking.
 
-## R-007 — Architecture monolith
+**Mitigation:** scoped claims, ownership/conflict states, expiry/release/supersession rules, deterministic audit history, explicit blocked-by relationships.
 
-**Severity:** high
+### R-009 — ValidationReceipt invalidation is missing
 
-Triangle Forge, Reverse Core, GDSpaces, or Project Workspace could absorb unrelated domain responsibilities and become an unmaintainable monolith.
+A receipt may remain displayed as valid after its artifact, reconstruction, dependency, or behavior-test input changes.
 
-Mitigation: explicit layering; Reverse Core remains game-agnostic; GDSpaces remains resource-specific; DMC semantics remain in DMC Rengine; UI state stays outside core identity/evidence services.
+**Mitigation:** receipts bind exact immutable input/reconstruction identities; dependency revision changes invalidate/recompute derived validation state.
 
-## R-008 — UI drives domain design
+## High risks
 
-**Severity:** medium
+### R-010 — Materialized bytes are mislabeled game-ready
 
-Visual workflows may redefine resource identity, ownership, write policy, or reconstruction state around widgets.
+A `StageBundle`/payload may be treated as equivalent to original state-3 runtime state before post-load/factory/cache/lifetime reconstruction.
 
-Mitigation: domain/CLI contracts precede full GUI; Stage Ops/ModViz share workspaces; Binary Inspector consumes the document model; Item/ModViz produce typed requests rather than direct unguarded patches.
+**Mitigation:** separate product-materialized and `game_ready_equivalent`; default the latter false until recovered-runtime evidence closes the boundary.
 
-## R-009 — AI-generated churn
+### R-011 — Stage identity axes collapse
 
-**Severity:** high
+Resource-set/catalog identity, numeric selector-facing Stage ID, and semantic gameplay identity may be equated by filename or convenience.
 
-High-volume generated code/docs may introduce duplicated abstractions, stale claims, invented compatibility, or scope expansion.
+**Mitigation:** independent typed fields/identities, explicit mapping evidence, and tests that preserve aliases/shared resources. `st001` remains fixture-only.
 
-Mitigation: generate -> triage -> evidence/test -> correct -> review -> Canon; narrow specs/PRs; machine-readable status; deterministic manifests; human-reviewed promotion.
+### R-012 — Semantic Graph becomes a second scene model
 
-## R-010 — GitHub/research/status drift
+Graph code may start resolving resources, owning mutable bytes, or manufacturing missing runtime semantics.
 
-**Severity:** high
+**Mitigation:** graph is deterministic/disposable Stage Ops projection only. Missing assembly information must be added to Stage Ops or reverse/parser authority first.
 
-Reviewed code, status docs, issues, Drive research, recovered-source snapshots, and implementation receipts can diverge.
+### R-013 — ModViz vertical-slice bypass
 
-Mitigation: GitHub `main` is implementation truth; research sources remain explicitly research-ready/promotion-pending; status refresh after major merges; append-only correction records; issue reconciliation.
+UI pressure may introduce direct archive/EXE writes or local scene discovery.
 
-## R-011 — Scope dispersion
+**Mitigation:** ModViz consumes Stage Ops + Semantic Graph and sends revision-guarded edits through shared WorkingCopy/patch contracts.
 
-**Severity:** high
+### R-014 — Mutable WorkingCopy is confused with immutable source span
 
-Parallel work on containers, stages, EXE recovery, HITS, Item, ModViz, save semantics, Reverse Core, and recompilation may prevent a complete vertical proof.
+Size-changing edits can invalidate tools that assume `ResourceId::size == current bytes.size()`.
 
-Mitigation: maintain one critical path and exit gates; prioritize Resource Identity/game-backed stage plus first validated recovered subsystem; keep research promotion narrow.
+**Mitigation:** ResourceId retains immutable/source-span identity; active Binary Document/parser views carry their own byte size and revision lineage. Regression-test insert/delete edits.
 
-## R-012 — HITS compatibility overclaim
+### R-015 — Branch-local green CI is overclaimed
 
-**Severity:** high
+A feature branch may pass tests but still omit newer sibling-stack behavior or evidence corrections.
 
-A structurally valid DMC Rengine SAT writer may be described as equivalent to Capcom's unknown offline builder.
+**Mitigation:** always record branch/PR/head scope; require composed-stack CI before project-wide promotion.
 
-Mitigation: preserve `RESEARCH REQUIRED`, compare real corpus ownership, publish differential receipts without copyrighted bytes, and perform controlled runtime/restart/reload tests.
+### R-016 — HITS compatibility overclaim
 
-## R-013 — Rejected HITS model regression
+A deterministic DMC Rengine SAT writer may be described as equivalent to Capcom's unknown offline builder/runtime.
 
-**Severity:** high
+**Mitigation:** retain research-required status until real corpus and controlled runtime receipts support equivalence.
 
-Stale notes may reintroduce rejected `HITS$`, universal-marker, guard-dword, or false spatial interpretations.
+### R-017 — Collision source2 or arbitration is invented
 
-Mitigation: corrected header-driven model in code/tests/docs; no parallel HITS parser; explicit corrected/rejected Canon records.
+Unknown source2 backing/lifetime or unresolved arbitration rules may be filled by plausible product logic.
 
-## R-014 — Executable-build mismatch
+**Mitigation:** keep explicit unknowns; prioritize raw evidence around `0x14005E7A0`, `0x14005B460`, `0x14005FEC0`, `0x1400601E0`.
 
-**Severity:** high
+### R-018 — SCM post-load conflict is silently promoted
 
-Known VAs/bytes may be applied to the wrong executable build.
+Conflicting interpretation around `mesh+0x28` may contaminate typed post-load/game-ready behavior.
 
-Mitigation: exact SHA-256/size/PE metadata, artifact-scoped evidence locations, expected-byte guards, excluded-build records, and no implicit rebasing.
+**Mitigation:** gate SCM post-load promotion until contradiction is resolved by evidence.
 
-## R-015 — Generic container foundation overclaim
+### R-019 — Resource materialization budgets are unbounded
 
-**Severity:** medium to high
+Recursive container expansion or broad stage assembly can create excessive memory/time usage on malformed or huge inputs.
 
-Synthetic generic container contracts may be mistaken for production PAC/PNST/NBZ/AFS compatibility.
+**Mitigation:** explicit depth/count/byte budgets, bounded readers, diagnostics, partial-result preservation, and fail-closed writer behavior.
 
-Mitigation: status separates foundation from production source implementations; real support requires evidence-bounded parsers and local reports; writers stay downstream.
+### R-020 — Parser/input vulnerabilities
 
-## R-016 — Recovered-source bulk import
+Malformed binary/JSON can trigger overflow, bounds, recursion, traversal, or allocation failures.
 
-**Severity:** high
+**Mitigation:** checked arithmetic, containment guards, parser limits, deterministic diagnostics, malformed corpora, fuzzing where appropriate.
 
-Wholesale import of recovered-source snapshots may place speculative or ABI-incorrect units into active product source.
+### R-021 — Public repository contamination
 
-Mitigation: immutable package identity, one-subsystem-at-a-time promotion, Evidence Packets, compile/test/behavior gates, and provenance receipts.
+Proprietary game binaries/assets/saves or leaked source may be committed.
 
-## R-017 — Recursive source discovery hides accidental inclusion
+**Mitigation:** clean-room policy, synthetic fixtures, local user-supplied resources, scanning/ignore policy, and public CI free of proprietary bytes.
 
-**Severity:** medium
+### R-022 — Recovered-source bulk import
 
-Recursive build discovery may compile newly added source unintentionally.
+Large historical source snapshots may bypass per-unit evidence/ABI review.
 
-Mitigation: changed-file review, explicit module docs/test registration, and later explicit source lists for mature subsystems.
+**Mitigation:** narrow promotion through immutable source package -> evidence -> reviewed C++ -> compile/tests -> behavioral receipt.
 
-## R-018 — Incomplete release/distribution boundary
+## Medium risks
 
-**Severity:** medium
+### R-023 — UI drives domain architecture
 
-Custom-build identity or copied-output patching may be mistaken for a production release system.
+Editor widgets may redefine resource identity, ownership, semantic state, or write policy.
 
-Mitigation: no release claim without deterministic output, package validation, signing/attestation, rollback, and runtime testing.
+**Mitigation:** domain/API contracts precede UI breadth.
 
-## R-019 — Brand/community confusion
+### R-024 — Architecture monolith
 
-**Severity:** low to medium
+Triangle Forge, Reverse Core, GDSpaces, Stage Ops, or ProjectWorkspace may absorb unrelated responsibilities.
 
-Lore or Triangle Forge language could be mistaken for engineering identities or imply affiliation/completion claims.
+**Mitigation:** enforce explicit ownership boundaries and dependency direction.
 
-Mitigation: technical names remain authoritative; fictional brand language never overrides APIs, evidence status, permissions, or legal statements.
+### R-025 — Documentation/research drift
 
-## R-020 — Reverse Core becomes a second DMC Rengine
+GitHub docs/issues, Drive research, code, and receipts may diverge.
 
-**Severity:** critical
+**Mitigation:** date/scope every status surface, append corrections, sync after evidence or integration changes, and never infer current authority from filename alone.
 
-If Reverse Core absorbs DMC-specific concepts, it stops being reusable and duplicates domain services.
+### R-026 — Premature production writes
 
-Mitigation:
+Archive or executable writes may expand faster than read/validation/rollback evidence.
 
-- Reverse Core schema only covers generic binary/reverse objects;
-- DMC resources/gameplay semantics remain in DMC Rengine;
-- GDSpaces handles game resources;
-- architecture review rejects Red Orb/stage/HITS/item concepts from the reusable core.
+**Mitigation:** immutable source, WorkingCopy, expected-byte/hash guards, copied output, deterministic manifests, rollback, evidence-backed writer specs.
 
-## R-021 — Duplicate reverse identity stores
+### R-027 — Release boundary overclaim
 
-**Severity:** critical
+Custom build identity or copied-output patching may be called a reproducible/public release system.
 
-EXE Editor, Binary Inspector, agents, and recovered-source tooling may each assign independent function/type/evidence identities.
+**Mitigation:** no release claim without deterministic build/output, validation, signing/attestation, and runtime regression receipts.
 
-Mitigation:
+## Current architecture invariant
 
-- one Reverse Core ID contract;
-- bridges/adapters instead of duplicated stores;
-- deterministic manifests and cross-reference validation;
-- no editor-local canonical function database.
+```text
+GDSpaces = product resource authority
+Recovered Game Source Tree = reconstructed vanilla runtime
+Reverse Core = generic evidence/reconstruction authority
+Stage Ops = scene assembly + operational state
+Semantic Graph = derived semantic/evidence representation
+ModViz = editor over Stage Ops state
+Binary Inspector = byte/structure/evidence inspection
+EXE Editor = reconstruction editor over shared identities/source
+```
 
-## R-022 — Agent race on canonical reconstruction
-
-**Severity:** high
-
-Parallel agents may edit the same function, type, range, or source unit and silently overwrite/cross-contaminate results.
-
-Mitigation:
-
-- `TaskClaim` ownership protocol;
-- claim scope/conflict detection;
-- release/supersession history;
-- explicit independent-analysis mode;
-- canonical mutation only through negotiated ownership/review.
-
-## R-023 — Consensus masquerades as evidence
-
-**Severity:** high
-
-Multiple AI agents may converge on the same wrong interpretation and incorrectly increase confidence.
-
-Mitigation:
-
-- work claims and model agreement are never Evidence;
-- promotion requires artifact/runtime/test provenance;
-- competing hypotheses remain explicit;
-- confirmation rules live in specs/acceptance criteria.
-
-## R-024 — Recovered C++ drifts from binary truth
-
-**Severity:** critical
-
-Source can become cleaner and more maintainable while silently losing the behavior/ABI represented by the binary.
-
-Mitigation:
-
-- per-function/range provenance;
-- reconstruction revisions linked to exact artifact identity;
-- ABI/lifetime assumptions recorded;
-- isolated builds and behavioral comparison;
-- ValidationReceipt required for promotion;
-- correction/rejection when behavior diverges.
-
-## R-025 — Path-based evidence fragmentation
-
-**Severity:** high
-
-The same logical resource encountered through filesystem, NBZ/AFS/PAC/PNST, or extracted copies may accumulate separate identities/evidence.
-
-Mitigation: GDSpaces Resource Identity v1, layered source/container identity, stable `ResourceId`, and consumer reuse across Stage Ops/ModViz/Binary Inspector/Reverse Core links.
-
-## R-026 — Semantic graph inference becomes hidden truth
-
-**Severity:** medium to high
-
-Stage Semantic Graph edges inferred from names or proximity may be mistaken for confirmed runtime relationships.
-
-Mitigation: evidence/confidence on semantic edges, preservation of unknown nodes, deterministic manifests, and explicit distinction between structural containment and inferred runtime semantics.
-
-## R-027 — Vertical-slice bypass in ModViz
-
-**Severity:** medium
-
-Pressure to make the Menu Editor visually impressive may encourage direct archive or EXE manipulation outside shared contracts.
-
-Mitigation: Red Orb slice must use GDSpaces identity, working copy, EXE/Reverse Core evidence, guarded patch requests, validation, and explicit export before feature breadth expands.
-
-## R-028 — External MCP release infrastructure obscures diagnosis
-
-**Severity:** medium / external
-
-Native bootstrap logging differences and unavailable private signing material can make local platform failures hard to diagnose or distribute even while DMC C++ work is healthy.
-
-Mitigation: keep this dependency separate from DMC3 evidence status; restore stdout/stderr capture in the native bootstrap path; document signing-key custody and release requirements; never mark core reverse work blocked solely because installer packaging is unavailable.
+Any change that makes two of these layers independently own the same canonical state is an architecture regression unless an explicit superseding ADR says otherwise.

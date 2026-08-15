@@ -1,217 +1,149 @@
 # Current Blockers
 
-**Snapshot date:** 2026-08-08  
-**Reviewed `main` baseline before this documentation branch:** `6eb6a07975753e2bbe9414893a76e13c946fa78e`
+**Snapshot date:** 2026-08-15  
+**Rule:** `st001` is a regression fixture only. Blockers are expressed against the executable-derived catalog/runtime model, not one filename family.
 
-This register distinguishes implementation blockers, research-required gates, and external infrastructure concerns. Planned work is not represented as implemented.
+## P0 — Runtime and reconstruction blockers
 
-## Resolved foundation blockers
+### B-030 — Original resource state-2 -> state-3 readiness is incomplete
 
-The following are no longer project-foundation blockers:
-
-- cross-platform Windows/Ubuntu CI visibility;
-- SHA-256 artifact identity;
-- Evidence Packet serialization and strict untrusted import;
-- bounded PE32/PE32+ inspection and offset/RVA/VA conversion;
-- Binary Inspector regions/fields/ownership/annotations/range context;
-- Binary Inspector Wave 1 diff and entropy domain support;
-- revisioned working copies and guarded patch foundations;
-- copied-output execution and verified rollback;
-- source modification / Custom Build lineage models;
-- selected HITS and PC-save Pass 31/32 promotion.
-
-## Active blockers
-
-### B-012 — Production read-only container source layer incomplete
-
-**Priority:** P0  
 **Status:** open  
-**Tracking:** issue #3
+**Tracking:** #55, #88 and recovered-runtime work
 
-The generic container foundation is implemented, but production evidence-bounded PAC/PNST/NBZ/AFS exposure through GDSpaces remains incomplete.
+Product materialization/expansion exists, but the complete original runtime boundary remains open:
 
-Required:
+```text
+request -> lookup -> bytes -> transform -> typed post-load
+        -> factory -> cache/ownership -> consumer -> teardown
+```
 
-- production read-only PAC/PNST subset;
-- NBZ/AFS source exposure;
-- nested child classification and diagnostics;
-- `.index` metadata linking without treating it as runtime truth;
-- sanitized local corpus reports;
-- deterministic integration commands.
+Required evidence includes source/archive registration and priority, `.lst` fallback, MOD/EFM/SCM/SHW post-load behavior, recursive typed dispatch, factory/construction, reuse/cache, state-4 cleanup, transitions/restart/menu/shutdown.
 
-Do not add broad production writer/repack behavior before the read path and validation contracts stabilize.
+`game_ready_equivalent` must remain false until this is behaviorally validated.
 
-### B-013 — `st001` StageBundle is not game-backed end-to-end
+### B-031 — Collision arbitration ABI remains incomplete
 
-**Priority:** P0  
+**Status:** research required  
+**Tracking:** #25
+
+Highest-value targets:
+
+- `0x14005E7A0` — exact ABI, no-hit initialization, static/dynamic metrics, arbitration and tie-break, caller-visible output;
+- `0x14005B460` — category-list ABI, ownership/lifetime, candidate production, return semantics;
+- `0x14005FEC0` — source-1 output ABI;
+- `0x1400601E0` — in/out structure, fourth component, accumulation behavior.
+
+### B-032 — First complete recovered-game ValidationReceipt is absent
+
 **Status:** open  
-**Tracking:** issue #4
+**Tracking:** #51
 
-Stage descriptors, matching, assembly, and workspace contracts exist, but one legal local `st001` bundle has not yet been demonstrated through production sources with canonical identity reuse across all consumers.
+No bounded real DMC3 subsystem has yet closed the entire chain:
 
-### B-023 — Reverse Core canonical object contract is not implemented
+```text
+binary identity -> evidence -> reconstruction -> recovered C++
+-> isolated build -> behavioral comparison -> ValidationReceipt
+```
 
-**Priority:** P0  
-**Status:** architecture accepted / implementation pending
+This remains the principal gate before scaling mass reconstruction/decompilation.
 
-The project currently has many required ingredients but lacks one durable shared contract spanning executable bytes, functions, data, types, hypotheses, reconstruction revisions, and validation receipts.
+### B-033 — Reverse Core shared mutation/identity infrastructure is incomplete
 
-Required v0.1 objects:
+**Status:** open  
+**Tracking:** #51
 
-`BinaryArtifact`, `AddressRange`, `Function`, `DataObject`, `RecoveredType`, `EvidenceRecord`, `Hypothesis`, `Experiment`, `TaskClaim`, `Reconstruction`, `ValidationReceipt`, `Subsystem`.
+Required shared objects/flows include `BinaryArtifact`, ranges/functions/data/types, evidence/hypotheses/experiments, `TaskClaim`, reconstruction revisions, `ValidationReceipt`, and subsystem membership.
 
-Without this contract, EXE Editor, Binary Inspector, automation, and recovered-source work can drift into parallel identity stores.
+TaskClaims must prevent canonical reconstruction races without being mistaken for evidence or semantic ownership.
 
-### B-024 — Parallel-agent ownership/claim protocol is absent
+### B-034 — Active integration stack is not yet promoted as one reviewed project state
 
-**Priority:** P0  
 **Status:** open
 
-Multiple agents can analyze the same bytes, but canonical reconstruction mutation needs negotiated ownership. The MCP/Kanban workflow does not yet expose a formal `TaskClaim` contract for function/range/type/subsystem ownership.
+`main`, the GDSpaces integration spine, recovered-runtime branches, Stage Ops PR #91, and research authority contain different generations of truth. Green feature-branch CI does not by itself make a branch project-wide canon.
 
 Required:
 
-- claim identity and scope;
-- owner/task/spec linkage;
-- conflict detection;
-- release/supersession/block states;
-- deterministic audit history;
-- explicit distinction between work ownership and Evidence status.
+- explicit integration-spine composition;
+- overlap/supersession review;
+- whole-stack Windows/Ubuntu CI;
+- promotion receipt listing included PR heads;
+- status/docs regenerated against the promoted commit.
 
-### B-025 — Recovered-source tree/export contract is absent
+## P1 — Validation and domain blockers
 
-**Priority:** P0  
-**Status:** open
+### B-035 — Representative full Stage catalog validation is incomplete
 
-Recovered source exists as research input and selected promoted units, but there is no canonical tree contract that an agent can populate and export as a normal VS Code/CMake-ready project while preserving per-unit provenance.
+**Status:** open  
+**Tracking:** #4, #55, #90
 
-Required:
+The active model includes 189 descriptors (Bank A 110 + Bank B 79), a separate 193-entry selector space, and 10 group-base pointers. Validation must cover more than `st001`:
 
-- subsystem-oriented source layout;
-- stable reconstruction IDs;
-- binary/range provenance;
-- ABI/lifetime assumptions;
-- evidence links;
-- tests and ValidationReceipts;
-- deterministic export manifest.
+- Bank A representative cases;
+- Bank B representative cases;
+- shared/aliased resource sets;
+- selector/fallback cases as semantics are recovered;
+- partial/unresolved stages;
+- transition/reload/unload behavior.
 
-### B-026 — First complete reconstruction validation loop is absent
+### B-036 — Stage domain breadth is incomplete
 
-**Priority:** P0  
-**Status:** open
+**Status:** open  
+**Tracking:** #53, #90
 
-No real DMC3 subsystem has yet completed the full loop:
+PR #91 establishes the Stage Ops assembly/domain/graph architecture, but evidence-backed domain coverage remains incomplete for geometry/model/texture, camera, doors/transitions, effects/audio, enemy/spawn, events/demo, positions, and unknown runtime-linked domains.
 
-`binary -> stable reverse identities -> recovered C++ -> isolated build -> behavioral comparison -> ValidationReceipt`.
+Stage Semantic Graph must continue to project Stage Ops state rather than becoming a second assembler.
 
-This is the principal gate before mass decompilation.
+### B-037 — SCM post-load conflict remains gated
 
-### B-015 — Reverse research promotion coverage is incomplete
-
-**Priority:** P1  
-**Status:** open
-
-Wide Pass 33, most Recovered Source Skeleton v1.8 units, and substantial Phase 12–17 runtime/resource research remain outside reviewed product source.
-
-Policy remains narrow promotion:
-
-`immutable artifact -> Evidence Packet -> reviewed C++ -> tests -> CI -> provenance receipt`.
-
-Do not bulk-import recovered source snapshots.
-
-### B-016 — Real public-safe corpus validation is incomplete
-
-**Priority:** P1  
-**Status:** open
-
-Synthetic fixtures are strong, but broader sanitized reports from legally supplied local resources remain limited for production containers, stages, and runtime behavior.
-
-### B-019 — HITS original-builder/runtime equivalence is unproven
-
-**Priority:** P1  
 **Status:** research required
 
-The corrected header-driven parser, runtime grid behavior, safe edits, deterministic SAT writer, round trips, and spatial comparison tooling are implemented.
+Do not promote SCM post-load/game-ready behavior while the `mesh+0x28` interpretation conflict is unresolved.
 
-Still required:
+### B-038 — Collision source2 backing/lifetime is unknown
 
-- real source 0/source 1 corpus comparison;
-- explanation of original/candidate cell ownership differences;
-- controlled room-transition/restart/reload tests;
-- runtime validation manifests.
+**Status:** research required  
+**Tracking:** #25
 
-Capcom offline-builder equivalence must remain `RESEARCH REQUIRED` until this evidence exists.
+Source0/source1 ownership is substantially reconstructed; source2 remains external/global and still needs backing resource, lifetime, and selection-source evidence.
 
-### B-020 — Wide Pass 33 is not promoted into reviewed C++
+### B-039 — HITS original runtime/offline-builder equivalence remains unproven
 
-**Priority:** P1  
-**Status:** product-promotion-pending
+**Status:** research required
 
-Requires immutable authority artifacts, strict Evidence Packet, conservative C++ structures, focused tests, Windows/Ubuntu CI, and provenance reconciliation.
+Parser/writer, `0x38` records, spatial reconstruction, inclusive 13-axis SAT, deterministic topology rebuild, and corpus checks are strong, but Capcom builder/runtime equivalence still requires controlled game-backed receipts.
 
-### B-021 — Recovered-source coverage remains partial
+### B-040 — ModViz Red Orb vertical slice incomplete
 
-**Priority:** P1  
-**Status:** open
+**Status:** open  
+**Tracking:** #52
 
-Each promoted recovered unit still requires per-unit authority, ABI/ownership/lifetime review, compile isolation, behavioral comparison, and explicit correction/rejection handling.
+Remaining work includes hierarchy editing, screen-space canvas/layout, transforms/scale, UV atlas regions, draw order, digit clone/insert/remove, representative preview, runtime formatting constraints, deterministic validation/export.
 
-### B-022 — Full recompilation frontier remains open
+## P2 / downstream blockers
 
-**Priority:** P1 / long-term  
-**Status:** open
+### B-041 — Production output/release pipeline incomplete
 
-The repository does not contain a complete behaviorally equivalent rebuilt DMC3 executable. Controlled replacement/rebinding and deterministic composite-build milestones remain downstream of the first validated subsystem island.
+Deterministic output packaging, release validation, signing/attestation, and public binary distribution remain downstream of evidence and runtime gates.
 
-### B-027 — Stage Semantic Graph is not assembled from game-backed data
+### B-042 — Complete desktop UI deferred
 
-**Priority:** P1  
-**Status:** planned / blocked by B-012 and B-013
+UI breadth remains downstream of domain/runtime correctness. New panels must not redefine resource identity, Stage assembly, reverse truth, or write policy.
 
-The target semantic graph links stage, room, geometry, collision, lighting, camera, transitions, events, effects, audio, and runtime references. Existing typed format/workspace pieces are not yet assembled into one game-backed semantic graph with evidence-bearing edges.
+## External infrastructure concern
 
-### B-028 — ModViz Red Orb vertical slice is not complete
-
-**Priority:** P1/P2  
-**Status:** planned
-
-The Menu Editor architecture is accepted, but the first end-to-end Red Orb counter workflow has not yet demonstrated resource edit + EXE evidence/guarded runtime request + preview + validation + export through shared contracts.
-
-### B-017 — Production export and public release pipeline absent
-
-**Priority:** P2  
-**Status:** open
-
-Missing production output-file export, container repack integration, release attestation/signing automation, public binary packaging, and reproducible release validation.
-
-### B-018 — Complete desktop UI remains deferred
-
-**Priority:** P2  
-**Status:** deferred
-
-Complete Binary Inspector, Stage Ops, ModViz, and Item desktop interfaces remain downstream of domain, evidence, and vertical-slice gates.
-
-## External platform infrastructure concern
-
-### B-029 — MCP desktop bootstrap logging and signed installer key dependency
-
-**Priority:** external / infrastructure  
-**Status:** open outside the DMC3 reverse core
-
-The desktop bootstrap path can start the MCP server without the same stdout/stderr redirection used by the PowerShell launcher, reducing diagnostic visibility. Correcting that path requires rebuilding/reinstalling the native bootstrapper. The release pipeline also depends on access to the private RSA signing key used for signed installer production.
-
-This does **not** block static DMC3 reverse engineering or reviewed C++ library work. It can block reliable distribution/reinstallation and diagnostics for the broader local Triangle Forge/MCP coordination environment, so it is tracked here only as an external dependency.
+The Triangle Forge/MCP desktop bootstrap/logging/signing environment can affect coordination and distribution, but it does not block static DMC3 reverse work or reviewed C++ library work. Keep that infrastructure state separate from DMC3 evidence status.
 
 ## Current critical path
 
 ```text
-B-012 production GDSpaces read path
-  -> B-013 game-backed st001
-  -> B-023 Reverse Core schema
-  -> B-024 TaskClaim ownership
-  -> B-025 recovered-source tree
-  -> Binary Inspector / EXE Editor bridges
-  -> B-026 first complete reconstruction validation loop
-  -> broader semantic/runtime validation
+B-031 high-value collision reverse
+  + B-032 first recovered compile/validation proof
+  -> B-030 resource lifecycle closure
+  -> B-035 representative catalog validation
+  -> B-036 broader Stage Ops domain/runtime links
+  -> B-033 Reverse Core validated shared workflow
+  -> B-034 integration-stack promotion
   -> controlled recompilation milestones
 ```

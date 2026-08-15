@@ -49,8 +49,11 @@ std::optional<binary::Document> build_binary_document(
     gdspaces::ResourceRef resource,
     std::span<const std::byte> bytes,
     const LexResult& lex) {
-    if (!resource.valid() || resource.id.size != bytes.size() ||
-        !lex.recognized || bytes.empty()) {
+    // ResourceId identifies the immutable/source resource span. A mutable
+    // WorkingCopy may legitimately change byte length while retaining that
+    // canonical identity, so the Binary Inspector document is sized from the
+    // active byte view rather than requiring ResourceId::size equality.
+    if (!resource.valid() || !lex.recognized || bytes.empty()) {
         return std::nullopt;
     }
 

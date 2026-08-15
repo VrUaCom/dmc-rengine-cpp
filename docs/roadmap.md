@@ -1,120 +1,161 @@
 # Roadmap
 
-**Snapshot date:** 2026-08-08
+**Snapshot date:** 2026-08-15
 
-The roadmap prioritizes evidence-backed vertical completion over breadth. Legacy PAC Editor/PAC Manager logic is excluded; container formats remain internal to GDSpaces.
+The roadmap prioritizes evidence-backed vertical completion over UI breadth. Legacy PAC Editor/PAC Manager logic remains excluded; container formats stay internal to GDSpaces. `st001` is a regression fixture only and never an architecture milestone.
 
 ## Foundation — maintained
 
-- C++20 and CMake baseline;
-- Windows and Ubuntu CI;
-- artifact SHA-256 identity;
-- Evidence Packets and confidence/correction vocabulary;
-- no proprietary game data in the repository;
-- working-copy and guarded-patch safety contracts.
+- C++20/CMake and Windows/Ubuntu CI;
+- artifact SHA-256 identity and Evidence Packets;
+- clean-room/public-data policy;
+- revisioned WorkingCopies and guarded mutation;
+- copied-output/rollback and source/build provenance;
+- GDSpaces-only product resource resolution.
 
-## Milestone A — GDSpaces production identity and read path
+## Milestone A — Close high-value raw reverse evidence
 
-- production read-only PAC/PNST subset;
-- NBZ/AFS exposure through GDSpaces;
-- nested child classification and diagnostics;
-- `.index` linkage only as evidence-backed metadata;
-- [Resource Identity v1](gdspaces/resource-identity-v1.md);
-- deterministic local integration reports.
+Primary collision target: `0x14005E7A0`.
 
-**Exit gate:** a legal local stage resource set resolves through one canonical resource path with no tool-local resolver.
+Close exact ABI, no-hit initialization, candidate metrics, static/dynamic arbitration, equality/tie-break behavior, and caller-visible result. Follow with `0x14005B460`, `0x14005FEC0`, and `0x1400601E0`.
 
-## Milestone B — Game-backed Stage Workspace
+**Exit gate:** collision candidate production/arbitration is represented by evidence-backed recovered contracts rather than inferred product behavior.
 
-- resolve `st001` from legal local data;
-- assemble one complete/diagnostic `StageBundle`;
-- preserve unknown and partial resources;
-- prove Stage Ops, ModViz, Binary Inspector, and EXE links reuse canonical `ResourceId` values;
-- begin [Stage Semantic Graph v1](stage/stage-semantic-graph.md).
+## Milestone B — First recovered-game compile + validation proof
 
-**Exit gate:** Stage Ops consumes one game-backed typed bundle without opening loose paths independently.
+Use one bounded subsystem in the Recovered Game Source Tree:
 
-## Milestone C — Binary Inspector Wave 2 and Reverse Core bridge
+```text
+binary artifact/range/function/type identity
+  -> evidence
+  -> reconstruction
+  -> recovered C++
+  -> isolated compile
+  -> behavioral comparison
+  -> ValidationReceipt
+```
 
-- artifact-identity-keyed Analysis Cache;
-- generic offset/order/overlap/alignment/stride diagnostics;
-- unknown-region feature analysis;
-- versioned binary templates;
-- deterministic analysis-result JSON;
-- bridge regions/fields/ownership/annotations to durable Reverse Core objects.
+**Exit gate:** one real DMC3 subsystem receives an accepted/corrected/rejected receipt. Readable C++ alone does not satisfy this milestone.
 
-**Exit gate:** an inspected binary range can be promoted into a stable reverse object without copying identity/evidence into a second database.
+## Milestone C — Resource runtime lifecycle closure
 
-## Milestone D — Reverse Core v0.1
+Complete issue #55/#88 evidence from request through readiness and teardown:
 
-- canonical objects: BinaryArtifact, AddressRange, Function, DataObject, RecoveredType, EvidenceRecord, Hypothesis, Experiment, TaskClaim, Reconstruction, ValidationReceipt, Subsystem;
-- ownership/claim protocol over the existing MCP/Kanban workflow;
-- recovered-source tree contract exportable to VS Code/CMake;
-- EXE Editor and Binary Inspector bridges;
-- deterministic provenance manifests.
+- source/archive registration and priority;
+- lookup and `.lst` fallback;
+- byte acquisition/transformation;
+- recursive PAC/PNST traversal;
+- MOD/EFM/SCM/SHW typed post-load behavior where evidence is conflict-free;
+- factory/construction;
+- cache/reuse/ownership;
+- consumer handoff;
+- state-4 cleanup, transition/restart/menu/shutdown.
 
-See [Reverse Core](reverse-core/README.md).
+**Exit gate:** representative resources reach the appropriate Level C/D/E validation without equating product materialization with original state-3 readiness.
 
-**Exit gate:** the schema and claim/source contracts support one real subsystem without DMC-specific concepts leaking into the reusable layer.
+## Milestone D — Representative full-catalog Stage validation
 
-## Milestone E — First behavior-tested recovered subsystem
+Use the executable-derived Stage/resource authority:
 
-Follow the [EXE Reconstruction Pipeline](exe/reconstruction-pipeline.md):
+- 189 resource descriptors: Bank A 110 + Bank B 79;
+- separate 193-entry selector space;
+- 10 group-base pointers;
+- independent `resource_set_id/catalog_entry_id`, numeric Stage ID, and semantic Stage ID.
 
-1. select one bounded subsystem with strong evidence;
-2. bind exact executable artifact/range identities;
-3. recover functions/data/types and ABI hypotheses;
-4. compile as an isolated reviewed C++ target;
-5. behaviorally compare against the canonical executable/boundary;
-6. record a ValidationReceipt;
-7. promote, correct, or reject findings explicitly.
+Validate representative Bank-A, Bank-B, shared/alias, fallback/selector, and partial/unresolved cases.
 
-**Exit gate:** first complete `binary -> recovered C++ -> build -> behavioral validation` loop.
+**Exit gate:** Stage Ops consumes representative executable-derived resource sets without second resolution and emits evidence-bearing assembly/validation receipts.
 
-This gate precedes mass decompilation.
+## Milestone E — Stage Ops operational assembly hardening
 
-## Milestone F — Stage semantic integration
+PR #91 establishes the central implementation:
 
-- Stage -> Room -> Geometry -> Collision -> Lighting -> Camera -> Door/Transition -> Event -> Effect -> Audio -> Runtime links;
-- HITS real-corpus comparison and controlled runtime validation;
-- broader CAM/effect/model/collision relationships;
-- deterministic semantic graph manifests.
+`StageRuntimeLoadReport -> StageOpsIngress -> StageAssemblyWorkspace -> StageOperationsSession -> domain workspaces/runtime links -> Semantic Graph / ModViz`.
 
-**Exit gate:** one stage slice can be reasoned about across formats and runtime references without format-local identity silos.
+Next hardening:
 
-## Milestone G — ModViz Menu Editor vertical slice
+- finish migration from compatibility/project-only paths;
+- explicit Binary Inspector byte-source/revision lineage;
+- broaden evidence-backed domain relations/runtime links;
+- preserve partial/unresolved requirements;
+- prove edit/reparse/invalidation/refresh across size-changing WorkingCopy edits;
+- keep `game_ready_equivalent` evidence-gated.
 
-Use the [Red Orb counter](modviz/menu-editor.md) as the first complete Menu Editor proof:
+**Exit gate:** one representative stage slice survives load, edit, refresh, validation, semantic projection, and ModViz consumption from the same Stage Ops authority.
 
-- GDSpaces-backed HUD resource;
-- hierarchy/mesh/digit/UV editing;
-- runtime-value preview;
-- linked EXE formatting/limit evidence;
+## Milestone F — Stage domain breadth
+
+Add evidence-backed domain assembly for:
+
+- geometry/model/texture;
+- collision;
+- lighting;
+- camera;
+- doors/transitions;
+- StageSet/script/events;
+- effects;
+- audio;
+- enemy/spawn;
+- positions/markers;
+- shared and unknown resources;
+- recovered factory/lifecycle links.
+
+Semantic Graph remains a disposable representation/index over Stage Ops, not a scene assembler.
+
+## Milestone G — Reverse Core v0.1 acceptance
+
+Complete shared generic identities, TaskClaims, reconstruction revisioning, bridges, and ValidationReceipts.
+
+TaskClaims prevent mutation races but do not constitute evidence or semantic code ownership.
+
+**Exit gate:** the Milestone-B subsystem is represented end-to-end in Reverse Core without DMC-specific concepts leaking into the reusable core.
+
+## Milestone H — ModViz vertical editing
+
+Finish the Red Orb HUD counter as the first Menu Editor proof:
+
+- GDSpaces ResourceId;
+- HUD hierarchy/digit meshes/UV atlas/layout;
+- WorkingCopy edits;
+- EXE/Reverse Core formatting constraints;
 - guarded patch request where required;
-- validated working-copy/export path.
+- representative preview;
+- deterministic validation/export.
 
-**Exit gate:** first visual HUD edit travels through existing identity, evidence, working-copy, validation, and export contracts without a second resolver.
+**Exit gate:** a visual edit travels through shared resource/stage/evidence/write contracts without a second resolver or direct EXE write path.
 
-## Milestone H — Controlled source integration and recompilation
+## Milestone I — Integration-spine promotion
 
-- additional behavior-tested recovered modules;
-- dependency and replacement/rebinding boundaries;
+Before calling the active stack project-wide truth:
+
+- compose/review stacked branches deliberately;
+- preserve #74/#91/recovered-runtime fixes;
+- resolve duplicate/stale documentation and evidence;
+- run whole-stack Windows/Ubuntu CI;
+- record included PR/commit heads and superseded branches;
+- regenerate status against the promoted commit.
+
+## Milestone J — Controlled recompilation
+
+Only after multiple behavior-tested recovered modules:
+
+- replacement/rebinding boundaries;
 - deterministic composite builds;
-- source-to-output address mappings;
-- runtime validation and regression receipts;
-- first working rebuilt executable milestone when evidence supports the claim.
+- source-to-output address provenance;
+- runtime regression receipts;
+- first rebuilt executable claim only when evidence supports behavioral equivalence.
 
-## Parallel research promotion
+## Parallel work
 
-Continue narrow promotion of Drive research such as Wide Pass 33 and selected recovered-source units through:
-
-`immutable artifacts -> Evidence Packet -> reviewed C++ -> tests -> CI -> provenance receipt`.
-
-Do not bulk-import recovered source snapshots.
+- HITS real-corpus/runtime validation and source2 research;
+- Binary Inspector / EXE Editor Reverse Core bridges;
+- narrow evidence-backed recovered-source promotion;
+- SCM conflict closure before post-load promotion;
+- Red Orb vertical slice after shared contracts stay intact.
 
 ## Deferred behind evidence gates
 
-- complete desktop UI breadth;
-- production container write/repack suite;
-- signed public binary releases;
-- broad automatic decompilation at scale.
+- broad UI-first expansion;
+- production archive writer/repack suite;
+- broad automatic decompilation at scale;
+- public release claims before deterministic validation/signing.

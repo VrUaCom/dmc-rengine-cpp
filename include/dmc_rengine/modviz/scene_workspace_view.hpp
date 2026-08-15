@@ -1,11 +1,11 @@
 #pragma once
 
-#include "dmc_rengine/gdspaces/resource_ref.hpp"
-#include "dmc_rengine/gdspaces/stage_bundle.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
+#include "dmc_rengine/stageops/assembly_workspace.hpp"
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -38,12 +38,32 @@ enum class VisualResourceKind {
     return "model";
 }
 
-struct SceneResourceView final {
+// Visual projection of one Stage Ops membership. Several visual relationships
+// may point at the same canonical ResourceId without duplicating resource
+// ownership in Stage Ops.
+struct SceneMembershipView final {
     VisualResourceKind kind{VisualResourceKind::model};
     gdspaces::StageResourceCategory stage_category{
         gdspaces::StageResourceCategory::unknown};
     std::string role;
+    stageops::StageAssemblyMembershipKind source_kind{
+        stageops::StageAssemblyMembershipKind::descriptor_root};
+    std::optional<std::string> parent_resource_id;
+    std::optional<std::uint32_t> container_slot;
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !role.empty();
+    }
+};
+
+struct SceneResourceView final {
     gdspaces::ResourceRef resource;
+    std::vector<SceneMembershipView> memberships;
+    bool materialized{false};
+
+    // Editor capability/state comes from the shared ProjectWorkspace session;
+    // it never defines whether the resource belongs to the scene.
+    bool project_session_attached{false};
     bool editable{false};
     bool dirty{false};
     std::uint64_t working_copy_revision{};
@@ -52,26 +72,40 @@ struct SceneResourceView final {
     std::size_t evidence_record_count{};
 
     [[nodiscard]] bool valid() const noexcept {
-        return resource.valid() && !role.empty();
+        return resource.valid() && !memberships.empty();
     }
+
+    [[nodiscard]] bool has_kind(VisualResourceKind kind) const noexcept;
 };
 
 struct SceneWorkspaceView final {
-    gdspaces::StageIdentity identity;
+    stageops::StageAssemblyIdentity identity;
+    stageops::StageAssemblyStatus assembly_status{
+        stageops::StageAssemblyStatus::invalid};
+    stageops::StageGameReadiness game_readiness{
+        stageops::StageGameReadiness::unproven};
+    std::size_t unresolved_requirement_count{};
     std::vector<SceneResourceView> resources;
     std::size_t dirty_resource_count{};
     std::size_t collision_resource_count{};
 
     [[nodiscard]] bool valid() const noexcept {
-        return identity.valid();
+        return identity.valid() &&
+            assembly_status != stageops::StageAssemblyStatus::invalid;
     }
 
     [[nodiscard]] std::vector<const SceneResourceView*> by_kind(
         VisualResourceKind kind) const;
 };
 
-// resource_set_id is the canonical technical grouping identity. A semantic
-// gameplay-stage id is optional and is not inferred by ModViz.
+// Canonical ModViz projection. Stage membership comes from Stage Ops only.
+// ProjectWorkspace is optional per-resource editor context.
+[[nodiscard]] SceneWorkspaceView build_scene_workspace_view(
+    const stageops::StageAssemblyWorkspace& assembly,
+    const integration::ProjectWorkspace* project = nullptr);
+
+// Legacy compatibility adapter. New ModViz code must consume the Stage Ops
+// assembly overload above rather than rediscovering the scene from project tags.
 [[nodiscard]] SceneWorkspaceView build_scene_workspace_view(
     const integration::ProjectWorkspace& project,
     std::string_view resource_set_id);

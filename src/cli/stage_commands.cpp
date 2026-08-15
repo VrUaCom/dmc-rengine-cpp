@@ -24,6 +24,9 @@
 namespace dmc::rengine::cli {
 namespace {
 
+inline constexpr std::string_view legacy_stage_workspace_operation =
+    "legacy-build-stage-workspace";
+
 [[nodiscard]] std::optional<gdspaces::ResourcePayload> load_local_file(
     const std::filesystem::path& input_path,
     std::string source_id,
@@ -76,7 +79,7 @@ namespace {
 [[nodiscard]] std::optional<evidence::EvidencePacket> load_evidence_packet(
     const std::filesystem::path& path) {
     const auto payload = load_local_file(
-        path, "stage-evidence", "build-stage-workspace");
+        path, "stage-evidence", legacy_stage_workspace_operation);
     if (!payload.has_value()) {
         return std::nullopt;
     }
@@ -89,7 +92,8 @@ namespace {
     }
     const auto imported = evidence::evidence_packet_from_json(json);
     if (!imported.ok()) {
-        std::cerr << "build-stage-workspace: Evidence Packet is invalid\n";
+        std::cerr << legacy_stage_workspace_operation
+                  << ": Evidence Packet is invalid\n";
         for (const auto& diagnostic : imported.diagnostics) {
             std::cerr << "  " << diagnostic.path << ": "
                       << diagnostic.message << '\n';
@@ -140,15 +144,17 @@ load_workspace_payloads(const std::filesystem::path& root) {
     std::error_code error;
     const auto absolute_root = std::filesystem::absolute(root, error);
     if (error || !std::filesystem::is_directory(absolute_root, error) || error) {
-        std::cerr << "build-stage-workspace: not a readable directory: "
+        std::cerr << legacy_stage_workspace_operation
+                  << ": not a readable directory: "
                   << root.string() << '\n';
         return std::nullopt;
     }
 
     gdspaces::SourceRegistry sources;
     if (!sources.mount(std::make_unique<gdspaces::LocalDirectorySource>(
-            "stage-workspace", absolute_root, true))) {
-        std::cerr << "build-stage-workspace: failed to mount stage directory\n";
+            "legacy-stage-workspace", absolute_root, true))) {
+        std::cerr << legacy_stage_workspace_operation
+                  << ": failed to mount stage directory\n";
         return std::nullopt;
     }
 
@@ -156,14 +162,15 @@ load_workspace_payloads(const std::filesystem::path& root) {
     for (const auto& resource : sources.enumerate_all()) {
         auto payload = sources.read(resource.id);
         if (!payload.has_value() || !payload->readable()) {
-            std::cerr << "[warning] skipped unreadable resource: "
+            std::cerr << "[warning] legacy harness skipped unreadable resource: "
                       << resource.id.logical_path << '\n';
             continue;
         }
         payloads.push_back(std::move(*payload));
     }
     if (payloads.empty()) {
-        std::cerr << "build-stage-workspace: no readable resources found\n";
+        std::cerr << legacy_stage_workspace_operation
+                  << ": no readable resources found\n";
         return std::nullopt;
     }
     return payloads;
@@ -237,11 +244,16 @@ int run_list_stage_catalog(const std::filesystem::path& executable_path) {
     return 0;
 }
 
-int run_build_stage_workspace(
+int run_legacy_build_stage_workspace(
     const std::filesystem::path& executable_path,
     std::uint32_t row_index,
     const std::filesystem::path& root,
     const std::optional<std::filesystem::path>& evidence_path) {
+    std::cerr
+        << "[warning] legacy-build-stage-workspace is a broad-root research/import harness. "
+        << "Directory coexistence is not Stage Ops ownership; supplied bystander resources may be attached by the legacy builder. "
+        << "Canonical Stage Ops uses StageRuntimeLoader -> StageOpsIngress instead.\n";
+
     const auto loaded = load_full_stage_catalog(executable_path);
     if (!loaded.has_value()) {
         return 2;
@@ -249,7 +261,8 @@ int run_build_stage_workspace(
 
     const auto* entry = loaded->catalog.find(row_index);
     if (entry == nullptr) {
-        std::cerr << "build-stage-workspace: global catalog row index is outside 0..188: "
+        std::cerr << legacy_stage_workspace_operation
+                  << ": global catalog row index is outside 0..188: "
                   << row_index << '\n';
         return 3;
     }
@@ -280,7 +293,8 @@ int run_build_stage_workspace(
     const auto manifest = integration::stage_workspace_manifest_json(
         result.project, entry->catalog_entry_id);
     if (manifest.empty()) {
-        std::cerr << "build-stage-workspace: no Stage Workspace Manifest was produced\n";
+        std::cerr << legacy_stage_workspace_operation
+                  << ": no legacy Stage Workspace Manifest was produced\n";
         return 6;
     }
     std::cout << manifest;
@@ -293,8 +307,10 @@ void print_stage_help() {
     std::cout
         << "  list-stage-catalog <dmc3.exe>\n"
         << "                             Read the full promoted Wave-2 189-descriptor Stage universe\n"
-        << "  build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n"
-        << "                             Build from one exact catalog row across Bank A or Bank B\n";
+        << "  build-stage-workspace ...\n"
+        << "                             RETIRED unsafe broad-root alias; canonical Stage Ops uses runtime-backed ingress\n"
+        << "  legacy-build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n"
+        << "                             Explicit research/import harness; may attach unrelated co-located resources\n";
 }
 
 int try_run_stage_command(int argc, char** argv) {
@@ -312,14 +328,21 @@ int try_run_stage_command(int argc, char** argv) {
     }
 
     if (command == "build-stage-workspace") {
+        std::cerr
+            << "build-stage-workspace: retired because the legacy broad-root path can attach unrelated co-located resources.\n"
+            << "Use canonical StageRuntimeLoader -> StageOpsIngress in product code, or explicitly invoke legacy-build-stage-workspace for research/import compatibility.\n";
+        return 1;
+    }
+
+    if (command == "legacy-build-stage-workspace") {
         if (argc < 5 || argc > 6) {
             std::cerr
-                << "build-stage-workspace: usage: build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n";
+                << "legacy-build-stage-workspace: usage: legacy-build-stage-workspace <dmc3.exe> <catalog-row-index> <resource-root> [evidence.json]\n";
             return 1;
         }
         const auto row_index = parse_row_index(argv[3]);
         if (!row_index.has_value()) {
-            std::cerr << "build-stage-workspace: invalid catalog row index: "
+            std::cerr << "legacy-build-stage-workspace: invalid catalog row index: "
                       << argv[3] << '\n';
             return 1;
         }
@@ -327,7 +350,7 @@ int try_run_stage_command(int argc, char** argv) {
             argc == 6
                 ? std::optional<std::filesystem::path>{std::filesystem::path{argv[5]}}
                 : std::nullopt;
-        return run_build_stage_workspace(
+        return run_legacy_build_stage_workspace(
             std::filesystem::path{argv[2]},
             *row_index,
             std::filesystem::path{argv[4]},

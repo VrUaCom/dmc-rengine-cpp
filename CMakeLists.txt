@@ -50,7 +50,7 @@ target_include_directories(dmc_rengine_core
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
-# Recovered game code is compiled as its own target. It must not be silently
+# Recovered game code is compiled as separate targets. It must not be silently
 # absorbed into the DMC Rengine product core merely because the product consumes
 # its reverse-engineering findings.
 add_library(dmc_recovered_dmc3_resource_runtime
@@ -65,6 +65,41 @@ target_include_directories(dmc_recovered_dmc3_resource_runtime
 )
 target_compile_features(dmc_recovered_dmc3_resource_runtime PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_recovered_dmc3_resource_runtime)
+
+add_library(dmc_recovered_dmc3_stage_runtime
+    recovered-game/runtime/stage/door_parser_contract.cpp
+)
+add_library(
+    DMCRecovered::DMC3StageRuntime
+    ALIAS dmc_recovered_dmc3_stage_runtime)
+target_include_directories(dmc_recovered_dmc3_stage_runtime
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/recovered-game>
+)
+target_compile_features(dmc_recovered_dmc3_stage_runtime PUBLIC cxx_std_20)
+dmc_rengine_enable_warnings(dmc_recovered_dmc3_stage_runtime)
+
+# DMC3 recovered/runtime integration is a composition target, not a Core
+# dependency. This preserves the boundary generic Stage Ops -> explicit bridge
+# -> recovered vanilla contracts.
+add_library(dmc_rengine_dmc3_recovered_stage_bridge
+    bridges/dmc3/recovered_stage_links.cpp
+)
+add_library(
+    DMCRengine::DMC3RecoveredStageBridge
+    ALIAS dmc_rengine_dmc3_recovered_stage_bridge)
+target_include_directories(dmc_rengine_dmc3_recovered_stage_bridge
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_link_libraries(dmc_rengine_dmc3_recovered_stage_bridge
+    PUBLIC
+        DMCRengine::Core
+        DMCRecovered::DMC3StageRuntime
+)
+target_compile_features(
+    dmc_rengine_dmc3_recovered_stage_bridge PUBLIC cxx_std_20)
+dmc_rengine_enable_warnings(dmc_rengine_dmc3_recovered_stage_bridge)
 
 add_executable(dmc-rengine
     src/cli/main.cpp
@@ -104,6 +139,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         lig2
         stage_txt
         resource_analyzer
+        parsed_resource_workspace
         resource_analyzer_structural_formats
         executable_workspace_manifest
         evidence_address_resolver
@@ -114,7 +150,15 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         project_workspace
         stage_workspace_manifest
         dmc3_stage_workspace_builder
+        dmc3_stageops_ingress
         stage_tool_views
+        stageops_assembly_workspace
+        stageops_operations_session
+        stage_semantic_graph
+        stage_domain_workspace
+        stage_txt_domain_semantic
+        stage_scene_snapshot
+        stage_scene_controller
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
@@ -177,6 +221,42 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_recovered_dmc3_resource_runtime_tests
         COMMAND dmc_recovered_dmc3_resource_runtime_tests)
 
+    add_executable(
+        dmc_recovered_dmc3_door_parser_contract_tests
+        tests/recovered_dmc3_door_parser_contract_tests.cpp)
+    target_link_libraries(
+        dmc_recovered_dmc3_door_parser_contract_tests
+        PRIVATE DMCRecovered::DMC3StageRuntime)
+    dmc_rengine_enable_warnings(dmc_recovered_dmc3_door_parser_contract_tests)
+    if(MSVC)
+        target_compile_options(
+            dmc_recovered_dmc3_door_parser_contract_tests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(
+            dmc_recovered_dmc3_door_parser_contract_tests PRIVATE -UNDEBUG)
+    endif()
+    add_test(
+        NAME dmc_recovered_dmc3_door_parser_contract_tests
+        COMMAND dmc_recovered_dmc3_door_parser_contract_tests)
+
+    add_executable(
+        dmc_rengine_dmc3_recovered_stage_bridge_tests
+        tests/dmc3_recovered_stage_bridge_tests.cpp)
+    target_link_libraries(
+        dmc_rengine_dmc3_recovered_stage_bridge_tests
+        PRIVATE DMCRengine::DMC3RecoveredStageBridge)
+    dmc_rengine_enable_warnings(dmc_rengine_dmc3_recovered_stage_bridge_tests)
+    if(MSVC)
+        target_compile_options(
+            dmc_rengine_dmc3_recovered_stage_bridge_tests PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(
+            dmc_rengine_dmc3_recovered_stage_bridge_tests PRIVATE -UNDEBUG)
+    endif()
+    add_test(
+        NAME dmc_rengine_dmc3_recovered_stage_bridge_tests
+        COMMAND dmc_rengine_dmc3_recovered_stage_bridge_tests)
+
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
         tests/public_evidence_project_tests.cpp)
@@ -228,6 +308,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_stage_wave2_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/gdspaces/dmc3-stage-wave2.evidence.json)
+    add_test(
+        NAME dmc_rengine_door_parser_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/stage/dmc3-door-parser-contract.evidence.json)
     add_test(
         NAME dmc_rengine_pac_runtime_evidence_validation
         COMMAND dmc-rengine validate-evidence

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <optional>
+#include <string>
 
 namespace dmc::rengine::modviz {
 namespace {
@@ -36,17 +37,102 @@ namespace {
     return std::nullopt;
 }
 
+void attach_project_state(
+    SceneResourceView& resource,
+    const integration::ResourceWorkspaceSession* session) {
+    if (session == nullptr) {
+        return;
+    }
+
+    resource.project_session_attached = true;
+    const auto* format = session->format();
+    const auto* binary = session->binary_document();
+    const auto* working = session->working_copy();
+    resource.editable = format != nullptr &&
+        format->write_policy != integration::ResourceWritePolicy::read_only;
+    resource.dirty = working != nullptr && working->dirty();
+    resource.working_copy_revision = working == nullptr
+        ? 0U
+        : working->revision();
+    resource.binary_document = binary != nullptr;
+    resource.binary_coverage_bytes = binary == nullptr
+        ? 0U
+        : binary->coverage_bytes();
+    resource.evidence_record_count = session->evidence_record_ids().size();
+}
+
 } // namespace
+
+bool SceneResourceView::has_kind(VisualResourceKind kind) const noexcept {
+    return std::any_of(
+        memberships.begin(), memberships.end(),
+        [kind](const SceneMembershipView& membership) {
+            return membership.kind == kind;
+        });
+}
 
 std::vector<const SceneResourceView*> SceneWorkspaceView::by_kind(
     VisualResourceKind kind) const {
     std::vector<const SceneResourceView*> result;
     for (const auto& resource : resources) {
-        if (resource.kind == kind) {
+        if (resource.has_kind(kind)) {
             result.push_back(&resource);
         }
     }
     return result;
+}
+
+SceneWorkspaceView build_scene_workspace_view(
+    const stageops::StageAssemblyWorkspace& assembly,
+    const integration::ProjectWorkspace* project) {
+    SceneWorkspaceView view;
+    if (!assembly.valid()) {
+        return view;
+    }
+
+    view.identity = assembly.identity;
+    view.assembly_status = assembly.status();
+    view.game_readiness = assembly.game_readiness();
+    view.unresolved_requirement_count = assembly.unresolved_requirement_count();
+
+    for (const auto& assembled_resource : assembly.resources) {
+        const auto canonical = assembled_resource.resource.id.canonical();
+        const auto memberships = assembly.memberships_for(canonical);
+
+        SceneResourceView resource;
+        resource.resource = assembled_resource.resource;
+        resource.materialized = assembled_resource.materialized;
+        for (const auto* membership : memberships) {
+            const auto kind = visual_kind(membership->category);
+            if (!kind.has_value()) {
+                continue;
+            }
+            resource.memberships.push_back(SceneMembershipView{
+                .kind = *kind,
+                .stage_category = membership->category,
+                .role = membership->role,
+                .source_kind = membership->kind,
+                .parent_resource_id = membership->parent_resource_id,
+                .container_slot = membership->container_slot,
+            });
+        }
+        if (resource.memberships.empty()) {
+            continue;
+        }
+
+        const auto* session = project == nullptr
+            ? nullptr
+            : project->find_session(assembled_resource.resource.id);
+        attach_project_state(resource, session);
+        if (resource.dirty) {
+            ++view.dirty_resource_count;
+        }
+        if (resource.has_kind(VisualResourceKind::collision)) {
+            ++view.collision_resource_count;
+        }
+        view.resources.push_back(std::move(resource));
+    }
+    return view;
 }
 
 SceneWorkspaceView build_scene_workspace_view(
@@ -67,11 +153,20 @@ SceneWorkspaceView build_scene_workspace_view(
         if (stage == nullptr) {
             continue;
         }
-        if (!view.identity.valid()) {
-            view.identity = stage->identity;
+        if (!view.identity.stage.valid()) {
+            view.identity = stageops::StageAssemblyIdentity{
+                .stage = stage->identity,
+                .catalog_entry_id = std::string{resource_set_id},
+                .global_catalog_row = 0U,
+                .source_table_id = "legacy-project-stage-context",
+                .source_row_index = 0U,
+            };
+            view.assembly_status = stageops::StageAssemblyStatus::partial;
+            view.game_readiness = stageops::StageGameReadiness::unproven;
         }
-        if (stage->identity.resource_set_key() != view.identity.resource_set_key() ||
-            stage->identity.profile != view.identity.profile) {
+        if (stage->identity.resource_set_key() !=
+                view.identity.stage.resource_set_key() ||
+            stage->identity.profile != view.identity.stage.profile) {
             return SceneWorkspaceView{};
         }
 
@@ -80,34 +175,25 @@ SceneWorkspaceView build_scene_workspace_view(
             continue;
         }
 
-        const auto* format = session->format();
-        const auto* binary = session->binary_document();
-        const auto* working = session->working_copy();
-        const auto editable = format != nullptr &&
-            format->write_policy != integration::ResourceWritePolicy::read_only;
-        const auto dirty = working != nullptr && working->dirty();
-        view.resources.push_back(SceneResourceView{
+        SceneResourceView resource;
+        resource.resource = session->resource();
+        resource.materialized = session->source_payload().readable();
+        resource.memberships.push_back(SceneMembershipView{
             .kind = *kind,
             .stage_category = stage->category,
             .role = stage->role,
-            .resource = session->resource(),
-            .editable = editable,
-            .dirty = dirty,
-            .working_copy_revision = working == nullptr
-                ? 0U
-                : working->revision(),
-            .binary_document = binary != nullptr,
-            .binary_coverage_bytes = binary == nullptr
-                ? 0U
-                : binary->coverage_bytes(),
-            .evidence_record_count = session->evidence_record_ids().size(),
+            .source_kind = stageops::StageAssemblyMembershipKind::descriptor_root,
+            .parent_resource_id = std::nullopt,
+            .container_slot = std::nullopt,
         });
-        if (dirty) {
+        attach_project_state(resource, session);
+        if (resource.dirty) {
             ++view.dirty_resource_count;
         }
-        if (*kind == VisualResourceKind::collision) {
+        if (resource.has_kind(VisualResourceKind::collision)) {
             ++view.collision_resource_count;
         }
+        view.resources.push_back(std::move(resource));
     }
     return view;
 }

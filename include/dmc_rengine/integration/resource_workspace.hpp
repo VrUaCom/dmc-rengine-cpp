@@ -8,6 +8,7 @@
 #include "dmc_rengine/gdspaces/working_copy.hpp"
 #include "dmc_rengine/integration/executable_context.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
+#include "dmc_rengine/integration/parsed_resource.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
 #include "dmc_rengine/integration/workspace_event.hpp"
 
@@ -74,12 +75,23 @@ public:
     [[nodiscard]] const std::vector<gdspaces::Diagnostic>& diagnostics() const noexcept;
     [[nodiscard]] const WorkspaceEventJournal& events() const noexcept;
 
+    // byte_revision identifies the exact byte revision analyzed. Immutable
+    // source parsing is revision 0. WorkingCopy parsing supplies its explicit
+    // current revision; the event must never infer this from session state.
     [[nodiscard]] bool record_parser_completed(
         std::string parser_id,
         bool recognized,
-        gdspaces::ToolTarget consumer);
+        gdspaces::ToolTarget consumer,
+        std::uint64_t byte_revision = 0U);
     [[nodiscard]] bool add_parser_diagnostics(
         std::span<const formats::ParseDiagnostic> diagnostics);
+
+    // Canonical typed output of the parser execution recorded above. This is
+    // retained once and shared with Stage Ops/Binary Inspector consumers rather
+    // than forcing them to re-run format parsers independently.
+    [[nodiscard]] bool attach_parsed_resource(ParsedResourceResult parsed);
+    [[nodiscard]] const ParsedResourceResult* parsed_resource() const noexcept;
+
     [[nodiscard]] bool attach_binary_document(binary::Document document);
     [[nodiscard]] const binary::Document* binary_document() const noexcept;
     [[nodiscard]] bool attach_executable_context(
@@ -145,6 +157,7 @@ private:
     std::optional<FormatIntegrationDescriptor> format_;
     std::vector<ToolRoute> routes_;
     std::vector<gdspaces::Diagnostic> diagnostics_;
+    std::optional<ParsedResourceResult> parsed_resource_;
     std::optional<binary::Document> binary_document_;
     std::optional<ExecutableResourceContext> executable_context_;
     std::vector<std::string> evidence_record_ids_;

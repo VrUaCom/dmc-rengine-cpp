@@ -8,10 +8,11 @@ bool ProjectWorkspace::record_parser_completed(
     const gdspaces::ResourceId& resource,
     std::string parser_id,
     bool recognized,
-    gdspaces::ToolTarget consumer) {
+    gdspaces::ToolTarget consumer,
+    std::uint64_t byte_revision) {
     auto* session = find_session_mutable(resource);
     if (session == nullptr || !session->record_parser_completed(
-            std::move(parser_id), recognized, consumer)) {
+            std::move(parser_id), recognized, consumer, byte_revision)) {
         return false;
     }
     return sync(*session);
