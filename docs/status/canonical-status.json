@@ -1,121 +1,132 @@
 {
   "schema_version": 1,
-  "snapshot_date": "2026-08-08",
+  "snapshot_date": "2026-08-15",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "6eb6a07975753e2bbe9414893a76e13c946fa78e",
-  "generation": "evidence-backed-cpp-platform",
-  "overall_phase": "evidence-gated-reconstruction-and-architecture-consolidation",
-  "overall_status": "foundation-green-domain-stack-active-reverse-core-architecture-accepted-production-resource-game-backed-and-recompilation-gates-open",
-  "platform_relationship": {
-    "triangle_forge": "broader-platform-context",
-    "reverse_core": "reusable-game-agnostic-reverse-metadata-and-reconstruction-lifecycle",
-    "dmc_rengine": "independent-dmc-domain-workspace-and-first-reverse-core-validation-target",
-    "recovered_game_source_tree": "reconstructed-dmc3-program-independent-of-tool-ownership"
+  "freshness": {
+    "current_for_active_stack": true,
+    "project_wide_main_authority": false,
+    "reason": "The active GDSpaces/Stage Ops/recovered-runtime work is still stacked outside main. This snapshot records branch-scoped implementation truth and must not be read as a merged-main receipt."
   },
   "truth_layers": {
-    "github_main": "reviewed-implemented-product-truth",
-    "google_drive": "newest-reverse-research-and-recovered-source-input",
-    "drive_latest_pass": 33,
-    "github_latest_promoted_pass": 32
+    "github_main": {
+      "sha": "562e14179723598e09e58c9baded998a2b79e1a3",
+      "role": "merged repository baseline",
+      "does_not_include_all_active_stack_work": true
+    },
+    "active_stage_ops_stack": {
+      "pull_request": 91,
+      "branch": "agent/stageops-scene-assembly-authority",
+      "base_branch": "agent/issue55-stage-row-runtime-resolution",
+      "role": "current Stage Ops assembly/operations implementation over active GDSpaces integration"
+    },
+    "google_drive": {
+      "role": "research evidence, reverse reports, reconciliation, and human-readable authority",
+      "promotion_rule": "research findings become reviewed implementation only through evidence-backed source/tests/receipts"
+    }
+  },
+  "overall_phase": "evidence-gated-runtime-reconstruction-stage-assembly-and-validation",
+  "overall_status": "active-implementation-substantial-runtime-lifecycle-and-behavioral-validation-gates-open",
+  "architecture": {
+    "gdspaces": "single-product-resource-authority",
+    "recovered_game_source_tree": "reconstructed-original-dmc3-runtime-behavior",
+    "reverse_core": "generic-evidence-claims-reconstruction-validation-infrastructure",
+    "stage_ops": "complete-product-stage-scene-assembly-and-operational-state",
+    "stage_semantic_graph": "derived-stage-ops-semantic-evidence-representation-index",
+    "modviz": "3d-scene-asset-editor-consuming-stage-ops-state",
+    "binary_inspector": "byte-structure-evidence-inspection",
+    "exe_editor": "function-type-reconstruction-editor-over-shared-identities-and-recovered-source"
   },
   "constitutional_rules": [
-    "gdspaces-is-the-only-game-resource-api",
-    "no-second-resolver",
-    "evidence-before-canon",
-    "no-proprietary-game-content",
-    "working-copy-before-write",
-    "guarded-exe-patches-only",
-    "recovered-source-is-not-original-source",
-    "recovered-game-code-is-not-tool-owned",
-    "game-subsystem-membership-is-separate-from-tool-relationships",
-    "taskclaims-coordinate-work-not-semantic-code-ownership",
-    "heuristics-and-agent-consensus-are-not-evidence",
+    "gdspaces-is-the-only-product-resource-resolver-materializer",
+    "recovered-vanilla-code-belongs-to-recovered-game-source-tree",
     "reverse-core-remains-game-agnostic",
-    "canonical-reconstruction-mutation-requires-ownership-coordination",
-    "no-compatibility-or-recompilation-claim-without-behavioral-evidence"
+    "stage-ops-owns-stage-scene-assembly-and-operational-state",
+    "semantic-graph-does-not-resolve-resources-or-assemble-a-second-scene",
+    "modviz-does-not-own-resource-resolution-or-stage-assembly",
+    "resource-set-numeric-stage-and-semantic-stage-identities-remain-independent",
+    "st001-is-regression-fixture-only",
+    "materialized-bytes-are-not-automatically-original-state3-game-ready",
+    "agent-consensus-and-taskclaims-are-not-evidence",
+    "working-copy-before-write",
+    "no-proprietary-game-content-in-public-ci",
+    "no-decompilation-or-recompilation-equivalence-claim-without-behavioral-evidence"
   ],
-  "reviewed_main": {
-    "latest_commit": "6eb6a07975753e2bbe9414893a76e13c946fa78e",
-    "latest_commit_title": "Reconcile Binary Inspector Wave 1 status and warning policy (#49)",
-    "latest_capability_promotion_pr": 47,
-    "latest_capability_promotion": "Binary Inspector cross-port Wave 1: diff, entropy, and range selection",
-    "wave1_ubuntu_tests": 68,
-    "wave1_windows_tests": 68
+  "stage_authority": {
+    "descriptor_count": 189,
+    "bank_a_descriptors": 110,
+    "bank_b_descriptors": 79,
+    "selector_count": 193,
+    "group_base_pointer_count": 10,
+    "identity_axes": [
+      "resource_set_id_or_catalog_entry_id",
+      "numeric_stage_id",
+      "semantic_stage_id"
+    ],
+    "fixture_policy": "st001-regression-only-not-architecture-gate"
   },
-  "implemented_domains": {
-    "core": [
-      "cpp20-cmake-core-library-and-cli",
-      "windows-ubuntu-ci",
-      "sha256-artifact-identity",
-      "evidence-confidence-registry-and-packets",
-      "strict-evidence-json-import-export",
-      "project-workspace-graph-events-and-manifests"
+  "resource_runtime": {
+    "completion_levels": [
+      "A-structural-read",
+      "B-lookup-equivalence",
+      "C-load-path-reconstruction",
+      "D-lifetime-reconstruction",
+      "E-validated-runtime-model"
     ],
-    "gdspaces": [
-      "resource-id-ref-payload",
-      "readonly-local-source-and-containment-guards",
-      "source-registry-and-profile-aware-classification",
-      "resource-graph-and-open-router",
-      "typed-stage-bundle-and-assembler",
-      "generic-container-contracts-and-synthetic-fixtures",
-      "working-copy-history-undo-reset"
-    ],
-    "binary_inspector": [
-      "regions-and-typed-fields",
-      "ownership-annotations-and-evidence-links",
-      "selection-and-range-context",
-      "coverage-unknown-and-conflict-analysis",
-      "deterministic-manifests",
-      "offset-aligned-byte-diff",
-      "shannon-entropy-map"
-    ],
-    "exe": [
-      "readonly-pe32-pe32plus-inspector",
-      "checked-offset-rva-va-conversion",
-      "known-executable-target-model",
-      "evidence-address-resolver",
-      "executable-workspace-and-reopen-lineage",
-      "guarded-patch-foundation",
-      "custom-build-and-source-to-output-lineage-models"
-    ],
-    "stage": [
-      "dmc3-110x4-stage-table-descriptor",
-      "st001-resource-plan-and-matching",
-      "dmc3-stage-workspace-builder",
-      "shared-stage-ops-modviz-views",
-      "hits-dca-lig2-stage-txt-modules",
-      "hits-header-driven-parser-runtime-safe-edit-sat-writer-and-comparison"
-    ],
-    "item_and_patch": [
-      "item-workspace-and-runtime-evidence",
-      "validation-plans-and-runtime-requests",
-      "guarded-patch-plan-compiler",
-      "copied-output-execution",
-      "verified-rollback"
-    ],
-    "save": [
-      "dmc3-pc-save-pass31-abi",
-      "dmc3-pc-save-pass32-record-envelope-checksum-abi"
+    "product_materialization_is_game_ready": false,
+    "open_boundaries": [
+      "source-archive-registration-and-priority",
+      "lst-fallback-semantics",
+      "typed-postload-mod-efm-scm-shw",
+      "recursive-typed-dispatch",
+      "factory-construction-boundary",
+      "cache-reuse-ownership",
+      "state4-cleanup",
+      "transition-restart-menu-shutdown-lifecycle"
     ]
   },
-  "recovered_game_source": {
-    "status": "canonical-separation-rule-accepted-source-recovery-partial",
-    "identity_rule": "game-artifact-and-reconstruction-lineage-not-tool-or-agent",
-    "organization_rule": "evidence-driven-game-architecture-not-editor-or-tool-folders",
-    "membership_axes": [
-      "game-source-identity",
-      "semantic-game-subsystem-membership",
-      "tool-relationships",
-      "temporary-taskclaim-coordination"
+  "stage_ops": {
+    "tracking_issue": 90,
+    "active_pull_request": 91,
+    "status": "central-architecture-implemented-on-active-pr-validation-and-domain-breadth-open",
+    "implemented": [
+      "StageAssemblyWorkspace",
+      "StageOpsIngress-from-StageRuntimeLoadReport-without-second-resolution",
+      "StageOperationsSession",
+      "shared-workingcopy-event-coordination",
+      "canonical-typed-parser-result-reuse",
+      "StageDomainWorkspace-and-source-spans",
+      "StageDomainRelationWorkspace",
+      "explicit-StageRuntimeLinkWorkspace-and-validation",
+      "StageSceneSnapshot",
+      "deterministic-Semantic-Graph-projection",
+      "ModViz-Stage-Ops-projection-and-revision-guarded-edits",
+      "invalidation-and-validation-receipt-plumbing"
     ],
-    "tool_ownership": false,
-    "recompilation_target": "recovered-game-source-tree-plus-controlled-replacement-rebinding-infrastructure"
+    "game_ready_equivalent_default": false
+  },
+  "hits_collision": {
+    "tracking_issue": 25,
+    "implemented_or_corpus_validated": [
+      "0x38-triangle-plane-record",
+      "deterministic-parser-writer",
+      "spatial-table-reconstruction",
+      "13-axis-inclusive-triangle-box-sat",
+      "deterministic-topology-rebuild",
+      "source0-source1-separation"
+    ],
+    "highest_value_open_functions": [
+      "0x14005E7A0",
+      "0x14005B460",
+      "0x14005FEC0",
+      "0x1400601E0"
+    ],
+    "source2_backing_lifetime": "unknown"
   },
   "reverse_core": {
-    "status": "canonical-architecture-accepted-implementation-pending",
     "tracking_issue": 51,
+    "status": "architecture-accepted-shared-infrastructure-and-first-validation-receipt-open",
     "objects_v0_1": [
       "BinaryArtifact",
       "AddressRange",
@@ -130,136 +141,35 @@
       "ValidationReceipt",
       "Subsystem"
     ],
-    "required_bridges": [
-      "binary-inspector-to-reverse-core",
-      "exe-editor-to-reverse-core",
-      "gdspaces-resource-evidence-links",
-      "mcp-kanban-task-claim-coordination"
-    ],
-    "source_contract": "recovered-game-source-tree-exportable-to-vscode-cmake-with-provenance-and-game-architecture-membership",
-    "ownership_rule": "reverse-core-records-and-coordinates-reconstruction-but-does-not-own-recovered-game-code",
-    "first_gate": "one-real-dmc3-subsystem-completes-binary-to-cpp-to-build-to-behavioral-validation-loop"
+    "acceptance_gate": "one-bounded-dmc3-subsystem-binary-to-recovered-cpp-to-build-to-behavioral-comparison-to-validationreceipt"
   },
-  "gdspaces_next_milestone": {
-    "id": "resource-runtime-reconstruction-and-resource-identity-v1",
-    "tracking_issues": [3, 4, 55],
-    "goals": [
-      "stable-logical-resource-id-across-physical-representations",
-      "production-readonly-pac-pnst-subset",
-      "nbz-afs-source-exposure",
-      "nested-child-classification-and-diagnostics",
-      "index-role-derived-from-executable-evidence",
-      "game-resource-request-and-lookup-abi-reconstruction",
-      "resource-byte-acquisition-and-transformation-reconstruction",
-      "resource-factory-classification-dispatch-reconstruction",
-      "resource-cache-ownership-lifetime-reload-unload-reconstruction",
-      "game-backed-st001-identity-reuse-across-consumers",
-      "validation-receipts-for-representative-resource-lifecycle"
-    ],
-    "source_separation_rule": "recovered-game-resource-runtime-functions-remain-in-recovered-game-source-tree-gdspaces-consumes-confirmed-behavior"
-  },
-  "binary_inspector_next_milestone": {
-    "id": "wave2-and-reverse-core-bridge",
-    "issue": 48,
-    "goals": [
-      "artifact-keyed-analysis-cache",
-      "generic-structural-diagnostics",
-      "unknown-region-analysis",
-      "versioned-binary-templates",
-      "deterministic-analysis-result-json",
-      "reverse-core-object-bridge"
+  "modviz": {
+    "tracking_issue": 52,
+    "status": "stage-ops-consumer-architecture-active-red-orb-vertical-slice-incomplete",
+    "must_not": [
+      "resolve-gdspaces-resources-independently",
+      "assemble-independent-stage-model",
+      "directly-write-original-exe"
     ]
   },
-  "stage_next_milestone": {
-    "id": "stage-semantic-graph-v1",
-    "issue": 53,
-    "graph": [
-      "stage",
-      "room",
-      "geometry",
-      "collision",
-      "lighting",
-      "camera",
-      "door-transition",
-      "event",
-      "effect",
-      "audio",
-      "runtime-reference"
-    ]
-  },
-  "modviz_next_milestone": {
-    "id": "red-orb-menu-editor-vertical-slice",
-    "issue": 52,
-    "goals": [
-      "gdspaces-backed-hud-resource",
-      "hierarchy-mesh-digit-uv-editing",
-      "runtime-value-preview",
-      "linked-exe-formatting-limit-evidence",
-      "guarded-runtime-patch-request-when-required",
-      "working-copy-validation-and-export"
-    ]
-  },
-  "active_issues": [
-    {"number": 3, "id": "production-readonly-container-source-subset", "state": "open"},
-    {"number": 4, "id": "game-backed-st001-stage-bundle", "state": "open"},
-    {"number": 13, "id": "real-hits-corpus-and-runtime-validation", "state": "open"},
-    {"number": 48, "id": "binary-inspector-crossport-wave2", "state": "open"},
-    {"number": 51, "id": "reverse-core-v0-1-and-first-validated-subsystem", "state": "open"},
-    {"number": 52, "id": "modviz-red-orb-menu-editor-vertical-slice", "state": "open"},
-    {"number": 53, "id": "stage-semantic-graph-v1", "state": "open"},
-    {"number": 55, "id": "gdspaces-full-game-resource-runtime-reconstruction", "state": "open"}
-  ],
   "active_blockers": [
-    "production-gdspaces-container-source-expansion-incomplete",
-    "game-resource-runtime-not-fully-reconstructed",
-    "no-game-backed-st001-end-to-end-bundle",
-    "reverse-core-canonical-object-contract-not-implemented",
-    "taskclaim-agent-coordination-protocol-absent",
-    "recovered-game-source-tree-export-contract-not-implemented",
-    "first-complete-recovered-subsystem-validation-loop-absent",
-    "real-hits-and-stage-runtime-validation-incomplete",
-    "wide-pass33-not-promoted-to-reviewed-cpp",
-    "recovered-source-skeleton-mostly-unpromoted",
-    "no-working-behaviorally-equivalent-recompiled-dmc3-executable",
-    "production-output-and-signed-release-pipeline-incomplete"
-  ],
-  "external_infrastructure_concerns": [
-    "mcp-native-bootstrap-stdout-stderr-logging-path-diverges-from-powershell-launcher",
-    "signed-installer-production-depends-on-private-rsa-release-key-availability"
-  ],
-  "research_ready_product_promotion_pending": [
-    "wide-pass33-detailed-slot-payload-partition",
-    "wide-pass33-mission-result-matrix",
-    "recovered-source-skeleton-v1.8",
-    "phase12-to17-supporting-runtime-resource-and-texture-findings"
-  ],
-  "explicitly_not_complete": [
-    "production-pac-pnst-nbz-afs-read-write-suite",
-    "full-game-resource-runtime-reconstruction",
-    "game-backed-st001-stage-workspace",
-    "hits-original-builder-equivalence",
-    "reverse-core-v0-1-implementation",
-    "first-behavior-tested-recovered-subsystem",
-    "complete-stage-semantic-graph",
-    "complete-modviz-menu-editor-red-orb-slice",
-    "complete-desktop-ui",
-    "full-dmc3-decompilation",
-    "behaviorally-equivalent-recompiled-dmc3-executable",
-    "public-signed-binary-release"
+    "resource-state2-to-state3-and-lifetime-closure",
+    "collision-arbitration-abi-around-0x14005E7A0",
+    "first-complete-recovered-game-validationreceipt",
+    "reverse-core-shared-taskclaim-reconstruction-infrastructure",
+    "representative-bank-a-bank-b-selector-shared-partial-validation",
+    "scm-mesh-plus-0x28-conflict",
+    "collision-source2-backing-lifetime",
+    "integration-stack-promotion-and-whole-stack-ci",
+    "no-behaviorally-equivalent-recompiled-dmc3-executable"
   ],
   "critical_path": [
-    "gdspaces-production-read-path-resource-identity-and-game-resource-runtime-reconstruction",
-    "game-backed-st001-stage-bundle",
-    "reverse-core-v0-1-schema-claims-and-recovered-game-source-contract",
-    "binary-inspector-and-exe-editor-reverse-core-bridges",
-    "first-behavior-tested-recovered-game-subsystem",
-    "broader-stage-semantic-and-runtime-validation",
-    "controlled-recompilation-milestones"
-  ],
-  "parallel_work": [
-    "binary-inspector-wave2",
-    "hits-real-corpus-and-runtime-validation",
-    "wide-pass33-narrow-promotion",
-    "modviz-red-orb-vertical-slice-after-shared-contract-gates"
+    "close-high-value-raw-reverse-evidence",
+    "first-recovered-game-compile-and-behavioral-validation-proof",
+    "resource-runtime-lifecycle-closure",
+    "representative-stageassemblyworkspace-game-validation",
+    "semantic-graph-and-modviz-over-the-same-stage-ops-authority",
+    "reverse-core-validated-subsystem-receipt",
+    "controlled-broader-reconstruction-and-recompilation"
   ]
 }
