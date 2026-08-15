@@ -88,6 +88,27 @@ int main() {
         "ev-dmc3-stageset-token-classifier");
     assert(document->fields()[2].evidence_id.empty());
 
+    // ResourceId remains the immutable source-span identity while the active
+    // WorkingCopy byte view may be resized by an insertion/deletion edit.
+    const auto resized_input = bytes(
+        "//x\n"
+        "#SET STAY\n"
+        "DOOR BoxIn NextRoom \"st002\" 12 -3.5 // ignored\n"
+        "/* block comment */ ORBREAK\n");
+    const auto resized_lex = Lexer::scan(
+        std::span<const std::byte>{resized_input});
+    assert(resized_lex.recognized);
+    assert(resized_lex.ok());
+    auto resized_document = build_binary_document(
+        resource(input.size()),
+        std::span<const std::byte>{resized_input},
+        resized_lex);
+    assert(resized_document.has_value());
+    assert(resized_document->resource().id.size == input.size());
+    assert(resized_document->byte_size() == resized_input.size());
+    assert(resized_document->byte_size() != resized_document->resource().id.size);
+    assert(resized_document->coverage_bytes() == resized_input.size());
+
     auto nul = input;
     nul.push_back(std::byte{0});
     const auto binary = Lexer::scan(std::span<const std::byte>{nul});
