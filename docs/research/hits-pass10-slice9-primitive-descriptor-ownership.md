@@ -2,7 +2,7 @@
 
 Date: 2026-08-15  
 Canonical target SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-Status: **EXE CONFIRMED / IMPLEMENTED / CI VALIDATION ACTIVE**
+Status: **EXE CONFIRMED / IMPLEMENTED / VALIDATED**
 
 ## Purpose
 
@@ -19,7 +19,8 @@ Canonical body:
 
 Relevant ABI writes:
 - argument 2 (`RDX`) -> manager `+0x108` entry-table pointer;
-- argument 3 (`R8`) -> manager `+0x110` primitive-descriptor-table pointer.
+- argument 3 (`R8`) -> manager `+0x110` primitive-descriptor-table pointer;
+- argument 4 (`R9D`) -> manager `+0x04` entry count.
 
 ## Entry table and descriptor resolution
 
@@ -79,6 +80,24 @@ while transform ownership is separate:
 
 Neither transform path changes which primitive descriptor is selected from manager `+0x110`.
 
+## Bounded static descriptor census
+
+A new census intentionally avoids unbounded `0x50` scans. Only `C260` callsites were accepted when all three values were statically resolved:
+- entry-table address (`RDX`);
+- descriptor-table address (`R8`);
+- exact entry count (`R9D`).
+
+Results:
+- 14 fully bounded static `C260` callsites;
+- 18 referenced entry records;
+- every descriptor was resolved through its actual `u16 entry+0x02` index;
+- observed primitive descriptor type set: **`{2}`**;
+- **no type 5** in this bounded static subset.
+
+This is negative evidence, not proof that static type-5 descriptors never exist. It does show that the previously scanned nearby `05` bytes were not sufficient evidence: unbounded descriptor scans can cross directly into unrelated neighboring data.
+
+The next type-5 search therefore targets runtime/object-embedded descriptor-table population and only referenced descriptor indices.
+
 ## Correction
 
 **REJECTED transient model:** `runtime_object+0x20` is the primitive descriptor pointer.
@@ -99,6 +118,12 @@ This correction was caught before the incorrect `+0x20 descriptor` statement was
 
 All public descriptors remain exact-canonical-SHA gated; packed SHA `81c7...c7d6` receives no canonical VA/offset ownership evidence.
 
+## Validation receipt
+
+Exact code head `b919e89084d5583a940fc1fe8ecc8f90cb1968fd` passed GitHub Actions run `31853246146` on both Ubuntu and Windows, including `hits_primitive_descriptor_ownership_evidence`.
+
+Later documentation/evidence commits do not alter the validated C++ code.
+
 ## Next reverse boundary
 
-With ownership closed, type-5 upstream research should now search the **manager `+0x110` descriptor table population/source**, specifically descriptors whose first byte is `5`, rather than global immediate-`5` instructions or transform-table data.
+With ownership closed, type-5 upstream research now targets the **population/writers of manager `+0x110` primitive descriptor tables**, and only descriptors reached through actual entry indices. Global immediate-`5` searches and unbounded `0x50` scans are explicitly rejected as semantic evidence.
