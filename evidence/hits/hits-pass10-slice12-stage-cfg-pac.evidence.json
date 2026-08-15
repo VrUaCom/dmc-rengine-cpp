@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice12-stage-cfg-pac-2026-08-15",
+  "date": "2026-08-15",
+  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATION_ACTIVE",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "stage_cfg_resource_selector": {
+    "va": "0x1401AE310",
+    "resource_kind": 1,
+    "stage_resource_group_table_va": "0x1405C4A50",
+    "stage_group_divisor": 100,
+    "stage_cfg_resource_subrecord_offset_in_row": "0x10",
+    "stage_cfg_filename_pointer_offset_in_row": "0x18",
+    "filename_pattern": "room\\stXXXcfg.pac",
+    "confirmed_examples": [
+      {"stage":1,"filename":"room\\st001cfg.pac"},
+      {"stage":105,"filename":"room\\st105cfg.pac"},
+      {"stage":114,"filename":"room\\st114cfg.pac"},
+      {"stage":421,"filename":"room\\st421cfg.pac"},
+      {"stage":434,"filename":"room\\st434cfg.pac"}
+    ]
+  },
+  "stage_cfg_resource_acquisition": {
+    "function_va": "0x1401AF000",
+    "stage_id_source_offset": "0x644",
+    "resource_kind_argument": 1,
+    "resolved_resource_handle_offset": "0x650"
+  },
+  "pac_layout": {
+    "slot_count_offset": "0x04",
+    "slot_offset_table_offset": "0x08",
+    "slot_offset_width_bytes": 4,
+    "slot_offset_formula": "0x08 + slot_index * 4"
+  },
+  "collision_slot_generations": [
+    {
+      "name": "modern_cem_stage_cfg",
+      "related_source_slot": 38,
+      "entry_table_slot": 39,
+      "primitive_descriptor_table_slot": 40,
+      "source_offset_field": "0xA0",
+      "entry_table_offset_field": "0xA4",
+      "descriptor_table_offset_field": "0xA8",
+      "minimum_slot_counts": {"source":39,"entry_table":40,"descriptor_table":41},
+      "representative_c260_callsite_va": "0x14009823F"
+    },
+    {
+      "name": "legacy_cem008_stage_cfg",
+      "related_source_slot": 21,
+      "entry_table_slot": 22,
+      "primitive_descriptor_table_slot": 23,
+      "source_offset_field": "0x5C",
+      "entry_table_offset_field": "0x60",
+      "descriptor_table_offset_field": "0x64",
+      "minimum_slot_counts": {"source":22,"entry_table":23,"descriptor_table":24},
+      "representative_c260_callsite_va": "0x1400B6483"
+    }
+  ],
+  "descriptor_bridge": {
+    "entry_stride": 4,
+    "descriptor_index": "u16(entry+0x02)",
+    "primitive_descriptor_stride": "0x50",
+    "runtime_descriptor_pointer_offset": "0x118",
+    "constructor_dispatcher_va": "0x1402CC530"
+  },
+  "type5_data_targets": {
+    "modern": "room\\stXXXcfg.pac slot 40",
+    "legacy_observed": "room\\stXXXcfg.pac slot 23",
+    "raw_slot_data_available_in_current_materialized_corpus": false
+  },
+  "corrections": [
+    {
+      "id": "hits.pass10.stage-cfg-pac-offset-identity",
+      "status": "CORRECTED",
+      "rejected": "+A4/+A8 and +60/+64 are schema-specific inner-resource-blob fields",
+      "current": "+A4/+A8 are PAC slot-offset table entries for slots 39/40; +60/+64 are entries for slots 22/23 of room\\stXXXcfg.pac"
+    }
+  ],
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_stage_cfg_pac_evidence.hpp",
+    "test": "tests/hits_stage_cfg_pac_evidence_tests.cpp",
+    "ctest": "hits_stage_cfg_pac_evidence",
+    "code_head": "63acd1bd2e311b7978c0d455e3a7279cc28dfcff",
+    "ci_run_id": 31854936132,
+    "ci_state": "QUEUED_OR_IN_PROGRESS"
+  },
+  "proprietary_bytes_committed": false
+}
