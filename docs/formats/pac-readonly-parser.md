@@ -1,19 +1,15 @@
 # PAC Read-Only Structural Parser
 
-**Date:** 2026-08-15  
-**Status:** IMPLEMENTED / SYNTHETIC REGRESSION; REAL LOCAL PAC CORPUS VALIDATION PENDING
+**Date:** 2026-08-17  
+**Status:** BOUNDED IMPLEMENTED / SYNTHETIC REGRESSION / REAL PAC CORPUS VALIDATED
 
 ## Purpose
 
-This is the first production-oriented read-only PAC structural parser in the clean C++ generation.
+This is the production-oriented read-only PAC structural parser for the clean C++ generation.
 
-It exists to remove the architectural gap where higher-level systems had a `ContainerDocument` contract but no canonical PAC decoder feeding it.
-
-The parser is intentionally structural. It does not interpret Stage, HITS, model, texture, gameplay or filename semantics.
+It feeds the shared `ContainerDocument` / `ContainerEntry` contracts without interpreting Stage, HITS, model, texture, gameplay or other domain semantics.
 
 ## Accepted binary contract
-
-The currently promoted PAC structure is:
 
 ```text
 +0x00  char[4]  "PAC\0"
@@ -21,36 +17,36 @@ The currently promoted PAC structure is:
 +0x08  u32 LE[] slot-offset table, one entry per declared slot
 ```
 
-For an offset-table entry:
+Rules:
 
-- `0` means the slot is structurally empty;
-- non-zero means a populated slot begins at that absolute PAC byte offset;
-- populated offsets must begin at or after the end of the slot-offset table;
-- populated offsets must be strictly inside the supplied PAC byte span.
-
-Slot count is preserved exactly, including empty slots.
+- offset `0` preserves an empty physical slot;
+- non-zero offset is a container-base-relative PAC byte offset;
+- populated offsets may not point into the header/table;
+- populated offsets must lie strictly inside the supplied PAC byte span;
+- declared slot space is preserved exactly, including empty entries;
+- valid `slot_count == 0` containers are accepted;
+- alignment is diagnostic evidence only, not an unconditional validity rule.
 
 ## Extent inference
 
-PAC does not carry an explicit size beside each slot-table offset in this promoted subset.
+The promoted structural subset has offsets but no per-slot size field. A populated extent is therefore bounded by the next greater **distinct** populated offset, or PAC end for the final distinct offset.
 
-The parser therefore derives a populated slot extent as:
+Slot-table order is not used as size authority. Duplicate non-zero offsets remain separate physical slot identities and receive the same bounded extent; no semantic alias meaning is inferred.
 
-```text
-start = slot offset
-end   = next greater distinct populated offset
-         or PAC byte-span end for the final distinct offset
-size  = end - start
-```
+This is a conservative GDSpaces extraction policy, not a claim that every original DMC3 consumer conceptualizes member size through the same algorithm.
 
-Important details:
+## Structural slot names
 
-- slot-table order is not used as the extent authority;
-- zero/empty slots are ignored when finding the next extent boundary;
-- duplicate non-zero offsets are preserved as separate slot identities and receive the same bounded extent;
-- no semantic alias meaning is inferred from duplicate offsets.
+The shared `ContainerEntry` invariant requires a non-empty `logical_name` for populated entries, while PAC itself carries no filename table in the promoted structure.
 
-The resulting generic representation is `formats::ContainerDocument` / `ContainerEntry`.
+Therefore the parser assigns deterministic positional presentation names:
+
+- populated: `slot_NNNN.bin`;
+- empty: `slot_NNNN.empty`.
+
+Every such name has `synthetic_name=true`. These names are **not source filenames and not semantic labels**. Physical slot index remains the authority.
+
+This rule fixes a reconciliation defect found before the real-corpus run: the earlier #99 implementation left populated `logical_name` empty, which caused the shared `ContainerDocument::valid()` contract to reject any PAC containing populated entries as `invalid_document`.
 
 ## Fail-closed rules
 
@@ -62,83 +58,52 @@ The parser rejects:
 - slot-table arithmetic that cannot be represented safely;
 - an offset table extending beyond the supplied bytes;
 - a populated slot offset pointing into the PAC header/table;
-- a populated slot offset at or beyond the end of the supplied PAC span;
-- a final `ContainerDocument` that fails the shared container invariants.
+- a populated slot offset at or beyond PAC end;
+- a final document that violates the shared container invariants.
 
-The current safety limit is `1 << 20` declared slots. The actual byte-span/table bound normally limits this much earlier.
+The current safety limit is `1 << 20` declared slots; actual table/file bounds normally limit this much earlier.
 
 ## Identity and semantic boundary
 
-A PAC slot index is **not globally semantic**.
+A PAC slot index is **not globally semantic**. Matching slot numbers across different resources do not imply matching schemas.
 
-HITS Pass-10 Slice 13 provides a concrete negative control: matching PAC slot numbers across different PAC resources do not imply matching schemas.
+The parser preserves only:
 
-Therefore this parser only preserves:
-
-- slot index;
+- declared slot index;
 - populated/empty state;
-- absolute byte offset;
-- bounded byte size;
+- container-relative byte offset;
+- bounded inferred byte size;
+- explicit synthetic presentation identity;
 - container format/version/size.
 
-It does **not** invent:
+It does **not** infer Stage names, HITS roles, transforms, model/texture/audio semantics, or original filenames. Those interpretations belong to separately evidenced profile/domain adapters.
 
-- Stage domain names;
-- `stNNN` meaning;
-- HITS/collision identities;
-- transform/entry/descriptor roles;
-- model/texture/audio semantics;
-- filenames for unnamed slots.
+## Validation
 
-Those interpretations belong to separately evidenced profile/domain adapters.
+Synthetic regression covers valid parsing, sparse slots, duplicate offsets, next-distinct-offset extent inference, bad magic, truncation, offsets into the table, out-of-range offsets, slot-count safety and zero-slot PAC.
 
-## Empty-slot preservation
+### Real-corpus receipt — 2026-08-17
 
-`declared_slot_count` and `entries.size()` retain the declared PAC slot space, including empty offsets.
+The exact #99 C++ parser was executed against all `PAC\0` files under `analysis_inputs/stage_drops` in the reacquired exact historical `DMC 3 RENGINE (6).zip` corpus.
 
-This is required because slot identity is positional even when a slot has no payload. Higher-level container expansion must not collapse the slot namespace to only populated children.
+Result:
 
-## Current validation state
+- **32 PAC artifacts tested**;
+- **32/32 parse success**;
+- **0 failures**;
+- **32/32 deterministic second parse**;
+- **6 valid zero-slot PACs**;
+- **6 sparse PACs**;
+- maximum declared topology **415 slots**;
+- observed artifact size range **16 .. 2,495,392 bytes**.
 
-Synthetic regression covers:
+No proprietary game bytes are committed. The sanitized hash/topology receipt is stored at:
 
-- exact `PAC\0` magic;
-- declared slot count;
-- empty-slot preservation;
-- non-zero populated offsets;
-- next-distinct-offset size inference;
-- duplicate-offset preservation;
-- invalid magic;
-- truncated header/table;
-- offset into header/table;
-- offset at file end/outside payload;
-- slot-count safety limit;
-- zero-slot structural PAC.
+`docs/evidence/pac-real-corpus-validation-2026-08-17.md`
 
-The implementation was also built locally against the real clean-repository `ContainerDocument` API before promotion to the branch.
-
-No proprietary PAC bytes are committed.
-
-## Real-corpus gate
-
-This parser must **not** be advertised as fully game-validated PAC support yet.
-
-The next validation gate requires legally supplied local PAC resources through the canonical GDSpaces path, with sanitized receipts recording at minimum:
-
-- resource identity/hash;
-- PAC byte size;
-- declared slot count;
-- populated/empty slot counts;
-- per-populated-slot index/offset/size;
-- duplicate-offset groups if present;
-- parser diagnostics;
-- reopen/determinism result.
-
-Representative validation should include more than one PAC family. A Stage-CFG PAC alone cannot establish globally semantic slot roles.
+Duplicate non-zero offset behavior remains defensive product support because this real corpus does not exercise populated duplicate offsets.
 
 ## GDSpaces / Stage / HITS integration boundary
-
-This parser is the structural layer required before higher-level PAC consumers can run without a private parser.
 
 Target dependency direction:
 
@@ -150,7 +115,7 @@ GDSpaces resource bytes
   -> profile/domain adapter
 ```
 
-For HITS Slice 15 specifically:
+For HITS Slice 15:
 
 ```text
 Stage-CFG ResourcePayload
@@ -159,9 +124,7 @@ Stage-CFG ResourcePayload
   -> referenced-descriptor census
 ```
 
-HITS must not parse PAC independently.
-
-For Slice 16, this parser does not resolve `entry+0x01` transform provenance. PAC structural success does not make Stage-CFG slot 38 a transform table.
+HITS must not parse PAC independently. PAC structural success also does not resolve Slice-16 transform-source provenance or make Stage-CFG slot 38 a transform table.
 
 ## Not implemented here
 
@@ -170,17 +133,15 @@ For Slice 16, this parser does not resolve `entry+0x01` transform provenance. PA
 - AFS;
 - recursive container expansion policy;
 - `.lst` behavior;
-- archive source priority;
+- archive/provider priority;
 - write/repack/export;
 - semantic slot naming;
-- full DMC3 resource runtime equivalence.
-
-Those remain separate gates under the production container/resource workstream.
+- full DMC3 resource-runtime equivalence.
 
 ## Completion boundary
 
-This parser may only be called complete at the bounded responsibility:
+The bounded responsibility is now validated as:
 
-> decode the currently evidenced PAC header/slot-offset structure into a deterministic, bounds-checked, slot-preserving `ContainerDocument`.
+> decode the evidenced PAC header/relative-slot structure into a deterministic, bounds-checked, slot-preserving `ContainerDocument`, including real sparse/zero/large-topology PAC corpus cases.
 
-It does not make issue #3 complete and does not make PAC/PNST/NBZ/AFS production support complete.
+This does **not** make issue #3 complete and does not make PAC/PNST/NBZ/AFS production support complete.
