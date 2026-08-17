@@ -120,6 +120,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pac
         pnst
         dmc3_container_parsers
+        container_tree_expander
         classifier
         known_target
         stage_table_descriptor
