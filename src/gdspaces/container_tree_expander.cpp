@@ -1,11 +1,13 @@
 #include "dmc_rengine/gdspaces/container_tree_expander.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/gdspaces/byte_provenance.hpp"
 
 #include <algorithm>
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -32,25 +34,29 @@ void append_string_field(std::ostringstream& output, std::string_view value) {
     output << value.size() << ':' << value << '|';
 }
 
-[[nodiscard]] std::string parse_cache_key(
+[[nodiscard]] std::optional<std::string> reusable_parse_cache_key(
     const ResourcePayload& payload,
-    std::string_view parser_id) {
-    std::ostringstream output;
-    append_string_field(output, parser_id);
-
-    if (!payload.byte_provenance.has_value()) {
-        output << "identity|";
-        append_string_field(output, payload.resource.id.canonical());
-        return output.str();
+    const formats::IContainerParser& parser) {
+    if (!parser.supports_byte_identity_reuse() ||
+        !payload.byte_provenance.has_value() ||
+        !payload.byte_provenance->valid()) {
+        return std::nullopt;
     }
 
     const auto& provenance = *payload.byte_provenance;
-    if (!provenance.valid()) {
-        output << "invalid-lineage|";
-        append_string_field(output, payload.resource.id.canonical());
-        return output.str();
+    if (provenance.materialized_size !=
+        static_cast<std::uint64_t>(payload.bytes.size())) {
+        return std::nullopt;
     }
 
+    // Lineage identifies the claimed byte domain. Bind reuse additionally to
+    // the exact materialized bytes actually supplied to parse(), so copied or
+    // stale provenance metadata cannot borrow another payload's parse result.
+    const auto content_hash = core::Sha256::compute(
+        std::span<const std::byte>{payload.bytes}).hex();
+
+    std::ostringstream output;
+    append_string_field(output, parser.id());
     output << "provenance|" << to_string(provenance.kind) << '|';
     append_string_field(output, provenance.authority_id);
     output << provenance.offset << '|'
@@ -62,6 +68,23 @@ void append_string_field(std::ostringstream& output, std::string_view value) {
     } else {
         output << '-';
     }
+    output << '|';
+    append_string_field(output, content_hash);
+    return output.str();
+}
+
+[[nodiscard]] std::string active_domain_key(
+    const ResourcePayload& payload,
+    const formats::IContainerParser& parser,
+    const std::optional<std::string>& cache_key) {
+    if (cache_key.has_value()) {
+        return std::string{"byte|"} + *cache_key;
+    }
+
+    std::ostringstream output;
+    output << "identity|";
+    append_string_field(output, parser.id());
+    append_string_field(output, payload.resource.id.canonical());
     return output.str();
 }
 
@@ -75,6 +98,30 @@ void append_string_field(std::ostringstream& output, std::string_view value) {
         }
     }
     return count;
+}
+
+[[nodiscard]] bool consume_parser_budget(
+    ContainerTreeExpansion& result,
+    const ContainerTreeExpansionLimits& limits,
+    const ResourcePayload& payload) {
+    const auto byte_count = static_cast<std::uint64_t>(payload.bytes.size());
+    if (result.parsed_container_bytes >
+            std::numeric_limits<std::uint64_t>::max() - byte_count ||
+        result.parsed_container_bytes + byte_count >
+            limits.max_parsed_container_bytes) {
+        result.fully_expanded = false;
+        add_diagnostic(
+            result,
+            DiagnosticSeverity::error,
+            "gdspaces.container-tree.byte-budget",
+            "The recursive parsed-container byte budget would be exceeded.",
+            payload.resource.id);
+        return false;
+    }
+
+    ++result.parser_invocation_count;
+    result.parsed_container_bytes += byte_count;
+    return true;
 }
 
 } // namespace
@@ -125,8 +172,12 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
     }
 
     static_cast<void>(result.graph.add(root.resource));
+
+    // This cache stores parser results only. It never deduplicates ResourceId
+    // or graph identity, and it is available only to parsers that explicitly
+    // declare byte-only semantics.
     std::map<std::string, formats::ContainerParseResult, std::less<>> parse_cache;
-    std::set<std::string, std::less<>> active_byte_domains;
+    std::set<std::string, std::less<>> active_domains;
 
     std::function<void(const ResourcePayload&, std::size_t, bool)> visit;
     visit = [&](const ResourcePayload& payload, std::size_t depth, bool is_root) {
@@ -155,49 +206,53 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
             return;
         }
 
-        const auto cache_key = parse_cache_key(payload, parser->id());
-        if (!active_byte_domains.insert(cache_key).second) {
+        const auto cache_key = reusable_parse_cache_key(payload, *parser);
+        const auto ancestry_key = active_domain_key(payload, *parser, cache_key);
+        if (!active_domains.insert(ancestry_key).second) {
             result.fully_expanded = false;
             add_diagnostic(
                 result,
                 DiagnosticSeverity::warning,
                 "gdspaces.container-tree.byte-domain-cycle",
-                "The same parser/byte domain is already active in this ancestry; recursive expansion stopped to prevent a cycle.",
+                "The same parser/byte-or-identity domain is already active in this ancestry; recursive expansion stopped to prevent a cycle.",
                 payload.resource.id);
             return;
         }
 
+        const auto release_active = [&]() {
+            active_domains.erase(ancestry_key);
+        };
+
         const formats::ContainerParseResult* parsed = nullptr;
-        const auto cached = parse_cache.find(cache_key);
-        if (cached != parse_cache.end()) {
-            ++result.parse_cache_hits;
-            parsed = &cached->second;
+        std::optional<formats::ContainerParseResult> uncached_parse;
+
+        if (cache_key.has_value()) {
+            const auto cached = parse_cache.find(*cache_key);
+            if (cached != parse_cache.end()) {
+                ++result.parse_cache_hits;
+                parsed = &cached->second;
+            } else {
+                if (!consume_parser_budget(result, limits, payload)) {
+                    release_active();
+                    return;
+                }
+                auto parse_result = parser->parse(
+                    std::span<const std::byte>{payload.bytes},
+                    payload.resource.id.logical_path);
+                auto [iterator, inserted] = parse_cache.emplace(
+                    *cache_key, std::move(parse_result));
+                static_cast<void>(inserted);
+                parsed = &iterator->second;
+            }
         } else {
-            const auto byte_count = static_cast<std::uint64_t>(payload.bytes.size());
-            if (result.parsed_container_bytes >
-                    std::numeric_limits<std::uint64_t>::max() - byte_count ||
-                result.parsed_container_bytes + byte_count >
-                    limits.max_parsed_container_bytes) {
-                result.fully_expanded = false;
-                add_diagnostic(
-                    result,
-                    DiagnosticSeverity::error,
-                    "gdspaces.container-tree.byte-budget",
-                    "The recursive parsed-container byte budget would be exceeded.",
-                    payload.resource.id);
-                active_byte_domains.erase(cache_key);
+            if (!consume_parser_budget(result, limits, payload)) {
+                release_active();
                 return;
             }
-
-            auto parse_result = registry.parse(
+            uncached_parse = parser->parse(
                 std::span<const std::byte>{payload.bytes},
                 payload.resource.id.logical_path);
-            auto [iterator, inserted] = parse_cache.emplace(
-                cache_key, std::move(parse_result));
-            static_cast<void>(inserted);
-            parsed = &iterator->second;
-            ++result.parser_invocation_count;
-            result.parsed_container_bytes += byte_count;
+            parsed = &*uncached_parse;
         }
 
         auto expansion = ContainerExpander::expand(payload, *parsed);
@@ -211,7 +266,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
                 "gdspaces.container-tree.node-budget",
                 "Expanding this container identity would exceed the resource-graph node budget.",
                 payload.resource.id);
-            active_byte_domains.erase(cache_key);
+            release_active();
             return;
         }
 
@@ -251,7 +306,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
         for (const auto& nested : nested_payloads) {
             visit(nested, depth + 1U, false);
         }
-        active_byte_domains.erase(cache_key);
+        release_active();
     };
 
     visit(root, 0U, true);
