@@ -6,6 +6,7 @@
 #include <cctype>
 #include <iomanip>
 #include <limits>
+#include <optional>
 #include <span>
 #include <sstream>
 #include <string>
@@ -62,6 +63,41 @@ namespace {
     }
     output << format << '[' << slot << ']';
     return output.str();
+}
+
+[[nodiscard]] std::optional<ByteProvenance> child_byte_provenance(
+    const ResourcePayload& parent,
+    const formats::ContainerEntry& entry) {
+    if (!entry.populated) {
+        return std::nullopt;
+    }
+
+    if (parent.byte_provenance.has_value() &&
+        parent.byte_provenance->direct_byte_mapping()) {
+        if (parent.byte_provenance->offset >
+            std::numeric_limits<std::uint64_t>::max() - entry.offset) {
+            return std::nullopt;
+        }
+        return ByteProvenance{
+            .kind = ByteOriginKind::direct_source_span,
+            .authority_id = parent.byte_provenance->authority_id,
+            .offset = parent.byte_provenance->offset + entry.offset,
+            .stored_size = entry.size,
+            .materialized_size = entry.size,
+            .transform = ByteTransform::none,
+            .crc32 = std::nullopt,
+        };
+    }
+
+    return ByteProvenance{
+        .kind = ByteOriginKind::materialized_parent_span,
+        .authority_id = parent.resource.id.canonical(),
+        .offset = entry.offset,
+        .stored_size = entry.size,
+        .materialized_size = entry.size,
+        .transform = ByteTransform::none,
+        .crc32 = std::nullopt,
+    };
 }
 
 } // namespace
@@ -133,7 +169,7 @@ ContainerExpansion ContainerExpander::expand(
             expansion.diagnostics.push_back(Diagnostic{
                 .severity = DiagnosticSeverity::error,
                 .code = "gdspaces.container.child_offset_overflow",
-                .message = "A child physical offset overflows the resource identity range.",
+                .message = "A child materialized offset overflows the resource identity range.",
                 .resource = parent.resource.id,
             });
             continue;
@@ -164,7 +200,19 @@ ContainerExpansion ContainerExpander::expand(
 
         std::vector<std::byte> child_bytes;
         std::vector<Diagnostic> child_diagnostics;
+        auto provenance = child_byte_provenance(parent, entry);
         if (entry.populated) {
+            if (!provenance.has_value() || !provenance->valid()) {
+                const Diagnostic diagnostic{
+                    .severity = DiagnosticSeverity::error,
+                    .code = "gdspaces.container.child_provenance_invalid",
+                    .message = "A populated child could not be assigned safe byte provenance.",
+                    .resource = child_ref.id,
+                };
+                expansion.diagnostics.push_back(diagnostic);
+                child_diagnostics.push_back(diagnostic);
+            }
+
             const auto parent_size = static_cast<std::uint64_t>(parent.bytes.size());
             const auto range_valid = entry.offset <= parent_size &&
                 entry.size <= parent_size - entry.offset;
@@ -191,6 +239,7 @@ ContainerExpansion ContainerExpander::expand(
             }
         } else {
             child_ref.format = "empty-slot";
+            provenance.reset();
         }
 
         expansion.children.push_back(ContainerChild{
@@ -199,6 +248,7 @@ ContainerExpansion ContainerExpander::expand(
                 .resource = std::move(child_ref),
                 .bytes = std::move(child_bytes),
                 .diagnostics = std::move(child_diagnostics),
+                .byte_provenance = std::move(provenance),
             },
         });
     }
