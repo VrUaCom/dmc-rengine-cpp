@@ -14,7 +14,9 @@ void u32(std::vector<std::byte>& b, std::size_t o, std::uint32_t v) {
     }
 }
 void text(std::vector<std::byte>& b, std::size_t o, std::string_view v) {
-    for (std::size_t i = 0; i < v.size(); ++i) b[o + i] = static_cast<std::byte>(v[i]);
+    for (std::size_t i = 0; i < v.size(); ++i) {
+        b[o + i] = static_cast<std::byte>(v[i]);
+    }
 }
 std::vector<std::byte> fixture() {
     std::vector<std::byte> b(0x60U, std::byte{0});
@@ -72,11 +74,25 @@ int main() {
     assert(ac.front()->format == "dds" && bc.front()->format == "dds");
     assert(ac.front()->id.canonical() != bc.front()->id.canonical());
 
-    ContainerTreeExpansionLimits limits;
-    limits.max_nested_depth = 0U;
-    const auto shallow = ContainerTreeExpander::expand(root(), registry, limits);
+    ContainerTreeExpansionLimits depth_limited;
+    depth_limited.max_nested_depth = 0U;
+    const auto shallow = ContainerTreeExpander::expand(root(), registry, depth_limited);
     assert(!shallow.complete());
     assert(shallow.expanded_container_count == 1U);
+
+    ContainerTreeExpansionLimits byte_limited;
+    byte_limited.max_parsed_container_bytes = 0x5FU;
+    const auto byte_blocked = ContainerTreeExpander::expand(root(), registry, byte_limited);
+    assert(!byte_blocked.complete());
+    assert(byte_blocked.parser_invocation_count == 0U);
+    assert(byte_blocked.expanded_container_count == 0U);
+
+    ContainerTreeExpansionLimits container_limited;
+    container_limited.max_expanded_containers = 1U;
+    const auto count_blocked = ContainerTreeExpander::expand(root(), registry, container_limited);
+    assert(!count_blocked.complete());
+    assert(count_blocked.expanded_container_count == 1U);
+    assert(count_blocked.parser_invocation_count == 1U);
 
     return 0;
 }
