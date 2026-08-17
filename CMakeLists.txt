@@ -120,6 +120,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pac
         pnst
         dmc3_container_parsers
+        container_tree_expander
         classifier
         known_target
         stage_table_descriptor
@@ -171,7 +172,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         tests/reverse_authority_manifest_tests.cpp)
     add_test(
         NAME dmc_rengine_reverse_authority_manifest_tests
-        COMMAND dmc_rengine_reverse_authority_manifest_tests
+        COMMAND dmc-rengine_reverse_authority_manifest_tests
                 ${CMAKE_CURRENT_SOURCE_DIR}/data/registries/dmc3-reverse-authorities.v1.json)
 
     add_test(
