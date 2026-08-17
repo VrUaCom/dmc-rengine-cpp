@@ -67,6 +67,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
 
     set(DMC_RENGINE_SIMPLE_TESTS
+        raw_deflate
         sha256
         patch
         json_parser
