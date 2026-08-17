@@ -1,9 +1,12 @@
+#include "dmc_rengine/formats/pac.hpp"
+#include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/gdspaces/container_tree_expander.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string_view>
 #include <vector>
 
@@ -27,6 +30,101 @@ void put_ascii(
         bytes[offset + index] = static_cast<std::byte>(value[index]);
     }
 }
+
+[[nodiscard]] bool starts_with(
+    std::span<const std::byte> bytes,
+    std::string_view magic) noexcept {
+    if (bytes.size() < magic.size()) {
+        return false;
+    }
+    for (std::size_t index = 0; index < magic.size(); ++index) {
+        if (std::to_integer<unsigned char>(bytes[index]) !=
+            static_cast<unsigned char>(magic[index])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] dmc::rengine::formats::ContainerParseResult adapt(
+    dmc::rengine::formats::RelativeSlotParseResult parsed) {
+    dmc::rengine::formats::ContainerParseResult result;
+    result.recognized = true;
+    if (parsed.document.has_value()) {
+        result.document = std::move(*parsed.document);
+    }
+    if (!parsed.ok()) {
+        result.diagnostics.push_back(dmc::rengine::formats::ParseDiagnostic{
+            .severity = dmc::rengine::formats::ParseSeverity::error,
+            .code = "test.structural_error",
+            .message = parsed.message,
+            .offset = 0U,
+        });
+    }
+    return result;
+}
+
+class BytePurePacTestParser final :
+    public dmc::rengine::formats::IContainerParser {
+public:
+    [[nodiscard]] std::string_view id() const noexcept override {
+        return "test-byte-pure-pac";
+    }
+
+    [[nodiscard]] std::string_view format() const noexcept override {
+        return "pac";
+    }
+
+    [[nodiscard]] bool supports_byte_identity_reuse() const noexcept override {
+        return true;
+    }
+
+    [[nodiscard]] int probe(
+        std::span<const std::byte> bytes,
+        std::string_view) const noexcept override {
+        return starts_with(bytes, std::string_view{"PAC\0", 4U}) ? 100 : 0;
+    }
+
+    [[nodiscard]] dmc::rengine::formats::ContainerParseResult parse(
+        std::span<const std::byte> bytes,
+        std::string_view) const override {
+        return adapt(dmc::rengine::formats::PacParser::parse(bytes));
+    }
+};
+
+class ContextSensitivePnstTestParser final :
+    public dmc::rengine::formats::IContainerParser {
+public:
+    explicit ContextSensitivePnstTestParser(std::size_t& invocation_count)
+        : invocation_count_(invocation_count) {}
+
+    [[nodiscard]] std::string_view id() const noexcept override {
+        return "test-context-sensitive-pnst";
+    }
+
+    [[nodiscard]] std::string_view format() const noexcept override {
+        return "pnst";
+    }
+
+    // Intentionally does not opt into supports_byte_identity_reuse(). This
+    // models a future parser whose result may depend on logical path/context.
+
+    [[nodiscard]] int probe(
+        std::span<const std::byte> bytes,
+        std::string_view) const noexcept override {
+        return starts_with(bytes, "PNST") ? 100 : 0;
+    }
+
+    [[nodiscard]] dmc::rengine::formats::ContainerParseResult parse(
+        std::span<const std::byte> bytes,
+        std::string_view) const override {
+        ++invocation_count_;
+        return adapt(dmc::rengine::formats::PnstParser::parse(bytes));
+    }
+
+private:
+    std::size_t& invocation_count_;
+};
 
 [[nodiscard]] std::vector<std::byte> make_alias_nested_fixture() {
     std::vector<std::byte> bytes(0x80U, std::byte{0});
@@ -85,6 +183,7 @@ void put_ascii(
 } // namespace
 
 int main() {
+    using dmc::rengine::formats::ContainerParserRegistry;
     using dmc::rengine::gdspaces::ContainerTreeExpander;
     using dmc::rengine::gdspaces::ContainerTreeExpansionLimits;
     using dmc::rengine::gdspaces::DiagnosticSeverity;
@@ -150,6 +249,26 @@ int main() {
     assert(scm->format == "scm");
     assert(!scm->container);
     assert(scm->id.offset == 1096U);
+
+    // A parser that does not explicitly opt into byte-identity reuse must be
+    // invoked once per resource identity even when valid provenance proves
+    // that two aliases point at identical bytes.
+    std::size_t context_sensitive_invocations = 0U;
+    ContainerParserRegistry conservative_registry;
+    assert(conservative_registry.register_parser(
+        std::make_unique<BytePurePacTestParser>()));
+    assert(conservative_registry.register_parser(
+        std::make_unique<ContextSensitivePnstTestParser>(
+            context_sensitive_invocations)));
+
+    const auto conservative_tree = ContainerTreeExpander::expand(
+        root, conservative_registry);
+    assert(conservative_tree.complete());
+    assert(conservative_tree.expanded_container_count == 3U);
+    assert(conservative_tree.parser_execution_count == 3U);
+    assert(conservative_tree.reused_parse_count == 0U);
+    assert(conservative_tree.parsed_container_bytes == 0x100U);
+    assert(context_sensitive_invocations == 2U);
 
     // max_nested_depth=0 expands only the root but preserves nested identities
     // and records deterministic truncation diagnostics.
