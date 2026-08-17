@@ -117,6 +117,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pc_save_file
         working_copy
         byte_provenance
+        pac
         classifier
         known_target
         stage_table_descriptor
