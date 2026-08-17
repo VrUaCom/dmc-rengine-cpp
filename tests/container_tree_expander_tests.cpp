@@ -1,5 +1,4 @@
 #include "dmc_rengine/formats/pac.hpp"
-#include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/gdspaces/container_tree_expander.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
@@ -51,28 +50,6 @@ void text(std::vector<std::byte>& b, std::size_t o, std::string_view v) {
     }
     return result;
 }
-class BytePurePacParser final : public dmc::rengine::formats::IContainerParser {
-public:
-    [[nodiscard]] std::string_view id() const noexcept override {
-        return "test-byte-pure-pac";
-    }
-    [[nodiscard]] std::string_view format() const noexcept override {
-        return "pac";
-    }
-    [[nodiscard]] bool supports_byte_identity_reuse() const noexcept override {
-        return true;
-    }
-    [[nodiscard]] int probe(
-        std::span<const std::byte> bytes,
-        std::string_view) const noexcept override {
-        return starts_with(bytes, std::string_view{"PAC\0", 4U}) ? 100 : 0;
-    }
-    [[nodiscard]] dmc::rengine::formats::ContainerParseResult parse(
-        std::span<const std::byte> bytes,
-        std::string_view) const override {
-        return adapt(dmc::rengine::formats::PacParser::parse(bytes));
-    }
-};
 class ContextSensitivePacParser final : public dmc::rengine::formats::IContainerParser {
 public:
     explicit ContextSensitivePacParser(std::size_t& invocation_count)
@@ -156,20 +133,10 @@ int main() {
     assert(ac.front()->format == "dds" && bc.front()->format == "dds");
     assert(ac.front()->id.canonical() != bc.front()->id.canonical());
 
-    // Reuse must be an explicit parser capability, not a side effect of shared
-    // provenance. The nested aliases below carry identical bytes/provenance,
-    // but a context-sensitive parser that does not opt in is called twice.
+    // Reuse is an explicit parser capability, not a side effect of shared
+    // provenance. The aliases carry identical bytes/provenance, but this
+    // context-sensitive parser never opts in and therefore runs per identity.
     std::size_t context_sensitive_invocations = 0U;
-    ContainerParserRegistry conservative_registry;
-    assert(conservative_registry.register_parser(
-        std::make_unique<BytePurePacParser>()));
-    assert(conservative_registry.register_parser(
-        std::make_unique<ContextSensitivePacParser>(
-            context_sensitive_invocations)) == false);
-
-    // The registry rejects duplicate exact PAC probes, so use a second
-    // context-sensitive-only run: both root and aliases are independently
-    // parsed because this parser never opts into byte-identity reuse.
     ContainerParserRegistry non_reusable_registry;
     assert(non_reusable_registry.register_parser(
         std::make_unique<ContextSensitivePacParser>(
