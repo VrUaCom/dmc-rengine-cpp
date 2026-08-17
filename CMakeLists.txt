@@ -125,6 +125,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         stage_resource_matcher
         stage_bundle_assembler
         container_foundation
+        container_tree_expander
     )
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
