@@ -55,6 +55,11 @@ ResourceClassification ResourceClassifier::classify(
     } else if (starts_with(bytes, std::string_view{"PAC\0", 4U})) {
         result.format = "pac";
         result.magic_confirmed = true;
+    } else if (starts_with(bytes, "PNST")) {
+        // PNST commonly survives under a misleading .pac extension in the
+        // extracted corpus. Byte identity therefore outranks extension.
+        result.format = "pnst";
+        result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
         result.format = "scm";
         result.magic_confirmed = true;

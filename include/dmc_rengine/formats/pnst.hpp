@@ -8,15 +8,15 @@
 
 namespace dmc::rengine::formats {
 
-using PacParseError = RelativeSlotParseError;
-using PacParseResult = RelativeSlotParseResult;
+using PnstParseError = RelativeSlotParseError;
+using PnstParseResult = RelativeSlotParseResult;
 
-class PacParser final {
+class PnstParser final {
 public:
-    // Product-side denial-of-service bound, not an original DMC3 ABI limit.
+    // Product-side safety policy shared with PAC; not an original DMC3 ABI limit.
     static constexpr std::uint32_t k_max_slot_count = 1U << 20U;
 
-    [[nodiscard]] static PacParseResult parse(
+    [[nodiscard]] static PnstParseResult parse(
         std::span<const std::byte> bytes);
 };
 
