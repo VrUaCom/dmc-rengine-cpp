@@ -1,9 +1,12 @@
+#include "dmc_rengine/formats/pac.hpp"
 #include "dmc_rengine/gdspaces/container_tree_expander.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -18,6 +21,60 @@ void text(std::vector<std::byte>& b, std::size_t o, std::string_view v) {
         b[o + i] = static_cast<std::byte>(v[i]);
     }
 }
+[[nodiscard]] bool starts_with(
+    std::span<const std::byte> bytes,
+    std::string_view magic) noexcept {
+    if (bytes.size() < magic.size()) return false;
+    for (std::size_t i = 0; i < magic.size(); ++i) {
+        if (std::to_integer<unsigned char>(bytes[i]) !=
+            static_cast<unsigned char>(magic[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+[[nodiscard]] dmc::rengine::formats::ContainerParseResult adapt(
+    dmc::rengine::formats::RelativeSlotParseResult parsed) {
+    dmc::rengine::formats::ContainerParseResult result;
+    result.recognized = true;
+    if (parsed.document.has_value()) {
+        result.document = std::move(*parsed.document);
+    }
+    if (!parsed.ok()) {
+        result.diagnostics.push_back(dmc::rengine::formats::ParseDiagnostic{
+            .severity = dmc::rengine::formats::ParseSeverity::error,
+            .code = "test.structural_error",
+            .message = parsed.message,
+            .offset = 0U,
+        });
+    }
+    return result;
+}
+class ContextSensitivePacParser final : public dmc::rengine::formats::IContainerParser {
+public:
+    explicit ContextSensitivePacParser(std::size_t& invocation_count)
+        : invocation_count_(invocation_count) {}
+    [[nodiscard]] std::string_view id() const noexcept override {
+        return "test-context-sensitive-pac";
+    }
+    [[nodiscard]] std::string_view format() const noexcept override {
+        return "pac";
+    }
+    // Intentionally keep the default supports_byte_identity_reuse()==false.
+    [[nodiscard]] int probe(
+        std::span<const std::byte> bytes,
+        std::string_view) const noexcept override {
+        return starts_with(bytes, std::string_view{"PAC\0", 4U}) ? 100 : 0;
+    }
+    [[nodiscard]] dmc::rengine::formats::ContainerParseResult parse(
+        std::span<const std::byte> bytes,
+        std::string_view) const override {
+        ++invocation_count_;
+        return adapt(dmc::rengine::formats::PacParser::parse(bytes));
+    }
+private:
+    std::size_t& invocation_count_;
+};
 std::vector<std::byte> fixture() {
     std::vector<std::byte> b(0x60U, std::byte{0});
     text(b, 0, std::string_view{"PAC\0", 4});
@@ -47,6 +104,8 @@ dmc::rengine::gdspaces::ResourcePayload root() {
 
 int main() {
     using namespace dmc::rengine::gdspaces;
+    using dmc::rengine::formats::ContainerParserRegistry;
+
     const auto registry = dmc::rengine::profiles::dmc3::make_container_parser_registry();
     const auto source = root();
     const auto tree = ContainerTreeExpander::expand(source, registry);
@@ -73,6 +132,23 @@ int main() {
     assert(ac.size() == 1U && bc.size() == 1U);
     assert(ac.front()->format == "dds" && bc.front()->format == "dds");
     assert(ac.front()->id.canonical() != bc.front()->id.canonical());
+
+    // Reuse is an explicit parser capability, not a side effect of shared
+    // provenance. The aliases carry identical bytes/provenance, but this
+    // context-sensitive parser never opts in and therefore runs per identity.
+    std::size_t context_sensitive_invocations = 0U;
+    ContainerParserRegistry non_reusable_registry;
+    assert(non_reusable_registry.register_parser(
+        std::make_unique<ContextSensitivePacParser>(
+            context_sensitive_invocations)));
+    const auto conservative = ContainerTreeExpander::expand(
+        root(), non_reusable_registry);
+    assert(conservative.complete());
+    assert(conservative.expanded_container_count == 3U);
+    assert(conservative.parser_invocation_count == 3U);
+    assert(conservative.parse_cache_hits == 0U);
+    assert(conservative.parsed_container_bytes == 0xC0U);
+    assert(context_sensitive_invocations == 3U);
 
     ContainerTreeExpansionLimits depth_limited;
     depth_limited.max_nested_depth = 0U;
