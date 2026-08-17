@@ -72,23 +72,33 @@ namespace {
         return std::nullopt;
     }
 
-    if (parent.byte_provenance.has_value() &&
-        parent.byte_provenance->direct_byte_mapping()) {
-        if (parent.byte_provenance->offset >
-            std::numeric_limits<std::uint64_t>::max() - entry.offset) {
+    if (parent.byte_provenance.has_value()) {
+        // A present-but-invalid lineage is an evidence failure. Do not launder
+        // it into a fresh materialized-parent provenance record.
+        if (!parent.byte_provenance->valid()) {
             return std::nullopt;
         }
-        return ByteProvenance{
-            .kind = ByteOriginKind::direct_source_span,
-            .authority_id = parent.byte_provenance->authority_id,
-            .offset = parent.byte_provenance->offset + entry.offset,
-            .stored_size = entry.size,
-            .materialized_size = entry.size,
-            .transform = ByteTransform::none,
-            .crc32 = std::nullopt,
-        };
+
+        if (parent.byte_provenance->direct_byte_mapping()) {
+            if (parent.byte_provenance->offset >
+                std::numeric_limits<std::uint64_t>::max() - entry.offset) {
+                return std::nullopt;
+            }
+            return ByteProvenance{
+                .kind = ByteOriginKind::direct_source_span,
+                .authority_id = parent.byte_provenance->authority_id,
+                .offset = parent.byte_provenance->offset + entry.offset,
+                .stored_size = entry.size,
+                .materialized_size = entry.size,
+                .transform = ByteTransform::none,
+                .crc32 = std::nullopt,
+            };
+        }
     }
 
+    // No source-direct mapping is available. The child is addressed only
+    // within the already materialized parent byte domain. This is valid when
+    // the parent lineage is absent or valid-but-transformed/materialized.
     return ByteProvenance{
         .kind = ByteOriginKind::materialized_parent_span,
         .authority_id = parent.resource.id.canonical(),
