@@ -139,7 +139,9 @@ public:
         int symbol{-1};
     };
 
-    [[nodiscard]] bool build(std::span<const std::uint8_t> lengths) {
+    [[nodiscard]] bool build(
+        std::span<const std::uint8_t> lengths,
+        bool allow_empty = false) {
         nodes_.clear();
         nodes_.push_back(Node{});
 
@@ -155,7 +157,7 @@ public:
             }
         }
         if (symbol_count == 0U) {
-            return false;
+            return allow_empty;
         }
 
         int remaining = 1;
@@ -384,7 +386,8 @@ private:
     if (literal_lengths.size() <= 256U || literal_lengths[256U] == 0U) {
         return RawDeflateStatus::missing_end_of_block;
     }
-    if (!literal_length.build(literal_lengths) || !distance.build(distance_lengths)) {
+    if (!literal_length.build(literal_lengths) ||
+        !distance.build(distance_lengths, true)) {
         return RawDeflateStatus::invalid_huffman_tree;
     }
     return RawDeflateStatus::ok;
