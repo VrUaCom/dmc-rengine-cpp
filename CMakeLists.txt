@@ -119,6 +119,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         byte_provenance
         pac
         pnst
+        dmc3_container_parsers
         classifier
         known_target
         stage_table_descriptor
