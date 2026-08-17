@@ -32,6 +32,16 @@ int main() {
     assert(pac_by_magic.container);
     assert(pac_by_magic.magic_confirmed);
 
+    // Physical bytes outrank a misleading filename extension. This protects
+    // sparse PNST identity from being collapsed into the PAC namespace.
+    const std::vector<std::byte> pnst_bytes{
+        std::byte{'P'}, std::byte{'N'}, std::byte{'S'}, std::byte{'T'}};
+    const auto pnst_by_magic = ResourceClassifier::classify(
+        "DMC3/room/misleading.pac", std::span<const std::byte>{pnst_bytes});
+    assert(pnst_by_magic.format == "pnst");
+    assert(pnst_by_magic.container);
+    assert(pnst_by_magic.magic_confirmed);
+
     // Canonical HITS magic is exactly the four-byte prefix "HITS".
     // The following header byte is format data, not a '$' magic suffix.
     const std::vector<std::byte> hits_bytes{
