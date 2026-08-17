@@ -57,16 +57,30 @@ int main() {
     assert(document.entries[0].populated);
     assert(document.entries[0].offset == 0x20U);
     assert(document.entries[0].size == 0x10U);
+    assert(document.entries[0].logical_name == "slot_0000.bin");
+    assert(document.entries[0].synthetic_name);
+
     assert(!document.entries[1].populated);
+    assert(document.entries[1].logical_name == "slot_0001.empty");
+    assert(document.entries[1].synthetic_name);
+
     assert(document.entries[2].populated);
     assert(document.entries[2].offset == 0x30U);
     assert(document.entries[2].size == 0x10U);
+    assert(document.entries[2].logical_name == "slot_0002.bin");
+    assert(document.entries[2].synthetic_name);
+
     assert(document.entries[3].populated);
     assert(document.entries[3].offset == 0x20U);
     assert(document.entries[3].size == 0x10U);
+    assert(document.entries[3].logical_name == "slot_0003.bin");
+    assert(document.entries[3].synthetic_name);
+
     assert(document.entries[4].populated);
     assert(document.entries[4].offset == 0x40U);
     assert(document.entries[4].size == 0x10U);
+    assert(document.entries[4].logical_name == "slot_0004.bin");
+    assert(document.entries[4].synthetic_name);
 
     auto bad_magic = bytes;
     bad_magic[0] = std::byte{'X'};
