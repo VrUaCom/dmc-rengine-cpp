@@ -25,6 +25,7 @@ constexpr std::size_t eocd_fixed_size = 22U;
 constexpr std::size_t central_fixed_size = 46U;
 constexpr std::size_t local_fixed_size = 30U;
 constexpr std::size_t max_zip_comment = 65535U;
+constexpr std::uint32_t max_walked_entries = 1U << 20U;
 constexpr std::uint16_t encrypted_flag = 0x0001U;
 
 [[nodiscard]] std::uint16_t u16_le(
@@ -453,8 +454,6 @@ void NbzZipSource::build_index() {
     const auto central_size = u32_le(tail, eocd + 12U);
     const auto declared_central_offset = u32_le(tail, eocd + 16U);
 
-    // SafeProductValidation: current product source intentionally accepts a
-    // bounded classic single-disk subset. This is not an original-game claim.
     if (disk_number != 0U || central_disk != 0U ||
         disk_entries != total_entries) {
         add_diagnostic(
@@ -473,10 +472,6 @@ void NbzZipSource::build_index() {
         return;
     }
 
-    // Recovered original-walk authority: central start is derived backwards
-    // from the absolute EOCD position and central-directory size. The EOCD
-    // central-offset field is preserved as a validation/receipt dimension but
-    // is not used as the seek authority.
     if (central_size > eocd_absolute) {
         add_diagnostic(
             diagnostics_,
@@ -512,6 +507,14 @@ void NbzZipSource::build_index() {
     std::uint64_t cursor = computed_central_start;
     std::uint32_t walked = 0U;
     while (cursor < eocd_absolute) {
+        if (walked >= max_walked_entries) {
+            add_diagnostic(
+                diagnostics_,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.safe.central-entry-budget",
+                "The signature-bounded central-directory walk exceeds the product entry-count safety budget.");
+            return;
+        }
         if (eocd_absolute - cursor < central_fixed_size) {
             add_diagnostic(
                 diagnostics_,
@@ -615,8 +618,6 @@ void NbzZipSource::build_index() {
         const auto local_name_length = u16_le(local, 26U);
         const auto local_extra_length = u16_le(local, 28U);
 
-        // SafeProductValidation: exact local/central agreement is retained as
-        // hardening, not mislabeled as recovered original acceptance behavior.
         if (local_flags != flags || local_method != method) {
             add_diagnostic(
                 diagnostics_,
@@ -666,6 +667,15 @@ void NbzZipSource::build_index() {
                 DiagnosticSeverity::error,
                 "gdspaces.nbz.entry-data-range",
                 "A member's stored byte span lies outside the archive.");
+            return;
+        }
+        if (*data_offset > computed_central_start ||
+            compressed_size > computed_central_start - *data_offset) {
+            add_diagnostic(
+                diagnostics_,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.safe.member-overlaps-central-directory",
+                "A local member's stored byte span reaches into the central-directory byte domain.");
             return;
         }
 
