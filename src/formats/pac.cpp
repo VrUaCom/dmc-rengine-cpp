@@ -1,7 +1,9 @@
 #include "dmc_rengine/formats/pac.hpp"
 
 #include <algorithm>
+#include <iomanip>
 #include <limits>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -15,6 +17,15 @@ namespace {
         (std::to_integer<std::uint32_t>(bytes[offset + 1U]) << 8U) |
         (std::to_integer<std::uint32_t>(bytes[offset + 2U]) << 16U) |
         (std::to_integer<std::uint32_t>(bytes[offset + 3U]) << 24U);
+}
+
+[[nodiscard]] std::string synthetic_slot_name(
+    std::uint32_t slot,
+    bool populated) {
+    std::ostringstream output;
+    output << "slot_" << std::setfill('0') << std::setw(4) << slot
+           << (populated ? ".bin" : ".empty");
+    return output.str();
 }
 
 [[nodiscard]] PacParseResult fail(
@@ -108,9 +119,11 @@ PacParseResult PacParser::parse(std::span<const std::byte> bytes) {
     for (std::uint32_t slot = 0U; slot < slot_count; ++slot) {
         auto& entry = document.entries[slot];
         entry.slot_index = slot;
+        entry.synthetic_name = true;
 
         const auto offset = offsets[slot];
         if (offset == 0U) {
+            entry.logical_name = synthetic_slot_name(slot, false);
             continue;
         }
 
@@ -124,6 +137,7 @@ PacParseResult PacParser::parse(std::span<const std::byte> bytes) {
 
         entry.offset = offset;
         entry.size = end - static_cast<std::uint64_t>(offset);
+        entry.logical_name = synthetic_slot_name(slot, true);
         entry.populated = true;
     }
 
