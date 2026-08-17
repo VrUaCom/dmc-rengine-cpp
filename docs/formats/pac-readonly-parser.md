@@ -1,13 +1,13 @@
 # PAC Read-Only Structural Parser
 
 **Reconciled:** 2026-08-17  
-**Status:** IMPLEMENTED BOUNDED STRUCTURAL SLICE / SYNTHETIC REGRESSION; HASH-BOUND REAL-CORPUS EXECUTION RECEIPT STILL OPEN
+**Status:** IMPLEMENTED / SYNTHETIC + 32-ARTIFACT HASH-BOUND REAL-CORPUS VALIDATION; BOUNDED STRUCTURAL SLICE ONLY
 
 ## Purpose
 
 This is the clean-generation read-only PAC structural decoder used to feed the shared `ContainerDocument` contract without introducing Stage/HITS semantics or reviving a PAC-specific product architecture.
 
-It is reconciled against issue #100 / Drive archive-runtime evidence through Pass 34 and supersedes the old PAC half of the stacked #59 implementation path.
+It is reconciled against issue #100 / Drive archive-runtime evidence through Pass 34, the clean #102 promotion, and the real-corpus execution receipt promoted from the superseded #99 development branch.
 
 ## Evidence-backed structural envelope
 
@@ -25,7 +25,7 @@ Rules:
 - the full declared slot namespace is preserved, including sparse and zero-count containers;
 - slot number is structural identity inside the resource/schema context, not a global semantic type.
 
-Phase-15 executable evidence and Pass-17 hash-bound corpus both support this envelope. Real corpus includes sparse PAC/PNST containers, valid zero-count PACs and large declared topologies.
+Phase-15 executable evidence, Pass-17 hash-bound corpus and the 32-artifact parser receipt all support this envelope.
 
 ## Product extent rule
 
@@ -40,13 +40,13 @@ size  = end - start
 
 This is a deterministic **product extraction rule**, not a claim that every original DMC3 consumer represents member size through the same algorithm.
 
-Duplicate non-zero offsets remain separate slot identities and share the same inferred span. The current Pass-17 corpus contains no duplicate non-zero offsets, so this behavior is defensive product support rather than newly game-confirmed alias semantics.
+Duplicate non-zero offsets remain separate slot identities and share the same inferred span. The current 32-PAC validation corpus contains no duplicate non-zero offsets, so this behavior remains defensive product support rather than newly game-confirmed alias semantics.
 
 ## Alignment correction
 
 Universal 16-byte alignment is **not** a PAC validity invariant.
 
-Pass 14 recovered real PAC/PNST counterexamples with populated-offset residues `{0, 8}` modulo 16. Alignment may be reported as corpus/diagnostic information but must not cause structural rejection by this parser.
+Pass 14 recovered real PAC/PNST counterexamples with populated-offset residues `{0, 8}` modulo 16. Clean synthetic regression also locks this rule by accepting an offset with residue 8. Alignment may be reported as corpus/diagnostic information but must not cause structural rejection.
 
 ## Product safety boundary
 
@@ -62,39 +62,43 @@ The parser fails closed on:
 - populated offset at or beyond the supplied PAC span;
 - resulting invalid shared `ContainerDocument`.
 
-## Synthetic regression
+## Shared-contract naming rule
 
-Coverage includes:
-
-- exact magic;
-- declared topology and empty-slot preservation;
-- duplicate-offset shared extents;
-- next-distinct-offset extraction;
-- invalid/truncated header/table;
-- offsets into table and at file end;
-- product slot-count safety limit;
-- zero-count structural PAC;
-- an offset with residue 8 modulo 16, proving alignment is not used as a reject rule.
-
-No proprietary game bytes are committed.
-
-## Real-corpus gate
-
-Corpus **acquisition is no longer the blocker**.
-
-Issue #100 Passes 14 and 17 reacquired hash-bound PAC/PNST material, including 42 raw stage-drop containers (32 PAC / 10 PNST), sparse cases, six zero-count PACs and large topologies.
-
-The remaining gate is operational:
+`ContainerEntry::valid()` requires populated entries to have a non-empty presentation name. PAC does not supply original filenames in this structural envelope, so the parser assigns deterministic synthetic structural labels:
 
 ```text
-reacquired hash-bound PAC corpus
-  -> this exact current-generation PacParser
-  -> sanitized deterministic validation receipts
+slot_NNNN.bin
+slot_NNNN.empty
 ```
 
-Receipt fields should include artifact SHA-256, byte size, declared slot count, populated/empty counts, slot index, offset, inferred extent, diagnostics and deterministic reopen result.
+with `synthetic_name=true`. These labels are presentation only; physical slot index remains authority and no semantic/source filename is inferred.
 
-Until that execution receipt exists, this slice is implemented/evidence-consistent but is not advertised as fully game-validated PAC support.
+## Validation
+
+Synthetic CTest covers exact magic, declared topology, sparse/empty slots, duplicate-offset shared extents, bounded extent inference, malformed/truncated tables, safety limit, zero-count PAC and the non-16-byte-alignment regression.
+
+The real-corpus execution receipt is committed at:
+
+`docs/evidence/pac-real-corpus-validation-2026-08-17.md`
+
+Summary:
+
+- **32 PAC artifacts** parsed;
+- **32/32 success**;
+- **0 failures**;
+- **32/32 deterministic second parse**;
+- **6 valid zero-count PACs**;
+- **6 sparse PACs**;
+- maximum declared topology **415 slots**;
+- byte-size range **16 .. 2,495,392 bytes**.
+
+No proprietary game bytes are committed; the receipt preserves sanitized artifact hashes/topology.
+
+### Gate status
+
+The bounded **PAC structural real-corpus execution gate is closed** for this parser behavior.
+
+This does **not** close PNST, NBZ, `.lst`, archive/provider behavior, semantic slot schemas, write/repack support or full DMC3 runtime equivalence.
 
 ## Dependency boundary
 
@@ -108,7 +112,7 @@ GDSpaces ResourcePayload
 
 HITS, Stage Ops and other consumers must not add private PAC parsers.
 
-This parser does not infer Stage-CFG slot roles, HITS descriptors/transforms, model/texture/audio meaning or filenames beyond explicit synthetic structural labels.
+This parser does not infer Stage-CFG slot roles, HITS descriptors/transforms, model/texture/audio meaning or original filenames.
 
 ## Not part of this slice
 
@@ -121,4 +125,4 @@ This parser does not infer Stage-CFG slot roles, HITS descriptors/transforms, mo
 - write/repack/export;
 - original `LoadedResource` lifecycle/runtime equivalence.
 
-Those are separate reconciliation gates.
+Those remain separate reconciliation gates.
