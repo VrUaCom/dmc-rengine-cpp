@@ -174,6 +174,23 @@ int main() {
     };
     assert(!invalid_direct.valid());
 
+    // A present-but-invalid parent lineage must not be converted into a fresh
+    // valid materialized-parent lineage during container expansion.
+    const auto invalid_parent_expansion = ContainerExpander::expand(
+        parent_payload(0U, invalid_direct), parsed);
+    assert(!invalid_parent_expansion.usable());
+    assert(invalid_parent_expansion.children.size() == 1U);
+    const auto& invalid_child = invalid_parent_expansion.children.front().payload;
+    assert(!invalid_child.byte_provenance.has_value());
+    assert(!invalid_child.diagnostics.empty());
+    bool found_invalid_provenance = false;
+    for (const auto& diagnostic : invalid_child.diagnostics) {
+        if (diagnostic.code == "gdspaces.container.child_provenance_invalid") {
+            found_invalid_provenance = true;
+        }
+    }
+    assert(found_invalid_provenance);
+
     const ByteProvenance invalid_transform{
         .kind = ByteOriginKind::transformed_source_span,
         .authority_id = "DMC3-0.nbz",
