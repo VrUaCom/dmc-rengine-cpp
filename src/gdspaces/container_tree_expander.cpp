@@ -53,8 +53,8 @@ void append_text_field(std::ostringstream& output, std::string_view value) {
     // Provenance identifies the claimed byte domain. A content hash binds the
     // cache key to the bytes actually supplied to parse(), so malformed/manual
     // payload construction cannot reuse a parse merely by copying provenance.
-    const auto content_hash = core::Sha256::hex(
-        std::span<const std::byte>{payload.bytes});
+    const auto content_hash = core::Sha256::compute(
+        std::span<const std::byte>{payload.bytes}).hex();
 
     std::ostringstream output;
     append_text_field(output, parser.id());
