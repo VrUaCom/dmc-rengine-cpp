@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/formats/container.hpp"
+#include "dmc_rengine/formats/relative_slot_container.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -33,8 +34,10 @@ struct PacParseResult final {
 
 class PacParser final {
 public:
-    // Product-side denial-of-service bound, not an original DMC3 ABI limit.
-    static constexpr std::uint32_t k_max_slot_count = 1U << 20U;
+    // Shared product-side denial-of-service bound for the evidenced PAC/PNST
+    // relative-slot envelope; not an original DMC3 ABI limit.
+    static constexpr std::uint32_t k_max_slot_count =
+        k_relative_slot_max_slot_count;
 
     [[nodiscard]] static PacParseResult parse(
         std::span<const std::byte> bytes);
