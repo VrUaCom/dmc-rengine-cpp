@@ -118,6 +118,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         working_copy
         byte_provenance
         pac
+        pnst
         classifier
         known_target
         stage_table_descriptor
