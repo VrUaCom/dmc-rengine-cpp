@@ -116,9 +116,10 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .stage_category = gdspaces::StageResourceCategory::collision,
             .evidence_claim_ids = {},
             .limitations = {
-                "Only HITS$ magic, marker 0x18060001, 56-byte records, and thirteen raw floats are structural facts.",
-                "Float semantics and the complete file header remain unknown.",
-                "No export writer is available.",
+                "Canonical magic is the four-byte HITS prefix; HITS$ is rejected as an obsolete scanner assumption.",
+                "Parsing is header-driven through bounds, cell sizes, grid dimensions, spatial lists, and 0x38 raw-flags + triangle-plane records.",
+                "0x18060001 is an observed raw flag value, not a universal record marker; unknown flag semantics remain evidence-gated.",
+                "A deterministic DMC Rengine working-copy writer exists, but Capcom offline-builder equivalence and production container reintegration/export remain unproven.",
             },
         },
         FormatIntegrationDescriptor{

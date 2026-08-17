@@ -61,7 +61,7 @@ ResourceClassification ResourceClassifier::classify(
     } else if (starts_with(bytes, std::string_view{"DCA\0", 4U})) {
         result.format = "dca";
         result.magic_confirmed = true;
-    } else if (starts_with(bytes, "HITS$")) {
+    } else if (starts_with(bytes, "HITS")) {
         result.format = "hits";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "DDS ")) {
