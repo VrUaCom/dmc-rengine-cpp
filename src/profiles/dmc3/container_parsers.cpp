@@ -73,6 +73,10 @@ public:
         return "pac";
     }
 
+    [[nodiscard]] bool supports_byte_identity_reuse() const noexcept override {
+        return true;
+    }
+
     [[nodiscard]] int probe(
         std::span<const std::byte> bytes,
         std::string_view) const noexcept override {
@@ -113,6 +117,10 @@ public:
 
     [[nodiscard]] std::string_view format() const noexcept override {
         return "pnst";
+    }
+
+    [[nodiscard]] bool supports_byte_identity_reuse() const noexcept override {
+        return true;
     }
 
     [[nodiscard]] int probe(
