@@ -28,11 +28,12 @@ struct ContainerTreeExpansion final {
     // counted separately even when they share one parsed byte span.
     std::size_t expanded_container_count{};
 
-    // Unique parser executions. Reused parse results do not increment this.
-    std::size_t unique_parse_count{};
+    // Actual parser executions and safe byte-identity cache hits are tracked
+    // separately so parse reuse never masquerades as identity deduplication.
+    std::size_t parser_execution_count{};
     std::size_t reused_parse_count{};
 
-    // Sum of materialized bytes consumed by unique parser executions only.
+    // Sum of materialized bytes consumed by actual parser executions only.
     std::uint64_t parsed_container_bytes{};
     bool fully_expanded{true};
 
