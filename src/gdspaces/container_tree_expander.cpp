@@ -7,6 +7,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -70,6 +71,21 @@ void append_text_field(std::ostringstream& output, std::string_view value) {
     }
     output << '|';
     append_text_field(output, content_hash);
+    return output.str();
+}
+
+[[nodiscard]] std::string recursion_domain_key(
+    const ResourcePayload& payload,
+    const formats::IContainerParser& parser,
+    const std::optional<std::string>& byte_key) {
+    if (byte_key.has_value()) {
+        return std::string{"byte|"} + *byte_key;
+    }
+
+    std::ostringstream output;
+    output << "identity|";
+    append_text_field(output, parser.id());
+    append_text_field(output, payload.resource.id.canonical());
     return output.str();
 }
 
@@ -162,6 +178,12 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
     // never deduplicated by this map.
     std::map<std::string, formats::ContainerParseResult, std::less<>> parse_cache;
 
+    // Active ancestry domains are separate from the global parse cache. This
+    // prevents a malformed/self-referential container from recurring forever
+    // while still allowing a sibling alias to reuse the same bytes after the
+    // first branch has returned.
+    std::set<std::string, std::less<>> active_recursion_domains;
+
     std::function<void(const ResourcePayload&, std::size_t, bool)> visit;
     visit = [&](const ResourcePayload& payload, std::size_t depth, bool is_root) {
         const auto* parser = registry.select(
@@ -189,9 +211,25 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
             return;
         }
 
+        const auto cache_key = byte_identity_cache_key(payload, *parser);
+        const auto active_key = recursion_domain_key(payload, *parser, cache_key);
+        if (!active_recursion_domains.insert(active_key).second) {
+            result.fully_expanded = false;
+            add_diagnostic(
+                result,
+                DiagnosticSeverity::warning,
+                "gdspaces.container-tree.recursion-cycle",
+                "The same parser/byte-or-identity domain is already active in this ancestry; nested expansion stopped to prevent a cycle.",
+                payload.resource.id);
+            return;
+        }
+
+        const auto release_active = [&]() {
+            active_recursion_domains.erase(active_key);
+        };
+
         const formats::ContainerParseResult* parsed = nullptr;
         std::optional<formats::ContainerParseResult> uncached_parse;
-        const auto cache_key = byte_identity_cache_key(payload, *parser);
 
         if (cache_key.has_value()) {
             const auto cached = parse_cache.find(*cache_key);
@@ -200,6 +238,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
                 ++result.reused_parse_count;
             } else {
                 if (!consume_parse_budget(result, limits, payload)) {
+                    release_active();
                     return;
                 }
                 auto parse_result = parser->parse(
@@ -212,6 +251,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
             }
         } else {
             if (!consume_parse_budget(result, limits, payload)) {
+                release_active();
                 return;
             }
             uncached_parse = parser->parse(
@@ -231,6 +271,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
                 "gdspaces.container-tree.node-budget",
                 "Expanding this container identity would exceed the resource-graph node budget.",
                 payload.resource.id);
+            release_active();
             return;
         }
 
@@ -270,6 +311,7 @@ ContainerTreeExpansion ContainerTreeExpander::expand(
         for (const auto& nested : nested_payloads) {
             visit(nested, depth + 1U, false);
         }
+        release_active();
     };
 
     visit(root, 0U, true);
