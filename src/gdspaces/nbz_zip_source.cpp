@@ -736,6 +736,7 @@ void NbzZipSource::build_index() {
         }
 
         ++walked;
+        index_receipt_->walked_entry_count = walked;
         cursor += *record_size;
     }
 
