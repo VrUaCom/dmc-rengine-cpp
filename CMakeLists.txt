@@ -70,6 +70,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         raw_deflate
         nbz_zip_source
         resource_path_normalizer
+        source_lookup
         sha256
         patch
         json_parser
