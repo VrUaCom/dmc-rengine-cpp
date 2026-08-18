@@ -1,5 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/resource_lookup_policy.hpp"
 
+#include "dmc_rengine/gdspaces/resource_path_normalizer.hpp"
+
 #include <array>
 #include <string>
 #include <utility>
@@ -20,11 +22,17 @@ constexpr std::array<std::string_view, 6> prefixes{
     return value.size() < ResourceLookupPolicy::candidate_buffer_bytes;
 }
 
+[[nodiscard]] bool c_string_compatible(std::string_view value) noexcept {
+    return gdspaces::ResourcePathNormalizer::c_string_compatible(value);
+}
+
 } // namespace
 
 bool ResourceLookupAttempt::valid() const noexcept {
     if (attempt_index >= 12U || prefix_index >= prefixes.size() ||
-        basename.empty() || candidate.empty() || !candidate_fits(candidate)) {
+        basename.empty() || candidate.empty() || !candidate_fits(candidate) ||
+        !c_string_compatible(prefix) || !c_string_compatible(basename) ||
+        !c_string_compatible(candidate)) {
         return false;
     }
     switch (provider) {
@@ -35,7 +43,9 @@ bool ResourceLookupAttempt::valid() const noexcept {
 }
 
 bool ResourceLookupPlan::valid() const noexcept {
-    if (original_request.empty() || basename.empty() || attempts.size() != 12U) {
+    if (original_request.empty() || basename.empty() || attempts.size() != 12U ||
+        !c_string_compatible(original_request) ||
+        basename != ResourceLookupPolicy::basename_of(original_request)) {
         return false;
     }
     for (std::size_t index = 0U; index < attempts.size(); ++index) {
@@ -65,7 +75,9 @@ ResourceLookupPolicy::namespace_prefixes() noexcept {
 }
 
 std::string ResourceLookupPolicy::basename_of(std::string_view logical_path) {
-    if (logical_path.empty()) return {};
+    if (logical_path.empty() || !c_string_compatible(logical_path)) {
+        return {};
+    }
     const auto slash = logical_path.find_last_of("/\\");
     if (slash == std::string_view::npos) return std::string{logical_path};
     if (slash + 1U >= logical_path.size()) return {};
@@ -78,7 +90,9 @@ ResourceLookupPlan ResourceLookupPolicy::plan(std::string_view logical_path) {
         .basename = basename_of(logical_path),
         .attempts = {},
     };
-    if (result.basename.empty()) return result;
+    if (result.basename.empty() || !c_string_compatible(logical_path)) {
+        return result;
+    }
 
     result.attempts.reserve(12U);
     std::size_t attempt_index = 0U;
