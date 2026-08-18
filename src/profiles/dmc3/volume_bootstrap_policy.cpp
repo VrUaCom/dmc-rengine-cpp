@@ -1,13 +1,36 @@
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
 #include <algorithm>
+#include <array>
+#include <charconv>
 #include <string>
+#include <string_view>
+#include <system_error>
 #include <vector>
 
 namespace dmc::rengine::profiles::dmc3 {
 
 bool RuntimeArchiveVolume::valid() const noexcept {
-    return filename == "DMC3-" + std::to_string(index) + ".nbz";
+    constexpr std::string_view prefix = "DMC3-";
+    constexpr std::string_view suffix = ".nbz";
+
+    std::array<char, 10U> digits{};
+    const auto conversion = std::to_chars(
+        digits.data(), digits.data() + digits.size(), index);
+    if (conversion.ec != std::errc{}) {
+        return false;
+    }
+
+    const std::string_view encoded_index{
+        digits.data(),
+        static_cast<std::size_t>(conversion.ptr - digits.data())};
+    const std::string_view name{filename};
+    if (name.size() != prefix.size() + encoded_index.size() + suffix.size() ||
+        !name.starts_with(prefix) || !name.ends_with(suffix)) {
+        return false;
+    }
+
+    return name.substr(prefix.size(), encoded_index.size()) == encoded_index;
 }
 
 bool VolumeBootstrapPlan::valid() const noexcept {
