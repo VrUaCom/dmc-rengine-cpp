@@ -50,10 +50,24 @@ The current reader deliberately hardens archive handling with checks that are **
 - ZIP64 sentinels rejected until a bounded ZIP64 product contract exists;
 - local/central flags and compression method must agree;
 - local/central filename bytes must agree;
+- a member's stored byte span must end before the recovered central-directory byte domain begins;
+- the signature-bounded central walk has an independent product entry-work budget;
+- stored member bytes are bounded before allocation;
+- expected materialized member bytes are bounded before STORE/DEFLATE materialization;
 - encrypted entries are not materialized;
 - STORE requires equal stored/materialized size;
 - materialized bytes must match central CRC32;
 - product materialization currently supports STORE (`0`) and raw DEFLATE (`8`) only.
+
+`NbzZipLimits` makes the three resource budgets explicit and testable. Current product defaults are:
+
+```text
+maxCentralEntries          = 1,048,576
+maxStoredMemberBytes       = 512 MiB
+maxMaterializedMemberBytes = 512 MiB
+```
+
+These are product safety defaults, not recovered game limits. Callers may use stricter limits for constrained environments or tests.
 
 Unknown non-zero compression methods can remain indexed as evidence but are not materialized by this product slice. This does not claim the original executable used the same method whitelist.
 
@@ -86,7 +100,18 @@ The synthetic NBZ test intentionally includes two metadata contradictions that h
 1. EOCD central offset is wrong while central bytes and central size are valid. The clean reader must still walk the computed central start and preserve a mismatch warning.
 2. EOCD entry count says one while the central byte domain contains two valid records. The clean reader must walk both records and preserve a count warning.
 
-Additional tests cover STORE, DEFLATE -> nested PAC -> DDS expansion, CRC rejection, ZIP64 sentinel rejection, local/central name mismatch and an indexed-but-not-materialized unknown compression method.
+Additional negative regressions verify:
+
+- central traversal stops on the configured independent entry-work budget;
+- stored-byte limits reject before vector allocation;
+- materialized-byte limits reject before DEFLATE expansion;
+- a member span that reaches one byte into central-directory metadata is rejected during indexing;
+- CRC mismatch rejection;
+- ZIP64 sentinel rejection;
+- local/central name mismatch rejection;
+- unknown compression methods remain indexed but are not materialized.
+
+Positive coverage includes STORE, DEFLATE -> nested PAC -> DDS expansion, recovered-walk mismatch receipts and provenance propagation.
 
 ## Boundary
 
