@@ -3,6 +3,7 @@
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <string>
 #include <string_view>
