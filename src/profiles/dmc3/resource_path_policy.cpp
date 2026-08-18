@@ -9,10 +9,16 @@ bool ResourcePathPolicy::valid_input(std::string_view path) noexcept {
 }
 
 std::string ResourcePathPolicy::physical(std::string_view path) {
+    if (!valid_input(path)) {
+        return {};
+    }
     return gdspaces::ResourcePathNormalizer::normalize(path, physical_flags);
 }
 
 std::string ResourcePathPolicy::archive(std::string_view path) {
+    if (!valid_input(path)) {
+        return {};
+    }
     return gdspaces::ResourcePathNormalizer::normalize(path, archive_flags);
 }
 
