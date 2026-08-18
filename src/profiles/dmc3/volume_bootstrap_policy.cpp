@@ -11,6 +11,10 @@
 namespace dmc::rengine::profiles::dmc3 {
 
 bool RuntimeArchiveVolume::valid() const noexcept {
+    if (!VolumeBootstrapPolicy::runtime_index_valid(index)) {
+        return false;
+    }
+
     constexpr std::string_view prefix = "DMC3-";
     constexpr std::string_view suffix = ".nbz";
 
@@ -40,6 +44,11 @@ bool VolumeBootstrapPlan::valid() const noexcept {
     }
 
     const auto archive_count = registered_archives.size();
+    if (archive_count >
+        static_cast<std::size_t>(VolumeBootstrapPolicy::runtime_index_max()) + 1U) {
+        return false;
+    }
+
     for (std::size_t order = 0U; order < archive_count; ++order) {
         const auto& volume = registered_archives[order];
         if (!volume.valid() ||
@@ -62,15 +71,30 @@ bool VolumeBootstrapPlan::valid() const noexcept {
 
     std::uint32_t previous = first_missing_index;
     for (const auto index : present_after_first_gap) {
-        if (index <= previous) {
+        if (!VolumeBootstrapPolicy::runtime_index_valid(index) ||
+            index <= previous) {
             return false;
         }
         previous = index;
+    }
+
+    bool first_outside = true;
+    std::uint32_t previous_outside = 0U;
+    for (const auto index : present_outside_runtime_index_domain) {
+        if (VolumeBootstrapPolicy::runtime_index_valid(index) ||
+            (!first_outside && index <= previous_outside)) {
+            return false;
+        }
+        first_outside = false;
+        previous_outside = index;
     }
     return true;
 }
 
 std::string VolumeBootstrapPolicy::volume_filename(std::uint32_t index) {
+    if (!runtime_index_valid(index)) {
+        return {};
+    }
     return "DMC3-" + std::to_string(index) + ".nbz";
 }
 
@@ -81,9 +105,22 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
     std::sort(present.begin(), present.end());
     present.erase(std::unique(present.begin(), present.end()), present.end());
 
+    const auto runtime_end = std::upper_bound(
+        present.begin(), present.end(), runtime_index_max());
+    std::vector<std::uint32_t> runtime_present{present.begin(), runtime_end};
+    std::vector<std::uint32_t> outside_runtime{runtime_end, present.end()};
+
     std::uint32_t first_missing = 0U;
     std::size_t cursor = 0U;
-    while (cursor < present.size() && present[cursor] == first_missing) {
+    while (cursor < runtime_present.size() &&
+           runtime_present[cursor] == first_missing) {
+        // Reaching INT32_MAX+1 would require over two billion discovered
+        // contiguous volumes. Keep the arithmetic fail-closed even though that
+        // input is not practically materializable.
+        if (first_missing == runtime_index_max()) {
+            ++cursor;
+            break;
+        }
         ++first_missing;
         ++cursor;
     }
@@ -95,6 +132,7 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
         .registered_archives = {},
         .archive_resolution_order = {},
         .present_after_first_gap = {},
+        .present_outside_runtime_index_domain = std::move(outside_runtime),
     };
 
     result.registered_archives.reserve(first_missing);
@@ -114,9 +152,9 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
         result.archive_resolution_order.push_back(index - 1U);
     }
 
-    for (; cursor < present.size(); ++cursor) {
-        if (present[cursor] > first_missing) {
-            result.present_after_first_gap.push_back(present[cursor]);
+    for (; cursor < runtime_present.size(); ++cursor) {
+        if (runtime_present[cursor] > first_missing) {
+            result.present_after_first_gap.push_back(runtime_present[cursor]);
         }
     }
 
