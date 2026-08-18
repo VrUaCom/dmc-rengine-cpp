@@ -5,6 +5,7 @@
 #include <charconv>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 namespace dmc::rengine::profiles::dmc3 {
