@@ -25,7 +25,6 @@ constexpr std::size_t eocd_fixed_size = 22U;
 constexpr std::size_t central_fixed_size = 46U;
 constexpr std::size_t local_fixed_size = 30U;
 constexpr std::size_t max_zip_comment = 65535U;
-constexpr std::uint32_t max_walked_entries = 1U << 20U;
 constexpr std::uint16_t encrypted_flag = 0x0001U;
 
 [[nodiscard]] std::uint16_t u16_le(
@@ -179,9 +178,11 @@ bool NbzZipIndexReceipt::valid() const noexcept {
 
 NbzZipSource::NbzZipSource(
     std::string source_id,
-    std::filesystem::path archive_path)
+    std::filesystem::path archive_path,
+    NbzZipLimits limits)
     : source_id_(std::move(source_id)),
-      archive_path_(std::move(archive_path)) {
+      archive_path_(std::move(archive_path)),
+      limits_(limits) {
     build_index();
 }
 
@@ -287,6 +288,24 @@ std::optional<ResourcePayload> NbzZipSource::read(
             DiagnosticSeverity::error,
             "gdspaces.nbz.safe.store-size-mismatch",
             "A STORE member has different stored and materialized sizes.",
+            resource);
+        return payload;
+    }
+    if (entry->compressed_size > limits_.max_stored_member_bytes) {
+        add_diagnostic(
+            payload.diagnostics,
+            DiagnosticSeverity::error,
+            "gdspaces.nbz.safe.stored-member-budget",
+            "The member's stored byte size exceeds the configured product materialization budget.",
+            resource);
+        return payload;
+    }
+    if (entry->uncompressed_size > limits_.max_materialized_member_bytes) {
+        add_diagnostic(
+            payload.diagnostics,
+            DiagnosticSeverity::error,
+            "gdspaces.nbz.safe.materialized-member-budget",
+            "The member's materialized byte size exceeds the configured product materialization budget.",
             resource);
         return payload;
     }
@@ -454,6 +473,8 @@ void NbzZipSource::build_index() {
     const auto central_size = u32_le(tail, eocd + 12U);
     const auto declared_central_offset = u32_le(tail, eocd + 16U);
 
+    // SafeProductValidation: current product source intentionally accepts a
+    // bounded classic single-disk subset. This is not an original-game claim.
     if (disk_number != 0U || central_disk != 0U ||
         disk_entries != total_entries) {
         add_diagnostic(
@@ -472,6 +493,10 @@ void NbzZipSource::build_index() {
         return;
     }
 
+    // Recovered original-walk authority: central start is derived backwards
+    // from the absolute EOCD position and central-directory size. The EOCD
+    // central-offset field is preserved as a validation/receipt dimension but
+    // is not used as the seek authority.
     if (central_size > eocd_absolute) {
         add_diagnostic(
             diagnostics_,
@@ -507,12 +532,14 @@ void NbzZipSource::build_index() {
     std::uint64_t cursor = computed_central_start;
     std::uint32_t walked = 0U;
     while (cursor < eocd_absolute) {
-        if (walked >= max_walked_entries) {
+        // SafeProductValidation: the recovered walk is signature/boundary
+        // driven, so the product needs an independent traversal-work budget.
+        if (walked >= limits_.max_central_entries) {
             add_diagnostic(
                 diagnostics_,
                 DiagnosticSeverity::error,
                 "gdspaces.nbz.safe.central-entry-budget",
-                "The signature-bounded central-directory walk exceeds the product entry-count safety budget.");
+                "The signature-bounded central-directory walk exceeds the configured product entry-count safety budget.");
             return;
         }
         if (eocd_absolute - cursor < central_fixed_size) {
@@ -618,6 +645,8 @@ void NbzZipSource::build_index() {
         const auto local_name_length = u16_le(local, 26U);
         const auto local_extra_length = u16_le(local, 28U);
 
+        // SafeProductValidation: exact local/central agreement is retained as
+        // hardening, not mislabeled as recovered original acceptance behavior.
         if (local_flags != flags || local_method != method) {
             add_diagnostic(
                 diagnostics_,
@@ -669,6 +698,10 @@ void NbzZipSource::build_index() {
                 "A member's stored byte span lies outside the archive.");
             return;
         }
+
+        // SafeProductValidation: local member bytes must end before the
+        // recovered central-directory byte domain begins. Without this check a
+        // crafted central size could make materialization consume metadata.
         if (*data_offset > computed_central_start ||
             compressed_size > computed_central_start - *data_offset) {
             add_diagnostic(
@@ -703,6 +736,7 @@ void NbzZipSource::build_index() {
         }
 
         ++walked;
+        index_receipt_->walked_entry_count = walked;
         cursor += *record_size;
     }
 

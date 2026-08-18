@@ -27,6 +27,8 @@ struct ZipFixture final {
     std::size_t eocd_offset{};
     std::size_t central_start{};
     std::vector<std::size_t> local_name_offsets;
+    std::vector<std::size_t> local_data_offsets;
+    std::vector<std::size_t> central_record_offsets;
 };
 
 void u16(std::vector<std::byte>& out, std::uint16_t value) {
@@ -125,6 +127,7 @@ ZipFixture make_zip(const std::vector<EntrySpec>& specs) {
         u16(fixture.bytes, 0U);
         fixture.local_name_offsets.push_back(fixture.bytes.size());
         append(fixture.bytes, spec.name);
+        fixture.local_data_offsets.push_back(fixture.bytes.size());
         append(fixture.bytes, spec.stored);
         built.push_back(Built{local_offset, value_crc, &spec});
     }
@@ -132,6 +135,7 @@ ZipFixture make_zip(const std::vector<EntrySpec>& specs) {
     fixture.central_start = fixture.bytes.size();
     for (const auto& item : built) {
         const auto& spec = *item.spec;
+        fixture.central_record_offsets.push_back(fixture.bytes.size());
         u32(fixture.bytes, 0x02014B50U);
         u16(fixture.bytes, 0x003FU); // version made by
         u16(fixture.bytes, 20U);    // version needed
@@ -279,6 +283,75 @@ int main() {
     assert(has_code(
         bad_count.diagnostics(), "gdspaces.nbz.compat.entry-count-mismatch"));
 
+    // SafeProductValidation: traversal has a product work budget independent
+    // of the untrusted EOCD entry count.
+    NbzZipSource entry_budget(
+        "nbz-entry-budget",
+        normal_path,
+        NbzZipLimits{
+            .max_central_entries = 1U,
+            .max_stored_member_bytes = 512ULL * 1024ULL * 1024ULL,
+            .max_materialized_member_bytes = 512ULL * 1024ULL * 1024ULL,
+        });
+    assert(!entry_budget.valid());
+    assert(entry_budget.index_receipt().has_value());
+    assert(entry_budget.index_receipt()->walked_entry_count == 1U);
+    assert(has_code(
+        entry_budget.diagnostics(), "gdspaces.nbz.safe.central-entry-budget"));
+
+    // SafeProductValidation: stored bytes are bounded before vector allocation.
+    NbzZipSource stored_budget(
+        "nbz-stored-budget",
+        normal_path,
+        NbzZipLimits{
+            .max_central_entries = 16U,
+            .max_stored_member_bytes = 4U,
+            .max_materialized_member_bytes = 64U,
+        });
+    assert(stored_budget.valid());
+    const auto stored_refs = stored_budget.enumerate();
+    const auto* stored_plain_ref = find_path(stored_refs, "plain.txt");
+    assert(stored_plain_ref != nullptr);
+    const auto stored_limited = stored_budget.read(stored_plain_ref->id);
+    assert(stored_limited.has_value() && !stored_limited->readable());
+    assert(has_code(
+        stored_limited->diagnostics, "gdspaces.nbz.safe.stored-member-budget"));
+
+    // SafeProductValidation: expected DEFLATE output is bounded before inflate.
+    NbzZipSource materialized_budget(
+        "nbz-materialized-budget",
+        normal_path,
+        NbzZipLimits{
+            .max_central_entries = 16U,
+            .max_stored_member_bytes = 64U,
+            .max_materialized_member_bytes = 31U,
+        });
+    assert(materialized_budget.valid());
+    const auto materialized_refs = materialized_budget.enumerate();
+    const auto* materialized_nested_ref = find_path(materialized_refs, "nested.pac");
+    assert(materialized_nested_ref != nullptr);
+    const auto materialized_limited = materialized_budget.read(materialized_nested_ref->id);
+    assert(materialized_limited.has_value() && !materialized_limited->readable());
+    assert(has_code(
+        materialized_limited->diagnostics,
+        "gdspaces.nbz.safe.materialized-member-budget"));
+
+    // SafeProductValidation: member payload bytes may not consume any byte of
+    // the recovered central-directory domain.
+    auto overlap_fixture = make_zip(specs);
+    const auto overlap_size =
+        overlap_fixture.central_start - overlap_fixture.local_data_offsets[0] + 1U;
+    patch_u32(
+        overlap_fixture.bytes,
+        overlap_fixture.central_record_offsets[0] + 20U,
+        static_cast<std::uint32_t>(overlap_size));
+    const auto overlap_path = write_fixture(overlap_fixture.bytes, "nbz-overlap");
+    NbzZipSource overlap("nbz-overlap", overlap_path);
+    assert(!overlap.valid());
+    assert(has_code(
+        overlap.diagnostics(),
+        "gdspaces.nbz.safe.member-overlaps-central-directory"));
+
     // SafeProductValidation: CRC enforcement is intentionally stricter than
     // the recovered original read path.
     auto wrong_crc_specs = specs;
@@ -328,6 +401,7 @@ int main() {
     std::filesystem::remove(normal_path);
     std::filesystem::remove(bad_offset_path);
     std::filesystem::remove(bad_count_path);
+    std::filesystem::remove(overlap_path);
     std::filesystem::remove(wrong_crc_path);
     std::filesystem::remove(zip64_path);
     std::filesystem::remove(bad_name_path);
