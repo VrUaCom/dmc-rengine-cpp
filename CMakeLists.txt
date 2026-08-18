@@ -198,7 +198,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass32.evidence.json)
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
-    add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-tools)
+    add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
     add_test(
         NAME dmc_rengine_cli_extract_exe_window_usage
