@@ -10,15 +10,17 @@ Provide a derived lookup index over existing immutable `ResourceRef` identities 
 The intended dependency is:
 
 ```text
-ISource::enumerate()
-        ↓
+one exact ISource / mount
+        ↓ enumerate()
 ResourceRef identities
         ↓
 profile/provider key transform
         ↓
-ResourceKeyIndex
+source-bound ResourceKeyIndex
         ↓
-all matching ResourceRef identities
+all matching ResourceRef identities in that source
+        ↓
+ordered resolver across source/mount indexes
         ↓
 selected exact ResourceId
         ↓
@@ -27,9 +29,15 @@ SourceRegistry::read(ResourceId)
 
 `NbzZipSource::read(ResourceId)` and other source readers therefore remain exact materialization authorities. They do not receive runtime candidate strings or choose among normalized-key aliases.
 
+## Source-bound contract
+
+Every `ResourceKeyIndex` is constructed for one non-empty `source_id` and rejects `ResourceRef` values from any other source.
+
+This is intentional. Cross-volume precedence is a property of the ordered mount/resolver layer, not an equal-key bucket. A global index spanning `DMC3-2.nbz`, `DMC3-1.nbz`, `DMC3-0.nbz` would erase the recovered source-order dimension before resolution even begins.
+
 ## Collision contract
 
-`ResourceKeyIndex` stores every distinct `ResourceRef` assigned to one key. Lookup returns all matches and exposes only `found / unique / ambiguous` state.
+The index stores every distinct `ResourceRef` assigned to one key inside its bound source. Lookup returns all matches and exposes only `found / unique / ambiguous` state.
 
 There is intentionally no winner-selection API.
 
