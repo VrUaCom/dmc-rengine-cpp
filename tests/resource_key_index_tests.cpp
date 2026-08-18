@@ -35,10 +35,20 @@ int main() {
     using dmc::rengine::gdspaces::ResourceKeyIndex;
     using dmc::rengine::gdspaces::ResourceRef;
 
-    ResourceKeyIndex index;
+    ResourceKeyIndex invalid_index{""};
+    assert(!invalid_index.valid());
+    assert(invalid_index.empty());
+    assert(!invalid_index.add(
+        "one", resource("archive-2", "one.bin", "nbz[0]", 0U)));
+
+    ResourceKeyIndex index{"archive-2"};
+    assert(index.valid());
+    assert(index.source_id() == "archive-2");
     assert(index.empty());
-    assert(!index.add("", resource("a", "one.bin", "nbz[0]", 0U)));
+    assert(!index.add("", resource("archive-2", "one.bin", "nbz[0]", 0U)));
     assert(!index.add("one", ResourceRef{}));
+    assert(!index.add(
+        "one", resource("archive-1", "one.bin", "nbz[0]", 0U)));
 
     const auto first = resource("archive-2", "Room/ST001.PAC", "nbz[10]", 0U);
     const auto second = resource("archive-2", "room\\st001.pac", "nbz[11]", 0U);
@@ -55,6 +65,8 @@ int main() {
     assert(collision.ambiguous());
     assert(collision.matches.size() == 2U);
     assert(collision.matches[0].id != collision.matches[1].id);
+    assert(collision.matches[0].id.source_id == "archive-2");
+    assert(collision.matches[1].id.source_id == "archive-2");
 
     // Bucket ordering is deterministic product presentation only. It must not
     // be interpreted as original-runtime duplicate winner semantics.
@@ -78,7 +90,7 @@ int main() {
     assert(!empty_lookup.found());
 
     // One immutable ResourceId may not be duplicated or assigned to a second
-    // key in the same derived index.
+    // key in the same source-bound index.
     assert(!index.add("room\\st001.pac", first));
     assert(!index.add("different-key", first));
 
