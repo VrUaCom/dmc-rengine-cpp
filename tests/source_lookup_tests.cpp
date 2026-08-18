@@ -137,7 +137,7 @@ int main() {
     assert(!raw_archive_key.found());
     assert(raw_archive_key.matches.empty());
 
-    const std::string embedded_nul{"room\\st001.pac\0shadow", 22U};
+    const std::string embedded_nul{"room\\st001.pac\0shadow", 21U};
     const auto nul_key = registry.lookup(
         "archive-2",
         embedded_nul,
