@@ -30,7 +30,7 @@ struct ResourceKeyLookup final {
 
 struct ResourceKeyIndexStats final {
     std::size_t indexed_resources{};
-    std::size_t unique_keys{};
+    std::size_t key_count{};
     std::size_t ambiguous_keys{};
 };
 
