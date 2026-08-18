@@ -18,11 +18,17 @@ SAVEDATA/
 
 The executable performs one complete provider-mask `1` archive pass across all six candidates, then provider-mask `2` physical pass across the same six. Candidate construction uses a bounded `0x400`-byte destination.
 
-`ResourceLookupPolicy` therefore produces twelve deterministic attempts and preserves basename case/bytes at this stage. Provider key normalization is intentionally separate: the now-canonical DMC3 path-normalization layer applies provider-specific transforms only after candidate construction.
+`ResourceLookupPolicy` therefore produces twelve deterministic attempts and preserves basename case/bytes at this stage. Provider key normalization is intentionally separate: the canonical DMC3 path-normalization layer applies provider-specific transforms only after candidate construction.
 
 The `.afs/` strings are logical namespaces, not evidence for a binary AFS backend.
 
-The product plan is complete-or-invalid for synthetic oversized requests; exact malformed/overflow helper return control flow is not promoted as original-runtime equivalence by this slice.
+## Product integrity boundaries
+
+The recovered caller consumes C strings, while the product planner accepts `std::string_view`. Embedded NUL input therefore fails closed and cannot create a hidden suffix/key domain.
+
+A `ResourceLookupPlan` is valid only when its stored basename is still derivable from its stored original request and all twelve attempts remain internally consistent. A copied/mutated request cannot keep a stale attempt vector and still pass validation.
+
+The product plan is complete-or-invalid for synthetic oversized requests. The `0x400` destination bound is recovered; exact original continuation behavior after one oversized prefix is not separately proven, so complete-or-invalid handling remains conservative GDSpaces product behavior rather than original-runtime equivalence.
 
 Not included: normalized-key index/search or duplicate behavior, contiguous `DMC3-N.nbz` bootstrap, actual mount resolution, `.lst`, FileSlot/async/cache/refcount/scene lifecycle.
 
