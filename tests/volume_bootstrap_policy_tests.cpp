@@ -15,19 +15,39 @@ int main() {
     assert(VolumeBootstrapPolicy::data_subdirectory() == "data/dmc3");
     assert(VolumeBootstrapPolicy::executable_data_suffix() == "\\data\\dmc3\\");
     assert(VolumeBootstrapPolicy::volume_format() == "%sDMC3-%d.nbz");
+    assert(VolumeBootstrapPolicy::runtime_index_max() == 0x7FFFFFFFU);
+    assert(VolumeBootstrapPolicy::runtime_index_valid(0U));
+    assert(VolumeBootstrapPolicy::runtime_index_valid(
+        VolumeBootstrapPolicy::runtime_index_max()));
+    assert(!VolumeBootstrapPolicy::runtime_index_valid(
+        VolumeBootstrapPolicy::runtime_index_max() + 1U));
+
     assert(VolumeBootstrapPolicy::volume_filename(0U) == "DMC3-0.nbz");
     assert(VolumeBootstrapPolicy::volume_filename(12U) == "DMC3-12.nbz");
     assert(VolumeBootstrapPolicy::volume_filename(
-        std::numeric_limits<std::uint32_t>::max()) == "DMC3-4294967295.nbz");
+        VolumeBootstrapPolicy::runtime_index_max()) == "DMC3-2147483647.nbz");
+    assert(VolumeBootstrapPolicy::volume_filename(
+        VolumeBootstrapPolicy::runtime_index_max() + 1U).empty());
+    assert(VolumeBootstrapPolicy::volume_filename(
+        std::numeric_limits<std::uint32_t>::max()).empty());
 
-    const RuntimeArchiveVolume max_named{
-        .index = std::numeric_limits<std::uint32_t>::max(),
-        .filename = "DMC3-4294967295.nbz",
+    const RuntimeArchiveVolume max_runtime_named{
+        .index = VolumeBootstrapPolicy::runtime_index_max(),
+        .filename = "DMC3-2147483647.nbz",
         .registration_order = 0U,
         .resolution_rank = 0U,
     };
-    assert(max_named.valid());
-    auto leading_zero = max_named;
+    assert(max_runtime_named.valid());
+
+    const RuntimeArchiveVolume outside_runtime_named{
+        .index = VolumeBootstrapPolicy::runtime_index_max() + 1U,
+        .filename = "DMC3-2147483648.nbz",
+        .registration_order = 0U,
+        .resolution_rank = 0U,
+    };
+    assert(!outside_runtime_named.valid());
+
+    auto leading_zero = max_runtime_named;
     leading_zero.index = 7U;
     leading_zero.filename = "DMC3-07.nbz";
     assert(!leading_zero.valid());
@@ -38,6 +58,7 @@ int main() {
     assert(empty.first_missing_index == 0U);
     assert(empty.registered_archives.empty());
     assert(empty.archive_resolution_order.empty());
+    assert(empty.present_outside_runtime_index_domain.empty());
 
     constexpr std::array<std::uint32_t, 4> contiguous_input{2U, 0U, 1U, 1U};
     const auto contiguous = VolumeBootstrapPolicy::plan(contiguous_input);
@@ -49,6 +70,7 @@ int main() {
     assert(contiguous.registered_archives[2].resolution_rank == 0U);
     assert((contiguous.archive_resolution_order ==
         std::vector<std::uint32_t>{2U, 1U, 0U}));
+    assert(contiguous.present_outside_runtime_index_domain.empty());
 
     auto wrong_filename = contiguous;
     wrong_filename.registered_archives[1].filename = "DMC3-9.nbz";
@@ -62,6 +84,7 @@ int main() {
     assert((gap.archive_resolution_order == std::vector<std::uint32_t>{0U}));
     assert((gap.present_after_first_gap ==
         std::vector<std::uint32_t>{2U, 3U, 7U}));
+    assert(gap.present_outside_runtime_index_domain.empty());
 
     auto duplicate_post_gap = gap;
     duplicate_post_gap.present_after_first_gap = {2U, 2U, 7U};
@@ -86,6 +109,30 @@ int main() {
         std::vector<std::uint32_t>{1U, 0U}));
     assert((later_gap.present_after_first_gap ==
         std::vector<std::uint32_t>{4U, 5U, 9U}));
+
+    // Product discovery may see numeric suffixes outside the recovered `%d`
+    // non-negative signed domain. Keep them visible, but never runtime-mount
+    // them or manufacture a runtime-equivalent filename.
+    const auto first_outside = VolumeBootstrapPolicy::runtime_index_max() + 1U;
+    const auto uint32_max = std::numeric_limits<std::uint32_t>::max();
+    const std::array<std::uint32_t, 5> outside_input{
+        0U, 2U, first_outside, uint32_max, first_outside};
+    const auto outside = VolumeBootstrapPolicy::plan(outside_input);
+    assert(outside.valid());
+    assert(outside.first_missing_index == 1U);
+    assert(outside.registered_archives.size() == 1U);
+    assert((outside.archive_resolution_order == std::vector<std::uint32_t>{0U}));
+    assert((outside.present_after_first_gap == std::vector<std::uint32_t>{2U}));
+    assert((outside.present_outside_runtime_index_domain ==
+        std::vector<std::uint32_t>{first_outside, uint32_max}));
+
+    auto bad_outside_domain = outside;
+    bad_outside_domain.present_outside_runtime_index_domain = {7U, first_outside};
+    assert(!bad_outside_domain.valid());
+    auto duplicate_outside_domain = outside;
+    duplicate_outside_domain.present_outside_runtime_index_domain = {
+        first_outside, first_outside};
+    assert(!duplicate_outside_domain.valid());
 
     return 0;
 }

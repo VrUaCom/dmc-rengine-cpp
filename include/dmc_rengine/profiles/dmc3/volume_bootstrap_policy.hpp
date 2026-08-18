@@ -29,9 +29,14 @@ struct VolumeBootstrapPlan final {
     std::vector<RuntimeArchiveVolume> registered_archives;
     std::vector<std::uint32_t> archive_resolution_order;
 
-    // Product discovery can preserve files after the first runtime gap as
-    // diagnostics/navigation evidence without promoting them as runtime mounts.
+    // Product discovery can preserve in-domain files after the first runtime
+    // gap as diagnostics/navigation evidence without promoting them as mounts.
     std::vector<std::uint32_t> present_after_first_gap;
+
+    // `%d` in the recovered filename formatter is a signed-decimal domain.
+    // Product discovery may observe larger numeric suffixes, but they are not
+    // runtime-equivalent numbered-volume indices and stay diagnostic-only.
+    std::vector<std::uint32_t> present_outside_runtime_index_domain;
 
     [[nodiscard]] bool valid() const noexcept;
 };
@@ -50,6 +55,17 @@ public:
         return "%sDMC3-%d.nbz";
     }
 
+    [[nodiscard]] static constexpr std::uint32_t runtime_index_max() noexcept {
+        return 0x7FFFFFFFU;
+    }
+
+    [[nodiscard]] static constexpr bool runtime_index_valid(
+        std::uint32_t index) noexcept {
+        return index <= runtime_index_max();
+    }
+
+    // Returns an empty string for a product-discovered numeric suffix outside
+    // the recovered non-negative signed `%d` runtime namespace.
     [[nodiscard]] static std::string volume_filename(std::uint32_t index);
 
     // present_indices is product-side discovery input. The result reproduces
