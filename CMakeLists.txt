@@ -73,6 +73,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_lookup_policy
         source_lookup
         volume_bootstrap_policy
+        runtime_resource_resolver
         sha256
         patch
         json_parser
