@@ -84,7 +84,7 @@ int main() {
 
     const auto stats = index.stats();
     assert(stats.indexed_resources == 3U);
-    assert(stats.unique_keys == 2U);
+    assert(stats.key_count == 2U);
     assert(stats.ambiguous_keys == 1U);
 
     return 0;
