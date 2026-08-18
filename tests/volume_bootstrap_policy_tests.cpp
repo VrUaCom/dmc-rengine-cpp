@@ -45,6 +45,10 @@ int main() {
         std::vector<std::uint32_t>{2U, 1U, 0U}));
     assert(contiguous.present_after_first_gap.empty());
 
+    auto wrong_filename = contiguous;
+    wrong_filename.registered_archives[1].filename = "DMC3-9.nbz";
+    assert(!wrong_filename.valid());
+
     constexpr std::array<std::uint32_t, 4> gap_input{0U, 2U, 3U, 7U};
     const auto gap = VolumeBootstrapPolicy::plan(gap_input);
     assert(gap.valid());
@@ -55,6 +59,13 @@ int main() {
     assert((gap.archive_resolution_order == std::vector<std::uint32_t>{0U}));
     assert((gap.present_after_first_gap ==
         std::vector<std::uint32_t>{2U, 3U, 7U}));
+
+    auto duplicate_post_gap = gap;
+    duplicate_post_gap.present_after_first_gap = {2U, 2U, 7U};
+    assert(!duplicate_post_gap.valid());
+    auto unsorted_post_gap = gap;
+    unsorted_post_gap.present_after_first_gap = {3U, 2U, 7U};
+    assert(!unsorted_post_gap.valid());
 
     constexpr std::array<std::uint32_t, 3> missing_zero_input{1U, 2U, 9U};
     const auto missing_zero = VolumeBootstrapPolicy::plan(missing_zero_input);
