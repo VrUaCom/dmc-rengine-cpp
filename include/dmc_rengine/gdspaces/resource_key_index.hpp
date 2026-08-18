@@ -34,15 +34,26 @@ struct ResourceKeyIndexStats final {
     std::size_t ambiguous_keys{};
 };
 
-// Derived lookup representation over immutable ResourceRef identities.
+// Derived lookup representation over immutable ResourceRef identities from one
+// exact source/mount authority.
 //
 // The index intentionally does not know how keys are normalized and never
 // chooses a winner among equal keys. Profile/provider code supplies the key;
 // callers receive every distinct ResourceRef mapped to that key.
+//
+// Binding one index to one source_id prevents cross-source precedence from
+// being flattened into an equal-key bucket. Source/mount order therefore
+// remains an explicit concern of the resolver above this layer.
 class ResourceKeyIndex final {
 public:
-    // Returns false for invalid input, duplicate ResourceId insertion, or an
-    // attempt to assign one ResourceId to two different keys in this index.
+    explicit ResourceKeyIndex(std::string source_id);
+
+    [[nodiscard]] std::string_view source_id() const noexcept;
+    [[nodiscard]] bool valid() const noexcept;
+
+    // Returns false for invalid input, a ResourceRef from another source,
+    // duplicate ResourceId insertion, or an attempt to assign one ResourceId
+    // to two different keys in this index.
     [[nodiscard]] bool add(std::string key, ResourceRef resource);
 
     [[nodiscard]] ResourceKeyLookup lookup(std::string_view key) const;
@@ -50,6 +61,7 @@ public:
     [[nodiscard]] bool empty() const noexcept;
 
 private:
+    std::string source_id_;
     std::map<std::string, std::vector<ResourceRef>, std::less<>> entries_;
     std::map<std::string, std::string, std::less<>> resource_keys_;
     std::size_t indexed_resources_{};
