@@ -3,11 +3,13 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <span>
 #include <string>
 #include <vector>
 
 int main() {
+    using dmc::rengine::profiles::dmc3::RuntimeArchiveVolume;
     using dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy;
 
     assert(VolumeBootstrapPolicy::data_subdirectory() == "data/dmc3");
@@ -15,6 +17,20 @@ int main() {
     assert(VolumeBootstrapPolicy::volume_format() == "%sDMC3-%d.nbz");
     assert(VolumeBootstrapPolicy::volume_filename(0U) == "DMC3-0.nbz");
     assert(VolumeBootstrapPolicy::volume_filename(12U) == "DMC3-12.nbz");
+    assert(VolumeBootstrapPolicy::volume_filename(
+        std::numeric_limits<std::uint32_t>::max()) == "DMC3-4294967295.nbz");
+
+    const RuntimeArchiveVolume max_named{
+        .index = std::numeric_limits<std::uint32_t>::max(),
+        .filename = "DMC3-4294967295.nbz",
+        .registration_order = 0U,
+        .resolution_rank = 0U,
+    };
+    assert(max_named.valid());
+    auto leading_zero = max_named;
+    leading_zero.index = 7U;
+    leading_zero.filename = "DMC3-07.nbz";
+    assert(!leading_zero.valid());
 
     const auto empty = VolumeBootstrapPolicy::plan(
         std::span<const std::uint32_t>{});
