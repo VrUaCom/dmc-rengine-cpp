@@ -9,11 +9,22 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace dmc::rengine::profiles::dmc3 {
+
+struct ArchiveSourceBinding final {
+    std::uint32_t volume_index{};
+    std::string source_id;
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !source_id.empty() &&
+            VolumeBootstrapPolicy::runtime_index_valid(volume_index);
+    }
+};
 
 struct ArchiveResourceIndexBinding final {
     std::uint32_t volume_index{};
@@ -23,17 +34,30 @@ struct ArchiveResourceIndexBinding final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-struct RuntimeResourceIndexBindings final {
-    std::string physical_source_id;
-    gdspaces::ResourceKeyIndex physical_index;
-    std::vector<ArchiveResourceIndexBinding> archives;
+class RuntimeResourceIndexBindings final {
+public:
+    // Builds provider-normalized indexes directly from the currently mounted
+    // exact source enumerations. Callers cannot substitute an unrelated index
+    // with a matching source-id string.
+    [[nodiscard]] static std::optional<RuntimeResourceIndexBindings> build(
+        const VolumeBootstrapPlan& bootstrap,
+        std::string physical_source_id,
+        std::span<const ArchiveSourceBinding> archives,
+        const gdspaces::SourceRegistry& sources);
 
     [[nodiscard]] bool valid_for(
         const VolumeBootstrapPlan& bootstrap,
         const gdspaces::SourceRegistry& sources) const noexcept;
 
+    [[nodiscard]] std::string_view physical_source_id() const noexcept;
+    [[nodiscard]] const gdspaces::ResourceKeyIndex& physical_index() const noexcept;
     [[nodiscard]] const ArchiveResourceIndexBinding* archive(
         std::uint32_t volume_index) const noexcept;
+
+private:
+    std::string physical_source_id_;
+    gdspaces::ResourceKeyIndex physical_index_;
+    std::vector<ArchiveResourceIndexBinding> archives_;
 };
 
 enum class RuntimeResolutionStatus {
