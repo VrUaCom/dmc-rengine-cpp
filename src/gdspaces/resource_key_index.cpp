@@ -6,8 +6,20 @@
 
 namespace dmc::rengine::gdspaces {
 
+ResourceKeyIndex::ResourceKeyIndex(std::string source_id)
+    : source_id_(std::move(source_id)) {}
+
+std::string_view ResourceKeyIndex::source_id() const noexcept {
+    return source_id_;
+}
+
+bool ResourceKeyIndex::valid() const noexcept {
+    return !source_id_.empty();
+}
+
 bool ResourceKeyIndex::add(std::string key, ResourceRef resource) {
-    if (key.empty() || !resource.valid()) {
+    if (!valid() || key.empty() || !resource.valid() ||
+        resource.id.source_id != source_id_) {
         return false;
     }
 
@@ -15,8 +27,7 @@ bool ResourceKeyIndex::add(std::string key, ResourceRef resource) {
     const auto existing_key = resource_keys_.find(identity);
     if (existing_key != resource_keys_.end()) {
         // One immutable ResourceId belongs to exactly one key domain inside a
-        // single index. Re-adding it, whether under the same or another key,
-        // is a caller/build error rather than a second resource identity.
+        // single source-bound index. Re-adding it is a caller/build error.
         return false;
     }
 
@@ -37,7 +48,7 @@ ResourceKeyLookup ResourceKeyIndex::lookup(std::string_view key) const {
         .key = std::string{key},
         .matches = {},
     };
-    if (key.empty()) {
+    if (!valid() || key.empty()) {
         return result;
     }
 
