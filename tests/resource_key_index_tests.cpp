@@ -1,7 +1,9 @@
 #include "dmc_rengine/gdspaces/resource_key_index.hpp"
 
 #include <cassert>
+#include <cstdint>
 #include <string>
+#include <utility>
 
 namespace {
 
