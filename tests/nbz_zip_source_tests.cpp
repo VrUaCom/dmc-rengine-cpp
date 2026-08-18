@@ -294,6 +294,8 @@ int main() {
             .max_materialized_member_bytes = 512ULL * 1024ULL * 1024ULL,
         });
     assert(!entry_budget.valid());
+    assert(entry_budget.index_receipt().has_value());
+    assert(entry_budget.index_receipt()->walked_entry_count == 1U);
     assert(has_code(
         entry_budget.diagnostics(), "gdspaces.nbz.safe.central-entry-budget"));
 
