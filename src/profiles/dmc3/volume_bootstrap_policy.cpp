@@ -7,7 +7,7 @@
 namespace dmc::rengine::profiles::dmc3 {
 
 bool RuntimeArchiveVolume::valid() const noexcept {
-    return !filename.empty();
+    return filename == "DMC3-" + std::to_string(index) + ".nbz";
 }
 
 bool VolumeBootstrapPlan::valid() const noexcept {
@@ -37,12 +37,14 @@ bool VolumeBootstrapPlan::valid() const noexcept {
         return false;
     }
 
-    return std::all_of(
-        present_after_first_gap.begin(),
-        present_after_first_gap.end(),
-        [this](std::uint32_t index) {
-            return index > first_missing_index;
-        });
+    std::uint32_t previous = first_missing_index;
+    for (const auto index : present_after_first_gap) {
+        if (index <= previous) {
+            return false;
+        }
+        previous = index;
+    }
+    return true;
 }
 
 std::string VolumeBootstrapPolicy::volume_filename(std::uint32_t index) {
