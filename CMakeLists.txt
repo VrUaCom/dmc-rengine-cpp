@@ -69,6 +69,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     set(DMC_RENGINE_SIMPLE_TESTS
         raw_deflate
         nbz_zip_source
+        resource_lookup_policy
         sha256
         patch
         json_parser
