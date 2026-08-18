@@ -23,7 +23,8 @@ std::vector<ResourceRef> ISource::lookup(
     auto resources = enumerate();
     for (auto& resource : resources) {
         const auto& logical_path = resource.id.logical_path;
-        if (!ResourcePathNormalizer::c_string_compatible(logical_path)) {
+        if (!resource.valid() ||
+            !ResourcePathNormalizer::c_string_compatible(logical_path)) {
             continue;
         }
 
