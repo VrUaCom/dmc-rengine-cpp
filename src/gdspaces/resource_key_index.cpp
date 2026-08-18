@@ -51,7 +51,7 @@ ResourceKeyLookup ResourceKeyIndex::lookup(std::string_view key) const {
 ResourceKeyIndexStats ResourceKeyIndex::stats() const noexcept {
     ResourceKeyIndexStats result{
         .indexed_resources = indexed_resources_,
-        .unique_keys = entries_.size(),
+        .key_count = entries_.size(),
         .ambiguous_keys = 0U,
     };
     for (const auto& [key, resources] : entries_) {
