@@ -26,6 +26,14 @@ struct NbzZipEntry final {
     [[nodiscard]] bool valid(std::uint64_t archive_size) const noexcept;
 };
 
+// Product-only bounds for hostile or malformed user-supplied archives. These
+// limits are not claims about the original DMC3 loader acceptance behavior.
+struct NbzZipLimits final {
+    std::uint32_t max_central_entries{1U << 20U};
+    std::uint64_t max_stored_member_bytes{512ULL * 1024ULL * 1024ULL};
+    std::uint64_t max_materialized_member_bytes{512ULL * 1024ULL * 1024ULL};
+};
+
 // Keeps recovered-walk observations separate from product hardening. The
 // original DMC3 central walk is reconstructed from EOCD position + central
 // size; EOCD-declared offset/count remain useful receipt/validation fields.
@@ -45,7 +53,10 @@ struct NbzZipIndexReceipt final {
 
 class NbzZipSource final : public ISource {
 public:
-    NbzZipSource(std::string source_id, std::filesystem::path archive_path);
+    NbzZipSource(
+        std::string source_id,
+        std::filesystem::path archive_path,
+        NbzZipLimits limits = {});
 
     [[nodiscard]] std::string_view id() const noexcept override;
     [[nodiscard]] std::string_view kind() const noexcept override;
@@ -66,6 +77,7 @@ private:
 
     std::string source_id_;
     std::filesystem::path archive_path_;
+    NbzZipLimits limits_{};
     std::uint64_t archive_size_{};
     std::vector<NbzZipEntry> entries_;
     std::vector<Diagnostic> diagnostics_;
