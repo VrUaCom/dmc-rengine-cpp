@@ -1,5 +1,7 @@
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 
+#include "dmc_rengine/gdspaces/resource_path_normalizer.hpp"
+
 #include <algorithm>
 #include <iterator>
 #include <utility>
@@ -42,6 +44,34 @@ std::vector<ResourceRef> SourceRegistry::enumerate_all() const {
         });
 
     return result;
+}
+
+SourceLookupReport SourceRegistry::lookup(
+    std::string_view source_id,
+    std::string_view provider_key,
+    std::uint32_t normalization_flags) const {
+    SourceLookupReport report{
+        .source_id = std::string{source_id},
+        .provider_key = std::string{provider_key},
+        .normalization_flags = normalization_flags,
+        .key_valid = false,
+        .source_available = false,
+        .matches = {},
+    };
+
+    report.key_valid = !provider_key.empty() &&
+        ResourcePathNormalizer::c_string_compatible(provider_key) &&
+        ResourcePathNormalizer::normalize(provider_key, normalization_flags) ==
+            provider_key;
+
+    const auto* source = find(source_id);
+    report.source_available = source != nullptr;
+    if (!report.key_valid || source == nullptr) {
+        return report;
+    }
+
+    report.matches = source->lookup(provider_key, normalization_flags);
+    return report;
 }
 
 std::optional<ResourcePayload> SourceRegistry::read(
