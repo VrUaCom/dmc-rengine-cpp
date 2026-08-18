@@ -71,7 +71,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         nbz_zip_source
         resource_path_normalizer
         resource_lookup_policy
-        source_lookup
+        resource_key_index
         volume_bootstrap_policy
         sha256
         patch
