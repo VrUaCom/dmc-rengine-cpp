@@ -114,13 +114,6 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
     std::size_t cursor = 0U;
     while (cursor < runtime_present.size() &&
            runtime_present[cursor] == first_missing) {
-        // Reaching INT32_MAX+1 would require over two billion discovered
-        // contiguous volumes. Keep the arithmetic fail-closed even though that
-        // input is not practically materializable.
-        if (first_missing == runtime_index_max()) {
-            ++cursor;
-            break;
-        }
         ++first_missing;
         ++cursor;
     }
