@@ -1,30 +1,61 @@
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
 #include <algorithm>
+#include <array>
+#include <charconv>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::profiles::dmc3 {
+namespace {
+
+[[nodiscard]] bool canonical_filename_matches(
+    std::uint32_t index,
+    std::string_view filename) noexcept {
+    std::array<char, 32> expected{};
+    constexpr std::string_view prefix{"DMC3-"};
+    constexpr std::string_view suffix{".nbz"};
+
+    std::copy(prefix.begin(), prefix.end(), expected.begin());
+    auto* number_begin = expected.data() +
+        static_cast<std::ptrdiff_t>(prefix.size());
+    auto* number_end = expected.data() +
+        static_cast<std::ptrdiff_t>(expected.size() - suffix.size());
+    const auto converted = std::to_chars(number_begin, number_end, index);
+    if (converted.ec != std::errc{}) {
+        return false;
+    }
+
+    std::copy(suffix.begin(), suffix.end(), converted.ptr);
+    const auto length = static_cast<std::size_t>(
+        converted.ptr - expected.data()) + suffix.size();
+    return filename == std::string_view{expected.data(), length};
+}
+
+} // namespace
 
 bool RuntimeArchiveVolume::valid() const noexcept {
-    return filename == VolumeBootstrapPolicy::volume_filename(index);
+    return canonical_filename_matches(index, filename);
 }
 
 bool VolumeBootstrapPlan::valid() const noexcept {
     if (!physical_root_registered_before_archives || !mount_list_is_prepend ||
         registered_archives.size() != archive_resolution_order.size() ||
-        registered_archives.size() != first_missing_index) {
+        registered_archives.size() !=
+            static_cast<std::size_t>(first_missing_index)) {
         return false;
     }
 
     for (std::size_t order = 0U; order < registered_archives.size(); ++order) {
         const auto& volume = registered_archives[order];
-        if (!volume.valid() || volume.index != order ||
+        if (!volume.valid() ||
+            static_cast<std::size_t>(volume.index) != order ||
             volume.registration_order != order ||
             volume.resolution_priority != registered_archives.size() - order - 1U) {
             return false;
         }
-        if (archive_resolution_order[order] !=
+        if (static_cast<std::size_t>(archive_resolution_order[order]) !=
             registered_archives.size() - order - 1U) {
             return false;
         }
