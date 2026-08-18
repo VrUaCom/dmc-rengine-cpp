@@ -70,6 +70,11 @@ int main() {
     using dmc::rengine::gdspaces::SourceRegistry;
     using dmc::rengine::profiles::dmc3::ResourcePathPolicy;
 
+    auto invalid_resource = resource(
+        "archive-2", "ROOM/st001.pac", "nbz[invalid]", 64U);
+    invalid_resource.display_name.clear();
+    assert(!invalid_resource.valid());
+
     SourceRegistry registry;
     std::vector<dmc::rengine::gdspaces::ResourceRef> resources{
         resource("archive-2", "Room/ST001.PAC", "nbz[10]", 0U),
@@ -80,6 +85,7 @@ int main() {
             std::string{"room/st001\0shadow.pac", 21U},
             "nbz[13]",
             48U),
+        std::move(invalid_resource),
     };
     assert(registry.mount(std::make_unique<StaticSource>(
         "archive-2", std::move(resources))));
