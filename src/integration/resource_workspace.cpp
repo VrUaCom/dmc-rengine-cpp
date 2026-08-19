@@ -1,6 +1,9 @@
 #include "dmc_rengine/integration/resource_workspace.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
+
 #include <algorithm>
+#include <span>
 #include <utility>
 
 namespace dmc::rengine::integration {
@@ -149,6 +152,10 @@ bool ResourceWorkspaceSession::add_parser_diagnostics(
     std::span<const formats::ParseDiagnostic> diagnostics) {
     for (const auto& diagnostic : diagnostics) {
         if (!diagnostic.valid()) {
+            parser_error_diagnostics_ = true;
+            if (parser_validation_.has_value()) {
+                parser_validation_->error_diagnostics = true;
+            }
             add_diagnostic(
                 gdspaces::DiagnosticSeverity::error,
                 "workspace.invalid-parser-diagnostic",
@@ -156,6 +163,12 @@ bool ResourceWorkspaceSession::add_parser_diagnostics(
             return false;
         }
 
+        if (diagnostic.severity == formats::ParseSeverity::error) {
+            parser_error_diagnostics_ = true;
+            if (parser_validation_.has_value()) {
+                parser_validation_->error_diagnostics = true;
+            }
+        }
         add_diagnostic(
             map_severity(diagnostic.severity),
             diagnostic.code,
@@ -344,6 +357,31 @@ bool ResourceWorkspaceSession::enable_working_copy() {
             "The current format integration policy is read-only.");
         return false;
     }
+
+    if (format_->parser_validation_required) {
+        if (!parser_validation_.has_value() || !parser_validation_->valid() ||
+            parser_validation_->parser_id != format_->parser_id ||
+            !parser_validation_->recognized ||
+            parser_validation_->error_diagnostics) {
+            add_diagnostic(
+                gdspaces::DiagnosticSeverity::warning,
+                "workspace.parser-validation-required",
+                "This format requires successful canonical parser validation of the immutable source before a WorkingCopy can be enabled.");
+            return false;
+        }
+
+        const auto source_sha = core::Sha256::compute(
+            std::span<const std::byte>{
+                payload_.bytes.data(), payload_.bytes.size()}).hex();
+        if (source_sha != parser_validation_->source_sha256) {
+            add_diagnostic(
+                gdspaces::DiagnosticSeverity::error,
+                "workspace.parser-source-mismatch",
+                "Stored parser validation is not bound to the exact immutable workspace source bytes.");
+            return false;
+        }
+    }
+
     if (!working_copy_.has_value()) {
         working_copy_.emplace(payload_);
         static_cast<void>(events_.record(
