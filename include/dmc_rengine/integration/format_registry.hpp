@@ -55,9 +55,17 @@ struct FormatIntegrationDescriptor final {
     std::vector<std::string> evidence_claim_ids;
     std::vector<std::string> limitations;
 
+    // Explicit capability authorities added after the Layer-1 reconciliation.
+    // A source/materializer-backed family such as NBZ must not invent a parser
+    // merely to express structural product maturity.
+    std::string source_adapter_id;
+    std::vector<std::string> writer_modes;
+    bool parser_validation_required{false};
+
     [[nodiscard]] bool valid() const noexcept;
     [[nodiscard]] bool allows_working_copy() const noexcept;
     [[nodiscard]] bool allows_guarded_export() const noexcept;
+    [[nodiscard]] bool allows_writer_mode(std::string_view mode) const noexcept;
 };
 
 class FormatIntegrationRegistry final {
