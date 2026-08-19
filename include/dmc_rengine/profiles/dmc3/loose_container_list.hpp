@@ -57,7 +57,10 @@ struct LooseListEntry final {
 struct LooseListDocument final {
     LooseContainerStatus status{LooseContainerStatus::ok};
     std::array<std::byte, 4> magic{
-        std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}};
+        static_cast<std::byte>('P'),
+        static_cast<std::byte>('A'),
+        static_cast<std::byte>('C'),
+        std::byte{0}};
     bool magic_from_directive{false};
     std::vector<LooseListEntry> entries;
     std::size_t scanned_bytes{};
