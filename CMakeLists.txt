@@ -74,6 +74,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        loose_container_list
         sha256
         patch
         json_parser
