@@ -15,28 +15,43 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
-struct SourceKeyIndexBinding final {
-    std::string source_id;
-    const gdspaces::ResourceKeyIndex* key_index{};
-
-    [[nodiscard]] bool valid(std::uint32_t expected_flags) const noexcept;
-};
-
 struct ArchiveSourceBinding final {
     std::uint32_t volume_index{};
-    SourceKeyIndexBinding source;
+    std::string source_id;
 
     [[nodiscard]] bool valid() const noexcept;
 };
 
 struct RuntimeSourceBindings final {
-    SourceKeyIndexBinding physical;
+    std::string physical_source_id;
     std::vector<ArchiveSourceBinding> archives;
 
     [[nodiscard]] bool valid_for(const VolumeBootstrapPlan& bootstrap) const noexcept;
     [[nodiscard]] const ArchiveSourceBinding* archive(
         std::uint32_t volume_index) const noexcept;
 };
+
+enum class RuntimeLookupEvidenceClass {
+    // The original ZIP/NBZ backend owns a normalized sorted lookup array and
+    // queries it after 0x0E normalization.
+    recovered_archive_index,
+
+    // Product-safe representation of the evidenced type-0 physical pass. The
+    // 0x0C normalizer is recovered, but the exact downstream Win32 filename
+    // comparison/open semantics are still a reverse target.
+    product_physical_index,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    RuntimeLookupEvidenceClass evidence) noexcept {
+    switch (evidence) {
+    case RuntimeLookupEvidenceClass::recovered_archive_index:
+        return "recovered-archive-index";
+    case RuntimeLookupEvidenceClass::product_physical_index:
+        return "product-physical-index";
+    }
+    return "product-physical-index";
+}
 
 enum class RuntimeResolutionStatus {
     resolved,
@@ -62,6 +77,8 @@ enum class RuntimeResolutionStatus {
 struct RuntimeResolutionProbe final {
     std::size_t lookup_attempt_index{};
     ResourceProviderClass provider{ResourceProviderClass::archive};
+    RuntimeLookupEvidenceClass lookup_evidence{
+        RuntimeLookupEvidenceClass::recovered_archive_index};
     std::string candidate;
     std::string provider_key;
     std::string source_id;
@@ -83,8 +100,10 @@ struct RuntimeResolutionReport final {
 };
 
 // DMC3-profile composition layer. It owns recovered candidate/provider/source
-// traversal order while exact source I/O remains in SourceRegistry/ISource and
-// per-source normalized lookup remains in ResourceKeyIndex.
+// traversal order. Archive ResourceKeyIndex values are derived inside resolve()
+// from the exact currently-mounted ISource enumeration, so no caller-supplied
+// stale/dangling index can be paired with another source instance. Exact source
+// I/O remains in SourceRegistry/ISource.
 class RuntimeResourceResolver final {
 public:
     [[nodiscard]] static RuntimeResolutionReport resolve(
