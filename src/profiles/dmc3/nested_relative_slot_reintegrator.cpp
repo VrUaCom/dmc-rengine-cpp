@@ -83,9 +83,12 @@ struct PreparedSpan final {
 } // namespace
 
 bool AuthoredChildImage::valid() const noexcept {
-    return resource.valid() && resource.size != 0U &&
-        bytes.size() == resource.size && source_sha256.size() == 64U &&
-        output_sha256.size() == 64U && !writer_mode.empty();
+    // This is a writer-generic authoring envelope. A future runtime-synth
+    // writer may legitimately produce a different byte count; the current
+    // layout-preserving reintegrator enforces same-span size separately.
+    return resource.valid() && resource.size != 0U && !bytes.empty() &&
+        source_sha256.size() == 64U && output_sha256.size() == 64U &&
+        !writer_mode.empty();
 }
 
 bool NestedSpanReceipt::valid() const noexcept {
@@ -147,8 +150,6 @@ NestedReintegrationResult NestedRelativeSlotReintegrator::reintegrate(
             "Nested reintegration requires at least one writer-validated authored child image.");
     }
 
-    // Validate the expansion against the exact immutable parent byte image,
-    // including aliases that are not themselves authored inputs.
     for (const auto& child : expansion.children) {
         if (!child.entry.populated) {
             continue;
@@ -176,7 +177,7 @@ NestedReintegrationResult NestedRelativeSlotReintegrator::reintegrate(
         if (!authored.valid()) {
             return failure(
                 NestedReintegrationStatus::invalid_authored_image,
-                "An authored child image has an invalid identity, hash, writer-mode or same-size byte envelope.");
+                "An authored child image has an invalid identity, hash, writer-mode or byte envelope.");
         }
         if (!seen_children.insert(authored.resource.canonical()).second) {
             return failure(
@@ -226,8 +227,6 @@ NestedReintegrationResult NestedRelativeSlotReintegrator::reintegrate(
             "All writer-validated child images are byte-identical to their expanded sources.");
     }
 
-    // Build physical-span groups from the exact expansion so a single edited
-    // alias patches the bytes shared by every declared alias identity.
     std::vector<PreparedSpan> spans;
     for (const auto& child : expansion.children) {
         if (!child.entry.populated) {
