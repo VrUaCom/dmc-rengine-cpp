@@ -1,3 +1,4 @@
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/gdspaces/working_copy.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
@@ -152,6 +153,11 @@ dmc::rengine::profiles::dmc3::AuthoredChildImage clean_pnst_child(
     };
 }
 
+std::string sha256_of(const std::vector<std::byte>& bytes) {
+    return dmc::rengine::core::Sha256::compute(
+        std::span<const std::byte>{bytes.data(), bytes.size()}).hex();
+}
+
 } // namespace
 
 int main() {
@@ -247,8 +253,21 @@ int main() {
             parent, expansion, stale_output_set).status ==
         dmc3::NestedReintegrationStatus::child_output_mismatch);
 
+    // A forged writer-mode string plus a correct recomputed SHA cannot make a
+    // structurally invalid nested PNST eligible for parent reintegration.
+    auto structurally_invalid = authored0;
+    structurally_invalid.bytes[0] = std::byte{'X'};
+    structurally_invalid.output_sha256 = sha256_of(structurally_invalid.bytes);
+    const std::vector<dmc3::AuthoredChildImage> invalid_container_set{
+        structurally_invalid};
+    assert(
+        dmc3::NestedRelativeSlotReintegrator::reintegrate(
+            parent, expansion, invalid_container_set).status ==
+        dmc3::NestedReintegrationStatus::child_writer_validation_failed);
+
     auto grown = authored0;
     grown.bytes.push_back(std::byte{0});
+    grown.output_sha256 = sha256_of(grown.bytes);
     const std::vector<dmc3::AuthoredChildImage> grown_set{grown};
     assert(
         dmc3::NestedRelativeSlotReintegrator::reintegrate(
