@@ -38,6 +38,17 @@ struct StageResourceContext final {
     }
 };
 
+struct ParserValidationState final {
+    std::string parser_id;
+    std::string source_sha256;
+    bool recognized{false};
+    bool error_diagnostics{false};
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !parser_id.empty() && source_sha256.size() == 64U;
+    }
+};
+
 enum class WorkspaceStatus {
     invalid,
     read_only,
@@ -78,6 +89,8 @@ public:
         std::string parser_id,
         bool recognized,
         gdspaces::ToolTarget consumer);
+    [[nodiscard]] const ParserValidationState*
+        parser_validation() const noexcept;
     [[nodiscard]] bool add_parser_diagnostics(
         std::span<const formats::ParseDiagnostic> diagnostics);
     [[nodiscard]] bool attach_binary_document(binary::Document document);
@@ -145,6 +158,8 @@ private:
     std::optional<FormatIntegrationDescriptor> format_;
     std::vector<ToolRoute> routes_;
     std::vector<gdspaces::Diagnostic> diagnostics_;
+    std::optional<ParserValidationState> parser_validation_;
+    bool parser_error_diagnostics_{false};
     std::optional<binary::Document> binary_document_;
     std::optional<ExecutableResourceContext> executable_context_;
     std::vector<std::string> evidence_record_ids_;
