@@ -11,6 +11,7 @@ child immutable payload
  -> child WorkingCopy
  -> child bounded writer/validator
  -> AuthoredChildImage
+ -> independent structural revalidation for changed container children
  -> exact parent materialized span
  -> alias arbitration
  -> parent WorkingCopy
@@ -24,9 +25,13 @@ For multi-level trees, repeat bottom-up until the root resource is ready for the
 
 A parent relative-slot parser validates its own header/table/topology but treats nested child bytes as an opaque span. A same-size corrupted nested PNST could therefore leave its outer PAC structurally valid.
 
-The reintegrator consequently accepts only an `AuthoredChildImage` with explicit source/output SHA and writer-mode identity. The caller must first run the child's own bounded writer/validator. Current PAC/PNST children use `RelativeSlotLayoutWriter` from #140.
+The reintegrator accepts an `AuthoredChildImage` with exact child identity, source/output SHA, revision/writer-mode identity and authored bytes. The caller should first run the child's own bounded writer/validator. Current PAC/PNST children use `RelativeSlotLayoutWriter` from #140.
 
-The reintegrator independently recomputes both hashes before applying a replacement; copied receipt strings are not trusted by themselves.
+However, `writer_mode` and SHA strings are not themselves proof that the caller actually ran that writer. The reintegrator therefore independently recomputes both hashes and, for a **changed child classified as a container**, constructs a guarded verification `WorkingCopy` from the exact expanded child source bytes, applies the authored same-size image and runs canonical #140 again. The replacement is accepted only when that independent writer succeeds and reproduces the supplied source/output hashes and authored bytes.
+
+This prevents a forged `writer_mode` plus a correctly recomputed SHA from hiding a structurally corrupted nested PAC/PNST inside a parent whose own relative-slot table would still parse.
+
+Non-container children remain writer-generic at this seam; their own future format writer/validation authority is represented by the authored-image receipt boundary rather than being reimplemented in the parent reintegrator.
 
 ## Exact expansion binding
 
@@ -55,7 +60,7 @@ That operation is invalid because compressed and materialized byte domains are d
 
 This seam is layout-preserving. An authored child output must contain exactly the same byte count as the expanded bounded child span.
 
-The generic authored-image envelope does not imply this globally; a future runtime-synth writer may produce a different-sized image. This particular reintegrator rejects that image and requires the separate size-changing parent tier.
+The generic `AuthoredChildImage` envelope does not imply this globally; a future runtime-synth writer may produce a different-sized image. This particular reintegrator rejects that image with `child_size_changed` and requires the separate size-changing parent tier.
 
 ## Duplicate-offset aliases
 
@@ -99,6 +104,7 @@ Nested authoring is deliberately compositional:
 
 ```text
 deep child writer
+ -> immediate-parent independent child validation
  -> immediate-parent reintegration / #140
  -> resulting parent authored image
  -> next-parent reintegration / #140
@@ -120,6 +126,8 @@ Synthetic regression covers:
 - identical dual-alias edit succeeds;
 - divergent dual-alias edit fails closed;
 - stale source/output SHA rejection;
+- forged writer-mode + recomputed output SHA with corrupted nested PNST magic -> independent `child_writer_validation_failed`;
+- size-changing authored image rejection at this same-span tier;
 - clean/no-change authored image;
 - duplicate/unknown child input;
 - stale parent/expansion rejection;
