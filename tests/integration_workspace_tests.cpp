@@ -1,6 +1,8 @@
 #include "dmc_rengine/evidence/registry.hpp"
 #include "dmc_rengine/formats/hits.hpp"
 #include "dmc_rengine/formats/hits_binary.hpp"
+#include "dmc_rengine/formats/pac.hpp"
+#include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
 #include "dmc_rengine/integration/resource_workspace.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
@@ -13,6 +15,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace {
@@ -27,6 +30,7 @@ using dmc::rengine::gdspaces::StageMember;
 using dmc::rengine::gdspaces::StageResourceCategory;
 using dmc::rengine::gdspaces::ToolTarget;
 using dmc::rengine::integration::FormatIntegrationRegistry;
+using dmc::rengine::integration::IntegrationMaturity;
 using dmc::rengine::integration::ResourceWorkspaceSession;
 using dmc::rengine::integration::ResourceWritePolicy;
 using dmc::rengine::integration::ToolCapability;
@@ -95,6 +99,22 @@ void write_vec3(
     return bytes;
 }
 
+[[nodiscard]] std::vector<std::byte> relative_slot_bytes(
+    std::string_view magic) {
+    assert(magic.size() == 4U);
+    std::vector<std::byte> bytes(16U, std::byte{0});
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        bytes[index] = static_cast<std::byte>(magic[index]);
+    }
+    write_u32(bytes, 4U, 1U);
+    write_u32(bytes, 8U, 12U);
+    bytes[12U] = std::byte{'D'};
+    bytes[13U] = std::byte{'D'};
+    bytes[14U] = std::byte{'S'};
+    bytes[15U] = std::byte{' '};
+    return bytes;
+}
+
 [[nodiscard]] ResourceRef resource(
     std::string path,
     std::string format,
@@ -127,6 +147,24 @@ void write_vec3(
         });
 }
 
+[[nodiscard]] ResourceWorkspaceSession make_relative_slot_workspace(
+    const ToolRegistry& tools,
+    const FormatIntegrationRegistry& formats,
+    std::string path,
+    std::string format,
+    std::vector<std::byte> bytes) {
+    const auto size = static_cast<std::uint64_t>(bytes.size());
+    return ResourceWorkspaceSession(
+        ResourcePayload{
+            .resource = resource(std::move(path), std::move(format), size, true),
+            .bytes = std::move(bytes),
+            .diagnostics = {},
+        },
+        tools,
+        formats,
+        WorkspaceContext{.stage_context = true, .evidence_context = true});
+}
+
 void test_registries() {
     const ToolRegistry tools;
     const auto* archive = tools.find(ToolTarget::gdspaces);
@@ -143,6 +181,38 @@ void test_registries() {
     assert(hits->binary_adapter);
     assert(hits->stage_category == StageResourceCategory::collision);
     assert(hits->write_policy == ResourceWritePolicy::working_copy_only);
+    assert(!hits->parser_validation_required);
+
+    const auto* pac = formats.find("PAC");
+    assert(pac != nullptr);
+    assert(pac->valid());
+    assert(pac->maturity == IntegrationMaturity::structural);
+    assert(pac->parser_id == "dmc3-pac-structural-v1");
+    assert(pac->write_policy == ResourceWritePolicy::working_copy_only);
+    assert(pac->parser_validation_required);
+    assert(pac->allows_writer_mode("layout-preserving-packed"));
+
+    const auto* pnst = formats.find("PNST");
+    assert(pnst != nullptr);
+    assert(pnst->valid());
+    assert(pnst->parser_id == "dmc3-pnst-structural-v1");
+    assert(pnst->parser_validation_required);
+    assert(pnst->allows_writer_mode("layout-preserving-packed"));
+
+    const auto* nbz = formats.find("NBZ");
+    assert(nbz != nullptr);
+    assert(nbz->valid());
+    assert(nbz->maturity == IntegrationMaturity::structural);
+    assert(nbz->parser_id.empty());
+    assert(nbz->source_adapter_id == "gdspaces.nbz-zip-source-v1");
+    assert(nbz->write_policy == ResourceWritePolicy::read_only);
+    assert(nbz->allows_writer_mode("store-overlay-nbz"));
+
+    const auto* afs = formats.find("AFS");
+    assert(afs != nullptr);
+    assert(afs->maturity == IntegrationMaturity::recognized);
+    assert(afs->parser_id.empty());
+    assert(afs->source_adapter_id.empty());
 }
 
 void test_hits_workspace() {
@@ -194,6 +264,7 @@ void test_hits_workspace() {
     assert(workspace.attach_stage_bundle(bundle));
     assert(workspace.stage() != nullptr);
 
+    // Existing non-opted-in formats keep their current WorkingCopy behavior.
     assert(workspace.enable_working_copy());
     assert(workspace.status() == WorkspaceStatus::editable_clean);
     const auto edit = workspace.apply_edit(
@@ -216,22 +287,92 @@ void test_hits_workspace() {
         WorkspaceEventType::binary_document_attached).size() == 1U);
 }
 
-void test_read_only_policy() {
+void test_pac_pnst_parser_gate() {
     const ToolRegistry tools;
     const FormatIntegrationRegistry formats;
-    const std::vector<std::byte> bytes{
-        std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}};
-    ResourceWorkspaceSession workspace(
-        ResourcePayload{
-            .resource = resource("room/st001cfg.pac", "pac", bytes.size(), true),
-            .bytes = bytes,
-            .diagnostics = {},
+    const auto pac_bytes = relative_slot_bytes("PAC\0");
+    assert(dmc::rengine::formats::PacParser::parse(pac_bytes).ok());
+
+    // A valid format label and valid PAC bytes alone are not sufficient.
+    auto no_receipt = make_relative_slot_workspace(
+        tools, formats, "room/test.pac", "pac", pac_bytes);
+    assert(no_receipt.valid());
+    assert(has_route(no_receipt, ToolTarget::gdspaces));
+    assert(!no_receipt.enable_working_copy());
+    assert(no_receipt.working_copy() == nullptr);
+
+    // A non-canonical parser cannot satisfy the PAC authority gate.
+    auto wrong_parser = make_relative_slot_workspace(
+        tools, formats, "room/test.pac", "pac", pac_bytes);
+    assert(!wrong_parser.record_parser_completed(
+        "formats.synthetic-slot-container", true, ToolTarget::gdspaces));
+    assert(wrong_parser.parser_validation() == nullptr);
+    assert(!wrong_parser.enable_working_copy());
+
+    // Canonical parser execution that does not recognize the bytes is retained
+    // as a receipt but remains ineligible for editing.
+    auto not_recognized = make_relative_slot_workspace(
+        tools, formats, "room/test.pac", "pac", pac_bytes);
+    assert(not_recognized.record_parser_completed(
+        "dmc3-pac-structural-v1", false, ToolTarget::gdspaces));
+    assert(not_recognized.parser_validation() != nullptr);
+    assert(!not_recognized.parser_validation()->recognized);
+    assert(!not_recognized.enable_working_copy());
+
+    // Successful canonical parser validation of the exact immutable source
+    // enables the PAC WorkingCopy.
+    auto validated = make_relative_slot_workspace(
+        tools, formats, "room/test.pac", "pac", pac_bytes);
+    assert(validated.record_parser_completed(
+        "dmc3-pac-structural-v1", true, ToolTarget::gdspaces));
+    assert(validated.parser_validation() != nullptr);
+    assert(validated.parser_validation()->valid());
+    assert(validated.parser_validation()->recognized);
+    assert(!validated.parser_validation()->error_diagnostics);
+    assert(validated.enable_working_copy());
+    assert(validated.status() == WorkspaceStatus::editable_clean);
+
+    // Parser errors arriving after an apparently successful completion
+    // invalidate the stored validation state before editing can begin.
+    auto later_error = make_relative_slot_workspace(
+        tools, formats, "room/test.pac", "pac", pac_bytes);
+    assert(later_error.record_parser_completed(
+        "dmc3-pac-structural-v1", true, ToolTarget::gdspaces));
+    const std::vector<dmc::rengine::formats::ParseDiagnostic> parser_errors{
+        dmc::rengine::formats::ParseDiagnostic{
+            .severity = dmc::rengine::formats::ParseSeverity::error,
+            .code = "pac.synthetic-error",
+            .message = "Synthetic parser error after completion.",
+            .offset = 12U,
         },
-        tools,
-        formats,
-        WorkspaceContext{.stage_context = true, .evidence_context = true});
-    assert(workspace.valid());
-    assert(!workspace.enable_working_copy());
+    };
+    assert(later_error.add_parser_diagnostics(parser_errors));
+    assert(later_error.parser_validation()->error_diagnostics);
+    assert(!later_error.enable_working_copy());
+
+    // PNST uses its distinct canonical parser authority even though the shared
+    // physical relative-slot core is common with PAC.
+    const auto pnst_bytes = relative_slot_bytes("PNST");
+    assert(dmc::rengine::formats::PnstParser::parse(pnst_bytes).ok());
+    auto pnst = make_relative_slot_workspace(
+        tools, formats, "room/test-pnst.pac", "pnst", pnst_bytes);
+    assert(!pnst.record_parser_completed(
+        "dmc3-pac-structural-v1", true, ToolTarget::gdspaces));
+    assert(pnst.record_parser_completed(
+        "dmc3-pnst-structural-v1", true, ToolTarget::gdspaces));
+    assert(pnst.enable_working_copy());
+
+    // The old four-byte PAC fixture remains non-editable, now because the
+    // canonical parser cannot validate it rather than because PAC is globally
+    // hard-coded read-only in the registry.
+    const std::vector<std::byte> malformed{
+        std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}};
+    assert(!dmc::rengine::formats::PacParser::parse(malformed).ok());
+    auto malformed_workspace = make_relative_slot_workspace(
+        tools, formats, "room/malformed.pac", "pac", malformed);
+    assert(malformed_workspace.record_parser_completed(
+        "dmc3-pac-structural-v1", false, ToolTarget::gdspaces));
+    assert(!malformed_workspace.enable_working_copy());
 }
 
 } // namespace
@@ -239,6 +380,6 @@ void test_read_only_policy() {
 int main() {
     test_registries();
     test_hits_workspace();
-    test_read_only_policy();
+    test_pac_pnst_parser_gate();
     return 0;
 }
