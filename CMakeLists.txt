@@ -77,6 +77,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         runtime_resource_resolver
         loose_container_list
         relative_slot_writer
+        nested_relative_slot_reintegrator
         sha256
         patch
         json_parser
