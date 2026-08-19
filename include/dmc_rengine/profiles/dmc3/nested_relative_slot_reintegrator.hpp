@@ -35,6 +35,7 @@ enum class NestedReintegrationStatus : std::uint8_t {
     child_source_mismatch,
     child_output_mismatch,
     child_size_changed,
+    child_writer_validation_failed,
     parent_span_mismatch,
     alias_conflict,
     no_changes,
@@ -56,6 +57,8 @@ enum class NestedReintegrationStatus : std::uint8_t {
     case NestedReintegrationStatus::child_source_mismatch: return "child-source-mismatch";
     case NestedReintegrationStatus::child_output_mismatch: return "child-output-mismatch";
     case NestedReintegrationStatus::child_size_changed: return "child-size-changed";
+    case NestedReintegrationStatus::child_writer_validation_failed:
+        return "child-writer-validation-failed";
     case NestedReintegrationStatus::parent_span_mismatch: return "parent-span-mismatch";
     case NestedReintegrationStatus::alias_conflict: return "alias-conflict";
     case NestedReintegrationStatus::no_changes: return "no-changes";
