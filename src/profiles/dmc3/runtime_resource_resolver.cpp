@@ -11,21 +11,14 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
-bool SourceKeyIndexBinding::valid(std::uint32_t expected_flags) const noexcept {
-    return !source_id.empty() && key_index != nullptr && key_index->valid() &&
-        key_index->source_id() == source_id &&
-        key_index->normalization_flags() == expected_flags;
-}
-
 bool ArchiveSourceBinding::valid() const noexcept {
     return VolumeBootstrapPolicy::runtime_index_valid(volume_index) &&
-        source.valid(ResourcePathPolicy::archive_flags);
+        !source_id.empty();
 }
 
 bool RuntimeSourceBindings::valid_for(
     const VolumeBootstrapPlan& bootstrap) const noexcept {
-    if (!bootstrap.valid() ||
-        !physical.valid(ResourcePathPolicy::physical_flags) ||
+    if (!bootstrap.valid() || physical_source_id.empty() ||
         archives.size() != bootstrap.registered_archives.size()) {
         return false;
     }
@@ -34,14 +27,13 @@ bool RuntimeSourceBindings::valid_for(
         const auto& binding = archives[index];
         if (!binding.valid() ||
             binding.volume_index >= bootstrap.first_missing_index ||
-            binding.source.source_id == physical.source_id) {
+            binding.source_id == physical_source_id) {
             return false;
         }
 
         for (std::size_t other = index + 1U; other < archives.size(); ++other) {
             if (archives[other].volume_index == binding.volume_index ||
-                archives[other].source.source_id == binding.source.source_id ||
-                archives[other].source.key_index == binding.source.key_index) {
+                archives[other].source_id == binding.source_id) {
                 return false;
             }
         }
@@ -66,6 +58,11 @@ const ArchiveSourceBinding* RuntimeSourceBindings::archive(
 }
 
 namespace {
+
+struct MountedSourceIndex final {
+    std::string source_id;
+    gdspaces::ResourceKeyIndex index;
+};
 
 [[nodiscard]] RuntimeResolutionReport invalid_configuration(
     std::string_view request,
@@ -116,19 +113,65 @@ namespace {
     };
 }
 
-[[nodiscard]] bool lookup_contract_valid(
-    const gdspaces::ResourceKeyMatchReport& lookup,
-    const SourceKeyIndexBinding& binding,
-    std::string_view expected_key,
+[[nodiscard]] bool index_census_is_source_clean(
+    const gdspaces::ResourceKeyIndex& index,
+    std::string_view source_id,
     std::uint32_t expected_flags) noexcept {
-    return binding.valid(expected_flags) && lookup.index_valid &&
-        lookup.key_valid && lookup.provider_key == expected_key;
+    if (!index.valid() || index.source_id() != source_id ||
+        index.normalization_flags() != expected_flags) {
+        return false;
+    }
+
+    const auto& receipt = index.receipt();
+    return receipt.rejected_invalid_resource_count == 0U &&
+        receipt.rejected_source_mismatch_count == 0U &&
+        receipt.rejected_c_string_count == 0U &&
+        receipt.rejected_empty_key_count == 0U;
 }
 
-[[nodiscard]] bool source_is_mounted(
+[[nodiscard]] bool lookup_contract_valid(
+    const gdspaces::ResourceKeyMatchReport& lookup,
+    const gdspaces::ResourceKeyIndex& index,
+    std::string_view expected_key,
+    std::string_view expected_source_id,
+    std::uint32_t expected_flags) noexcept {
+    return index_census_is_source_clean(
+               index, expected_source_id, expected_flags) &&
+        lookup.index_valid && lookup.key_valid &&
+        lookup.provider_key == expected_key;
+}
+
+[[nodiscard]] std::optional<MountedSourceIndex> build_current_source_index(
     const gdspaces::SourceRegistry& sources,
-    std::string_view source_id) noexcept {
-    return sources.find(source_id) != nullptr;
+    std::string_view source_id,
+    std::uint32_t normalization_flags) {
+    const auto* source = sources.find(source_id);
+    if (source == nullptr || source->id() != source_id) {
+        return std::nullopt;
+    }
+
+    auto resources = source->enumerate();
+    auto index = gdspaces::ResourceKeyIndex::build(
+        std::string{source_id}, normalization_flags, resources);
+    if (!index_census_is_source_clean(index, source_id, normalization_flags)) {
+        return std::nullopt;
+    }
+
+    return MountedSourceIndex{
+        .source_id = std::string{source_id},
+        .index = std::move(index),
+    };
+}
+
+[[nodiscard]] const MountedSourceIndex* archive_index(
+    const std::vector<std::pair<std::uint32_t, MountedSourceIndex>>& indexes,
+    std::uint32_t volume_index) noexcept {
+    const auto iterator = std::find_if(
+        indexes.begin(), indexes.end(),
+        [volume_index](const auto& value) {
+            return value.first == volume_index;
+        });
+    return iterator == indexes.end() ? nullptr : &iterator->second;
 }
 
 } // namespace
@@ -153,21 +196,35 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
     if (!bindings.valid_for(bootstrap)) {
         return invalid_configuration(
             request,
-            "Runtime source/index bindings do not exactly match the contiguous bootstrap mount set and provider normalization profiles.");
+            "Runtime source bindings do not exactly match the contiguous bootstrap mount set.");
     }
-    if (!source_is_mounted(sources, bindings.physical.source_id)) {
+
+    auto physical_index = build_current_source_index(
+        sources, bindings.physical_source_id, ResourcePathPolicy::physical_flags);
+    if (!physical_index.has_value()) {
         return invalid_configuration(
             request,
-            "The physical runtime source binding is not mounted in SourceRegistry.");
+            "The physical source is missing or its current enumeration cannot produce a clean 0x0C product lookup index.");
     }
+
+    std::vector<std::pair<std::uint32_t, MountedSourceIndex>> archive_indexes;
+    archive_indexes.reserve(bootstrap.registered_archives.size());
     for (const auto& volume : bootstrap.registered_archives) {
         const auto* binding = bindings.archive(volume.index);
-        if (binding == nullptr ||
-            !source_is_mounted(sources, binding->source.source_id)) {
+        if (binding == nullptr) {
             return invalid_configuration(
                 request,
-                "A runtime-equivalent archive volume binding is not mounted in SourceRegistry.");
+                "A contiguous runtime archive volume has no source binding.");
         }
+
+        auto index = build_current_source_index(
+            sources, binding->source_id, ResourcePathPolicy::archive_flags);
+        if (!index.has_value()) {
+            return invalid_configuration(
+                request,
+                "An archive source is missing or its current enumeration cannot produce a clean 0x0E lookup index.");
+        }
+        archive_indexes.emplace_back(volume.index, std::move(*index));
     }
 
     std::vector<RuntimeResolutionProbe> probes;
@@ -184,33 +241,37 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
 
             for (const auto volume_index : bootstrap.archive_resolution_order) {
                 const auto* binding = bindings.archive(volume_index);
-                if (binding == nullptr) {
+                const auto* mounted_index = archive_index(archive_indexes, volume_index);
+                if (binding == nullptr || mounted_index == nullptr ||
+                    mounted_index->source_id != binding->source_id) {
                     return invalid_configuration(
                         request,
                         std::move(probes),
-                        "Archive precedence references a volume without a source/index binding.");
+                        "Archive precedence references a volume without its current mounted-source index.");
                 }
 
-                auto lookup = binding->source.key_index->lookup(provider_key);
+                auto lookup = mounted_index->index.lookup(provider_key);
                 probes.push_back(RuntimeResolutionProbe{
                     .lookup_attempt_index = attempt.attempt_index,
                     .provider = attempt.provider,
+                    .lookup_evidence = RuntimeLookupEvidenceClass::recovered_archive_index,
                     .candidate = attempt.candidate,
                     .provider_key = provider_key,
-                    .source_id = binding->source.source_id,
+                    .source_id = binding->source_id,
                     .archive_volume_index = volume_index,
                     .lookup = lookup,
                 });
 
                 if (!lookup_contract_valid(
                         lookup,
-                        binding->source,
+                        mounted_index->index,
                         provider_key,
+                        binding->source_id,
                         ResourcePathPolicy::archive_flags)) {
                     return invalid_configuration(
                         request,
                         std::move(probes),
-                        "Archive ResourceKeyIndex violated its source/key/normalization contract.");
+                        "Archive ResourceKeyIndex violated its current-source/key/normalization contract.");
                 }
                 if (lookup.ambiguous()) {
                     return ambiguous_report(
@@ -235,33 +296,39 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 "Physical provider normalization unexpectedly rejected a canonical lookup candidate.");
         }
 
-        auto lookup = bindings.physical.key_index->lookup(provider_key);
+        // Evidence boundary: 0x0C normalization and the type-0 physical pass are
+        // recovered. The exact downstream Win32 filename comparison/open rule is
+        // still unresolved, so this source-derived index is product lookup policy,
+        // explicitly tagged as such in every probe.
+        auto lookup = physical_index->index.lookup(provider_key);
         probes.push_back(RuntimeResolutionProbe{
             .lookup_attempt_index = attempt.attempt_index,
             .provider = attempt.provider,
+            .lookup_evidence = RuntimeLookupEvidenceClass::product_physical_index,
             .candidate = attempt.candidate,
             .provider_key = provider_key,
-            .source_id = bindings.physical.source_id,
+            .source_id = bindings.physical_source_id,
             .archive_volume_index = std::nullopt,
             .lookup = lookup,
         });
 
         if (!lookup_contract_valid(
                 lookup,
-                bindings.physical,
+                physical_index->index,
                 provider_key,
+                bindings.physical_source_id,
                 ResourcePathPolicy::physical_flags)) {
             return invalid_configuration(
                 request,
                 std::move(probes),
-                "Physical ResourceKeyIndex violated its source/key/normalization contract.");
+                "Physical product index violated its current-source/key/0x0C normalization contract.");
         }
         if (lookup.ambiguous()) {
             return ambiguous_report(
                 request,
                 std::move(probes),
                 lookup,
-                "The physical provider exposes multiple physical identities for one normalized runtime key.");
+                "The product physical lookup exposes multiple physical identities for one 0x0C-normalized key; exact original type-0 filename comparison semantics remain unresolved.");
         }
         if (lookup.unique()) {
             return resolved_report(
@@ -275,7 +342,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         .resolved = std::nullopt,
         .ambiguous_matches = {},
         .probes = std::move(probes),
-        .detail = "All canonical archive and physical lookup attempts completed without a resource hit.",
+        .detail = "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes use explicitly product-classified 0x0C lookup semantics pending exact type-0 backend reverse closure.",
     };
 }
 
