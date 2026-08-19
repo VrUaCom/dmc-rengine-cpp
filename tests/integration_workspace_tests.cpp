@@ -264,7 +264,6 @@ void test_hits_workspace() {
     assert(workspace.attach_stage_bundle(bundle));
     assert(workspace.stage() != nullptr);
 
-    // Existing non-opted-in formats keep their current WorkingCopy behavior.
     assert(workspace.enable_working_copy());
     assert(workspace.status() == WorkspaceStatus::editable_clean);
     const auto edit = workspace.apply_edit(
@@ -290,10 +289,9 @@ void test_hits_workspace() {
 void test_pac_pnst_parser_gate() {
     const ToolRegistry tools;
     const FormatIntegrationRegistry formats;
-    const auto pac_bytes = relative_slot_bytes("PAC\0");
+    const auto pac_bytes = relative_slot_bytes(std::string_view{"PAC\0", 4U});
     assert(dmc::rengine::formats::PacParser::parse(pac_bytes).ok());
 
-    // A valid format label and valid PAC bytes alone are not sufficient.
     auto no_receipt = make_relative_slot_workspace(
         tools, formats, "room/test.pac", "pac", pac_bytes);
     assert(no_receipt.valid());
@@ -301,7 +299,6 @@ void test_pac_pnst_parser_gate() {
     assert(!no_receipt.enable_working_copy());
     assert(no_receipt.working_copy() == nullptr);
 
-    // A non-canonical parser cannot satisfy the PAC authority gate.
     auto wrong_parser = make_relative_slot_workspace(
         tools, formats, "room/test.pac", "pac", pac_bytes);
     assert(!wrong_parser.record_parser_completed(
@@ -309,8 +306,6 @@ void test_pac_pnst_parser_gate() {
     assert(wrong_parser.parser_validation() == nullptr);
     assert(!wrong_parser.enable_working_copy());
 
-    // Canonical parser execution that does not recognize the bytes is retained
-    // as a receipt but remains ineligible for editing.
     auto not_recognized = make_relative_slot_workspace(
         tools, formats, "room/test.pac", "pac", pac_bytes);
     assert(not_recognized.record_parser_completed(
@@ -319,8 +314,6 @@ void test_pac_pnst_parser_gate() {
     assert(!not_recognized.parser_validation()->recognized);
     assert(!not_recognized.enable_working_copy());
 
-    // Successful canonical parser validation of the exact immutable source
-    // enables the PAC WorkingCopy.
     auto validated = make_relative_slot_workspace(
         tools, formats, "room/test.pac", "pac", pac_bytes);
     assert(validated.record_parser_completed(
@@ -332,8 +325,6 @@ void test_pac_pnst_parser_gate() {
     assert(validated.enable_working_copy());
     assert(validated.status() == WorkspaceStatus::editable_clean);
 
-    // Parser errors arriving after an apparently successful completion
-    // invalidate the stored validation state before editing can begin.
     auto later_error = make_relative_slot_workspace(
         tools, formats, "room/test.pac", "pac", pac_bytes);
     assert(later_error.record_parser_completed(
@@ -350,8 +341,6 @@ void test_pac_pnst_parser_gate() {
     assert(later_error.parser_validation()->error_diagnostics);
     assert(!later_error.enable_working_copy());
 
-    // PNST uses its distinct canonical parser authority even though the shared
-    // physical relative-slot core is common with PAC.
     const auto pnst_bytes = relative_slot_bytes("PNST");
     assert(dmc::rengine::formats::PnstParser::parse(pnst_bytes).ok());
     auto pnst = make_relative_slot_workspace(
@@ -362,9 +351,6 @@ void test_pac_pnst_parser_gate() {
         "dmc3-pnst-structural-v1", true, ToolTarget::gdspaces));
     assert(pnst.enable_working_copy());
 
-    // The old four-byte PAC fixture remains non-editable, now because the
-    // canonical parser cannot validate it rather than because PAC is globally
-    // hard-coded read-only in the registry.
     const std::vector<std::byte> malformed{
         std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{0}};
     assert(!dmc::rengine::formats::PacParser::parse(malformed).ok());
