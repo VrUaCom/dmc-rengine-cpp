@@ -75,6 +75,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         volume_bootstrap_policy
         runtime_resource_resolver
         loose_container_list
+        relative_slot_writer
         sha256
         patch
         json_parser
