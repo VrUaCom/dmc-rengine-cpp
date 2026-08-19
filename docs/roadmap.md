@@ -1,56 +1,120 @@
 # Roadmap
 
-## Phase 0 — Foundation
+**Snapshot date:** 2026-08-08
 
-- C++20 and CMake baseline
-- Cross-platform CI
-- Stable namespaces and module boundaries
-- Evidence and status vocabulary
-- No proprietary game data in the repository
+The roadmap prioritizes evidence-backed vertical completion over breadth. Legacy PAC Editor/PAC Manager logic is excluded; container formats remain internal to GDSpaces.
 
-## Phase 1 — GDSpaces Core
+## Foundation — maintained
 
-- `GDResourceId` and source identities
-- Read-only source mounting
-- Container-chain representation
-- Format classification
-- Resource graph and diagnostics
-- OpenRouter contracts
+- C++20 and CMake baseline;
+- Windows and Ubuntu CI;
+- artifact SHA-256 identity;
+- Evidence Packets and confidence/correction vocabulary;
+- no proprietary game data in the repository;
+- working-copy and guarded-patch safety contracts.
 
-## Phase 2 — Evidence Tooling
+## Milestone A — GDSpaces production identity and read path
 
-- Binary regions and ownership
-- PE/RVA/VA mapping
-- EXE evidence packets
-- Source hash and expected-byte guards
-- Annotation storage
+- production read-only PAC/PNST subset;
+- NBZ/AFS exposure through GDSpaces;
+- nested child classification and diagnostics;
+- `.index` linkage only as evidence-backed metadata;
+- [Resource Identity v1](gdspaces/resource-identity-v1.md);
+- deterministic local integration reports.
 
-## Phase 3 — Stage Vertical Slice
+**Exit gate:** a legal local stage resource set resolves through one canonical resource path with no tool-local resolver.
 
-- EXE-backed stage identity
-- `GDStageBundle`
-- Open `st001` through one resource path
-- Stage Ops and ModViz consume the same resource IDs
+## Milestone B — Game-backed Stage Workspace
 
-## Phase 4 — Editors
+- resolve `st001` from legal local data;
+- assemble one complete/diagnostic `StageBundle`;
+- preserve unknown and partial resources;
+- prove Stage Ops, ModViz, Binary Inspector, and EXE links reuse canonical `ResourceId` values;
+- begin [Stage Semantic Graph v1](stage/stage-semantic-graph.md).
 
-- Stage format editors
-- Item Editor migration
-- ModViz Scene/Model Editor
-- ModViz Menu/HUD Editor
+**Exit gate:** Stage Ops consumes one game-backed typed bundle without opening loose paths independently.
 
-## Phase 5 — Safe Export
+## Milestone C — Binary Inspector Wave 2 and Reverse Core bridge
 
-- Working copies
-- Validation
-- Patch plans
-- Manifests and rollback
-- Mod package generation
+- artifact-identity-keyed Analysis Cache;
+- generic offset/order/overlap/alignment/stride diagnostics;
+- unknown-region feature analysis;
+- versioned binary templates;
+- deterministic analysis-result JSON;
+- bridge regions/fields/ownership/annotations to durable Reverse Core objects.
 
-## Phase 6 — Decompilation and Recompilation
+**Exit gate:** an inspected binary range can be promoted into a stable reverse object without copying identity/evidence into a second database.
 
-- Evidence-backed recovered C++ units
-- ABI and ownership recovery
-- Isolated replacement modules
-- Runtime comparison harness
-- Progressive recompilation toward a working executable
+## Milestone D — Reverse Core v0.1
+
+- canonical objects: BinaryArtifact, AddressRange, Function, DataObject, RecoveredType, EvidenceRecord, Hypothesis, Experiment, TaskClaim, Reconstruction, ValidationReceipt, Subsystem;
+- ownership/claim protocol over the existing MCP/Kanban workflow;
+- recovered-source tree contract exportable to VS Code/CMake;
+- EXE Editor and Binary Inspector bridges;
+- deterministic provenance manifests.
+
+See [Reverse Core](reverse-core/README.md).
+
+**Exit gate:** the schema and claim/source contracts support one real subsystem without DMC-specific concepts leaking into the reusable layer.
+
+## Milestone E — First behavior-tested recovered subsystem
+
+Follow the [EXE Reconstruction Pipeline](exe/reconstruction-pipeline.md):
+
+1. select one bounded subsystem with strong evidence;
+2. bind exact executable artifact/range identities;
+3. recover functions/data/types and ABI hypotheses;
+4. compile as an isolated reviewed C++ target;
+5. behaviorally compare against the canonical executable/boundary;
+6. record a ValidationReceipt;
+7. promote, correct, or reject findings explicitly.
+
+**Exit gate:** first complete `binary -> recovered C++ -> build -> behavioral validation` loop.
+
+This gate precedes mass decompilation.
+
+## Milestone F — Stage semantic integration
+
+- Stage -> Room -> Geometry -> Collision -> Lighting -> Camera -> Door/Transition -> Event -> Effect -> Audio -> Runtime links;
+- HITS real-corpus comparison and controlled runtime validation;
+- broader CAM/effect/model/collision relationships;
+- deterministic semantic graph manifests.
+
+**Exit gate:** one stage slice can be reasoned about across formats and runtime references without format-local identity silos.
+
+## Milestone G — ModViz Menu Editor vertical slice
+
+Use the [Red Orb counter](modviz/menu-editor.md) as the first complete Menu Editor proof:
+
+- GDSpaces-backed HUD resource;
+- hierarchy/mesh/digit/UV editing;
+- runtime-value preview;
+- linked EXE formatting/limit evidence;
+- guarded patch request where required;
+- validated working-copy/export path.
+
+**Exit gate:** first visual HUD edit travels through existing identity, evidence, working-copy, validation, and export contracts without a second resolver.
+
+## Milestone H — Controlled source integration and recompilation
+
+- additional behavior-tested recovered modules;
+- dependency and replacement/rebinding boundaries;
+- deterministic composite builds;
+- source-to-output address mappings;
+- runtime validation and regression receipts;
+- first working rebuilt executable milestone when evidence supports the claim.
+
+## Parallel research promotion
+
+Continue narrow promotion of Drive research such as Wide Pass 33 and selected recovered-source units through:
+
+`immutable artifacts -> Evidence Packet -> reviewed C++ -> tests -> CI -> provenance receipt`.
+
+Do not bulk-import recovered source snapshots.
+
+## Deferred behind evidence gates
+
+- complete desktop UI breadth;
+- production container write/repack suite;
+- signed public binary releases;
+- broad automatic decompilation at scale.

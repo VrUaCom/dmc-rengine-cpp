@@ -1,6 +1,6 @@
-# DMC3 Phase 12 Stage Resource Plan
+# DMC3 Phase 12 Stage Resource Catalog
 
-This layer represents confirmed stage-table metadata and the first `st001` resource plan without claiming knowledge of the complete executable pointer-table encoding.
+This layer represents the confirmed executable stage-resource table as a complete catalog. A concrete stage such as `st001` may be used as a test fixture, but it is not the canonical architecture target and does not define filename-generation rules for the other rows.
 
 ## Stage table descriptor
 
@@ -24,9 +24,30 @@ Column order:
 
 The descriptor validates its artifact hash against the profile-specific known executable target and checks the VA/ImageBase/RVA relationship.
 
-## `st001` plan
+## Canonical Stage Catalog
 
-`phase12_st001_resource_plan()` records the confirmed first target paths in normalized public form:
+The product-facing target is a complete `StageCatalog` generated from all executable rows:
+
+```text
+StageCatalog
+  -> StageCatalogEntry[0..109]
+       -> row identity
+       -> script reference
+       -> room configuration reference
+       -> room effects reference
+       -> room sound reference
+       -> evidence-backed identifiers / variants
+       -> resolved GDSpaces ResourceIds
+       -> diagnostics
+```
+
+The catalog preserves the exact observed row/resource references. It must not derive the remaining rows from a `stNNN` filename template.
+
+See [Stage Catalog](stage-catalog.md).
+
+## Concrete fixtures
+
+`st001` may remain one convenient regression fixture where its observed paths are known:
 
 ```text
 scr/st001.pac
@@ -35,64 +56,58 @@ room/st001_effect.pac
 se/snd_r001.pac
 ```
 
-The plan links to evidence record `ev-dmc3-stage-resource-table`.
+Those four names describe that fixture only. They are not the generic Stage Catalog algorithm.
 
-## Matching model
+Tests must also include non-pattern, aliased, shared, or otherwise distinct rows as executable evidence exposes them, so a hidden `st001`/`stNNN` assumption cannot satisfy the suite.
 
-`StageResourceMatcher` consumes:
+## Matching / resolution model
 
-- a typed row plan;
-- a span of already enumerated `ResourceRef` values.
+Stage resource resolution consumes:
+
+- a selected `StageCatalogEntry` derived from the executable table;
+- the central GDSpaces/runtime resolver.
 
 It does not:
 
-- open files;
-- scan folders;
-- parse NBZ/AFS/PAC;
-- read the executable;
-- create an independent resolver.
+- invent stage paths from a numeric stage ID;
+- open files directly in Stage Ops;
+- create a stage-local archive resolver;
+- assume every row uses the same naming pattern.
 
-Matching normalizes:
-
-- ASCII case;
-- `\` and `/` separators;
-- repeated separators;
-- leading `./` or `/`;
-- optional source-root prefixes.
+Normalized paths are presentation/lookup data. Canonical identity remains tied to the executable row observation and resolved GDSpaces `ResourceId`.
 
 ## Diagnostics
 
-- zero matches for a role → warning `dmc3.stage.resource_missing`;
-- more than one match → error `dmc3.stage.resource_ambiguous`;
-- invalid plan → error `dmc3.stage.invalid_resource_plan`.
+The catalog/resolution layer must preserve:
 
-Only roles with exactly one match become `StageMemberCandidate` values.
+- missing references;
+- ambiguous normalized matches;
+- duplicate/shared resources across rows;
+- unresolved row metadata;
+- non-pattern names;
+- partial resolution without discarding the rest of a row.
 
 ## Stage categories
 
+The four top-level table roles remain:
+
 - script → scripts;
-- room config → unknown until nested evidence/classification resolves it;
+- room configuration → container/resource group whose nested children receive evidence-backed classification;
 - room effects → effects;
 - room sound → sounds.
 
-The room configuration PAC is intentionally not overclassified. Its child resources will later provide cameras, lighting, collision, events, positions, and unknown categories through container expansion.
+The room-configuration resource is intentionally not overclassified. Nested resources may later expose cameras, lighting, collision, events, positions, and unknown categories through GDSpaces expansion and Stage Semantic Graph construction.
 
 ## Current completion boundary
 
-Implemented and tested:
+Implemented/researched foundations include the table descriptor, row/resource-role model, resource matching/resolution infrastructure, StageBundle assembly, and synthetic integration coverage.
 
-- descriptor;
-- fixed `st001` row plan;
-- matching and ambiguity diagnostics;
-- conversion to unique candidates;
-- `StageBundleAssembler` integration using synthetic `ResourceRef` inputs.
+The completion target is not “load `st001`”. It is:
 
-Not yet implemented:
-
-- parsing the real executable table/pointers;
-- resolving the four parents from a user game installation;
-- PAC/PNST/AFS/NBZ production parsers;
-- nested child expansion for actual `st001` data;
-- game-backed integration test.
-
-This distinction prevents documented historical addresses from being misrepresented as a finished runtime parser.
+1. enumerate all 110 rows from the canonical executable;
+2. expose the complete human/machine-readable Stage Catalog;
+3. preserve all four observed references per row without path-template invention;
+4. resolve representative row/variant classes through production GDSpaces;
+5. build `StageBundle` objects from arbitrary selected catalog entries;
+6. preserve shared, duplicate, special, and unresolved rows explicitly;
+7. validate the generic pipeline across multiple different catalog entries with legal local game data.
