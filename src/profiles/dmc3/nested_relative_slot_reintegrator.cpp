@@ -80,12 +80,39 @@ struct PreparedSpan final {
         std::to_string(size);
 }
 
+[[nodiscard]] bool validate_changed_container_child(
+    const gdspaces::ContainerChild& child,
+    const AuthoredChildImage& authored) {
+    if (!child.payload.resource.container) {
+        return true;
+    }
+
+    // Do not trust writer_mode as validation authority. Reconstruct one
+    // guarded same-size child WorkingCopy and independently require the
+    // canonical PAC/PNST layout writer to accept the authored image.
+    gdspaces::WorkingCopy verification{child.payload};
+    const auto edit = verification.apply(gdspaces::EditOperation{
+        .id = "nested-child-structural-revalidation",
+        .base_revision = verification.revision(),
+        .offset = 0U,
+        .expected = child.payload.bytes,
+        .replacement = authored.bytes,
+        .description = "Independently revalidate an authored nested container before parent reintegration.",
+    });
+    if (!edit.applied) {
+        return false;
+    }
+
+    const auto rebuilt = RelativeSlotLayoutWriter::rebuild(
+        child.payload, verification);
+    return rebuilt.ok() && rebuilt.bytes == authored.bytes &&
+        rebuilt.receipt->source_sha256 == authored.source_sha256 &&
+        rebuilt.receipt->output_sha256 == authored.output_sha256;
+}
+
 } // namespace
 
 bool AuthoredChildImage::valid() const noexcept {
-    // This is a writer-generic authoring envelope. A future runtime-synth
-    // writer may legitimately produce a different byte count; the current
-    // layout-preserving reintegrator enforces same-span size separately.
     return resource.valid() && resource.size != 0U && !bytes.empty() &&
         source_sha256.size() == 64U && output_sha256.size() == 64U &&
         !writer_mode.empty();
@@ -212,10 +239,17 @@ NestedReintegrationResult NestedRelativeSlotReintegrator::reintegrate(
                 "Authored child output SHA-256 does not bind to the supplied replacement bytes.");
         }
 
+        const bool changed = authored.bytes != child->payload.bytes;
+        if (changed && !validate_changed_container_child(*child, authored)) {
+            return failure(
+                NestedReintegrationStatus::child_writer_validation_failed,
+                "A changed nested container image failed independent canonical child writer validation.");
+        }
+
         prepared.push_back(PreparedChild{
             .child = child,
             .authored = &authored,
-            .changed = authored.bytes != child->payload.bytes,
+            .changed = changed,
         });
     }
 
