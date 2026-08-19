@@ -23,11 +23,15 @@ bool FormatIntegrationDescriptor::valid() const noexcept {
     if (format.empty()) {
         return false;
     }
-    if (maturity != IntegrationMaturity::recognized && parser_id.empty()) {
+    if (maturity != IntegrationMaturity::recognized &&
+        parser_id.empty() && source_adapter_id.empty()) {
+        return false;
+    }
+    if (parser_validation_required && parser_id.empty()) {
         return false;
     }
     if (write_policy == ResourceWritePolicy::guarded_export &&
-        maturity != IntegrationMaturity::exportable) {
+        (maturity != IntegrationMaturity::exportable || writer_modes.empty())) {
         return false;
     }
     return true;
@@ -40,6 +44,15 @@ bool FormatIntegrationDescriptor::allows_working_copy() const noexcept {
 
 bool FormatIntegrationDescriptor::allows_guarded_export() const noexcept {
     return write_policy == ResourceWritePolicy::guarded_export;
+}
+
+bool FormatIntegrationDescriptor::allows_writer_mode(
+    std::string_view mode) const noexcept {
+    if (mode.empty()) {
+        return false;
+    }
+    return std::find(writer_modes.begin(), writer_modes.end(), mode) !=
+        writer_modes.end();
 }
 
 FormatIntegrationRegistry::FormatIntegrationRegistry() {
@@ -64,28 +77,37 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "pac",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
-            .write_policy = ResourceWritePolicy::read_only,
+            .parser_id = "dmc3-pac-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::working_copy_only,
             .binary_adapter = false,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
             .limitations = {
-                "Real PAC layout is not yet migrated into the clean repository.",
-                "Synthetic slot containers must not be represented as PAC compatibility.",
+                "Structural parser preserves sparse/alias slot topology only; slot semantics remain schema-specific.",
+                "Only same-size layout-preserving packed authoring is integrated; runtime-synth size-changing output remains a separate bounded tier.",
+                "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
+            .source_adapter_id = {},
+            .writer_modes = {"layout-preserving-packed"},
+            .parser_validation_required = true,
         },
         FormatIntegrationDescriptor{
             .format = "pnst",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
-            .write_policy = ResourceWritePolicy::read_only,
+            .parser_id = "dmc3-pnst-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::working_copy_only,
             .binary_adapter = false,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
             .limitations = {
-                "PNST text-index and binary linkage parser is pending evidence migration.",
+                "PNST shares the relative-slot physical envelope with PAC but not a global semantic slot schema.",
+                "Only same-size layout-preserving packed authoring is integrated; clean real-corpus parser execution receipt remains a separate validation tier.",
+                "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
+            .source_adapter_id = {},
+            .writer_modes = {"layout-preserving-packed"},
+            .parser_validation_required = true,
         },
         FormatIntegrationDescriptor{
             .format = "afs",
@@ -95,17 +117,26 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .binary_adapter = false,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
-            .limitations = {"AFS source implementation is pending."},
+            .limitations = {
+                "DMC3 HD .afs/ strings are confirmed logical namespace prefixes; a dedicated binary AFS backend is not evidenced on the canonical path.",
+                "Do not add a binary AFS parser/source without a supported raw artifact or direct parser/backend evidence.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "nbz",
             .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = std::nullopt,
             .evidence_claim_ids = {},
-            .limitations = {"NBZ volume source implementation is pending."},
+            .limitations = {
+                "NbzZipSource is the canonical product source/materializer; NBZ is not represented by a fake in-memory parser authority.",
+                "Generated STORE-only next-volume overlays are supported as product authoring, not Capcom packer equivalence or lossless retail-volume repack.",
+            },
+            .source_adapter_id = "gdspaces.nbz-zip-source-v1",
+            .writer_modes = {"store-overlay-nbz"},
+            .parser_validation_required = false,
         },
         FormatIntegrationDescriptor{
             .format = "hits",
