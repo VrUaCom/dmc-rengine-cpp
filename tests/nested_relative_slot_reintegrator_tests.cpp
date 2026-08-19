@@ -4,11 +4,13 @@
 #include "dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_writer.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -47,7 +49,7 @@ std::vector<std::byte> outer_pac() {
     bytes[3] = std::byte{0};
     put_u32(bytes, 4U, 3U);
     put_u32(bytes, 8U, 0x20U);
-    put_u32(bytes, 12U, 0x20U); // distinct slot identity, same physical span.
+    put_u32(bytes, 12U, 0x20U);
     put_u32(bytes, 16U, 0x60U);
     std::copy(nested.begin(), nested.end(), bytes.begin() + 0x20);
     bytes[0x60U] = std::byte{'D'};
@@ -182,8 +184,6 @@ int main() {
            parent.resource.id.canonical());
     assert(parent.byte_provenance->offset == 0x777U);
 
-    // One authored alias edits the one shared physical span once. Both slot
-    // identities remain in the parent topology and are reported as affected.
     const auto authored0 = author_pnst_child(
         expansion.children[0].payload, std::byte{0x5A});
     const std::vector<dmc3::AuthoredChildImage> one_alias{authored0};
@@ -210,8 +210,6 @@ int main() {
     assert(reparsed.document.entries[0].size == 0x40U);
     assert(reparsed.document.entries[1].size == 0x40U);
 
-    // Two aliases requesting byte-identical authored images are one physical
-    // patch and preserve both authored/affected identities in the receipt.
     const auto authored1_same = author_pnst_child(
         expansion.children[1].payload, std::byte{0x5A});
     const std::vector<dmc3::AuthoredChildImage> same_aliases{
@@ -224,8 +222,6 @@ int main() {
     assert(identical.receipt->spans[0].authored_aliases.size() == 2U);
     assert(identical.receipt->parent_revision == 1U);
 
-    // Divergent authored bytes for one duplicate-offset alias group cannot be
-    // represented by one physical parent span and fail closed.
     const auto authored1_different = author_pnst_child(
         expansion.children[1].payload, std::byte{0x66});
     const std::vector<dmc3::AuthoredChildImage> divergent{
@@ -235,8 +231,6 @@ int main() {
             parent, expansion, divergent).status ==
         dmc3::NestedReintegrationStatus::alias_conflict);
 
-    // Authored-image source/output hashes are independently verified by the
-    // reintegrator rather than trusted because a receipt string was supplied.
     auto stale_source = authored0;
     stale_source.source_sha256.assign(64U, '0');
     const std::vector<dmc3::AuthoredChildImage> stale_source_set{stale_source};
@@ -253,19 +247,14 @@ int main() {
             parent, expansion, stale_output_set).status ==
         dmc3::NestedReintegrationStatus::child_output_mismatch);
 
-    // The generic authored-image envelope may represent another writer tier,
-    // but this reintegrator remains explicitly same-span and rejects growth.
     auto grown = authored0;
     grown.bytes.push_back(std::byte{0});
     const std::vector<dmc3::AuthoredChildImage> grown_set{grown};
-    const auto grown_result = dmc3::NestedRelativeSlotReintegrator::reintegrate(
-        parent, expansion, grown_set);
     assert(
-        grown_result.status == dmc3::NestedReintegrationStatus::invalid_authored_image ||
-        grown_result.status == dmc3::NestedReintegrationStatus::child_size_changed);
+        dmc3::NestedRelativeSlotReintegrator::reintegrate(
+            parent, expansion, grown_set).status ==
+        dmc3::NestedReintegrationStatus::child_size_changed);
 
-    // Clean writer output is valid authoring evidence but causes no parent
-    // change, so it does not fabricate a reintegration receipt.
     const auto clean = clean_pnst_child(expansion.children[0].payload);
     const std::vector<dmc3::AuthoredChildImage> clean_set{clean};
     assert(
