@@ -113,8 +113,6 @@ public:
     [[nodiscard]] const std::vector<NbzZipEntry>& entries() const noexcept;
     [[nodiscard]] const std::vector<Diagnostic>& diagnostics() const noexcept;
     [[nodiscard]] const std::optional<NbzZipIndexReceipt>& index_receipt() const noexcept;
-    [[nodiscard]] const std::optional<NbzZipSerializationSnapshot>&
-    serialization_snapshot() const noexcept;
 
 private:
     void build_index();
@@ -128,7 +126,15 @@ private:
     std::vector<NbzZipEntry> entries_;
     std::vector<Diagnostic> diagnostics_;
     std::optional<NbzZipIndexReceipt> index_receipt_;
-    std::optional<NbzZipSerializationSnapshot> serialization_snapshot_;
+};
+
+// On-demand serialization scanner. Keeping this separate from `NbzZipSource`
+// prevents ordinary materialization from paying the cost or inheriting the
+// ownership semantics of a future retail-repack path.
+class NbzZipSerializationScanner final {
+public:
+    [[nodiscard]] static std::optional<NbzZipSerializationSnapshot> scan(
+        const NbzZipSource& source);
 };
 
 } // namespace dmc::rengine::gdspaces
