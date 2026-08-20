@@ -41,6 +41,7 @@ void put_u32(
     std::uint32_t height,
     std::uint32_t mip_count,
     bool dxt5) {
+    namespace dmc3 = dmc::rengine::profiles::dmc3;
     const auto payload_size = block_payload_size(
         width, height, mip_count, dxt5);
     std::vector<std::byte> bytes(
@@ -49,14 +50,23 @@ void put_u32(
     bytes[1] = std::byte{'D'};
     bytes[2] = std::byte{'S'};
     bytes[3] = std::byte{' '};
-    put_u32(bytes, 4U, 124U);
+    put_u32(bytes, 4U, dmc3::DdsImageParser::k_header_struct_size);
+    put_u32(bytes, 8U, dmc3::DdsImageParser::k_required_flags);
     put_u32(bytes, 12U, height);
     put_u32(bytes, 16U, width);
+    put_u32(
+        bytes, 20U,
+        dxt5 ? dmc3::DdsImageParser::k_standard_dxt5_linear_size
+             : dmc3::DdsImageParser::k_standard_dxt1_linear_size);
+    put_u32(bytes, 24U, 0U);
     put_u32(bytes, 28U, mip_count);
+    put_u32(bytes, 76U, dmc3::DdsImageParser::k_pixel_format_size);
+    put_u32(bytes, 80U, dmc3::DdsImageParser::k_pixel_format_fourcc_flag);
     bytes[84U] = std::byte{'D'};
     bytes[85U] = std::byte{'X'};
     bytes[86U] = std::byte{'T'};
     bytes[87U] = dxt5 ? std::byte{'5'} : std::byte{'1'};
+    put_u32(bytes, 108U, dmc3::DdsImageParser::k_required_caps);
     for (std::size_t index = 128U; index < bytes.size(); ++index) {
         bytes[index] = static_cast<std::byte>((index * 17U) & 0xFFU);
     }
@@ -249,6 +259,14 @@ int main() {
         dmc3::TextureSlotFramingParser::parse(
             std::span<const std::byte>{
                 bad_mip_chain.data(), bad_mip_chain.size()}).status ==
+        dmc3::TextureSlotFramingStatus::invalid_dds);
+
+    auto bad_dds_flags = wrapped;
+    put_u32(bad_dds_flags, 0x70U + 8U, 0U);
+    assert(
+        dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{
+                bad_dds_flags.data(), bad_dds_flags.size()}).status ==
         dmc3::TextureSlotFramingStatus::invalid_dds);
 
     auto bad_padding = bundle;
