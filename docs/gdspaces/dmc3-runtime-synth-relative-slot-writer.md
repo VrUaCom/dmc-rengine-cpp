@@ -4,81 +4,95 @@ Status: bounded Layer-1 product writer derived from original runtime `.lst` synt
 
 ## Recovered layout authority
 
-The canonical `.lst` runtime path already proves the synthesized materialized image layout:
+The canonical `.lst` runtime path establishes the synthesized materialized-image layout used by this writer:
 
 - four-byte magic (`PAC\0` by default, or directive-provided such as `PNST`);
 - declared slot count;
-- `u32` relative offset table beginning at `+0x08`;
+- `u32` relative-offset table beginning at `+0x08`;
 - empty / exact `dummy` slot = offset `0`;
 - `headerSize = align64((slotCount + 2) * 4)`;
 - every populated child begins at a 64-byte boundary;
 - child bytes are copied in physical slot order;
 - alignment gaps are zero-filled.
 
-`RuntimeSynthRelativeSlotWriter` reuses the already-canonical `LooseContainerListPolicy::header_size()` and `aligned_size()` helpers so writer arithmetic cannot drift from the recovered runtime synthesizer.
+`RuntimeSynthRelativeSlotWriter` reuses `LooseContainerListPolicy::header_size()` and `aligned_size()` so writer arithmetic cannot drift from the recovered runtime synthesizer.
 
 ## First size-changing tier
 
-This writer starts from an existing valid PAC/PNST and preserves:
+The writer starts from an existing valid PAC/PNST and preserves:
 
 - format magic;
 - declared slot count;
 - populated/empty occupancy of every physical slot;
 - physical slot ordering.
 
-It may change populated child byte lengths and therefore recompute output offsets using the recovered runtime-synth layout.
+It may change populated child lengths and therefore recompute relative offsets. Adding/removing slots, changing occupancy, or serializing duplicate non-zero alias offsets is not included.
 
-Adding/removing slots or changing occupancy is not included in this tier.
+Duplicate populated source offsets fail `alias_topology_unsupported`. Alias-preserving same-size edits remain the #140/#142 path.
 
-## Duplicate non-zero aliases
+## Byte provider authority is not extent authority
 
-A packed source may contain multiple declared slot identities sharing one populated offset. The `.lst` synthesis evidence does not establish a way to emit duplicate non-zero alias offsets.
+A packed `ContainerEntry.size` is a bounded extraction extent inferred from the next distinct offset or container end. It can include alignment or padding and is not automatically an intrinsic child-file length.
 
-Therefore any duplicate populated source offset fails `alias_topology_unsupported`.
+Therefore `ExactChildImage` separates:
 
-Use the same-size #140/#142 path for alias-preserving edits.
+- byte-provider authority (`ExactChildAuthorityKind`);
+- byte-extent authority (`ExactChildExtentKind`);
+- authority identity;
+- SHA-256;
+- bytes.
 
-## Exact intrinsic child bytes
+The current bounded tier accepts only:
 
-A packed `ContainerEntry.size` is a bounded extraction extent inferred from the next distinct offset or container end. It is not intrinsic file-length authority and may contain alignment/padding bytes.
+- `loose_resource + intrinsic_resource`;
+- `external_exact_resource + intrinsic_resource`.
 
-Runtime-synth rebuild therefore requires one `ExactChildImage` for **every populated source slot**, even if only one child changed.
+It explicitly rejects:
 
-Accepted authority kinds:
+- `container_extracted_span`;
+- `container_inferred_span` as intrinsic proof;
+- `source_span_preserved` as intrinsic proof;
+- generic `format_writer_receipt`, even if the caller supplies `writer_defined_complete_image` and a plausible writer-mode string.
 
-- `format_writer_receipt`;
-- `loose_resource`;
-- `external_exact_resource`.
+The last rule is intentional. A public aggregate containing a writer-mode string is forgeable and therefore cannot prove that a previous writer actually defined the complete child-image extent. Writer-to-parent size-changing composition requires a future typed verified-result factory that consumes a real writer result/receipt instead of accepting a self-declared string.
 
-Explicitly forbidden:
-
-- `container_extracted_span`.
-
-Every exact child carries authority identity, SHA-256 and intrinsic bytes. The writer recomputes SHA-256 before using the bytes.
-
-If any populated slot lacks exact intrinsic bytes, rebuild fails closed rather than serializing an inferred padded parent span as a child file.
+This prevents an inferred packed span from being laundered through a same-size writer and then reused as an allegedly intrinsic child image.
 
 ## Deterministic algorithm
 
 1. validate the immutable source through canonical #140 source validation;
 2. reject duplicate populated offsets;
-3. validate exact child input identity/authority/hash and require all populated slots;
-4. compute recovered 64-byte header size;
-5. compute a bounded 32-bit output layout;
-6. allocate zero-filled output;
-7. copy source four-byte magic and declared slot count;
-8. preserve empty slots as zero offsets;
-9. place each populated exact child in slot order at the current aligned cursor;
-10. canonical PAC/PNST reparse;
-11. require format, slot count and occupancy to match the source;
-12. require reparsed offsets to equal deterministic emitted offsets;
-13. return authored bytes + receipt.
+3. validate every supplied child identity/provider/extent/hash;
+4. require one accepted exact intrinsic child for every populated source slot;
+5. compute recovered 64-byte header size;
+6. compute a bounded 32-bit output layout;
+7. allocate zero-filled output;
+8. copy source four-byte magic and declared slot count;
+9. preserve empty slots as zero offsets;
+10. place every populated child in physical slot order;
+11. canonical PAC/PNST reparse;
+12. require format, slot count and occupancy to match source;
+13. require reparsed offsets to equal emitted offsets and each intrinsic child size to fit its reparsed bounded extent;
+14. return authored bytes + receipt.
 
-Input `ExactChildImage` ordering is not layout authority; output is determined by physical slot index.
+Input `ExactChildImage` ordering is not layout authority; physical slot index determines output order.
+
+## Result and receipt integrity
+
+`RuntimeSynthResult::ok()` does not trust construction-time state alone. It requires:
+
+- status `ok`;
+- valid receipt;
+- output topology size equal to current public byte-vector size;
+- SHA-256 recomputed over the current bytes equal to receipt output SHA-256.
+
+`RuntimeSynthReceipt::valid()` additionally requires child receipts to remain in strict increasing unique slot order and every intrinsic size to fit the reparsed emitted slot extent.
+
+Therefore mutating returned bytes or reordering/duplicating child receipt identities invalidates the result.
 
 ## Product safety
 
-Default output budget is 1 GiB. The writer rejects:
+Default output budget is 1 GiB. The writer fails closed on:
 
 - invalid/unreadable source;
 - unsupported source format;
@@ -86,12 +100,15 @@ Default output budget is 1 GiB. The writer rejects:
 - duplicate populated offsets;
 - unknown/empty/duplicate child slot input;
 - missing exact child bytes;
-- forbidden extracted-span authority;
+- packed extracted-span authority;
+- source-span-preserved or container-inferred extent claims;
+- generic writer-receipt extent claims;
 - child SHA mismatch;
-- output budget / 32-bit relative-offset overflow;
-- canonical output reparse/topology mismatch.
+- output budget / 32-bit offset overflow;
+- canonical output reparse/topology mismatch;
+- invalid authoring receipt.
 
-No source `ByteProvenance` is attached to authored bytes.
+No source `ByteProvenance` is copied onto authored output bytes.
 
 ## Receipt
 
@@ -101,44 +118,46 @@ The receipt records:
 - writer mode `runtime-synth-relative-slot`;
 - output SHA-256;
 - source/output structural fingerprints;
-- for every populated slot: slot index, exact-byte authority kind/id, input SHA, intrinsic size and emitted offset.
+- for every populated slot: slot index, provider kind, extent kind, authority ID, writer-mode lineage field, input SHA, intrinsic size and emitted offset.
 
-The receipt requires the source ResourceId size to equal the source structural container size.
+The receipt itself currently validates only independently intrinsic standalone child providers; generic writer receipts are not accepted.
 
-## Composition
+## Composition boundary
 
-Root size change:
+Root size change can already be composed as:
 
-`exact intrinsic child images -> runtime-synth PAC/PNST -> #141 STORE overlay -> NbzZipSource reopen -> canonical reparse`.
+`independently exact intrinsic children -> runtime-synth PAC/PNST -> #141 STORE overlay -> NbzZipSource reopen -> canonical reparse`.
 
-Nested size change:
-
-A child that grows/shrinks cannot pass the same-size #142 reintegrator. Its immediate parent must itself be rebuilt through this runtime-synth tier using exact intrinsic images for **all** of that parent's populated slots. Continue bottom-up until the root is rebuilt.
+Nested size-changing propagation is still blocked until a typed verified writer-result-to-child-authority seam exists. The same-size #142 reintegrator remains valid for same-size nested edits because it writes back into the exact existing parent span and does not need to infer intrinsic EOF.
 
 ## Regression
 
-Synthetic regression proves:
+The registered CTest regressions cover:
 
 - 3-slot PAC with populated/empty/populated topology;
 - recovered header `0x40`;
 - 3-byte slot0 at `0x40`;
 - 70-byte slot2 at `0x80`;
 - deterministic zero padding and total output `0x100`;
-- input-order-invariant bytes/SHA;
-- missing child rejection;
-- child-for-empty/unknown/duplicate rejection;
-- packed extracted-span authority rejection;
+- input-order invariant bytes/SHA;
+- missing/empty/unknown/duplicate child rejection;
+- packed extracted-span rejection;
+- `source_span_preserved` and `container_inferred_span` rejection;
+- forged-looking generic writer-receipt rejection;
 - bad child SHA rejection;
-- safety budget rejection;
-- duplicate source offset rejection;
-- PNST output through the same physical layout;
+- safety-budget rejection;
+- duplicate source-offset rejection;
+- PNST through the same physical layout;
 - zero-slot source rebuilding to the recovered 64-byte runtime image;
-- unsupported non-PAC/PNST source rejection.
+- unsupported non-PAC/PNST source rejection;
+- post-construction byte mutation invalidating `ok()`;
+- reordered/duplicate/forged receipt child identities failing validation.
 
 ## Still open
 
-- exact intrinsic-byte providers for broad real DMC3 child families;
-- real legal corpus size-changing round-trip receipt;
-- nested size-changing bottom-up orchestration;
+- typed verified complete-image writer-result -> exact child authority;
+- broad real DMC3 intrinsic-byte providers and slot linkage;
+- representative real `.lst` corpus receipt;
+- real size-changing resource round-trip receipt;
 - controlled original-game consumption receipt;
 - Capcom offline packer behavior/equivalence.
