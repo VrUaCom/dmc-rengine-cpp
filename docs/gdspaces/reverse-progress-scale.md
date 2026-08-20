@@ -80,7 +80,9 @@ At least one representative authored output must be consumed successfully throug
 
 The current writer intentionally creates deterministic STORE-only mod overlays. It does not preserve the complete original retail ZIP metadata envelope or claim byte-identical retail repacking.
 
-For the project no-loss L1 target, define and validate a retail-NBZ preservation/repack tier covering metadata not retained by the current `NbzZipEntry` model, including version/time/attribute/extra/comment/raw-record information where required.
+The first preservation substep is the bounded on-demand [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md), which records raw central/local/EOCD framing plus source spans without turning ordinary materialization into writer ownership. That scanner does **not** close this gate by itself.
+
+The remaining retail-NBZ tier must artifact-bind the preserved spans, implement metadata-preserving unchanged/changed entry serialization, rebuild offsets, reopen the result, compare materialization + serialization properties, and obtain representative game-backed validation.
 
 ## Non-blocking evidence-gated families
 
