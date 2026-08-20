@@ -1,6 +1,7 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_synth_relative_slot_writer.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -101,10 +102,57 @@ int main() {
         source, children);
     assert(built.ok());
 
+    // A successful runtime-synth result can become a complete-image child only
+    // through the typed factory. The parent then revalidates the child SHA as
+    // an embedded span in its own output.
+    auto verified_nested_child =
+        dmc3::ExactChildImage::from_verified_runtime_synth_result(0U, built);
+    assert(verified_nested_child.has_value());
+    assert(
+        verified_nested_child->authority_kind() ==
+        dmc3::ExactChildAuthorityKind::format_writer_receipt);
+    assert(
+        verified_nested_child->extent_kind() ==
+        dmc3::ExactChildExtentKind::writer_defined_complete_image);
+    assert(verified_nested_child->writer_mode() == "runtime-synth-relative-slot");
+    assert(verified_nested_child->sha256() == built.receipt->output_sha256);
+    assert(verified_nested_child->bytes() == built.bytes);
+
+    std::vector<dmc3::ExactChildImage> parent_children;
+    parent_children.push_back(std::move(*verified_nested_child));
+    parent_children.push_back(intrinsic_child(
+        1U,
+        "external:parent-leaf",
+        {std::byte{0xA1}, std::byte{0xA2}, std::byte{0xA3}, std::byte{0xA4}}));
+
+    const auto parent_built = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
+        source, parent_children);
+    assert(parent_built.ok());
+    assert(parent_built.receipt->children.size() == 2U);
+    const auto& nested_receipt = parent_built.receipt->children[0];
+    assert(
+        nested_receipt.authority_kind() ==
+        dmc3::ExactChildAuthorityKind::format_writer_receipt);
+    assert(
+        nested_receipt.extent_kind() ==
+        dmc3::ExactChildExtentKind::writer_defined_complete_image);
+    assert(nested_receipt.writer_mode() == "runtime-synth-relative-slot");
+    assert(nested_receipt.input_sha256() == built.receipt->output_sha256);
+    assert(nested_receipt.intrinsic_size() == built.bytes.size());
+
+    const auto nested_offset = static_cast<std::size_t>(
+        nested_receipt.emitted_offset());
+    assert(nested_offset + built.bytes.size() <= parent_built.bytes.size());
+    assert(std::equal(
+        built.bytes.begin(), built.bytes.end(),
+        parent_built.bytes.begin() + static_cast<std::ptrdiff_t>(nested_offset)));
+
     // Any byte mutation invalidates the construction-time output hash.
     auto mutated_bytes = built;
     mutated_bytes.bytes.back() ^= std::byte{1};
     assert(!mutated_bytes.ok());
+    assert(!dmc3::ExactChildImage::from_verified_runtime_synth_result(
+        0U, mutated_bytes).has_value());
 
     // Even if a caller rewrites the public top-level output hash after changing
     // a child byte, the immutable child receipt still binds the embedded child
@@ -115,6 +163,8 @@ int main() {
     mutated_child.bytes[child0_offset] ^= std::byte{1};
     mutated_child.receipt->output_sha256 = sha256_of(mutated_child.bytes);
     assert(!mutated_child.ok());
+    assert(!dmc3::ExactChildImage::from_verified_runtime_synth_result(
+        0U, mutated_child).has_value());
 
     auto reordered_receipt = *built.receipt;
     std::swap(reordered_receipt.children[0], reordered_receipt.children[1]);
