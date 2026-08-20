@@ -24,6 +24,7 @@ struct NbzRetailReplacement final {
 struct NbzRetailRepackLimits final {
     std::uint64_t io_chunk_bytes{1024ULL * 1024ULL};
     std::uint64_t max_replacement_bytes{512ULL * 1024ULL * 1024ULL};
+    std::uint64_t max_metadata_bytes{64ULL * 1024ULL * 1024ULL};
 };
 
 enum class NbzRetailRepackStatus : std::uint8_t {
@@ -127,6 +128,7 @@ struct NbzRetailRepackResult final {
 class NbzRetailRepacker final {
 public:
     static constexpr std::uint64_t max_io_chunk_bytes = 64ULL * 1024ULL * 1024ULL;
+    static constexpr std::uint64_t max_metadata_bytes = 512ULL * 1024ULL * 1024ULL;
     static constexpr std::uint32_t zip32_u32_sentinel = 0xFFFFFFFFU;
 
     // Product metadata-preserving retail repack tier. Unchanged local regions
