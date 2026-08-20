@@ -21,11 +21,22 @@ jobs:
         run: cmake --build build --config Release --parallel 2
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+      - name: Build Linux PNST corpus runner
+        if: matrix.os == 'ubuntu-latest'
+        run: c++ -std=c++20 -Iinclude tools/relative_slot_corpus_reflow_runner.cpp build/libdmc_rengine_core.a -o build/dmc-rengine-relative-slot-corpus-reflow
       - name: Upload Linux real-corpus runner
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: dmc-rengine-texture-corpus-reflow-linux
           path: build/dmc-rengine-texture-corpus-reflow
+          if-no-files-found: error
+          retention-days: 1
+      - name: Upload Linux PNST corpus runner
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmc-rengine-relative-slot-corpus-reflow-linux
+          path: build/dmc-rengine-relative-slot-corpus-reflow
           if-no-files-found: error
           retention-days: 1
