@@ -79,12 +79,35 @@ void put_u32(
     return static_cast<std::uint32_t>((record_size + sector - 1U) / sector);
 }
 
+[[nodiscard]] bool observed_standard_authoring_geometry(
+    DdsCompressionKind compression,
+    std::uint32_t width,
+    std::uint32_t height) noexcept {
+    if (compression == DdsCompressionKind::dxt1) {
+        return (width == 128U && height == 128U) ||
+            (width == 256U && height == 128U) ||
+            (width == 256U && height == 256U) ||
+            (width == 256U && height == 512U) ||
+            (width == 512U && height == 256U) ||
+            (width == 512U && height == 512U) ||
+            (width == 1024U && height == 1024U);
+    }
+    return (width == 128U && height == 64U) ||
+        (width == 128U && height == 128U) ||
+        (width == 256U && height == 128U) ||
+        (width == 256U && height == 256U) ||
+        (width == 256U && height == 512U) ||
+        (width == 512U && height == 256U) ||
+        (width == 512U && height == 512U);
+}
+
 [[nodiscard]] std::optional<std::vector<std::byte>> make_descriptor(
     const TextureSlotEntry& source_entry,
     const DdsImageDocument& authored) {
     if (source_entry.auxiliary_mode != 0U || source_entry.auxiliary_value != 0U ||
         authored.profile != DdsHeaderProfile::standard_corpus ||
-        authored.width > 0xFFFFU || authored.height > 0xFFFFU) {
+        authored.width > 0xFFFFU || authored.height > 0xFFFFU ||
+        authored.total_size > std::numeric_limits<std::uint32_t>::max()) {
         return std::nullopt;
     }
 
@@ -134,6 +157,25 @@ void put_u32(
         static_cast<std::uint32_t>(authored.total_size));
     put_u32(descriptor, 0x68U, 8U);
     return descriptor;
+}
+
+[[nodiscard]] bool physical_record_equal(
+    std::span<const std::byte> source,
+    std::size_t source_begin,
+    std::size_t source_end,
+    std::span<const std::byte> output,
+    std::size_t output_begin,
+    std::size_t output_end) noexcept {
+    if (source_begin > source_end || source_end > source.size() ||
+        output_begin > output_end || output_end > output.size() ||
+        source_end - source_begin != output_end - output_begin) {
+        return false;
+    }
+    return std::equal(
+        source.begin() + static_cast<std::ptrdiff_t>(source_begin),
+        source.begin() + static_cast<std::ptrdiff_t>(source_end),
+        output.begin() + static_cast<std::ptrdiff_t>(output_begin),
+        output.begin() + static_cast<std::ptrdiff_t>(output_end));
 }
 
 } // namespace
@@ -245,6 +287,21 @@ TextureSlotSizeSerializerResult TextureSlotSizeSerializer::rebuild(
             return failure(
                 TextureSlotSizeSerializerStatus::authored_dds_exception_profile,
                 "Pass 82 does not generalize the one observed depth=1 DDS profile for authoring.");
+        }
+        if (authored_result.document.compression != source_entry.compression ||
+            !observed_standard_authoring_geometry(
+                authored_result.document.compression,
+                authored_result.document.width,
+                authored_result.document.height)) {
+            return failure(
+                TextureSlotSizeSerializerStatus::authored_dds_invalid,
+                "Pass 82 preserves source DXT compression and permits only standard-profile dimension pairs observed in the real corpus.");
+        }
+        if (authored_result.document.total_size >
+            std::numeric_limits<std::uint32_t>::max()) {
+            return failure(
+                TextureSlotSizeSerializerStatus::output_too_large,
+                "Authored DDS total size exceeds the 32-bit descriptor size field.");
         }
 
         const bool changed = !std::equal(
@@ -440,13 +497,50 @@ TextureSlotSizeSerializerResult TextureSlotSizeSerializer::rebuild(
         const auto* authored = authored_by_index[patch.texture_index];
         const auto& output_entry = reparsed.document.textures[patch.texture_index];
         const auto output_dds = dds_span(output_span, output_entry);
+        const auto& source_entry = source.document.textures[patch.texture_index];
+        const bool source_half =
+            source_entry.secondary_width * 2U == source_entry.width &&
+            source_entry.secondary_height * 2U == source_entry.height;
+        const bool output_half =
+            output_entry.secondary_width * 2U == output_entry.width &&
+            output_entry.secondary_height * 2U == output_entry.height;
         if (authored == nullptr || output_dds.size() != authored->bytes.size() ||
             !std::equal(
                 output_dds.begin(), output_dds.end(), authored->bytes.begin(),
-                authored->bytes.end())) {
+                authored->bytes.end()) ||
+            source_half != output_half || output_entry.auxiliary_mode != 0U ||
+            output_entry.auxiliary_value != 0U) {
             return failure(
                 TextureSlotSizeSerializerStatus::output_dds_mismatch,
-                "Canonical reparse did not reproduce an authored DDS byte image exactly.");
+                "Canonical reparse did not reproduce authored DDS bytes and preserved descriptor relation exactly.");
+        }
+    }
+
+    if (source.document.kind == TextureSlotFramingKind::texture_bundle) {
+        for (std::size_t index = 0U;
+             index < source.document.textures.size(); ++index) {
+            if (authored_changed[index]) {
+                continue;
+            }
+            const auto source_begin = static_cast<std::size_t>(
+                source.document.textures[index].descriptor_offset);
+            const auto source_end = index + 1U == source.document.textures.size()
+                ? source_physical_slot.size()
+                : static_cast<std::size_t>(
+                      source.document.textures[index + 1U].descriptor_offset);
+            const auto output_begin = static_cast<std::size_t>(
+                reparsed.document.textures[index].descriptor_offset);
+            const auto output_end = index + 1U == reparsed.document.textures.size()
+                ? output_span.size()
+                : static_cast<std::size_t>(
+                      reparsed.document.textures[index + 1U].descriptor_offset);
+            if (!physical_record_equal(
+                    source_physical_slot, source_begin, source_end,
+                    output_span, output_begin, output_end)) {
+                return failure(
+                    TextureSlotSizeSerializerStatus::output_validation_failed,
+                    "An unchanged texture-bundle physical record was not preserved byte-for-byte.");
+            }
         }
     }
 
