@@ -4,17 +4,9 @@
 #include <array>
 #include <bit>
 #include <limits>
-#include <optional>
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
-
-constexpr std::size_t kDdsHeaderSize = 128U;
-constexpr std::uint32_t kDdsHeaderStructSize = 124U;
-constexpr std::size_t kDdsHeightOffset = 12U;
-constexpr std::size_t kDdsWidthOffset = 16U;
-constexpr std::size_t kDdsMipCountOffset = 28U;
-constexpr std::size_t kDdsFourCcOffset = 84U;
 
 constexpr std::size_t kDescriptorEncodingOffset = 0x08U;
 constexpr std::size_t kDescriptorConstant0cOffset = 0x0CU;
@@ -96,39 +88,6 @@ constexpr std::array<std::size_t, 13> kDescriptorZeroOffsets{
         });
 }
 
-[[nodiscard]] std::uint32_t full_mip_count(
-    std::uint32_t width,
-    std::uint32_t height) noexcept {
-    auto dimension = std::max(width, height);
-    std::uint32_t count = 1U;
-    while (dimension > 1U) {
-        dimension /= 2U;
-        ++count;
-    }
-    return count;
-}
-
-[[nodiscard]] std::optional<std::uint32_t> block_payload_size(
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t mip_count,
-    std::uint32_t block_bytes) noexcept {
-    std::uint64_t total = 0U;
-    for (std::uint32_t level = 0U; level < mip_count; ++level) {
-        const auto blocks_w = std::max(1U, (width + 3U) / 4U);
-        const auto blocks_h = std::max(1U, (height + 3U) / 4U);
-        const auto level_bytes =
-            static_cast<std::uint64_t>(blocks_w) * blocks_h * block_bytes;
-        if (total > std::numeric_limits<std::uint32_t>::max() - level_bytes) {
-            return std::nullopt;
-        }
-        total += level_bytes;
-        width = std::max(1U, width / 2U);
-        height = std::max(1U, height / 2U);
-    }
-    return static_cast<std::uint32_t>(total);
-}
-
 struct DescriptorParseResult final {
     TextureSlotFramingStatus status{TextureSlotFramingStatus::invalid_dds};
     TextureSlotEntry entry;
@@ -154,7 +113,6 @@ struct DescriptorParseResult final {
             .detail = "texture descriptor exceeds the physical slot span",
         };
     }
-
     if (descriptor_offset > std::numeric_limits<std::size_t>::max() -
             TextureSlotFramingParser::k_descriptor_size) {
         return {
@@ -163,96 +121,65 @@ struct DescriptorParseResult final {
             .detail = "texture descriptor offset overflows host size",
         };
     }
+
     const auto dds_offset =
         descriptor_offset + TextureSlotFramingParser::k_descriptor_size;
-    if (!contains(bytes, dds_offset, kDdsHeaderSize) ||
-        dds_offset + kDdsHeaderSize > bounded_end ||
-        !has_dds_magic(bytes, dds_offset) ||
-        read_u32_le(bytes, dds_offset + 4U) != kDdsHeaderStructSize) {
-        return {
-            .status = TextureSlotFramingStatus::invalid_dds,
-            .entry = {},
-            .detail = "descriptor is not followed by a bounded standard DDS header",
-        };
-    }
-
-    const auto width = read_u32_le(bytes, dds_offset + kDdsWidthOffset);
-    const auto height = read_u32_le(bytes, dds_offset + kDdsHeightOffset);
-    const auto mip_count = read_u32_le(bytes, dds_offset + kDdsMipCountOffset);
-    if (width == 0U || height == 0U || width > 0xFFFFU ||
-        height > 0xFFFFU || mip_count == 0U || mip_count > 0xFFU ||
-        mip_count != full_mip_count(width, height)) {
-        return {
-            .status = TextureSlotFramingStatus::invalid_dds,
-            .entry = {},
-            .detail = "DDS dimensions or mip count lie outside the evidenced full-chain descriptor domain",
-        };
-    }
-
-    const std::array<std::byte, 4> fourcc{
-        bytes[dds_offset + kDdsFourCcOffset + 0U],
-        bytes[dds_offset + kDdsFourCcOffset + 1U],
-        bytes[dds_offset + kDdsFourCcOffset + 2U],
-        bytes[dds_offset + kDdsFourCcOffset + 3U],
-    };
-
-    TextureCompressionKind compression{};
-    std::uint32_t descriptor_format{};
-    std::uint32_t encoding_low_byte{};
-    std::uint32_t bytes_per_width_unit{};
-    std::uint32_t block_bytes{};
-    if (fourcc == std::array<std::byte, 4>{
-            std::byte{'D'}, std::byte{'X'}, std::byte{'T'}, std::byte{'1'}}) {
-        compression = TextureCompressionKind::dxt1;
-        descriptor_format = 0U;
-        encoding_low_byte = 0x86U;
-        bytes_per_width_unit = 2U;
-        block_bytes = 8U;
-    } else if (fourcc == std::array<std::byte, 4>{
-                   std::byte{'D'}, std::byte{'X'}, std::byte{'T'},
-                   std::byte{'5'}}) {
-        compression = TextureCompressionKind::dxt5;
-        descriptor_format = 4U;
-        encoding_low_byte = 0x88U;
-        bytes_per_width_unit = 4U;
-        block_bytes = 16U;
-    } else {
-        return {
-            .status = TextureSlotFramingStatus::unsupported_compression,
-            .entry = {},
-            .detail = "only DXT1 and DXT5 descriptor mappings are corpus-confirmed",
-        };
-    }
-
-    const auto expected_payload = block_payload_size(
-        width, height, mip_count, block_bytes);
-    if (!expected_payload.has_value()) {
-        return {
-            .status = TextureSlotFramingStatus::invalid_dds,
-            .entry = {},
-            .detail = "DDS block-compressed mip chain exceeds the descriptor size domain",
-        };
-    }
-
     const auto dds_size = read_u32_le(
         bytes, descriptor_offset + kDescriptorDdsSizeOffset);
-    if (dds_size < kDdsHeaderSize ||
-        static_cast<std::uint64_t>(dds_offset) + dds_size > bounded_end ||
-        static_cast<std::uint64_t>(dds_offset) + dds_size > bytes.size() ||
-        dds_size != kDdsHeaderSize + *expected_payload) {
+    if (dds_size < DdsImageParser::k_file_header_size ||
+        dds_offset > bounded_end || dds_size > bounded_end - dds_offset ||
+        dds_offset > bytes.size() || dds_size > bytes.size() - dds_offset) {
         return {
             .status = TextureSlotFramingStatus::descriptor_mismatch,
             .entry = {},
-            .detail = "descriptor DDS size escapes its record or disagrees with the exact DXT mip-chain size",
+            .detail = "descriptor DDS size escapes its bounded physical record",
         };
     }
 
-    const auto payload_size = read_u32_le(
-        bytes, descriptor_offset + kDescriptorPayloadSizeOffset);
+    const auto dds_bytes = bytes.subspan(dds_offset, dds_size);
+    const auto dds = DdsImageParser::parse(dds_bytes);
+    if (!dds.ok()) {
+        return {
+            .status = dds.status == DdsImageStatus::unsupported_compression
+                ? TextureSlotFramingStatus::unsupported_compression
+                : TextureSlotFramingStatus::invalid_dds,
+            .entry = {},
+            .detail = "bounded intrinsic DDS failed the canonical DMC3 DDS structural contract",
+        };
+    }
+    // The 154 wrapped/bundle corpus DDS images all use the standard profile.
+    // The one observed depth=1 DDS exists only in the bare-child population and
+    // must not silently gain descriptor/wrapper authority.
+    if (dds.document.profile != DdsHeaderProfile::standard_corpus) {
+        return {
+            .status = TextureSlotFramingStatus::invalid_dds,
+            .entry = {},
+            .detail = "texture descriptor references a DDS header profile not evidenced inside wrapped/bundle slots",
+        };
+    }
+
+    const auto width = dds.document.width;
+    const auto height = dds.document.height;
+    const auto mip_count = dds.document.mip_map_count;
+    const auto payload_size = dds.document.payload_size;
+    const auto compression = dds.document.compression;
+
+    std::uint32_t descriptor_format{};
+    std::uint32_t encoding_low_byte{};
+    std::uint32_t bytes_per_width_unit{};
+    if (compression == DdsCompressionKind::dxt1) {
+        descriptor_format = 0U;
+        encoding_low_byte = 0x86U;
+        bytes_per_width_unit = 2U;
+    } else {
+        descriptor_format = 4U;
+        encoding_low_byte = 0x88U;
+        bytes_per_width_unit = 4U;
+    }
+
     const auto packed_dimensions = (height << 16U) | width;
     const auto expected_encoding =
         0x20000U | (mip_count << 8U) | encoding_low_byte;
-
     const auto packed_secondary = read_u32_le(
         bytes, descriptor_offset + kDescriptorSecondaryDimensionsOffset);
     const auto secondary_width = packed_secondary & 0xFFFFU;
@@ -280,7 +207,7 @@ struct DescriptorParseResult final {
         bytes, descriptor_offset + kDescriptorAuxValueOffset);
     if (auxiliary_mode > 2U ||
         ((auxiliary_mode == 0U) != (auxiliary_value == 0U)) ||
-        (auxiliary_mode != 0U && compression != TextureCompressionKind::dxt5)) {
+        (auxiliary_mode != 0U && compression != DdsCompressionKind::dxt5)) {
         return {
             .status = TextureSlotFramingStatus::descriptor_mismatch,
             .entry = {},
@@ -288,7 +215,8 @@ struct DescriptorParseResult final {
         };
     }
 
-    if (payload_size != *expected_payload ||
+    if (read_u32_le(bytes, descriptor_offset + kDescriptorPayloadSizeOffset) !=
+            payload_size ||
         read_u32_le(bytes, descriptor_offset + kDescriptorDimensionsOffset) !=
             packed_dimensions ||
         read_u32_le(bytes, descriptor_offset + kDescriptorEncodingOffset) !=
@@ -303,12 +231,10 @@ struct DescriptorParseResult final {
             reciprocal_height_bits ||
         read_u32_le(bytes, descriptor_offset + kDescriptorConstant0cOffset) !=
             0xAAE4U ||
-        read_u32_le(bytes, descriptor_offset + kDescriptorConstant14Offset) !=
-            1U ||
+        read_u32_le(bytes, descriptor_offset + kDescriptorConstant14Offset) != 1U ||
         read_u32_le(bytes, descriptor_offset + kDescriptorConstant20Offset) !=
             0x40U ||
-        read_u32_le(bytes, descriptor_offset + kDescriptorConstant68Offset) !=
-            8U ||
+        read_u32_le(bytes, descriptor_offset + kDescriptorConstant68Offset) != 8U ||
         !descriptor_zero_fields_are_zero(bytes, descriptor_offset)) {
         return {
             .status = TextureSlotFramingStatus::descriptor_mismatch,
@@ -491,8 +417,8 @@ bool TextureSlotEntry::valid(std::uint64_t slot_size) const noexcept {
         secondary_width == width && secondary_height == height;
     const bool secondary_half =
         secondary_width * 2U == width && secondary_height * 2U == height;
-    return dds_size >= kDdsHeaderSize &&
-        dds_payload_size == dds_size - kDdsHeaderSize &&
+    return dds_size >= DdsImageParser::k_file_header_size &&
+        dds_payload_size == dds_size - DdsImageParser::k_file_header_size &&
         width != 0U && height != 0U && mip_map_count != 0U &&
         secondary_width != 0U && secondary_height != 0U &&
         (secondary_same || secondary_half) && auxiliary_mode <= 2U &&
