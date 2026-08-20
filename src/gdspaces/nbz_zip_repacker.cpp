@@ -139,17 +139,29 @@ void put_u32_le(
     };
 }
 
-struct TempFileGuard final {
+struct StagingDirectoryGuard final {
     std::filesystem::path path;
-    bool committed{};
 
-    ~TempFileGuard() {
-        if (!committed && !path.empty()) {
+    ~StagingDirectoryGuard() {
+        if (!path.empty()) {
             std::error_code error;
-            std::filesystem::remove(path, error);
+            std::filesystem::remove_all(path, error);
         }
     }
 };
+
+[[nodiscard]] bool publish_no_replace(
+    const std::filesystem::path& validated_temp,
+    const std::filesystem::path& destination,
+    std::error_code& error) noexcept {
+    error.clear();
+    // The validated temp lives in a staging directory adjacent to the final
+    // destination, so the hard-link publication remains on the same filesystem.
+    // create_hard_link fails if destination already exists and therefore never
+    // has rename-style replacement semantics.
+    std::filesystem::create_hard_link(validated_temp, destination, error);
+    return !error;
+}
 
 class OutputState final {
 public:
@@ -466,22 +478,32 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
     const auto destination_absolute = std::filesystem::absolute(
         destination, path_error).lexically_normal();
     if (path_error || destination.empty() ||
-        source_absolute == destination_absolute ||
-        std::filesystem::exists(destination, path_error)) {
+        source_absolute == destination_absolute) {
         return failure(
             NbzZipRetailRepackStatus::invalid_destination,
-            "Retail repacking requires a distinct, non-existing destination path.");
+            "Retail repacking requires a distinct destination path.");
+    }
+    path_error.clear();
+    const bool destination_exists =
+        std::filesystem::exists(destination, path_error);
+    if (path_error || destination_exists) {
+        return failure(
+            NbzZipRetailRepackStatus::invalid_destination,
+            "Retail repacking requires a non-existing destination path.");
     }
 
-    const auto temp_path = std::filesystem::path{
-        destination.string() + ".dmc-rengine-repack.tmp"};
+    const auto staging_path = std::filesystem::path{
+        destination.string() + ".dmc-rengine-repack.staging"};
     path_error.clear();
-    if (std::filesystem::exists(temp_path, path_error)) {
+    const bool staging_created =
+        std::filesystem::create_directory(staging_path, path_error);
+    if (path_error || !staging_created) {
         return failure(
             NbzZipRetailRepackStatus::invalid_destination,
-            "The deterministic temporary retail-repack path already exists.");
+            "An exclusive retail-repack staging directory could not be reserved.");
     }
-    TempFileGuard temp_guard{.path = temp_path, .committed = false};
+    StagingDirectoryGuard staging_guard{.path = staging_path};
+    const auto temp_path = staging_path / "validated-output.nbz";
 
     const auto chunk_bytes = static_cast<std::size_t>(limits.io_chunk_bytes);
     InputState input(source.archive_path(), chunk_bytes);
@@ -579,14 +601,11 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
                 "Identity retail repack did not preserve the complete artifact identity.");
         }
 
-        path_error.clear();
-        std::filesystem::rename(temp_path, destination, path_error);
-        if (path_error) {
+        if (!publish_no_replace(temp_path, destination, path_error)) {
             return failure(
                 NbzZipRetailRepackStatus::destination_commit_failed,
-                "The validated temporary retail output could not be committed to its destination.");
+                "The validated temporary retail output could not be published without replacing an existing destination.");
         }
-        temp_guard.committed = true;
         return NbzZipRetailRepackResult{
             .status = NbzZipRetailRepackStatus::ok,
             .receipt = std::move(receipt),
@@ -982,14 +1001,11 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
             "The completed retail NBZ writer receipt violates its own bounds.");
     }
 
-    path_error.clear();
-    std::filesystem::rename(temp_path, destination, path_error);
-    if (path_error) {
+    if (!publish_no_replace(temp_path, destination, path_error)) {
         return failure(
             NbzZipRetailRepackStatus::destination_commit_failed,
-            "The validated temporary retail NBZ could not be committed to its destination.");
+            "The validated temporary retail NBZ could not be published without replacing an existing destination.");
     }
-    temp_guard.committed = true;
     return NbzZipRetailRepackResult{
         .status = NbzZipRetailRepackStatus::ok,
         .receipt = std::move(receipt),
