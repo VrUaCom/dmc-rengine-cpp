@@ -227,6 +227,12 @@ int main() {
             wrapped_result.bytes.data(), wrapped_result.bytes.size()});
     assert(wrapped_reparsed.ok());
 
+    const std::vector<dmc3::AuthoredTextureDds> empty_set;
+    assert(
+        dmc3::TextureSlotReintegrator::rebuild(
+            std::span<const std::byte>{wrapped.data(), wrapped.size()}, empty_set).status ==
+        dmc3::TextureSlotReintegrationStatus::no_authored_textures);
+
     const auto unchanged = authored_dds(wrapped, 0U, intrinsic_dds(wrapped, 0U));
     const std::vector<dmc3::AuthoredTextureDds> unchanged_set{unchanged};
     assert(
@@ -276,16 +282,16 @@ int main() {
             missing_index_set).status ==
         dmc3::TextureSlotReintegrationStatus::texture_not_found);
 
-    auto invalid_output_dds = intrinsic_dds(wrapped, 0U);
-    invalid_output_dds[16U] ^= std::byte{0x01};
-    const auto invalid_output = authored_dds(
-        wrapped, 0U, std::move(invalid_output_dds));
-    const std::vector<dmc3::AuthoredTextureDds> invalid_output_set{invalid_output};
+    auto changed_header_dds = intrinsic_dds(wrapped, 0U);
+    changed_header_dds[16U] ^= std::byte{0x01};
+    const auto changed_header = authored_dds(
+        wrapped, 0U, std::move(changed_header_dds));
+    const std::vector<dmc3::AuthoredTextureDds> changed_header_set{changed_header};
     assert(
         dmc3::TextureSlotReintegrator::rebuild(
             std::span<const std::byte>{wrapped.data(), wrapped.size()},
-            invalid_output_set).status ==
-        dmc3::TextureSlotReintegrationStatus::output_validation_failed);
+            changed_header_set).status ==
+        dmc3::TextureSlotReintegrationStatus::dds_header_changed);
 
     const std::vector<std::byte> arbitrary(0x200U, std::byte{0});
     assert(
