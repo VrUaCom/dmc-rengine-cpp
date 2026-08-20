@@ -76,15 +76,9 @@ void write_u32_le(
     return formats::PnstParser::parse(bytes);
 }
 
-[[nodiscard]] bool audited_complete_image_writer_mode(
-    std::string_view mode) noexcept {
-    return mode == "runtime-synth-relative-slot";
-}
-
 [[nodiscard]] bool supported_provider(
     ExactChildAuthorityKind kind) noexcept {
-    return kind == ExactChildAuthorityKind::format_writer_receipt ||
-        kind == ExactChildAuthorityKind::loose_resource ||
+    return kind == ExactChildAuthorityKind::loose_resource ||
         kind == ExactChildAuthorityKind::external_exact_resource;
 }
 
@@ -92,19 +86,11 @@ void write_u32_le(
     ExactChildAuthorityKind authority_kind,
     ExactChildExtentKind extent_kind,
     std::string_view writer_mode) noexcept {
-    switch (authority_kind) {
-    case ExactChildAuthorityKind::loose_resource:
-    case ExactChildAuthorityKind::external_exact_resource:
-        return extent_kind == ExactChildExtentKind::intrinsic_resource &&
-            writer_mode.empty();
-    case ExactChildAuthorityKind::format_writer_receipt:
-        return extent_kind ==
-                ExactChildExtentKind::writer_defined_complete_image &&
-            audited_complete_image_writer_mode(writer_mode);
-    case ExactChildAuthorityKind::container_extracted_span:
+    if (!supported_provider(authority_kind)) {
         return false;
     }
-    return false;
+    return extent_kind == ExactChildExtentKind::intrinsic_resource &&
+        writer_mode.empty();
 }
 
 } // namespace
@@ -246,6 +232,12 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
                 RuntimeSynthStatus::forbidden_extracted_span,
                 "Packed ContainerEntry extents are bounded extraction spans, not intrinsic child-file length authority.");
         }
+        if (child.authority_kind ==
+            ExactChildAuthorityKind::format_writer_receipt) {
+            return failure(
+                RuntimeSynthStatus::unproven_intrinsic_extent,
+                "Generic writer-receipt claims are not accepted as intrinsic extent proof. A future typed verified-result factory must bind complete-image writer output before it can feed a size-changing parent.");
+        }
         if (!supported_provider(child.authority_kind)) {
             return failure(
                 RuntimeSynthStatus::invalid_child_authority,
@@ -257,7 +249,7 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
                 child.writer_mode)) {
             return failure(
                 RuntimeSynthStatus::unproven_intrinsic_extent,
-                "Exact child bytes do not carry an accepted independent intrinsic-extent proof. Source-span-preserving or container-inferred extents cannot be laundered through a writer receipt.");
+                "Exact child bytes do not carry independent intrinsic-resource extent authority. Source-span-preserved or container-inferred extents cannot feed a size-changing parent.");
         }
         const auto actual_sha = sha256_of(std::span<const std::byte>{
             child.bytes.data(), child.bytes.size()});
