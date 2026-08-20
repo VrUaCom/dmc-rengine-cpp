@@ -1,0 +1,74 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-size-changing-texture-slot-serializer.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "depends_on": {
+    "pass80_descriptor_pairs": 154,
+    "pass81_dds_images": 243,
+    "source_artifact_sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+  },
+  "authoring_envelope": {
+    "source_texture_relationships_with_auxiliary_zero": 112,
+    "source_texture_relationships_total": 154,
+    "changed_source_auxiliary_mode_required": 0,
+    "changed_source_auxiliary_value_required": 0,
+    "authored_dds_profile": "standard_corpus",
+    "source_compression_preserved": true,
+    "authored_dimensions": "restricted to compression-specific standard-profile dimension pairs observed in the preserved real corpus",
+    "source_secondary_dimension_relation_preserved": "1x or 1/2x",
+    "exception_depth1_authoring_allowed": false
+  },
+  "bundle_layout_authority": {
+    "nonfinal_records": 71,
+    "nonfinal_rule_matches": "71/71",
+    "aligned_final_records": 41,
+    "aligned_final_rule_matches": "41/41",
+    "aligned_rule": "sector_span = ceil((0x70 + DDS_size) / 0x800)",
+    "compact_final_records": 17,
+    "compact_final_rule_matches": "17/17",
+    "compact_final_rule": "sector_span = 0 and DDS ends exactly at bundle EOF",
+    "unused_header_tail_zero": "58/58 bundles"
+  },
+  "writer": {
+    "name": "TextureSlotSizeSerializer",
+    "writer_mode": "size-changing-texture-slot-serialization",
+    "wrapped_dds_supported": true,
+    "texture_bundle_supported": true,
+    "source_dds_sha256_required": true,
+    "canonical_authored_dds_validation_required": true,
+    "canonical_output_texture_framing_reparse_required": true,
+    "authored_dds_exact_after_reparse_required": true,
+    "unchanged_bundle_records_byte_exact_required": true,
+    "output_sha256_receipt_required": true
+  },
+  "negative_gates": [
+    "invalid_source_framing",
+    "no_authored_textures",
+    "duplicate_texture_input",
+    "texture_not_found",
+    "missing_source_hash",
+    "source_dds_mismatch",
+    "authored_dds_invalid",
+    "authored_dds_exception_profile",
+    "source_auxiliary_unsupported",
+    "no_size_change",
+    "output_too_large",
+    "output_validation_failed",
+    "output_dds_mismatch",
+    "invalid_receipt"
+  ],
+  "validation_class": {
+    "bundle_span_rule": "independent-real-byte-corpus-analysis",
+    "compiled_current_writer_synthetic_execution": "required by CI",
+    "compiled_current_writer_real_corpus_execution": false
+  },
+  "boundaries": {
+    "nonzero_auxiliary_descriptor_authoring_closed": false,
+    "compression_change_authoring_closed": false,
+    "unobserved_dimension_authoring_closed": false,
+    "depth1_exception_authoring_closed": false,
+    "original_runtime_texture_abi_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
