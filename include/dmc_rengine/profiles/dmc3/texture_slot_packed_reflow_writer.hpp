@@ -21,6 +21,7 @@ enum class TextureSlotPackedReflowStatus : std::uint8_t {
     texture_not_found,
     missing_source_hash,
     source_dds_mismatch,
+    source_dds_invalid,
     authored_dds_invalid,
     compression_change_unsupported,
     unresolved_auxiliary_metadata,
@@ -42,6 +43,7 @@ enum class TextureSlotPackedReflowStatus : std::uint8_t {
     case TextureSlotPackedReflowStatus::texture_not_found: return "texture-not-found";
     case TextureSlotPackedReflowStatus::missing_source_hash: return "missing-source-hash";
     case TextureSlotPackedReflowStatus::source_dds_mismatch: return "source-dds-mismatch";
+    case TextureSlotPackedReflowStatus::source_dds_invalid: return "source-dds-invalid";
     case TextureSlotPackedReflowStatus::authored_dds_invalid: return "authored-dds-invalid";
     case TextureSlotPackedReflowStatus::compression_change_unsupported: return "compression-change-unsupported";
     case TextureSlotPackedReflowStatus::unresolved_auxiliary_metadata: return "unresolved-auxiliary-metadata";
@@ -106,11 +108,12 @@ struct TextureSlotPackedReflowResult final {
 class TextureSlotPackedReflowWriter final {
 public:
     // Size-changing DMC3 texture-slot authoring for the evidence-backed safe
-    // subset. Authored DDS bytes must pass Dmc3DdsProfile, keep the source DXT
-    // compression kind and originate from a source descriptor whose auxiliary
-    // pair is exactly zero. The source secondary-dimension relation (same or
-    // half) is preserved. Bundle record spans are rebuilt from the Pass 80/82
-    // corpus rule; compact-final vs aligned-final class is preserved.
+    // subset. Both bounded source DDS bytes and authored DDS bytes must pass
+    // Dmc3DdsProfile. The authored DDS keeps the source DXT compression kind
+    // and the source descriptor auxiliary pair must be exactly zero. The
+    // source secondary-dimension relation (same or half) is preserved. Bundle
+    // record spans are rebuilt from the Pass 80/82 corpus rule;
+    // compact-final vs aligned-final class is preserved.
     [[nodiscard]] static TextureSlotPackedReflowResult rebuild(
         std::span<const std::byte> source_physical_slot,
         std::span<const AuthoredPackedTextureDds> authored_textures,
