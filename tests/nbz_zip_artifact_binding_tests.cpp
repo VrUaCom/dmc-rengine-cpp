@@ -54,6 +54,24 @@ namespace {
     return bytes;
 }
 
+void put_u16_le(
+    std::span<std::byte> bytes,
+    std::size_t offset,
+    std::uint16_t value) {
+    bytes[offset] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+}
+
+void put_u32_le(
+    std::span<std::byte> bytes,
+    std::size_t offset,
+    std::uint32_t value) {
+    for (unsigned shift = 0U; shift < 32U; shift += 8U) {
+        bytes[offset + shift / 8U] =
+            static_cast<std::byte>((value >> shift) & 0xFFU);
+    }
+}
+
 [[nodiscard]] std::filesystem::path write_temp_nbz(
     std::span<const std::byte> bytes,
     std::string_view stem) {
@@ -423,11 +441,173 @@ int main() {
     assert(method8_payload.has_value());
     assert(method8_payload->bytes == method8_changed_bytes);
 
+    // Physical alias arbitration. Duplicate central identities can point at one
+    // local record, but a changed physical record must be acknowledged by every
+    // alias and all aliases must request byte-identical materialized payloads.
+    const std::vector<dmc3::NbzOverlayMember> alias_member{
+        dmc3::NbzOverlayMember{
+            .logical_path = "alias.bin",
+            .bytes = ascii("alias-original"),
+        },
+    };
+    const auto alias_base = dmc3::NbzStoreOverlayWriter::build(
+        bootstrap, alias_member);
+    assert(alias_base.ok());
+    assert(alias_base.receipt.has_value());
+    assert(alias_base.receipt->members.size() == 1U);
+
+    const auto alias_central_offset = static_cast<std::size_t>(
+        alias_base.receipt->central_offset);
+    const auto alias_central_size = static_cast<std::size_t>(
+        alias_base.receipt->central_size);
+    assert(alias_central_size > 0U);
+    assert(
+        alias_central_offset + alias_central_size + 22U ==
+        alias_base.bytes.size());
+
+    std::vector<std::byte> alias_fixture;
+    alias_fixture.reserve(alias_base.bytes.size() + alias_central_size);
+    alias_fixture.insert(
+        alias_fixture.end(),
+        alias_base.bytes.begin(),
+        alias_base.bytes.begin() +
+            static_cast<std::ptrdiff_t>(alias_central_offset));
+    const auto central_begin = alias_base.bytes.begin() +
+        static_cast<std::ptrdiff_t>(alias_central_offset);
+    const auto central_end = central_begin +
+        static_cast<std::ptrdiff_t>(alias_central_size);
+    alias_fixture.insert(alias_fixture.end(), central_begin, central_end);
+    alias_fixture.insert(alias_fixture.end(), central_begin, central_end);
+    const auto alias_eocd_offset = alias_fixture.size();
+    alias_fixture.insert(
+        alias_fixture.end(),
+        central_end,
+        alias_base.bytes.end());
+    assert(alias_fixture.size() == alias_base.bytes.size() + alias_central_size);
+    put_u16_le(alias_fixture, alias_eocd_offset + 8U, 2U);
+    put_u16_le(alias_fixture, alias_eocd_offset + 10U, 2U);
+    put_u32_le(
+        alias_fixture,
+        alias_eocd_offset + 12U,
+        static_cast<std::uint32_t>(alias_central_size * 2U));
+    put_u32_le(
+        alias_fixture,
+        alias_eocd_offset + 16U,
+        static_cast<std::uint32_t>(alias_central_offset));
+
+    const auto alias_source_path = write_temp_nbz(
+        alias_fixture, "retail-alias-source");
+    gdspaces::NbzZipSource alias_source(
+        "retail-alias-source", alias_source_path);
+    assert(alias_source.valid());
+    assert(alias_source.entries().size() == 2U);
+    assert(
+        alias_source.entries()[0].local_header_offset ==
+        alias_source.entries()[1].local_header_offset);
+
+    const auto alias_identity = artifact_for(alias_fixture);
+    const auto alias_bound = gdspaces::NbzZipArtifactSerializationBinder::bind(
+        alias_source,
+        alias_identity,
+        {},
+        gdspaces::NbzZipArtifactBindingLimits{.hash_chunk_bytes = 5U});
+    assert(alias_bound.ok());
+
+    const auto alias_changed = ascii("alias-expanded-replacement");
+    const auto alias_other = ascii("alias-conflicting-replacement");
+    const auto alias_incomplete_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-alias-incomplete.nbz";
+    remove_if_present(alias_incomplete_path);
+    const std::vector<gdspaces::NbzZipMemberReplacement> alias_incomplete{
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 0U,
+            .materialized_bytes = alias_changed,
+        },
+    };
+    const auto alias_incomplete_result = gdspaces::NbzZipRetailRepacker::write(
+        alias_source,
+        *alias_bound.snapshot,
+        alias_incomplete,
+        alias_incomplete_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 5U});
+    assert(!alias_incomplete_result.ok());
+    assert(
+        alias_incomplete_result.status ==
+        gdspaces::NbzZipRetailRepackStatus::alias_replacement_incomplete);
+    assert(!std::filesystem::exists(alias_incomplete_path));
+
+    const auto alias_conflict_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-alias-conflict.nbz";
+    remove_if_present(alias_conflict_path);
+    const std::vector<gdspaces::NbzZipMemberReplacement> alias_conflict{
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 0U,
+            .materialized_bytes = alias_changed,
+        },
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 1U,
+            .materialized_bytes = alias_other,
+        },
+    };
+    const auto alias_conflict_result = gdspaces::NbzZipRetailRepacker::write(
+        alias_source,
+        *alias_bound.snapshot,
+        alias_conflict,
+        alias_conflict_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 5U});
+    assert(!alias_conflict_result.ok());
+    assert(
+        alias_conflict_result.status ==
+        gdspaces::NbzZipRetailRepackStatus::alias_replacement_conflict);
+    assert(!std::filesystem::exists(alias_conflict_path));
+
+    const auto alias_output_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-alias-output.nbz";
+    remove_if_present(alias_output_path);
+    const std::vector<gdspaces::NbzZipMemberReplacement> alias_replacements{
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 0U,
+            .materialized_bytes = alias_changed,
+        },
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 1U,
+            .materialized_bytes = alias_changed,
+        },
+    };
+    const auto alias_repack = gdspaces::NbzZipRetailRepacker::write(
+        alias_source,
+        *alias_bound.snapshot,
+        alias_replacements,
+        alias_output_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 5U});
+    assert(alias_repack.ok());
+    assert(alias_repack.receipt->entries.size() == 2U);
+    assert(alias_repack.receipt->entries[0].changed);
+    assert(alias_repack.receipt->entries[1].changed);
+    assert(
+        alias_repack.receipt->entries[0].local_header_offset ==
+        alias_repack.receipt->entries[1].local_header_offset);
+
+    gdspaces::NbzZipSource alias_reopened(
+        "retail-alias-reopen", alias_output_path);
+    assert(alias_reopened.valid());
+    assert(alias_reopened.entries().size() == 2U);
+    assert(
+        alias_reopened.entries()[0].local_header_offset ==
+        alias_reopened.entries()[1].local_header_offset);
+    const auto alias_payload = read_path(alias_reopened, "alias.bin");
+    assert(alias_payload.has_value());
+    assert(alias_payload->bytes == alias_changed);
+
     std::error_code remove_error;
     std::filesystem::remove(path, remove_error);
     std::filesystem::remove(identity_path, remove_error);
     std::filesystem::remove(changed_path, remove_error);
     std::filesystem::remove(method8_source_path, remove_error);
     std::filesystem::remove(method8_output_path, remove_error);
+    std::filesystem::remove(alias_source_path, remove_error);
+    std::filesystem::remove(alias_incomplete_path, remove_error);
+    std::filesystem::remove(alias_conflict_path, remove_error);
+    std::filesystem::remove(alias_output_path, remove_error);
     return 0;
 }
