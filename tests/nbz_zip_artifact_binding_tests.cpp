@@ -14,6 +14,8 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -82,6 +84,9 @@ int main() {
     namespace gdspaces = dmc::rengine::gdspaces;
     namespace dmc3 = dmc::rengine::profiles::dmc3;
 
+    static_assert(!std::is_aggregate_v<
+        gdspaces::ArtifactBoundNbzZipSerializationSnapshot>);
+
     const auto bootstrap = dmc3::VolumeBootstrapPolicy::plan(
         std::vector<std::uint32_t>{0U, 1U});
     assert(bootstrap.valid());
@@ -112,13 +117,13 @@ int main() {
         gdspaces::NbzZipArtifactBindingLimits{.hash_chunk_bytes = 7U});
     assert(bound.ok());
     assert(bound.snapshot.has_value());
-    assert(bound.snapshot->artifact == expected);
-    assert(bound.snapshot->serialization.valid());
-    assert(bound.snapshot->serialization.source_id == source.id());
-    assert(bound.snapshot->serialization.archive_size == overlay.bytes.size());
-    assert(bound.snapshot->serialization.entries.size() == members.size());
-    assert(bound.snapshot->pre_scan_sha256 == expected.sha256);
-    assert(bound.snapshot->post_scan_sha256 == expected.sha256);
+    assert(bound.snapshot->artifact() == expected);
+    assert(bound.snapshot->serialization().valid());
+    assert(bound.snapshot->serialization().source_id == source.id());
+    assert(bound.snapshot->serialization().archive_size == overlay.bytes.size());
+    assert(bound.snapshot->serialization().entries.size() == members.size());
+    assert(bound.snapshot->pre_scan_sha256() == expected.sha256);
+    assert(bound.snapshot->post_scan_sha256() == expected.sha256);
 
     // ArtifactIdentity accepts hexadecimal case variants; binding compares the
     // digest semantically rather than requiring caller-specific text casing.
@@ -131,7 +136,7 @@ int main() {
             {},
             gdspaces::NbzZipArtifactBindingLimits{.hash_chunk_bytes = 13U});
     assert(uppercase_bound.ok());
-    assert(uppercase_bound.snapshot->artifact.sha256 == uppercase.sha256);
+    assert(uppercase_bound.snapshot->artifact().sha256 == uppercase.sha256);
 
     auto wrong_sha = expected;
     wrong_sha.sha256[0] = wrong_sha.sha256[0] == '0' ? '1' : '0';
