@@ -79,6 +79,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         relative_slot_writer
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
+        runtime_synth_format_registry
         nested_relative_slot_reintegrator
         sha256
         patch
