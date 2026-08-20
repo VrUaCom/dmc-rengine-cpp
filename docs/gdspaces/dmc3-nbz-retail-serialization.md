@@ -1,8 +1,8 @@
 # DMC3 NBZ retail serialization preservation
 
-Status: bounded implementation candidate for GDSpaces L1.
+Status: bounded GDSpaces L1 implementation; retail repack remains incomplete.
 
-This document defines the read-side preservation seam required before a no-loss retail NBZ repacker can exist.
+This document defines the read-side preservation and artifact-binding seams required before a no-loss retail NBZ repacker can exist.
 
 ## Ownership
 
@@ -13,6 +13,8 @@ NBZ -> index -> ResourceId -> stored member -> STORE/raw-DEFLATE -> materialized
 ```
 
 `NbzZipSerializationScanner` is a separate on-demand serialization authority. Ordinary reads do not pay its metadata-preservation cost and do not inherit writer ownership.
+
+`NbzZipArtifactSerializationBinder` is the exact-artifact trust seam. It does not own materialization or repacking.
 
 ## Preserved framing
 
@@ -30,27 +32,53 @@ For a valid indexed classic ZIP/NBZ source the scanner records:
 
 Descriptor, padding and unknown gap bytes are deliberately retained through the local-region source span without assigning semantics.
 
+## Exact artifact binding
+
+A serialization snapshot by itself is not trusted as a copier/repacker source. The binder requires a valid canonical `ArtifactIdentity` and performs:
+
+```text
+expected ArtifactIdentity
+  -> streaming SHA-256 pass A over exact archive bytes
+  -> require SHA/size match
+  -> NbzZipSerializationScanner
+  -> streaming SHA-256 pass B over the same path
+  -> require SHA A == SHA B == expected SHA
+  -> ArtifactBoundNbzZipSerializationSnapshot
+```
+
+`Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. The binding receipt therefore proves that the serialization scan was surrounded by two complete reads of the expected artifact identity.
+
+This closes scan-time stale-source/TOCTOU exposure only for that binding window. A future unchanged-region copier/repacker must independently revalidate the artifact at its own I/O boundary before and after consuming source spans.
+
 ## Safety
 
 The scanner is fail-closed and uses a separate metadata-memory budget. It does not copy member bodies into the snapshot. Duplicate central identities may alias one local-header offset only when their preserved local framing agrees exactly.
 
+Artifact binding is also fail-closed:
+
+- invalid `ArtifactIdentity` is rejected;
+- expected size must equal the indexed archive size;
+- hash chunks are bounded product policy;
+- exact archive size is checked around each streaming hash pass;
+- pre/post scan SHA values must both match the expected artifact;
+- a same-size archive replacement after source indexing is rejected by hash mismatch.
+
 ## What this does not prove
 
-The snapshot is **not**:
+The artifact-bound snapshot is **not**:
 
-- a cryptographic artifact identity;
 - a writer receipt;
 - a Capcom packer model;
 - proof that rewritten compressed streams can be byte-identical;
+- permission to trust the source path indefinitely after binding;
 - proof of original-game consumption.
-
-A future retail repacker must bind the snapshot/source spans to an exact artifact identity before copying bytes.
 
 ## No-loss progression
 
 ```text
 NbzZipSource
   -> NbzZipSerializationScanner
+  -> ArtifactIdentity + double streaming SHA binding
   -> artifact-bound serialization snapshot
   -> unchanged-region copier + changed-entry serializer
   -> rebuilt central/local offsets
