@@ -210,6 +210,38 @@ int main() {
         stale_source_result,
         "gdspaces.nbz.artifact-binding.hash-mismatch"));
 
+    // Stronger stale-index regression: replace only accepted EOCD receipt
+    // metadata, keep the archive size and entry framing intact, and provide the
+    // correct SHA-256 for the replacement artifact. A fresh NbzZipSource still
+    // accepts this ZIP with its compatibility warning, but the old source index
+    // must not receive authority over the replacement's terminal EOCD.
+    assert(source.index_receipt().has_value());
+    auto eocd_replacement_bytes = overlay.bytes;
+    const auto eocd_offset = static_cast<std::size_t>(
+        source.index_receipt()->eocd_offset);
+    assert(eocd_offset + 20U <= eocd_replacement_bytes.size());
+    eocd_replacement_bytes[eocd_offset + 16U] ^= std::byte{0x01};
+    const auto eocd_replacement_path =
+        write_temp_nbz(eocd_replacement_bytes, "artifact-binding");
+    assert(eocd_replacement_path == path);
+
+    gdspaces::NbzZipSource replacement_source(
+        "artifact-bound-replacement-source", path);
+    assert(replacement_source.valid());
+    assert(replacement_source.index_receipt().has_value());
+    assert(
+        replacement_source.index_receipt()->declared_central_offset !=
+        source.index_receipt()->declared_central_offset);
+
+    const auto replacement_identity = artifact_for(eocd_replacement_bytes);
+    const auto stale_eocd_result =
+        gdspaces::NbzZipArtifactSerializationBinder::bind(
+            source, replacement_identity);
+    assert(!stale_eocd_result.ok());
+    assert(has_error(
+        stale_eocd_result,
+        "gdspaces.nbz.serialization.eocd-receipt-mismatch"));
+
     // Restore the exact artifact and prove the same already-indexed source can
     // be rebound once its underlying bytes again match the expected identity.
     const auto restored_path =
