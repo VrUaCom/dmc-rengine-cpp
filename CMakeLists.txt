@@ -221,7 +221,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_compare_hits_spatial_usage
-        COMMAND dmc-rengine compare_hits_spatial)
+        COMMAND dmc-rengine compare-hits-spatial)
     set_tests_properties(
         dmc_rengine_cli_compare_hits_spatial_usage
         PROPERTIES WILL_FAIL TRUE)
