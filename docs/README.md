@@ -32,6 +32,7 @@
 - [DMC3 runtime-synth size-changing PAC/PNST writer](gdspaces/dmc3-runtime-synth-relative-slot-writer.md)
 - [DMC3 nested PAC/PNST reintegration](gdspaces/dmc3-nested-relative-slot-reintegration.md)
 - [DMC3 NBZ STORE overlay writer](gdspaces/dmc3-nbz-store-overlay-writer.md)
+- [DMC3 NBZ retail serialization preservation](gdspaces/dmc3-nbz-retail-serialization.md)
 
 The GDSpaces progress scale is operational only. `100% / COMPLETE` is permitted only when its mandatory closure gates are zero and the closing evidence/implementation is canonical in `main`.
 
