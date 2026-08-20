@@ -2,8 +2,23 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <vector>
+
+namespace {
+
+void put_u32(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::uint32_t value) {
+    bytes[offset + 0U] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+    bytes[offset + 2U] = static_cast<std::byte>((value >> 16U) & 0xFFU);
+    bytes[offset + 3U] = static_cast<std::byte>((value >> 24U) & 0xFFU);
+}
+
+} // namespace
 
 int main() {
     using dmc::rengine::gdspaces::GameProfile;
@@ -31,6 +46,51 @@ int main() {
     assert(pac_by_magic.format == "pac");
     assert(pac_by_magic.container);
     assert(pac_by_magic.magic_confirmed);
+
+    // Real extracted DMC3 corpora contain binary PNST payloads under misleading
+    // .pac names. A structurally valid relative-slot image must still classify
+    // by bytes rather than by extension.
+    std::vector<std::byte> binary_pnst(0x20U, std::byte{0});
+    binary_pnst[0] = std::byte{'P'};
+    binary_pnst[1] = std::byte{'N'};
+    binary_pnst[2] = std::byte{'S'};
+    binary_pnst[3] = std::byte{'T'};
+    put_u32(binary_pnst, 4U, 1U);
+    put_u32(binary_pnst, 8U, 0x10U);
+    binary_pnst[0x10U] = std::byte{'D'};
+    binary_pnst[0x11U] = std::byte{'D'};
+    binary_pnst[0x12U] = std::byte{'S'};
+    binary_pnst[0x13U] = std::byte{' '};
+    const auto pnst_under_pac = ResourceClassifier::classify(
+        "stage/st445_005.pac", std::span<const std::byte>{binary_pnst});
+    assert(pnst_under_pac.format == "pnst");
+    assert(pnst_under_pac.container);
+    assert(pnst_under_pac.magic_confirmed);
+
+    // Real .index manifests also start with the literal text line "PNST\r\n".
+    // Prefix-only classification would turn those text indices into fake binary
+    // containers. Structural PNST validation must fail and path extension must
+    // remain the classification authority.
+    const std::vector<std::byte> text_pnst_index{
+        std::byte{'P'}, std::byte{'N'}, std::byte{'S'}, std::byte{'T'},
+        std::byte{'\r'}, std::byte{'\n'},
+        std::byte{'e'}, std::byte{'m'}, std::byte{'0'}, std::byte{'3'},
+        std::byte{'5'}, std::byte{'_'}, std::byte{'0'}, std::byte{'5'},
+        std::byte{'7'}, std::byte{'_'}, std::byte{'0'}, std::byte{'0'},
+        std::byte{'0'}, std::byte{'.'}, std::byte{'t'}, std::byte{'x'},
+        std::byte{'t'}, std::byte{'\r'}, std::byte{'\n'},
+    };
+    const auto text_index = ResourceClassifier::classify(
+        "em035_057.index", std::span<const std::byte>{text_pnst_index});
+    assert(text_index.format == "index");
+    assert(!text_index.container);
+    assert(!text_index.magic_confirmed);
+
+    const auto invalid_pnst_unknown = ResourceClassifier::classify(
+        "unknown/blob.bin", std::span<const std::byte>{text_pnst_index});
+    assert(invalid_pnst_unknown.format == "bin");
+    assert(!invalid_pnst_unknown.container);
+    assert(!invalid_pnst_unknown.magic_confirmed);
 
     // Canonical HITS magic is exactly the four-byte prefix "HITS".
     // The following header byte is format data, not a '$' magic suffix.
