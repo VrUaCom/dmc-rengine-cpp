@@ -61,6 +61,12 @@ add_executable(dmc-rengine
 target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
 dmc_rengine_enable_warnings(dmc-rengine)
 
+add_executable(dmc-rengine-texture-corpus-reflow
+    tools/texture_corpus_reflow_runner.cpp
+)
+target_link_libraries(dmc-rengine-texture-corpus-reflow PRIVATE DMCRengine::Core)
+dmc_rengine_enable_warnings(dmc-rengine-texture-corpus-reflow)
+
 include(CTest)
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
