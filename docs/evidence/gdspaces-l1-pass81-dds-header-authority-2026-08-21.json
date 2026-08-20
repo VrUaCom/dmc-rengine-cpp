@@ -1,0 +1,72 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-dds-header-authority.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "source_artifact": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "size_bytes": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f"
+  },
+  "population": {
+    "descriptor_backed_dds": 154,
+    "dxt1": 47,
+    "dxt5": 107,
+    "observed_dimensions": [
+      "128x64",
+      "128x128",
+      "256x128",
+      "256x256",
+      "256x512",
+      "512x256",
+      "512x512",
+      "1024x1024"
+    ]
+  },
+  "exact_header_profile_154_of_154": {
+    "magic": "DDS ",
+    "dwSize": 124,
+    "dwFlags_hex": "0x000A1007",
+    "dwDepth": 0,
+    "dwMipMapCount": "full chain to 1x1",
+    "reserved1_u32_count": 11,
+    "reserved1_all_zero": true,
+    "pixel_format_size": 32,
+    "pixel_format_flags": 4,
+    "rgb_bit_count": 0,
+    "rgba_masks_all_zero": true,
+    "dwCaps_hex": "0x00401008",
+    "dwCaps2": 0,
+    "dwCaps3": 0,
+    "dwCaps4": 0,
+    "dwReserved2": 0,
+    "dxt1_dwPitchOrLinearSize_hex": "0x00010000",
+    "dxt5_dwPitchOrLinearSize_hex": "0x00020000"
+  },
+  "reconstruction": {
+    "inputs": ["width", "height", "DXT1_or_DXT5"],
+    "canonical_128_byte_header_exact_matches": 154,
+    "canonical_128_byte_header_mismatches": 0,
+    "payload_rule": "exact standard block-compressed full mip-chain bytes",
+    "entire_header_derivable_from_inputs": true
+  },
+  "authoring_envelope": {
+    "product_min_dimension": 64,
+    "product_max_dimension": 1024,
+    "power_of_two_required": true,
+    "note": "Product-side evidenced authoring envelope; not an original runtime maximum claim."
+  },
+  "next_size_changing_boundary": {
+    "descriptor_population_total": 154,
+    "auxiliary_mode_zero": 112,
+    "auxiliary_mode_nonzero_unresolved": 42,
+    "initial_safe_serializer_policy": "permit size-changing structural authoring only from source descriptors with auxiliary_mode=0; preserve the source secondary-dimension ratio and fail closed on unresolved auxiliary cases"
+  },
+  "boundaries": {
+    "dxt3_closed": false,
+    "non_power_of_two_runtime_support_claimed": false,
+    "dimensions_above_1024_runtime_support_claimed": false,
+    "auxiliary_nonzero_semantics_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
