@@ -1,6 +1,7 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/evidence/artifact.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_artifact_binding.hpp"
+#include "dmc_rengine/gdspaces/nbz_zip_repacker.hpp"
 #include "dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
@@ -42,6 +43,14 @@ namespace {
     return path;
 }
 
+void remove_if_present(const std::filesystem::path& path) {
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    std::filesystem::remove(
+        std::filesystem::path{path.string() + ".dmc-rengine-repack.tmp"},
+        error);
+}
+
 [[nodiscard]] std::string uppercase_hex(std::string value) {
     std::transform(
         value.begin(), value.end(), value.begin(),
@@ -76,6 +85,22 @@ namespace {
                     dmc::rengine::gdspaces::DiagnosticSeverity::error &&
                 diagnostic.code == code;
         });
+}
+
+[[nodiscard]] std::optional<dmc::rengine::gdspaces::ResourcePayload>
+read_path(
+    const dmc::rengine::gdspaces::NbzZipSource& source,
+    std::string_view logical_path) {
+    const auto refs = source.enumerate();
+    const auto found = std::find_if(
+        refs.begin(), refs.end(),
+        [logical_path](const auto& resource) {
+            return resource.id.logical_path == logical_path;
+        });
+    if (found == refs.end()) {
+        return std::nullopt;
+    }
+    return source.read(found->id);
 }
 
 } // namespace
@@ -252,7 +277,67 @@ int main() {
     assert(rebound.ok());
     assert(rebound.snapshot->observed_sha256() == expected.sha256);
 
+    // Writer-side identity invariant: invoking the retail repacker with no
+    // replacements must preserve the complete archive byte identity.
+    const auto identity_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-identity.nbz";
+    remove_if_present(identity_path);
+    const auto identity_repack = gdspaces::NbzZipRetailRepacker::write(
+        source,
+        *rebound.snapshot,
+        {},
+        identity_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 11U});
+    assert(identity_repack.ok());
+    assert(identity_repack.receipt->source_sha256 == expected.sha256);
+    assert(identity_repack.receipt->output_sha256 == expected.sha256);
+    assert(identity_repack.receipt->source_size == overlay.bytes.size());
+    assert(identity_repack.receipt->output_size == overlay.bytes.size());
+
+    // First size-changing retail authoring receipt. The first STORE member grows
+    // while the second physical local region stays opaque/byte-preserved; local
+    // offsets, central metadata and EOCD are rebuilt and canonical reopen must
+    // materialize the exact requested bytes.
+    const auto changed_bytes = ascii(
+        "artifact-bound-member-expanded-for-retail-repack");
+    const std::vector<gdspaces::NbzZipMemberReplacement> replacements{
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 0U,
+            .materialized_bytes = changed_bytes,
+        },
+    };
+    const auto changed_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-changed.nbz";
+    remove_if_present(changed_path);
+    const auto changed_repack = gdspaces::NbzZipRetailRepacker::write(
+        source,
+        *rebound.snapshot,
+        replacements,
+        changed_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 13U});
+    assert(changed_repack.ok());
+    assert(changed_repack.receipt->output_size > overlay.bytes.size());
+    assert(changed_repack.receipt->entries.size() == members.size());
+    assert(changed_repack.receipt->entries[0].changed);
+    assert(!changed_repack.receipt->entries[1].changed);
+    assert(
+        changed_repack.receipt->entries[1].local_header_offset >
+        source.entries()[1].local_header_offset);
+
+    gdspaces::NbzZipSource changed_source(
+        "retail-changed-reopen", changed_path);
+    assert(changed_source.valid());
+    const auto changed_payload = read_path(changed_source, "GData.afs/test.bin");
+    assert(changed_payload.has_value());
+    assert(changed_payload->bytes == changed_bytes);
+    const auto untouched_payload = read_path(
+        changed_source, "SAVEDATA/second.bin");
+    assert(untouched_payload.has_value());
+    assert(untouched_payload->bytes == members[1].bytes);
+
     std::error_code remove_error;
     std::filesystem::remove(path, remove_error);
+    std::filesystem::remove(identity_path, remove_error);
+    std::filesystem::remove(changed_path, remove_error);
     return 0;
 }
