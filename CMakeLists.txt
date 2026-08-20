@@ -79,6 +79,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         runtime_resource_resolver
         loose_container_list
         relative_slot_writer
+        relative_slot_packed_reflow_writer
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
         runtime_synth_format_registry
