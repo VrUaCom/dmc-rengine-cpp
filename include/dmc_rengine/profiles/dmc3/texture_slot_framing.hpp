@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/dds_image.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -13,10 +15,9 @@ enum class TextureSlotFramingKind : std::uint8_t {
     texture_bundle,
 };
 
-enum class TextureCompressionKind : std::uint8_t {
-    dxt1,
-    dxt5,
-};
+// Compatibility name for existing texture-framing callers. DDS compression
+// identity is owned by the lower DdsImageParser layer from Pass 81.
+using TextureCompressionKind = DdsCompressionKind;
 
 enum class TextureSlotFramingStatus : std::uint8_t {
     ok,
@@ -108,9 +109,9 @@ public:
 
     // Parses the two texture-slot physical framings evidenced by the preserved
     // DMC3 v6 real corpus. Pass 80 validates the complete 0x70-byte descriptor
-    // structural envelope: constants/zeros, DDS-derived fields, secondary
-    // dimensions + exact reciprocal floats, and the bounded auxiliary pair.
-    // Semantic names are not inferred for the auxiliary/secondary fields.
+    // structural envelope. Pass 81 delegates intrinsic DDS structural authority
+    // to DdsImageParser so descriptor framing cannot maintain a second,
+    // divergent interpretation of the same DDS bytes.
     [[nodiscard]] static TextureSlotFramingResult parse(
         std::span<const std::byte> bytes,
         TextureSlotFramingSafety safety = {});
