@@ -57,20 +57,74 @@ enum class ExactChildExtentKind : std::uint8_t {
     return "container-inferred-span";
 }
 
-struct ExactChildImage final {
-    std::uint32_t slot_index{};
-    ExactChildAuthorityKind authority_kind{
-        ExactChildAuthorityKind::container_extracted_span};
-    ExactChildExtentKind extent_kind{
-        ExactChildExtentKind::container_inferred_span};
-    std::string authority_id;
-    std::string writer_mode;
-    std::string sha256;
-    std::vector<std::byte> bytes;
+struct RuntimeSynthResult;
 
-    [[nodiscard]] bool valid_envelope() const noexcept {
-        return !authority_id.empty() && sha256.size() == 64U && !bytes.empty();
+class ExactChildImage final {
+public:
+    ExactChildImage(const ExactChildImage&) = default;
+    ExactChildImage(ExactChildImage&&) noexcept = default;
+    ExactChildImage& operator=(const ExactChildImage&) = default;
+    ExactChildImage& operator=(ExactChildImage&&) noexcept = default;
+    ~ExactChildImage() = default;
+
+    // Caller-owned exact resource authority. The factory computes the hash and
+    // only accepts independently intrinsic standalone resource providers.
+    [[nodiscard]] static std::optional<ExactChildImage> from_intrinsic_resource(
+        std::uint32_t slot_index,
+        ExactChildAuthorityKind authority_kind,
+        std::string authority_id,
+        std::vector<std::byte> bytes);
+
+    // Typed complete-image authority. A caller cannot self-declare a writer
+    // receipt: this factory accepts only a currently valid successful
+    // RuntimeSynthResult and derives all provenance/hash fields from it.
+    [[nodiscard]] static std::optional<ExactChildImage>
+    from_verified_runtime_synth_result(
+        std::uint32_t slot_index,
+        const RuntimeSynthResult& result);
+
+    [[nodiscard]] std::uint32_t slot_index() const noexcept {
+        return slot_index_;
     }
+    [[nodiscard]] ExactChildAuthorityKind authority_kind() const noexcept {
+        return authority_kind_;
+    }
+    [[nodiscard]] ExactChildExtentKind extent_kind() const noexcept {
+        return extent_kind_;
+    }
+    [[nodiscard]] const std::string& authority_id() const noexcept {
+        return authority_id_;
+    }
+    [[nodiscard]] const std::string& writer_mode() const noexcept {
+        return writer_mode_;
+    }
+    [[nodiscard]] const std::string& sha256() const noexcept {
+        return sha256_;
+    }
+    [[nodiscard]] const std::vector<std::byte>& bytes() const noexcept {
+        return bytes_;
+    }
+    [[nodiscard]] bool valid_envelope() const noexcept;
+
+private:
+    ExactChildImage(
+        std::uint32_t slot_index,
+        ExactChildAuthorityKind authority_kind,
+        ExactChildExtentKind extent_kind,
+        std::string authority_id,
+        std::string writer_mode,
+        std::string sha256,
+        std::vector<std::byte> bytes);
+
+    std::uint32_t slot_index_{};
+    ExactChildAuthorityKind authority_kind_{
+        ExactChildAuthorityKind::container_extracted_span};
+    ExactChildExtentKind extent_kind_{
+        ExactChildExtentKind::container_inferred_span};
+    std::string authority_id_;
+    std::string writer_mode_;
+    std::string sha256_;
+    std::vector<std::byte> bytes_;
 };
 
 struct RuntimeSynthSafetyLimits final {
@@ -125,19 +179,64 @@ enum class RuntimeSynthStatus : std::uint8_t {
     return "invalid-receipt";
 }
 
-struct RuntimeSynthChildReceipt final {
-    std::uint32_t slot_index{};
-    ExactChildAuthorityKind authority_kind{
-        ExactChildAuthorityKind::container_extracted_span};
-    ExactChildExtentKind extent_kind{
-        ExactChildExtentKind::container_inferred_span};
-    std::string authority_id;
-    std::string writer_mode;
-    std::string input_sha256;
-    std::uint64_t intrinsic_size{};
-    std::uint64_t emitted_offset{};
+class RuntimeSynthChildReceipt final {
+public:
+    RuntimeSynthChildReceipt(const RuntimeSynthChildReceipt&) = default;
+    RuntimeSynthChildReceipt(RuntimeSynthChildReceipt&&) noexcept = default;
+    RuntimeSynthChildReceipt& operator=(const RuntimeSynthChildReceipt&) = default;
+    RuntimeSynthChildReceipt& operator=(RuntimeSynthChildReceipt&&) noexcept = default;
+    ~RuntimeSynthChildReceipt() = default;
+
+    [[nodiscard]] std::uint32_t slot_index() const noexcept {
+        return slot_index_;
+    }
+    [[nodiscard]] ExactChildAuthorityKind authority_kind() const noexcept {
+        return authority_kind_;
+    }
+    [[nodiscard]] ExactChildExtentKind extent_kind() const noexcept {
+        return extent_kind_;
+    }
+    [[nodiscard]] const std::string& authority_id() const noexcept {
+        return authority_id_;
+    }
+    [[nodiscard]] const std::string& writer_mode() const noexcept {
+        return writer_mode_;
+    }
+    [[nodiscard]] const std::string& input_sha256() const noexcept {
+        return input_sha256_;
+    }
+    [[nodiscard]] std::uint64_t intrinsic_size() const noexcept {
+        return intrinsic_size_;
+    }
+    [[nodiscard]] std::uint64_t emitted_offset() const noexcept {
+        return emitted_offset_;
+    }
 
     [[nodiscard]] bool valid() const noexcept;
+
+private:
+    friend class RuntimeSynthRelativeSlotWriter;
+
+    RuntimeSynthChildReceipt(
+        std::uint32_t slot_index,
+        ExactChildAuthorityKind authority_kind,
+        ExactChildExtentKind extent_kind,
+        std::string authority_id,
+        std::string writer_mode,
+        std::string input_sha256,
+        std::uint64_t intrinsic_size,
+        std::uint64_t emitted_offset);
+
+    std::uint32_t slot_index_{};
+    ExactChildAuthorityKind authority_kind_{
+        ExactChildAuthorityKind::container_extracted_span};
+    ExactChildExtentKind extent_kind_{
+        ExactChildExtentKind::container_inferred_span};
+    std::string authority_id_;
+    std::string writer_mode_;
+    std::string input_sha256_;
+    std::uint64_t intrinsic_size_{};
+    std::uint64_t emitted_offset_{};
 };
 
 struct RuntimeSynthReceipt final {
@@ -164,9 +263,9 @@ struct RuntimeSynthResult final {
 class RuntimeSynthRelativeSlotWriter final {
 public:
     // Rebuilds an existing PAC/PNST into the recovered runtime-synthesized
-    // relative-slot layout. Slot count/occupancy are preserved; every
-    // populated slot requires explicit bytes plus independently justified
-    // intrinsic extent authority.
+    // relative-slot layout. Slot count/occupancy are preserved. Exact child
+    // inputs are capability objects created by factories, so complete-image
+    // writer provenance cannot be self-declared with forgeable strings.
     [[nodiscard]] static RuntimeSynthResult rebuild(
         const gdspaces::ResourcePayload& source,
         std::span<const ExactChildImage> exact_children,

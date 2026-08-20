@@ -1,4 +1,3 @@
-#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/pac.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_synth_relative_slot_writer.hpp"
@@ -7,7 +6,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -82,11 +80,6 @@ dmc::rengine::gdspaces::ResourcePayload payload(
     };
 }
 
-std::string sha256_of(const std::vector<std::byte>& bytes) {
-    return dmc::rengine::core::Sha256::compute(
-        std::span<const std::byte>{bytes.data(), bytes.size()}).hex();
-}
-
 std::vector<std::byte> repeated(std::size_t count, std::byte value) {
     return std::vector<std::byte>(count, value);
 }
@@ -94,20 +87,13 @@ std::vector<std::byte> repeated(std::size_t count, std::byte value) {
 dmc::rengine::profiles::dmc3::ExactChildImage exact_child(
     std::uint32_t slot,
     dmc::rengine::profiles::dmc3::ExactChildAuthorityKind authority_kind,
-    dmc::rengine::profiles::dmc3::ExactChildExtentKind extent_kind,
     std::string authority,
-    std::vector<std::byte> bytes,
-    std::string writer_mode = {}) {
-    const auto sha = sha256_of(bytes);
-    return dmc::rengine::profiles::dmc3::ExactChildImage{
-        .slot_index = slot,
-        .authority_kind = authority_kind,
-        .extent_kind = extent_kind,
-        .authority_id = std::move(authority),
-        .writer_mode = std::move(writer_mode),
-        .sha256 = sha,
-        .bytes = std::move(bytes),
-    };
+    std::vector<std::byte> bytes) {
+    auto child = dmc::rengine::profiles::dmc3::ExactChildImage::
+        from_intrinsic_resource(
+            slot, authority_kind, std::move(authority), std::move(bytes));
+    assert(child.has_value());
+    return std::move(*child);
 }
 
 } // namespace
@@ -124,13 +110,11 @@ int main() {
         exact_child(
             0U,
             dmc3::ExactChildAuthorityKind::external_exact_resource,
-            dmc3::ExactChildExtentKind::intrinsic_resource,
             "external:slot0",
             {std::byte{0x11}, std::byte{0x22}, std::byte{0x33}}),
         exact_child(
             2U,
             dmc3::ExactChildAuthorityKind::loose_resource,
-            dmc3::ExactChildExtentKind::intrinsic_resource,
             "loose:GData.afs/child2.bin",
             repeated(70U, std::byte{0x5A})),
     };
@@ -141,15 +125,15 @@ int main() {
     assert(rebuilt.bytes.size() == 0x100U);
     assert(rebuilt.receipt->writer_mode == "runtime-synth-relative-slot");
     assert(rebuilt.receipt->children.size() == 2U);
-    assert(rebuilt.receipt->children[0].slot_index == 0U);
+    assert(rebuilt.receipt->children[0].slot_index() == 0U);
     assert(
-        rebuilt.receipt->children[0].extent_kind ==
+        rebuilt.receipt->children[0].extent_kind() ==
         dmc3::ExactChildExtentKind::intrinsic_resource);
-    assert(rebuilt.receipt->children[0].emitted_offset == 0x40U);
-    assert(rebuilt.receipt->children[0].intrinsic_size == 3U);
-    assert(rebuilt.receipt->children[1].slot_index == 2U);
-    assert(rebuilt.receipt->children[1].emitted_offset == 0x80U);
-    assert(rebuilt.receipt->children[1].intrinsic_size == 70U);
+    assert(rebuilt.receipt->children[0].emitted_offset() == 0x40U);
+    assert(rebuilt.receipt->children[0].intrinsic_size() == 3U);
+    assert(rebuilt.receipt->children[1].slot_index() == 2U);
+    assert(rebuilt.receipt->children[1].emitted_offset() == 0x80U);
+    assert(rebuilt.receipt->children[1].intrinsic_size() == 70U);
 
     const auto parsed = formats::PacParser::parse(rebuilt.bytes);
     assert(parsed.ok());
@@ -190,7 +174,6 @@ int main() {
     for_empty.push_back(exact_child(
         1U,
         dmc3::ExactChildAuthorityKind::external_exact_resource,
-        dmc3::ExactChildExtentKind::intrinsic_resource,
         "external:empty-slot",
         {std::byte{1}}));
     assert(
@@ -209,7 +192,6 @@ int main() {
     unknown.push_back(exact_child(
         99U,
         dmc3::ExactChildAuthorityKind::external_exact_resource,
-        dmc3::ExactChildExtentKind::intrinsic_resource,
         "external:unknown-slot",
         {std::byte{1}}));
     assert(
@@ -217,51 +199,27 @@ int main() {
             pac_source, unknown).status ==
         dmc3::RuntimeSynthStatus::unknown_child_slot);
 
-    auto forbidden = children;
-    forbidden[0].authority_kind =
-        dmc3::ExactChildAuthorityKind::container_extracted_span;
-    forbidden[0].extent_kind =
-        dmc3::ExactChildExtentKind::container_inferred_span;
-    forbidden[0].authority_id = "parent-span:0x20+0x20";
-    assert(
-        dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
-            pac_source, forbidden).status ==
-        dmc3::RuntimeSynthStatus::forbidden_extracted_span);
-
-    auto source_span_preserved = children;
-    source_span_preserved[0].extent_kind =
-        dmc3::ExactChildExtentKind::source_span_preserved;
-    assert(
-        dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
-            pac_source, source_span_preserved).status ==
-        dmc3::RuntimeSynthStatus::unproven_intrinsic_extent);
-
-    auto inferred_span = children;
-    inferred_span[0].extent_kind =
-        dmc3::ExactChildExtentKind::container_inferred_span;
-    assert(
-        dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
-            pac_source, inferred_span).status ==
-        dmc3::RuntimeSynthStatus::unproven_intrinsic_extent);
-
-    auto forged_writer_receipt = children;
-    forged_writer_receipt[0].authority_kind =
-        dmc3::ExactChildAuthorityKind::format_writer_receipt;
-    forged_writer_receipt[0].extent_kind =
-        dmc3::ExactChildExtentKind::writer_defined_complete_image;
-    forged_writer_receipt[0].authority_id = "forged:runtime-synth-receipt";
-    forged_writer_receipt[0].writer_mode = "runtime-synth-relative-slot";
-    assert(
-        dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
-            pac_source, forged_writer_receipt).status ==
-        dmc3::RuntimeSynthStatus::unproven_intrinsic_extent);
-
-    auto bad_hash = children;
-    bad_hash.front().sha256.assign(64U, '0');
-    assert(
-        dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
-            pac_source, bad_hash).status ==
-        dmc3::RuntimeSynthStatus::child_hash_mismatch);
+    // Rejected provider/extent classes cannot be instantiated as capabilities.
+    assert(!dmc3::ExactChildImage::from_intrinsic_resource(
+        0U,
+        dmc3::ExactChildAuthorityKind::container_extracted_span,
+        "parent-span:0x20+0x20",
+        {std::byte{1}}).has_value());
+    assert(!dmc3::ExactChildImage::from_intrinsic_resource(
+        0U,
+        dmc3::ExactChildAuthorityKind::format_writer_receipt,
+        "forged:writer-receipt",
+        {std::byte{1}}).has_value());
+    assert(!dmc3::ExactChildImage::from_intrinsic_resource(
+        0U,
+        dmc3::ExactChildAuthorityKind::external_exact_resource,
+        {},
+        {std::byte{1}}).has_value());
+    assert(!dmc3::ExactChildImage::from_intrinsic_resource(
+        0U,
+        dmc3::ExactChildAuthorityKind::external_exact_resource,
+        "external:empty",
+        {}).has_value());
 
     assert(
         dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
