@@ -149,12 +149,43 @@ void add_error(
 
 } // namespace
 
+ArtifactBoundNbzZipSerializationSnapshot::
+ArtifactBoundNbzZipSerializationSnapshot(
+    evidence::ArtifactIdentity artifact,
+    NbzZipSerializationSnapshot serialization,
+    std::string pre_scan_sha256,
+    std::string post_scan_sha256)
+    : artifact_(std::move(artifact)),
+      serialization_(std::move(serialization)),
+      pre_scan_sha256_(std::move(pre_scan_sha256)),
+      post_scan_sha256_(std::move(post_scan_sha256)) {}
+
+const evidence::ArtifactIdentity&
+ArtifactBoundNbzZipSerializationSnapshot::artifact() const noexcept {
+    return artifact_;
+}
+
+const NbzZipSerializationSnapshot&
+ArtifactBoundNbzZipSerializationSnapshot::serialization() const noexcept {
+    return serialization_;
+}
+
+std::string_view
+ArtifactBoundNbzZipSerializationSnapshot::pre_scan_sha256() const noexcept {
+    return pre_scan_sha256_;
+}
+
+std::string_view
+ArtifactBoundNbzZipSerializationSnapshot::post_scan_sha256() const noexcept {
+    return post_scan_sha256_;
+}
+
 bool ArtifactBoundNbzZipSerializationSnapshot::valid() const noexcept {
-    return artifact.valid() && serialization.valid() &&
-        artifact.size == serialization.archive_size &&
-        same_hex_digest(artifact.sha256, pre_scan_sha256) &&
-        same_hex_digest(artifact.sha256, post_scan_sha256) &&
-        same_hex_digest(pre_scan_sha256, post_scan_sha256);
+    return artifact_.valid() && serialization_.valid() &&
+        artifact_.size == serialization_.archive_size &&
+        same_hex_digest(artifact_.sha256, pre_scan_sha256_) &&
+        same_hex_digest(artifact_.sha256, post_scan_sha256_) &&
+        same_hex_digest(pre_scan_sha256_, post_scan_sha256_);
 }
 
 bool NbzZipArtifactBindingResult::ok() const noexcept {
@@ -246,12 +277,11 @@ NbzZipArtifactBindingResult NbzZipArtifactSerializationBinder::bind(
         return result;
     }
 
-    ArtifactBoundNbzZipSerializationSnapshot bound{
-        .artifact = expected_artifact,
-        .serialization = std::move(*scan.snapshot),
-        .pre_scan_sha256 = std::move(*pre_scan),
-        .post_scan_sha256 = std::move(*post_scan),
-    };
+    ArtifactBoundNbzZipSerializationSnapshot bound(
+        expected_artifact,
+        std::move(*scan.snapshot),
+        std::move(*pre_scan),
+        std::move(*post_scan));
     if (!bound.valid()) {
         add_error(
             result,
