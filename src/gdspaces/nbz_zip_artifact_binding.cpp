@@ -21,6 +21,7 @@ namespace {
 constexpr std::uint64_t max_hash_chunk_bytes = 64ULL * 1024ULL * 1024ULL;
 constexpr std::size_t central_fixed_size = 46U;
 constexpr std::size_t local_fixed_size = 30U;
+constexpr std::size_t eocd_fixed_size = 22U;
 
 struct CaptureRange final {
     std::uint64_t offset{};
@@ -135,7 +136,7 @@ void add_error(
     const auto& receipt = *source.index_receipt();
     const auto& indexed_entries = source.entries();
 
-    if (limits.max_metadata_bytes < 22U ||
+    if (limits.max_metadata_bytes < eocd_fixed_size ||
         receipt.computed_central_start > receipt.eocd_offset ||
         receipt.eocd_offset > receipt.archive_size) {
         add_error(
@@ -421,19 +422,26 @@ void capture_chunk(
         return false;
     }
 
-    const auto found = std::find_if(
-        ranges.begin(), ranges.end(),
-        [offset, end](const CaptureRange& range) {
-            return offset >= range.offset && end <= range.end;
+    // Capture ranges are sorted and non-overlapping. Find the first range that
+    // starts after the requested offset, then inspect its predecessor. This
+    // keeps every scanner read O(log n) even for very large central tables.
+    auto after = std::upper_bound(
+        ranges.begin(), ranges.end(), offset,
+        [](std::uint64_t value, const CaptureRange& range) {
+            return value < range.offset;
         });
-    if (found == ranges.end()) {
+    if (after == ranges.begin()) {
+        return false;
+    }
+    --after;
+    if (offset < after->offset || end > after->end) {
         return false;
     }
 
     const auto source_offset =
-        static_cast<std::size_t>(offset - found->offset);
+        static_cast<std::size_t>(offset - after->offset);
     std::copy_n(
-        found->bytes.begin() +
+        after->bytes.begin() +
             static_cast<std::ptrdiff_t>(source_offset),
         static_cast<std::ptrdiff_t>(output.size()),
         output.begin());
