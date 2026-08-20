@@ -1,280 +1,124 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-05  
-**Snapshot base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`
+**Snapshot date:** 2026-08-20  
+**Snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`
 
 ## R-001 — Second resolver regression
 
 **Severity:** critical
 
-A subsystem may reintroduce direct path or container loading for convenience.
+A subsystem may reintroduce direct path/container loading for convenience.
 
-Mitigation:
+Mitigation: all tools consume GDSpaces identities/payloads/shared workspaces; parsers consume supplied spans; no editor owns a second source resolver.
 
-- public tool contracts accept `ResourceRef`, `ResourcePayload`, shared workspaces, or typed bundles;
-- parsers consume supplied byte spans rather than opening paths;
-- architecture tests and review checklist;
-- no filesystem handles in editor identity;
-- GDSpaces-backed CLI loading;
-- no tool-specific archive mount path.
+## R-002 — Layer mixing / false completion
 
-## R-002 — Historical claim inflation
+**Severity:** critical
 
-**Severity:** high
+L2 resolver progress or L3 runtime/lifecycle reverse may be counted as L1 completion, or synthetic tests may be promoted into game-equivalence claims.
 
-Old research summaries or recovered source may be interpreted as implemented, fully confirmed, or original Capcom source.
+Mitigation: canonical L1/L2/L3/V separation, [reverse-progress scale](../gdspaces/reverse-progress-scale.md), and strict `100% / COMPLETE` gate requiring zero mandatory blockers plus real receipts.
 
-Mitigation:
-
-- GitHub `main` is implementation truth;
-- Drive is newer research input;
-- explicit confidence and implementation states;
-- Evidence Packets tied to artifact hashes and locations;
-- corrections and rejected models remain visible;
-- recovered C++ is described as independent evidence-backed reconstruction.
-
-## R-003 — Parser vulnerabilities
+## R-003 — Semantic leakage into GDSpaces
 
 **Severity:** high
 
-Malformed binary or JSON inputs may trigger out-of-bounds reads, integer overflows, path traversal, excessive allocation, recursion abuse, or inconsistent partial state.
+Resource materialization may accumulate gameplay-specific Stage/HITS semantics.
 
-Mitigation:
+Mitigation: GDSpaces owns bytes, resource identity, provenance, parsing/materialization/rebuild contracts. Gameplay/runtime semantics remain in recovered runtime/domain layers.
 
-- bounded binary reader;
-- checked arithmetic and ranges;
-- root-containment guards;
-- strict JSON size/depth/count limits;
-- deterministic diagnostics;
-- synthetic malformed corpora;
-- fuzzing after production parser interfaces stabilize.
-
-## R-004 — Premature production write support
+## R-004 — Materializer/repacker authority collapse
 
 **Severity:** high
 
-Adding archive or executable write-back before production source, validation, export, backup, and rollback contracts stabilize may corrupt user files.
+`NbzZipSource` may be treated as sufficient authority for lossless retail repack even though materialization does not preserve the full source serialization envelope.
 
-Mitigation:
+Mitigation: keep ordinary NBZ materialization separate from on-demand raw serialization metadata and metadata-preserving retail repack authority. STORE-overlay writing remains a distinct product mode.
 
-- immutable source payloads;
-- revisioned working copies;
-- copied-output execution only in the current patch path;
-- exact source hash and expected-byte guards;
-- verified rollback before accepting a copied output;
-- no archive writer accepted without an evidence-backed specification and game validation.
+## R-005 — Inferred packed extent laundered as intrinsic child EOF
 
-## R-005 — Decompiled-code false confidence
+**Severity:** critical
 
-**Severity:** high
+A bounded parent slot span may include alignment/padding and cannot automatically become intrinsic child length authority for size-changing rebuild.
 
-Readable recovered C++ may hide wrong ABI, types, ownership, lifetimes, side effects, or behavior.
+Mitigation: typed exact-child authority only; independently intrinsic resources or verified complete-image writer results; no self-declared generic writer receipt.
 
-Mitigation:
-
-- promote recovered units incrementally rather than bulk-importing snapshots;
-- source units reference Evidence records and artifact identities;
-- ABI, ownership, and lifetime assumptions remain explicit;
-- compile isolation and behavioral comparison tests;
-- correction/rejection history;
-- no recompilation milestone without runtime evidence.
-
-## R-006 — Public repository content contamination
+## R-006 — Missing artifact mistaken for reverse uncertainty
 
 **Severity:** high
 
-Contributors may accidentally commit game binaries, extracted assets, saves, executable bytes, or leaked source.
+Absent `.lst`/PNST/raw evidence may trigger redundant parser redesign instead of being tracked as an artifact-acquisition gate.
 
-Mitigation:
+Mitigation: classify missing raw corpus as `ARTIFACT REQUIRED`; preserve already-strong reverse authority until contradictory evidence appears.
 
-- `.gitignore` exclusions;
-- clean-room and repository policies;
-- synthetic public fixtures;
-- user-supplied legal local files only;
-- PR and issue confirmations;
-- future artifact scanning in CI;
-- immediate removal procedure.
+## R-007 — Decompiled-code false confidence
 
-## R-007 — Architecture monolith
+**Severity:** high
+
+Readable recovered C++ may hide wrong ABI, ownership, lifetimes or behavior.
+
+Mitigation: hash-bound evidence, bounded promotion, behavioral receipts, contradiction tracking and no whole-game equivalence claims without runtime validation.
+
+## R-008 — Stage identity collapse
+
+**Severity:** high
+
+Resource descriptor identity, numeric Stage selector identity and semantic gameplay Stage identity may be conflated; `st001` may incorrectly become the central architecture model.
+
+Mitigation: preserve distinct identity layers and use `st001` only as a regression/compatibility fixture.
+
+## R-009 — ModViz second scene truth
+
+**Severity:** high
+
+ModViz may recreate discovery/parsing/scene membership independently from Stage Ops.
+
+Mitigation: ModViz consumes Stage Ops snapshots/projections and sends revision-guarded edits back through Stage Ops.
+
+## R-010 — Authored-byte provenance corruption
+
+**Severity:** high
+
+Authored output may incorrectly inherit source `ByteProvenance`.
+
+Mitigation: source provenance remains immutable; writers return authored bytes + receipts; new source provenance begins only after persistence/reopen.
+
+## R-011 — Premature original-file write support
+
+**Severity:** high
+
+Write-back without explicit output/reopen/validation contracts may corrupt legal user files.
+
+Mitigation: WorkingCopy, bounded writer modes, copied/generated outputs, deterministic receipts, reopen/reparse checks and no implicit original-file mutation.
+
+## R-012 — Branch truth reported as main truth
+
+**Severity:** high
+
+Active branches or PRs may be described as canonical implementation.
+
+Mitigation: every status document names the canonical main SHA; branch work remains branch truth until merge and required CI/promotion gates pass.
+
+## R-013 — Public repository contamination
+
+**Severity:** high
+
+Proprietary game bytes or leaked source may be committed accidentally.
+
+Mitigation: clean-room policy, synthetic fixtures, legal local artifacts only, `.gitignore`, review and removal procedures.
+
+## R-014 — Architecture monolith
 
 **Severity:** medium
 
-GDSpaces or Project Workspace could become oversized because they coordinate broad resource and provenance responsibilities.
+GDSpaces, Reverse Core, recovered runtime, Stage Ops, ModViz, Binary Inspector or EXE Editor boundaries may collapse into one module.
 
-Mitigation:
+Mitigation: preserve explicit ownership contracts and keep evidence/reconstruction authority separate from product/editor authority.
 
-- modular internal services for sources, identity, classification, containers, graph, routing, diagnostics, working copies, events, and manifests;
-- small typed public contracts;
-- domain services remain independent consumers;
-- no UI-specific state in core resource services.
-
-## R-008 — UI drives domain design
+## R-015 — Historical document drift
 
 **Severity:** medium
 
-Visual workflows may redefine resource identity, ownership, write policy, or project state around widgets.
+Root README/status/navigation may remain pinned to obsolete implementation snapshots after rapid promotion.
 
-Mitigation:
-
-- domain APIs and CLI vertical slices precede complete GUI implementation;
-- Stage Ops and ModViz consume shared Stage Workspace state;
-- Binary Inspector UI must consume the existing document model;
-- Item UI produces runtime requests rather than direct patches.
-
-## R-009 — AI-generated churn
-
-**Severity:** medium
-
-High-volume generated code or documentation may create duplicated abstractions, stale claims, unsupported names, or accidental scope expansion.
-
-Mitigation:
-
-- generate → triage → test → correct → review → Canon;
-- narrow branches and PRs;
-- explicit non-goals and evidence boundaries;
-- machine-readable status and deterministic manifests;
-- human review before promotion.
-
-## R-010 — GitHub/Drive/status drift
-
-**Severity:** high
-
-GitHub code, GitHub status documents, Drive research, recovered-source snapshots, issues, and implementation receipts may diverge.
-
-Observed example:
-
-- the 2026-08-02 status snapshot still described strict Evidence import and Binary Inspector fields as open after those systems were implemented;
-- Drive advanced to Wide Pass 33 while GitHub product code remained reviewed through Pass 32;
-- issue #13 retained the rejected `HITS$` model after the canonical HITS architecture was merged.
-
-Mitigation:
-
-- GitHub `main` is product implementation truth;
-- Drive is newest research truth;
-- explicit `research-ready` versus `product-promotion-pending` states;
-- status refresh after significant merges;
-- Drive/GitHub implementation receipts;
-- issue reconciliation when a model is corrected;
-- append-only decision and correction records.
-
-## R-011 — Scope dispersion
-
-**Severity:** medium
-
-Simultaneous work on containers, stages, EXE recovery, HITS, Item, ModViz, UI, save semantics, and recompilation may prevent game-backed vertical completion.
-
-Mitigation:
-
-- prioritize production container read path and one game-backed `st001` slice;
-- require demonstrable vertical results;
-- keep research promotion narrow;
-- avoid bulk source-tree migration;
-- maintain explicit critical path and exit gates.
-
-## R-012 — HITS compatibility overclaim
-
-**Severity:** high
-
-A structurally valid DMC Rengine SAT writer may be presented as equivalent to Capcom's unknown offline builder.
-
-Mitigation:
-
-- label the writer as a DMC Rengine deterministic policy;
-- retain `RESEARCH REQUIRED` for original-builder equivalence;
-- compare real corpus spatial ownership;
-- emit exact/missing/extra cell and surface reports;
-- perform controlled game-runtime, transition, restart, and reload tests;
-- separate structural validity from game verification.
-
-## R-013 — Rejected HITS model regression
-
-**Severity:** high
-
-Stale documents or issues may reintroduce `HITS$`, `0x18060001` as a universal marker, or the false AABB interpretation.
-
-Mitigation:
-
-- canonical parser uses `HITS` header-driven topology;
-- records are raw flags plus triangle A/B/C, normal, and plane D;
-- issue #13 must be reconciled;
-- tests and docs preserve corrected assumptions;
-- no parallel HITS parser or resolver.
-
-## R-014 — Executable-build mismatch
-
-**Severity:** high
-
-Canonical VAs or expected bytes may be applied to a different executable build.
-
-Mitigation:
-
-- exact executable SHA-256 and size;
-- parsed PE metadata checks;
-- evidence locations scoped to artifact identity;
-- expected-byte guards;
-- explicit excluded-build records;
-- no automatic rebasing or cross-build patch claim.
-
-## R-015 — Generic container foundation overclaim
-
-**Severity:** medium to high
-
-Synthetic generic container contracts may be mistaken for completed production PAC/PNST/NBZ/AFS compatibility.
-
-Mitigation:
-
-- status distinguishes generic foundation from production source implementations;
-- issue #3 remains open;
-- real format support requires evidence-bounded parsers and sanitized local reports;
-- no writer/repack claim before read paths stabilize.
-
-## R-016 — Recovered-source bulk import
-
-**Severity:** high
-
-Importing Recovered Source Skeleton snapshots wholesale may place stale, speculative, uncompilable, or ABI-incorrect units into active product source.
-
-Mitigation:
-
-- treat snapshots as research inputs;
-- hash and identify immutable source packages;
-- promote one subsystem at a time;
-- require Evidence Packets, code review, tests, CI, and provenance receipts;
-- preserve unpromoted units outside the product authority tree.
-
-## R-017 — Recursive source discovery hides accidental production inclusion
-
-**Severity:** medium
-
-Recursive CMake source globbing simplifies integration but may silently compile newly added `.cpp` files.
-
-Mitigation:
-
-- review changed-file lists in every PR;
-- require test registration and explicit module documentation;
-- consider moving mature subsystems to explicit target source lists when repository scale makes accidental inclusion harder to audit.
-
-## R-018 — Incomplete release and distribution boundary
-
-**Severity:** medium
-
-Custom-build identity and in-memory patch execution may be mistaken for a finished public build/release system.
-
-Mitigation:
-
-- distinguish architecture/model from produced artifacts;
-- no release claim without deterministic output, package validation, signing/attestation, rollback, and runtime testing;
-- keep public binary release explicitly incomplete.
-
-## R-019 — Trademark and community confusion
-
-**Severity:** low to medium
-
-Lore or naming may imply affiliation, a real religious group, leaked source, or a completed engine replacement.
-
-Mitigation:
-
-- explicit fictional-brand and non-affiliation statements;
-- accurate completion language;
-- independent-research wording;
-- no representation of recovered units as original Capcom source.
+Mitigation: status/navigation sync is part of material promotion; machine-readable status and linked docs must share the same snapshot boundary or explicitly declare a different scope.
