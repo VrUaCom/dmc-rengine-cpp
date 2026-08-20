@@ -96,7 +96,9 @@ struct RelativeSlotPackedReflowReceipt final {
     RelativeSlotTopology output_topology;
     std::vector<RelativeSlotPackedSpanReceipt> spans;
 
-    [[nodiscard]] bool valid() const noexcept;
+    // Alias-partition validation uses bounded temporary maps proportional to
+    // slot count, so this validator is intentionally not noexcept.
+    [[nodiscard]] bool valid() const;
 };
 
 struct RelativeSlotPackedReflowResult final {
@@ -106,7 +108,7 @@ struct RelativeSlotPackedReflowResult final {
     std::optional<RelativeSlotPackedReflowReceipt> receipt;
     std::string detail;
 
-    [[nodiscard]] bool ok() const noexcept;
+    [[nodiscard]] bool ok() const;
 };
 
 class RelativeSlotPackedReflowWriter final {
