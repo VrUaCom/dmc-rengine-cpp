@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass8-wide-runtime-integration-review-2026-08-14",
+  "title": "HITS Raw Reverse Pass 8 — Wide Runtime Integration Review",
+  "date": "2026-08-14",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "authority": {
+    "google_drive_pass8_document_id": "1CzoPo3z1jSb_uyY0QsMr5CH7n59Q9UFTMP0vWPiqRsg",
+    "google_drive_mega_synthesis_document_id": "1SZJTdabme_rumGCEHznXEMOoNMgX4e54IyqpW7GCivQ",
+    "google_drive_registry_document_id": "1hIQ40_SXByc15pXj4Mq3cMQcgs8cFEx2RtuYRM8adnE",
+    "github_coordination_issue": 25
+  },
+  "claims": [
+    {
+      "id": "hits.pass8.layering",
+      "status": "EXE CONFIRMED + DERIVED FROM VERIFIED RUNTIME",
+      "statement": "The higher-level 363-entry x 0x48 resource lifecycle manager is a separate runtime layer above stage-local HITS construction and must not be conflated with HitsRuntime or StageCollisionWorld."
+    },
+    {
+      "id": "hits.pass8.source01-retained",
+      "status": "EXE CONFIRMED + GAME VERIFIED",
+      "statement": "Source 0/member 3 and source 1/member 6 remain valid stage-local HITS mappings after Wave-2 reconciliation."
+    },
+    {
+      "id": "hits.pass8.pass5-retained",
+      "status": "GAME VERIFIED + MERGED/TESTED",
+      "statement": "Pass-5 HITS header, spatial layout and inclusive 13-axis SAT writer equivalence remain canonical and require no rollback."
+    },
+    {
+      "id": "hits.pass8.stage-universe-refinement",
+      "status": "EXE CONFIRMED",
+      "statement": "Future HITS ecosystem coverage must use the two-bank 189-descriptor universe plus selector/group indirection rather than an st001-centric or 110-row-only model."
+    },
+    {
+      "id": "hits.pass8.resource-handoff",
+      "status": "RESEARCH REQUIRED",
+      "statement": "The exact instruction-level handoff from a general state-3 ready resource into the stage/PAC HITS construction path remains unresolved."
+    },
+    {
+      "id": "hits.pass8.original-result-abi",
+      "status": "RESEARCH REQUIRED",
+      "statement": "Do not promote a universal original-game CollisionResult until 0x14005E7A0 arbitration/write-set and the specialized result ABIs are fully recovered."
+    }
+  ],
+  "remaining_targets": [
+    "0x14005E7A0 complete arbitration/result ABI",
+    "0x14005B460 body, list-entry ABI, ownership and candidate production",
+    "0x14005FEC0 exact source-1 output ABI",
+    "0x1400601E0 exact in/out layout and accumulation semantics",
+    "source-2 backing type, lifetime and selection",
+    "resource-lifecycle to HITS-construction handoff",
+    "full 189-descriptor HITS corpus coverage"
+  ],
+  "implementation_freeze": [
+    "no invented universal original CollisionResult",
+    "no speculative gameplay enums for raw HITS flags",
+    "no speculative semantic rename for source 1",
+    "no modeling source 2 as a third stage-PAC HITS member",
+    "no conflation of the 363-entry resource manager with HITS runtime",
+    "no recovered collision ownership inside GDSpaces"
+  ],
+  "proprietary_bytes_committed": false
+}
