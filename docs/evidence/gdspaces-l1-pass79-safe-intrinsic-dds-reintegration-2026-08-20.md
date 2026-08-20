@@ -33,6 +33,26 @@ This accepts both Pass 78 corpus-confirmed physical shapes:
 - `descriptor[0x70] + DDS`;
 - `0x800 bundle header + descriptor/DDS records + zero alignment`.
 
+## Real-corpus mutation matrix
+
+The preserved v6 stage-drop corpus was exercised independently at byte level using the exact Pass 79 write boundary. This is deliberately classified as **independent real-byte mutation evidence**, not as an exact execution of the compiled C++ writer against private game bytes.
+
+For every one of the **154 real descriptor/DDS pairs**, the final byte of the compressed DDS payload was toggled while the full 128-byte DDS header remained untouched. Results:
+
+- **154/154** source physical slots remained structurally valid after the edit;
+- **154/154** reparsed under the canonical Pass 78 framing rules;
+- **154/154** retained byte-exact DDS headers;
+- **154/154** retained every non-target byte exactly.
+
+A second matrix edited every DDS in each real multi-texture bundle in the same pass:
+
+- **58/58** bundles remained structurally valid;
+- **58/58** reparsed canonically;
+- **58/58** retained all DDS headers exactly;
+- **58/58** retained every non-mutated physical byte exactly, including bundle header, descriptors and alignment regions.
+
+This establishes a real-corpus acceptance envelope for same-layout compressed-payload edits. It does not replace the still-open requirement for an exact compiled-current-writer real-corpus execution receipt.
+
 ## Composition boundary
 
 The regression suite composes the new seam with `RelativeSlotPackedReflowWriter`:
