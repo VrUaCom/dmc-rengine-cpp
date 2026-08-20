@@ -85,8 +85,8 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "Structural parser preserves sparse/alias slot topology only; slot semantics remain schema-specific.",
-                "Bounded authoring supports same-size layout-preserving packed output and runtime-synth size-changing output only from independently intrinsic standalone child bytes.",
-                "Generic writer receipts do not prove intrinsic extent; typed verified writer-result composition for nested size-changing parents remains unavailable.",
+                "Bounded authoring supports same-size layout-preserving packed output, runtime-synth size-changing output from independently intrinsic standalone child bytes, and typed verified runtime-synth complete-image child results for nested size-changing composition.",
+                "Generic/self-declared writer receipts do not prove intrinsic extent; typed verified runtime-synth composition is available, but semantic child-to-slot linkage and broad real intrinsic-byte providers remain evidence-gated.",
                 "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
             .source_adapter_id = {},
@@ -106,8 +106,8 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "PNST shares the relative-slot physical envelope with PAC but not a global semantic slot schema.",
-                "Bounded authoring supports same-size layout-preserving packed output and runtime-synth size-changing output only from independently intrinsic standalone child bytes.",
-                "Generic writer receipts do not prove intrinsic extent; typed verified writer-result composition for nested size-changing parents remains unavailable.",
+                "Bounded authoring supports same-size layout-preserving packed output, runtime-synth size-changing output from independently intrinsic standalone child bytes, and typed verified runtime-synth complete-image child results for nested size-changing composition.",
+                "Generic/self-declared writer receipts do not prove intrinsic extent; typed verified runtime-synth composition is available, but semantic child-to-slot linkage and broad real intrinsic-byte providers remain evidence-gated.",
                 "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
             .source_adapter_id = {},
