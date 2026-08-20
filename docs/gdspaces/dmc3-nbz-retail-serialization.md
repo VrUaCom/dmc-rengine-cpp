@@ -48,7 +48,7 @@ expected ArtifactIdentity
   -> ArtifactBoundNbzZipSerializationSnapshot
 ```
 
-`Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. Only central/EOCD framing plus local header/name/extra prefixes are retained in memory under the serialization metadata budget. Member bodies remain source spans.
+`Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. Only central/EOCD framing plus local header/name/extra prefixes are captured; member bodies remain source spans.
 
 The critical trust invariant is:
 
@@ -81,6 +81,8 @@ Artifact binding is also fail-closed:
 - the captured central/local physical fields and names must agree with the indexed source entries before authority is granted;
 - a same-size archive replacement after source indexing is rejected by observed SHA mismatch;
 - typed bound authority cannot be forged as a caller-owned aggregate.
+
+Memory accounting is explicit rather than implied to be one metadata-budget copy. Captured metadata payload is bounded by `max_metadata_bytes`, and the canonical scanner may simultaneously own a second snapshot payload bounded by the same budget while binding is in progress. Peak metadata byte payload is therefore bounded by at most `2 * max_metadata_bytes`, plus the configured observation chunk and range/entry bookkeeping. The latter is bounded by the already indexed entry count. Captured-range lookup is logarithmic in the number of merged ranges, so repeated scanner reads do not degrade to an O(n^2) range search at large entry counts.
 
 ## What this does not prove
 
