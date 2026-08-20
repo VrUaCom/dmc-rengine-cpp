@@ -83,6 +83,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dds_image
         texture_slot_framing
         texture_slot_reintegrator
+        texture_slot_size_serializer
         gdspaces_l1_full_a2z_roundtrip
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
