@@ -35,11 +35,36 @@ enum class ExactChildAuthorityKind : std::uint8_t {
     return "container-extracted-span";
 }
 
+enum class ExactChildExtentKind : std::uint8_t {
+    intrinsic_resource,
+    writer_defined_complete_image,
+    source_span_preserved,
+    container_inferred_span,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    ExactChildExtentKind kind) noexcept {
+    switch (kind) {
+    case ExactChildExtentKind::intrinsic_resource:
+        return "intrinsic-resource";
+    case ExactChildExtentKind::writer_defined_complete_image:
+        return "writer-defined-complete-image";
+    case ExactChildExtentKind::source_span_preserved:
+        return "source-span-preserved";
+    case ExactChildExtentKind::container_inferred_span:
+        return "container-inferred-span";
+    }
+    return "container-inferred-span";
+}
+
 struct ExactChildImage final {
     std::uint32_t slot_index{};
     ExactChildAuthorityKind authority_kind{
         ExactChildAuthorityKind::container_extracted_span};
+    ExactChildExtentKind extent_kind{
+        ExactChildExtentKind::container_inferred_span};
     std::string authority_id;
+    std::string writer_mode;
     std::string sha256;
     std::vector<std::byte> bytes;
 
@@ -64,6 +89,7 @@ enum class RuntimeSynthStatus : std::uint8_t {
     missing_child,
     invalid_child_authority,
     forbidden_extracted_span,
+    unproven_intrinsic_extent,
     child_hash_mismatch,
     output_too_large,
     output_parse_failed,
@@ -88,6 +114,8 @@ enum class RuntimeSynthStatus : std::uint8_t {
         return "invalid-child-authority";
     case RuntimeSynthStatus::forbidden_extracted_span:
         return "forbidden-extracted-span";
+    case RuntimeSynthStatus::unproven_intrinsic_extent:
+        return "unproven-intrinsic-extent";
     case RuntimeSynthStatus::child_hash_mismatch: return "child-hash-mismatch";
     case RuntimeSynthStatus::output_too_large: return "output-too-large";
     case RuntimeSynthStatus::output_parse_failed: return "output-parse-failed";
@@ -101,7 +129,10 @@ struct RuntimeSynthChildReceipt final {
     std::uint32_t slot_index{};
     ExactChildAuthorityKind authority_kind{
         ExactChildAuthorityKind::container_extracted_span};
+    ExactChildExtentKind extent_kind{
+        ExactChildExtentKind::container_inferred_span};
     std::string authority_id;
+    std::string writer_mode;
     std::string input_sha256;
     std::uint64_t intrinsic_size{};
     std::uint64_t emitted_offset{};
@@ -127,18 +158,15 @@ struct RuntimeSynthResult final {
     std::optional<RuntimeSynthReceipt> receipt;
     std::string detail;
 
-    [[nodiscard]] bool ok() const noexcept {
-        return status == RuntimeSynthStatus::ok && receipt.has_value() &&
-            receipt->valid() &&
-            receipt->output_topology.container_size == bytes.size();
-    }
+    [[nodiscard]] bool ok() const noexcept;
 };
 
 class RuntimeSynthRelativeSlotWriter final {
 public:
     // Rebuilds an existing PAC/PNST into the recovered runtime-synthesized
     // relative-slot layout. Slot count/occupancy are preserved; every
-    // populated slot requires explicit exact intrinsic child bytes.
+    // populated slot requires explicit bytes plus independently justified
+    // intrinsic extent authority.
     [[nodiscard]] static RuntimeSynthResult rebuild(
         const gdspaces::ResourcePayload& source,
         std::span<const ExactChildImage> exact_children,
