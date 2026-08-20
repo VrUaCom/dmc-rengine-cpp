@@ -123,7 +123,7 @@ bool NbzZipSerializationEntry::valid(
     std::uint64_t central_start) const noexcept {
     if (central_record_bytes.size() < central_fixed_size ||
         local_prefix_bytes.size() < local_fixed_size ||
-        central_record_offset >= central_start ||
+        central_record_offset < central_start ||
         local_record_offset >= central_start ||
         local_region_size == 0U ||
         local_region_size > central_start - local_record_offset) {
@@ -148,9 +148,12 @@ bool NbzZipSerializationEntry::valid(
         return false;
     }
 
-    const auto consumed_before_tail =
-        static_cast<std::uint64_t>(local_prefix_bytes.size()) + stored_data_size;
-    return consumed_before_tail <= local_region_size;
+    std::uint64_t consumed_before_tail{};
+    return checked_add(
+               static_cast<std::uint64_t>(local_prefix_bytes.size()),
+               stored_data_size,
+               consumed_before_tail) &&
+        consumed_before_tail <= local_region_size;
 }
 
 bool NbzZipSerializationSnapshot::valid() const noexcept {
@@ -167,7 +170,7 @@ bool NbzZipSerializationSnapshot::valid() const noexcept {
     std::uint64_t central_cursor = computed_central_start;
     for (std::size_t index = 0U; index < entries.size(); ++index) {
         const auto& entry = entries[index];
-        if (entry.central_index != index ||
+        if (entry.central_index != static_cast<std::uint32_t>(index) ||
             entry.central_record_offset != central_cursor ||
             !entry.valid(archive_size, computed_central_start)) {
             return false;
@@ -268,7 +271,8 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
     std::uint64_t central_cursor = snapshot.computed_central_start;
     for (std::size_t index = 0U; index < indexed_entries.size(); ++index) {
         const auto& indexed = indexed_entries[index];
-        if (indexed.central_index != index ||
+        if (indexed.central_index != static_cast<std::uint32_t>(index) ||
+            central_cursor > snapshot.eocd_offset ||
             snapshot.eocd_offset - central_cursor < central_fixed_size) {
             add_error(
                 result,
@@ -418,17 +422,30 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
         }
     }
 
-    for (std::size_t left = 0U; left < snapshot.entries.size(); ++left) {
-        for (std::size_t right = left + 1U; right < snapshot.entries.size(); ++right) {
-            if (snapshot.entries[left].local_record_offset ==
-                    snapshot.entries[right].local_record_offset &&
-                !same_local_alias(snapshot.entries[left], snapshot.entries[right])) {
-                add_error(
-                    result,
-                    "gdspaces.nbz.serialization.local-alias-conflict",
-                    "Two central identities alias one local-header offset but disagree on preserved local serialization framing.");
-                return result;
+    std::vector<std::size_t> alias_order(snapshot.entries.size());
+    for (std::size_t index = 0U; index < alias_order.size(); ++index) {
+        alias_order[index] = index;
+    }
+    std::sort(
+        alias_order.begin(), alias_order.end(),
+        [&snapshot](std::size_t left, std::size_t right) {
+            const auto& lhs = snapshot.entries[left];
+            const auto& rhs = snapshot.entries[right];
+            if (lhs.local_record_offset != rhs.local_record_offset) {
+                return lhs.local_record_offset < rhs.local_record_offset;
             }
+            return lhs.central_index < rhs.central_index;
+        });
+    for (std::size_t index = 1U; index < alias_order.size(); ++index) {
+        const auto& previous = snapshot.entries[alias_order[index - 1U]];
+        const auto& current = snapshot.entries[alias_order[index]];
+        if (previous.local_record_offset == current.local_record_offset &&
+            !same_local_alias(previous, current)) {
+            add_error(
+                result,
+                "gdspaces.nbz.serialization.local-alias-conflict",
+                "Two central identities alias one local-header offset but disagree on preserved local serialization framing.");
+            return result;
         }
     }
 
