@@ -15,6 +15,7 @@ namespace {
 
 constexpr std::string_view kWriterMode =
     "same-layout-intrinsic-dds-reintegration";
+constexpr std::size_t kDdsHeaderSize = 128U;
 
 [[nodiscard]] std::string sha256_of(std::span<const std::byte> bytes) {
     return core::Sha256::compute(bytes).hex();
@@ -105,7 +106,7 @@ bool TextureDdsPatchReceipt::valid() const noexcept {
         output_sha256.size() == 64U && source_sha256 != output_sha256;
 }
 
-bool TextureSlotReintegrationReceipt::valid() const noexcept {
+bool TextureSlotReintegrationReceipt::valid() const {
     if (source_sha256.size() != 64U || output_sha256.size() != 64U ||
         source_sha256 == output_sha256 || writer_mode != kWriterMode ||
         patches.empty()) {
@@ -122,7 +123,7 @@ bool TextureSlotReintegrationReceipt::valid() const noexcept {
     return true;
 }
 
-bool TextureSlotReintegrationResult::ok() const noexcept {
+bool TextureSlotReintegrationResult::ok() const {
     if (status != TextureSlotReintegrationStatus::ok ||
         !receipt.has_value() || !receipt->valid() || bytes.empty()) {
         return false;
@@ -180,6 +181,16 @@ TextureSlotReintegrationResult TextureSlotReintegrator::rebuild(
             return failure(
                 TextureSlotReintegrationStatus::dds_size_changed,
                 "Pass 79 permits only byte-size-preserving intrinsic DDS edits.");
+        }
+        if (source_dds.size() < kDdsHeaderSize ||
+            !std::equal(
+                source_dds.begin(),
+                source_dds.begin() + static_cast<std::ptrdiff_t>(kDdsHeaderSize),
+                authored.bytes.begin(),
+                authored.bytes.begin() + static_cast<std::ptrdiff_t>(kDdsHeaderSize))) {
+            return failure(
+                TextureSlotReintegrationStatus::dds_header_changed,
+                "Pass 79 freezes the complete 128-byte DDS header; only compressed payload bytes may change.");
         }
     }
 
