@@ -1,0 +1,54 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass85.compiled-real-pnst-reflow.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "NOT_COMPLETE",
+  "source_corpus": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "unique_parent_containers": 6,
+    "distinct_physical_slots": 45,
+    "unresolved_offset_to_slot_mappings": 0
+  },
+  "compiled_runner": {
+    "source_head": "e34e52fe5008bc650d2391d0fa6ecf4fce5e7104",
+    "workflow_run_id": 32426516193,
+    "workflow_run_number": 1165,
+    "ubuntu_build_test": "SUCCESS",
+    "artifact_name": "dmc-rengine-relative-slot-corpus-reflow-linux",
+    "artifact_zip_sha256": "c08285efb997c4f6213d3dfcaac540d68a5c6d352c2d5348f09d879eb69358fe",
+    "runner_sha256": "7bbc633e17e3b5306ae0490d3be826b1bf0baf8761d749ea5a1a40b98b2e80de"
+  },
+  "execution": {
+    "attempted": 45,
+    "successful": 45,
+    "failed": 0,
+    "format": "PNST",
+    "source_parent_sha_mismatches": 0,
+    "output_sha_mismatches": 0,
+    "grow_cases": 43,
+    "shrink_cases": 2,
+    "same_size_cases": 0,
+    "min_child_size_delta": -524288,
+    "max_child_size_delta": 1048576,
+    "min_parent_size_delta": -524288,
+    "max_parent_size_delta": 1048576,
+    "declared_slot_counts_observed": [36, 37, 42, 45, 47, 128]
+  },
+  "parents": [
+    {"name":"em035_057_001.pac","sha256":"bb0b36d3daf7ffa5953f07380cff68b7059aa13ab8ddd52071f88c4ef83b843c","declared_slots":128,"cases":2},
+    {"name":"m20_b00_004.pac","sha256":"d4e0b014e27286c6159eac2caef24b8836df293ce0384ca668fa111c2db4946c","declared_slots":36,"cases":13},
+    {"name":"m20_b00_012.pac","sha256":"77ec1717cc6294244b21b830182d4ba64893b801690a4f0092f4123007a39deb","declared_slots":42,"cases":1},
+    {"name":"m20_c00_004.pac","sha256":"6a44e8a813b4da80edb6f9601be8af38fd335f0d0fc3942a3cf0624d2b6fa9bb","declared_slots":37,"cases":15},
+    {"name":"m20_c00_012.pac","sha256":"99b28593fc70efc166d97ca939d6487c74f0cfcd7ba8b8d2544e10e622f14b25","declared_slots":47,"cases":1},
+    {"name":"m20_s00_004.pac","sha256":"63ff1b987a475990a4bdc450a84834c8400c7653fedc144330a3400d818cf863","declared_slots":45,"cases":13}
+  ],
+  "closed_gate": "compiled real PAC/PNST bottom-up rebuild receipt using edited real physical texture children",
+  "remaining_gates": [
+    "representative real retail NBZ repack/reopen/materialization receipt",
+    "raw real .lst corpus closure or evidence-backed proof that it is not required for writeback authority",
+    "resolve or formally bound/exclude 42 non-zero auxiliary texture relationships",
+    "original DMC3 consumption of rebuilt PAC/PNST/NBZ artifacts",
+    "final Layer-1 cross-stack review and promotion"
+  ]
+}
