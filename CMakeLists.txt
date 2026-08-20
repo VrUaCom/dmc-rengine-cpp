@@ -80,6 +80,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         loose_container_list
         relative_slot_writer
         relative_slot_packed_reflow_writer
+        dds_image
         texture_slot_framing
         texture_slot_reintegrator
         gdspaces_l1_full_a2z_roundtrip

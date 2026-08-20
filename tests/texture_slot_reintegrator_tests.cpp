@@ -41,6 +41,7 @@ void put_u32(
 }
 
 [[nodiscard]] std::vector<std::byte> make_dds(bool dxt5) {
+    namespace dmc3 = dmc::rengine::profiles::dmc3;
     constexpr std::uint32_t width = 16U;
     constexpr std::uint32_t height = 16U;
     constexpr std::uint32_t mip_count = 5U;
@@ -51,14 +52,23 @@ void put_u32(
     bytes[1] = std::byte{'D'};
     bytes[2] = std::byte{'S'};
     bytes[3] = std::byte{' '};
-    put_u32(bytes, 4U, 124U);
+    put_u32(bytes, 4U, dmc3::DdsImageParser::k_header_struct_size);
+    put_u32(bytes, 8U, dmc3::DdsImageParser::k_required_flags);
     put_u32(bytes, 12U, height);
     put_u32(bytes, 16U, width);
+    put_u32(
+        bytes, 20U,
+        dxt5 ? dmc3::DdsImageParser::k_standard_dxt5_linear_size
+             : dmc3::DdsImageParser::k_standard_dxt1_linear_size);
+    put_u32(bytes, 24U, 0U);
     put_u32(bytes, 28U, mip_count);
+    put_u32(bytes, 76U, dmc3::DdsImageParser::k_pixel_format_size);
+    put_u32(bytes, 80U, dmc3::DdsImageParser::k_pixel_format_fourcc_flag);
     bytes[84U] = std::byte{'D'};
     bytes[85U] = std::byte{'X'};
     bytes[86U] = std::byte{'T'};
     bytes[87U] = dxt5 ? std::byte{'5'} : std::byte{'1'};
+    put_u32(bytes, 108U, dmc3::DdsImageParser::k_required_caps);
     for (std::size_t index = 128U; index < bytes.size(); ++index) {
         bytes[index] = static_cast<std::byte>((index * 29U) & 0xFFU);
     }
@@ -192,13 +202,13 @@ void copy_at(
     return gdspaces::ResourcePayload{
         .resource = gdspaces::ResourceRef{
             .id = gdspaces::ResourceId{
-                .source_id = "pass80-composition-source",
-                .logical_path = "GData.afs/pass80-texture.pac",
+                .source_id = "pass81-composition-source",
+                .logical_path = "GData.afs/pass81-texture.pac",
                 .container_chain = "nbz[11]",
                 .offset = 0x4000U,
                 .size = static_cast<std::uint64_t>(bytes.size()),
             },
-            .display_name = "pass80-texture.pac",
+            .display_name = "pass81-texture.pac",
             .format = "pac",
             .profile = "dmc3-hd",
             .synthetic_name = false,

@@ -1,0 +1,87 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-dds-header-corpus-authority.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "source_artifact": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "size_bytes": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "corpus_root": "analysis_inputs/stage_drops"
+  },
+  "dds_population": {
+    "total": 243,
+    "wrapped_or_bundle_relationships": 154,
+    "bare_child_relationships": 89,
+    "compression": {
+      "DXT1": 104,
+      "DXT5": 139
+    },
+    "profiles": {
+      "standard_corpus": 242,
+      "observed_depth1_exception": 1
+    }
+  },
+  "confirmed_243_of_243": {
+    "magic": "DDS ",
+    "header_size": 124,
+    "flags_hex": "0x000A1007",
+    "dimensions": "positive powers of two",
+    "mip_chain": "complete chain through 1x1 using max(width,height)",
+    "exact_file_size": "128-byte magic+header plus exact DXT block-compressed full mip-chain payload",
+    "reserved1_u32_11": "all zero",
+    "pixel_format_size": 32,
+    "pixel_format_flags_hex": "0x00000004",
+    "rgb_bit_count_and_masks": "all zero",
+    "caps_hex": "0x00401008",
+    "caps2_caps3_caps4_reserved2": "all zero"
+  },
+  "standard_profile": {
+    "count": 242,
+    "depth": 0,
+    "DXT1_pitch_or_linear_size_hex": "0x00010000",
+    "DXT1_matches": "104/104",
+    "DXT5_pitch_or_linear_size_hex": "0x00020000",
+    "DXT5_matches": "138/138",
+    "note": "These are corpus values and are intentionally not replaced with generic DDS top-level linear-size semantics."
+  },
+  "observed_exception": {
+    "count": 1,
+    "compression": "DXT5",
+    "width": 1024,
+    "height": 2048,
+    "mip_count": 12,
+    "depth": 1,
+    "pitch_or_linear_size_hex": "0x00200000",
+    "authoring_authority": false,
+    "policy": "accepted only at exact observed geometry as read authority; writers must not generalize from one sample"
+  },
+  "standard_dimension_population": {
+    "DXT1": [
+      [128, 128], [256, 128], [256, 256], [256, 512],
+      [512, 256], [512, 512], [1024, 1024]
+    ],
+    "DXT5": [
+      [128, 64], [128, 128], [256, 128], [256, 256],
+      [256, 512], [512, 256], [512, 512]
+    ]
+  },
+  "code_contract": {
+    "parser": "DdsImageParser",
+    "single_dds_authority_for_texture_framing": true,
+    "texture_slot_parser_delegates_to_dds_parser": true,
+    "wrapped_exception_profile_allowed": false,
+    "writer_authority_for_exception_profile": false
+  },
+  "validation_class": {
+    "corpus_analysis": "independent-real-byte-analysis",
+    "compiled_parser_corpus_execution": false,
+    "synthetic_regression_required": true
+  },
+  "boundaries": {
+    "size_changing_dds_writer_closed": false,
+    "size_changing_texture_slot_writer_closed": false,
+    "original_runtime_dds_abi_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
