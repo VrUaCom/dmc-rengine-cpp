@@ -21,6 +21,7 @@ enum class TextureSlotReintegrationStatus : std::uint8_t {
     missing_source_hash,
     source_dds_mismatch,
     dds_size_changed,
+    dds_header_changed,
     no_changes,
     output_validation_failed,
     framing_changed,
@@ -46,6 +47,8 @@ enum class TextureSlotReintegrationStatus : std::uint8_t {
         return "source-dds-mismatch";
     case TextureSlotReintegrationStatus::dds_size_changed:
         return "dds-size-changed";
+    case TextureSlotReintegrationStatus::dds_header_changed:
+        return "dds-header-changed";
     case TextureSlotReintegrationStatus::no_changes: return "no-changes";
     case TextureSlotReintegrationStatus::output_validation_failed:
         return "output-validation-failed";
@@ -82,7 +85,8 @@ struct TextureSlotReintegrationReceipt final {
     std::string writer_mode{"same-layout-intrinsic-dds-reintegration"};
     std::vector<TextureDdsPatchReceipt> patches;
 
-    [[nodiscard]] bool valid() const noexcept;
+    // Validation deduplicates patch indices with bounded temporary storage.
+    [[nodiscard]] bool valid() const;
 };
 
 struct TextureSlotReintegrationResult final {
@@ -92,20 +96,21 @@ struct TextureSlotReintegrationResult final {
     std::optional<TextureSlotReintegrationReceipt> receipt;
     std::string detail;
 
-    [[nodiscard]] bool ok() const noexcept;
+    [[nodiscard]] bool ok() const;
 };
 
 class TextureSlotReintegrator final {
 public:
     // Reintegrates authored intrinsic DDS bytes into an already-validated DMC3
     // texture physical slot without changing its physical layout. This first
-    // bounded writer intentionally requires exact DDS byte-size preservation.
+    // bounded writer requires exact DDS byte-size preservation and a byte-exact
+    // 128-byte DDS header; only the compressed DDS payload may change.
     // Descriptor bytes, bundle header bytes and alignment padding are copied
     // from the source and must remain byte-identical after reintegration.
     //
-    // Size-changing/dimension-changing texture serialization is deliberately
-    // outside this contract until the remaining variable descriptor fields
-    // have independent authority.
+    // Size-changing/dimension-changing/header-changing texture serialization is
+    // deliberately outside this contract until the remaining variable
+    // descriptor fields have independent authority.
     [[nodiscard]] static TextureSlotReintegrationResult rebuild(
         std::span<const std::byte> source_physical_slot,
         std::span<const AuthoredTextureDds> authored_textures,
