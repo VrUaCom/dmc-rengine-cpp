@@ -20,9 +20,20 @@
 ### GDSpaces
 
 - [GDSpaces contract](gdspaces-contract.md)
+- [GDSpaces decompilation-layer classification](gdspaces/decompilation-layer-classification.md)
+- [GDSpaces hypothetical reverse-progress scale](gdspaces/reverse-progress-scale.md)
 - [Resource classification](gdspaces/classification.md)
 - [Working copy](gdspaces/working-copy.md)
 - [StageBundle assembly](gdspaces/stage-bundle-assembly.md)
+- [DMC3 runtime resource resolver](gdspaces/dmc3-runtime-resource-resolver.md)
+- [DMC3 resource lookup policy](gdspaces/dmc3-resource-lookup-policy.md)
+- [DMC3 loose-container `.lst` materialization](gdspaces/dmc3-loose-container-list.md)
+- [DMC3 layout-preserving PAC/PNST writer](gdspaces/dmc3-layout-preserving-relative-slot-writer.md)
+- [DMC3 runtime-synth size-changing PAC/PNST writer](gdspaces/dmc3-runtime-synth-relative-slot-writer.md)
+- [DMC3 nested PAC/PNST reintegration](gdspaces/dmc3-nested-relative-slot-reintegration.md)
+- [DMC3 NBZ STORE overlay writer](gdspaces/dmc3-nbz-store-overlay-writer.md)
+
+The GDSpaces progress scale is operational only. `100% / COMPLETE` is permitted only when its mandatory closure gates are zero and the closing evidence/implementation is canonical in `main`.
 
 ### Stage reconstruction
 
@@ -61,6 +72,7 @@
 ## Status and planning
 
 - [Current status](status/current.md)
+- [GDSpaces reverse-progress scale](gdspaces/reverse-progress-scale.md)
 - [Phase map](status/phase-map.md)
 - [Blockers](status/blockers.md)
 - [Risk register](status/risks.md)
@@ -79,12 +91,12 @@
 
 ## Product map
 
-- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, and typed bundles.
+- **GDSpaces — The Archive:** resource sources, identity, graph, routing, diagnostics, classification, working copies, container expansion, materialization and bounded authoring.
 - **Spider Hub — The Nexus:** visual navigation across tools, evidence, and specifications.
 - **EXE Editor — The Scriptorium:** executable inspection, source recovery, known-target evidence, and guarded patch planning.
 - **Binary Inspector — The Reliquary:** regions, fields, ownership, range selection, conflicts, unknown coverage, annotations, byte diff, and entropy analysis.
-- **Stage Ops — The Theatre:** typed stage workflows over `StageBundle`.
-- **ModViz — The Observatory:** Scene/Model Editor and Menu Editor.
+- **Stage Ops — The Theatre:** typed stage workflows over shared Stage Workspace state.
+- **ModViz — The Observatory:** scene/model and future Menu/HUD editing over Stage Ops authority.
 - **Item Editor — The Forge:** typed item editing through shared resource/runtime contracts.
 - **Build & Test Lab — The Trial Chamber:** reproducibility, validation, regression, and release artifacts.
 
