@@ -15,6 +15,8 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
+inline constexpr std::uint32_t zip32_u32_sentinel = 0xFFFFFFFFU;
+
 struct NbzRetailReplacement final {
     std::uint32_t central_index{};
     std::string expected_logical_path;
@@ -129,7 +131,8 @@ class NbzRetailRepacker final {
 public:
     static constexpr std::uint64_t max_io_chunk_bytes = 64ULL * 1024ULL * 1024ULL;
     static constexpr std::uint64_t max_metadata_bytes = 512ULL * 1024ULL * 1024ULL;
-    static constexpr std::uint32_t zip32_u32_sentinel = 0xFFFFFFFFU;
+    static constexpr std::uint32_t zip32_u32_sentinel =
+        dmc::rengine::profiles::dmc3::zip32_u32_sentinel;
 
     // Product metadata-preserving retail repack tier. Unchanged local regions
     // are copied byte-for-byte. Changed entries are emitted as method-0 STORE
