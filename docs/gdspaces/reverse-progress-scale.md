@@ -80,12 +80,12 @@ At least one representative authored output must be consumed successfully throug
 
 The current writer intentionally creates deterministic STORE-only mod overlays. It does not preserve the complete original retail ZIP metadata envelope or claim byte-identical retail repacking.
 
-The canonical preservation path now has two bounded read-side steps:
+The canonical preservation path now has two bounded read-side responsibilities composed into one trust observation:
 
-1. [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md) records raw central/local/EOCD framing plus source spans without turning ordinary materialization into writer ownership.
-2. `NbzZipArtifactSerializationBinder` uses bounded streaming SHA-256 passes before and after the scan to bind those spans to an exact `ArtifactIdentity` during the scan window.
+1. [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md) remains the canonical framing parser for raw central/local/EOCD metadata plus opaque source spans.
+2. `NbzZipArtifactSerializationBinder` performs one complete streaming archive observation in which the same chunks feed SHA-256 and bounded metadata capture, then invokes the canonical scanner over that captured-byte view. Authority is granted only when the observed SHA matches the expected `ArtifactIdentity` and captured framing agrees with the indexed source.
 
-These steps still do **not** close the no-loss gate. The remaining retail-NBZ tier must implement an artifact-revalidated unchanged-region copier, metadata-preserving changed-entry serialization, rebuilt offsets, canonical reopen, serialization + materialization comparison, representative real-corpus validation and controlled game-backed validation.
+This closes the previous pre-hash / independent scan / post-hash TOCTOU gap, but it still does **not** close the no-loss gate. The remaining retail-NBZ tier must implement an artifact-revalidated unchanged-region copier, metadata-preserving changed-entry serialization, rebuilt offsets, canonical reopen, serialization + materialization comparison, representative real-corpus validation and controlled game-backed validation.
 
 ## Non-blocking evidence-gated families
 

@@ -4,7 +4,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -58,10 +60,23 @@ struct NbzZipSerializationScanResult final {
     [[nodiscard]] bool ok() const noexcept;
 };
 
+// Random-access byte view used only as an input to the canonical serialization
+// scanner. It does not itself carry trust or artifact identity. The artifact
+// binder uses this seam to scan metadata captured from the same streaming byte
+// observation that produced the SHA-256 receipt.
+using NbzZipSerializationReadExact = std::function<bool(
+    std::uint64_t offset,
+    std::span<std::byte> output)>;
+
 class NbzZipSerializationScanner final {
 public:
     [[nodiscard]] static NbzZipSerializationScanResult scan(
         const NbzZipSource& source,
+        NbzZipSerializationLimits limits = {});
+
+    [[nodiscard]] static NbzZipSerializationScanResult scan_with_reader(
+        const NbzZipSource& source,
+        const NbzZipSerializationReadExact& read_exact,
         NbzZipSerializationLimits limits = {});
 };
 

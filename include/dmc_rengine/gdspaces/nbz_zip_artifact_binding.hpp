@@ -11,23 +11,22 @@
 
 namespace dmc::rengine::gdspaces {
 
-// Product-only hashing bounds for exact large-archive identity verification.
-// The hash pass is streaming and never materializes the complete archive.
+// Product-only observation bounds for exact large-archive identity
+// verification. The observation is streaming and never materializes the
+// complete archive.
 struct NbzZipArtifactBindingLimits final {
     std::uint64_t hash_chunk_bytes{1024ULL * 1024ULL};
 };
 
-// Serialization snapshot bound to one exact artifact identity by two complete
-// streaming hash passes around the metadata scan. This is deliberately not a
-// public aggregate: callers cannot self-declare artifact-bound authority by
-// copying SHA text into fields. Only NbzZipArtifactSerializationBinder may
-// construct an instance.
+// Serialization snapshot bound to one exact artifact identity by a single
+// complete byte observation. Every preserved metadata byte and the SHA-256
+// receipt are derived from that same streaming read. This is deliberately not
+// a public aggregate: callers cannot self-declare artifact-bound authority.
 class ArtifactBoundNbzZipSerializationSnapshot final {
 public:
     [[nodiscard]] const evidence::ArtifactIdentity& artifact() const noexcept;
     [[nodiscard]] const NbzZipSerializationSnapshot& serialization() const noexcept;
-    [[nodiscard]] std::string_view pre_scan_sha256() const noexcept;
-    [[nodiscard]] std::string_view post_scan_sha256() const noexcept;
+    [[nodiscard]] std::string_view observed_sha256() const noexcept;
     [[nodiscard]] bool valid() const noexcept;
 
 private:
@@ -36,13 +35,11 @@ private:
     ArtifactBoundNbzZipSerializationSnapshot(
         evidence::ArtifactIdentity artifact,
         NbzZipSerializationSnapshot serialization,
-        std::string pre_scan_sha256,
-        std::string post_scan_sha256);
+        std::string observed_sha256);
 
     evidence::ArtifactIdentity artifact_;
     NbzZipSerializationSnapshot serialization_;
-    std::string pre_scan_sha256_;
-    std::string post_scan_sha256_;
+    std::string observed_sha256_;
 };
 
 struct NbzZipArtifactBindingResult final {

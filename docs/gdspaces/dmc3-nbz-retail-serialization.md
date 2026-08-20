@@ -12,7 +12,7 @@ This document defines the read-side preservation and artifact-binding seams requ
 NBZ -> index -> ResourceId -> stored member -> STORE/raw-DEFLATE -> materialized bytes
 ```
 
-`NbzZipSerializationScanner` is a separate on-demand serialization authority. Ordinary reads do not pay its metadata-preservation cost and do not inherit writer ownership.
+`NbzZipSerializationScanner` is the canonical on-demand serialization authority. Ordinary reads do not pay its metadata-preservation cost and do not inherit writer ownership.
 
 `NbzZipArtifactSerializationBinder` is the exact-artifact trust seam. It does not own materialization or repacking.
 
@@ -34,23 +34,37 @@ Descriptor, padding and unknown gap bytes are deliberately retained through the 
 
 ## Exact artifact binding
 
-A serialization snapshot by itself is not trusted as a copier/repacker source. The binder requires a valid canonical `ArtifactIdentity` and performs:
+A serialization snapshot by itself is not trusted as a copier/repacker source. The binder requires a valid canonical `ArtifactIdentity` and performs one complete byte observation:
 
 ```text
 expected ArtifactIdentity
-  -> streaming SHA-256 pass A over exact archive bytes
-  -> require SHA/size match
-  -> NbzZipSerializationScanner
-  -> streaming SHA-256 pass B over the same path
-  -> require SHA A == SHA B == expected SHA
+  -> derive bounded serialization-metadata capture ranges from the indexed source
+  -> one complete streaming read of the archive
+       -> every byte feeds incremental SHA-256
+       -> overlapping required metadata ranges are copied from those same chunks
+  -> require observed SHA/size == expected artifact
+  -> canonical NbzZipSerializationScanner over the captured-byte reader
+  -> require captured framing == the indexed physical entry metadata
   -> ArtifactBoundNbzZipSerializationSnapshot
 ```
 
-`Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. The binding receipt therefore proves that the serialization scan was surrounded by two complete reads of the expected artifact identity.
+`Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. Only central/EOCD framing plus local header/name/extra prefixes are retained in memory under the serialization metadata budget. Member bodies remain source spans.
 
-`ArtifactBoundNbzZipSerializationSnapshot` is intentionally non-aggregate with a private constructor. Callers can inspect immutable getters, but cannot self-declare bound authority by copying expected SHA text into public fields. Only `NbzZipArtifactSerializationBinder` can construct the typed result after the complete verification sequence above.
+The critical trust invariant is:
 
-This closes scan-time stale-source/TOCTOU exposure only for that binding window. A future unchanged-region copier/repacker must independently revalidate the artifact at its own I/O boundary before and after consuming source spans.
+> Every metadata byte stored in the artifact-bound serialization snapshot was observed in the same streaming read whose complete byte sequence produced the accepted SHA-256 receipt.
+
+There is no independent pre-hash / metadata-scan / post-hash path window. A path replacement after the observation cannot alter the already captured metadata, while a replacement during the observation changes the observed byte sequence and therefore fails the expected SHA-256 check unless it is byte-identical.
+
+`ArtifactBoundNbzZipSerializationSnapshot` is intentionally non-aggregate with a private constructor. Callers can inspect immutable getters, but cannot self-declare artifact-bound authority by copying expected SHA text into public fields. Only `NbzZipArtifactSerializationBinder` can construct the typed result after the complete verification sequence above.
+
+A future unchanged-region copier/repacker must still independently revalidate the source artifact at its own I/O boundary before consuming source spans. Binding is not permission to trust the path indefinitely.
+
+## Canonical scanner read seam
+
+`NbzZipSerializationScanner::scan_with_reader()` exists so the canonical framing parser can validate an explicit byte view without opening the archive path itself. This is not a second trust authority: the supplied reader carries no artifact identity. Artifact binding becomes trusted only because the binder supplies bytes captured from the same accepted SHA-256 observation.
+
+The ordinary `scan()` API still reads directly from `NbzZipSource::archive_path()` and remains suitable for unbound inspection.
 
 ## Safety
 
@@ -60,10 +74,12 @@ Artifact binding is also fail-closed:
 
 - invalid `ArtifactIdentity` is rejected;
 - expected size must equal the indexed archive size;
-- hash chunks are bounded product policy;
-- exact archive size is checked around each streaming hash pass;
-- pre/post scan SHA values must both match the expected artifact;
-- a same-size archive replacement after source indexing is rejected by hash mismatch;
+- observation chunks are bounded product policy;
+- exact archive size is checked around the complete streaming observation;
+- the complete observed SHA-256 must match the expected artifact;
+- required metadata ranges must all be covered by the same observation;
+- the captured central/local physical fields and names must agree with the indexed source entries before authority is granted;
+- a same-size archive replacement after source indexing is rejected by observed SHA mismatch;
 - typed bound authority cannot be forged as a caller-owned aggregate.
 
 ## What this does not prove
@@ -73,20 +89,21 @@ The artifact-bound snapshot is **not**:
 - a writer receipt;
 - a Capcom packer model;
 - proof that rewritten compressed streams can be byte-identical;
-- permission to trust the source path indefinitely after binding;
+- permission to trust the source path after binding;
 - proof of original-game consumption.
 
 ## No-loss progression
 
 ```text
 NbzZipSource
-  -> NbzZipSerializationScanner
-  -> ArtifactIdentity + double streaming SHA binding
+  -> one-observation SHA-256 + bounded metadata capture
+  -> canonical serialization scan over captured bytes
   -> artifact-bound serialization snapshot
-  -> unchanged-region copier + changed-entry serializer
+  -> artifact-revalidated unchanged-region copier + changed-entry serializer
   -> rebuilt central/local offsets
   -> reopen through NbzZipSource
   -> serialization + materialization comparison
+  -> representative real-corpus receipt
   -> controlled original-game receipt
 ```
 

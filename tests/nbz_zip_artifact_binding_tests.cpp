@@ -122,8 +122,7 @@ int main() {
     assert(bound.snapshot->serialization().source_id == source.id());
     assert(bound.snapshot->serialization().archive_size == overlay.bytes.size());
     assert(bound.snapshot->serialization().entries.size() == members.size());
-    assert(bound.snapshot->pre_scan_sha256() == expected.sha256);
-    assert(bound.snapshot->post_scan_sha256() == expected.sha256);
+    assert(bound.snapshot->observed_sha256() == expected.sha256);
 
     // ArtifactIdentity accepts hexadecimal case variants; binding compares the
     // digest semantically rather than requiring caller-specific text casing.
@@ -167,13 +166,43 @@ int main() {
         zero_chunk_result,
         "gdspaces.nbz.artifact-binding.hash-chunk"));
 
-    // A source index can become stale if the archive is replaced after source
-    // construction. Exact artifact binding must detect that even when the new
-    // file has the same byte count and still looks structurally ZIP-like.
+    // The canonical scanner can now operate on an explicit captured-byte view.
+    // Mutating the backing path while that scan runs must not change the bytes
+    // being validated, which is the key seam used by artifact binding.
     auto tampered_bytes = overlay.bytes;
     assert(!tampered_bytes.empty());
     tampered_bytes[0] ^= std::byte{0x01};
-    write_temp_nbz(tampered_bytes, "artifact-binding");
+
+    bool mutated_during_scan = false;
+    gdspaces::NbzZipSerializationReadExact captured_reader =
+        [&](std::uint64_t offset, std::span<std::byte> output) {
+            if (!mutated_during_scan) {
+                const auto mutated_path =
+                    write_temp_nbz(tampered_bytes, "artifact-binding");
+                assert(mutated_path == path);
+                mutated_during_scan = true;
+            }
+            if (offset > overlay.bytes.size() ||
+                output.size() > overlay.bytes.size() -
+                    static_cast<std::size_t>(offset)) {
+                return false;
+            }
+            std::copy_n(
+                overlay.bytes.begin() +
+                    static_cast<std::ptrdiff_t>(offset),
+                static_cast<std::ptrdiff_t>(output.size()),
+                output.begin());
+            return true;
+        };
+    const auto captured_scan =
+        gdspaces::NbzZipSerializationScanner::scan_with_reader(
+            source, captured_reader);
+    assert(mutated_during_scan);
+    assert(captured_scan.ok());
+
+    // A source index can become stale if the archive is replaced after source
+    // construction. Binding observes the actual path once, so a same-size
+    // replacement cannot inherit trusted metadata from the earlier index.
     const auto stale_source_result =
         gdspaces::NbzZipArtifactSerializationBinder::bind(source, expected);
     assert(!stale_source_result.ok());
@@ -183,10 +212,13 @@ int main() {
 
     // Restore the exact artifact and prove the same already-indexed source can
     // be rebound once its underlying bytes again match the expected identity.
-    write_temp_nbz(overlay.bytes, "artifact-binding");
+    const auto restored_path =
+        write_temp_nbz(overlay.bytes, "artifact-binding");
+    assert(restored_path == path);
     const auto rebound =
         gdspaces::NbzZipArtifactSerializationBinder::bind(source, expected);
     assert(rebound.ok());
+    assert(rebound.snapshot->observed_sha256() == expected.sha256);
 
     std::error_code remove_error;
     std::filesystem::remove(path, remove_error);
