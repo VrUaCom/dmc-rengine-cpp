@@ -142,7 +142,9 @@ struct DescriptorParseResult final {
         return {
             .status = dds.status == DdsImageStatus::unsupported_compression
                 ? TextureSlotFramingStatus::unsupported_compression
-                : TextureSlotFramingStatus::invalid_dds,
+                : (dds.status == DdsImageStatus::size_mismatch
+                    ? TextureSlotFramingStatus::descriptor_mismatch
+                    : TextureSlotFramingStatus::invalid_dds),
             .entry = {},
             .detail = "bounded intrinsic DDS failed the canonical DMC3 DDS structural contract",
         };
