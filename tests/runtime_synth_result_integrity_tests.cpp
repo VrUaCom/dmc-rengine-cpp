@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <span>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -25,11 +27,32 @@ std::string sha256_of(const std::vector<std::byte>& bytes) {
         std::span<const std::byte>{bytes.data(), bytes.size()}).hex();
 }
 
+dmc::rengine::profiles::dmc3::ExactChildImage intrinsic_child(
+    std::uint32_t slot,
+    std::string authority,
+    std::vector<std::byte> bytes) {
+    auto child = dmc::rengine::profiles::dmc3::ExactChildImage::
+        from_intrinsic_resource(
+            slot,
+            dmc::rengine::profiles::dmc3::
+                ExactChildAuthorityKind::external_exact_resource,
+            std::move(authority),
+            std::move(bytes));
+    assert(child.has_value());
+    return std::move(*child);
+}
+
 } // namespace
 
 int main() {
     namespace dmc3 = dmc::rengine::profiles::dmc3;
     namespace gdspaces = dmc::rengine::gdspaces;
+
+    static_assert(!std::is_aggregate_v<dmc3::ExactChildImage>);
+    static_assert(!std::is_default_constructible_v<dmc3::ExactChildImage>);
+    static_assert(!std::is_aggregate_v<dmc3::RuntimeSynthChildReceipt>);
+    static_assert(
+        !std::is_default_constructible_v<dmc3::RuntimeSynthChildReceipt>);
 
     std::vector<std::byte> source_bytes(0x60U, std::byte{0});
     source_bytes[0] = std::byte{'P'};
@@ -63,53 +86,49 @@ int main() {
         .byte_provenance = std::nullopt,
     };
 
-    std::vector<std::byte> child0{std::byte{1}, std::byte{2}, std::byte{3}};
-    std::vector<std::byte> child1{std::byte{4}, std::byte{5}, std::byte{6}, std::byte{7}};
     const std::vector<dmc3::ExactChildImage> children{
-        dmc3::ExactChildImage{
-            .slot_index = 0U,
-            .authority_kind = dmc3::ExactChildAuthorityKind::external_exact_resource,
-            .extent_kind = dmc3::ExactChildExtentKind::intrinsic_resource,
-            .authority_id = "external:child0",
-            .writer_mode = {},
-            .sha256 = sha256_of(child0),
-            .bytes = child0,
-        },
-        dmc3::ExactChildImage{
-            .slot_index = 1U,
-            .authority_kind = dmc3::ExactChildAuthorityKind::external_exact_resource,
-            .extent_kind = dmc3::ExactChildExtentKind::intrinsic_resource,
-            .authority_id = "external:child1",
-            .writer_mode = {},
-            .sha256 = sha256_of(child1),
-            .bytes = child1,
-        },
+        intrinsic_child(
+            0U,
+            "external:child0",
+            {std::byte{1}, std::byte{2}, std::byte{3}}),
+        intrinsic_child(
+            1U,
+            "external:child1",
+            {std::byte{4}, std::byte{5}, std::byte{6}, std::byte{7}}),
     };
 
-    const auto built = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(source, children);
+    const auto built = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
+        source, children);
     assert(built.ok());
 
+    // Any byte mutation invalidates the construction-time output hash.
     auto mutated_bytes = built;
     mutated_bytes.bytes.back() ^= std::byte{1};
     assert(!mutated_bytes.ok());
+
+    // Even if a caller rewrites the public top-level output hash after changing
+    // a child byte, the immutable child receipt still binds the embedded child
+    // span and RuntimeSynthResult::ok() rejects it.
+    auto mutated_child = built;
+    const auto child0_offset = static_cast<std::size_t>(
+        mutated_child.receipt->children[0].emitted_offset());
+    mutated_child.bytes[child0_offset] ^= std::byte{1};
+    mutated_child.receipt->output_sha256 = sha256_of(mutated_child.bytes);
+    assert(!mutated_child.ok());
 
     auto reordered_receipt = *built.receipt;
     std::swap(reordered_receipt.children[0], reordered_receipt.children[1]);
     assert(!reordered_receipt.valid());
 
     auto duplicate_receipt = *built.receipt;
-    duplicate_receipt.children[1].slot_index =
-        duplicate_receipt.children[0].slot_index;
+    duplicate_receipt.children[1] = duplicate_receipt.children[0];
     assert(!duplicate_receipt.valid());
 
-    auto forged_writer_receipt = *built.receipt;
-    forged_writer_receipt.children[0].authority_kind =
-        dmc3::ExactChildAuthorityKind::format_writer_receipt;
-    forged_writer_receipt.children[0].extent_kind =
-        dmc3::ExactChildExtentKind::writer_defined_complete_image;
-    forged_writer_receipt.children[0].writer_mode =
-        "runtime-synth-relative-slot";
-    assert(!forged_writer_receipt.valid());
+    // A writer child cannot be manufactured from an invalid/self-declared
+    // result. The factory requires a live RuntimeSynthResult::ok() receipt.
+    const dmc3::RuntimeSynthResult invalid_result{};
+    assert(!dmc3::ExactChildImage::from_verified_runtime_synth_result(
+        0U, invalid_result).has_value());
 
     return 0;
 }
