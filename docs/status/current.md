@@ -1,274 +1,148 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-06  
-**Repository generation:** evidence-backed C++ platform  
+**Snapshot date:** 2026-08-20  
+**Repository generation:** evidence-backed C++20 reconstruction platform  
 **Version:** 0.2.0  
-**Snapshot base:** `main` at `f54703bc8c2b19da01818b3b39505cb96919c1ac`  
-**Overall status:** cross-platform foundation green; integrated domain stack active; Binary Inspector cross-port active; production archive sources, game-backed stage assembly, runtime validation, and recompilation remain open
+**Canonical snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`  
+**Latest canonical GDSpaces promotion:** PR #147  
+**Overall status:** GDSpaces Layer 1 is the current execution priority; many bounded reverse/implementation slices are canonical, but no major subsystem has whole-game behavioral-equivalence proof.
 
-## Executive result
+## Canonical authority split
 
-DMC Rengine C++ is no longer a placeholder scaffold. The repository contains a functioning C++20 platform with a core library, CLI, cross-platform tests, Evidence Packets, GDSpaces contracts, Binary Inspector analysis models, PE/EXE inspection, stage and item integration, guarded modification workflows, source-integration provenance, a substantial HITS vertical slice, and the reviewed DMC3 PC-save Pass 31/32 ABI.
+- GitHub `main` is implementation truth for reviewed, promoted code and documentation.
+- Google Drive is research/artifact truth where newer reverse material exists before promotion.
+- Active branches/PRs are branch truth only until merged.
+- Synthetic tests prove bounded contracts, not original-game equivalence.
 
-GitHub `main` is the implementation truth for reviewed code. Google Drive remains the research truth for newer reverse-engineering results and recovered-source snapshots. Wide Pass 33 exists in Drive research but has not yet been promoted into the reviewed product tree.
+## GDSpaces layer model
 
-The installed web generation and the open C++20 project remain independent products. Useful Binary Inspector capabilities are cross-ported at the behavior and domain-contract level; React state, browser file access, and web-specific architecture are not copied into the C++ core.
+Canonical boundaries are defined in [GDSpaces decompilation-layer classification](../gdspaces/decompilation-layer-classification.md).
 
-## Validation baseline
+- **L1 — Resource Materialization:** storage/container bytes -> exact materialized bytes -> nested extraction -> WorkingCopy -> rebuild/repack -> reopen/round-trip.
+- **L2 — Resource Resolution:** logical request -> candidate construction -> normalization -> provider/volume selection -> exact resource identity.
+- **L3 — Original Runtime/Lifecycle:** original FileSlot/scheduler/callback/LoadedResource/typed-postload/release/unload behavior beyond the minimum L1 byte-read contract.
+- **V — Validation:** cross-cutting receipts/equivalence support, not a fourth layer.
 
-The latest reviewed capability promotion is PR #47, merged on 2026-08-06.
+## Hypothetical reverse-progress index
 
-Its recorded gates passed on both platforms:
+The authoritative operational scale is [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md).
 
-- Ubuntu — 68/68 tests;
-- Windows — 68/68 tests;
-- Binary Inspector diff, entropy, and range-selection regression coverage;
-- existing Evidence Packet and reverse-authority validation;
-- existing stage, item, HITS, save, source-integration, custom-build, and rollback tests.
+| Layer | Index | Status |
+|---|---:|---|
+| **L1 Resource Materialization** | **88%** | ACTIVE / NOT COMPLETE |
+| **L2 Resource Resolution** | **94%** | HIGH / NOT COMPLETE |
+| **L3 Original Runtime / Lifecycle** | **72%** | ADVANCED / NOT COMPLETE |
+| **V Validation** | **60%** | SUPPORTING / NOT A LAYER |
 
-All future changes must preserve Windows and Ubuntu builds and the rule that no tool creates a second resource resolver outside GDSpaces.
+These percentages are coverage indices, not equivalence probabilities. `99%` may still be NOT COMPLETE. `100% / COMPLETE` is allowed only when mandatory gates are zero or evidence-pruned, closing work is canonical in `main`, representative real-corpus receipts exist, required Windows+Ubuntu validation is green, and no architecture-changing contradiction remains.
 
-## Implemented in this repository
+## L1 canonical capability now in main
 
-### Core and build
+Strong canonical Layer-1 coverage includes:
 
-- C++20/CMake core library and CLI;
-- Windows/Ubuntu GitHub Actions validation;
-- Ninja and Visual Studio presets;
-- `/W4 /permissive-` on MSVC;
-- `-Wall -Wextra -Wpedantic -Wconversion` on GCC/Clang;
-- compiler-level `/UNDEBUG` / `-UNDEBUG` for test targets;
-- synthetic tests containing no proprietary game bytes.
+- NBZ classic-ZIP indexing/source materialization;
+- STORE and raw-DEFLATE materialization with CRC/size/budget validation;
+- ByteProvenance and source/materialized coordinate separation;
+- PAC and PNST structural parsing with sparse/empty/alias topology preservation;
+- recursive PAC/PNST expansion;
+- WorkingCopy and parser-gated edit enablement where required;
+- same-size `layout-preserving-packed` PAC/PNST authoring;
+- validated same-size nested PAC/PNST reintegration with alias-conflict arbitration;
+- runtime-synth size-changing PAC/PNST authoring using the recovered `.lst` 64-byte layout;
+- typed verified `RuntimeSynthResult -> ExactChildImage` authority for nested size-changing composition;
+- deterministic STORE-only next-volume NBZ overlay authoring;
+- canonical reopen/reparse of generated overlay output;
+- authored-byte receipts kept distinct from original ByteProvenance.
 
-### Artifact identity and Evidence
+Canonical writer/reference documents:
 
-- internal SHA-256 and known-vector tests;
-- `ArtifactIdentity` with role, size, and SHA-256;
-- confidence states: hypothesis, candidate, low, medium, high, confirmed, corrected, rejected;
-- evidence locations, records, registry, tags, and supersession links;
-- versioned `EvidencePacket` validation;
-- deterministic JSON export;
-- strict untrusted JSON import with parser limits and cross-reference validation;
-- CLI `validate-evidence`;
-- public Evidence Packets for the canonical executable, Item runtime, and PC-save Pass 31/32 findings.
+- [Runtime-synth PAC/PNST writer](../gdspaces/dmc3-runtime-synth-relative-slot-writer.md)
+- [Nested PAC/PNST reintegration](../gdspaces/dmc3-nested-relative-slot-reintegration.md)
+- [NBZ STORE overlay writer](../gdspaces/dmc3-nbz-store-overlay-writer.md)
+- [Loose-container `.lst` path](../gdspaces/dmc3-loose-container-list.md)
 
-### GDSpaces and integration foundation
-
-- stable `ResourceId`, `ResourceRef`, and `ResourcePayload`;
-- safe read-only `LocalDirectorySource` with root-containment guards;
-- deterministic `SourceRegistry`;
-- profile-aware `ResourceClassifier` and post-read magic correction;
-- `ResourceGraph`, `OpenRouter`, and canonical tool/format registries;
-- typed `StageBundle` and `StageBundleAssembler`;
-- generic read-only container contracts, parser registry, synthetic slot-container fixtures, child identity, empty-slot preservation, diagnostics, and parent-child graph edges;
-- revisioned `WorkingCopy` with expected-byte guards, variable-length replacement, history, reset, and undo;
-- shared Project Workspace, Project Graph, workspace events, and deterministic manifests.
-
-The generic container foundation is implemented. Production PAC/PNST/NBZ/AFS source expansion remains incomplete.
-
-### Binary Inspector domain
-
-- overflow-safe `ByteRange`;
-- structural regions and region kinds;
-- typed fields and parent-child structures;
-- ownership claims;
-- annotations and Evidence links;
-- single-offset selection context;
-- selected-range overlap queries for regions, fields, owners, and annotations;
-- union coverage and unknown structural gaps;
-- structural and ownership conflict reports;
-- deterministic metadata manifest export;
-- adapters for integrated formats including HITS;
-- deterministic offset-aligned byte diff with equal, modified, inserted, and removed spans;
-- byte-diff summary counters and stable ranges;
-- Shannon entropy map with configurable window and step size;
-- entropy-window zero ratio and unique-byte count;
-- zero-fill, low, medium, and high visualization bands;
-- explicit safety rule that entropy bands are heuristics, not Evidence states or format proof;
-- web-to-C++20 capability parity matrix and staged cross-port plan.
-
-The current diff deliberately does not guess resynchronization after a middle insertion. A future structure-aware or resynchronizing mode must be exposed separately as heuristic behavior.
-
-Still pending:
-
-- persistent Analysis Cache;
-- generic duplicate-offset, stride, order, alignment, and range diagnostics;
-- unknown-region feature analysis;
-- reusable binary template schema;
-- deterministic analysis-result JSON export;
-- EXE file-offset/RVA/VA bridge panels;
-- guarded-patch safety bridge;
-- production native hex/structure/diff/entropy interaction UI.
-
-### PE, EXE, and address evidence
-
-- bounds-checked binary reader;
-- generic read-only PE32/PE32+ parser;
-- sections, machine, image base, entry point, subsystem, and malformed-input diagnostics;
-- checked file offset ↔ RVA ↔ VA conversion;
-- known executable target model and canonical DMC3 Phase 12 target;
-- SHA-256 plus PE-metadata matching;
-- Evidence Address Resolver;
-- executable workspace manifests;
-- EXE reopen lineage by executable SHA-256;
-- source-unit, source-line, and recovered-symbol mappings to output offsets/RVAs/VAs in the Custom Build model.
-
-Full DMC3 decompilation and a behaviorally equivalent rebuilt executable are not complete.
-
-### Stage and format integration
-
-Compiled modules and tests exist for:
-
-- HITS;
-- DCA;
-- LIG2;
-- Stage TXT;
-- resource analysis;
-- the DMC3 stage-table descriptor;
-- stage-resource matching;
-- `StageBundleAssembler`;
-- `DMC3StageWorkspaceBuilder`;
-- Stage Workspace manifests;
-- shared Stage Ops/ModViz views.
-
-The confirmed 110 × 4 stage-table descriptor and `st001` resource plan are implemented. The complete legal local game-backed `st001` StageBundle remains open in issue #4.
-
-### Item, Trial Chamber, and guarded modification
-
-- Item Workspace and item-runtime Evidence Packet;
-- runtime requests, validation plans, requirements, graph nodes, events, and manifests;
-- evidence-gated patch-plan compilation;
-- `GuardedPatchPlan` with exact source hash, expected bytes, ranges, and overlap checks;
-- in-memory copy execution only;
-- output SHA-256;
-- generated rollback plans verified to restore the original bytes exactly;
-- manifests recording `original_file_write_performed=false`.
-
-The Item layer produces guarded requests; it does not patch the executable directly.
-
-### Source integration and custom-build lineage
-
-- `SourceModificationPackage`;
-- `IntegrationProject` state and dependency/conflict graph;
-- deterministic source-integration manifests;
-- `CustomBuildIdentity` and `CustomBuildRecord`;
-- compiler, linker, target, flags, dependency-lock, and recovered-source identity;
-- source-to-binary mappings;
-- mandatory test and release gates;
-- distribution, attestation, revocation, and rollback identity;
-- EXE Editor reopen context using executable SHA-256.
-
-These models define the future composite source-build contract. They do not claim that a working rebuilt DMC3 executable exists today.
-
-### HITS vertical slice
-
-The active HITS implementation supersedes the rejected historical `HITS$`/record-marker model.
-
-Implemented:
-
-- header-driven `HITS` parser;
-- exact `0x38` triangle-plane records;
-- spatial grid and signed `-1`-terminated reference lists;
-- source 0/member 3 and source 1/member 6 identity;
-- Binary Inspector semantic adapter;
-- EXE-backed grid conversion, flattening, broadphase, reference deduplication, and reject-mask behavior;
-- typed candidate/contact contracts;
-- topology-preserving safe edits;
-- normal and plane-D recomputation;
-- deterministic DMC Rengine spatial writer using triangle-vs-cell SAT;
-- canonical serialization and parser round trips;
-- stable surface identities;
-- spatial corpus differential validator;
-- deterministic per-cell/per-surface reports and precision/recall/Jaccard metrics;
-- GDSpaces-backed `compare-hits-spatial` CLI with SHA-256 identities and unique bit-exact mapping across reorder.
-
-The DMC Rengine SAT writer is structurally tested. Equivalence with Capcom's unknown offline builder is not confirmed and requires real corpus plus game-runtime validation.
-
-### DMC3 PC-save ABI
-
-Pass 31 and Pass 32 are promoted into reviewed C++.
-
-Implemented and evidence-gated:
-
-- file size `0x4A30` / 18,992 bytes;
-- 21 integrity envelopes;
-- one `0x138` global record (`0x134` body + four-byte trailer);
-- ten `0x40` summary records (`0x3C` body + trailer);
-- ten `0x70C` payload records (`0x708` body + trailer);
-- trailer ABI `u16 recordState + u16 checksum`;
-- rejection of the former standalone `0x28` block interpretation;
-- compatibility-tag observation at `+0x108 = 0xDEC0`;
-- one's-complement end-around-carry checksum and valid fold `0xFFFF`;
-- packed-BCD date/time handling;
-- conservative raw boundaries for unresolved semantics;
-- compile-time layout assertions, diagnostics, and regression tests;
-- Pass 32 Evidence Packet and Drive/GitHub provenance receipts.
-
-Wide Pass 33 payload semantics are research-ready in Drive but product-promotion-pending.
-
-## CLI
+## Mandatory L1 closure path
 
 ```text
-dmc-rengine version
-dmc-rengine doctor
-dmc-rengine scan <directory>
-dmc-rengine hash <path>
-dmc-rengine validate-evidence <path>
-dmc-rengine route <format>
-dmc-rengine inspect-exe <path>
-dmc-rengine list-tools
-dmc-rengine list-formats
-dmc-rengine integration-status
-dmc-rengine inspect-workspace <path> [--stage] [--menu]
-dmc-rengine compare-hits-spatial <original> <candidate> [report.json]
+L1 = 88%
+    |
+    +-- artifact/evidence gates
+    |     +-- representative real .lst receipt
+    |     +-- representative real PNST/raw-container receipt on current parser
+    |     +-- representative real child <-> slot / intrinsic-byte authority
+    |
+    +-- code/serialization gates
+          +-- raw retail-NBZ serialization metadata authority
+          +-- metadata-preserving no-loss retail-NBZ repack tier
+
+then
+
+representative real size-changing edit
+    -> bottom-up nested rebuild
+    -> root PAC/PNST
+    -> retail/overlay NBZ
+    -> reopen
+    -> canonical compare
+    -> controlled original-game consumption receipt
+    -> L1 100% / COMPLETE
 ```
 
-Diff and entropy are currently native library APIs. CLI report/export commands are planned for a later cross-port wave after deterministic analysis-result serialization is defined.
+### Artifact status
 
-Local files are acquired through GDSpaces-backed sources rather than tool-specific filesystem loaders.
+Current connected Drive metadata does not expose a raw `.lst` filename and does not currently expose the exact representative PNST file requested for a fresh current-parser receipt. Historical Phase 12-16 raw packages are documented as unavailable in Drive. These are artifact-availability gates, not reasons to redo already-strong parser reverse from scratch.
 
-## Active GitHub work
+### Retail NBZ boundary
 
-- issue #3 — advance the generic container foundation into a production read-only PAC/PNST/NBZ/AFS subset;
-- issue #4 — complete the first game-backed `st001` StageBundle;
-- issue #13 — real HITS corpus and runtime validation;
-- issue #48 — Binary Inspector Cross-Port Wave 2: Analysis Cache, generic diagnostics, unknown-region analysis, templates, and deterministic result export.
+`NbzZipSource` is a materialization authority, not yet a lossless retail serialization authority. The current entry model does not preserve all source ZIP metadata needed for no-loss repack, including the complete raw central/local metadata envelope where required. STORE-overlay authoring and retail repack therefore remain separate capabilities.
 
-## Explicitly not complete
+The next no-loss tier must preserve or bind exact source serialization information such as local framing, central records, EOCD/comment data, version/time/attribute/extra/comment fields, and opaque local-region bytes where descriptors/padding/gaps may exist. It must not infer Capcom compressor/offline-builder equivalence.
 
-- production PAC/PNST/NBZ/AFS read/write suite;
-- game-backed `st001` end-to-end assembly;
-- proof that the HITS writer matches Capcom's offline builder;
-- complete Binary Inspector desktop interaction UI;
-- structure-aware or resynchronizing binary diff;
-- persistent Binary Inspector Analysis Cache;
-- complete Stage Ops or ModViz desktop UI;
-- complete production Item Editor UI/export flow;
-- bulk promotion of the recovered-source skeleton;
-- full DMC3 executable decompilation;
-- a recompilable, behaviorally validated DMC3 executable;
-- public signed binary release pipeline.
+## Scope corrections that remain canonical
 
-## Current critical path
+- AFS/PACK do not block DMC3 HD L1 absent new direct raw/backend evidence.
+- `.afs/` strings are logical namespace evidence, not proof of a binary AFS container backend.
+- Stage Ops/ModViz semantics do not count toward L1 completion.
+- Original resource factory/cache/refcount/async/unload/shutdown semantics beyond minimum materialization are L3.
+- Descriptor identity, numeric Stage identity, and semantic gameplay identity remain distinct.
+- `st001` is a regression/compatibility fixture, not the architecture's single Stage model.
 
-```text
-production read-only container subset
-  → legal local game-backed st001 StageBundle
-  → broader stage/runtime corpus validation
-  → narrow Evidence Packet promotions from Drive research
-  → behavior-tested recovered subsystems
-  → controlled recompilation milestones
-```
+## Other major project areas
 
-Binary Inspector proceeds in parallel through capability waves:
+### EXE / Recovered Game Source Tree
 
-```text
-Wave 1: diff + entropy + range selection [implemented]
-  → Wave 2: cache + diagnostics + unknown analysis + templates
-  → Wave 3: EXE address and guarded-patch bridges
-  → Wave 4: native desktop interaction layer
-```
+The project has verified executable acquisition and multiple bounded recovered-runtime slices. Full DMC3 decompilation, full resource lifecycle equivalence, progressive recompilation and a behaviorally equivalent rebuilt executable remain incomplete.
 
-## Milestone gate
+### Stage Ops / ModViz
 
-The 0.2 C++ foundation and integrated domain stack are green. Binary Inspector Wave 1 is complete at the native domain level. The next Binary Inspector milestone is Wave 2, while the project-wide critical path remains production resource access, a game-backed stage slice, runtime validation, and behavior-tested recovered subsystems.
+Shared operational/domain state and editor ownership boundaries exist, but evidence-backed gameplay semantics for all camera/door/enemy/effect/event/runtime links are not complete. ModViz must remain a consumer/editor over Stage Ops rather than creating a second scene truth.
+
+### Binary Inspector
+
+Binary Inspector remains the byte/structure/evidence inspection authority. Revision/source lineage must stay synchronized with WorkingCopy and Stage Ops derived state.
+
+### HITS / collision
+
+A large bounded HITS implementation/reverse body exists. Whole original-builder/runtime equivalence is not claimed; remaining claims continue to require representative corpus and controlled runtime evidence.
+
+## Current execution priority
+
+1. Finish Layer-1 no-loss retail-NBZ serialization/repack authority without contaminating ordinary materialization ownership.
+2. Reacquire missing representative `.lst`/PNST/raw-container artifacts where legally available.
+3. Prove real child-to-slot/intrinsic-byte authority for representative size-changing nested resources.
+4. Execute one real size-changing `materialize -> edit -> rebuild -> NBZ -> reopen -> compare` receipt.
+5. Obtain a controlled original-game consumption receipt.
+6. Promote `L1 = 100% / COMPLETE` only in the same canonical change that closes the final mandatory gates.
+7. Then move primary execution accounting to the next layer while preserving L1 regressions.
+
+## Navigation
+
+- [Root project README](../../README.md)
+- [Documentation index](../README.md)
+- [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md)
+- [GDSpaces decompilation-layer classification](../gdspaces/decompilation-layer-classification.md)
+- [Blockers](blockers.md)
+- [Risk register](risks.md)
+- [Phase map](phase-map.md)
+- [Machine-readable status](canonical-status.json)
+
+No statement in this document upgrades a bounded implementation or synthetic regression into whole-game equivalence.

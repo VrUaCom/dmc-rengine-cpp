@@ -10,36 +10,76 @@ It is an evidence-backed platform connecting resource identity, executable resea
 
 ## Current state
 
-**Status snapshot:** 2026-08-05  
+**Status snapshot:** 2026-08-20  
 **Project version:** 0.2.0  
-**Reviewed implementation base:** `main` at `1f77e2076a79216e015a3ddc83b1d1ed89c121c8`
+**Reviewed implementation base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`  
 
-The repository is well beyond its original scaffold. The active C++ tree includes:
+The repository is well beyond its original scaffold. Current reviewed code includes:
 
 - C++20/CMake core library and CLI;
 - Windows and Ubuntu validation;
-- SHA-256 artifact identity;
-- versioned Evidence Packets with deterministic export and strict untrusted JSON import;
-- bounds-checked binary and PE32/PE32+ inspection;
-- GDSpaces identity, sources, classification, graph, routing, typed bundles, and working copies;
-- generic read-only container contracts and synthetic container fixtures;
-- Binary Inspector regions, typed fields, ownership, annotations, selection context, conflicts, and manifests;
-- DMC3 stage-table descriptors, resource matching, Stage Workspace construction, and shared Stage Ops/ModViz views;
-- Item runtime evidence, requests, validation plans, guarded patch compilation, copied-output execution, and verified rollback;
-- source modification packages, Integration Projects, Custom Build identity, source-to-binary mappings, and executable reopen lineage;
-- HITS parsing, runtime-derived grid behavior, safe editing, deterministic spatial rebuilding, corpus comparison, and CLI reports;
-- reviewed DMC3 PC-save Pass 31/32 record-envelope and checksum ABI.
+- SHA-256 artifact identity and evidence infrastructure;
+- GDSpaces resource identity, sources, classification, graph, routing, WorkingCopy and provenance;
+- canonical NBZ STORE/raw-DEFLATE materialization;
+- canonical PAC/PNST structural parsing and recursive expansion;
+- same-size PAC/PNST authoring and validated nested reintegration;
+- runtime-synth size-changing PAC/PNST authoring using the recovered `.lst` 64-byte layout;
+- typed verified nested size-changing runtime-synth composition;
+- deterministic STORE-only next-volume NBZ overlay authoring and reopen;
+- Binary Inspector domain models;
+- PE/EXE inspection and executable evidence acquisition;
+- Stage/Item/HITS/save/source-integration verticals;
+- guarded modification and rollback infrastructure.
 
-The repository does **not** claim full DMC3 decompilation, a production archive writer suite, Capcom HITS offline-builder equivalence, a complete desktop UI, or a working rebuilt game executable.
+The repository does **not** claim full DMC3 decompilation, whole-game behavioral equivalence, Capcom offline-packer equivalence, lossless retail-NBZ repack, a complete desktop UI, or a working rebuilt game executable.
+
+### GDSpaces reverse status
+
+GDSpaces reverse progress is tracked by a canonical **hypothetical reverse-coverage index**. It is not an equivalence percentage.
+
+| Layer | Index | Status |
+|---|---:|---|
+| **L1 — Resource Materialization** | **88%** | ACTIVE / NOT COMPLETE |
+| **L2 — Resource Resolution** | **94%** | HIGH / NOT COMPLETE |
+| **L3 — Original Runtime / Lifecycle** | **72%** | ADVANCED / NOT COMPLETE |
+| **V — Validation** | **60%** | SUPPORTING / NOT A LAYER |
+
+A layer reaches `100% / COMPLETE` only when every mandatory gate is closed or evidence-pruned, the closing work is in canonical `main`, representative real-corpus receipts exist, required Windows+Ubuntu validation is green, and no architecture-changing contradiction remains.
+
+For L1, the remaining mandatory closure path is:
+
+```text
+real .lst / representative real PNST evidence
+        +
+real child <-> slot / intrinsic-byte authority
+        +
+no-loss retail NBZ metadata + repack tier
+        ↓
+representative real size-changing edit
+        ↓
+bottom-up rebuild
+        ↓
+retail/overlay NBZ
+        ↓
+reopen
+        ↓
+canonical compare
+        ↓
+controlled original-game consumption receipt
+        ↓
+L1 100% / COMPLETE
+```
+
+See [GDSpaces reverse-progress scale](docs/gdspaces/reverse-progress-scale.md) and [GDSpaces layer classification](docs/gdspaces/decompilation-layer-classification.md) for the exact rules and boundaries.
 
 ## Implementation truth and research truth
 
 DMC Rengine C++ intentionally separates two authority layers:
 
 - **GitHub `main`** is the source of truth for reviewed, implemented, tested product code.
-- **Google Drive reverse research** is the source of truth for the newest research findings and recovered-source snapshots before product promotion.
+- **Google Drive reverse research** is the source of truth for newer research findings and recovered-source snapshots before product promotion.
 
-Drive research currently extends through Wide Pass 33. Reviewed product promotion currently extends through Wide Pass 32. Newer research is migrated narrowly through Evidence Packets, reviewed C++, tests, CI, and provenance receipts rather than bulk-imported.
+Research findings are migrated narrowly through evidence, reviewed C++, tests, CI, provenance receipts, and explicit promotion boundaries rather than being bulk-imported.
 
 ## The public lore
 
@@ -71,7 +111,7 @@ All Sect, Monk, Order, Monastery, ritual, chamber, and canon language is fiction
 - **Reverse Canon** is the versioned body of accepted, corrected, rejected, and research-required findings.
 - **Evidence Registry** binds claims to artifact hashes, byte ranges, RVA/VA locations, symbols, runtime observations, tests, and supersession records.
 
-PAC, PNST, NBZ, and AFS are internal container layers, not top-level product architecture. Legacy PAC Editor/PAC Manager logic is intentionally excluded.
+PAC, PNST and NBZ are internal resource/container layers. A binary AFS backend is evidence-gated and must not be inferred from `.afs/` logical namespaces. Legacy PAC Editor/PAC Manager logic is intentionally excluded.
 
 ## Central engineering laws
 
@@ -84,45 +124,6 @@ PAC, PNST, NBZ, and AFS are internal container layers, not top-level product arc
 > **Recovered C++ is an evidence-backed reconstruction, not leaked or original Capcom source.**
 
 These laws prevent duplicated identities, competing loaders, false compatibility claims, and unsafe binary modification.
-
-## Notable implemented vertical slices
-
-### HITS collision
-
-The current implementation supersedes the rejected historical `HITS$`/fixed-marker assumption.
-
-Implemented:
-
-- header-driven `HITS` parsing;
-- exact `0x38` triangle-plane records;
-- spatial grids and signed `-1`-terminated reference lists;
-- source 0/member 3 and source 1/member 6 identity;
-- Binary Inspector semantic regions and fields;
-- EXE-backed grid conversion, flattening, broadphase, deduplication, and reject-mask behavior;
-- topology-preserving safe edits;
-- normal and plane-D recomputation;
-- deterministic DMC Rengine SAT spatial writer;
-- parser/writer round trips;
-- stable surface identity;
-- spatial differential reports and `compare-hits-spatial` CLI.
-
-The writer is structurally tested. Equivalence with Capcom's unknown offline builder remains **RESEARCH REQUIRED** until real corpus and game-runtime validation are complete.
-
-### DMC3 PC save
-
-Reviewed Pass 31/32 support includes:
-
-- exact file size `0x4A30`;
-- 21 integrity envelopes;
-- one `0x138` global record;
-- ten `0x40` summary records;
-- ten `0x70C` payload records;
-- four-byte `recordState + checksum` trailers;
-- one's-complement end-around-carry validation with valid fold `0xFFFF`;
-- packed-BCD date/time handling;
-- compile-time layouts, diagnostics, tests, Evidence Packets, and Drive/GitHub provenance.
-
-Wide Pass 33 payload semantics remain research-ready and product-promotion-pending.
 
 ## CLI
 
@@ -171,16 +172,19 @@ ctest --preset vs2022-release
 
 ## Current frontier
 
-The nearest open product gates are:
+The project-wide resource priority is **GDSpaces Layer 1 — Resource Materialization**. L2/L3 findings remain preserved but do not count as L1 completion unless they directly close a materialization boundary.
 
-1. advance generic container contracts into a production read-only PAC/PNST/NBZ/AFS path;
-2. assemble the first legal local game-backed `st001` StageBundle;
-3. perform real HITS corpus comparison and controlled game-runtime validation;
-4. promote Wide Pass 33 through a narrow Evidence Packet, reviewed C++, tests, and CI;
-5. compile and behaviorally compare the first isolated recovered subsystem;
-6. advance toward controlled recompilation milestones.
+Current L1 frontier:
 
-Complete UI and public release automation remain downstream of these evidence and integration gates.
+1. preserve the raw retail NBZ serialization envelope needed for no-loss repack;
+2. implement and validate the metadata-preserving retail-NBZ repack tier without conflating it with STORE-overlay authoring;
+3. reacquire representative legal `.lst` and PNST/raw-container artifacts where current connected storage lacks them;
+4. prove representative real child-to-slot and intrinsic-byte authority for size-changing nested writes;
+5. run a representative legal `materialize -> edit -> bottom-up rebuild -> NBZ -> reopen -> canonical compare` receipt;
+6. obtain a controlled original-game consumption receipt for authored output;
+7. only then promote `L1 = 100% / COMPLETE`.
+
+Complete UI, progressive recompilation, and whole-game equivalence remain downstream.
 
 ## Project navigation
 
@@ -195,6 +199,11 @@ Complete UI and public release automation remain downstream of these evidence an
 - [Deprecated architecture](docs/history/deprecated-architecture.md)
 - [Migrated reverse findings](docs/history/migrated-findings.md)
 - [GDSpaces contract](docs/gdspaces-contract.md)
+- [GDSpaces layer classification](docs/gdspaces/decompilation-layer-classification.md)
+- [GDSpaces reverse-progress scale](docs/gdspaces/reverse-progress-scale.md)
+- [GDSpaces runtime-synth PAC/PNST writer](docs/gdspaces/dmc3-runtime-synth-relative-slot-writer.md)
+- [GDSpaces nested PAC/PNST reintegration](docs/gdspaces/dmc3-nested-relative-slot-reintegration.md)
+- [GDSpaces NBZ STORE overlay writer](docs/gdspaces/dmc3-nbz-store-overlay-writer.md)
 - [Evidence Packets](docs/evidence/evidence-packets.md)
 - [PE Inspector](docs/exe/pe-inspector.md)
 - [Guarded Patching](docs/patch/guarded-patching.md)
