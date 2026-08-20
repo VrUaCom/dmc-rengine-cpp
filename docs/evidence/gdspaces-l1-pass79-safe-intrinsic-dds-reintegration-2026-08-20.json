@@ -1,0 +1,72 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-safe-intrinsic-dds-reintegration.v1",
+  "date": "2026-08-20",
+  "layer": "L1",
+  "depends_on": {
+    "pass": 78,
+    "source_artifact_sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "descriptor_dds_pairs": 154,
+    "texture_bundle_instances": 58
+  },
+  "writer": {
+    "name": "TextureSlotReintegrator",
+    "mode": "same-layout-intrinsic-dds-reintegration",
+    "accepted_framings": [
+      "descriptor[0x70]+DDS",
+      "0x800 bundle header + descriptor/DDS records + zero alignment"
+    ],
+    "source_binding": "exact bounded DDS SHA-256",
+    "dds_size_change_allowed": false,
+    "dds_header_change_allowed": false,
+    "mutable_region": "DDS bytes [128, dds_size)",
+    "physical_non_dds_bytes_must_remain_exact": true,
+    "canonical_output_reparse_required": true,
+    "framing_geometry_must_remain_invariant": true
+  },
+  "real_corpus_mutation_matrix": {
+    "source": "Pass 78 preserved v6 stage-drop corpus",
+    "validation_class": "independent-real-byte-mutation-matrix",
+    "single_texture_cases": 154,
+    "single_texture_passed": 154,
+    "mutation": "xor 0x01 into the final compressed-payload byte of the targeted DDS",
+    "dds_header_byte_exact_cases": 154,
+    "canonical_physical_framing_reparse_cases": 154,
+    "non_target_bytes_byte_exact_cases": 154,
+    "bundle_all_textures_cases": 58,
+    "bundle_all_textures_passed": 58,
+    "bundle_all_headers_byte_exact_cases": 58,
+    "bundle_all_canonical_reparse_cases": 58,
+    "bundle_all_non_mutated_bytes_byte_exact_cases": 58,
+    "current_compiled_cpp_real_corpus_execution": false
+  },
+  "composition": {
+    "downstream_writer": "RelativeSlotPackedReflowWriter",
+    "bare_dds_exposed_to_generic_writer": false,
+    "complete_physical_child_required": true,
+    "synthetic_composition_regression": "intrinsic DDS -> physical texture slot -> PAC rebuild -> PAC reparse"
+  },
+  "fail_closed": [
+    "invalid_source_framing",
+    "no_authored_textures",
+    "duplicate_texture_input",
+    "texture_not_found",
+    "missing_source_hash",
+    "source_dds_mismatch",
+    "dds_size_changed",
+    "dds_header_changed",
+    "no_changes",
+    "output_validation_failed",
+    "framing_changed",
+    "non_dds_bytes_changed",
+    "invalid_receipt"
+  ],
+  "boundaries": {
+    "size_changing_texture_serialization_closed": false,
+    "dimension_or_mip_changes_closed": false,
+    "remaining_variable_descriptor_fields_closed": false,
+    "dxt3_closed": false,
+    "original_runtime_texture_abi_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
