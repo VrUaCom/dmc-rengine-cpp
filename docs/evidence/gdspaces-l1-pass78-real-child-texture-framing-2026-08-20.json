@@ -1,0 +1,98 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-real-child-texture-framing-receipt.v1",
+  "date": "2026-08-20",
+  "layer": "L1",
+  "source_artifact": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "size_bytes": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "corpus_root": "analysis_inputs/stage_drops"
+  },
+  "relative_slot_corpus": {
+    "valid_container_instances": 42,
+    "pac_instances": 32,
+    "binary_pnst_instances": 10,
+    "populated_extraction_relationships": 1869,
+    "direct_file_relationships": 1811,
+    "texture_bundle_folder_relationships": 58
+  },
+  "direct_child_authority": {
+    "exact_physical_span_equals_child": 1786,
+    "descriptor_0x70_plus_exact_dds": 25,
+    "unexplained": 0,
+    "unknown_trailing_bytes": 0
+  },
+  "texture_bundle_authority": {
+    "bundle_instances": 58,
+    "embedded_dds_instances": 129,
+    "count_matches": 58,
+    "first_descriptor_offset": 2048,
+    "first_dds_offset": 2160,
+    "descriptor_size": 112,
+    "descriptor_alignment": 2048,
+    "all_descriptor_starts_aligned": true,
+    "all_embedded_dds_byte_exact": true,
+    "all_nonfinal_sector_spans_match_header": true,
+    "all_alignment_padding_zero": true,
+    "all_final_padding_zero": true,
+    "observed_inter_record_padding_bytes": [416, 1088, 1112],
+    "observed_final_padding_bytes": [0, 416, 424, 1088, 1112]
+  },
+  "descriptor_dds_pairs": {
+    "count": 154,
+    "compression_population": {
+      "DXT1": 47,
+      "DXT5": 107
+    },
+    "confirmed_154_of_154": {
+      "u32_0x08": "0x20000 | (dds_mip_count << 8) | compression_code; DXT1=0x86, DXT5=0x88",
+      "u32_0x0c": "0xAAE4",
+      "u32_0x10": "(dds_height << 16) | dds_width",
+      "u32_0x14": "1",
+      "u32_0x18": "dds_width * 2 for DXT1; dds_width * 4 for DXT5",
+      "u32_0x20": "0x40",
+      "u32_0x38": "exact_dds_size - 128",
+      "u32_0x60": "0 for DXT1; 4 for DXT5",
+      "u32_0x64": "exact full DDS byte size",
+      "u32_0x68": "8",
+      "dds_size": "128 + exact standard DXT block-compressed mip-chain payload size"
+    }
+  },
+  "controlled_real_reflow": {
+    "artifact": "analysis_inputs/stage_drops/em035/em035_057.pac",
+    "format": "PNST",
+    "declared_slots": 2,
+    "populated_slots": 2,
+    "source_size": 363200,
+    "source_sha256": "9a164d0e7534ef7776126aa4a2a9b6a3d21ddc12e2ecf312cc6bc0f513505a1c",
+    "slot0": {
+      "source_offset": 16,
+      "source_size": 832,
+      "source_sha256": "a647f848f3dd012034958be8ffd65a722957fb29f06770566c10f8b8154d8b2e",
+      "edit": "append 16 zero bytes",
+      "output_size": 848,
+      "output_sha256": "1411c9badf41126f8b3b8765639a18ffaec659b0281d440255d654a342e9504f"
+    },
+    "slot1": {
+      "source_offset": 848,
+      "output_offset": 864,
+      "size": 362352,
+      "sha256": "bb0b36d3daf7ffa5953f07380cff68b7059aa13ab8ddd52071f88c4ef83b843c",
+      "unchanged": true
+    },
+    "output_size": 363216,
+    "output_sha256": "35f3e70a3376ca6a752d9f9862b909650ee85bb1c4fb4445470f997e1ae06a84",
+    "structural_reparse": "success",
+    "validation_class": "independent-real-byte-algorithm-receipt",
+    "current_compiled_cpp_writer_execution": false
+  },
+  "boundaries": {
+    "raw_game_bytes_committed": false,
+    "index_declared_sparse_slot_authority": false,
+    "original_texture_parser_abi_claimed": false,
+    "dxt3_promoted": false,
+    "real_lst_corpus_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
