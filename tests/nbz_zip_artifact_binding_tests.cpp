@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -26,6 +27,29 @@ namespace {
     bytes.reserve(text.size());
     for (const char value : text) {
         bytes.push_back(static_cast<std::byte>(value));
+    }
+    return bytes;
+}
+
+[[nodiscard]] std::vector<std::byte> from_hex(std::string_view hex) {
+    assert((hex.size() % 2U) == 0U);
+    const auto nibble = [](char value) -> std::uint8_t {
+        if (value >= '0' && value <= '9') {
+            return static_cast<std::uint8_t>(value - '0');
+        }
+        if (value >= 'a' && value <= 'f') {
+            return static_cast<std::uint8_t>(10 + value - 'a');
+        }
+        assert(false);
+        return 0U;
+    };
+
+    std::vector<std::byte> bytes;
+    bytes.reserve(hex.size() / 2U);
+    for (std::size_t index = 0U; index < hex.size(); index += 2U) {
+        bytes.push_back(static_cast<std::byte>(
+            static_cast<std::uint8_t>(
+                (nibble(hex[index]) << 4U) | nibble(hex[index + 1U]))));
     }
     return bytes;
 }
@@ -335,9 +359,75 @@ int main() {
     assert(untouched_payload.has_value());
     assert(untouched_payload->bytes == members[1].bytes);
 
+    // Method-8 + bit-3 data-descriptor authoring regression. This is a fixed
+    // synthetic classic-ZIP fixture with one raw-DEFLATE member, zero local
+    // CRC/size fields, and a signed 16-byte descriptor. The repacker must keep
+    // method 8, generate deterministic stored-block DEFLATE, rewrite the
+    // descriptor and central sizes, then reopen/materialize the exact edit.
+    const auto method8_fixture = from_hex(
+        "504b0304140008000800831822500000000000000000000000000b000000"
+        "6d6574686f64382e62696e"
+        "4b494dcb492c494dd1cd2fca4ccfcc4bcc0100"
+        "504b0708c0b3be781300000011000000"
+        "504b0102140314000800080083182250c0b3be7813000000110000000b000000"
+        "00000000000020000000000000006d6574686f64382e62696e"
+        "504b05060000000001000100390000004c0000000000");
+    const auto method8_source_path = write_temp_nbz(
+        method8_fixture, "retail-method8-source");
+    gdspaces::NbzZipSource method8_source(
+        "retail-method8-source", method8_source_path);
+    assert(method8_source.valid());
+    assert(method8_source.entries().size() == 1U);
+    assert(method8_source.entries()[0].compression_method == 8U);
+    assert((method8_source.entries()[0].flags & 0x0008U) != 0U);
+
+    const auto method8_identity = artifact_for(method8_fixture);
+    const auto method8_bound = gdspaces::NbzZipArtifactSerializationBinder::bind(
+        method8_source,
+        method8_identity,
+        {},
+        gdspaces::NbzZipArtifactBindingLimits{.hash_chunk_bytes = 9U});
+    assert(method8_bound.ok());
+
+    const auto method8_changed_bytes = ascii(
+        "deflated-replacement-with-size-change-and-data-descriptor");
+    const std::vector<gdspaces::NbzZipMemberReplacement> method8_replacements{
+        gdspaces::NbzZipMemberReplacement{
+            .central_index = 0U,
+            .materialized_bytes = method8_changed_bytes,
+        },
+    };
+    const auto method8_output_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-retail-method8-output.nbz";
+    remove_if_present(method8_output_path);
+    const auto method8_repack = gdspaces::NbzZipRetailRepacker::write(
+        method8_source,
+        *method8_bound.snapshot,
+        method8_replacements,
+        method8_output_path,
+        gdspaces::NbzZipRetailRepackLimits{.io_chunk_bytes = 7U});
+    assert(method8_repack.ok());
+    assert(method8_repack.receipt->entries.size() == 1U);
+    assert(method8_repack.receipt->entries[0].changed);
+    assert(method8_repack.receipt->entries[0].compression_method == 8U);
+    assert(
+        method8_repack.receipt->entries[0].compressed_size ==
+        method8_changed_bytes.size() + 5U);
+
+    gdspaces::NbzZipSource method8_reopened(
+        "retail-method8-reopen", method8_output_path);
+    assert(method8_reopened.valid());
+    assert(method8_reopened.entries()[0].compression_method == 8U);
+    assert((method8_reopened.entries()[0].flags & 0x0008U) != 0U);
+    const auto method8_payload = read_path(method8_reopened, "method8.bin");
+    assert(method8_payload.has_value());
+    assert(method8_payload->bytes == method8_changed_bytes);
+
     std::error_code remove_error;
     std::filesystem::remove(path, remove_error);
     std::filesystem::remove(identity_path, remove_error);
     std::filesystem::remove(changed_path, remove_error);
+    std::filesystem::remove(method8_source_path, remove_error);
+    std::filesystem::remove(method8_output_path, remove_error);
     return 0;
 }
