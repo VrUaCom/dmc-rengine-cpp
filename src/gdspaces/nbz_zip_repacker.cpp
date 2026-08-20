@@ -414,7 +414,8 @@ bool NbzZipRetailRepackReceipt::valid() const noexcept {
     for (std::size_t index = 0U; index < entries.size(); ++index) {
         const auto& entry = entries[index];
         if (entry.central_index != static_cast<std::uint32_t>(index) ||
-            (entry.compression_method != 0U && entry.compression_method != 8U) ||
+            (entry.changed && entry.compression_method != 0U &&
+             entry.compression_method != 8U) ||
             !fits_zip32(entry.local_header_offset)) {
             return false;
         }
@@ -533,31 +534,26 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
                 "The source bytes changed after artifact binding; identity repack was discarded.");
         }
         const auto output_sha = output.finalize_sha();
+        const auto output_size = output.size();
         if (!output_sha.has_value() || !output.close()) {
             return failure(
                 NbzZipRetailRepackStatus::destination_write_failed,
                 "The byte-identical retail output could not be finalized.");
         }
-        std::filesystem::rename(temp_path, destination, path_error);
-        if (path_error) {
-            return failure(
-                NbzZipRetailRepackStatus::destination_commit_failed,
-                "The verified temporary retail output could not be committed to its destination.");
-        }
-        temp_guard.committed = true;
 
-        NbzZipSource reopened(std::string{source.id()} + "::repacked", destination);
+        NbzZipSource reopened(
+            std::string{source.id()} + "::repack-validation", temp_path);
         if (!reopened.valid() || reopened.entries().size() != indexed_entries.size()) {
             return failure(
                 NbzZipRetailRepackStatus::canonical_reopen_failed,
-                "The byte-identical retail output did not reopen through canonical NbzZipSource.");
+                "The byte-identical temporary retail output did not reopen through canonical NbzZipSource.");
         }
 
         NbzZipRetailRepackReceipt receipt{
             .source_sha256 = bound.artifact().sha256,
             .output_sha256 = *output_sha,
             .source_size = bound.artifact().size,
-            .output_size = output.size(),
+            .output_size = output_size,
             .central_offset = static_cast<std::uint32_t>(
                 source.index_receipt()->computed_central_start),
             .central_size = source.index_receipt()->declared_central_size,
@@ -582,6 +578,15 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
                 NbzZipRetailRepackStatus::canonical_validation_failed,
                 "Identity retail repack did not preserve the complete artifact identity.");
         }
+
+        path_error.clear();
+        std::filesystem::rename(temp_path, destination, path_error);
+        if (path_error) {
+            return failure(
+                NbzZipRetailRepackStatus::destination_commit_failed,
+                "The validated temporary retail output could not be committed to its destination.");
+        }
+        temp_guard.committed = true;
         return NbzZipRetailRepackResult{
             .status = NbzZipRetailRepackStatus::ok,
             .receipt = std::move(receipt),
@@ -919,19 +924,13 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
             NbzZipRetailRepackStatus::destination_write_failed,
             "The rebuilt retail NBZ could not be finalized.");
     }
-    std::filesystem::rename(temp_path, destination, path_error);
-    if (path_error) {
-        return failure(
-            NbzZipRetailRepackStatus::destination_commit_failed,
-            "The verified temporary retail NBZ could not be committed to its destination.");
-    }
-    temp_guard.committed = true;
 
-    NbzZipSource reopened(std::string{source.id()} + "::repacked", destination);
+    NbzZipSource reopened(
+        std::string{source.id()} + "::repack-validation", temp_path);
     if (!reopened.valid() || reopened.entries().size() != indexed_entries.size()) {
         return failure(
             NbzZipRetailRepackStatus::canonical_reopen_failed,
-            "The rebuilt retail NBZ did not reopen through canonical NbzZipSource.");
+            "The rebuilt temporary retail NBZ did not reopen through canonical NbzZipSource.");
     }
     for (std::size_t index = 0U; index < reopened.entries().size(); ++index) {
         const auto& actual = reopened.entries()[index];
@@ -983,6 +982,14 @@ NbzZipRetailRepackResult NbzZipRetailRepacker::write(
             "The completed retail NBZ writer receipt violates its own bounds.");
     }
 
+    path_error.clear();
+    std::filesystem::rename(temp_path, destination, path_error);
+    if (path_error) {
+        return failure(
+            NbzZipRetailRepackStatus::destination_commit_failed,
+            "The validated temporary retail NBZ could not be committed to its destination.");
+    }
+    temp_guard.committed = true;
     return NbzZipRetailRepackResult{
         .status = NbzZipRetailRepackStatus::ok,
         .receipt = std::move(receipt),
