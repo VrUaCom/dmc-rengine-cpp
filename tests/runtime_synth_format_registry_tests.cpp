@@ -33,7 +33,8 @@ int main() {
     assert(pac->allows_writer_mode("runtime-synth-relative-slot"));
     assert(!pac->allows_writer_mode("generic-writer-receipt"));
     assert(has_limitation(*pac, "independently intrinsic"));
-    assert(has_limitation(*pac, "typed verified"));
+    assert(has_limitation(*pac, "typed verified runtime-synth"));
+    assert(has_limitation(*pac, "semantic child-to-slot"));
 
     const auto* pnst = registry.find("PNST");
     assert(pnst != nullptr);
@@ -44,7 +45,8 @@ int main() {
     assert(pnst->allows_writer_mode("runtime-synth-relative-slot"));
     assert(!pnst->allows_writer_mode("generic-writer-receipt"));
     assert(has_limitation(*pnst, "independently intrinsic"));
-    assert(has_limitation(*pnst, "typed verified"));
+    assert(has_limitation(*pnst, "typed verified runtime-synth"));
+    assert(has_limitation(*pnst, "semantic child-to-slot"));
 
     const auto* nbz = registry.find("NBZ");
     assert(nbz != nullptr);
