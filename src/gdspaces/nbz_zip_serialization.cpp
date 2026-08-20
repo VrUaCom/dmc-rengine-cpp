@@ -55,7 +55,7 @@ constexpr std::uint16_t data_descriptor_flag = 0x0008U;
     return true;
 }
 
-[[nodiscard]] bool read_exact(
+[[nodiscard]] bool read_file_exact(
     std::ifstream& stream,
     std::uint64_t offset,
     std::span<std::byte> output) {
@@ -116,125 +116,44 @@ void add_error(
         left.uses_data_descriptor == right.uses_data_descriptor;
 }
 
-} // namespace
-
-bool NbzZipSerializationEntry::valid(
-    std::uint64_t archive_size,
-    std::uint64_t central_start) const noexcept {
-    if (central_record_bytes.size() < central_fixed_size ||
-        local_prefix_bytes.size() < local_fixed_size ||
-        central_record_offset < central_start ||
-        local_record_offset >= central_start ||
-        local_region_size == 0U ||
-        local_region_size > central_start - local_record_offset) {
-        return false;
-    }
-
-    const auto central_span = std::span<const std::byte>{central_record_bytes};
-    const auto local_span = std::span<const std::byte>{local_prefix_bytes};
-    if (u32_le(central_span, 0U) != central_signature ||
-        u32_le(local_span, 0U) != local_signature) {
-        return false;
-    }
-
-    std::uint64_t expected_data_offset{};
-    if (!checked_add(
-            local_record_offset,
-            static_cast<std::uint64_t>(local_prefix_bytes.size()),
-            expected_data_offset) ||
-        expected_data_offset != data_offset ||
-        data_offset > archive_size ||
-        stored_data_size > archive_size - data_offset) {
-        return false;
-    }
-
-    std::uint64_t consumed_before_tail{};
-    return checked_add(
-               static_cast<std::uint64_t>(local_prefix_bytes.size()),
-               stored_data_size,
-               consumed_before_tail) &&
-        consumed_before_tail <= local_region_size;
-}
-
-bool NbzZipSerializationSnapshot::valid() const noexcept {
-    if (source_id.empty() || archive_size < eocd_fixed_size ||
-        prefix_size > computed_central_start ||
-        computed_central_start > eocd_offset ||
-        eocd_offset > archive_size ||
-        eocd_bytes.size() != archive_size - eocd_offset ||
-        eocd_bytes.size() < eocd_fixed_size ||
-        u32_le(std::span<const std::byte>{eocd_bytes}, 0U) != eocd_signature) {
-        return false;
-    }
-
-    std::uint64_t central_cursor = computed_central_start;
-    for (std::size_t index = 0U; index < entries.size(); ++index) {
-        const auto& entry = entries[index];
-        if (entry.central_index != static_cast<std::uint32_t>(index) ||
-            entry.central_record_offset != central_cursor ||
-            !entry.valid(archive_size, computed_central_start)) {
-            return false;
-        }
-        if (!checked_add(
-                central_cursor,
-                static_cast<std::uint64_t>(entry.central_record_bytes.size()),
-                central_cursor) ||
-            central_cursor > eocd_offset) {
-            return false;
-        }
-    }
-    return central_cursor == eocd_offset;
-}
-
-bool NbzZipSerializationScanResult::ok() const noexcept {
-    if (!snapshot.has_value() || !snapshot->valid()) {
-        return false;
-    }
-    return std::none_of(
-        diagnostics.begin(), diagnostics.end(),
-        [](const Diagnostic& diagnostic) {
-            return diagnostic.severity == DiagnosticSeverity::error;
-        });
-}
-
-NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
+[[nodiscard]] bool validate_scan_inputs(
     const NbzZipSource& source,
-    NbzZipSerializationLimits limits) {
-    NbzZipSerializationScanResult result;
+    NbzZipSerializationLimits limits,
+    NbzZipSerializationScanResult& result) {
     if (!source.valid() || !source.index_receipt().has_value() ||
         !source.index_receipt()->valid()) {
         add_error(
             result,
             "gdspaces.nbz.serialization.source-invalid",
             "Retail serialization scanning requires a valid indexed NBZ source.");
-        return result;
+        return false;
     }
     if (limits.max_metadata_bytes < eocd_fixed_size) {
         add_error(
             result,
             "gdspaces.nbz.serialization.metadata-budget",
             "The serialization metadata budget is smaller than a ZIP EOCD record.");
-        return result;
+        return false;
     }
 
     const auto& receipt = *source.index_receipt();
-    const auto& indexed_entries = source.entries();
-    if (indexed_entries.size() != receipt.walked_entry_count) {
+    if (source.entries().size() != receipt.walked_entry_count) {
         add_error(
             result,
             "gdspaces.nbz.serialization.index-count-mismatch",
             "Indexed entry count does not match the recovered central-directory walk receipt.");
-        return result;
+        return false;
     }
+    return true;
+}
 
-    std::ifstream stream(source.archive_path(), std::ios::binary);
-    if (!stream) {
-        add_error(
-            result,
-            "gdspaces.nbz.serialization.open-failed",
-            "Unable to reopen the NBZ source for serialization scanning.");
-        return result;
-    }
+[[nodiscard]] NbzZipSerializationScanResult scan_impl(
+    const NbzZipSource& source,
+    const NbzZipSerializationReadExact& read_exact,
+    NbzZipSerializationLimits limits) {
+    NbzZipSerializationScanResult result;
+    const auto& receipt = *source.index_receipt();
+    const auto& indexed_entries = source.entries();
 
     NbzZipSerializationSnapshot snapshot{
         .source_id = std::string{source.id()},
@@ -260,11 +179,32 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
         return result;
     }
     snapshot.eocd_bytes.resize(static_cast<std::size_t>(eocd_size));
-    if (!read_exact(stream, snapshot.eocd_offset, snapshot.eocd_bytes)) {
+    if (!read_exact(
+            snapshot.eocd_offset,
+            std::span<std::byte>{snapshot.eocd_bytes})) {
         add_error(
             result,
             "gdspaces.nbz.serialization.eocd-read",
             "Unable to preserve the complete EOCD/comment byte region.");
+        return result;
+    }
+
+    const auto eocd = std::span<const std::byte>{snapshot.eocd_bytes};
+    const auto observed_comment_length = u16_le(eocd, 20U);
+    if (u32_le(eocd, 0U) != eocd_signature ||
+        u16_le(eocd, 4U) != 0U ||
+        u16_le(eocd, 6U) != 0U ||
+        u16_le(eocd, 8U) != receipt.declared_entry_count ||
+        u16_le(eocd, 10U) != receipt.declared_entry_count ||
+        u32_le(eocd, 12U) != receipt.declared_central_size ||
+        u32_le(eocd, 16U) != receipt.declared_central_offset ||
+        static_cast<std::uint64_t>(eocd_fixed_size) +
+                observed_comment_length !=
+            snapshot.eocd_bytes.size()) {
+        add_error(
+            result,
+            "gdspaces.nbz.serialization.eocd-receipt-mismatch",
+            "The observed terminal EOCD does not match the indexed NBZ receipt.");
         return result;
     }
 
@@ -282,7 +222,9 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
         }
 
         std::array<std::byte, central_fixed_size> central{};
-        if (!read_exact(stream, central_cursor, central) ||
+        if (!read_exact(
+                central_cursor,
+                std::span<std::byte>{central}) ||
             u32_le(central, 0U) != central_signature) {
             add_error(
                 result,
@@ -331,8 +273,8 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
             .uses_data_descriptor = (indexed.flags & data_descriptor_flag) != 0U,
         };
         if (!read_exact(
-                stream, preserved.central_record_offset,
-                preserved.central_record_bytes)) {
+                preserved.central_record_offset,
+                std::span<std::byte>{preserved.central_record_bytes})) {
             add_error(
                 result,
                 "gdspaces.nbz.serialization.central-read",
@@ -363,8 +305,8 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
         preserved.local_prefix_bytes.resize(
             static_cast<std::size_t>(local_prefix_size));
         if (!read_exact(
-                stream, preserved.local_record_offset,
-                preserved.local_prefix_bytes) ||
+                preserved.local_record_offset,
+                std::span<std::byte>{preserved.local_prefix_bytes}) ||
             u32_le(
                 std::span<const std::byte>{preserved.local_prefix_bytes}, 0U) !=
                 local_signature) {
@@ -459,6 +401,129 @@ NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
 
     result.snapshot = std::move(snapshot);
     return result;
+}
+
+} // namespace
+
+bool NbzZipSerializationEntry::valid(
+    std::uint64_t archive_size,
+    std::uint64_t central_start) const noexcept {
+    if (central_record_bytes.size() < central_fixed_size ||
+        local_prefix_bytes.size() < local_fixed_size ||
+        central_record_offset < central_start ||
+        local_record_offset >= central_start ||
+        local_region_size == 0U ||
+        local_region_size > central_start - local_record_offset) {
+        return false;
+    }
+
+    const auto central_span = std::span<const std::byte>{central_record_bytes};
+    const auto local_span = std::span<const std::byte>{local_prefix_bytes};
+    if (u32_le(central_span, 0U) != central_signature ||
+        u32_le(local_span, 0U) != local_signature) {
+        return false;
+    }
+
+    std::uint64_t expected_data_offset{};
+    if (!checked_add(
+            local_record_offset,
+            static_cast<std::uint64_t>(local_prefix_bytes.size()),
+            expected_data_offset) ||
+        expected_data_offset != data_offset ||
+        data_offset > archive_size ||
+        stored_data_size > archive_size - data_offset) {
+        return false;
+    }
+
+    std::uint64_t consumed_before_tail{};
+    return checked_add(
+               static_cast<std::uint64_t>(local_prefix_bytes.size()),
+               stored_data_size,
+               consumed_before_tail) &&
+        consumed_before_tail <= local_region_size;
+}
+
+bool NbzZipSerializationSnapshot::valid() const noexcept {
+    if (source_id.empty() || archive_size < eocd_fixed_size ||
+        prefix_size > computed_central_start ||
+        computed_central_start > eocd_offset ||
+        eocd_offset > archive_size ||
+        eocd_bytes.size() != archive_size - eocd_offset ||
+        eocd_bytes.size() < eocd_fixed_size ||
+        u32_le(std::span<const std::byte>{eocd_bytes}, 0U) != eocd_signature) {
+        return false;
+    }
+
+    std::uint64_t central_cursor = computed_central_start;
+    for (std::size_t index = 0U; index < entries.size(); ++index) {
+        const auto& entry = entries[index];
+        if (entry.central_index != static_cast<std::uint32_t>(index) ||
+            entry.central_record_offset != central_cursor ||
+            !entry.valid(archive_size, computed_central_start)) {
+            return false;
+        }
+        if (!checked_add(
+                central_cursor,
+                static_cast<std::uint64_t>(entry.central_record_bytes.size()),
+                central_cursor) ||
+            central_cursor > eocd_offset) {
+            return false;
+        }
+    }
+    return central_cursor == eocd_offset;
+}
+
+bool NbzZipSerializationScanResult::ok() const noexcept {
+    if (!snapshot.has_value() || !snapshot->valid()) {
+        return false;
+    }
+    return std::none_of(
+        diagnostics.begin(), diagnostics.end(),
+        [](const Diagnostic& diagnostic) {
+            return diagnostic.severity == DiagnosticSeverity::error;
+        });
+}
+
+NbzZipSerializationScanResult NbzZipSerializationScanner::scan(
+    const NbzZipSource& source,
+    NbzZipSerializationLimits limits) {
+    NbzZipSerializationScanResult result;
+    if (!validate_scan_inputs(source, limits, result)) {
+        return result;
+    }
+
+    std::ifstream stream(source.archive_path(), std::ios::binary);
+    if (!stream) {
+        add_error(
+            result,
+            "gdspaces.nbz.serialization.open-failed",
+            "Unable to reopen the NBZ source for serialization scanning.");
+        return result;
+    }
+
+    NbzZipSerializationReadExact reader =
+        [&stream](std::uint64_t offset, std::span<std::byte> output) {
+            return read_file_exact(stream, offset, output);
+        };
+    return scan_impl(source, reader, limits);
+}
+
+NbzZipSerializationScanResult NbzZipSerializationScanner::scan_with_reader(
+    const NbzZipSource& source,
+    const NbzZipSerializationReadExact& read_exact,
+    NbzZipSerializationLimits limits) {
+    NbzZipSerializationScanResult result;
+    if (!validate_scan_inputs(source, limits, result)) {
+        return result;
+    }
+    if (!read_exact) {
+        add_error(
+            result,
+            "gdspaces.nbz.serialization.reader-invalid",
+            "Serialization scanning requires a valid random-access byte reader.");
+        return result;
+    }
+    return scan_impl(source, read_exact, limits);
 }
 
 } // namespace dmc::rengine::gdspaces

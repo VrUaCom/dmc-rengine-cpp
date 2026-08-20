@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <limits>
 
 namespace dmc::rengine::core {
 namespace {
@@ -27,6 +28,22 @@ constexpr std::array<std::uint32_t, 64> round_constants{
 };
 
 using State = std::array<std::uint32_t, 8>;
+
+constexpr std::uint64_t max_sha256_bytes =
+    std::numeric_limits<std::uint64_t>::max() / 8U;
+
+[[nodiscard]] constexpr State initial_state() noexcept {
+    return State{
+        0x6a09e667U,
+        0xbb67ae85U,
+        0x3c6ef372U,
+        0xa54ff53aU,
+        0x510e527fU,
+        0x9b05688cU,
+        0x1f83d9abU,
+        0x5be0cd19U,
+    };
+}
 
 [[nodiscard]] constexpr std::uint32_t choose(
     std::uint32_t x,
@@ -58,7 +75,7 @@ using State = std::array<std::uint32_t, 8>;
     return std::rotr(value, 17) ^ std::rotr(value, 19) ^ (value >> 10U);
 }
 
-void transform(State& state, std::span<const std::byte, 64> block) {
+void transform(State& state, std::span<const std::byte, 64> block) noexcept {
     std::array<std::uint32_t, 64> words{};
     for (std::size_t index = 0; index < 16U; ++index) {
         const auto offset = index * 4U;
@@ -116,6 +133,18 @@ void transform(State& state, std::span<const std::byte, 64> block) {
     state[7] += h;
 }
 
+[[nodiscard]] Sha256Digest digest_from_state(const State& state) noexcept {
+    Sha256Digest digest;
+    for (std::size_t word = 0; word < state.size(); ++word) {
+        for (std::size_t byte = 0; byte < 4U; ++byte) {
+            const auto shift = static_cast<unsigned>((3U - byte) * 8U);
+            digest.bytes[word * 4U + byte] = static_cast<std::uint8_t>(
+                (state[word] >> shift) & 0xFFU);
+        }
+    }
+    return digest;
+}
+
 } // namespace
 
 std::string Sha256Digest::hex() const {
@@ -129,17 +158,102 @@ std::string Sha256Digest::hex() const {
     return result;
 }
 
+Sha256Accumulator::Sha256Accumulator() noexcept
+    : state_(initial_state()) {}
+
+bool Sha256Accumulator::update(std::span<const std::byte> input) noexcept {
+    if (!valid_) {
+        return false;
+    }
+
+    const auto input_size = static_cast<std::uint64_t>(input.size());
+    if (total_size_ > max_sha256_bytes ||
+        input_size > max_sha256_bytes - total_size_) {
+        valid_ = false;
+        return false;
+    }
+    total_size_ += input_size;
+
+    std::size_t cursor = 0U;
+    if (tail_size_ != 0U) {
+        const auto copy_size = std::min(
+            tail_.size() - tail_size_, input.size());
+        std::copy_n(
+            input.begin(),
+            static_cast<std::ptrdiff_t>(copy_size),
+            tail_.begin() + static_cast<std::ptrdiff_t>(tail_size_));
+        tail_size_ += copy_size;
+        cursor += copy_size;
+        if (tail_size_ == tail_.size()) {
+            transform(
+                state_,
+                std::span<const std::byte, 64>{tail_.data(), tail_.size()});
+            tail_size_ = 0U;
+        }
+    }
+
+    while (input.size() - cursor >= 64U) {
+        transform(
+            state_,
+            std::span<const std::byte, 64>{input.data() + cursor, 64U});
+        cursor += 64U;
+    }
+
+    const auto remainder = input.size() - cursor;
+    if (remainder != 0U) {
+        std::copy(
+            input.begin() + static_cast<std::ptrdiff_t>(cursor),
+            input.end(),
+            tail_.begin());
+        tail_size_ = remainder;
+    }
+    return true;
+}
+
+std::optional<Sha256Digest> Sha256Accumulator::finalize() const noexcept {
+    if (!valid_ || total_size_ > max_sha256_bytes || tail_size_ >= 64U) {
+        return std::nullopt;
+    }
+
+    auto state = state_;
+    std::array<std::byte, 128> tail{};
+    if (tail_size_ != 0U) {
+        std::copy_n(
+            tail_.begin(),
+            static_cast<std::ptrdiff_t>(tail_size_),
+            tail.begin());
+    }
+    tail[tail_size_] = std::byte{0x80};
+
+    const auto tail_blocks = tail_size_ < 56U ? 1U : 2U;
+    const auto bit_length = total_size_ * 8U;
+    const auto length_offset = tail_blocks * 64U - 8U;
+    for (std::size_t index = 0; index < 8U; ++index) {
+        const auto shift = static_cast<unsigned>((7U - index) * 8U);
+        tail[length_offset + index] = static_cast<std::byte>(
+            (bit_length >> shift) & 0xFFU);
+    }
+
+    for (std::size_t index = 0; index < tail_blocks; ++index) {
+        transform(
+            state,
+            std::span<const std::byte, 64>{
+                tail.data() + index * 64U,
+                64U});
+    }
+    return digest_from_state(state);
+}
+
+std::uint64_t Sha256Accumulator::byte_count() const noexcept {
+    return total_size_;
+}
+
+bool Sha256Accumulator::valid() const noexcept {
+    return valid_;
+}
+
 Sha256Digest Sha256::compute(std::span<const std::byte> input) {
-    State state{
-        0x6a09e667U,
-        0xbb67ae85U,
-        0x3c6ef372U,
-        0xa54ff53aU,
-        0x510e527fU,
-        0x9b05688cU,
-        0x1f83d9abU,
-        0x5be0cd19U,
-    };
+    State state = initial_state();
 
     const auto full_blocks = input.size() / 64U;
     for (std::size_t index = 0; index < full_blocks; ++index) {
@@ -169,16 +283,7 @@ Sha256Digest Sha256::compute(std::span<const std::byte> input) {
         transform(state, std::span<const std::byte, 64>{data, 64U});
     }
 
-    Sha256Digest digest;
-    for (std::size_t word = 0; word < state.size(); ++word) {
-        for (std::size_t byte = 0; byte < 4U; ++byte) {
-            const auto shift = static_cast<unsigned>((3U - byte) * 8U);
-            digest.bytes[word * 4U + byte] = static_cast<std::uint8_t>(
-                (state[word] >> shift) & 0xFFU);
-        }
-    }
-
-    return digest;
+    return digest_from_state(state);
 }
 
 } // namespace dmc::rengine::core
