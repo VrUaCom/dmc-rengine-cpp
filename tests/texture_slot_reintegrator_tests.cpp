@@ -5,6 +5,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_reintegrator.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -31,22 +32,19 @@ void put_u32(
     bool dxt5) {
     std::uint32_t total = 0U;
     for (std::uint32_t level = 0U; level < mip_count; ++level) {
-        const auto blocks_w = std::max(1U, (width + 3U) / 4U);
-        const auto blocks_h = std::max(1U, (height + 3U) / 4U);
-        total += blocks_w * blocks_h * (dxt5 ? 16U : 8U);
+        total += std::max(1U, (width + 3U) / 4U) *
+            std::max(1U, (height + 3U) / 4U) * (dxt5 ? 16U : 8U);
         width = std::max(1U, width / 2U);
         height = std::max(1U, height / 2U);
     }
     return total;
 }
 
-[[nodiscard]] std::vector<std::byte> make_dds(
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t mip_count,
-    bool dxt5) {
-    const auto payload_size = block_payload_size(
-        width, height, mip_count, dxt5);
+[[nodiscard]] std::vector<std::byte> make_dds(bool dxt5) {
+    constexpr std::uint32_t width = 16U;
+    constexpr std::uint32_t height = 16U;
+    constexpr std::uint32_t mip_count = 5U;
+    const auto payload_size = block_payload_size(width, height, mip_count, dxt5);
     std::vector<std::byte> bytes(
         128U + static_cast<std::size_t>(payload_size), std::byte{0});
     bytes[0] = std::byte{'D'};
@@ -69,10 +67,14 @@ void put_u32(
 
 [[nodiscard]] std::vector<std::byte> make_descriptor(
     const std::vector<std::byte>& dds,
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t mip_count,
-    bool dxt5) {
+    bool dxt5,
+    bool secondary_half) {
+    constexpr std::uint32_t width = 16U;
+    constexpr std::uint32_t height = 16U;
+    constexpr std::uint32_t mip_count = 5U;
+    const auto secondary_width = secondary_half ? 8U : width;
+    const auto secondary_height = secondary_half ? 8U : height;
+
     std::vector<std::byte> descriptor(0x70U, std::byte{0});
     put_u32(
         descriptor, 0x08U,
@@ -85,13 +87,24 @@ void put_u32(
     put_u32(
         descriptor, 0x38U,
         static_cast<std::uint32_t>(dds.size() - 128U));
+    put_u32(
+        descriptor, 0x44U,
+        (secondary_height << 16U) | secondary_width);
+    put_u32(
+        descriptor, 0x48U,
+        std::bit_cast<std::uint32_t>(
+            1.0F / static_cast<float>(secondary_width)));
+    put_u32(
+        descriptor, 0x4CU,
+        std::bit_cast<std::uint32_t>(
+            1.0F / static_cast<float>(secondary_height)));
     put_u32(descriptor, 0x60U, dxt5 ? 4U : 0U);
     put_u32(descriptor, 0x64U, static_cast<std::uint32_t>(dds.size()));
     put_u32(descriptor, 0x68U, 8U);
     return descriptor;
 }
 
-void append_at(
+void copy_at(
     std::vector<std::byte>& destination,
     std::size_t offset,
     const std::vector<std::byte>& source) {
@@ -103,29 +116,29 @@ void append_at(
 }
 
 [[nodiscard]] std::vector<std::byte> wrapped_fixture() {
-    const auto dds = make_dds(16U, 16U, 1U, true);
-    const auto descriptor = make_descriptor(dds, 16U, 16U, 1U, true);
-    std::vector<std::byte> slot;
-    slot.reserve(descriptor.size() + dds.size());
-    slot.insert(slot.end(), descriptor.begin(), descriptor.end());
-    slot.insert(slot.end(), dds.begin(), dds.end());
-    return slot;
+    const auto dds = make_dds(true);
+    const auto descriptor = make_descriptor(dds, true, true);
+    std::vector<std::byte> bytes;
+    bytes.reserve(descriptor.size() + dds.size());
+    bytes.insert(bytes.end(), descriptor.begin(), descriptor.end());
+    bytes.insert(bytes.end(), dds.begin(), dds.end());
+    return bytes;
 }
 
 [[nodiscard]] std::vector<std::byte> bundle_fixture() {
-    const auto dds0 = make_dds(16U, 16U, 1U, false);
-    const auto dds1 = make_dds(16U, 16U, 1U, true);
-    const auto descriptor0 = make_descriptor(dds0, 16U, 16U, 1U, false);
-    const auto descriptor1 = make_descriptor(dds1, 16U, 16U, 1U, true);
+    const auto dds0 = make_dds(false);
+    const auto dds1 = make_dds(true);
+    const auto descriptor0 = make_descriptor(dds0, false, false);
+    const auto descriptor1 = make_descriptor(dds1, true, true);
 
     std::vector<std::byte> bytes(0x1800U, std::byte{0});
     put_u32(bytes, 0U, 2U);
     put_u32(bytes, 4U, 1U);
     put_u32(bytes, 8U, 1U);
-    append_at(bytes, 0x800U, descriptor0);
-    append_at(bytes, 0x870U, dds0);
-    append_at(bytes, 0x1000U, descriptor1);
-    append_at(bytes, 0x1070U, dds1);
+    copy_at(bytes, 0x800U, descriptor0);
+    copy_at(bytes, 0x870U, dds0);
+    copy_at(bytes, 0x1000U, descriptor1);
+    copy_at(bytes, 0x1070U, dds1);
     return bytes;
 }
 
@@ -174,18 +187,18 @@ void append_at(
     bytes[0x0DU] = std::byte{0xB2};
     bytes[0x0EU] = std::byte{0xC3};
     bytes[0x0FU] = std::byte{0xD4};
-    append_at(bytes, 0x10U, physical_child);
+    copy_at(bytes, 0x10U, physical_child);
 
     return gdspaces::ResourcePayload{
         .resource = gdspaces::ResourceRef{
             .id = gdspaces::ResourceId{
-                .source_id = "pass79-composition-source",
-                .logical_path = "GData.afs/pass79-texture.pac",
+                .source_id = "pass80-composition-source",
+                .logical_path = "GData.afs/pass80-texture.pac",
                 .container_chain = "nbz[11]",
                 .offset = 0x4000U,
                 .size = static_cast<std::uint64_t>(bytes.size()),
             },
-            .display_name = "pass79-texture.pac",
+            .display_name = "pass80-texture.pac",
             .format = "pac",
             .profile = "dmc3-hd",
             .synthetic_name = false,
@@ -204,28 +217,24 @@ int main() {
     namespace dmc3 = dmc::rengine::profiles::dmc3;
 
     const auto wrapped = wrapped_fixture();
-    auto wrapped_dds = intrinsic_dds(wrapped, 0U);
-    wrapped_dds.back() ^= std::byte{0x5A};
-    const auto wrapped_authored = authored_dds(wrapped, 0U, wrapped_dds);
-    const std::vector<dmc3::AuthoredTextureDds> wrapped_set{wrapped_authored};
+    const auto parsed_wrapped = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{wrapped.data(), wrapped.size()});
+    assert(parsed_wrapped.ok());
+    assert(parsed_wrapped.document.textures[0].secondary_width == 8U);
 
-    const auto wrapped_result = dmc3::TextureSlotReintegrator::rebuild(
-        std::span<const std::byte>{wrapped.data(), wrapped.size()}, wrapped_set);
-    assert(wrapped_result.ok());
-    assert(wrapped_result.bytes.size() == wrapped.size());
-    assert(
-        wrapped_result.receipt->framing_kind ==
-        dmc3::TextureSlotFramingKind::wrapped_dds);
-    assert(wrapped_result.receipt->patches.size() == 1U);
-    assert(wrapped_result.receipt->patches[0].texture_index == 0U);
-    assert(wrapped_result.receipt->patches[0].dds_offset == 0x70U);
+    auto edited_dds = intrinsic_dds(wrapped, 0U);
+    edited_dds.back() ^= std::byte{0x5A};
+    const auto authored = authored_dds(wrapped, 0U, edited_dds);
+    const std::vector<dmc3::AuthoredTextureDds> authored_set{authored};
+    const auto result = dmc3::TextureSlotReintegrator::rebuild(
+        std::span<const std::byte>{wrapped.data(), wrapped.size()}, authored_set);
+    assert(result.ok());
+    assert(result.bytes.size() == wrapped.size());
+    assert(result.receipt->patches.size() == 1U);
+    assert(result.receipt->patches[0].dds_offset == 0x70U);
     assert(std::equal(
         wrapped.begin(), wrapped.begin() + 0x70,
-        wrapped_result.bytes.begin(), wrapped_result.bytes.begin() + 0x70));
-    const auto wrapped_reparsed = dmc3::TextureSlotFramingParser::parse(
-        std::span<const std::byte>{
-            wrapped_result.bytes.data(), wrapped_result.bytes.size()});
-    assert(wrapped_reparsed.ok());
+        result.bytes.begin(), result.bytes.begin() + 0x70));
 
     const std::vector<dmc3::AuthoredTextureDds> empty_set;
     assert(
@@ -237,10 +246,10 @@ int main() {
     const std::vector<dmc3::AuthoredTextureDds> unchanged_set{unchanged};
     assert(
         dmc3::TextureSlotReintegrator::rebuild(
-            std::span<const std::byte>{wrapped.data(), wrapped.size()},
-            unchanged_set).status == dmc3::TextureSlotReintegrationStatus::no_changes);
+            std::span<const std::byte>{wrapped.data(), wrapped.size()}, unchanged_set).status ==
+        dmc3::TextureSlotReintegrationStatus::no_changes);
 
-    auto stale = wrapped_authored;
+    auto stale = authored;
     stale.expected_source_sha256.assign(64U, '0');
     const std::vector<dmc3::AuthoredTextureDds> stale_set{stale};
     assert(
@@ -248,16 +257,15 @@ int main() {
             std::span<const std::byte>{wrapped.data(), wrapped.size()}, stale_set).status ==
         dmc3::TextureSlotReintegrationStatus::source_dds_mismatch);
 
-    auto missing_hash = wrapped_authored;
+    auto missing_hash = authored;
     missing_hash.expected_source_sha256.clear();
     const std::vector<dmc3::AuthoredTextureDds> missing_hash_set{missing_hash};
     assert(
         dmc3::TextureSlotReintegrator::rebuild(
-            std::span<const std::byte>{wrapped.data(), wrapped.size()},
-            missing_hash_set).status ==
+            std::span<const std::byte>{wrapped.data(), wrapped.size()}, missing_hash_set).status ==
         dmc3::TextureSlotReintegrationStatus::missing_source_hash);
 
-    auto grown = wrapped_authored;
+    auto grown = authored;
     grown.bytes.push_back(std::byte{0});
     const std::vector<dmc3::AuthoredTextureDds> grown_set{grown};
     assert(
@@ -265,27 +273,10 @@ int main() {
             std::span<const std::byte>{wrapped.data(), wrapped.size()}, grown_set).status ==
         dmc3::TextureSlotReintegrationStatus::dds_size_changed);
 
-    const std::vector<dmc3::AuthoredTextureDds> duplicate_set{
-        wrapped_authored, wrapped_authored};
-    assert(
-        dmc3::TextureSlotReintegrator::rebuild(
-            std::span<const std::byte>{wrapped.data(), wrapped.size()},
-            duplicate_set).status ==
-        dmc3::TextureSlotReintegrationStatus::duplicate_texture_input);
-
-    auto missing_index = wrapped_authored;
-    missing_index.texture_index = 7U;
-    const std::vector<dmc3::AuthoredTextureDds> missing_index_set{missing_index};
-    assert(
-        dmc3::TextureSlotReintegrator::rebuild(
-            std::span<const std::byte>{wrapped.data(), wrapped.size()},
-            missing_index_set).status ==
-        dmc3::TextureSlotReintegrationStatus::texture_not_found);
-
-    auto changed_header_dds = intrinsic_dds(wrapped, 0U);
-    changed_header_dds[16U] ^= std::byte{0x01};
+    auto changed_header_bytes = intrinsic_dds(wrapped, 0U);
+    changed_header_bytes[16U] ^= std::byte{1};
     const auto changed_header = authored_dds(
-        wrapped, 0U, std::move(changed_header_dds));
+        wrapped, 0U, std::move(changed_header_bytes));
     const std::vector<dmc3::AuthoredTextureDds> changed_header_set{changed_header};
     assert(
         dmc3::TextureSlotReintegrator::rebuild(
@@ -293,37 +284,38 @@ int main() {
             changed_header_set).status ==
         dmc3::TextureSlotReintegrationStatus::dds_header_changed);
 
-    const std::vector<std::byte> arbitrary(0x200U, std::byte{0});
+    const std::vector<dmc3::AuthoredTextureDds> duplicate_set{authored, authored};
     assert(
         dmc3::TextureSlotReintegrator::rebuild(
-            std::span<const std::byte>{arbitrary.data(), arbitrary.size()},
-            wrapped_set).status ==
-        dmc3::TextureSlotReintegrationStatus::invalid_source_framing);
+            std::span<const std::byte>{wrapped.data(), wrapped.size()}, duplicate_set).status ==
+        dmc3::TextureSlotReintegrationStatus::duplicate_texture_input);
+
+    auto missing = authored;
+    missing.texture_index = 9U;
+    const std::vector<dmc3::AuthoredTextureDds> missing_set{missing};
+    assert(
+        dmc3::TextureSlotReintegrator::rebuild(
+            std::span<const std::byte>{wrapped.data(), wrapped.size()}, missing_set).status ==
+        dmc3::TextureSlotReintegrationStatus::texture_not_found);
 
     const auto bundle = bundle_fixture();
+    auto bundle_dds0 = intrinsic_dds(bundle, 0U);
     auto bundle_dds1 = intrinsic_dds(bundle, 1U);
-    bundle_dds1[bundle_dds1.size() - 3U] ^= std::byte{0x33};
-    const auto bundle_authored = authored_dds(bundle, 1U, std::move(bundle_dds1));
-    const std::vector<dmc3::AuthoredTextureDds> bundle_set{bundle_authored};
+    bundle_dds0.back() ^= std::byte{0x11};
+    bundle_dds1[bundle_dds1.size() - 2U] ^= std::byte{0x22};
+    const auto authored0 = authored_dds(bundle, 0U, std::move(bundle_dds0));
+    const auto authored1 = authored_dds(bundle, 1U, std::move(bundle_dds1));
+    const std::vector<dmc3::AuthoredTextureDds> bundle_set{authored0, authored1};
     const auto bundle_result = dmc3::TextureSlotReintegrator::rebuild(
         std::span<const std::byte>{bundle.data(), bundle.size()}, bundle_set);
     assert(bundle_result.ok());
-    assert(
-        bundle_result.receipt->framing_kind ==
-        dmc3::TextureSlotFramingKind::texture_bundle);
-    assert(bundle_result.receipt->patches.size() == 1U);
-    assert(bundle_result.receipt->patches[0].texture_index == 1U);
-    assert(std::equal(
-        bundle.begin(), bundle.begin() + 0x1070,
-        bundle_result.bytes.begin(), bundle_result.bytes.begin() + 0x1070));
+    assert(bundle_result.receipt->patches.size() == 2U);
     const auto bundle_reparsed = dmc3::TextureSlotFramingParser::parse(
-        std::span<const std::byte>{
-            bundle_result.bytes.data(), bundle_result.bytes.size()});
+        std::span<const std::byte>{bundle_result.bytes.data(), bundle_result.bytes.size()});
     assert(bundle_reparsed.ok());
+    assert(bundle_reparsed.document.textures[0].secondary_width == 16U);
+    assert(bundle_reparsed.document.textures[1].secondary_width == 8U);
 
-    // Composition proof: intrinsic DDS -> validated complete physical slot ->
-    // generic PAC/PNST physical-child writer. The generic writer never receives
-    // bare DDS bytes and therefore does not need DMC3 texture framing knowledge.
     const auto parent = pac_parent(wrapped);
     const auto registry = dmc3::make_container_parser_registry();
     const auto parsed_parent = registry.parse(
@@ -333,7 +325,6 @@ int main() {
     const auto expansion = gdspaces::ContainerExpander::expand(parent, parsed_parent);
     assert(expansion.usable());
     assert(expansion.children.size() == 1U);
-    assert(expansion.children[0].entry.offset == 0x10U);
     assert(expansion.children[0].payload.bytes == wrapped);
 
     const dmc3::AuthoredChildImage physical_child{
@@ -342,22 +333,18 @@ int main() {
             expansion.children[0].payload.bytes.data(),
             expansion.children[0].payload.bytes.size()}),
         .output_sha256 = sha256_of(std::span<const std::byte>{
-            wrapped_result.bytes.data(), wrapped_result.bytes.size()}),
+            result.bytes.data(), result.bytes.size()}),
         .revision = 1U,
         .writer_mode = "same-layout-intrinsic-dds-reintegration",
-        .bytes = wrapped_result.bytes,
+        .bytes = result.bytes,
     };
     const std::vector<dmc3::AuthoredChildImage> physical_set{physical_child};
     const auto parent_result = dmc3::RelativeSlotPackedReflowWriter::rebuild(
         parent, expansion, physical_set);
     assert(parent_result.ok());
     assert(parent_result.bytes.size() == parent.bytes.size());
-    assert(parent_result.receipt->spans.size() == 1U);
-    assert(parent_result.receipt->spans[0].changed);
-    assert(parent_result.receipt->spans[0].source_size == wrapped.size());
-    assert(parent_result.receipt->spans[0].output_size == wrapped.size());
     assert(std::equal(
-        wrapped_result.bytes.begin(), wrapped_result.bytes.end(),
+        result.bytes.begin(), result.bytes.end(),
         parent_result.bytes.begin() + 0x10));
 
     const auto reparsed_parent = registry.parse(

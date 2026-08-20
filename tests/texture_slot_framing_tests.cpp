@@ -1,6 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -67,9 +68,12 @@ void put_u32(
     std::uint32_t width,
     std::uint32_t height,
     std::uint32_t mip_count,
-    bool dxt5) {
+    bool dxt5,
+    bool secondary_half = false) {
     std::vector<std::byte> descriptor(0x70U, std::byte{0});
     const auto encoding_low = dxt5 ? 0x88U : 0x86U;
+    const auto secondary_width = secondary_half ? width / 2U : width;
+    const auto secondary_height = secondary_half ? height / 2U : height;
     put_u32(
         descriptor, 0x08U,
         0x20000U | (mip_count << 8U) | encoding_low);
@@ -81,6 +85,17 @@ void put_u32(
     put_u32(
         descriptor, 0x38U,
         static_cast<std::uint32_t>(dds.size() - 128U));
+    put_u32(
+        descriptor, 0x44U,
+        (secondary_height << 16U) | secondary_width);
+    put_u32(
+        descriptor, 0x48U,
+        std::bit_cast<std::uint32_t>(
+            1.0F / static_cast<float>(secondary_width)));
+    put_u32(
+        descriptor, 0x4CU,
+        std::bit_cast<std::uint32_t>(
+            1.0F / static_cast<float>(secondary_height)));
     put_u32(descriptor, 0x60U, dxt5 ? 4U : 0U);
     put_u32(descriptor, 0x64U, static_cast<std::uint32_t>(dds.size()));
     put_u32(descriptor, 0x68U, 8U);
@@ -99,8 +114,10 @@ void append_at(
 }
 
 [[nodiscard]] std::vector<std::byte> wrapped_dds_fixture() {
-    const auto dds = make_dds(16U, 16U, 1U, true);
-    const auto descriptor = make_descriptor(dds, 16U, 16U, 1U, true);
+    constexpr std::uint32_t mip_count = 5U;
+    const auto dds = make_dds(16U, 16U, mip_count, true);
+    const auto descriptor = make_descriptor(
+        dds, 16U, 16U, mip_count, true, true);
     std::vector<std::byte> bytes;
     bytes.reserve(descriptor.size() + dds.size());
     bytes.insert(bytes.end(), descriptor.begin(), descriptor.end());
@@ -109,10 +126,13 @@ void append_at(
 }
 
 [[nodiscard]] std::vector<std::byte> bundle_fixture() {
-    const auto dds0 = make_dds(16U, 16U, 1U, false);
-    const auto dds1 = make_dds(16U, 16U, 1U, true);
-    const auto descriptor0 = make_descriptor(dds0, 16U, 16U, 1U, false);
-    const auto descriptor1 = make_descriptor(dds1, 16U, 16U, 1U, true);
+    constexpr std::uint32_t mip_count = 5U;
+    const auto dds0 = make_dds(16U, 16U, mip_count, false);
+    const auto dds1 = make_dds(16U, 16U, mip_count, true);
+    const auto descriptor0 = make_descriptor(
+        dds0, 16U, 16U, mip_count, false, false);
+    const auto descriptor1 = make_descriptor(
+        dds1, 16U, 16U, mip_count, true, true);
 
     std::vector<std::byte> bytes(0x1800U, std::byte{0});
     put_u32(bytes, 0U, 2U);
@@ -127,9 +147,12 @@ void append_at(
 }
 
 [[nodiscard]] std::vector<std::byte> zero_final_span_bundle_fixture() {
-    const auto dds = make_dds(16U, 16U, 1U, false);
-    const auto descriptor = make_descriptor(dds, 16U, 16U, 1U, false);
-    std::vector<std::byte> bytes(0x800U + descriptor.size() + dds.size(), std::byte{0});
+    constexpr std::uint32_t mip_count = 5U;
+    const auto dds = make_dds(16U, 16U, mip_count, false);
+    const auto descriptor = make_descriptor(
+        dds, 16U, 16U, mip_count, false);
+    std::vector<std::byte> bytes(
+        0x800U + descriptor.size() + dds.size(), std::byte{0});
     put_u32(bytes, 0U, 1U);
     put_u32(bytes, 4U, 0U);
     append_at(bytes, 0x800U, descriptor);
@@ -154,6 +177,11 @@ int main() {
     assert(wrapped_result.document.textures[0].dds_offset == 0x70U);
     assert(wrapped_result.document.textures[0].width == 16U);
     assert(wrapped_result.document.textures[0].height == 16U);
+    assert(wrapped_result.document.textures[0].mip_map_count == 5U);
+    assert(wrapped_result.document.textures[0].secondary_width == 8U);
+    assert(wrapped_result.document.textures[0].secondary_height == 8U);
+    assert(wrapped_result.document.textures[0].auxiliary_mode == 0U);
+    assert(wrapped_result.document.textures[0].auxiliary_value == 0U);
     assert(
         wrapped_result.document.textures[0].compression ==
         dmc3::TextureCompressionKind::dxt5);
@@ -168,9 +196,11 @@ int main() {
     assert(bundle_result.document.textures.size() == 2U);
     assert(bundle_result.document.textures[0].descriptor_offset == 0x800U);
     assert(bundle_result.document.textures[0].dds_offset == 0x870U);
+    assert(bundle_result.document.textures[0].secondary_width == 16U);
     assert(bundle_result.document.textures[0].sector_span == 1U);
     assert(bundle_result.document.textures[1].descriptor_offset == 0x1000U);
     assert(bundle_result.document.textures[1].dds_offset == 0x1070U);
+    assert(bundle_result.document.textures[1].secondary_width == 8U);
     assert(bundle_result.document.textures[1].sector_span == 1U);
 
     const auto final_zero = zero_final_span_bundle_fixture();
@@ -187,6 +217,39 @@ int main() {
             std::span<const std::byte>{
                 bad_descriptor.data(), bad_descriptor.size()}).status ==
         dmc3::TextureSlotFramingStatus::descriptor_mismatch);
+
+    auto bad_zero_constant = wrapped;
+    put_u32(bad_zero_constant, 0x24U, 1U);
+    assert(
+        dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{
+                bad_zero_constant.data(), bad_zero_constant.size()}).status ==
+        dmc3::TextureSlotFramingStatus::descriptor_mismatch);
+
+    auto bad_reciprocal = wrapped;
+    put_u32(bad_reciprocal, 0x48U, 0U);
+    assert(
+        dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{
+                bad_reciprocal.data(), bad_reciprocal.size()}).status ==
+        dmc3::TextureSlotFramingStatus::descriptor_mismatch);
+
+    auto bad_auxiliary = wrapped;
+    put_u32(bad_auxiliary, 0x3CU, 1U);
+    put_u32(bad_auxiliary, 0x40U, 0U);
+    assert(
+        dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{
+                bad_auxiliary.data(), bad_auxiliary.size()}).status ==
+        dmc3::TextureSlotFramingStatus::descriptor_mismatch);
+
+    auto bad_mip_chain = wrapped;
+    put_u32(bad_mip_chain, 0x70U + 28U, 4U);
+    assert(
+        dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{
+                bad_mip_chain.data(), bad_mip_chain.size()}).status ==
+        dmc3::TextureSlotFramingStatus::invalid_dds);
 
     auto bad_padding = bundle;
     bad_padding[0x0A00U] = std::byte{1};

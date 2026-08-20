@@ -71,6 +71,14 @@ struct TextureSlotEntry final {
     std::uint32_t height{};
     std::uint32_t mip_map_count{};
     TextureCompressionKind compression{TextureCompressionKind::dxt1};
+
+    // Corpus-confirmed structural descriptor fields. Their original runtime
+    // semantics are intentionally not claimed here.
+    std::uint32_t secondary_width{};
+    std::uint32_t secondary_height{};
+    std::uint32_t auxiliary_mode{};
+    std::uint32_t auxiliary_value{};
+
     std::uint32_t sector_span{};
 
     [[nodiscard]] bool valid(std::uint64_t slot_size) const noexcept;
@@ -99,17 +107,10 @@ public:
     static constexpr std::size_t k_sector_size = 0x800U;
 
     // Parses the two texture-slot physical framings evidenced by the preserved
-    // DMC3 v6 real corpus:
-    //
-    //   descriptor[0x70] + DDS
-    //
-    // and
-    //
-    //   0x800-byte bundle header + descriptor/DDS records placed on 0x800
-    //   descriptor boundaries with zero alignment padding.
-    //
-    // This is a corpus/product materialization contract. It is not a claim
-    // that the original executable validates every field in the same way.
+    // DMC3 v6 real corpus. Pass 80 validates the complete 0x70-byte descriptor
+    // structural envelope: constants/zeros, DDS-derived fields, secondary
+    // dimensions + exact reciprocal floats, and the bounded auxiliary pair.
+    // Semantic names are not inferred for the auxiliary/secondary fields.
     [[nodiscard]] static TextureSlotFramingResult parse(
         std::span<const std::byte> bytes,
         TextureSlotFramingSafety safety = {});

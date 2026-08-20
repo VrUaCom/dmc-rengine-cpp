@@ -1,0 +1,76 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-full-texture-descriptor-structure.v1",
+  "date": "2026-08-20",
+  "layer": "L1",
+  "source_artifact_sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+  "population": {
+    "descriptor_dds_pairs": 154,
+    "dxt1": 47,
+    "dxt5": 107,
+    "texture_bundle_instances": 58,
+    "duplicate_dds_sha256_groups": 43,
+    "same_dds_different_descriptor_counterexamples": 0
+  },
+  "descriptor": {
+    "size_bytes": 112,
+    "u32_slots": 28,
+    "structurally_classified_u32_slots": 28,
+    "zero_offsets": [0, 4, 28, 36, 40, 44, 48, 52, 80, 84, 88, 92, 108],
+    "zero_offsets_match_cases": 154,
+    "dds_derived": {
+      "0x08": "0x20000 | (full_mip_count << 8) | compression_code",
+      "0x10": "(dds_height << 16) | dds_width",
+      "0x18": "dds_width * 2 DXT1; dds_width * 4 DXT5",
+      "0x38": "exact full block-compressed mip-chain payload size",
+      "0x60": "0 DXT1; 4 DXT5",
+      "0x64": "128 + exact payload size"
+    },
+    "constants": {
+      "0x0c": 43748,
+      "0x14": 1,
+      "0x20": 64,
+      "0x68": 8
+    },
+    "full_mip_chain_cases": 154,
+    "secondary_dimensions": {
+      "packed_offset": "0x44",
+      "same_scale_cases": 50,
+      "half_scale_cases": 104,
+      "other_cases": 0,
+      "reciprocal_width_offset": "0x48",
+      "reciprocal_height_offset": "0x4c",
+      "exact_float32_reciprocal_cases": 154,
+      "semantic_authority": false
+    },
+    "auxiliary_pair": {
+      "mode_offset": "0x3c",
+      "value_offset": "0x40",
+      "mode_population": {"0": 112, "1": 33, "2": 9},
+      "value_zero_iff_mode_zero_cases": 154,
+      "nonzero_mode_is_dxt5_cases": 42,
+      "semantic_authority": false
+    }
+  },
+  "parser_promotion": {
+    "full_descriptor_structural_validation": true,
+    "exact_dxt_mip_chain_size_validation": true,
+    "secondary_dimension_relation_validation": true,
+    "exact_reciprocal_bit_validation": true,
+    "auxiliary_relation_validation": true,
+    "pass79_reintegration_equivalence_expanded": true
+  },
+  "serializer_boundary": {
+    "size_changing_texture_serialization_closed": false,
+    "secondary_dimensions_uniquely_derivable_from_dds": false,
+    "auxiliary_pair_uniquely_derivable_from_dds": false,
+    "guessing_allowed": false
+  },
+  "boundaries": {
+    "secondary_field_semantics_closed": false,
+    "auxiliary_field_semantics_closed": false,
+    "dxt3_closed": false,
+    "original_runtime_texture_abi_closed": false,
+    "original_game_rebuilt_resource_consumption_closed": false,
+    "layer1_complete": false
+  }
+}
