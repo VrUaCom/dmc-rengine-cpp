@@ -80,9 +80,12 @@ At least one representative authored output must be consumed successfully throug
 
 The current writer intentionally creates deterministic STORE-only mod overlays. It does not preserve the complete original retail ZIP metadata envelope or claim byte-identical retail repacking.
 
-The first preservation substep is the bounded on-demand [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md), which records raw central/local/EOCD framing plus source spans without turning ordinary materialization into writer ownership. That scanner does **not** close this gate by itself.
+The canonical preservation path now has two bounded read-side steps:
 
-The remaining retail-NBZ tier must artifact-bind the preserved spans, implement metadata-preserving unchanged/changed entry serialization, rebuild offsets, reopen the result, compare materialization + serialization properties, and obtain representative game-backed validation.
+1. [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md) records raw central/local/EOCD framing plus source spans without turning ordinary materialization into writer ownership.
+2. `NbzZipArtifactSerializationBinder` uses bounded streaming SHA-256 passes before and after the scan to bind those spans to an exact `ArtifactIdentity` during the scan window.
+
+These steps still do **not** close the no-loss gate. The remaining retail-NBZ tier must implement an artifact-revalidated unchanged-region copier, metadata-preserving changed-entry serialization, rebuilt offsets, canonical reopen, serialization + materialization comparison, representative real-corpus validation and controlled game-backed validation.
 
 ## Non-blocking evidence-gated families
 
