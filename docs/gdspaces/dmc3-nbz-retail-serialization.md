@@ -44,6 +44,7 @@ expected ArtifactIdentity
        -> overlapping required metadata ranges are copied from those same chunks
   -> require observed SHA/size == expected artifact
   -> canonical NbzZipSerializationScanner over the captured-byte reader
+  -> require captured terminal EOCD == indexed NBZ receipt
   -> require captured framing == the indexed physical entry metadata
   -> ArtifactBoundNbzZipSerializationSnapshot
 ```
@@ -55,6 +56,8 @@ The critical trust invariant is:
 > Every metadata byte stored in the artifact-bound serialization snapshot was observed in the same streaming read whose complete byte sequence produced the accepted SHA-256 receipt.
 
 There is no independent pre-hash / metadata-scan / post-hash path window. A path replacement after the observation cannot alter the already captured metadata, while a replacement during the observation changes the observed byte sequence and therefore fails the expected SHA-256 check unless it is byte-identical.
+
+The captured terminal EOCD is also bound back to the `NbzZipIndexReceipt`: single-disk fields, declared entry counts, central size/offset and comment length must match the receipt used to derive the scanner geometry. This prevents an already-indexed `NbzZipSource` from lending stale traversal authority to a different same-size ZIP even when the caller supplies the replacement artifact's correct SHA-256.
 
 `ArtifactBoundNbzZipSerializationSnapshot` is intentionally non-aggregate with a private constructor. Callers can inspect immutable getters, but cannot self-declare artifact-bound authority by copying expected SHA text into public fields. Only `NbzZipArtifactSerializationBinder` can construct the typed result after the complete verification sequence above.
 
@@ -78,8 +81,10 @@ Artifact binding is also fail-closed:
 - exact archive size is checked around the complete streaming observation;
 - the complete observed SHA-256 must match the expected artifact;
 - required metadata ranges must all be covered by the same observation;
+- the captured terminal EOCD must match the indexed receipt that supplied traversal geometry;
 - the captured central/local physical fields and names must agree with the indexed source entries before authority is granted;
-- a same-size archive replacement after source indexing is rejected by observed SHA mismatch;
+- a same-size archive replacement after source indexing is rejected by observed SHA mismatch when the expected identity is stale;
+- a same-size structurally valid replacement with its own correct SHA is still rejected when its EOCD receipt differs from the stale index;
 - typed bound authority cannot be forged as a caller-owned aggregate.
 
 Memory accounting is explicit rather than implied to be one metadata-budget copy. Captured metadata payload is bounded by `max_metadata_bytes`, and the canonical scanner may simultaneously own a second snapshot payload bounded by the same budget while binding is in progress. Peak metadata byte payload is therefore bounded by at most `2 * max_metadata_bytes`, plus the configured observation chunk and range/entry bookkeeping. The latter is bounded by the already indexed entry count. Captured-range lookup is logarithmic in the number of merged ranges, so repeated scanner reads do not degrade to an O(n^2) range search at large entry counts.
@@ -100,6 +105,7 @@ The artifact-bound snapshot is **not**:
 NbzZipSource
   -> one-observation SHA-256 + bounded metadata capture
   -> canonical serialization scan over captured bytes
+  -> EOCD/index receipt binding + entry framing cross-check
   -> artifact-bound serialization snapshot
   -> artifact-revalidated unchanged-region copier + changed-entry serializer
   -> rebuilt central/local offsets
