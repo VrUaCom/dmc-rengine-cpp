@@ -68,6 +68,17 @@ namespace {
     return ascii_bytes(text);
 }
 
+void assert_stored_round_trip(std::span<const std::byte> input) {
+    const auto encoded = dmc::rengine::core::RawDeflate::deflate_stored(input);
+    assert(encoded.ok());
+    const auto decoded = dmc::rengine::core::RawDeflate::inflate(
+        encoded.bytes,
+        static_cast<std::uint64_t>(input.size()));
+    assert(decoded.ok());
+    assert(decoded.bytes.size() == input.size());
+    assert(std::equal(decoded.bytes.begin(), decoded.bytes.end(), input.begin(), input.end()));
+}
+
 } // namespace
 
 int main() {
@@ -151,6 +162,48 @@ int main() {
         bad_stored_length, stored_expected.size());
     assert(!bad_stored.ok());
     assert(bad_stored.status == RawDeflateStatus::stored_length_mismatch);
+
+    // Writer-side deterministic stored-block authoring. Empty input still
+    // requires one final stored block with LEN=0/NLEN=0xFFFF.
+    const auto encoded_empty = RawDeflate::deflate_stored({});
+    assert(encoded_empty.ok());
+    assert(encoded_empty.bytes == from_hex("010000ffff"));
+    assert_stored_round_trip({});
+
+    const auto one = ascii_bytes("A");
+    const auto encoded_one = RawDeflate::deflate_stored(one);
+    assert(encoded_one.ok());
+    assert(encoded_one.bytes == from_hex("010100feff41"));
+    assert_stored_round_trip(one);
+
+    std::vector<std::byte> exact_block(65535U, std::byte{0x5A});
+    const auto encoded_exact = RawDeflate::deflate_stored(exact_block);
+    assert(encoded_exact.ok());
+    assert(encoded_exact.bytes.size() == exact_block.size() + 5U);
+    assert(encoded_exact.bytes[0] == std::byte{0x01});
+    assert_stored_round_trip(exact_block);
+
+    std::vector<std::byte> two_blocks(65536U, std::byte{0xA5});
+    const auto encoded_two = RawDeflate::deflate_stored(two_blocks);
+    assert(encoded_two.ok());
+    assert(encoded_two.bytes.size() == two_blocks.size() + 10U);
+    assert(encoded_two.bytes[0] == std::byte{0x00});
+    const std::size_t second_header = 5U + 65535U;
+    assert(encoded_two.bytes[second_header] == std::byte{0x01});
+    assert_stored_round_trip(two_blocks);
+
+    std::vector<std::byte> three_blocks(131071U, std::byte{0x3C});
+    const auto encoded_three = RawDeflate::deflate_stored(three_blocks);
+    assert(encoded_three.ok());
+    assert(encoded_three.bytes.size() == three_blocks.size() + 15U);
+    assert(encoded_three.bytes[0] == std::byte{0x00});
+    assert(encoded_three.bytes[5U + 65535U] == std::byte{0x00});
+    assert(encoded_three.bytes[10U + 2U * 65535U] == std::byte{0x01});
+    assert_stored_round_trip(three_blocks);
+
+    const auto encoded_repeat = RawDeflate::deflate_stored(three_blocks);
+    assert(encoded_repeat.ok());
+    assert(encoded_repeat.bytes == encoded_three.bytes);
 
     return 0;
 }

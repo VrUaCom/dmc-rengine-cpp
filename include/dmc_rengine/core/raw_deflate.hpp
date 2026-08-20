@@ -63,6 +63,13 @@ public:
     [[nodiscard]] static RawDeflateResult inflate(
         std::span<const std::byte> compressed,
         std::uint64_t expected_size);
+
+    // Deterministic RFC 1951 authoring seam for writer-side correctness.
+    // Emits one or more BTYPE=00 stored blocks and therefore preserves raw
+    // DEFLATE method semantics without claiming compression-ratio parity with
+    // the original archive builder.
+    [[nodiscard]] static RawDeflateResult deflate_stored(
+        std::span<const std::byte> materialized);
 };
 
 } // namespace dmc::rengine::core
