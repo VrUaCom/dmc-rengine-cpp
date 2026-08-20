@@ -189,6 +189,25 @@ void add_error(
         return result;
     }
 
+    const auto eocd = std::span<const std::byte>{snapshot.eocd_bytes};
+    const auto observed_comment_length = u16_le(eocd, 20U);
+    if (u32_le(eocd, 0U) != eocd_signature ||
+        u16_le(eocd, 4U) != 0U ||
+        u16_le(eocd, 6U) != 0U ||
+        u16_le(eocd, 8U) != receipt.declared_entry_count ||
+        u16_le(eocd, 10U) != receipt.declared_entry_count ||
+        u32_le(eocd, 12U) != receipt.declared_central_size ||
+        u32_le(eocd, 16U) != receipt.declared_central_offset ||
+        static_cast<std::uint64_t>(eocd_fixed_size) +
+                observed_comment_length !=
+            snapshot.eocd_bytes.size()) {
+        add_error(
+            result,
+            "gdspaces.nbz.serialization.eocd-receipt-mismatch",
+            "The observed terminal EOCD does not match the indexed NBZ receipt.");
+        return result;
+    }
+
     std::uint64_t central_cursor = snapshot.computed_central_start;
     for (std::size_t index = 0U; index < indexed_entries.size(); ++index) {
         const auto& indexed = indexed_entries[index];
