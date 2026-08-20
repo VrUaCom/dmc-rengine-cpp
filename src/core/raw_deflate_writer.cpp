@@ -6,6 +6,7 @@
 #include <limits>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace dmc::rengine::core {
@@ -33,8 +34,7 @@ RawDeflateResult RawDeflate::deflate_stored(
     std::span<const std::byte> materialized) {
     const auto block_count = materialized.empty()
         ? std::size_t{1U}
-        : (materialized.size() + stored_block_limit - 1U) /
-            stored_block_limit;
+        : 1U + (materialized.size() - 1U) / stored_block_limit;
 
     if (block_count >
             (std::numeric_limits<std::size_t>::max() - materialized.size()) /
