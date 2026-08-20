@@ -1,0 +1,50 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass84.compiled-real-corpus-receipt.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "NOT_COMPLETE",
+  "readiness_estimate_percent": 92,
+  "source_corpus": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "physical_slots": 45,
+    "authoring_cases": 112,
+    "source_slot_sha_mismatches": 0
+  },
+  "compiled_runner": {
+    "source_head": "2bf1c9a975167cb55bd327d3740c49963d10d834",
+    "workflow_run_id": 32425047839,
+    "workflow_run_number": 1158,
+    "ubuntu_job": "SUCCESS",
+    "artifact_name": "dmc-rengine-texture-corpus-reflow-linux",
+    "artifact_sha256": "0fb417ba0f4251bb4fc4da32f873d84ece5e079fbd313bcb53aeaa954e3bf33a"
+  },
+  "execution": {
+    "attempted": 112,
+    "successful": 112,
+    "failed": 0,
+    "unique_slots_covered": 45,
+    "dxt1": 47,
+    "dxt5": 65,
+    "secondary_relation_same": 12,
+    "secondary_relation_half": 100,
+    "dimension_transitions": {
+      "256x256_to_512x512": 43,
+      "512x512_to_1024x1024": 41,
+      "256x128_to_512x256": 13,
+      "128x128_to_256x256": 5,
+      "256x512_to_512x1024": 4,
+      "512x256_to_1024x512": 4,
+      "1024x1024_to_512x512": 2
+    }
+  },
+  "closed_gap": "current_compiled_cpp_writer_execution",
+  "remaining_gates": [
+    "nonzero auxiliary metadata authoring for 42 descriptor relationships or explicit bounded exclusion",
+    "compiled real PAC/PNST bottom-up rebuild receipt using edited physical texture children",
+    "real retail dmc3-0.nbz repack receipt",
+    "raw real .lst corpus closure",
+    "original DMC3 consumption receipt",
+    "fresh whole-head Windows and Ubuntu validation on final Pass84 head"
+  ]
+}
