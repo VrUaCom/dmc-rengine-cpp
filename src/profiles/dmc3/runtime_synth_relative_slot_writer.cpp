@@ -76,17 +76,42 @@ void write_u32_le(
     return formats::PnstParser::parse(bytes);
 }
 
-[[nodiscard]] bool accepted_authority(
+[[nodiscard]] bool audited_complete_image_writer_mode(
+    std::string_view mode) noexcept {
+    return mode == "runtime-synth-relative-slot";
+}
+
+[[nodiscard]] bool supported_provider(
     ExactChildAuthorityKind kind) noexcept {
     return kind == ExactChildAuthorityKind::format_writer_receipt ||
         kind == ExactChildAuthorityKind::loose_resource ||
         kind == ExactChildAuthorityKind::external_exact_resource;
 }
 
+[[nodiscard]] bool proven_intrinsic_extent(
+    ExactChildAuthorityKind authority_kind,
+    ExactChildExtentKind extent_kind,
+    std::string_view writer_mode) noexcept {
+    switch (authority_kind) {
+    case ExactChildAuthorityKind::loose_resource:
+    case ExactChildAuthorityKind::external_exact_resource:
+        return extent_kind == ExactChildExtentKind::intrinsic_resource &&
+            writer_mode.empty();
+    case ExactChildAuthorityKind::format_writer_receipt:
+        return extent_kind ==
+                ExactChildExtentKind::writer_defined_complete_image &&
+            audited_complete_image_writer_mode(writer_mode);
+    case ExactChildAuthorityKind::container_extracted_span:
+        return false;
+    }
+    return false;
+}
+
 } // namespace
 
 bool RuntimeSynthChildReceipt::valid() const noexcept {
-    return authority_kind != ExactChildAuthorityKind::container_extracted_span &&
+    return supported_provider(authority_kind) &&
+        proven_intrinsic_extent(authority_kind, extent_kind, writer_mode) &&
         !authority_id.empty() && input_sha256.size() == 64U &&
         intrinsic_size != 0U && emitted_offset != 0U;
 }
@@ -122,17 +147,33 @@ bool RuntimeSynthReceipt::valid() const noexcept {
         return false;
     }
 
+    bool have_previous_slot = false;
+    std::uint32_t previous_slot = 0U;
     for (const auto& child : children) {
         if (!child.valid() ||
-            child.slot_index >= output_topology.entries.size()) {
+            child.slot_index >= output_topology.entries.size() ||
+            (have_previous_slot && child.slot_index <= previous_slot)) {
             return false;
         }
         const auto& entry = output_topology.entries[child.slot_index];
-        if (!entry.populated || entry.offset != child.emitted_offset) {
+        if (!entry.populated || entry.offset != child.emitted_offset ||
+            child.intrinsic_size > entry.size) {
             return false;
         }
+        have_previous_slot = true;
+        previous_slot = child.slot_index;
     }
     return true;
+}
+
+bool RuntimeSynthResult::ok() const noexcept {
+    if (status != RuntimeSynthStatus::ok || !receipt.has_value() ||
+        !receipt->valid() ||
+        receipt->output_topology.container_size != bytes.size()) {
+        return false;
+    }
+    return receipt->output_sha256 == sha256_of(
+        std::span<const std::byte>{bytes.data(), bytes.size()});
 }
 
 RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
@@ -205,10 +246,18 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
                 RuntimeSynthStatus::forbidden_extracted_span,
                 "Packed ContainerEntry extents are bounded extraction spans, not intrinsic child-file length authority.");
         }
-        if (!accepted_authority(child.authority_kind)) {
+        if (!supported_provider(child.authority_kind)) {
             return failure(
                 RuntimeSynthStatus::invalid_child_authority,
-                "Exact child authority kind is not accepted by this runtime-synth writer tier.");
+                "Exact child byte-provider authority kind is not accepted by this runtime-synth writer tier.");
+        }
+        if (!proven_intrinsic_extent(
+                child.authority_kind,
+                child.extent_kind,
+                child.writer_mode)) {
+            return failure(
+                RuntimeSynthStatus::unproven_intrinsic_extent,
+                "Exact child bytes do not carry an accepted independent intrinsic-extent proof. Source-span-preserving or container-inferred extents cannot be laundered through a writer receipt.");
         }
         const auto actual_sha = sha256_of(std::span<const std::byte>{
             child.bytes.data(), child.bytes.size()});
@@ -290,7 +339,9 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
         child_receipts.push_back(RuntimeSynthChildReceipt{
             .slot_index = entry.slot_index,
             .authority_kind = child->authority_kind,
+            .extent_kind = child->extent_kind,
             .authority_id = child->authority_id,
+            .writer_mode = child->writer_mode,
             .input_sha256 = child->sha256,
             .intrinsic_size = static_cast<std::uint64_t>(child->bytes.size()),
             .emitted_offset = emitted_offset,
@@ -338,10 +389,11 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
         }
         if (receipt_index >= child_receipts.size() ||
             child_receipts[receipt_index].slot_index != index ||
-            output_entry.offset != child_receipts[receipt_index].emitted_offset) {
+            output_entry.offset != child_receipts[receipt_index].emitted_offset ||
+            child_receipts[receipt_index].intrinsic_size > output_entry.size) {
             return failure(
                 RuntimeSynthStatus::topology_changed,
-                "Canonical reparse does not match deterministic emitted child placement.");
+                "Canonical reparse does not match deterministic emitted child placement/extent.");
         }
         ++receipt_index;
     }
