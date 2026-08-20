@@ -51,6 +51,10 @@ constexpr std::size_t kDdsHeaderSize = 128U;
         source.width == output.width && source.height == output.height &&
         source.mip_map_count == output.mip_map_count &&
         source.compression == output.compression &&
+        source.secondary_width == output.secondary_width &&
+        source.secondary_height == output.secondary_height &&
+        source.auxiliary_mode == output.auxiliary_mode &&
+        source.auxiliary_value == output.auxiliary_value &&
         source.sector_span == output.sector_span;
 }
 
