@@ -133,9 +133,9 @@ void put_u32(
     const std::size_t first_offset = 0x20U;
     const std::size_t second_offset = first_offset + child0.size();
     std::vector<std::byte> bytes(second_offset + child1.size(), std::byte{0});
-    bytes[0U] = std::byte{pnst ? 'P' : 'P'};
-    bytes[1U] = std::byte{pnst ? 'N' : 'A'};
-    bytes[2U] = std::byte{pnst ? 'S' : 'C'};
+    bytes[0U] = std::byte{'P'};
+    bytes[1U] = pnst ? std::byte{'N'} : std::byte{'A'};
+    bytes[2U] = pnst ? std::byte{'S'} : std::byte{'C'};
     bytes[3U] = pnst ? std::byte{'T'} : std::byte{0};
     put_u32(bytes, 4U, 2U);
     put_u32(bytes, 8U, static_cast<std::uint32_t>(first_offset));
