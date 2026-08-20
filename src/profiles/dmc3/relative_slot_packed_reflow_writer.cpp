@@ -7,9 +7,11 @@
 
 #include <algorithm>
 #include <limits>
-#include <set>
+#include <numeric>
 #include <span>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -19,6 +21,7 @@ namespace {
 constexpr std::string_view kWriterMode = "packed-relative-slot-reflow";
 constexpr std::size_t kHeaderFixedSize = 8U;
 constexpr std::size_t kOffsetWidth = 4U;
+constexpr std::size_t kNoSpan = std::numeric_limits<std::size_t>::max();
 
 struct PhysicalSpan final {
     std::uint64_t source_offset{};
@@ -87,25 +90,36 @@ struct PhysicalSpan final {
 }
 
 [[nodiscard]] bool same_alias_partition(
-    const RelativeSlotTopology& left,
-    const RelativeSlotTopology& right) noexcept {
-    if (left.entries.size() != right.entries.size()) {
+    const RelativeSlotTopology& source,
+    const RelativeSlotTopology& output) {
+    if (source.entries.size() != output.entries.size()) {
         return false;
     }
-    for (std::size_t i = 0U; i < left.entries.size(); ++i) {
-        if (left.entries[i].populated != right.entries[i].populated) {
+
+    std::unordered_map<std::uint64_t, std::uint64_t> source_to_output;
+    std::unordered_map<std::uint64_t, std::uint64_t> output_to_source;
+    source_to_output.reserve(source.entries.size());
+    output_to_source.reserve(output.entries.size());
+
+    for (std::size_t index = 0U; index < source.entries.size(); ++index) {
+        const auto& source_entry = source.entries[index];
+        const auto& output_entry = output.entries[index];
+        if (source_entry.populated != output_entry.populated) {
             return false;
         }
-        for (std::size_t j = i + 1U; j < left.entries.size(); ++j) {
-            const bool left_alias = left.entries[i].populated &&
-                left.entries[j].populated &&
-                left.entries[i].offset == left.entries[j].offset;
-            const bool right_alias = right.entries[i].populated &&
-                right.entries[j].populated &&
-                right.entries[i].offset == right.entries[j].offset;
-            if (left_alias != right_alias) {
-                return false;
-            }
+        if (!source_entry.populated) {
+            continue;
+        }
+
+        const auto [forward, forward_inserted] = source_to_output.emplace(
+            source_entry.offset, output_entry.offset);
+        if (!forward_inserted && forward->second != output_entry.offset) {
+            return false;
+        }
+        const auto [reverse, reverse_inserted] = output_to_source.emplace(
+            output_entry.offset, source_entry.offset);
+        if (!reverse_inserted && reverse->second != source_entry.offset) {
+            return false;
         }
     }
     return true;
@@ -113,7 +127,7 @@ struct PhysicalSpan final {
 
 [[nodiscard]] bool same_relative_slot_relation(
     const RelativeSlotTopology& source,
-    const RelativeSlotTopology& output) noexcept {
+    const RelativeSlotTopology& output) {
     return source.valid() && output.valid() &&
         source.format == output.format &&
         source.declared_slot_count == output.declared_slot_count &&
@@ -131,23 +145,13 @@ struct PhysicalSpan final {
         child.payload.resource.id.size != child.entry.size) {
         return false;
     }
+
     const auto offset = static_cast<std::size_t>(child.entry.offset);
     const auto size = static_cast<std::size_t>(child.entry.size);
     return std::equal(
         child.payload.bytes.begin(), child.payload.bytes.end(),
         parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset),
         parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset + size));
-}
-
-[[nodiscard]] const gdspaces::ContainerChild* find_child(
-    const gdspaces::ContainerExpansion& expansion,
-    const gdspaces::ResourceId& resource) noexcept {
-    const auto found = std::find_if(
-        expansion.children.begin(), expansion.children.end(),
-        [&resource](const auto& child) {
-            return child.entry.populated && child.payload.resource.id == resource;
-        });
-    return found == expansion.children.end() ? nullptr : &*found;
 }
 
 [[nodiscard]] bool validate_changed_container_child(
@@ -183,9 +187,9 @@ struct PhysicalSpan final {
     if (!source_parsed.ok() || !output_parsed.ok()) {
         return false;
     }
-    const auto source_topology = topology_of(*source_parsed.document);
-    const auto output_topology = topology_of(*output_parsed.document);
-    return same_relative_slot_relation(source_topology, output_topology);
+    return same_relative_slot_relation(
+        topology_of(*source_parsed.document),
+        topology_of(*output_parsed.document));
 }
 
 void write_u32_le(
@@ -202,23 +206,14 @@ void write_u32_le(
     return value <= std::numeric_limits<std::uint32_t>::max();
 }
 
-[[nodiscard]] bool span_relation_matches(
-    const RelativeSlotTopology& topology,
-    const std::vector<PhysicalSpan>& spans) noexcept {
-    for (const auto& entry : topology.entries) {
-        if (!entry.populated) {
-            continue;
-        }
-        const auto found = std::find_if(
-            spans.begin(), spans.end(),
-            [&entry](const PhysicalSpan& span) {
-                return span.source_offset == entry.offset &&
-                    span.source_size == entry.size;
-            });
-        if (found == spans.end()) {
-            return false;
-        }
+[[nodiscard]] bool checked_add(
+    std::uint64_t left,
+    std::uint64_t right,
+    std::uint64_t& output) noexcept {
+    if (left > std::numeric_limits<std::uint64_t>::max() - right) {
+        return false;
     }
+    output = left + right;
     return true;
 }
 
@@ -248,7 +243,7 @@ bool RelativeSlotPackedSpanReceipt::valid() const noexcept {
     return !changed || !authored_aliases.empty();
 }
 
-bool RelativeSlotPackedReflowReceipt::valid() const noexcept {
+bool RelativeSlotPackedReflowReceipt::valid() const {
     if (!parent.valid() || source_sha256.size() != 64U ||
         output_sha256.size() != 64U || writer_mode != kWriterMode ||
         !source_topology.valid() || !output_topology.valid() ||
@@ -257,33 +252,36 @@ bool RelativeSlotPackedReflowReceipt::valid() const noexcept {
         return false;
     }
 
-    std::size_t expected_span_count = 0U;
-    std::uint64_t previous_source_end = source_topology.protected_prefix_size;
-    std::uint64_t previous_output_end = output_topology.protected_prefix_size;
-    std::set<std::uint64_t> source_offsets;
+    std::unordered_set<std::uint64_t> distinct_source_offsets;
+    distinct_source_offsets.reserve(source_topology.entries.size());
     for (const auto& entry : source_topology.entries) {
         if (entry.populated) {
-            source_offsets.insert(entry.offset);
+            distinct_source_offsets.insert(entry.offset);
         }
     }
-    expected_span_count = source_offsets.size();
-    if (spans.size() != expected_span_count) {
+    if (spans.size() != distinct_source_offsets.size()) {
         return false;
     }
 
+    std::uint64_t previous_source_end = source_topology.protected_prefix_size;
+    std::uint64_t previous_output_end = output_topology.protected_prefix_size;
     for (const auto& span : spans) {
         if (!span.valid() || span.source_offset != previous_source_end ||
             span.output_offset != previous_output_end) {
             return false;
         }
-        previous_source_end = span.source_offset + span.source_size;
-        previous_output_end = span.output_offset + span.output_size;
+        if (!checked_add(
+                span.source_offset, span.source_size, previous_source_end) ||
+            !checked_add(
+                span.output_offset, span.output_size, previous_output_end)) {
+            return false;
+        }
     }
     return previous_source_end == source_topology.container_size &&
         previous_output_end == output_topology.container_size;
 }
 
-bool RelativeSlotPackedReflowResult::ok() const noexcept {
+bool RelativeSlotPackedReflowResult::ok() const {
     if (status != RelativeSlotPackedReflowStatus::ok ||
         !receipt.has_value() || !receipt->valid() ||
         receipt->output_topology.container_size != bytes.size()) {
@@ -333,6 +331,8 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
             "Expansion topology does not match the canonical source slot topology.");
     }
 
+    std::unordered_map<std::string, std::size_t> child_index_by_id;
+    child_index_by_id.reserve(expansion.children.size());
     for (std::size_t index = 0U; index < expansion.children.size(); ++index) {
         const auto& child = expansion.children[index];
         const auto& topology = source_topology.entries[index];
@@ -361,35 +361,103 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
                 RelativeSlotPackedReflowStatus::invalid_expansion,
                 "A populated child identity is not bound to the supplied parent coordinates.");
         }
+        const auto [_, inserted] = child_index_by_id.emplace(
+            child.payload.resource.id.canonical(), index);
+        if (!inserted) {
+            return failure(
+                RelativeSlotPackedReflowStatus::invalid_expansion,
+                "Two populated expansion children expose the same canonical ResourceId.");
+        }
     }
 
-    std::set<std::string> seen_children;
-    struct PreparedAuthored final {
-        const gdspaces::ContainerChild* child{};
-        const AuthoredChildImage* authored{};
-        bool changed{};
-    };
-    std::vector<PreparedAuthored> prepared;
-    prepared.reserve(authored_children.size());
+    std::vector<std::size_t> physical_order;
+    physical_order.reserve(child_index_by_id.size());
+    for (std::size_t index = 0U; index < expansion.children.size(); ++index) {
+        if (expansion.children[index].entry.populated) {
+            physical_order.push_back(index);
+        }
+    }
+    std::sort(
+        physical_order.begin(), physical_order.end(),
+        [&expansion](std::size_t left, std::size_t right) {
+            const auto& lhs = expansion.children[left].entry;
+            const auto& rhs = expansion.children[right].entry;
+            if (lhs.offset != rhs.offset) {
+                return lhs.offset < rhs.offset;
+            }
+            return lhs.slot_index < rhs.slot_index;
+        });
+
+    std::vector<PhysicalSpan> spans;
+    std::vector<std::size_t> span_by_slot(
+        expansion.children.size(), kNoSpan);
+    for (const auto child_index : physical_order) {
+        const auto& child = expansion.children[child_index];
+        if (spans.empty() || spans.back().source_offset != child.entry.offset) {
+            spans.push_back(PhysicalSpan{
+                .source_offset = child.entry.offset,
+                .source_size = child.entry.size,
+                .output_offset = 0U,
+                .aliases = {},
+                .authored = {},
+                .replacement = {},
+                .changed = false,
+            });
+        } else if (spans.back().source_size != child.entry.size) {
+            return failure(
+                RelativeSlotPackedReflowStatus::invalid_expansion,
+                "Aliased child identities disagree on their physical source span size.");
+        }
+        spans.back().aliases.push_back(&child);
+        span_by_slot[child.entry.slot_index] = spans.size() - 1U;
+    }
+    if (spans.empty() ||
+        spans.front().source_offset != source_topology.protected_prefix_size) {
+        return failure(
+            RelativeSlotPackedReflowStatus::invalid_expansion,
+            "Canonical populated spans do not start at the protected payload boundary.");
+    }
+    std::uint64_t expected_source_offset = source_topology.protected_prefix_size;
+    for (const auto& span : spans) {
+        if (span.source_offset != expected_source_offset ||
+            !checked_add(
+                span.source_offset, span.source_size, expected_source_offset)) {
+            return failure(
+                RelativeSlotPackedReflowStatus::invalid_expansion,
+                "Canonical physical spans are not contiguous through the parent payload domain.");
+        }
+    }
+    if (expected_source_offset != source_topology.container_size) {
+        return failure(
+            RelativeSlotPackedReflowStatus::invalid_expansion,
+            "Canonical physical spans do not cover the complete packed parent payload.");
+    }
+
+    std::unordered_set<std::string> seen_authored;
+    seen_authored.reserve(authored_children.size());
+    bool have_change = false;
     for (const auto& authored : authored_children) {
         if (!authored.valid()) {
             return failure(
                 RelativeSlotPackedReflowStatus::invalid_authored_image,
                 "An authored child image has an invalid identity/hash/writer envelope.");
         }
-        if (!seen_children.insert(authored.resource.canonical()).second) {
+        const auto canonical_id = authored.resource.canonical();
+        if (!seen_authored.insert(canonical_id).second) {
             return failure(
                 RelativeSlotPackedReflowStatus::duplicate_child_input,
                 "The same child ResourceId appears more than once in the authored input set.");
         }
-        const auto* child = find_child(expansion, authored.resource);
-        if (child == nullptr) {
+        const auto child_lookup = child_index_by_id.find(canonical_id);
+        if (child_lookup == child_index_by_id.end()) {
             return failure(
                 RelativeSlotPackedReflowStatus::child_not_found,
                 "An authored child ResourceId is not a populated child of the exact expansion.");
         }
+        const auto child_index = child_lookup->second;
+        const auto& child = expansion.children[child_index];
         const auto source_sha = sha256_of(std::span<const std::byte>{
-            child->payload.bytes.data(), child->payload.bytes.size()});
+            child.payload.bytes.data(), child.payload.bytes.size()});
         if (source_sha != authored.source_sha256) {
             return failure(
                 RelativeSlotPackedReflowStatus::child_source_mismatch,
@@ -402,92 +470,38 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
                 RelativeSlotPackedReflowStatus::child_output_mismatch,
                 "Authored child output SHA-256 does not bind to the supplied authored bytes.");
         }
-        const bool changed = authored.bytes != child->payload.bytes;
-        if (changed && !validate_changed_container_child(*child, authored)) {
+
+        const bool changed = authored.bytes != child.payload.bytes;
+        if (!changed) {
+            continue;
+        }
+        have_change = true;
+        if (!validate_changed_container_child(child, authored)) {
             return failure(
                 RelativeSlotPackedReflowStatus::child_writer_validation_failed,
                 "A changed nested PAC/PNST image failed independent canonical topology validation.");
         }
-        prepared.push_back(PreparedAuthored{
-            .child = child,
-            .authored = &authored,
-            .changed = changed,
-        });
-    }
-
-    if (std::none_of(
-            prepared.begin(), prepared.end(),
-            [](const PreparedAuthored& value) { return value.changed; })) {
-        return failure(
-            RelativeSlotPackedReflowStatus::no_changes,
-            "All authored child images are byte-identical to their source spans.");
-    }
-
-    std::vector<PhysicalSpan> spans;
-    for (const auto& child : expansion.children) {
-        if (!child.entry.populated) {
-            continue;
-        }
-        const auto found = std::find_if(
-            spans.begin(), spans.end(),
-            [&child](const PhysicalSpan& span) {
-                return span.source_offset == child.entry.offset;
-            });
-        if (found == spans.end()) {
-            spans.push_back(PhysicalSpan{
-                .source_offset = child.entry.offset,
-                .source_size = child.entry.size,
-                .output_offset = 0U,
-                .aliases = {&child},
-                .authored = {},
-                .replacement = {},
-                .changed = false,
-            });
-        } else {
-            if (found->source_size != child.entry.size) {
-                return failure(
-                    RelativeSlotPackedReflowStatus::invalid_expansion,
-                    "Aliased child identities disagree on their physical source span size.");
-            }
-            found->aliases.push_back(&child);
-        }
-    }
-    std::sort(
-        spans.begin(), spans.end(),
-        [](const PhysicalSpan& left, const PhysicalSpan& right) {
-            return left.source_offset < right.source_offset;
-        });
-    if (!span_relation_matches(source_topology, spans) || spans.empty() ||
-        spans.front().source_offset != source_topology.protected_prefix_size) {
-        return failure(
-            RelativeSlotPackedReflowStatus::invalid_expansion,
-            "Canonical populated spans do not form the expected packed payload relation.");
-    }
-
-    for (const auto& item : prepared) {
-        if (!item.changed) {
-            continue;
-        }
-        auto span = std::find_if(
-            spans.begin(), spans.end(),
-            [&item](const PhysicalSpan& candidate) {
-                return candidate.source_offset == item.child->entry.offset &&
-                    candidate.source_size == item.child->entry.size;
-            });
-        if (span == spans.end()) {
+        const auto span_index = span_by_slot[child.entry.slot_index];
+        if (span_index == kNoSpan || span_index >= spans.size()) {
             return failure(
                 RelativeSlotPackedReflowStatus::invalid_expansion,
                 "A changed authored child has no physical source-span group.");
         }
-        if (span->replacement.empty()) {
-            span->replacement = item.authored->bytes;
-        } else if (span->replacement != item.authored->bytes) {
+        auto& span = spans[span_index];
+        if (span.replacement.empty()) {
+            span.replacement = authored.bytes;
+        } else if (span.replacement != authored.bytes) {
             return failure(
                 RelativeSlotPackedReflowStatus::alias_conflict,
                 "Changed aliases request divergent byte images for one physical parent span.");
         }
-        span->authored.push_back(item.authored);
-        span->changed = true;
+        span.authored.push_back(&authored);
+        span.changed = true;
+    }
+    if (!have_change) {
+        return failure(
+            RelativeSlotPackedReflowStatus::no_changes,
+            "All authored child images are byte-identical to their source spans.");
     }
 
     const auto prefix_size = source_topology.protected_prefix_size;
@@ -505,30 +519,24 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
             ? static_cast<std::uint64_t>(span.replacement.size())
             : span.source_size;
         if (emitted_size == 0U ||
-            output_size > std::numeric_limits<std::uint64_t>::max() - emitted_size) {
-            return failure(
-                RelativeSlotPackedReflowStatus::output_too_large,
-                "Packed child reflow overflows the output size domain.");
-        }
-        output_size += emitted_size;
-        if (output_size > safety.max_output_bytes || !fits_u32(output_size)) {
+            !checked_add(output_size, emitted_size, output_size) ||
+            output_size > safety.max_output_bytes || !fits_u32(output_size)) {
             return failure(
                 RelativeSlotPackedReflowStatus::output_too_large,
                 "Packed child reflow exceeds the configured output or 32-bit offset domain.");
         }
     }
-
     if (output_size > std::numeric_limits<std::size_t>::max()) {
         return failure(
             RelativeSlotPackedReflowStatus::output_too_large,
             "Packed child reflow exceeds the host addressable vector domain.");
     }
+
     std::vector<std::byte> output;
     output.reserve(static_cast<std::size_t>(output_size));
     output.insert(
         output.end(), parent.bytes.begin(),
         parent.bytes.begin() + static_cast<std::ptrdiff_t>(prefix_size));
-
     for (const auto& span : spans) {
         if (span.changed) {
             output.insert(
@@ -571,20 +579,16 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
             write_u32_le(output, table_offset, 0U);
             continue;
         }
-        const auto span = std::find_if(
-            spans.begin(), spans.end(),
-            [&entry](const PhysicalSpan& candidate) {
-                return candidate.source_offset == entry.offset &&
-                    candidate.source_size == entry.size;
-            });
-        if (span == spans.end() || !fits_u32(span->output_offset)) {
+        const auto span_index = span_by_slot[entry.slot_index];
+        if (span_index == kNoSpan || span_index >= spans.size() ||
+            !fits_u32(spans[span_index].output_offset)) {
             return failure(
                 RelativeSlotPackedReflowStatus::topology_changed,
                 "A populated source slot has no mapped output physical span.");
         }
         write_u32_le(
             output, table_offset,
-            static_cast<std::uint32_t>(span->output_offset));
+            static_cast<std::uint32_t>(spans[span_index].output_offset));
     }
 
     const auto output_parsed = parse_for_format(
@@ -615,21 +619,17 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
             }
             continue;
         }
-        const auto span = std::find_if(
-            spans.begin(), spans.end(),
-            [&source_entry](const PhysicalSpan& candidate) {
-                return candidate.source_offset == source_entry.offset &&
-                    candidate.source_size == source_entry.size;
-            });
-        if (span == spans.end()) {
+        const auto span_index = span_by_slot[source_entry.slot_index];
+        if (span_index == kNoSpan || span_index >= spans.size()) {
             return failure(
                 RelativeSlotPackedReflowStatus::topology_changed,
                 "A populated source slot lost its physical-span mapping.");
         }
-        const auto expected_size = span->changed
-            ? static_cast<std::uint64_t>(span->replacement.size())
-            : span->source_size;
-        if (output_entry.offset != span->output_offset ||
+        const auto& span = spans[span_index];
+        const auto expected_size = span.changed
+            ? static_cast<std::uint64_t>(span.replacement.size())
+            : span.source_size;
+        if (output_entry.offset != span.output_offset ||
             output_entry.size != expected_size) {
             return failure(
                 RelativeSlotPackedReflowStatus::topology_changed,
@@ -641,49 +641,42 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
     span_receipts.reserve(spans.size());
     for (const auto& span : spans) {
         const auto source_begin = static_cast<std::size_t>(span.source_offset);
-        const auto source_end = source_begin +
-            static_cast<std::size_t>(span.source_size);
         const auto output_begin = static_cast<std::size_t>(span.output_offset);
         const auto emitted_size = span.changed
             ? span.replacement.size()
             : static_cast<std::size_t>(span.source_size);
-        const auto source_sha = sha256_of(std::span<const std::byte>{
-            parent.bytes.data() + source_begin,
-            static_cast<std::size_t>(span.source_size)});
-        const auto output_sha = sha256_of(std::span<const std::byte>{
-            output.data() + output_begin, emitted_size});
 
-        RelativeSlotPackedSpanReceipt receipt{
+        RelativeSlotPackedSpanReceipt span_receipt{
             .source_offset = span.source_offset,
             .source_size = span.source_size,
             .output_offset = span.output_offset,
             .output_size = static_cast<std::uint64_t>(emitted_size),
             .changed = span.changed,
-            .source_sha256 = source_sha,
-            .output_sha256 = output_sha,
+            .source_sha256 = sha256_of(std::span<const std::byte>{
+                parent.bytes.data() + source_begin,
+                static_cast<std::size_t>(span.source_size)}),
+            .output_sha256 = sha256_of(std::span<const std::byte>{
+                output.data() + output_begin, emitted_size}),
             .affected_aliases = {},
             .authored_aliases = {},
         };
-        receipt.affected_aliases.reserve(span.aliases.size());
+        span_receipt.affected_aliases.reserve(span.aliases.size());
         for (const auto* alias : span.aliases) {
-            receipt.affected_aliases.push_back(alias->payload.resource.id);
+            span_receipt.affected_aliases.push_back(alias->payload.resource.id);
         }
-        receipt.authored_aliases.reserve(span.authored.size());
+        span_receipt.authored_aliases.reserve(span.authored.size());
         for (const auto* authored : span.authored) {
-            receipt.authored_aliases.push_back(authored->resource);
+            span_receipt.authored_aliases.push_back(authored->resource);
         }
-        span_receipts.push_back(std::move(receipt));
-        static_cast<void>(source_end);
+        span_receipts.push_back(std::move(span_receipt));
     }
 
-    const auto parent_source_sha = sha256_of(std::span<const std::byte>{
-        parent.bytes.data(), parent.bytes.size()});
-    const auto parent_output_sha = sha256_of(std::span<const std::byte>{
-        output.data(), output.size()});
     RelativeSlotPackedReflowReceipt receipt{
         .parent = parent.resource.id,
-        .source_sha256 = parent_source_sha,
-        .output_sha256 = parent_output_sha,
+        .source_sha256 = sha256_of(std::span<const std::byte>{
+            parent.bytes.data(), parent.bytes.size()}),
+        .output_sha256 = sha256_of(std::span<const std::byte>{
+            output.data(), output.size()}),
         .writer_mode = std::string{kWriterMode},
         .source_topology = source_topology,
         .output_topology = output_topology,
