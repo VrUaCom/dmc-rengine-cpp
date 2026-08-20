@@ -23,6 +23,22 @@
     "canonical_output_reparse_required": true,
     "framing_geometry_must_remain_invariant": true
   },
+  "real_corpus_mutation_matrix": {
+    "source": "Pass 78 preserved v6 stage-drop corpus",
+    "validation_class": "independent-real-byte-mutation-matrix",
+    "single_texture_cases": 154,
+    "single_texture_passed": 154,
+    "mutation": "xor 0x01 into the final compressed-payload byte of the targeted DDS",
+    "dds_header_byte_exact_cases": 154,
+    "canonical_physical_framing_reparse_cases": 154,
+    "non_target_bytes_byte_exact_cases": 154,
+    "bundle_all_textures_cases": 58,
+    "bundle_all_textures_passed": 58,
+    "bundle_all_headers_byte_exact_cases": 58,
+    "bundle_all_canonical_reparse_cases": 58,
+    "bundle_all_non_mutated_bytes_byte_exact_cases": 58,
+    "current_compiled_cpp_real_corpus_execution": false
+  },
   "composition": {
     "downstream_writer": "RelativeSlotPackedReflowWriter",
     "bare_dds_exposed_to_generic_writer": false,
