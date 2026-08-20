@@ -77,6 +77,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         runtime_resource_resolver
         loose_container_list
         relative_slot_writer
+        runtime_synth_relative_slot_writer
+        runtime_synth_result_integrity
         nested_relative_slot_reintegrator
         sha256
         patch
