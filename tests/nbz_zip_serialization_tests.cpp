@@ -176,7 +176,6 @@ int main() {
 
     // Snapshot validity is bound to preserved raw framing.
     auto tampered = snapshot;
-    tampered.central_record_bytes = tampered.entries.front().central_record_bytes;
     tampered.entries.front().central_record_bytes[0U] = std::byte{0};
     assert(!tampered.valid());
 
