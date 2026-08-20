@@ -85,11 +85,15 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "Structural parser preserves sparse/alias slot topology only; slot semantics remain schema-specific.",
-                "Only same-size layout-preserving packed authoring is integrated; runtime-synth size-changing output remains a separate bounded tier.",
+                "Bounded authoring supports same-size layout-preserving packed output and runtime-synth size-changing output only from independently intrinsic standalone child bytes.",
+                "Generic writer receipts do not prove intrinsic extent; typed verified writer-result composition for nested size-changing parents remains unavailable.",
                 "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
             .source_adapter_id = {},
-            .writer_modes = {"layout-preserving-packed"},
+            .writer_modes = {
+                "layout-preserving-packed",
+                "runtime-synth-relative-slot",
+            },
             .parser_validation_required = true,
         },
         FormatIntegrationDescriptor{
@@ -102,11 +106,15 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "PNST shares the relative-slot physical envelope with PAC but not a global semantic slot schema.",
-                "Only same-size layout-preserving packed authoring is integrated; clean real-corpus parser execution receipt remains a separate validation tier.",
+                "Bounded authoring supports same-size layout-preserving packed output and runtime-synth size-changing output only from independently intrinsic standalone child bytes.",
+                "Generic writer receipts do not prove intrinsic extent; typed verified writer-result composition for nested size-changing parents remains unavailable.",
                 "WorkingCopy requires successful canonical parser validation for the exact immutable workspace source.",
             },
             .source_adapter_id = {},
-            .writer_modes = {"layout-preserving-packed"},
+            .writer_modes = {
+                "layout-preserving-packed",
+                "runtime-synth-relative-slot",
+            },
             .parser_validation_required = true,
         },
         FormatIntegrationDescriptor{
