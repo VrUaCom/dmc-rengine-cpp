@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/gdspaces/source.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <optional>
@@ -24,6 +25,49 @@ struct NbzZipEntry final {
     bool directory{false};
 
     [[nodiscard]] bool valid(std::uint64_t archive_size) const noexcept;
+};
+
+// Exact serialization framing retained from the source archive for a single
+// central-directory identity. The large stored member body is not copied into
+// memory here; `local_region_*` and `data_*` remain source-file spans so a
+// future metadata-preserving repacker can copy unchanged bytes directly.
+struct NbzZipSerializationEntry final {
+    std::uint32_t central_index{};
+
+    std::uint64_t central_record_offset{};
+    std::vector<std::byte> central_record_bytes;
+
+    std::uint64_t local_record_offset{};
+    std::vector<std::byte> local_prefix_bytes;
+    std::uint64_t data_offset{};
+    std::uint64_t stored_data_size{};
+
+    // From the local-header start to the next distinct local-header start, or
+    // to the recovered central-directory start for the final local region.
+    // This intentionally retains descriptors/padding/gaps as opaque source
+    // bytes without pretending to know their semantics.
+    std::uint64_t local_region_size{};
+    bool uses_data_descriptor{};
+
+    [[nodiscard]] bool valid(
+        std::uint64_t archive_size,
+        std::uint64_t central_start) const noexcept;
+};
+
+// Archive-level source serialization framing. This is a read-side preservation
+// authority, not a cryptographic artifact identity and not a writer receipt.
+// Future repack code must additionally bind this snapshot to the exact source
+// artifact before copying source spans.
+struct NbzZipSerializationSnapshot final {
+    std::string source_id;
+    std::uint64_t archive_size{};
+    std::uint64_t prefix_size{};
+    std::uint64_t computed_central_start{};
+    std::uint64_t eocd_offset{};
+    std::vector<std::byte> eocd_bytes;
+    std::vector<NbzZipSerializationEntry> entries;
+
+    [[nodiscard]] bool valid() const noexcept;
 };
 
 // Product-only bounds for hostile or malformed user-supplied archives. These
@@ -69,6 +113,8 @@ public:
     [[nodiscard]] const std::vector<NbzZipEntry>& entries() const noexcept;
     [[nodiscard]] const std::vector<Diagnostic>& diagnostics() const noexcept;
     [[nodiscard]] const std::optional<NbzZipIndexReceipt>& index_receipt() const noexcept;
+    [[nodiscard]] const std::optional<NbzZipSerializationSnapshot>&
+    serialization_snapshot() const noexcept;
 
 private:
     void build_index();
@@ -82,6 +128,7 @@ private:
     std::vector<NbzZipEntry> entries_;
     std::vector<Diagnostic> diagnostics_;
     std::optional<NbzZipIndexReceipt> index_receipt_;
+    std::optional<NbzZipSerializationSnapshot> serialization_snapshot_;
 };
 
 } // namespace dmc::rengine::gdspaces
