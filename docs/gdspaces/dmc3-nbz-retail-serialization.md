@@ -48,6 +48,8 @@ expected ArtifactIdentity
 
 `Sha256Accumulator` hashes large archives in bounded chunks and does not require whole-file materialization. The binding receipt therefore proves that the serialization scan was surrounded by two complete reads of the expected artifact identity.
 
+`ArtifactBoundNbzZipSerializationSnapshot` is intentionally non-aggregate with a private constructor. Callers can inspect immutable getters, but cannot self-declare bound authority by copying expected SHA text into public fields. Only `NbzZipArtifactSerializationBinder` can construct the typed result after the complete verification sequence above.
+
 This closes scan-time stale-source/TOCTOU exposure only for that binding window. A future unchanged-region copier/repacker must independently revalidate the artifact at its own I/O boundary before and after consuming source spans.
 
 ## Safety
@@ -61,7 +63,8 @@ Artifact binding is also fail-closed:
 - hash chunks are bounded product policy;
 - exact archive size is checked around each streaming hash pass;
 - pre/post scan SHA values must both match the expected artifact;
-- a same-size archive replacement after source indexing is rejected by hash mismatch.
+- a same-size archive replacement after source indexing is rejected by hash mismatch;
+- typed bound authority cannot be forged as a caller-owned aggregate.
 
 ## What this does not prove
 
