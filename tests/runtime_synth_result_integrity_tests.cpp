@@ -69,14 +69,18 @@ int main() {
         dmc3::ExactChildImage{
             .slot_index = 0U,
             .authority_kind = dmc3::ExactChildAuthorityKind::external_exact_resource,
+            .extent_kind = dmc3::ExactChildExtentKind::intrinsic_resource,
             .authority_id = "external:child0",
+            .writer_mode = {},
             .sha256 = sha256_of(child0),
             .bytes = child0,
         },
         dmc3::ExactChildImage{
             .slot_index = 1U,
             .authority_kind = dmc3::ExactChildAuthorityKind::external_exact_resource,
+            .extent_kind = dmc3::ExactChildExtentKind::intrinsic_resource,
             .authority_id = "external:child1",
+            .writer_mode = {},
             .sha256 = sha256_of(child1),
             .bytes = child1,
         },
@@ -94,8 +98,18 @@ int main() {
     assert(!reordered_receipt.valid());
 
     auto duplicate_receipt = *built.receipt;
-    duplicate_receipt.children[1].slot_index = duplicate_receipt.children[0].slot_index;
+    duplicate_receipt.children[1].slot_index =
+        duplicate_receipt.children[0].slot_index;
     assert(!duplicate_receipt.valid());
+
+    auto forged_writer_receipt = *built.receipt;
+    forged_writer_receipt.children[0].authority_kind =
+        dmc3::ExactChildAuthorityKind::format_writer_receipt;
+    forged_writer_receipt.children[0].extent_kind =
+        dmc3::ExactChildExtentKind::writer_defined_complete_image;
+    forged_writer_receipt.children[0].writer_mode =
+        "runtime-synth-relative-slot";
+    assert(!forged_writer_receipt.valid());
 
     return 0;
 }
