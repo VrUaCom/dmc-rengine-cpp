@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::gdspaces {
@@ -17,16 +18,31 @@ struct NbzZipArtifactBindingLimits final {
 };
 
 // Serialization snapshot bound to one exact artifact identity by two complete
-// streaming hash passes around the metadata scan. This proves the preserved
-// source spans came from the expected archive during the scan window. A future
-// copier/repacker must still revalidate the artifact at its own I/O boundary.
-struct ArtifactBoundNbzZipSerializationSnapshot final {
-    evidence::ArtifactIdentity artifact;
-    NbzZipSerializationSnapshot serialization;
-    std::string pre_scan_sha256;
-    std::string post_scan_sha256;
-
+// streaming hash passes around the metadata scan. This is deliberately not a
+// public aggregate: callers cannot self-declare artifact-bound authority by
+// copying SHA text into fields. Only NbzZipArtifactSerializationBinder may
+// construct an instance.
+class ArtifactBoundNbzZipSerializationSnapshot final {
+public:
+    [[nodiscard]] const evidence::ArtifactIdentity& artifact() const noexcept;
+    [[nodiscard]] const NbzZipSerializationSnapshot& serialization() const noexcept;
+    [[nodiscard]] std::string_view pre_scan_sha256() const noexcept;
+    [[nodiscard]] std::string_view post_scan_sha256() const noexcept;
     [[nodiscard]] bool valid() const noexcept;
+
+private:
+    friend class NbzZipArtifactSerializationBinder;
+
+    ArtifactBoundNbzZipSerializationSnapshot(
+        evidence::ArtifactIdentity artifact,
+        NbzZipSerializationSnapshot serialization,
+        std::string pre_scan_sha256,
+        std::string post_scan_sha256);
+
+    evidence::ArtifactIdentity artifact_;
+    NbzZipSerializationSnapshot serialization_;
+    std::string pre_scan_sha256_;
+    std::string post_scan_sha256_;
 };
 
 struct NbzZipArtifactBindingResult final {
