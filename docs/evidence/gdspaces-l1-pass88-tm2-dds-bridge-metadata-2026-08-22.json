@@ -1,0 +1,120 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass88.tm2-dds-bridge-metadata.v1",
+  "date": "2026-08-22",
+  "layer": "L1",
+  "status": "READ_ONLY_TM2_DDS_BRIDGE_RECOVERY",
+  "canonical_target": {
+    "file": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "recovered_phase16_package": {
+    "file": "dmc3_exe_texture_resource_phase16_complete.zip",
+    "sha256": "f8343a0b28c201d5c54150d3abeba4c7d04652059fbc606775fed85e1d5e9a83",
+    "manifest_file_count": 41,
+    "manifest_target_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "historical_cpp_validation_passed": true
+  },
+  "runtime_chain": [
+    "PTX envelope",
+    "TM2 outer entry",
+    "relative embedded DDS buffer",
+    "gfxTexture CPU payload descriptor",
+    "DDS from-memory validation",
+    "D3D11 texture creation",
+    "gfxTexture GPU resource"
+  ],
+  "functions": {
+    "tm2_entry_parser": "0x1403365B0",
+    "gfx_texture_factory_cache": "0x140046C40",
+    "tm2_to_gfx_adapter": "0x140046E20",
+    "gfx_texture_initializer": "0x140047000",
+    "gfx_texture_direct_d3d_initializer": "0x140046F90",
+    "gfx_texture_lazy_materialize_upload": "0x140046AF0",
+    "dds_memory_adapter": "0x1400499C0",
+    "dds_from_memory": "0x140049A10",
+    "d3d11_texture_create_core": "0x140049BA0",
+    "d3d_dimension_corroboration_callsite": "0x14002DEEF"
+  },
+  "tm2_source_fields": {
+    "+0x00": {
+      "type": "u32",
+      "name": "magic",
+      "value": "0x00324D54",
+      "ascii": "TM2\\0",
+      "status": "confirmed"
+    },
+    "+0x08": {
+      "type": "u32",
+      "name": "ddsRelativeOffset",
+      "consumer": "added to TM2 base; pointer transported into gfxTexture CPU payload and consumed by DDS memory parser",
+      "status": "confirmed_for_nonzero_dds_payload_path"
+    },
+    "+0x3C": {
+      "type": "u32",
+      "name": "ddsByteSize",
+      "consumer": "stored at gfxTexture payload +0x04 and passed as DDS parser buffer size",
+      "status": "confirmed_for_nonzero_dds_payload_path"
+    },
+    "+0x50..+0x67": {
+      "type": "bytes[0x18]",
+      "name": "runtimeTextureMetadata",
+      "consumer": "copied byte-for-byte to gfxTexture +0x08..+0x1F",
+      "status": "confirmed_structure_semantics_partial"
+    },
+    "+0x58": {
+      "type": "u16",
+      "name": "width",
+      "consumer": "gfxTexture +0x10; reciprocal-width calculation; independently corroborated by D3D11 texture descriptor path",
+      "status": "confirmed"
+    },
+    "+0x5A": {
+      "type": "u16",
+      "name": "height",
+      "consumer": "gfxTexture +0x12; reciprocal-height calculation; independently corroborated by D3D11 texture descriptor path",
+      "status": "confirmed"
+    }
+  },
+  "dds_validation": {
+    "minimum_buffer_bytes": "0x80",
+    "magic_offset": "0x00",
+    "magic_le_u32": "0x20534444",
+    "magic_ascii": "DDS ",
+    "header_size_offset": "0x04",
+    "header_size_required": "0x7C",
+    "pixel_format_size_offset": "0x4C",
+    "pixel_format_size_required": "0x20"
+  },
+  "historical_corrections": [
+    {
+      "old": "runtime PTX/TIM2 and DDS memory paths modeled as parallel independent paths",
+      "new": "TM2 relative payload converges through gfxTexture into the DDS memory parser",
+      "scope": "Phase16 topology only; provenance safety boundary remains"
+    },
+    {
+      "old": "0x140046AF0 labeled gfxTexture_ready_query from truncated historical runtime range",
+      "new": "gfxTexture lazy materialize/upload method including DDS memory parse and D3D resource/view creation"
+    }
+  ],
+  "parser_policy": {
+    "read_only": true,
+    "writer_exposed": false,
+    "opaque_runtime_metadata_preserved": true,
+    "zero_dds_byte_size_requires_dds_magic": false,
+    "nonzero_dds_byte_size_requires_bounded_range": true,
+    "nonzero_dds_byte_size_requires_minimum_0x80": true,
+    "nonzero_dds_byte_size_requires_dds_magic": true,
+    "nonzero_dds_byte_size_requires_header_size_0x7c": true,
+    "nonzero_dds_byte_size_requires_pixel_format_size_0x20": true
+  },
+  "not_proven": [
+    "semantic names for remaining TM2 +0x50..+0x67 fields",
+    "semantic meaning of TM2 +0x04",
+    "direct raw retail PTX sample receipt",
+    "retail provenance of Phase15 st001.pac",
+    "historical stage-drop transformation algorithm",
+    "safe original PTX/TM2 writer",
+    "original-game consumption of rebuilt texture resource"
+  ],
+  "layer1_complete": false
+}
