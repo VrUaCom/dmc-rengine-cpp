@@ -1,0 +1,60 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass86.texture-provenance-boundary.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "NOT_COMPLETE",
+  "preserved_v6_source": {
+    "name": "DMC 3 RENGINE (6).zip",
+    "size_bytes": 237658858,
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "corpus_root": "analysis_inputs/stage_drops",
+    "corpus_declared_as_external_analysis_input": true,
+    "gdtexturebundlereader_role": "scans already-supplied bytes for embedded DDS signatures; no PTX/TIM2-to-DDS transform implemented"
+  },
+  "phase15": {
+    "package": "dmc3_exe_container_runtime_phase15_complete.zip",
+    "package_sha256": "cd50266dd3cc8cff61a6a61e5762b67f7bc270c42423cfc30987bfecc9374ad5",
+    "raw_st001_path": "/mnt/data/st001.pac",
+    "raw_st001_sha256": "90b3a89abeb6d4475d81d066b7b19460f7a799741742416c3a35c2eeb992e7d1",
+    "comparison_zip_path": "/mnt/data/st001.zip",
+    "simple_top_slots_byte_exact": [0, 2, 3, 4, 5, 6, 7],
+    "texture_slot": 1,
+    "embedded_dds_signatures": 17,
+    "extracted_dds_files": 17,
+    "extracted_dds_exact_substrings": 0,
+    "phase15_unresolved": "PTX/DDS bundle exact binary layout and transformations",
+    "raw_st001_acquisition_provenance_preserved": false,
+    "st001_zip_acquisition_provenance_preserved": false
+  },
+  "runtime_boundary": {
+    "original_ptx_path": "0x800-aligned TIM2 entries with TM2\\0 validation",
+    "separate_dds_from_memory_path_observed": true,
+    "dds_bearing_stage_drop_profile_proven_as_original_ptx_tim2_image": false,
+    "direct_exe_consumer_search_for_stage_drop_aux_fields_currently_authoritative": false
+  },
+  "corrected_texture_authority": "validated transformed DDS-bearing texture-slot profile authority",
+  "not_yet_proven": [
+    "original-retail PTX/TIM2 serializer authority",
+    "original-game texture writeback equivalence",
+    "retail provenance of Phase15 /mnt/data/st001.pac",
+    "producer/transformer of stage-drop DDS-bearing representation",
+    "semantic consumer of transformed descriptor +0x3C/+0x40"
+  ],
+  "preserved_validity": [
+    "154 descriptor/DDS structural relationships in preserved corpus",
+    "58 DDS-bearing bundle framing receipts",
+    "same-layout DDS reintegration within transformed profile",
+    "safe-domain size-changing transformed-slot rebuild",
+    "compiled-current C++ transformed-profile execution receipts",
+    "compiled real PNST parent reflow using complete physical child images",
+    "generic PAC/PNST writer authority",
+    "generic NBZ materialization/repack authority"
+  ],
+  "mandatory_next_gates": [
+    "reacquire st001.pac directly from retail dmc3-0.nbz and compare SHA-256",
+    "or prove exact extractor/transformer source chain",
+    "or independently recover raw retail PTX/TIM2 serializer from direct retail samples",
+    "then resume +0x3C/+0x40 consumer/producer semantics on the correct representation layer"
+  ],
+  "layer1_complete": false
+}
