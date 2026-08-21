@@ -1,5 +1,6 @@
 #include "dmc_rengine/profiles/dmc3/original_ptx_envelope_geometry.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -53,8 +54,6 @@ int main() {
         assert(result.receipt.entries[1].offset == 0x1800U);
         assert(result.receipt.entries[2].offset == 0x2000U);
         assert(result.receipt.cursor_after_entries == 0x3800U);
-
-        // Pass 87 keeps the complete 0x800-byte PTX header opaque.
         assert(bytes[0] == std::byte{0xA5U});
     }
 
