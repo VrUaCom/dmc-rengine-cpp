@@ -1,0 +1,36 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass87.original-ptx-envelope-geometry.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "NOT_COMPLETE",
+  "target_exe": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "confirmed_geometry": {
+    "first_entry_offset": 2048,
+    "sector_size": 2048,
+    "entry_advance": "blockCount[i] * 0x800",
+    "entry_magic_hex": "544d3200",
+    "runtime_bundle_pointer_capacity": 64
+  },
+  "not_recovered": {
+    "texture_count_byte_offset": null,
+    "block_count_array_byte_offset": null,
+    "tim2_picture_header_semantics": false,
+    "clut_semantics": false,
+    "swizzle_conversion": false,
+    "ptx_tim2_writer": false
+  },
+  "implementation": {
+    "component": "OriginalPtxEnvelopeGeometryValidator",
+    "mode": "read-only geometry validation",
+    "header_bytes_0x000_0x7ff": "opaque",
+    "requires_predecoded_texture_count": true,
+    "requires_predecoded_block_counts": true,
+    "fail_closed": true
+  },
+  "provenance_boundary": "original PTX/TIM2 != transformed DDS-bearing PAC profile != extracted DDS != runtime GPU texture",
+  "next_gate": "recover exact textureCount/blockCount[] header read offsets from direct EXE evidence or restored Phase16 raw artifacts",
+  "layer1_complete": false
+}
