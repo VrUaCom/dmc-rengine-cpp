@@ -17,6 +17,17 @@ The corpus README describes these as **external stage/file packs for analysis**.
 
 The historical v6 `GDTextureBundleReader` does not implement PTX/TIM2-to-DDS conversion. It scans an already supplied physical slot for literal `DDS ` signatures and exposes bounded virtual DDS children. Therefore the v6 GDS reader is a consumer of the DDS-bearing representation, not evidence of the producer/transform that created it.
 
+### Negative raw-TIM2 corpus control
+
+A raw-signature control scan was run over the preserved v6 source package specifically to distinguish binary texture payloads from source/documentation strings.
+
+- `analysis_inputs/stage_drops`: `2,239` files, approximately `86.5 MiB` scanned;
+- true binary `TM2\0` / TIM2 payload samples found in stage drops: **0**;
+- whole `DMC 3 RENGINE (6).zip` raw payload scan: true binary `TM2\0` / TIM2 samples found: **0**;
+- textual `TIM2` occurrences elsewhere in the archive are source/documentation references and are not accepted as format payload evidence.
+
+This is a negative corpus receipt only. It does **not** prove that retail DMC3 lacks PTX/TIM2. It proves that the preserved v6 analysis corpus used by Passes 78–85 does not supply a raw TIM2 sample from which original-retail TIM2 serialization can be validated.
+
 ### Phase 15 container-runtime package
 
 - package: `dmc3_exe_container_runtime_phase15_complete.zip`
@@ -124,7 +135,8 @@ If it does not match, the DDS-bearing writer remains an extraction/editor-profil
 2. identify the producer of `analysis_inputs/stage_drops` texture representation;
 3. reacquire a direct retail texture-bearing PAC from `dmc3-0.nbz` when the 960 MB archive becomes available;
 4. compare raw retail slot bytes against the Phase15 and v6 DDS-bearing profiles;
-5. only then resume semantic reverse of `+0x3C/+0x40` against the correct producer/consumer layer.
+5. recover the EXE-confirmed original PTX envelope structure separately from the transformed DDS-bearing profile;
+6. only then resume semantic reverse of `+0x3C/+0x40` against the correct producer/consumer layer.
 
 ## Layer-1 status
 
