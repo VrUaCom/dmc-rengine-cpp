@@ -84,6 +84,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         runtime_synth_result_integrity
         runtime_synth_format_registry
         nested_relative_slot_reintegrator
+        original_ptx_envelope_geometry
         sha256
         patch
         json_parser
