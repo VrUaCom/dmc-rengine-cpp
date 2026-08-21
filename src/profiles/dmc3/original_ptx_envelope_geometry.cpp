@@ -36,10 +36,7 @@ constexpr std::array<std::byte, 4> kTim2RuntimeMagic{
 } // namespace
 
 bool OriginalPtxTim2EntryGeometry::valid() const noexcept {
-    if (block_count == 0U || span_size == 0U) {
-        return false;
-    }
-    return span_size ==
+    return advance_size ==
            static_cast<std::uint64_t>(block_count) * kOriginalPtxSectorSize;
 }
 
@@ -63,17 +60,14 @@ bool OriginalPtxEnvelopeGeometryReceipt::valid() const noexcept {
             entry.offset != expected_offset) {
             return false;
         }
-        if (entry.span_size >
+        if (entry.advance_size >
             std::numeric_limits<std::uint64_t>::max() - expected_offset) {
             return false;
         }
-        expected_offset += entry.span_size;
+        expected_offset += entry.advance_size;
     }
 
-    if (consumed_end != expected_offset || consumed_end > source_size) {
-        return false;
-    }
-    return trailing_bytes == source_size - consumed_end;
+    return cursor_after_entries == expected_offset;
 }
 
 bool OriginalPtxEnvelopeGeometryResult::ok() const noexcept {
@@ -96,12 +90,12 @@ OriginalPtxEnvelopeGeometryResult OriginalPtxEnvelopeGeometryValidator::validate
     }
     if (descriptor.texture_count == 0U) {
         result.status = OriginalPtxEnvelopeGeometryStatus::texture_count_zero;
-        result.detail = "zero-texture PTX envelopes are outside current evidence";
+        result.detail = "zero-texture PTX envelopes remain outside current promotion evidence";
         return result;
     }
     if (descriptor.texture_count > kOriginalPtxMaxTextureCount) {
         result.status = OriginalPtxEnvelopeGeometryStatus::texture_count_limit;
-        result.detail = "texture_count exceeds the confirmed 64-entry runtime bundle ceiling";
+        result.detail = "texture_count exceeds the recovered 64-entry runtime bundle ceiling";
         return result;
     }
 
@@ -109,37 +103,25 @@ OriginalPtxEnvelopeGeometryResult OriginalPtxEnvelopeGeometryValidator::validate
     result.receipt.entries.reserve(descriptor.texture_count);
 
     for (std::uint32_t index = 0; index < descriptor.texture_count; ++index) {
-        const auto block_count = descriptor.block_counts[index];
-        if (block_count == 0U) {
-            result.status = OriginalPtxEnvelopeGeometryStatus::zero_block_count;
-            result.detail = "block_count must advance to a distinct TIM2 entry";
-            return result;
-        }
-
-        const auto span_size =
-            static_cast<std::uint64_t>(block_count) * kOriginalPtxSectorSize;
-        if (span_size > std::numeric_limits<std::uint64_t>::max() - offset) {
-            result.status = OriginalPtxEnvelopeGeometryStatus::entry_offset_overflow;
-            result.detail = "TIM2 entry offset arithmetic overflow";
-            return result;
-        }
-        const auto end = offset + span_size;
         const auto source_size = static_cast<std::uint64_t>(bytes.size());
-
         if (offset > source_size || source_size - offset < kTim2RuntimeMagic.size()) {
             result.status =
                 OriginalPtxEnvelopeGeometryStatus::entry_header_out_of_bounds;
             result.detail = "TIM2 entry header lies outside the supplied source bytes";
             return result;
         }
-        if (end > source_size) {
-            result.status = OriginalPtxEnvelopeGeometryStatus::entry_span_out_of_bounds;
-            result.detail = "declared TIM2 block span exceeds the supplied source bytes";
-            return result;
-        }
         if (!has_tim2_runtime_magic(bytes, offset)) {
             result.status = OriginalPtxEnvelopeGeometryStatus::tim2_magic_mismatch;
-            result.detail = "entry does not begin with the EXE-confirmed TM2\\0 marker";
+            result.detail = "entry does not begin with the recovered TM2\\0 marker";
+            return result;
+        }
+
+        const auto block_count = descriptor.block_counts[index];
+        const auto advance_size =
+            static_cast<std::uint64_t>(block_count) * kOriginalPtxSectorSize;
+        if (advance_size > std::numeric_limits<std::uint64_t>::max() - offset) {
+            result.status = OriginalPtxEnvelopeGeometryStatus::entry_offset_overflow;
+            result.detail = "TIM2 runtime cursor arithmetic overflow";
             return result;
         }
 
@@ -147,14 +129,12 @@ OriginalPtxEnvelopeGeometryResult OriginalPtxEnvelopeGeometryValidator::validate
             index,
             block_count,
             offset,
-            span_size,
+            advance_size,
         });
-        offset = end;
+        offset += advance_size;
     }
 
-    result.receipt.consumed_end = offset;
-    result.receipt.trailing_bytes =
-        result.receipt.source_size - result.receipt.consumed_end;
+    result.receipt.cursor_after_entries = offset;
 
     if (!result.receipt.valid()) {
         result.status = OriginalPtxEnvelopeGeometryStatus::invalid_receipt;
@@ -163,7 +143,7 @@ OriginalPtxEnvelopeGeometryResult OriginalPtxEnvelopeGeometryValidator::validate
     }
 
     result.status = OriginalPtxEnvelopeGeometryStatus::ok;
-    result.detail = "EXE-confirmed PTX envelope geometry validated";
+    result.detail = "recovered PTX envelope geometry validated";
     return result;
 }
 
