@@ -82,8 +82,17 @@ B + 0x004: u32 blockCount[textureCount]
 ...
 B + 0x800: TIM2 entry 0
 entry(i).offset = 0x800 + sum(blockCount[0..i-1]) * 0x800
-entry(i).span   = blockCount[i] * 0x800
+entry(i).span   = blockCount[i] * 0x800 when blockCount[i] != 0
 ```
+
+The runtime parses the current TIM2 entry **before** reading that entry's `blockCount`. Therefore a zero count on a non-final entry makes the next entry non-progressing/unlocatable, but a zero count on the final entry does not invalidate the already-parsed final entry. Pass 87 models this conservatively as:
+
+```text
+non-final blockCount == 0 -> fail closed
+final blockCount == 0     -> terminal entry is bounded to supplied resource EOF
+```
+
+This terminal rule is a bounded product policy, not a claim that every original PTX uses a zero terminal sentinel.
 
 The bytes between the end of the count table and `+0x800` remain **opaque header bytes**. Pass 87 does not assign them invented semantics or require them to be zero.
 
@@ -131,7 +140,8 @@ Pass 87 adds `Dmc3PtxEnvelopeParser` with these rules:
 - each entry must begin `TM2\0`;
 - entry `+0x08` relative offset must stay within that bounded entry span;
 - opaque header bytes and trailing bytes are reported, not normalized;
-- zero block counts are fail-closed as unsupported non-progressing ownership until a real retail counterexample proves valid alias semantics;
+- non-final zero block counts fail closed;
+- final zero block count is represented explicitly as `terminal_span_to_eof` and bounded to supplied resource EOF;
 - no writer or TIM2 conversion API is exposed.
 
 ## What this pass proves
