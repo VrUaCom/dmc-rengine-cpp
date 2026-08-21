@@ -14,6 +14,7 @@ struct Dmc3PtxEnvelopeEntry {
   std::size_t offset{0};
   std::size_t span_size{0};
   std::uint32_t tim2_data_offset{0};
+  bool terminal_span_to_eof{false};
 };
 
 struct Dmc3PtxEnvelope {
