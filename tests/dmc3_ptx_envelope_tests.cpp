@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <numeric>
 #include <vector>
 
 namespace {
@@ -37,7 +36,15 @@ std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
   for (std::size_t index = 0; index < block_counts.size(); ++index) {
     const auto block_count = block_counts[index];
     put_u32(bytes, formats::Dmc3PtxEnvelopeParser::kCountTableOffset + index * 4U, block_count);
+
     if (block_count == 0U) {
+      // A terminal zero block count is represented by the remaining supplied
+      // bytes. Non-final zero is intentionally left without separate storage;
+      // the parser rejects it before needing the next entry.
+      if (index + 1U == block_counts.size() && trailing_bytes >= 0x21U) {
+        put_u32(bytes, entry_offset, formats::Dmc3PtxEnvelopeParser::kTim2Magic);
+        put_u32(bytes, entry_offset + 0x08U, 0x20U);
+      }
       continue;
     }
 
@@ -70,10 +77,26 @@ int main() {
     assert(result.envelope.entries[0].offset == 0x800U);
     assert(result.envelope.entries[0].span_size == 0x800U);
     assert(result.envelope.entries[0].tim2_data_offset == 0x20U);
+    assert(!result.envelope.entries[0].terminal_span_to_eof);
     assert(result.envelope.entries[1].offset == 0x1000U);
     assert(result.envelope.entries[1].span_size == 0x1000U);
+    assert(!result.envelope.entries[1].terminal_span_to_eof);
     assert(result.envelope.consumed_size == 0x2000U);
     assert(result.envelope.trailing_size == 37U);
+  }
+
+  {
+    const auto compact_final = make_ptx({1U, 0U}, 0x180U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(compact_final);
+    assert(result.ok);
+    assert(result.envelope.entries.size() == 2U);
+    assert(result.envelope.entries[0].offset == 0x800U);
+    assert(result.envelope.entries[1].offset == 0x1000U);
+    assert(result.envelope.entries[1].block_count == 0U);
+    assert(result.envelope.entries[1].span_size == 0x180U);
+    assert(result.envelope.entries[1].terminal_span_to_eof);
+    assert(result.envelope.trailing_size == 0U);
+    assert(result.envelope.consumed_size == compact_final.size());
   }
 
   {
@@ -101,11 +124,10 @@ int main() {
   }
 
   {
-    auto non_progressing = make_ptx({1U});
-    put_u32(non_progressing, 0x04U, 0U);
+    auto non_progressing = make_ptx({0U, 1U});
     const auto result = formats::Dmc3PtxEnvelopeParser::parse(non_progressing);
     assert(!result.ok);
-    assert(result.error == "ptx_envelope_block_count_zero");
+    assert(result.error == "ptx_envelope_nonterminal_block_count_zero");
   }
 
   {
