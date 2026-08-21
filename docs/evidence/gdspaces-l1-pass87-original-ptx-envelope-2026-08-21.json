@@ -1,0 +1,80 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass87.original-ptx-envelope.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "READ_ONLY_STRUCTURAL_RECOVERY",
+  "canonical_target": {
+    "file": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size_bytes": 6356432,
+    "image_base": "0x140000000",
+    "entry_va": "0x14034615C"
+  },
+  "probe": {
+    "file": "dmc3_phase17_reng_probe.exe",
+    "sha256": "9a3513db0f7cfeabed38f62836a5a6d55e42741b0965bfa5947d3c7b33532735",
+    "size_bytes": 6415872,
+    "entry_va": "0x14034615C",
+    "extra_section": ".reng",
+    "extra_section_rva": "0xDAC000",
+    "extra_section_raw_offset": "0x60E600",
+    "marker": "DMC_RENG_PHASE17_PROBE",
+    "text_sha256": "6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce",
+    "authority": "corroborating_only_until_canonical_byte_window_parity"
+  },
+  "ptx_envelope_fragment": {
+    "va": "0x140336340",
+    "file_offset_in_probe": "0x335740",
+    "texture_count": {"offset": "0x00", "width_bytes": 4},
+    "block_count_table": {"offset": "0x04", "element_width_bytes": 4},
+    "first_entry_offset": "0x800",
+    "entry_advance": "blockCount[i] << 11",
+    "sector_size": "0x800"
+  },
+  "tim2_parse_fragment": {
+    "va": "0x1403365B0",
+    "file_offset_in_probe": "0x3359B0",
+    "magic_offset": "0x00",
+    "magic_le_u32": "0x00324D54",
+    "magic_ascii": "TM2\\0",
+    "relative_data_offset": {"offset": "0x08", "width_bytes": 4}
+  },
+  "caller_corroboration": [
+    {
+      "va": "0x1402FDA66",
+      "facts": [
+        "loads PTX envelope base from runtime object",
+        "adds 0x800 before calling TIM2 parser",
+        "reads dword [envelope+0x00] for count-dependent sizing"
+      ]
+    },
+    {
+      "va": "0x14030DF90",
+      "facts": [
+        "passes PTX base from [rdi+0x40] into 0x140336340",
+        "passes per-record index/parameters from renderer-side state"
+      ]
+    }
+  ],
+  "parser_policy": {
+    "read_only": true,
+    "writer_exposed": false,
+    "minimum_header_bytes": 2048,
+    "opaque_header_tail_preserved": true,
+    "trailing_bytes_preserved": true,
+    "zero_block_count": "fail_closed_until_real_counterexample",
+    "tim2_magic_required": true,
+    "tim2_relative_data_offset_must_be_within_entry_span": true
+  },
+  "not_proven": [
+    "probe PTX byte windows equal canonical unpacked EXE byte-for-byte",
+    "real retail PTX corpus receipt",
+    "remaining PTX header semantics",
+    "full TIM2 picture header semantics",
+    "CLUT semantics",
+    "swizzle conversion",
+    "original PTX/TIM2 writer",
+    "original-game consumption of rebuilt texture resource"
+  ],
+  "layer1_complete": false
+}
