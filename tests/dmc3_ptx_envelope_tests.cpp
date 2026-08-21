@@ -7,11 +7,57 @@
 
 namespace {
 
+void put_u16(std::vector<std::byte>& bytes, const std::size_t offset, const std::uint16_t value) {
+  bytes[offset] = static_cast<std::byte>(value & 0xFFU);
+  bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+}
+
 void put_u32(std::vector<std::byte>& bytes, const std::size_t offset, const std::uint32_t value) {
   bytes[offset] = static_cast<std::byte>(value & 0xFFU);
   bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
   bytes[offset + 2U] = static_cast<std::byte>((value >> 16U) & 0xFFU);
   bytes[offset + 3U] = static_cast<std::byte>((value >> 24U) & 0xFFU);
+}
+
+void put_tm2_dds_entry(std::vector<std::byte>& bytes,
+                       const std::size_t entry_offset,
+                       const std::size_t span_size,
+                       const std::size_t index) {
+  namespace formats = dmc::rengine::formats;
+
+  constexpr std::uint32_t kDdsRelativeOffset = 0x80U;
+  assert(span_size > kDdsRelativeOffset);
+  const auto dds_size = span_size - static_cast<std::size_t>(kDdsRelativeOffset);
+  assert(dds_size <= static_cast<std::size_t>(UINT32_MAX));
+
+  put_u32(bytes, entry_offset, formats::Dmc3PtxEnvelopeParser::kTim2Magic);
+  put_u32(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2DdsRelativeOffsetField,
+          kDdsRelativeOffset);
+  put_u32(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2DdsByteSizeField,
+          static_cast<std::uint32_t>(dds_size));
+
+  for (std::size_t metadata_index = 0;
+       metadata_index < formats::Dmc3PtxEnvelopeParser::kTm2RuntimeTextureMetadataSize;
+       ++metadata_index) {
+    bytes[entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2RuntimeTextureMetadataOffset +
+          metadata_index] = static_cast<std::byte>(0xA0U + metadata_index);
+  }
+
+  put_u16(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2WidthField,
+          static_cast<std::uint16_t>(64U + index));
+  put_u16(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2HeightField,
+          static_cast<std::uint16_t>(32U + index));
+
+  const auto dds_offset = entry_offset + static_cast<std::size_t>(kDdsRelativeOffset);
+  put_u32(bytes, dds_offset, formats::Dmc3PtxEnvelopeParser::kDdsMagic);
+  put_u32(bytes, dds_offset + 0x04U, formats::Dmc3PtxEnvelopeParser::kDdsHeaderSize);
+  put_u32(bytes,
+          dds_offset + formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSizeField,
+          formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSize);
 }
 
 std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
@@ -41,16 +87,16 @@ std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
       // A terminal zero block count is represented by the remaining supplied
       // bytes. Non-final zero is intentionally left without separate storage;
       // the parser rejects it before needing the next entry.
-      if (index + 1U == block_counts.size() && trailing_bytes >= 0x21U) {
-        put_u32(bytes, entry_offset, formats::Dmc3PtxEnvelopeParser::kTim2Magic);
-        put_u32(bytes, entry_offset + 0x08U, 0x20U);
+      if (index + 1U == block_counts.size() && trailing_bytes >= 0x100U) {
+        put_tm2_dds_entry(bytes, entry_offset, trailing_bytes, index);
       }
       continue;
     }
 
-    put_u32(bytes, entry_offset, formats::Dmc3PtxEnvelopeParser::kTim2Magic);
-    put_u32(bytes, entry_offset + 0x08U, 0x20U);
-    entry_offset += static_cast<std::size_t>(block_count) * formats::Dmc3PtxEnvelopeParser::kSectorSize;
+    const auto span_size =
+        static_cast<std::size_t>(block_count) * formats::Dmc3PtxEnvelopeParser::kSectorSize;
+    put_tm2_dds_entry(bytes, entry_offset, span_size, index);
+    entry_offset += span_size;
   }
   return bytes;
 }
@@ -74,13 +120,28 @@ int main() {
     assert(result.envelope.opaque_header_offset == 0x0CU);
     assert(result.envelope.opaque_header_size == 0x7F4U);
     assert(result.envelope.entries.size() == 2U);
-    assert(result.envelope.entries[0].offset == 0x800U);
-    assert(result.envelope.entries[0].span_size == 0x800U);
-    assert(result.envelope.entries[0].tim2_data_offset == 0x20U);
-    assert(!result.envelope.entries[0].terminal_span_to_eof);
-    assert(result.envelope.entries[1].offset == 0x1000U);
-    assert(result.envelope.entries[1].span_size == 0x1000U);
-    assert(!result.envelope.entries[1].terminal_span_to_eof);
+
+    const auto& first = result.envelope.entries[0];
+    assert(first.offset == 0x800U);
+    assert(first.span_size == 0x800U);
+    assert(first.texture.dds_relative_offset == 0x80U);
+    assert(first.texture.dds_byte_size == 0x780U);
+    assert(first.texture.dds_offset == 0x880U);
+    assert(first.texture.width == 64U);
+    assert(first.texture.height == 32U);
+    assert(first.texture.has_embedded_dds);
+    assert(first.texture.runtime_texture_metadata[0] == std::byte{0xA0});
+    assert(!first.terminal_span_to_eof);
+
+    const auto& second = result.envelope.entries[1];
+    assert(second.offset == 0x1000U);
+    assert(second.span_size == 0x1000U);
+    assert(second.texture.dds_relative_offset == 0x80U);
+    assert(second.texture.dds_byte_size == 0xF80U);
+    assert(second.texture.dds_offset == 0x1080U);
+    assert(second.texture.width == 65U);
+    assert(second.texture.height == 33U);
+    assert(!second.terminal_span_to_eof);
     assert(result.envelope.consumed_size == 0x2000U);
     assert(result.envelope.trailing_size == 37U);
   }
@@ -94,9 +155,22 @@ int main() {
     assert(result.envelope.entries[1].offset == 0x1000U);
     assert(result.envelope.entries[1].block_count == 0U);
     assert(result.envelope.entries[1].span_size == 0x180U);
+    assert(result.envelope.entries[1].texture.dds_byte_size == 0x100U);
     assert(result.envelope.entries[1].terminal_span_to_eof);
     assert(result.envelope.trailing_size == 0U);
     assert(result.envelope.consumed_size == compact_final.size());
+  }
+
+  {
+    auto no_cpu_payload = make_ptx({1U});
+    put_u32(no_cpu_payload,
+            0x800U + formats::Dmc3PtxEnvelopeParser::kTm2DdsByteSizeField,
+            0U);
+    no_cpu_payload[0x880U] = std::byte{'X'};
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(no_cpu_payload);
+    assert(result.ok);
+    assert(!result.envelope.entries[0].texture.has_embedded_dds);
+    assert(result.envelope.entries[0].texture.dds_byte_size == 0U);
   }
 
   {
@@ -147,11 +221,59 @@ int main() {
   }
 
   {
-    auto bad_data_offset = make_ptx({1U});
-    put_u32(bad_data_offset, 0x808U, 0x800U);
-    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_data_offset);
+    auto bad_dds_offset = make_ptx({1U});
+    put_u32(bad_dds_offset,
+            0x800U + formats::Dmc3PtxEnvelopeParser::kTm2DdsRelativeOffsetField,
+            0x800U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_dds_offset);
     assert(!result.ok);
-    assert(result.error == "ptx_envelope_tim2_data_offset_out_of_bounds");
+    assert(result.error == "ptx_envelope_tm2_dds_offset_out_of_bounds");
+  }
+
+  {
+    auto bad_dds_range = make_ptx({1U});
+    put_u32(bad_dds_range,
+            0x800U + formats::Dmc3PtxEnvelopeParser::kTm2DdsByteSizeField,
+            0x781U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_dds_range);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_dds_range_out_of_bounds");
+  }
+
+  {
+    auto short_dds = make_ptx({1U});
+    put_u32(short_dds,
+            0x800U + formats::Dmc3PtxEnvelopeParser::kTm2DdsByteSizeField,
+            0x7FU);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(short_dds);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_dds_buffer_too_small");
+  }
+
+  {
+    auto bad_dds_magic = make_ptx({1U});
+    bad_dds_magic[0x880U] = std::byte{'X'};
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_dds_magic);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_dds_magic_mismatch");
+  }
+
+  {
+    auto bad_dds_header = make_ptx({1U});
+    put_u32(bad_dds_header, 0x884U, 0x7BU);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_dds_header);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_dds_header_size_mismatch");
+  }
+
+  {
+    auto bad_pixel_format = make_ptx({1U});
+    put_u32(bad_pixel_format,
+            0x880U + formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSizeField,
+            0x1FU);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_pixel_format);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_dds_pixel_format_size_mismatch");
   }
 
   return 0;
