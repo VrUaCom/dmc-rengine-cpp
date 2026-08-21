@@ -38,6 +38,28 @@ Probe `.text` SHA-256:
 
 `6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce`
 
+### Independent derivative control
+
+A second preserved executable created for an unrelated later patch was independently materialized:
+
+- file: `dmc3_phase18_red_orb_x2_hook.exe`
+- size: `6,415,872` bytes
+- SHA-256: `88febb349b4deff0b907de76f98359307f7484f7cb82b0018aa236a60591c5b0`
+- binary `TM2\0` occurrences: exactly `1`, at the same `.text` location as Phase17.
+
+The two `.text` sections are **not globally identical**: 23 bytes differ, localized to the unrelated patch region around file offsets `0x1A444B..0x1A4462` (RVA approximately `0x1A504B..0x1A5062`). Therefore this is a useful independent modified-derivative control rather than a duplicate-file comparison.
+
+The PTX/TIM2 regions are nevertheless byte-identical across both derivatives:
+
+| Region | Length | SHA-256 in both executables |
+| --- | ---: | --- |
+| RVA `0x336340` PTX envelope fragment | `0x250` | `5c97f997f5e64f6a0d1a2651f359b8708ad6a3cad44174ba434dfee18cde7847` |
+| RVA `0x3365B0` TIM2 parse fragment | `0x130` | `175e55222adfe42bf93177cb15bc5361552be686d4f2926af8b749fea423f691` |
+| RVA `0x2FDA66` caller window | `0x100` | `73cc021c2324b60e42da429e3c39a1eef1e49c3f6ae424c5cb9e951673c882d8` |
+| RVA `0x30DF90` caller window | `0x80` | `d0ea5478091a7c2a9c43d39348e4bb2dcd2c5936a55edb391db81b083989c946` |
+
+This materially raises confidence that the recovered PTX logic is inherited from the common DMC3 executable base and was not introduced by the Phase17 `.reng` probe. It still does not replace the final parity check against the canonical unpacked EXE.
+
 ## PTX envelope access fragment — VA 0x140336340
 
 The `.text` byte window begins:
@@ -156,7 +178,7 @@ Pass 87 adds `Dmc3PtxEnvelopeParser` with these rules:
 
 ## What remains open
 
-- byte-window parity of these probe `.text` ranges against the canonical unpacked EXE;
+- byte-window parity of these derivative `.text` ranges against the canonical unpacked EXE;
 - real retail PTX sample receipt from `dmc3-0.nbz`;
 - semantics of the remaining PTX header region;
 - exact TIM2 picture header fields beyond the minimal recovered fields;
