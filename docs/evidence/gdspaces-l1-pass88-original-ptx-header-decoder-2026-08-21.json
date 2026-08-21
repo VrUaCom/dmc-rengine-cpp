@@ -1,0 +1,90 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass88.original-ptx-header-decoder.v1",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "HIGH_CORROBORATED_NOT_CANONICAL_PROMOTED",
+  "canonical_target": {
+    "name": "dmc3.exe",
+    "size_bytes": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "raw_file_available_in_current_session": false
+  },
+  "corroborating_executables": [
+    {
+      "name": "dmc3_phase17_reng_probe.exe",
+      "size_bytes": 6415872,
+      "sha256": "9a3513db0f7cfeabed38f62836a5a6d55e42741b0965bfa5947d3c7b33532735"
+    },
+    {
+      "name": "dmc3_phase18_red_orb_x2_hook.exe",
+      "size_bytes": 6415872,
+      "sha256": "88febb349b4deff0b907de76f98359307f7484f7cb82b0018aa236a60591c5b0"
+    }
+  ],
+  "derivative_pair_diff": {
+    "different_bytes": 79,
+    "different_runs": 7,
+    "ptx_windows_affected": false
+  },
+  "byte_identical_windows": [
+    {
+      "purpose": "TM2 entry parser",
+      "va_start": "0x1403365B0",
+      "va_end_exclusive": "0x1403366A0",
+      "file_offset_start": "0x3359B0",
+      "file_offset_end_exclusive": "0x335AA0",
+      "sha256": "67362ff3937d96bb3057080ef9672f12b7fc693a0a5c530a4d9d9906a90e6c55"
+    },
+    {
+      "purpose": "PTX envelope loop A",
+      "va_start": "0x140336A70",
+      "va_end_exclusive": "0x140336B95",
+      "file_offset_start": "0x335E70",
+      "file_offset_end_exclusive": "0x335F95",
+      "sha256": "a6c00bdc669c4df5dc47ebf7bc5e91df56b0565a5c0d1d266e6ea2f8b4822c45"
+    },
+    {
+      "purpose": "PTX envelope loop B",
+      "va_start": "0x140336BB0",
+      "va_end_exclusive": "0x140336CD5",
+      "file_offset_start": "0x335FB0",
+      "file_offset_end_exclusive": "0x3360D5",
+      "sha256": "706f2bbc88bf7456358449c7d6b96c1f72bfc58bb4d2c9c94b5d48cfffa257af"
+    }
+  ],
+  "corroborated_raw_layout": {
+    "texture_count_offset": 0,
+    "texture_count_type": "u32le",
+    "block_count_array_offset": 4,
+    "block_count_element_type": "u32le",
+    "first_entry_offset": 2048,
+    "entry_advance": "blockCount[i] * 0x800",
+    "entry_magic_hex": "544d3200"
+  },
+  "instruction_evidence": {
+    "loop_a": {
+      "texture_count_read": "0x140336A93 mov ebp, dword ptr [rcx]",
+      "block_count_base": "0x140336A95 lea r14, [rcx+0x04]",
+      "first_entry": "0x140336A9B lea r15, [rcx+0x800]",
+      "block_count_read": "0x140336B4C mov ecx, dword ptr [r14]",
+      "block_count_pointer_advance": "0x140336B54 add r14, 0x04",
+      "entry_cursor_advance": "0x140336B51..0x140336B5C net +blockCount*0x800"
+    },
+    "loop_b_repeats_same_layout": true,
+    "tm2_parser_magic_compare": "0x1403365BA cmp dword ptr [rcx], 0x00324D54"
+  },
+  "pass87_correction": {
+    "block_count_zero_runtime_precheck_observed": false,
+    "interpretation": "blockCount is cursor-advance sectors, not automatically intrinsic entry byte size",
+    "zero_advance_preserved": true
+  },
+  "implementation": {
+    "component": "OriginalPtxEnvelopeParser",
+    "delegates_geometry_to": "OriginalPtxEnvelopeGeometryValidator",
+    "unparsed_header_bytes_remain_opaque": true,
+    "writer_implemented": false
+  },
+  "promotion_gate": "byte-compare all recorded PTX/TM2 instruction windows against canonical original dmc3.exe e454...d082",
+  "next_reverse_target": "entry +0x04/+0x08/+0x38 and helper 0x140046C40/0x140046E20 contracts",
+  "layer1_complete": false
+}
