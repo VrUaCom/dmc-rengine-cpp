@@ -26,6 +26,26 @@
     "raw_st001_acquisition_provenance_preserved": false,
     "st001_zip_acquisition_provenance_preserved": false
   },
+  "cross_dataset_st001": {
+    "v6_path": "analysis_inputs/stage_drops/st001 - copia/st001 - copia",
+    "same_sha_as_phase15_extraction": {
+      "st001_000.ukn": "7efcf182f28135a3d694324ba06715ca6f6b075a028d035c89c69809df23faa5",
+      "st001_002.scm": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+      "st001_003.ukn": "80b4b64318d84748c34a9e4f08065e35998e2e14e3766affb653e0f26adab77a",
+      "st001_005.pac": "500dadbc8e0db8d8d232fa04c49db437d41cbe6c50e555e24d91e758c6bcc4b0",
+      "st001_006.ukn": "0f3d9952b61e3d1346dc9910c9c401fc0214d0d6fb2593791e0c000cc4599f64",
+      "st001_007.pac": "f0c0a2252f26d8e6f1538bc307b9c2ebf9a785e5d11b1fbe4ffc45672a3a5487"
+    },
+    "different_child": {
+      "name": "st001_004.txt",
+      "phase15_size": 256,
+      "phase15_sha256": "36d40827c90e7ce0750a56c0f267be6721dd2b2e4bf30f4100a0cd6ecdabc07e",
+      "v6_size": 154,
+      "v6_sha256": "cfcf480c0076919fd6022dc554ddccd26f89aeafaa5052d557912111e38894b5"
+    },
+    "contains_non_game_working_artifact": "dmc_mesh_patch_v1 JSON",
+    "conclusion": "related but versioned/transformed analysis datasets; not one immutable extraction receipt"
+  },
   "runtime_boundary": {
     "original_ptx_path": "0x800-aligned TIM2 entries with TM2\\0 validation",
     "separate_dds_from_memory_path_observed": true,
