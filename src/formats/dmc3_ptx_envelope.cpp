@@ -6,6 +6,13 @@
 namespace dmc::rengine::formats {
 namespace {
 
+[[nodiscard]] std::uint16_t read_u16_le(std::span<const std::byte> bytes,
+                                        const std::size_t offset) noexcept {
+  return static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset])) |
+         static_cast<std::uint16_t>(
+             static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset + 1])) << 8U);
+}
+
 [[nodiscard]] std::uint32_t read_u32_le(std::span<const std::byte> bytes,
                                         const std::size_t offset) noexcept {
   return static_cast<std::uint32_t>(std::to_integer<std::uint8_t>(bytes[offset])) |
@@ -77,17 +84,54 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
       }
     }
 
-    if (span_size < 0x0C) {
-      return fail("ptx_envelope_entry_too_small");
+    constexpr auto kRequiredTm2MetadataBytes =
+        kTm2RuntimeTextureMetadataOffset + kTm2RuntimeTextureMetadataSize;
+    if (span_size < kRequiredTm2MetadataBytes) {
+      return fail("ptx_envelope_entry_metadata_truncated");
     }
 
     if (read_u32_le(bytes, entry_offset) != kTim2Magic) {
       return fail("ptx_envelope_entry_magic_mismatch");
     }
 
-    const auto tim2_data_offset = read_u32_le(bytes, entry_offset + 0x08);
-    if (tim2_data_offset >= span_size) {
-      return fail("ptx_envelope_tim2_data_offset_out_of_bounds");
+    Dmc3Tm2DdsBridge texture;
+    texture.dds_relative_offset = read_u32_le(bytes, entry_offset + kTm2DdsRelativeOffsetField);
+    texture.dds_byte_size = read_u32_le(bytes, entry_offset + kTm2DdsByteSizeField);
+    texture.width = read_u16_le(bytes, entry_offset + kTm2WidthField);
+    texture.height = read_u16_le(bytes, entry_offset + kTm2HeightField);
+
+    const auto dds_relative_offset = static_cast<std::size_t>(texture.dds_relative_offset);
+    if (dds_relative_offset >= span_size) {
+      return fail("ptx_envelope_tm2_dds_offset_out_of_bounds");
+    }
+    texture.dds_offset = entry_offset + dds_relative_offset;
+
+    for (std::size_t metadata_index = 0;
+         metadata_index < texture.runtime_texture_metadata.size();
+         ++metadata_index) {
+      texture.runtime_texture_metadata[metadata_index] =
+          bytes[entry_offset + kTm2RuntimeTextureMetadataOffset + metadata_index];
+    }
+
+    texture.has_embedded_dds = texture.dds_byte_size != 0U;
+    if (texture.has_embedded_dds) {
+      const auto dds_byte_size = static_cast<std::size_t>(texture.dds_byte_size);
+      if (dds_byte_size > span_size - dds_relative_offset) {
+        return fail("ptx_envelope_dds_range_out_of_bounds");
+      }
+      if (dds_byte_size < kDdsMinimumBytes) {
+        return fail("ptx_envelope_dds_buffer_too_small");
+      }
+      if (read_u32_le(bytes, texture.dds_offset) != kDdsMagic) {
+        return fail("ptx_envelope_dds_magic_mismatch");
+      }
+      if (read_u32_le(bytes, texture.dds_offset + 0x04U) != kDdsHeaderSize) {
+        return fail("ptx_envelope_dds_header_size_mismatch");
+      }
+      if (read_u32_le(bytes, texture.dds_offset + kDdsPixelFormatSizeField) !=
+          kDdsPixelFormatSize) {
+        return fail("ptx_envelope_dds_pixel_format_size_mismatch");
+      }
     }
 
     envelope.entries.push_back(Dmc3PtxEnvelopeEntry{
@@ -95,7 +139,7 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
         block_count,
         entry_offset,
         span_size,
-        tim2_data_offset,
+        texture,
         terminal_span_to_eof,
     });
 
