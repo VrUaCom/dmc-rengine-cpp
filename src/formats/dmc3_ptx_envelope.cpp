@@ -8,9 +8,9 @@ namespace {
 
 [[nodiscard]] std::uint16_t read_u16_le(std::span<const std::byte> bytes,
                                         const std::size_t offset) noexcept {
-  return static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset])) |
-         static_cast<std::uint16_t>(
-             static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset + 1])) << 8U);
+  const auto low = static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset]));
+  const auto high = static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[offset + 1]));
+  return static_cast<std::uint16_t>(low | static_cast<std::uint16_t>(high << 8U));
 }
 
 [[nodiscard]] std::uint32_t read_u32_le(std::span<const std::byte> bytes,
