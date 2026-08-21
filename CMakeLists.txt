@@ -137,6 +137,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pac
         pnst
         dmc3_container_parsers
+        dmc3_ptx_envelope
         container_tree_expander
         classifier
         known_target
