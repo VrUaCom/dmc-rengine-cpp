@@ -20,17 +20,19 @@ void put_tm2_magic(std::vector<std::byte>& bytes, std::size_t offset) {
 std::vector<std::byte> make_envelope(
     std::span<const std::uint32_t> block_counts,
     std::size_t trailing_bytes = 0U) {
-    std::uint64_t total = kOriginalPtxFirstEntryOffset;
+    std::uint64_t cursor = kOriginalPtxFirstEntryOffset;
+    std::uint64_t max_touched = cursor + 4U;
     for (const auto blocks : block_counts) {
-        total += static_cast<std::uint64_t>(blocks) * kOriginalPtxSectorSize;
+        max_touched = std::max(max_touched, cursor + 4U);
+        cursor += static_cast<std::uint64_t>(blocks) * kOriginalPtxSectorSize;
     }
-    total += trailing_bytes;
+    const auto total = std::max(cursor, max_touched) + trailing_bytes;
 
     std::vector<std::byte> bytes(static_cast<std::size_t>(total), std::byte{0xA5U});
-    std::uint64_t offset = kOriginalPtxFirstEntryOffset;
+    cursor = kOriginalPtxFirstEntryOffset;
     for (const auto blocks : block_counts) {
-        put_tm2_magic(bytes, static_cast<std::size_t>(offset));
-        offset += static_cast<std::uint64_t>(blocks) * kOriginalPtxSectorSize;
+        put_tm2_magic(bytes, static_cast<std::size_t>(cursor));
+        cursor += static_cast<std::uint64_t>(blocks) * kOriginalPtxSectorSize;
     }
     return bytes;
 }
@@ -47,16 +49,26 @@ int main() {
         assert(result.ok());
         assert(result.receipt.entries.size() == 3U);
         assert(result.receipt.entries[0].offset == 0x800U);
-        assert(result.receipt.entries[0].span_size == 0x1000U);
+        assert(result.receipt.entries[0].advance_size == 0x1000U);
         assert(result.receipt.entries[1].offset == 0x1800U);
         assert(result.receipt.entries[2].offset == 0x2000U);
-        assert(result.receipt.consumed_end == 0x3800U);
-        assert(result.receipt.trailing_bytes == 0x20U);
+        assert(result.receipt.cursor_after_entries == 0x3800U);
 
-        // Pass 87 intentionally treats the complete 0x800-byte PTX header as
-        // opaque. Garbage-looking header bytes must not be interpreted as
-        // textureCount/blockCount[] until their exact offsets are recovered.
+        // Pass 87 keeps the complete 0x800-byte PTX header opaque.
         assert(bytes[0] == std::byte{0xA5U});
+    }
+
+    {
+        constexpr std::array<std::uint32_t, 2> counts{0U, 1U};
+        const auto bytes = make_envelope(counts);
+        const auto result = OriginalPtxEnvelopeGeometryValidator::validate(
+            bytes,
+            OriginalPtxEnvelopeDescriptorView{2U, counts});
+        assert(result.ok());
+        assert(result.receipt.entries[0].offset == 0x800U);
+        assert(result.receipt.entries[0].advance_size == 0U);
+        assert(result.receipt.entries[1].offset == 0x800U);
+        assert(result.receipt.cursor_after_entries == 0x1000U);
     }
 
     {
@@ -88,15 +100,6 @@ int main() {
     }
 
     {
-        constexpr std::array<std::uint32_t, 1> counts{0U};
-        const std::vector<std::byte> bytes(0x800U, std::byte{0});
-        const auto result = OriginalPtxEnvelopeGeometryValidator::validate(
-            bytes,
-            OriginalPtxEnvelopeDescriptorView{1U, counts});
-        assert(result.status == OriginalPtxEnvelopeGeometryStatus::zero_block_count);
-    }
-
-    {
         constexpr std::array<std::uint32_t, 1> counts{1U};
         std::vector<std::byte> bytes(0x803U, std::byte{0});
         const auto result = OriginalPtxEnvelopeGeometryValidator::validate(
@@ -107,14 +110,14 @@ int main() {
     }
 
     {
-        constexpr std::array<std::uint32_t, 1> counts{2U};
+        constexpr std::array<std::uint32_t, 2> counts{2U, 1U};
         std::vector<std::byte> bytes(0x804U, std::byte{0});
         put_tm2_magic(bytes, 0x800U);
         const auto result = OriginalPtxEnvelopeGeometryValidator::validate(
             bytes,
-            OriginalPtxEnvelopeDescriptorView{1U, counts});
+            OriginalPtxEnvelopeDescriptorView{2U, counts});
         assert(result.status ==
-               OriginalPtxEnvelopeGeometryStatus::entry_span_out_of_bounds);
+               OriginalPtxEnvelopeGeometryStatus::entry_header_out_of_bounds);
     }
 
     {
