@@ -29,7 +29,8 @@
     "block_count_table": {"offset": "0x04", "element_width_bytes": 4},
     "first_entry_offset": "0x800",
     "entry_advance": "blockCount[i] << 11",
-    "sector_size": "0x800"
+    "sector_size": "0x800",
+    "ordering_fact": "runtime parses current TIM2 entry before reading current blockCount"
   },
   "tim2_parse_fragment": {
     "va": "0x1403365B0",
@@ -62,7 +63,9 @@
     "minimum_header_bytes": 2048,
     "opaque_header_tail_preserved": true,
     "trailing_bytes_preserved": true,
-    "zero_block_count": "fail_closed_until_real_counterexample",
+    "nonfinal_zero_block_count": "fail_closed",
+    "final_zero_block_count": "terminal_span_to_supplied_resource_eof",
+    "final_zero_interpretation_status": "bounded_product_policy_not_universal_format_claim",
     "tim2_magic_required": true,
     "tim2_relative_data_offset_must_be_within_entry_span": true
   },
