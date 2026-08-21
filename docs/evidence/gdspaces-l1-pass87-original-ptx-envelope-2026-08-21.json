@@ -22,6 +22,22 @@
     "text_sha256": "6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce",
     "authority": "corroborating_only_until_canonical_byte_window_parity"
   },
+  "independent_derivative_control": {
+    "file": "dmc3_phase18_red_orb_x2_hook.exe",
+    "sha256": "88febb349b4deff0b907de76f98359307f7484f7cb82b0018aa236a60591c5b0",
+    "size_bytes": 6415872,
+    "full_text_equal_to_phase17": false,
+    "text_differing_byte_count": 23,
+    "difference_region_file_offset": "0x1A444B..0x1A4462",
+    "difference_region_rva_approx": "0x1A504B..0x1A5062",
+    "ptx_windows_exact_equal": true,
+    "window_hashes": {
+      "rva_0x336340_len_0x250": "5c97f997f5e64f6a0d1a2651f359b8708ad6a3cad44174ba434dfee18cde7847",
+      "rva_0x3365B0_len_0x130": "175e55222adfe42bf93177cb15bc5361552be686d4f2926af8b749fea423f691",
+      "rva_0x2FDA66_len_0x100": "73cc021c2324b60e42da429e3c39a1eef1e49c3f6ae424c5cb9e951673c882d8",
+      "rva_0x30DF90_len_0x80": "d0ea5478091a7c2a9c43d39348e4bb2dcd2c5936a55edb391db81b083989c946"
+    }
+  },
   "ptx_envelope_fragment": {
     "va": "0x140336340",
     "file_offset_in_probe": "0x335740",
@@ -70,7 +86,7 @@
     "tim2_relative_data_offset_must_be_within_entry_span": true
   },
   "not_proven": [
-    "probe PTX byte windows equal canonical unpacked EXE byte-for-byte",
+    "derivative PTX byte windows equal canonical unpacked EXE byte-for-byte",
     "real retail PTX corpus receipt",
     "remaining PTX header semantics",
     "full TIM2 picture header semantics",
