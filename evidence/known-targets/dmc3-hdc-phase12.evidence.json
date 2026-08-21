@@ -8,7 +8,7 @@
       "id": "dmc3-hdc-exe-e454272e",
       "role": "canonical-research-target",
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-      "size": 3735552
+      "size": 6356432
     }
   ],
   "records": [
@@ -30,7 +30,7 @@
           "artifact_id": "dmc3-hdc-exe-e454272e",
           "file_offset": 0,
           "symbol": "PE headers",
-          "note": "The canonical artifact size is 3,735,552 bytes."
+          "note": "The canonical artifact size is 6,356,432 bytes. The previously recorded 3,735,552-byte size was corrected by direct SHA-256-matched artifact readback."
         }
       ]
     },
