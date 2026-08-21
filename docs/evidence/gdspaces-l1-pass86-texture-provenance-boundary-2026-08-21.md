@@ -39,6 +39,24 @@ Critically, the Phase15 build script only consumes pre-existing `/mnt/data/st001
 
 Phase15 also explicitly leaves **`PTX/DDS bundle exact binary layout and transformations` unresolved**.
 
+### Cross-dataset `st001` reconciliation
+
+The preserved v6 tree contains `analysis_inputs/stage_drops/st001 - copia/st001 - copia/`. It is closely related to the Phase15 extraction, but it is **not the same immutable dump**.
+
+For the Phase15 top-level comparison set:
+
+- `st001_000.ukn`: exact same SHA-256 `7efcf182...3faa5`;
+- `st001_002.scm`: exact same SHA-256 `3ed787cc...26ba5`;
+- `st001_003.ukn`: exact same SHA-256 `80b4b643...ab77a`;
+- `st001_005.pac`: exact same SHA-256 `500dadbc...cc4b0`;
+- `st001_006.ukn`: exact same SHA-256 `0f3d9952...99f64`;
+- `st001_007.pac`: exact same SHA-256 `f0c0a225...a5487`;
+- **`st001_004.txt` differs**: Phase15 extraction is `256` bytes, SHA-256 `36d40827c90e7ce0750a56c0f267be6721dd2b2e4bf30f4100a0cd6ecdabc07e`; the v6 stage drop is `154` bytes, SHA-256 `cfcf480c0076919fd6022dc554ddccd26f89aeafaa5052d557912111e38894b5`.
+
+The v6 `st001 - copia` tree also contains a non-game `dmc_mesh_patch_v1` JSON artifact. This is additional evidence that the directory functioned as a working/analysis drop rather than a sealed pristine-retail image.
+
+Therefore the v6 stage-drop tree and Phase15 `st001.zip` must be treated as **related but versioned/transformed analysis datasets**. Hash agreement for selected children does not establish retail provenance for the whole tree or for the DDS-bearing texture representation.
+
 ## Runtime representation boundary
 
 Canonical EXE reverse evidence keeps the following representations separate:
