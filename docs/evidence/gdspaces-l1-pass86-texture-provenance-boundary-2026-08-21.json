@@ -11,6 +11,14 @@
     "corpus_declared_as_external_analysis_input": true,
     "gdtexturebundlereader_role": "scans already-supplied bytes for embedded DDS signatures; no PTX/TIM2-to-DDS transform implemented"
   },
+  "negative_tim2_corpus_control": {
+    "stage_drop_file_count": 2239,
+    "stage_drop_bytes_approx_mib": 86.5,
+    "stage_drop_binary_tm2_samples": 0,
+    "whole_v6_archive_binary_tm2_samples": 0,
+    "textual_tim2_occurrences_are_payload_evidence": false,
+    "interpretation": "preserved v6 analysis corpus cannot validate original-retail PTX/TIM2 serialization; this does not claim that retail DMC3 lacks PTX/TIM2"
+  },
   "phase15": {
     "package": "dmc3_exe_container_runtime_phase15_complete.zip",
     "package_sha256": "cd50266dd3cc8cff61a6a61e5762b67f7bc270c42423cfc30987bfecc9374ad5",
@@ -74,6 +82,7 @@
     "reacquire st001.pac directly from retail dmc3-0.nbz and compare SHA-256",
     "or prove exact extractor/transformer source chain",
     "or independently recover raw retail PTX/TIM2 serializer from direct retail samples",
+    "recover EXE-confirmed PTX envelope field offsets/widths before implementing a canonical parser",
     "then resume +0x3C/+0x40 consumer/producer semantics on the correct representation layer"
   ],
   "layer1_complete": false
