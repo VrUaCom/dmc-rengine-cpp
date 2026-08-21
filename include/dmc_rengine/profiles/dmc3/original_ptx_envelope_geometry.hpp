@@ -18,10 +18,8 @@ enum class OriginalPtxEnvelopeGeometryStatus : std::uint8_t {
     descriptor_count_mismatch,
     texture_count_zero,
     texture_count_limit,
-    zero_block_count,
     entry_offset_overflow,
     entry_header_out_of_bounds,
-    entry_span_out_of_bounds,
     tim2_magic_mismatch,
     invalid_receipt,
 };
@@ -36,14 +34,10 @@ enum class OriginalPtxEnvelopeGeometryStatus : std::uint8_t {
         return "texture-count-zero";
     case OriginalPtxEnvelopeGeometryStatus::texture_count_limit:
         return "texture-count-limit";
-    case OriginalPtxEnvelopeGeometryStatus::zero_block_count:
-        return "zero-block-count";
     case OriginalPtxEnvelopeGeometryStatus::entry_offset_overflow:
         return "entry-offset-overflow";
     case OriginalPtxEnvelopeGeometryStatus::entry_header_out_of_bounds:
         return "entry-header-out-of-bounds";
-    case OriginalPtxEnvelopeGeometryStatus::entry_span_out_of_bounds:
-        return "entry-span-out-of-bounds";
     case OriginalPtxEnvelopeGeometryStatus::tim2_magic_mismatch:
         return "tim2-magic-mismatch";
     case OriginalPtxEnvelopeGeometryStatus::invalid_receipt:
@@ -52,10 +46,10 @@ enum class OriginalPtxEnvelopeGeometryStatus : std::uint8_t {
     return "invalid-receipt";
 }
 
-// Phase 16 confirms the runtime envelope relation but the preserved evidence
-// does not retain the exact byte offsets of textureCount/blockCount[] inside
-// the 0x800-byte envelope header. Callers therefore supply those already
-// decoded values. This type intentionally does not imply a header parser.
+// Phase 16 confirms the runtime envelope relation but the promoted Pass 87
+// geometry contract intentionally receives textureCount/blockCount[] as
+// already-decoded values. Exact raw-header offsets are a separate evidence
+// gate and must not be silently inferred by this type.
 struct OriginalPtxEnvelopeDescriptorView final {
     std::uint32_t texture_count{};
     std::span<const std::uint32_t> block_counts;
@@ -65,7 +59,10 @@ struct OriginalPtxTim2EntryGeometry final {
     std::uint32_t index{};
     std::uint32_t block_count{};
     std::uint64_t offset{};
-    std::uint64_t span_size{};
+    // This is the runtime cursor advance encoded by blockCount*0x800. It is
+    // not promoted as the intrinsic byte length of the TIM2 entry. In
+    // particular a zero advance is preserved instead of rejected.
+    std::uint64_t advance_size{};
 
     [[nodiscard]] bool valid() const noexcept;
 };
@@ -75,8 +72,9 @@ struct OriginalPtxEnvelopeGeometryReceipt final {
     std::uint64_t source_size{};
     std::uint64_t first_entry_offset{kOriginalPtxFirstEntryOffset};
     std::uint64_t sector_size{kOriginalPtxSectorSize};
-    std::uint64_t consumed_end{};
-    std::uint64_t trailing_bytes{};
+    // Runtime cursor after applying every block-count advance. The final
+    // advance is observed but is not treated as a proven physical EOF.
+    std::uint64_t cursor_after_entries{};
     std::vector<OriginalPtxTim2EntryGeometry> entries;
 
     [[nodiscard]] bool valid() const noexcept;
@@ -93,17 +91,18 @@ struct OriginalPtxEnvelopeGeometryResult final {
 
 class OriginalPtxEnvelopeGeometryValidator final {
 public:
-    // Validates only the EXE-confirmed original PTX envelope geometry:
-    // - <= 64 runtime texture entries;
+    // Validates only the recovered original PTX envelope relation:
+    // - <= 64 runtime texture entries (product safety ceiling from the
+    //   recovered PtxRuntimeBundle capacity);
     // - first TIM2 entry at +0x800;
-    // - each entry begins with the EXE-confirmed `TM2\0` marker;
-    // - entry advancement is blockCount[i] * 0x800;
-    // - every declared physical span is bounded by the supplied source bytes.
+    // - each entry begins with the recovered `TM2\0` marker;
+    // - runtime cursor advancement is blockCount[i] * 0x800;
+    // - every entry that is actually dereferenced is bounded by the supplied
+    //   source bytes;
+    // - zero block-count advances are preserved, not normalized or rejected.
     //
-    // The first 0x800 bytes remain opaque because the exact locations of
-    // textureCount and blockCount[] are not preserved in the current Phase 16
-    // artifact set. This validator must not be presented as a complete PTX
-    // parser or PTX/TIM2 writer.
+    // The first 0x800 bytes remain opaque in Pass 87. This validator must not
+    // be presented as a complete raw-header PTX parser or PTX/TIM2 writer.
     [[nodiscard]] static OriginalPtxEnvelopeGeometryResult validate(
         std::span<const std::byte> bytes,
         OriginalPtxEnvelopeDescriptorView descriptor);
