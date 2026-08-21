@@ -50,20 +50,33 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
     const auto block_count = read_u32_le(bytes, block_table_offset);
     envelope.block_counts.push_back(block_count);
 
-    // The recovered runtime advances by blockCount << 11. A zero block count would make
-    // physical entry ownership non-progressing, so the bounded materialization parser
-    // rejects it until a real retail counterexample proves alias semantics.
-    if (block_count == 0) {
-      return fail("ptx_envelope_block_count_zero");
+    const bool is_final_entry = index + 1U == texture_count;
+    bool terminal_span_to_eof = false;
+    std::size_t span_size = 0;
+
+    if (block_count == 0U) {
+      // The recovered EXE reads blockCount only after parsing the current TIM2 entry.
+      // Therefore a zero final block count is a valid non-advancing terminal shape,
+      // while a non-final zero would make the next entry unlocatable. Bound the final
+      // shape to the supplied resource EOF and keep non-final zero fail-closed.
+      if (!is_final_entry) {
+        return fail("ptx_envelope_nonterminal_block_count_zero");
+      }
+      if (entry_offset > bytes.size()) {
+        return fail("ptx_envelope_entry_out_of_bounds");
+      }
+      span_size = bytes.size() - entry_offset;
+      terminal_span_to_eof = true;
+    } else {
+      if (block_count > std::numeric_limits<std::size_t>::max() / kSectorSize) {
+        return fail("ptx_envelope_span_overflow");
+      }
+      span_size = static_cast<std::size_t>(block_count) * kSectorSize;
+      if (entry_offset > bytes.size() || span_size > bytes.size() - entry_offset) {
+        return fail("ptx_envelope_entry_out_of_bounds");
+      }
     }
 
-    if (block_count > std::numeric_limits<std::size_t>::max() / kSectorSize) {
-      return fail("ptx_envelope_span_overflow");
-    }
-    const auto span_size = static_cast<std::size_t>(block_count) * kSectorSize;
-    if (entry_offset > bytes.size() || span_size > bytes.size() - entry_offset) {
-      return fail("ptx_envelope_entry_out_of_bounds");
-    }
     if (span_size < 0x0C) {
       return fail("ptx_envelope_entry_too_small");
     }
@@ -83,6 +96,7 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
         entry_offset,
         span_size,
         tim2_data_offset,
+        terminal_span_to_eof,
     });
 
     entry_offset += span_size;
