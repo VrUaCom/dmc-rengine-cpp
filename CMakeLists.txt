@@ -70,6 +70,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         raw_deflate
         nbz_zip_source
         nbz_zip_serialization
+        gdspaces_review_probe
         nbz_overlay_writer
         resource_path_normalizer
         resource_lookup_policy
