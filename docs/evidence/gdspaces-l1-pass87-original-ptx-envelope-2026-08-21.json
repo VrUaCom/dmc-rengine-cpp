@@ -1,0 +1,112 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass87.runtime-ptx-tm2-dds-envelope.v2",
+  "date": "2026-08-21",
+  "layer": "L1",
+  "status": "READ_ONLY_RUNTIME_STRUCTURAL_RECOVERY",
+  "authority_boundary": {
+    "proves_runtime_abi": true,
+    "proves_retail_on_disk_tm2_wrapper": false,
+    "writer_exposed": false,
+    "storage_to_runtime_materializer_proven": false
+  },
+  "canonical_target": {
+    "file": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size_bytes": 6356432,
+    "image_base": "0x140000000",
+    "entry_va": "0x14034615C"
+  },
+  "probe": {
+    "file": "dmc3_phase17_reng_probe.exe",
+    "sha256": "9a3513db0f7cfeabed38f62836a5a6d55e42741b0965bfa5947d3c7b33532735",
+    "size_bytes": 6415872,
+    "entry_va": "0x14034615C",
+    "extra_section": ".reng",
+    "extra_section_rva": "0xDAC000",
+    "extra_section_raw_offset": "0x60E600",
+    "marker": "DMC_RENG_PHASE17_PROBE",
+    "text_sha256": "6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce",
+    "authority": "corroborating_only_until_canonical_byte_window_parity"
+  },
+  "independent_derivative_control": {
+    "file": "dmc3_phase18_red_orb_x2_hook.exe",
+    "sha256": "88febb349b4deff0b907de76f98359307f7484f7cb82b0018aa236a60591c5b0",
+    "size_bytes": 6415872,
+    "full_text_equal_to_phase17": false,
+    "text_differing_byte_count": 23,
+    "difference_region_file_offset": "0x1A444B..0x1A4462",
+    "difference_region_rva_approx": "0x1A504B..0x1A5062",
+    "ptx_windows_exact_equal": true,
+    "window_hashes": {
+      "rva_0x336340_len_0x250": "5c97f997f5e64f6a0d1a2651f359b8708ad6a3cad44174ba434dfee18cde7847",
+      "rva_0x3365B0_len_0x130": "175e55222adfe42bf93177cb15bc5361552be686d4f2926af8b749fea423f691",
+      "rva_0x2FDA66_len_0x100": "73cc021c2324b60e42da429e3c39a1eef1e49c3f6ae424c5cb9e951673c882d8",
+      "rva_0x30DF90_len_0x80": "d0ea5478091a7c2a9c43d39348e4bb2dcd2c5936a55edb391db81b083989c946"
+    }
+  },
+  "preserved_raw_pac_census": {
+    "st001.pac": {"dds": 17, "tm2": 0},
+    "id100.pac": {"dds": 21, "tm2": 0},
+    "pl000.pac": {"dds": 4, "tm2": 0},
+    "em000.pac": {"dds": 19, "tm2": 0},
+    "m09_b01.pac": {"dds": 30, "tm2": 0},
+    "total": {"dds": 91, "tm2": 0},
+    "consequence": "runtime TM2 wrapper is not yet proven byte-identical to on-disk/source texture bytes"
+  },
+  "runtime_ptx_envelope": {
+    "va": "0x140336340",
+    "texture_count": {"offset": "0x00", "width_bytes": 4},
+    "block_count_table": {"offset": "0x04", "element_width_bytes": 4},
+    "first_entry_offset": "0x800",
+    "entry_advance": "blockCount[i] << 11",
+    "sector_size": "0x800",
+    "ordering_fact": "runtime parses current entry before reading current blockCount"
+  },
+  "runtime_tm2_entry": {
+    "parser_va": "0x1403365B0",
+    "magic_offset": "0x00",
+    "magic_le_u32": "0x00324D54",
+    "magic_ascii": "TM2\\0",
+    "dds_relative_offset": {"offset": "0x08", "width_bytes": 4},
+    "dds_byte_size": {"offset": "0x3C", "width_bytes": 4}
+  },
+  "dds_bridge": {
+    "bridge_va": "0x140046E20",
+    "texture_materialization_va": "0x140047000",
+    "dds_forwarder_va": "0x140046AF0",
+    "dds_validator_loader_va": "0x1400499C0",
+    "requirements_when_size_nonzero": [
+      "input size >= 0x80",
+      "u32 +0x00 == 0x20534444 (DDS magic)",
+      "u32 +0x04 == 0x7C (DDS_HEADER size)",
+      "u32 +0x4C == 0x20 (DDS_PIXELFORMAT size)"
+    ]
+  },
+  "parser_policy": {
+    "read_only": true,
+    "writer_exposed": false,
+    "minimum_header_bytes": 2048,
+    "opaque_header_tail_preserved": true,
+    "trailing_bytes_preserved": true,
+    "nonfinal_zero_block_count": "fail_closed",
+    "final_zero_block_count": "terminal_span_to_supplied_resource_eof",
+    "dds_relative_offset_bounded": true,
+    "dds_size_field_offset": "0x3C",
+    "dds_nonzero_minimum_size": "0x80",
+    "dds_nonzero_requires_magic": true,
+    "dds_zero_size": "record dds_present=false; do not invent payload semantics"
+  },
+  "supersedes": [
+    "the earlier interpretation that the live TM2 runtime path and DDS loading are fully separate paths"
+  ],
+  "not_proven": [
+    "derivative PTX/TM2/DDS byte windows equal canonical unpacked EXE byte-for-byte",
+    "TM2 wrapper exists byte-for-byte in retail PAC/NBZ storage",
+    "storage-to-runtime TM2 wrapper producer/materializer",
+    "real retail runtime-buffer receipt",
+    "remaining runtime entry metadata semantics",
+    "original texture writer/converter",
+    "original-game consumption of rebuilt retail texture resource"
+  ],
+  "layer1_complete": false
+}
