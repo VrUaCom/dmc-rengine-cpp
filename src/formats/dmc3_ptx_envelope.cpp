@@ -55,10 +55,6 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
     std::size_t span_size = 0;
 
     if (block_count == 0U) {
-      // The recovered EXE reads blockCount only after parsing the current TIM2 entry.
-      // Therefore a zero final block count is a valid non-advancing terminal shape,
-      // while a non-final zero would make the next entry unlocatable. Bound the final
-      // shape to the supplied resource EOF and keep non-final zero fail-closed.
       if (!is_final_entry) {
         return fail("ptx_envelope_nonterminal_block_count_zero");
       }
@@ -77,7 +73,8 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
       }
     }
 
-    if (span_size < 0x0C) {
+    constexpr std::size_t kRequiredRuntimePrefix = kDdsSizeField + sizeof(std::uint32_t);
+    if (span_size < kRequiredRuntimePrefix) {
       return fail("ptx_envelope_entry_too_small");
     }
 
@@ -85,9 +82,25 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
       return fail("ptx_envelope_entry_magic_mismatch");
     }
 
-    const auto tim2_data_offset = read_u32_le(bytes, entry_offset + 0x08);
-    if (tim2_data_offset >= span_size) {
-      return fail("ptx_envelope_tim2_data_offset_out_of_bounds");
+    const auto dds_relative_offset = read_u32_le(bytes, entry_offset + kDdsRelativeOffsetField);
+    if (dds_relative_offset >= span_size) {
+      return fail("ptx_envelope_dds_offset_out_of_bounds");
+    }
+
+    const auto dds_size = read_u32_le(bytes, entry_offset + kDdsSizeField);
+    const bool dds_present = dds_size != 0U;
+    if (dds_present) {
+      if (dds_size < kMinimumDdsBlobSize) {
+        return fail("ptx_envelope_dds_blob_too_small");
+      }
+      const auto dds_offset = static_cast<std::size_t>(dds_relative_offset);
+      const auto dds_span = static_cast<std::size_t>(dds_size);
+      if (dds_span > span_size - dds_offset) {
+        return fail("ptx_envelope_dds_blob_out_of_bounds");
+      }
+      if (read_u32_le(bytes, entry_offset + dds_offset) != kDdsMagic) {
+        return fail("ptx_envelope_dds_magic_mismatch");
+      }
     }
 
     envelope.entries.push_back(Dmc3PtxEnvelopeEntry{
@@ -95,7 +108,9 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
         block_count,
         entry_offset,
         span_size,
-        tim2_data_offset,
+        dds_relative_offset,
+        dds_size,
+        dds_present,
         terminal_span_to_eof,
     });
 
