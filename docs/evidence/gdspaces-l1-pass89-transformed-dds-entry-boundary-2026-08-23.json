@@ -1,0 +1,125 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1.pass89.transformed-dds-entry-boundary.v1",
+  "date": "2026-08-23",
+  "layer": "L1",
+  "status": "HIGH_TRANSFORMED_CORPUS_NOT_RETAIL_PROVEN",
+  "base_pr": 174,
+  "canonical_target_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "evidence_source": {
+    "artifact": "phase16_texture_sample_analysis.json",
+    "method": "independent re-analysis of preserved per-entry head_hex plus DDS header receipts",
+    "raw_retail_nbz_materialized_in_current_pass": false,
+    "raw_canonical_exe_materialized_in_current_pass": false
+  },
+  "corpus": {
+    "st001.pac": {
+      "size": 2668928,
+      "sha256": "90b3a89abeb6d4475d81d066b7b19460f7a799741742416c3a35c2eeb992e7d1",
+      "dds": 17,
+      "tm2": 0,
+      "texture_like_slots": 1,
+      "recognized_bundle_slots": 1,
+      "recognized_bundle_entries": 17
+    },
+    "id100.pac": {
+      "size": 2042048,
+      "sha256": "f26a9bfdfae0f871676ab617c48077232fa68b617204402a4a32ffbb6fb8c32d",
+      "dds": 21,
+      "tm2": 0,
+      "texture_like_slots": 21,
+      "recognized_bundle_slots": 21,
+      "recognized_bundle_entries": 21
+    },
+    "pl000.pac": {
+      "size": 552496,
+      "sha256": "be0b54171db5b8376ed904e4f9850969af0a97e28a7da9ad9fcce6990839cd71",
+      "dds": 4,
+      "tm2": 0,
+      "texture_like_slots": 1,
+      "recognized_bundle_slots": 1,
+      "recognized_bundle_entries": 4
+    },
+    "em000.pac": {
+      "size": 2159392,
+      "sha256": "1b8ac33a5199b9d4afde1854b630132b1ca5ba28657096b5fabe23ccfccadf9a",
+      "dds": 19,
+      "tm2": 0,
+      "texture_like_slots": 4,
+      "recognized_bundle_slots": 3,
+      "recognized_bundle_entries": 8
+    },
+    "m09_b01.pac": {
+      "size": 4052712,
+      "sha256": "3fc4b2ad0510baddbeb4447901924924264b2fca3e70a9360be6611501000872",
+      "dds": 30,
+      "tm2": 0,
+      "texture_like_slots": 2,
+      "recognized_bundle_slots": 0,
+      "recognized_bundle_entries": 0
+    }
+  },
+  "aggregate": {
+    "known_dds_signatures": 91,
+    "known_tm2_signatures": 0,
+    "recognized_outer_block_table_slots": 26,
+    "recognized_outer_block_table_entries": 50,
+    "opaque_or_non_block_table_dds": 41
+  },
+  "recognized_outer_envelope": {
+    "texture_count_offset": "0x00",
+    "block_count_array_offset": "0x04",
+    "payload_start": "0x800",
+    "entry_advance": "blockCount * 0x800",
+    "statement": "preserved transformed corpus retains the same outer sector geometry seen in the recovered runtime PTX envelope",
+    "authority": "structural correlation only; does not prove retail provenance"
+  },
+  "transformed_entry_preamble": {
+    "sample_count": 50,
+    "all_recognized_entries_fourcc": "DXT5",
+    "dds_relative_offset": {"offset": "0x70", "matches": "50/50", "status": "confirmed_for_recognized_transformed_entries"},
+    "mip_pattern": {"offset": "0x08", "relation": "0x00020000 | (ddsMipCount << 8)", "matches": "50/50", "status": "structural_relation_confirmed_semantic_name_partial"},
+    "constant_0c": {"offset": "0x0C", "value": "0x0000AAE4", "matches": "50/50", "semantic": "unknown"},
+    "width": {"offset": "0x10", "type": "u16le", "relation": "DDS width", "matches": "50/50"},
+    "height": {"offset": "0x12", "type": "u16le", "relation": "DDS height", "matches": "50/50"},
+    "constant_14": {"offset": "0x14", "value": 1, "matches": "50/50", "semantic": "unknown"},
+    "constant_20": {"offset": "0x20", "value": "0x40", "matches": "50/50", "semantic": "unknown"},
+    "dds_payload_bytes": {"offset": "0x38", "type": "u32le", "relation": "full DDS bytes - 0x80", "matches": "50/50"},
+    "half_width": {"offset": "0x44", "type": "u16le", "relation": "floor(width/2)", "matches": "50/50"},
+    "half_height": {"offset": "0x46", "type": "u16le", "relation": "floor(height/2)", "matches": "50/50"},
+    "two_over_width": {"offset": "0x48", "type": "f32le", "relation": "2.0 / width", "matches": "50/50"},
+    "two_over_height": {"offset": "0x4C", "type": "f32le", "relation": "2.0 / height", "matches": "50/50"},
+    "dds_full_bytes": {"offset": "0x64", "type": "u32le", "relation": "exact full DDS byte length including 0x80-byte header", "matches": "50/50"},
+    "constant_68": {"offset": "0x68", "value": 8, "matches": "50/50", "semantic": "unknown"},
+    "constant_6c": {"offset": "0x6C", "value": 0, "matches": "50/50", "semantic": "unknown"},
+    "dds_magic": {"offset": "0x70", "value": "DDS ", "matches": "50/50"}
+  },
+  "st001_extracted_comparison": {
+    "exact_substrings": 0,
+    "dimension_ratio_counts": {"2x2": 16, "1x1": 1},
+    "raw_fourcc_counts": {"DXT5": 17},
+    "extracted_fourcc_counts": {"DXT1": 13, "DXT5": 4},
+    "consequence": "historical extracted DDS files are transformed outputs, not byte-identical raw slices"
+  },
+  "runtime_vs_transformed_topology": {
+    "runtime_entry": "TM2\\0 wrapper with DDS relative offset at +0x08, DDS byte size at +0x3C, width/height at +0x58/+0x5A",
+    "transformed_entry": "0x70-byte non-TM2 descriptor followed by DDS; width/height at +0x10/+0x12; sizes at +0x38/+0x64",
+    "high_confidence_hypothesis": "conversion/materialization can replace or reinterpret the per-entry wrapper while preserving outer 0x800 sector envelope geometry",
+    "not_proven": "direction, producer, timing, or retail provenance of that transformation"
+  },
+  "promotion_blockers": [
+    "PR #172 preserves zero blockCount cursor advances while PR #174 rejects non-final zero; parser contracts must be reconciled before promotion",
+    "canonical exact-byte comparison of PTX/TM2 code windows against raw dmc3.exe remains required where not already backed by preserved canonical disassembly receipts",
+    "direct raw retail PTX receipt from DMC3-0.nbz is still missing",
+    "storage-to-runtime producer/materializer call chain is not yet closed",
+    "no PTX/TM2/DDS writer or original-game rebuilt-texture acceptance is authorized"
+  ],
+  "next_reverse_targets": [
+    "trace callers/data flow around CPtxManager 0x140314E00/0x140314FA0 back to LoadedResourceView payload provenance",
+    "test whether async whole-file loader 0x140033480/0x1400333F0/0x140033500/0x1400335A0 feeds PTX manager buffers or is merely a generic parallel service",
+    "recover producer of runtime TM2 wrapper and allocation/copy ownership",
+    "classify the remaining 41 DDS signatures in opaque/non-block-table texture slots",
+    "acquire direct retail DMC3-0.nbz bytes and compare resource-by-resource"
+  ],
+  "layer1_complete": false,
+  "writer_authorized": false
+}
