@@ -13,7 +13,9 @@ struct Dmc3PtxEnvelopeEntry {
   std::uint32_t block_count{0};
   std::size_t offset{0};
   std::size_t span_size{0};
-  std::uint32_t tim2_data_offset{0};
+  std::uint32_t dds_relative_offset{0};
+  std::uint32_t dds_size{0};
+  bool dds_present{false};
   bool terminal_span_to_eof{false};
 };
 
@@ -41,7 +43,11 @@ class Dmc3PtxEnvelopeParser final {
   static constexpr std::size_t kHeaderSize = 0x800;
   static constexpr std::size_t kSectorSize = 0x800;
   static constexpr std::size_t kCountTableOffset = 0x04;
+  static constexpr std::size_t kDdsRelativeOffsetField = 0x08;
+  static constexpr std::size_t kDdsSizeField = 0x3C;
+  static constexpr std::size_t kMinimumDdsBlobSize = 0x80;
   static constexpr std::uint32_t kTim2Magic = 0x00324D54U;  // "TM2\0", little-endian.
+  static constexpr std::uint32_t kDdsMagic = 0x20534444U;   // "DDS ", little-endian.
 
   [[nodiscard]] static Dmc3PtxEnvelopeParseResult parse(std::span<const std::byte> bytes);
 };
