@@ -1,0 +1,137 @@
+{
+  "pass": 90,
+  "date": "2026-08-23",
+  "scope": "GDSpaces Layer 1 / Resource Materialization",
+  "status": "canonical-EXE-confirmed read-side dual entry materializer; writer and retail provenance still open",
+  "canonical_executable": {
+    "file": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "derivative_controls": [
+    {
+      "file": "dmc3_phase17_reng_probe.exe",
+      "sha256": "9a3513db0f7cfeabed38f62836a5a6d55e42741b0965bfa5947d3c7b33532735"
+    },
+    {
+      "file": "dmc3_phase18_red_orb_x2_hook.exe",
+      "sha256": "88febb349b4deff0b907de76f98359307f7484f7cb82b0018aa236a60591c5b0"
+    }
+  ],
+  "canonical_byte_parity": {
+    "all_regions_identical_across_canonical_and_both_derivatives": true,
+    "regions": [
+      {"name":"CPtxManager load A","va_start":"0x140314E00","va_end_exclusive":"0x140314FA0","sha256":"9377e600890d02011fcb4504e562294179342574e4f2e5a67a8321ecd3e638cc"},
+      {"name":"CPtxManager load B","va_start":"0x140314FA0","va_end_exclusive":"0x14031514C","sha256":"bd4141d9bf48ac8d2de80861c91be638bcaf10c0669229b98f2fade004747973"},
+      {"name":"entry dispatcher","va_start":"0x1403365B0","va_end_exclusive":"0x1403366D2","sha256":"2eba03afdd023663ac43b6e766601bfda63290f152864188068ff0d539287ee2"},
+      {"name":"runtime build","va_start":"0x1403366E0","va_end_exclusive":"0x1403368EC","sha256":"159481901162dab0b0b999da96224355bfccad757eaa1885c3e83efa158c6b54"},
+      {"name":"PTX parser B","va_start":"0x140336A70","va_end_exclusive":"0x140336BB0","sha256":"485e92b22e2d6ffa486efe9e125b7f6d52f3ca677636ff419b1caf6552359dba"},
+      {"name":"PTX parser A","va_start":"0x140336BB0","va_end_exclusive":"0x140336CE1","sha256":"cfce51a63e7538c4e0ce6f8b3e6b61f0121407497daf4a9f23d1c6e32bd3198f"},
+      {"name":"serialized gfx placement/fixup","va_start":"0x140046510","va_end_exclusive":"0x1400465D7","sha256":"d8352921bd0f732e5fefb717797d3636e77b593ceff1a9f08a340bbf8541bfb6"},
+      {"name":"gfx lazy DDS load","va_start":"0x140046AF0","va_end_exclusive":"0x140046C38","sha256":"24282a575eb688c5c1e40a515c74d607b66612be41b037446420e0fd9b25aaa3"},
+      {"name":"DDS wrapper","va_start":"0x1400499C0","va_end_exclusive":"0x140049A10","sha256":"3b7735348a705de7b377d66c669575ff3416114edbf5820dd1b8f8d8e559f85c"},
+      {"name":"DDS from memory","va_start":"0x140049A10","va_end_exclusive":"0x140049BA0","sha256":"0a8439151e7fb85bfe74c78fd576fd5b36b1857e2bb3e3196abdc8082876b9db"}
+    ]
+  },
+  "runtime_contract": {
+    "outer_envelope": {
+      "texture_count": "+0x00 u32",
+      "block_count_table": "+0x04 u32[]",
+      "first_entry": "+0x800",
+      "entry_advance": "blockCount << 11"
+    },
+    "entry_dispatcher": "0x1403365B0",
+    "representations": [
+      {
+        "id": "tim2",
+        "discriminator": "u32 entry+0x00 == 0x00324D54 (TM2\\0)",
+        "status": "Pass 87/88 contract retained"
+      },
+      {
+        "id": "serialized_gfx_texture_dds",
+        "discriminator": "non-TM2 branch; source qword +0x00 == 0 in aligned corpus",
+        "placement_function": "0x140046510",
+        "materialization": "in-place",
+        "fixups": [
+          "entry+0x20 = address(entry+0x20) + raw qword delta",
+          "descriptor+0x08 = address(descriptor+0x08) + raw qword delta"
+        ],
+        "descriptor": {
+          "+0x04": "u32 DDS byte size",
+          "+0x08": "DDS data pointer after fixup"
+        },
+        "lazy_load_function": "0x140046AF0",
+        "dds_wrapper": "0x1400499C0",
+        "dds_from_memory": "0x140049A10"
+      }
+    ]
+  },
+  "phase16_corpus": {
+    "whole_file_dds": 91,
+    "whole_file_tm2": 0,
+    "aligned_entries": 50,
+    "population": {
+      "st001.pac": 17,
+      "id100.pac": 21,
+      "pl000.pac": 4,
+      "em000.pac": 8
+    },
+    "invariants_50_of_50": [
+      "qword entry+0x00 == 0",
+      "qword entry+0x20 == 0x40",
+      "qword entry+0x68 == 0x08",
+      "entry+0x70 == DDS magic",
+      "blockCount == ceil((0x70 + u32[entry+0x64]) / 0x800)"
+    ],
+    "resolved_shape": {
+      "descriptor": "entry+0x60",
+      "dds": "entry+0x70",
+      "dds_size": "u32 entry+0x64 == descriptor+0x04"
+    }
+  },
+  "pass89_hypothesis_disposition": [
+    {"id":"H89.1","status":"rejected_as_tm2_adapter_mapping","replacement":"storage +0x64 is descriptor+0x04 DDS byte size consumed by serialized-gfx path"},
+    {"id":"H89.2","status":"rejected_not_applicable","replacement":"DDS +0x70 is reached through serialized nested pointer fixup, not TM2 +0x08"},
+    {"id":"H89.3","status":"rejected","replacement":"no storage metadata copy/remap into TM2 occurs on non-TM2 branch"},
+    {"id":"H89.4","status":"rejected","replacement":"actual boundary is in-place gfxTexture placement and pointer relocation"}
+  ],
+  "code_changes": {
+    "representation_enum": ["tim2", "serialized_gfx_texture_dds"],
+    "parser_policy": [
+      "retain existing TM2 parsing",
+      "accept serialized-gfx only with zero source vtable placeholder",
+      "resolve and bounds-check descriptor relative delta",
+      "read DDS byte size from descriptor+0x04",
+      "resolve and bounds-check descriptor+0x08 DDS relative delta",
+      "validate DDS magic/header/pixel-format",
+      "fail closed for unknown non-TM2 shapes"
+    ],
+    "writer_added": false
+  },
+  "validation": {
+    "local_cpp20_tests": "pass",
+    "address_undefined_sanitizers": "pass",
+    "full_repository_ci": "pending PR workflow"
+  },
+  "provenance_boundary": {
+    "canonical_runtime_consumer_proven": true,
+    "direct_retail_source_chain_proven": false,
+    "opaque_multi_dds_variant_closed": false,
+    "correct_label": "canonical-runtime-supported serialized gfxTexture/DDS representation; direct-retail provenance still open"
+  },
+  "hard_freeze": [
+    "No generalized serialized-gfx writer yet.",
+    "No DDS-to-TM2 writer or converter.",
+    "Do not normalize unknown serialized object bytes.",
+    "Do not claim direct-retail provenance without a dmc3-0.nbz source-chain receipt.",
+    "Do not apply this ABI to opaque multi-DDS entries without separate evidence.",
+    "Do not claim modified original-game writeback acceptance yet."
+  ],
+  "next_targets": [
+    "direct-retail texture-bearing PAC reacquisition from dmc3-0.nbz",
+    "inverse serialization ownership for vtable/pointer relocation fields",
+    "serialized header mutation authority",
+    "opaque multi-DDS representation reverse",
+    "minimal modified rebuilt-resource game acceptance test"
+  ]
+}
