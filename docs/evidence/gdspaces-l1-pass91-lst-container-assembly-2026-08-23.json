@@ -1,0 +1,124 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1.pass91.v1",
+  "date": "2026-08-23",
+  "layer": "Layer 1 - Resource Materialization",
+  "status": "evidence_checkpoint_not_complete",
+  "topic": "runtime .lst container assembly",
+  "functions": {
+    "source_classifier": "0x1401B79E0",
+    "magic_decoder": "0x1401B7C70",
+    "entry_counter": "0x1401B7D10",
+    "entry_resolver": "0x1401B7E60",
+    "recursive_size": "0x1401B7FD0",
+    "assembler": "0x1401B85C0",
+    "vfs_size_probe": "0x1402EF620",
+    "vfs_sync_read": "0x1402EF920",
+    "queue_direct_read": "0x1402EF4D0"
+  },
+  "manifest": {
+    "kind": "line_oriented",
+    "resource_line_order_is_physical_slot_order": true,
+    "ignored_line_leads": ["/", "CR"],
+    "directive_line_lead": "#",
+    "dummy_token": "dummy",
+    "dummy_semantics": "physical empty slot / offset zero",
+    "relative_path_join_format": "%s%s"
+  },
+  "magic": {
+    "output_bytes": 4,
+    "initial_zeroing": true,
+    "default": "PAC\\0",
+    "directive": "up to four bytes following # are captured as container magic",
+    "arbitrary_magic_semantic_support": "not_promoted"
+  },
+  "header": {
+    "layout": {
+      "+0x00": "magic[4]",
+      "+0x04": "uint32 slotCount",
+      "+0x08": "uint32 slotOffset[slotCount]"
+    },
+    "raw_size_rule": "8 + 4*N",
+    "reserved_span_rule": "align_up(8 + 4*N, 0x40)",
+    "offset_base": "container base",
+    "empty_slot": "offset == 0"
+  },
+  "sizing": {
+    "direct_child_probe": "0x1402EF620",
+    "direct_child_raw_result": "ceil(logicalSize/0x800) * 0x800",
+    "assembler_child_alignment": "align_up(childSpan, 0x40)",
+    "effective_direct_child_granularity": "0x800 because the size probe is already sector padded",
+    "retail_compact_layout_equivalence": false
+  },
+  "nested_manifest": {
+    "extension": ".lst",
+    "preferred_sibling_extension": ".pac",
+    "decision": [
+      "if same-stem .pac exists, use/read the .pac directly",
+      "otherwise recursively size and assemble the .lst"
+    ],
+    "recursive_size_function": "0x1401B7FD0",
+    "recursive_population_function": "0x1401B85C0"
+  },
+  "population": {
+    "destination_model": "single parent allocation",
+    "direct_child": "queue VFS read to destinationBase + offset[i]",
+    "dummy": "no read; offset remains zero",
+    "nested_lst_with_pac": "queue sibling .pac direct read",
+    "nested_lst_without_pac": "recursive in-place assembly at destinationBase + offset[i]"
+  },
+  "recovered_pseudocode_contract": {
+    "cursor_start": "align_up(8 + 4*slotCount, 0x40)",
+    "per_slot": [
+      "dummy => offset=0",
+      "otherwise offset=cursor",
+      "determine direct sector-padded or recursive child span",
+      "cursor += align_up(childSpan,0x40)"
+    ],
+    "write_order": [
+      "size/offset pass",
+      "copy completed aligned header",
+      "population pass"
+    ]
+  },
+  "classification": {
+    "domain": "runtime_container_assembly_fallback",
+    "tm2_dds_converter": false,
+    "canonical_retail_writer": false
+  },
+  "product_provenance_fields": [
+    "parent logical path",
+    ".lst logical path",
+    "decoded 4-byte magic",
+    "physical slot count",
+    "manifest lines in physical order",
+    "dummy/empty-slot markers",
+    "resolved child path",
+    "source mode direct-child / sibling-pac / recursive-lst",
+    "computed offset",
+    "reserved span",
+    "source hashes when available"
+  ],
+  "confirmed_high": [
+    ".lst fallback is recursive relative-slot container assembly",
+    "default magic is PAC\\0",
+    "# directive can provide up to four magic bytes",
+    "manifest resource lines define physical slot order",
+    "dummy produces offset zero",
+    "header is magic + count + uint32 offsets[]",
+    "header span is aligned to 0x40",
+    "direct child allocation size is sector padded in 0x800 units",
+    "nested .lst prefers same-stem .pac when available",
+    "otherwise nested .lst recursively assembles",
+    "payload population is in place at destinationBase + offset[i]"
+  ],
+  "blocked": [
+    "raw canonical EXE byte re-dump",
+    "pristine real .lst fixtures with provenance",
+    "real #PNST or other directive fixture",
+    "complete comment/control grammar",
+    "padding and unused-header byte initialization",
+    "canonical retail PAC/PNST writer equivalence",
+    "rebuilt-container game-consumption round trip"
+  ],
+  "layer1_complete": false
+}
