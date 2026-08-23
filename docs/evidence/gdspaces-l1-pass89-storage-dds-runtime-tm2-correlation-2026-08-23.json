@@ -2,14 +2,22 @@
   "pass": 89,
   "date": "2026-08-23",
   "scope": "GDSpaces Layer 1 / Resource Materialization",
-  "status": "corpus-confirmed correlation; executable materializer mapping still acquisition target",
+  "status": "corpus-confirmed correlation; executable materializer mapping and retail provenance remain open",
   "canonical_executable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
   "sources": {
     "phase16_texture_sample_analysis": "Library evidence artifact from the 2026-07-17 Phase 16 assessment",
+    "pass86_provenance_boundary": "validated transformed DDS-bearing texture-slot profile authority; not direct-retail authority",
     "pass87_runtime_envelope": "PR #173",
     "pass88_runtime_bridge": "PR #174"
+  },
+  "provenance_boundary": {
+    "storage_term_in_this_pass": "preserved transformed DDS-bearing storage representation",
+    "direct_retail_provenance_proven": false,
+    "phase15_st001_pac_sha256": "90b3a89abeb6d4475d81d066b7b19460f7a799741742416c3a35c2eeb992e7d1",
+    "phase15_acquisition_chain_recorded": false,
+    "rule": "Do not promote these correlations to original-retail PTX/TIM2 authority until the independent Pass 86 source-chain gate closes."
   },
   "sample_population": [
     {
@@ -100,22 +108,22 @@
   "materializer_hypotheses_not_yet_promoted": [
     {
       "id": "H89.1",
-      "claim": "storage +0x64 is mapped to runtime TM2 +0x3C",
-      "reason": "the 50-entry storage field equals the complete DDS byte count required at runtime +0x3C"
+      "claim": "storage-profile +0x64 is mapped to runtime TM2 +0x3C",
+      "reason": "the 50-entry storage-profile field equals the complete DDS byte count required at runtime +0x3C"
     },
     {
       "id": "H89.2",
-      "claim": "runtime TM2 +0x08 is authored as 0x70 for this storage family",
-      "reason": "all 50 aligned storage entries place DDS at +0x70"
+      "claim": "runtime TM2 +0x08 is authored as 0x70 for this storage-profile family",
+      "reason": "all 50 aligned storage-profile entries place DDS at +0x70"
     },
     {
       "id": "H89.3",
-      "claim": "storage +0x08..+0x1F is copied/remapped to runtime TM2 +0x50..+0x67",
-      "reason": "this maps storage width/height at +0x10/+0x12 exactly onto runtime width/height at TM2 +0x58/+0x5A and supplies 24 bytes"
+      "claim": "storage-profile +0x08..+0x1F is copied/remapped to runtime TM2 +0x50..+0x67",
+      "reason": "this maps storage-profile width/height at +0x10/+0x12 exactly onto runtime width/height at TM2 +0x58/+0x5A and supplies 24 bytes"
     },
     {
       "id": "H89.4",
-      "claim": "the storage-to-runtime step may be a fixed-size 0x70-byte header canonicalization around an unchanged DDS payload rather than a payload conversion",
+      "claim": "the storage-profile-to-runtime step may be a fixed-size 0x70-byte header canonicalization around an unchanged DDS payload rather than a payload conversion",
       "reason": "both representations can preserve DDS at +0x70; executable instruction evidence is required before promotion"
     }
   ],
@@ -128,16 +136,17 @@
     "0x1402F11C0 loaded-resource registration/coordinator candidate"
   ],
   "required_instruction_evidence": [
-    "a source read from +0x64 paired with a runtime write to +0x3C, or an equivalent data-flow proof",
-    "a runtime +0x08 write/derivation of 0x70 for the DDS-bearing storage family",
-    "a 24-byte source-to-runtime copy/remap proving or rejecting storage +0x08..+0x1F -> TM2 +0x50..+0x67",
-    "the branch/discriminator that distinguishes the DDS-bearing storage representation from already-runtime TM2 entries",
+    "a source-profile read from +0x64 paired with a runtime write to +0x3C, or an equivalent data-flow proof",
+    "a runtime +0x08 write/derivation of 0x70 for the DDS-bearing storage-profile family",
+    "a 24-byte source-to-runtime copy/remap proving or rejecting storage-profile +0x08..+0x1F -> TM2 +0x50..+0x67",
+    "the branch/discriminator that distinguishes the DDS-bearing storage-profile representation from already-runtime TM2 entries",
     "ownership: whether conversion is in-place, into a temporary buffer, or into a separately allocated runtime entry"
   ],
   "hard_freeze": [
     "Do not call the aligned DDS-bearing sample header retail-original TM2.",
     "Do not implement a DDS-to-TM2 writer from the corpus correlations alone.",
-    "Do not claim storage-to-runtime materialization closed until the executable data flow is recovered.",
-    "Do not claim original-game write compatibility from synthetic/runtime-envelope tests."
+    "Do not claim storage-profile-to-runtime materialization closed until the executable data flow is recovered.",
+    "Do not claim original-game write compatibility from synthetic/runtime-envelope tests.",
+    "Do not promote the preserved DDS-bearing samples to direct-retail provenance without a source-chain receipt."
   ]
 }
