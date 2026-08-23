@@ -1,0 +1,166 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1.pass90.v1",
+  "date": "2026-08-23",
+  "layer": "Layer 1 - Resource Materialization",
+  "status": "evidence_checkpoint_not_complete",
+  "canonical_target_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "fresh_disassembly_source": {
+    "artifact": "dmc3_phase17_reng_probe.exe",
+    "class": "derivative_probe",
+    "canonical_raw_redump_available": false,
+    "caveat": "Fresh instruction ranges agree with preserved canonical Phase12/14/15/16 address maps, but raw canonical byte re-dump remains a promotion gate."
+  },
+  "resource": {
+    "domain": 5,
+    "index": 0,
+    "descriptor_table_va": "0x1405B1230",
+    "descriptor_va": "0x1405B10B0",
+    "descriptor_kind16": 0,
+    "logical_path": "obj\\em000.pac"
+  },
+  "resource_node": {
+    "lookup": "0x1401AE1D0",
+    "ensure_acquire": "0x1401AE310",
+    "node_stride": "0x30",
+    "fields": {
+      "+0x10": "next/list link",
+      "+0x18": "ResourceRecord*",
+      "+0x20": "active/state byte observed",
+      "+0x24": "lookup key A",
+      "+0x28": "lookup key B"
+    },
+    "phase12_boundary_correction": "Older function-map cut at 0x1401AE363 is incomplete; relevant acquisition/insertion flow continues through at least 0x1401AE58F."
+  },
+  "resource_record": {
+    "acquire": "0x1401B8DF0",
+    "construct_materialize": "0x1401B84E0",
+    "stride": "0x48",
+    "partial_layout": {
+      "+0x04": "state",
+      "+0x10": "context/ownership candidate",
+      "+0x18": "ResourceTypeInfo/descriptor pointer",
+      "+0x20": "materialized resource buffer",
+      "+0x28": "allocator/storage field"
+    }
+  },
+  "source_selection": {
+    "classifier": "0x1401B79E0",
+    "size_probe": "0x1402EF620",
+    "result_classes": {
+      "0": "no exact resource and no .lst fallback",
+      "1": "exact resource exists",
+      "2": ".lst fallback exists"
+    },
+    "exact_branch": "direct VFS/AsyncIO read into record+0x20",
+    "lst_branch": "manifest-driven container assembly via 0x1401B85C0"
+  },
+  "exact_materialization_chain": [
+    "0x1401B84E0 allocate record+0x20",
+    "0x1401B79E0 exact source test",
+    "0x1402EF4D0 enqueue direct-read job",
+    "0x1402EF790 process/poll job",
+    "0x1400333F0 open logical resource",
+    "0x1400333C0 compute ceil(logicalSize/0x800)",
+    "0x140033500 submit sector-sized request using caller destination unchanged",
+    "0x14002EA40 lower AsyncIO request directly into record+0x20"
+  ],
+  "io_contract": {
+    "sector_size": "0x800",
+    "sector_count_rule": "ceil(logicalSize / 0x800)",
+    "requested_bytes_rule": "sectorCount << 11",
+    "logical_file_bytes_to_eof": "direct into materialized destination",
+    "post_eof_sector_padding_semantics": "unresolved/not_promoted",
+    "format_conversion_on_exact_branch": false
+  },
+  "lst_fallback": {
+    "assembler": "0x1401B85C0",
+    "read_helper": "0x1402EF920",
+    "known_behavior": [
+      "line-oriented .lst manifest parsing",
+      "special handling of dummy entries",
+      "PAC-like header identity synthesized when required",
+      "child regions size-accounted/aligned on 0x40 boundaries",
+      "existing child .pac may be read directly",
+      "nested .lst may recurse through 0x1401B85C0"
+    ],
+    "classification": "container_assembly_fallback",
+    "tm2_dds_converter_evidence": false,
+    "full_writer_semantics": "unresolved"
+  },
+  "cem000_consumer": {
+    "method": "0x140097B40",
+    "kind0_behavior": "use record+0x20 as PAC/PNST base and resolve physical slots through offset table",
+    "slot0_role": "PTX pointer",
+    "slot1_role": "second CDraw resource pointer",
+    "cdraw_virtual_slot_0x50": "0x140089960",
+    "cpxt_manager_load": "0x140314E00",
+    "ptx_parser": "0x140336BB0",
+    "slot0_pointer_conversion_between_container_and_parser": false
+  },
+  "end_to_end": [
+    "descriptor kind0 path obj\\em000.pac",
+    "resource node ensure/acquire",
+    "resource record allocation",
+    "exact VFS resource read into record+0x20",
+    "CEm000 PAC/PNST slot0 resolution",
+    "CDraw 0x140089960",
+    "CPtxManager 0x140314E00",
+    "PTX/TIM2 parser 0x140336BB0"
+  ],
+  "preserved_corpus_em000": {
+    "artifact_name": "em000.pac",
+    "provenance": "preserved Phase16 corpus; pristine exact-resource lineage not proven",
+    "container_magic": "PNST",
+    "slot_count": 44,
+    "whole_file_dds_count": 19,
+    "whole_file_tm2_count": 0,
+    "slot0": {
+      "offset": 192,
+      "size": 149504,
+      "sha256": "79c91898aef75e9cee9137e4dc9169052be6392921072df8bc04c39cc12231ba",
+      "texture_count_candidate": 4,
+      "block_counts": [22, 22, 22, 6],
+      "first_entry_offset": 2048,
+      "exact_outer_size_match": true,
+      "dds_signature_count": 4,
+      "tm2_signature_count": 0,
+      "dds_entry_relative_offset": 112
+    }
+  },
+  "provenance_correction": {
+    "claim": "The preserved DDS-bearing em000.pac sample must not be promoted as pristine parser-ready evidence for the exact canonical obj\\em000.pac path consumed by this executable.",
+    "reason": "On the exact-resource runtime path, VFS logical bytes reach record+0x20 directly, then CEm000 slot0 reaches CPtxManager/PTX parser without an intervening texture conversion, while the preserved slot0 has DDS-wrapped entries and zero TM2 signatures.",
+    "producer_of_transformed_corpus": "unresolved"
+  },
+  "promotion": {
+    "confirmed_high": [
+      "resource-node lookup vs acquisition responsibilities",
+      "category5/index0 descriptor identity obj\\em000.pac",
+      "ResourceRecord +0x18 descriptor and +0x20 materialized-buffer split",
+      "exact source versus .lst fallback",
+      "direct exact-resource VFS/AsyncIO materialization into record+0x20",
+      "CEm000 slot0 to CDraw to CPtxManager to PTX parser pointer lineage",
+      ".lst as container-assembly fallback rather than TM2/DDS conversion evidence",
+      "preserved DDS-bearing em000 corpus cannot be treated as pristine exact parser input"
+    ],
+    "blocked": [
+      "raw canonical dmc3.exe byte re-dump at Pass90 anchors",
+      "pristine retail obj\\em000.pac extraction directly from canonical DMC3-0.nbz with hash lineage",
+      "producer identification for transformed DDS-bearing corpus",
+      "complete .lst grammar/header/sparse-slot assembly semantics",
+      "PR #172/#174 blockCount-zero semantic reconciliation",
+      "original PTX/TIM2 writer and DDS/TIM2 converter",
+      "edit-rebuild-repack-game round-trip"
+    ]
+  },
+  "product_rule": {
+    "separate_representation_identities": [
+      "pristine retail bytes",
+      "runtime direct materialization",
+      "runtime .lst-assembled container",
+      "transformed DDS-bearing corpus"
+    ],
+    "forbid_silent_identity_collapse": true
+  },
+  "layer1_complete": false
+}
