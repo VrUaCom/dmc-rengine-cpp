@@ -1,0 +1,74 @@
+{
+  "pass": 92,
+  "date": "2026-08-23",
+  "scope": "GDSpaces Layer 1 / resource provenance",
+  "status": "same linked DMC3 image VERY HIGH; protection-state distinction confirmed; direct retail NBZ member receipt open",
+  "executables": {
+    "protected_distribution": {
+      "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+      "size": 6567320,
+      "drive_id": "1-GouJYQyltnQqXMd0BvxEmOh9a1RQg1q",
+      "section_count": 9,
+      "entry_rva": "0xDAC310",
+      "size_of_image": "0xDDF000"
+    },
+    "canonical_analysis": {
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432,
+      "section_count": 8,
+      "entry_rva": "0x34615C",
+      "size_of_image": "0xDAC000"
+    }
+  },
+  "shared_pe_identity": {
+    "timestamp": "0x5AB4CBC2",
+    "image_base": "0x140000000",
+    "base_of_code": "0x1000",
+    "size_of_code": "0x34DE00",
+    "size_of_initialized_data": "0xA59600",
+    "section_alignment": "0x1000",
+    "file_alignment": "0x200",
+    "data_directories_identical_except_security_protection_envelope": true,
+    "common_section_geometry_identical": true
+  },
+  "section_comparison": [
+    {"name":".text","rva":"0x1000","virtual_size":"0x34DD4E","raw_offset":"0x400","raw_size":"0x34DE00","canonical_sha256":"6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce","protected_sha256":"3cea9ebbac6dadf04dbeb569970d63e20674fa3b8b741465322d00d2df70f010","byte_identical":false,"canonical_entropy":6.3612,"protected_entropy":7.99994},
+    {"name":".rdata","sha256":"aedd3e459caf750b8d3f98a56fd5cfae12e5081569d9108d20865b38c1061848","byte_identical":true},
+    {"name":".data","sha256":"d7142c9acb49ed48012c19b0ec5b873286598c6a9b99a1b67a5cfcb140018bce","byte_identical":true},
+    {"name":".pdata","sha256":"ee741ad2cb757d12a4da94476064eb4e2852841044711f7172189c59e077d270","byte_identical":true},
+    {"name":".gfids","sha256":"5879746c15b886a3ac27971ad99e2ca3b4abd9b0b11984f59ece7d12b27fa6f4","byte_identical":true},
+    {"name":".tls","sha256":"4c6474903705cb45a4652ed0f2effcc52fd47c6719ecc59644fb323a96b54b6a","byte_identical":true},
+    {"name":".rsrc","sha256":"33293edd26e64747cca5f5979b9ca73ea915f8738780ec71226703e72e6bbd8b","byte_identical":true},
+    {"name":".reloc","sha256":"6be381c6475fd8ea99fa51ecf33659273ce6d15f3c35495449ce787616bedc0d","byte_identical":true}
+  ],
+  "protected_only": {
+    "section": ".bind",
+    "rva": "0xDAC000",
+    "virtual_size": "0x32718",
+    "raw_offset": "0x60E600",
+    "raw_size": "0x32718",
+    "sha256": "ddb10dfdbd840b9ceae36db76c701db7e68a912ee1dd14f83f127a82f38a512e",
+    "entropy": 7.95544
+  },
+  "corrected_claim": "81c7 and e454 are VERY HIGH-confidence representations of the same linked DMC3 image in different protection states; 81c7 is protected distribution representation and e454 is deprotected/unpacked analysis representation",
+  "not_proven": [
+    "historical exact command/algorithm that produced e454 from this specific 81c7 Drive file",
+    "cryptographic protector round-trip",
+    "concrete retail PAC member SHA from dmc3-0.nbz"
+  ],
+  "retail_volume": {
+    "drive_id": "1dnYSWy1bqrMX_VEST9CRlno_38u7LlhQ",
+    "size": 960358951,
+    "whole_download_blocker": "connector HTTP 413 above 268435456 bytes",
+    "remaining_gate": "acquire exact member bytes with NBZ/member-path lineage"
+  },
+  "layer1_consequence": "build-version ambiguity is narrowed away; remaining direct-retail texture gate is member-byte acquisition plus comparison/game acceptance",
+  "hard_freeze": [
+    "Do not use protected .text bytes for canonical instruction analysis.",
+    "Do not claim exact protector/decryptor algorithm or exact derivation receipt.",
+    "Do not claim concrete retail PAC SHA until member bytes are acquired.",
+    "Do not treat connector size limit as an archive-format limitation.",
+    "Do not reopen generic NBZ runtime compatibility solely because protected and analysis file hashes differ.",
+    "Layer 1 remains NOT COMPLETE."
+  ]
+}
