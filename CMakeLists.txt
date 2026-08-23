@@ -71,6 +71,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         nbz_zip_source
         nbz_zip_serialization
         nbz_zip_artifact_binding
+        nbz_zip_repacker_publication
         nbz_overlay_writer
         resource_path_normalizer
         resource_lookup_policy
