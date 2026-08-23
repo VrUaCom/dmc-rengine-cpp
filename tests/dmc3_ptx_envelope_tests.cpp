@@ -19,6 +19,21 @@ void put_u32(std::vector<std::byte>& bytes, const std::size_t offset, const std:
   bytes[offset + 3U] = static_cast<std::byte>((value >> 24U) & 0xFFU);
 }
 
+void put_u64(std::vector<std::byte>& bytes, const std::size_t offset, const std::uint64_t value) {
+  for (std::size_t index = 0; index < sizeof(std::uint64_t); ++index) {
+    bytes[offset + index] = static_cast<std::byte>((value >> (index * 8U)) & 0xFFU);
+  }
+}
+
+void put_dds_header(std::vector<std::byte>& bytes, const std::size_t dds_offset) {
+  namespace formats = dmc::rengine::formats;
+  put_u32(bytes, dds_offset, formats::Dmc3PtxEnvelopeParser::kDdsMagic);
+  put_u32(bytes, dds_offset + 0x04U, formats::Dmc3PtxEnvelopeParser::kDdsHeaderSize);
+  put_u32(bytes,
+          dds_offset + formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSizeField,
+          formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSize);
+}
+
 void put_tm2_dds_entry(std::vector<std::byte>& bytes,
                        const std::size_t entry_offset,
                        const std::size_t span_size,
@@ -52,12 +67,45 @@ void put_tm2_dds_entry(std::vector<std::byte>& bytes,
           entry_offset + formats::Dmc3PtxEnvelopeParser::kTm2HeightField,
           static_cast<std::uint16_t>(32U + index));
 
-  const auto dds_offset = entry_offset + static_cast<std::size_t>(kDdsRelativeOffset);
-  put_u32(bytes, dds_offset, formats::Dmc3PtxEnvelopeParser::kDdsMagic);
-  put_u32(bytes, dds_offset + 0x04U, formats::Dmc3PtxEnvelopeParser::kDdsHeaderSize);
+  put_dds_header(bytes, entry_offset + static_cast<std::size_t>(kDdsRelativeOffset));
+}
+
+void put_serialized_gfx_dds_entry(std::vector<std::byte>& bytes,
+                                  const std::size_t entry_offset,
+                                  const std::size_t span_size,
+                                  const std::uint16_t width,
+                                  const std::uint16_t height) {
+  namespace formats = dmc::rengine::formats;
+
+  constexpr std::uint64_t kDescriptorDelta = 0x40U;
+  constexpr std::uint64_t kDdsDelta = 0x08U;
+  constexpr std::size_t kDescriptorOffset = 0x60U;
+  constexpr std::size_t kDdsOffset = 0x70U;
+  assert(span_size > kDdsOffset);
+  const auto dds_size = span_size - kDdsOffset;
+  assert(dds_size <= static_cast<std::size_t>(UINT32_MAX));
+
+  put_u64(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kSerializedGfxVtablePlaceholderField,
+          0U);
+  put_u16(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kSerializedGfxWidthField,
+          width);
+  put_u16(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kSerializedGfxHeightField,
+          height);
+  put_u64(bytes,
+          entry_offset + formats::Dmc3PtxEnvelopeParser::kSerializedGfxDescriptorPointerField,
+          kDescriptorDelta);
+
+  const auto descriptor = entry_offset + kDescriptorOffset;
   put_u32(bytes,
-          dds_offset + formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSizeField,
-          formats::Dmc3PtxEnvelopeParser::kDdsPixelFormatSize);
+          descriptor + formats::Dmc3PtxEnvelopeParser::kSerializedGfxDescriptorDdsByteSizeField,
+          static_cast<std::uint32_t>(dds_size));
+  put_u64(bytes,
+          descriptor + formats::Dmc3PtxEnvelopeParser::kSerializedGfxDescriptorDdsPointerField,
+          kDdsDelta);
+  put_dds_header(bytes, entry_offset + kDdsOffset);
 }
 
 std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
@@ -72,8 +120,6 @@ std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
   std::vector<std::byte> bytes(total_size, std::byte{0});
   put_u32(bytes, 0U, static_cast<std::uint32_t>(block_counts.size()));
 
-  // Keep the unclaimed header tail visibly non-zero: the parser must preserve
-  // it as opaque structure rather than inventing a zero-padding requirement.
   if (block_counts.size() < 0x1F0U) {
     bytes[0x7F0U] = std::byte{0x5A};
   }
@@ -84,9 +130,6 @@ std::vector<std::byte> make_ptx(const std::vector<std::uint32_t>& block_counts,
     put_u32(bytes, formats::Dmc3PtxEnvelopeParser::kCountTableOffset + index * 4U, block_count);
 
     if (block_count == 0U) {
-      // A terminal zero block count is represented by the remaining supplied
-      // bytes. Non-final zero is intentionally left without separate storage;
-      // the parser rejects it before needing the next entry.
       if (index + 1U == block_counts.size() && trailing_bytes >= 0x100U) {
         put_tm2_dds_entry(bytes, entry_offset, trailing_bytes, index);
       }
@@ -122,6 +165,7 @@ int main() {
     assert(result.envelope.entries.size() == 2U);
 
     const auto& first = result.envelope.entries[0];
+    assert(first.representation == formats::Dmc3PtxEntryRepresentation::tim2);
     assert(first.offset == 0x800U);
     assert(first.span_size == 0x800U);
     assert(first.texture.dds_relative_offset == 0x80U);
@@ -134,6 +178,7 @@ int main() {
     assert(!first.terminal_span_to_eof);
 
     const auto& second = result.envelope.entries[1];
+    assert(second.representation == formats::Dmc3PtxEntryRepresentation::tim2);
     assert(second.offset == 0x1000U);
     assert(second.span_size == 0x1000U);
     assert(second.texture.dds_relative_offset == 0x80U);
@@ -144,6 +189,28 @@ int main() {
     assert(!second.terminal_span_to_eof);
     assert(result.envelope.consumed_size == 0x2000U);
     assert(result.envelope.trailing_size == 37U);
+  }
+
+  {
+    auto mixed = make_ptx({1U, 1U});
+    put_serialized_gfx_dds_entry(mixed, 0x1000U, 0x800U, 128U, 64U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(mixed);
+    assert(result.ok);
+    assert(result.envelope.entries.size() == 2U);
+    assert(result.envelope.entries[0].representation == formats::Dmc3PtxEntryRepresentation::tim2);
+
+    const auto& serialized = result.envelope.entries[1];
+    assert(serialized.representation ==
+           formats::Dmc3PtxEntryRepresentation::serialized_gfx_texture_dds);
+    assert(serialized.serialized_texture.vtable_placeholder == 0U);
+    assert(serialized.serialized_texture.descriptor_relative_delta == 0x40U);
+    assert(serialized.serialized_texture.descriptor_offset == 0x1060U);
+    assert(serialized.serialized_texture.dds_byte_size == 0x790U);
+    assert(serialized.serialized_texture.dds_relative_delta == 0x08U);
+    assert(serialized.serialized_texture.dds_offset == 0x1070U);
+    assert(serialized.serialized_texture.width == 128U);
+    assert(serialized.serialized_texture.height == 64U);
+    assert(serialized.serialized_texture.has_embedded_dds);
   }
 
   {
@@ -205,11 +272,31 @@ int main() {
   }
 
   {
-    auto bad_magic = make_ptx({1U});
-    bad_magic[0x800U] = std::byte{'X'};
-    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_magic);
+    auto unknown_non_tm2 = make_ptx({1U});
+    put_u64(unknown_non_tm2, 0x800U, 1U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(unknown_non_tm2);
     assert(!result.ok);
-    assert(result.error == "ptx_envelope_entry_magic_mismatch");
+    assert(result.error == "ptx_envelope_entry_unknown_non_tm2_representation");
+  }
+
+  {
+    auto bad_serialized_descriptor = make_ptx({1U});
+    put_serialized_gfx_dds_entry(bad_serialized_descriptor, 0x800U, 0x800U, 128U, 128U);
+    put_u64(bad_serialized_descriptor,
+            0x800U + formats::Dmc3PtxEnvelopeParser::kSerializedGfxDescriptorPointerField,
+            0x800U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_serialized_descriptor);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_serialized_gfx_descriptor_offset_out_of_bounds");
+  }
+
+  {
+    auto bad_serialized_dds = make_ptx({1U});
+    put_serialized_gfx_dds_entry(bad_serialized_dds, 0x800U, 0x800U, 128U, 128U);
+    put_u64(bad_serialized_dds, 0x868U, 0x800U);
+    const auto result = formats::Dmc3PtxEnvelopeParser::parse(bad_serialized_dds);
+    assert(!result.ok);
+    assert(result.error == "ptx_envelope_serialized_gfx_dds_offset_out_of_bounds");
   }
 
   {
