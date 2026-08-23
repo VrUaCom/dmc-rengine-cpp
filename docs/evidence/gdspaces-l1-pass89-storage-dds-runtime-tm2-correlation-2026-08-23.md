@@ -21,6 +21,18 @@ Inside each aligned storage entry, the DDS begins at a stable `entry + 0x70`.
 
 This does **not** prove that the storage representation is retail-original TM2. No `TM2\0` signature occurs in these five Phase 16 PAC samples, and Pass 88 still requires executable data-flow evidence before storage and runtime identities can be unified.
 
+## Provenance boundary inherited from Pass 86
+
+Pass 86 remains authoritative for source provenance. The DDS-bearing samples used here are **validated transformed DDS-bearing texture-slot profile authority**. Current preserved evidence does not prove that these byte images were reacquired directly from retail `dmc3-0.nbz`, nor that Phase 15 `/mnt/data/st001.pac` is a sealed direct-retail extraction.
+
+Therefore, throughout Pass 89:
+
+- `storage` means **the preserved DDS-bearing storage representation under analysis**;
+- it does **not** mean confirmed original-retail PTX/TIM2 storage;
+- the correlations below narrow the possible adapter between this representation and the recovered runtime ABI, but do not close the independent retail-provenance gate.
+
+If a future direct-retail reacquisition produces different texture-slot bytes, these correlations remain valid only for the transformed DDS-bearing profile until separately revalidated.
+
 ## Evidence population
 
 The Phase 16 sample analysis contains 91 DDS signatures and zero TM2 signatures across five PAC samples:
@@ -88,8 +100,8 @@ Both ranges are exactly 24 bytes. Under this mapping, storage width/height at `+
 The evidence now supports a much narrower model than “decode arbitrary DDS and build an unrelated TM2 object”. A plausible boundary is a fixed-size **`0x70` header canonicalization** around a DDS payload that can remain at the same relative location:
 
 ```text
-storage entry
-  [0x70-byte storage header]
+preserved DDS-bearing entry
+  [0x70-byte storage-profile header]
   [DDS bytes]
 
         ↓ materializer / adapter — still unproven
@@ -126,20 +138,21 @@ and the branch/discriminator that chooses this path for the DDS-bearing storage 
 
 Until that instruction evidence exists:
 
-- do not rename the storage header to TM2;
+- do not rename the storage-profile header to TM2;
 - do not implement a DDS→TM2 writer from these correlations;
 - do not state that retail storage→runtime materialization is closed;
 - do not treat runtime/synthetic envelope tests as original-game write compatibility;
+- do not promote the preserved DDS-bearing samples to direct-retail provenance without a source-chain receipt;
 - preserve the opaque multi-DDS variant as a separate unresolved representation.
 
 ## Promotion boundary
 
-Pass 89 closes a **search-space problem**, not the materializer itself.
+Pass 89 closes a **search-space problem**, not the materializer itself and not the retail-provenance gate.
 
 Before:
 
 ```text
-91 DDS on disk / 0 TM2
+91 DDS in preserved transformed corpus / 0 TM2
         ?
 TM2 -> DDS runtime bridge
 ```
@@ -147,12 +160,12 @@ TM2 -> DDS runtime bridge
 After this pass:
 
 ```text
-0x800-block storage bundle
-  -> 0x70-byte DDS-bearing entry header
+preserved 0x800-block DDS-bearing bundle
+  -> 0x70-byte storage-profile entry header
   -> exact field correlations
   -> [small executable adapter boundary still to recover]
   -> 0x70-byte runtime TM2 entry header
   -> DDS bridge
 ```
 
-The next promotion requires executable instruction evidence for that adapter boundary.
+The next promotion requires executable instruction evidence for that adapter boundary. Original-retail authority additionally requires the independent Pass 86 provenance gate to close.
