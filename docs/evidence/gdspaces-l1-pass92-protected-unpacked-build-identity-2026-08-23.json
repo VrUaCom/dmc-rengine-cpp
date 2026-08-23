@@ -32,7 +32,7 @@
     "common_section_geometry_identical": true
   },
   "section_comparison": [
-    {"name":".text","rva":"0x1000","virtual_size":"0x34DD4E","raw_offset":"0x400","raw_size":"0x34DE00","canonical_sha256":"6b16d64ea8da9e3a1ce2d75c1d4e6d0fe0336e02bd7a83e6ec61b014105e3066","protected_sha256":"3cea9ebbac6dadf06a885bc2729e1fb3a059f5760e128dcc2321e10672b01a7f","byte_identical":false,"canonical_entropy":6.3612,"protected_entropy":7.99994},
+    {"name":".text","rva":"0x1000","virtual_size":"0x34DD4E","raw_offset":"0x400","raw_size":"0x34DE00","canonical_sha256":"6b16d64ea8da9e3a1a0afe415f628328a209bba023364ab6f769db538d84c5ce","protected_sha256":"3cea9ebbac6dadf04dbeb569970d63e20674fa3b8b741465322d00d2df70f010","byte_identical":false,"canonical_entropy":6.3612,"protected_entropy":7.99994},
     {"name":".rdata","sha256":"aedd3e459caf750b8d3f98a56fd5cfae12e5081569d9108d20865b38c1061848","byte_identical":true},
     {"name":".data","sha256":"d7142c9acb49ed48012c19b0ec5b873286598c6a9b99a1b67a5cfcb140018bce","byte_identical":true},
     {"name":".pdata","sha256":"ee741ad2cb757d12a4da94476064eb4e2852841044711f7172189c59e077d270","byte_identical":true},
@@ -47,7 +47,7 @@
     "virtual_size": "0x32718",
     "raw_offset": "0x60E600",
     "raw_size": "0x32718",
-    "sha256": "ddb10dfdbd840b9cf07c45c337780540321cd046f8c61fe5ef2fac17719df2bf",
+    "sha256": "ddb10dfdbd840b9ceae36db76c701db7e68a912ee1dd14f83f127a82f38a512e",
     "entropy": 7.95544
   },
   "corrected_claim": "81c7 and e454 are VERY HIGH-confidence representations of the same linked DMC3 image in different protection states; 81c7 is protected distribution representation and e454 is deprotected/unpacked analysis representation",
