@@ -1,0 +1,143 @@
+{
+  "pass": 89,
+  "date": "2026-08-23",
+  "scope": "GDSpaces Layer 1 / Resource Materialization",
+  "status": "corpus-confirmed correlation; executable materializer mapping still acquisition target",
+  "canonical_executable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "sources": {
+    "phase16_texture_sample_analysis": "Library evidence artifact from the 2026-07-17 Phase 16 assessment",
+    "pass87_runtime_envelope": "PR #173",
+    "pass88_runtime_bridge": "PR #174"
+  },
+  "sample_population": [
+    {
+      "file": "st001.pac",
+      "sha256": "90b3a89abeb6d4475d81d066b7b19460f7a799741742416c3a35c2eeb992e7d1",
+      "size": 2668928,
+      "whole_file_dds": 17,
+      "whole_file_tm2": 0,
+      "aligned_entry_cohort": 17
+    },
+    {
+      "file": "id100.pac",
+      "sha256": "f26a9bfdfae0f871676ab617c48077232fa68b617204402a4a32ffbb6fb8c32d",
+      "size": 2042048,
+      "whole_file_dds": 21,
+      "whole_file_tm2": 0,
+      "aligned_entry_cohort": 21
+    },
+    {
+      "file": "pl000.pac",
+      "sha256": "be0b54171db5b8376ed904e4f9850969af0a97e28a7da9ad9fcce6990839cd71",
+      "size": 552496,
+      "whole_file_dds": 4,
+      "whole_file_tm2": 0,
+      "aligned_entry_cohort": 4
+    },
+    {
+      "file": "em000.pac",
+      "sha256": "1b8ac33a5199b9d4afde1854b630132b1ca5ba28657096b5fabe23ccfccadf9a",
+      "size": 2159392,
+      "whole_file_dds": 19,
+      "whole_file_tm2": 0,
+      "aligned_entry_cohort": 8
+    },
+    {
+      "file": "m09_b01.pac",
+      "sha256": "3fc4b2ad0510baddbeb4447901924924264b2fca3e70a9360be6611501000872",
+      "size": 4052712,
+      "whole_file_dds": 30,
+      "whole_file_tm2": 0,
+      "aligned_entry_cohort": 0,
+      "note": "opaque multi-DDS variant; excluded from the 0x70-header correlation cohort"
+    }
+  ],
+  "population_totals": {
+    "whole_file_dds": 91,
+    "whole_file_tm2": 0,
+    "aligned_entries_analyzed": 50
+  },
+  "corpus_confirmed_invariants_50_of_50": [
+    {
+      "claim": "DDS starts at entry-relative +0x70",
+      "status": "confirmed by sample bytes"
+    },
+    {
+      "claim": "u16 width at storage +0x10 and u16 height at +0x12 equal DDS header width/height",
+      "status": "confirmed by sample bytes"
+    },
+    {
+      "claim": "u32 storage +0x08 == 0x00020000 | (DDS mipCount << 8)",
+      "observed_mip_counts": [0, 1, 8, 9],
+      "status": "confirmed correlation; semantic bitfield name not promoted"
+    },
+    {
+      "claim": "u32 storage +0x64 == u32 storage +0x38 + 0x80",
+      "interpretation": "+0x64 equals the complete DDS byte count while +0x38 equals that count minus the 0x80-byte legacy DDS header",
+      "status": "size relation confirmed; semantic interpretation high-confidence corpus inference"
+    },
+    {
+      "claim": "u16 pair at storage +0x44/+0x46 equals width/2,height/2",
+      "status": "confirmed correlation"
+    },
+    {
+      "claim": "f32 storage +0x48/+0x4C equals 2/width,2/height",
+      "status": "confirmed correlation"
+    },
+    {
+      "claim": "blockCount == ceil((0x70 + storage[+0x64]) / 0x800)",
+      "status": "confirmed by all aligned entries"
+    }
+  ],
+  "runtime_confirmed_from_pass88": [
+    "TM2 +0x08 is the DDS-relative offset consumed by the runtime bridge",
+    "TM2 +0x3C is the DDS byte size consumed by the runtime bridge",
+    "TM2 +0x50..+0x67 is a 24-byte metadata block copied into gfxTexture",
+    "TM2 +0x58/+0x5A are width/height"
+  ],
+  "materializer_hypotheses_not_yet_promoted": [
+    {
+      "id": "H89.1",
+      "claim": "storage +0x64 is mapped to runtime TM2 +0x3C",
+      "reason": "the 50-entry storage field equals the complete DDS byte count required at runtime +0x3C"
+    },
+    {
+      "id": "H89.2",
+      "claim": "runtime TM2 +0x08 is authored as 0x70 for this storage family",
+      "reason": "all 50 aligned storage entries place DDS at +0x70"
+    },
+    {
+      "id": "H89.3",
+      "claim": "storage +0x08..+0x1F is copied/remapped to runtime TM2 +0x50..+0x67",
+      "reason": "this maps storage width/height at +0x10/+0x12 exactly onto runtime width/height at TM2 +0x58/+0x5A and supplies 24 bytes"
+    },
+    {
+      "id": "H89.4",
+      "claim": "the storage-to-runtime step may be a fixed-size 0x70-byte header canonicalization around an unchanged DDS payload rather than a payload conversion",
+      "reason": "both representations can preserve DDS at +0x70; executable instruction evidence is required before promotion"
+    }
+  ],
+  "next_executable_acquisition_targets": [
+    "0x140314E00 CPtxManager load variant A",
+    "0x140314FA0 CPtxManager load variant B",
+    "0x140336A70 PTX bundle parse variant B",
+    "0x140336BB0 PTX bundle parse variant A",
+    "0x1403366E0 PTX runtime entry builder",
+    "0x1402F11C0 loaded-resource registration/coordinator candidate"
+  ],
+  "required_instruction_evidence": [
+    "a source read from +0x64 paired with a runtime write to +0x3C, or an equivalent data-flow proof",
+    "a runtime +0x08 write/derivation of 0x70 for the DDS-bearing storage family",
+    "a 24-byte source-to-runtime copy/remap proving or rejecting storage +0x08..+0x1F -> TM2 +0x50..+0x67",
+    "the branch/discriminator that distinguishes the DDS-bearing storage representation from already-runtime TM2 entries",
+    "ownership: whether conversion is in-place, into a temporary buffer, or into a separately allocated runtime entry"
+  ],
+  "hard_freeze": [
+    "Do not call the aligned DDS-bearing sample header retail-original TM2.",
+    "Do not implement a DDS-to-TM2 writer from the corpus correlations alone.",
+    "Do not claim storage-to-runtime materialization closed until the executable data flow is recovered.",
+    "Do not claim original-game write compatibility from synthetic/runtime-envelope tests."
+  ]
+}
