@@ -90,6 +90,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         texture_slot_framing
         texture_slot_reintegrator
         texture_slot_packed_reflow_writer
+        texture_slot_runtime_materialization
         gdspaces_l1_full_a2z_roundtrip
         gdspaces_l1_texture_full_a2z_roundtrip
         runtime_synth_relative_slot_writer
