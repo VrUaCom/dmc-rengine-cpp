@@ -1,0 +1,97 @@
+{
+  "pass": 91,
+  "date": "2026-08-23",
+  "scope": "GDSpaces Layer 1 / Resource Materialization",
+  "status": "writer output relocation-compatible with canonical non-TM2 gfxTexture materializer; original-game modified-resource acceptance still open",
+  "canonical_executable": {
+    "file": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "runtime_contract": {
+    "dispatcher": "0x1403365B0",
+    "placement_and_fixup": "0x140046510",
+    "lazy_dds_load": "0x140046AF0",
+    "dds_from_memory": "0x140049A10",
+    "serialized_relations": [
+      "qword entry+0x00 == 0",
+      "qword entry+0x20 == 0x40",
+      "address(entry+0x20) + 0x40 == entry+0x60",
+      "u32 entry+0x64 == DDS byte size",
+      "qword entry+0x68 == 8",
+      "address(entry+0x68) + 8 == entry+0x70",
+      "DDS starts at entry+0x70"
+    ]
+  },
+  "writer_reconciliation": {
+    "texture_slot_framing_parser_already_enforces_complete_qwords": true,
+    "descriptor_builders_zero_initialize_0x70_image": true,
+    "authored_fields": {
+      "+0x20": "0x40",
+      "+0x64": "authored DDS total size",
+      "+0x68": "8"
+    },
+    "absolute_runtime_pointer_serialization": false
+  },
+  "new_code": {
+    "component": "TextureSlotRuntimeMaterializationInspector",
+    "read_only": true,
+    "operations": [
+      "require zero source vtable placeholder",
+      "resolve descriptor using address(field)+serialized_delta",
+      "bound resolved descriptor",
+      "read descriptor+0x04 DDS byte size",
+      "resolve DDS using address(field)+serialized_delta",
+      "bound complete DDS range",
+      "validate DDS magic/header-size/pixel-format-size"
+    ]
+  },
+  "regression": {
+    "shape": "two-record texture bundle",
+    "edit": "record0 DXT5 256x256 -> 512x512",
+    "record1": "untouched DXT1 128x128",
+    "required_effect": "record0 growth changes absolute offset of record1",
+    "required_result": [
+      "rebuilt record0 remains runtime-relocation-valid",
+      "displaced unchanged record1 remains runtime-relocation-valid"
+    ],
+    "negative_controls": [
+      "nonzero source vtable placeholder rejected",
+      "out-of-bounds descriptor relocation rejected"
+    ]
+  },
+  "existing_compiled_evidence": {
+    "pass84_texture_writer_cases": "112/112",
+    "pass85_real_pnst_parent_rebuild_cases": "45/45"
+  },
+  "proven": [
+    "safe-subset writer emits canonical serialized relative-pointer image",
+    "relative-pointer image survives size-changing record reflow",
+    "changed and displaced-unchanged entries resolve descriptor/DDS with canonical arithmetic",
+    "no absolute runtime pointer needs serialization"
+  ],
+  "not_proven": [
+    "direct-retail provenance for preserved DDS-bearing corpus",
+    "all retail DMC3 texture representations",
+    "nonzero auxiliary descriptor authoring",
+    "opaque/multi-DDS variants outside bounded parser domain",
+    "actual original-game execution of modified rebuilt texture bytes",
+    "final PAC/PNST/NBZ game-consumption acceptance",
+    "Layer 1 complete"
+  ],
+  "hard_freeze": [
+    "No absolute runtime pointer serialization.",
+    "No generalized gfxTexture writer beyond evidenced serialized descriptor image.",
+    "No nonzero source vtable authoring.",
+    "Do not promote unresolved auxiliary texture fields.",
+    "Do not claim original-game acceptance without actual canonical DMC3 consumption.",
+    "Do not claim Layer 1 COMPLETE from relocation compatibility alone."
+  ],
+  "next_gates": [
+    "direct-retail texture-bearing resource reacquisition from canonical dmc3-0.nbz with source-chain receipt",
+    "compare retail child SHA/layout with preserved DDS-bearing corpus",
+    "minimal controlled texture edit through writer -> parent PAC/PNST -> NBZ",
+    "original-game consumption receipt",
+    "resolve or formally exclude remaining auxiliary/opaque variants"
+  ]
+}
