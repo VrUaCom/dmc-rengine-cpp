@@ -21,10 +21,67 @@ namespace {
          (static_cast<std::uint32_t>(std::to_integer<std::uint8_t>(bytes[offset + 3])) << 24U);
 }
 
+[[nodiscard]] std::uint64_t read_u64_le(std::span<const std::byte> bytes,
+                                        const std::size_t offset) noexcept {
+  std::uint64_t value = 0;
+  for (std::size_t index = 0; index < sizeof(std::uint64_t); ++index) {
+    value |= static_cast<std::uint64_t>(std::to_integer<std::uint8_t>(bytes[offset + index]))
+             << (index * 8U);
+  }
+  return value;
+}
+
 [[nodiscard]] Dmc3PtxEnvelopeParseResult fail(std::string error) {
   Dmc3PtxEnvelopeParseResult result;
   result.error = std::move(error);
   return result;
+}
+
+[[nodiscard]] bool resolve_serialized_delta(const std::size_t field_offset,
+                                            const std::uint64_t raw_delta,
+                                            const std::size_t entry_offset,
+                                            const std::size_t span_size,
+                                            std::size_t& resolved_offset) noexcept {
+  if (raw_delta > std::numeric_limits<std::size_t>::max()) {
+    return false;
+  }
+  const auto delta = static_cast<std::size_t>(raw_delta);
+  if (field_offset > std::numeric_limits<std::size_t>::max() - delta) {
+    return false;
+  }
+  resolved_offset = field_offset + delta;
+  if (resolved_offset < entry_offset) {
+    return false;
+  }
+  return resolved_offset - entry_offset < span_size;
+}
+
+[[nodiscard]] std::string validate_embedded_dds(const std::span<const std::byte> bytes,
+                                                const std::size_t dds_offset,
+                                                const std::size_t dds_byte_size,
+                                                const std::size_t entry_offset,
+                                                const std::size_t span_size) {
+  if (dds_offset < entry_offset || dds_offset - entry_offset >= span_size) {
+    return "ptx_envelope_dds_offset_out_of_bounds";
+  }
+  const auto dds_relative = dds_offset - entry_offset;
+  if (dds_byte_size > span_size - dds_relative) {
+    return "ptx_envelope_dds_range_out_of_bounds";
+  }
+  if (dds_byte_size < Dmc3PtxEnvelopeParser::kDdsMinimumBytes) {
+    return "ptx_envelope_dds_buffer_too_small";
+  }
+  if (read_u32_le(bytes, dds_offset) != Dmc3PtxEnvelopeParser::kDdsMagic) {
+    return "ptx_envelope_dds_magic_mismatch";
+  }
+  if (read_u32_le(bytes, dds_offset + 0x04U) != Dmc3PtxEnvelopeParser::kDdsHeaderSize) {
+    return "ptx_envelope_dds_header_size_mismatch";
+  }
+  if (read_u32_le(bytes, dds_offset + Dmc3PtxEnvelopeParser::kDdsPixelFormatSizeField) !=
+      Dmc3PtxEnvelopeParser::kDdsPixelFormatSize) {
+    return "ptx_envelope_dds_pixel_format_size_mismatch";
+  }
+  return {};
 }
 
 }  // namespace
@@ -62,7 +119,7 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
     std::size_t span_size = 0;
 
     if (block_count == 0U) {
-      // The recovered EXE reads blockCount only after parsing the current TIM2 entry.
+      // The recovered EXE reads blockCount only after parsing the current entry.
       // Therefore a zero final block count is a valid non-advancing terminal shape,
       // while a non-final zero would make the next entry unlocatable. Bound the final
       // shape to the supplied resource EOF and keep non-final zero fail-closed.
@@ -84,65 +141,120 @@ Dmc3PtxEnvelopeParseResult Dmc3PtxEnvelopeParser::parse(const std::span<const st
       }
     }
 
-    constexpr auto kRequiredTm2MetadataBytes =
-        kTm2RuntimeTextureMetadataOffset + kTm2RuntimeTextureMetadataSize;
-    if (span_size < kRequiredTm2MetadataBytes) {
+    if (span_size < sizeof(std::uint64_t)) {
       return fail("ptx_envelope_entry_metadata_truncated");
     }
 
-    if (read_u32_le(bytes, entry_offset) != kTim2Magic) {
-      return fail("ptx_envelope_entry_magic_mismatch");
+    Dmc3PtxEnvelopeEntry entry;
+    entry.index = index;
+    entry.block_count = block_count;
+    entry.offset = entry_offset;
+    entry.span_size = span_size;
+    entry.terminal_span_to_eof = terminal_span_to_eof;
+
+    if (read_u32_le(bytes, entry_offset) == kTim2Magic) {
+      constexpr auto kRequiredTm2MetadataBytes =
+          kTm2RuntimeTextureMetadataOffset + kTm2RuntimeTextureMetadataSize;
+      if (span_size < kRequiredTm2MetadataBytes) {
+        return fail("ptx_envelope_entry_metadata_truncated");
+      }
+
+      entry.representation = Dmc3PtxEntryRepresentation::tim2;
+      auto& texture = entry.texture;
+      texture.dds_relative_offset = read_u32_le(bytes, entry_offset + kTm2DdsRelativeOffsetField);
+      texture.dds_byte_size = read_u32_le(bytes, entry_offset + kTm2DdsByteSizeField);
+      texture.width = read_u16_le(bytes, entry_offset + kTm2WidthField);
+      texture.height = read_u16_le(bytes, entry_offset + kTm2HeightField);
+
+      const auto dds_relative_offset = static_cast<std::size_t>(texture.dds_relative_offset);
+      if (dds_relative_offset >= span_size) {
+        return fail("ptx_envelope_tm2_dds_offset_out_of_bounds");
+      }
+      texture.dds_offset = entry_offset + dds_relative_offset;
+
+      for (std::size_t metadata_index = 0;
+           metadata_index < texture.runtime_texture_metadata.size();
+           ++metadata_index) {
+        texture.runtime_texture_metadata[metadata_index] =
+            bytes[entry_offset + kTm2RuntimeTextureMetadataOffset + metadata_index];
+      }
+
+      texture.has_embedded_dds = texture.dds_byte_size != 0U;
+      if (texture.has_embedded_dds) {
+        const auto error = validate_embedded_dds(bytes,
+                                                 texture.dds_offset,
+                                                 texture.dds_byte_size,
+                                                 entry_offset,
+                                                 span_size);
+        if (!error.empty()) {
+          return fail(error);
+        }
+      }
+    } else {
+      // Canonical dmc3.exe 0x1403365B0 dispatches non-TM2 entries to
+      // 0x140046510. That helper materializes a serialized gfxTexture object
+      // in place. Source storage uses a zero vtable qword; unknown non-TM2
+      // shapes remain fail-closed instead of being accepted as generic bytes.
+      const auto vtable_placeholder =
+          read_u64_le(bytes, entry_offset + kSerializedGfxVtablePlaceholderField);
+      if (vtable_placeholder != 0U) {
+        return fail("ptx_envelope_entry_unknown_non_tm2_representation");
+      }
+
+      constexpr auto kRequiredSerializedPointerBytes =
+          kSerializedGfxDescriptorPointerField + sizeof(std::uint64_t);
+      if (span_size < kRequiredSerializedPointerBytes) {
+        return fail("ptx_envelope_serialized_gfx_metadata_truncated");
+      }
+
+      entry.representation = Dmc3PtxEntryRepresentation::serialized_gfx_texture_dds;
+      auto& texture = entry.serialized_texture;
+      texture.vtable_placeholder = vtable_placeholder;
+      texture.width = read_u16_le(bytes, entry_offset + kSerializedGfxWidthField);
+      texture.height = read_u16_le(bytes, entry_offset + kSerializedGfxHeightField);
+
+      const auto descriptor_pointer_field = entry_offset + kSerializedGfxDescriptorPointerField;
+      texture.descriptor_relative_delta = read_u64_le(bytes, descriptor_pointer_field);
+      if (!resolve_serialized_delta(descriptor_pointer_field,
+                                    texture.descriptor_relative_delta,
+                                    entry_offset,
+                                    span_size,
+                                    texture.descriptor_offset)) {
+        return fail("ptx_envelope_serialized_gfx_descriptor_offset_out_of_bounds");
+      }
+
+      const auto descriptor_relative = texture.descriptor_offset - entry_offset;
+      if (kSerializedGfxDescriptorMinimumBytes > span_size - descriptor_relative) {
+        return fail("ptx_envelope_serialized_gfx_descriptor_truncated");
+      }
+
+      texture.dds_byte_size = read_u32_le(
+          bytes, texture.descriptor_offset + kSerializedGfxDescriptorDdsByteSizeField);
+      const auto dds_pointer_field =
+          texture.descriptor_offset + kSerializedGfxDescriptorDdsPointerField;
+      texture.dds_relative_delta = read_u64_le(bytes, dds_pointer_field);
+      if (!resolve_serialized_delta(dds_pointer_field,
+                                    texture.dds_relative_delta,
+                                    entry_offset,
+                                    span_size,
+                                    texture.dds_offset)) {
+        return fail("ptx_envelope_serialized_gfx_dds_offset_out_of_bounds");
+      }
+
+      texture.has_embedded_dds = texture.dds_byte_size != 0U;
+      if (texture.has_embedded_dds) {
+        const auto error = validate_embedded_dds(bytes,
+                                                 texture.dds_offset,
+                                                 texture.dds_byte_size,
+                                                 entry_offset,
+                                                 span_size);
+        if (!error.empty()) {
+          return fail(error);
+        }
+      }
     }
 
-    Dmc3Tm2DdsBridge texture;
-    texture.dds_relative_offset = read_u32_le(bytes, entry_offset + kTm2DdsRelativeOffsetField);
-    texture.dds_byte_size = read_u32_le(bytes, entry_offset + kTm2DdsByteSizeField);
-    texture.width = read_u16_le(bytes, entry_offset + kTm2WidthField);
-    texture.height = read_u16_le(bytes, entry_offset + kTm2HeightField);
-
-    const auto dds_relative_offset = static_cast<std::size_t>(texture.dds_relative_offset);
-    if (dds_relative_offset >= span_size) {
-      return fail("ptx_envelope_tm2_dds_offset_out_of_bounds");
-    }
-    texture.dds_offset = entry_offset + dds_relative_offset;
-
-    for (std::size_t metadata_index = 0;
-         metadata_index < texture.runtime_texture_metadata.size();
-         ++metadata_index) {
-      texture.runtime_texture_metadata[metadata_index] =
-          bytes[entry_offset + kTm2RuntimeTextureMetadataOffset + metadata_index];
-    }
-
-    texture.has_embedded_dds = texture.dds_byte_size != 0U;
-    if (texture.has_embedded_dds) {
-      const auto dds_byte_size = static_cast<std::size_t>(texture.dds_byte_size);
-      if (dds_byte_size > span_size - dds_relative_offset) {
-        return fail("ptx_envelope_dds_range_out_of_bounds");
-      }
-      if (dds_byte_size < kDdsMinimumBytes) {
-        return fail("ptx_envelope_dds_buffer_too_small");
-      }
-      if (read_u32_le(bytes, texture.dds_offset) != kDdsMagic) {
-        return fail("ptx_envelope_dds_magic_mismatch");
-      }
-      if (read_u32_le(bytes, texture.dds_offset + 0x04U) != kDdsHeaderSize) {
-        return fail("ptx_envelope_dds_header_size_mismatch");
-      }
-      if (read_u32_le(bytes, texture.dds_offset + kDdsPixelFormatSizeField) !=
-          kDdsPixelFormatSize) {
-        return fail("ptx_envelope_dds_pixel_format_size_mismatch");
-      }
-    }
-
-    envelope.entries.push_back(Dmc3PtxEnvelopeEntry{
-        index,
-        block_count,
-        entry_offset,
-        span_size,
-        texture,
-        terminal_span_to_eof,
-    });
-
+    envelope.entries.push_back(entry);
     entry_offset += span_size;
   }
 
