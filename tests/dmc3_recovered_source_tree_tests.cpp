@@ -1,5 +1,6 @@
 #include "dmc_rengine/core/json.hpp"
-#include "dmc_rengine/gdspaces/resource.hpp"
+#include "dmc_rengine/gdspaces/resource_payload.hpp"
+#include "dmc_rengine/gdspaces/resource_ref.hpp"
 #include "dmc_rengine/integration/executable_workspace_manifest.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
 #include "dmc_rengine/profiles/dmc3/recovered_source_tree.hpp"
