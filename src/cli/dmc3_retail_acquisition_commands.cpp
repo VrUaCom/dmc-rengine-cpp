@@ -136,7 +136,7 @@ struct MountedArchive final {
     }
 
     core::Sha256Accumulator accumulator;
-    std::array<char, 1024U * 1024U> buffer{};
+    std::vector<char> buffer(1024U * 1024U);
     while (stream) {
         stream.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
         const auto count = stream.gcount();
