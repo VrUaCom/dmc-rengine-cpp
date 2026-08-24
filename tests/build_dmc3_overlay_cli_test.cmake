@@ -10,6 +10,7 @@ set(GAME_ROOT "${TEST_ROOT}/game")
 set(DATA_DIR "${GAME_ROOT}/data/dmc3")
 set(OUTPUT_DIR "${TEST_ROOT}/output")
 set(AUTHORED_FILE "${TEST_ROOT}/authored.pac")
+set(OUTPUT_FILE "${OUTPUT_DIR}/DMC3-1.nbz")
 file(MAKE_DIRECTORY "${DATA_DIR}")
 file(MAKE_DIRECTORY "${OUTPUT_DIR}")
 
@@ -32,7 +33,7 @@ if(NOT BUILD_RESULT EQUAL 0)
     message(FATAL_ERROR
         "build-dmc3-overlay failed (${BUILD_RESULT})\nstdout:\n${BUILD_STDOUT}\nstderr:\n${BUILD_STDERR}")
 endif()
-if(NOT EXISTS "${OUTPUT_DIR}/DMC3-1.nbz")
+if(NOT EXISTS "${OUTPUT_FILE}")
     message(FATAL_ERROR "expected next contiguous overlay DMC3-1.nbz")
 endif()
 if(EXISTS "${DATA_DIR}/DMC3-1.nbz")
@@ -42,9 +43,30 @@ string(FIND "${BUILD_STDOUT}" "Archive member: GDataX360.afs/em000.pac" MEMBER_P
 if(MEMBER_POSITION EQUAL -1)
     message(FATAL_ERROR "runtime archive candidate was not derived from basename policy")
 endif()
-string(FIND "${BUILD_STDOUT}" "Publication: output-only" PUBLICATION_POSITION)
+string(FIND "${BUILD_STDOUT}" "Publication: atomic/no-replace output-only" PUBLICATION_POSITION)
 if(PUBLICATION_POSITION EQUAL -1)
-    message(FATAL_ERROR "output-only publication receipt is missing")
+    message(FATAL_ERROR "atomic/no-replace publication receipt is missing")
+endif()
+
+# A second publication to the same path must fail and leave the first artifact
+# byte-identical. This is the CLI boundary for the shared no-replace contract.
+file(SHA256 "${OUTPUT_FILE}" FIRST_OUTPUT_SHA)
+execute_process(
+    COMMAND "${DMC_RENGINE_CLI}"
+            build-dmc3-overlay
+            "${GAME_ROOT}"
+            "obj\\em000.pac"
+            "${AUTHORED_FILE}"
+            "${OUTPUT_DIR}"
+    RESULT_VARIABLE REPEAT_RESULT
+    OUTPUT_VARIABLE REPEAT_STDOUT
+    ERROR_VARIABLE REPEAT_STDERR)
+if(REPEAT_RESULT EQUAL 0)
+    message(FATAL_ERROR "second publication to an existing artifact must fail closed")
+endif()
+file(SHA256 "${OUTPUT_FILE}" SECOND_OUTPUT_SHA)
+if(NOT FIRST_OUTPUT_SHA STREQUAL SECOND_OUTPUT_SHA)
+    message(FATAL_ERROR "failed second publication modified the existing artifact")
 endif()
 
 execute_process(

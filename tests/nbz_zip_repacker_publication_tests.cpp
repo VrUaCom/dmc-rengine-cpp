@@ -1,3 +1,4 @@
+#include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/evidence/artifact.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_artifact_binding.hpp"
@@ -62,8 +63,87 @@ void cleanup(const std::filesystem::path& path) {
 } // namespace
 
 int main() {
+    namespace core = dmc::rengine::core;
     namespace gdspaces = dmc::rengine::gdspaces;
     namespace dmc3 = dmc::rengine::profiles::dmc3;
+
+    const auto root = std::filesystem::temp_directory_path();
+    const auto sentinel = ascii("DO-NOT-CLOBBER");
+
+    const auto shared_destination = root / "dmc-rengine-shared-publication.bin";
+    const auto shared_staging = std::filesystem::path{
+        shared_destination.string() + ".dmc-rengine-publish.staging"};
+    cleanup(shared_destination);
+    cleanup(shared_staging);
+    const auto shared_bytes = ascii("ATOMIC-PUBLICATION");
+
+    // Successful byte publication is exact and cleans owned staging.
+    const auto shared_result = core::publish_bytes_no_replace(
+        shared_destination, shared_bytes);
+    assert(shared_result.ok());
+    assert(read_file(shared_destination) == shared_bytes);
+    assert(!std::filesystem::exists(shared_staging));
+    cleanup(shared_destination);
+
+    // Failed staged validation must never make a final path visible.
+    bool validator_observed_complete_bytes = false;
+    const auto rejected_shared = core::publish_bytes_no_replace(
+        shared_destination,
+        shared_bytes,
+        [&](const std::filesystem::path& staged_file) {
+            validator_observed_complete_bytes = read_file(staged_file) == shared_bytes;
+            return false;
+        });
+    assert(!rejected_shared.ok());
+    assert(rejected_shared.status ==
+        core::NoReplacePublicationStatus::staging_validation_failed);
+    assert(validator_observed_complete_bytes);
+    assert(!std::filesystem::exists(shared_destination));
+    assert(!std::filesystem::exists(shared_staging));
+
+    // Existing destination is never truncated or replaced.
+    write_file(shared_destination, sentinel);
+    const auto existing_shared = core::publish_bytes_no_replace(
+        shared_destination, shared_bytes);
+    assert(!existing_shared.ok());
+    assert(existing_shared.status ==
+        core::NoReplacePublicationStatus::destination_exists);
+    assert(read_file(shared_destination) == sentinel);
+    assert(!std::filesystem::exists(shared_staging));
+    cleanup(shared_destination);
+
+    // A pre-existing staging reservation belongs to another publisher.
+    std::error_code error;
+    assert(std::filesystem::create_directory(shared_staging, error));
+    assert(!error);
+    const auto shared_owner = shared_staging / "owner.txt";
+    write_file(shared_owner, sentinel);
+    const auto reserved_shared = core::publish_bytes_no_replace(
+        shared_destination, shared_bytes);
+    assert(!reserved_shared.ok());
+    assert(reserved_shared.status ==
+        core::NoReplacePublicationStatus::staging_conflict);
+    assert(!std::filesystem::exists(shared_destination));
+    assert(read_file(shared_owner) == sentinel);
+    cleanup(shared_staging);
+
+    // Model the exact TOCTOU window from exists()->ofstream: validated staging
+    // exists first, then another actor creates the destination before commit.
+    const auto race_staged = root / "dmc-rengine-race-staged.bin";
+    const auto race_destination = root / "dmc-rengine-race-destination.bin";
+    cleanup(race_staged);
+    cleanup(race_destination);
+    write_file(race_staged, shared_bytes);
+    write_file(race_destination, sentinel);
+    const auto race_result = core::publish_validated_file_no_replace(
+        race_staged, race_destination);
+    assert(!race_result.ok());
+    assert(race_result.status ==
+        core::NoReplacePublicationStatus::destination_exists);
+    assert(read_file(race_destination) == sentinel);
+    assert(read_file(race_staged) == shared_bytes);
+    cleanup(race_staged);
+    cleanup(race_destination);
 
     const auto bootstrap = dmc3::VolumeBootstrapPolicy::plan(
         std::vector<std::uint32_t>{0U});
@@ -79,7 +159,6 @@ int main() {
         bootstrap, members);
     assert(generated.ok());
 
-    const auto root = std::filesystem::temp_directory_path();
     const auto source_path = root / "dmc-rengine-nbz-publication-source.nbz";
     const auto destination = root / "dmc-rengine-nbz-publication-output.nbz";
     const auto staging = std::filesystem::path{
@@ -103,8 +182,7 @@ int main() {
         source, artifact);
     assert(bound.ok());
 
-    // A destination that already exists is never truncated or replaced.
-    const auto sentinel = ascii("DO-NOT-CLOBBER");
+    // Repacker retains its existing no-replace contract.
     write_file(destination, sentinel);
     const auto existing_result = gdspaces::NbzZipRetailRepacker::write(
         source, *bound.snapshot, {}, destination);
@@ -114,9 +192,7 @@ int main() {
     assert(read_file(destination) == sentinel);
     cleanup(destination);
 
-    // Staging ownership is acquired atomically through directory creation. A
-    // pre-existing reservation belongs to someone else and is not removed.
-    std::error_code error;
+    error.clear();
     assert(std::filesystem::create_directory(staging, error));
     assert(!error);
     const auto staging_sentinel = staging / "owner.txt";
@@ -130,8 +206,6 @@ int main() {
     assert(read_file(staging_sentinel) == sentinel);
     cleanup(staging);
 
-    // Successful publication uses a no-replace hard link from the validated
-    // same-filesystem staging file, then the staging directory is cleaned.
     const auto result = gdspaces::NbzZipRetailRepacker::write(
         source,
         *bound.snapshot,
@@ -150,5 +224,7 @@ int main() {
     cleanup(source_path);
     cleanup(destination);
     cleanup(staging);
+    cleanup(shared_destination);
+    cleanup(shared_staging);
     return 0;
 }

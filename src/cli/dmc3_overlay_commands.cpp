@@ -1,5 +1,6 @@
 #include "dmc3_overlay_commands.hpp"
 
+#include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -12,7 +13,6 @@
 #include <cctype>
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -163,31 +163,11 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return std::move(payload->bytes);
 }
 
-[[nodiscard]] bool write_new_file(
-    const std::filesystem::path& path,
-    std::span<const std::byte> bytes) {
-    std::error_code error;
-    if (std::filesystem::exists(path, error) || error) {
-        return false;
-    }
-
-    std::ofstream stream(path, std::ios::binary | std::ios::out);
-    if (!stream) {
-        return false;
-    }
-    if (!bytes.empty()) {
-        stream.write(
-            reinterpret_cast<const char*>(bytes.data()),
-            static_cast<std::streamsize>(bytes.size()));
-    }
-    return stream.good();
-}
-
-[[nodiscard]] bool verify_published_overlay(
+[[nodiscard]] bool verify_overlay_file(
     const std::filesystem::path& archive_path,
     std::string_view member_path,
     std::span<const std::byte> expected_bytes) {
-    constexpr std::string_view source_id = "dmc3-overlay-published-verification";
+    constexpr std::string_view source_id = "dmc3-overlay-staging-verification";
     gdspaces::SourceRegistry registry;
     auto source = std::make_unique<gdspaces::NbzZipSource>(
         std::string{source_id}, archive_path);
@@ -296,21 +276,24 @@ int run_build_overlay(
 
     const auto& receipt = *built.receipt;
     const auto output_path = output_directory / receipt.filename;
-    if (!write_new_file(output_path, built.bytes)) {
+    const auto publication = dmc::rengine::core::publish_bytes_no_replace(
+        output_path,
+        std::span<const std::byte>{built.bytes.data(), built.bytes.size()},
+        [&](const std::filesystem::path& staged_file) {
+            return verify_overlay_file(
+                staged_file,
+                member_path,
+                std::span<const std::byte>{members.front().bytes});
+        });
+    if (!publication.ok()) {
         std::cerr
-            << "build-dmc3-overlay: output file already exists or cannot be written: "
-            << output_path.string() << '\n';
-        return 8;
-    }
-
-    if (!verify_published_overlay(
-            output_path,
-            member_path,
-            std::span<const std::byte>{members.front().bytes})) {
-        std::filesystem::remove(output_path, error);
-        std::cerr
-            << "build-dmc3-overlay: post-publication GDSpaces reopen verification failed; artifact removed\n";
-        return 9;
+            << "build-dmc3-overlay: staged validation/no-replace publication failed ("
+            << dmc::rengine::core::to_string(publication.status) << "): "
+            << publication.detail << ": " << output_path.string() << '\n';
+        return publication.status ==
+                dmc::rengine::core::NoReplacePublicationStatus::staging_validation_failed
+            ? 9
+            : 8;
     }
 
     std::cout << "DMC3 overlay artifact: ready\n"
@@ -323,8 +306,8 @@ int run_build_overlay(
               << "SHA-256: " << receipt.archive_sha256 << '\n'
               << "Bytes: " << receipt.archive_size << '\n'
               << "Compression: STORE (method 0)\n"
-              << "Verification: GDSpaces reopen + exact member bytes\n"
-              << "Publication: output-only; retail game files were not modified\n";
+              << "Verification: pre-publication GDSpaces staging reopen + exact member bytes\n"
+              << "Publication: atomic/no-replace output-only; retail game files were not modified\n";
     return 0;
 }
 
