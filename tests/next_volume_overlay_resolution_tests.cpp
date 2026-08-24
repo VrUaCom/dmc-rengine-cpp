@@ -149,15 +149,18 @@ int main() {
     };
     assert(bindings.valid_for(runtime_bootstrap));
 
-    // The runtime-equivalent resolver must choose the duplicate member from
-    // the highest contiguous numbered volume before considering volume 0.
+    // A directory-qualified game request is reduced to its basename before the
+    // six recovered namespace prefixes are tried. The winning first archive
+    // candidate is therefore GDataX360.afs/override-test.pac, not a path that
+    // preserves the request's synthetic obj/ directory.
     const auto resolved = dmc3::RuntimeResourceResolver::resolve(
-        "override-test.pac", runtime_bootstrap, bindings, registry);
+        "obj\\override-test.pac", runtime_bootstrap, bindings, registry);
     assert(resolved.ok());
     assert(resolved.resolved.has_value());
     assert(resolved.resolved->id.source_id == "archive-1");
     assert(resolved.resolved->id.logical_path == logical_path);
     assert(resolved.probes.size() == 1U);
+    assert(resolved.probes[0U].candidate == logical_path);
     assert(resolved.probes[0U].archive_volume_index.has_value());
     assert(*resolved.probes[0U].archive_volume_index == 1U);
 
