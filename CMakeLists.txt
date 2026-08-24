@@ -98,6 +98,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         sha256
         patch
         json_parser
+        json_number_portability
         evidence_json
         evidence_json_import
         evidence_packet_project
