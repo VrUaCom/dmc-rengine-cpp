@@ -1,124 +1,130 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-20  
-**Snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`
+**Snapshot date:** 2026-08-24  
+**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
 
-## R-001 — Second resolver regression
-
+## R-001 — Second resolver/materializer regression
 **Severity:** critical
 
-A subsystem may reintroduce direct path/container loading for convenience.
+A tool or Stage subsystem may reopen paths, parse archives or rediscover resources independently.
 
-Mitigation: all tools consume GDSpaces identities/payloads/shared workspaces; parsers consume supplied spans; no editor owns a second source resolver.
+**Mitigation:** GDSpaces remains the only product resource resolver/materializer. Parsers consume supplied spans. Stage Ops/ModViz/Binary Inspector consume shared identities and payloads.
 
-## R-002 — Layer mixing / false completion
-
+## R-002 — False L1 completion from synthetic composition
 **Severity:** critical
 
-L2 resolver progress or L3 runtime/lifecycle reverse may be counted as L1 completion, or synthetic tests may be promoted into game-equivalence claims.
+Green A-to-Z synthetic tests, resolver success or structural parsing may be reported as original-game materialization equivalence.
 
-Mitigation: canonical L1/L2/L3/V separation, [reverse-progress scale](../gdspaces/reverse-progress-scale.md), and strict `100% / COMPLETE` gate requiring zero mandatory blockers plus real receipts.
+**Mitigation:** [L1 roadmap](../gdspaces/l1-roadmap.md) mandatory gates require direct-retail provenance, real rebuild/reopen and original-game consumption before completion.
 
-## R-003 — Semantic leakage into GDSpaces
-
-**Severity:** high
-
-Resource materialization may accumulate gameplay-specific Stage/HITS semantics.
-
-Mitigation: GDSpaces owns bytes, resource identity, provenance, parsing/materialization/rebuild contracts. Gameplay/runtime semantics remain in recovered runtime/domain layers.
-
-## R-004 — Materializer/repacker authority collapse
-
-**Severity:** high
-
-`NbzZipSource` may be treated as sufficient authority for lossless retail repack even though materialization does not preserve the full source serialization envelope.
-
-Mitigation: keep ordinary NBZ materialization separate from on-demand raw serialization metadata and metadata-preserving retail repack authority. STORE-overlay writing remains a distinct product mode.
-
-## R-005 — Inferred packed extent laundered as intrinsic child EOF
-
+## R-003 — Evidence receipt snapshot split
 **Severity:** critical
 
-A bounded parent slot span may include alignment/padding and cannot automatically become intrinsic child length authority for size-changing rebuild.
+Archive index metadata, selected member bytes and archive SHA may be observed from different physical file states. `NbzZipSource` currently indexes one open and reopens the path for `read()`.
 
-Mitigation: typed exact-child authority only; independently intrinsic resources or verified complete-image writer results; no self-declared generic writer receipt.
+**Mitigation:** introduce artifact-stable acquisition/revalidation so provenance-grade receipts bind all observations to one stable artifact identity.
 
-## R-006 — Missing artifact mistaken for reverse uncertainty
+## R-004 — False no-clobber publication
+**Severity:** critical
 
+`exists() -> ofstream` can race and replace/create evidence outputs contrary to claimed no-clobber behavior.
+
+**Mitigation:** one shared atomic/no-replace publication primitive for repack/overlay/acquisition/evidence outputs; concurrency regression on Windows and Ubuntu.
+
+## R-005 — Acquisition mutates measured retail tree
+**Severity:** critical
+
+An evidence command may publish output inside the same retail tree whose identity/provider surface it measures.
+
+**Mitigation:** fail closed for outputs inside measured retail source trees; keep generated artifacts in explicit output/export locations.
+
+## R-006 — Product physical lookup mistaken for original Win32 semantics
 **Severity:** high
 
-Absent `.lst`/PNST/raw evidence may trigger redundant parser redesign instead of being tracked as an artifact-acquisition gate.
+Current `LocalDirectorySource`/physical index behavior may be described as exact DMC3 type-0 provider behavior.
 
-Mitigation: classify missing raw corpus as `ARTIFACT REQUIRED`; preserve already-strong reverse authority until contradictory evidence appears.
+**Mitigation:** keep the recovered `0x0C` normalization boundary separate from unresolved exact filename/case/CreateFile/open/failure semantics.
 
-## R-007 — Decompiled-code false confidence
-
+## R-007 — Materializer/repacker authority collapse
 **Severity:** high
 
-Readable recovered C++ may hide wrong ABI, ownership, lifetimes or behavior.
+Read/materialization behavior may be treated as proof of original writer/offline-packer behavior.
 
-Mitigation: hash-bound evidence, bounded promotion, behavioral receipts, contradiction tracking and no whole-game equivalence claims without runtime validation.
+**Mitigation:** separate product materializer, DMC Rengine writer, retail serialization preservation and Capcom offline-tool equivalence claims.
 
-## R-008 — Stage identity collapse
+## R-008 — Retail representation laundering
+**Severity:** critical
 
+The preserved transformed DDS-bearing corpus may be treated as pristine retail authority before direct-retail member provenance is established.
+
+**Mitigation:** first acquire exact retail member bytes, then classify representation. Only an observed representation inside an evidenced writer domain may advance to writeback.
+
+## R-009 — Pre-guessed archive member identity
 **Severity:** high
 
-Resource descriptor identity, numeric Stage selector identity and semantic gameplay Stage identity may be conflated; `st001` may incorrectly become the central architecture model.
+Documentation or tooling may hard-code `GData*.afs/...` member paths instead of letting the recovered resolver select the actual basename candidate/volume winner.
 
-Mitigation: preserve distinct identity layers and use `st001` only as a regression/compatibility fixture.
+**Mitigation:** acquisition begins from the game request (for example `obj\\em000.pac`) and records the actual resolver-selected member.
 
-## R-009 — ModViz second scene truth
+## R-010 — Inferred parent extent treated as intrinsic child EOF
+**Severity:** critical
 
+Parent slot ranges may include padding/alignment and cannot automatically become intrinsic editable-child size authority.
+
+**Mitigation:** exact-child authority requires independent intrinsic framing or validated complete-image writer receipts.
+
+## R-011 — Recovered C++ false confidence
 **Severity:** high
 
-ModViz may recreate discovery/parsing/scene membership independently from Stage Ops.
+Readable/compiling recovered code may hide ABI, ownership or lifecycle errors.
 
-Mitigation: ModViz consumes Stage Ops snapshots/projections and sends revision-guarded edits back through Stage Ops.
+**Mitigation:** exact artifact/range evidence, contradiction tracking and controlled original-vs-reconstruction behavioral receipts.
 
-## R-010 — Authored-byte provenance corruption
-
+## R-012 — Original/runtime ownership leakage into GDSpaces
 **Severity:** high
 
-Authored output may incorrectly inherit source `ByteProvenance`.
+LoadedResource/FileSlot/cache/lifecycle code may be moved into product resource modules because GDSpaces consumes its behavior.
 
-Mitigation: source provenance remains immutable; writers return authored bytes + receipts; new source provenance begins only after persistence/reopen.
+**Mitigation:** original runtime reconstruction remains in Recovered Game Source Tree; validation receipts bridge behavior without collapsing ownership.
 
-## R-011 — Premature original-file write support
-
+## R-013 — AFS/PACK inference from names/history
 **Severity:** high
 
-Write-back without explicit output/reopen/validation contracts may corrupt legal user files.
+Logical `.afs/` namespaces or historical product PACK parser code may be promoted as original DMC3 binary backend authority.
 
-Mitigation: WorkingCopy, bounded writer modes, copied/generated outputs, deterministic receipts, reopen/reparse checks and no implicit original-file mutation.
+**Mitigation:** freeze both absent direct runtime/raw evidence that places them on the supported path.
 
-## R-012 — Branch truth reported as main truth
-
+## R-014 — Stage identity/scene truth collapse
 **Severity:** high
 
-Active branches or PRs may be described as canonical implementation.
+Descriptor identity, numeric Stage identity and semantic gameplay identity may collapse, or ModViz may create a second scene truth.
 
-Mitigation: every status document names the canonical main SHA; branch work remains branch truth until merge and required CI/promotion gates pass.
+**Mitigation:** preserve distinct identity axes; Stage Ops owns assembly/orchestration; ModViz consumes Stage Ops state.
 
-## R-013 — Public repository contamination
-
+## R-015 — Branch truth reported as main truth
 **Severity:** high
 
-Proprietary game bytes or leaked source may be committed accidentally.
+Active #191/#190 or historical stacked PR findings may be described as canonical implementation.
 
-Mitigation: clean-room policy, synthetic fixtures, legal local artifacts only, `.gitignore`, review and removal procedures.
+**Mitigation:** every current status names exact main SHA; branch work stays branch truth until merged.
 
-## R-014 — Architecture monolith
+## R-016 — Historical checklist drift
+**Severity:** high
 
-**Severity:** medium
+Old issues/docs may continue to list already-promoted PNST/NBZ/provider work as pending or preserve superseded target paths.
 
-GDSpaces, Reverse Core, recovered runtime, Stage Ops, ModViz, Binary Inspector or EXE Editor boundaries may collapse into one module.
+**Mitigation:** current docs point to the canonical L1 roadmap; historical material remains history but receives explicit supersession/reconciliation notices when it can misdirect work.
 
-Mitigation: preserve explicit ownership contracts and keep evidence/reconstruction authority separate from product/editor authority.
+## R-017 — Public repository contamination
+**Severity:** high
 
-## R-015 — Historical document drift
+Proprietary game bytes or leaked source may be committed.
 
-**Severity:** medium
+**Mitigation:** synthetic/public-safe fixtures, sanitized receipts and legal local artifacts only.
 
-Root README/status/navigation may remain pinned to obsolete implementation snapshots after rapid promotion.
+## R-018 — Premature original-file modification
+**Severity:** high
 
-Mitigation: status/navigation sync is part of material promotion; machine-readable status and linked docs must share the same snapshot boundary or explicitly declare a different scope.
+Safe authoring work may evolve into implicit retail file mutation.
+
+**Mitigation:** WorkingCopy + explicit generated output + atomic publication + reopen/validation; retail files remain immutable by default.
