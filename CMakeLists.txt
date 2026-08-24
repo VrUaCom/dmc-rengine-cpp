@@ -229,6 +229,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_cli_preflight_dmc3_game_test_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
+        NAME dmc_rengine_cli_preflight_dmc3_game_test_unknown
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-game-test-preflight
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/dmc3_game_test_preflight_cli_test.cmake)
+    add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)
     set_tests_properties(
