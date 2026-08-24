@@ -3,6 +3,7 @@
 #include "dmc3_build_authority_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
 #include "dmc3_retail_acquisition_commands.hpp"
+#include "nbz_copy_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -20,6 +21,7 @@ void print_integration_help() {
     print_dmc3_build_authority_help();
     print_dmc3_overlay_help();
     print_dmc3_retail_acquisition_help();
+    print_nbz_copy_help();
     print_hits_help();
 }
 
@@ -39,6 +41,11 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_dmc3_retail_acquisition_command(argc, argv);
     if (retail_acquisition_result != -1) {
         return retail_acquisition_result;
+    }
+
+    const auto nbz_copy_result = try_run_nbz_copy_command(argc, argv);
+    if (nbz_copy_result != -1) {
+        return nbz_copy_result;
     }
 
     const auto hits_result = try_run_hits_command(argc, argv);

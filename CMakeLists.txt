@@ -58,6 +58,7 @@ add_executable(dmc-rengine
     src/cli/dmc3_build_authority_commands.cpp
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
+    src/cli/nbz_copy_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
 )
@@ -260,6 +261,18 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
                 -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
                 -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-retail-member-acquisition-test
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/extract_dmc3_retail_member_cli_test.cmake)
+    add_test(
+        NAME dmc_rengine_cli_build_nbz_copy_usage
+        COMMAND dmc-rengine build-nbz-copy)
+    set_tests_properties(
+        dmc_rengine_cli_build_nbz_copy_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_build_nbz_copy
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/nbz-copy-cli-test
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/build_nbz_copy_cli_test.cmake)
     add_test(
         NAME dmc_rengine_cli_extract_exe_window_usage
         COMMAND dmc-rengine extract-exe-window)
