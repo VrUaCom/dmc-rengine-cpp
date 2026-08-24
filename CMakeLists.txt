@@ -73,6 +73,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         nbz_zip_source
         nbz_zip_serialization
         nbz_zip_artifact_binding
+        nbz_zip_artifact_member
         nbz_zip_repacker_publication
         nbz_overlay_writer
         next_volume_overlay_resolution
