@@ -2,32 +2,82 @@
 
 ## Mission
 
-DMC Rengine is a C++20 reverse-engineering, decompilation, editing, and future recompilation framework for Devil May Cry 3 HD.
+DMC Rengine is a C++20 evidence-backed reverse-engineering, decompilation, editing and progressive-recompilation framework for Devil May Cry 3 HD.
 
-## Core rule
+## Canonical authority flow
 
-GDSpaces is the single resource authority. No editor may independently mount game sources, resolve paths, classify formats, expand containers, or invent competing resource identities.
+```text
+Evidence / exact artifacts
+ -> Reverse Core identities
+ -> Recovered Game Source Tree
+ -> GDSpaces resource authority
+ -> Stage Ops assembly/orchestration
+ -> Stage Semantic Graph
+ -> ModViz/editor consumers
+```
 
-## Layers
+These layers cooperate but do not collapse ownership.
 
-1. **Sources** — local game folders and read-only mounted archives.
-2. **GDSpaces** — source mounting, resolution, classification, container expansion, resource graph, diagnostics, evidence context, and working-copy orchestration.
-3. **Domain services** — EXE evidence, patch planning, stage bundling, model and UI representations.
-4. **Tools** — Binary Inspector, Stage Ops, ModViz, Item Editor, and future format editors.
-5. **Export** — validated patch plans and explicit user-owned output copies.
+## Core rules
 
-## Canonical tool boundaries
+1. **GDSpaces is the only product resource resolver/materializer/provenance authority.**
+2. **Recovered original DMC3 functions/types/lifecycle code belong to the Recovered Game Source Tree.**
+3. **Stage Ops owns product-side stage/scene assembly and operational workspace state.**
+4. **Stage Semantic Graph represents Stage Ops state; it does not load/assemble independently.**
+5. **ModViz consumes Stage Ops/Semantic Graph state; it does not create a second scene/resource truth.**
+6. **Binary Inspector consumes bytes/regions/evidence; it is not a source resolver.**
+7. **EXE Editor is a frontend over executable/recovered-source evidence, not a second reverse authority database.**
 
-- **EXE Editor** owns PE analysis, RVA/VA mapping, decompilation evidence, recovered C++ units, and guarded patch requests.
-- **Binary Inspector** receives bytes and structural regions; it is not a source resolver.
-- **Stage Ops** receives `GDStageBundle` objects, never loose paths as its primary contract.
-- **ModViz** owns scene/model and menu/HUD editing views, not container access.
-- **Item Editor** owns item semantics and editing, not game-source discovery.
+## Product layers
 
-## Container policy
+### Sources and GDSpaces
 
-PAC, PNST, NBZ, and AFS are implementation details inside GDSpaces. Legacy PAC Editor/PAC Manager logic is not part of the top-level architecture.
+Sources expose mounted origins. GDSpaces owns logical resolution, source/volume selection, materialization, ByteProvenance, container expansion, WorkingCopy handoff and bounded authoring/publication contracts.
 
-## Safety policy
+PAC, PNST and NBZ are supported internal container/archive layers. `.afs/` strings are currently logical namespace evidence; a dedicated binary AFS backend remains evidence-gated and must not be inferred from the names alone. Historical PACK product parsing likewise does not establish original DMC3 runtime authority.
 
-All edits operate on working copies. Writes require validation, source hashes, expected bytes, conflict checks, output manifests, rollback information, and explicit export targets.
+### Reverse Core and Recovered Game Source Tree
+
+Reverse Core owns generic artifact/range/function/type/claim/reconstruction/validation identities. Recovered Game Source Tree owns reconstructed DMC3 code and behavior, including resource runtime, scene lifecycle, HITS runtime and other original-game subsystems.
+
+GDSpaces may reproduce confirmed behavior as safe product policy without moving original runtime ownership into product code.
+
+### Stage Ops
+
+Stage Ops consumes canonical resolved/materialized resources and executable-backed Stage descriptor/selector authority. It produces one `StageAssemblyWorkspace`/operational scene state, preserving technical resource-set identity, numeric Stage identity and semantic gameplay identity separately.
+
+### Stage Semantic Graph
+
+A deterministic evidence-aware representation/index over Stage Ops state. It does not resolve resources, parse archives or own scene orchestration.
+
+### ModViz
+
+Editor/visualization consumer over Stage Ops and Semantic Graph state. Edits flow back through revision/WorkingCopy/validation contracts.
+
+### EXE Editor
+
+Owns executable navigation/editing UX over exact artifact mappings, recovered-source identities, evidence and guarded patch/rebuild requests. Recovered source is not promoted from readability or compile success alone.
+
+## Current primary dependency
+
+The current project critical path is [GDSpaces Layer 1](gdspaces/l1-roadmap.md):
+
+```text
+physical bytes -> exact materialization -> bounded edit/rebuild -> NBZ publication -> canonical reopen -> original-game consumption
+```
+
+Stage/editor feature work must not create private resource paths or displace mandatory L1 closure work without an explicit evidence dependency.
+
+## Safety and publication
+
+- source game files are immutable by default;
+- WorkingCopy separates edits from source bytes;
+- authored output uses explicit export/publication contracts;
+- no-clobber means the final publication operation itself cannot replace an existing destination;
+- evidence-grade archive/member receipts require artifact-stability binding across index/member/hash observation;
+- outputs must not be published into a measured retail source tree by acquisition/evidence commands;
+- product hardening is kept distinct from claims about original DMC3 malformed-input acceptance.
+
+## Completion policy
+
+A bounded parser, writer, recovered function, synthetic test or successful build may be complete at its own scope without making the containing subsystem complete. Formal subsystem completion requires its explicit acceptance gate and behavioral/evidence receipts.
