@@ -1,6 +1,7 @@
 #include "dmc3_overlay_commands.hpp"
 
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
+#include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_lookup_policy.hpp"
@@ -171,6 +172,41 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return stream.good();
 }
 
+[[nodiscard]] bool verify_published_overlay(
+    const std::filesystem::path& archive_path,
+    std::string_view member_path,
+    std::span<const std::byte> expected_bytes) {
+    constexpr std::string_view source_id = "dmc3-overlay-published-verification";
+    gdspaces::SourceRegistry registry;
+    auto source = std::make_unique<gdspaces::NbzZipSource>(
+        std::string{source_id}, archive_path);
+    if (!source->valid()) {
+        return false;
+    }
+    if (!registry.mount(std::move(source))) {
+        return false;
+    }
+
+    const auto* mounted = registry.find(source_id);
+    if (mounted == nullptr) {
+        return false;
+    }
+    const auto resources = mounted->enumerate();
+    const auto match = std::find_if(
+        resources.begin(), resources.end(), [&](const gdspaces::ResourceRef& ref) {
+            return ref.id.logical_path == member_path;
+        });
+    if (match == resources.end()) {
+        return false;
+    }
+
+    const auto payload = registry.read(match->id);
+    if (!payload.has_value() || !payload->readable()) {
+        return false;
+    }
+    return std::span<const std::byte>{payload->bytes} == expected_bytes;
+}
+
 int run_build_overlay(
     const std::filesystem::path& game_root,
     std::string_view game_request,
@@ -254,6 +290,16 @@ int run_build_overlay(
         return 8;
     }
 
+    if (!verify_published_overlay(
+            output_path,
+            member_path,
+            std::span<const std::byte>{members.front().bytes})) {
+        std::filesystem::remove(output_path, error);
+        std::cerr
+            << "build-dmc3-overlay: post-publication GDSpaces reopen verification failed; artifact removed\n";
+        return 9;
+    }
+
     std::cout << "DMC3 overlay artifact: ready\n"
               << "Game data: " << data_directory.string() << '\n'
               << "Game request: " << game_request << '\n'
@@ -263,6 +309,7 @@ int run_build_overlay(
               << "SHA-256: " << receipt.archive_sha256 << '\n'
               << "Bytes: " << receipt.archive_size << '\n'
               << "Compression: STORE (method 0)\n"
+              << "Verification: GDSpaces reopen + exact member bytes\n"
               << "Publication: output-only; retail game files were not modified\n";
     return 0;
 }
@@ -272,7 +319,7 @@ int run_build_overlay(
 void print_dmc3_overlay_help() {
     std::cout
         << "  build-dmc3-overlay <game-root> <game-request> <authored-file> <output-dir>\n"
-        << "                            Build the next contiguous STORE NBZ artifact without modifying retail files\n";
+        << "                            Build and verify the next contiguous STORE NBZ without modifying retail files\n";
 }
 
 int try_run_dmc3_overlay_command(int argc, char** argv) {
