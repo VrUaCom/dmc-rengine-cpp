@@ -1,10 +1,10 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "snapshot_date": "2026-08-24",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0",
+  "snapshot_main_sha": "ad13a8797b8c2dd5668e9029e16664415968fcbb",
   "overall_status": "gdspaces-l1-active-not-complete",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
@@ -15,12 +15,22 @@
   "gdspaces": {
     "primary_execution_layer": "L1-resource-materialization",
     "roadmap": "../gdspaces/l1-roadmap.md",
-    "completion_model": "mandatory-gates",
+    "completion_model": "mandatory-gates-plus-non-authoritative-engineering-estimates",
+    "completeness_estimate": {
+      "engineering_overall_percent": 84,
+      "implementation_percent": 94,
+      "reverse_evidence_percent": 88,
+      "validation_acceptance_percent": 62,
+      "authority": "planning-estimate-only",
+      "completion_rule": "mandatory-L1-gates-override-percentages"
+    },
     "canonical_capabilities": [
       "nbz-classic-zip-indexing",
       "nbz-store-materialization",
       "nbz-raw-deflate-materialization",
+      "artifact-bound-selected-member-observation",
       "byte-provenance",
+      "shared-atomic-no-replace-publication",
       "pac-relative-slot-structural-parsing",
       "pnst-relative-slot-structural-parsing",
       "pnst-structural-classification-hardening",
@@ -34,56 +44,27 @@
       "bounded-size-changing-texture-authoring",
       "texture-writer-original-runtime-relocation-composition",
       "numbered-volume-bootstrap-and-precedence",
+      "first-gap-retail-read-semantics",
       "next-contiguous-store-nbz-overlay-authoring",
       "generated-overlay-runtime-resolver-selection",
+      "retail-member-acquisition-cli",
+      "verified-immutable-source-nbz-copy-rebuild-cli",
       "dmc3-executable-authority-role-preflight"
     ],
     "mandatory_L1_gates": [
-      {
-        "id": "L1-A",
-        "name": "shared-atomic-no-replace-publication",
-        "status": "open-code-correction"
-      },
-      {
-        "id": "L1-B",
-        "name": "artifact-stable-retail-member-acquisition",
-        "status": "open-active-pr-191"
-      },
-      {
-        "id": "L1-C",
-        "name": "direct-retail-representative-member-provenance",
-        "status": "waiting-on-L1-B"
-      },
-      {
-        "id": "L1-D",
-        "name": "direct-retail-representation-classification",
-        "status": "waiting-on-L1-C"
-      },
-      {
-        "id": "L1-E",
-        "name": "real-retail-bounded-edit-bottom-up-rebuild",
-        "status": "waiting-on-L1-D"
-      },
-      {
-        "id": "L1-F",
-        "name": "real-next-volume-publication-canonical-reopen",
-        "status": "product-path-strong-real-receipt-open"
-      },
-      {
-        "id": "L1-G",
-        "name": "original-dmc3-consumption-receipt",
-        "status": "open-final-acceptance"
-      },
-      {
-        "id": "L1-H",
-        "name": "final-cross-stack-l1-acceptance-audit",
-        "status": "open"
-      }
+      {"id":"L1-A","name":"shared-atomic-no-replace-publication","status":"closed-main-pr-194"},
+      {"id":"L1-B","name":"artifact-stable-retail-member-acquisition","status":"closed-main-pr-195-pr-196-pr-197-pr-198"},
+      {"id":"L1-C","name":"direct-retail-representative-member-provenance","status":"open-requires-real-retail-artifact"},
+      {"id":"L1-D","name":"direct-retail-representation-classification","status":"waiting-on-L1-C"},
+      {"id":"L1-E","name":"real-retail-bounded-edit-bottom-up-rebuild","status":"product-writer-path-strong-real-retail-receipt-open"},
+      {"id":"L1-F","name":"real-next-volume-publication-canonical-reopen","status":"product-path-strong-main-pr-187-pr-188-pr-199-real-retail-receipt-open"},
+      {"id":"L1-G","name":"original-dmc3-consumption-receipt","status":"open-final-acceptance"},
+      {"id":"L1-H","name":"final-cross-stack-l1-acceptance-audit","status":"open"}
     ],
     "active_prs": {
-      "191": {
-        "role": "retail-member-acquisition-seam",
-        "status": "do-not-promote-until-publication-snapshot-retail-tree-blockers-close"
+      "201": {
+        "role": "pac-pnst-relative-slot-user-facing-rebuild-cli",
+        "status": "draft-ci-in-progress-branch-truth"
       }
     },
     "supporting_exe_reverse_gaps": [
@@ -101,31 +82,17 @@
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path"
   },
   "project_priority": [
-    "shared-atomic-no-replace-publication",
-    "artifact-stable-nbz-acquisition-contract",
-    "correct-and-promote-pr-191",
+    "finish-and-promote-pr-201",
     "direct-retail-obj-em000-request-receipt",
     "retail-representation-classification",
     "bounded-real-edit-bottom-up-rebuild",
-    "next-volume-nbz-canonical-reopen-rematerialization",
+    "receipt-linked-acquire-edit-rebuild-reopen-workflow",
     "original-dmc3-consumption-receipt",
     "final-l1-cross-stack-audit"
   ],
-  "downstream": {
-    "L2": "advanced-supporting-not-complete",
-    "L3": "advanced-static-spine-dynamic-level-e-open",
-    "stage_ops": "downstream-of-gdspaces-resource-authority",
-    "stage_semantic_graph": "derived-from-stage-ops",
-    "modviz": "consumer-editor-over-stage-ops",
-    "exe_editor": "frontend-over-recovered-source-binary-evidence-authority",
-    "progressive_recompilation": "long-term-after-bounded-behavioral-receipts"
-  },
   "navigation": {
-    "root_readme": "../../README.md",
-    "project_roadmap": "../roadmap.md",
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "current_status": "current.md",
-    "phase_map": "phase-map.md",
     "blockers": "blockers.md",
     "risks": "risks.md",
     "gdspaces_contract": "../gdspaces-contract.md"
