@@ -1,5 +1,6 @@
 #include "dmc3_overlay_commands.hpp"
 
+#include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -12,7 +13,6 @@
 #include <cctype>
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -163,26 +163,6 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return std::move(payload->bytes);
 }
 
-[[nodiscard]] bool write_new_file(
-    const std::filesystem::path& path,
-    std::span<const std::byte> bytes) {
-    std::error_code error;
-    if (std::filesystem::exists(path, error) || error) {
-        return false;
-    }
-
-    std::ofstream stream(path, std::ios::binary | std::ios::out);
-    if (!stream) {
-        return false;
-    }
-    if (!bytes.empty()) {
-        stream.write(
-            reinterpret_cast<const char*>(bytes.data()),
-            static_cast<std::streamsize>(bytes.size()));
-    }
-    return stream.good();
-}
-
 [[nodiscard]] bool verify_published_overlay(
     const std::filesystem::path& archive_path,
     std::string_view member_path,
@@ -296,10 +276,14 @@ int run_build_overlay(
 
     const auto& receipt = *built.receipt;
     const auto output_path = output_directory / receipt.filename;
-    if (!write_new_file(output_path, built.bytes)) {
+    const auto publication = dmc::rengine::core::publish_bytes_no_replace(
+        output_path,
+        std::span<const std::byte>{built.bytes.data(), built.bytes.size()});
+    if (!publication.ok()) {
         std::cerr
-            << "build-dmc3-overlay: output file already exists or cannot be written: "
-            << output_path.string() << '\n';
+            << "build-dmc3-overlay: no-replace publication failed ("
+            << dmc::rengine::core::to_string(publication.status) << "): "
+            << publication.detail << ": " << output_path.string() << '\n';
         return 8;
     }
 
@@ -324,7 +308,7 @@ int run_build_overlay(
               << "Bytes: " << receipt.archive_size << '\n'
               << "Compression: STORE (method 0)\n"
               << "Verification: GDSpaces reopen + exact member bytes\n"
-              << "Publication: output-only; retail game files were not modified\n";
+              << "Publication: atomic/no-replace output-only; retail game files were not modified\n";
     return 0;
 }
 
