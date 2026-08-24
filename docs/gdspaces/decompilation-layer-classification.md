@@ -1,130 +1,152 @@
-# GDSpaces decompilation-layer classification
+# GDSpaces Decompilation-Layer Classification
 
-Canonical reconciliation: 2026-08-19.
+**Canonical reconciliation:** 2026-08-24  
+**Snapshot base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
 
-This document classifies existing GDSpaces/resource-runtime reverse, implementation, and validation work by the already-established decompilation layers. It does not define a new workflow. Its purpose is to prevent Layer 1, Layer 2, Layer 3, and validation progress from being reported as if they were interchangeable.
+This document keeps GDSpaces/resource-runtime work separated by ownership and acceptance layer. The Layer-1 execution authority is [L1 roadmap](l1-roadmap.md).
 
 ## Canonical tags
 
 ### [L1] Resource Materialization
 
-Physical/container bytes -> bounded parse/read -> decompression/transform -> exact materialized resource bytes -> nested extraction -> editable `WorkingCopy` -> writer/rebuild/repack -> reopen/round-trip.
+```text
+physical/container bytes
+ -> bounded acquisition
+ -> transform/decompression
+ -> exact materialized bytes
+ -> nested extraction
+ -> exact editable child authority
+ -> WorkingCopy/edit
+ -> rebuild/repack/publication
+ -> reopen/rematerialization
+```
 
-Layer-1 completion is not satisfied by enumeration, lookup, static reverse, or read-only parsing alone. The current GDSpaces execution priority is Layer 1 and ultimately includes edit/rebuild/repack/round-trip validation.
+L1 is not closed by lookup, enumeration, structural parsing or synthetic composition alone.
 
 ### [L2] Resource Resolution
 
-Logical request -> candidate/path construction -> normalization -> provider/source/volume selection -> duplicate/ambiguity behavior -> exact `ResourceRef` identity.
-
-Layer 2 answers which resource is selected, not how selected storage becomes editable bytes.
+```text
+logical request
+ -> candidate construction
+ -> normalization
+ -> provider/source/volume selection
+ -> duplicate/ambiguity behavior
+ -> exact ResourceRef identity
+```
 
 ### [L3] Original Runtime / Lifecycle
 
-Original scheduler/FileSlot ownership beyond the minimum byte-read contract -> callbacks -> `LoadedResource` states -> typed post-load -> claims/releases -> cancellation/reset/unload/shutdown.
+```text
+FileSlot / AsyncIO / callbacks
+ -> LoadedResource states
+ -> typed post-load
+ -> claims/cache/factory handoff
+ -> cancellation/reset/release/unload/shutdown
+```
 
-Recovered original functions/types here belong to the Recovered Game Source Tree/runtime authority, not GDSpaces product ownership.
+Original code here belongs to the Recovered Game Source Tree.
 
-### [V] Validation / Equivalence
+### [V] Validation
 
-Cross-cutting validation boundary, not a fourth decompilation layer: hash-bound real-corpus receipts, exact-build pairing, original-vs-reconstruction comparison, Windows/Ubuntu product CI, and Level-E behavioral validation.
+Cross-cutting hashes, corpus receipts, CI, original-vs-reconstruction comparison and original-game execution. Validation is not a fourth decompilation layer.
 
-### [OUTSIDE] Product/tooling metadata
+### [OUTSIDE]
 
-Useful product information that is not established original-game runtime behavior. Example: external `.index` naming manifests.
+Product/extraction metadata or tooling information not established as original DMC3 runtime behavior.
 
-## Classification matrix
+## Current classification matrix
 
-| Area / finding | Layer | Boundary |
+| Area | Layer | Current boundary |
 |---|---|---|
-| NBZ/ZIP EOCD, central/local records, storage spans | L1 | Physical archive representation |
-| STORE/raw-DEFLATE materialization | L1 | Stored bytes -> materialized bytes |
-| ZipRawSubstream / ZipEntryStream / inflater / compressed seek | L1 | Original evidence supporting byte materialization |
-| PAC structure, sparse/empty/duplicate slots | L1 | Container bytes -> member views |
-| PNST shared relative-slot structure / nested extraction | L1 | Container bytes -> member views |
-| PACK raw binary schema/materialization | L1 | OPEN until raw/schema authority exists |
-| Binary AFS backend, if directly evidenced | L1 | Current `.afs/` strings do not prove it |
-| `.lst` grammar, sparse slots, synthesized layout/bytes | L1 | Loose representation materialization |
-| `.lst` packed-first / fallback / sibling `.pac` precedence | L2 | Representation selection policy |
-| ByteProvenance | L1 product support | Byte-domain lineage |
-| `WorkingCopy` | L1 product support | Editable materialized domain |
-| Writers / serializers / rebuild / repack | L1 | OPEN current-priority work |
-| Reopen/reparse/round-trip receipts | L1 + V | Required for Layer-1 completion |
-| `DMC3-N.nbz` bootstrap / first-gap / N..0 precedence | L2 | Source/volume selection |
-| `%d` non-negative runtime index domain | L2 | Numbered volume identity |
-| `OpenGameResource` six-prefix / twelve-attempt plan | L2 | Candidate planning |
-| `ResourcePathNormalize` 0x0E archive / 0x0C physical | L2 | Provider-key/path identity |
-| Archive normalized lookup / `ResourceKeyIndex` | L2 | Lookup representation |
-| Duplicate normalized-key ambiguity | L2 | No invented semantic winner |
-| Physical-vs-archive provider selection | L2 | Final byte read crosses into L1 |
-| `.afs/`, `Video/`, `afs/sound/`, `GData*.afs/` namespaces | L2 | Logical namespaces, not binary AFS proof |
-| `.index` manifests | OUTSIDE | Product/extraction metadata; not original L2 authority |
-| ResourceTypeInfo path vs basename/open-surface question | L2 | Still partially unresolved |
-| Minimum selected backend/range read into caller buffer | L1 support | Boundary to original I/O runtime |
-| FileSlot global pool ownership / request tickets / AsyncIO worker | L3 | Original runtime ownership |
-| scheduler helpers / callback lifecycle / `modeFlag` | L3 | `modeFlag` numeric meaning unresolved |
-| `LoadedResource` states 0/1/2/3/4 | L3 | Original lifecycle |
-| typed post-load / MOD/EFM/SCM/SHW | L3 | Materialized bytes -> game-ready object |
-| loader-node claims/releases | L3 | Higher-level ownership |
-| scene transition/reset/unload/shutdown | L3 | Original lifecycle |
-| Stage catalog selector/descriptor universe | Outside core L1 | Consumer/runtime identity + validation input |
-| Product safety bounds/CRC/budgets | Tag protected layer | Product policy unless original behavior is separately evidenced |
+| NBZ local/central/EOCD and stored spans | L1 | canonical bounded read/serialization evidence |
+| STORE/raw-DEFLATE member materialization | L1 | strong canonical |
+| archive/member provenance stability | L1 + V | OPEN for provenance-grade acquisition |
+| atomic/no-replace artifact publication | L1 product safety | OPEN cross-stack correction |
+| PAC/PNST relative-slot parsing | L1 | strong canonical |
+| PNST structural classification | L1 | current-main hardened |
+| recursive PAC/PNST expansion | L1 | strong canonical |
+| exact intrinsic editable-child identity | L1 | representation-specific; never inferred from parent extent alone |
+| bounded PAC/PNST reflow/reintegration | L1 | canonical at evidenced writer scope |
+| transformed DDS texture writer | L1 | canonical safe subset; retail provenance not yet established |
+| texture runtime relocation compatibility | L1 support from original EXE | canonical bounded composition |
+| `.lst` synthesized bytes | L1 | structurally recovered; real loose corpus/dynamic edge behavior separate |
+| `.lst` packed-first selection | L2 | recovered representation-selection behavior |
+| `DMC3-N.nbz` bootstrap/first-gap/precedence | L2 | strong canonical |
+| request basename candidates | L2 | strong recovered boundary |
+| archive normalization/index/qsort/bsearch | L2 | strong recovered boundary |
+| type-0 physical final filename/open behavior | L2 | OPEN exact Win32 semantics after recovered 0x0C normalization |
+| `LocalDirectorySource` physical lookup | L2 product policy | not original-equivalent final-open proof |
+| FileSlot pool/AsyncIO ownership | L3 | substantial recovered static spine |
+| LoadedResource 0/1/2/3/4 lifecycle | L3 | substantial recovered static spine |
+| typed MOD/EFM/SCM/SHW post-load | L3 | bounded family authority; exhaustive family semantics open |
+| loader-node claims/reset/release | L3 | substantial recovered authority |
+| dynamic transition/reload/shutdown receipts | L3 + V | OPEN representative Level-E coverage |
+| `.index` manifests | OUTSIDE | metadata, not original lookup authority on recovered path |
+| binary AFS backend | evidence-gated | not established by `.afs/` namespace strings |
+| PACK original runtime use | evidence-gated | historical product parser is not original-runtime proof |
+
+## GDS-relevant EXE function-boundary matrix
+
+### Strong / do not restart without contradiction
+
+- resource bootstrap / numbered-volume registration family around `0x14002E930`;
+- mounted-source resolver family around `0x140327430`;
+- basename-oriented `OpenGameResource` request path around `0x14002FCA0`;
+- normalization family including archive `0x0E` and physical `0x0C` behavior;
+- archive central index/sort/search family (`qsort`/`bsearch` architecture);
+- `ZipEntryRead 0x140328F50` direct-vs-inflated branch;
+- `InflateRead 0x140328820` raw-DEFLATE streaming behavior at the recovered scope;
+- whole-file selected-backend materialization spine at the bounded recovered scope;
+- LoadedResource `0 -> 1 -> 2 -> typed post-load -> 3` boundary;
+- PAC/PNST recursive typed traversal;
+- major `.lst` packed-first/synthesis structure.
+
+These boundaries may still have open error/lifetime edges; that does not justify restarting the already recovered core behavior.
+
+### Bounded open reverse targets relevant to GDS
+
+1. **Type-0 physical provider final open** — exact Win32 filename construction/comparison/case behavior, open flags and failure semantics after `0x0C` normalization.
+2. **`0x140328540` ZIP entry/stream initializer** — complete body, allocation/lifetime/error behavior.
+3. **`0x140328FE0` compressed seek/reset** — complete reset + reinflate/discard/error behavior.
+4. **Malformed/partial-read exact error behavior** — only where required for a claimed compatibility boundary.
+5. **Dynamic `.lst` ownership/lifetime/error/cycle behavior** — only if direct real loose-container acceptance depends on it.
+6. **Representative dynamic original-process lifecycle** — load/reload/transition/release/shutdown receipts after L1 reaches game execution.
+
+## Current PR / promotion classification
+
+Historical numbered PR lists are not maintained here as the primary truth because rapid clean respins supersede stacked branches. Current status is read from `main` plus active PRs/issues.
+
+Important current state:
+
+- #183 supersedes stale #167 synthetic nested A-to-Z validation;
+- #192 supersedes stale #168 PNST classification promotion;
+- #184-#189 represent the current clean texture/overlay/game-preflight progression now reflected in current main at this snapshot;
+- #191 is an active L1 acquisition seam and remains **DO NOT PROMOTE** until publication, artifact-stability and retail-tree-output blockers close;
+- #190 is EXE Editor/recovered-source-tree work and is branch truth until merged.
 
 ## Cross-boundary rules
 
-- `.lst` is intentionally mixed: synthesized bytes are L1; packed/list representation choice is L2.
-- FileBackend/FileSlot is a boundary: enough range-read behavior to explain selected bytes can support L1; original pool/scheduler/callback ownership is L3.
-- Physical provider selection is L2; reading/materializing the selected file is L1.
-- PAC/PNST parsing needed to expose member bytes is L1; original typed consumer construction after those bytes exist is L3.
-- Product hardening never becomes original-equivalence evidence merely because it protects L1 or L2 code.
-
-## Recent reverse-pass classification
-
-- Pass 45 — resolver ownership / archive-index provenance / physical-provider review: **L2**, with an L3 lifetime edge.
-- Pass 46 — `.lst` grammar/materializer: **L1 + L2**.
-- Pass 47 — full-path/exact-path interpretation: **L2**, later corrected.
-- Pass 48 — `0x1402EF4D0` scheduling/materialization-wrapper investigation: primary **L3**, unresolved possible L2 ingress.
-- Pass 49 — exact-path vs `OpenGameResource` correction: **L2 + L3** boundary.
-- Pass 50 — inherited `modeFlag` classification: **L3**.
-- Pass 51 — physical 0x0C vs archive 0x0E case normalization: **L2**.
-- Pass 52 — distribution media case-consistency corpus check: **V supporting L2**.
-- Pass 53 — current-main `.lst` integration-seam audit: **L1 + L2** product integration boundary.
-
-## Canonical current PR/implementation classification
-
-- #101 ByteProvenance: **L1**.
-- #102 PAC structural decoder: **L1**.
-- #103 PAC real-corpus receipt: **V supporting L1**.
-- #104 PNST/shared relative-slot core: **L1**.
-- #105 provenance fail-closed hardening: **L1 product support**.
-- #109 DMC3 PAC/PNST parser registry: **L1 parser ingress**.
-- #112 recursive PAC/PNST expansion: **L1**.
-- #115 RawDeflate: **L1**.
-- #116 recursive parse reuse hardening: **L1 product hardening**, not original L3 cache semantics.
-- #118 NBZ source: **L1**.
-- #120 path normalization: **L2**.
-- #122 candidate plan: **L2**.
-- #124 candidate-plan hardening: **L2 product hardening**.
-- #125 NBZ budgets/bounds hardening: **L1 product hardening**.
-- #129 numbered-volume bootstrap: **L2**.
-- #133 ResourceKeyIndex ownership: **L2**.
-- #135 signed `%d` volume-domain correction: **L2**.
-- #136 ordered runtime resolver: **L2**.
-- #137 `.lst` loose-container synthesis: **L1 + L2**.
+- Physical provider selection is L2; materializing the selected bytes is L1.
+- `.lst` representation choice is L2; synthesized container bytes are L1.
+- FileSlot can support L1 byte-read reconstruction while original pool/scheduler/callback ownership remains L3.
+- Product hardening never becomes original-game acceptance behavior automatically.
+- Writer compatibility with read/runtime contracts does not prove Capcom offline-writer equivalence.
+- Direct-retail member identity must come from the canonical resolver winner, not a pre-guessed archive path.
+- Evidence-grade archive/member receipts require artifact stability across index/member/hash observation.
 
 ## Current priority accounting
 
-For the present GDSpaces assignment, primary execution accounting is **Layer 1**. Layer 2 and Layer 3 findings remain valid and must be preserved, but they do not advance Layer-1 completion unless they directly unblock a Layer-1 materialization/rebuild/round-trip requirement.
+Primary execution accounting remains L1. The roadmap sequence is:
 
-Current Layer-1 open gates include:
+```text
+atomic publication
+ -> artifact-stable acquisition
+ -> direct-retail provenance
+ -> representation classification
+ -> real edit/rebuild
+ -> next-volume reopen/rematerialization
+ -> original-game consumption
+ -> final L1 audit
+```
 
-- exact clean PNST real-corpus execution receipt;
-- representative real `.lst` receipt;
-- PACK raw/schema acquisition if PACK remains in supported materialization scope;
-- production selected source/member -> exact materialized bytes with provenance;
-- editable `WorkingCopy` -> supported writer/serializer;
-- topology/identity-preserving rebuild/repack output;
-- reopen/reparse and deterministic round-trip comparison;
-- representative legal real-corpus receipt from NBZ member through nested container to edited/rebuilt output;
-- explicit product policy for NBZ write/repack versus mod-overlay output before Layer-1 closure is claimed.
-
-Any older status wording that counts resolver/lifecycle progress as Layer-1 completion is superseded by this classification. Those findings remain valid under L2/L3 unless separately corrected by evidence.
+L2/L3 work remains valid and may proceed as supporting evidence, but it must not be counted as L1 completion unless it closes a mandatory L1 gate.

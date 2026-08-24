@@ -1,101 +1,133 @@
 {
-  "schema_version": 1,
-  "snapshot_date": "2026-08-20",
+  "schema_version": 2,
+  "snapshot_date": "2026-08-24",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "4cf6b34258e95bc6fde19979036c82ba0104d270",
-  "generation": "evidence-backed-cpp-platform",
-  "overall_status": "gdspaces-l1-primary-not-complete",
+  "snapshot_main_sha": "c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0",
+  "overall_status": "gdspaces-l1-active-not-complete",
   "truth_layers": {
-    "github_main": "reviewed-implemented-product-truth",
-    "google_drive": "research-and-artifact-input-before-promotion",
-    "branch_pr": "branch-truth-until-merged",
-    "synthetic_ci": "bounded-contract-validation-not-game-equivalence"
+    "github_main": "reviewed-implemented-canonical-truth",
+    "active_pr": "branch-truth-until-merged",
+    "reverse_evidence": "artifact-range-scope-bound",
+    "synthetic_ci": "bounded-composition-validation-not-original-game-equivalence"
   },
   "gdspaces": {
     "primary_execution_layer": "L1-resource-materialization",
-    "reverse_progress": {
-      "L1_resource_materialization": {
-        "index_percent": 88,
-        "status": "active-not-complete"
-      },
-      "L2_resource_resolution": {
-        "index_percent": 94,
-        "status": "high-not-complete"
-      },
-      "L3_original_runtime_lifecycle": {
-        "index_percent": 72,
-        "status": "advanced-not-complete"
-      },
-      "V_validation": {
-        "index_percent": 60,
-        "status": "supporting-not-a-layer"
-      }
-    },
-    "completion_rule": "100-percent-only-when-mandatory-gates-zero-or-evidence-pruned-closing-work-in-main-real-corpus-receipts-green-required-ci-and-no-architecture-changing-contradiction",
+    "roadmap": "../gdspaces/l1-roadmap.md",
+    "completion_model": "mandatory-gates",
     "canonical_capabilities": [
-      "nbz-store-and-raw-deflate-materialization",
+      "nbz-classic-zip-indexing",
+      "nbz-store-materialization",
+      "nbz-raw-deflate-materialization",
       "byte-provenance",
-      "pac-structural-parser",
-      "pnst-relative-slot-structural-parser",
+      "pac-relative-slot-structural-parsing",
+      "pnst-relative-slot-structural-parsing",
+      "pnst-structural-classification-hardening",
       "recursive-pac-pnst-expansion",
       "working-copy",
-      "layout-preserving-packed-pac-pnst-writer",
-      "validated-same-size-nested-reintegration",
-      "runtime-synth-size-changing-pac-pnst-writer",
-      "typed-verified-nested-runtime-synth-composition",
-      "store-only-next-volume-nbz-overlay",
-      "generated-overlay-reopen"
+      "same-size-relative-slot-authoring",
+      "bounded-size-changing-relative-slot-reflow",
+      "nested-pac-pnst-reintegration",
+      "synthetic-full-nested-a-to-z-nbz-roundtrip",
+      "transformed-dds-safe-texture-framing",
+      "bounded-size-changing-texture-authoring",
+      "texture-writer-original-runtime-relocation-composition",
+      "numbered-volume-bootstrap-and-precedence",
+      "next-contiguous-store-nbz-overlay-authoring",
+      "generated-overlay-runtime-resolver-selection",
+      "dmc3-executable-authority-role-preflight"
     ],
     "mandatory_L1_gates": [
-      "representative-real-lst-receipt",
-      "representative-real-pnst-current-parser-receipt",
-      "representative-real-child-slot-intrinsic-byte-authority",
-      "raw-retail-nbz-serialization-metadata-authority",
-      "metadata-preserving-no-loss-retail-nbz-repack",
-      "representative-real-size-changing-a-to-z-roundtrip",
-      "controlled-original-game-consumption-receipt"
+      {
+        "id": "L1-A",
+        "name": "shared-atomic-no-replace-publication",
+        "status": "open-code-correction"
+      },
+      {
+        "id": "L1-B",
+        "name": "artifact-stable-retail-member-acquisition",
+        "status": "open-active-pr-191"
+      },
+      {
+        "id": "L1-C",
+        "name": "direct-retail-representative-member-provenance",
+        "status": "waiting-on-L1-B"
+      },
+      {
+        "id": "L1-D",
+        "name": "direct-retail-representation-classification",
+        "status": "waiting-on-L1-C"
+      },
+      {
+        "id": "L1-E",
+        "name": "real-retail-bounded-edit-bottom-up-rebuild",
+        "status": "waiting-on-L1-D"
+      },
+      {
+        "id": "L1-F",
+        "name": "real-next-volume-publication-canonical-reopen",
+        "status": "product-path-strong-real-receipt-open"
+      },
+      {
+        "id": "L1-G",
+        "name": "original-dmc3-consumption-receipt",
+        "status": "open-final-acceptance"
+      },
+      {
+        "id": "L1-H",
+        "name": "final-cross-stack-l1-acceptance-audit",
+        "status": "open"
+      }
+    ],
+    "active_prs": {
+      "191": {
+        "role": "retail-member-acquisition-seam",
+        "status": "do-not-promote-until-publication-snapshot-retail-tree-blockers-close"
+      }
+    },
+    "supporting_exe_reverse_gaps": [
+      "type0-physical-provider-final-win32-open-semantics",
+      "zip-stream-initializer-0x140328540-complete-body-lifetime",
+      "compressed-seek-reset-0x140328FE0-complete-behavior",
+      "malformed-partial-read-error-equivalence-where-required",
+      "dynamic-lst-lifetime-error-cycle-behavior-if-real-use-requires"
     ],
     "non_blocking_evidence_gated_families": [
       "binary-afs-backend",
-      "pack"
-    ]
+      "pack-original-runtime-authority"
+    ],
+    "first_direct_retail_request_target": "obj\\em000.pac",
+    "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path"
   },
-  "latest_reviewed_promotion": {
-    "pull_request": 147,
-    "title": "GDSpaces: sync typed nested capability and add reverse progress scale",
-    "merge_commit": "4cf6b34258e95bc6fde19979036c82ba0104d270",
-    "ci_conclusion": "success-windows-and-ubuntu"
+  "project_priority": [
+    "shared-atomic-no-replace-publication",
+    "artifact-stable-nbz-acquisition-contract",
+    "correct-and-promote-pr-191",
+    "direct-retail-obj-em000-request-receipt",
+    "retail-representation-classification",
+    "bounded-real-edit-bottom-up-rebuild",
+    "next-volume-nbz-canonical-reopen-rematerialization",
+    "original-dmc3-consumption-receipt",
+    "final-l1-cross-stack-audit"
+  ],
+  "downstream": {
+    "L2": "advanced-supporting-not-complete",
+    "L3": "advanced-static-spine-dynamic-level-e-open",
+    "stage_ops": "downstream-of-gdspaces-resource-authority",
+    "stage_semantic_graph": "derived-from-stage-ops",
+    "modviz": "consumer-editor-over-stage-ops",
+    "exe_editor": "frontend-over-recovered-source-binary-evidence-authority",
+    "progressive_recompilation": "long-term-after-bounded-behavioral-receipts"
   },
-  "active_blockers": [
-    "representative-real-lst-artifact-unavailable",
-    "fresh-representative-real-pnst-artifact-receipt-required",
-    "real-child-to-slot-intrinsic-byte-authority-required",
-    "lossless-retail-nbz-serialization-repack-tier-incomplete",
-    "real-size-changing-a-to-z-roundtrip-required",
-    "controlled-original-game-consumption-receipt-required",
-    "l3-file-slot-async-scheduler-lifecycle-incomplete",
-    "stage-ops-gameplay-runtime-links-incomplete",
-    "full-dmc3-decompilation-incomplete",
-    "behaviorally-equivalent-recompiled-dmc3-executable-incomplete"
-  ],
-  "critical_path": [
-    "retail-nbz-serialization-metadata-authority",
-    "metadata-preserving-retail-nbz-repack",
-    "reacquire-representative-lst-pnst-artifacts",
-    "real-child-slot-intrinsic-byte-proof",
-    "real-size-changing-materialize-edit-rebuild-nbz-reopen-compare",
-    "controlled-original-game-consumption",
-    "promote-l1-100-complete-only-with-zero-mandatory-gates"
-  ],
   "navigation": {
     "root_readme": "../../README.md",
+    "project_roadmap": "../roadmap.md",
+    "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "current_status": "current.md",
     "phase_map": "phase-map.md",
     "blockers": "blockers.md",
     "risks": "risks.md",
-    "gdspaces_progress_scale": "../gdspaces/reverse-progress-scale.md",
-    "gdspaces_layer_classification": "../gdspaces/decompilation-layer-classification.md"
+    "gdspaces_contract": "../gdspaces-contract.md"
   }
 }

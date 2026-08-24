@@ -1,10 +1,12 @@
 # GDSpaces Contract
 
-GDSpaces is the single public resource-access architecture of DMC Rengine.
+GDSpaces is the single public resource-resolution/materialization authority of DMC Rengine.
 
-It is a product resource authority. Recovered original DMC3 resource-runtime functions, registry/cache structures, loader-node ownership and scene-transition lifetime code belong to the Recovered Game Source Tree, not to GDSpaces.
+It is a **product** resource layer. Recovered original DMC3 resource-runtime functions, FileSlot/LoadedResource internals, registries, loader nodes, cache/claim semantics and scene-transition lifetime code belong to the **Recovered Game Source Tree**, not GDSpaces.
 
-## Current C++ contracts
+The current execution/completion plan for Layer 1 is [GDSpaces L1 Roadmap](gdspaces/l1-roadmap.md).
+
+## Core product contracts
 
 ### `ResourceId`
 
@@ -16,50 +18,37 @@ Canonical product identity fields:
 - byte offset in the identity's current byte domain;
 - byte size.
 
-`ResourceId` is not a display label and does not contain transient OS handles. Logical resource identity, provider candidate identity, physical archive-entry identity and materialized child identity are not automatically the same thing.
+`ResourceId` is not a display label or OS handle. Logical request identity, provider candidate, physical archive entry and materialized child identity remain separate where indirection exists.
 
 ### `ResourceRef`
 
-Adds presentation/classification metadata:
-
-- display name;
-- format;
-- game/profile label;
-- synthetic-name flag;
-- container flag.
+Adds presentation/classification metadata without changing canonical identity.
 
 ### `ByteProvenance`
 
-Tracks where materialized bytes came from without pretending every payload is a direct physical-file span.
+Tracks where materialized bytes came from while preserving byte-domain boundaries.
 
-Current origin classes:
+Current origin classes include:
 
-- `direct_source_span` — unchanged bytes map directly to one authority span;
-- `transformed_source_span` — stored bytes were transformed before materialization, for example NBZ/ZIP DEFLATE;
-- `materialized_parent_span` — a child is addressed inside already materialized parent bytes.
+- `direct_source_span`;
+- `transformed_source_span`;
+- `materialized_parent_span`.
 
-A child of a transformed parent must never fabricate a physical archive offset by adding its container-relative offset to the parent's compressed storage coordinate. Present-but-invalid provenance fails closed rather than being laundered into valid child lineage.
+A child of a transformed parent must never fabricate a physical archive coordinate by adding a container-relative offset to compressed storage coordinates.
 
 ### `ResourcePayload`
 
-Carries:
-
-- resolved reference;
-- owned read-only materialized bytes;
-- diagnostics;
-- optional byte provenance.
-
-A payload is readable only when its reference is valid and it has no error diagnostics.
+Carries the resolved reference, owned read-only materialized bytes, diagnostics and optional provenance. A payload is readable only under the explicit product validity/diagnostic contract.
 
 ### `ISource` / `SourceRegistry`
 
-A source owns transient access to a mounted origin and reads resources by canonical identity. `SourceRegistry` owns mounted sources, rejects duplicate source IDs, enumerates deterministically and routes reads to the owning source.
+A source owns access to one mounted origin. `SourceRegistry` owns source lifetimes, rejects duplicate IDs and routes reads by canonical identity.
 
-Tools do not open source paths directly.
+Tools do not bypass GDSpaces to open resource sources directly.
 
-### PAC / PNST structural authority
+## PAC / PNST authority
 
-The clean generation has one shared relative-slot structural core with distinct format authorities:
+PAC and PNST share an evidenced relative-slot physical envelope but not semantic slot schemas:
 
 ```text
 RelativeSlotContainer
@@ -67,112 +56,160 @@ RelativeSlotContainer
   -> PnstParser (PNST)
 ```
 
-PAC and PNST share the evidenced physical envelope, not semantic slot schemas. Sparse declared slot identity is preserved and never compacted.
+Sparse/empty/alias declared slot identity is preserved. Structural parser spans are not automatically intrinsic editable-child EOF authority.
 
-The canonical DMC3 profile parser registry adapts these format authorities and preserves exact parser diagnostics. It does not implement another PAC/PNST decoder.
+`ContainerExpander` and `ContainerTreeExpander` consume already supplied/materialized bytes and must not reopen source paths. Equal byte spans never erase distinct declared resource identities.
 
-### `ContainerExpander`
+## NBZ authority split
 
-Consumes a parser result plus a supplied parent payload. It does not reopen paths.
+GDSpaces deliberately separates four concepts:
 
-When parent bytes map directly to source storage, a populated child may inherit direct mapping. When parent bytes are valid transformed/materialized bytes, children are anchored to the materialized parent byte domain. Invalid parent provenance yields diagnostics rather than fabricated lineage.
+1. **NBZ materialization** — index/read STORE or raw-DEFLATE members into exact materialized bytes;
+2. **serialization observation** — preserve/bind raw local/central/EOCD/opaque framing where needed;
+3. **DMC Rengine authoring/publication** — generate product output under explicit writer contracts;
+4. **original Capcom writer/tool equivalence** — a separate claim requiring separate evidence and not implied by the first three.
 
-### `ContainerTreeExpander`
+A working `NbzZipSource` does not prove lossless retail writer equivalence.
 
-Recursively composes canonical container parsers with `ContainerExpander` under explicit product safety budgets.
+## Artifact-stability contract
 
-**Resource identity and parse-result reuse are separate dimensions.** Two declared slot identities may share one immutable byte span and still remain distinct graph nodes with distinct descendants.
+Evidence-grade provenance has a stronger requirement than ordinary filesystem reading.
 
-`IContainerParser::supports_byte_identity_reuse()` is explicit and defaults to `false`. A parser may opt in only when its structural result depends solely on supplied bytes rather than logical path/context.
-
-Even for an opted-in parser, reuse requires:
-
-- valid `ByteProvenance`;
-- materialized-size agreement with the actual byte buffer;
-- matching parser/lineage identity;
-- SHA-256 of the actual materialized bytes submitted to `parse()`.
-
-A cache hit reuses only `ContainerParseResult`; it never suppresses the current `ResourceId` or graph edges.
-
-An ancestry-local active-domain guard prevents recursion cycles without globally suppressing valid sibling aliases.
-
-### `ResourceGraph`
-
-Stores stable resources and typed edges such as `contains`, `depends-on`, `stage-member`, `evidence-for` and `opens-with`.
-
-### `WorkingCopy`
-
-Editing remains separate from immutable source payloads. Working copies own revisioned mutable bytes and operation history; original source bytes never silently become mutable.
-
-### `StageBundle`
-
-`StageBundle` is a product materialization/view concept, not an original Capcom runtime object. Materialization success is not equivalent to original state-3 game-ready completion.
-
-## Dependency direction
+When a receipt claims:
 
 ```text
-Source implementation
-  -> ResourceId / ResourceRef / ResourcePayload / ByteProvenance
-  -> SourceRegistry
-  -> canonical parser registry
-  -> ContainerExpander / ContainerTreeExpander / ResourceGraph
-  -> Stage Ops ingress / OpenRouter
-  -> tool-specific views/editors
+archive identity
+ -> central/member identity
+ -> materialized bytes
 ```
 
-Recovered original runtime remains physically separate:
+those observations must be bound to one stable artifact state.
+
+Current `NbzZipSource` may build its index from one file open and reopen the archive for a later member read. Therefore an acquisition/evidence seam must not assume source stability merely because the path string is unchanged.
+
+A provenance-grade flow must either:
+
+- keep the relevant observation bound to one stable file/artifact handle/state; or
+- perform fail-closed identity/stability revalidation that proves the archive did not change across index, member read and final artifact identity observation.
+
+A receipt that combines stale index metadata with later member bytes or a later archive SHA is invalid.
+
+## Publication contract
+
+Generated artifacts and evidence outputs must use explicit output-only publication.
+
+### No-clobber meaning
+
+`exists() -> ofstream` is **not** an acceptable no-clobber implementation because it has a TOCTOU race.
+
+A component may claim atomic/no-replace publication only when the final publication operation itself fails if the destination already exists.
+
+The project should expose one shared no-replace publication primitive and reuse it across:
+
+- retail-NBZ repack output;
+- next-volume overlay output;
+- retail-member acquisition output;
+- evidence/receipt files where overwrite would corrupt provenance.
+
+### Retail immutability
+
+Acquisition/evidence commands must not publish outputs inside the measured retail game tree. Product authoring remains output/export based unless a future explicit write contract deliberately changes that policy.
+
+## DMC3 runtime lookup boundary
+
+GDSpaces may reproduce evidenced resolver behavior while preserving the original-vs-product distinction.
+
+Strong current recovered behavior includes:
+
+- basename-oriented request candidate construction;
+- archive candidate ordering;
+- archive-first complete pass before physical-provider pass;
+- numbered contiguous `DMC3-N.nbz` bootstrap/precedence;
+- archive normalization/index behavior.
+
+The exact final type-0 physical-provider Win32 filename/case/open/failure semantics after recovered `0x0C` normalization remain unresolved. Product `LocalDirectorySource` behavior must not be relabeled as exact original behavior.
+
+For acquisition, begin with a **game request** and record the actual resolver-selected member. Do not predeclare `GData*.afs/...` archive member identity from filename intuition.
+
+## `ResourceGraph`
+
+Stores stable resources and typed relationships. Graph relationships do not replace source/materialization identity.
+
+## `WorkingCopy` and authoring
+
+Editing remains separate from immutable source payloads. Source `ByteProvenance` is immutable history and must not be copied onto newly authored output as though it were original source provenance.
+
+Writers return authored bytes plus bounded receipts. New source provenance begins only after explicit persistence/reopen/materialization of that output.
+
+## Stage boundary
+
+`StageBundle` and Stage Ops workspaces are product concepts, not original Capcom runtime objects. Product materialization success is earlier than original game-ready state-3 equivalence.
+
+Dependency direction remains:
+
+```text
+GDSpaces source/resolver/materialization/provenance
+ -> Stage Ops assembly/orchestration
+ -> Stage Semantic Graph
+ -> ModViz/editor consumers
+```
+
+No downstream consumer may install a second resolver/materializer.
+
+## Recovered runtime ownership
 
 ```text
 Recovered Game Source Tree
-  -> original request / materialization / post-load / ownership / lifecycle reconstruction
+  -> original request/open/I/O/post-load/cache/claim/lifecycle behavior
 
 GDSpaces
-  -> safe product resolver / source / materialization / provenance contracts
+  -> safe product resolver/materializer/provenance/authoring contracts
 ```
 
-Validation receipts connect those layers; code ownership does not collapse them.
+Validation receipts connect these layers without moving original-game functions into product resource code.
 
 ## Identity rules
 
 1. Display names are presentation only.
-2. Synthetic names are explicit.
-3. Declared container slot identity is preserved across sparse/alias layouts.
-4. Equal byte spans do not erase distinct resource identities.
-5. Parse-result reuse is an optimization, never resource-identity deduplication.
-6. EXE-backed semantic identity may link to but does not erase source/materialization identity.
-7. Logical path, provider candidate, physical archive entry and materialized byte identity remain separate where lookup/transform indirection exists.
-8. Re-enumeration should reproduce canonical IDs for unchanged sources.
+2. Synthetic names remain explicit.
+3. Sparse/alias container slot identity is preserved.
+4. Equal byte spans do not erase distinct `ResourceId`s.
+5. Parse reuse never implies resource identity deduplication.
+6. Logical request, provider candidate, physical archive entry and materialized bytes remain distinct axes.
+7. Authored output never inherits source provenance by convenience.
+8. Evidence-grade archive/member receipts require artifact-stability binding.
+9. Acquisition starts from canonical resolver input and records the actual winner.
 
 ## Original behavior vs product safety
 
-GDSpaces may intentionally validate more strictly than the recovered original runtime.
+GDSpaces may be stricter than the recovered game. Receipts must keep product hardening separate from original acceptance behavior, including CRC checking, method whitelists, ZIP64 diagnostics, malformed-input bounds and output publication safeguards.
 
-For archive work, receipts must distinguish at least:
+## Evidence-gated freezes
 
-```text
-OriginalCompatibilityBehavior
-SafeProductValidation
-```
-
-CRC checks, method whitelists, ZIP64 diagnostics, malformed-input guards or other product hardening must not silently become claims about original DMC3 acceptance behavior.
+- `.afs/` logical namespaces do not prove a binary AFS backend.
+- Historical GDSpaces PACK parser code does not prove original DMC3 PACK runtime authority.
+- Capcom offline-packer equivalence is not inferred from successful DMC Rengine authoring.
+- Stage/HITS/gameplay semantic rules do not belong in generic resource/container parsers.
 
 ## Architecture anti-patterns
 
 Rejected patterns include:
 
-- editor/tool opens a local path directly;
-- editor/tool parses an archive to discover its own resources;
-- Binary Inspector reopens a path instead of consuming supplied bytes;
-- Stage logic installs private PAC/PNST semantics into generic parsers;
-- compressed NBZ coordinates are reused as materialized child coordinates;
-- equal `source/offset/size` is used to discard a second declared slot identity;
-- parser results are reused without explicit byte-pure capability and actual content binding;
-- profile wiring reimplements canonical format decoders;
-- GDSpaces absorbs original `LoadedResource`, loader-node or scene-lifecycle implementation;
-- one global normalized-path cache is presented as original DMC3 behavior without evidence.
+- tool-specific filesystem/archive loading;
+- a second resolver outside GDSpaces;
+- compressed storage coordinates presented as materialized-child coordinates;
+- inferred packed parent span treated automatically as intrinsic child EOF;
+- `exists() -> ofstream` described as no-clobber publication;
+- evidence command writing into the measured retail tree;
+- archive SHA computed independently of the member/index state while claiming one provenance snapshot;
+- hard-coded archive member winner where the runtime resolver has not observed it;
+- original LoadedResource/cache/lifecycle implementation moved into GDSpaces;
+- binary AFS/PACK authority inferred from strings or product history.
 
-## Evidence/promotion rule
+## Promotion rule
 
-Historical branches and PRs are implementation evidence, not automatic canonical authority. Promotion into `main` requires reconciliation against current EXE/corpus evidence and fresh whole-head CI.
+Historical branches/PRs are evidence history, not automatic current authority. Promotion requires reconciliation with current evidence, exact current-main composition and fresh required CI.
 
-Archive/runtime reverse authority is tracked in issue #100 and the synchronized Drive document `DMC Rengine — Archive Runtime Reverse Program — PAC PNST NBZ AFS`. Issue #55 remains the broader request-to-unload authority.
+Current detailed reverse ledger: issue #100.  
+Direct-retail/game-consumption acceptance gate: issue #182.  
+Broader request-to-unload reverse authority: issue #55.

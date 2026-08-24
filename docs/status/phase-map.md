@@ -1,90 +1,67 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-20  
-**Snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`
+**Snapshot date:** 2026-08-24  
+**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
 
-The project no longer fits a single linear phase number. Current work is tracked by canonical subsystem/layer boundaries plus cross-cutting validation.
+The project is tracked by subsystem/layer gates rather than one linear phase number.
 
 ## Foundation — maintained
 
-Implemented and continuously maintained:
+C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy and guarded output infrastructure are maintained foundations.
 
-- C++20/CMake foundation;
-- Windows + Ubuntu CI;
-- evidence and artifact identity infrastructure;
-- GDSpaces resource identity/source/graph contracts;
-- Binary Inspector/EXE/Stage/Item/HITS/save foundations;
-- guarded modification and provenance rules.
+## GDSpaces L1 — ACTIVE PRIMARY
 
-## GDSpaces Layer 1 — Resource Materialization
+Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
 
-**Current index:** 88% / NOT COMPLETE  
-**Execution priority:** primary
-
-Strongly canonical:
-
-- NBZ indexing + STORE/raw-DEFLATE materialization;
-- PAC/PNST structural parsing;
-- recursive expansion;
-- ByteProvenance;
-- WorkingCopy;
-- same-size authoring;
-- same-size nested reintegration;
-- runtime-synth size-changing authoring;
-- typed verified nested size-changing composition;
-- STORE-only next-volume NBZ overlay + reopen.
-
-Remaining gates:
+Current sequence:
 
 ```text
-real .lst / PNST artifact receipts
- + real child<->slot intrinsic-byte authority
- + no-loss retail NBZ serialization/repack
- -> representative real size-changing A-to-Z round-trip
- -> controlled original-game consumption
- -> L1 100% / COMPLETE
+publication integrity
+ -> artifact-stable retail acquisition
+ -> direct-retail member provenance
+ -> representation classification
+ -> real bounded edit
+ -> bottom-up PAC/PNST rebuild
+ -> next-volume NBZ publication/reopen
+ -> original-game consumption
+ -> final L1 acceptance audit
 ```
 
-## GDSpaces Layer 2 — Resource Resolution
+Current main already has strong NBZ/PAC/PNST materialization, bounded authoring, synthetic A-to-Z composition, texture writer/runtime-relocation composition, numbered-volume precedence and next-volume overlay support. The remaining gap is not another parser rewrite; it is evidence integrity plus real-retail/game-backed validation.
 
-**Current index:** 94% / NOT COMPLETE
+## GDSpaces L2 — ADVANCED SUPPORTING
 
-Major candidate construction, path normalization, numbered-volume order and resolver behavior are strongly reconstructed. Remaining work is narrow edge/corpus validation and final representative end-to-end receipts.
+Archive candidate construction, normalized lookup, contiguous numbered-volume bootstrap and precedence are strong. The main exact reverse gap relevant to L2 is the type-0 physical-provider final filename/open/failure behavior after `0x0C` normalization.
 
-L2 progress does not count toward L1 completion unless it directly closes a materialization boundary.
+L2 remains supporting while L1 is open.
 
-## Layer 3 — Original Runtime / Lifecycle
+## Original runtime / lifecycle — ADVANCED, NOT COMPLETE
 
-**Current index:** 72% / NOT COMPLETE
+Recovered static authority includes FileSlot/AsyncIO materialization, ZIP read/inflate, LoadedResource state progression, typed post-load and major claim/reset/release structure.
 
-Recovered runtime work includes substantial FileSlot/LoadedResource/post-load/lifecycle evidence, but full scheduler/async ownership, mode semantics, dynamic lifecycle and release/unload/shutdown receipts remain open.
+Open work includes complete ZIP initializer/seek-reset helpers where required, exact physical open semantics, dynamic lifecycle traces and broader Level-E receipts.
 
-## Validation — cross-cutting
+## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM
 
-**Current index:** 60% / NOT A LAYER
+Stage Ops owns product-side stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents that state. ModViz consumes it. None may create a private resource resolver or archive materializer.
 
-Bounded hashes, corpus evidence and CI receipts are extensive. Exact-build authored-resource, real A-to-Z and controlled original-game behavior receipts remain incomplete.
+Major game-backed Stage Ops expansion should not displace L1 closure.
 
-## Editor/runtime integration
+## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
-Stage Ops and ModViz continue in parallel over shared authority. Their semantic/editor progress is downstream of resource and runtime evidence and does not alter the GDSpaces layer accounting.
+EXE Editor should expose one canonical recovered-source tree linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
 
-## Progressive recompilation
-
-Recovered source integration, isolated subsystem compile/behavior comparisons, progressive recompilation and whole-game equivalence remain downstream milestones.
-
-## Canonical ordering
+## Long-term ordering
 
 ```text
-L1 materialization closure
-    -> preserve L1 regressions
-    -> finish narrow L2 validation
-    -> deepen L3 lifecycle reconstruction
-    -> validated editor/runtime verticals
-    -> progressive recompilation
-    -> whole-game equivalence
+L1 real-retail/game-backed acceptance
+ -> narrow L2 closure
+ -> representative L3 dynamic lifecycle validation
+ -> Stage Ops game-backed assembly
+ -> semantic/editor verticals
+ -> bounded recovered-subsystem equivalence
+ -> progressive recompilation
+ -> working rebuilt executable milestones
 ```
 
-This ordering is a dependency view, not a claim that all work must stop outside the active layer.
-
-See [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md) for the strict 100% rule.
+This ordering is dependency priority, not a ban on parallel evidence work.

@@ -1,148 +1,163 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-20  
-**Repository generation:** evidence-backed C++20 reconstruction platform  
-**Version:** 0.2.0  
-**Canonical snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`  
-**Latest canonical GDSpaces promotion:** PR #147  
-**Overall status:** GDSpaces Layer 1 is the current execution priority; many bounded reverse/implementation slices are canonical, but no major subsystem has whole-game behavioral-equivalence proof.
+**Snapshot date:** 2026-08-24  
+**Canonical implementation base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`  
+**Latest main promotion at snapshot:** PR #192 — structurally validated PNST classification  
+**Primary execution program:** GDSpaces Layer 1 — Resource Materialization  
+**Overall status:** NOT COMPLETE; many bounded implementation/reverse slices are canonical, but real-retail provenance and original-game acceptance remain open.
 
-## Canonical authority split
+## Authority split
 
-- GitHub `main` is implementation truth for reviewed, promoted code and documentation.
-- Google Drive is research/artifact truth where newer reverse material exists before promotion.
-- Active branches/PRs are branch truth only until merged.
-- Synthetic tests prove bounded contracts, not original-game equivalence.
+- GitHub `main` is reviewed implementation/documentation truth.
+- Active PRs are branch truth only until merged.
+- Reverse evidence is valid only at its recorded artifact/range/scope.
+- Synthetic CI validates product composition, not original-game equivalence.
+- Recovered original-game code belongs to the Recovered Game Source Tree, not GDSpaces.
 
-## GDSpaces layer model
+## Canonical GDSpaces layer model
 
-Canonical boundaries are defined in [GDSpaces decompilation-layer classification](../gdspaces/decompilation-layer-classification.md).
+- **L1 — Resource Materialization:** physical bytes -> member/container bytes -> transform -> exact materialized bytes -> nested expansion -> bounded edit -> rebuild/repack -> reopen -> validation.
+- **L2 — Resource Resolution:** logical request -> candidates -> normalization -> provider/volume -> exact resource identity.
+- **L3 — Original Runtime/Lifecycle:** FileSlot/AsyncIO/LoadedResource/post-load/cache/claim/reset/release behavior beyond the minimum byte-materialization contract.
+- **V — Validation:** cross-cutting receipts, not a fourth subsystem layer.
 
-- **L1 — Resource Materialization:** storage/container bytes -> exact materialized bytes -> nested extraction -> WorkingCopy -> rebuild/repack -> reopen/round-trip.
-- **L2 — Resource Resolution:** logical request -> candidate construction -> normalization -> provider/volume selection -> exact resource identity.
-- **L3 — Original Runtime/Lifecycle:** original FileSlot/scheduler/callback/LoadedResource/typed-postload/release/unload behavior beyond the minimum L1 byte-read contract.
-- **V — Validation:** cross-cutting receipts/equivalence support, not a fourth layer.
+The canonical L1 execution plan is [GDSpaces Layer 1 Roadmap](../gdspaces/l1-roadmap.md). Gate closure, not a percentage, controls completion.
 
-## Hypothetical reverse-progress index
+## Current canonical L1 capability
 
-The authoritative operational scale is [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md).
+`main` now contains strong bounded authority for:
 
-| Layer | Index | Status |
-|---|---:|---|
-| **L1 Resource Materialization** | **88%** | ACTIVE / NOT COMPLETE |
-| **L2 Resource Resolution** | **94%** | HIGH / NOT COMPLETE |
-| **L3 Original Runtime / Lifecycle** | **72%** | ADVANCED / NOT COMPLETE |
-| **V Validation** | **60%** | SUPPORTING / NOT A LAYER |
+- NBZ classic ZIP indexing and STORE/raw-DEFLATE materialization;
+- CRC/size/product-budget validation and ByteProvenance;
+- PAC and PNST relative-slot parsing with sparse/empty/alias identity preservation;
+- recursive container expansion;
+- same-size and evidenced size-changing PAC/PNST authoring/reintegration paths;
+- synthetic nested A-to-Z composition through retail-NBZ repack/reopen;
+- transformed DDS-bearing texture framing and bounded size-changing authoring for the safe subset;
+- original runtime non-TM2 serialized `gfxTexture` relocation compatibility for that writer output;
+- recovered numbered-volume bootstrap and higher-volume precedence;
+- deterministic next-volume STORE NBZ authoring;
+- canonical resolver validation of generated higher-volume overrides;
+- protected-distribution vs unpacked-analysis executable authority separation;
+- current-main structural PNST classification hardening.
 
-These percentages are coverage indices, not equivalence probabilities. `99%` may still be NOT COMPLETE. `100% / COMPLETE` is allowed only when mandatory gates are zero or evidence-pruned, closing work is canonical in `main`, representative real-corpus receipts exist, required Windows+Ubuntu validation is green, and no architecture-changing contradiction remains.
+These capabilities are real, but they do not close L1 without direct-retail evidence and game execution.
 
-## L1 canonical capability now in main
+## Active L1 frontier
 
-Strong canonical Layer-1 coverage includes:
+### 1. Publication integrity
 
-- NBZ classic-ZIP indexing/source materialization;
-- STORE and raw-DEFLATE materialization with CRC/size/budget validation;
-- ByteProvenance and source/materialized coordinate separation;
-- PAC and PNST structural parsing with sparse/empty/alias topology preservation;
-- recursive PAC/PNST expansion;
-- WorkingCopy and parser-gated edit enablement where required;
-- same-size `layout-preserving-packed` PAC/PNST authoring;
-- validated same-size nested PAC/PNST reintegration with alias-conflict arbitration;
-- runtime-synth size-changing PAC/PNST authoring using the recovered `.lst` 64-byte layout;
-- typed verified `RuntimeSynthResult -> ExactChildImage` authority for nested size-changing composition;
-- deterministic STORE-only next-volume NBZ overlay authoring;
-- canonical reopen/reparse of generated overlay output;
-- authored-byte receipts kept distinct from original ByteProvenance.
+Review found a cross-stack product defect: retail-NBZ repack has a true no-replace publication seam, while CLI artifact paths still contain `exists() -> ofstream` publication logic. That pattern is vulnerable to a destination TOCTOU race and must not be called no-clobber.
 
-Canonical writer/reference documents:
+Required next change: one shared atomic/no-replace publication primitive used by overlay, acquisition and evidence outputs, with Windows/Ubuntu regression coverage.
 
-- [Runtime-synth PAC/PNST writer](../gdspaces/dmc3-runtime-synth-relative-slot-writer.md)
-- [Nested PAC/PNST reintegration](../gdspaces/dmc3-nested-relative-slot-reintegration.md)
-- [NBZ STORE overlay writer](../gdspaces/dmc3-nbz-store-overlay-writer.md)
-- [Loose-container `.lst` path](../gdspaces/dmc3-loose-container-list.md)
+### 2. Artifact-stable retail member acquisition
 
-## Mandatory L1 closure path
+Active PR #191 provides the right high-level composition:
 
 ```text
-L1 = 88%
-    |
-    +-- artifact/evidence gates
-    |     +-- representative real .lst receipt
-    |     +-- representative real PNST/raw-container receipt on current parser
-    |     +-- representative real child <-> slot / intrinsic-byte authority
-    |
-    +-- code/serialization gates
-          +-- raw retail-NBZ serialization metadata authority
-          +-- metadata-preserving no-loss retail-NBZ repack tier
-
-then
-
-representative real size-changing edit
-    -> bottom-up nested rebuild
-    -> root PAC/PNST
-    -> retail/overlay NBZ
-    -> reopen
-    -> canonical compare
-    -> controlled original-game consumption receipt
-    -> L1 100% / COMPLETE
+retail volume discovery
+ -> VolumeBootstrapPolicy
+ -> NbzZipSource
+ -> RuntimeResourceResolver
+ -> SourceRegistry::read
+ -> member provenance receipt
 ```
 
-### Artifact status
+but is **DO NOT PROMOTE** until three review blockers are corrected:
 
-Current connected Drive metadata does not expose a raw `.lst` filename and does not currently expose the exact representative PNST file requested for a fresh current-parser receipt. Historical Phase 12-16 raw packages are documented as unavailable in Drive. These are artifact-availability gates, not reasons to redo already-strong parser reverse from scratch.
+- atomic/no-replace output publication;
+- archive snapshot stability binding index + selected member + archive identity;
+- rejection of acquisition output inside the measured retail game tree.
 
-### Retail NBZ boundary
+`NbzZipSource` currently indexes from one file open and reopens the archive for `read()`, so provenance-grade acquisition needs an explicit artifact-stability contract.
 
-`NbzZipSource` is a materialization authority, not yet a lossless retail serialization authority. The current entry model does not preserve all source ZIP metadata needed for no-loss repack, including the complete raw central/local metadata envelope where required. STORE-overlay authoring and retail repack therefore remain separate capabilities.
+### 3. Direct-retail representative receipt
 
-The next no-loss tier must preserve or bind exact source serialization information such as local framing, central records, EOCD/comment data, version/time/attribute/extra/comment fields, and opaque local-region bytes where descriptors/padding/gaps may exist. It must not infer Capcom compressor/offline-builder equivalence.
+After #191 correction, first high-value request is:
 
-## Scope corrections that remain canonical
+```text
+obj\em000.pac
+```
 
-- AFS/PACK do not block DMC3 HD L1 absent new direct raw/backend evidence.
-- `.afs/` strings are logical namespace evidence, not proof of a binary AFS container backend.
-- Stage Ops/ModViz semantics do not count toward L1 completion.
-- Original resource factory/cache/refcount/async/unload/shutdown semantics beyond minimum materialization are L3.
-- Descriptor identity, numeric Stage identity, and semantic gameplay identity remain distinct.
-- `st001` is a regression/compatibility fixture, not the architecture's single Stage model.
+The canonical resolver must determine the actual winning archive member. Documentation must not predeclare `GData.afs/obj/em000.pac`; the recovered request path is basename-oriented and may resolve through another candidate/volume.
 
-## Other major project areas
+### 4. Representation classification and real edit
 
-### EXE / Recovered Game Source Tree
+The exact retail bytes must be compared with the preserved transformed DDS-bearing/runtime evidence. Only an observed representation inside a proven writer domain may advance to a real edit/rebuild receipt.
 
-The project has verified executable acquisition and multiple bounded recovered-runtime slices. Full DMC3 decompilation, full resource lifecycle equivalence, progressive recompilation and a behaviorally equivalent rebuilt executable remain incomplete.
+### 5. Real rebuild, next-volume publication and game consumption
 
-### Stage Ops / ModViz
+Required closing chain:
 
-Shared operational/domain state and editor ownership boundaries exist, but evidence-backed gameplay semantics for all camera/door/enemy/effect/event/runtime links are not complete. ModViz must remain a consumer/editor over Stage Ops rather than creating a second scene truth.
+```text
+retail-selected member
+ -> exact editable child
+ -> bounded edit
+ -> bottom-up PAC/PNST rebuild
+ -> next-contiguous DMC3-N.nbz
+ -> canonical resolver/reopen/rematerialization
+ -> exact byte receipt
+ -> original DMC3 successful consumption
+```
 
-### Binary Inspector
+## Supporting EXE reverse frontier for GDS
 
-Binary Inspector remains the byte/structure/evidence inspection authority. Revision/source lineage must stay synchronized with WorkingCopy and Stage Ops derived state.
+Strong recovered boundaries that should not be restarted without contradictory evidence include bootstrap, numbered-volume registration, basename candidates, archive-first/physical-second ordering, archive normalization/indexing, ZIP read/inflate behavior, the bounded FileSlot/AsyncIO materialization spine, LoadedResource `0->1->2->3`, PAC/PNST typed traversal and the main `.lst` fallback/synthesis structure.
+
+Still relevant open EXE targets:
+
+- exact type-0 physical-provider final Win32 filename/open/failure semantics after `0x0C` normalization;
+- complete ZIP stream initializer `0x140328540` body/lifetime;
+- complete compressed seek/reset/reinflate `0x140328FE0` behavior;
+- malformed/partial-read error equivalence where a promoted claim depends on it;
+- dynamic `.lst` lifetime/error/cycle behavior only if real loose-container validation requires it;
+- representative original-process load/reload/transition/release receipts after L1 reaches game execution.
+
+## Explicit non-blockers and freezes
+
+- `.afs/` namespaces do not establish a binary AFS backend.
+- Historical PACK product parsing does not establish original DMC3 PACK runtime authority.
+- Stage Ops/ModViz/HITS semantic work does not count as L1 closure.
+- Capcom offline-packer equivalence is not required for DMC Rengine product authoring acceptance.
+- `st001` remains a regression fixture, not the complete Stage model.
+
+## Other subsystems
+
+### EXE Editor / Recovered Game Source Tree
+
+The recovered runtime body is substantial but not a fully behaviorally equivalent decompilation. EXE Editor should consume one canonical recovered-source/evidence tree and preserve exact binary mappings, unresolved boundaries and artifact authority roles.
+
+### Stage Ops / Stage Semantic Graph / ModViz
+
+These remain downstream consumers. Stage Ops owns product-side assembly/orchestration, Stage Semantic Graph represents that state, and ModViz consumes it. None may create a private resource resolver/materializer.
 
 ### HITS / collision
 
-A large bounded HITS implementation/reverse body exists. Whole original-builder/runtime equivalence is not claimed; remaining claims continue to require representative corpus and controlled runtime evidence.
+Many bounded functions/layouts are reconstructed and validated. Full runtime/source2/transform-provider/lifecycle and modified-resource game behavior remain separately open.
 
-## Current execution priority
+## Current work order
 
-1. Finish Layer-1 no-loss retail-NBZ serialization/repack authority without contaminating ordinary materialization ownership.
-2. Reacquire missing representative `.lst`/PNST/raw-container artifacts where legally available.
-3. Prove real child-to-slot/intrinsic-byte authority for representative size-changing nested resources.
-4. Execute one real size-changing `materialize -> edit -> rebuild -> NBZ -> reopen -> compare` receipt.
-5. Obtain a controlled original-game consumption receipt.
-6. Promote `L1 = 100% / COMPLETE` only in the same canonical change that closes the final mandatory gates.
-7. Then move primary execution accounting to the next layer while preserving L1 regressions.
+1. shared atomic/no-replace publication primitive;
+2. artifact-stable NBZ acquisition contract;
+3. correct/promote #191;
+4. direct-retail `obj\em000.pac` request receipt;
+5. exact retail representation classification;
+6. bounded real edit + bottom-up rebuild;
+7. next-volume NBZ + canonical reopen/rematerialization;
+8. original-game consumption receipt;
+9. final L1 cross-stack audit;
+10. only then state `L1 COMPLETE`.
 
 ## Navigation
 
-- [Root project README](../../README.md)
-- [Documentation index](../README.md)
-- [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md)
-- [GDSpaces decompilation-layer classification](../gdspaces/decompilation-layer-classification.md)
+- [Canonical GDSpaces L1 roadmap](../gdspaces/l1-roadmap.md)
+- [Project roadmap](../roadmap.md)
 - [Blockers](blockers.md)
-- [Risk register](risks.md)
 - [Phase map](phase-map.md)
+- [Risks](risks.md)
 - [Machine-readable status](canonical-status.json)
+- [GDSpaces contract](../gdspaces-contract.md)
+- [Layer classification](../gdspaces/decompilation-layer-classification.md)
 
-No statement in this document upgrades a bounded implementation or synthetic regression into whole-game equivalence.
+No statement in this document upgrades a bounded implementation, branch result or synthetic regression into subsystem-wide original-game equivalence.

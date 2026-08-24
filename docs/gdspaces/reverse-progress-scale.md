@@ -1,99 +1,77 @@
-# GDSpaces hypothetical reverse-progress scale
+# GDSpaces Reverse Progress Scale
 
-Status snapshot: 2026-08-20.
+**Snapshot:** 2026-08-24
 
-This is an **operational reverse-coverage index**, not a behavioral-equivalence percentage and not a completion claim. Canonical layer boundaries remain those in `decompilation-layer-classification.md`.
+This document defines optional planning bands only. It is **not** the completion authority for GDSpaces. The canonical Layer-1 execution/completion authority is [GDSpaces L1 Roadmap](l1-roadmap.md), which is gate-based.
 
-## 100% rule
+## Completion rule
 
-A layer may be marked `100% / COMPLETE` only when:
+A percentage or coverage estimate can never produce `COMPLETE` automatically.
 
-1. every mandatory gate is closed or removed from scope by evidence;
-2. closing implementation/evidence is promoted to canonical `main`;
-3. representative real-corpus validation exists for the layer boundaries;
-4. required whole-head Windows + Ubuntu validation is green;
-5. architecture-changing contradictions are zero;
-6. the completion wording is no broader than the evidence.
+A layer may be marked complete only when:
 
-`99%` may still mean **NOT COMPLETE** when one mandatory artifact or receipt is missing. Synthetic CI alone cannot produce 100%.
+1. all mandatory gates are closed or removed from scope by direct evidence;
+2. closing code/evidence/docs are canonical in `main`;
+3. representative real-corpus/runtime receipts exist for the claimed boundary;
+4. required exact-head Windows + Ubuntu validation is green;
+5. no unresolved contradiction changes the architecture/representation boundary;
+6. the wording is no broader than the evidence.
 
-## Coverage bands
+For L1 specifically, the mandatory gates are defined only in `l1-roadmap.md`.
 
-| Index | Meaning |
+## Optional coverage bands
+
+| Estimate | Planning meaning |
 |---:|---|
 | 0-19% | discovery / largely unknown |
 | 20-39% | major structures identified |
 | 40-59% | bounded reverse + partial implementation |
 | 60-79% | major path reconstructed; representative gaps remain |
-| 80-94% | broad evidence closure; narrow but material gates remain |
+| 80-94% | broad evidence closure; narrow material gates remain |
 | 95-99% | final mandatory gates only; still NOT COMPLETE |
-| 100% | mandatory gates zero + canonical completion criteria satisfied |
+| 100% | allowed only after formal completion gate passes |
 
-## Current hypothetical scale
+These values are intentionally non-authoritative and may move backward when new evidence expands the known surface.
 
-| Layer | Index | Status | Main remaining reason |
-|---|---:|---|---|
-| **L1 Resource Materialization** | **88%** | ACTIVE / NOT COMPLETE | Real `.lst` receipt, representative real child-to-slot/intrinsic-byte authority, real size-changing round-trip/game-consumption receipts, and no-loss retail-NBZ metadata/repack tier remain. |
-| **L2 Resource Resolution** | **94%** | HIGH / NOT COMPLETE | Narrow path/open-surface edges, broader build/profile validation, and final representative end-to-end receipts remain. |
-| **L3 Original Runtime / Lifecycle** | **72%** | ADVANCED / NOT COMPLETE | FileSlot/AsyncIO/scheduler ownership, unresolved mode semantics, dynamic lifecycle and complete release/unload/shutdown receipts remain. |
-| **V Validation** | **60%** | SUPPORTING / NOT A LAYER | Many bounded hashes/corpus/CI receipts exist, but exact-build authored-resource and whole-path behavioral receipts remain incomplete. |
+## Current qualitative state
 
-The numbers are deliberately hypothetical and may move down when stronger reverse evidence reveals a larger surface.
+### L1 Resource Materialization
 
-## L1 closed strongly in canonical code
+**State:** ACTIVE / NOT COMPLETE.
 
-L1 currently includes strong canonical coverage for:
+Strong canonical code already covers NBZ read/materialization, PAC/PNST parsing/expansion, bounded authoring/reflow, synthetic nested A-to-Z composition, transformed DDS safe writer/runtime-relocation composition, numbered-volume precedence and next-volume overlay composition.
 
-- NBZ classic-ZIP source/indexing and STORE/raw-DEFLATE materialization;
-- ByteProvenance source-vs-materialized coordinate separation;
-- PAC and PNST structural parsing with sparse/empty/alias identity preservation;
-- recursive PAC/PNST expansion and bounded parse reuse;
-- editable WorkingCopy with parser validation where required;
-- same-size layout-preserving PAC/PNST writing;
-- same-size nested reintegration with alias-conflict arbitration;
-- runtime-synth size-changing PAC/PNST writing using recovered `.lst` 64-byte layout;
-- typed verified runtime-synth complete-image child authority for multi-level size-changing composition;
-- deterministic STORE-only next-volume NBZ overlay authoring and canonical reopen;
-- authored-byte receipts kept separate from source ByteProvenance.
+The actual remaining closure path is now:
 
-## Mandatory L1 gates before 100%
+```text
+atomic publication
+ -> artifact-stable retail acquisition
+ -> direct-retail provenance
+ -> representation classification
+ -> real bounded edit/rebuild
+ -> next-volume reopen/rematerialization
+ -> original-game consumption
+ -> final L1 audit
+```
 
-### Real `.lst` validation
+### L2 Resource Resolution
 
-Reacquire a representative legal real `.lst` corpus and run the canonical parser/materializer. Strong EXE layout evidence does not replace this corpus receipt.
+**State:** ADVANCED / NOT COMPLETE.
 
-### Real child-to-slot and intrinsic-byte authority
+Major archive candidate, normalization, numbered-volume and resolver behavior is strong. Exact type-0 physical-provider final-open semantics remain an important bounded gap.
 
-For representative size-changing nested resources, prove which exact intrinsic child image belongs to which physical slot. Synthetic `slot_NNNN.bin` identities and parser-inferred parent extents are not acceptable substitutes.
+### L3 Original Runtime / Lifecycle
 
-### Real size-changing A-to-Z round-trip
+**State:** ADVANCED / NOT COMPLETE.
 
-Demonstrate a representative legal path:
+A substantial static resource-runtime spine is recovered. Dynamic lifecycle breadth and Level-E receipts remain open.
 
-`original source/member -> materialize -> nested edit -> size-changing bottom-up rebuild -> root -> generated NBZ -> reopen -> canonical reparse/compare`.
+### Validation
 
-### Original-game consumption receipt
+**State:** STRONG SUPPORTING EVIDENCE / NOT A LAYER.
 
-At least one representative authored output must be consumed successfully through the original DMC3 path under a controlled receipt. Product reparse success alone is not game compatibility evidence.
-
-### No-loss retail NBZ tier
-
-The current writer intentionally creates deterministic STORE-only mod overlays. It does not preserve the complete original retail ZIP metadata envelope or claim byte-identical retail repacking.
-
-The canonical preservation path now has two bounded read-side responsibilities composed into one trust observation:
-
-1. [`NbzZipSerializationScanner`](dmc3-nbz-retail-serialization.md) remains the canonical framing parser for raw central/local/EOCD metadata plus opaque source spans.
-2. `NbzZipArtifactSerializationBinder` performs one complete streaming archive observation in which the same chunks feed SHA-256 and bounded metadata capture, then invokes the canonical scanner over that captured-byte view. Authority is granted only when the observed SHA matches the expected `ArtifactIdentity` and captured framing agrees with the indexed source.
-
-This closes the previous pre-hash / independent scan / post-hash TOCTOU gap, but it still does **not** close the no-loss gate. The remaining retail-NBZ tier must implement an artifact-revalidated unchanged-region copier, metadata-preserving changed-entry serialization, rebuilt offsets, canonical reopen, serialization + materialization comparison, representative real-corpus validation and controlled game-backed validation.
-
-## Non-blocking evidence-gated families
-
-- Binary AFS backend does not block DMC3 HD L1 unless new direct raw/backend evidence proves it is required; current evidence establishes `.afs/` namespaces.
-- PACK does not block DMC3 HD L1 absent new runtime/raw-format evidence.
-- Original factory/cache/lifecycle beyond the byte-materialization contract is L3, not L1.
-- Stage Ops/ModViz semantics do not count toward L1 completion.
+Synthetic/corpus/CI receipts are extensive; direct-retail provenance and original-game authored-resource acceptance are the important remaining L1 validation gates.
 
 ## Update policy
 
-After a material reverse/promotion pass, reconcile GitHub issue/PR evidence, Drive evidence, historical implementation and current `main`; update the index only when the known surface or mandatory gates changed. Never convert a percentage into COMPLETE automatically. When L1 finally closes, set `100% / COMPLETE` in the same promotion that records the final mandatory receipts.
+Do not maintain independent numeric truth in README/status files. Current-state documents should reference the L1 roadmap and machine-readable gate status. If a planning estimate is used in a report, label it explicitly non-authoritative and never use it as a merge/completion criterion.
