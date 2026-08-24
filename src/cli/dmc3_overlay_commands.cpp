@@ -163,11 +163,11 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return std::move(payload->bytes);
 }
 
-[[nodiscard]] bool verify_published_overlay(
+[[nodiscard]] bool verify_overlay_file(
     const std::filesystem::path& archive_path,
     std::string_view member_path,
     std::span<const std::byte> expected_bytes) {
-    constexpr std::string_view source_id = "dmc3-overlay-published-verification";
+    constexpr std::string_view source_id = "dmc3-overlay-staging-verification";
     gdspaces::SourceRegistry registry;
     auto source = std::make_unique<gdspaces::NbzZipSource>(
         std::string{source_id}, archive_path);
@@ -278,23 +278,22 @@ int run_build_overlay(
     const auto output_path = output_directory / receipt.filename;
     const auto publication = dmc::rengine::core::publish_bytes_no_replace(
         output_path,
-        std::span<const std::byte>{built.bytes.data(), built.bytes.size()});
+        std::span<const std::byte>{built.bytes.data(), built.bytes.size()},
+        [&](const std::filesystem::path& staged_file) {
+            return verify_overlay_file(
+                staged_file,
+                member_path,
+                std::span<const std::byte>{members.front().bytes});
+        });
     if (!publication.ok()) {
         std::cerr
-            << "build-dmc3-overlay: no-replace publication failed ("
+            << "build-dmc3-overlay: staged validation/no-replace publication failed ("
             << dmc::rengine::core::to_string(publication.status) << "): "
             << publication.detail << ": " << output_path.string() << '\n';
-        return 8;
-    }
-
-    if (!verify_published_overlay(
-            output_path,
-            member_path,
-            std::span<const std::byte>{members.front().bytes})) {
-        std::filesystem::remove(output_path, error);
-        std::cerr
-            << "build-dmc3-overlay: post-publication GDSpaces reopen verification failed; artifact removed\n";
-        return 9;
+        return publication.status ==
+                dmc::rengine::core::NoReplacePublicationStatus::staging_validation_failed
+            ? 9
+            : 8;
     }
 
     std::cout << "DMC3 overlay artifact: ready\n"
@@ -307,7 +306,7 @@ int run_build_overlay(
               << "SHA-256: " << receipt.archive_sha256 << '\n'
               << "Bytes: " << receipt.archive_size << '\n'
               << "Compression: STORE (method 0)\n"
-              << "Verification: GDSpaces reopen + exact member bytes\n"
+              << "Verification: pre-publication GDSpaces staging reopen + exact member bytes\n"
               << "Publication: atomic/no-replace output-only; retail game files were not modified\n";
     return 0;
 }
