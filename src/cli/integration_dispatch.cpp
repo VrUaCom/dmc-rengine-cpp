@@ -3,6 +3,7 @@
 #include "dmc3_build_authority_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
 #include "dmc3_retail_acquisition_commands.hpp"
+#include "relative_slot_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -20,6 +21,7 @@ void print_integration_help() {
     print_dmc3_build_authority_help();
     print_dmc3_overlay_help();
     print_dmc3_retail_acquisition_help();
+    print_relative_slot_help();
     print_hits_help();
 }
 
@@ -39,6 +41,11 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_dmc3_retail_acquisition_command(argc, argv);
     if (retail_acquisition_result != -1) {
         return retail_acquisition_result;
+    }
+
+    const auto relative_slot_result = try_run_relative_slot_command(argc, argv);
+    if (relative_slot_result != -1) {
+        return relative_slot_result;
     }
 
     const auto hits_result = try_run_hits_command(argc, argv);
