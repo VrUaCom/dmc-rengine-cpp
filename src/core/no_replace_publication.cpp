@@ -40,6 +40,8 @@ std::string_view to_string(NoReplacePublicationStatus status) noexcept {
         return "staging-conflict";
     case NoReplacePublicationStatus::staging_write_failed:
         return "staging-write-failed";
+    case NoReplacePublicationStatus::staging_validation_failed:
+        return "staging-validation-failed";
     case NoReplacePublicationStatus::destination_exists:
         return "destination-exists";
     case NoReplacePublicationStatus::publication_failed:
@@ -91,6 +93,7 @@ NoReplacePublicationResult publish_validated_file_no_replace(
 NoReplacePublicationResult publish_bytes_no_replace(
     const std::filesystem::path& destination,
     std::span<const std::byte> bytes,
+    const StagedFileValidator& validator,
     std::string_view staging_suffix) noexcept {
     if (destination.empty() || staging_suffix.empty() ||
         bytes.size() > static_cast<std::size_t>(
@@ -140,6 +143,12 @@ NoReplacePublicationResult publish_bytes_no_replace(
         return failure(
             NoReplacePublicationStatus::staging_write_failed,
             "Unable to write the complete staging payload.");
+    }
+
+    if (validator && !validator(staged_file)) {
+        return failure(
+            NoReplacePublicationStatus::staging_validation_failed,
+            "The complete staged artifact failed pre-publication validation.");
     }
 
     return publish_validated_file_no_replace(staged_file, destination);
