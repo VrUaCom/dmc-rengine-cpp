@@ -1,7 +1,9 @@
 #include "dmc_rengine/core/no_replace_publication.hpp"
 
 #include <fstream>
+#include <limits>
 #include <system_error>
+#include <utility>
 
 namespace dmc::rengine::core {
 namespace {
@@ -90,10 +92,12 @@ NoReplacePublicationResult publish_bytes_no_replace(
     const std::filesystem::path& destination,
     std::span<const std::byte> bytes,
     std::string_view staging_suffix) noexcept {
-    if (destination.empty() || staging_suffix.empty()) {
+    if (destination.empty() || staging_suffix.empty() ||
+        bytes.size() > static_cast<std::size_t>(
+            std::numeric_limits<std::streamsize>::max())) {
         return failure(
             NoReplacePublicationStatus::invalid_input,
-            "Destination and staging suffix must be non-empty.");
+            "Destination/staging input is invalid or payload exceeds stream limits.");
     }
 
     const auto parent = destination.parent_path();
