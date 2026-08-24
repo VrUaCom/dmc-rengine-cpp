@@ -52,7 +52,7 @@ std::string_view to_string(NoReplacePublicationStatus status) noexcept {
 
 NoReplacePublicationResult publish_validated_file_no_replace(
     const std::filesystem::path& validated_staged_file,
-    const std::filesystem::path& destination) noexcept {
+    const std::filesystem::path& destination) {
     if (validated_staged_file.empty() || destination.empty() ||
         validated_staged_file == destination) {
         return failure(
@@ -94,7 +94,7 @@ NoReplacePublicationResult publish_bytes_no_replace(
     const std::filesystem::path& destination,
     std::span<const std::byte> bytes,
     const StagedFileValidator& validator,
-    std::string_view staging_suffix) noexcept {
+    std::string_view staging_suffix) {
     if (destination.empty() || staging_suffix.empty() ||
         bytes.size() > static_cast<std::size_t>(
             std::numeric_limits<std::streamsize>::max())) {
@@ -137,12 +137,17 @@ NoReplacePublicationResult publish_bytes_no_replace(
             static_cast<std::streamsize>(bytes.size()));
     }
     stream.flush();
-    const bool write_ok = static_cast<bool>(stream);
-    stream.close();
-    if (!write_ok) {
+    if (!stream) {
+        stream.close();
         return failure(
             NoReplacePublicationStatus::staging_write_failed,
-            "Unable to write the complete staging payload.");
+            "Unable to flush the complete staging payload.");
+    }
+    stream.close();
+    if (!stream) {
+        return failure(
+            NoReplacePublicationStatus::staging_write_failed,
+            "Unable to close the complete staging payload.");
     }
 
     if (validator && !validator(staged_file)) {
