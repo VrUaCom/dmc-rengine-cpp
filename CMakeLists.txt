@@ -115,6 +115,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_analyzer
         resource_analyzer_structural_formats
         executable_workspace_manifest
+        dmc3_recovered_source_tree
         evidence_address_resolver
         exe_byte_window
         exe_byte_window_receipt
