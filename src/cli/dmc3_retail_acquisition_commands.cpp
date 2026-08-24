@@ -138,10 +138,7 @@ struct MountedArchive final {
         return path.lexically_normal();
     }
     auto normalized = std::filesystem::weakly_canonical(absolute, error);
-    if (error) {
-        return absolute.lexically_normal();
-    }
-    return normalized;
+    return error ? absolute.lexically_normal() : normalized;
 }
 
 [[nodiscard]] bool path_component_equal(
@@ -170,7 +167,7 @@ struct MountedArchive final {
     return true;
 }
 
-[[nodiscard]] std::optional<core::Sha256Digest> sha256_file(
+[[nodiscard]] std::optional<core::Sha256Digest> sha256_file_exact(
     const std::filesystem::path& path,
     std::uint64_t expected_size) {
     std::ifstream stream(path, std::ios::binary);
@@ -182,16 +179,14 @@ struct MountedArchive final {
     std::vector<char> buffer(1024U * 1024U);
     std::uint64_t consumed = 0U;
     while (consumed < expected_size) {
-        const auto remaining = expected_size - consumed;
         const auto amount = static_cast<std::size_t>(
-            std::min<std::uint64_t>(remaining, buffer.size()));
+            std::min<std::uint64_t>(expected_size - consumed, buffer.size()));
         stream.read(buffer.data(), static_cast<std::streamsize>(amount));
         if (stream.gcount() != static_cast<std::streamsize>(amount)) {
             return std::nullopt;
         }
-        const auto bytes = std::as_bytes(std::span<const char>{
-            buffer.data(), amount});
-        if (!accumulator.update(bytes)) {
+        if (!accumulator.update(std::as_bytes(std::span<const char>{
+                buffer.data(), amount}))) {
             return std::nullopt;
         }
         consumed += static_cast<std::uint64_t>(amount);
@@ -280,11 +275,9 @@ int run_extract_dmc3_retail_member(
     }
 
     const auto bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_indices);
-    if (!bootstrap.valid() || bootstrap.registered_archives.empty() ||
-        !bootstrap.present_after_first_gap.empty() ||
-        !bootstrap.present_outside_runtime_index_domain.empty()) {
+    if (!bootstrap.valid() || bootstrap.registered_archives.empty()) {
         std::cerr
-            << "extract-dmc3-retail-member: invalid or ambiguous contiguous DMC3 archive bootstrap\n";
+            << "extract-dmc3-retail-member: no valid contiguous runtime DMC3 archive bootstrap\n";
         return 4;
     }
 
@@ -303,7 +296,7 @@ int run_extract_dmc3_retail_member(
         const auto* physical = find_volume(*discovered, archive.index);
         if (physical == nullptr) {
             std::cerr
-                << "extract-dmc3-retail-member: bootstrap references an undiscovered archive\n";
+                << "extract-dmc3-retail-member: runtime bootstrap references an undiscovered archive\n";
             return 5;
         }
 
@@ -313,7 +306,7 @@ int run_extract_dmc3_retail_member(
             source_id, physical->path);
         if (!source->valid()) {
             std::cerr
-                << "extract-dmc3-retail-member: invalid NBZ/ZIP volume: "
+                << "extract-dmc3-retail-member: invalid runtime-mounted NBZ/ZIP volume: "
                 << physical->path.string() << '\n';
             return 6;
         }
@@ -387,9 +380,8 @@ int run_extract_dmc3_retail_member(
         return 9;
     }
 
-    const auto archive_size =
-        archive_iterator->source->index_receipt()->archive_size;
-    const auto first_digest = sha256_file(archive_iterator->path, archive_size);
+    const auto archive_size = archive_iterator->source->index_receipt()->archive_size;
+    const auto first_digest = sha256_file_exact(archive_iterator->path, archive_size);
     if (!first_digest.has_value()) {
         std::cerr
             << "extract-dmc3-retail-member: cannot establish selected archive identity\n";
@@ -411,9 +403,7 @@ int run_extract_dmc3_retail_member(
     }
 
     const auto observed = gdspaces::NbzZipArtifactMemberObserver::observe(
-        *archive_iterator->source,
-        *bound.snapshot,
-        entry->central_index);
+        *archive_iterator->source, *bound.snapshot, entry->central_index);
     if (!observed.ok()) {
         std::cerr
             << "extract-dmc3-retail-member: selected member could not be materialized from the artifact-bound archive\n";
@@ -451,6 +441,13 @@ int run_extract_dmc3_retail_member(
         << "  \"resolver_status\": \"resolved\",\n"
         << "  \"resolver_probe_count\": " << resolved.probes.size() << ",\n"
         << "  \"selected_volume_index\": " << archive_iterator->index << ",\n"
+        << "  \"bootstrap\": {\n"
+        << "    \"first_missing_index\": " << bootstrap.first_missing_index << ",\n"
+        << "    \"ignored_after_first_gap_count\": "
+        << bootstrap.present_after_first_gap.size() << ",\n"
+        << "    \"ignored_outside_runtime_domain_count\": "
+        << bootstrap.present_outside_runtime_index_domain.size() << "\n"
+        << "  },\n"
         << "  \"archive\": {\n"
         << "    \"path\": \"" << escape_json(archive_iterator->path.generic_string()) << "\",\n"
         << "    \"size\": " << artifact.size << ",\n"
@@ -521,6 +518,9 @@ int run_extract_dmc3_retail_member(
         << "Member SHA-256: " << resource_digest.hex() << '\n'
         << "Materialized bytes: " << bytes.size() << '\n'
         << "Transform: " << gdspaces::to_string(provenance.transform) << '\n'
+        << "Ignored after first gap: " << bootstrap.present_after_first_gap.size() << '\n'
+        << "Ignored outside runtime domain: "
+        << bootstrap.present_outside_runtime_index_domain.size() << '\n'
         << "Output: " << output_file.string() << '\n'
         << "Receipt: " << receipt_path.string() << '\n';
     return 0;
@@ -529,7 +529,7 @@ int run_extract_dmc3_retail_member(
 void print_dmc3_retail_acquisition_help() {
     std::cout
         << "  extract-dmc3-retail-member <exe-dir> <game-request> <output-file>\n"
-        << "                            Resolve and artifact-bind one exact member from contiguous retail DMC3 NBZ volumes with SHA/provenance receipt\n";
+        << "                            Resolve and artifact-bind one exact member from runtime-contiguous retail DMC3 NBZ volumes with SHA/provenance receipt\n";
 }
 
 int try_run_dmc3_retail_acquisition_command(int argc, char** argv) {
