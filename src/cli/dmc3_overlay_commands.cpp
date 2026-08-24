@@ -103,6 +103,16 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return normalized;
 }
 
+[[nodiscard]] bool path_component_equal(
+    const std::filesystem::path& left,
+    const std::filesystem::path& right) {
+#ifdef _WIN32
+    return lower_ascii(left.generic_string()) == lower_ascii(right.generic_string());
+#else
+    return left == right;
+#endif
+}
+
 [[nodiscard]] bool is_within(
     const std::filesystem::path& child,
     const std::filesystem::path& parent) {
@@ -111,7 +121,8 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     auto child_it = child_normalized.begin();
     auto parent_it = parent_normalized.begin();
     for (; parent_it != parent_normalized.end(); ++parent_it, ++child_it) {
-        if (child_it == child_normalized.end() || *child_it != *parent_it) {
+        if (child_it == child_normalized.end() ||
+            !path_component_equal(*child_it, *parent_it)) {
             return false;
         }
     }
@@ -210,15 +221,15 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
 }
 
 int run_build_overlay(
-    const std::filesystem::path& game_root,
+    const std::filesystem::path& executable_directory,
     std::string_view game_request,
     const std::filesystem::path& authored_file,
     const std::filesystem::path& output_directory) {
-    const auto data_directory =
-        game_root / std::filesystem::path{dmc3::VolumeBootstrapPolicy::data_subdirectory()};
+    const auto data_directory = executable_directory /
+        std::filesystem::path{dmc3::VolumeBootstrapPolicy::data_subdirectory()};
     const auto present = discover_volumes(data_directory);
     if (!present.has_value()) {
-        std::cerr << "build-dmc3-overlay: cannot scan game data directory: "
+        std::cerr << "build-dmc3-overlay: cannot scan executable-relative game data directory: "
                   << data_directory.string() << '\n';
         return 2;
     }
@@ -303,6 +314,7 @@ int run_build_overlay(
     }
 
     std::cout << "DMC3 overlay artifact: ready\n"
+              << "Executable directory: " << executable_directory.string() << '\n'
               << "Game data: " << data_directory.string() << '\n'
               << "Game request: " << game_request << '\n'
               << "Archive member: " << member_path << '\n'
@@ -320,8 +332,8 @@ int run_build_overlay(
 
 void print_dmc3_overlay_help() {
     std::cout
-        << "  build-dmc3-overlay <game-root> <game-request> <authored-file> <output-dir>\n"
-        << "                            Build and verify the next contiguous STORE NBZ without modifying retail files\n";
+        << "  build-dmc3-overlay <exe-dir> <game-request> <authored-file> <output-dir>\n"
+        << "                            Build and verify the executable-relative next contiguous STORE NBZ without modifying retail files\n";
 }
 
 int try_run_dmc3_overlay_command(int argc, char** argv) {
@@ -330,7 +342,7 @@ int try_run_dmc3_overlay_command(int argc, char** argv) {
     }
     if (argc != 6) {
         std::cerr
-            << "build-dmc3-overlay: expected <game-root> <game-request> <authored-file> <output-dir>\n";
+            << "build-dmc3-overlay: expected <exe-dir> <game-request> <authored-file> <output-dir>\n";
         return 1;
     }
     return run_build_overlay(
