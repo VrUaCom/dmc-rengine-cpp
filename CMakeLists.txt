@@ -227,6 +227,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_cli_build_dmc3_overlay_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
+        NAME dmc_rengine_cli_build_dmc3_overlay_artifact
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-overlay-cli-test
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/build_dmc3_overlay_cli_test.cmake)
+    add_test(
         NAME dmc_rengine_cli_extract_exe_window_usage
         COMMAND dmc-rengine extract-exe-window)
     set_tests_properties(
