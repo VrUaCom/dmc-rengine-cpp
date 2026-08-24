@@ -37,7 +37,7 @@ using StagedFileValidator = std::function<bool(const std::filesystem::path&)>;
 // file is never removed by this function.
 [[nodiscard]] NoReplacePublicationResult publish_validated_file_no_replace(
     const std::filesystem::path& validated_staged_file,
-    const std::filesystem::path& destination) noexcept;
+    const std::filesystem::path& destination);
 
 // Writes bytes into an exclusively-owned same-filesystem staging directory,
 // optionally validates the complete staged file, then commits it through
@@ -49,6 +49,6 @@ using StagedFileValidator = std::function<bool(const std::filesystem::path&)>;
     const std::filesystem::path& destination,
     std::span<const std::byte> bytes,
     const StagedFileValidator& validator = {},
-    std::string_view staging_suffix = ".dmc-rengine-publish.staging") noexcept;
+    std::string_view staging_suffix = ".dmc-rengine-publish.staging");
 
 } // namespace dmc::rengine::core
