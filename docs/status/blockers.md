@@ -1,109 +1,130 @@
 # Current Blockers
 
-**Snapshot date:** 2026-08-20  
-**Snapshot base:** `main` at `4cf6b34258e95bc6fde19979036c82ba0104d270`
+**Snapshot date:** 2026-08-24  
+**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
 
-This file lists blockers against the current reviewed product tree. It separates code blockers from artifact/evidence blockers and does not count L2/L3 work as L1 completion.
+This file lists unresolved gates against the current reviewed tree. The canonical execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md).
 
-## P0 — GDSpaces Layer-1 closure
+## P0 — GDSpaces L1 closure blockers
 
-### B-L1-01 — Representative real `.lst` artifact unavailable
+### B-L1-01 — Atomic/no-replace publication is not unified
 
-**Status:** ARTIFACT REQUIRED
+**Status:** CODE CORRECTION REQUIRED
 
-The `.lst` grammar/materialization path and recovered 64-byte runtime-synth layout are already strongly reconstructed. Current connected Drive metadata exposes no raw filename containing `.lst`, so a fresh representative real-corpus receipt cannot currently be produced.
+Retail-NBZ repack already has a no-replace staging/publication seam, but CLI artifact paths still contain `exists() -> ofstream` publication. That is a TOCTOU race and cannot support a no-clobber claim.
 
-Do not restart parser reverse merely because the artifact is absent.
+Close by introducing one shared atomic/no-replace publication primitive and migrating overlay/acquisition/evidence outputs to it, with Windows and Ubuntu concurrency regressions.
 
-### B-L1-02 — Fresh representative real PNST/current-parser receipt
+### B-L1-02 — Provenance-grade NBZ artifact stability
 
-**Status:** ARTIFACT REQUIRED
+**Status:** CODE/EVIDENCE REQUIRED
 
-PAC/PNST structural authority is strong and canonical. A fresh current-main parser receipt on a representative legal raw PNST/container artifact remains mandatory before L1 closure. Historical Phase-15 evidence supports PNST strongly but the original raw Phase12-16 packages are not currently exposed in Drive.
+`NbzZipSource` indexes one archive open and reopens the path during member `read()`. A provenance receipt can therefore bind stale index metadata, newer member bytes and a later archive SHA unless stability is explicitly enforced.
 
-### B-L1-03 — Real child-to-slot / intrinsic-byte authority
+Close by proving index + selected member + archive identity refer to one stable artifact observation or by fail-closed revalidation of the complete observation interval.
+
+### B-L1-03 — PR #191 promotion blockers
+
+**Status:** ACTIVE / DO NOT PROMOTE
+
+The retail-member acquisition seam uses the correct canonical resolver/materializer path, but currently requires:
+
+- B-L1-01 atomic publication;
+- B-L1-02 artifact-stability binding;
+- rejection of output inside the measured retail game tree.
+
+Fresh exact-head Windows + Ubuntu validation is required after correction.
+
+### B-L1-04 — Direct-retail representative member receipt
 
 **Status:** EVIDENCE REQUIRED
 
-The typed verified nested size-changing composition seam is canonical, but representative real resources still need evidence that binds an exact intrinsic child image to the correct physical parent slot. Parser-inferred packed extents and synthetic slot names are not substitutes.
+After acquisition correction, obtain the first exact retail receipt using game request `obj\\em000.pac`. The resolver-selected member/volume must be recorded; no archive member identity is predeclared from filename intuition.
 
-### B-L1-04 — No-loss retail NBZ serialization/repack tier
+Required evidence includes archive SHA/size, volume index, central-entry identity, compression metadata, CRC, materialized SHA/size and ByteProvenance.
 
-**Status:** ACTIVE CODE/VALIDATION BLOCKER
+### B-L1-05 — Retail representation classification
 
-`NbzZipSource` is a materialization authority. `NbzStoreOverlayWriter` is a deterministic STORE-overlay authority. Neither is a lossless retail serialization/repack authority.
+**Status:** EVIDENCE REQUIRED
 
-Before no-loss L1 closure, GDSpaces needs a bounded source-serialization model and metadata-preserving retail repack path covering the original ZIP envelope required by the observed corpus: local/central framing, version/time/attribute fields, raw extra/comment data, EOCD/archive comment and opaque local-region bytes where descriptors/padding/gaps may exist.
+The preserved transformed DDS-bearing texture corpus has strong product/writer evidence, but direct-retail provenance remains the deciding boundary. The exact retail member must be classified before any writer is promoted as appropriate for that resource.
 
-This tier must remain separate from compressor/Capcom offline-builder equivalence.
-
-### B-L1-05 — Representative real size-changing A-to-Z round-trip
+### B-L1-06 — Representative real edit + bottom-up rebuild
 
 **Status:** VALIDATION REQUIRED
 
-Required receipt:
+Required chain:
 
 ```text
-original source/member
- -> materialize
- -> nested edit
- -> size-changing bottom-up rebuild
- -> root PAC/PNST
- -> generated retail/overlay NBZ
- -> reopen
- -> canonical reparse/compare
+retail-selected member
+ -> exact editable child
+ -> bounded edit in evidenced writer domain
+ -> PAC/PNST bottom-up rebuild
+ -> exact edited child verification
+ -> byte-exact untouched sibling checks
 ```
 
-Synthetic regression is insufficient for this gate.
+If the retail representation is outside current writer authority, this gate stops rather than forcing an unsupported serializer.
 
-### B-L1-06 — Controlled original-game consumption receipt
+### B-L1-07 — Real next-volume publication + canonical reopen
 
 **Status:** VALIDATION REQUIRED
 
-At least one representative authored output must be consumed successfully through the original DMC3 path under a controlled receipt. Product reopen/reparse alone cannot prove game compatibility.
+The synthetic/product composition is strong. A real receipt must publish the rebuilt resource in the next contiguous numbered NBZ with atomic no-replace semantics, then reopen/select/rematerialize it through the canonical resolver path.
 
-## Non-blocking evidence-gated families
+### B-L1-08 — Original DMC3 consumption receipt
 
-### AFS binary backend
+**Status:** FINAL ACCEPTANCE REQUIRED
 
-`.afs/` strings are confirmed logical namespaces. A dedicated binary AFS backend is not currently evidenced on the canonical DMC3 HD path and does not block L1 absent new direct evidence.
+At least one representative authored resource must be consumed successfully by the exact protected distribution execution authority. Product reopen/reparse cannot substitute for this gate.
+
+### B-L1-09 — Final cross-stack acceptance audit
+
+**Status:** OPEN
+
+Before `L1 COMPLETE`, issue #100, issue #182, code, docs, CI and receipts must agree and no unresolved contradiction may alter the claimed representation/materialization boundary.
+
+## Supporting EXE reverse blockers
+
+These are not reasons to redo already-closed archive reverse, but they remain relevant to exact GDS parity claims:
+
+- exact type-0 physical-provider final Win32 filename/case/open/failure behavior after `0x0C` normalization;
+- complete `0x140328540` ZIP stream initializer/lifetime;
+- complete `0x140328FE0` compressed seek/reset/reinflate behavior;
+- malformed/partial-read error equivalence where needed;
+- dynamic `.lst` lifetime/error/cycle behavior if real loose-container use becomes an acceptance dependency.
+
+## Evidence-gated non-blockers
+
+### Binary AFS
+
+`.afs/` strings remain logical namespace evidence. No binary AFS backend is promoted or required for current L1 without new direct evidence.
 
 ### PACK
 
-PACK remains evidence-gated and does not block DMC3 HD L1 absent new raw/runtime evidence that places it on the supported materialization path.
+Historical product parser evidence does not establish original DMC3 PACK runtime use. PACK is not an L1 blocker absent a directly observed dependency.
 
-## Other major open blockers
+## Downstream blockers
 
-### Original runtime/lifecycle
+These remain real project work but do not block L1 closure directly:
 
-Full FileSlot/AsyncIO/scheduler ownership, callbacks, unresolved mode semantics, dynamic lifecycle and release/unload/shutdown behavior remain L3 work.
+- full original FileSlot/AsyncIO/LoadedResource dynamic lifecycle equivalence;
+- Stage Ops gameplay/runtime semantic links;
+- HITS source2/transform-provider/lifecycle closure;
+- whole-game decompilation/recompilation/equivalence.
 
-### SCM contradiction/reconciliation
+## No longer primary L1 blockers
 
-Historical fixed-stride assumptions must not be promoted where direct executable evidence indicates pointer/offset traversal. Real-corpus reconciliation remains required before stronger SCM runtime claims.
+Do not reopen these merely because older documents still mention them:
 
-### Stage Ops runtime semantics
-
-Evidence-backed runtime links for camera, doors/transitions, enemies/spawns, effects/audio and events remain incomplete. This blocks richer validated editor verticals, not L1 materialization closure.
-
-### Whole-game recompilation/equivalence
-
-Full DMC3 decompilation, progressive recompilation, behaviorally equivalent rebuilt executable and whole-game equivalence remain long-term open milestones.
-
-## Resolved/highly reduced L1 blockers
-
-The following are no longer primary Layer-1 blockers in canonical `main`:
-
-- NBZ STORE/raw-DEFLATE read/materialization;
+- NBZ STORE/raw-DEFLATE materialization;
 - PAC structural parsing;
-- PNST shared relative-slot structural parsing;
+- PNST structural parsing/classification on current main;
 - recursive PAC/PNST expansion;
 - ByteProvenance;
-- WorkingCopy;
 - same-size PAC/PNST authoring;
-- validated same-size nested reintegration;
-- runtime-synth size-changing PAC/PNST authoring;
-- typed verified nested size-changing runtime-synth composition;
-- deterministic STORE-only next-volume NBZ overlay authoring/reopen.
-
-See [GDSpaces reverse-progress scale](../gdspaces/reverse-progress-scale.md) for the canonical completion rule.
+- bounded size-changing relative-slot reflow;
+- synthetic nested A-to-Z composition;
+- transformed DDS-bearing safe texture writer/runtime-relocation composition;
+- numbered-volume precedence;
+- next-volume STORE overlay generation and resolver selection composition.
