@@ -28,6 +28,29 @@ namespace {
     return bytes;
 }
 
+[[nodiscard]] std::vector<std::byte> from_hex(std::string_view hex) {
+    assert((hex.size() % 2U) == 0U);
+    const auto nibble = [](char value) -> std::uint8_t {
+        if (value >= '0' && value <= '9') {
+            return static_cast<std::uint8_t>(value - '0');
+        }
+        if (value >= 'a' && value <= 'f') {
+            return static_cast<std::uint8_t>(10 + value - 'a');
+        }
+        assert(false);
+        return 0U;
+    };
+
+    std::vector<std::byte> bytes;
+    bytes.reserve(hex.size() / 2U);
+    for (std::size_t index = 0U; index < hex.size(); index += 2U) {
+        bytes.push_back(static_cast<std::byte>(
+            static_cast<std::uint8_t>(
+                (nibble(hex[index]) << 4U) | nibble(hex[index + 1U]))));
+    }
+    return bytes;
+}
+
 void write_file(
     const std::filesystem::path& path,
     std::span<const std::byte> bytes) {
@@ -149,6 +172,63 @@ int main() {
     assert(!zero_chunk.ok());
     assert(has_error(zero_chunk, "gdspaces.nbz.artifact-member.budget"));
 
+    // Fixed classic-ZIP method-8 fixture with bit-3 data descriptor. This
+    // validates the exact retail acquisition path used for raw-DEFLATE members,
+    // not just STORE overlays.
+    const auto method8_fixture = from_hex(
+        "504b0304140008000800831822500000000000000000000000000b000000"
+        "6d6574686f64382e62696e"
+        "4b494dcb492c494dd1cd2fca4ccfcc4bcc0100"
+        "504b0708c0b3be781300000011000000"
+        "504b0102140314000800080083182250c0b3be7813000000110000000b000000"
+        "00000000000020000000000000006d6574686f64382e62696e"
+        "504b05060000000001000100390000004c0000000000");
+    const auto method8_path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-artifact-member-method8.nbz";
+    std::filesystem::remove(method8_path, error);
+    write_file(method8_path, method8_fixture);
+
+    gdspaces::NbzZipSource method8_source(
+        "artifact-member-method8-source", method8_path);
+    assert(method8_source.valid());
+    assert(method8_source.entries().size() == 1U);
+    assert(method8_source.entries()[0].compression_method == 8U);
+    assert((method8_source.entries()[0].flags & 0x0008U) != 0U);
+
+    const auto method8_digest = core::Sha256::compute(
+        std::span<const std::byte>{method8_fixture});
+    const evidence::ArtifactIdentity method8_artifact{
+        .id = "artifact-member-method8-test",
+        .role = "dmc3-retail-nbz",
+        .sha256 = method8_digest.hex(),
+        .size = static_cast<std::uint64_t>(method8_fixture.size()),
+    };
+    const auto method8_bound = gdspaces::NbzZipArtifactSerializationBinder::bind(
+        method8_source,
+        method8_artifact,
+        {},
+        gdspaces::NbzZipArtifactBindingLimits{.hash_chunk_bytes = 9U});
+    assert(method8_bound.ok());
+
+    const auto method8_observed = gdspaces::NbzZipArtifactMemberObserver::observe(
+        method8_source,
+        *method8_bound.snapshot,
+        method8_source.entries()[0].central_index,
+        gdspaces::NbzZipArtifactMemberLimits{.hash_chunk_bytes = 7U});
+    assert(method8_observed.ok());
+    const auto expected_method8 = ascii("deflated-original");
+    assert(method8_observed.observation->materialized_bytes().size() ==
+        expected_method8.size());
+    assert(std::equal(
+        method8_observed.observation->materialized_bytes().begin(),
+        method8_observed.observation->materialized_bytes().end(),
+        expected_method8.begin()));
+    assert(method8_observed.observation->byte_provenance().transform ==
+        gdspaces::ByteTransform::zip_deflate);
+    assert(method8_observed.observation->observed_sha256() ==
+        method8_artifact.sha256);
+
     std::filesystem::remove(path, error);
+    std::filesystem::remove(method8_path, error);
     return 0;
 }
