@@ -1,23 +1,27 @@
 # Status System
 
-The status directory separates implementation truth from long-term vision.
+Current status is gate-based and must stay synchronized with canonical `main`.
 
-- `current.md` — human-readable current snapshot;
-- `canonical-status.json` — machine-readable implementation snapshot;
-- `phase-map.md` — phase definitions and exits;
-- `blockers.md` — unresolved dependencies;
-- `risks.md` — architecture/project risk register;
-- `weekly/` — dated repository-backed reports.
+- [`current.md`](current.md) — human-readable current snapshot;
+- [`canonical-status.json`](canonical-status.json) — machine-readable current gate state;
+- [`phase-map.md`](phase-map.md) — subsystem/dependency phase map;
+- [`blockers.md`](blockers.md) — unresolved mandatory gates;
+- [`risks.md`](risks.md) — architecture/project risk register;
+- [`../gdspaces/l1-roadmap.md`](../gdspaces/l1-roadmap.md) — canonical GDSpaces L1 execution/completion roadmap;
+- `weekly/` — dated repository-backed reports and historical snapshots.
 
-## Update rules
+## Update rule
 
-Update status when:
+When a material L1 gate changes, synchronize in the same documentation pass:
 
-- an implemented component enters the build;
-- tests or CI change completion confidence;
-- a blocker opens or closes;
-- a historical feature is migrated;
-- an architecture decision changes scope;
-- a phase exit is met.
+- root `README.md`;
+- `docs/README.md`;
+- `docs/roadmap.md`;
+- this status set;
+- `docs/gdspaces/l1-roadmap.md`;
+- `docs/gdspaces-contract.md` if an architecture contract changed;
+- issues #100/#182 when their acceptance wording changes.
 
-Do not mark historical/private functionality as implemented in this repository.
+Historical evidence/research documents should remain historical. Do not rewrite old receipts to look current; add supersession/reconciliation notes instead.
+
+Branch/PR truth is never reported as canonical `main` truth. Synthetic CI is never reported as original-game equivalence.
