@@ -85,6 +85,22 @@ int main() {
     assert(!std::filesystem::exists(shared_staging));
     cleanup(shared_destination);
 
+    // Failed staged validation must never make a final path visible.
+    bool validator_observed_complete_bytes = false;
+    const auto rejected_shared = core::publish_bytes_no_replace(
+        shared_destination,
+        shared_bytes,
+        [&](const std::filesystem::path& staged_file) {
+            validator_observed_complete_bytes = read_file(staged_file) == shared_bytes;
+            return false;
+        });
+    assert(!rejected_shared.ok());
+    assert(rejected_shared.status ==
+        core::NoReplacePublicationStatus::staging_validation_failed);
+    assert(validator_observed_complete_bytes);
+    assert(!std::filesystem::exists(shared_destination));
+    assert(!std::filesystem::exists(shared_staging));
+
     // Existing destination is never truncated or replaced.
     write_file(shared_destination, sentinel);
     const auto existing_shared = core::publish_bytes_no_replace(
