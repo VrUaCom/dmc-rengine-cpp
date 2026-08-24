@@ -44,6 +44,16 @@ if(NOT OVERLAY_RESULT EQUAL 0)
 endif()
 file(COPY_FILE "${OVERLAY_OUT}/DMC3-1.nbz" "${DATA_DIR}/DMC3-1.nbz" ONLY_IF_DIFFERENT)
 
+# Recovered runtime registration stops at the first missing volume. A later
+# in-domain file is diagnostic-only for reads and must not block or become a
+# mount. DMC3-2 is intentionally absent; DMC3-3 is deliberately malformed so
+# the test also proves it is never opened as a runtime archive.
+file(WRITE "${DATA_DIR}/DMC3-3.nbz" "IGNORED-AFTER-FIRST-GAP")
+
+# A product-discovered suffix outside signed %d runtime domain is likewise
+# diagnostic-only and must not enter the mounted namespace.
+file(WRITE "${DATA_DIR}/DMC3-2147483648.nbz" "IGNORED-OUTSIDE-RUNTIME-DOMAIN")
+
 # Acquisition may never publish evidence back into the retail tree.
 set(RETAIL_OUTPUT "${DATA_DIR}/forbidden-output.pac")
 execute_process(
@@ -95,6 +105,18 @@ endif()
 string(FIND "${RECEIPT_TEXT}" "GDataX360.afs/retail-test.pac" MEMBER_POS)
 if(MEMBER_POS EQUAL -1)
     message(FATAL_ERROR "receipt does not preserve resolved runtime archive member identity")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"first_missing_index\": 2" GAP_POS)
+if(GAP_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not preserve first-gap runtime mount boundary")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"ignored_after_first_gap_count\": 1" AFTER_GAP_POS)
+if(AFTER_GAP_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not preserve after-gap diagnostic evidence")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"ignored_outside_runtime_domain_count\": 1" OUTSIDE_DOMAIN_POS)
+if(OUTSIDE_DOMAIN_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not preserve out-of-domain diagnostic evidence")
 endif()
 string(FIND "${RECEIPT_TEXT}" "\"evidence_class\": \"artifact-bound-retail-member-acquisition\"" CLASS_POS)
 if(CLASS_POS EQUAL -1)
