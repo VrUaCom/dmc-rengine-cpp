@@ -113,10 +113,12 @@ int run_preflight_dmc3_game_test(const std::filesystem::path& executable_directo
     }
 
     std::cout
-        << "Game-test preflight: READY\n"
+        << "Executable preflight: READY\n"
         << "Build authority: protected distribution provenance\n"
         << "Analysis authority: separate e454 unpacked/decrypted target; no cryptographic EXE equivalence is claimed\n"
-        << "Archive authority: executable-relative DMC3-0.nbz present; co-location only until archive hash/member evidence is recorded\n";
+        << "Archive presence: executable-relative DMC3-0.nbz found\n"
+        << "Archive pairing: UNVERIFIED (co-location only; archive hash/member evidence still required)\n"
+        << "Original-game acceptance: NOT YET PROVEN\n";
     return 0;
 }
 
