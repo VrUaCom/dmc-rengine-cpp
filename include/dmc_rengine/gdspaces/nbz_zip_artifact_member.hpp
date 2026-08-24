@@ -4,8 +4,10 @@
 #include "dmc_rengine/gdspaces/nbz_zip_artifact_binding.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
