@@ -4,7 +4,11 @@
   "target": {
     "game_profile": "dmc3-hd",
     "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-    "canonical_executable_size": 3735552
+    "canonical_executable_size": 6356432,
+    "authority_role": "analysis-reverse",
+    "instruction_reverse_authority": true,
+    "distribution_provenance_authority": false,
+    "original_execution_candidate": false
   },
   "authorities": [
     {
@@ -159,7 +163,20 @@
       "drive_file_id": "1-GouJYQyltnQqXMd0BvxEmOh9a1RQg1q",
       "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
       "size": 6567320,
-      "reason": "Different executable build; canonical VA locators from e454... must not be applied without rebasing and independent verification."
+      "authority_role": "protected-distribution",
+      "instruction_reverse_authority": false,
+      "distribution_provenance_authority": true,
+      "original_execution_candidate": true,
+      "excluded_from": [
+        "canonical-analysis-va-locators",
+        "canonical-analysis-rva-locators",
+        "instruction-level-reverse-authority"
+      ],
+      "allowed_for": [
+        "protected-distribution-provenance",
+        "original-game-execution-preflight"
+      ],
+      "reason": "Protected vanilla distribution executable. Canonical VA/RVA locators from e454... must not be applied without rebasing and independent verification, but this artifact remains the known on-disk distribution execution authority."
     }
   ],
   "current_blockers": [

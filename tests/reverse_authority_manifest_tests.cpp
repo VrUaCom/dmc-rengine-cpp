@@ -77,11 +77,24 @@ int main(int argc, char** argv) {
         *target, "canonical_executable_sha256");
     const auto* target_size = member(
         *target, "canonical_executable_size");
+    const auto* target_role = member(*target, "authority_role");
+    const auto* target_reverse = member(*target, "instruction_reverse_authority");
+    const auto* target_distribution = member(*target, "distribution_provenance_authority");
+    const auto* target_execution = member(*target, "original_execution_candidate");
     assert(target_hash != nullptr && target_hash->as_string() != nullptr);
     assert(*target_hash->as_string() ==
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082");
     assert(target_size != nullptr && target_size->as_u64() != nullptr);
-    assert(*target_size->as_u64() == 3735552U);
+    assert(*target_size->as_u64() == 6356432U);
+    assert(target_role != nullptr && target_role->as_string() != nullptr);
+    assert(*target_role->as_string() == "analysis-reverse");
+    assert(target_reverse != nullptr && target_reverse->as_bool() != nullptr);
+    assert(*target_reverse->as_bool());
+    assert(target_distribution != nullptr &&
+           target_distribution->as_bool() != nullptr);
+    assert(!*target_distribution->as_bool());
+    assert(target_execution != nullptr && target_execution->as_bool() != nullptr);
+    assert(!*target_execution->as_bool());
 
     const auto* authorities_value = member(*root, "authorities");
     assert(authorities_value != nullptr &&
@@ -222,9 +235,31 @@ int main(int argc, char** argv) {
         "drive-vanilla-dmc3-2026-01-23");
     assert(vanilla != nullptr);
     const auto* vanilla_hash = member(*vanilla, "sha256");
+    const auto* vanilla_size = member(*vanilla, "size");
+    const auto* vanilla_role = member(*vanilla, "authority_role");
+    const auto* vanilla_reverse = member(*vanilla, "instruction_reverse_authority");
+    const auto* vanilla_distribution = member(*vanilla, "distribution_provenance_authority");
+    const auto* vanilla_execution = member(*vanilla, "original_execution_candidate");
     assert(vanilla_hash != nullptr && vanilla_hash->as_string() != nullptr);
     assert(*vanilla_hash->as_string() ==
         "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6");
+    assert(vanilla_size != nullptr && vanilla_size->as_u64() != nullptr);
+    assert(*vanilla_size->as_u64() == 6567320U);
+    assert(vanilla_role != nullptr && vanilla_role->as_string() != nullptr);
+    assert(*vanilla_role->as_string() == "protected-distribution");
+    assert(vanilla_reverse != nullptr && vanilla_reverse->as_bool() != nullptr);
+    assert(!*vanilla_reverse->as_bool());
+    assert(vanilla_distribution != nullptr &&
+           vanilla_distribution->as_bool() != nullptr);
+    assert(*vanilla_distribution->as_bool());
+    assert(vanilla_execution != nullptr && vanilla_execution->as_bool() != nullptr);
+    assert(*vanilla_execution->as_bool());
+    assert(string_array_contains(
+        member(*vanilla, "excluded_from"),
+        "canonical-analysis-va-locators"));
+    assert(string_array_contains(
+        member(*vanilla, "allowed_for"),
+        "original-game-execution-preflight"));
 
     const auto* blockers_value = member(*root, "current_blockers");
     assert(blockers_value != nullptr && blockers_value->as_array() != nullptr);

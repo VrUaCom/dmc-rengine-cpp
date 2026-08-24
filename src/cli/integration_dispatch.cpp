@@ -1,5 +1,6 @@
 #include "integration_commands.hpp"
 #include "hits_commands.hpp"
+#include "dmc3_build_authority_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
 
 #include <filesystem>
@@ -15,11 +16,18 @@ void print_integration_help() {
         << "  integration-status         Summarize the cross-tool integration layer\n"
         << "  inspect-workspace <path> [--stage] [--menu]\n"
         << "                             Build a GDSpaces workspace manifest for a local resource\n";
+    print_dmc3_build_authority_help();
     print_dmc3_overlay_help();
     print_hits_help();
 }
 
 int try_run_integration_command(int argc, char** argv) {
+    const auto build_authority_result =
+        try_run_dmc3_build_authority_command(argc, argv);
+    if (build_authority_result != -1) {
+        return build_authority_result;
+    }
+
     const auto overlay_result = try_run_dmc3_overlay_command(argc, argv);
     if (overlay_result != -1) {
         return overlay_result;

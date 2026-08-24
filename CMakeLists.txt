@@ -55,6 +55,7 @@ add_executable(dmc-rengine
     src/cli/exe_acquisition_commands.cpp
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
+    src/cli/dmc3_build_authority_commands.cpp
     src/cli/dmc3_overlay_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
@@ -148,6 +149,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_tree_expander
         classifier
         known_target
+        executable_authority
         stage_table_descriptor
         stage_resource_matcher
         stage_bundle_assembler
@@ -220,6 +222,18 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_preflight_dmc3_game_test_usage
+        COMMAND dmc-rengine preflight-dmc3-game-test)
+    set_tests_properties(
+        dmc_rengine_cli_preflight_dmc3_game_test_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_preflight_dmc3_game_test_unknown
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-game-test-preflight
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/dmc3_game_test_preflight_cli_test.cmake)
     add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)
