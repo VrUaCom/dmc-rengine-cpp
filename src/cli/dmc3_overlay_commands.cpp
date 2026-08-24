@@ -201,10 +201,12 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     }
 
     const auto payload = registry.read(match->id);
-    if (!payload.has_value() || !payload->readable()) {
+    if (!payload.has_value() || !payload->readable() ||
+        payload->bytes.size() != expected_bytes.size()) {
         return false;
     }
-    return std::span<const std::byte>{payload->bytes} == expected_bytes;
+    return std::equal(
+        payload->bytes.begin(), payload->bytes.end(), expected_bytes.begin());
 }
 
 int run_build_overlay(
