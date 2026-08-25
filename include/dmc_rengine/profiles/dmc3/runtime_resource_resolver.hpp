@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/gdspaces/direct_path_source.hpp"
 #include "dmc_rengine/gdspaces/resource_key_index.hpp"
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -36,10 +37,16 @@ enum class RuntimeLookupEvidenceClass {
     // queries it after 0x0E normalization.
     recovered_archive_index,
 
-    // Product-safe representation of the type-0 physical pass. The original
-    // downstream path-join/CreateFileA contract is now instruction-backed, but
-    // this GDSpaces path still resolves through a source-derived 0x0C index
-    // rather than executing that original direct Win32 path contract.
+    // Product-native direct path lookup through an IDirectPathSource. On
+    // Windows LocalDirectorySource this follows the host filesystem path
+    // semantics rather than forcing archive-style key equality. It remains
+    // product-classified because containment hardening and non-Windows host
+    // behavior are intentionally not claimed as original CreateFileA parity.
+    product_physical_native_path,
+
+    // Fallback for physical sources that do not expose direct path lookup.
+    // This is a source-derived 0x0C ResourceKeyIndex and is mechanically
+    // different from the recovered original direct path backend.
     product_physical_index,
 };
 
@@ -48,6 +55,8 @@ enum class RuntimeLookupEvidenceClass {
     switch (evidence) {
     case RuntimeLookupEvidenceClass::recovered_archive_index:
         return "recovered-archive-index";
+    case RuntimeLookupEvidenceClass::product_physical_native_path:
+        return "product-physical-native-path";
     case RuntimeLookupEvidenceClass::product_physical_index:
         return "product-physical-index";
     }
@@ -85,6 +94,7 @@ struct RuntimeResolutionProbe final {
     std::string source_id;
     std::optional<std::uint32_t> archive_volume_index;
     gdspaces::ResourceKeyMatchReport lookup;
+    std::optional<gdspaces::DirectPathLookupResult> direct_lookup;
 };
 
 struct RuntimeResolutionReport final {
@@ -102,9 +112,10 @@ struct RuntimeResolutionReport final {
 
 // DMC3-profile composition layer. It owns recovered candidate/provider/source
 // traversal order. Archive ResourceKeyIndex values are derived inside resolve()
-// from the exact currently-mounted ISource enumeration, so no caller-supplied
-// stale/dangling index can be paired with another source instance. Exact source
-// I/O remains in SourceRegistry/ISource.
+// from the exact currently-mounted ISource enumeration. Physical sources may
+// additionally expose IDirectPathSource so the physical phase can use source-
+// native path lookup instead of forcing archive-style index equality. Exact
+// byte I/O remains in SourceRegistry/ISource.
 class RuntimeResourceResolver final {
 public:
     [[nodiscard]] static RuntimeResolutionReport resolve(
