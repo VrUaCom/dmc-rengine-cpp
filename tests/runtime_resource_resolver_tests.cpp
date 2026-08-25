@@ -1,15 +1,25 @@
+#include "dmc_rengine/gdspaces/local_directory_source.hpp"
+#include "dmc_rengine/gdspaces/resource_key_index.hpp"
 #include "dmc_rengine/profiles/dmc3/physical_provider_model.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_path_policy.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
 
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 namespace {
 
@@ -80,10 +90,13 @@ void mount(dmc::rengine::gdspaces::SourceRegistry& registry,
 } // namespace
 
 int main() {
+    using dmc::rengine::gdspaces::LocalDirectorySource;
+    using dmc::rengine::gdspaces::ResourceKeyIndex;
     using dmc::rengine::gdspaces::SourceRegistry;
     using dmc::rengine::profiles::dmc3::ArchiveSourceBinding;
     using dmc::rengine::profiles::dmc3::PhysicalProviderModel;
     using dmc::rengine::profiles::dmc3::PhysicalProviderPlanStatus;
+    using dmc::rengine::profiles::dmc3::ResourcePathPolicy;
     using dmc::rengine::profiles::dmc3::RuntimeLookupEvidenceClass;
     using dmc::rengine::profiles::dmc3::RuntimeResolutionStatus;
     using dmc::rengine::profiles::dmc3::RuntimeResourceResolver;
@@ -172,13 +185,12 @@ int main() {
             assert(!report.probes[index].archive_volume_index.has_value());
             assert(report.probes[index].lookup_evidence ==
                 RuntimeLookupEvidenceClass::product_physical_index);
+            assert(!report.probes[index].direct_lookup.has_value());
         }
     }
 
-    // Zero archive volumes is valid: the runtime-equivalent plan reaches the
-    // physical pass directly. Physical matching remains explicitly product-classified
-    // because GDSpaces uses a source-derived index rather than the recovered direct
-    // Win32 CreateFileA path contract.
+    // Zero archive volumes is valid. A source without direct-path capability
+    // continues to use the explicitly product-classified 0x0C index fallback.
     {
         const auto empty_bootstrap = no_volumes();
         assert(empty_bootstrap.valid());
@@ -197,7 +209,75 @@ int main() {
         assert(report.probes.size() == 1U);
         assert(report.probes[0].lookup_evidence ==
             RuntimeLookupEvidenceClass::product_physical_index);
+        assert(!report.probes[0].direct_lookup.has_value());
     }
+
+#ifdef _WIN32
+    // Controlled Windows physical-provider parity receipt. The recovered original
+    // delegates final physical filename resolution to CreateFileA after 0x0C,
+    // while the old product index preserves case and therefore misses this key.
+    // LocalDirectorySource direct lookup follows the native Windows filesystem,
+    // then recovers the canonical enumerated ResourceRef identity.
+    {
+        const auto root = std::filesystem::temp_directory_path() /
+            "dmc-rengine-l2-physical-parity";
+        std::error_code cleanup_error;
+        std::filesystem::remove_all(root, cleanup_error);
+        std::filesystem::create_directories(root / "GDataX360.afs");
+
+        const auto actual_path = root / "GDataX360.afs" / "CaseProbe.PAC";
+        {
+            std::ofstream stream(actual_path, std::ios::binary);
+            stream << "L2";
+            assert(stream.good());
+        }
+
+        LocalDirectorySource source{"physical", root, true};
+        const auto enumerated = source.enumerate();
+        assert(enumerated.size() == 1U);
+        assert(enumerated[0].id.logical_path == "GDataX360.afs/CaseProbe.PAC");
+
+        const auto provider_key = ResourcePathPolicy::physical(
+            "GDataX360.afs/caseprobe.pac");
+        const auto product_index = ResourceKeyIndex::build(
+            "physical", ResourcePathPolicy::physical_flags, enumerated);
+        const auto old_index_lookup = product_index.lookup(provider_key);
+        assert(!old_index_lookup.found());
+
+        const auto mismatched_case_path =
+            (root / "GDataX360.afs" / "caseprobe.pac").string();
+        const auto handle = CreateFileA(
+            mismatched_case_path.c_str(),
+            GENERIC_READ,
+            FILE_SHARE_READ,
+            nullptr,
+            OPEN_EXISTING,
+            0,
+            nullptr);
+        assert(handle != INVALID_HANDLE_VALUE);
+        assert(CloseHandle(handle) != 0);
+
+        SourceRegistry registry;
+        assert(registry.mount(std::make_unique<LocalDirectorySource>(
+            "physical", root, true)));
+        RuntimeSourceBindings bindings{
+            .physical_source_id = "physical",
+            .archives = {},
+        };
+        const auto report = RuntimeResourceResolver::resolve(
+            "caseprobe.pac", no_volumes(), bindings, registry);
+        assert(report.ok());
+        assert(report.resolved->id.logical_path ==
+            "GDataX360.afs/CaseProbe.PAC");
+        assert(report.probes.size() == 1U);
+        assert(report.probes[0].lookup_evidence ==
+            RuntimeLookupEvidenceClass::product_physical_native_path);
+        assert(report.probes[0].direct_lookup.has_value());
+        assert(report.probes[0].direct_lookup->resolved());
+
+        std::filesystem::remove_all(root, cleanup_error);
+    }
+#endif
 
     // Recovered OpenGameResource 0x400 boundary: the first/longest prefix is
     // 14 bytes, so a 1009-byte basename yields a 1023-byte candidate and fits.
