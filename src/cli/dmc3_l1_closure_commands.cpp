@@ -12,6 +12,7 @@
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
+#include "dmc_rengine/profiles/dmc3/retail_acquisition_receipt.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
@@ -318,6 +319,8 @@ struct DiscoveredVolume final {
     }
     const auto basename = request_basename(game_request);
     const auto retail_member = workspace_directory / ("retail-" + basename);
+    const auto retail_acquisition_receipt =
+        std::filesystem::path{retail_member.string() + ".receipt.json"};
     const auto rebuilt_member = workspace_directory / ("rebuilt-" + basename);
     const auto overlay_directory = workspace_directory / "overlay";
     const auto closure_receipt = workspace_directory / "l1-closure.receipt.json";
@@ -357,14 +360,40 @@ struct DiscoveredVolume final {
     auto rebuilt_bytes = read_file_bytes(rebuilt_member, "l1-closure-rebuilt");
     auto replacement_bytes = read_file_bytes(replacement_file, "l1-closure-replacement");
     auto retail_bytes = read_file_bytes(retail_member, "l1-closure-retail");
+    auto retail_acquisition_receipt_bytes = read_file_bytes(
+        retail_acquisition_receipt, "l1-closure-acquisition-receipt");
     auto overlay_bytes = read_file_bytes(overlay_path, "l1-closure-overlay-artifact");
     auto executable_bytes = read_file_bytes(
         executable_directory / "dmc3.exe", "l1-closure-executable");
     if (!rebuilt_bytes.has_value() || !replacement_bytes.has_value() ||
-        !retail_bytes.has_value() || !overlay_bytes.has_value() ||
-        !executable_bytes.has_value()) {
+        !retail_bytes.has_value() ||
+        !retail_acquisition_receipt_bytes.has_value() ||
+        !overlay_bytes.has_value() || !executable_bytes.has_value()) {
         std::cerr
             << "verify-dmc3-l1-authoring: one or more closure artifacts are unreadable\n";
+        return 9;
+    }
+
+    const auto retail_output_text = retail_member.generic_string();
+    const auto acquisition_evidence =
+        dmc3::RetailAcquisitionReceiptVerifier::verify(
+            std::span<const std::byte>{
+                retail_acquisition_receipt_bytes->data(),
+                retail_acquisition_receipt_bytes->size()},
+            dmc3::RetailAcquisitionReceiptExpectation{
+                .game_request = game_request,
+                .output_file = retail_output_text,
+                .member_bytes = std::span<const std::byte>{
+                    retail_bytes->data(), retail_bytes->size()},
+            });
+    if (!acquisition_evidence.ok()) {
+        std::cerr
+            << "verify-dmc3-l1-authoring: acquisition receipt does not describe the exact acquired member ("
+            << dmc3::to_string(acquisition_evidence.status) << ")";
+        if (!acquisition_evidence.detail.empty()) {
+            std::cerr << ": " << acquisition_evidence.detail;
+        }
+        std::cerr << '\n';
         return 9;
     }
 
@@ -453,6 +482,10 @@ struct DiscoveredVolume final {
         std::span<const std::byte>{executable_bytes->data(), executable_bytes->size()});
     const auto retail_sha = sha256_of(
         std::span<const std::byte>{retail_bytes->data(), retail_bytes->size()});
+    const auto retail_acquisition_receipt_sha = sha256_of(
+        std::span<const std::byte>{
+            retail_acquisition_receipt_bytes->data(),
+            retail_acquisition_receipt_bytes->size()});
     const auto replacement_sha = sha256_of(
         std::span<const std::byte>{replacement_bytes->data(), replacement_bytes->size()});
     const auto rebuilt_sha = sha256_of(
@@ -475,6 +508,11 @@ struct DiscoveredVolume final {
         << "  \"retail_member\": {\"path\": \""
         << escape_json(retail_member.generic_string()) << "\", \"size\": "
         << retail_bytes->size() << ", \"sha256\": \"" << retail_sha << "\"},\n"
+        << "  \"retail_acquisition_receipt\": {\"path\": \""
+        << escape_json(retail_acquisition_receipt.generic_string())
+        << "\", \"size\": " << retail_acquisition_receipt_bytes->size()
+        << ", \"sha256\": \"" << retail_acquisition_receipt_sha
+        << "\", \"semantic_binding\": \"verified\"},\n"
         << "  \"replacement\": {\"path\": \""
         << escape_json(replacement_file.generic_string()) << "\", \"size\": "
         << replacement_bytes->size() << ", \"sha256\": \""
@@ -512,6 +550,8 @@ struct DiscoveredVolume final {
         << "GDSpaces L1 product authoring closure: VERIFIED\n"
         << "Game request: " << game_request << '\n'
         << "Retail member SHA-256: " << retail_sha << '\n'
+        << "Retail acquisition receipt SHA-256: "
+        << retail_acquisition_receipt_sha << '\n'
         << "Replacement SHA-256: " << replacement_sha << '\n'
         << "Rebuilt member SHA-256: " << rebuilt_sha << '\n'
         << "Overlay volume: " << overlay_index << '\n'
