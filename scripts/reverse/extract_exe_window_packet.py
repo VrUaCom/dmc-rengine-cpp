@@ -140,6 +140,7 @@ def run_packet(args: argparse.Namespace) -> int:
     try:
         plan = load_plan(args.plan)
         expected_sha = canonical_sha256(args.expected_sha256, "--expected-sha256")
+        expected_artifact_size = parse_u64(plan["artifact_size"], "artifact_size")
     except ValueError as exc:
         print(f"plan error: {exc}", file=sys.stderr)
         return 2
@@ -172,14 +173,18 @@ def run_packet(args: argparse.Namespace) -> int:
             ]
             if args.hex:
                 command.append("--hex")
-            process = subprocess.run(
-                command,
-                text=True,
-                encoding="utf-8",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
+            try:
+                process = subprocess.run(
+                    command,
+                    text=True,
+                    encoding="utf-8",
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+            except OSError as exc:
+                print(f"cannot execute dmc-rengine acquisition command: {exc}", file=sys.stderr)
+                return 5
             if process.stderr:
                 sys.stderr.write(f"[{window['id']}] {process.stderr}")
             if process.returncode != 0:
@@ -196,10 +201,20 @@ def run_packet(args: argparse.Namespace) -> int:
             if receipt.get("artifact_sha256", "").lower() != expected_sha:
                 print(f"window {window['id']} receipt artifact SHA mismatch", file=sys.stderr)
                 return 5
-            if parse_u64(receipt.get("va"), "receipt.va") != va:
+            try:
+                receipt_artifact_size = parse_u64(receipt.get("artifact_size"), "receipt.artifact_size")
+                receipt_va = parse_u64(receipt.get("va"), "receipt.va")
+                receipt_size = parse_u64(receipt.get("size"), "receipt.size")
+            except ValueError as exc:
+                print(f"window {window['id']} receipt metadata is invalid: {exc}", file=sys.stderr)
+                return 5
+            if receipt_artifact_size != expected_artifact_size:
+                print(f"window {window['id']} receipt artifact size mismatch", file=sys.stderr)
+                return 5
+            if receipt_va != va:
                 print(f"window {window['id']} receipt VA mismatch", file=sys.stderr)
                 return 5
-            if parse_u64(receipt.get("size"), "receipt.size") != size:
+            if receipt_size != size:
                 print(f"window {window['id']} receipt size mismatch", file=sys.stderr)
                 return 5
             if window["mode"] == "known-body":
@@ -231,7 +246,7 @@ def run_packet(args: argparse.Namespace) -> int:
             "plan_id": plan["id"],
             "plan_schema": plan["schema"],
             "artifact_sha256": expected_sha,
-            "artifact_size": plan["artifact_size"],
+            "artifact_size": expected_artifact_size,
             "raw_bytes_included": bool(args.hex),
             "semantic_claim": False,
             "windows": completed,
