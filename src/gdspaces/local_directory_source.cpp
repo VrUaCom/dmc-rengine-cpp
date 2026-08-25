@@ -339,7 +339,7 @@ ResourceRef LocalDirectorySource::describe(
         .format = classification.format,
         .profile = std::string(to_string(classification.profile)),
         .synthetic_name = false,
-        .container = initial_classification.container,
+        .container = classification.container,
     };
 }
 
