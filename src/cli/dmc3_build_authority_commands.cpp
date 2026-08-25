@@ -19,7 +19,8 @@ namespace {
 namespace gdspaces = dmc::rengine::gdspaces;
 namespace dmc3 = dmc::rengine::profiles::dmc3;
 
-int run_preflight_dmc3_game_test(const std::filesystem::path& executable_directory) {
+int run_preflight_dmc3_game_test_impl(
+    const std::filesystem::path& executable_directory) {
     std::error_code error;
     const auto executable_path = executable_directory / "dmc3.exe";
     if (!std::filesystem::is_regular_file(executable_path, error) || error) {
@@ -123,6 +124,11 @@ int run_preflight_dmc3_game_test(const std::filesystem::path& executable_directo
 }
 
 } // namespace
+
+int run_preflight_dmc3_game_test(
+    const std::filesystem::path& executable_directory) {
+    return run_preflight_dmc3_game_test_impl(executable_directory);
+}
 
 void print_dmc3_build_authority_help() {
     std::cout
