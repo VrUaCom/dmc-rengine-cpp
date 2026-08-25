@@ -26,6 +26,29 @@ The Python packet script is orchestration only. It does not open/map the PE itse
 
 The protected distribution executable whose known SHA is `81c7...` is not an instruction-level reverse authority and must not be substituted for the analysis build.
 
+## Evidence-lineage guardrails
+
+An acquired packet is bound to the exact plan bytes that produced it:
+
+- the input plan is copied verbatim to `packet.plan.json`;
+- SHA-256 of those exact plan bytes is recorded as `plan_sha256` in `packet.receipt.json`;
+- the manifest records the plan id/schema, artifact SHA/size and `authority_role`;
+- every child receipt is hashed independently and its receipt schema is recorded;
+- partial output is removed when any child fails validation; `packet.receipt.json` is written only after every requested window succeeds.
+
+A child receipt is accepted only when all of the following agree with the request and plan authority:
+
+- exact schema `dmc-rengine.exe-byte-window.v1`;
+- artifact SHA-256 and artifact size;
+- requested VA and size;
+- PE `image_base`, derived RVA relationship and file-offset range;
+- non-empty section identity;
+- canonical window SHA-256.
+
+When `--hex` is requested, the raw hex must be exact lowercase bytes of the requested size and must hash to the reported window SHA. When `--hex` is not requested, a child receipt that unexpectedly contains raw bytes is rejected.
+
+These checks protect provenance and transport integrity only. They do **not** turn a probe window into a semantic reverse claim or an exact function body.
+
 ## Validate the plan without proprietary bytes
 
 ```text
@@ -34,7 +57,15 @@ python scripts/reverse/extract_exe_window_packet.py \
   --validate-plan-only
 ```
 
-This checks schema, artifact identity shape, duplicate IDs, VA/size ranges, mode rules and known-body hash requirements. The same validation runs in Ubuntu and Windows CI.
+This checks schema, artifact identity shape, authority metadata, duplicate IDs, VA/size ranges, issue/purpose metadata, mode rules and known-body hash requirements. The validation output includes the exact plan SHA-256.
+
+The same plan validation and synthetic packet guardrail tests run in Ubuntu and Windows CI:
+
+```text
+python scripts/reverse/test_extract_exe_window_packet.py
+```
+
+Synthetic tests validate fail-closed packet behavior without proprietary executable bytes. They are infrastructure tests, not reverse evidence.
 
 ## Acquire the packet locally
 
@@ -51,9 +82,9 @@ python scripts/reverse/extract_exe_window_packet.py \
 
 Add `--hex` only for local reverse work that actually needs raw bytes. Raw executable-byte receipts are proprietary local evidence and must not be committed to the public repository.
 
-The output directory is no-replace: if it already exists the run fails rather than overwriting prior evidence. Every successful child receipt is hashed into `packet.receipt.json`.
+The output directory is no-replace: if it already exists the run fails rather than overwriting prior evidence. Every successful child receipt is hashed into `packet.receipt.json`, and the exact plan is preserved as `packet.plan.json`.
 
-If any requested window fails SHA/PE/range acquisition, the packet is not published.
+If any requested window fails SHA/PE/range/schema/raw-byte validation, the packet is not published and the partial output directory is removed.
 
 ## Current packet targets
 
@@ -101,7 +132,7 @@ Do not merge raw probe bytes or jump directly to C++ behavior.
 
 For each target:
 
-1. verify artifact and window receipt identity;
+1. verify artifact, exact plan and window receipt identity;
 2. disassemble the acquired range locally;
 3. establish actual function/callee boundaries and xrefs;
 4. distinguish direct observation from inference;
@@ -119,4 +150,6 @@ Priority after acquisition remains roadmap-driven:
  -> Level-E instrumentation/receipt support
 ```
 
-This packet reduces evidence-acquisition friction. It does not change the rule that L1 reaches 100% only after the real-retail and original-game acceptance receipts are valid.
+For Layer 3 specifically, the packet is only the acquisition gate for the roadmap's first reverse slices: exact state-writer/caller census, known-field writer ownership and typed-dispatch ordering. Dynamic initial-load/transition/cancellation/reset/shutdown receipts remain separate acceptance work after the static writer boundaries are closed.
+
+This packet reduces evidence-acquisition friction. It does not change the rule that any layer reaches completion only after its real-corpus/original-process acceptance receipts are valid.
