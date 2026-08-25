@@ -296,10 +296,11 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 "Physical provider normalization unexpectedly rejected a canonical lookup candidate.");
         }
 
-        // Evidence boundary: 0x0C normalization and the type-0 physical pass are
-        // recovered. The exact downstream Win32 filename comparison/open rule is
-        // still unresolved, so this source-derived index is product lookup policy,
-        // explicitly tagged as such in every probe.
+        // Evidence boundary: the original 0x0C -> bounded root join ->
+        // CreateFileA contract is now instruction-backed. This implementation
+        // deliberately remains a source-derived product index, so its probes
+        // stay product-classified until controlled parity receipts demonstrate
+        // where it does and does not match the recovered Win32 path behavior.
         auto lookup = physical_index->index.lookup(provider_key);
         probes.push_back(RuntimeResolutionProbe{
             .lookup_attempt_index = attempt.attempt_index,
@@ -328,7 +329,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 request,
                 std::move(probes),
                 lookup,
-                "The product physical lookup exposes multiple physical identities for one 0x0C-normalized key; exact original type-0 filename comparison semantics remain unresolved.");
+                "The product physical lookup exposes multiple physical identities for one 0x0C-normalized key. The recovered original instead delegates final filename resolution to the Win32 path APIs, so no archive-style physical duplicate winner is claimed.");
         }
         if (lookup.unique()) {
             return resolved_report(
@@ -342,7 +343,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         .resolved = std::nullopt,
         .ambiguous_matches = {},
         .probes = std::move(probes),
-        .detail = "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes use explicitly product-classified 0x0C lookup semantics pending exact type-0 backend reverse closure.",
+        .detail = "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes remain product-classified because the current source-derived 0x0C index is mechanically different from the recovered direct Win32 path contract.",
     };
 }
 
