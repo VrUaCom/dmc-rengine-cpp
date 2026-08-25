@@ -1,7 +1,7 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-24  
-**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
+**Snapshot date:** 2026-08-25  
+**Canonical base:** `main@8e67235fd26cf7af94146f4dc660eb49e3c1d133`
 
 ## R-001 — Second resolver/materializer regression
 **Severity:** critical
@@ -17,19 +17,19 @@ Green A-to-Z synthetic tests, resolver success or structural parsing may be repo
 
 **Mitigation:** [L1 roadmap](../gdspaces/l1-roadmap.md) mandatory gates require direct-retail provenance, real rebuild/reopen and original-game consumption before completion.
 
-## R-003 — Evidence receipt snapshot split
+## R-003 — Composite evidence receipt detachment
 **Severity:** critical
 
-Archive index metadata, selected member bytes and archive SHA may be observed from different physical file states. `NbzZipSource` currently indexes one open and reopens the path for `read()`.
+Artifact-bound acquisition is merged, but a higher-level closure receipt can still be detached from or falsely paired with the acquisition sidecar unless it binds and validates that exact sidecar.
 
-**Mitigation:** introduce artifact-stable acquisition/revalidation so provenance-grade receipts bind all observations to one stable artifact identity.
+**Mitigation:** #212 makes the sidecar path, size and SHA-256 mandatory closure fields and validates the sidecar's request, output path, provenance, member size and member SHA against the closure bytes. A real receipt remains invalid when the sidecar is missing, unbound or mismatched.
 
 ## R-004 — False no-clobber publication
-**Severity:** critical
+**Severity:** critical / product mitigation merged
 
-`exists() -> ofstream` can race and replace/create evidence outputs contrary to claimed no-clobber behavior.
+The historical `exists() -> ofstream` race could replace evidence outputs.
 
-**Mitigation:** one shared atomic/no-replace publication primitive for repack/overlay/acquisition/evidence outputs; concurrency regression on Windows and Ubuntu.
+**Mitigation:** #194 introduced shared atomic/no-replace publication. Preserve Windows/Ubuntu regressions and do not bypass the primitive in new artifact paths.
 
 ## R-005 — Acquisition mutates measured retail tree
 **Severity:** critical
@@ -104,7 +104,7 @@ Descriptor identity, numeric Stage identity and semantic gameplay identity may c
 ## R-015 — Branch truth reported as main truth
 **Severity:** high
 
-Active #191/#190 or historical stacked PR findings may be described as canonical implementation.
+Active #210/#211/#212 or historical stacked PR findings may be described as canonical implementation.
 
 **Mitigation:** every current status names exact main SHA; branch work stays branch truth until merged.
 

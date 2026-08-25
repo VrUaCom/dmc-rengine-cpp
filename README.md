@@ -10,9 +10,9 @@ The project connects exact artifact identity, executable research, resource mate
 
 ## Current state
 
-**Status snapshot:** 2026-08-24  
+**Status snapshot:** 2026-08-25  
 **Version:** 0.2.0  
-**Canonical implementation base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`  
+**Canonical implementation base:** `main@8e67235fd26cf7af94146f4dc660eb49e3c1d133`  
 **Primary execution program:** **GDSpaces Layer 1 — Resource Materialization**  
 
 The repository already contains substantial reviewed implementation:
@@ -28,39 +28,31 @@ The repository already contains substantial reviewed implementation:
 - transformed DDS-bearing texture framing and bounded size-changing writer for the evidenced safe subset;
 - original DMC3 non-TM2 serialized `gfxTexture` relocation compatibility checks for writer output;
 - numbered `DMC3-N.nbz` bootstrap/precedence reconstruction;
+- shared atomic/no-replace publication and artifact-bound retail member acquisition;
 - next-contiguous STORE NBZ overlay generation and canonical resolver selection validation;
 - protected-distribution vs unpacked-analysis executable authority roles;
+- merged product-side protected-retail authoring closure orchestration;
 - Binary Inspector, EXE evidence, Stage/Item/HITS/save and guarded-modification foundations.
 
 The project does **not** claim full DMC3 decompilation, whole-game behavioral equivalence, Capcom offline-writer equivalence, a complete desktop editor, or a behaviorally equivalent rebuilt executable.
 
 ## GDSpaces L1 — current critical path
 
-The canonical execution roadmap is [docs/gdspaces/l1-roadmap.md](docs/gdspaces/l1-roadmap.md).
+The canonical cross-layer roadmap is [docs/gdspaces/master-roadmap.md](docs/gdspaces/master-roadmap.md); the detailed L1 gates are in [docs/gdspaces/l1-roadmap.md](docs/gdspaces/l1-roadmap.md).
 
-Completion is **gate-based**, not percentage-based. The immediate path is:
+Completion is **gate-based**, not percentage-based. Current product hardening and external acceptance are:
 
 ```text
-shared atomic/no-replace publication
- -> artifact-stable retail member acquisition
- -> direct-retail provenance receipt
+#212 bind the closure receipt to its artifact-bound acquisition sidecar
+ -> #210 harden recursive PAC/PNST slot-path authoring receipts
+ -> direct-retail resolver/acquisition receipt
  -> retail representation classification
- -> bounded real edit + PAC/PNST bottom-up rebuild
- -> next-volume NBZ publication
- -> canonical resolver/reopen/rematerialization
- -> original DMC3 consumption receipt
+ -> representative real edit/rebuild/overlay/rematerialization
+ -> #209 original DMC3 consumption + rollback receipt
  -> final L1 cross-stack audit
 ```
 
-### Active acquisition boundary
-
-PR #191 has the correct high-level retail acquisition composition — canonical volume bootstrap, `NbzZipSource`, `RuntimeResourceResolver`, `SourceRegistry::read` and member provenance — but is **not promotion-ready** until three review blockers close:
-
-- CLI output uses true atomic/no-replace publication rather than `exists() -> ofstream`;
-- archive index, member bytes and archive SHA are bound to one stable artifact observation;
-- acquisition output cannot be published inside the measured retail game tree.
-
-After correction, the first high-value direct-retail request is `obj\\em000.pac`. The runtime resolver determines the actual winning archive member; documentation/tooling must not predeclare a `GData*.afs/...` member path.
+`main` already contains the product seams for artifact-stable acquisition, bounded PAC/PNST authoring, next-volume publication and canonical reopen. PRs #210 and #212 are branch truth until merged. Neither product CI nor the orchestration command substitutes for the still-missing exact retail and original-game receipts.
 
 ## Canonical architecture
 

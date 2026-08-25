@@ -1,7 +1,7 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-25  
-**Base:** `main@d5e2de0b0b7a2b9e8e9f697c56051ea6e8a26d43`
+**Base:** `main@8e67235fd26cf7af94146f4dc660eb49e3c1d133`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. It supersedes the idea that L1, L2 and L3 must be completed in strict numeric order.
 
@@ -78,12 +78,14 @@ A crash-free launch is not sufficient. The receipt must bind EXE identity, selec
 
 ## Track A — L1 closure
 
-Current strong areas include NBZ STORE/raw-DEFLATE materialization, artifact-bound acquisition, PAC/PNST relative-slot parsing/expansion, bounded reflow/rebuild, atomic no-replace publication, NBZ copy rebuild, nested composition and texture runtime-relocation compatibility.
+Current strong areas include NBZ STORE/raw-DEFLATE materialization, artifact-bound acquisition, PAC/PNST relative-slot parsing/expansion, bounded reflow/rebuild, atomic no-replace publication, NBZ copy rebuild, protected-retail authoring orchestration, nested composition and texture runtime-relocation compatibility. PR #212 is active cryptographic and semantic receipt-bundle hardening; PR #210 is active recursive slot-path hardening. Both remain branch truth until merged.
 
 Remaining L1 closure sequence:
 
 ```text
-direct-retail provenance
+closure/acquisition receipt binding (#212)
+ -> recursive slot-path product hardening (#210)
+ -> direct-retail provenance
  -> retail representation classification
  -> representative real edit/rebuild
  -> verified overlay/new-volume artifact
@@ -148,14 +150,13 @@ L3 implementation in product code is not the goal by itself. The main target is 
 
 ## Current priority queue
 
-1. Keep current L1 authoring workflow healthy and CI-green.
-2. Continue #204 evidence reacquisition; do not guess physical Win32 behavior.
-3. Promote/run real-retail collision-census support from L2.
-4. Obtain first direct-retail resolver + materialization receipt for a representative request.
-5. Use that exact resource for the first real edit/rebuild/overlay receipt.
-6. In parallel, perform L3 state-writer/field-writer census needed to instrument original consumer readiness.
-7. Run one end-to-end original-process receipt spanning L2 -> L1 -> L3.
-8. Expand breadth only after the first vertical receipt is deterministic.
+1. Keep #212 and #210 whole-head Ubuntu/Windows CI-green and promote only after review.
+2. Obtain the first direct-retail resolver + artifact-bound materialization receipt.
+3. Classify that exact representation and execute the representative edit/rebuild/overlay/rematerialization chain.
+4. Complete #209 with deterministic original-process consumer and rollback evidence.
+5. Continue #204 evidence reacquisition and real-retail L2 collision census where they support the vertical receipt.
+6. Continue the L3 state-writer/field-writer census needed to instrument consumer readiness.
+7. Expand format/resource breadth only after the first vertical receipt is deterministic.
 
 ## Completion rule
 
