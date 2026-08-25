@@ -61,6 +61,16 @@ All six archive attempts complete before the six physical attempts. Numbered arc
 
 A zero-volume bootstrap is valid: no archive probes are produced and the resolver proceeds directly to the physical six-candidate pass. With three archive volumes, a complete miss produces `6 * 3 + 6 = 24` probes.
 
+## OpenGameResource direct-call surface — corrected 2026-08-25
+
+A whole-image census of direct callers to `OpenGameResource 0x14002FCA0` found three direct call sites (`0x14003340A`, `0x1403380C7`, `0x1403381F7`), all passing `flags = 1` in `EDX`.
+
+For this canonical direct-call mode the active policy is the recovered generic branch: basename extraction, six prefixes, archive pass, then physical pass. Alternate internal flag branches are not promoted as active DMC3 runtime policy without separate indirect-call/runtime evidence.
+
+Candidate construction uses the bounded helper `0x1403272C0` with capacity `0x400`. If the active candidate does not fit including its terminating NUL, `OpenGameResource` releases the newly allocated file slot/object and returns `-1` immediately. It does not skip to a shorter prefix or continue into the physical pass.
+
+Because the first prefix `GDataX360.afs/` is also the longest (14 bytes), the existing GDSpaces whole-plan fail-closed candidate-length check is equivalent to the recovered canonical direct-call behavior. The exact receipt is `l2-open-game-resource-census-2026-08-25.md`.
+
 ## Ambiguity
 
 Comparator-equal normalized keys inside the current source remain ambiguity. The resolver returns all distinct `ResourceRef` identities and does not continue into a lower-precedence source to manufacture a winner.
@@ -76,19 +86,20 @@ For the archive backend this preserves uncertainty where the original CRT duplic
 - every referenced source must be mounted;
 - a mounted source must enumerate resources belonging to itself;
 - provider normalization unexpectedly rejecting a canonical candidate is configuration failure;
+- an oversized first candidate aborts the recovered canonical direct-call request rather than falling through to shorter prefixes;
 - no external index pointer/profile can be injected into the resolver anymore.
 
 ## Layer-2 targets still open
 
-Static reverse of the exact type-0 final physical open is no longer the blocker. The remaining Layer-2 promotion gates are now:
+Static reverse of the exact type-0 final physical open, the canonical direct-caller census and the caller-level `0x400` overflow aftermath are no longer blockers. The remaining Layer-2 promotion gates are now:
 
 1. controlled physical-provider parity/model receipt;
-2. real-retail `0x0E` normalized-key collision census;
-3. direct-retail resolver receipt;
-4. explicit `OpenGameResource` caller/fallback census;
-5. closure of the separate `OpenGameResource` `0x400` oversized-candidate aftermath;
-6. controlled physical/missing/fallback receipts;
-7. original-process selected-identity receipt;
-8. exact-head Windows + Ubuntu validation and final Layer-2 audit.
+2. real DMC3-retail `0x0E` normalized-key collision census;
+3. direct-retail resolver receipt with exact `ResourceRef`/provider/volume identity;
+4. controlled physical-hit, complete-miss and fallback receipts;
+5. original-process selected-identity receipt;
+6. reconciliation of Layer-2 docs/issues/evidence, exact-head Windows + Ubuntu validation and final Layer-2 audit.
+
+The real Drive `dmc3-0.nbz` corpus is identified but is currently inaccessible through the connected raw-download path because its 960,358,951-byte size exceeds that path's 268,435,456-byte transfer ceiling. A smaller central-directory/member-list artifact from the same archive can close the collision-census gate without moving full member payload bytes.
 
 This slice still does not implement `.lst` synthesis, original FileSlot/async/cache/refcount/LoadedResource lifecycle or Stage Ops assembly. `.afs/` prefixes remain logical namespaces; no binary AFS backend is implied.
