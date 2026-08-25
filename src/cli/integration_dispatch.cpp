@@ -4,6 +4,7 @@
 #include "dmc3_overlay_commands.hpp"
 #include "dmc3_retail_acquisition_commands.hpp"
 #include "nbz_copy_commands.hpp"
+#include "relative_slot_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -22,6 +23,7 @@ void print_integration_help() {
     print_dmc3_overlay_help();
     print_dmc3_retail_acquisition_help();
     print_nbz_copy_help();
+    print_relative_slot_help();
     print_hits_help();
 }
 
@@ -46,6 +48,11 @@ int try_run_integration_command(int argc, char** argv) {
     const auto nbz_copy_result = try_run_nbz_copy_command(argc, argv);
     if (nbz_copy_result != -1) {
         return nbz_copy_result;
+    }
+
+    const auto relative_slot_result = try_run_relative_slot_command(argc, argv);
+    if (relative_slot_result != -1) {
+        return relative_slot_result;
     }
 
     const auto hits_result = try_run_hits_command(argc, argv);
