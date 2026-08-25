@@ -11,6 +11,7 @@
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
+#include "dmc_rengine/profiles/dmc3/retail_acquisition_receipt.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_path_reflow_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
@@ -472,6 +473,29 @@ struct DiscoveredVolume final {
         return 9;
     }
 
+    const auto retail_output_text = retail_member.generic_string();
+    const auto acquisition_evidence =
+        dmc3::RetailAcquisitionReceiptVerifier::verify(
+            std::span<const std::byte>{
+                retail_acquisition_receipt_bytes->data(),
+                retail_acquisition_receipt_bytes->size()},
+            dmc3::RetailAcquisitionReceiptExpectation{
+                .game_request = game_request,
+                .output_file = retail_output_text,
+                .member_bytes = std::span<const std::byte>{
+                    retail_bytes->data(), retail_bytes->size()},
+            });
+    if (!acquisition_evidence.ok()) {
+        std::cerr
+            << "verify-dmc3-l1-authoring: acquisition receipt does not describe the exact acquired member ("
+            << dmc3::to_string(acquisition_evidence.status) << ")";
+        if (!acquisition_evidence.detail.empty()) {
+            std::cerr << ": " << acquisition_evidence.detail;
+        }
+        std::cerr << '\n';
+        return 9;
+    }
+
     std::vector<std::uint32_t> verification_indices = present_indices;
     verification_indices.push_back(overlay_index);
     const auto verification_bootstrap =
@@ -598,7 +622,8 @@ struct DiscoveredVolume final {
         << "  \"retail_acquisition_receipt\": {\"path\": \""
         << escape_json(retail_acquisition_receipt.generic_string())
         << "\", \"size\": " << retail_acquisition_receipt_bytes->size()
-        << ", \"sha256\": \"" << retail_acquisition_receipt_sha << "\"},\n"
+        << ", \"sha256\": \"" << retail_acquisition_receipt_sha
+        << "\", \"semantic_binding\": \"verified\"},\n"
         << "  \"replacement\": {\"path\": \""
         << escape_json(replacement_file.generic_string()) << "\", \"size\": "
         << replacement_bytes->size() << ", \"sha256\": \""
