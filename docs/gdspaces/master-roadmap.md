@@ -1,9 +1,9 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-25  
-**Base:** `main@d5e2de0b0b7a2b9e8e9f697c56051ea6e8a26d43`
+**Base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`
 
-This is the execution roadmap for GDSpaces as one resource-runtime program. It supersedes the idea that L1, L2 and L3 must be completed in strict numeric order.
+This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
 ## Layers
 
@@ -46,53 +46,46 @@ Validation is cross-cutting and is not a fourth layer.
 
 ## Execution rule
 
-The critical path is dependency-driven, not layer-number-driven.
+A task from another layer is allowed when it closes the current acceptance gap. Every task must record its primary layer, dependency and return condition to the vertical critical path.
 
-A task from another layer is allowed when it closes the current acceptance gap. Every task must record:
-
-1. primary layer;
-2. acceptance gap;
-3. dependency on other layers;
-4. why now;
-5. return condition to the vertical critical path.
-
-Do not start broad L2/L3 feature work merely because it is interesting. Do not block required L2/L3 reverse merely because L1 is still open.
+Do not start broad L2/L3 work merely because it is interesting. Do not block required L2/L3 evidence because L1 is still open.
 
 ## Current vertical acceptance target
 
-The first subsystem-wide proof target is one representative retail resource observed end to end:
-
 ```text
 real protected DMC3 installation
- -> [L2] game request and exact selected provider/volume/member
- -> [L1] artifact-stable exact materialized bytes
- -> [L1] bounded edit/rebuild/repack
- -> [L2] overlay/new-volume selection of authored identity
- -> [L1] rematerialized authored bytes
- -> [L3] original typed post-load / state-3 consumer visibility
- -> observable original-game effect
- -> release/transition receipt
+ -> [L2] exact selected provider/volume/member
+ -> [L1] artifact-bound exact materialized bytes
+ -> [L1] supported top-level or nested edit/rebuild
+ -> [L2] authored next-volume winner
+ -> [L1] exact authored rematerialization
+ -> [L3] original consumer visibility
+ -> observable effect attributable to authored bytes
+ -> rollback / transition receipt
 ```
 
-A crash-free launch is not sufficient. The receipt must bind EXE identity, selected ResourceRef, archive/member identity, materialized hash, authored hash and consumer/lifecycle observation.
+A crash-free launch is not sufficient.
 
-## Track A — L1 closure
+## Track A — L1 final acceptance
 
-Current strong areas include NBZ STORE/raw-DEFLATE materialization, artifact-bound acquisition, PAC/PNST relative-slot parsing/expansion, bounded reflow/rebuild, atomic no-replace publication, NBZ copy rebuild, nested composition and texture runtime-relocation compatibility.
+Canonical pre-Level-E audit: `l1-final-audit-2026-08-25.md`.
 
-Remaining L1 closure sequence:
+**Internal product implementation status:** CLOSED for the current representative DMC3-HD acceptance scope.
+
+Promoted capabilities include artifact-bound retail acquisition, atomic no-replace publication, STORE/raw-DEFLATE materialization, PAC/PNST sparse/alias-preserving expansion, size-changing relative-slot reflow, nested root-to-leaf slot-path authoring, verified NBZ rebuild, next-volume overlay authoring and protected retail closure orchestration.
+
+Remaining mandatory L1 sequence is evidence execution:
 
 ```text
-direct-retail provenance
- -> retail representation classification
- -> representative real edit/rebuild
- -> verified overlay/new-volume artifact
- -> canonical rematerialization
- -> original-game consumption
- -> final L1 audit
+direct-retail provenance receipt
+ -> exact retail representation classification
+ -> one supported real edit/rebuild/rematerialization receipt
+ -> #209 original-game consumption + rollback
+ -> final L1 cross-stack audit
+ -> L1 COMPLETE / 100%
 ```
 
-L1 can request L2 work whenever exact selected identity is needed and L3 work whenever consumer/runtime acceptance is required.
+No new synthetic-only feature may displace this sequence unless real retail evidence reveals a concrete missing dependency.
 
 ## Track B — L2 closure
 
@@ -112,7 +105,7 @@ L2-R1 exact type-0 physical provider after 0x0C (#204)
  -> final L2 audit
 ```
 
-The type-0 final-open reverse is evidence-blocked until the canonical raw EXE/callee chain is reacquired. Non-blocked validation/census tooling may proceed in parallel.
+The exact type-0 final-open reverse remains evidence-gated. It does not block the representative L1 path unless that path actually depends on the unresolved physical provider.
 
 ## Track C — L3 closure
 
@@ -133,32 +126,31 @@ state-writer/caller census
  -> final L3 audit
 ```
 
-L3 implementation in product code is not the goal by itself. The main target is executable-backed lifecycle truth and validation of consumer readiness/ownership.
+For the first L1 vertical proof, L3 need only provide enough original-process evidence to attribute the consumer-visible result to the authored resource. Broader lifecycle closure remains a separate L3 program.
 
 ## Cross-layer dependency matrix
 
 | Acceptance question | Primary | Required support |
 |---|---|---|
-| Which resource wins for `obj\\em000.pac`? | L2 | real retail corpus / V |
-| Are the selected bytes exact? | L1 | L2 selected identity + V hash binding |
-| Can the resource be edited/rebuilt losslessly? | L1 | representation evidence |
-| Will the authored overlay win? | L2 | L1 built artifact |
-| Did the game actually consume authored bytes? | L3 + V | L2 winner + L1 byte identity |
-| Was it retained/released correctly? | L3 | same L1/L2 identity chain |
+| Which resource wins for a real game request? | L2 | protected retail corpus / validation |
+| Are selected bytes exact? | L1 | L2 selected identity + artifact binding |
+| Can the selected representation be edited safely? | L1 | direct retail representation evidence |
+| Will the authored overlay win? | L2 | L1 generated artifact |
+| Are authored bytes rematerialized exactly? | L1 | L2 authored winner |
+| Did original DMC3 consume those bytes? | L3 + validation | same L1/L2 identity chain |
+| Was the test rolled back without retail mutation? | validation | exact artifact identity |
 
 ## Current priority queue
 
-1. Keep current L1 authoring workflow healthy and CI-green.
-2. Continue #204 evidence reacquisition; do not guess physical Win32 behavior.
-3. Promote/run real-retail collision-census support from L2.
-4. Obtain first direct-retail resolver + materialization receipt for a representative request.
-5. Use that exact resource for the first real edit/rebuild/overlay receipt.
-6. In parallel, perform L3 state-writer/field-writer census needed to instrument original consumer readiness.
-7. Run one end-to-end original-process receipt spanning L2 -> L1 -> L3.
-8. Expand breadth only after the first vertical receipt is deterministic.
+1. Obtain the first real direct-retail acquisition/provenance receipt.
+2. Classify the exact observed representation.
+3. Use existing L1 writers for one supported real edit/rebuild/rematerialization receipt.
+4. Execute #209 original-game consumption + rollback.
+5. Run the final L1 audit and only then mark L1 complete.
+6. Continue L2/L3 breadth after or when directly required by the vertical receipt.
 
 ## Completion rule
 
-No percentage can mark a layer or GDSpaces complete. Completion requires mandatory gates, canonical code/docs, exact-head Windows+Ubuntu validation where applicable, representative real-corpus/original-process receipts, and no unresolved contradiction that changes the claimed architecture.
+No percentage alone can mark a layer complete. Completion requires mandatory gates, canonical code/docs, exact-head Windows+Ubuntu validation where applicable, representative real-corpus/original-process receipts and no unresolved contradiction changing the declared scope.
 
-After L1/L2/L3 audits are accepted, percentage estimates may be recalculated strictly as planning indicators.
+Percentages may be recalculated only as planning indicators after gate reconciliation.
