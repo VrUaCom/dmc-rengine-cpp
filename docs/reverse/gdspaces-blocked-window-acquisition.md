@@ -109,14 +109,36 @@ Primary gate: #204 exact type-0 physical provider after recovered `0x0C` normali
 
 Primary ledger: #100 / #55.
 
-### L3 / Level-E readiness support
+### L3 / original runtime lifecycle support
 
-- `0x1401B84E0` — successful LoadedResource release path;
-- `0x1401B8CA0` — state-aware record lookup/reuse context;
-- `0x1401B8DC0` — state-2 finalizer / typed-ready transition lead;
+The L3 set is aligned to the canonical roadmap order rather than to the old broad #88 checklist.
+
+**R1 — state-writer/caller census**
+
+- `0x1401B84E0` — acquisition construction and state `0 -> 1`;
+- `0x1401B8DC0` — normal completion callback and state `1 -> 2`;
+- `0x1401B92D0` — state-2 typed finalizer, ready callback and state `2 -> 3`;
+- `0x1401B8430` — canonical unfinished-resource cancellation writer, state `1|2 -> 4`;
+- `0x1401B8F00` — deferred cancellation cleanup, state `4 -> 0`;
+- `0x1401B9530` — ordinary owner-driven conditional release to state 0;
+- `0x1401B9560` / `0x1401B95E0` — group/full forced-reset writers.
+
+**R2 — known-field ownership / topology writers**
+
+- `0x1401B8380` — registry initialization, group/state/backing baseline;
+- `0x1401B84E0` — `+0x18` TypeInfo, `+0x20` payload, optional `+0x10` callback ordering;
+- `0x1401B8D60`, `0x1401B8F50`, `0x1401B8FF0`, `0x1401B90B0`, `0x1401B9160`, `0x1401B9270` — fixed-family wrappers and family-specific selector/index writes;
+- `0x1401B8DF0` — group-5 first-free dynamic pool and `+0x08` initialization/ownership.
+
+**R3 — typed-dispatch breadth / failure semantics**
+
+- `0x1401B8CA0` — direct/packed/loose-list materialization dispatch before state 1 publication;
+- `0x1401B9FA0` — recursive typed post-load dispatcher and default/unknown branch census;
 - `0x1403051B0` — SCM post-load layout contradiction follow-up.
 
-Primary ledger: #88 / #55. The state-2 finalizer is also directly relevant to future #209 instrumentation because Level-E needs consumer-ready evidence rather than a crash-free launch.
+Primary ledger: #88 / #55. The `0x1401B92D0` finalizer is directly relevant to future #209 instrumentation because Level-E needs consumer-ready evidence rather than a crash-free launch.
+
+Historical note: an earlier packet description mislabeled `0x1401B84E0` as a release path, `0x1401B8CA0` as state lookup, and `0x1401B8DC0` as the state-2 finalizer. Pass 25/27 evidence rejects those labels; the current plan uses the corrected function roles above.
 
 ## Probe-window rule
 
@@ -146,10 +168,12 @@ Priority after acquisition remains roadmap-driven:
 #204 physical final-open chain
  -> #100 ZIP initializer / compressed seek where needed
  -> .lst dynamic semantics if activated by acceptance
- -> #88 state-writer / typed-ready ownership
- -> Level-E instrumentation/receipt support
+ -> #88 exact state-writer census
+ -> #88 known-field writer ownership
+ -> #88 typed-dispatch breadth/failure semantics
+ -> Level-E original-process instrumentation/receipts
 ```
 
-For Layer 3 specifically, the packet is only the acquisition gate for the roadmap's first reverse slices: exact state-writer/caller census, known-field writer ownership and typed-dispatch ordering. Dynamic initial-load/transition/cancellation/reset/shutdown receipts remain separate acceptance work after the static writer boundaries are closed.
+For Layer 3 specifically, the packet is only the acquisition gate for the roadmap's first reverse slices. Dynamic initial-load/transition/cancellation/reset/shutdown receipts remain separate acceptance work after the static writer boundaries are closed.
 
 This packet reduces evidence-acquisition friction. It does not change the rule that any layer reaches completion only after its real-corpus/original-process acceptance receipts are valid.
