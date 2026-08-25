@@ -177,8 +177,7 @@ struct MountedSourceIndex final {
 [[nodiscard]] bool direct_resource_valid(
     const gdspaces::DirectPathLookupResult& lookup,
     std::string_view source_id) noexcept {
-    return lookup.resolved() && lookup.resource->valid() &&
-        lookup.resource->id.source_id == source_id;
+    return lookup.resolved() && lookup.resource->id.source_id == source_id;
 }
 
 } // namespace
@@ -334,6 +333,13 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 .direct_lookup = direct_lookup,
             });
 
+            if (!direct_lookup.valid()) {
+                return invalid_configuration(
+                    request,
+                    std::move(probes),
+                    "Physical direct lookup returned a structurally invalid status/resource combination.");
+            }
+
             switch (direct_lookup.status) {
             case gdspaces::DirectPathLookupStatus::resolved:
                 if (!direct_resource_valid(
@@ -341,7 +347,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                     return invalid_configuration(
                         request,
                         std::move(probes),
-                        "Physical direct lookup returned an invalid or foreign ResourceRef identity.");
+                        "Physical direct lookup returned a foreign ResourceRef identity.");
                 }
                 return resolved_report(
                     request, std::move(probes), *direct_lookup.resource);
@@ -362,6 +368,11 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                         ? "Physical direct lookup failed with an I/O error."
                         : direct_lookup.detail);
             }
+
+            return invalid_configuration(
+                request,
+                std::move(probes),
+                "Physical direct lookup returned an unknown status value.");
         }
 
         auto lookup = physical_index->index.lookup(provider_key);
