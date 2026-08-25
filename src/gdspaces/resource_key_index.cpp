@@ -137,6 +137,36 @@ ResourceKeyMatchReport ResourceKeyIndex::lookup(
     return report;
 }
 
+std::vector<ResourceKeyConflict> ResourceKeyIndex::conflicts() const {
+    std::vector<ResourceKeyConflict> result;
+    if (!valid() || receipt_.conflict_key_count == 0U) {
+        return result;
+    }
+
+    result.reserve(receipt_.conflict_key_count);
+    for (std::size_t begin = 0U; begin < entries_.size();) {
+        std::size_t end = begin + 1U;
+        while (end < entries_.size() && entries_[end].key == entries_[begin].key) {
+            ++end;
+        }
+
+        if (end - begin > 1U) {
+            ResourceKeyConflict conflict{
+                .provider_key = entries_[begin].key,
+                .matches = {},
+            };
+            conflict.matches.reserve(end - begin);
+            for (std::size_t index = begin; index < end; ++index) {
+                conflict.matches.push_back(entries_[index].resource);
+            }
+            result.push_back(std::move(conflict));
+        }
+        begin = end;
+    }
+
+    return result;
+}
+
 bool ResourceKeyIndex::valid() const noexcept {
     return receipt_.valid() &&
         receipt_.source_id == source_id_ &&
