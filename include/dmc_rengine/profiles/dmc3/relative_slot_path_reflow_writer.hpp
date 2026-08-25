@@ -12,10 +12,18 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
+struct RelativeSlotPathReflowSafety final {
+    // Product hardening only: bounds user-supplied recursive authoring paths.
+    // This is not claimed as an original DMC3 recursion limit.
+    std::size_t max_depth{64U};
+    RelativeSlotPackedReflowSafety parent_reflow{};
+};
+
 enum class RelativeSlotPathReflowStatus : std::uint8_t {
     ok,
     invalid_root,
     empty_slot_path,
+    path_too_deep,
     parse_failed,
     expansion_failed,
     slot_out_of_range,
@@ -30,6 +38,7 @@ enum class RelativeSlotPathReflowStatus : std::uint8_t {
     case RelativeSlotPathReflowStatus::ok: return "ok";
     case RelativeSlotPathReflowStatus::invalid_root: return "invalid-root";
     case RelativeSlotPathReflowStatus::empty_slot_path: return "empty-slot-path";
+    case RelativeSlotPathReflowStatus::path_too_deep: return "path-too-deep";
     case RelativeSlotPathReflowStatus::parse_failed: return "parse-failed";
     case RelativeSlotPathReflowStatus::expansion_failed: return "expansion-failed";
     case RelativeSlotPathReflowStatus::slot_out_of_range: return "slot-out-of-range";
@@ -83,7 +92,7 @@ public:
         const gdspaces::ResourcePayload& root,
         std::span<const unsigned int> slot_path,
         std::span<const std::byte> replacement_bytes,
-        RelativeSlotPackedReflowSafety safety = {});
+        RelativeSlotPathReflowSafety safety = {});
 };
 
 } // namespace dmc::rengine::profiles::dmc3
