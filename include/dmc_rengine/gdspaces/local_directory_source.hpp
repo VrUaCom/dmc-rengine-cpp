@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/gdspaces/direct_path_source.hpp"
 #include "dmc_rengine/gdspaces/source.hpp"
 
 #include <filesystem>
@@ -7,7 +8,7 @@
 
 namespace dmc::rengine::gdspaces {
 
-class LocalDirectorySource final : public ISource {
+class LocalDirectorySource final : public ISource, public IDirectPathSource {
 public:
     LocalDirectorySource(
         std::string source_id,
@@ -19,6 +20,8 @@ public:
     [[nodiscard]] std::vector<ResourceRef> enumerate() const override;
     [[nodiscard]] std::optional<ResourcePayload> read(
         const ResourceId& resource) const override;
+    [[nodiscard]] DirectPathLookupResult lookup_direct_path(
+        std::string_view logical_path) const override;
 
     [[nodiscard]] const std::filesystem::path& root() const noexcept;
     [[nodiscard]] bool recursive() const noexcept;
