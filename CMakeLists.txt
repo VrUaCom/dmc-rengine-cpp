@@ -260,6 +260,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_cli_verify_dmc3_l1_authoring_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
+        NAME dmc_rengine_cli_verify_dmc3_l1_authoring_fail_closed
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-l1-authoring-fail-closed
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_dmc3_l1_authoring_cli_test.cmake)
+    add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)
     set_tests_properties(

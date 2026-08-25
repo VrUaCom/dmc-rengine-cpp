@@ -132,6 +132,35 @@ struct RecursiveResult final {
     };
 }
 
+[[nodiscard]] const RelativeSlotTopologyEntry* selected_entry(
+    const RelativeSlotPathLevelReceipt& level) noexcept {
+    const auto iterator = std::find_if(
+        level.reflow.source_topology.entries.begin(),
+        level.reflow.source_topology.entries.end(),
+        [&](const RelativeSlotTopologyEntry& entry) {
+            return entry.slot_index == level.slot_index;
+        });
+    return iterator == level.reflow.source_topology.entries.end()
+        ? nullptr
+        : &*iterator;
+}
+
+[[nodiscard]] const RelativeSlotPackedSpanReceipt* selected_span(
+    const RelativeSlotPathLevelReceipt& level) noexcept {
+    const auto* entry = selected_entry(level);
+    if (entry == nullptr || !entry->populated) {
+        return nullptr;
+    }
+    const auto iterator = std::find_if(
+        level.reflow.spans.begin(),
+        level.reflow.spans.end(),
+        [&](const RelativeSlotPackedSpanReceipt& span) {
+            return span.changed && span.source_offset == entry->offset &&
+                span.source_size == entry->size;
+        });
+    return iterator == level.reflow.spans.end() ? nullptr : &*iterator;
+}
+
 [[nodiscard]] bool span_rebuilds_child(
     const RelativeSlotPackedSpanReceipt& span,
     const RelativeSlotPathLevelReceipt& child) {
@@ -151,7 +180,9 @@ bool RelativeSlotPathLevelReceipt::valid() const {
     return parent.valid() && !parser_format.empty() &&
         !source_sha256.empty() && !output_sha256.empty() && reflow.valid() &&
         reflow.parent == parent && reflow.source_sha256 == source_sha256 &&
-        reflow.output_sha256 == output_sha256;
+        reflow.output_sha256 == output_sha256 &&
+        parser_format == reflow.source_topology.format &&
+        selected_span(*this) != nullptr;
 }
 
 bool RelativeSlotPathReflowReceipt::valid() const {
@@ -173,23 +204,15 @@ bool RelativeSlotPathReflowReceipt::valid() const {
     for (std::size_t index = 0U; index + 1U < levels.size(); ++index) {
         const auto& parent = levels[index];
         const auto& child = levels[index + 1U];
-        const bool linked = std::any_of(
-            parent.reflow.spans.begin(), parent.reflow.spans.end(),
-            [&](const RelativeSlotPackedSpanReceipt& span) {
-                return span_rebuilds_child(span, child);
-            });
-        if (!linked) {
+        const auto* span = selected_span(parent);
+        if (span == nullptr || !span_rebuilds_child(*span, child)) {
             return false;
         }
     }
 
-    const auto& leaf = levels.back();
-    const bool leaf_matches_replacement = std::any_of(
-        leaf.reflow.spans.begin(), leaf.reflow.spans.end(),
-        [&](const RelativeSlotPackedSpanReceipt& span) {
-            return span.changed && span.output_sha256 == replacement_sha256;
-        });
-    return leaf_matches_replacement;
+    const auto* leaf_span = selected_span(levels.back());
+    return leaf_span != nullptr &&
+        leaf_span->output_sha256 == replacement_sha256;
 }
 
 bool RelativeSlotPathReflowResult::ok() const {

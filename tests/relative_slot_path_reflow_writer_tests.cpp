@@ -120,6 +120,25 @@ int main() {
     assert(rebuilt.receipt->slot_path == path);
     assert(rebuilt.bytes.size() > root.bytes.size());
 
+    auto wrong_parser_format = *rebuilt.receipt;
+    wrong_parser_format.levels[0].parser_format = "PNST";
+    assert(!wrong_parser_format.valid());
+
+    auto wrong_outer_slot = *rebuilt.receipt;
+    wrong_outer_slot.slot_path[0] = 1U;
+    wrong_outer_slot.levels[0].slot_index = 1U;
+    assert(!wrong_outer_slot.valid());
+
+    auto wrong_inner_slot = *rebuilt.receipt;
+    wrong_inner_slot.slot_path[1] = 1U;
+    wrong_inner_slot.levels[1].slot_index = 1U;
+    assert(!wrong_inner_slot.valid());
+
+    auto wrong_replacement_hash = *rebuilt.receipt;
+    wrong_replacement_hash.replacement_sha256 =
+        std::string(64U, '0');
+    assert(!wrong_replacement_hash.valid());
+
     auto reopened = root;
     reopened.bytes = rebuilt.bytes;
     reopened.resource.id.size = static_cast<std::uint64_t>(reopened.bytes.size());
