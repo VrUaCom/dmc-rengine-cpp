@@ -11,24 +11,24 @@
       "va": "0x140326D20",
       "size": "0x400",
       "mode": "probe",
-      "issues": [204, 100, 55],
-      "purpose": "Reacquire the physical-mount anchor and nearby flags/caller context before tracing the type-0 provider final-open chain."
+      "issues": [100, 55],
+      "purpose": "Optional regression/reacquisition anchor for the already recovered type-0 physical mount registration; not a blocker for #204."
     },
     {
       "id": "resource-mount-resolve-140327430",
       "va": "0x140327430",
       "size": "0x400",
       "mode": "probe",
-      "issues": [204, 100, 55],
-      "purpose": "Reacquire mount root plus candidate resolution and the branch/callee chain leading toward physical final open."
+      "issues": [100, 55],
+      "purpose": "Optional regression/reacquisition anchor for the already recovered physical mount-resolution chain; not a blocker for #204."
     },
     {
       "id": "resource-path-exists-140327720",
       "va": "0x140327720",
       "size": "0x400",
       "mode": "probe",
-      "issues": [204, 100, 55],
-      "purpose": "Reacquire the path-existence helper and adjacent final-open/failure callers without assuming Win32 semantics."
+      "issues": [100, 55],
+      "purpose": "Optional regression/reacquisition anchor for the already recovered FindFirstFileA existence path and adjacent physical-open context; not a blocker for #204."
     },
     {
       "id": "zip-stream-init-140328540",
