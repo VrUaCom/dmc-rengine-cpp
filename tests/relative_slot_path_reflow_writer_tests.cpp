@@ -98,6 +98,7 @@ int main() {
     assert(parsed_root.ok());
     const auto expanded_root = gdspaces::ContainerExpander::expand(root, parsed_root);
     assert(expanded_root.usable());
+    const auto original_nested_child = expanded_root.children[0].payload.bytes;
     const auto original_outer_sibling = expanded_root.children[1].payload.bytes;
 
     const auto parsed_inner = parsers.parse(
@@ -139,6 +140,28 @@ int main() {
     assert(reexpanded_inner.usable());
     assert(reexpanded_inner.children[0].payload.bytes == replacement);
     assert(reexpanded_inner.children[1].payload.bytes == original_inner_sibling);
+
+    // A one-level path is the writer-side compatibility case for the former
+    // single slot-index authoring contract.
+    const auto direct_replacement = ascii(
+        "DIRECT-SLOT-ONE-REPLACEMENT-THAT-ALSO-GROWS");
+    const std::vector<unsigned int> direct_path{1U};
+    const auto direct = dmc3::RelativeSlotPathReflowWriter::rebuild(
+        root, direct_path, direct_replacement);
+    assert(direct.ok());
+    assert(direct.receipt->levels.size() == 1U);
+    auto direct_reopened = root;
+    direct_reopened.bytes = direct.bytes;
+    direct_reopened.resource.id.size =
+        static_cast<std::uint64_t>(direct_reopened.bytes.size());
+    const auto direct_parsed = parsers.parse(
+        direct_reopened.bytes, direct_reopened.resource.id.logical_path);
+    assert(direct_parsed.ok());
+    const auto direct_expanded = gdspaces::ContainerExpander::expand(
+        direct_reopened, direct_parsed);
+    assert(direct_expanded.usable());
+    assert(direct_expanded.children[0].payload.bytes == original_nested_child);
+    assert(direct_expanded.children[1].payload.bytes == direct_replacement);
 
     const std::vector<unsigned int> empty_path;
     const auto empty = dmc3::RelativeSlotPathReflowWriter::rebuild(
