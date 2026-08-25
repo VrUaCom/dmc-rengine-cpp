@@ -1,0 +1,114 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-gdspaces-blocked-reverse-2026-08-25",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "window_size_policy": "Probe sizes are acquisition coverage only. They are not function-body sizes and must not be promoted as body boundaries.",
+  "windows": [
+    {
+      "id": "physical-mount-add-140326d20",
+      "va": "0x140326D20",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [204, 100, 55],
+      "purpose": "Reacquire the physical-mount anchor and nearby flags/caller context before tracing the type-0 provider final-open chain."
+    },
+    {
+      "id": "resource-mount-resolve-140327430",
+      "va": "0x140327430",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [204, 100, 55],
+      "purpose": "Reacquire mount root plus candidate resolution and the branch/callee chain leading toward physical final open."
+    },
+    {
+      "id": "resource-path-exists-140327720",
+      "va": "0x140327720",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [204, 100, 55],
+      "purpose": "Reacquire the path-existence helper and adjacent final-open/failure callers without assuming Win32 semantics."
+    },
+    {
+      "id": "zip-stream-init-140328540",
+      "va": "0x140328540",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Recover the complete ZIP/inflater stream initializer lifetime and error contract."
+    },
+    {
+      "id": "inflate-read-anchor-140328820",
+      "va": "0x140328820",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Provide a known neighboring InflateRead anchor for cross-checking stream state and caller relationships."
+    },
+    {
+      "id": "zip-entry-read-anchor-140328f50",
+      "va": "0x140328F50",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Provide a known neighboring ZipEntryRead anchor for direct-vs-inflated member path reconciliation."
+    },
+    {
+      "id": "compressed-seek-reset-140328fe0",
+      "va": "0x140328FE0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Recover compressed seek/reset/reinflate ordering, reset state, discard loop and error behavior."
+    },
+    {
+      "id": "lst-builder-anchor-14002da40",
+      "va": "0x14002DA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Reacquire the loose-container synthesis path for allocation/free/error/cycle follow-up without altering the already recovered static grammar."
+    },
+    {
+      "id": "shared-staging-helper-14002ef4d0",
+      "va": "0x14002EF4D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Reacquire the shared materialization/staging helper used around wrappers and loose-container paths."
+    },
+    {
+      "id": "loaded-resource-release-1401b84e0",
+      "va": "0x1401B84E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire the successful release-to-state-0 path and adjacent owned-field cleanup ordering."
+    },
+    {
+      "id": "loaded-resource-state-lookup-1401b8ca0",
+      "va": "0x1401B8CA0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire state-aware record lookup/reuse context needed for exact ownership and state-writer census."
+    },
+    {
+      "id": "loaded-resource-state2-finalizer-1401b8dc0",
+      "va": "0x1401B8DC0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 209],
+      "purpose": "Recover state-2 typed-post-load dispatch and the exact ordering around the state-3 readiness write for Level-E instrumentation."
+    },
+    {
+      "id": "scm-post-load-1403051b0",
+      "va": "0x1403051B0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire SCM post-load logic for the mesh+0x28 versus historical fixed-stride layout contradiction."
+    }
+  ]
+}
