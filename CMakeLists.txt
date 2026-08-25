@@ -86,9 +86,11 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        retail_acquisition_receipt
         loose_container_list
         relative_slot_writer
         relative_slot_packed_reflow_writer
+        relative_slot_path_reflow_writer
         gdspaces_l1_full_a2z_roundtrip
         dds_profile
         texture_slot_framing
@@ -258,6 +260,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     set_tests_properties(
         dmc_rengine_cli_verify_dmc3_l1_authoring_usage
         PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_verify_dmc3_l1_authoring_fail_closed
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-l1-authoring-fail-closed
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_dmc3_l1_authoring_cli_test.cmake)
     add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)
