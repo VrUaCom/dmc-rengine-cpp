@@ -19,9 +19,15 @@ import sys
 from typing import Any
 
 MAX_WINDOW_SIZE = 0x10000
+PLAN_SCHEMA = "dmc-rengine.exe-window-packet-plan.v1"
+VALIDATION_SCHEMA = "dmc-rengine.exe-window-packet-plan-validation.v1"
+CHILD_RECEIPT_SCHEMA = "dmc-rengine.exe-byte-window.v1"
+PACKET_RECEIPT_SCHEMA = "dmc-rengine.exe-window-packet-receipt.v1"
 
 
 def parse_u64(value: Any, field: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{field}: expected integer or string")
     if isinstance(value, int):
         number = value
     elif isinstance(value, str):
@@ -45,14 +51,20 @@ def canonical_sha256(value: Any, field: str) -> str:
     return lowered
 
 
-def load_plan(path: Path) -> dict[str, Any]:
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"cannot read plan {path}: {exc}") from exc
+def canonical_lower_hex(value: Any, expected_bytes: int, field: str) -> str:
+    if not isinstance(value, str) or len(value) != expected_bytes * 2:
+        raise ValueError(
+            f"{field}: expected exactly {expected_bytes * 2} lowercase hexadecimal characters"
+        )
+    if any(ch not in "0123456789abcdef" for ch in value):
+        raise ValueError(f"{field}: expected lowercase hexadecimal bytes")
+    return value
+
+
+def _validate_plan(data: Any) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError("plan root must be an object")
-    if data.get("schema") != "dmc-rengine.exe-window-packet-plan.v1":
+    if data.get("schema") != PLAN_SCHEMA:
         raise ValueError("unsupported or missing plan schema")
     plan_id = data.get("id")
     if not isinstance(plan_id, str) or not plan_id.strip():
@@ -61,6 +73,12 @@ def load_plan(path: Path) -> dict[str, Any]:
     artifact_size = parse_u64(data.get("artifact_size"), "artifact_size")
     if artifact_size == 0:
         raise ValueError("artifact_size must be non-zero")
+    authority_role = data.get("authority_role")
+    if not isinstance(authority_role, str) or not authority_role.strip():
+        raise ValueError("authority_role must be a non-empty string")
+    window_size_policy = data.get("window_size_policy")
+    if not isinstance(window_size_policy, str) or not window_size_policy.strip():
+        raise ValueError("window_size_policy must be a non-empty string")
     windows = data.get("windows")
     if not isinstance(windows, list) or not windows:
         raise ValueError("windows must be a non-empty array")
@@ -75,7 +93,10 @@ def load_plan(path: Path) -> dict[str, Any]:
             raise ValueError(f"{prefix}.id: expected non-empty string")
         if window_id in seen:
             raise ValueError(f"{prefix}.id: duplicate id {window_id!r}")
-        if any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_." for ch in window_id):
+        if any(
+            ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+            for ch in window_id
+        ):
             raise ValueError(f"{prefix}.id: contains unsafe filename characters")
         seen.add(window_id)
         va = parse_u64(window.get("va"), f"{prefix}.va")
@@ -83,13 +104,42 @@ def load_plan(path: Path) -> dict[str, Any]:
         if va == 0:
             raise ValueError(f"{prefix}.va: zero VA is not accepted")
         if size == 0 or size > MAX_WINDOW_SIZE:
-            raise ValueError(f"{prefix}.size: must be in 1..0x{MAX_WINDOW_SIZE:x}")
+            raise ValueError(
+                f"{prefix}.size: must be in 1..0x{MAX_WINDOW_SIZE:x}"
+            )
         mode = window.get("mode")
         if mode not in ("probe", "known-body"):
             raise ValueError(f"{prefix}.mode: expected 'probe' or 'known-body'")
         if mode == "known-body":
             canonical_sha256(window.get("body_sha256"), f"{prefix}.body_sha256")
+        issues = window.get("issues")
+        if not isinstance(issues, list) or any(
+            isinstance(issue, bool) or not isinstance(issue, int) or issue <= 0
+            for issue in issues
+        ):
+            raise ValueError(
+                f"{prefix}.issues: expected an array of positive issue numbers"
+            )
+        purpose = window.get("purpose")
+        if not isinstance(purpose, str) or not purpose.strip():
+            raise ValueError(f"{prefix}.purpose: expected non-empty string")
     return data
+
+
+def load_plan(path: Path) -> tuple[dict[str, Any], bytes]:
+    try:
+        raw = path.read_bytes()
+    except OSError as exc:
+        raise ValueError(f"cannot read plan {path}: {exc}") from exc
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ValueError(f"cannot decode plan {path} as UTF-8: {exc}") from exc
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"cannot parse plan {path}: {exc}") from exc
+    return _validate_plan(data), raw
 
 
 def stable_json_bytes(value: Any) -> bytes:
@@ -102,21 +152,104 @@ def write_new(path: Path, payload: bytes) -> None:
         handle.write(payload)
 
 
+def validate_child_receipt(
+    receipt: Any,
+    *,
+    expected_sha: str,
+    expected_artifact_size: int,
+    expected_va: int,
+    expected_size: int,
+    include_hex: bool,
+) -> dict[str, Any]:
+    if not isinstance(receipt, dict):
+        raise ValueError("receipt root must be an object")
+    if receipt.get("schema") != CHILD_RECEIPT_SCHEMA:
+        raise ValueError("receipt schema mismatch")
+
+    receipt_sha = canonical_sha256(
+        receipt.get("artifact_sha256"), "receipt.artifact_sha256"
+    )
+    receipt_window_sha = canonical_sha256(
+        receipt.get("window_sha256"), "receipt.window_sha256"
+    )
+    receipt_artifact_size = parse_u64(
+        receipt.get("artifact_size"), "receipt.artifact_size"
+    )
+    receipt_image_base = parse_u64(receipt.get("image_base"), "receipt.image_base")
+    receipt_va = parse_u64(receipt.get("va"), "receipt.va")
+    receipt_rva = parse_u64(receipt.get("rva"), "receipt.rva")
+    receipt_file_offset = parse_u64(
+        receipt.get("file_offset"), "receipt.file_offset"
+    )
+    receipt_size = parse_u64(receipt.get("size"), "receipt.size")
+    receipt_section = receipt.get("section")
+    if not isinstance(receipt_section, str) or not receipt_section:
+        raise ValueError("receipt.section must be a non-empty string")
+
+    if receipt_sha != expected_sha:
+        raise ValueError("receipt artifact SHA mismatch")
+    if receipt_artifact_size != expected_artifact_size:
+        raise ValueError("receipt artifact size mismatch")
+    if receipt_va != expected_va:
+        raise ValueError("receipt VA mismatch")
+    if receipt_size != expected_size:
+        raise ValueError("receipt size mismatch")
+    if receipt_va < receipt_image_base or receipt_rva != receipt_va - receipt_image_base:
+        raise ValueError("receipt RVA/image-base relationship mismatch")
+    if (
+        receipt_file_offset > receipt_artifact_size
+        or receipt_size > receipt_artifact_size - receipt_file_offset
+    ):
+        raise ValueError("receipt file range exceeds artifact size")
+
+    if include_hex:
+        bytes_hex = canonical_lower_hex(
+            receipt.get("bytes_hex"), receipt_size, "receipt.bytes_hex"
+        )
+        try:
+            raw_bytes = bytes.fromhex(bytes_hex)
+        except ValueError as exc:  # defensive; canonical_lower_hex constrains input
+            raise ValueError("receipt.bytes_hex is invalid") from exc
+        if hashlib.sha256(raw_bytes).hexdigest() != receipt_window_sha:
+            raise ValueError("receipt raw bytes do not match window SHA")
+    elif "bytes_hex" in receipt:
+        raise ValueError("receipt unexpectedly contains raw bytes without --hex")
+
+    return {
+        "schema": CHILD_RECEIPT_SCHEMA,
+        "artifact_sha256": receipt_sha,
+        "artifact_size": receipt_artifact_size,
+        "image_base": receipt_image_base,
+        "va": receipt_va,
+        "rva": receipt_rva,
+        "file_offset": receipt_file_offset,
+        "size": receipt_size,
+        "section": receipt_section,
+        "window_sha256": receipt_window_sha,
+    }
+
+
 def validate_plan_only(plan_path: Path) -> int:
     try:
-        plan = load_plan(plan_path)
+        plan, plan_bytes = load_plan(plan_path)
     except ValueError as exc:
         print(f"plan error: {exc}", file=sys.stderr)
         return 2
     summary = {
-        "schema": "dmc-rengine.exe-window-packet-plan-validation.v1",
+        "schema": VALIDATION_SCHEMA,
         "status": "valid",
         "plan_id": plan["id"],
+        "plan_sha256": hashlib.sha256(plan_bytes).hexdigest(),
         "artifact_sha256": plan["artifact_sha256"].lower(),
         "artifact_size": parse_u64(plan["artifact_size"], "artifact_size"),
+        "authority_role": plan["authority_role"],
         "window_count": len(plan["windows"]),
-        "probe_count": sum(1 for window in plan["windows"] if window["mode"] == "probe"),
-        "known_body_count": sum(1 for window in plan["windows"] if window["mode"] == "known-body"),
+        "probe_count": sum(
+            1 for window in plan["windows"] if window["mode"] == "probe"
+        ),
+        "known_body_count": sum(
+            1 for window in plan["windows"] if window["mode"] == "known-body"
+        ),
         "semantic_claim": False,
     }
     sys.stdout.buffer.write(stable_json_bytes(summary))
@@ -132,13 +265,21 @@ def run_packet(args: argparse.Namespace) -> int:
     }
     missing = [name for name, value in required.items() if value is None]
     if missing:
-        print(f"missing required acquisition arguments: {', '.join(missing)}", file=sys.stderr)
+        print(
+            f"missing required acquisition arguments: {', '.join(missing)}",
+            file=sys.stderr,
+        )
         return 2
 
     try:
-        plan = load_plan(args.plan)
-        expected_sha = canonical_sha256(args.expected_sha256, "--expected-sha256")
-        expected_artifact_size = parse_u64(plan["artifact_size"], "artifact_size")
+        plan, plan_bytes = load_plan(args.plan)
+        plan_sha = hashlib.sha256(plan_bytes).hexdigest()
+        expected_sha = canonical_sha256(
+            args.expected_sha256, "--expected-sha256"
+        )
+        expected_artifact_size = parse_u64(
+            plan["artifact_size"], "artifact_size"
+        )
     except ValueError as exc:
         print(f"plan error: {exc}", file=sys.stderr)
         return 2
@@ -154,7 +295,10 @@ def run_packet(args: argparse.Namespace) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.mkdir()
     except FileExistsError:
-        print(f"output already exists; refusing replacement: {args.output}", file=sys.stderr)
+        print(
+            f"output already exists; refusing replacement: {args.output}",
+            file=sys.stderr,
+        )
         return 4
     except OSError as exc:
         print(f"cannot reserve output directory {args.output}: {exc}", file=sys.stderr)
@@ -163,6 +307,8 @@ def run_packet(args: argparse.Namespace) -> int:
     completed: list[dict[str, Any]] = []
     published = False
     try:
+        write_new(args.output / "packet.plan.json", plan_bytes)
+
         for window in plan["windows"]:
             va = parse_u64(window["va"], "va")
             size = parse_u64(window["size"], "size")
@@ -186,44 +332,44 @@ def run_packet(args: argparse.Namespace) -> int:
                     check=False,
                 )
             except OSError as exc:
-                print(f"cannot execute dmc-rengine acquisition command: {exc}", file=sys.stderr)
+                print(
+                    f"cannot execute dmc-rengine acquisition command: {exc}",
+                    file=sys.stderr,
+                )
                 return 5
             if process.stderr:
                 sys.stderr.write(f"[{window['id']}] {process.stderr}")
             if process.returncode != 0:
                 print(
-                    f"window {window['id']} failed with exit code {process.returncode}; packet not published",
+                    f"window {window['id']} failed with exit code "
+                    f"{process.returncode}; packet not published",
                     file=sys.stderr,
                 )
                 return process.returncode or 5
             try:
                 receipt = json.loads(process.stdout)
-            except json.JSONDecodeError as exc:
-                print(f"window {window['id']} emitted invalid JSON: {exc}", file=sys.stderr)
+                normalized = validate_child_receipt(
+                    receipt,
+                    expected_sha=expected_sha,
+                    expected_artifact_size=expected_artifact_size,
+                    expected_va=va,
+                    expected_size=size,
+                    include_hex=bool(args.hex),
+                )
+            except (json.JSONDecodeError, ValueError) as exc:
+                print(
+                    f"window {window['id']} emitted an invalid receipt: {exc}",
+                    file=sys.stderr,
+                )
                 return 5
-            if receipt.get("artifact_sha256", "").lower() != expected_sha:
-                print(f"window {window['id']} receipt artifact SHA mismatch", file=sys.stderr)
-                return 5
-            try:
-                receipt_artifact_size = parse_u64(receipt.get("artifact_size"), "receipt.artifact_size")
-                receipt_va = parse_u64(receipt.get("va"), "receipt.va")
-                receipt_size = parse_u64(receipt.get("size"), "receipt.size")
-            except ValueError as exc:
-                print(f"window {window['id']} receipt metadata is invalid: {exc}", file=sys.stderr)
-                return 5
-            if receipt_artifact_size != expected_artifact_size:
-                print(f"window {window['id']} receipt artifact size mismatch", file=sys.stderr)
-                return 5
-            if receipt_va != va:
-                print(f"window {window['id']} receipt VA mismatch", file=sys.stderr)
-                return 5
-            if receipt_size != size:
-                print(f"window {window['id']} receipt size mismatch", file=sys.stderr)
-                return 5
+
             if window["mode"] == "known-body":
                 expected_body = window["body_sha256"].lower()
-                if receipt.get("window_sha256", "").lower() != expected_body:
-                    print(f"window {window['id']} known-body SHA mismatch", file=sys.stderr)
+                if normalized["window_sha256"] != expected_body:
+                    print(
+                        f"window {window['id']} known-body SHA mismatch",
+                        file=sys.stderr,
+                    )
                     return 6
 
             receipt_bytes = stable_json_bytes(receipt)
@@ -234,27 +380,36 @@ def run_packet(args: argparse.Namespace) -> int:
                     "id": window["id"],
                     "mode": window["mode"],
                     "va": hex(va),
+                    "rva": hex(normalized["rva"]),
+                    "file_offset": hex(normalized["file_offset"]),
                     "size": size,
-                    "issues": window.get("issues", []),
-                    "purpose": window.get("purpose", ""),
+                    "section": normalized["section"],
+                    "issues": window["issues"],
+                    "purpose": window["purpose"],
                     "receipt": receipt_name,
+                    "receipt_schema": normalized["schema"],
                     "receipt_sha256": hashlib.sha256(receipt_bytes).hexdigest(),
-                    "window_sha256": receipt["window_sha256"],
+                    "window_sha256": normalized["window_sha256"],
                 }
             )
 
         manifest = {
-            "schema": "dmc-rengine.exe-window-packet-receipt.v1",
+            "schema": PACKET_RECEIPT_SCHEMA,
             "status": "acquired",
             "plan_id": plan["id"],
             "plan_schema": plan["schema"],
+            "plan_receipt": "packet.plan.json",
+            "plan_sha256": plan_sha,
             "artifact_sha256": expected_sha,
             "artifact_size": expected_artifact_size,
+            "authority_role": plan["authority_role"],
             "raw_bytes_included": bool(args.hex),
             "semantic_claim": False,
             "windows": completed,
         }
-        write_new(args.output / "packet.receipt.json", stable_json_bytes(manifest))
+        write_new(
+            args.output / "packet.receipt.json", stable_json_bytes(manifest)
+        )
         published = True
         print(args.output / "packet.receipt.json")
         return 0
@@ -265,7 +420,10 @@ def run_packet(args: argparse.Namespace) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Acquire a hash-gated EXE reverse window packet through dmc-rengine extract-exe-window"
+        description=(
+            "Acquire a hash-gated EXE reverse window packet through "
+            "dmc-rengine extract-exe-window"
+        )
     )
     parser.add_argument("--plan", type=Path, required=True)
     parser.add_argument("--validate-plan-only", action="store_true")
@@ -276,7 +434,10 @@ def main() -> int:
     parser.add_argument(
         "--hex",
         action="store_true",
-        help="include local-only raw executable bytes in child receipts; never commit those receipts",
+        help=(
+            "include local-only raw executable bytes in child receipts; "
+            "never commit those receipts"
+        ),
     )
     args = parser.parse_args()
     if args.validate_plan_only:
