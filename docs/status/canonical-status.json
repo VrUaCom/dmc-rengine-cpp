@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
-  "snapshot_date": "2026-08-24",
+  "snapshot_date": "2026-08-25",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0",
+  "snapshot_main_sha": "8e67235fd26cf7af94146f4dc660eb49e3c1d133",
   "overall_status": "gdspaces-l1-active-not-complete",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
@@ -14,45 +14,38 @@
   },
   "gdspaces": {
     "primary_execution_layer": "L1-resource-materialization",
-    "roadmap": "../gdspaces/l1-roadmap.md",
+    "master_roadmap": "../gdspaces/master-roadmap.md",
+    "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "completion_model": "mandatory-gates",
     "canonical_capabilities": [
-      "nbz-classic-zip-indexing",
-      "nbz-store-materialization",
-      "nbz-raw-deflate-materialization",
+      "nbz-classic-zip-store-and-raw-deflate-materialization",
       "byte-provenance",
-      "pac-relative-slot-structural-parsing",
-      "pnst-relative-slot-structural-parsing",
-      "pnst-structural-classification-hardening",
-      "recursive-pac-pnst-expansion",
-      "working-copy",
-      "same-size-relative-slot-authoring",
+      "artifact-bound-archive-member-observation",
+      "shared-atomic-no-replace-publication",
+      "resolver-based-retail-member-acquisition",
+      "pac-pnst-relative-slot-parsing-and-recursive-expansion",
       "bounded-size-changing-relative-slot-reflow",
-      "nested-pac-pnst-reintegration",
-      "synthetic-full-nested-a-to-z-nbz-roundtrip",
-      "transformed-dds-safe-texture-framing",
-      "bounded-size-changing-texture-authoring",
-      "texture-writer-original-runtime-relocation-composition",
-      "numbered-volume-bootstrap-and-precedence",
-      "next-contiguous-store-nbz-overlay-authoring",
-      "generated-overlay-runtime-resolver-selection",
-      "dmc3-executable-authority-role-preflight"
+      "synthetic-nested-a-to-z-nbz-roundtrip",
+      "next-contiguous-store-overlay-authoring",
+      "canonical-overlay-resolution-and-rematerialization",
+      "protected-distribution-authority-preflight",
+      "product-l1-authoring-closure-orchestration"
     ],
     "mandatory_L1_gates": [
       {
         "id": "L1-A",
-        "name": "shared-atomic-no-replace-publication",
-        "status": "open-code-correction"
+        "name": "publication-integrity",
+        "status": "closed-merged-product-contract"
       },
       {
         "id": "L1-B",
         "name": "artifact-stable-retail-member-acquisition",
-        "status": "open-active-pr-191"
+        "status": "closed-merged-product-contract"
       },
       {
         "id": "L1-C",
         "name": "direct-retail-representative-member-provenance",
-        "status": "waiting-on-L1-B"
+        "status": "open-external-receipt-required"
       },
       {
         "id": "L1-D",
@@ -62,17 +55,17 @@
       {
         "id": "L1-E",
         "name": "real-retail-bounded-edit-bottom-up-rebuild",
-        "status": "waiting-on-L1-D"
+        "status": "product-writers-strong-active-pr-210-real-receipt-open"
       },
       {
         "id": "L1-F",
         "name": "real-next-volume-publication-canonical-reopen",
-        "status": "product-path-strong-real-receipt-open"
+        "status": "product-path-merged-composite-receipt-binding-pr-212-real-receipt-open"
       },
       {
         "id": "L1-G",
         "name": "original-dmc3-consumption-receipt",
-        "status": "open-final-acceptance"
+        "status": "open-issue-209-final-level-e"
       },
       {
         "id": "L1-H",
@@ -81,48 +74,48 @@
       }
     ],
     "active_prs": {
-      "191": {
-        "role": "retail-member-acquisition-seam",
-        "status": "do-not-promote-until-publication-snapshot-retail-tree-blockers-close"
+      "210": {
+        "role": "recursive-pac-pnst-slot-path-reflow",
+        "status": "branch-truth-ci-and-review-required"
+      },
+      "211": {
+        "role": "canonical-status-reconciliation",
+        "status": "branch-truth-synchronization-required"
+      },
+      "212": {
+        "role": "closure-acquisition-receipt-binding",
+        "status": "branch-truth-ci-and-review-required"
       }
     },
-    "supporting_exe_reverse_gaps": [
-      "type0-physical-provider-final-win32-open-semantics",
-      "zip-stream-initializer-0x140328540-complete-body-lifetime",
-      "compressed-seek-reset-0x140328FE0-complete-behavior",
-      "malformed-partial-read-error-equivalence-where-required",
-      "dynamic-lst-lifetime-error-cycle-behavior-if-real-use-requires"
-    ],
-    "non_blocking_evidence_gated_families": [
-      "binary-afs-backend",
-      "pack-original-runtime-authority"
-    ],
-    "first_direct_retail_request_target": "obj\\em000.pac",
+    "first_direct_retail_request_target": "obj\\\\em000.pac",
+    "retail_archive": {
+      "drive_id": "1dnYSWy1bqrMX_VEST9CRlno_38u7LlhQ",
+      "known_size": 960358951,
+      "whole_sha256": "unknown-not-acquired",
+      "connector_limit": 268435456,
+      "status": "external-ingress-blocked"
+    },
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path"
   },
+  "layer_status": {
+    "L1": "active-not-complete-real-retail-and-level-e-open",
+    "L2": "advanced-supporting-not-complete",
+    "L3": "advanced-static-spine-dynamic-receipts-open",
+    "validation": "cross-cutting-not-a-fourth-layer"
+  },
   "project_priority": [
-    "shared-atomic-no-replace-publication",
-    "artifact-stable-nbz-acquisition-contract",
-    "correct-and-promote-pr-191",
-    "direct-retail-obj-em000-request-receipt",
+    "promote-pr-212-receipt-binding-after-ci-review",
+    "promote-pr-210-slot-path-hardening-after-ci-review",
+    "direct-retail-obj-em000-receipt",
     "retail-representation-classification",
-    "bounded-real-edit-bottom-up-rebuild",
-    "next-volume-nbz-canonical-reopen-rematerialization",
-    "original-dmc3-consumption-receipt",
+    "real-edit-rebuild-overlay-rematerialization",
+    "issue-209-original-game-consumption-and-rollback",
     "final-l1-cross-stack-audit"
   ],
-  "downstream": {
-    "L2": "advanced-supporting-not-complete",
-    "L3": "advanced-static-spine-dynamic-level-e-open",
-    "stage_ops": "downstream-of-gdspaces-resource-authority",
-    "stage_semantic_graph": "derived-from-stage-ops",
-    "modviz": "consumer-editor-over-stage-ops",
-    "exe_editor": "frontend-over-recovered-source-binary-evidence-authority",
-    "progressive_recompilation": "long-term-after-bounded-behavioral-receipts"
-  },
   "navigation": {
     "root_readme": "../../README.md",
     "project_roadmap": "../roadmap.md",
+    "master_roadmap": "../gdspaces/master-roadmap.md",
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "current_status": "current.md",
     "phase_map": "phase-map.md",

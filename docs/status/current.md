@@ -43,7 +43,7 @@ Current `main` contains reviewed bounded authority for:
 - protected-distribution executable preflight authority separation;
 - merged `verify-dmc3-l1-authoring` orchestration from #208: protected preflight -> direct-retail acquisition -> PAC/PNST rebuild -> next-volume overlay -> canonical resolver/rematerialization -> closure SHA receipt.
 
-These capabilities make the product-side L1 chain substantially complete at the currently implemented PAC/PNST authoring scope. They do not prove original DMC3 consumption.
+These capabilities make the product-side L1 chain substantially complete at the currently implemented PAC/PNST authoring scope. They do not prove original DMC3 consumption. PR #212 and PR #210 are active branch-only hardening and are not canonical until merged.
 
 ## L1 gate reconciliation after #208
 
@@ -79,9 +79,9 @@ PAC/PNST size-changing reflow is merged. PR #210 is the active product-hardening
 
 ### L1-F — next-volume publication and canonical reopen
 
-**Status: CLOSED AS PRODUCT PATH / REAL RECEIPT OPEN.**
+**Status: PRODUCT PATH MERGED / COMPOSITE RECEIPT BINDING ACTIVE #212 / REAL RECEIPT OPEN.**
 
-#208 composes next-volume overlay authoring, canonical runtime resolver mounting/order, exact rematerialization and authored-slot comparison into one fail-closed closure command. Real-retail execution of that path is still required by L1-C/E/G.
+#208 composes next-volume overlay authoring, canonical runtime resolver mounting/order, exact rematerialization and authored-slot comparison into one fail-closed closure command. Review found that its closure receipt did not hash-bind the artifact-bound acquisition sidecar; #212 corrects that evidence-integrity gap. Real-retail execution remains required by L1-C/E/G.
 
 ### L1-G — original DMC3 consumption
 
@@ -98,8 +98,8 @@ After the real-retail and Level-E receipts exist, reconcile #100, #182, #209, th
 ## Current critical path
 
 ```text
-#210 nested PAC/PNST slot-path product hardening
- -> integrate slot-path into protected-retail closure command
+#212 closure/acquisition receipt binding
+ -> #210 nested PAC/PNST slot-path product hardening
  -> run representative protected-retail acquisition/classification/edit/rebuild/reopen
  -> run #209 original-game Level-E consumption + rollback
  -> final L1 acceptance audit/status synchronization

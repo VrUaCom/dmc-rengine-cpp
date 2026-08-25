@@ -1,15 +1,15 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-08-24  
-**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
+**Snapshot:** 2026-08-25  
+**Canonical base:** `main@8e67235fd26cf7af94146f4dc660eb49e3c1d133`
 
 The project roadmap is dependency-driven rather than a linear feature checklist. The current primary execution program is **GDSpaces Layer 1 — Resource Materialization**. Its detailed acceptance gates live in [GDSpaces L1 Roadmap](gdspaces/l1-roadmap.md).
 
 ## Current critical path — GDSpaces L1
 
 ```text
-publication integrity
- -> artifact-stable retail member acquisition
+composite closure-receipt integrity
+ -> recursive PAC/PNST slot-path hardening
  -> direct-retail provenance receipt
  -> retail representation classification
  -> bounded real edit
@@ -22,15 +22,13 @@ publication integrity
 
 Current immediate work order:
 
-1. unify atomic/no-replace publication across NBZ repack, overlay and acquisition outputs;
-2. bind NBZ index/member bytes/archive SHA to one stable artifact observation;
-3. correct and promote the retail-member acquisition seam (#191);
-4. acquire an exact retail receipt using game request `obj\\em000.pac` and record the actual resolver-selected member;
-5. classify the direct-retail texture/container representation;
-6. use only an evidenced writer domain for the real edit/rebuild;
-7. publish as the next contiguous `DMC3-N.nbz`, reopen through canonical GDSpaces and verify exact edited bytes;
-8. obtain an original-game consumption receipt on the protected distribution execution authority;
-9. perform final cross-stack review before any L1 completion claim.
+1. validate and promote #212 so the closure receipt cryptographically binds its artifact-bound acquisition sidecar;
+2. validate and promote #210 so recursive PAC/PNST slot-path receipts bind every declared slot to the actual changed span;
+3. run the exact retail request `obj\\em000.pac` and record the resolver-selected member/archive receipt;
+4. classify the observed retail representation without laundering the transformed texture corpus;
+5. execute a bounded real edit, bottom-up rebuild, next-volume publication and canonical rematerialization;
+6. complete issue #209 with deterministic original-game consumption and rollback evidence;
+7. perform final L1 cross-stack synchronization/audit before any `L1 COMPLETE` claim.
 
 ## Maintained foundations
 

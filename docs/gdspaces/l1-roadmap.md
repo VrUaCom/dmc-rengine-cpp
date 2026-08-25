@@ -1,9 +1,9 @@
 # GDSpaces Layer 1 Roadmap
 
 **Status:** ACTIVE / NOT COMPLETE  
-**Snapshot date:** 2026-08-24  
-**Canonical implementation base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`  
-**Primary tracking:** issues #100, #182; active acquisition seam #191
+**Snapshot date:** 2026-08-25  
+**Canonical implementation base:** `main@8e67235fd26cf7af94146f4dc660eb49e3c1d133`  
+**Primary tracking:** issues #100, #182, #209; active product hardening #210 and #212
 
 This document is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**. It replaces percentage-first planning with explicit acceptance gates.
 
@@ -50,7 +50,12 @@ Current `main` contains strong bounded authority for:
 - deterministic next-contiguous STORE NBZ overlay authoring;
 - runtime-resolver validation of generated higher-volume overrides;
 - original-game preflight authority separation between protected distribution execution image and unpacked analysis image;
-- structurally validated PNST classification on current main.
+- structurally validated PNST classification on current main;
+- shared atomic/no-replace publication;
+- artifact-bound STORE/raw-DEFLATE retail member observation and acquisition receipts;
+- resolver-based retail acquisition CLI outside the protected retail tree;
+- immutable-source NBZ copy authoring;
+- merged protected-retail product-side closure orchestration (#208).
 
 These are substantial closed slices. They do **not** by themselves imply L1 completion.
 
@@ -58,67 +63,29 @@ These are substantial closed slices. They do **not** by themselves imply L1 comp
 
 ### Gate L1-A — publication integrity
 
-**Status:** OPEN / CODE CORRECTION REQUIRED
+**Status:** CLOSED / MERGED PRODUCT CONTRACT
 
-The project currently has inconsistent output publication semantics. The retail NBZ repacker uses a no-replace staging/publication pattern, while CLI artifact seams still contain `exists() -> ofstream` publication paths.
-
-Required closure:
-
-- one shared atomic/no-replace publication primitive;
-- use it for overlay artifacts, retail-member acquisition outputs and evidence receipts;
-- no destination replacement race;
-- Windows and Ubuntu regressions including concurrent destination creation;
-- generated output must remain outside measured retail source trees unless an explicit separate export contract says otherwise.
-
-No CLI may claim `no-clobber` until this gate is closed.
+PR #194 introduced the shared atomic/no-replace publication primitive and migrated the active acquisition/overlay/rebuild paths. Windows and Ubuntu regressions protect non-destructive destination ownership. Real retail acceptance still must prove the generated artifacts were published outside the protected source tree.
 
 ### Gate L1-B — artifact-stable retail member acquisition
 
-**Status:** OPEN / ACTIVE #191
+**Status:** CLOSED / MERGED PRODUCT CONTRACT
 
-`NbzZipSource` currently builds its index from one file open and reopens the archive during member materialization. A provenance-grade receipt therefore needs an explicit artifact-stability contract so index metadata, selected member bytes and archive identity cannot silently refer to different physical snapshots.
+PRs #195–#198 bind the indexed NBZ snapshot, selected central entry, materialized bytes and whole archive identity through the artifact-bound observer, cover STORE/raw-DEFLATE, preserve first-gap volume semantics and reject evidence output inside the retail tree.
 
-Required closure:
-
-```text
-observed retail volume set
-  -> exact selected volume identity
-  -> exact central/member identity
-  -> exact materialized bytes
-  -> archive SHA/size
-```
-
-all bound to one stable observation or an explicit before/after revalidation that proves no mutation occurred.
-
-The active acquisition command must also:
-
-- use canonical `RuntimeResourceResolver` selection;
-- record the winning member path rather than pre-guessing it;
-- fail closed on archive/source instability;
-- reject publication inside the measured retail game tree;
-- use atomic no-replace output publication.
+The acquisition sidecar is the archive/member provenance authority. PR #212 is active hardening that binds this sidecar by path, size and SHA-256 into the higher-level closure receipt so the two receipts cannot be detached after a run.
 
 ### Gate L1-C — direct-retail representative member provenance
 
-**Status:** WAITING ON L1-B
+**Status:** OPEN / EXTERNAL RETAIL RECEIPT REQUIRED
 
-Highest-value first target remains the game request:
+The product command path is implemented. The highest-value first request remains:
 
 ```text
 obj\em000.pac
 ```
 
-The request must be passed to the canonical resolver. The archive member is whatever the resolver actually selects from the recovered basename candidate sequence; documentation must not predeclare `GData.afs/obj/em000.pac` or any other unobserved winner.
-
-Receipt must include:
-
-- protected distribution executable identity/preflight;
-- contiguous `DMC3-N.nbz` set observation;
-- selected volume index/path/SHA/size;
-- exact central-entry index/name/flags/method/CRC/sizes;
-- exact materialized member SHA/size;
-- ByteProvenance transform;
-- source-chain identity.
+The canonical resolver must select the actual member/volume. The receipt must bind the protected executable authority, contiguous volume observation, exact archive SHA/size, central entry metadata, materialized SHA/size, transform and ByteProvenance. The current connector still cannot deliver the 960,358,951-byte `dmc3-0.nbz` because it rejects files above 268,435,456 bytes; that is an ingress limitation, not an NBZ limitation.
 
 ### Gate L1-D — retail representation classification
 
@@ -136,42 +103,19 @@ Do not infer a conversion/writer solely because DDS/TM2/runtime structures are u
 
 ### Gate L1-E — real-retail bounded edit and bottom-up rebuild
 
-**Status:** OPEN / DEPENDS ON L1-D
+**Status:** PRODUCT WRITERS STRONG / REAL RECEIPT OPEN
 
-Only if the observed retail representation lies inside a proven authoring domain:
+Current main has bounded size-changing PAC/PNST reflow. PR #210 adds root-to-leaf slot-path authoring and cryptographically chained bottom-up level receipts. It is branch truth until reviewed and promoted.
 
-```text
-retail member
-  -> exact editable child
-  -> bounded edit
-  -> child writer
-  -> PAC/PNST bottom-up rebuild
-  -> validation of edited child
-  -> byte-exact untouched sibling checks
-```
-
-If the representation is outside current writer authority, stop and create a new evidence/reverse gate rather than forcing the existing writer.
+A real run may proceed only when the observed retail representation lies inside a proven authoring domain. It must prove the replacement bytes, exact untouched siblings, empty-slot set and alias partition at every affected level. Unsupported representations stop the run rather than forcing a serializer.
 
 ### Gate L1-F — next-volume NBZ publication and canonical reopen
 
-**Status:** PRODUCT PATH STRONG / REAL RECEIPT OPEN
+**Status:** PRODUCT PATH MERGED / COMPOSITE RECEIPT HARDENING ACTIVE #212 / REAL RECEIPT OPEN
 
-Publish the rebuilt resource through the next contiguous numbered volume without modifying retail archives.
+PR #208 composes protected-executable preflight, direct-retail acquisition, PAC/PNST rebuild, next-contiguous STORE overlay authoring, canonical resolver win and exact rematerialization. PR #212 closes the remaining evidence-integrity defect by hashing the artifact-bound acquisition sidecar into the closure receipt.
 
-Required receipt:
-
-```text
-rebuilt resource
-  -> generated DMC3-N.nbz
-  -> atomic no-replace publication
-  -> NbzZipSource reopen
-  -> VolumeBootstrapPolicy
-  -> RuntimeResourceResolver
-  -> higher-volume selection
-  -> exact rematerialized edited bytes
-```
-
-Untouched members/siblings relevant to the edit must retain byte-exact validation at the claimed scope.
+Product composition is not the real receipt. The representative retail run must still prove the authored volume identity, selected winner, exact rematerialized container and exact target replacement while preserving relevant untouched bytes.
 
 ### Gate L1-G — original DMC3 consumption
 
@@ -252,22 +196,19 @@ DMC Rengine writers are product authoring implementations constrained by observe
 
 ## 6. Work order
 
-Execute in this order unless direct evidence creates a stronger dependency:
-
 ```text
-1. shared atomic/no-replace publication
-2. artifact-stable retail acquisition contract
-3. correct and promote #191
-4. acquire direct-retail obj\em000.pac request receipt
-5. classify exact retail representation
-6. bounded real edit + bottom-up PAC/PNST rebuild
-7. next-volume NBZ publication + canonical resolver/reopen
-8. original DMC3 consumption receipt
-9. final L1 cross-stack audit
-10. only then: L1 COMPLETE
+1. validate/promote #212 composite receipt binding
+2. validate/promote #210 recursive slot-path receipt hardening
+3. acquire direct-retail obj\em000.pac request receipt
+4. classify the exact retail representation
+5. execute bounded real edit + bottom-up rebuild
+6. publish next contiguous NBZ + canonical resolver/rematerialization
+7. complete #209 original DMC3 consumption + rollback receipt
+8. final L1 cross-stack audit and synchronized status
+9. only then: L1 COMPLETE
 ```
 
-Parallel reverse work is allowed only when it directly supports one of these gates or does not displace the critical path.
+Parallel L2/L3 work is allowed when it directly supports this vertical acceptance chain.
 
 ## 7. Documentation synchronization rule
 

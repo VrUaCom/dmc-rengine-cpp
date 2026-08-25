@@ -7,6 +7,7 @@ Current status is gate-based and must stay synchronized with canonical `main`.
 - [`phase-map.md`](phase-map.md) — subsystem/dependency phase map;
 - [`blockers.md`](blockers.md) — unresolved mandatory gates;
 - [`risks.md`](risks.md) — architecture/project risk register;
+- [`../gdspaces/master-roadmap.md`](../gdspaces/master-roadmap.md) — canonical cross-layer L1/L2/L3 dependency roadmap;
 - [`../gdspaces/l1-roadmap.md`](../gdspaces/l1-roadmap.md) — canonical GDSpaces L1 execution/completion roadmap;
 - `weekly/` — dated repository-backed reports and historical snapshots.
 

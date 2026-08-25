@@ -3,6 +3,7 @@
 ## Start here
 
 - [Current project status](status/current.md)
+- [GDSpaces L1/L2/L3 master roadmap](gdspaces/master-roadmap.md)
 - [GDSpaces Layer 1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
@@ -16,13 +17,11 @@
 The primary execution program is **GDSpaces L1 — Resource Materialization**. Its completion authority is gate-based:
 
 ```text
-publication integrity
- -> artifact-stable retail acquisition
- -> direct-retail provenance
- -> representation classification
- -> real bounded edit/rebuild
- -> next-volume reopen/rematerialization
- -> original-game consumption
+product receipt integrity (#212)
+ -> recursive slot-path hardening (#210)
+ -> direct-retail provenance and representation classification
+ -> real edit/rebuild/overlay/rematerialization
+ -> original-game consumption (#209)
  -> final L1 acceptance audit
 ```
 
@@ -41,6 +40,7 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 ### GDSpaces
 
 - [GDSpaces contract](gdspaces-contract.md)
+- [L1/L2/L3 master roadmap](gdspaces/master-roadmap.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
 - [Layer classification](gdspaces/decompilation-layer-classification.md)
 - [Reverse progress scale](gdspaces/reverse-progress-scale.md) — planning aid only; roadmap gates control completion
@@ -84,6 +84,7 @@ Recovered original-game functions/types/lifetime code belong to the Recovered Ga
 ## Current status and planning
 
 - [Current status](status/current.md)
+- [L1/L2/L3 master roadmap](gdspaces/master-roadmap.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Phase map](status/phase-map.md)
