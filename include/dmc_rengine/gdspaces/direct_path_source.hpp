@@ -20,8 +20,20 @@ struct DirectPathLookupResult final {
     std::optional<ResourceRef> resource;
     std::string detail;
 
+    [[nodiscard]] bool valid() const noexcept {
+        switch (status) {
+        case DirectPathLookupStatus::resolved:
+            return resource.has_value() && resource->valid();
+        case DirectPathLookupStatus::not_found:
+        case DirectPathLookupStatus::rejected:
+        case DirectPathLookupStatus::io_error:
+            return !resource.has_value();
+        }
+        return false;
+    }
+
     [[nodiscard]] bool resolved() const noexcept {
-        return status == DirectPathLookupStatus::resolved && resource.has_value();
+        return valid() && status == DirectPathLookupStatus::resolved;
     }
 };
 
