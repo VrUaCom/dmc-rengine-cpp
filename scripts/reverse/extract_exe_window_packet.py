@@ -12,12 +12,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
-import tempfile
 from typing import Any
 
 MAX_WINDOW_SIZE = 0x10000
@@ -148,17 +146,22 @@ def run_packet(args: argparse.Namespace) -> int:
     if expected_sha != plan["artifact_sha256"].lower():
         print("expected SHA does not match the plan artifact authority", file=sys.stderr)
         return 3
-    if args.output.exists():
-        print(f"output already exists; refusing replacement: {args.output}", file=sys.stderr)
-        return 4
     if not args.exe.is_file():
         print(f"executable does not exist: {args.exe}", file=sys.stderr)
         return 4
 
-    parent = args.output.parent.resolve()
-    parent.mkdir(parents=True, exist_ok=True)
-    staging = Path(tempfile.mkdtemp(prefix=f".{args.output.name}.staging-", dir=parent))
+    try:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.mkdir()
+    except FileExistsError:
+        print(f"output already exists; refusing replacement: {args.output}", file=sys.stderr)
+        return 4
+    except OSError as exc:
+        print(f"cannot reserve output directory {args.output}: {exc}", file=sys.stderr)
+        return 4
+
     completed: list[dict[str, Any]] = []
+    published = False
     try:
         for window in plan["windows"]:
             va = parse_u64(window["va"], "va")
@@ -225,7 +228,7 @@ def run_packet(args: argparse.Namespace) -> int:
 
             receipt_bytes = stable_json_bytes(receipt)
             receipt_name = f"{window['id']}.receipt.json"
-            write_new(staging / receipt_name, receipt_bytes)
+            write_new(args.output / receipt_name, receipt_bytes)
             completed.append(
                 {
                     "id": window["id"],
@@ -251,13 +254,13 @@ def run_packet(args: argparse.Namespace) -> int:
             "semantic_claim": False,
             "windows": completed,
         }
-        write_new(staging / "packet.receipt.json", stable_json_bytes(manifest))
-        os.replace(staging, args.output)
+        write_new(args.output / "packet.receipt.json", stable_json_bytes(manifest))
+        published = True
         print(args.output / "packet.receipt.json")
         return 0
     finally:
-        if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
+        if not published and args.output.exists():
+            shutil.rmtree(args.output, ignore_errors=True)
 
 
 def main() -> int:
