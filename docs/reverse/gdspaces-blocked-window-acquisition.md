@@ -4,9 +4,9 @@
 **Artifact authority:** canonical DMC3 HD analysis executable only.  
 **Canonical SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
 
-This runbook exists because several high-value GDSpaces reverse gaps currently share the same blocker: the connected automation environment has summaries and historical reports, but not the raw canonical executable body windows required to prove the remaining exact semantics.
+This runbook groups reusable EXE-window acquisition across several GDSpaces reverse targets. Some targets remain blocked on reacquisition; others are already recovered and are retained only as optional regression/reacquisition anchors.
 
-The packet does **not** promote any semantic claim. It only reacquires exact byte windows through the already canonical `dmc-rengine extract-exe-window` command.
+The packet does **not** promote any semantic claim. It only reacquires exact byte windows through the canonical `dmc-rengine extract-exe-window` command.
 
 ## Architecture boundary
 
@@ -88,15 +88,17 @@ If any requested window fails SHA/PE/range/schema/raw-byte validation, the packe
 
 ## Current packet targets
 
-The profile plan groups current blocked/supporting targets across the three-layer roadmap:
+The profile plan groups blocked and supporting/regression targets across the three-layer roadmap.
 
-### L2 / physical-provider support
+### L2 / physical-provider regression anchors
 
 - `0x140326D20` — physical mount anchor;
 - `0x140327430` — resource mount resolution;
 - `0x140327720` — path-existence/final-open caller context.
 
-Primary gate: #204 exact type-0 physical provider after recovered `0x0C` normalization.
+These three L2 windows are **not blockers for #204 anymore**. The canonical `e454...` executable was reacquired separately on 2026-08-25 and the type-0 post-`0x0C` physical chain was recovered directly, including `FindFirstFileA` / `FindClose` and the exact `CreateFileA` final-open flags. They remain in this packet only as optional regression/reacquisition anchors for #100/#55 and future evidence reproducibility.
+
+The current unresolved Layer-2 acquisition target is different: protected-distribution runtime address reacquisition/mapping is required before an original-process selected-identity receipt can be trusted. This canonical-analysis packet does not solve that distribution mapping gate.
 
 ### L1 / ZIP and loose-container support
 
@@ -162,11 +164,10 @@ For each target:
 6. promote only semantics supported by the reacquired bytes;
 7. keep unresolved tails explicitly unresolved.
 
-Priority after acquisition remains roadmap-driven:
+Priority after acquisition remains roadmap-driven. The already recovered Layer-2 physical final-open chain is no longer at the front of this queue:
 
 ```text
-#204 physical final-open chain
- -> #100 ZIP initializer / compressed seek where needed
+#100 ZIP initializer / compressed seek where needed
  -> .lst dynamic semantics if activated by acceptance
  -> #88 exact state-writer census
  -> #88 known-field writer ownership
