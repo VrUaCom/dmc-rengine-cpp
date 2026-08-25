@@ -79,28 +79,148 @@
       "purpose": "Reacquire the shared materialization/staging helper used around wrappers and loose-container paths."
     },
     {
-      "id": "loaded-resource-release-1401b84e0",
+      "id": "loaded-resource-registry-init-1401b8380",
+      "va": "0x1401B8380",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire registry initialization writes for group id, baseline state and backing setup before the L3 known-field writer census."
+    },
+    {
+      "id": "loaded-resource-cancel-writer-1401b8430",
+      "va": "0x1401B8430",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire the canonical state-4 writer and exact ordering for state 1 or 2 -> 4 cancellation/invalidation."
+    },
+    {
+      "id": "loaded-resource-acquire-1401b84e0",
       "va": "0x1401B84E0",
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire the successful release-to-state-0 path and adjacent owned-field cleanup ordering."
+      "purpose": "Reacquire generic acquisition construction, +0x18/+0x20/+0x10 writer ordering, scheduling success and the state 0 -> 1 write."
     },
     {
-      "id": "loaded-resource-state-lookup-1401b8ca0",
+      "id": "loaded-resource-materialization-dispatch-1401b8ca0",
       "va": "0x1401B8CA0",
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire state-aware record lookup/reuse context needed for exact ownership and state-writer census."
+      "purpose": "Reacquire direct versus packed versus loose-list materialization dispatch and its return contract before state 1 is published."
     },
     {
-      "id": "loaded-resource-state2-finalizer-1401b8dc0",
+      "id": "loaded-resource-completion-state1-to2-1401b8dc0",
       "va": "0x1401B8DC0",
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 209],
-      "purpose": "Recover state-2 typed-post-load dispatch and the exact ordering around the state-3 readiness write for Level-E instrumentation."
+      "purpose": "Reacquire the normal completion callback, registry-relative context recovery and exact state 1 -> 2 write ordering."
+    },
+    {
+      "id": "loaded-resource-group4-wrapper-1401b8d60",
+      "va": "0x1401B8D60",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire the fixed group-4 singleton wrapper for state-3 reuse and family-specific selector/ownership writer census."
+    },
+    {
+      "id": "loaded-resource-dynamic-pool-1401b8df0",
+      "va": "0x1401B8DF0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire group-5 first-free allocation, +0x08 initialization and explicit record-handle ownership including exhaustion behavior."
+    },
+    {
+      "id": "loaded-resource-state4-cleanup-1401b8f00",
+      "va": "0x1401B8F00",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire deferred state-4 cleanup, exact state 4 -> 0 ordering and backing release ordering."
+    },
+    {
+      "id": "loaded-resource-group0-wrapper-1401b8f50",
+      "va": "0x1401B8F50",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire fixed group-0 state-3 reuse and family-specific selector/descriptor acquisition behavior for the R2 writer census."
+    },
+    {
+      "id": "loaded-resource-group3-wrapper-1401b8ff0",
+      "va": "0x1401B8FF0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire fixed group-3 state-3 reuse and family-specific selector/descriptor acquisition behavior for the R2 writer census."
+    },
+    {
+      "id": "loaded-resource-group1-wrapper-1401b90b0",
+      "va": "0x1401B90B0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire fixed group-1 state-3 reuse and exact +0x08 family selector/index writer behavior."
+    },
+    {
+      "id": "loaded-resource-group2-wrapper-1401b9160",
+      "va": "0x1401B9160",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire fixed group-2 state-3 reuse and exact +0x08 family selector/index writer behavior."
+    },
+    {
+      "id": "loaded-resource-group6-wrapper-1401b9270",
+      "va": "0x1401B9270",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire fixed group-6 state-3 reuse and exact +0x08 family selector/index writer behavior."
+    },
+    {
+      "id": "loaded-resource-state2-finalizer-1401b92d0",
+      "va": "0x1401B92D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 209],
+      "purpose": "Reacquire the 363-record state-2 finalizer, typed post-load/callback sequence and exact state 2 -> 3 readiness write ordering."
+    },
+    {
+      "id": "loaded-resource-normal-release-1401b9530",
+      "va": "0x1401B9530",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire ordinary owner-driven release, backing-release success dependency and conditional state -> 0 write ordering."
+    },
+    {
+      "id": "loaded-resource-group-reset-1401b9560",
+      "va": "0x1401B9560",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire group-reset writer ordering, selected-group boundaries and unconditional state -> 0 behavior."
+    },
+    {
+      "id": "loaded-resource-full-reset-1401b95e0",
+      "va": "0x1401B95E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire full-registry reset writer ordering and unconditional state -> 0 behavior across all 363 records."
+    },
+    {
+      "id": "loaded-resource-typed-dispatch-1401b9fa0",
+      "va": "0x1401B9FA0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55],
+      "purpose": "Reacquire the recursive typed post-load dispatcher for exhaustive key/family/default/failure branch census."
     },
     {
       "id": "scm-post-load-1403051b0",
