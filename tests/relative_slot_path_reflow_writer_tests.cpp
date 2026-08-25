@@ -145,6 +145,11 @@ int main() {
         root, empty_path, replacement);
     assert(empty.status == dmc3::RelativeSlotPathReflowStatus::empty_slot_path);
 
+    const std::vector<unsigned int> too_deep_path(65U, 0U);
+    const auto too_deep = dmc3::RelativeSlotPathReflowWriter::rebuild(
+        root, too_deep_path, replacement);
+    assert(too_deep.status == dmc3::RelativeSlotPathReflowStatus::path_too_deep);
+
     const std::vector<unsigned int> bad_path{2U};
     const auto empty_slot = dmc3::RelativeSlotPathReflowWriter::rebuild(
         root, bad_path, replacement);
