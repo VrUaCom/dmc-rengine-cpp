@@ -78,7 +78,7 @@ A crash-free launch is not sufficient. The receipt must bind EXE identity, selec
 
 ## Track A — L1 closure
 
-Current strong areas include NBZ STORE/raw-DEFLATE materialization, artifact-bound acquisition, PAC/PNST relative-slot parsing/expansion, bounded reflow/rebuild, atomic no-replace publication, NBZ copy rebuild, protected-retail authoring orchestration, nested composition and texture runtime-relocation compatibility. PR #212 is active receipt-bundle hardening; PR #210 is active recursive slot-path hardening. Both remain branch truth until merged.
+Current strong areas include NBZ STORE/raw-DEFLATE materialization, artifact-bound acquisition, PAC/PNST relative-slot parsing/expansion, bounded reflow/rebuild, atomic no-replace publication, NBZ copy rebuild, protected-retail authoring orchestration, nested composition and texture runtime-relocation compatibility. PR #212 is active cryptographic and semantic receipt-bundle hardening; PR #210 is active recursive slot-path hardening. Both remain branch truth until merged.
 
 Remaining L1 closure sequence:
 

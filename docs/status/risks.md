@@ -20,9 +20,9 @@ Green A-to-Z synthetic tests, resolver success or structural parsing may be repo
 ## R-003 — Composite evidence receipt detachment
 **Severity:** critical
 
-Artifact-bound acquisition is merged, but a higher-level closure receipt can still be detached from the acquisition sidecar unless it hashes that exact sidecar.
+Artifact-bound acquisition is merged, but a higher-level closure receipt can still be detached from or falsely paired with the acquisition sidecar unless it binds and validates that exact sidecar.
 
-**Mitigation:** #212 makes the sidecar path, size and SHA-256 mandatory closure fields. A real receipt remains invalid when the sidecar is missing or unbound.
+**Mitigation:** #212 makes the sidecar path, size and SHA-256 mandatory closure fields and validates the sidecar's request, output path, provenance, member size and member SHA against the closure bytes. A real receipt remains invalid when the sidecar is missing, unbound or mismatched.
 
 ## R-004 — False no-clobber publication
 **Severity:** critical / product mitigation merged

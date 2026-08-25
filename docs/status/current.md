@@ -81,7 +81,7 @@ PAC/PNST size-changing reflow is merged. PR #210 is the active product-hardening
 
 **Status: PRODUCT PATH MERGED / COMPOSITE RECEIPT BINDING ACTIVE #212 / REAL RECEIPT OPEN.**
 
-#208 composes next-volume overlay authoring, canonical runtime resolver mounting/order, exact rematerialization and authored-slot comparison into one fail-closed closure command. Review found that its closure receipt did not hash-bind the artifact-bound acquisition sidecar; #212 corrects that evidence-integrity gap. Real-retail execution remains required by L1-C/E/G.
+#208 composes next-volume overlay authoring, canonical runtime resolver mounting/order, exact rematerialization and authored-slot comparison into one fail-closed closure command. Review found that its closure receipt neither hash-bound nor semantically cross-checked the artifact-bound acquisition sidecar; #212 corrects both evidence-integrity gaps. Real-retail execution remains required by L1-C/E/G.
 
 ### L1-G — original DMC3 consumption
 

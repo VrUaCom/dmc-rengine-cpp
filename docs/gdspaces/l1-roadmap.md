@@ -73,7 +73,7 @@ PR #194 introduced the shared atomic/no-replace publication primitive and migrat
 
 PRs #195–#198 bind the indexed NBZ snapshot, selected central entry, materialized bytes and whole archive identity through the artifact-bound observer, cover STORE/raw-DEFLATE, preserve first-gap volume semantics and reject evidence output inside the retail tree.
 
-The acquisition sidecar is the archive/member provenance authority. PR #212 is active hardening that binds this sidecar by path, size and SHA-256 into the higher-level closure receipt so the two receipts cannot be detached after a run.
+The acquisition sidecar is the archive/member provenance authority. PR #212 is active hardening that binds this sidecar by path, size and SHA-256 into the higher-level closure receipt and strictly verifies its schema, request, output path, archive/member provenance, materialized size and materialized SHA against the exact bytes consumed by closure.
 
 ### Gate L1-C — direct-retail representative member provenance
 
@@ -113,7 +113,7 @@ A real run may proceed only when the observed retail representation lies inside 
 
 **Status:** PRODUCT PATH MERGED / COMPOSITE RECEIPT HARDENING ACTIVE #212 / REAL RECEIPT OPEN
 
-PR #208 composes protected-executable preflight, direct-retail acquisition, PAC/PNST rebuild, next-contiguous STORE overlay authoring, canonical resolver win and exact rematerialization. PR #212 closes the remaining evidence-integrity defect by hashing the artifact-bound acquisition sidecar into the closure receipt.
+PR #208 composes protected-executable preflight, direct-retail acquisition, PAC/PNST rebuild, next-contiguous STORE overlay authoring, canonical resolver win and exact rematerialization. PR #212 closes the remaining evidence-integrity defect by hash-binding the artifact-bound acquisition sidecar and semantically cross-checking it against the exact acquired member bytes.
 
 Product composition is not the real receipt. The representative retail run must still prove the authored volume identity, selected winner, exact rematerialized container and exact target replacement while preserving relevant untouched bytes.
 
