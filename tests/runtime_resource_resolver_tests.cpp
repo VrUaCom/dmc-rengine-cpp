@@ -1,3 +1,4 @@
+#include "dmc_rengine/profiles/dmc3/physical_provider_model.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
 
 #include <array>
@@ -81,6 +82,8 @@ void mount(dmc::rengine::gdspaces::SourceRegistry& registry,
 int main() {
     using dmc::rengine::gdspaces::SourceRegistry;
     using dmc::rengine::profiles::dmc3::ArchiveSourceBinding;
+    using dmc::rengine::profiles::dmc3::PhysicalProviderModel;
+    using dmc::rengine::profiles::dmc3::PhysicalProviderPlanStatus;
     using dmc::rengine::profiles::dmc3::RuntimeLookupEvidenceClass;
     using dmc::rengine::profiles::dmc3::RuntimeResolutionStatus;
     using dmc::rengine::profiles::dmc3::RuntimeResourceResolver;
@@ -173,8 +176,9 @@ int main() {
     }
 
     // Zero archive volumes is valid: the runtime-equivalent plan reaches the
-    // physical pass directly. Physical matching is explicitly product-classified
-    // until the exact type-0 filename/open comparison is recovered.
+    // physical pass directly. Physical matching remains explicitly product-classified
+    // because GDSpaces uses a source-derived index rather than the recovered direct
+    // Win32 CreateFileA path contract.
     {
         const auto empty_bootstrap = no_volumes();
         assert(empty_bootstrap.valid());
@@ -193,6 +197,50 @@ int main() {
         assert(report.probes.size() == 1U);
         assert(report.probes[0].lookup_evidence ==
             RuntimeLookupEvidenceClass::product_physical_index);
+    }
+
+    // Recovered OpenGameResource 0x400 boundary: the first/longest prefix is
+    // 14 bytes, so a 1009-byte basename yields a 1023-byte candidate and fits.
+    // 1010 bytes yields 1024 and the original direct-call path aborts immediately.
+    {
+        const auto empty_bootstrap = no_volumes();
+        RuntimeSourceBindings bindings{
+            .physical_source_id = "physical",
+            .archives = {},
+        };
+        SourceRegistry registry;
+        mount(registry, "physical", {});
+
+        const std::string fits(1009U, 'a');
+        const auto fits_report = RuntimeResourceResolver::resolve(
+            fits, empty_bootstrap, bindings, registry);
+        assert(fits_report.status == RuntimeResolutionStatus::not_found);
+        assert(fits_report.probes.size() == 6U);
+
+        const std::string overflows_first_candidate(1010U, 'a');
+        const auto overflow_report = RuntimeResourceResolver::resolve(
+            overflows_first_candidate, empty_bootstrap, bindings, registry);
+        assert(overflow_report.status == RuntimeResolutionStatus::invalid_request);
+        assert(overflow_report.probes.empty());
+    }
+
+    // Pure recovered type-0 path model: 0x0C normalization + exact root separator
+    // behavior, while deliberately stopping before platform-specific CreateFileA.
+    {
+        const auto plan = PhysicalProviderModel::plan(
+            "C:\\game\\data\\dmc3", "Room/../ROOM/ST001.PAC");
+        assert(plan.ready());
+        assert(plan.normalized_candidate == "Room\\ROOM\\ST001.PAC");
+        assert(plan.joined_path == "C:\\game\\data\\dmc3\\Room\\ROOM\\ST001.PAC");
+
+        const auto rooted = PhysicalProviderModel::plan(
+            "C:\\game\\data\\dmc3\\", "scr/st001.pac");
+        assert(rooted.ready());
+        assert(rooted.joined_path == "C:\\game\\data\\dmc3\\scr\\st001.pac");
+
+        const std::string too_long(0x400U, 'x');
+        const auto overflow = PhysicalProviderModel::plan("C:\\root", too_long);
+        assert(overflow.status == PhysicalProviderPlanStatus::candidate_overflow);
     }
 
     // Missing mounted archive source is configuration failure before probes.
