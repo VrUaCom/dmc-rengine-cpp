@@ -36,9 +36,10 @@ enum class RuntimeLookupEvidenceClass {
     // queries it after 0x0E normalization.
     recovered_archive_index,
 
-    // Product-safe representation of the evidenced type-0 physical pass. The
-    // 0x0C normalizer is recovered, but the exact downstream Win32 filename
-    // comparison/open semantics are still a reverse target.
+    // Product-safe representation of the type-0 physical pass. The original
+    // downstream path-join/CreateFileA contract is now instruction-backed, but
+    // this GDSpaces path still resolves through a source-derived 0x0C index
+    // rather than executing that original direct Win32 path contract.
     product_physical_index,
 };
 
