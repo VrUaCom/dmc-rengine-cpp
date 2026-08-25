@@ -132,6 +132,19 @@ struct RecursiveResult final {
     };
 }
 
+[[nodiscard]] bool span_rebuilds_child(
+    const RelativeSlotPackedSpanReceipt& span,
+    const RelativeSlotPathLevelReceipt& child) {
+    if (!span.changed || span.source_sha256 != child.source_sha256 ||
+        span.output_sha256 != child.output_sha256) {
+        return false;
+    }
+    return std::find(
+        span.affected_aliases.begin(),
+        span.affected_aliases.end(),
+        child.parent) != span.affected_aliases.end();
+}
+
 } // namespace
 
 bool RelativeSlotPathLevelReceipt::valid() const {
@@ -151,9 +164,32 @@ bool RelativeSlotPathReflowReceipt::valid() const {
             return false;
         }
     }
-    return levels.front().parent == root &&
-        levels.front().source_sha256 == source_sha256 &&
-        levels.front().output_sha256 == output_sha256;
+    if (levels.front().parent != root ||
+        levels.front().source_sha256 != source_sha256 ||
+        levels.front().output_sha256 != output_sha256) {
+        return false;
+    }
+
+    for (std::size_t index = 0U; index + 1U < levels.size(); ++index) {
+        const auto& parent = levels[index];
+        const auto& child = levels[index + 1U];
+        const bool linked = std::any_of(
+            parent.reflow.spans.begin(), parent.reflow.spans.end(),
+            [&](const RelativeSlotPackedSpanReceipt& span) {
+                return span_rebuilds_child(span, child);
+            });
+        if (!linked) {
+            return false;
+        }
+    }
+
+    const auto& leaf = levels.back();
+    const bool leaf_matches_replacement = std::any_of(
+        leaf.reflow.spans.begin(), leaf.reflow.spans.end(),
+        [&](const RelativeSlotPackedSpanReceipt& span) {
+            return span.changed && span.output_sha256 == replacement_sha256;
+        });
+    return leaf_matches_replacement;
 }
 
 bool RelativeSlotPathReflowResult::ok() const {
@@ -167,7 +203,7 @@ RelativeSlotPathReflowResult RelativeSlotPathReflowWriter::rebuild(
     const gdspaces::ResourcePayload& root,
     std::span<const unsigned int> slot_path,
     std::span<const std::byte> replacement_bytes,
-    RelativeSlotPackedReflowSafety safety) {
+    RelativeSlotPathReflowSafety safety) {
     if (!root.readable()) {
         return {
             .status = RelativeSlotPathReflowStatus::invalid_root,
@@ -180,8 +216,15 @@ RelativeSlotPathReflowResult RelativeSlotPathReflowWriter::rebuild(
             .detail = "slot path must address at least one child",
         };
     }
+    if (safety.max_depth == 0U || slot_path.size() > safety.max_depth) {
+        return {
+            .status = RelativeSlotPathReflowStatus::path_too_deep,
+            .detail = "slot path exceeds product recursion safety budget",
+        };
+    }
 
-    auto recursive = rebuild_level(root, slot_path, replacement_bytes, safety);
+    auto recursive = rebuild_level(
+        root, slot_path, replacement_bytes, safety.parent_reflow);
     if (recursive.status != RelativeSlotPathReflowStatus::ok) {
         return {
             .status = recursive.status,
