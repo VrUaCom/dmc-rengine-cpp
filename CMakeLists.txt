@@ -56,6 +56,7 @@ add_executable(dmc-rengine
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
     src/cli/dmc3_build_authority_commands.cpp
+    src/cli/dmc3_l1_closure_commands.cpp
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
     src/cli/nbz_copy_commands.cpp
@@ -251,6 +252,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
                 -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
                 -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-game-test-preflight
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/dmc3_game_test_preflight_cli_test.cmake)
+    add_test(
+        NAME dmc_rengine_cli_verify_dmc3_l1_authoring_usage
+        COMMAND dmc-rengine verify-dmc3-l1-authoring)
+    set_tests_properties(
+        dmc_rengine_cli_verify_dmc3_l1_authoring_usage
+        PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)

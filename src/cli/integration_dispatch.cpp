@@ -1,6 +1,7 @@
 #include "integration_commands.hpp"
 #include "hits_commands.hpp"
 #include "dmc3_build_authority_commands.hpp"
+#include "dmc3_l1_closure_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
 #include "dmc3_retail_acquisition_commands.hpp"
 #include "nbz_copy_commands.hpp"
@@ -20,6 +21,7 @@ void print_integration_help() {
         << "  inspect-workspace <path> [--stage] [--menu]\n"
         << "                             Build a GDSpaces workspace manifest for a local resource\n";
     print_dmc3_build_authority_help();
+    print_dmc3_l1_closure_help();
     print_dmc3_overlay_help();
     print_dmc3_retail_acquisition_help();
     print_nbz_copy_help();
@@ -32,6 +34,11 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_dmc3_build_authority_command(argc, argv);
     if (build_authority_result != -1) {
         return build_authority_result;
+    }
+
+    const auto l1_closure_result = try_run_dmc3_l1_closure_command(argc, argv);
+    if (l1_closure_result != -1) {
+        return l1_closure_result;
     }
 
     const auto overlay_result = try_run_dmc3_overlay_command(argc, argv);
