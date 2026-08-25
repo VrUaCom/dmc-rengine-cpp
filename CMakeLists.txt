@@ -141,6 +141,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_integration_evidence_gate
         custom_build
         custom_build_graph
+        custom_build_import
         custom_build_manifest
         custom_build_reopen
         pc_save_file
