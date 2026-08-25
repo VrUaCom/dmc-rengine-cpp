@@ -5,6 +5,8 @@
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
 #include <algorithm>
+#include <array>
+#include <iterator>
 #include <span>
 #include <string>
 #include <utility>
