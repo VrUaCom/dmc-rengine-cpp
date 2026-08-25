@@ -104,7 +104,39 @@ def write_new(path: Path, payload: bytes) -> None:
         handle.write(payload)
 
 
+def validate_plan_only(plan_path: Path) -> int:
+    try:
+        plan = load_plan(plan_path)
+    except ValueError as exc:
+        print(f"plan error: {exc}", file=sys.stderr)
+        return 2
+    summary = {
+        "schema": "dmc-rengine.exe-window-packet-plan-validation.v1",
+        "status": "valid",
+        "plan_id": plan["id"],
+        "artifact_sha256": plan["artifact_sha256"].lower(),
+        "artifact_size": parse_u64(plan["artifact_size"], "artifact_size"),
+        "window_count": len(plan["windows"]),
+        "probe_count": sum(1 for window in plan["windows"] if window["mode"] == "probe"),
+        "known_body_count": sum(1 for window in plan["windows"] if window["mode"] == "known-body"),
+        "semantic_claim": False,
+    }
+    sys.stdout.buffer.write(stable_json_bytes(summary))
+    return 0
+
+
 def run_packet(args: argparse.Namespace) -> int:
+    required = {
+        "--dmc-rengine": args.dmc_rengine,
+        "--exe": args.exe,
+        "--expected-sha256": args.expected_sha256,
+        "--output": args.output,
+    }
+    missing = [name for name, value in required.items() if value is None]
+    if missing:
+        print(f"missing required acquisition arguments: {', '.join(missing)}", file=sys.stderr)
+        return 2
+
     try:
         plan = load_plan(args.plan)
         expected_sha = canonical_sha256(args.expected_sha256, "--expected-sha256")
@@ -217,17 +249,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Acquire a hash-gated EXE reverse window packet through dmc-rengine extract-exe-window"
     )
-    parser.add_argument("--dmc-rengine", type=Path, required=True)
-    parser.add_argument("--exe", type=Path, required=True)
-    parser.add_argument("--expected-sha256", required=True)
     parser.add_argument("--plan", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--validate-plan-only", action="store_true")
+    parser.add_argument("--dmc-rengine", type=Path)
+    parser.add_argument("--exe", type=Path)
+    parser.add_argument("--expected-sha256")
+    parser.add_argument("--output", type=Path)
     parser.add_argument(
         "--hex",
         action="store_true",
         help="include local-only raw executable bytes in child receipts; never commit those receipts",
     )
-    return run_packet(parser.parse_args())
+    args = parser.parse_args()
+    if args.validate_plan_only:
+        return validate_plan_only(args.plan)
+    return run_packet(args)
 
 
 if __name__ == "__main__":
