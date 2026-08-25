@@ -1,6 +1,6 @@
-# DMC3 Runtime Resource Resolver — Pass 45 correction
+# DMC3 Runtime Resource Resolver — Pass 45 correction + 2026-08-25 physical-provider closure
 
-**Status:** corrected implementation slice; promotion still pending fresh whole-head CI and re-review.
+**Status:** corrected implementation slice; Layer-2 promotion still pending corpus/runtime receipts, fresh whole-head CI and re-review.
 
 This layer composes the recovered DMC3 lookup order while preserving the distinction exposed by Pass 45 between the archive backend and the physical backend.
 
@@ -33,15 +33,25 @@ Resolver probes for this path therefore carry:
 
 The GDSpaces `ResourceKeyIndex` remains a product representation that preserves all comparator-equal identities rather than pretending the original CRT ambiguity is a semantic winner.
 
-## Physical evidence class
+## Physical evidence class — corrected 2026-08-25
 
-The original type-0 physical pass and `0x0C` path normalization are recovered. The exact downstream filename comparison/open semantics of the physical backend are not yet closed: current evidence does not justify claiming that the original backend built an archive-like qsort/bsearch index or that its final comparison is exactly the same as `ResourceKeyIndex` equality.
+The original type-0 physical-provider chain is now recovered directly from the canonical executable. After `0x0C` normalization, `ResourceMountResolve` joins the registered physical root and normalized candidate into a bounded `0x400` path and calls a direct Win32 open helper.
 
-GDSpaces therefore uses a source-derived `0x0C` product lookup index for the physical pass, but every such probe is explicitly marked:
+The recovered final open is:
+
+`CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL)`.
+
+`ERROR_FILE_NOT_FOUND` and `ERROR_PATH_NOT_FOUND` are ordinary open misses. `ResourcePathExists` uses `FindFirstFileA` / `FindClose`; `ERROR_NO_MORE_FILES`, `ERROR_FILE_NOT_FOUND` and `ERROR_PATH_NOT_FOUND` are ordinary existence-check misses. Other errors are retried. No extra game-side lowercase/qsort/bsearch stage exists between `0x0C` normalization and these Win32 path APIs in the recovered edge.
+
+That closes the previous **static reverse** target, but it does not make the current GDSpaces physical implementation identical to the original mechanism. GDSpaces currently resolves the physical pass through a source-derived `0x0C` `ResourceKeyIndex` built from `ISource::enumerate()`.
+
+Every current product physical probe therefore intentionally remains:
 
 `RuntimeLookupEvidenceClass::product_physical_index`.
 
-This is a product-safe operational policy, not a claim of full original-equivalent physical filename lookup. Exact type-0 comparison/open behavior remains a reverse target.
+This classification now means **“portable product lookup differs mechanically from the recovered original direct Win32 path”**, not **“the original final Win32 path is unknown.”** Relabeling it as original-equivalent before a controlled physical-provider parity receipt would be authority laundering.
+
+The instruction-backed constants and miss classifications are codified in `PhysicalProviderContract`; the direct reverse receipt is `l2-physical-provider-reverse-2026-08-25.md`.
 
 ## Recovered ordering contract
 
@@ -51,9 +61,21 @@ All six archive attempts complete before the six physical attempts. Numbered arc
 
 A zero-volume bootstrap is valid: no archive probes are produced and the resolver proceeds directly to the physical six-candidate pass. With three archive volumes, a complete miss produces `6 * 3 + 6 = 24` probes.
 
+## OpenGameResource direct-call surface — corrected 2026-08-25
+
+A whole-image census of direct callers to `OpenGameResource 0x14002FCA0` found three direct call sites (`0x14003340A`, `0x1403380C7`, `0x1403381F7`), all passing `flags = 1` in `EDX`.
+
+For this canonical direct-call mode the active policy is the recovered generic branch: basename extraction, six prefixes, archive pass, then physical pass. Alternate internal flag branches are not promoted as active DMC3 runtime policy without separate indirect-call/runtime evidence.
+
+Candidate construction uses the bounded helper `0x1403272C0` with capacity `0x400`. If the active candidate does not fit including its terminating NUL, `OpenGameResource` releases the newly allocated file slot/object and returns `-1` immediately. It does not skip to a shorter prefix or continue into the physical pass.
+
+Because the first prefix `GDataX360.afs/` is also the longest (14 bytes), the existing GDSpaces whole-plan fail-closed candidate-length check is equivalent to the recovered canonical direct-call behavior. The exact receipt is `l2-open-game-resource-census-2026-08-25.md`.
+
 ## Ambiguity
 
 Comparator-equal normalized keys inside the current source remain ambiguity. The resolver returns all distinct `ResourceRef` identities and does not continue into a lower-precedence source to manufacture a winner.
+
+For the archive backend this preserves uncertainty where the original CRT duplicate-key winner has not been proven. For the physical backend it is a product-safe policy of the current source-derived index, not evidence that the original direct `CreateFileA` path performs archive-style normalized-key arbitration.
 
 ## Fail-closed boundaries
 
@@ -64,10 +86,20 @@ Comparator-equal normalized keys inside the current source remain ambiguity. The
 - every referenced source must be mounted;
 - a mounted source must enumerate resources belonging to itself;
 - provider normalization unexpectedly rejecting a canonical candidate is configuration failure;
+- an oversized first candidate aborts the recovered canonical direct-call request rather than falling through to shorter prefixes;
 - no external index pointer/profile can be injected into the resolver anymore.
 
-## Reverse target still open
+## Layer-2 targets still open
 
-Pass 45 leaves one exact lookup subproblem unresolved: the type-0 physical backend after `ResourcePathNormalize(..., 0x0C)` — path construction, final Win32 open/comparison behavior, case behavior and failure semantics. Until that chain is directly recovered, physical lookup receipts must retain the product classification above.
+Static reverse of the exact type-0 final physical open, the canonical direct-caller census and the caller-level `0x400` overflow aftermath are no longer blockers. The remaining Layer-2 promotion gates are now:
+
+1. controlled physical-provider parity/model receipt;
+2. real DMC3-retail `0x0E` normalized-key collision census;
+3. direct-retail resolver receipt with exact `ResourceRef`/provider/volume identity;
+4. controlled physical-hit, complete-miss and fallback receipts;
+5. original-process selected-identity receipt;
+6. reconciliation of Layer-2 docs/issues/evidence, exact-head Windows + Ubuntu validation and final Layer-2 audit.
+
+The real Drive `dmc3-0.nbz` corpus is identified but is currently inaccessible through the connected raw-download path because its 960,358,951-byte size exceeds that path's 268,435,456-byte transfer ceiling. A smaller central-directory/member-list artifact from the same archive can close the collision-census gate without moving full member payload bytes.
 
 This slice still does not implement `.lst` synthesis, original FileSlot/async/cache/refcount/LoadedResource lifecycle or Stage Ops assembly. `.afs/` prefixes remain logical namespaces; no binary AFS backend is implied.

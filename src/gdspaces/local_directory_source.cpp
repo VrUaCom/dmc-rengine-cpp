@@ -25,6 +25,15 @@ namespace {
     return error ? path.lexically_normal() : normalized.lexically_normal();
 }
 
+[[nodiscard]] std::filesystem::path native_relative_path(
+    std::string_view logical_path) {
+    std::string native{logical_path};
+#ifndef _WIN32
+    std::replace(native.begin(), native.end(), '\\', '/');
+#endif
+    return std::filesystem::path{native};
+}
+
 [[nodiscard]] bool path_has_prefix(
     const std::filesystem::path& prefix,
     const std::filesystem::path& value) {
@@ -38,6 +47,11 @@ namespace {
     }
 
     return true;
+}
+
+[[nodiscard]] bool ordinary_missing_error(const std::error_code& error) noexcept {
+    return error == std::errc::no_such_file_or_directory ||
+        error == std::errc::not_a_directory;
 }
 
 } // namespace
@@ -217,6 +231,81 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
     }
 
     return payload;
+}
+
+DirectPathLookupResult LocalDirectorySource::lookup_direct_path(
+    std::string_view logical_path) const {
+    if (logical_path.empty() || logical_path.find('\0') != std::string_view::npos) {
+        return DirectPathLookupResult{
+            .status = DirectPathLookupStatus::rejected,
+            .resource = std::nullopt,
+            .detail = "Direct path is empty or not C-string-compatible.",
+        };
+    }
+
+    const auto relative = native_relative_path(logical_path);
+    if (relative.empty() || relative.is_absolute()) {
+        return DirectPathLookupResult{
+            .status = DirectPathLookupStatus::rejected,
+            .resource = std::nullopt,
+            .detail = "Direct path must remain relative to the mounted source root.",
+        };
+    }
+
+    const auto candidate = normalized_path(root_ / relative);
+    if (!contains(candidate)) {
+        return DirectPathLookupResult{
+            .status = DirectPathLookupStatus::rejected,
+            .resource = std::nullopt,
+            .detail = "Direct path resolves outside the mounted source root.",
+        };
+    }
+
+    std::error_code error;
+    const auto status = std::filesystem::status(candidate, error);
+    if (error) {
+        if (ordinary_missing_error(error)) {
+            return DirectPathLookupResult{
+                .status = DirectPathLookupStatus::not_found,
+                .resource = std::nullopt,
+                .detail = {},
+            };
+        }
+        return DirectPathLookupResult{
+            .status = DirectPathLookupStatus::io_error,
+            .resource = std::nullopt,
+            .detail = "Native path status lookup failed: " + error.message(),
+        };
+    }
+    if (!std::filesystem::exists(status) || !std::filesystem::is_regular_file(status)) {
+        return DirectPathLookupResult{
+            .status = DirectPathLookupStatus::not_found,
+            .resource = std::nullopt,
+            .detail = {},
+        };
+    }
+
+    const auto resources = enumerate();
+    for (const auto& resource : resources) {
+        const auto enumerated_path = normalized_path(
+            root_ / native_relative_path(resource.id.logical_path));
+        std::error_code equivalent_error;
+        const auto equivalent = std::filesystem::equivalent(
+            candidate, enumerated_path, equivalent_error);
+        if (!equivalent_error && equivalent) {
+            return DirectPathLookupResult{
+                .status = DirectPathLookupStatus::resolved,
+                .resource = resource,
+                .detail = {},
+            };
+        }
+    }
+
+    return DirectPathLookupResult{
+        .status = DirectPathLookupStatus::io_error,
+        .resource = std::nullopt,
+        .detail = "Native path exists but no canonical ResourceRef identity was recovered from this source enumeration.",
+    };
 }
 
 const std::filesystem::path& LocalDirectorySource::root() const noexcept {
