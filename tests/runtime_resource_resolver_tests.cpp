@@ -224,14 +224,15 @@ int main() {
         assert(overflow_report.probes.empty());
     }
 
-    // Pure recovered type-0 path model: 0x0C normalization + exact root separator
-    // behavior, while deliberately stopping before platform-specific CreateFileA.
+    // Pure recovered type-0 path model: 0x0C strips edge separators and
+    // canonicalizes/collapses slash separators. It does not resolve dot segments
+    // and it preserves ASCII case.
     {
         const auto plan = PhysicalProviderModel::plan(
             "C:\\game\\data\\dmc3", "Room/../ROOM/ST001.PAC");
         assert(plan.ready());
-        assert(plan.normalized_candidate == "Room\\ROOM\\ST001.PAC");
-        assert(plan.joined_path == "C:\\game\\data\\dmc3\\Room\\ROOM\\ST001.PAC");
+        assert(plan.normalized_candidate == "Room\\..\\ROOM\\ST001.PAC");
+        assert(plan.joined_path == "C:\\game\\data\\dmc3\\Room\\..\\ROOM\\ST001.PAC");
 
         const auto rooted = PhysicalProviderModel::plan(
             "C:\\game\\data\\dmc3\\", "scr/st001.pac");
