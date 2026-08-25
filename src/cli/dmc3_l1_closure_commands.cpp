@@ -16,13 +16,11 @@
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
 #include <algorithm>
-#include <array>
 #include <charconv>
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -223,40 +221,28 @@ struct DiscoveredVolume final {
 
 [[nodiscard]] std::string escape_json(std::string_view value) {
     std::ostringstream output;
+    constexpr char hex[] = "0123456789abcdef";
     for (const unsigned char character : value) {
         switch (character) {
         case '"': output << "\\\""; break;
         case '\\': output << "\\\\"; break;
+        case '\b': output << "\\b"; break;
+        case '\f': output << "\\f"; break;
         case '\n': output << "\\n"; break;
         case '\r': output << "\\r"; break;
         case '\t': output << "\\t"; break;
         default:
-            output << static_cast<char>(character);
+            if (character < 0x20U) {
+                output << "\\u00"
+                       << hex[(character >> 4U) & 0x0FU]
+                       << hex[character & 0x0FU];
+            } else {
+                output << static_cast<char>(character);
+            }
             break;
         }
     }
     return output.str();
-}
-
-[[nodiscard]] int invoke_overlay_command(
-    const std::filesystem::path& executable_directory,
-    std::string_view game_request,
-    const std::filesystem::path& authored_file,
-    const std::filesystem::path& output_directory) {
-    std::array<std::string, 6U> arguments{
-        "dmc-rengine",
-        "build-dmc3-overlay",
-        executable_directory.string(),
-        std::string{game_request},
-        authored_file.string(),
-        output_directory.string(),
-    };
-    std::array<char*, 6U> argv{};
-    for (std::size_t index = 0U; index < arguments.size(); ++index) {
-        argv[index] = arguments[index].data();
-    }
-    return try_run_dmc3_overlay_command(
-        static_cast<int>(argv.size()), argv.data());
 }
 
 [[nodiscard]] bool verify_rematerialized_slot(
@@ -291,9 +277,10 @@ struct DiscoveredVolume final {
     const std::filesystem::path& workspace_directory) {
     const auto data_directory = executable_directory /
         std::filesystem::path{dmc3::VolumeBootstrapPolicy::data_subdirectory()};
-    if (workspace_directory.empty() || is_within(workspace_directory, data_directory)) {
+    if (workspace_directory.empty() ||
+        is_within(workspace_directory, executable_directory)) {
         std::cerr
-            << "verify-dmc3-l1-authoring: workspace must be outside the retail game data tree\n";
+            << "verify-dmc3-l1-authoring: workspace must be outside the complete retail executable tree\n";
         return 2;
     }
 
@@ -349,7 +336,7 @@ struct DiscoveredVolume final {
         return 7;
     }
 
-    if (invoke_overlay_command(
+    if (run_build_dmc3_overlay(
             executable_directory, game_request, rebuilt_member,
             overlay_directory) != 0) {
         std::cerr
@@ -456,18 +443,24 @@ struct DiscoveredVolume final {
     }
     if (!verify_rematerialized_slot(
             *rematerialized, slot_index,
-            std::span<const std::byte>{*replacement_bytes})) {
+            std::span<const std::byte>{replacement_bytes->data(), replacement_bytes->size()})) {
         std::cerr
             << "verify-dmc3-l1-authoring: rematerialized target slot does not equal the authored replacement\n";
         return 13;
     }
 
-    const auto executable_sha = sha256_of(*executable_bytes);
-    const auto retail_sha = sha256_of(*retail_bytes);
-    const auto replacement_sha = sha256_of(*replacement_bytes);
-    const auto rebuilt_sha = sha256_of(*rebuilt_bytes);
-    const auto overlay_sha = sha256_of(*overlay_bytes);
-    const auto rematerialized_sha = sha256_of(rematerialized->bytes);
+    const auto executable_sha = sha256_of(
+        std::span<const std::byte>{executable_bytes->data(), executable_bytes->size()});
+    const auto retail_sha = sha256_of(
+        std::span<const std::byte>{retail_bytes->data(), retail_bytes->size()});
+    const auto replacement_sha = sha256_of(
+        std::span<const std::byte>{replacement_bytes->data(), replacement_bytes->size()});
+    const auto rebuilt_sha = sha256_of(
+        std::span<const std::byte>{rebuilt_bytes->data(), rebuilt_bytes->size()});
+    const auto overlay_sha = sha256_of(
+        std::span<const std::byte>{overlay_bytes->data(), overlay_bytes->size()});
+    const auto rematerialized_sha = sha256_of(
+        std::span<const std::byte>{rematerialized->bytes.data(), rematerialized->bytes.size()});
 
     std::ostringstream receipt;
     receipt
