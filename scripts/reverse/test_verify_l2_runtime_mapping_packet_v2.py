@@ -136,6 +136,10 @@ def main() -> None:
         canonical_exe, hashes = make_canonical_exe(root)
         paths, by_rva = required_receipts(root, hashes)
 
+        assert mapping.REQUIRED_ANCHORS == set(mapping.ANCHORS)
+        assert 0x00326D20 in mapping.REQUIRED_ANCHORS
+        assert 0x00326DA0 in mapping.REQUIRED_ANCHORS
+
         packet = mapping.build_packet(paths, canonical_exe)
         assert packet["schema"] == "dmc-rengine.gdspaces-l2-runtime-mapping.v2"
         assert packet["status"] == "bounded_process_instance_match"
@@ -237,6 +241,16 @@ def main() -> None:
         missing_required = [path for path in paths if path != target]
         expect_rejected(
             missing_required,
+            canonical_exe,
+            "at least",
+        )
+
+        physical_registration = by_rva[0x00326D20]
+        missing_physical_registration = [
+            path for path in paths if path != physical_registration
+        ]
+        expect_rejected(
+            missing_physical_registration,
             canonical_exe,
             "at least",
         )
