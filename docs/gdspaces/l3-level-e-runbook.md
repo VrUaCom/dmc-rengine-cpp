@@ -8,12 +8,15 @@ Layer 3 is the **original resource runtime/lifecycle**. It starts after L1 has e
 
 ## Safety boundary
 
-A lifecycle JSON file can be:
+Schema v1 deliberately separates three levels:
 
 1. **structurally valid** — schema, identities, event types and scenario ordering are internally consistent;
-2. **promotion eligible** — in addition, it is a captured original-process run, completed cleanly, with no observer loss/overflow/semantic intrusion and verified rollback when an overlay was published.
+2. **promotion content candidate** — the self-described run also satisfies the content-side acceptance predicate (`captured`, original-process claim, clean completion, no loss/overflow/intrusion, rollback when required);
+3. **promotion eligible** — requires a trusted original-process publisher/binder that cannot be manufactured by editing JSON.
 
-These are intentionally different states. Synthetic CI fixtures exercise the parser and acceptance predicates only. They are not Evidence Packets and must never be cited as Level-E runtime evidence.
+The current manual JSON importer can establish levels 1 and 2 only. It can **never** establish level 3. `run.original_process = true` is carried as an observation claim, not accepted as authority by itself.
+
+This is a hard anti-laundering rule. Synthetic CI fixtures exercise parser and content predicates only. They are not Evidence Packets and must never be cited as Level-E runtime evidence.
 
 Validate any trace:
 
@@ -21,20 +24,20 @@ Validate any trace:
 dmc-rengine validate-l3-lifecycle <trace.json>
 ```
 
-Require the Level-E promotion boundary:
+Test the final promotion gate:
 
 ```text
 dmc-rengine validate-l3-lifecycle <trace.json> --require-promotable
 ```
 
-The second form returns failure when a trace is structurally valid but not promotion eligible.
+For schema-v1 manual imports the second form intentionally fails, even when the content is a perfect promotion candidate, because trusted runtime origin is not yet bound. A later instrumentation/publisher slice must introduce that authority through a non-forgeable type/binding rather than another editable JSON boolean.
 
 ## Identity chain
 
-Every trace must carry all three authorities instead of collapsing them:
+Every trace must carry all three claimed identities instead of collapsing them:
 
 ```text
-original executable identity
+original executable identity claim
   + L2 selected provider/member identity
   + L1 materialized byte identity/provenance
   -> ordered L3 lifecycle events
@@ -47,9 +50,11 @@ Required identity fields:
 - exact selected-provider identity from the L2 evidence path;
 - materialized SHA-256, size and provenance receipt/id from L1;
 - observer name/version/config SHA-256;
-- run id and original-process flag.
+- run id and original-process claim.
 
 SHA-256 strings are canonical lowercase hexadecimal. The validator does not silently lowercase or repair them.
+
+These fields are necessary for a future trusted binder, but self-asserting them in JSON is not sufficient to prove original-process origin.
 
 ## Event integrity
 
@@ -164,19 +169,19 @@ This receipt remains distinct from ordinary group/full runtime reset. Additional
 
 ## V7 — breadth is an aggregate gate
 
-V7 is deliberately **not** accepted as a single `scope` value in schema v1. Breadth is demonstrated by aggregating accepted V1–V6 receipts across `family_tags` during the final L3 audit.
+V7 is deliberately **not** accepted as a single `scope` value in schema v1. Breadth is demonstrated by aggregating trusted accepted V1–V6 receipts across `family_tags` during the final L3 audit.
 
 This prevents one broad trace from claiming coverage it cannot prove. #217 currently requires breadth across direct, PAC-backed, nested PNST/PAC, typed post-load, fixed-topology, group-5 dynamic-pool, loader-node shared-owner and preserved common/static cases, plus exact build/profile pairing for cross-build claims.
 
 ## Aborted traces
 
-`status = "aborted"` is allowed as a diagnostic artifact and does not need to satisfy the complete V1–V6 sequence. It is never promotion eligible.
+`status = "aborted"` is allowed as a diagnostic artifact and does not need to satisfy the complete V1–V6 sequence. It is never a promotion content candidate and can never become Level-E promotion evidence.
 
 This distinction is important: failed instrumentation runs should remain inspectable without being laundered into acceptance evidence.
 
-## Original-process fail-closed rules
+## Original-process content fail-closed rules
 
-For `status = captured` + `run.original_process = true`, the validator rejects the trace when:
+For `status = captured` + the self-described `run.original_process = true`, the validator rejects the trace when:
 
 - `dropped_events != 0`;
 - observer overflow is detected;
@@ -186,7 +191,9 @@ For `status = captured` + `run.original_process = true`, the validator rejects t
 
 When no overlay was published, overlay SHA/rollback claims are rejected as stale or contradictory metadata.
 
-`completed_cleanly = false` may remain a structurally valid trace for diagnosis, but it is not promotion eligible.
+`completed_cleanly = false` may remain a structurally valid trace for diagnosis, but it is not a promotion content candidate.
+
+Passing all of these checks still does **not** establish trusted origin. It only means that the imported content is shaped like a candidate that a future trusted publisher/binder could promote.
 
 ## Minimal JSON shape
 
@@ -235,13 +242,13 @@ Do not copy placeholder hashes into a real receipt.
 
 ## What this slice does not prove
 
-The validator does not instrument DMC3, discover runtime addresses, infer a cross-build address map, or turn a synthetic trace into original-process evidence. It only establishes the fail-closed contract into which later instrumentation must publish sanitized lifecycle observations.
+The validator does not instrument DMC3, discover runtime addresses, infer a cross-build address map, bind a trace to a live process, or turn a synthetic/manual trace into original-process evidence. It only establishes the fail-closed content contract into which later trusted instrumentation must publish sanitized lifecycle observations.
 
 The next Layer-3 engineering steps remain:
 
 ```text
 #88 R1/R2/R3 static closure where raw canonical EXE evidence is required
- -> instrumentation publisher bound to this receipt schema
+ -> trusted instrumentation/publisher bound to this receipt schema
  -> original-process V1/V5 first
  -> transition/reload/reset/shutdown traces
  -> V7 aggregate breadth
