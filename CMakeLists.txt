@@ -251,6 +251,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_cli_validate_l3_lifecycle_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
+        NAME dmc_rengine_cli_validate_l3_lifecycle
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/l3-lifecycle-cli-test
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/l3_lifecycle_cli_test.cmake)
+    add_test(
         NAME dmc_rengine_cli_preflight_dmc3_game_test_usage
         COMMAND dmc-rengine preflight-dmc3-game-test)
     set_tests_properties(
