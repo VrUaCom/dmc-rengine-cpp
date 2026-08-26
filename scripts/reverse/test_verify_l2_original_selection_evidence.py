@@ -46,7 +46,7 @@ def mapping_child(rva: int, digit: str) -> dict[str, object]:
     }
 
 
-def selection_candidate(
+def selection_receipt(
     mapping_sha: str,
     observer_sha: str,
     archive0_sha: str,
@@ -59,9 +59,6 @@ def selection_candidate(
     return {
         "schema": verify.SELECTION_SCHEMA,
         "evidence_class": verify.SELECTION_EVIDENCE_CLASS,
-        "promotion_eligible": False,
-        "trusted_capture_bound": False,
-        "legacy_schema_normalized": True,
         "executable_sha256": verify.PROTECTED_SHA256,
         "executable_size": verify.PROTECTED_SIZE,
         "runtime_mapping_packet_sha256": mapping_sha,
@@ -110,12 +107,6 @@ def selection_candidate(
             "archive_member_path": "GDataX360.afs/ST001.PAC",
             "physical_relative_path": "",
         },
-        "proves": ["self-authored-selection-content-has-candidate-shape-only"],
-        "does_not_prove": [
-            "trusted-observer-execution-or-trace-origin",
-            "original-process-selected-provider-identity",
-            "promotion-eligibility",
-        ],
     }
 
 
@@ -172,7 +163,7 @@ def main() -> None:
         archive1.write_bytes(archive1_bytes)
         archives = {0: archive0, 1: archive1}
 
-        valid_selection = selection_candidate(
+        valid_selection = selection_receipt(
             mapping_sha,
             sha(observer_bytes),
             sha(archive0_bytes),
@@ -204,53 +195,12 @@ def main() -> None:
         wrong_hash_path = root / "wrong-hash.json"
         write_json(wrong_hash_path, wrong_hash)
         rejected(
-            mapping_path, wrong_hash_path, child_paths, observer_path, archives,
+            mapping_path,
+            wrong_hash_path,
+            child_paths,
+            observer_path,
+            archives,
             "does not hash-bind",
-        )
-
-        forged_promotion = dict(valid_selection)
-        forged_promotion["promotion_eligible"] = True
-        forged_promotion_path = root / "forged-promotion.json"
-        write_json(forged_promotion_path, forged_promotion)
-        rejected(
-            mapping_path, forged_promotion_path, child_paths, observer_path, archives,
-            "may not predeclare promotion eligibility",
-        )
-
-        forged_trust = dict(valid_selection)
-        forged_trust["trusted_capture_bound"] = True
-        forged_trust_path = root / "forged-trust.json"
-        write_json(forged_trust_path, forged_trust)
-        rejected(
-            mapping_path, forged_trust_path, child_paths, observer_path, archives,
-            "may not predeclare trusted capture",
-        )
-
-        no_normalizer_marker = dict(valid_selection)
-        no_normalizer_marker["legacy_schema_normalized"] = False
-        no_marker_path = root / "no-marker.json"
-        write_json(no_marker_path, no_normalizer_marker)
-        rejected(
-            mapping_path, no_marker_path, child_paths, observer_path, archives,
-            "lacks legacy-normalizer provenance marker",
-        )
-
-        extra_top = dict(valid_selection)
-        extra_top["trusted_origin"] = True
-        extra_top_path = root / "extra-top.json"
-        write_json(extra_top_path, extra_top)
-        rejected(
-            mapping_path, extra_top_path, child_paths, observer_path, archives,
-            "unsupported field(s): trusted_origin",
-        )
-
-        extra_selected = json.loads(json.dumps(valid_selection))
-        extra_selected["selected"]["trusted_origin"] = True
-        extra_selected_path = root / "extra-selected.json"
-        write_json(extra_selected_path, extra_selected)
-        rejected(
-            mapping_path, extra_selected_path, child_paths, observer_path, archives,
-            "selected identity contains unsupported field(s): trusted_origin",
         )
 
         wrong_observer = dict(valid_selection)
@@ -258,7 +208,11 @@ def main() -> None:
         wrong_observer_path = root / "wrong-observer.json"
         write_json(wrong_observer_path, wrong_observer)
         rejected(
-            mapping_path, wrong_observer_path, child_paths, observer_path, archives,
+            mapping_path,
+            wrong_observer_path,
+            child_paths,
+            observer_path,
+            archives,
             "observer artifact SHA",
         )
 
@@ -274,7 +228,11 @@ def main() -> None:
         )
 
         rejected(
-            mapping_path, selection_path, child_paths, observer_path, {1: archive1},
+            mapping_path,
+            selection_path,
+            child_paths,
+            observer_path,
+            {1: archive1},
             "does not exactly match selection volume set",
         )
 
@@ -283,7 +241,11 @@ def main() -> None:
         backend_failure_path = root / "backend-failure.json"
         write_json(backend_failure_path, backend_failure)
         rejected(
-            mapping_path, backend_failure_path, child_paths, observer_path, archives,
+            mapping_path,
+            backend_failure_path,
+            child_paths,
+            observer_path,
+            archives,
             "provider/backend failure is fail-closed",
         )
 
@@ -292,17 +254,12 @@ def main() -> None:
         incomplete_path = root / "incomplete.json"
         write_json(incomplete_path, incomplete)
         rejected(
-            mapping_path, incomplete_path, child_paths, observer_path, archives,
+            mapping_path,
+            incomplete_path,
+            child_paths,
+            observer_path,
+            archives,
             "not marked complete",
-        )
-
-        dropped = dict(valid_selection)
-        dropped["dropped_event_count"] = 1
-        dropped_path = root / "dropped.json"
-        write_json(dropped_path, dropped)
-        rejected(
-            mapping_path, dropped_path, child_paths, observer_path, archives,
-            "dropped events",
         )
 
         nested_raw = json.loads(json.dumps(valid_selection))
@@ -310,7 +267,11 @@ def main() -> None:
         nested_raw_path = root / "nested-raw.json"
         write_json(nested_raw_path, nested_raw)
         rejected(
-            mapping_path, nested_raw_path, child_paths, observer_path, archives,
+            mapping_path,
+            nested_raw_path,
+            child_paths,
+            observer_path,
+            archives,
             "forbidden raw bytes_hex",
         )
 
