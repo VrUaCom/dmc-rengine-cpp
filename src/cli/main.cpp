@@ -1,5 +1,6 @@
 #include "exe_acquisition_commands.hpp"
 #include "integration_commands.hpp"
+#include "l3_validation_commands.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
@@ -44,6 +45,7 @@ void print_help() {
         << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
         << "  extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]\n"
         << "                            Hash-gated reverse-evidence byte window\n";
+    dmc::rengine::cli::print_l3_validation_help();
     dmc::rengine::cli::print_integration_help();
     std::cout << "  help | --help             Show this help\n";
 }
@@ -304,6 +306,12 @@ int main(int argc, char** argv) {
         dmc::rengine::cli::try_run_exe_acquisition_command(argc, argv);
     if (acquisition_result != -1) {
         return acquisition_result;
+    }
+
+    const auto l3_validation_result =
+        dmc::rengine::cli::try_run_l3_validation_command(argc, argv);
+    if (l3_validation_result != -1) {
+        return l3_validation_result;
     }
 
     const std::string_view command{argv[1]};
