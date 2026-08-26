@@ -85,6 +85,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         tagged_record_classification
         texture_pack_container
         scm_structural
+        mod_structural
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

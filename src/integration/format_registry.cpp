@@ -206,15 +206,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "mod",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.mod-structural",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::models,
             .evidence_claim_ids = {},
             .limitations = {
-                "Recognized by the recovered three-byte runtime probe, not by a parser.",
-                "MOD model parser migration is pending.",
+                "Layout recovered from the runtime relocation routine. It shares a document shell with SCM and no batch field beyond that; the two are not interchangeable.",
+                "A batch is a vertex stream, not an indexed mesh: the strip list refers to positions within the batch, and the per-vertex word carries a break flag rather than an index.",
+                "Verified against one real model. The stage corpus contains scene models only, so a wider model corpus would strengthen this.",
+                "What the attribute and secondary words hold is not claimed. No writer.",
             },
         },
         FormatIntegrationDescriptor{

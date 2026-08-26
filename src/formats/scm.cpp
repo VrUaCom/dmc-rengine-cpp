@@ -1,5 +1,6 @@
 #include "dmc_rengine/formats/scm.hpp"
 
+#include "dmc_rengine/formats/relocated_model_shell.hpp"
 #include "dmc_rengine/profiles/dmc3/scm_contract.hpp"
 
 #include <cstddef>
@@ -99,86 +100,50 @@ bool ScmDocument::valid() const noexcept {
 }
 
 ScmParseResult ScmParser::parse(std::span<const std::byte> bytes) {
-    const auto total = static_cast<std::uint64_t>(bytes.size());
-    if (total < Contract::group_table_offset) {
-        return fail(
-            ScmParseError::truncated_header,
-            "scene model is smaller than its own header");
-    }
-    for (std::size_t index = 0U; index < Contract::magic_bytes; ++index) {
-        if (std::to_integer<char>(bytes[index]) != Contract::magic[index]) {
-            return fail(
-                ScmParseError::invalid_magic,
-                "scene model does not open with the recovered SCM tag");
+    // The document and group layer is shared with MOD, byte for byte, because
+    // both recovered routines read it the same way. Everything below the group
+    // is where the two formats stop agreeing.
+    const auto shell = RelocatedModelShell::parse(
+        bytes, Contract::magic, Contract::batch_stride);
+    if (!shell.ok()) {
+        switch (shell.error) {
+        case ModelShellError::invalid_magic:
+            return fail(ScmParseError::invalid_magic, shell.message);
+        case ModelShellError::truncated_header:
+            return fail(ScmParseError::truncated_header, shell.message);
+        case ModelShellError::group_limit:
+            return fail(ScmParseError::group_limit, shell.message);
+        case ModelShellError::truncated_group_table:
+            return fail(ScmParseError::truncated_group_table, shell.message);
+        case ModelShellError::pointer_out_of_bounds:
+        case ModelShellError::none:
+            break;
         }
+        return fail(ScmParseError::group_out_of_bounds, shell.message);
     }
+
+    const auto total = shell.shell->document_size;
 
     ScmDocument document;
     document.document_size = total;
-    // Read as a byte because the routine reads a byte. Treating this dword as
-    // a count would produce millions of groups out of what is really three
-    // other fields sharing the word.
-    document.group_count = std::to_integer<std::uint32_t>(
-        bytes[Contract::group_count_offset]);
-    document.document_pointer =
-        read_u64_le(bytes, Contract::document_pointer_offset);
-
-    if (document.group_count > k_max_group_count) {
-        return fail(
-            ScmParseError::group_limit,
-            "declared group count exceeds the product parser safety limit");
-    }
-    if (document.document_pointer >= total) {
-        return fail(
-            ScmParseError::group_out_of_bounds,
-            "the document pointer relocates outside the scene model");
-    }
-
-    const auto table_bytes = static_cast<std::uint64_t>(document.group_count) *
-        Contract::group_stride;
-    if (!fits(Contract::group_table_offset, table_bytes, total)) {
-        return fail(
-            ScmParseError::truncated_group_table,
-            "the group table extends past the end of the scene model");
-    }
-
+    document.group_count = shell.shell->group_count;
+    document.document_pointer = shell.shell->document_pointer;
     document.groups.reserve(document.group_count);
-    for (std::uint32_t index = 0U; index < document.group_count; ++index) {
-        const auto group_offset = Contract::group_table_offset +
-            static_cast<std::uint64_t>(index) * Contract::group_stride;
-        const auto batch_count = std::to_integer<std::uint32_t>(
-            bytes[static_cast<std::size_t>(
-                group_offset + Contract::group_batch_count_offset)]);
-        const auto first_batch = read_u64_le(
-            bytes,
-            static_cast<std::size_t>(
-                group_offset + Contract::group_batch_pointer_offset));
 
-        if (batch_count > k_max_batch_count) {
-            return fail(
-                ScmParseError::group_limit,
-                "a group declares more batches than the safety limit allows");
-        }
-        if (batch_count != 0U &&
-            !fits(first_batch, Contract::batch_stride, total)) {
-            return fail(
-                ScmParseError::batch_out_of_bounds,
-                "a group's first batch relocates outside the scene model");
-        }
-
+    for (const auto& group : shell.shell->groups) {
         document.groups.push_back(ScmGroup{
-            .group_index = index,
-            .group_offset = group_offset,
-            .batch_count = batch_count,
-            .first_batch_offset = first_batch,
+            .group_index = group.group_index,
+            .group_offset = group.group_offset,
+            .batch_count = group.batch_count,
+            .first_batch_offset = group.first_batch_offset,
         });
 
         // Walk the batches first, then check the array packing across the
         // whole group: the arrays are grouped by kind, so no single batch can
         // be validated on its own.
         const auto first = document.batches.size();
-        auto batch_offset = first_batch;
-        for (std::uint32_t batch = 0U; batch < batch_count; ++batch) {
+        auto batch_offset = group.first_batch_offset;
+        for (std::uint32_t batch = 0U; batch < group.batch_count; ++batch) {
             if (!fits(batch_offset, Contract::batch_stride, total)) {
                 return fail(
                     ScmParseError::batch_out_of_bounds,
@@ -189,7 +154,7 @@ ScmParseResult ScmParser::parse(std::span<const std::byte> bytes) {
             };
 
             ScmPrimitiveBatch record{
-                .group_index = index,
+                .group_index = group.group_index,
                 .batch_index = batch,
                 .batch_offset = batch_offset,
                 .index_count = read_u16_le(bytes, at(Contract::batch_index_count_offset)),
@@ -231,6 +196,8 @@ ScmParseResult ScmParser::parse(std::span<const std::byte> bytes) {
             }
 
             document.batches.push_back(record);
+            // Chained, not indexed: this format stores the step to the next
+            // batch where MOD stores an array pointer.
             batch_offset += read_u64_le(bytes, at(Contract::batch_next_stride_offset));
         }
 
@@ -238,20 +205,18 @@ ScmParseResult ScmParser::parse(std::span<const std::byte> bytes) {
         // order, 16-byte aligned, and the recorded offsets must reproduce
         // exactly — which is what proves the batch walk found the real batches
         // rather than plausible-looking ones.
-        const std::pair<std::size_t, std::uint64_t> kinds[]{
-            {offsetof(ScmPrimitiveBatch, position_offset), Contract::position_element_bytes},
-            {offsetof(ScmPrimitiveBatch, normal_offset), Contract::normal_element_bytes},
-            {offsetof(ScmPrimitiveBatch, attribute_offset), Contract::attribute_element_bytes},
-            {offsetof(ScmPrimitiveBatch, index_offset), Contract::index_element_bytes},
+        const std::pair<std::uint64_t ScmPrimitiveBatch::*, std::uint64_t> kinds[]{
+            {&ScmPrimitiveBatch::position_offset, Contract::position_element_bytes},
+            {&ScmPrimitiveBatch::normal_offset, Contract::normal_element_bytes},
+            {&ScmPrimitiveBatch::attribute_offset, Contract::attribute_element_bytes},
+            {&ScmPrimitiveBatch::index_offset, Contract::index_element_bytes},
         };
-        if (batch_count != 0U) {
+        if (group.batch_count != 0U) {
             auto cursor = document.batches[first].position_offset;
             for (const auto& [field, element_bytes] : kinds) {
-                for (std::size_t batch = 0U; batch < batch_count; ++batch) {
+                for (std::uint32_t batch = 0U; batch < group.batch_count; ++batch) {
                     const auto& record = document.batches[first + batch];
-                    const auto recorded = *reinterpret_cast<const std::uint64_t*>(
-                        reinterpret_cast<const std::byte*>(&record) + field);
-                    if (recorded != cursor) {
+                    if (record.*field != cursor) {
                         return fail(
                             ScmParseError::array_packing_mismatch,
                             "a batch array is not where the group's packing puts it");
