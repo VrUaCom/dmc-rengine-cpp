@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import sys
 from typing import Any
 
@@ -172,6 +172,12 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
         raise ValueError("mapping packet requires the OpenGameResource anchor RVA 0x2FCA0")
     if len(seen_rvas & PHYSICAL_ANCHORS) < 2:
         raise ValueError("mapping packet requires at least two independent type-0 physical anchors")
+    if common_image_path is None:
+        raise ValueError("mapping packet has no process image identity")
+
+    image_name = PureWindowsPath(common_image_path).name
+    if not image_name:
+        raise ValueError("mapping packet process image has no basename")
 
     anchors.sort(key=lambda item: item["rva"])
     return {
@@ -184,7 +190,7 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
         "preferred_image_base": f"0x{PREFERRED_IMAGE_BASE:X}",
         "pid": common_pid,
         "module_base": f"0x{common_module_base:X}",
-        "image_path": common_image_path,
+        "image_name": image_name,
         "anchor_count": len(anchors),
         "anchors": [
             {
