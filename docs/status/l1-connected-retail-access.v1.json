@@ -21,7 +21,7 @@
     }
   },
   "preferred_request": "obj\\em000.pac",
-  "separate_em000_derivative_found": false,
+  "separate_em000_derivative_found_in_connected_search": false,
   "l1_c": {
     "implementation_status": "closed-canonical",
     "real_receipt_status": "open",
