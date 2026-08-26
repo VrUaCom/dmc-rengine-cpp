@@ -72,9 +72,17 @@ contents is stronger evidence than four magic bytes, and it is refused rather
 than repaired when it does not close.
 
 st001 slot 1 expands to 17 DXT1/DXT5 textures, 128×128 to 1024×1024, each with
-a full mip chain. The block's trailing sector padding stays inside the child:
-it is part of what the container stores for that texture, and dropping it would
-make the extracted bytes a reconstruction instead of a copy.
+a full mip chain, at their exact stored extents — the descriptor and the sector
+padding stay with the container, because neither is part of the file a caller
+asked for.
+
+This container view is not a second parser. Recognition and geometry both come
+from `TextureSlotFramingParser`, which already modelled the `0x70` descriptor
+and is what the packed-reflow writer authors against. Keeping one authority is
+what closes the cycle: a texture taken out through the resource tree is
+accepted by the writer with no translation, and the rebuilt pack comes back
+through the tree with identical geometry. On the real `st001` pack, editing one
+byte of one texture and repacking changes exactly one byte of 3,485,696.
 
 ## 2. Slot roles are positional and stable across stages
 
@@ -150,8 +158,8 @@ not a position in a packed list.
 ## 5. What would close this
 
 - more stages, to turn a two-sample agreement into a role table;
-- the descriptor layout of a texture block, which is 112 bytes of parameters
-  this parser walks past without reading;
+- the descriptor's auxiliary pair and secondary-dimension relation, which are
+  validated structurally without any claim about what they mean;
 - an independent unpacker's mapping to compare against, which would raise the
   manifest-to-slot association from plausible to corroborated;
 - the reader selection path in the executable, since the tag table is not there.

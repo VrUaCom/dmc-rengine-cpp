@@ -10,12 +10,19 @@
 
 namespace dmc::rengine::formats {
 
-// The DMC3 stage texture pack. It carries no magic: the first dword is the
-// texture count. What identifies it instead is that its own arithmetic closes
-// exactly — the declared sector sizes plus the header sector reproduce the
-// stored length to the byte — and that every block it describes starts with a
-// DDS image at a fixed descriptor offset. A structure that predicts its own
-// length and its own contents is stronger evidence than four magic bytes.
+// The DMC3 stage texture pack, as a container the resource tree can expand.
+//
+// It carries no magic: the first dword is the texture count. What identifies
+// it instead is that its own arithmetic closes exactly — the declared sector
+// sizes plus the header sector reproduce the stored length to the byte — and
+// that every block it describes carries a 0x70 descriptor whose fields agree
+// with the DDS image behind it. A structure that predicts its own length and
+// its own contents is stronger evidence than four magic bytes.
+//
+// This is a view, not a second parser: recognition and geometry both come from
+// `TextureSlotFramingParser`, which already models the descriptor and is what
+// the packed-reflow writer authors against. Keeping one authority is what lets
+// a texture extracted from the tree be handed back to the writer unchanged.
 //
 // Observed in `st001.pac` slot 1 (17 textures, 3,485,696 bytes) and
 // `st114.pac` slot 1 (17 textures, 2,404,352 bytes), which are the two stages
@@ -23,12 +30,15 @@ namespace dmc::rengine::formats {
 // calls this record `stNNN.ptx`.
 enum class PtxParseError : std::uint8_t {
     none,
+    not_a_texture_pack,
     truncated_header,
+    truncated_descriptor,
     texture_count_limit,
-    truncated_size_table,
-    invalid_sector_size,
     size_table_does_not_close,
     missing_image_signature,
+    unsupported_compression,
+    descriptor_mismatch,
+    nonzero_alignment_padding,
     invalid_document,
 };
 

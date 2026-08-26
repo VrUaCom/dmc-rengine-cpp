@@ -1,39 +1,15 @@
 #include "dmc_rengine/formats/ptx.hpp"
 
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
+
 #include <iomanip>
-#include <limits>
 #include <sstream>
 #include <utility>
-#include <vector>
 
 namespace dmc::rengine::formats {
 namespace {
 
-[[nodiscard]] std::uint32_t read_u32_le(
-    std::span<const std::byte> bytes,
-    std::size_t offset) noexcept {
-    return std::to_integer<std::uint32_t>(bytes[offset]) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 1U]) << 8U) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 2U]) << 16U) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 3U]) << 24U);
-}
-
-[[nodiscard]] bool image_signature_at(
-    std::span<const std::byte> bytes,
-    std::uint64_t offset) noexcept {
-    static constexpr unsigned char signature[]{'D', 'D', 'S', ' '};
-    if (offset > bytes.size() - sizeof(signature)) {
-        return false;
-    }
-    for (std::size_t index = 0; index < sizeof(signature); ++index) {
-        if (std::to_integer<unsigned char>(
-                bytes[static_cast<std::size_t>(offset) + index]) !=
-            signature[index]) {
-            return false;
-        }
-    }
-    return true;
-}
+namespace dmc3 = profiles::dmc3;
 
 [[nodiscard]] std::string synthetic_texture_name(std::uint32_t index) {
     std::ostringstream output;
@@ -50,99 +26,79 @@ namespace {
     };
 }
 
+[[nodiscard]] PtxParseError error_for(
+    dmc3::TextureSlotFramingStatus status) noexcept {
+    switch (status) {
+    case dmc3::TextureSlotFramingStatus::ok:
+        return PtxParseError::none;
+    case dmc3::TextureSlotFramingStatus::not_recognized:
+        return PtxParseError::not_a_texture_pack;
+    case dmc3::TextureSlotFramingStatus::invalid_count:
+        return PtxParseError::texture_count_limit;
+    case dmc3::TextureSlotFramingStatus::truncated_header:
+        return PtxParseError::truncated_header;
+    case dmc3::TextureSlotFramingStatus::truncated_descriptor:
+        return PtxParseError::truncated_descriptor;
+    case dmc3::TextureSlotFramingStatus::invalid_dds:
+        return PtxParseError::missing_image_signature;
+    case dmc3::TextureSlotFramingStatus::unsupported_compression:
+        return PtxParseError::unsupported_compression;
+    case dmc3::TextureSlotFramingStatus::descriptor_mismatch:
+        return PtxParseError::descriptor_mismatch;
+    case dmc3::TextureSlotFramingStatus::invalid_sector_span:
+    case dmc3::TextureSlotFramingStatus::trailing_bytes:
+        return PtxParseError::size_table_does_not_close;
+    case dmc3::TextureSlotFramingStatus::nonzero_alignment_padding:
+        return PtxParseError::nonzero_alignment_padding;
+    }
+    return PtxParseError::not_a_texture_pack;
+}
+
 } // namespace
 
 PtxParseResult PtxParser::parse(std::span<const std::byte> bytes) {
-    if (bytes.size() < k_sector_bytes + k_sector_bytes) {
+    // One authority for what a texture pack is. The framing parser already
+    // validates the whole 0x70 descriptor against the DDS it introduces, and a
+    // second recognizer here would eventually disagree with it about a file —
+    // which is the failure that matters, because the disagreeing pair would be
+    // "the tree says texture pack" and "the writer says it is not".
+    const auto framed = dmc3::TextureSlotFramingParser::parse(bytes);
+    if (!framed.ok()) {
         return fail(
-            PtxParseError::truncated_header,
-            "texture pack requires a header sector and at least one block");
+            error_for(framed.status),
+            framed.detail.empty()
+                ? std::string{"texture-slot framing rejected the byte image"}
+                : std::string{framed.detail});
     }
-
-    const auto texture_count = read_u32_le(bytes, 0U);
-    if (texture_count == 0U || texture_count > k_max_texture_count) {
+    if (framed.document.kind != dmc3::TextureSlotFramingKind::texture_bundle) {
+        // A single wrapped DDS is a texture, not a pack. Expanding it into a
+        // one-child container would invent a level that is not there.
         return fail(
-            PtxParseError::texture_count_limit,
-            "declared texture count cannot be described by the header sector");
-    }
-
-    const auto table_end =
-        4U + static_cast<std::size_t>(texture_count) * 4U;
-    if (table_end > k_sector_bytes) {
-        return fail(
-            PtxParseError::truncated_size_table,
-            "sector size table does not fit inside the header sector");
-    }
-
-    std::vector<std::uint32_t> sectors(texture_count, 0U);
-    std::uint64_t total_sectors = 0U;
-    for (std::uint32_t index = 0U; index < texture_count; ++index) {
-        const auto value = read_u32_le(bytes, 4U + static_cast<std::size_t>(index) * 4U);
-        if (value == 0U) {
-            return fail(
-                PtxParseError::invalid_sector_size,
-                "a declared texture block occupies no sectors");
-        }
-        sectors[index] = value;
-        total_sectors += value;
-    }
-
-    // The closure check. Header sector plus every declared block must be the
-    // stored length exactly — not at most, not rounded. This is what makes a
-    // magic-free format safe to recognize, so it is an error and never a
-    // warning.
-    if (total_sectors >
-        (std::numeric_limits<std::uint64_t>::max() / k_sector_bytes) - 1U) {
-        return fail(
-            PtxParseError::size_table_does_not_close,
-            "declared sector total overflows the addressable range");
-    }
-    const auto described = (total_sectors + 1U) * k_sector_bytes;
-    if (described != static_cast<std::uint64_t>(bytes.size())) {
-        return fail(
-            PtxParseError::size_table_does_not_close,
-            "declared sector total does not reproduce the stored length");
+            PtxParseError::not_a_texture_pack,
+            "the byte image is a single wrapped texture, not a texture pack");
     }
 
     ContainerDocument document;
     document.format = "ptx";
     document.schema_version = 1U;
-    document.declared_slot_count = texture_count;
+    document.declared_slot_count =
+        static_cast<std::uint32_t>(framed.document.textures.size());
     document.container_size = static_cast<std::uint64_t>(bytes.size());
-    document.entries.resize(texture_count);
+    document.entries.reserve(framed.document.textures.size());
 
-    std::uint64_t block_offset = k_sector_bytes;
-    for (std::uint32_t index = 0U; index < texture_count; ++index) {
-        const auto block_size =
-            static_cast<std::uint64_t>(sectors[index]) * k_sector_bytes;
-        if (block_size <= k_descriptor_bytes) {
-            return fail(
-                PtxParseError::invalid_sector_size,
-                "a declared texture block is smaller than its descriptor");
-        }
-
-        const auto image_offset = block_offset + k_descriptor_bytes;
-        if (!image_signature_at(bytes, image_offset)) {
-            return fail(
-                PtxParseError::missing_image_signature,
-                "a declared texture block does not open with a DDS image");
-        }
-
-        auto& entry = document.entries[index];
-        entry.slot_index = index;
-        // The per-texture descriptor is container framing, like a local file
-        // header, so the addressable child is the image it introduces. The
-        // block's trailing sector padding stays inside the child, because that
-        // padding is part of what the container stores for this texture and
-        // dropping it would make the extracted bytes a reconstruction rather
-        // than a copy.
-        entry.offset = image_offset;
-        entry.size = block_size - k_descriptor_bytes;
-        entry.logical_name = synthetic_texture_name(index);
-        entry.populated = true;
-        entry.synthetic_name = true;
-
-        block_offset += block_size;
+    for (const auto& texture : framed.document.textures) {
+        // The child is the DDS image at its exact extent, not the block it
+        // sits in: the descriptor is container framing and the sector padding
+        // belongs to the container, so neither is part of the file a caller
+        // gets when it asks for this texture.
+        document.entries.push_back(ContainerEntry{
+            .slot_index = texture.texture_index,
+            .offset = texture.dds_offset,
+            .size = static_cast<std::uint64_t>(texture.dds_size),
+            .logical_name = synthetic_texture_name(texture.texture_index),
+            .populated = true,
+            .synthetic_name = true,
+        });
     }
 
     if (!document.valid()) {

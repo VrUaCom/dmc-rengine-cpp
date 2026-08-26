@@ -226,14 +226,14 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .format = "ptx",
             .parser_id = "dmc3-ptx-structural-v1",
             .maturity = IntegrationMaturity::structural,
-            .write_policy = ResourceWritePolicy::read_only,
+            .write_policy = ResourceWritePolicy::working_copy_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::textures,
             .evidence_claim_ids = {},
             .limitations = {
-                "Recognized without magic: the sector table must reproduce the stored length exactly and every block must open with a DDS image.",
-                "The 0x70 per-texture descriptor is walked past, not read; its fields are unmodelled.",
-                "No writer, so a texture pack has no round trip yet.",
+                "Recognized without magic: the sector table must reproduce the stored length exactly and the 0x70 descriptor must agree with the DDS image behind it.",
+                "Size-changing authoring exists through the texture-slot packed reflow writer, bounded to the evidenced DDS profile, the source compression kind and a zero auxiliary pair.",
+                "Descriptor auxiliary and secondary-relation semantics are structural only; no original runtime meaning is claimed.",
             },
         },
         FormatIntegrationDescriptor{

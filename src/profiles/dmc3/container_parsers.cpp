@@ -71,10 +71,16 @@ namespace {
     case formats::PtxParseError::truncated_header: return "truncated_header";
     case formats::PtxParseError::texture_count_limit:
         return "texture_count_limit";
-    case formats::PtxParseError::truncated_size_table:
-        return "truncated_size_table";
-    case formats::PtxParseError::invalid_sector_size:
-        return "invalid_sector_size";
+    case formats::PtxParseError::not_a_texture_pack:
+        return "not_a_texture_pack";
+    case formats::PtxParseError::truncated_descriptor:
+        return "truncated_descriptor";
+    case formats::PtxParseError::unsupported_compression:
+        return "unsupported_compression";
+    case formats::PtxParseError::descriptor_mismatch:
+        return "descriptor_mismatch";
+    case formats::PtxParseError::nonzero_alignment_padding:
+        return "nonzero_alignment_padding";
     case formats::PtxParseError::size_table_does_not_close:
         return "size_table_does_not_close";
     case formats::PtxParseError::missing_image_signature:
