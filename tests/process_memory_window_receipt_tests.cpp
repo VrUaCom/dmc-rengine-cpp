@@ -72,7 +72,7 @@ int main() {
         .image_path = "C:/Games/DMC3/dmc3.exe",
         .preferred_image_base = 0x140000000ULL,
         .pid = 1234U,
-        .process_creation_filetime = 133_800_000_000_000_000ULL,
+        .process_creation_filetime = 133800000000000000ULL,
         .module_base = 0x7FF600000000ULL,
         .rva = 0x1000U,
         .runtime_va = 0x7FF600001000ULL,
