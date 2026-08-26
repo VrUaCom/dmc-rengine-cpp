@@ -1,11 +1,12 @@
 # GDSpaces — Materialization Completion Boundary Pass — 2026-08-26
 
-**Current canonical base:** `main@2ed43b438f1bf01638f3e56341e98f6085e5b0fd`  
+**Current canonical base:** `main@4dd9f65ec36ce27127fa56eaf1f00879ed4087c8`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary layers:** L1 support + L3 lifecycle boundary  
 **Primary ledgers:** #100, #88, #55, #217  
 **Focused acquisition plan:** `../../data/reverse/dmc3-materialization-completion-boundary-plan.v1.json`  
-**Merged scheduler/context authority:** PR #230; stale-base #227 remains superseded history
+**Merged scheduler/context authority:** PR #230; stale-base #227 remains superseded history  
+**Connected-access reconciliation:** PR #233 changes artifact-access wording only and does not alter this static EXE seam
 
 ## 1. Why this pass exists
 
@@ -90,7 +91,7 @@ Current main confirms normal callback-context recovery and state2 publication. T
 
 ## 5. PR #230 scheduler callback ABI is now merged-main authority
 
-PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replayed the same raw-EXE evidence on the newer main line, preserved the merged L2 selected-identity/binder work, passed exact-head CI and merged as `2ed43b438f1bf01638f3e56341e98f6085e5b0fd`.
+PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replayed the same raw-EXE evidence on the newer main line, preserved the merged L2 selected-identity/binder work, passed exact-head CI and merged as `2ed43b438f1bf01638f3e56341e98f6085e5b0fd`. PR #233 subsequently advanced `main` to `4dd9f65ec36ce27127fa56eaf1f00879ed4087c8` with an L1 connected-artifact access correction only; it does not supersede or alter the scheduler/context authority below.
 
 The canonical normal completion registration path is now:
 
