@@ -5,7 +5,7 @@
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
   "snapshot_main_sha": "c147facb310d32ef084c56ba82d1e4b6b9b1b496",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-evidence-closure-active",
+  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l1-exe-handoff-reverse-active-l2-evidence-closure-active",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -17,8 +17,25 @@
     "primary_execution_layer": "L1-resource-materialization-final-acceptance",
     "roadmap": "../gdspaces/l1-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
+    "l1_exe_boundary_review": "../gdspaces/l1-exe-boundary-review-2026-08-26.md",
     "completion_model": "mandatory-gates",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
+    "l1_exe_boundary": {
+      "input": "l2-selected-logical-provider-member-identity",
+      "transport": "whole-file-fileslot-selected-byte-transport-is-l1",
+      "materialization": "store-or-raw-deflate-to-caller-owned-destination-plus-packed-or-lst-representation",
+      "completion_handoff": "resource-scheduler-materialization-completion-state1-to-state2",
+      "end": "state2-materialized-bytes",
+      "l3_begins": "typed-post-load-from-state2-through-state3-and-lifecycle",
+      "cross_layer_function_rule": "classify-behavior-not-whole-function-address"
+    },
+    "l1_exe_corrected_labels": {
+      "0x1402EF4D0": "resource-materialization-submission-scheduling-wrapper-not-exact-path-resolver-final-open-or-raw-reader",
+      "0x1400335A0": "transport-whole-file-completion-callback",
+      "0x1401B8DC0": "resource-scheduler-materialization-completion-handoff-state1-to2-not-raw-io-callback",
+      "0x1401B84E0": "cross-layer-acquisition-constructor-l1-allocation-and-materialization-start-plus-state-scheduler-boundary",
+      "lst_sync_temp_load": "synchronous-aligned-temporary-acquisition-not-proven-equal-to-0x1402EF920"
+    },
     "canonical_capabilities": [
       "nbz-classic-zip-indexing",
       "nbz-store-materialization",
@@ -43,7 +60,8 @@
       "protected-retail-product-authoring-closure-orchestration",
       "l2-type0-physical-provider-static-reverse",
       "l2-native-physical-path-product-model",
-      "l2-controlled-physical-hit-miss-fallback-receipts"
+      "l2-controlled-physical-hit-miss-fallback-receipts",
+      "guarded-canonical-analysis-exe-window-packet-acquisition"
     ],
     "mandatory_L1_gates": [
       {
@@ -100,10 +118,20 @@
       "215-l2-type0-physical-provider"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
-      "zip-stream-initializer-0x140328540-complete-body-lifetime",
-      "compressed-seek-reset-0x140328FE0-complete-behavior",
-      "malformed-partial-read-error-equivalence",
-      "dynamic-lst-lifetime-error-cycle-and-real-corpus-if-loose-list-acceptance-is-claimed"
+      "materialization-fan-in-completion-before-state2-publication",
+      "transport-error-to-resource-scheduler-materialization-error-mapping",
+      "lst-temporary-allocation-free-failure-cleanup-and-recursion-error-propagation",
+      "fileslot-readrequest-partial-read-error-cancellation-breadth-when-required",
+      "zip-stream-initializer-0x140328540-exact-body-error-breadth-when-required",
+      "compressed-seek-reset-0x140328FE0-exact-body-error-breadth-when-required",
+      "exhaustive-malformed-original-error-equivalence"
+    ],
+    "supporting_exe_reverse_priority": [
+      "materialization-fan-in-completion",
+      "transport-to-resource-error-mapping",
+      "lst-temp-allocation-free-failure-cleanup",
+      "acceptance-activated-fileslot-error-cancellation-breadth",
+      "acceptance-activated-zip-exact-body-breadth"
     ],
     "non_blocking_evidence_gated_families": [
       "binary-afs-backend",
@@ -163,17 +191,20 @@
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
     "final-l1-cross-stack-audit",
+    "l1-supporting-materialization-fan-in-reverse-while-external-acceptance-blocked",
     "l2-real-retail-collision-census",
     "l2-protected-runtime-mapping-receipt",
     "l2-original-process-selected-identity-receipt"
   ],
   "other_layers": {
     "L2": "advanced-physical-provider-closed-real-corpus-and-original-process-evidence-open",
-    "L3": "advanced-static-spine-dynamic-level-e-open"
+    "L3": "advanced-static-spine-dynamic-level-e-open-from-state2-typed-ready-boundary"
   },
+  "historical_branch_policy": "open-stacked-prs-are-evidence-history-not-main-truth; revive-only-by-clean-respin-from-current-main-and-boundary-reconciliation",
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
+    "l1_exe_boundary_review": "../gdspaces/l1-exe-boundary-review-2026-08-26.md",
     "current_status": "current.md",
     "blockers": "blockers.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
