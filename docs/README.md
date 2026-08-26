@@ -7,6 +7,8 @@
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
 - [GDSpaces contract](gdspaces-contract.md)
+- [DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
+- [Format documentation index](formats/README.md)
 - [Status system](status/README.md)
 - [Constitution](../.specify/memory/constitution.md)
 - [Contributing](../CONTRIBUTING.md)
@@ -55,6 +57,17 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 - [DMC3 nested relative-slot reintegration](gdspaces/dmc3-nested-relative-slot-reintegration.md)
 - [DMC3 NBZ STORE overlay writer](gdspaces/dmc3-nbz-store-overlay-writer.md)
 - [DMC3 NBZ retail serialization preservation](gdspaces/dmc3-nbz-retail-serialization.md)
+
+### Formats and resource semantics
+
+- [Format documentation index](formats/README.md)
+- [Canonical DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
+- [HITS collision resource](formats/hits.md)
+- [PAC structural parser](formats/pac-readonly-parser.md)
+- [PNST structural parser](formats/pnst-readonly-parser.md)
+- [Residual DMC3 format census — 2026-08-26](gdspaces/l3-residual-format-pass-2026-08-26.md)
+
+The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. It separates resource purpose, binary-schema maturity, original-runtime evidence and current clean-product support. Unknown families stay explicitly `RESEARCH_REQUIRED`; extensions and short ASCII hits are never promoted as semantic truth by themselves.
 
 ### Stage and downstream tools
 
