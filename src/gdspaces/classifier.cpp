@@ -43,6 +43,33 @@ namespace {
     return lower_copy(extension);
 }
 
+// Four-byte record tags observed in the real DMC3 stage corpus. Each one is a
+// tag the bytes actually carry, not a guess from a filename — a slot payload
+// has no name to guess from.
+[[nodiscard]] std::string_view tagged_record_format(
+    std::span<const std::byte> bytes) noexcept {
+    struct TaggedRecord final {
+        std::string_view tag;
+        std::string_view format;
+    };
+    static constexpr TaggedRecord records[]{
+        {std::string_view{"LIG2", 4U}, "lig2"},
+        {std::string_view{"SEF\0", 4U}, "sef"},
+        {std::string_view{"CAM\0", 4U}, "cam"},
+        {std::string_view{"EVE\0", 4U}, "eve"},
+        {std::string_view{"POS\0", 4U}, "pos"},
+        {std::string_view{"ITM\0", 4U}, "itm"},
+        {std::string_view{"STE\0", 4U}, "ste"},
+        {std::string_view{"EST\0", 4U}, "est"},
+    };
+    for (const auto& record : records) {
+        if (starts_with(bytes, record.tag)) {
+            return record.format;
+        }
+    }
+    return {};
+}
+
 [[nodiscard]] bool structurally_valid_binary_pnst(
     std::span<const std::byte> bytes) {
     if (!starts_with(bytes, "PNST")) {
@@ -89,6 +116,14 @@ ResourceClassification ResourceClassifier::classify(
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "DDS ")) {
         result.format = "dds";
+        result.magic_confirmed = true;
+    } else if (const auto tagged = tagged_record_format(bytes);
+               !tagged.empty()) {
+        // Slot payloads inside a DMC3 relative-slot container carry a four-byte
+        // type tag and no name. Reading the tag is what separates "this is a
+        // light rig" from "this is bytes", and without it every typed record in
+        // a stage reads as the same anonymous blob.
+        result.format = std::string{tagged};
         result.magic_confirmed = true;
     } else {
         const auto extension = extension_from_path(logical_path);

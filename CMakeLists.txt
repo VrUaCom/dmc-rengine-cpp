@@ -82,6 +82,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         nbz_overlay_writer
         next_volume_overlay_resolution
         resource_path_normalizer
+        tagged_record_classification
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

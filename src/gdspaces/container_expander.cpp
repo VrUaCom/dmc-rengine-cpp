@@ -246,6 +246,25 @@ ContainerExpansion ContainerExpander::expand(
                     std::span<const std::byte>{child_bytes});
                 child_ref.format = classification.format;
                 child_ref.container = classification.container;
+
+                // A relative-slot container stores no names, so the parser
+                // supplies one. Where the payload carries its own type tag,
+                // that tag names the type better than a generic suffix does —
+                // and it comes from the bytes rather than from a guess, which
+                // is the only reason it is allowed to appear here at all.
+                // The identity is untouched: only what the operator reads
+                // changes.
+                if (entry.synthetic_name && classification.magic_confirmed) {
+                    // Keep the parser's own spelling of the slot and replace
+                    // only the suffix, so one slot never appears under two
+                    // names.
+                    auto named = entry.logical_name;
+                    const auto dot = named.rfind('.');
+                    if (dot != std::string::npos) {
+                        named.erase(dot);
+                    }
+                    child_ref.display_name = named + "." + classification.format;
+                }
             }
         } else {
             child_ref.format = "empty-slot";
