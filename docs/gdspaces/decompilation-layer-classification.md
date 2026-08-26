@@ -94,7 +94,7 @@ Product/extraction metadata or tooling information not established as original D
 - basename-oriented `OpenGameResource` request path around `0x14002FCA0`;
 - normalization family including archive `0x0E` and physical `0x0C` behavior;
 - archive central index/sort/search family (`qsort`/`bsearch` architecture);
-- `ZipEntryRead 0x140328F50` direct-vs-inflated branch;
+- `ZipEntryRead 0x140328F50` direct-vs-inflated branch, recovered and stated in [l1-archive-entry-read-recovery-2026-08-26.md](l1-archive-entry-read-recovery-2026-08-26.md);
 - `InflateRead 0x140328820` raw-DEFLATE streaming behavior at the recovered scope;
 - whole-file selected-backend materialization spine at the bounded recovered scope;
 - LoadedResource `0 -> 1 -> 2 -> typed post-load -> 3` boundary;

@@ -1,3 +1,4 @@
+#include "dmc_rengine/profiles/dmc3/archive_entry_read_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_list.hpp"
 #include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
@@ -167,6 +168,47 @@ void loose_container_matches_the_recovered_grammar() {
     assert(dmc3::LooseContainerContract::requires_existing_extension);
 }
 
+void archive_entry_read_matches_the_recovered_branch() {
+    // The branch key is the inflater context, not the member's compression
+    // method. A stored member that has been given a context still goes through
+    // the inflater, and that is the recovered behavior rather than an oddity to
+    // normalize away.
+    assert(dmc3::ArchiveEntryReadContract::takes_inflated_branch(true));
+    assert(!dmc3::ArchiveEntryReadContract::takes_inflated_branch(false));
+
+    // Direct branch arithmetic: remaining is total minus consumed, the request
+    // is clamped to it, and the cursor advances by what the backend actually
+    // returned.
+    const auto ordinary = dmc3::ArchiveDirectReadModel::plan(100U, 30U, 20U, 20);
+    assert(ordinary.remaining == 70U);
+    assert(ordinary.clamped_size == 20U);
+    assert(ordinary.reaches_backend);
+    assert(ordinary.next_consumed == 50U);
+
+    const auto clamped = dmc3::ArchiveDirectReadModel::plan(100U, 95U, 40U, 5);
+    assert(clamped.clamped_size == 5U);
+    assert(clamped.next_consumed == 100U);
+
+    // Exhausted is an answer, not a failure, and it never reaches the backend.
+    const auto exhausted = dmc3::ArchiveDirectReadModel::plan(100U, 100U, 16U);
+    assert(exhausted.remaining == 0U);
+    assert(exhausted.clamped_size == 0U);
+    assert(!exhausted.reaches_backend);
+    assert(exhausted.result == dmc3::ArchiveEntryReadContract::exhausted_result);
+
+    // A backend error is returned unchanged and the cursor does not move.
+    const auto failed = dmc3::ArchiveDirectReadModel::plan(100U, 40U, 16U, -1);
+    assert(failed.result == -1);
+    assert(failed.next_consumed == 40U);
+    assert(!dmc3::ArchiveEntryReadContract::advances_cursor_on_negative_read);
+    assert(!dmc3::ArchiveEntryReadContract::translates_backend_error);
+
+    // A short read advances by the short count, so the next request sees the
+    // real position rather than the optimistic one.
+    const auto short_read = dmc3::ArchiveDirectReadModel::plan(100U, 0U, 64U, 12);
+    assert(short_read.next_consumed == 12U);
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -179,6 +221,10 @@ void contracts_are_bound_to_one_image() {
         dmc3::LooseContainerContract::canonical_target_sha256);
     assert(dmc3::OpenGameResourceContract::image_base ==
         dmc3::LooseContainerContract::image_base);
+    assert(dmc3::OpenGameResourceContract::canonical_target_sha256 ==
+        dmc3::ArchiveEntryReadContract::canonical_target_sha256);
+    assert(dmc3::OpenGameResourceContract::image_base ==
+        dmc3::ArchiveEntryReadContract::image_base);
 }
 
 } // namespace
@@ -188,6 +234,7 @@ int main() {
     overflow_aborts_the_whole_request();
     bootstrap_matches_the_recovered_shape();
     loose_container_matches_the_recovered_grammar();
+    archive_entry_read_matches_the_recovered_branch();
     contracts_are_bound_to_one_image();
     return 0;
 }
