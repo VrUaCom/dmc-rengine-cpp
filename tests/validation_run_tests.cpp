@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <string>
+#include <utility>
 
 namespace {
 
