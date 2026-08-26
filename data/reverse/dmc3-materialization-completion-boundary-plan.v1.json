@@ -1,0 +1,122 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-materialization-completion-boundary-2026-08-26",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "scope": "Cross-layer materialization completion ordering: L1 byte/materialization support -> L3 scheduler/LoadedResource state publication",
+  "window_size_policy": "Every 0x400 window is acquisition coverage only. It is not an asserted function-body size or semantic boundary.",
+  "non_claims": [
+    "no generic fan-in counter or child-count mechanism is asserted",
+    "scheduler rollback is not relabeled as OS-level AsyncIO cancellation",
+    "state1/state2 are lifecycle states owned by L3 even when their ordering is supporting evidence for L1 materialization",
+    "successful byte-window acquisition alone does not prove original-process equivalence",
+    "the protected distribution executable is not substituted for the canonical analysis executable"
+  ],
+  "windows": [
+    {
+      "id": "whole-file-transfer-submit-140033500",
+      "va": "0x140033500",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1-support: reacquire caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
+    },
+    {
+      "id": "whole-file-transport-callback-1400335a0",
+      "va": "0x1400335A0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1-support: reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and any exact handoff into higher materialization/lifecycle scheduling."
+    },
+    {
+      "id": "async-read-submit-14002ea40",
+      "va": "0x14002EA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "L1/L3 boundary support: reacquire ReadRequest/FileSlot submission ownership and distinguish byte transport from request lifecycle."
+    },
+    {
+      "id": "scheduler-pending-clear-1402ef460",
+      "va": "0x1402EF460",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 priority: reacquire scheduler pending-entry clear/rollback, queue matching and ordering; do not infer OS AsyncIO cancellation."
+    },
+    {
+      "id": "materialization-submit-wrapper-1402ef4d0",
+      "va": "0x1402EF4D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Cross-layer priority: close the resource materialization submission/scheduling wrapper body, callees and inherited load-context consumption without assuming a fan-in counter."
+    },
+    {
+      "id": "scheduler-enqueue-1402ef580",
+      "va": "0x1402EF580",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 priority: reacquire scheduler enqueue metadata, callback/context writes and ring ordering relative to materialization submission and completion callback registration."
+    },
+    {
+      "id": "scheduler-worker-1402ef790",
+      "va": "0x1402EF790",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 priority: reacquire scheduler callback execution and slot-clear ordering to identify the actual completion dependency mechanism."
+    },
+    {
+      "id": "loaded-resource-cancel-writer-1401b8430",
+      "va": "0x1401B8430",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 control path: reacquire exact cancellation sequence around scheduler rollback, state1/state2 to state4 writes and deferred cleanup enqueue."
+    },
+    {
+      "id": "loaded-resource-acquire-1401b84e0",
+      "va": "0x1401B84E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 100],
+      "purpose": "Cross-layer seam: reacquire materialization dispatch success gate, state1 publication and completion callback registration ordering."
+    },
+    {
+      "id": "lst-materializer-1401b85c0",
+      "va": "0x1401B85C0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 priority when loose-list behavior is in scope: reacquire in-place child population, nested synthesis, child submission return handling and temporary/failure cleanup."
+    },
+    {
+      "id": "loaded-resource-materialization-dispatch-1401b8ca0",
+      "va": "0x1401B8CA0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Explicit L1/L3 seam: reacquire representation/materialization mechanics and boolean return contract that gates L3 state1 publication."
+    },
+    {
+      "id": "loaded-resource-completion-state1-to2-1401b8dc0",
+      "va": "0x1401B8DC0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 completion writer: reacquire callback context decoding, normal state1 to state2 publication and unusual tagged/sentinel branch without inventing semantics."
+    },
+    {
+      "id": "loaded-resource-state4-cleanup-1401b8f00",
+      "va": "0x1401B8F00",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 control path: reacquire deferred state4 cleanup and backing-release ordering to complete the cancellation-side comparison."
+    }
+  ]
+}
