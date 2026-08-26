@@ -88,6 +88,29 @@ private:
     output << prefix << " (Win32 error " << error_code << ')';
     return output.str();
 }
+
+[[nodiscard]] std::pair<UniqueHandle, DWORD> capture_module_snapshot(
+    DWORD pid) noexcept {
+    // Microsoft documents ERROR_BAD_LENGTH as a transient module-list race for
+    // TH32CS_SNAPMODULE snapshots and recommends retrying. Keep the retry
+    // bounded so evidence acquisition remains deterministic/fail-closed.
+    constexpr unsigned k_max_attempts = 8U;
+    DWORD last_error = ERROR_SUCCESS;
+    for (unsigned attempt = 0U; attempt < k_max_attempts; ++attempt) {
+        UniqueHandle snapshot{CreateToolhelp32Snapshot(
+            TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32,
+            pid)};
+        if (snapshot.valid()) {
+            return {std::move(snapshot), ERROR_SUCCESS};
+        }
+
+        last_error = GetLastError();
+        if (last_error != ERROR_BAD_LENGTH) {
+            break;
+        }
+    }
+    return {UniqueHandle{}, last_error};
+}
 #endif
 
 } // namespace
@@ -144,15 +167,14 @@ ProcessMemoryWindowResult capture_main_module_window(
     image_buffer.resize(static_cast<std::size_t>(image_size));
     const std::filesystem::path process_image_path{image_buffer};
 
-    const UniqueHandle snapshot{CreateToolhelp32Snapshot(
-        TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32,
-        static_cast<DWORD>(pid))};
+    auto [snapshot, snapshot_error] = capture_module_snapshot(
+        static_cast<DWORD>(pid));
     if (!snapshot.valid()) {
         return {
             .window = std::nullopt,
             .error = ProcessMemoryWindowError::module_query_failed,
             .message = win32_error_message(
-                "CreateToolhelp32Snapshot failed", GetLastError()),
+                "CreateToolhelp32Snapshot failed", snapshot_error),
         };
     }
 
