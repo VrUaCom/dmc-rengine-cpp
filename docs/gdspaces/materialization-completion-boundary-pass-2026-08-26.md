@@ -1,15 +1,15 @@
 # GDSpaces — Materialization Completion Boundary Pass — 2026-08-26
 
-**Current target base:** `main@af23e58e9511fbd99d6b17890818e4d62a60e74f`  
+**Current canonical base:** `main@2ed43b438f1bf01638f3e56341e98f6085e5b0fd`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary layers:** L1 support + L3 lifecycle boundary  
 **Primary ledgers:** #100, #88, #55, #217  
 **Focused acquisition plan:** `../../data/reverse/dmc3-materialization-completion-boundary-plan.v1.json`  
-**Parallel branch evidence:** PR #230; supersedes stale-base #227
+**Merged scheduler/context authority:** PR #230; stale-base #227 remains superseded history
 
 ## 1. Why this pass exists
 
-Current main already contains a fresh raw-EXE L3 pass proving the central acquisition/finalization ordering:
+Current main contains fresh raw-EXE L3 authority proving the central acquisition/finalization ordering:
 
 ```text
 0x1401B84E0
@@ -88,13 +88,11 @@ Current main confirms normal callback-context recovery and state2 publication. T
 
 `0x1401B8DC0` is not a raw FileSlot I/O callback.
 
-## 5. Parallel PR #230 closes the scheduler callback ABI on the current-main line — branch truth until merged
+## 5. PR #230 scheduler callback ABI is now merged-main authority
 
-PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replays the same raw-EXE evidence on `main@af23e58e...` and preserves the newly merged L2 selected-identity/binder work.
+PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replayed the same raw-EXE evidence on the newer main line, preserved the merged L2 selected-identity/binder work, passed exact-head CI and merged as `2ed43b438f1bf01638f3e56341e98f6085e5b0fd`.
 
-Until #230 merges, the findings below are strong parallel branch evidence rather than merged-main authority.
-
-It recovers the normal completion registration path as:
+The canonical normal completion registration path is now:
 
 ```text
 materialization success
@@ -115,7 +113,7 @@ range = 0..0x65D0
 
 Every valid normal context therefore has low bit zero.
 
-PR #230 also recovers the scheduler ABI:
+The scheduler ABI is also now canonical:
 
 ```text
 0x1402EF580
@@ -133,7 +131,7 @@ For `0x1401B8DC0`, the copied argument is the record-relative context above.
 
 ### Consequence
 
-The following questions are no longer first-priority unknowns once #230 is promoted:
+The following are no longer first-priority unknowns:
 
 - whether `1B8DC0` receives the same context produced by `1B84E0`;
 - whether `2EF580` stores callback + one copied u32 argument;
@@ -142,9 +140,9 @@ The following questions are no longer first-priority unknowns once #230 is promo
 
 The odd branch is outside the recovered canonical normal acquisition-registration domain. Its semantic intent remains unresolved.
 
-## 6. The key remaining dependency question becomes narrower
+## 6. The key remaining dependency question is narrower
 
-PR #230 proves the completion callback queueing ABI, but it does **not** yet prove what materialization work `0x1402EF4D0` places ahead of that callback or how completion failure is represented.
+Merged #230 proves the completion callback queueing ABI, but it does **not** prove what materialization work `0x1402EF4D0` places ahead of that callback or how completion failure is represented.
 
 The highest-value unresolved relation is now:
 
@@ -159,7 +157,7 @@ The highest-value unresolved relation is now:
  -> state2
 ```
 
-If `0x1402EF4D0` queues one or more materialization jobs into the same ordered scheduler before `1B8DC0`, queue order may be the dependency barrier. That is a testable hypothesis, not yet a promoted fact.
+If `0x1402EF4D0` queues one or more materialization jobs into the same ordered scheduler before `1B8DC0`, queue order may be the dependency barrier. That is a testable hypothesis, not a promoted fact.
 
 ## 7. Lower transport boundary remains distinct
 
@@ -218,7 +216,7 @@ The exact question is which branch prevents false state2 publication after lower
 
 ## 9. Address-authority correction
 
-The current main general blocked-window plan contains an extra-zero staging-helper VA:
+The pre-#228 general blocked-window plan contains an extra-zero staging-helper VA:
 
 ```text
 0x14002EF4D0
@@ -260,7 +258,7 @@ The next canonical-byte run should answer, in order:
 10. What happens to already-running FileSlot/ReadRequest work during higher-level rollback?
 11. For `.lst`, how does one child submission/population failure prevent a false successful parent completion?
 
-Questions materially answered by #230 should not be re-reversed except as exact regression anchors.
+Questions already answered by merged #230 should not be re-reversed except as exact regression anchors.
 
 ## 12. Completion consequence
 
