@@ -1,7 +1,9 @@
 # GDSpaces Decompilation-Layer Classification
 
 **Canonical reconciliation:** 2026-08-26  
-**L3 raw authority:** [`l3-boundary-audit-2026-08-26.md`](l3-boundary-audit-2026-08-26.md)
+**Current-main base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
+**L3 raw authority:** [`l3-boundary-audit-2026-08-26.md`](l3-boundary-audit-2026-08-26.md)  
+**Materialization completion authority:** [`materialization-completion-boundary-pass-2026-08-26.md`](materialization-completion-boundary-pass-2026-08-26.md) + [`materialization-completion-dependency-pass2-2026-08-26.md`](materialization-completion-dependency-pass2-2026-08-26.md)
 
 This document keeps GDSpaces/resource-runtime work separated by ownership and acceptance layer. Layer ownership is semantic and evidence-driven; it is not inferred from tool ownership or one contiguous executable address range.
 
@@ -72,7 +74,7 @@ Product/extraction metadata or tooling information not established as original D
 | PAC/PNST relative-slot parsing | L1 | strong canonical |
 | recursive PAC/PNST byte expansion | L1 | strong canonical |
 | bounded PAC/PNST reflow/reintegration | L1 | canonical at evidenced writer scope |
-| `.lst` synthesized bytes | L1 | structurally recovered; dynamic edges separate |
+| `.lst` synthesized bytes | L1 | structurally recovered; dynamic completion/error edges separate |
 | `.lst` packed-first representation choice | L2 | recovered selection behavior |
 | `DMC3-N.nbz` bootstrap/first-gap/precedence | L2 | strong canonical |
 | request basename candidates | L2 | strong recovered boundary |
@@ -81,6 +83,9 @@ Product/extraction metadata or tooling information not established as original D
 | FileSlot byte-read mechanics | L1 support | byte acquisition behavior only |
 | FileSlot pool/AsyncIO request ownership | L3 | substantial recovered static spine |
 | `0x1401B8CA0` representation/materialization dispatch | L1/L3 seam | mechanics are L1; success controls L3 state1 publication |
+| `0x1402EF4D0` materialization submission/job creation | L1 support + L3 scheduling seam | exact queued job/terminal dependency behavior still open |
+| lower whole-file transport `0x140033500/0x1400335A0` | L1 support + L3 request lifecycle | caller-owned byte transport/status; not LoadedResource state2 callback |
+| materialization completion ordering / dependency bridge | cross-layer | no generic fan-in counter evidenced; terminal gating before normal `1B8DC0` dispatch remains open |
 | LoadedResource 0/1/2/3/4 lifecycle | L3 | strong central static spine |
 | cancellation `1|2 -> 4` | L3 | source-state domain closed for canonical writer |
 | quiescence predicate | L3 | all 363 records must be in `{0,3}` |
@@ -110,13 +115,15 @@ Product/extraction metadata or tooling information not established as original D
 - archive central index/sort/search family;
 - `ZipEntryRead 0x140328F50` direct-vs-inflated branch;
 - `InflateRead 0x140328820` raw-DEFLATE streaming behavior at the recovered scope;
-- major `.lst` packed-first/synthesis structure.
+- major `.lst` packed-first/synthesis structure;
+- caller-owned whole-file transfer submission/callback boundary around `0x140033500/0x1400335A0`.
 
-#### L3
+#### L3 / cross-layer scheduler
 
 - LoadedResource registry `0x140C99D30`, 363 records × `0x48`, seven groups;
 - acquisition `0x1401B84E0` with state1 only after materialization success;
 - normal completion `0x1401B8DC0` state2 publication;
+- merged #230 one-u32 normal completion context ABI through `0x1402EF580/0x1402EF790`;
 - finalizer `0x1401B92D0`: typed post-load -> optional callback -> state3;
 - cancellation `0x1401B8430`: only states1/2 -> state4;
 - quiescence `0x1401B84B0`: every record must be state0 or state3;
@@ -127,7 +134,30 @@ Product/extraction metadata or tooling information not established as original D
 
 These boundaries may still have open family/error/profile edges; that does not justify restarting the already recovered core behavior.
 
+## Materialization completion dependency correction
+
+Merged #228 supersedes broad `fan-in/completion` wording as evidence of a generic child/outstanding-work counter. No such universal counter is currently established.
+
+Merged #230 proves the normal `0x1401B8DC0` callback receives only one u32 registry-relative context. It does **not** receive transport status, error flag, byte count, FileSlot handle or child/outstanding-work metadata.
+
+Therefore the success/error dependency must be resolved before normal `0x1401B8DC0` dispatch, or the queued completion must be removed/suppressed before it executes.
+
+FIFO insertion order alone is insufficient if a prior materialization scheduler job can submit asynchronous transport and retire immediately. The next raw pass must determine the actual terminal condition: persistent polling job, callback-driven terminal state, separate scheduler gate, synchronous completion, or another directly evidenced mechanism.
+
+Historical helper roles around `0x1400333E0` (status/poll) and `0x140033390` (terminal release/close) remain reacquisition hypotheses until fresh canonical bytes confirm them.
+
 ## Bounded open reverse targets
+
+### Cross-layer materialization completion bridge — current first priority
+
+1. `0x1402EF4D0`: exact queued materialization job callback/state/type and inherited load-context consumer;
+2. `0x1402EF790`: identify that job's dispatch case and persistence/re-poll/retirement behavior;
+3. `0x1400333E0`: reacquire pending/success/error status domain;
+4. `0x140033390`: reacquire terminal cleanup/release ordering;
+5. `0x1400335A0`: bind lower transport writes into the terminal state;
+6. determine what prevents normal `0x1401B8DC0` dispatch on failed/incomplete transport;
+7. `0x1402EF460`: recover higher scheduler suppression/rollback without relabeling it OS AsyncIO cancellation;
+8. only then apply the confirmed direct-resource mechanism to `.lst` child/recursive failure ordering.
 
 ### L1/L2
 
@@ -137,7 +167,7 @@ These boundaries may still have open family/error/profile edges; that does not j
 
 ### L3
 
-1. alias-aware whole-image census of every possible `LoadedResource +0x04` writer/caller, including unusual/tagged edges;
+1. alias-aware residual whole-image census of possible `LoadedResource +0x04` value-flow writers/callers;
 2. family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable adjacent fields;
 3. external typed/factory/dependency failure paths outside the central best-effort dispatcher;
 4. SCM `mesh +0x28` reconciliation;
@@ -151,6 +181,8 @@ These boundaries may still have open family/error/profile edges; that does not j
 - `.lst` representation choice is L2; synthesized container bytes are L1.
 - `0x1401B8CA0` is an explicit L1/L3 seam: materialization mechanics are L1, its success result gates L3 state1 publication.
 - FileSlot can support L1 byte-read reconstruction while original pool/scheduler/callback ownership remains L3.
+- State1/state2 remain L3 lifecycle states even when their ordering is supporting evidence for L1 byte/materialization correctness.
+- `0x1400335A0` lower transport completion and `0x1401B8DC0` state2 completion are distinct layers.
 - A lower generic allocator/backing helper is not automatically L3; classify by caller/state ownership context.
 - Stage Ops consumes L1/L2/L3 authority and is not itself one of the three resource-runtime layers.
 - Product hardening never becomes original-game acceptance behavior automatically.
@@ -159,12 +191,12 @@ These boundaries may still have open family/error/profile edges; that does not j
 
 ## Current priority accounting
 
-The three layers now have separate remaining gates:
+The three layers have separate remaining gates:
 
 ```text
 L1 -> real-retail / edit-rebuild-rematerialization evidence
 L2 -> protected-process mapped selected identity + retail collision gate
-L3 -> narrow remaining static census + V1–V7 original-process lifecycle
+L3 -> narrow residual static census + materialization-completion scheduler bridge + V1–V7 original-process lifecycle
 ```
 
 Progress in one layer must not be reported as completion of another, even when a vertical acceptance receipt spans all three.

@@ -1,16 +1,16 @@
 # GDSpaces — Materialization Completion Boundary Pass — 2026-08-26
 
-**Current canonical base:** `main@4dd9f65ec36ce27127fa56eaf1f00879ed4087c8`  
+**Current-main reconciliation base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary layers:** L1 support + L3 lifecycle boundary  
 **Primary ledgers:** #100, #88, #55, #217  
 **Focused acquisition plan:** `../../data/reverse/dmc3-materialization-completion-boundary-plan.v1.json`  
-**Merged scheduler/context authority:** PR #230; stale-base #227 remains superseded history  
-**Connected-access reconciliation:** PR #233 changes artifact-access wording only and does not alter this static EXE seam
+**Merged scheduler/context authority:** #230  
+**Pass-2 follow-up:** [`materialization-completion-dependency-pass2-2026-08-26.md`](materialization-completion-dependency-pass2-2026-08-26.md)
 
 ## 1. Why this pass exists
 
-Current main contains fresh raw-EXE L3 authority proving the central acquisition/finalization ordering:
+Current canonical raw-EXE authority proves the central acquisition/finalization ordering:
 
 ```text
 0x1401B84E0
@@ -27,27 +27,27 @@ Current main contains fresh raw-EXE L3 authority proving the central acquisition
  -> state3
 ```
 
-The next useful reverse seam is therefore not another broad LoadedResource pass. It is the exact bridge between lower materialization work and the higher scheduler callback that publishes state2.
+The useful reverse seam is therefore the exact bridge between lower materialization work and the higher scheduler callback that publishes state2.
 
-## 2. Layer ownership retained from current main
+## 2. Layer ownership
 
 Canonical classification remains:
 
 - FileSlot exact byte-read mechanics: **L1 support**;
 - FileSlot/AsyncIO request ownership, scheduling and callback lifecycle: **L3**;
-- `0x1401B8CA0`: explicit **L1/L3 seam** — representation/materialization mechanics are L1; its boolean result gates L3 state1 publication;
+- `0x1401B8CA0`: explicit **L1/L3 seam** — representation/materialization mechanics are L1; boolean success gates L3 state1 publication;
 - LoadedResource states 0/1/2/3/4: **L3**;
 - typed post-load and ready visibility: **L3**.
 
-So the target is named:
+The target is therefore:
 
 > **materialization completion ordering / dependency bridge**
 
-This is L1-supporting evidence and L3 lifecycle evidence at the same time. It does not redefine the canonical layer cut.
+This is L1-supporting evidence and L3 lifecycle evidence simultaneously. It does not redefine the layer model.
 
-## 3. Main semantic correction — no generic fan-in counter is currently evidenced
+## 3. Main correction — no generic fan-in counter is evidenced
 
-Older shorthand used “fan-in/completion”. That must not be read as proof of an explicit original runtime child counter.
+Older shorthand used `fan-in/completion`. That must not be read as proof of an explicit original child counter.
 
 Current evidence does not directly establish:
 
@@ -58,15 +58,15 @@ Current evidence does not directly establish:
 
 Canonical open question:
 
-> What exact ordering/dependency mechanism guarantees that state2 is published only after required materialization work is valid?
+> What ordering/dependency mechanism guarantees that state2 is published only after required materialization work is valid?
 
-Possible mechanisms remain evidence-gated: queue ordering, status polling, nested callbacks, synchronous completion, an unobserved counter/object, or another dependency mechanism.
+Possible mechanisms remain evidence-gated: scheduler lifecycle/order, status polling, lower callbacks, synchronous completion, an unobserved counter/object, or another mechanism.
 
-## 4. Strong current-main raw-EXE boundaries
+## 4. Strong raw-EXE boundaries
 
 ### `0x1401B84E0`
 
-Fresh direct disassembly proves:
+Fresh direct authority proves:
 
 ```text
 record +0x18 <- descriptor/type authority
@@ -77,23 +77,19 @@ record +0x18 <- descriptor/type authority
  -> schedule completion callback 0x1401B8DC0
 ```
 
-State1 is therefore a post-materialization-dispatch-success lifecycle state, not an unconditional allocation marker.
+State1 is a post-materialization-dispatch-success lifecycle state, not an unconditional allocation marker.
 
 ### `0x1401B8CA0`
 
-Current main correctly classifies this as the L1/L3 seam. Its lower mechanics remain the relevant place to trace the actual materialization submission path.
+This is the L1/L3 seam. Its lower mechanics remain the place to trace actual materialization submission.
 
 ### `0x1401B8DC0`
 
-Current main confirms normal callback-context recovery and state2 publication. The unusual tagged/sentinel branch remains deliberately unnamed in merged authority.
+Normal callback-context recovery and state2 publication are canonical. It is not a raw FileSlot I/O callback.
 
-`0x1401B8DC0` is not a raw FileSlot I/O callback.
+## 5. Merged #230 scheduler ABI
 
-## 5. PR #230 scheduler callback ABI is now merged-main authority
-
-PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replayed the same raw-EXE evidence on the newer main line, preserved the merged L2 selected-identity/binder work, passed exact-head CI and merged as `2ed43b438f1bf01638f3e56341e98f6085e5b0fd`. PR #233 subsequently advanced `main` to `4dd9f65ec36ce27127fa56eaf1f00879ed4087c8` with an L1 connected-artifact access correction only; it does not supersede or alter the scheduler/context authority below.
-
-The canonical normal completion registration path is now:
+The canonical normal completion registration is:
 
 ```text
 materialization success
@@ -104,17 +100,9 @@ materialization success
  -> queue through 0x1402EF580
 ```
 
-For the canonical 363-record registry, valid normal contexts are exactly:
+Valid normal contexts are `index * 0x48` for `index=0..362`, so their low bit is zero.
 
-```text
-context = index * 0x48
-index = 0..362
-range = 0..0x65D0
-```
-
-Every valid normal context therefore has low bit zero.
-
-The scheduler ABI is also now canonical:
+Scheduler ABI:
 
 ```text
 0x1402EF580
@@ -128,39 +116,36 @@ The scheduler ABI is also now canonical:
   call qword(queue_record + 0x08)
 ```
 
-For `0x1401B8DC0`, the copied argument is the record-relative context above.
+For normal `0x1401B8DC0`, the copied argument is only the registry-relative record context.
 
-### Consequence
+## 6. Hard narrowing from Pass 2
 
-The following are no longer first-priority unknowns:
+The normal `0x1401B8DC0` callback does **not** receive:
 
-- whether `1B8DC0` receives the same context produced by `1B84E0`;
-- whether `2EF580` stores callback + one copied u32 argument;
-- whether `2EF790` dispatches the one-argument callback through ECX;
-- whether normal record contexts can enter the odd low-bit branch.
+- transport status/error;
+- bytes read;
+- FileSlot/ReadRequest handle;
+- child/outstanding-work metadata.
 
-The odd branch is outside the recovered canonical normal acquisition-registration domain. Its semantic intent remains unresolved.
+Therefore the final success/error dependency decision cannot happen inside normal `0x1401B8DC0` itself.
 
-## 6. The key remaining dependency question is narrower
+By dispatch time, the system must already have established that state2 publication is permissible, or the queued completion must have been removed/suppressed.
 
-Merged #230 proves the completion callback queueing ABI, but it does **not** prove what materialization work `0x1402EF4D0` places ahead of that callback or how completion failure is represented.
+### FIFO-only hypothesis is insufficient
 
-The highest-value unresolved relation is now:
+A model such as:
 
 ```text
-0x1401B8CA0
- -> 0x1402EF4D0 materialization submission
- -> ??? materialization work / lower loader / scheduler records
- -> return success
- -> 0x1401B84E0 publishes state1
- -> 0x1402EF580 queues 1B8DC0(context)
- -> 0x1402EF790 eventually calls 1B8DC0
- -> state2
+materialization job queued first
+ -> B8DC0 queued second
+ -> FIFO guarantees correctness
 ```
 
-If `0x1402EF4D0` queues one or more materialization jobs into the same ordered scheduler before `1B8DC0`, queue order may be the dependency barrier. That is a testable hypothesis, not a promoted fact.
+is insufficient if the materialization job merely submits async I/O and retires immediately. The later completion could then run before FileSlot transport is terminal, and `B8DC0` has no lower-status input to reject that early transition.
 
-## 7. Lower transport boundary remains distinct
+If scheduler order is the actual barrier, the materialization job must have completion-aware persistence/retirement semantics, or another gate must exist.
+
+## 7. Lower transport boundary
 
 Preserved whole-file evidence remains:
 
@@ -171,109 +156,104 @@ Preserved whole-file evidence remains:
  -> 0x1400335A0(ticketId,userContext,errorFlag,bytesRead)
 ```
 
-`0x1400335A0` updates lower transfer progress/status. The missing bridge is the exact relation between that lower status and the materialization job/scheduler path.
+`0x1400335A0` updates lower transfer progress/status. The missing bridge is the relation between that lower status and the materialization scheduler job.
 
-The focused packet therefore keeps both transport and scheduler neighborhoods, but scheduler enqueue/worker are regression/context anchors rather than the central unknown.
+Historical derivative Pass-90 evidence also identified candidate helpers:
 
-## 8. Current first-priority raw targets
+- `0x1400333E0` — status/poll;
+- `0x140033390` — terminal load-state release/close.
 
-### A. `0x1402EF4D0` — primary
+These two roles are now **canonical reacquisition hypotheses**, not promoted semantics until fresh `e454...` bytes confirm them.
 
-Close:
+## 8. Falsifiable dependency models
 
-- actual function body boundaries;
-- direct callees;
-- whether it queues materialization work through `0x1402EF580` or another mechanism;
-- whether it calls the `0x1400333F0/333500` whole-file family;
-- first concrete consumer of the inherited materialization/load-context parameter;
-- synchronous vs queued mode differences, if any;
-- submit-failure return contract.
+The next raw pass should distinguish:
 
-Do not label it exact-path resolver, final provider open, `ReadFile`, sync-only or async-only loader without direct evidence.
+### H1 — persistent polling scheduler job
 
-### B. `0x1402EF460` — cancellation/control comparator
+The materialization scheduler record remains live/re-dispatchable until whole-file status is terminal.
 
-Preserved evidence identifies it as a pending scheduler-entry clear/rollback candidate. Reacquire exact:
+### H2 — callback-driven terminal state
 
-- queue selection/matching;
-- record states it clears;
-- whether it can touch an already-dispatched callback;
-- whether it interacts with lower FileSlot/ReadRequest state or only the higher scheduler.
+`0x1400335A0` writes shared status; the higher scheduler job observes it and retires only after terminal success/error.
 
-Do not relabel it OS `CancelIo`/AsyncIO cancellation without proof.
+### H3 — separate scheduler gate
 
-### C. transport -> materialization error bridge
+The materialization job may retire after submission, but another status/dependency condition prevents later completion dispatch.
 
-Trace:
+### H4 — synchronous completion before `0x1402EF4D0` success
 
-```text
-0x1400335A0 error/status
- -> whole-file load state
- -> 0x1402EF4D0 / scheduled materialization work
- -> completion suppression or failure handling
-```
+`0x1402EF4D0` may not report success until bytes are terminal. This remains possible until the canonical body is closed.
 
-The exact question is which branch prevents false state2 publication after lower transport failure.
+No generic counter is privileged over these alternatives.
 
-## 9. Address-authority correction
+## 9. Cancellation/control comparator
 
-The pre-#228 general blocked-window plan contains an extra-zero staging-helper VA:
+`0x1402EF460` retains the bounded label:
+
+> **pending scheduler-entry clear/rollback**
+
+It is useful for determining whether a queued `0x1401B8DC0` completion can be suppressed after higher-level cancellation/failure.
+
+Do not relabel it OS `CancelIo`/AsyncIO cancellation without direct lower-I/O interaction.
+
+## 10. `.lst` boundary
+
+The confirmed loose-container materializer is `0x1401B85C0`. It builds the parent in place, submits ordinary children/packed siblings and recursively synthesizes nested loose lists.
+
+Do not reopen grammar/layout. The remaining question is child submission/failure/recursive ordering relative to the direct-resource terminal dependency mechanism.
+
+Apply the direct-resource model first; only then generalize to `.lst` child failure.
+
+## 11. Address authority
+
+The extra-zero address:
 
 ```text
 0x14002EF4D0
 ```
 
-The accumulated canonical resource-runtime evidence identifies the relevant materialization wrapper as:
+is superseded for the materialization-wrapper target. Canonical accumulated evidence identifies:
 
 ```text
 0x1402EF4D0
 ```
 
-These are different addresses. This branch corrects the general plan and the focused packet uses `0x1402EF4D0`.
+Both general and focused acquisition plans use `0x1402EF4D0`.
 
-The extra-zero form is treated as plan/address drift unless direct canonical bytes prove an independent intended target there.
-
-## 10. `.lst` boundary
-
-The confirmed loose-container materializer is `0x1401B85C0` in preserved direct-disassembly authority. It builds the parent in place, submits ordinary children/packed siblings and recursively synthesizes nested loose lists.
-
-The open question is not grammar recovery. It is:
-
-> How do child submission return/failure and recursive population interact with the materialization job ordering and final state2 publication?
-
-A real `.lst` corpus remains separate validation.
-
-## 11. Updated focused raw-byte questions
-
-The next canonical-byte run should answer, in order:
-
-1. What are the exact body/callee boundaries of `0x1402EF4D0`?
-2. Does `0x1402EF4D0` queue one or more scheduler records before returning success?
-3. If it uses `0x1402EF580`, what callback(s), argument count and context are queued for materialization work?
-4. Does it call the whole-file loader family `0x1400333F0/333500`, another FileSlot opener, or multiple lower paths?
-5. Where is the inherited materialization/load-context parameter first interpreted?
-6. Is the state2 dependency guarantee explained by scheduler FIFO/order once `1B8DC0` registration is placed after materialization work?
-7. How does `0x1400335A0` transport failure propagate upward?
-8. Which branches suppress completion/state2 publication after submit/read/materialization failure?
-9. What exactly does `0x1402EF460` match/clear, and can it affect already executing scheduler work?
-10. What happens to already-running FileSlot/ReadRequest work during higher-level rollback?
-11. For `.lst`, how does one child submission/population failure prevent a false successful parent completion?
-
-Questions already answered by merged #230 should not be re-reversed except as exact regression anchors.
-
-## 12. Completion consequence
-
-This pass does not reopen NBZ/PAC/PNST materialization architecture and does not change L1/L2/L3 completion criteria.
-
-It narrows one cross-layer seam to:
+## 12. Revised exact-byte priority
 
 ```text
-materialization mechanics [L1]
- -> 0x1402EF4D0 submission/dependency ordering
- -> success gate
- -> LoadedResource state1 [L3]
- -> queued 1B8DC0(context) [L3 scheduler]
- -> state2 [L3]
+1. 0x1402EF4D0 — exact queued job identity/type, callees, inherited load-context consumer
+2. 0x1402EF790 — materialization-job dispatch case, persistence/re-poll/retirement
+3. 0x1400333E0 — pending/success/error domain
+4. 0x140033390 — terminal cleanup/release point
+5. 0x1400335A0 — lower transport writes into that state
+6. identify what prevents normal 0x1401B8DC0 dispatch on failed/incomplete transport
+7. 0x1402EF460 — queued higher-work suppression/rollback
+8. .lst child/recursive failure ordering
 ```
 
-Static closure improves the recovered model. Real-retail and original-process validation remain separate mandatory evidence gates.
+Questions already answered by merged #230 are regression anchors, not first-priority unknowns.
+
+## 13. Non-claims
+
+This pass does not claim:
+
+- a generic fan-in counter;
+- scheduler FIFO as the proven dependency barrier;
+- exact `0x1400333E0` status values;
+- exact `0x140033390` role before reacquisition;
+- `0x1402EF460` is OS AsyncIO cancellation;
+- exact already-running FileSlot cancellation behavior;
+- `.lst` failure aggregation is closed;
+- original-process timing equivalence;
+- any L1/L2/L3 completion status change.
+
+## 14. Completion consequence
+
+The remaining reverse frontier is now a small state-machine question:
+
+> **What terminal condition keeps or releases the materialization scheduler job, and how does that condition prevent normal `0x1401B8DC0` from dispatching on failed or incomplete transport?**
+
+Static closure strengthens the recovered model. Real-retail and original-process validation remain separate mandatory evidence gates.
