@@ -1,10 +1,11 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@2ed43b438f1bf01638f3e56341e98f6085e5b0fd`  
+**Canonical implementation base:** `main@4dd9f65ec36ce27127fa56eaf1f00879ed4087c8`  
+**Latest merged status correction:** PR #233 — connected retail artifacts locatable; exact NBZ/member transfer remains blocked  
 **Latest merged L2 promotion:** PR #221 — selected-identity content-candidate / normalizer / artifact-binder tooling  
 **Latest merged L3 promotion:** PR #230 — R1 leaf/context and derived-record alias/release authority  
-**Active L2 hardening:** issue #229 / branch `fix/gdspaces-process-instance-status-sync-2026-08-26` — one-process-instance R2B/R3 evidence binding  
+**Active L2 hardening:** issue #229 / PR #236 — one-process-instance R2B/R3 evidence binding  
 **Independent focused reverse:** PR #228 — materialization-completion ordering/dependency bridge  
 **Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2/L3 support  
 **Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 STATIC/PRODUCT TOOLING ADVANCED BUT REAL R2B/TRUSTED R3 OPEN; L3 STATIC SPINE ADVANCED BUT DYNAMIC LEVEL-E OPEN; GDSpaces remains NOT COMPLETE.
@@ -51,12 +52,13 @@ Canonical L1 implementation includes:
 - product closure orchestration through exact authored rematerialization.
 
 Canonical L1 review: [Final Pre-Level-E Audit](../gdspaces/l1-final-audit-2026-08-25.md).
+Connected-access correction: [L1 Connected Retail Artifact Access Reconciliation](../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md).
 
 ### L1 mandatory remaining work
 
 No known mandatory **internal implementation** blocker remains for the current representative DMC3-HD L1 acceptance scope.
 
-The remaining acceptance path requires a real protected installation:
+The remaining acceptance path requires exact retail bytes from the protected installation:
 
 ```text
 real retail request
@@ -70,6 +72,8 @@ real retail request
 ```
 
 Issue #209 remains the final original-game Level-E gate. `obj\em000.pac` is a high-value target, not a mandatory predeclared member identity; the runtime resolver winner is authoritative.
+
+PR #233 corrected only the access premise: the protected install, `dmc3.exe`, and `data/dmc3/dmc3-0.nbz` are locatable in connected Drive, and the observed NBZ size is 960,358,951 bytes. The connected raw transfer/materialization channels still cannot deliver that archive, no exact parsed central-directory/member surface is exposed, and no separately provenance-bound `em000.pac` derivative was found. Therefore L1-C remains a real-receipt gate.
 
 ### Bounded open L1-support reverse breadth
 
@@ -119,7 +123,7 @@ Fresh canonical EXE review established an important fail-closed boundary: an arc
 
 Review found that `PID + module base + image path` is not a sufficient long-lived Windows process-instance identity because PIDs may be reused and a later process may theoretically receive the same module base.
 
-The active corrective branch therefore versions the real evidence path and propagates the OS-derived Windows process creation `FILETIME` through:
+PR #236 versions the real evidence tooling path and propagates the OS-derived Windows process creation `FILETIME` through:
 
 ```text
 ProcessMemoryWindow
@@ -133,7 +137,7 @@ The creation identity is captured with `GetProcessTimes` from the same opened pr
 
 Legacy v1 receipts remain historical/tooling artifacts and must not satisfy the final real R2B/R3 promotion gate once v2 is merged.
 
-**Important remaining #229 boundary:** the future trusted runtime publisher must independently re-query the active process and reject PID reuse/creation-time mismatch. This branch does not manufacture trusted origin and does not itself close #229.
+**Important remaining #229 boundary:** the future trusted runtime publisher must independently re-query the active process and reject PID reuse/creation-time mismatch. PR #236 does not manufacture trusted origin and does not itself close #229.
 
 Authority identities:
 
@@ -180,7 +184,7 @@ For the first vertical proof, L3 only needs enough trusted original-process obse
 
 ### L1 vertical acceptance
 
-1. obtain access to the exact protected DMC3 installation;
+1. use a machine/path with direct filesystem access to the locatable protected installation, or an authorized cryptographically bound exact member surface;
 2. preserve direct-retail resolver/acquisition provenance;
 3. classify the exact selected representation;
 4. perform one supported bounded real edit;
@@ -209,12 +213,13 @@ No synthetic-only feature should displace the real evidence sequence unless a re
 
 ## Environment boundary
 
-The currently connected automation environment does not expose all exact raw protected-install artifacts required for the real-retail/original-process runs. Synthetic CI must not substitute for those receipts.
+The protected retail installation artifacts are **locatable** in the connected Drive environment, including protected `dmc3.exe` and `data/dmc3/dmc3-0.nbz`. The remaining connected blocker is transport/materialization: the 960,358,951-byte NBZ exceeds the available raw-transfer path, Files materialization/read hit the same large-file boundary, and no exact parsed central-directory/member derivative is currently exposed. Therefore connected artifact presence must not be promoted to exact member-byte acquisition or original-process evidence. Synthetic CI must not substitute for those receipts.
 
 ## Navigation
 
 - [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
 - [Final pre-Level-E L1 audit](../gdspaces/l1-final-audit-2026-08-25.md)
+- [Connected retail access reconciliation](../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md)
 - [Three-layer master roadmap](../gdspaces/master-roadmap.md)
 - [L2 EXE reconciliation checkpoint](../gdspaces/l2-exe-reconciliation-2026-08-26.md)
 - [L2 selected-identity runbook](../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md)
