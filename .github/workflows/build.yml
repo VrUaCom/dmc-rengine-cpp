@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate reverse acquisition packet plan
         run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json --validate-plan-only
+      - name: Validate focused materialization completion plan
+        run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-materialization-completion-boundary-plan.v1.json --validate-plan-only
       - name: Test reverse acquisition packet guardrails
         run: python scripts/reverse/test_extract_exe_window_packet.py
       - name: Test L2 runtime mapping packet guardrails
