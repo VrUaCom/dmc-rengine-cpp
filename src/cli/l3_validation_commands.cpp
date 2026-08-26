@@ -95,15 +95,20 @@ int run_validate_l3_lifecycle(
               << "Materialized SHA-256: "
               << trace.resource.materialized_sha256 << '\n'
               << "Events: " << trace.events.size() << '\n'
-              << "Original process: "
+              << "Original-process claim: "
               << (trace.run.original_process ? "yes" : "no") << '\n'
+              << "Promotion content candidate: "
+              << (result.promotion_eligible.content_candidate() ? "yes" : "no")
+              << '\n'
+              << "Trusted origin bound: no\n"
               << "Promotion eligible: "
-              << (result.promotion_eligible ? "yes" : "no") << '\n';
+              << (result.promotion_eligible.eligible() ? "yes" : "no") << '\n';
 
-    if (require_promotable && !result.promotion_eligible) {
+    if (require_promotable && !result.promotion_eligible.eligible()) {
         std::cerr
-            << "validate-l3-lifecycle: trace is structurally valid but does not satisfy "
-               "the original-process Level-E promotion boundary\n";
+            << "validate-l3-lifecycle: manual schema-v1 JSON import cannot satisfy "
+               "the Level-E promotion boundary because original-process origin is "
+               "self-asserted; a trusted instrumentation/publisher binding is required\n";
         return 4;
     }
     return 0;
