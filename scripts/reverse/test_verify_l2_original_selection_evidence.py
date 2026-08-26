@@ -20,24 +20,25 @@ def write_json(path: Path, value: dict[str, object]) -> bytes:
     return raw
 
 
-def mapping_packet() -> dict[str, object]:
+def mapping_child(rva: int, digit: str) -> dict[str, object]:
+    module_base = 0x7FF600000000
+    window_sha = digit * 64
     return {
-        "schema": "dmc-rengine.gdspaces-l2-runtime-mapping.v1",
-        "status": "bounded_match",
-        "scope": "approved-l2-rva-anchors-only",
-        "protected_artifact_sha256": verify.PROTECTED_SHA256,
-        "protected_artifact_size": verify.PROTECTED_SIZE,
-        "canonical_analysis_artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-        "preferred_image_base": "0x140000000",
+        "schema": "dmc-rengine.exe-process-window.v1",
+        "artifact_sha256": verify.PROTECTED_SHA256,
+        "artifact_size": verify.PROTECTED_SIZE,
+        "image_path": "C:/Games/DMC3/dmc3.exe",
+        "preferred_image_base": f"0x{verify.RUNTIME_MAPPING.PREFERRED_IMAGE_BASE:X}",
         "pid": 4242,
-        "module_base": "0x7FF600000000",
-        "image_name": "dmc3.exe",
-        "anchor_count": 3,
-        "anchors": [
-            {"id": "OpenGameResource", "rva": "0x2FCA0", "runtime_va": "0x7FF60002FCA0", "size": 64, "window_sha256": "1" * 64},
-            {"id": "type0_mount_resolve", "rva": "0x327430", "runtime_va": "0x7FF600327430", "size": 64, "window_sha256": "2" * 64},
-            {"id": "type0_final_open", "rva": "0x327800", "runtime_va": "0x7FF600327800", "size": 64, "window_sha256": "3" * 64},
-        ],
+        "module_base": f"0x{module_base:X}",
+        "rva": f"0x{rva:X}",
+        "runtime_va": f"0x{module_base + rva:X}",
+        "size": verify.RUNTIME_MAPPING.WINDOW_SIZE,
+        "section": ".text",
+        "window_sha256": window_sha,
+        "expected_window_artifact_sha256": verify.RUNTIME_MAPPING.CANONICAL_ANALYSIS_SHA256,
+        "expected_window_sha256": window_sha,
+        "matches_expected_window": True,
     }
 
 
@@ -88,9 +89,14 @@ def selection_receipt(mapping_sha: str) -> dict[str, object]:
     }
 
 
-def rejected(mapping_path: Path, selection_path: Path, contains: str) -> None:
+def rejected(
+    mapping_path: Path,
+    selection_path: Path,
+    child_paths: list[Path],
+    contains: str,
+) -> None:
     try:
-        verify.build_bound_packet(mapping_path, selection_path)
+        verify.build_bound_packet(mapping_path, selection_path, child_paths)
     except ValueError as exc:
         assert contains in str(exc), (contains, str(exc))
     else:
@@ -100,17 +106,32 @@ def rejected(mapping_path: Path, selection_path: Path, contains: str) -> None:
 def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
+
+        child_paths: list[Path] = []
+        for name, rva, digit in (
+            ("open-game.json", 0x0002FCA0, "1"),
+            ("resolve.json", 0x00327430, "2"),
+            ("final-open.json", 0x00327800, "3"),
+        ):
+            path = root / name
+            write_json(path, mapping_child(rva, digit))
+            child_paths.append(path)
+
+        mapping_value = verify.RUNTIME_MAPPING.build_packet(child_paths)
         mapping_path = root / "mapping.json"
-        mapping_raw = write_json(mapping_path, mapping_packet())
+        mapping_raw = write_json(mapping_path, mapping_value)
         mapping_sha = hashlib.sha256(mapping_raw).hexdigest()
 
         selection_path = root / "selection.json"
         valid_selection = selection_receipt(mapping_sha)
         write_json(selection_path, valid_selection)
 
-        packet = verify.build_bound_packet(mapping_path, selection_path)
+        packet = verify.build_bound_packet(
+            mapping_path, selection_path, child_paths
+        )
         assert packet["status"] == "bound"
         assert packet["runtime_mapping_packet_sha256"] == mapping_sha
+        assert len(packet["runtime_mapping_child_receipts"]) == 3
         assert packet["observer_build_sha256"] == "c" * 64
         assert packet["trace_complete"] is True
         assert packet["dropped_event_count"] == 0
@@ -120,62 +141,84 @@ def main() -> None:
         wrong_hash = selection_receipt("0" * 64)
         wrong_hash_path = root / "wrong-hash.json"
         write_json(wrong_hash_path, wrong_hash)
-        rejected(mapping_path, wrong_hash_path, "does not hash-bind")
+        rejected(mapping_path, wrong_hash_path, child_paths, "does not hash-bind")
 
         wrong_pid = selection_receipt(mapping_sha)
         wrong_pid["pid"] = 9999
         wrong_pid_path = root / "wrong-pid.json"
         write_json(wrong_pid_path, wrong_pid)
-        rejected(mapping_path, wrong_pid_path, "pid differ")
+        rejected(mapping_path, wrong_pid_path, child_paths, "pid differ")
 
         skipped_volume = selection_receipt(mapping_sha)
         skipped_volume["probes"][0]["archive_volume_index"] = 0
         skipped_path = root / "skipped.json"
         write_json(skipped_path, skipped_volume)
-        rejected(mapping_path, skipped_path, "volume precedence")
+        rejected(mapping_path, skipped_path, child_paths, "volume precedence")
 
         incomplete = selection_receipt(mapping_sha)
         incomplete["trace_complete"] = False
         incomplete_path = root / "incomplete.json"
         write_json(incomplete_path, incomplete)
-        rejected(mapping_path, incomplete_path, "not marked complete")
+        rejected(mapping_path, incomplete_path, child_paths, "not marked complete")
 
         dropped = selection_receipt(mapping_sha)
         dropped["dropped_event_count"] = 1
         dropped_path = root / "dropped.json"
         write_json(dropped_path, dropped)
-        rejected(mapping_path, dropped_path, "dropped events")
+        rejected(mapping_path, dropped_path, child_paths, "dropped events")
 
         bad_observer = selection_receipt(mapping_sha)
         bad_observer["observer_build_sha256"] = "not-a-sha"
         bad_observer_path = root / "bad-observer.json"
         write_json(bad_observer_path, bad_observer)
-        rejected(mapping_path, bad_observer_path, "observer build SHA")
+        rejected(mapping_path, bad_observer_path, child_paths, "observer build SHA")
 
         malformed_selected = selection_receipt(mapping_sha)
         malformed_selected["selected"] = {}
         malformed_selected_path = root / "malformed-selected.json"
         write_json(malformed_selected_path, malformed_selected)
-        rejected(mapping_path, malformed_selected_path, "terminal probe field")
+        rejected(
+            mapping_path,
+            malformed_selected_path,
+            child_paths,
+            "terminal probe field",
+        )
 
         nested_raw = selection_receipt(mapping_sha)
         nested_raw["selected"]["debug"] = {"bytes_hex": "00"}
         nested_raw_path = root / "nested-raw.json"
         write_json(nested_raw_path, nested_raw)
-        rejected(mapping_path, nested_raw_path, "forbidden raw bytes_hex")
+        rejected(
+            mapping_path,
+            nested_raw_path,
+            child_paths,
+            "forbidden raw bytes_hex",
+        )
 
-        bad_mapping = mapping_packet()
-        bad_mapping["anchors"] = bad_mapping["anchors"][:2]
-        bad_mapping["anchor_count"] = 2
-        bad_mapping_path = root / "bad-mapping.json"
-        bad_mapping_raw = write_json(bad_mapping_path, bad_mapping)
-        rebound = selection_receipt(hashlib.sha256(bad_mapping_raw).hexdigest())
-        rebound_path = root / "rebound.json"
-        write_json(rebound_path, rebound)
-        rejected(bad_mapping_path, rebound_path, "anchor census")
+        # A structurally plausible mapping packet cannot be hand-forged: it must
+        # exactly reconstruct from the supplied process-window child receipts.
+        forged_mapping = dict(mapping_value)
+        forged_anchors = [dict(anchor) for anchor in mapping_value["anchors"]]
+        forged_anchors[0]["window_sha256"] = "f" * 64
+        forged_mapping["anchors"] = forged_anchors
+        forged_mapping_path = root / "forged-mapping.json"
+        forged_mapping_raw = write_json(forged_mapping_path, forged_mapping)
+        forged_selection = selection_receipt(
+            hashlib.sha256(forged_mapping_raw).hexdigest()
+        )
+        forged_selection_path = root / "forged-selection.json"
+        write_json(forged_selection_path, forged_selection)
+        rejected(
+            forged_mapping_path,
+            forged_selection_path,
+            child_paths,
+            "does not exactly match reconstruction",
+        )
 
-        nested_mapping_raw = mapping_packet()
-        nested_mapping_raw["anchors"][0]["debug"] = {"bytes_hex": "00"}
+        nested_mapping_raw = dict(mapping_value)
+        nested_anchors = [dict(anchor) for anchor in mapping_value["anchors"]]
+        nested_anchors[0]["debug"] = {"bytes_hex": "00"}
+        nested_mapping_raw["anchors"] = nested_anchors
         nested_mapping_path = root / "nested-mapping-raw.json"
         nested_mapping_bytes = write_json(nested_mapping_path, nested_mapping_raw)
         nested_mapping_selection = selection_receipt(
@@ -183,7 +226,24 @@ def main() -> None:
         )
         nested_mapping_selection_path = root / "nested-mapping-selection.json"
         write_json(nested_mapping_selection_path, nested_mapping_selection)
-        rejected(nested_mapping_path, nested_mapping_selection_path, "forbidden raw bytes_hex")
+        rejected(
+            nested_mapping_path,
+            nested_mapping_selection_path,
+            child_paths,
+            "forbidden raw bytes_hex",
+        )
+
+        nested_child = dict(mapping_child(0x00327800, "3"))
+        nested_child["debug"] = {"bytes_hex": "00"}
+        nested_child_path = root / "nested-child.json"
+        write_json(nested_child_path, nested_child)
+        bad_children = [child_paths[0], child_paths[1], nested_child_path]
+        rejected(
+            mapping_path,
+            selection_path,
+            bad_children,
+            "forbidden raw bytes_hex",
+        )
 
         output = root / "bound.json"
         verify._write_no_replace(output, packet)
