@@ -31,8 +31,9 @@ PREFERRED_IMAGE_BASE = 0x140000000
 WINDOW_SIZE = 0x40
 
 # These are bounded canonical-analysis RVAs only. V2 requires enough anchors to
-# cover bootstrap archive mounting, generic provider resolution, archive
-# selection and physical final-open edges needed by the later trusted R3 trace.
+# cover physical/archive bootstrap mounting, generic provider resolution,
+# archive selection and physical final-open edges needed by the later trusted
+# R3 trace.
 ANCHORS = {
     0x0002FCA0: "OpenGameResource",
     0x00326D20: "type0_mount_registration",
@@ -44,6 +45,7 @@ ANCHORS = {
 }
 REQUIRED_ANCHORS = {
     0x0002FCA0,
+    0x00326D20,
     0x00326DA0,
     0x00327430,
     0x00327800,
