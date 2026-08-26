@@ -81,11 +81,17 @@ struct OriginalResolutionObservation final {
     // the acquisition pipeline still owns validation of that packet itself.
     std::string runtime_mapping_packet_sha256;
 
-    // Observer provenance is metadata only. A synthetic test observer may fill
-    // these fields, but that never upgrades the resulting object into real
-    // original-process evidence.
+    // Observer provenance. id/version are human-readable; build SHA is the exact
+    // binary/script/package identity used for the trace. Synthetic tests may use
+    // synthetic canonical hashes, but that never creates original-process evidence.
     std::string observer_id;
     std::string observer_version;
+    std::string observer_build_sha256;
+
+    // Trace-integrity boundary. Any known event loss or an incomplete capture
+    // invalidates the observation rather than permitting a partial winner claim.
+    bool trace_complete{};
+    std::uint64_t dropped_event_count{};
 
     std::uint32_t pid{};
     std::uint64_t module_base{};
