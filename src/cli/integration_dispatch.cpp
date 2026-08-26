@@ -1,8 +1,11 @@
 #include "integration_commands.hpp"
 #include "hits_commands.hpp"
 #include "dmc3_build_authority_commands.hpp"
+#include "dmc3_l1_closure_commands.hpp"
 #include "dmc3_overlay_commands.hpp"
 #include "dmc3_retail_acquisition_commands.hpp"
+#include "nbz_copy_commands.hpp"
+#include "relative_slot_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -18,8 +21,11 @@ void print_integration_help() {
         << "  inspect-workspace <path> [--stage] [--menu]\n"
         << "                             Build a GDSpaces workspace manifest for a local resource\n";
     print_dmc3_build_authority_help();
+    print_dmc3_l1_closure_help();
     print_dmc3_overlay_help();
     print_dmc3_retail_acquisition_help();
+    print_nbz_copy_help();
+    print_relative_slot_help();
     print_hits_help();
 }
 
@@ -28,6 +34,11 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_dmc3_build_authority_command(argc, argv);
     if (build_authority_result != -1) {
         return build_authority_result;
+    }
+
+    const auto l1_closure_result = try_run_dmc3_l1_closure_command(argc, argv);
+    if (l1_closure_result != -1) {
+        return l1_closure_result;
     }
 
     const auto overlay_result = try_run_dmc3_overlay_command(argc, argv);
@@ -39,6 +50,16 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_dmc3_retail_acquisition_command(argc, argv);
     if (retail_acquisition_result != -1) {
         return retail_acquisition_result;
+    }
+
+    const auto nbz_copy_result = try_run_nbz_copy_command(argc, argv);
+    if (nbz_copy_result != -1) {
+        return nbz_copy_result;
+    }
+
+    const auto relative_slot_result = try_run_relative_slot_command(argc, argv);
+    if (relative_slot_result != -1) {
+        return relative_slot_result;
     }
 
     const auto hits_result = try_run_hits_command(argc, argv);

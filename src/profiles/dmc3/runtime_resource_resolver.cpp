@@ -174,6 +174,12 @@ struct MountedSourceIndex final {
     return iterator == indexes.end() ? nullptr : &iterator->second;
 }
 
+[[nodiscard]] bool direct_resource_valid(
+    const gdspaces::DirectPathLookupResult& lookup,
+    std::string_view source_id) noexcept {
+    return lookup.resolved() && lookup.resource->id.source_id == source_id;
+}
+
 } // namespace
 
 RuntimeResolutionReport RuntimeResourceResolver::resolve(
@@ -199,12 +205,27 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
             "Runtime source bindings do not exactly match the contiguous bootstrap mount set.");
     }
 
-    auto physical_index = build_current_source_index(
-        sources, bindings.physical_source_id, ResourcePathPolicy::physical_flags);
-    if (!physical_index.has_value()) {
+    const auto* physical_source = sources.find(bindings.physical_source_id);
+    if (physical_source == nullptr ||
+        physical_source->id() != bindings.physical_source_id) {
         return invalid_configuration(
             request,
-            "The physical source is missing or its current enumeration cannot produce a clean 0x0C product lookup index.");
+            "The physical source binding does not reference the exact mounted source instance.");
+    }
+
+    const auto* direct_physical_source =
+        dynamic_cast<const gdspaces::IDirectPathSource*>(physical_source);
+    std::optional<MountedSourceIndex> physical_index;
+    if (direct_physical_source == nullptr) {
+        physical_index = build_current_source_index(
+            sources,
+            bindings.physical_source_id,
+            ResourcePathPolicy::physical_flags);
+        if (!physical_index.has_value()) {
+            return invalid_configuration(
+                request,
+                "The physical source exposes no direct path capability and its current enumeration cannot produce a clean 0x0C product lookup index.");
+        }
     }
 
     std::vector<std::pair<std::uint32_t, MountedSourceIndex>> archive_indexes;
@@ -260,6 +281,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                     .source_id = binding->source_id,
                     .archive_volume_index = volume_index,
                     .lookup = lookup,
+                    .direct_lookup = std::nullopt,
                 });
 
                 if (!lookup_contract_valid(
@@ -296,10 +318,63 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 "Physical provider normalization unexpectedly rejected a canonical lookup candidate.");
         }
 
-        // Evidence boundary: 0x0C normalization and the type-0 physical pass are
-        // recovered. The exact downstream Win32 filename comparison/open rule is
-        // still unresolved, so this source-derived index is product lookup policy,
-        // explicitly tagged as such in every probe.
+        if (direct_physical_source != nullptr) {
+            const auto direct_lookup =
+                direct_physical_source->lookup_direct_path(provider_key);
+            probes.push_back(RuntimeResolutionProbe{
+                .lookup_attempt_index = attempt.attempt_index,
+                .provider = attempt.provider,
+                .lookup_evidence = RuntimeLookupEvidenceClass::product_physical_native_path,
+                .candidate = attempt.candidate,
+                .provider_key = provider_key,
+                .source_id = bindings.physical_source_id,
+                .archive_volume_index = std::nullopt,
+                .lookup = {},
+                .direct_lookup = direct_lookup,
+            });
+
+            if (!direct_lookup.valid()) {
+                return invalid_configuration(
+                    request,
+                    std::move(probes),
+                    "Physical direct lookup returned a structurally invalid status/resource combination.");
+            }
+
+            switch (direct_lookup.status) {
+            case gdspaces::DirectPathLookupStatus::resolved:
+                if (!direct_resource_valid(
+                        direct_lookup, bindings.physical_source_id)) {
+                    return invalid_configuration(
+                        request,
+                        std::move(probes),
+                        "Physical direct lookup returned a foreign ResourceRef identity.");
+                }
+                return resolved_report(
+                    request, std::move(probes), *direct_lookup.resource);
+            case gdspaces::DirectPathLookupStatus::not_found:
+                continue;
+            case gdspaces::DirectPathLookupStatus::rejected:
+                return invalid_configuration(
+                    request,
+                    std::move(probes),
+                    direct_lookup.detail.empty()
+                        ? "Physical direct lookup rejected a canonical provider candidate."
+                        : direct_lookup.detail);
+            case gdspaces::DirectPathLookupStatus::io_error:
+                return invalid_configuration(
+                    request,
+                    std::move(probes),
+                    direct_lookup.detail.empty()
+                        ? "Physical direct lookup failed with an I/O error."
+                        : direct_lookup.detail);
+            }
+
+            return invalid_configuration(
+                request,
+                std::move(probes),
+                "Physical direct lookup returned an unknown status value.");
+        }
+
         auto lookup = physical_index->index.lookup(provider_key);
         probes.push_back(RuntimeResolutionProbe{
             .lookup_attempt_index = attempt.attempt_index,
@@ -310,6 +385,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
             .source_id = bindings.physical_source_id,
             .archive_volume_index = std::nullopt,
             .lookup = lookup,
+            .direct_lookup = std::nullopt,
         });
 
         if (!lookup_contract_valid(
@@ -328,7 +404,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 request,
                 std::move(probes),
                 lookup,
-                "The product physical lookup exposes multiple physical identities for one 0x0C-normalized key; exact original type-0 filename comparison semantics remain unresolved.");
+                "The product physical lookup exposes multiple physical identities for one 0x0C-normalized key. The recovered original instead delegates final filename resolution to the Win32 path APIs, so no archive-style physical duplicate winner is claimed.");
         }
         if (lookup.unique()) {
             return resolved_report(
@@ -342,7 +418,9 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         .resolved = std::nullopt,
         .ambiguous_matches = {},
         .probes = std::move(probes),
-        .detail = "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes use explicitly product-classified 0x0C lookup semantics pending exact type-0 backend reverse closure.",
+        .detail = direct_physical_source != nullptr
+            ? "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes used the source-native direct path capability and remain product-classified outside the bounded Windows parity receipts."
+            : "All canonical archive and physical lookup attempts completed without a resource hit. The physical source exposes no direct path capability, so probes used the explicitly product-classified 0x0C index fallback.",
     };
 }
 

@@ -45,6 +45,19 @@ struct ResourceKeyMatchReport final {
     }
 };
 
+// Product-side census record for one provider-normalized key that maps to more
+// than one distinct physical ResourceRef identity inside the same source.
+// This deliberately reports every identity instead of inventing an original
+// qsort/bsearch winner for comparator-equal archive keys.
+struct ResourceKeyConflict final {
+    std::string provider_key;
+    std::vector<ResourceRef> matches;
+
+    [[nodiscard]] bool valid() const noexcept {
+        return !provider_key.empty() && matches.size() > 1U;
+    }
+};
+
 // Derived product index over immutable ResourceRef values from exactly one
 // source. It owns provider-normalized lookup policy without changing ISource's
 // exact enumerate/read/materialization authority.
@@ -57,6 +70,11 @@ public:
 
     [[nodiscard]] ResourceKeyMatchReport lookup(
         std::string_view provider_key) const;
+
+    // Enumerates every comparator-equal normalized-key collision preserved by
+    // this source-bound product index. Ordering is deterministic for receipts;
+    // it is not an original-runtime tie-break policy.
+    [[nodiscard]] std::vector<ResourceKeyConflict> conflicts() const;
 
     [[nodiscard]] bool valid() const noexcept;
     [[nodiscard]] std::string_view source_id() const noexcept;

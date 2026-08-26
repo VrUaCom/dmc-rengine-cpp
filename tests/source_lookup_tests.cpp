@@ -93,6 +93,16 @@ int main() {
     assert(receipt.duplicate_identity_count == 1U);
     assert(receipt.conflict_key_count == 1U);
 
+    // The validation census exposes every distinct physical identity under each
+    // comparator-equal normalized key without promoting a semantic winner.
+    const auto conflicts = archive_index.conflicts();
+    assert(conflicts.size() == 1U);
+    assert(conflicts[0].valid());
+    assert(conflicts[0].provider_key == "room\\st001.pac");
+    assert(conflicts[0].matches.size() == 2U);
+    assert(has_chain(conflicts[0].matches, "nbz[10]"));
+    assert(has_chain(conflicts[0].matches, "nbz[11]"));
+
     // Two different physical identities collapse under archive flags 0x0E.
     // Product lookup preserves both and does not invent a winner.
     const auto ambiguous = archive_index.lookup("room\\st001.pac");
@@ -141,6 +151,7 @@ int main() {
         ResourcePathPolicy::archive_flags,
         resources);
     assert(!invalid_index.valid());
+    assert(invalid_index.conflicts().empty());
     const auto invalid_index_query = invalid_index.lookup("room\\st001.pac");
     assert(!invalid_index_query.index_valid);
     assert(invalid_index_query.key_valid);
@@ -157,6 +168,7 @@ int main() {
         ResourcePathPolicy::physical_flags,
         physical_resources);
     assert(physical_index.valid());
+    assert(physical_index.conflicts().empty());
 
     const auto physical_exact = physical_index.lookup("Room\\ST001.PAC");
     assert(physical_exact.unique());

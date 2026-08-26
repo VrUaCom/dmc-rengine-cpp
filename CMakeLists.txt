@@ -56,8 +56,11 @@ add_executable(dmc-rengine
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
     src/cli/dmc3_build_authority_commands.cpp
+    src/cli/dmc3_l1_closure_commands.cpp
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
+    src/cli/nbz_copy_commands.cpp
+    src/cli/relative_slot_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
 )
@@ -83,9 +86,11 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        physical_provider_receipt
         loose_container_list
         relative_slot_writer
         relative_slot_packed_reflow_writer
+        relative_slot_path_reflow_writer
         gdspaces_l1_full_a2z_roundtrip
         dds_profile
         texture_slot_framing
@@ -122,6 +127,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         evidence_address_resolver
         exe_byte_window
         exe_byte_window_receipt
+        process_memory_window
+        process_memory_window_receipt
         integration_workspace
         workspace_manifest
         project_graph
@@ -162,6 +169,19 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
     endforeach()
+
+    dmc_rengine_configure_test(
+        dmc_rengine_relative_slot_cli_tests
+        tests/relative_slot_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_relative_slot_cli_tests
+        PRIVATE src/cli/relative_slot_commands.cpp)
+    target_include_directories(
+        dmc_rengine_relative_slot_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_relative_slot_cli_tests
+        COMMAND dmc_rengine_relative_slot_cli_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests
@@ -239,6 +259,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
                 -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-game-test-preflight
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/dmc3_game_test_preflight_cli_test.cmake)
     add_test(
+        NAME dmc_rengine_cli_verify_dmc3_l1_authoring_usage
+        COMMAND dmc-rengine verify-dmc3-l1-authoring)
+    set_tests_properties(
+        dmc_rengine_cli_verify_dmc3_l1_authoring_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
         NAME dmc_rengine_cli_build_dmc3_overlay_usage
         COMMAND dmc-rengine build-dmc3-overlay)
     set_tests_properties(
@@ -263,10 +289,34 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
                 -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/dmc3-retail-member-acquisition-test
                 -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/extract_dmc3_retail_member_cli_test.cmake)
     add_test(
+        NAME dmc_rengine_cli_build_nbz_copy_usage
+        COMMAND dmc-rengine build-nbz-copy)
+    set_tests_properties(
+        dmc_rengine_cli_build_nbz_copy_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_build_nbz_copy
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/nbz-copy-cli-test
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/build_nbz_copy_cli_test.cmake)
+    add_test(
+        NAME dmc_rengine_cli_rebuild_relative_slot_usage
+        COMMAND dmc-rengine rebuild-relative-slot)
+    set_tests_properties(
+        dmc_rengine_cli_rebuild_relative_slot_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
         NAME dmc_rengine_cli_extract_exe_window_usage
         COMMAND dmc-rengine extract-exe-window)
     set_tests_properties(
         dmc_rengine_cli_extract_exe_window_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_capture_exe_process_window_usage
+        COMMAND dmc-rengine capture-exe-process-window)
+    set_tests_properties(
+        dmc_rengine_cli_capture_exe_process_window_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_compare_hits_spatial_usage

@@ -19,10 +19,13 @@ constexpr std::array<std::string_view, 6> prefixes{
 };
 
 [[nodiscard]] bool candidate_fits(std::string_view value) noexcept {
-    // OpenGameResource constructs candidates in a 0x400-byte destination.
-    // Keep one byte available for terminating NUL. Treating any overflow as a
-    // complete-plan failure is conservative GDSpaces product behavior; exact
-    // original per-candidate overflow continuation remains unclaimed.
+    // OpenGameResource builds the active candidate with the recovered bounded
+    // join helper and a 0x400-byte destination. The helper keeps one byte for
+    // the terminating NUL. On failure OpenGameResource destroys the newly
+    // allocated file slot/object and returns -1 immediately; it does not skip
+    // to a shorter prefix. Because GDataX360.afs/ is the first and longest
+    // recovered prefix, plan-wide fail-closed validation is equivalent for the
+    // canonical direct-call mode (all recovered direct callers pass flags=1).
     return value.size() < ResourceLookupPolicy::candidate_buffer_bytes;
 }
 

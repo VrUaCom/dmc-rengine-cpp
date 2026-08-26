@@ -200,7 +200,7 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
         payload->bytes.begin(), payload->bytes.end(), expected_bytes.begin());
 }
 
-int run_build_overlay(
+int run_build_overlay_impl(
     const std::filesystem::path& executable_directory,
     std::string_view game_request,
     const std::filesystem::path& authored_file,
@@ -313,6 +313,15 @@ int run_build_overlay(
 
 } // namespace
 
+int run_build_dmc3_overlay(
+    const std::filesystem::path& executable_directory,
+    std::string_view game_request,
+    const std::filesystem::path& authored_file,
+    const std::filesystem::path& output_directory) {
+    return run_build_overlay_impl(
+        executable_directory, game_request, authored_file, output_directory);
+}
+
 void print_dmc3_overlay_help() {
     std::cout
         << "  build-dmc3-overlay <exe-dir> <game-request> <authored-file> <output-dir>\n"
@@ -328,7 +337,7 @@ int try_run_dmc3_overlay_command(int argc, char** argv) {
             << "build-dmc3-overlay: expected <exe-dir> <game-request> <authored-file> <output-dir>\n";
         return 1;
     }
-    return run_build_overlay(
+    return run_build_dmc3_overlay(
         std::filesystem::path{argv[2]},
         std::string_view{argv[3]},
         std::filesystem::path{argv[4]},
