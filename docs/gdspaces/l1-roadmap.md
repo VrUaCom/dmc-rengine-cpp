@@ -2,7 +2,7 @@
 
 **Status:** INTERNAL PRODUCT PATH CLOSED / REAL ACCEPTANCE OPEN  
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@453373ff0977fc0aa1f6fab39273cdd9716da6af`  
+**Reconciled main base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
 **Primary tracking:** #100, #182, #209  
 **Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
 **Post-audit reconciliation:** `l1-real-device-member-evidence-reconciliation-2026-08-26.md`
@@ -44,8 +44,8 @@ Current `main` includes:
 - STORE and raw-DEFLATE method-8 materialization;
 - CRC, size, SHA and explicit `ByteProvenance`;
 - artifact-bound serialization/member observation preventing stale snapshot receipts;
-- recovered contiguous numbered-volume / first-gap runtime namespace;
-- canonical runtime resolver composition and higher-volume precedence;
+- numbered-volume filename discovery / first-gap product support for the accepted clean path;
+- canonical runtime resolver composition and higher-successful-volume precedence for the represented mounted set;
 - atomic/no-replace artifact publication with staged validation;
 - direct-retail resolver-based member extraction + provenance sidecar;
 - PAC and PNST sparse/empty/alias-preserving relative-slot parsing;
@@ -57,11 +57,13 @@ Current `main` includes:
 - staged NBZ reopen and exact member verification before publication;
 - protected distribution executable preflight;
 - protected retail authoring closure orchestration through resolver rematerialization;
-- Windows + Ubuntu CI for all promoted product paths.
+- Windows + Ubuntu CI for promoted product paths.
 
-These close the known mandatory **internal implementation** work for the current representative DMC3-HD L1 acceptance scope.
+These close the known mandatory **L1 implementation** work for the current representative DMC3-HD acceptance scope.
 
-A second execution surface now exists in **Pocket GDS / GDSpace Manager**: a real device can hold a large NBZ locally, run the canonical mobile `ArchiveSession`/`NbzZipSource` materialization path and emit a byte-free exact-member receipt without transferring the whole archive through the connected ChatGPT/Drive channel. This is an evidence bridge, not a second format implementation and not an original-process substitute.
+Fresh L2 reverse in #235 adds one cross-stack constraint that must remain visible to L1 acceptance: **filename discovery is not proof of successful mount topology**. Original bootstrap can continue after an existing archive fails mount initialization. Clean success still yields higher successful volume -> lower successful volume -> physical, but failure cases can produce a sparse mounted set. Product correction is tracked in open #237. The final L1 acceptance run must validate the actual successful selected/reopened source lineage; it must not infer mount success solely from pre-gap filename presence.
+
+A second execution surface exists in **Pocket GDS / GDSpace Manager**: a real device can hold a large NBZ locally, run the canonical mobile `ArchiveSession`/`NbzZipSource` materialization path and emit a byte-free exact-member receipt without transferring the whole archive through the connected ChatGPT/Drive channel. This is an evidence bridge, not a second format implementation and not an original-process substitute.
 
 ## 3. Gate status
 
@@ -87,7 +89,9 @@ Canonical protected-install path:
 dmc-rengine extract-dmc3-retail-member <exe-dir> <game-request> <output-file>
 ```
 
-The game request, not a pre-guessed archive path, is the selection authority for this path. The receipt must preserve the actual resolver winner, selected volume/archive identity, central-entry metadata, materialized SHA/size and byte transform.
+The game request, not a pre-guessed archive path, is the selection authority for this path. The receipt must preserve the actual selected provider/archive/member identity, central-entry metadata, materialized SHA/size and byte transform.
+
+If the acceptance topology includes mount failures, selected identity must come from the actual successful-mounted set rather than an inferred contiguous filename set. #237 owns the product correction for that L2 failure-case distinction.
 
 `obj\em000.pac` remains a high-value target but is not mandatory if another representative resource gives a stronger deterministic authoring/consumer receipt.
 
@@ -130,19 +134,21 @@ A real materialization receipt alone does not close E. The selected exact repres
 
 **PRODUCT IMPLEMENTATION CLOSED / REAL SAME-LINEAGE RECEIPT OPEN**
 
-Current product path supports:
+Current clean-path product flow supports:
 
 ```text
 rebuilt member
  -> next contiguous DMC3-N.nbz
  -> staged canonical reopen
  -> atomic/no-replace publication
- -> RuntimeResourceResolver higher-volume winner
+ -> RuntimeResourceResolver higher-successful-volume winner
  -> exact rebuilt-member rematerialization
  -> exact authored-child verification
 ```
 
-`verify-dmc3-l1-authoring` composes protected preflight, retail acquisition, top-level PAC/PNST authoring, next-volume overlay and resolver/rematerialization checks into one product closure receipt. Nested authoring is canonical through `rebuild-relative-slot-path`; closure orchestration may be widened to slot paths as a usability refinement, but that is not a correctness prerequisite for a representative acceptance resource that fits the current closure command.
+`verify-dmc3-l1-authoring` composes protected preflight, retail acquisition, top-level PAC/PNST authoring, next-volume overlay and resolver/rematerialization checks into one product closure receipt. Nested authoring is canonical through `rebuild-relative-slot-path`.
+
+The #235/#237 discovery-vs-successful-mount correction does not invalidate clean successful topology. It does mean the final receipt must not claim that filename presence alone proves all mounts succeeded.
 
 ### L1-G — original DMC3 consumption
 
@@ -176,6 +182,7 @@ Before `L1 COMPLETE`:
 
 - exact executable authority is recorded;
 - selected-provider/archive/member provenance exists;
+- successful-mounted topology assumptions used by the selected path are evidenced rather than inferred from filename presence;
 - exact materialized member identity exists;
 - representation classification is explicit;
 - real authored replacement/rebuild receipt exists;
@@ -215,17 +222,24 @@ Open actual NBZ in GDSpace Manager
 
 The desktop commands are product authoring/validation seams. Pocket GDS is a mobile execution surface over the canonical GDSpaces reader/materializer snapshot. Neither surface claims to reproduce Capcom's offline writer implementation.
 
-## 5. Supporting EXE reverse boundaries
+## 5. Supporting EXE/L2 boundaries
 
 Do **not** restart these without contradictory direct evidence:
 
-- numbered-volume bootstrap / first-gap behavior;
 - generic basename candidate construction and archive-first/physical-second attempt order;
-- archive normalized lookup/index behavior;
+- archive `0x0E` normalized lookup/index behavior and normalized-string-only comparator;
 - bounded FileSlot / AsyncIO whole-file materialization spine;
 - ZIP stored-vs-inflated path and raw-DEFLATE core behavior;
 - PAC/PNST recursive typed traversal;
-- primary `.lst` packed-first selection/synthesis structure.
+- primary `.lst` packed-first selection/synthesis structure;
+- exact type-0 physical final-open edge recovered under #215.
+
+Current L2 corrections relevant to acceptance:
+
+- #235: R2B v2 binds live windows to one process instance using PID + process creation FILETIME + module identity and derives seven canonical anchors from the canonical EXE artifact;
+- #235: first missing archive filename bounds **discovery**, not independently the successful-mounted set;
+- #237: product correction remains open to separate discovered archive attempts from successful mounted topology in failure cases;
+- retail `0x0E` normalized-key collision census remains mandatory because the recovered qsort/bsearch comparator has no equal-key secondary tie-break.
 
 Still-open reverse breadth is activated only when a completion claim depends on it:
 
@@ -233,8 +247,6 @@ Still-open reverse breadth is activated only when a completion claim depends on 
 2. complete compressed seek/reset `0x140328FE0` behavior;
 3. exhaustive malformed/partial-read error-code equivalence;
 4. dynamic `.lst` allocation/free/error/cycle behavior where a real loose-list acceptance path requires it.
-
-The exact type-0 physical-provider final-open contract is now an integrated L2 evidence slice rather than an automatic L1 gap.
 
 These bounded gaps do not automatically block a representative packed-NBZ/PAC/PNST L1 Level-E receipt.
 
@@ -247,6 +259,7 @@ These bounded gaps do not automatically block a representative packed-NBZ/PAC/PN
 - **Exhaustive malformed-input equivalence:** remains separate reverse breadth unless the claimed acceptance scope explicitly includes it.
 - **Real `.lst` corpus:** mandatory only for a claim covering real loose-list consumption or when the representative acceptance path actually selects `.lst`.
 - **Connected 960 MB transfer failure:** this is a transport limitation, not evidence that `DMC3-0.nbz` is absent or invalid.
+- **#237 failure-case topology correction:** this is primarily L2; it blocks L1 only if the selected acceptance lineage relies on an unresolved mount-failure topology. Clean successful topology remains an admissible representative path when actually verified.
 
 ## 7. Remaining work order
 
@@ -257,7 +270,7 @@ No new synthetic-only feature may displace this path unless real evidence reveal
    - canonical protected-install command, or
    - Pocket real-device receipt plus independent selected-identity binding
 2. preserve acquisition/provenance and representation classification
-3. bind the selected resource to the protected request/source lineage
+3. bind the selected resource to the protected request/successful-source lineage
 4. perform one bounded real edit through the supported authoring domain
 5. generate next-contiguous NBZ and require canonical reopen/resolver/rematerialization
 6. preserve product closure receipt
