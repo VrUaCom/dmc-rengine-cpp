@@ -2,23 +2,30 @@
 
 **Snapshot:** 2026-08-26  
 **Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Active L2 evidence slice:** PR #219  
+**Canonical L1 EXE review:** `l1-exe-boundary-review-2026-08-26.md`
 
-This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
+This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership/review layers, but execution follows dependencies rather than strict numeric order.
 
 ## Layers
 
 ### L1 — Resource Materialization
 
 ```text
-physical/container bytes
- -> exact acquisition
- -> transform/decompression
+selected physical/container identity
+ -> whole-file/FileSlot byte transport
+ -> exact member/span acquisition
+ -> STORE/raw-DEFLATE transform
+ -> caller-owned materialized bytes
+ -> packed representation OR .lst synthesis
  -> nested expansion
  -> editable child identity
  -> rebuild/repack
  -> reopen/rematerialize
+ -> resource-level materialization completion / state 1 -> 2 handoff
 ```
+
+`FileSlot` and AsyncIO participate in L1 where they transport the selected bytes. Their wider pool ownership, cancellation/release/reset and runtime-lifecycle policy are L3.
 
 ### L2 — Resource Resolution
 
@@ -34,14 +41,15 @@ logical request
 ### L3 — Original Runtime / Lifecycle
 
 ```text
-selected/materialized bytes
- -> FileSlot/async completion
- -> LoadedResource states
+materialized-byte state2 input
  -> typed post-load
- -> ready visibility
- -> claims/cache
- -> reset/release/shutdown
+ -> optional ready callback
+ -> state 2 -> 3 / ready visibility
+ -> claims/cache/family ownership
+ -> cancellation/reset/release/shutdown
 ```
+
+Cross-layer constructors/schedulers are classified by behavior, not wholesale by function address. `0x1401B84E0` is the canonical example: allocation/materialization start is L1, while state/scheduler/lifecycle behavior reaches the L1/L3 boundary.
 
 Validation is cross-cutting and is not a fourth layer.
 
@@ -60,7 +68,7 @@ real protected DMC3 installation
  -> [L1] supported top-level or nested edit/rebuild
  -> [L2] authored next-volume winner
  -> [L1] exact authored rematerialization
- -> [L3] original consumer visibility
+ -> [L3] original typed-ready/consumer visibility
  -> observable effect attributable to authored bytes
  -> rollback / transition receipt
 ```
@@ -69,7 +77,8 @@ A crash-free launch is not sufficient.
 
 ## Track A — L1 final acceptance
 
-Canonical pre-Level-E audit: `l1-final-audit-2026-08-25.md`.
+Canonical pre-Level-E audit: `l1-final-audit-2026-08-25.md`.  
+Canonical EXE boundary review: `l1-exe-boundary-review-2026-08-26.md`.
 
 **Internal product implementation status:** CLOSED for the current representative DMC3-HD acceptance scope.
 
@@ -87,6 +96,24 @@ direct-retail provenance receipt
 ```
 
 No new synthetic-only feature may displace this sequence unless real retail evidence reveals a concrete missing dependency.
+
+### Supporting L1 EXE reverse while Level-E is externally blocked
+
+Do not restart strong ZIP/FileSlot architecture. Current priority is the weak handoff seam found by the three-pass review:
+
+```text
+materialization fan-in/completion around submission -> state2
+ -> transport error -> resource scheduler/materialization error mapping
+ -> .lst temporary allocation/free/failure cleanup
+ -> acceptance-activated FileSlot partial-read/cancellation breadth
+ -> acceptance-activated ZIP exact-body/error breadth
+```
+
+Correct labels:
+
+- `0x1402EF4D0` = resource materialization submission/scheduling wrapper;
+- `0x1400335A0` = transport/whole-file completion callback;
+- `0x1401B8DC0` = resource-level scheduler/materialization completion handoff to state2, not raw I/O callback.
 
 ## Track B — L2 closure
 
@@ -199,7 +226,7 @@ state-writer/caller census
  -> final L3 audit
 ```
 
-For the first L1 vertical proof, L3 need only provide enough original-process evidence to attribute the consumer-visible result to the authored resource. Broader lifecycle closure remains a separate L3 program.
+For the first L1 vertical proof, L3 need only provide enough original-process evidence to attribute the consumer-visible result to the authored resource after L1 state2/materialized-byte completion. Broader lifecycle closure remains a separate L3 program.
 
 ## Cross-layer dependency matrix
 
@@ -210,17 +237,19 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 | Can the selected representation be edited safely? | L1 | direct retail representation evidence |
 | Will the authored overlay win? | L2 | L1 generated artifact |
 | Are authored bytes rematerialized exactly? | L1 | L2 authored winner |
+| Did byte transport/materialization complete? | L1 | FileSlot/transport + resource-level completion handoff |
 | Did original DMC3 consume those bytes? | L3 + validation | same L1/L2 identity chain |
 | Was the test rolled back without retail mutation? | validation | exact artifact identity |
 
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
-2. Complete PR #219 acquisition/tooling review and exact-head CI.
-3. When a protected original process is available, produce the L2 multi-anchor mapping packet.
-4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
-5. Capture original-process selected identity only after mapped L2 anchors are proven.
-6. Reconcile final L2 evidence and run the final Layer-2 audit.
+2. While external acceptance is unavailable, reverse the L1 materialization fan-in/error handoff through the guarded EXE acquisition packet.
+3. Complete PR #219 acquisition/tooling review and exact-head CI without conflating it with L1 completion.
+4. When a protected original process is available, produce the L2 multi-anchor mapping packet.
+5. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
+6. Capture original-process selected identity only after mapped L2 anchors are proven.
+7. Reconcile final L2 evidence and run the final Layer-2 audit.
 
 ## Completion rule
 
