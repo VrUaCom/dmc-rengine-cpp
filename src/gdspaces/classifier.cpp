@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/gdspaces/text_record.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -69,64 +70,6 @@ namespace {
         }
     }
     return {};
-}
-
-// A DMC3 authoring record is line-oriented text in the encoding the studio
-// wrote it in: ASCII with Shift-JIS comments. `st001.pac` slot 4 decodes as
-//
-//     uv    0, 14, -6, 0    ; パーツ番号、テクスチャ番号、U、V
-//
-// so a rule that only admits ASCII would call that record binary. This
-// validates the whole payload as Shift-JIS instead of sampling it, and it
-// rejects on the first byte that cannot be part of a text stream, which is why
-// a multi-megabyte binary record costs one comparison here and not a scan.
-[[nodiscard]] bool textual_record(std::span<const std::byte> bytes) noexcept {
-    // Records are padded to their container alignment with NUL. That padding
-    // is not part of the text and must not be judged as if it were.
-    auto end = bytes.size();
-    while (end > 0U &&
-           std::to_integer<unsigned char>(bytes[end - 1U]) == 0x00U) {
-        --end;
-    }
-    if (end < 4U) {
-        return false;
-    }
-
-    const auto is_single = [](unsigned char value) noexcept {
-        return value == 0x09U || value == 0x0AU || value == 0x0DU ||
-            (value >= 0x20U && value <= 0x7EU) ||
-            // Half-width katakana occupy a single byte in Shift-JIS.
-            (value >= 0xA1U && value <= 0xDFU);
-    };
-    const auto is_lead = [](unsigned char value) noexcept {
-        return (value >= 0x81U && value <= 0x9FU) ||
-            (value >= 0xE0U && value <= 0xEFU);
-    };
-    const auto is_trail = [](unsigned char value) noexcept {
-        return (value >= 0x40U && value <= 0x7EU) ||
-            (value >= 0x80U && value <= 0xFCU);
-    };
-
-    bool has_line_break = false;
-    for (std::size_t index = 0; index < end;) {
-        const auto value = std::to_integer<unsigned char>(bytes[index]);
-        if (is_single(value)) {
-            has_line_break = has_line_break || value == 0x0AU || value == 0x0DU;
-            ++index;
-            continue;
-        }
-        if (is_lead(value) && index + 1U < end &&
-            is_trail(std::to_integer<unsigned char>(bytes[index + 1U]))) {
-            index += 2U;
-            continue;
-        }
-        return false;
-    }
-
-    // A single printable line with no terminator is far more likely to be the
-    // opening of a binary record than a text file, so require the line
-    // structure that every observed authoring record has.
-    return has_line_break;
 }
 
 [[nodiscard]] bool structurally_valid_binary_pnst(
@@ -207,7 +150,7 @@ ResourceClassification ResourceClassifier::classify(
         // whose extension says more than "text" does, and saying less than the
         // name already says is a loss.
         result.format = extension;
-    } else if (textual_record(bytes)) {
+    } else if (TextRecord::inspect(bytes).recognized) {
         // Stage containers carry authoring text next to their binary records:
         // the name manifest, the `# GAME` scene block, the `# DOOR` table, the
         // effect id list. Those read as `bin` only because nothing looked, and

@@ -1,4 +1,5 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/text_record.hpp"
 #include "dmc_rengine/formats/pac.hpp"
 
 #include <algorithm>
@@ -102,6 +103,29 @@ void shift_jis_comments_do_not_make_a_record_binary() {
     assert(classified.byte_derived);
 }
 
+void the_padding_is_reported_apart_from_the_text() {
+    // A reader that shows this record to an operator must stop where the text
+    // stops. `st001.pac` slot 0 is 33 bytes of manifest in a 48-byte slot, and
+    // the 15 NULs after it are container alignment, not content.
+    const auto manifest = literal(
+        "st001.ptx\r\nst001.scm\r\nst001.sch\r\n", 48U);
+    const auto view = gdspaces::TextRecord::inspect(
+        std::span<const std::byte>{manifest});
+    assert(view.recognized);
+    assert(view.encoding == "shift-jis");
+    assert(view.text_bytes == 33U);
+    assert(view.padding_bytes == 15U);
+
+    // The same inspection on a record that is not text still reports where the
+    // padding is, and simply does not claim the bytes are readable.
+    std::vector<std::byte> record(64U, std::byte{0});
+    record[0] = std::byte{0x11};
+    const auto binary = gdspaces::TextRecord::inspect(
+        std::span<const std::byte>{record});
+    assert(!binary.recognized);
+    assert(binary.text_bytes == 1U);
+}
+
 void a_named_text_file_keeps_its_own_extension() {
     // The same rule read the other way: when the resource really is named,
     // the name wins. A `.index` manifest is text, and "index" says more about
@@ -176,6 +200,7 @@ int main() {
     observed_tags_are_recognized();
     authoring_text_records_are_read_as_text();
     shift_jis_comments_do_not_make_a_record_binary();
+    the_padding_is_reported_apart_from_the_text();
     a_named_text_file_keeps_its_own_extension();
     a_binary_record_is_never_called_text();
     a_zero_offset_slot_is_absent_not_broken();
