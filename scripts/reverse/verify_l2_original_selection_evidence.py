@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Bind a validated L2 runtime mapping packet to one original selection receipt.
+"""Bind validated L2 runtime mapping evidence to one original selection receipt.
 
 The tool is metadata-only. It does not acquire process/resource bytes and cannot
-create original-process evidence from synthetic inputs; it only rejects or binds
-already captured evidence files.
+create original-process evidence from synthetic inputs. It reconstructs the R2B
+mapping from its child process-window receipts, requires the supplied mapping
+packet to match that reconstruction exactly, then binds the R3 selection receipt
+to that exact mapping file by SHA-256.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -24,6 +27,19 @@ PHYSICAL_MAPPING_IDS = {
     "type0_mount_resolve",
     "type0_final_open",
 }
+
+
+def _load_runtime_mapping_verifier() -> Any:
+    script = Path(__file__).with_name("verify_l2_runtime_mapping_packet.py")
+    spec = importlib.util.spec_from_file_location("l2_runtime_mapping_verifier", script)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("could not load canonical L2 runtime mapping verifier")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+RUNTIME_MAPPING = _load_runtime_mapping_verifier()
 
 
 def _sha256_bytes(data: bytes) -> str:
@@ -114,19 +130,50 @@ def _validate_mapping(mapping: dict[str, Any]) -> tuple[int, int]:
         raise ValueError("mapping packet schema mismatch")
     if mapping.get("status") != "bounded_match":
         raise ValueError("mapping packet is not a bounded_match")
+    if mapping.get("scope") != "approved-l2-rva-anchors-only":
+        raise ValueError("mapping packet scope mismatch")
     if _sha(mapping.get("protected_artifact_sha256"), "mapping protected SHA") != PROTECTED_SHA256:
         raise ValueError("mapping packet is not bound to protected DMC3 executable")
     if mapping.get("protected_artifact_size") != PROTECTED_SIZE:
         raise ValueError("mapping protected artifact size mismatch")
+    if _sha(mapping.get("canonical_analysis_artifact_sha256"), "mapping canonical analysis SHA") != RUNTIME_MAPPING.CANONICAL_ANALYSIS_SHA256:
+        raise ValueError("mapping canonical analysis authority mismatch")
+    if _hex_u64(mapping.get("preferred_image_base"), "mapping preferred_image_base") != RUNTIME_MAPPING.PREFERRED_IMAGE_BASE:
+        raise ValueError("mapping preferred image base mismatch")
     pid = mapping.get("pid")
     if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
         raise ValueError("mapping pid is invalid")
     module_base = _hex_u64(mapping.get("module_base"), "mapping module_base")
+    image_name = mapping.get("image_name")
+    if not isinstance(image_name, str) or not image_name or "/" in image_name or "\\" in image_name:
+        raise ValueError("mapping image_name must be a basename")
     anchors = mapping.get("anchors")
     if not isinstance(anchors, list) or mapping.get("anchor_count") != len(anchors) or len(anchors) < 3:
         raise ValueError("mapping anchor census is invalid")
-    ids = {item.get("id") for item in anchors if isinstance(item, dict)}
-    if "OpenGameResource" not in ids or len(ids & PHYSICAL_MAPPING_IDS) < 2:
+
+    seen_rvas: set[int] = set()
+    seen_ids: set[str] = set()
+    for item in anchors:
+        if not isinstance(item, dict):
+            raise ValueError("mapping anchor entry is invalid")
+        anchor_id = item.get("id")
+        if not isinstance(anchor_id, str):
+            raise ValueError("mapping anchor id is invalid")
+        rva = _hex_u64(item.get("rva"), "mapping anchor rva")
+        runtime_va = _hex_u64(item.get("runtime_va"), "mapping anchor runtime_va")
+        if rva not in RUNTIME_MAPPING.ANCHORS or RUNTIME_MAPPING.ANCHORS[rva] != anchor_id:
+            raise ValueError("mapping contains an unapproved or mismatched anchor")
+        if rva in seen_rvas or anchor_id in seen_ids:
+            raise ValueError("mapping contains a duplicate anchor")
+        seen_rvas.add(rva)
+        seen_ids.add(anchor_id)
+        if runtime_va != module_base + rva:
+            raise ValueError("mapping anchor runtime VA is inconsistent")
+        if item.get("size") != RUNTIME_MAPPING.WINDOW_SIZE:
+            raise ValueError("mapping anchor window size is invalid")
+        _sha(item.get("window_sha256"), "mapping anchor window SHA")
+
+    if "OpenGameResource" not in seen_ids or len(seen_rvas & RUNTIME_MAPPING.PHYSICAL_ANCHORS) < 2:
         raise ValueError("mapping lacks required OpenGameResource + physical anchor breadth")
     return pid, module_base
 
@@ -264,9 +311,44 @@ def _validate_selection(
         raise ValueError("selected provider is invalid")
 
 
-def build_bound_packet(mapping_path: Path, selection_path: Path) -> dict[str, Any]:
+def _reconstruct_mapping(
+    mapping_child_paths: list[Path],
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    if len(mapping_child_paths) < RUNTIME_MAPPING.MIN_ANCHORS:
+        raise ValueError(
+            f"at least {RUNTIME_MAPPING.MIN_ANCHORS} mapping child receipts are required"
+        )
+
+    child_receipts: list[dict[str, str]] = []
+    for path in mapping_child_paths:
+        payload, raw = _read_json(path)
+        if payload.get("schema") != "dmc-rengine.exe-process-window.v1":
+            raise ValueError(f"mapping child {path} has unsupported schema")
+        rva = payload.get("rva")
+        if not isinstance(rva, str):
+            raise ValueError(f"mapping child {path} has invalid RVA")
+        child_receipts.append(
+            {"rva": rva, "receipt_sha256": _sha256_bytes(raw)}
+        )
+
+    rebuilt = RUNTIME_MAPPING.build_packet(mapping_child_paths)
+    child_receipts.sort(key=lambda item: _hex_u64(item["rva"], "mapping child rva"))
+    return rebuilt, child_receipts
+
+
+def build_bound_packet(
+    mapping_path: Path,
+    selection_path: Path,
+    mapping_child_paths: list[Path],
+) -> dict[str, Any]:
     mapping, mapping_raw = _read_json(mapping_path)
     selection, selection_raw = _read_json(selection_path)
+    rebuilt_mapping, child_receipts = _reconstruct_mapping(mapping_child_paths)
+    if mapping != rebuilt_mapping:
+        raise ValueError(
+            "supplied mapping packet does not exactly match reconstruction from mapping child receipts"
+        )
+
     mapping_sha = _sha256_bytes(mapping_raw)
     mapping_pid, mapping_base = _validate_mapping(mapping)
     _validate_selection(selection, mapping_sha, mapping_pid, mapping_base)
@@ -277,6 +359,7 @@ def build_bound_packet(mapping_path: Path, selection_path: Path) -> dict[str, An
         "protected_artifact_sha256": PROTECTED_SHA256,
         "protected_artifact_size": PROTECTED_SIZE,
         "runtime_mapping_packet_sha256": mapping_sha,
+        "runtime_mapping_child_receipts": child_receipts,
         "original_selection_receipt_sha256": _sha256_bytes(selection_raw),
         "pid": mapping_pid,
         "module_base": f"0x{mapping_base:X}",
@@ -313,26 +396,31 @@ def _write_no_replace(path: Path, packet: dict[str, Any]) -> None:
         if created:
             try:
                 path.unlink()
-            except OSError:
-                pass
-        raise
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--mapping", required=True, type=Path)
-    parser.add_argument("--selection", required=True, type=Path)
-    parser.add_argument("--output", required=True, type=Path)
-    args = parser.parse_args()
-    try:
-        packet = build_bound_packet(args.mapping, args.selection)
-        _write_no_replace(args.output, packet)
-    except (OSError, ValueError, TypeError) as exc:
-        print(f"original selection evidence rejected: {exc}", file=sys.stderr)
-        return 2
-    print(json.dumps(packet, indent=2))
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
++            except OSError:
++                pass
++        raise
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--mapping", required=True, type=Path)
++    parser.add_argument(
++        "--mapping-child", action="append", required=True, type=Path
++    )
++    parser.add_argument("--selection", required=True, type=Path)
++    parser.add_argument("--output", required=True, type=Path)
++    args = parser.parse_args()
++    try:
++        packet = build_bound_packet(
++            args.mapping, args.selection, args.mapping_child
++        )
++        _write_no_replace(args.output, packet)
++    except (OSError, ValueError, TypeError, RuntimeError) as exc:
++        print(f"original selection evidence rejected: {exc}", file=sys.stderr)
++        return 2
++    print(json.dumps(packet, indent=2))
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
