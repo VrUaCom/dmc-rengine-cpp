@@ -1,6 +1,7 @@
 # DMC3 `.lst` Loose-Container Reconstruction
 
-**Status:** current-main clean implementation candidate; canonical EXE mechanics are evidence-backed, product safety guards are explicitly separate.
+**Status:** canonical structural/runtime reconstruction at the evidenced scope; product safety guards remain explicitly separate.  
+**Reconciled:** 2026-08-26 against `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`.
 
 Canonical executable authority: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
 
@@ -10,7 +11,9 @@ Direct reverse anchors:
 - size/parser helpers `0x1401B7B90`, `0x1401B7C70`, `0x1401B7D10`, `0x1401B7E60`, `0x1401B7FD0`;
 - loose-container materializer `0x1401B85C0`;
 - `.lst` extension rewrite helper `0x1401B9390`;
-- generic resource materializer `0x1402EF4D0`.
+- resource materialization submission/scheduling wrapper `0x1402EF4D0`.
+
+The three-pass L1 EXE reconciliation is maintained in `l1-exe-boundary-review-2026-08-26.md`.
 
 ## Representation precedence
 
@@ -108,18 +111,58 @@ align64((slotCount + 2) * 4)
 
 Every non-empty child contribution is rounded to a 64-byte boundary. This is an origin-specific `.lst` synthesis invariant; it must not be promoted as a universal packed PAC/PNST alignment rule.
 
-## Nested `.lst` precedence
+## Temporary list-text acquisition
+
+Canonical Pass-26 evidence establishes that the `.lst` text is loaded **synchronously into aligned temporary storage** before bounded parsing.
+
+A separate whole-file synchronous-style wrapper exists around `0x1402EF920`, but no direct preserved caller/callee edge ties the `.lst` text loader to that wrapper. Therefore:
+
+```text
+.lst synchronous temporary load == 0x1402EF920
+```
+
+is **not promoted**.
+
+The remaining reverse seam is the exact allocation/free/failure-cleanup identity of this temporary buffer, not the fact that the parser operates on bounded temporary list text.
+
+## Nested `.lst` precedence and child materialization
 
 For a child token ending in lowercase `.lst`:
 
 ```text
 nested.lst
     -> construct sibling nested.pac
-    -> positive-size nested.pac exists: load packed sibling
+    -> positive-size nested.pac exists: submit/load packed sibling
     -> otherwise: recursively synthesize nested.lst in place
 ```
 
 Ordinary non-list children are loaded from their exact directory-relative token path and are not rewritten to `.pac`.
+
+After layout planning, `0x1401B85C0` populates the already allocated parent destination:
+
+- `dummy` -> no submission;
+- ordinary child -> submit through `0x1402EF4D0` to `destination + relativeOffset`;
+- existing packed sibling -> submit through the same materialization wrapper;
+- nested loose list -> recursively synthesize directly at `destination + relativeOffset`.
+
+Safe label for `0x1402EF4D0` is **resource materialization submission/scheduling wrapper**. It is not proven to be the final provider open, exact-path resolver or raw file reader.
+
+## Materialization completion / fan-in boundary
+
+The static grammar/layout is strong, but the exact parent-completion aggregation remains open.
+
+Transport completion callbacks such as `0x1400335A0(ticketId,userContext,errorFlag,bytesRead)` operate below the resource-level completion handoff. `0x1401B8DC0` is registered through scheduler helper `0x1402EF580` and publishes the normal LoadedResource `state 1 -> 2` completion.
+
+For `.lst` this leaves exact open questions:
+
+- how multiple ordinary/packed child submissions are counted or aggregated;
+- how recursive in-place child completion participates in parent completion;
+- what condition permits the parent resource-level state2 handoff;
+- how one-child transport/submission failure propagates;
+- whether partially populated parent bytes remain allocated/live on failure;
+- which cleanup path releases temporary list text and partially built state.
+
+These are the highest-value remaining `.lst` L1 EXE reverse seams. They do not weaken the already recovered grammar/layout facts.
 
 ## Original mechanics vs product hardening
 
@@ -127,6 +170,7 @@ Evidence-backed original mechanics in this slice:
 
 - packed-first top-level selection;
 - `.lst` extension fallback;
+- synchronous aligned temporary list-text acquisition;
 - scanner/token bounds;
 - CRLF-oriented line grammar;
 - `/` comments and `#XXXX` magic directives;
@@ -134,7 +178,8 @@ Evidence-backed original mechanics in this slice:
 - declared child order/count;
 - exact `dummy` sparse slot;
 - 64-byte synthesized header/child placement;
-- nested `.lst` sibling `.pac` precedence and recursive in-place synthesis.
+- nested `.lst` sibling `.pac` precedence and recursive in-place synthesis;
+- ordinary/packed child submissions through the generic materialization submission layer.
 
 Product-only safety policy in this implementation:
 
@@ -149,8 +194,10 @@ These safety rules must not be quoted as recovered original error semantics unti
 ## Open reverse/validation boundaries
 
 - no raw real `.lst` artifact is currently exposed in the connected corpus;
+- exact temporary-buffer allocator/free path and failure cleanup remain unresolved;
 - exact original recursion-cycle/depth behavior remains unresolved;
-- exact malformed/truncated-list error propagation and temporary-buffer lifetime are not fully present in the preserved direct-disassembly summary;
+- exact malformed/truncated-list error propagation remains unresolved;
+- exact multi-child materialization fan-in/completion and transport-to-resource error mapping remain unresolved;
 - game-backed exact-build receipts remain separate from synthetic product regression.
 
 `.index` remains a separate external extraction/naming metadata family. It is not the original `.lst` runtime representation mechanism.
