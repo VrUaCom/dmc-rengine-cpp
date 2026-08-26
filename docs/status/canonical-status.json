@@ -4,8 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c147facb310d32ef084c56ba82d1e4b6b9b1b496",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l1-exe-handoff-reverse-active-l2-evidence-closure-active",
+  "snapshot_main_sha": "c20544cfb7f3ddba69a128a88246550a35eb51c1",
+  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l1-exe-completion-ordering-reverse-active-l2-real-evidence-closure-open",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -18,13 +18,17 @@
     "roadmap": "../gdspaces/l1-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
     "l1_exe_boundary_review": "../gdspaces/l1-exe-boundary-review-2026-08-26.md",
+    "l1_exe_completion_ordering_review": "../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md",
+    "l1_exe_completion_acquisition_plan": "../../data/reverse/dmc3-l1-materialization-completion-plan.v1.json",
     "completion_model": "mandatory-gates",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
     "l1_exe_boundary": {
       "input": "l2-selected-logical-provider-member-identity",
       "transport": "whole-file-fileslot-selected-byte-transport-is-l1",
       "materialization": "store-or-raw-deflate-to-caller-owned-destination-plus-packed-or-lst-representation",
-      "completion_handoff": "resource-scheduler-materialization-completion-state1-to-state2",
+      "completion_handoff": "scheduler-mediated-resource-materialization-completion-state1-to-state2",
+      "completion_ordering_model": "dependency-barrier-open-exact-mechanism",
+      "generic_fan_in_counter": "not-evidenced",
       "end": "state2-materialized-bytes",
       "l3_begins": "typed-post-load-from-state2-through-state3-and-lifecycle",
       "cross_layer_function_rule": "classify-behavior-not-whole-function-address"
@@ -33,6 +37,9 @@
       "0x1402EF4D0": "resource-materialization-submission-scheduling-wrapper-not-exact-path-resolver-final-open-or-raw-reader",
       "0x1400335A0": "transport-whole-file-completion-callback",
       "0x1401B8DC0": "resource-scheduler-materialization-completion-handoff-state1-to2-not-raw-io-callback",
+      "0x1402EF580": "scheduler-ring-enqueue",
+      "0x1402EF790": "scheduler-worker-callback-execution-and-slot-clear",
+      "0x1402EF460": "pending-scheduled-entry-clear-rollback-not-os-asyncio-cancellation",
       "0x1401B84E0": "cross-layer-acquisition-constructor-l1-allocation-and-materialization-start-plus-state-scheduler-boundary",
       "lst_sync_temp_load": "synchronous-aligned-temporary-acquisition-not-proven-equal-to-0x1402EF920"
     },
@@ -61,7 +68,8 @@
       "l2-type0-physical-provider-static-reverse",
       "l2-native-physical-path-product-model",
       "l2-controlled-physical-hit-miss-fallback-receipts",
-      "guarded-canonical-analysis-exe-window-packet-acquisition"
+      "guarded-canonical-analysis-exe-window-packet-acquisition",
+      "l2-protected-runtime-rva-mapping-acquisition-tooling"
     ],
     "mandatory_L1_gates": [
       {
@@ -115,21 +123,25 @@
       "201-relative-slot-cli",
       "208-protected-retail-authoring-closure",
       "213-nested-slot-path-reflow",
-      "215-l2-type0-physical-provider"
+      "215-l2-type0-physical-provider",
+      "219-l2-protected-runtime-rva-mapping-tooling"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
-      "materialization-fan-in-completion-before-state2-publication",
+      "materialization-completion-ordering-dependency-barrier-before-state2-publication",
+      "explicit-generic-fan-in-counter-existence-not-evidenced",
+      "scheduler-pending-entry-rollback-matching-and-already-running-transport-interaction",
       "transport-error-to-resource-scheduler-materialization-error-mapping",
-      "lst-temporary-allocation-free-failure-cleanup-and-recursion-error-propagation",
+      "lst-child-completion-failure-ordering-and-temporary-allocation-free-cleanup",
       "fileslot-readrequest-partial-read-error-cancellation-breadth-when-required",
       "zip-stream-initializer-0x140328540-exact-body-error-breadth-when-required",
       "compressed-seek-reset-0x140328FE0-exact-body-error-breadth-when-required",
       "exhaustive-malformed-original-error-equivalence"
     ],
     "supporting_exe_reverse_priority": [
-      "materialization-fan-in-completion",
+      "materialization-completion-ordering-dependency-barrier",
+      "scheduler-pending-entry-rollback-semantics",
       "transport-to-resource-error-mapping",
-      "lst-temp-allocation-free-failure-cleanup",
+      "lst-child-completion-failure-and-temp-buffer-cleanup",
       "acceptance-activated-fileslot-error-cancellation-breadth",
       "acceptance-activated-zip-exact-body-breadth"
     ],
@@ -142,6 +154,7 @@
     "preferred_target_is_mandatory": false,
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
     "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
+    "current_static_reverse_environment": "guarded-exe-packet-tooling-available-but-fresh-raw-e454-blob-not-exposed-in-current-connected-file-surface",
     "L2": {
       "overall_status": "advanced-not-complete-real-corpus-and-original-process-evidence-open",
       "canonical_analysis_executable": {
@@ -169,12 +182,12 @@
         {
           "id": "L2-R2B",
           "name": "protected-distribution-runtime-rva-mapping",
-          "status": "tooling-active-pr-219-real-process-receipt-required"
+          "status": "tooling-merged-pr-219-real-process-receipt-required"
         },
         {
           "id": "L2-R3",
           "name": "original-process-selected-provider-identity",
-          "status": "blocked-by-l2-r2b"
+          "status": "blocked-by-real-l2-r2b-receipt"
         },
         {
           "id": "L2-R4",
@@ -191,13 +204,13 @@
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
     "final-l1-cross-stack-audit",
-    "l1-supporting-materialization-fan-in-reverse-while-external-acceptance-blocked",
+    "l1-supporting-materialization-completion-ordering-reverse-while-external-acceptance-blocked",
     "l2-real-retail-collision-census",
-    "l2-protected-runtime-mapping-receipt",
+    "l2-real-protected-runtime-mapping-receipt",
     "l2-original-process-selected-identity-receipt"
   ],
   "other_layers": {
-    "L2": "advanced-physical-provider-closed-real-corpus-and-original-process-evidence-open",
+    "L2": "advanced-physical-provider-and-mapping-tooling-closed-real-corpus-and-original-process-evidence-open",
     "L3": "advanced-static-spine-dynamic-level-e-open-from-state2-typed-ready-boundary"
   },
   "historical_branch_policy": "open-stacked-prs-are-evidence-history-not-main-truth; revive-only-by-clean-respin-from-current-main-and-boundary-reconciliation",
@@ -205,6 +218,7 @@
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
     "l1_exe_boundary_review": "../gdspaces/l1-exe-boundary-review-2026-08-26.md",
+    "l1_exe_completion_ordering_review": "../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md",
     "current_status": "current.md",
     "blockers": "blockers.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
