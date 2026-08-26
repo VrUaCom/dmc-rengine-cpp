@@ -26,6 +26,11 @@ namespace {
     return true;
 }
 
+[[nodiscard]] bool bounded_metadata(std::string_view value) noexcept {
+    return !value.empty() && value.size() <= 128U &&
+        value.find('\0') == std::string_view::npos;
+}
+
 [[nodiscard]] std::string escape_json(std::string_view value) {
     std::ostringstream output;
     constexpr char hex[] = "0123456789abcdef";
@@ -60,6 +65,10 @@ namespace {
 
 [[nodiscard]] bool protected_execution_authority(
     const OriginalResolutionObservation& observation) noexcept {
+    if (!canonical_sha256(observation.executable_sha256)) {
+        return false;
+    }
+
     const auto match = classify_executable_authority(
         observation.executable_sha256, observation.executable_size);
     if (!match.recognized()) {
@@ -114,6 +123,43 @@ namespace {
     return false;
 }
 
+[[nodiscard]] bool bindings_match_observed_topology(
+    const OriginalResolutionObservation& original,
+    const RuntimeSourceBindings& bindings) noexcept {
+    if (bindings.physical_source_id.empty() ||
+        bindings.archives.size() !=
+            static_cast<std::size_t>(original.first_missing_archive_volume)) {
+        return false;
+    }
+
+    for (std::size_t index = 0U; index < bindings.archives.size(); ++index) {
+        const auto& binding = bindings.archives[index];
+        if (!binding.valid() ||
+            binding.volume_index >= original.first_missing_archive_volume ||
+            binding.source_id == bindings.physical_source_id) {
+            return false;
+        }
+
+        for (std::size_t other = index + 1U;
+             other < bindings.archives.size();
+             ++other) {
+            if (bindings.archives[other].volume_index == binding.volume_index ||
+                bindings.archives[other].source_id == binding.source_id) {
+                return false;
+            }
+        }
+    }
+
+    for (std::uint32_t volume = 0U;
+         volume < original.first_missing_archive_volume;
+         ++volume) {
+        if (bindings.archive(volume) == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace
 
 bool OriginalArchiveArtifactIdentity::valid() const noexcept {
@@ -159,6 +205,7 @@ bool OriginalSelectedResourceIdentity::valid_shape() const noexcept {
 bool OriginalResolutionObservation::valid() const noexcept {
     if (!protected_execution_authority(*this) ||
         !canonical_sha256(runtime_mapping_packet_sha256) ||
+        !bounded_metadata(observer_id) || !bounded_metadata(observer_version) ||
         pid == 0U || module_base == 0U || flags != 1U || request.empty() ||
         basename.empty() || !selected.has_value() ||
         !selected->valid_shape() ||
@@ -263,6 +310,10 @@ std::string original_resolution_observation_to_json(
            << "  \"executable_size\": " << observation.executable_size << ",\n"
            << "  \"runtime_mapping_packet_sha256\": \""
            << observation.runtime_mapping_packet_sha256 << "\",\n"
+           << "  \"observer_id\": \"" << escape_json(observation.observer_id)
+           << "\",\n"
+           << "  \"observer_version\": \""
+           << escape_json(observation.observer_version) << "\",\n"
            << "  \"pid\": " << observation.pid << ",\n"
            << "  \"module_base\": \"" << hex_u64(observation.module_base)
            << "\",\n"
@@ -345,6 +396,12 @@ OriginalProductResolutionComparison compare_original_to_product(
         return {
             .status = OriginalProductComparisonStatus::invalid_original_observation,
             .detail = "Original-process observation failed its authority/order/identity contract.",
+        };
+    }
+    if (!bindings_match_observed_topology(original, bindings)) {
+        return {
+            .status = OriginalProductComparisonStatus::invalid_product_configuration,
+            .detail = "GDSpaces source bindings do not exactly represent the observed contiguous archive topology.",
         };
     }
     if (!product.ok() || !product.resolved.has_value()) {
