@@ -4,9 +4,10 @@
 **Canonical repository base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Layer:** L1 — Resource Materialization  
-**Primary ledgers:** #100, #55
+**Primary ledgers:** #100, #55  
+**Completion-ordering follow-up:** `l1-exe-materialization-completion-pass-2026-08-26.md`
 
-This document reconciles three consecutive L1 EXE boundary reviews. It replaces older shorthand that mixed resource selection, byte transport, materialization completion and typed-ready lifecycle into one undifferentiated runtime spine.
+This document reconciles the L1 EXE boundary reviews and the follow-up materialization-completion ordering pass. It replaces older shorthand that mixed resource selection, byte transport, materialization completion and typed-ready lifecycle into one undifferentiated runtime spine.
 
 ## 1. Canonical three-layer cut
 
@@ -20,7 +21,7 @@ L2 selected logical/provider/member identity
  -> L1 STORE direct read OR raw-DEFLATE InflateRead
  -> L1 caller-owned destination bytes
  -> L1 packed representation OR .lst in-place synthesis
- -> L1 resource-level completion/fan-in handoff
+ -> L1 resource-level completion ordering / dependency barrier
  -> L1 state 1 -> 2
  ===== END L1 =====
  -> L3 typed post-load
@@ -30,6 +31,8 @@ L2 selected logical/provider/member identity
 ```
 
 The cut is architectural. A function may cross it; functions are not assigned wholesale to one layer when their behavior spans allocation, scheduling and lifecycle.
+
+No separate original-runtime child/outstanding-work **fan-in counter** is currently evidenced. If such a mechanism exists, it remains an exact-byte/dataflow target rather than a recovered fact.
 
 ## 2. Strong L1 EXE boundaries
 
@@ -86,6 +89,18 @@ Strong recovered transport architecture includes:
 
 Exact every-field/error/cancellation breadth remains bounded reverse work, not missing architecture.
 
+### Resource scheduler layer
+
+Preserved canonical direct-disassembly authority establishes a higher scheduler layer distinct from raw FileSlot transport:
+
+- `0x1402EF580` = scheduler-ring enqueue;
+- `0x1402EF790` = scheduler worker / callback execution followed by slot clear;
+- `0x1402EF460` = pending scheduled-entry clear/rollback.
+
+The safe label for `0x1402EF460` is intentionally narrow. It is **not** evidence of OS-level AsyncIO cancellation or guaranteed cancellation of an already-running backend request.
+
+The cancellation writer `0x1401B8430` uses this scheduler rollback before marking unfinished LoadedResource records state 4 and queueing deferred cleanup, so rollback belongs in the completion-ordering evidence packet.
+
 ### NBZ / ZIP backend
 
 Strong original-runtime anchors:
@@ -135,7 +150,9 @@ Recovered `.lst` mechanics include:
 
 The `.lst` text itself is evidenced as being loaded synchronously into aligned temporary storage before bounded parsing. No direct stored edge proves that this loader is the synchronous-style `0x1402EF920` wrapper.
 
-## 4. Critical callback/fan-in correction
+The exact mechanism that prevents parent completion from overtaking required child population is still open. Do not promote a child-count/fan-in object merely from recursive child submission.
+
+## 4. Critical callback / completion-ordering correction
 
 `0x1400335A0` and `0x1401B8DC0` belong to different completion layers.
 
@@ -149,17 +166,32 @@ The `.lst` text itself is evidenced as being loaded synchronously into aligned t
 
 Therefore `0x1401B8DC0` must **not** be described as a raw I/O callback. There is a resource scheduler/materialization layer between transport completion and materialized-byte state publication.
 
-This exposes the most valuable remaining L1 EXE seam: **materialization fan-in/completion semantics**.
+The most valuable remaining L1 EXE seam is now named:
 
-Open questions include:
+> **materialization completion ordering / dependency barrier**
 
-- how outstanding child/direct submissions are counted or aggregated;
-- exactly what condition schedules or permits the state-2 completion handoff;
-- how nested `.lst` child completion participates in the parent completion decision;
+Known cancellation-side ordering is stronger than the success-side dependency proof:
+
+```text
+0x1401B8430
+ -> 0x1402EF460 pending scheduler clear/rollback
+ -> state 1|2 -> 4
+ -> enqueue 0x1401B8F00 via 0x1402EF580
+ -> deferred cleanup -> state 0 + backing release
+```
+
+Open success-side questions include:
+
+- what exact condition schedules or permits the state-2 completion handoff;
+- what exact ordering exists between materialization work and `0x1401B8DC0` registration/execution;
+- whether ring order alone is sufficient or another status/dependency object participates;
+- whether an explicit outstanding-work/fan-in counter exists at all;
+- how nested `.lst` child population participates in the completion decision;
 - what happens when one child/submission fails;
 - whether a partially populated parent destination remains live during failure/cancellation;
 - how transport failure is mapped into resource-materialization scheduling failure;
-- which failure paths prevent state 2 publication.
+- which failure paths prevent state 2 publication;
+- what happens to already-running FileSlot/ReadRequest work when higher scheduler rollback begins.
 
 These handoff questions are higher priority than re-reversing already strong ZIP seek/decompression architecture.
 
@@ -169,7 +201,10 @@ These handoff questions are higher priority than re-reversing already strong ZIP
 |---|---|---|
 | `0x1401B84E0` acquisition constructor | STRONG / cross-layer | L1 allocation/start + scheduler/state boundary; do not classify wholly L1 |
 | `0x1401B8CA0` materialization dispatcher | STRONG | direct/packed/loose dispatch before state1 publication |
-| `0x1402EF4D0` submission wrapper | STRONG bounded label | not exact-path resolver/read/open authority |
+| `0x1402EF4D0` submission wrapper | STRONG bounded label | body/callees and load-context consumer still open |
+| `0x1402EF580` scheduler enqueue | STRONG | higher scheduler callback registration is distinct from FileSlot transport |
+| `0x1402EF790` scheduler worker | STRONG | executes queued callback then clears scheduler slot |
+| `0x1402EF460` pending scheduler clear/rollback | STRONG bounded label | queue rollback, not OS AsyncIO cancellation authority |
 | `0x1400333F0/3C0/500/5A0` whole-file transfer | STRONG | caller-owned destination and raw transport callback recovered |
 | FileSlot / ReadRequestV2 architecture | STRONG | exact error/cancellation breadth remains bounded |
 | ZIP index/EOCD/central walk | STRONG | do not restart core architecture |
@@ -179,22 +214,23 @@ These handoff questions are higher priority than re-reversing already strong ZIP
 | `0x140328FE0` compressed seek | HIGH | reset+replay semantics known; exact branches open |
 | `0x1403290F0` raw seek | HIGH | SET/CUR/END + logical/physical mapping recovered |
 | `0x140327DB0/7D90` teardown | DIRECT-EXE CONFIRMED | close/free ownership architecture known |
-| `.lst` grammar/layout/recursion | STRONG | temp allocation/free/failure/fan-in breadth open |
+| `.lst` grammar/layout/recursion | STRONG | temp allocation/free/failure/completion-ordering breadth open |
 | `0x1401B8DC0` state1→2 handoff | STRONG boundary | scheduler/resource completion, not raw I/O callback |
+| explicit generic fan-in counter | NOT EVIDENCED | do not model as recovered behavior without direct dataflow |
 | typed post-load / state2→3 | OUT OF L1 | L3 authority |
 
 ## 6. Updated reverse priority
 
-When canonical EXE bytes are available, use this order unless a concrete acceptance receipt activates another dependency:
+When canonical EXE bytes are available, use the focused plan `data/reverse/dmc3-l1-materialization-completion-plan.v1.json` and this order unless a concrete acceptance receipt activates another dependency:
 
-1. **materialization fan-in/completion** around the submission/scheduler path and `0x1401B8DC0`;
-2. **transport error -> resource scheduler/materialization error mapping**;
-3. **`.lst` temporary allocation/free identity and failure cleanup**;
-4. **`.lst` malformed/truncated/recursion failure propagation** if real loose-list acceptance activates it;
+1. **materialization completion ordering / dependency barrier** around `0x1402EF4D0`, `0x1402EF580`, `0x1402EF790` and `0x1401B8DC0`;
+2. **scheduler rollback semantics** around `0x1402EF460` and `0x1401B8430`;
+3. **transport error -> resource scheduler/materialization error mapping** through `0x1400335A0` and the higher scheduler;
+4. **`.lst` child completion/failure ordering** plus temporary allocation/free identity and failure cleanup;
 5. FileSlot/ReadRequest partial-read/error/cancellation breadth where needed by a claimed compatibility boundary;
 6. exact `0x140328540` / `0x140328FE0` body breadth only when an acceptance claim requires those details.
 
-The blocked-window acquisition packet must prioritize these seams rather than treating ZIP initializer/seek as automatically first.
+The broad blocked-window packet remains useful for multi-layer reacquisition, but the focused completion plan is the preferred next L1 byte packet.
 
 ## 7. L2/L3 exclusions and dependencies
 
@@ -204,14 +240,15 @@ Do not count as L1 reverse gaps:
 - type-0 physical-provider selection/open policy — L2; the post-`0x0C` static boundary is already recovered/promoted by #215 and must not be reopened absent contradictory evidence;
 - typed PAC/PNST MOD/EFM/SCM/SHW post-load — L3;
 - optional ready callback and `state 2 -> 3` — L3;
-- loader-node claims, cache-family policy, state4 cancellation, reset/release/shutdown — L3;
+- loader-node claims, cache-family policy, reset/release/shutdown — L3;
+- wider cancellation lifecycle is L3, while the scheduler rollback mechanics immediately guarding unfinished L1 materialization are valid boundary evidence for this L1 completion-ordering review;
 - Stage Ops / ModViz semantics — downstream.
 
 L2/L3 work remains allowed when a concrete L1 acceptance path depends on it.
 
 ## 8. Acceptance consequence
 
-These remaining exact-body/fan-in/error questions are bounded reverse breadth. They do not retroactively invalidate the current representative packed-NBZ/PAC/PNST product implementation path.
+These remaining exact-body/completion-ordering/error questions are bounded reverse breadth. They do not retroactively invalidate the current representative packed-NBZ/PAC/PNST product implementation path.
 
 `L1 COMPLETE / 100%` still requires the real-retail and original-game receipts defined by the L1 roadmap and issue #209. Static EXE review cannot substitute for Level-E consumption.
 
@@ -224,7 +261,9 @@ The following wording is now explicitly superseded:
 - `0x1401B8DC0 == raw I/O callback`;
 - `.lst synchronous temporary load == 0x1402EF920`;
 - `FileSlot/AsyncIO as wholly L3` when discussing the L1 byte-transport path;
+- `materialization fan-in` when intended to assert an evidenced child/outstanding-work counter;
+- `0x1402EF460 == OS AsyncIO cancellation`;
 - `0x140328540/0x140328FE0 architecture unknown`;
 - `type-0 physical final-open semantics still open` after #215.
 
-Historical pass comments remain evidence history; future status/roadmap/review work must use this reconciled boundary.
+Historical pass comments remain evidence history; future status/roadmap/review work must use this reconciled boundary and the completion-ordering follow-up pass.
