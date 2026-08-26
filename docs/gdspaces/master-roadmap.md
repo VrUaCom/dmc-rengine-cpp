@@ -1,8 +1,9 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Active L2 evidence slice:** PR #219  
+**Latest L3 static authority:** `l3-boundary-audit-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -35,13 +36,15 @@ logical request
 
 ```text
 selected/materialized bytes
- -> FileSlot/async completion
+ -> FileSlot/async lifecycle ownership
  -> LoadedResource states
  -> typed post-load
  -> ready visibility
  -> claims/cache
- -> reset/release/shutdown
+ -> cancellation/reset/release/shutdown
 ```
+
+**Stage Assembly / Stage Ops is not L3.** It is a downstream domain/tooling consumer of the three-layer resource authority.
 
 Validation is cross-cutting and is not a fourth layer.
 
@@ -49,7 +52,7 @@ Validation is cross-cutting and is not a fourth layer.
 
 A task from another layer is allowed when it closes the current acceptance gap. Every task must record its primary layer, dependency and return condition to the vertical critical path.
 
-Do not start broad L2/L3 work merely because it is interesting. Do not block required L2/L3 evidence because L1 is still open.
+Do not start broad work merely because it is interesting. Do not block required cross-layer evidence because another layer is still open.
 
 ## Current vertical acceptance target
 
@@ -60,7 +63,7 @@ real protected DMC3 installation
  -> [L1] supported top-level or nested edit/rebuild
  -> [L2] authored next-volume winner
  -> [L1] exact authored rematerialization
- -> [L3] original consumer visibility
+ -> [L3] original lifecycle reaches consumer-ready visibility
  -> observable effect attributable to authored bytes
  -> rollback / transition receipt
 ```
@@ -182,20 +185,71 @@ Only after a valid protected-runtime mapping packet exists:
 
 ## Track C — L3 closure
 
-Canonical audit: `l3-audit-2026-08-25.md`.
+Canonical static authority:
 
-Current work order:
+- baseline subsystem audit: `l3-audit-2026-08-25.md`;
+- raw canonical-EXE reconciliation: `l3-boundary-audit-2026-08-26.md`;
+- detailed second raw pass: `l3-raw-exe-pass-2026-08-26.md`.
+
+### L3 acquisition blocker — CLOSED
+
+The canonical instruction-reverse `dmc3.exe` has been reacquired and independently re-identified as:
+
+- size `6,356,432`;
+- SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`;
+- PE32+ x64, preferred image base `0x140000000`.
+
+The old "raw canonical EXE unavailable" statement is superseded. Acquisition tooling remains useful for reproducibility/regression packets, not as the current L3 semantic blocker.
+
+### Static L3 boundaries now strong
+
+Do not restart without contradictory evidence:
+
+- LoadedResource registry `363 x 0x48` and seven-group topology;
+- central lifecycle `0 -> 1 -> 2 -> typed post-load -> optional callback -> 3`;
+- canonical cancellation source domain `1|2 -> 4`;
+- quiescence predicate: every record must be state `0` or `3`;
+- cancellation cleanup `4 -> 0` ordering;
+- distinct ordinary/group/full release-reset policies;
+- representative MOD/EFM/SCM/SHW typed post-load and recursive PNST traversal;
+- central typed dispatcher unknown/default behavior as best-effort no-op/return rather than a failure return that blocks state 3;
+- higher-level loader-node claim/zero-claim release concept;
+- runtime vs CRT vs process-lifetime teardown distinction.
+
+### L1/L3 seam now explicit
+
+`0x1401B8CA0` is a mixed materialization/lifecycle boundary:
 
 ```text
-state-writer/caller census
- -> known-field write ownership/order
- -> typed-dispatch breadth/failure semantics
- -> shared-owner coordination by family
- -> initial-load Level-E receipt
- -> transition/restart/cancellation receipts
- -> menu/full-reset receipt
- -> shutdown receipt
- -> family/build breadth
+L1 representation/materialization dispatch
+ -> boolean success
+ -> L3 acquisition publishes state 1 only after success
+```
+
+Classify evidence by semantics, not by assigning the whole helper to one layer.
+
+### Current L3 static work order
+
+```text
+finish alias-aware whole-image state-writer census
+ -> finish family-specific +0x08/+0x18/+0x20/+0x28 ownership census
+ -> close external typed/factory/dependency and SCM edges
+ -> finish shared-owner coordination breadth
+ -> original-process Level-E receipts
+```
+
+The central old question "does unknown/default `0x1401B9FA0` post-load leave state 2?" is no longer open for that path: the dispatcher is best-effort/void and the state-2 finalizer proceeds to callback then state3.
+
+### Current L3 dynamic work order — issue #217
+
+```text
+V1 initial load
+ -> V2 room/stage transition
+ -> V3 restart/reload
+ -> V5 in-flight cancellation
+ -> V4 return-to-menu/full reset
+ -> V6 shutdown
+ -> V7 family/build breadth
  -> final L3 audit
 ```
 
@@ -216,11 +270,11 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
-2. Complete PR #219 acquisition/tooling review and exact-head CI.
-3. When a protected original process is available, produce the L2 multi-anchor mapping packet.
-4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
-5. Capture original-process selected identity only after mapped L2 anchors are proven.
-6. Reconcile final L2 evidence and run the final Layer-2 audit.
+2. Complete L2 protected-runtime mapping/selected-identity evidence when a protected process is available.
+3. Finish the now-narrow L3 static census instead of reopening the recovered core spine.
+4. Capture V1 and V5 first because they directly exercise ready-state and cancellation boundaries needed by the vertical proof.
+5. Continue transition/reset/shutdown receipts and family/build breadth.
+6. Reconcile final L2/L3 evidence and run their final audits independently.
 
 ## Completion rule
 
