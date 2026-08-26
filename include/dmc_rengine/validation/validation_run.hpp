@@ -126,6 +126,9 @@ struct ValidationRunSubmission final {
                 return false;
             }
             if (artifact.id == original_execution_artifact_id) {
+                if (artifact.size == 0U) {
+                    return false;
+                }
                 original_execution_artifact_found = true;
             }
         }
@@ -226,14 +229,31 @@ private:
     friend class TrustedValidationBinder;
 };
 
+// Defined here, rather than merely forward-declared, so another translation
+// unit cannot define the friend type and manufacture access to the private
+// promotion constructor. A future trusted-publisher slice must deliberately
+// evolve this authority type in this header.
+class TrustedValidationBinder final {
+public:
+    TrustedValidationBinder(const TrustedValidationBinder&) = delete;
+    TrustedValidationBinder& operator=(const TrustedValidationBinder&) = delete;
+    TrustedValidationBinder(TrustedValidationBinder&&) = delete;
+    TrustedValidationBinder& operator=(TrustedValidationBinder&&) = delete;
+
+private:
+    TrustedValidationBinder() = default;
+};
+
 static_assert(!std::is_constructible_v<ValidationPromotionGate, bool>);
+static_assert(!std::is_default_constructible_v<TrustedValidationBinder>);
+static_assert(!std::is_copy_constructible_v<TrustedValidationBinder>);
+static_assert(!std::is_move_constructible_v<TrustedValidationBinder>);
 
 [[nodiscard]] inline ValidationPromotionGate manual_submission_promotion_gate(
     const ValidationRunSubmission&) noexcept {
     // A structurally perfect self-authored/manual submission can never create
-    // trusted promotion authority. A future TrustedValidationBinder must bind
-    // an accepted original-process publisher/observer before eligibility can
-    // become true.
+    // trusted promotion authority. The authority type above currently exposes
+    // no trusted binding operation at all.
     return {};
 }
 
