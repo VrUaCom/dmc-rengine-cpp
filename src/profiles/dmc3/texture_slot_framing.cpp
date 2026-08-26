@@ -278,13 +278,18 @@ struct DescriptorParseResult final {
         bytes, descriptor_offset + kDescriptorAuxModeOffset);
     const auto auxiliary_value = read_u32_le(
         bytes, descriptor_offset + kDescriptorAuxValueOffset);
+    // The auxiliary pair bounds what the *writer* may author, not what a
+    // texture pack *is*. The real `st114` stage pack carries a non-zero mode
+    // on DXT1 textures — seventeen of seventeen — which the earlier corpus
+    // never showed, so a relation enforced here was silently turning a real
+    // pack into an unreadable blob. Recognition now records the pair and lets
+    // the writer refuse what it cannot author.
     if (auxiliary_mode > 2U ||
-        ((auxiliary_mode == 0U) != (auxiliary_value == 0U)) ||
-        (auxiliary_mode != 0U && compression != TextureCompressionKind::dxt5)) {
+        ((auxiliary_mode == 0U) != (auxiliary_value == 0U))) {
         return {
             .status = TextureSlotFramingStatus::descriptor_mismatch,
             .entry = {},
-            .detail = "descriptor auxiliary pair lies outside the corpus-confirmed bounded relation",
+            .detail = "descriptor auxiliary mode is outside its recorded range or disagrees with its value",
         };
     }
 
@@ -497,7 +502,6 @@ bool TextureSlotEntry::valid(std::uint64_t slot_size) const noexcept {
         secondary_width != 0U && secondary_height != 0U &&
         (secondary_same || secondary_half) && auxiliary_mode <= 2U &&
         ((auxiliary_mode == 0U) == (auxiliary_value == 0U)) &&
-        (auxiliary_mode == 0U || compression == TextureCompressionKind::dxt5) &&
         descriptor_offset < dds_offset &&
         dds_offset - descriptor_offset == TextureSlotFramingParser::k_descriptor_size &&
         dds_offset <= slot_size && dds_size <= slot_size - dds_offset;

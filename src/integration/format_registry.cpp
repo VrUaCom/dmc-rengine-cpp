@@ -255,7 +255,10 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::cameras,
             .evidence_claim_ids = {},
-            .limitations = {"Historical CAM Editor is not yet migrated."},
+            .limitations = {
+                "Typed by extension in the recovered animation registry, which has no content probe: an unmatched name is not registered at all.",
+                "Historical CAM Editor is not yet migrated.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "dca",
@@ -418,6 +421,58 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "Tag observed in the retail stage corpus, not in a recovered runtime comparison. The name is the tag, and no role is claimed for it.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "mot",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = gdspaces::StageResourceCategory::animations,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Motion. Typed by extension in the recovered animation registry.",
+                "That registry has no content-tag fallback, so a payload with no recognized name is never registered. Structure is not modelled.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "mcv",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = gdspaces::StageResourceCategory::animations,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Curve. Typed by extension in the recovered animation registry.",
+                "That registry has no content-tag fallback, so a payload with no recognized name is never registered. Structure is not modelled.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "hid",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = gdspaces::StageResourceCategory::unknown,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Typed by extension in the recovered animation registry.",
+                "That registry has no content-tag fallback, so a payload with no recognized name is never registered. Structure is not modelled.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "tsc",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = gdspaces::StageResourceCategory::unknown,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Typed by extension in the recovered animation registry.",
+                "That registry has no content-tag fallback, so a payload with no recognized name is never registered. Structure is not modelled.",
             },
         },
         FormatIntegrationDescriptor{

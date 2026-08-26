@@ -2,6 +2,7 @@
 #include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_list.hpp"
 #include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_bootstrap_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
@@ -307,6 +308,52 @@ void the_product_walks_slots_the_way_the_runtime_does() {
     assert(!formats::PnstParser::parse(pnst).ok());
 }
 
+void the_animation_registry_is_a_second_registry() {
+    using Animation = dmc3::AnimationTypeContract;
+    using Types = dmc3::ResourceTypeContract;
+
+    // Two registries, not one table read twice. Different address, different
+    // capacity, different type numbering — and only one of them falls back to
+    // the payload's own bytes.
+    static_assert(
+        Animation::register_and_classify_va != Types::register_and_classify_va);
+    static_assert(Animation::table_capacity == 0x400U);
+    static_assert(Types::table_capacity == 0x100U);
+    static_assert(!Animation::has_content_tag_fallback);
+    static_assert(Animation::table_bytes() == 0x19408U);
+
+    assert(Animation::type_for_extension(".mot") ==
+        Animation::TypeCode::motion);
+    assert(Animation::type_for_extension(".MOT") ==
+        Animation::TypeCode::motion);
+    assert(Animation::type_for_extension(".tsc") == Animation::TypeCode::tsc);
+    // Case is enumerated in pairs, so a spelling neither table lists is not
+    // recognized by either.
+    assert(Animation::type_for_extension(".Mot") ==
+        Animation::TypeCode::unregistered);
+    assert(Animation::type_for_extension(".ptx") ==
+        Animation::TypeCode::unregistered);
+
+    // `.clt` is the one extension both registries claim, and they number it
+    // differently. A type code means nothing without the registry that issued
+    // it, and this is the case that proves it.
+    assert(Animation::type_for_extension(Animation::shared_extension) ==
+        Animation::TypeCode::palette);
+    static_assert(
+        static_cast<int>(Animation::TypeCode::palette) !=
+        static_cast<int>(Types::TypeCode::palette));
+    bool shared_in_first = false;
+    for (const auto& entry : Types::extension_types) {
+        shared_in_first =
+            shared_in_first || entry.extension == Animation::shared_extension;
+    }
+    assert(shared_in_first);
+
+    static_assert(
+        Animation::canonical_target_sha256 == Types::canonical_target_sha256);
+    static_assert(Animation::image_base == Types::image_base);
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -350,6 +397,7 @@ int main() {
     archive_entry_read_matches_the_recovered_branch();
     the_product_identifies_types_the_way_the_runtime_does();
     the_product_walks_slots_the_way_the_runtime_does();
+    the_animation_registry_is_a_second_registry();
     contracts_are_bound_to_one_image();
     return 0;
 }

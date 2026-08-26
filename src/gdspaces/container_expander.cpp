@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/slot_name_manifest.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -172,6 +173,24 @@ ContainerExpansion ContainerExpander::expand(
         });
     }
 
+    // A relative-slot container may carry its own name list in slot 0. Read it
+    // once, before the children, so every slot can be attributed against it.
+    std::vector<std::string> manifest;
+    if (!parsed.document.entries.empty()) {
+        const auto& first = parsed.document.entries.front();
+        if (first.slot_index == SlotNameManifest::k_manifest_slot &&
+            first.populated) {
+            const auto parent_size =
+                static_cast<std::uint64_t>(parent.bytes.size());
+            if (first.offset <= parent_size &&
+                first.size <= parent_size - first.offset) {
+                manifest = SlotNameManifest::parse(std::span<const std::byte>{
+                    parent.bytes.data() + static_cast<std::size_t>(first.offset),
+                    static_cast<std::size_t>(first.size)});
+            }
+        }
+    }
+
     expansion.children.reserve(parsed.document.entries.size());
     for (const auto& entry : parsed.document.entries) {
         if (parent.resource.id.offset >
@@ -206,6 +225,13 @@ ContainerExpansion ContainerExpander::expand(
             .profile = parent.resource.profile,
             .synthetic_name = entry.synthetic_name,
             .container = false,
+        };
+
+        SlotNameAttribution attribution{
+            .slot_index = entry.slot_index,
+            .name = name,
+            .origin = SlotNameOrigin::parser_placeholder,
+            .corroborated_by_payload = false,
         };
 
         std::vector<std::byte> child_bytes;
@@ -267,6 +293,28 @@ ContainerExpansion ContainerExpander::expand(
                         named.erase(dot);
                     }
                     child_ref.display_name = named + "." + classification.format;
+                    attribution.name = child_ref.display_name;
+                    attribution.origin = SlotNameOrigin::byte_derived_suffix;
+                }
+
+                // A manifest line, where one exists for this slot. It replaces
+                // the attributed name and nothing else: the identity and the
+                // display name stay as they were, so an operator sees both what
+                // the container calls this slot and what the tool does.
+                if (entry.slot_index > SlotNameManifest::k_manifest_slot) {
+                    const auto line = static_cast<std::size_t>(
+                        entry.slot_index - SlotNameManifest::k_manifest_slot - 1U);
+                    if (line < manifest.size()) {
+                        attribution.name = manifest[line];
+                        attribution.origin = SlotNameOrigin::container_manifest;
+                        // The one check available: does the type the payload
+                        // declares for itself agree with the extension the
+                        // manifest line carries? Agreement does not prove the
+                        // mapping, and disagreement is worth seeing.
+                        attribution.corroborated_by_payload =
+                            SlotNameManifest::extension_of(attribution.name) ==
+                            classification.format;
+                    }
                 }
             }
         } else {
@@ -282,6 +330,7 @@ ContainerExpansion ContainerExpander::expand(
                 .diagnostics = std::move(child_diagnostics),
                 .byte_provenance = std::move(provenance),
             },
+            .name_attribution = std::move(attribution),
         });
     }
 

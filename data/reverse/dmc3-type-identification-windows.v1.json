@@ -1,4 +1,43 @@
 {
+  "animation-extension-literal-table": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x5063d0",
+    "image_base": "0x140000000",
+    "name": "animation-extension-literal-table",
+    "rva": "0x5071d0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".rdata",
+    "size": 80,
+    "va": "0x1405071d0",
+    "window_sha256": "21eed8361b583dccf6855d4cbdc20712e7e71ca01dbc5ea7cba5d871516ba65c"
+  },
+  "animation-register-and-classify": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2df5a0",
+    "image_base": "0x140000000",
+    "name": "animation-register-and-classify",
+    "rva": "0x2e01a0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 1216,
+    "va": "0x1402e01a0",
+    "window_sha256": "6cce68d77d1496dc153b32d4d1d1dfba93e8e48721c006da48ff1f4f07f23edb"
+  },
+  "animation-table-reset": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2df550",
+    "image_base": "0x140000000",
+    "name": "animation-table-reset",
+    "rva": "0x2e0150",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 71,
+    "va": "0x1402e0150",
+    "window_sha256": "29305a5f33490bd252191b3bca574bff0cf6cefde0c65af6202af6719eb85b56"
+  },
   "content-type-probe": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
