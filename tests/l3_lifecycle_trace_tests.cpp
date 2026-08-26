@@ -1,6 +1,7 @@
 #include "dmc_rengine/validation/l3_lifecycle_trace.hpp"
 
 #include <cassert>
+#include <cstdint>
 #include <string>
 
 namespace {
@@ -103,16 +104,19 @@ int main() {
         const auto result = l3_lifecycle_trace_from_json(v1_trace(false));
         assert(result.ok());
         assert(result.trace->scope == L3LifecycleScope::v1_initial_load);
-        assert(!result.promotion_eligible);
+        assert(!result.promotion_eligible.content_candidate());
+        assert(!result.promotion_eligible.eligible());
         assert(result.trace->events.size() == 10U);
     }
 
-    // This only exercises the promotion predicate. The in-memory synthetic JSON is
-    // not a committed Evidence Packet or a Level-E receipt.
+    // Even a syntactically perfect self-asserted original_process=true JSON can
+    // only become a content candidate. Trusted origin is deliberately impossible
+    // to manufacture through this importer.
     {
         const auto result = l3_lifecycle_trace_from_json(v1_trace(true));
         assert(result.ok());
-        assert(result.promotion_eligible);
+        assert(result.promotion_eligible.content_candidate());
+        assert(!result.promotion_eligible.eligible());
     }
 
     // Ready callback must stay between typed post-load and state-3 publication.
@@ -148,7 +152,8 @@ int main() {
         const auto result = l3_lifecycle_trace_from_json(v5_trace(false));
         assert(result.ok());
         assert(result.trace->scope == L3LifecycleScope::v5_inflight_cancellation);
-        assert(!result.promotion_eligible);
+        assert(!result.promotion_eligible.content_candidate());
+        assert(!result.promotion_eligible.eligible());
     }
 
     // The recovered canonical cancellation writer does not mark ready state 3 as 4.
@@ -170,7 +175,8 @@ int main() {
         aborted += suffix();
         const auto result = l3_lifecycle_trace_from_json(aborted);
         assert(result.ok());
-        assert(!result.promotion_eligible);
+        assert(!result.promotion_eligible.content_candidate());
+        assert(!result.promotion_eligible.eligible());
     }
 
     // V7 is intentionally not a single-trace scope. Breadth is aggregated across
