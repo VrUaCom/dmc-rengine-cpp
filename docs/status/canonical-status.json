@@ -4,20 +4,74 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c147facb310d32ef084c56ba82d1e4b6b9b1b496",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-evidence-closure-active",
+  "snapshot_main_sha": "c20544cfb7f3ddba69a128a88246550a35eb51c1",
+  "overall_status": "gdspaces-layer-implementation-advanced-unified-v-validation-integration-active-original-process-acceptance-open",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
     "reverse_evidence": "artifact-range-scope-bound",
-    "synthetic_ci": "bounded-product-validation-not-original-game-equivalence",
-    "level_e": "original-process-consumption-and-rollback-required"
+    "synthetic_ci": "v-b-bounded-product-validation-not-original-game-equivalence",
+    "real_corpus": "v-c-bounded-real-artifact-validation-not-automatic-original-equivalence",
+    "original_process": "v-d-trusted-live-evidence-required",
+    "completion": "v-owned-promotion-verdict-required"
+  },
+  "validation": {
+    "authority": "V-validation-equivalence",
+    "role": "single-cross-cutting-validation-and-promotion-authority-for-l1-l2-l3",
+    "is_decompilation_layer": false,
+    "architecture": "../gdspaces/validation-equivalence-architecture.md",
+    "roadmap": "../gdspaces/validation-roadmap.md",
+    "live_validation": {
+      "id": "LV",
+      "name": "Live Validation / Original-Process Observation",
+      "role": "v-owned-live-evidence-acquisition-plane",
+      "is_layer4": false,
+      "promotion_authority": false
+    },
+    "evidence_classes": {
+      "V-A": "artifact-provenance-receipt-and-trusted-origin-integrity",
+      "V-B": "product-ci-controlled-tests-and-contract-validation",
+      "V-C": "exact-real-corpus-validation",
+      "V-D": "trusted-original-process-equivalence",
+      "V-E": "breadth-cross-layer-and-subsystem-acceptance"
+    },
+    "promotion_rule": "l1-l2-l3-may-submit-evidence-but-only-v-may-promote-original-equivalent-game-ready-equivalent-complete-or-100-percent-completion-claims",
+    "cross_layer_rule": "independent-layer-pass-results-do-not-form-a-vertical-proof-without-one-validation-run-and-same-resource-identity-chain",
+    "mandatory_bindings": [
+      "validation-run-id",
+      "exact-executable-authority",
+      "trusted-lv-observer-identity-when-live-evidence-is-used",
+      "logical-request",
+      "l2-selected-provider-volume-member",
+      "l1-materialized-authored-rematerialized-byte-identities",
+      "l3-consumer-lifecycle-identity-when-required",
+      "child-receipt-hashes",
+      "rollback-cleanup-status"
+    ],
+    "anti_laundering": [
+      "green-ci-is-not-original-equivalence",
+      "real-corpus-success-is-not-original-selection-or-consumption-equivalence",
+      "static-disassembly-is-not-dynamic-timing-order-proof",
+      "product-selected-identity-is-not-original-selected-identity",
+      "schema-valid-json-is-not-trusted-original-observation",
+      "single-rva-window-match-is-not-global-build-equivalence",
+      "cross-run-l1-l2-l3-receipts-are-not-one-vertical-proof",
+      "crash-free-launch-is-not-consumer-acceptance"
+    ],
+    "current_ledgers": {
+      "V-L1": "issue-209-original-game-consumption-and-rollback",
+      "LV-L2-V-L2": "issue-220-and-pr-221-original-selected-identity",
+      "LV-L3-V-L3": "issue-217-and-pr-218-original-lifecycle-validation",
+      "LV-runtime-mapping": "pr-219-merged-tooling-real-process-receipt-required"
+    },
+    "parent_vertical_receipt_status": "architecture-defined-implementation-pending"
   },
   "gdspaces": {
-    "primary_execution_layer": "L1-resource-materialization-final-acceptance",
+    "primary_execution_layer": "L1-resource-materialization-final-acceptance-with-v-owned-validation",
     "roadmap": "../gdspaces/l1-roadmap.md",
+    "master_roadmap": "../gdspaces/master-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
-    "completion_model": "mandatory-gates",
+    "completion_model": "mandatory-gates-plus-v-promotion",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
     "canonical_capabilities": [
       "nbz-classic-zip-indexing",
@@ -43,7 +97,8 @@
       "protected-retail-product-authoring-closure-orchestration",
       "l2-type0-physical-provider-static-reverse",
       "l2-native-physical-path-product-model",
-      "l2-controlled-physical-hit-miss-fallback-receipts"
+      "l2-controlled-physical-hit-miss-fallback-receipts",
+      "lv-protected-runtime-rva-acquisition-and-bounded-mapping-tooling"
     ],
     "mandatory_L1_gates": [
       {
@@ -79,12 +134,12 @@
       {
         "id": "L1-G",
         "name": "original-dmc3-consumption-and-rollback-receipt",
-        "status": "open-external-level-e-issue-209"
+        "status": "open-v-l1-v-d-issue-209"
       },
       {
         "id": "L1-H",
         "name": "final-cross-stack-l1-acceptance-audit",
-        "status": "open-depends-on-real-receipts"
+        "status": "open-depends-on-v-accepted-real-receipts"
       }
     ],
     "closed_promotion_chain": [
@@ -97,7 +152,8 @@
       "201-relative-slot-cli",
       "208-protected-retail-authoring-closure",
       "213-nested-slot-path-reflow",
-      "215-l2-type0-physical-provider"
+      "215-l2-type0-physical-provider",
+      "219-protected-runtime-rva-mapping-tooling"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
@@ -115,7 +171,7 @@
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
     "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
     "L2": {
-      "overall_status": "advanced-not-complete-real-corpus-and-original-process-evidence-open",
+      "overall_status": "advanced-not-complete-real-corpus-and-v-accepted-original-process-evidence-open",
       "canonical_analysis_executable": {
         "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
         "size": 6356432,
@@ -136,40 +192,54 @@
         {
           "id": "L2-R2A",
           "name": "real-retail-0x0e-collision-census",
-          "status": "external-artifact-required"
+          "status": "external-artifact-required-v-c"
         },
         {
           "id": "L2-R2B",
           "name": "protected-distribution-runtime-rva-mapping",
-          "status": "tooling-active-pr-219-real-process-receipt-required"
+          "status": "lv-tooling-merged-pr-219-real-process-v-a-receipt-required"
         },
         {
           "id": "L2-R3",
           "name": "original-process-selected-provider-identity",
-          "status": "blocked-by-l2-r2b"
+          "status": "lv-v-l2-contract-active-issue-220-pr-221-real-observation-required"
         },
         {
           "id": "L2-R4",
           "name": "final-layer2-audit",
-          "status": "open-depends-on-real-retail-and-original-process-receipts"
+          "status": "open-depends-on-v-accepted-real-retail-and-original-process-receipts"
         }
       ],
-      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping"
+      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-v-accepted-independent-runtime-mapping"
+    },
+    "L3": {
+      "overall_status": "advanced-static-runtime-model-dynamic-v-d-v-e-open",
+      "static_reverse_ledger": "issue-88",
+      "dynamic_validation_ledger": "issue-217",
+      "dynamic_validation_contract_pr": "pr-218",
+      "live_acquisition_owner": "LV-L3",
+      "equivalence_owner": "V-L3"
     }
   },
   "project_priority": [
+    "v-lv-architecture-and-machine-status-integration",
+    "v-parent-validation-run-and-cross-receipt-binding-contract",
     "direct-retail-provenance-receipt",
     "exact-retail-representation-classification",
     "representative-real-edit-rebuild-rematerialization-receipt",
-    "issue-209-original-dmc3-consumption-and-rollback",
-    "final-l1-cross-stack-audit",
+    "issue-209-v-l1-original-dmc3-consumption-and-rollback",
     "l2-real-retail-collision-census",
-    "l2-protected-runtime-mapping-receipt",
-    "l2-original-process-selected-identity-receipt"
+    "lv-l2-protected-runtime-mapping-receipt",
+    "lv-v-l2-original-process-selected-identity-receipt",
+    "same-resource-v-l3-consumer-lifecycle-binding",
+    "first-cross-layer-v-vertical-receipt"
   ],
   "other_layers": {
-    "L2": "advanced-physical-provider-closed-real-corpus-and-original-process-evidence-open",
-    "L3": "advanced-static-spine-dynamic-level-e-open"
+    "L1": "internal-product-path-closed-v-l1-real-acceptance-open",
+    "L2": "advanced-physical-provider-and-mapping-tooling-closed-real-corpus-and-v-l2-original-process-evidence-open",
+    "L3": "advanced-static-spine-v-l3-dynamic-level-e-open",
+    "LV": "v-owned-live-acquisition-plane-tooling-partial-real-process-receipts-open",
+    "V": "canonical-cross-cutting-category-being-integrated-as-single-promotion-authority"
   },
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
@@ -177,6 +247,8 @@
     "current_status": "current.md",
     "blockers": "blockers.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
+    "validation_architecture": "../gdspaces/validation-equivalence-architecture.md",
+    "validation_roadmap": "../gdspaces/validation-roadmap.md",
     "gdspaces_contract": "../gdspaces-contract.md"
   }
 }
