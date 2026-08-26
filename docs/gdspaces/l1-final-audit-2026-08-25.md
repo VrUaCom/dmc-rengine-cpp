@@ -4,11 +4,12 @@
 **Reconciled:** 2026-08-26 against `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Layer:** L1 — Resource Materialization  
 **Verdict:** INTERNAL PRODUCT PATH CLOSED; L1 COMPLETE remains blocked by real-retail / original-game evidence.  
-**EXE boundary authority:** `l1-exe-boundary-review-2026-08-26.md`
+**EXE boundary authority:** `l1-exe-boundary-review-2026-08-26.md`  
+**Completion-ordering follow-up:** `l1-exe-materialization-completion-pass-2026-08-26.md`
 
 ## 1. Purpose
 
-This audit reconciles Layer 1 after the publication, artifact-stability, retail-acquisition, authoring, nested-reflow and protected-retail closure work merged through PR #213, and remains valid after the 2026-08-26 EXE boundary reconciliation.
+This audit reconciles Layer 1 after the publication, artifact-stability, retail-acquisition, authoring, nested-reflow and protected-retail closure work merged through PR #213, and remains valid after the 2026-08-26 EXE boundary/completion-ordering reconciliation.
 
 It answers one question:
 
@@ -18,7 +19,9 @@ The answer on the current canonical head is **no known mandatory internal implem
 
 That does **not** mean L1 is already COMPLETE. The remaining mandatory gates are evidence executions against a real protected retail installation and the original game process.
 
-The 2026-08-26 EXE review refines the reverse boundary but does not weaken this acceptance rule: byte transport/materialization through the resource-level `state 1 -> 2` handoff is L1; typed post-load, `state 2 -> 3` and lifecycle are L3.
+The 2026-08-26 EXE reviews refine the reverse boundary but do not weaken this acceptance rule: byte transport/materialization through the resource-level `state 1 -> 2` handoff is L1; typed post-load, `state 2 -> 3` and lifecycle are L3.
+
+The completion-ordering follow-up also corrects one overclaim: a generic original child/outstanding-work **fan-in counter is not evidenced**. The safe recovered concept is scheduler-mediated **materialization completion ordering / dependency barrier**.
 
 ## 2. Current canonical L1 product chain
 
@@ -220,31 +223,53 @@ If a new real-retail representation falls outside these supported domains, that 
 
 ## 5. Bounded reverse gaps that do not block L1 unless activated by acceptance evidence
 
-The canonical reverse matrix and corrected labels are maintained in `l1-exe-boundary-review-2026-08-26.md`.
+The canonical reverse matrix and corrected labels are maintained in `l1-exe-boundary-review-2026-08-26.md`; the focused ordering/cancellation correction is in `l1-exe-materialization-completion-pass-2026-08-26.md`.
 
-### Materialization fan-in / completion semantics
+### Materialization completion ordering / dependency barrier
 
 This is now the highest-value open L1 EXE handoff seam.
 
 `0x1400335A0` is a transport/whole-file completion callback. `0x1401B8DC0` is a higher resource scheduler/materialization completion handoff registered through `0x1402EF580` and publishes the normal `state 1 -> 2` transition.
 
+The scheduler layer is directly bounded by:
+
+- `0x1402EF580` enqueue;
+- `0x1402EF790` worker/callback execution;
+- `0x1402EF460` pending scheduled-entry clear/rollback.
+
+Current evidence does **not** establish a generic child/outstanding-work fan-in counter.
+
 Open exact breadth includes:
 
-- outstanding child/direct submission aggregation;
-- parent completion condition;
-- nested `.lst` child participation in completion;
-- one-child-failure behavior;
+- success-side ordering between materialization work and state2 completion registration/execution;
+- whether ring order, another status/dependency object or an explicit counter enforces completion;
+- nested `.lst` child participation in the completion barrier;
+- one-child/submission failure behavior;
 - partial destination lifetime on failure;
 - transport-failure mapping into resource-level completion/failure;
 - exact conditions that suppress state2 publication.
 
 These are bounded reverse details. They become a mandatory blocker only if a concrete acceptance claim depends on unresolved behavior rather than the successful representative path.
 
-### `.lst` temporary-buffer lifetime/error breadth
+### Scheduler rollback / cancellation boundary
+
+The cancellation-side ordering is stronger than the success-side dependency proof:
+
+```text
+0x1401B8430
+ -> 0x1402EF460 pending scheduler clear/rollback
+ -> state 1|2 -> 4
+ -> enqueue 0x1401B8F00 via 0x1402EF580
+ -> deferred cleanup -> state 0 + backing release
+```
+
+This proves higher scheduler rollback occurs before unfinished records are moved into the state4 cleanup path. It does **not** prove OS AsyncIO cancellation or guaranteed cancellation of already-running FileSlot/ReadRequest work.
+
+### `.lst` child completion and temporary-buffer lifetime/error breadth
 
 The `.lst` text is known to be loaded synchronously into aligned temporary storage before bounded parsing, but there is no direct evidence equating that loader with the synchronous-style wrapper around `0x1402EF920`.
 
-Allocation/free identity, failure cleanup, malformed/truncated propagation and original recursion failure behavior remain open. A real `.lst` corpus receipt is mandatory only if L1 completion is claimed for real loose-list consumption or if the representative acceptance path selects `.lst`.
+Exact child completion/failure ordering, allocation/free identity, failure cleanup, malformed/truncated propagation and original recursion failure behavior remain open. A real `.lst` corpus receipt is mandatory only if L1 completion is claimed for real loose-list consumption or if the representative acceptance path selects `.lst`.
 
 ### FileSlot / ReadRequest error breadth
 
@@ -274,6 +299,8 @@ Do not use the following superseded shorthand:
 - `0x1401B8DC0` as a raw I/O callback. Raw transport completion is represented by callbacks such as `0x1400335A0`; `0x1401B8DC0` is the resource-level scheduler/materialization handoff.
 - `.lst synchronous temporary load == 0x1402EF920`. The two synchronous behaviors are independently evidenced but not directly tied.
 - FileSlot/AsyncIO as wholly L3. The byte-transport portion is L1; lifecycle/ownership/cancellation/reset breadth remains L3.
+- `materialization fan-in` when used to assert an evidenced generic child/outstanding-work counter.
+- `0x1402EF460` as OS AsyncIO cancellation.
 - type-0 physical final-open semantics as still open after #215.
 
 ## 7. Completion scope rule
@@ -310,9 +337,10 @@ The mandatory acceptance work order remains:
 While this external sequence is blocked, supporting reverse follows:
 
 ```text
-materialization fan-in/completion
+materialization completion ordering / dependency barrier
+ -> scheduler rollback semantics
  -> transport-to-resource error mapping
- -> .lst temp allocation/free/failure cleanup
+ -> .lst child completion/failure + temp allocation/free/failure cleanup
  -> acceptance-activated FileSlot/error breadth
  -> acceptance-activated ZIP exact-body breadth
 ```
@@ -323,6 +351,6 @@ No synthetic-only feature is allowed to displace the real acceptance path unless
 
 The current connected automation environment does not expose all exact raw protected-install artifacts required to execute the protected-install Level-E run here.
 
-Current main does contain guarded canonical-analysis EXE window acquisition infrastructure. Static reverse reacquisition must use that authority/plan rather than ad hoc unbound byte ranges.
+Current main does contain guarded canonical-analysis EXE window acquisition infrastructure. During the current completion-ordering pass a fresh raw canonical `e454...` executable blob was not exposed through the connected file surface, so no new byte-disassembly claim is made. The focused next acquisition authority is `data/reverse/dmc3-l1-materialization-completion-plan.v1.json`.
 
 This is an **external evidence blocker**, not justification for changing `L1 COMPLETE` criteria.
