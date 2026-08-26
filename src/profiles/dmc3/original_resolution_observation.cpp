@@ -207,7 +207,8 @@ bool OriginalResolutionObservation::valid() const noexcept {
         !canonical_sha256(runtime_mapping_packet_sha256) ||
         !bounded_metadata(observer_id) || !bounded_metadata(observer_version) ||
         !canonical_sha256(observer_build_sha256) || !trace_complete ||
-        dropped_event_count != 0U || pid == 0U || module_base == 0U ||
+        dropped_event_count != 0U || pid == 0U ||
+        process_creation_filetime == 0U || module_base == 0U ||
         flags != 1U || request.empty() || basename.empty() ||
         !selected.has_value() || !selected->valid_shape() ||
         first_missing_archive_volume > VolumeBootstrapPolicy::runtime_index_max() ||
@@ -304,7 +305,7 @@ std::string original_resolution_observation_to_json(
 
     std::ostringstream output;
     output << "{\n"
-           << "  \"schema\": \"dmc-rengine.gdspaces-l2-original-selection.v1\",\n"
+           << "  \"schema\": \"dmc-rengine.gdspaces-l2-original-selection.v2\",\n"
            << "  \"evidence_class\": \"original-process-observation\",\n"
            << "  \"executable_sha256\": \""
            << observation.executable_sha256 << "\",\n"
@@ -320,6 +321,8 @@ std::string original_resolution_observation_to_json(
            << "  \"trace_complete\": true,\n"
            << "  \"dropped_event_count\": " << observation.dropped_event_count << ",\n"
            << "  \"pid\": " << observation.pid << ",\n"
+           << "  \"process_creation_filetime\": "
+           << observation.process_creation_filetime << ",\n"
            << "  \"module_base\": \"" << hex_u64(observation.module_base)
            << "\",\n"
            << "  \"flags\": " << observation.flags << ",\n"
@@ -380,11 +383,12 @@ std::string original_resolution_observation_to_json(
            << escape_json(selected.physical_relative_path) << "\"\n"
            << "  },\n"
            << "  \"proves\": [\n"
-           << "    \"original-process-provider-traversal-prefix\",\n"
-           << "    \"original-process-selected-resource-identity\"\n"
+           << "    \"selection-content-follows-recovered-provider-traversal-prefix\",\n"
+           << "    \"selection-content-carries-process-instance-identity\"\n"
            << "  ],\n"
            << "  \"does_not_prove\": [\n"
-           << "    \"runtime-address-mapping-without-the-bound-mapping-packet\",\n"
+           << "    \"trusted-observer-execution-or-trace-origin\",\n"
+           << "    \"original-process-selected-provider-identity\",\n"
            << "    \"retail-archive-collision-freedom\",\n"
            << "    \"product-original-global-equivalence\",\n"
            << "    \"layer-1-or-layer-3-completion\"\n"
