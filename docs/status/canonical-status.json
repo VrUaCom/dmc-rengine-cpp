@@ -4,8 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c147facb310d32ef084c56ba82d1e4b6b9b1b496",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-evidence-closure-active",
+  "snapshot_main_sha": "c20544cfb7f3ddba69a128a88246550a35eb51c1",
+  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-real-evidence-closure-active",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -16,6 +16,7 @@
   "gdspaces": {
     "primary_execution_layer": "L1-resource-materialization-final-acceptance",
     "roadmap": "../gdspaces/l1-roadmap.md",
+    "master_roadmap": "../gdspaces/master-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
     "completion_model": "mandatory-gates",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
@@ -43,49 +44,19 @@
       "protected-retail-product-authoring-closure-orchestration",
       "l2-type0-physical-provider-static-reverse",
       "l2-native-physical-path-product-model",
-      "l2-controlled-physical-hit-miss-fallback-receipts"
+      "l2-controlled-physical-hit-miss-fallback-receipts",
+      "l2-protected-runtime-rva-window-acquisition",
+      "l2-bounded-multi-anchor-runtime-mapping-validator"
     ],
     "mandatory_L1_gates": [
-      {
-        "id": "L1-A",
-        "name": "shared-atomic-no-replace-publication",
-        "status": "closed-canonical"
-      },
-      {
-        "id": "L1-B",
-        "name": "artifact-stable-retail-member-acquisition",
-        "status": "closed-canonical"
-      },
-      {
-        "id": "L1-C",
-        "name": "direct-retail-representative-member-provenance",
-        "status": "implementation-closed-real-receipt-required"
-      },
-      {
-        "id": "L1-D",
-        "name": "direct-retail-representation-classification",
-        "status": "real-receipt-required"
-      },
-      {
-        "id": "L1-E",
-        "name": "real-retail-bounded-edit-bottom-up-rebuild",
-        "status": "product-implementation-closed-real-receipt-required"
-      },
-      {
-        "id": "L1-F",
-        "name": "real-next-volume-publication-canonical-reopen",
-        "status": "product-implementation-closed-real-receipt-required"
-      },
-      {
-        "id": "L1-G",
-        "name": "original-dmc3-consumption-and-rollback-receipt",
-        "status": "open-external-level-e-issue-209"
-      },
-      {
-        "id": "L1-H",
-        "name": "final-cross-stack-l1-acceptance-audit",
-        "status": "open-depends-on-real-receipts"
-      }
+      {"id": "L1-A", "name": "shared-atomic-no-replace-publication", "status": "closed-canonical"},
+      {"id": "L1-B", "name": "artifact-stable-retail-member-acquisition", "status": "closed-canonical"},
+      {"id": "L1-C", "name": "direct-retail-representative-member-provenance", "status": "implementation-closed-real-receipt-required"},
+      {"id": "L1-D", "name": "direct-retail-representation-classification", "status": "real-receipt-required"},
+      {"id": "L1-E", "name": "real-retail-bounded-edit-bottom-up-rebuild", "status": "product-implementation-closed-real-receipt-required"},
+      {"id": "L1-F", "name": "real-next-volume-publication-canonical-reopen", "status": "product-implementation-closed-real-receipt-required"},
+      {"id": "L1-G", "name": "original-dmc3-consumption-and-rollback-receipt", "status": "open-external-level-e-issue-209"},
+      {"id": "L1-H", "name": "final-cross-stack-l1-acceptance-audit", "status": "open-depends-on-real-receipts"}
     ],
     "closed_promotion_chain": [
       "194-atomic-publication",
@@ -97,7 +68,8 @@
       "201-relative-slot-cli",
       "208-protected-retail-authoring-closure",
       "213-nested-slot-path-reflow",
-      "215-l2-type0-physical-provider"
+      "215-l2-type0-physical-provider",
+      "219-l2-protected-runtime-mapping-tooling"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
@@ -115,7 +87,7 @@
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
     "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
     "L2": {
-      "overall_status": "advanced-not-complete-real-corpus-and-original-process-evidence-open",
+      "overall_status": "advanced-not-complete-real-retail-r2b-and-trusted-r3-evidence-open",
       "canonical_analysis_executable": {
         "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
         "size": 6356432,
@@ -139,22 +111,40 @@
           "status": "external-artifact-required"
         },
         {
-          "id": "L2-R2B",
-          "name": "protected-distribution-runtime-rva-mapping",
-          "status": "tooling-active-pr-219-real-process-receipt-required"
+          "id": "L2-R2B-TOOLING",
+          "name": "protected-distribution-runtime-rva-mapping-tooling",
+          "status": "closed-canonical-pr-219"
         },
         {
-          "id": "L2-R3",
-          "name": "original-process-selected-provider-identity",
-          "status": "blocked-by-l2-r2b"
+          "id": "L2-R2B-EVIDENCE",
+          "name": "real-protected-process-multi-anchor-runtime-mapping-receipt",
+          "status": "real-process-receipt-required"
+        },
+        {
+          "id": "L2-R3-TOOLING",
+          "name": "selected-provider-content-candidate-normalizer-and-artifact-binder",
+          "status": "active-pr-221-candidate-only"
+        },
+        {
+          "id": "L2-R3-EVIDENCE",
+          "name": "trusted-original-process-selected-provider-identity",
+          "status": "blocked-by-real-r2b-and-trusted-publisher"
         },
         {
           "id": "L2-R4",
           "name": "final-layer2-audit",
-          "status": "open-depends-on-real-retail-and-original-process-receipts"
+          "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"
         }
       ],
-      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping"
+      "fresh_exe_review_2026_08_26": {
+        "direct_callers_flags_1": true,
+        "archive_normalization_flags": "0x0E",
+        "physical_normalization_flags": "0x0C",
+        "archive_lookup_hit_wrapper_failure_behavior": "terminal-null-cleanup-not-lower-volume-miss",
+        "r3_v1_provider_backend_failure_policy": "fail-closed"
+      },
+      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping",
+      "candidate_rule": "self-authored-selection-json-is-content-candidate-only-until-normalized-artifact-bound-and-trusted-origin-bound"
     }
   },
   "project_priority": [
@@ -163,17 +153,21 @@
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
     "final-l1-cross-stack-audit",
+    "l2-pr-221-candidate-tooling-promotion",
     "l2-real-retail-collision-census",
-    "l2-protected-runtime-mapping-receipt",
+    "l2-real-protected-runtime-mapping-receipt",
+    "l2-trusted-runtime-publisher",
     "l2-original-process-selected-identity-receipt"
   ],
   "other_layers": {
-    "L2": "advanced-physical-provider-closed-real-corpus-and-original-process-evidence-open",
+    "L2": "advanced-static-and-mapping-tooling-integrated-real-retail-r2b-r3-evidence-open",
     "L3": "advanced-static-spine-dynamic-level-e-open"
   },
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
+    "l2_exe_reconciliation": "../gdspaces/l2-exe-reconciliation-2026-08-26.md",
+    "l2_selected_identity_runbook": "../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md",
     "current_status": "current.md",
     "blockers": "blockers.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
