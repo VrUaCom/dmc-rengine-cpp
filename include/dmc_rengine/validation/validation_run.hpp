@@ -64,6 +64,11 @@ enum class ValidationScope : std::uint8_t {
         });
 }
 
+[[nodiscard]] inline bool is_bounded_text(std::string_view value,
+                                          std::size_t limit) noexcept {
+    return !value.empty() && value.size() <= limit;
+}
+
 struct ChildValidationReceiptBinding final {
     std::string id;
     ValidationDomain domain{ValidationDomain::l1_materialization};
@@ -74,8 +79,8 @@ struct ChildValidationReceiptBinding final {
     std::string resource_binding_sha256;
 
     [[nodiscard]] bool valid() const noexcept {
-        return is_bounded_identifier(id) &&
-               !schema.empty() && schema.size() <= 128U &&
+        return is_bounded_text(id, 128U) &&
+               is_bounded_text(schema, 128U) &&
                is_canonical_sha256(receipt_sha256) &&
                is_bounded_identifier(validation_run_id) &&
                is_canonical_sha256(resource_binding_sha256);
@@ -100,9 +105,9 @@ struct ValidationRunSubmission final {
     [[nodiscard]] bool valid() const {
         if (schema_version != 1U ||
             !is_bounded_identifier(validation_run_id) ||
-            declared_scope.empty() || declared_scope.size() > 256U ||
+            !is_bounded_text(declared_scope, 256U) ||
             !is_canonical_sha256(resource_binding_sha256) ||
-            !is_bounded_identifier(original_execution_artifact_id)) {
+            !is_bounded_text(original_execution_artifact_id, 128U)) {
             return false;
         }
 
