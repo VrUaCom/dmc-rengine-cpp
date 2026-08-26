@@ -1,11 +1,11 @@
 # GDSpaces — Materialization Completion Boundary Pass — 2026-08-26
 
-**Canonical repository base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
+**Current target base:** `main@af23e58e9511fbd99d6b17890818e4d62a60e74f`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary layers:** L1 support + L3 lifecycle boundary  
 **Primary ledgers:** #100, #88, #55, #217  
 **Focused acquisition plan:** `../../data/reverse/dmc3-materialization-completion-boundary-plan.v1.json`  
-**Parallel branch evidence:** PR #227, pending merge at the time of this pass
+**Parallel branch evidence:** PR #230; supersedes stale-base #227
 
 ## 1. Why this pass exists
 
@@ -88,9 +88,11 @@ Current main confirms normal callback-context recovery and state2 publication. T
 
 `0x1401B8DC0` is not a raw FileSlot I/O callback.
 
-## 5. Parallel PR #227 closes the scheduler callback ABI — branch truth, not silently main truth
+## 5. Parallel PR #230 closes the scheduler callback ABI on the current-main line — branch truth until merged
 
-PR #227 contains a fresh canonical raw-EXE pass on the same target build. Until merged, these findings are treated as strong parallel branch evidence and must be rechecked against its exact head before promotion.
+PR #227 first recovered this slice but was closed unmerged after `main` advanced through #221. PR #230 cleanly replays the same raw-EXE evidence on `main@af23e58e...` and preserves the newly merged L2 selected-identity/binder work.
+
+Until #230 merges, the findings below are strong parallel branch evidence rather than merged-main authority.
 
 It recovers the normal completion registration path as:
 
@@ -113,7 +115,7 @@ range = 0..0x65D0
 
 Every valid normal context therefore has low bit zero.
 
-PR #227 also recovers the scheduler ABI:
+PR #230 also recovers the scheduler ABI:
 
 ```text
 0x1402EF580
@@ -131,7 +133,7 @@ For `0x1401B8DC0`, the copied argument is the record-relative context above.
 
 ### Consequence
 
-The following questions are no longer first-priority unknowns once #227 is promoted:
+The following questions are no longer first-priority unknowns once #230 is promoted:
 
 - whether `1B8DC0` receives the same context produced by `1B84E0`;
 - whether `2EF580` stores callback + one copied u32 argument;
@@ -142,7 +144,7 @@ The odd branch is outside the recovered canonical normal acquisition-registratio
 
 ## 6. The key remaining dependency question becomes narrower
 
-PR #227 proves the completion callback queueing ABI, but it does **not** yet prove what materialization work `0x1402EF4D0` places ahead of that callback or how completion failure is represented.
+PR #230 proves the completion callback queueing ABI, but it does **not** yet prove what materialization work `0x1402EF4D0` places ahead of that callback or how completion failure is represented.
 
 The highest-value unresolved relation is now:
 
@@ -172,7 +174,7 @@ Preserved whole-file evidence remains:
 
 `0x1400335A0` updates lower transfer progress/status. The missing bridge is the exact relation between that lower status and the materialization job/scheduler path.
 
-The focused packet therefore keeps both transport and scheduler neighborhoods, but scheduler enqueue/worker are now regression/context anchors rather than the central unknown.
+The focused packet therefore keeps both transport and scheduler neighborhoods, but scheduler enqueue/worker are regression/context anchors rather than the central unknown.
 
 ## 8. Current first-priority raw targets
 
@@ -258,7 +260,7 @@ The next canonical-byte run should answer, in order:
 10. What happens to already-running FileSlot/ReadRequest work during higher-level rollback?
 11. For `.lst`, how does one child submission/population failure prevent a false successful parent completion?
 
-Questions already materially answered by #227 should not be re-reversed except as exact regression anchors.
+Questions materially answered by #230 should not be re-reversed except as exact regression anchors.
 
 ## 12. Completion consequence
 
