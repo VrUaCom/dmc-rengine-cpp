@@ -1,0 +1,40 @@
+{
+  "schema": "dmc-rengine.gdspaces.l1-connected-retail-access.v1",
+  "observed_date": "2026-08-26",
+  "review_base": "2ed43b438f1bf01638f3e56341e98f6085e5b0fd",
+  "scope": "connected-artifact-access-only",
+  "retail_install": {
+    "locatable": true,
+    "protected_dmc3_exe": {
+      "locatable": true,
+      "observed_size": 6567320,
+      "sha_authority_from_listing": false
+    },
+    "dmc3_0_nbz": {
+      "locatable": true,
+      "observed_size": 960358951,
+      "connected_raw_transfer_ceiling": 268435456,
+      "raw_drive_fetch": "blocked-large-file-boundary",
+      "files_materialization": "failed-http-413",
+      "files_full_read": "failed-http-413",
+      "parsed_member_surface_available": false
+    }
+  },
+  "preferred_request": "obj\\em000.pac",
+  "separate_em000_derivative_found": false,
+  "l1_c": {
+    "implementation_status": "closed-canonical",
+    "real_receipt_status": "open",
+    "blocker_class": "connected-transport-access",
+    "required_next_seam": "canonical-direct-filesystem-acquisition-or-cryptographically-bound-exact-member-surface"
+  },
+  "non_claims": [
+    "drive-listing-does-not-prove-archive-sha",
+    "archive-presence-does-not-prove-member-identity",
+    "semantic-search-miss-does-not-prove-member-absence",
+    "no-retail-member-bytes-acquired",
+    "no-representation-classification",
+    "no-real-edit-rebuild-receipt",
+    "no-original-game-consumption"
+  ]
+}
