@@ -30,6 +30,16 @@
       "va": "0x140328290",
       "direct_callers": ["0x1403274C5"]
     },
+    "ArchiveIndexBuild": {
+      "va": "0x140327CC0",
+      "qsort_call_va": "0x140327D6D",
+      "comparator_va": "0x1403291D0"
+    },
+    "ArchiveKeyComparator": {
+      "va": "0x1403291D0",
+      "comparison": "normalized C-string only",
+      "secondary_tie_break": false
+    },
     "LowLevelCreateFileAOpen": {
       "va": "0x140327800",
       "direct_callers": [
@@ -91,10 +101,24 @@
     "archive_phase_mask": 1,
     "physical_phase_mask": 2
   },
+  "archive_search_index": {
+    "builder_va": "0x140327CC0",
+    "entry_width": "0x10",
+    "per_entry_normalization_flags": "0x0E",
+    "sort": "CRT qsort",
+    "sort_call_va": "0x140327D6D",
+    "lookup": "CRT bsearch",
+    "lookup_call_va": "0x1403281E0",
+    "shared_comparator_va": "0x1403291D0",
+    "comparator_key": "normalized C-string only",
+    "equal_key_secondary_tie_break": "none",
+    "duplicate_key_winner_contract": "not defined by recovered code; qsort is not stable and bsearch may return any equal element"
+  },
   "failure_boundaries": {
     "archive_path_exists_but_mount_fails": "bootstrap ignores archive-mount return, increments N, and continues discovery; failed archive is not inserted into mount list",
     "archive_lookup_hit_but_wrapper_open_fails": "ResourceMountResolve exits via cleanup/null path and does not continue as a lower-volume lookup miss",
-    "candidate_overflow": "canonical direct-call path fails the request instead of falling through to a shorter prefix"
+    "candidate_overflow": "canonical direct-call path fails the request instead of falling through to a shorter prefix",
+    "archive_duplicate_normalized_key": "recovered qsort/bsearch comparator has no secondary tie-break; exact winner is not a stable semantic contract"
   },
   "xref_census": {
     "absolute_qword_references_found": {
@@ -112,13 +136,15 @@
     "physical root is registered before numbered archives and is reached in the second provider phase",
     "0x0E archive and 0x0C physical path normalization differ by lowercase conversion",
     "first missing archive filename bounds discovery but does not itself prove every lower existing archive mounted successfully",
-    "0x140327800 is a shared low-level file-open helper; resolver semantics belong specifically to its 0x14032755C caller edge"
+    "0x140327800 is a shared low-level file-open helper; resolver semantics belong specifically to its 0x14032755C caller edge",
+    "archive qsort and bsearch use the same normalized-string-only comparator with no secondary equal-key tie-break"
   ],
   "does_not_prove": [
     "protected-distribution runtime addresses without an R2B mapping receipt",
     "all possible indirect callers are absent at runtime",
     "all discovered retail archives mount successfully",
     "retail 0x0E normalized-key collision freedom",
+    "a deterministic original winner when two central entries share one normalized 0x0E key",
     "trusted original-process selected identity",
     "global canonical/protected build equivalence",
     "Layer 1 or Layer 3 completion"
