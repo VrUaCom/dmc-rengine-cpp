@@ -214,8 +214,10 @@ def _write_no_replace(path: Path, packet: dict[str, Any]) -> None:
     encoded = (json.dumps(packet, indent=2, sort_keys=False) + "\n").encode("utf-8")
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
     descriptor: int | None = None
+    created_by_this_call = False
     try:
         descriptor = os.open(path, flags, 0o600)
+        created_by_this_call = True
         with os.fdopen(descriptor, "wb", closefd=True) as stream:
             descriptor = None
             stream.write(encoded)
@@ -223,10 +225,11 @@ def _write_no_replace(path: Path, packet: dict[str, Any]) -> None:
     except Exception:
         if descriptor is not None:
             os.close(descriptor)
-        try:
-            path.unlink()
-        except OSError:
-            pass
+        if created_by_this_call:
+            try:
+                path.unlink()
+            except OSError:
+                pass
         raise
 
 
