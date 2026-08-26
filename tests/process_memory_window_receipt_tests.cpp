@@ -24,6 +24,7 @@ int main() {
         .image_path = "C:/Games/DMC3/dmc3.exe",
         .preferred_image_base = 0x140000000ULL,
         .pid = 1234U,
+        .process_creation_filetime = 133801234567890123ULL,
         .module_base = 0x7FF600000000ULL,
         .rva = 0x1000U,
         .runtime_va = 0x7FF600001000ULL,
@@ -40,7 +41,9 @@ int main() {
 
     const auto json = process_memory_window_receipt_to_json(receipt, "4d5a");
     assert(!json.empty());
-    assert(json.find("dmc-rengine.exe-process-window.v1") != std::string::npos);
+    assert(json.find("dmc-rengine.exe-process-window.v2") != std::string::npos);
+    assert(json.find("\"process_creation_filetime\": 133801234567890123") !=
+           std::string::npos);
     assert(json.find("\"matches_expected_window\": true") != std::string::npos);
     assert(json.find(canonical_artifact_sha) != std::string::npos);
 
@@ -51,6 +54,11 @@ int main() {
     const auto mismatch_json = process_memory_window_receipt_to_json(mismatch);
     assert(mismatch_json.find("\"matches_expected_window\": false") !=
            std::string::npos);
+
+    auto missing_process_instance = receipt;
+    missing_process_instance.process_creation_filetime = 0U;
+    assert(!missing_process_instance.valid());
+    assert(process_memory_window_receipt_to_json(missing_process_instance).empty());
 
     auto half_bound = receipt;
     half_bound.expected_window_sha256.reset();
