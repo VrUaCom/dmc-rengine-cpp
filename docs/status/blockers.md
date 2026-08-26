@@ -3,7 +3,8 @@
 **Snapshot date:** 2026-08-26  
 **Canonical base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Latest L2 tooling promotion:** PR #219 — protected-runtime RVA mapping acquisition seam  
-**Canonical L1 EXE review:** [l1-exe-boundary-review-2026-08-26.md](../gdspaces/l1-exe-boundary-review-2026-08-26.md)
+**Canonical L1 EXE review:** [l1-exe-boundary-review-2026-08-26.md](../gdspaces/l1-exe-boundary-review-2026-08-26.md)  
+**Focused completion pass:** [l1-exe-materialization-completion-pass-2026-08-26.md](../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md)
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
@@ -83,51 +84,72 @@ Before `L1 COMPLETE / 100%`:
 
 ## Supporting L1 reverse gaps — bounded, not automatic completion blockers
 
-These are the current EXE reverse seams found by the three-pass 2026-08-26 review. They become P0 only if the selected acceptance path or claimed compatibility scope depends on them.
+These are the current EXE reverse seams after the 2026-08-26 boundary and completion-ordering reviews. They become P0 only if the selected acceptance path or claimed compatibility scope depends on them.
 
-### B-L1-R1 — Materialization fan-in / completion
+### B-L1-R1 — Materialization completion ordering / dependency barrier
 
 **Status:** STATIC REVERSE BREADTH OPEN
 
 Known distinction:
 
 - `0x1400335A0(ticketId,userContext,errorFlag,bytesRead)` = transport/whole-file completion;
-- `0x1401B8DC0` = scheduler/resource materialization completion handoff registered through `0x1402EF580`, normal branch publishes `state 1 -> 2`.
+- `0x1402EF580` = higher scheduler enqueue;
+- `0x1402EF790` = scheduler worker/callback execution;
+- `0x1401B8DC0` = scheduler/resource materialization completion handoff, normal branch publishes `state 1 -> 2`.
+
+A generic child/outstanding-work **fan-in counter is not evidenced**. Do not make its existence an assumed architecture.
 
 Open exact questions:
 
-- outstanding direct/child submission aggregation;
-- parent-completion condition;
-- nested `.lst` participation in completion;
-- one-child-failure behavior;
+- success-side ordering between materialization submission and state2 completion registration/execution;
+- whether ring order, another status/dependency object or an explicit counter enforces completion;
+- nested `.lst` participation in the completion barrier;
+- one-child/submission failure behavior;
 - partial destination lifetime on failure;
-- exact condition preventing state2 publication.
+- exact branches preventing state2 publication.
 
-### B-L1-R2 — Transport error -> resource scheduler/materialization error mapping
+### B-L1-R2 — Scheduler pending-entry rollback / cancellation boundary
 
 **Status:** STATIC REVERSE BREADTH OPEN
 
-Raw transfer error/status behavior is substantially recovered, but the exact bridge from transport failure into resource-level scheduling/completion failure is not fully closed.
+`0x1402EF460` is directly bounded as pending scheduled-entry clear/rollback. `0x1401B8430` uses it before marking unfinished state1/state2 records state4 and enqueueing deferred cleanup.
 
-### B-L1-R3 — `.lst` temporary allocation/free/failure cleanup
+Open exact questions:
+
+- queue-entry match/clear criteria;
+- interaction with callbacks already executing;
+- interaction with already-running FileSlot/ReadRequest transport;
+- which higher scheduler entries are guaranteed to be removed before state4 cleanup.
+
+`0x1402EF460` is **not** promoted as OS AsyncIO cancellation.
+
+### B-L1-R3 — Transport error -> resource scheduler/materialization error mapping
+
+**Status:** STATIC REVERSE BREADTH OPEN
+
+Raw transfer error/status behavior is substantially recovered, but the exact bridge from `0x1400335A0` transport failure into higher resource scheduling/completion failure is not fully closed.
+
+### B-L1-R4 — `.lst` child completion + temporary allocation/free/failure cleanup
 
 **Status:** STATIC REVERSE BREADTH OPEN
 
 The list text is known to be loaded synchronously into aligned temporary storage before bounded parsing. It is **not** proven to use the synchronous-style wrapper around `0x1402EF920`.
 
-Exact allocator/free identity, malformed/truncated failure cleanup and recursion-failure propagation remain open.
+Exact child completion/failure ordering, allocator/free identity, malformed/truncated failure cleanup and recursion-failure propagation remain open.
 
-### B-L1-R4 — FileSlot / ReadRequest exact error breadth
+### B-L1-R5 — FileSlot / ReadRequest exact error breadth
 
 **Status:** BOUNDED
 
 The 100×`0x20` FileSlot pool, `ReadRequestV2` architecture and completion ABI are strong. Partial-read/error/cancellation breadth should be recovered only where a compatibility or acceptance claim requires it.
 
-### B-L1-R5 — ZIP initializer / compressed-seek exact-body breadth
+### B-L1-R6 — ZIP initializer / compressed-seek exact-body breadth
 
 **Status:** BOUNDED / LOWER PRIORITY
 
 `0x140328540` lazy realization and `0x140328FE0` reset+reinflate/discard seek architecture are already strong. Complete exact-body/state-error details remain open but are no longer the automatic first reverse target.
+
+Focused next acquisition authority: `data/reverse/dmc3-l1-materialization-completion-plan.v1.json`.
 
 ## Layer 2 evidence blockers
 
@@ -203,6 +225,8 @@ Do not reintroduce:
 - `0x1401B8DC0 == raw I/O callback`;
 - `.lst synchronous temporary load == 0x1402EF920`;
 - `FileSlot/AsyncIO == wholly L3` for byte-transport accounting;
+- `materialization fan-in == evidenced generic child/outstanding-work counter`;
+- `0x1402EF460 == OS AsyncIO cancellation`;
 - `type-0 physical final-open semantics still open` after #215;
 - `0x140328540/0x140328FE0 architecture unknown`.
 
@@ -217,6 +241,6 @@ Do not reintroduce:
 
 The connected automation environment does not currently expose all exact raw protected-install artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process runtime mapping here.
 
-Canonical-analysis static EXE reacquisition is available through the guarded window-packet tooling on current `main`. Supporting reverse should use that authority rather than ad hoc unbound byte windows.
+Canonical-analysis static EXE reacquisition is available through the guarded window-packet tooling on current `main`. During the current completion-ordering pass a fresh raw `e454...` executable blob was not exposed through the connected file surface; the focused packet is therefore prepared for the next exact-byte run rather than being reported as already executed.
 
 This is an external evidence/access limitation. It must not be hidden by synthetic CI or converted into a weaker completion criterion.
