@@ -1,7 +1,7 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-26  
-**Canonical base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Canonical base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
 **Active L2 evidence slice:** PR #221
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
