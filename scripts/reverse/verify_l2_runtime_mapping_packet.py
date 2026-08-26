@@ -4,7 +4,7 @@
 This tool never reads proprietary process bytes. It consumes metadata-only child
 receipts produced by `dmc-rengine capture-exe-process-window` and promotes a
 bounded mapping packet only when several independent resolver anchors from one
-protected process match canonical-analysis window hashes.
+exact protected process instance match canonical-analysis window hashes.
 """
 
 from __future__ import annotations
@@ -52,6 +52,16 @@ def _parse_hex_u64(value: Any, field: str) -> int:
     return parsed
 
 
+def _require_u64(value: Any, field: str, *, nonzero: bool = False) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{field} must be an unsigned 64-bit integer")
+    if value < 0 or value > 0xFFFFFFFFFFFFFFFF:
+        raise ValueError(f"{field} is outside uint64 range")
+    if nonzero and value == 0:
+        raise ValueError(f"{field} must be non-zero")
+    return value
+
+
 def _require_sha256(value: Any, field: str) -> str:
     if not isinstance(value, str) or len(value) != 64:
         raise ValueError(f"{field} must be a 64-character SHA-256")
@@ -70,8 +80,10 @@ def _load_receipt(path: Path) -> dict[str, Any]:
         raise ValueError(f"could not read JSON receipt {path}: {exc}") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"receipt {path} must contain one JSON object")
-    if payload.get("schema") != "dmc-rengine.exe-process-window.v1":
-        raise ValueError(f"receipt {path} has unsupported schema")
+    if payload.get("schema") != "dmc-rengine.exe-process-window.v2":
+        raise ValueError(
+            f"receipt {path} has unsupported schema; real R2B promotion requires process-window v2"
+        )
     if "bytes_hex" in payload:
         raise ValueError(
             f"receipt {path} contains raw bytes_hex; mapping packets accept metadata-only receipts"
@@ -102,6 +114,11 @@ def _validate_child(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
 
     if not isinstance(payload.get("pid"), int) or payload["pid"] <= 0:
         raise ValueError(f"receipt {path} has invalid pid")
+    process_creation_filetime = _require_u64(
+        payload.get("process_creation_filetime"),
+        "process_creation_filetime",
+        nonzero=True,
+    )
     if not isinstance(payload.get("artifact_size"), int):
         raise ValueError(f"receipt {path} has invalid artifact_size")
     if not isinstance(payload.get("size"), int) or payload["size"] != WINDOW_SIZE:
@@ -133,6 +150,7 @@ def _validate_child(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
         "size": payload["size"],
         "window_sha256": window_sha,
         "pid": payload["pid"],
+        "process_creation_filetime": process_creation_filetime,
         "module_base": module_base,
         "image_path": image_path,
     }
@@ -145,6 +163,7 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
     anchors: list[dict[str, Any]] = []
     seen_rvas: set[int] = set()
     common_pid: int | None = None
+    common_process_creation_filetime: int | None = None
     common_module_base: int | None = None
     common_image_path: str | None = None
 
@@ -157,14 +176,18 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
 
         if common_pid is None:
             common_pid = child["pid"]
+            common_process_creation_filetime = child["process_creation_filetime"]
             common_module_base = child["module_base"]
             common_image_path = child["image_path"]
         elif (
             child["pid"] != common_pid
+            or child["process_creation_filetime"] != common_process_creation_filetime
             or child["module_base"] != common_module_base
             or child["image_path"] != common_image_path
         ):
-            raise ValueError("all mapping receipts must come from one process/module session")
+            raise ValueError(
+                "all mapping receipts must come from one exact process instance/module session"
+            )
 
         anchors.append(child)
 
@@ -172,8 +195,8 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
         raise ValueError("mapping packet requires the OpenGameResource anchor RVA 0x2FCA0")
     if len(seen_rvas & PHYSICAL_ANCHORS) < 2:
         raise ValueError("mapping packet requires at least two independent type-0 physical anchors")
-    if common_image_path is None:
-        raise ValueError("mapping packet has no process image identity")
+    if common_image_path is None or common_process_creation_filetime is None:
+        raise ValueError("mapping packet has no process-instance identity")
 
     image_name = PureWindowsPath(common_image_path).name
     if not image_name:
@@ -181,14 +204,15 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
 
     anchors.sort(key=lambda item: item["rva"])
     return {
-        "schema": "dmc-rengine.gdspaces-l2-runtime-mapping.v1",
+        "schema": "dmc-rengine.gdspaces-l2-runtime-mapping.v2",
         "status": "bounded_match",
-        "scope": "approved-l2-rva-anchors-only",
+        "scope": "approved-l2-rva-anchors-one-process-instance-only",
         "protected_artifact_sha256": PROTECTED_DISTRIBUTION_SHA256,
         "protected_artifact_size": PROTECTED_DISTRIBUTION_SIZE,
         "canonical_analysis_artifact_sha256": CANONICAL_ANALYSIS_SHA256,
         "preferred_image_base": f"0x{PREFERRED_IMAGE_BASE:X}",
         "pid": common_pid,
+        "process_creation_filetime": common_process_creation_filetime,
         "module_base": f"0x{common_module_base:X}",
         "image_name": image_name,
         "anchor_count": len(anchors),
@@ -205,6 +229,7 @@ def build_packet(receipt_paths: list[Path]) -> dict[str, Any]:
         "proves": [
             "exact-live-byte-match-at-listed-l2-ranges",
             "bounded-protected-runtime-rva-mapping-for-listed-anchors",
+            "all-listed-ranges-captured-from-one-windows-process-instance",
         ],
         "does_not_prove": [
             "global-build-byte-equivalence",
