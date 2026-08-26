@@ -1,9 +1,10 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
-**Active L2 evidence slice:** PR #219  
-**Latest L3 static authority:** `l3-boundary-audit-2026-08-26.md`
+**Base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
+**Active L2 evidence slice:** PR #221  
+**Latest L3 static authority:** `l3-boundary-audit-2026-08-26.md`  
+**Latest EXE grey-boundary authority:** `exe-grey-boundary-pass2-2026-08-26.md` / #225
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -48,11 +49,91 @@ selected/materialized bytes
 
 Validation is cross-cutting and is not a fourth layer.
 
+## EXE grey-boundary / Resource Control Plane model
+
+Canonical audits:
+
+- `exe-grey-boundary-audit-2026-08-26.md` — Pass 1;
+- `exe-grey-boundary-pass2-2026-08-26.md` — Pass 2;
+- `exe-grey-boundary-roadmap-2026-08-26.md` — execution addendum;
+- tracking ledger #225.
+
+The two-pass EXE audit does **not** justify L4. It identifies an orthogonal **Resource Control Plane (RCP)** over the existing data/lifecycle path:
+
+```text
+Consumer / Request Ingress
+          |
+          v
++-----------------------------+
+| Resource Control Plane      |
+| root/dependency planning    |
+| pending/ready coordination  |
+| claims/retention            |
+| transition/replacement      |
++----------+-----------^------+
+           |           |
+           v           |
+          L2           |
+           |           |
+           v           |
+          L1           |
+           |           |
+           v           |
+         L3A -----------+
+           |
+           v
+         L3B
+           |
+           v
+       consumer handoff
+```
+
+Accounting labels only:
+
+- **L3A — Typed Construction / Dependency**;
+- **L3B — Ownership / Lifecycle**.
+
+They are subdomains of L3, not additional numbered layers.
+
+Supporting non-layer planes/tags:
+
+- **TYPE/ID** — descriptor/type and cross-layer identity mapping;
+- **RT-IO** — FileSlot/AsyncIO L1↔L3 substrate;
+- **MEM/BACKING** — allocation/backing substrate;
+- **BOOTSTRAP** — startup/service substrate;
+- **ERROR** — per-owner failure/recovery matrix.
+
+The architecture is not strictly linear. Dependency-bearing processing may feed:
+
+```text
+L3A dependency discovery
+ -> RCP dependency request emission
+ -> L2
+ -> L1
+ -> L3A child processing
+```
+
+### Readiness rule
+
+Current raw-EXE authority proves that central typed dispatcher `0x1401B9FA0` is best-effort/no-op for unknown/default input while `0x1401B92D0` still proceeds to optional callback and state3. Therefore:
+
+```text
+manager_ready_state3
+!= universal family_semantic_ready
+!= consumer_effect_observed
+```
+
+State3 remains a strong original manager/lifecycle readiness boundary, but V must not promote family semantic equivalence from state3 alone where additional factory/dependency semantics matter.
+
+Historical/unmerged reverse evidence such as Wave-3 PR #84 may define reacquisition targets, but it is not current-main canonical authority without reconciliation against the current canonical EXE.
+
 ## Execution rule
 
 A task from another layer is allowed when it closes the current acceptance gap. Every task must record its primary layer, dependency and return condition to the vertical critical path.
 
 Do not start broad work merely because it is interesting. Do not block required cross-layer evidence because another layer is still open.
+
+Grey-boundary/RCP work may run when it closes an ownership ambiguity, prevents false equivalence, or is required to bind dependency/identity evidence into V. It must not displace real-retail/original-process acceptance merely to broaden reverse coverage.
 
 ## Current vertical acceptance target
 
@@ -63,12 +144,13 @@ real protected DMC3 installation
  -> [L1] supported top-level or nested edit/rebuild
  -> [L2] authored next-volume winner
  -> [L1] exact authored rematerialization
- -> [L3] original lifecycle reaches consumer-ready visibility
+ -> [L3] original lifecycle reaches manager-ready visibility
+ -> family-semantic/consumer effect where the selected family requires it
  -> observable effect attributable to authored bytes
  -> rollback / transition receipt
 ```
 
-A crash-free launch is not sufficient.
+A crash-free launch is not sufficient. State3 alone is not a universal substitute for family-specific semantic/consumer evidence.
 
 ## Track A — L1 final acceptance
 
@@ -116,7 +198,7 @@ L2-R2A real-retail 0x0E collision census
 
 L2-R2B protected-distribution runtime RVA mapping (#219)
   -> multi-anchor bounded mapping receipt from one protected process
-  -> L2-R3 original-process selected-provider identity receipt
+  -> L2-R3 original-process selected-provider identity receipt (#220/#221)
 
 [R2A + R3]
   -> docs/issues/evidence reconciliation
@@ -182,6 +264,12 @@ Only after a valid protected-runtime mapping packet exists:
 5. compare to GDSpaces product resolver without relabeling product evidence as original-process evidence.
 
 `preflight-dmc3-game-test` is build/archive-presence preflight, not a selected-identity receipt.
+
+### L2/RCP request-ingress open edge
+
+The canonical direct-call surface contains exactly three direct `OpenGameResource` call sites (`0x14003340A`, `0x1403380C7`, `0x1403381F7`), all passing `flags=1`. Their upstream root request semantics are not yet classified as one generic ABI.
+
+#225 P2-R1 therefore walks upward from these callers before any L0/new-layer claim is permitted.
 
 ## Track C — L3 closure
 
@@ -255,29 +343,51 @@ V1 initial load
 
 For the first L1 vertical proof, L3 need only provide enough original-process evidence to attribute the consumer-visible result to the authored resource. Broader lifecycle closure remains a separate L3 program.
 
+## Track D — EXE grey-boundary / RCP reverse
+
+Parent: #225.
+
+```text
+P2-R1 upstream request-origin census
+ -> P2-R2 current-raw StageCfg dependency-preload reacquisition
+ -> P2-R3 Type/Descriptor identity xref
+ -> P2-R4 factory/resource-set demand edges
+ -> P2-R5 ownership hierarchy breadth
+ -> P2-R6 readiness/failure semantics by representative family
+ -> P2-R7 dependency-aware LV/V integration
+```
+
+This track does not own L1/L2/L3 completion and cannot create L4 by documentation. Its purpose is to close grey contracts that affect correct classification and V evidence binding.
+
 ## Cross-layer dependency matrix
 
 | Acceptance question | Primary | Required support |
 |---|---|---|
+| Why was a root/dependency request emitted? | RCP / outside-core ingress | EXE caller/dependency evidence; L2 starts at the emitted logical request |
 | Which resource wins for a real game request? | L2 | protected retail corpus + mapped original-process observation |
 | Are selected bytes exact? | L1 | L2 selected identity + artifact binding |
 | Can the selected representation be edited safely? | L1 | direct retail representation evidence |
 | Will the authored overlay win? | L2 | L1 generated artifact |
 | Are authored bytes rematerialized exactly? | L1 | L2 authored winner |
-| Did original DMC3 consume those bytes? | L3 + validation | same L1/L2 identity chain |
-| Was the test rolled back without retail mutation? | validation | exact artifact identity |
+| Did original DMC3 reach manager-ready state? | L3 | same L1/L2 identity chain |
+| Is the tested family semantically/consumer ready? | L3A + V | family-specific evidence; state3 alone is insufficient where extra construction/dependencies exist |
+| Are dependency child identities/bytes tied to the root? | RCP + V | dependency-aware same-run identity graph |
+| Was the test rolled back without retail mutation? | V | exact artifact identity |
 
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
 2. Complete L2 protected-runtime mapping/selected-identity evidence when a protected process is available.
 3. Finish the now-narrow L3 static census instead of reopening the recovered core spine.
-4. Capture V1 and V5 first because they directly exercise ready-state and cancellation boundaries needed by the vertical proof.
-5. Continue transition/reset/shutdown receipts and family/build breadth.
-6. Reconcile final L2/L3 evidence and run their final audits independently.
+4. Run #225 P2-R1/P2-R2 when they directly close ingress/dependency ambiguity needed by V or L3 R3.
+5. Capture V1 and V5 first because they directly exercise ready-state and cancellation boundaries needed by the vertical proof.
+6. Continue transition/reset/shutdown receipts and family/build breadth.
+7. Reconcile final L2/L3/V evidence and run their final audits independently.
 
 ## Completion rule
 
 No percentage alone can mark a layer complete. Completion requires mandatory gates, canonical code/docs, exact-head Windows+Ubuntu validation where applicable, representative real-corpus/original-process receipts and no unresolved contradiction changing the declared scope.
+
+RCP/TYPE/RT-IO/MEM/BOOTSTRAP/ERROR classifications do not create extra completion percentages. They exist to keep responsibility and evidence boundaries correct.
 
 Percentages may be recalculated only as planning indicators after gate reconciliation.
