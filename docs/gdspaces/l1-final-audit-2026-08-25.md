@@ -1,7 +1,7 @@
 # GDSpaces Layer 1 — Final Pre-Level-E Audit
 
 **Audit date:** 2026-08-25  
-**Reconciled:** 2026-08-26 against `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Reconciled:** 2026-08-26 against `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Layer:** L1 — Resource Materialization  
 **Verdict:** INTERNAL PRODUCT PATH CLOSED; L1 COMPLETE remains blocked by real-retail / original-game evidence.  
 **EXE boundary authority:** `l1-exe-boundary-review-2026-08-26.md`
