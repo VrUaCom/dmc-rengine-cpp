@@ -4,8 +4,9 @@
 The existing C++ serializer predates the trusted-origin review correction and uses
 legacy labels that sound stronger than the evidence actually is. This adapter is
 intentionally narrow: it accepts only that exact legacy schema/evidence pair,
-rejects unknown evidence-surface fields, and builds a sanitized content candidate.
-It does not validate runtime origin and cannot make the candidate promotion eligible.
+rejects unknown evidence-surface fields, and builds a deterministic sanitized
+content candidate. It does not validate runtime origin and cannot make the
+candidate promotion eligible.
 """
 
 from __future__ import annotations
@@ -23,47 +24,24 @@ CANDIDATE_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-candidate.v1"
 CANDIDATE_EVIDENCE_CLASS = "original-process-observation-candidate"
 
 TOP_LEVEL_KEYS = {
-    "schema",
-    "evidence_class",
-    "executable_sha256",
-    "executable_size",
-    "runtime_mapping_packet_sha256",
-    "observer_id",
-    "observer_version",
-    "observer_build_sha256",
-    "trace_complete",
-    "dropped_event_count",
-    "pid",
-    "module_base",
-    "flags",
-    "request",
-    "basename",
-    "first_missing_archive_volume",
-    "archives",
-    "probes",
-    "selected",
-    "proves",
-    "does_not_prove",
+    "schema", "evidence_class", "executable_sha256", "executable_size",
+    "runtime_mapping_packet_sha256", "observer_id", "observer_version",
+    "observer_build_sha256", "trace_complete", "dropped_event_count", "pid",
+    "module_base", "flags", "request", "basename", "first_missing_archive_volume",
+    "archives", "probes", "selected", "proves", "does_not_prove",
 }
-ARCHIVE_KEYS = {"volume_index", "filename", "sha256", "size"}
-PROBE_KEYS = {
-    "sequence_index",
-    "lookup_attempt_index",
-    "provider",
-    "candidate",
-    "provider_key",
-    "archive_volume_index",
-    "outcome",
-}
-SELECTED_KEYS = {
-    "provider",
-    "lookup_attempt_index",
-    "candidate",
-    "provider_key",
-    "archive_volume_index",
-    "archive_member_path",
-    "physical_relative_path",
-}
+ARCHIVE_FIELDS = ("volume_index", "filename", "sha256", "size")
+PROBE_FIELDS = (
+    "sequence_index", "lookup_attempt_index", "provider", "candidate",
+    "provider_key", "archive_volume_index", "outcome",
+)
+SELECTED_FIELDS = (
+    "provider", "lookup_attempt_index", "candidate", "provider_key",
+    "archive_volume_index", "archive_member_path", "physical_relative_path",
+)
+ARCHIVE_KEYS = set(ARCHIVE_FIELDS)
+PROBE_KEYS = set(PROBE_FIELDS)
+SELECTED_KEYS = set(SELECTED_FIELDS)
 
 
 def _contains_forbidden_key(value: Any, key: str) -> bool:
@@ -93,7 +71,7 @@ def _sanitize_archives(value: Any) -> list[dict[str, Any]]:
     sanitized: list[dict[str, Any]] = []
     for index, item in enumerate(value):
         entry = _exact_keys(item, ARCHIVE_KEYS, f"archive[{index}]")
-        sanitized.append({key: entry[key] for key in ARCHIVE_KEYS if key in entry})
+        sanitized.append({key: entry[key] for key in ARCHIVE_FIELDS if key in entry})
     return sanitized
 
 
@@ -103,13 +81,13 @@ def _sanitize_probes(value: Any) -> list[dict[str, Any]]:
     sanitized: list[dict[str, Any]] = []
     for index, item in enumerate(value):
         entry = _exact_keys(item, PROBE_KEYS, f"probe[{index}]")
-        sanitized.append({key: entry[key] for key in PROBE_KEYS if key in entry})
+        sanitized.append({key: entry[key] for key in PROBE_FIELDS if key in entry})
     return sanitized
 
 
 def _sanitize_selected(value: Any) -> dict[str, Any]:
     entry = _exact_keys(value, SELECTED_KEYS, "selected")
-    return {key: entry[key] for key in SELECTED_KEYS if key in entry}
+    return {key: entry[key] for key in SELECTED_FIELDS if key in entry}
 
 
 def normalize_candidate(value: dict[str, Any]) -> dict[str, Any]:
@@ -122,23 +100,10 @@ def normalize_candidate(value: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("legacy selection contains forbidden raw bytes_hex")
 
     required = (
-        "executable_sha256",
-        "executable_size",
-        "runtime_mapping_packet_sha256",
-        "observer_id",
-        "observer_version",
-        "observer_build_sha256",
-        "trace_complete",
-        "dropped_event_count",
-        "pid",
-        "module_base",
-        "flags",
-        "request",
-        "basename",
-        "first_missing_archive_volume",
-        "archives",
-        "probes",
-        "selected",
+        "executable_sha256", "executable_size", "runtime_mapping_packet_sha256",
+        "observer_id", "observer_version", "observer_build_sha256", "trace_complete",
+        "dropped_event_count", "pid", "module_base", "flags", "request", "basename",
+        "first_missing_archive_volume", "archives", "probes", "selected",
     )
     for field in required:
         if field not in value:
