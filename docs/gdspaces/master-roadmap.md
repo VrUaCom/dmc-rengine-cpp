@@ -3,7 +3,8 @@
 **Snapshot:** 2026-08-26  
 **Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Latest L2 tooling promotion:** PR #219 — protected-runtime RVA mapping acquisition seam  
-**Canonical L1 EXE review:** `l1-exe-boundary-review-2026-08-26.md`
+**Canonical L1 EXE review:** `l1-exe-boundary-review-2026-08-26.md`  
+**Focused L1 completion pass:** `l1-exe-materialization-completion-pass-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership/review layers, but execution follows dependencies rather than strict numeric order.
 
@@ -22,10 +23,13 @@ selected physical/container identity
  -> editable child identity
  -> rebuild/repack
  -> reopen/rematerialize
- -> resource-level materialization completion / state 1 -> 2 handoff
+ -> resource-level completion ordering / dependency barrier
+ -> state 1 -> 2 handoff
 ```
 
 `FileSlot` and AsyncIO participate in L1 where they transport the selected bytes. Their wider pool ownership, cancellation/release/reset and runtime-lifecycle policy are L3.
+
+The completion-ordering review explicitly does **not** promote a generic child/outstanding-work fan-in counter. Scheduler-mediated ordering is evidenced; the exact success-side dependency mechanism is still open.
 
 ### L2 — Resource Resolution
 
@@ -78,7 +82,8 @@ A crash-free launch is not sufficient.
 ## Track A — L1 final acceptance
 
 Canonical pre-Level-E audit: `l1-final-audit-2026-08-25.md`.  
-Canonical EXE boundary review: `l1-exe-boundary-review-2026-08-26.md`.
+Canonical EXE boundary review: `l1-exe-boundary-review-2026-08-26.md`.  
+Focused completion-ordering pass: `l1-exe-materialization-completion-pass-2026-08-26.md`.
 
 **Internal product implementation status:** CLOSED for the current representative DMC3-HD acceptance scope.
 
@@ -99,12 +104,13 @@ No new synthetic-only feature may displace this sequence unless real retail evid
 
 ### Supporting L1 EXE reverse while Level-E is externally blocked
 
-Do not restart strong ZIP/FileSlot architecture. Current priority is the weak handoff seam found by the three-pass review:
+Do not restart strong ZIP/FileSlot architecture. Current priority is the weak completion-ordering seam:
 
 ```text
-materialization fan-in/completion around submission -> state2
+materialization completion ordering / dependency barrier
+ -> scheduler pending-entry rollback semantics
  -> transport error -> resource scheduler/materialization error mapping
- -> .lst temporary allocation/free/failure cleanup
+ -> .lst child completion/failure + temporary-buffer cleanup
  -> acceptance-activated FileSlot partial-read/cancellation breadth
  -> acceptance-activated ZIP exact-body/error breadth
 ```
@@ -113,7 +119,12 @@ Correct labels:
 
 - `0x1402EF4D0` = resource materialization submission/scheduling wrapper;
 - `0x1400335A0` = transport/whole-file completion callback;
-- `0x1401B8DC0` = resource-level scheduler/materialization completion handoff to state2, not raw I/O callback.
+- `0x1401B8DC0` = resource-level scheduler/materialization completion handoff to state2, not raw I/O callback;
+- `0x1402EF580` = scheduler-ring enqueue;
+- `0x1402EF790` = scheduler worker/callback execution;
+- `0x1402EF460` = pending scheduled-entry clear/rollback, not OS AsyncIO cancellation.
+
+Preferred next static packet: `data/reverse/dmc3-l1-materialization-completion-plan.v1.json`.
 
 ## Track B — L2 closure
 
@@ -227,6 +238,8 @@ state-writer/caller census
 
 For the first L1 vertical proof, L3 need only provide enough original-process evidence to attribute the consumer-visible result to the authored resource after L1 state2/materialized-byte completion. Broader lifecycle closure remains a separate L3 program.
 
+The scheduler rollback mechanics around unfinished L1 materialization are valid cross-boundary evidence; wider cancellation/reset/release policy remains L3.
+
 ## Cross-layer dependency matrix
 
 | Acceptance question | Primary | Required support |
@@ -236,14 +249,14 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 | Can the selected representation be edited safely? | L1 | direct retail representation evidence |
 | Will the authored overlay win? | L2 | L1 generated artifact |
 | Are authored bytes rematerialized exactly? | L1 | L2 authored winner |
-| Did byte transport/materialization complete? | L1 | FileSlot/transport + resource-level completion handoff |
+| Did byte transport/materialization complete? | L1 | FileSlot transport + scheduler-mediated completion-ordering receipt |
 | Did original DMC3 consume those bytes? | L3 + validation | same L1/L2 identity chain |
 | Was the test rolled back without retail mutation? | validation | exact artifact identity |
 
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
-2. While external acceptance is unavailable, reverse the L1 materialization fan-in/error handoff through the guarded EXE acquisition packet.
+2. While external acceptance is unavailable, run/reverse the focused L1 completion-ordering packet without assuming a fan-in counter.
 3. Use merged #219 tooling to produce a real protected-process multi-anchor mapping packet when the process is available.
 4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
 5. Capture original-process selected identity only after mapped L2 anchors are proven.
