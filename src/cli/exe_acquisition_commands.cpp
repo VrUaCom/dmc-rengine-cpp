@@ -375,6 +375,7 @@ int run_capture_exe_process_window(
         .image_path = process_window.image_path.generic_string(),
         .preferred_image_base = pe.image->image_base,
         .pid = process_window.pid,
+        .process_creation_filetime = process_window.process_creation_filetime,
         .module_base = process_window.module_base,
         .rva = process_window.rva,
         .runtime_va = process_window.runtime_va,
