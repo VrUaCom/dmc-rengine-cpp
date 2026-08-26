@@ -4,6 +4,8 @@
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 #include "dmc_rengine/profiles/dmc3/dds_profile.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
+#include "dmc_rengine/gdspaces/container_expander.hpp"
+#include "dmc_rengine/profiles/dmc3/relative_slot_packed_reflow_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_packed_reflow_writer.hpp"
 
 #include <algorithm>
@@ -317,6 +319,133 @@ void the_cycle_closes_from_the_tree_back_into_the_container() {
         core::Sha256::compute(rebuilt.bytes).hex());
 }
 
+[[nodiscard]] std::vector<std::byte> stage_container_with_a_pack() {
+    // The shape a real stage has: a PAC whose slots hold, among other things,
+    // a texture pack. Editing a texture therefore has to travel back out
+    // through two containers, which is where a cycle usually breaks.
+    const auto pack = pack_fixture();
+    const std::vector<std::byte> other{
+        std::byte{'H'}, std::byte{'I'}, std::byte{'T'}, std::byte{'S'},
+        std::byte{0}, std::byte{0}, std::byte{0}, std::byte{0}};
+
+    constexpr std::size_t align = 0x40U;
+    const auto round_up = [](std::size_t value) {
+        return (value + align - 1U) / align * align;
+    };
+    const auto header = round_up(8U + 3U * 4U);
+    const auto slot0 = header;
+    const auto slot1 = round_up(slot0 + other.size());
+    const auto slot2 = round_up(slot1 + pack.size());
+    std::vector<std::byte> bytes(round_up(slot2 + other.size()), std::byte{0});
+
+    bytes[0] = static_cast<std::byte>('P');
+    bytes[1] = static_cast<std::byte>('A');
+    bytes[2] = static_cast<std::byte>('C');
+    put_u32(bytes, 4U, 3U);
+    put_u32(bytes, 8U, static_cast<std::uint32_t>(slot0));
+    put_u32(bytes, 12U, static_cast<std::uint32_t>(slot1));
+    put_u32(bytes, 16U, static_cast<std::uint32_t>(slot2));
+    std::copy(other.begin(), other.end(),
+        bytes.begin() + static_cast<std::ptrdiff_t>(slot0));
+    std::copy(pack.begin(), pack.end(),
+        bytes.begin() + static_cast<std::ptrdiff_t>(slot1));
+    std::copy(other.begin(), other.end(),
+        bytes.begin() + static_cast<std::ptrdiff_t>(slot2));
+    return bytes;
+}
+
+void the_cycle_survives_a_nested_container() {
+    namespace gd = dmc::rengine::gdspaces;
+    const auto stage = stage_container_with_a_pack();
+
+    gd::ResourcePayload parent{
+        .resource = gd::ResourceRef{
+            .id = gd::ResourceId{"test", "stage.pac", {}, 0U, stage.size()},
+            .display_name = "stage.pac",
+            .format = "pac",
+            .profile = "dmc3-hd",
+            .synthetic_name = false,
+            .container = true,
+        },
+        .bytes = stage,
+        .diagnostics = {},
+        .byte_provenance = std::nullopt,
+    };
+
+    const auto registry = dmc3::make_container_parser_registry();
+    const auto parsed = registry.parse(
+        std::span<const std::byte>{stage}, "stage.pac");
+    assert(parsed.ok());
+    const auto expansion = gd::ContainerExpander::expand(parent, parsed);
+    assert(expansion.usable());
+
+    const gd::ContainerChild* pack_child = nullptr;
+    for (const auto& child : expansion.children) {
+        if (child.payload.resource.format == "ptx") {
+            pack_child = &child;
+        }
+    }
+    assert(pack_child != nullptr);
+
+    // Out through both containers, edited, and back in through both.
+    const auto inner = formats::PtxParser::parse(pack_child->payload.bytes);
+    assert(inner.ok());
+    std::vector<dmc3::AuthoredPackedTextureDds> textures;
+    for (const auto& entry : inner.document->entries) {
+        std::vector<std::byte> image(
+            pack_child->payload.bytes.begin() + static_cast<std::ptrdiff_t>(entry.offset),
+            pack_child->payload.bytes.begin() +
+                static_cast<std::ptrdiff_t>(entry.offset + entry.size));
+        textures.push_back(dmc3::AuthoredPackedTextureDds{
+            .texture_index = entry.slot_index,
+            .expected_source_sha256 = core::Sha256::compute(image).hex(),
+            .bytes = std::move(image),
+        });
+    }
+    textures[0].bytes[0x90] ^= std::byte{0xFF};
+
+    const auto rebuilt_pack = dmc3::TextureSlotPackedReflowWriter::rebuild(
+        pack_child->payload.bytes, textures);
+    assert(rebuilt_pack.ok());
+    assert(rebuilt_pack.receipt.has_value());
+
+    const dmc3::AuthoredChildImage authored{
+        .resource = pack_child->payload.resource.id,
+        .source_sha256 = core::Sha256::compute(pack_child->payload.bytes).hex(),
+        .output_sha256 = core::Sha256::compute(rebuilt_pack.bytes).hex(),
+        .revision = 1U,
+        .writer_mode = rebuilt_pack.receipt->writer_mode,
+        .bytes = rebuilt_pack.bytes,
+    };
+
+    // The parent validates a changed container child with that child's own
+    // parser. A texture pack is not a relative-slot container, and pushing it
+    // through a slot-topology check it could never satisfy would refuse a
+    // legitimate edit.
+    const auto reflowed = dmc3::RelativeSlotPackedReflowWriter::rebuild(
+        parent, expansion,
+        std::span<const dmc3::AuthoredChildImage>{&authored, 1U});
+    assert(reflowed.ok());
+    assert(reflowed.bytes.size() == stage.size());
+
+    std::size_t differing = 0U;
+    for (std::size_t index = 0U; index < stage.size(); ++index) {
+        differing += stage[index] != reflowed.bytes[index] ? 1U : 0U;
+    }
+    assert(differing == 1U);
+
+    const auto reparsed = registry.parse(
+        std::span<const std::byte>{reflowed.bytes}, "stage.pac");
+    assert(reparsed.ok());
+    assert(reparsed.document.entries.size() == parsed.document.entries.size());
+    for (std::size_t index = 0U; index < reparsed.document.entries.size(); ++index) {
+        assert(reparsed.document.entries[index].offset ==
+            parsed.document.entries[index].offset);
+        assert(reparsed.document.entries[index].size ==
+            parsed.document.entries[index].size);
+    }
+}
+
 void classification_and_selection_agree() {
     const auto pack = pack_fixture();
 
@@ -349,6 +478,7 @@ int main() {
     a_single_wrapped_texture_is_not_a_pack();
     a_damaged_pack_is_refused_not_repaired();
     the_cycle_closes_from_the_tree_back_into_the_container();
+    the_cycle_survives_a_nested_container();
     classification_and_selection_agree();
     return 0;
 }

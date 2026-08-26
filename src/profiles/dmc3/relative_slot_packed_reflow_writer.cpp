@@ -3,6 +3,8 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/pac.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 #include "dmc_rengine/gdspaces/working_copy.hpp"
 
 #include <algorithm>
@@ -10,6 +12,7 @@
 #include <numeric>
 #include <span>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -154,6 +157,28 @@ struct PhysicalSpan final {
         parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset + size));
 }
 
+[[nodiscard]] bool same_texture_pack_relation(
+    const formats::ContainerDocument& source,
+    const formats::ContainerDocument& output) {
+    // A texture pack has no slot table to preserve; what must survive an edit
+    // is the set of textures and their identities. Sizes and offsets are
+    // expected to move — that is what size-changing authoring means — so
+    // pinning them here would forbid the very edit the writer exists for.
+    if (source.entries.size() != output.entries.size()) {
+        return false;
+    }
+    for (std::size_t index = 0U; index < source.entries.size(); ++index) {
+        if (source.entries[index].slot_index !=
+            output.entries[index].slot_index) {
+            return false;
+        }
+        if (!output.entries[index].valid(output.container_size)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 [[nodiscard]] bool validate_changed_container_child(
     const gdspaces::ContainerChild& child,
     const AuthoredChildImage& authored) {
@@ -163,27 +188,43 @@ struct PhysicalSpan final {
 
     const auto source_bytes = std::span<const std::byte>{
         child.payload.bytes.data(), child.payload.bytes.size()};
+    const auto output_bytes = std::span<const std::byte>{
+        authored.bytes.data(), authored.bytes.size()};
+
+    const auto opens_with = [](std::span<const std::byte> bytes,
+                               std::string_view magic) {
+        if (bytes.size() < magic.size()) {
+            return false;
+        }
+        for (std::size_t index = 0U; index < magic.size(); ++index) {
+            if (std::to_integer<unsigned char>(bytes[index]) !=
+                static_cast<unsigned char>(magic[index])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     std::string_view source_format;
-    if (source_bytes.size() >= 4U &&
-        source_bytes[0] == std::byte{'P'} &&
-        source_bytes[1] == std::byte{'A'} &&
-        source_bytes[2] == std::byte{'C'} &&
-        source_bytes[3] == std::byte{0}) {
+    if (opens_with(source_bytes, RelativeSlotWalkContract::pac_magic)) {
         source_format = "PAC";
-    } else if (source_bytes.size() >= 4U &&
-               source_bytes[0] == std::byte{'P'} &&
-               source_bytes[1] == std::byte{'N'} &&
-               source_bytes[2] == std::byte{'S'} &&
-               source_bytes[3] == std::byte{'T'}) {
+    } else if (opens_with(source_bytes, RelativeSlotWalkContract::pnst_magic)) {
         source_format = "PNST";
     } else {
-        return false;
+        // Not a relative-slot container. The only other container the tree
+        // expands is the texture pack, and it must be validated by its own
+        // parser rather than pushed through a slot-topology check it was never
+        // going to satisfy.
+        const auto source_pack = formats::PtxParser::parse(source_bytes);
+        const auto output_pack = formats::PtxParser::parse(output_bytes);
+        if (!source_pack.ok() || !output_pack.ok()) {
+            return false;
+        }
+        return same_texture_pack_relation(*source_pack.document, *output_pack.document);
     }
 
     const auto source_parsed = parse_for_format(source_format, source_bytes);
-    const auto output_parsed = parse_for_format(
-        source_format,
-        std::span<const std::byte>{authored.bytes.data(), authored.bytes.size()});
+    const auto output_parsed = parse_for_format(source_format, output_bytes);
     if (!source_parsed.ok() || !output_parsed.ok()) {
         return false;
     }
@@ -479,7 +520,7 @@ RelativeSlotPackedReflowResult RelativeSlotPackedReflowWriter::rebuild(
         if (!validate_changed_container_child(child, authored)) {
             return failure(
                 RelativeSlotPackedReflowStatus::child_writer_validation_failed,
-                "A changed nested PAC/PNST image failed independent canonical topology validation.");
+                "A changed nested container image failed independent canonical validation for its own format.");
         }
         const auto span_index = span_by_slot[child.entry.slot_index];
         if (span_index == kNoSpan || span_index >= spans.size()) {
