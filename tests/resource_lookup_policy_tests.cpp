@@ -39,11 +39,12 @@ namespace gdspaces = dmc::rengine::gdspaces;
         .executable_size = executable.file_size,
         .runtime_mapping_packet_sha256 = std::string(64U, 'a'),
         .observer_id = "dmc-rengine-l2-observer",
-        .observer_version = "test-contract-v1",
+        .observer_version = "test-contract-v2",
         .observer_build_sha256 = std::string(64U, 'c'),
         .trace_complete = true,
         .dropped_event_count = 0U,
         .pid = 4242U,
+        .process_creation_filetime = 0x01DA000000004242ULL,
         .module_base = 0x7FF600000000ULL,
         .flags = 1U,
         .request = "scr\\st001.pac",
@@ -182,11 +183,13 @@ int main() {
     assert(valid.valid());
     const auto json = dmc3::original_resolution_observation_to_json(valid);
     assert(!json.empty());
-    assert(json.find("dmc-rengine.gdspaces-l2-original-selection.v1") !=
+    assert(json.find("dmc-rengine.gdspaces-l2-original-selection.v2") !=
            std::string::npos);
     assert(json.find("original-process-observation") != std::string::npos);
     assert(json.find("dmc-rengine-l2-observer") != std::string::npos);
     assert(json.find("\"trace_complete\": true") != std::string::npos);
+    assert(json.find("\"process_creation_filetime\": 133419138960867906") !=
+           std::string::npos);
     assert(json.find("bytes_hex") == std::string::npos);
 
     // Analysis EXE cannot be laundered into protected original-process evidence.
@@ -225,6 +228,13 @@ int main() {
     {
         auto bad = valid;
         bad.observer_build_sha256 = "not-a-build-sha";
+        assert(!bad.valid());
+    }
+
+    // Process-instance identity is mandatory in the v2 content contract.
+    {
+        auto bad = valid;
+        bad.process_creation_filetime = 0U;
         assert(!bad.valid());
     }
 
@@ -291,7 +301,8 @@ int main() {
             .probes = {},
             .detail = {},
         };
-        assert(dmc3::compare_original_to_product(valid, product, bindings).matched());
+        assert(dmc3::compare_original_to_product(
+                   valid, product, bindings).candidate_content_matched());
 
         auto invalid_bindings = bindings;
         invalid_bindings.archives[2].source_id = "archive-1";
@@ -320,11 +331,12 @@ int main() {
             .executable_size = executable.file_size,
             .runtime_mapping_packet_sha256 = std::string(64U, 'b'),
             .observer_id = "dmc-rengine-l2-observer",
-            .observer_version = "test-contract-v1",
+            .observer_version = "test-contract-v2",
             .observer_build_sha256 = std::string(64U, 'd'),
             .trace_complete = true,
             .dropped_event_count = 0U,
             .pid = 5000U,
+            .process_creation_filetime = 0x01DA000000005000ULL,
             .module_base = 0x7FF700000000ULL,
             .flags = 1U,
             .request = "room\\loose.pac",
@@ -374,7 +386,7 @@ int main() {
             .detail = {},
         };
         assert(dmc3::compare_original_to_product(
-                   physical, product, physical_bindings).matched());
+                   physical, product, physical_bindings).candidate_content_matched());
 
         auto skipped = physical;
         skipped.probes.erase(skipped.probes.begin());

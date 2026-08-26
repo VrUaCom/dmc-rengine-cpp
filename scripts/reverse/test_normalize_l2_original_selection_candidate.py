@@ -15,6 +15,8 @@ assert SPEC is not None and SPEC.loader is not None
 normalizer = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(normalizer)
 
+PROCESS_CREATION_FILETIME = 133_801_234_567_890_123
+
 
 def legacy() -> dict[str, object]:
     return {
@@ -24,11 +26,12 @@ def legacy() -> dict[str, object]:
         "executable_size": 1,
         "runtime_mapping_packet_sha256": "2" * 64,
         "observer_id": "observer",
-        "observer_version": "v1",
+        "observer_version": "v2",
         "observer_build_sha256": "3" * 64,
         "trace_complete": True,
         "dropped_event_count": 0,
         "pid": 1,
+        "process_creation_filetime": PROCESS_CREATION_FILETIME,
         "module_base": "0x1",
         "flags": 1,
         "request": "scr\\st001.pac",
@@ -79,6 +82,7 @@ def main() -> None:
     assert value["promotion_eligible"] is False
     assert value["trusted_capture_bound"] is False
     assert value["legacy_schema_normalized"] is True
+    assert value["process_creation_filetime"] == PROCESS_CREATION_FILETIME
     assert "original-process-selected-resource-identity" not in value["proves"]
     assert "trusted-observer-execution-or-trace-origin" in value["does_not_prove"]
     assert "original-process-selected-provider-identity" in value["does_not_prove"]
@@ -86,7 +90,7 @@ def main() -> None:
     assert tuple(value["probes"][0]) == normalizer.PROBE_FIELDS
 
     wrong_schema = legacy()
-    wrong_schema["schema"] = "other"
+    wrong_schema["schema"] = "dmc-rengine.gdspaces-l2-original-selection.v1"
     rejected(wrong_schema, "schema mismatch")
 
     wrong_class = legacy()
@@ -116,6 +120,14 @@ def main() -> None:
     missing = legacy()
     del missing["observer_build_sha256"]
     rejected(missing, "missing required field observer_build_sha256")
+
+    missing_creation = legacy()
+    del missing_creation["process_creation_filetime"]
+    rejected(missing_creation, "missing required field process_creation_filetime")
+
+    zero_creation = legacy()
+    zero_creation["process_creation_filetime"] = 0
+    rejected(zero_creation, "must be non-zero uint64")
 
     # Byte determinism must not depend on Python hash randomization. Run the CLI
     # in two fresh processes with different hash seeds and compare exact output.

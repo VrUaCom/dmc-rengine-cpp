@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """Normalize the legacy C++ L2 selection JSON into a non-promotable candidate.
 
-The existing C++ serializer predates the trusted-origin review correction and uses
-legacy labels that sound stronger than the evidence actually is. This adapter is
-intentionally narrow: it accepts only that exact legacy schema/evidence pair,
-rejects unknown evidence-surface fields, and builds a deterministic sanitized
-content candidate. It does not validate runtime origin and cannot make the
-candidate promotion eligible.
+The C++ serializer remains a content producer rather than trusted runtime origin.
+This adapter accepts only the versioned observation surface that includes the
+Windows process creation FILETIME, rejects unknown evidence-surface fields, and
+builds a deterministic sanitized content candidate. It does not validate runtime
+origin and cannot make the candidate promotion eligible.
 """
 
 from __future__ import annotations
@@ -18,17 +17,18 @@ from pathlib import Path
 import sys
 from typing import Any
 
-LEGACY_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection.v1"
+LEGACY_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection.v2"
 LEGACY_EVIDENCE_CLASS = "original-process-observation"
-CANDIDATE_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-candidate.v1"
+CANDIDATE_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-candidate.v2"
 CANDIDATE_EVIDENCE_CLASS = "original-process-observation-candidate"
 
 TOP_LEVEL_KEYS = {
     "schema", "evidence_class", "executable_sha256", "executable_size",
     "runtime_mapping_packet_sha256", "observer_id", "observer_version",
     "observer_build_sha256", "trace_complete", "dropped_event_count", "pid",
-    "module_base", "flags", "request", "basename", "first_missing_archive_volume",
-    "archives", "probes", "selected", "proves", "does_not_prove",
+    "process_creation_filetime", "module_base", "flags", "request", "basename",
+    "first_missing_archive_volume", "archives", "probes", "selected", "proves",
+    "does_not_prove",
 }
 ARCHIVE_FIELDS = ("volume_index", "filename", "sha256", "size")
 PROBE_FIELDS = (
@@ -62,6 +62,14 @@ def _exact_keys(value: Any, allowed: set[str], context: str) -> dict[str, Any]:
         raise ValueError(
             f"legacy {context} contains unsupported field(s): {', '.join(sorted(extra))}"
         )
+    return value
+
+
+def _require_process_creation_filetime(value: Any) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("legacy process_creation_filetime must be an unsigned 64-bit integer")
+    if value <= 0 or value > 0xFFFFFFFFFFFFFFFF:
+        raise ValueError("legacy process_creation_filetime must be non-zero uint64")
     return value
 
 
@@ -102,12 +110,17 @@ def normalize_candidate(value: dict[str, Any]) -> dict[str, Any]:
     required = (
         "executable_sha256", "executable_size", "runtime_mapping_packet_sha256",
         "observer_id", "observer_version", "observer_build_sha256", "trace_complete",
-        "dropped_event_count", "pid", "module_base", "flags", "request", "basename",
-        "first_missing_archive_volume", "archives", "probes", "selected",
+        "dropped_event_count", "pid", "process_creation_filetime", "module_base",
+        "flags", "request", "basename", "first_missing_archive_volume", "archives",
+        "probes", "selected",
     )
     for field in required:
         if field not in value:
             raise ValueError(f"legacy selection missing required field {field}")
+
+    process_creation_filetime = _require_process_creation_filetime(
+        value["process_creation_filetime"]
+    )
 
     normalized: dict[str, Any] = {
         "schema": CANDIDATE_SCHEMA,
@@ -124,6 +137,7 @@ def normalize_candidate(value: dict[str, Any]) -> dict[str, Any]:
         "trace_complete": value["trace_complete"],
         "dropped_event_count": value["dropped_event_count"],
         "pid": value["pid"],
+        "process_creation_filetime": process_creation_filetime,
         "module_base": value["module_base"],
         "flags": value["flags"],
         "request": value["request"],

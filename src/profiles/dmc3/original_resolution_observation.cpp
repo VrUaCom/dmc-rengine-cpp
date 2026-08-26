@@ -127,8 +127,7 @@ namespace {
     const OriginalResolutionObservation& original,
     const RuntimeSourceBindings& bindings) noexcept {
     if (bindings.physical_source_id.empty() ||
-        bindings.archives.size() !=
-            static_cast<std::size_t>(original.first_missing_archive_volume)) {
+        bindings.archives.size() != original.archives.size()) {
         return false;
     }
 
@@ -136,7 +135,8 @@ namespace {
         const auto& binding = bindings.archives[index];
         if (!binding.valid() ||
             binding.volume_index >= original.first_missing_archive_volume ||
-            binding.source_id == bindings.physical_source_id) {
+            binding.source_id == bindings.physical_source_id ||
+            archive_identity(original, binding.volume_index) == nullptr) {
             return false;
         }
 
@@ -150,10 +150,8 @@ namespace {
         }
     }
 
-    for (std::uint32_t volume = 0U;
-         volume < original.first_missing_archive_volume;
-         ++volume) {
-        if (bindings.archive(volume) == nullptr) {
+    for (const auto& archive : original.archives) {
+        if (bindings.archive(archive.volume_index) == nullptr) {
             return false;
         }
     }
@@ -207,11 +205,12 @@ bool OriginalResolutionObservation::valid() const noexcept {
         !canonical_sha256(runtime_mapping_packet_sha256) ||
         !bounded_metadata(observer_id) || !bounded_metadata(observer_version) ||
         !canonical_sha256(observer_build_sha256) || !trace_complete ||
-        dropped_event_count != 0U || pid == 0U || module_base == 0U ||
+        dropped_event_count != 0U || pid == 0U ||
+        process_creation_filetime == 0U || module_base == 0U ||
         flags != 1U || request.empty() || basename.empty() ||
         !selected.has_value() || !selected->valid_shape() ||
         first_missing_archive_volume > VolumeBootstrapPolicy::runtime_index_max() ||
-        archives.size() != static_cast<std::size_t>(first_missing_archive_volume)) {
+        archives.size() > static_cast<std::size_t>(first_missing_archive_volume)) {
         return false;
     }
 
@@ -220,20 +219,19 @@ bool OriginalResolutionObservation::valid() const noexcept {
         return false;
     }
 
-    for (std::uint32_t index = 0U;
-         index < first_missing_archive_volume;
-         ++index) {
-        const auto* identity = archive_identity(*this, index);
-        if (identity == nullptr || !identity->valid()) {
+    // `first_missing_archive_volume` is a filename-discovery boundary only.
+    // `archives` is the successfully mounted subset and must be deterministic,
+    // unique and ascending by discovery index. A failed lower mount therefore
+    // does not become a synthetic lookup miss later in the resolver trace.
+    std::optional<std::uint32_t> previous_volume;
+    for (const auto& archive : archives) {
+        if (!archive.valid() ||
+            archive.volume_index >= first_missing_archive_volume ||
+            (previous_volume.has_value() &&
+             archive.volume_index <= *previous_volume)) {
             return false;
         }
-    }
-    for (std::size_t index = 0U; index < archives.size(); ++index) {
-        for (std::size_t other = index + 1U; other < archives.size(); ++other) {
-            if (archives[index].volume_index == archives[other].volume_index) {
-                return false;
-            }
-        }
+        previous_volume = archive.volume_index;
     }
 
     if (probes.empty()) {
@@ -243,14 +241,11 @@ bool OriginalResolutionObservation::valid() const noexcept {
     std::size_t observed_index = 0U;
     for (const auto& attempt : plan.attempts) {
         if (attempt.provider == ResourceProviderClass::archive) {
-            for (std::uint32_t remaining = first_missing_archive_volume;
-                 remaining > 0U;
-                 --remaining) {
+            for (auto iterator = archives.rbegin(); iterator != archives.rend(); ++iterator) {
                 if (observed_index >= probes.size()) {
                     return false;
                 }
                 const auto& probe = probes[observed_index];
-                const auto volume_index = remaining - 1U;
                 const auto expected_key = ResourcePathPolicy::archive(attempt.candidate);
                 if (!probe.valid_shape() ||
                     probe.sequence_index != observed_index ||
@@ -258,7 +253,7 @@ bool OriginalResolutionObservation::valid() const noexcept {
                     probe.provider != ResourceProviderClass::archive ||
                     probe.candidate != attempt.candidate ||
                     probe.provider_key != expected_key ||
-                    probe.archive_volume_index != volume_index) {
+                    probe.archive_volume_index != iterator->volume_index) {
                     return false;
                 }
 
@@ -304,7 +299,7 @@ std::string original_resolution_observation_to_json(
 
     std::ostringstream output;
     output << "{\n"
-           << "  \"schema\": \"dmc-rengine.gdspaces-l2-original-selection.v1\",\n"
+           << "  \"schema\": \"dmc-rengine.gdspaces-l2-original-selection.v2\",\n"
            << "  \"evidence_class\": \"original-process-observation\",\n"
            << "  \"executable_sha256\": \""
            << observation.executable_sha256 << "\",\n"
@@ -320,6 +315,8 @@ std::string original_resolution_observation_to_json(
            << "  \"trace_complete\": true,\n"
            << "  \"dropped_event_count\": " << observation.dropped_event_count << ",\n"
            << "  \"pid\": " << observation.pid << ",\n"
+           << "  \"process_creation_filetime\": "
+           << observation.process_creation_filetime << ",\n"
            << "  \"module_base\": \"" << hex_u64(observation.module_base)
            << "\",\n"
            << "  \"flags\": " << observation.flags << ",\n"
@@ -380,11 +377,13 @@ std::string original_resolution_observation_to_json(
            << escape_json(selected.physical_relative_path) << "\"\n"
            << "  },\n"
            << "  \"proves\": [\n"
-           << "    \"original-process-provider-traversal-prefix\",\n"
-           << "    \"original-process-selected-resource-identity\"\n"
+           << "    \"selection-content-follows-successfully-mounted-provider-traversal-prefix\",\n"
+           << "    \"selection-content-carries-process-instance-identity\"\n"
            << "  ],\n"
            << "  \"does_not_prove\": [\n"
-           << "    \"runtime-address-mapping-without-the-bound-mapping-packet\",\n"
+           << "    \"trusted-observer-execution-or-trace-origin\",\n"
+           << "    \"all-discovered-numbered-archives-mounted-successfully\",\n"
+           << "    \"original-process-selected-provider-identity\",\n"
            << "    \"retail-archive-collision-freedom\",\n"
            << "    \"product-original-global-equivalence\",\n"
            << "    \"layer-1-or-layer-3-completion\"\n"
@@ -400,13 +399,13 @@ OriginalProductResolutionComparison compare_original_to_product(
     if (!original.valid()) {
         return {
             .status = OriginalProductComparisonStatus::invalid_original_observation,
-            .detail = "Original-process observation failed its authority/order/identity contract.",
+            .detail = "Original-process candidate failed its authority/order/identity contract.",
         };
     }
     if (!bindings_match_observed_topology(original, bindings)) {
         return {
             .status = OriginalProductComparisonStatus::invalid_product_configuration,
-            .detail = "GDSpaces source bindings do not exactly represent the observed contiguous archive topology.",
+            .detail = "GDSpaces source bindings do not exactly represent the observed successfully mounted archive topology.",
         };
     }
     if (!product.ok() || !product.resolved.has_value()) {
@@ -418,7 +417,7 @@ OriginalProductResolutionComparison compare_original_to_product(
     if (product.request != original.request) {
         return {
             .status = OriginalProductComparisonStatus::resource_identity_mismatch,
-            .detail = "Product and original observations do not refer to the same logical request.",
+            .detail = "Product and original candidates do not refer to the same logical request.",
         };
     }
 
@@ -430,7 +429,7 @@ OriginalProductResolutionComparison compare_original_to_product(
         if (binding == nullptr || resolved.id.source_id != binding->source_id) {
             return {
                 .status = OriginalProductComparisonStatus::provider_identity_mismatch,
-                .detail = "GDSpaces selected a different archive source/volume identity.",
+                .detail = "GDSpaces selected a different successfully mounted archive source/volume identity.",
             };
         }
         if (resolved.id.logical_path != selected.archive_member_path) {
@@ -445,7 +444,7 @@ OriginalProductResolutionComparison compare_original_to_product(
         if (resolved.id.source_id != bindings.physical_source_id) {
             return {
                 .status = OriginalProductComparisonStatus::provider_identity_mismatch,
-                .detail = "GDSpaces selected a non-physical source while the original selected the physical provider.",
+                .detail = "GDSpaces selected a non-physical source while the original candidate selected the physical provider.",
             };
         }
         if (resolved.id.logical_path != selected.physical_relative_path) {
@@ -459,7 +458,7 @@ OriginalProductResolutionComparison compare_original_to_product(
 
     return {
         .status = OriginalProductComparisonStatus::matched,
-        .detail = "Original-process and GDSpaces selected provider/resource identities match at the bounded request scope.",
+        .detail = "Candidate and GDSpaces selected provider/resource identities match at the bounded request scope.",
     };
 }
 

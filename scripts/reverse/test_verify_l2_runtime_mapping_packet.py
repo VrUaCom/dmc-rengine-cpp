@@ -13,16 +13,26 @@ mapping = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mapping)
 
 
-def make_receipt(rva: int, digit: str, *, pid: int = 4242) -> dict[str, object]:
+PROCESS_CREATION_FILETIME = 133_801_234_567_890_123
+
+
+def make_receipt(
+    rva: int,
+    digit: str,
+    *,
+    pid: int = 4242,
+    process_creation_filetime: int = PROCESS_CREATION_FILETIME,
+) -> dict[str, object]:
     module_base = 0x7FF600000000
     window_sha = digit * 64
     return {
-        "schema": "dmc-rengine.exe-process-window.v1",
+        "schema": "dmc-rengine.exe-process-window.v2",
         "artifact_sha256": mapping.PROTECTED_DISTRIBUTION_SHA256,
         "artifact_size": mapping.PROTECTED_DISTRIBUTION_SIZE,
         "image_path": "C:/Users/LocalUser/Games/DMC3/dmc3.exe",
         "preferred_image_base": f"0x{mapping.PREFERRED_IMAGE_BASE:X}",
         "pid": pid,
+        "process_creation_filetime": process_creation_filetime,
         "module_base": f"0x{module_base:X}",
         "rva": f"0x{rva:X}",
         "runtime_va": f"0x{module_base + rva:X}",
@@ -70,9 +80,10 @@ def main() -> None:
         )
 
         packet = mapping.build_packet([open_game, registration, resolve])
-        assert packet["schema"] == "dmc-rengine.gdspaces-l2-runtime-mapping.v1"
+        assert packet["schema"] == "dmc-rengine.gdspaces-l2-runtime-mapping.v2"
         assert packet["status"] == "bounded_match"
         assert packet["anchor_count"] == 3
+        assert packet["process_creation_filetime"] == PROCESS_CREATION_FILETIME
         assert packet["canonical_analysis_artifact_sha256"] == (
             mapping.CANONICAL_ANALYSIS_SHA256
         )
@@ -80,6 +91,10 @@ def main() -> None:
         assert "image_path" not in packet
         assert "LocalUser" not in json.dumps(packet)
         assert "original-process-selected-provider-identity" in packet["does_not_prove"]
+        assert (
+            "all-listed-ranges-captured-from-one-windows-process-instance"
+            in packet["proves"]
+        )
 
         expect_rejected(
             [open_game, registration, registration],
@@ -90,7 +105,41 @@ def main() -> None:
         wrong_pid = write_receipt(root, "wrong-pid.json", wrong_pid_payload)
         expect_rejected(
             [open_game, registration, wrong_pid],
-            "one process/module session",
+            "one exact process instance",
+        )
+
+        # The original defect in #229: the same PID/module base must not allow
+        # receipts from two different Windows process launches to be combined.
+        wrong_creation_payload = make_receipt(
+            0x00327430,
+            "3",
+            process_creation_filetime=PROCESS_CREATION_FILETIME + 1,
+        )
+        wrong_creation = write_receipt(
+            root, "wrong-creation-time.json", wrong_creation_payload
+        )
+        expect_rejected(
+            [open_game, registration, wrong_creation],
+            "one exact process instance",
+        )
+
+        zero_creation_payload = make_receipt(
+            0x00327430, "3", process_creation_filetime=0
+        )
+        zero_creation = write_receipt(
+            root, "zero-creation-time.json", zero_creation_payload
+        )
+        expect_rejected(
+            [open_game, registration, zero_creation],
+            "process_creation_filetime must be non-zero",
+        )
+
+        legacy_payload = make_receipt(0x00327430, "3")
+        legacy_payload["schema"] = "dmc-rengine.exe-process-window.v1"
+        legacy = write_receipt(root, "legacy-v1.json", legacy_payload)
+        expect_rejected(
+            [open_game, registration, legacy],
+            "real R2B promotion requires process-window v2",
         )
 
         wrong_authority_payload = make_receipt(0x00327430, "3")
