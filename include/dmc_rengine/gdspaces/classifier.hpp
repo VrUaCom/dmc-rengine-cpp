@@ -14,13 +14,23 @@ struct ResourceClassification final {
     GameProfile profile{GameProfile::unknown};
     bool container{false};
     bool magic_confirmed{false};
+
+    // True when the format was decided by reading the payload rather than by
+    // trusting the path. A magic signature is one way to earn this; a record
+    // that is structurally text is another, and that one carries no magic.
+    bool byte_derived{false};
 };
 
 class ResourceClassifier final {
 public:
+    // `path_names_the_resource` is false when the caller synthesized the name
+    // itself — a relative-slot container stores no names, so `slot_0001.bin`
+    // is the parser's placeholder, not evidence. Classifying by that suffix
+    // would be reading back our own guess as if it were a fact.
     [[nodiscard]] static ResourceClassification classify(
         std::string_view logical_path,
-        std::span<const std::byte> bytes = {});
+        std::span<const std::byte> bytes = {},
+        bool path_names_the_resource = true);
 
     [[nodiscard]] static GameProfile profile_from_path(
         std::string_view logical_path);

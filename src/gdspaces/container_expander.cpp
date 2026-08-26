@@ -243,18 +243,21 @@ ContainerExpansion ContainerExpander::expand(
                     parent.bytes.begin() + static_cast<std::ptrdiff_t>(offset + size));
                 const auto classification = ResourceClassifier::classify(
                     entry.logical_name,
-                    std::span<const std::byte>{child_bytes});
+                    std::span<const std::byte>{child_bytes},
+                    !entry.synthetic_name);
                 child_ref.format = classification.format;
                 child_ref.container = classification.container;
 
                 // A relative-slot container stores no names, so the parser
-                // supplies one. Where the payload carries its own type tag,
-                // that tag names the type better than a generic suffix does —
-                // and it comes from the bytes rather than from a guess, which
-                // is the only reason it is allowed to appear here at all.
+                // supplies one. Where the payload itself decides its type —
+                // a magic signature, a four-byte record tag, or a body that is
+                // wholly text — that decision names the type better than a
+                // generic suffix does, and it comes from the bytes rather than
+                // from a guess, which is the only reason it is allowed to
+                // appear here at all.
                 // The identity is untouched: only what the operator reads
                 // changes.
-                if (entry.synthetic_name && classification.magic_confirmed) {
+                if (entry.synthetic_name && classification.byte_derived) {
                     // Keep the parser's own spelling of the slot and replace
                     // only the suffix, so one slot never appears under two
                     // names.

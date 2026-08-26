@@ -23,6 +23,59 @@ whose vtable is `0x1404E3128`. So the tag is an object's own type field, and the
 readers are not selected from a literal tag table. How they *are* selected is
 open.
 
+## 1a. The untagged records are readable after all
+
+Two of the three slot kinds that had no tag are now identified, and neither
+identification needed a name to work from.
+
+**Authoring text.** `stNNN.pac` slot 0 and slot 4, `stNNNcfg.pac` slot 0 and
+`stNNN_effect.pac` slot 0 are text: a name manifest, the `# GAME` scene block,
+the `# DOOR` table, an effect id list. They read as `bin` only because the
+classifier had asked the *path* what they were — and the path was
+`slot_0004.bin`, a placeholder the parser had invented itself. Reading the
+bytes instead answers it.
+
+The encoding is not ASCII. `st001.pac` slot 4 decodes as
+
+```text
+	uv			0, 14, -6, 0		; パーツ番号、テクスチャ番号、U、V
+```
+
+so the rule validates the whole record as Shift-JIS — ASCII, half-width
+katakana, and JIS X 0208 double-byte pairs — with trailing NUL padding excluded
+and at least one line terminator required. Across the 38 payloads of the six
+corpus containers it accepts exactly the 8 that are text and rejects the other
+30, including the 3.3 MiB record next door.
+
+A name the resource actually has still outranks this: `em035_057.index` stays
+`index`, because the name says more than "text" does. The byte probe only gets
+to speak where the name was ours to begin with.
+
+**The texture pack.** `stNNN.pac` slot 1 — the largest record in the stage and
+the last untyped one — is the `stNNN.ptx` the manifest names. It carries no
+magic:
+
+| offset | field |
+|---|---|
+| `+0x00` | `u32` texture count *N* |
+| `+0x04` | *N* × `u32` block size in 2,048-byte sectors |
+| `+0x800` | block 0 |
+| … | block *i* at `0x800 + 2048 × Σ sectors[0..i-1]` |
+
+and each block is a `0x70` descriptor followed by a DDS image.
+
+What identifies it is that its own arithmetic closes exactly:
+`(Σ sectors + 1) × 2048` equals the stored length to the byte — 3,485,696 for
+st001, 2,404,352 for st114 — and every block it predicts really does open with
+`DDS ` at `+0x70`. A structure that predicts both its own length and its own
+contents is stronger evidence than four magic bytes, and it is refused rather
+than repaired when it does not close.
+
+st001 slot 1 expands to 17 DXT1/DXT5 textures, 128×128 to 1024×1024, each with
+a full mip chain. The block's trailing sector padding stays inside the child:
+it is part of what the container stores for that texture, and dropping it would
+make the extracted bytes a reconstruction instead of a copy.
+
 ## 2. Slot roles are positional and stable across stages
 
 `stNNNcfg.pac`
@@ -44,8 +97,8 @@ open.
 
 | slot | st001 | st114 |
 |---|---|---|
-| 0 | name manifest | name manifest |
-| 1 | untagged, leading `0x11` | untagged, leading `0x11` |
+| 0 | name manifest (text) | name manifest (text) |
+| 1 | texture pack, 17 DDS | texture pack, 17 DDS |
 | 2 | `SCM ` | `SCM ` |
 | 3 | `HITS` | `HITS` |
 | 4 | `# GAME` text | `# GAME` text |
@@ -53,7 +106,9 @@ open.
 | 6 | `HITS` | `HITS` |
 | 7 | `PAC` | absent |
 
-`stNNN_effect.pac` is slot 0 a version/id list, slot 1 a `PNST`.
+`stNNN_effect.pac` is slot 0 a version/id list (text), slot 1 a `PNST`.
+
+Nothing in either stage is now reported as an untyped blob.
 
 ## 3. Slot 0 of `stNNN.pac` is a name manifest
 
@@ -65,15 +120,26 @@ st114.ptx\r\nst114.scm\r\nst114.sch\r\n
 This is the first evidence in this project of original names living *inside* a
 relative-slot container rather than being absent from it.
 
-The apparent mapping is manifest line *i* to slot *i+1*, and one line of it is
-self-checking: `st001.scm` lands on the slot whose payload tag is `SCM `. The
-`.ptx` line lands on the untagged `0x11` record and `.sch` on a `HITS` payload,
-neither of which contradicts the mapping but neither of which confirms it the
-way `SCM ` does.
+The apparent mapping is manifest line *i* to slot *i+1*, and two of its three
+lines now check themselves:
 
-That is why this is not wired into naming yet. A manifest name asserted against
-a payload it does not describe would be worse than the parser's honest
-`slot_0003`: it would look like recovered truth.
+| line | slot | what the bytes independently say |
+|---|---|---|
+| `st001.ptx` | 1 | a texture pack of 17 DDS images |
+| `st001.scm` | 2 | payload tag `SCM ` |
+| `st001.sch` | 3 | `HITS` collision data |
+
+The `.scm` line matched a tag from the start. The `.ptx` line matched nothing
+at all until slot 1 was identified structurally, and now it lands on a pack of
+textures — which is what a `.ptx` should be. That is a second corroboration
+arrived at without ever consulting the manifest, which is the only kind that
+counts here. `.sch` on `HITS` is consistent and still unconfirmed.
+
+The mapping is still not wired into naming. Two lines out of three, on two
+stages, is a good reason to expect it holds and not yet a reason to print a
+manifest name over a payload as though it were recovered truth. The third
+independent source — an existing unpacker's own mapping — is what would close
+it.
 
 ## 4. Sparse slots are not damage
 
@@ -84,6 +150,8 @@ not a position in a packed list.
 ## 5. What would close this
 
 - more stages, to turn a two-sample agreement into a role table;
+- the descriptor layout of a texture block, which is 112 bytes of parameters
+  this parser walks past without reading;
 - an independent unpacker's mapping to compare against, which would raise the
   manifest-to-slot association from plausible to corroborated;
 - the reader selection path in the executable, since the tag table is not there.

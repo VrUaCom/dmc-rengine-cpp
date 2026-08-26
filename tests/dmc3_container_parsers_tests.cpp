@@ -41,7 +41,7 @@ std::vector<std::byte> make_container(bool pnst) {
 int main() {
     const auto registry =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
-    assert(registry.size() == 2U);
+    assert(registry.size() == 3U);
 
     const auto pac = make_container(false);
     const auto* pac_parser = registry.select(

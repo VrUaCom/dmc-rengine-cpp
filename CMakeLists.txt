@@ -83,6 +83,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         next_volume_overlay_resolution
         resource_path_normalizer
         tagged_record_classification
+        texture_pack_container
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

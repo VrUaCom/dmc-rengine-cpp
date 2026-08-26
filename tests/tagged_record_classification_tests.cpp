@@ -1,11 +1,13 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/formats/pac.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 // Slot payloads inside a DMC3 relative-slot container carry a four-byte type
@@ -40,23 +42,104 @@ void observed_tags_are_recognized() {
         const auto bytes = tagged(tag, 64U);
         // The slot has no name to classify by, so the tag has to carry it.
         const auto classified = gdspaces::ResourceClassifier::classify(
-            "slot_0003.bin", std::span<const std::byte>{bytes});
+            "slot_0003.bin", std::span<const std::byte>{bytes}, false);
         assert(classified.format == format);
         assert(classified.magic_confirmed);
         assert(!classified.container);
     }
 }
 
-void an_untagged_payload_stays_untagged() {
-    // A record with no tag is not forced into a type. The st001cfg corpus has
-    // exactly this: a trailing text block with no four-byte magic.
-    const std::vector<std::byte> text{
-        std::byte{'\r'}, std::byte{'\n'}, std::byte{'#'}, std::byte{' '},
-        std::byte{'E'}, std::byte{'N'}, std::byte{'D'}, std::byte{0}};
+[[nodiscard]] std::vector<std::byte> literal(std::string_view text, std::size_t size) {
+    std::vector<std::byte> bytes(std::max(size, text.size()), std::byte{0});
+    for (std::size_t index = 0U; index < text.size(); ++index) {
+        bytes[index] = static_cast<std::byte>(text[index]);
+    }
+    return bytes;
+}
+
+void authoring_text_records_are_read_as_text() {
+    // Every one of these is a real payload from the stage corpus, byte for
+    // byte, including its NUL padding to the container alignment. Before the
+    // classifier looked at them they were all "slot_NNNN.bin".
+    const std::pair<std::string_view, std::size_t> corpus[]{
+        // st001.pac slot 0 — the name manifest.
+        {"st001.ptx\r\nst001.scm\r\nst001.sch\r\n", 48U},
+        // st001cfg.pac slot 0 — a bare terminator block.
+        {"\r\n# END", 16U},
+        // st001_effect.pac slot 0 — the effect id list.
+        {"V 922\r\nE 1454\r\nE 1456\r\nE 1460\r\nP 469\r\n"
+         "P 471\r\nT 125\r\nT 48\r\nA 220\r\n# End\r\n", 80U},
+        // st114cfg.pac slot 0 — the door table, tab separated.
+        {"# DOOR 0\r\nBoxIn\t\t0\t1943.0 -10.0 3062.0 120.0 300.0 70.0 135\r\n"
+         "NextRoom\t\t115\r\nType\t\t\tBtnOn\r\n", 560U},
+    };
+    for (const auto& [text, size] : corpus) {
+        const auto bytes = literal(text, size);
+        const auto classified = gdspaces::ResourceClassifier::classify(
+            "slot_0000.bin", std::span<const std::byte>{bytes}, false);
+        assert(classified.format == "txt");
+        // No signature was matched. The claim is only that every byte of the
+        // record is text, and the naming path must accept that as authority.
+        assert(!classified.magic_confirmed);
+        assert(classified.byte_derived);
+        assert(!classified.container);
+    }
+}
+
+void shift_jis_comments_do_not_make_a_record_binary() {
+    // st001.pac slot 4 is the `# GAME` scene block, and its comment is
+    // Shift-JIS: "\x83p\x81[\x83c\x94\xd4\x8d\x86" is パーツ番号. An
+    // ASCII-only rule would call this record binary and hide it.
+    const std::string block =
+        std::string{"# GAME\r\n\r\n# SET 0 CONFIG\r\n\tcam_init\t2500\r\n"
+                    "\tuv\t\t\t0, 14, -6, 0\t\t; "} +
+        "\x83\x70\x81\x5b\x83\x63\x94\xd4\x8d\x86" +
+        std::string{"\r\n# GAME_END\r\n$\r\n"};
+    const auto bytes = literal(block, 256U);
     const auto classified = gdspaces::ResourceClassifier::classify(
-        "slot_0000.bin", std::span<const std::byte>{text});
-    assert(!classified.magic_confirmed);
-    assert(classified.format == "bin");
+        "slot_0004.bin", std::span<const std::byte>{bytes}, false);
+    assert(classified.format == "txt");
+    assert(classified.byte_derived);
+}
+
+void a_named_text_file_keeps_its_own_extension() {
+    // The same rule read the other way: when the resource really is named,
+    // the name wins. A `.index` manifest is text, and "index" says more about
+    // it than "txt" does.
+    const auto bytes = literal("PNST\r\nem035_057_000.txt\r\n", 0U);
+    const auto classified = gdspaces::ResourceClassifier::classify(
+        "em035_057.index", std::span<const std::byte>{bytes});
+    assert(classified.format == "index");
+    assert(!classified.byte_derived);
+}
+
+void a_binary_record_is_never_called_text() {
+    // st001.pac slot 1 is the untagged record whose first dword is 0x00000011.
+    // It has no tag and no signature, and it must stay untyped rather than be
+    // swept up by the text rule.
+    std::vector<std::byte> record(4096U, std::byte{0});
+    record[0] = std::byte{0x11};
+    record[4] = std::byte{0x16};
+    record[8] = std::byte{0x56};
+    const auto classified = gdspaces::ResourceClassifier::classify(
+        "slot_0001.bin", std::span<const std::byte>{record}, false);
+    // The parser's own placeholder suffix is not evidence, so an untagged
+    // record stays untyped instead of being reported as a "bin" format.
+    assert(classified.format == "unknown");
+    assert(!classified.byte_derived);
+
+    // A printable run with no line structure is a binary field, not a file.
+    const auto banner = literal("MODEL 0", 32U);
+    const auto banner_classified = gdspaces::ResourceClassifier::classify(
+        "slot_0002.bin", std::span<const std::byte>{banner}, false);
+    assert(banner_classified.format == "unknown");
+    assert(!banner_classified.byte_derived);
+
+    // A lone lead byte with no valid trail is not Shift-JIS text.
+    const auto truncated = literal("ok\r\n\x83", 16U);
+    const auto truncated_classified = gdspaces::ResourceClassifier::classify(
+        "slot_0003.bin", std::span<const std::byte>{truncated}, false);
+    assert(truncated_classified.format == "unknown");
 }
 
 void a_zero_offset_slot_is_absent_not_broken() {
@@ -91,7 +174,10 @@ void a_zero_offset_slot_is_absent_not_broken() {
 
 int main() {
     observed_tags_are_recognized();
-    an_untagged_payload_stays_untagged();
+    authoring_text_records_are_read_as_text();
+    shift_jis_comments_do_not_make_a_record_binary();
+    a_named_text_file_keeps_its_own_extension();
+    a_binary_record_is_never_called_text();
     a_zero_offset_slot_is_absent_not_broken();
     return 0;
 }
