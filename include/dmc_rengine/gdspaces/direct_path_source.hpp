@@ -15,6 +15,20 @@ enum class DirectPathLookupStatus {
     io_error,
 };
 
+// Spelled here rather than in each consumer. A frontend that invents its own
+// wording for a recovered status turns a canonical fact into a product opinion,
+// and two consumers then disagree about what the same result was called.
+[[nodiscard]] constexpr std::string_view to_string(
+    DirectPathLookupStatus status) noexcept {
+    switch (status) {
+    case DirectPathLookupStatus::resolved: return "resolved";
+    case DirectPathLookupStatus::not_found: return "not-found";
+    case DirectPathLookupStatus::rejected: return "rejected";
+    case DirectPathLookupStatus::io_error: return "io-error";
+    }
+    return "not-found";
+}
+
 struct DirectPathLookupResult final {
     DirectPathLookupStatus status{DirectPathLookupStatus::not_found};
     std::optional<ResourceRef> resource;
