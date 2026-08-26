@@ -1,51 +1,82 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-24  
-**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
+**Snapshot date:** 2026-08-26  
+**Canonical base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`
 
 The project is tracked by subsystem/layer gates rather than one linear phase number.
 
 ## Foundation — maintained
 
-C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy and guarded output infrastructure are maintained foundations.
+C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output infrastructure and guarded canonical-analysis EXE window acquisition are maintained foundations.
 
-## GDSpaces L1 — ACTIVE PRIMARY
+## GDSpaces L1 — INTERNAL PRODUCT PATH CLOSED / FINAL ACCEPTANCE ACTIVE
 
-Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
+Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).  
+Canonical EXE cut: [L1 EXE boundary review](../gdspaces/l1-exe-boundary-review-2026-08-26.md).
 
-Current sequence:
+Mandatory acceptance sequence:
 
 ```text
-publication integrity
- -> artifact-stable retail acquisition
- -> direct-retail member provenance
+direct-retail member provenance
  -> representation classification
  -> real bounded edit
  -> bottom-up PAC/PNST rebuild
  -> next-volume NBZ publication/reopen
+ -> exact authored rematerialization
  -> original-game consumption
+ -> rollback
  -> final L1 acceptance audit
 ```
 
-Current main already has strong NBZ/PAC/PNST materialization, bounded authoring, synthetic A-to-Z composition, texture writer/runtime-relocation composition, numbered-volume precedence and next-volume overlay support. The remaining gap is not another parser rewrite; it is evidence integrity plus real-retail/game-backed validation.
+Current main already has the required representative product path. The remaining completion gates are real-retail/original-process receipts, not another parser rewrite.
 
-## GDSpaces L2 — ADVANCED SUPPORTING
+### Supporting L1 reverse while external Level-E is blocked
 
-Archive candidate construction, normalized lookup, contiguous numbered-volume bootstrap and precedence are strong. The main exact reverse gap relevant to L2 is the type-0 physical-provider final filename/open/failure behavior after `0x0C` normalization.
+The three-pass EXE review moved the reverse frontier to weak handoff semantics rather than already strong ZIP mechanics:
 
-L2 remains supporting while L1 is open.
+```text
+materialization fan-in/completion
+ -> transport error -> resource scheduler/materialization error mapping
+ -> .lst temporary allocation/free/failure cleanup
+ -> acceptance-activated FileSlot error/cancellation breadth
+ -> acceptance-activated ZIP exact-body breadth
+```
 
-## Original runtime / lifecycle — ADVANCED, NOT COMPLETE
+Canonical distinction: transport callback `0x1400335A0` is below the resource-level completion handoff `0x1401B8DC0`; `state 1 -> 2` is the end of L1 for the recovered LoadedResource path.
 
-Recovered static authority includes FileSlot/AsyncIO materialization, ZIP read/inflate, LoadedResource state progression, typed post-load and major claim/reset/release structure.
+## GDSpaces L2 — ADVANCED / EVIDENCE CLOSURE ACTIVE
 
-Open work includes complete ZIP initializer/seek-reset helpers where required, exact physical open semantics, dynamic lifecycle traces and broader Level-E receipts.
+Type-0 physical-provider post-`0x0C` static final-open semantics are closed by #215/#204 and must not be listed as an open reverse blocker absent contradictory evidence.
+
+Current L2 frontier:
+
+- real-retail `0x0E` collision census;
+- protected-distribution runtime RVA mapping via #219 tooling + real process receipt;
+- original-process selected-provider identity;
+- final L2 audit.
+
+L2 may support the L1 vertical proof but does not substitute for L1 materialization acceptance.
+
+## Original runtime / lifecycle L3 — ADVANCED, NOT COMPLETE
+
+For the canonical layer cut, L3 begins after materialized-byte state2 input:
+
+```text
+state2 materialized bytes
+ -> typed post-load
+ -> optional ready callback
+ -> state3 ready visibility
+ -> claims/cache
+ -> cancellation/reset/release/shutdown
+```
+
+Static authority is strong. Open work includes exact writer/ownership breadth and representative dynamic original-process lifecycle receipts. Active L3 work such as #218 remains separate from L1 completion accounting.
 
 ## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM
 
 Stage Ops owns product-side stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents that state. ModViz consumes it. None may create a private resource resolver or archive materializer.
 
-Major game-backed Stage Ops expansion should not displace L1 closure.
+Major game-backed Stage Ops expansion should not displace GDS real acceptance or evidence-driven closure.
 
 ## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
@@ -55,7 +86,7 @@ EXE Editor should expose one canonical recovered-source tree linked to exact bin
 
 ```text
 L1 real-retail/game-backed acceptance
- -> narrow L2 closure
+ -> narrow L2 evidence closure
  -> representative L3 dynamic lifecycle validation
  -> Stage Ops game-backed assembly
  -> semantic/editor verticals
