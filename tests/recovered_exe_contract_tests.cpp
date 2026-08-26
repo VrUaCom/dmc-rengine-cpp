@@ -2,11 +2,18 @@
 #include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_list.hpp"
 #include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_bootstrap_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_lookup_policy.hpp"
 #include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
+#include "dmc_rengine/formats/pac.hpp"
+#include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/gdspaces/classifier.hpp"
+
 #include <cassert>
+#include <utility>
 #include <cstdint>
 #include <span>
 #include <string>
@@ -209,6 +216,97 @@ void archive_entry_read_matches_the_recovered_branch() {
     assert(short_read.next_consumed == 12U);
 }
 
+void the_product_identifies_types_the_way_the_runtime_does() {
+    using Contract = dmc3::ResourceTypeContract;
+    namespace gdspaces = dmc::rengine::gdspaces;
+
+    // Every tag the recovered probe compares must reach the classifier, and it
+    // must reach it as three bytes. `SCM ` with its trailing space is what the
+    // stage files store, but the runtime stops after `SCM`, so a payload that
+    // carries `SCMx` is a scene model to the game and must be one here.
+    static_assert(Contract::content_tag_bytes == 3U);
+    const std::pair<std::string_view, std::string_view> expected[]{
+        {"MOD", "mod"}, {"EFM", "efm"}, {"SCM", "scm"},
+        {"MRP", "mrp"}, {"SHW", "shw"},
+    };
+    for (const auto& [tag, format] : expected) {
+        assert(Contract::type_for_tag(tag) != Contract::TypeCode::unknown);
+        std::vector<std::byte> payload(64U, std::byte{'x'});
+        for (std::size_t index = 0U; index < tag.size(); ++index) {
+            payload[index] = static_cast<std::byte>(tag[index]);
+        }
+        const auto classified = gdspaces::ResourceClassifier::classify(
+            "slot_0000.bin", std::span<const std::byte>{payload}, false);
+        assert(classified.format == format);
+        assert(classified.magic_confirmed);
+    }
+
+    // A tag the probe does not know stays unknown rather than being pushed
+    // into the nearest recognized type.
+    assert(Contract::type_for_tag("XYZ") == Contract::TypeCode::unknown);
+
+    // The extension table is enumerated by case, not folded. `.PTx` is a name
+    // the runtime does not recognize, and the contract must not quietly claim
+    // otherwise.
+    bool has_ptx_lower = false;
+    bool has_ptx_mixed = false;
+    for (const auto& entry : Contract::extension_types) {
+        has_ptx_lower = has_ptx_lower || entry.extension == ".ptx";
+        has_ptx_mixed = has_ptx_mixed || entry.extension == ".PTx";
+    }
+    assert(has_ptx_lower);
+    assert(!has_ptx_mixed);
+    static_assert(Contract::extension_outranks_content_tag);
+    static_assert(Contract::table_bytes() == 0x6508U);
+}
+
+void the_product_walks_slots_the_way_the_runtime_does() {
+    using Walk = dmc3::RelativeSlotWalkContract;
+    namespace formats = dmc::rengine::formats;
+
+    static_assert(Walk::pac_magic_bytes == 3U);
+    static_assert(Walk::pnst_magic_bytes == 4U);
+    static_assert(Walk::slot_count_offset == 0x04U);
+    static_assert(Walk::offset_table_offset == 0x08U);
+    // The recovered loop starts at dword index 2, which is the byte offset 8
+    // the parser uses. Stating both and checking they agree is the point.
+    static_assert(
+        Walk::first_offset_dword_index * Walk::offset_entry_bytes ==
+        Walk::offset_table_offset);
+    static_assert(Walk::header_bytes(3U) == 0x14U);
+
+    // Three slots: one absent, two present. The runtime skips the zero and
+    // keeps the index, and so must the parser.
+    std::vector<std::byte> container(0x80U, std::byte{0});
+    container[0] = static_cast<std::byte>('P');
+    container[1] = static_cast<std::byte>('A');
+    container[2] = static_cast<std::byte>('C');
+    // The fourth byte is deliberately not NUL: the recovered comparison never
+    // reads it, so a container that carries something else there still parses.
+    container[3] = static_cast<std::byte>('?');
+    container[4] = std::byte{3};
+    container[8U + 4U] = std::byte{0x40};   // slot 1
+    container[8U + 8U] = std::byte{0x60};   // slot 2
+
+    const auto parsed = formats::PacParser::parse(container);
+    assert(parsed.ok());
+    assert(parsed.document->declared_slot_count == 3U);
+    assert(!parsed.document->entries[0].populated);
+    assert(parsed.document->entries[1].populated);
+    assert(parsed.document->entries[1].offset == 0x40U);
+    assert(parsed.document->entries[2].slot_index == 2U);
+
+    // PNST compares all four bytes, so the same liberty is not taken there.
+    std::vector<std::byte> pnst(0x80U, std::byte{0});
+    pnst[0] = static_cast<std::byte>('P');
+    pnst[1] = static_cast<std::byte>('N');
+    pnst[2] = static_cast<std::byte>('S');
+    pnst[3] = static_cast<std::byte>('?');
+    pnst[4] = std::byte{1};
+    pnst[8] = std::byte{0x40};
+    assert(!formats::PnstParser::parse(pnst).ok());
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -225,6 +323,21 @@ void contracts_are_bound_to_one_image() {
         dmc3::ArchiveEntryReadContract::canonical_target_sha256);
     assert(dmc3::OpenGameResourceContract::image_base ==
         dmc3::ArchiveEntryReadContract::image_base);
+    static_assert(
+        dmc3::OpenGameResourceContract::canonical_target_sha256 ==
+        dmc3::ResourceTypeContract::canonical_target_sha256);
+    static_assert(
+        dmc3::OpenGameResourceContract::canonical_target_sha256 ==
+        dmc3::RelativeSlotWalkContract::canonical_target_sha256);
+    static_assert(
+        dmc3::ResourceTypeContract::image_base ==
+        dmc3::RelativeSlotWalkContract::image_base);
+    // Both dispatchers are the same routine seen from two sides; the contracts
+    // must agree on its address or one of them is describing a different
+    // function than it claims.
+    static_assert(
+        dmc3::ResourceTypeContract::type_dispatch_va ==
+        dmc3::RelativeSlotWalkContract::pnst_walk_va);
 }
 
 } // namespace
@@ -235,6 +348,8 @@ int main() {
     bootstrap_matches_the_recovered_shape();
     loose_container_matches_the_recovered_grammar();
     archive_entry_read_matches_the_recovered_branch();
+    the_product_identifies_types_the_way_the_runtime_does();
+    the_product_walks_slots_the_way_the_runtime_does();
     contracts_are_bound_to_one_image();
     return 0;
 }

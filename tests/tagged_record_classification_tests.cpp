@@ -153,7 +153,7 @@ void a_binary_record_is_never_called_text() {
     assert(!classified.byte_derived);
 
     // A printable run with no line structure is a binary field, not a file.
-    const auto banner = literal("MODEL 0", 32U);
+    const auto banner = literal("VERSION 1", 32U);
     const auto banner_classified = gdspaces::ResourceClassifier::classify(
         "slot_0002.bin", std::span<const std::byte>{banner}, false);
     assert(banner_classified.format == "unknown");

@@ -3,6 +3,8 @@
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
 #include "dmc_rengine/gdspaces/text_record.hpp"
+#include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -45,9 +47,32 @@ namespace {
     return lower_copy(extension);
 }
 
+// The three-byte tags the original runtime itself probes for, recovered from
+// `ResourceTypeContract::content_type_probe_va`. These outrank the observed
+// four-byte tags below because the runtime performs exactly these comparisons:
+// three bytes, no fourth, no case folding.
+[[nodiscard]] std::string_view recovered_content_tag_format(
+    std::span<const std::byte> bytes) noexcept {
+    using Contract = profiles::dmc3::ResourceTypeContract;
+    for (const auto& entry : Contract::tagged_types) {
+        if (starts_with(bytes, entry.tag)) {
+            switch (entry.code) {
+            case Contract::TypeCode::model: return "mod";
+            case Contract::TypeCode::effect_model: return "efm";
+            case Contract::TypeCode::scene_model: return "scm";
+            case Contract::TypeCode::mrp: return "mrp";
+            case Contract::TypeCode::shadow: return "shw";
+            default: return {};
+            }
+        }
+    }
+    return {};
+}
+
 // Four-byte record tags observed in the real DMC3 stage corpus. Each one is a
 // tag the bytes actually carry, not a guess from a filename — a slot payload
-// has no name to guess from.
+// has no name to guess from. These are corpus observations, not recovered
+// comparisons, which is why they are checked after the recovered set.
 [[nodiscard]] std::string_view tagged_record_format(
     std::span<const std::byte> bytes) noexcept {
     struct TaggedRecord final {
@@ -99,7 +124,15 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "pe";
         result.magic_confirmed = true;
         result.byte_derived = true;
-    } else if (starts_with(bytes, std::string_view{"PAC\0", 4U})) {
+    } else if (starts_with(
+                   bytes,
+                   profiles::dmc3::RelativeSlotWalkContract::pac_magic)) {
+        // Three bytes, because that is what the recovered walk compares. The
+        // stored fourth byte is NUL and the runtime never reads it, so a
+        // product that demanded it would refuse a container the game accepts.
+        // Whether the slot table then parses is the expander's answer, not
+        // this one's: a truncated container is still a container, and saying
+        // "unknown" about it would hide the damage rather than report it.
         result.format = "pac";
         result.magic_confirmed = true;
         result.byte_derived = true;
@@ -117,8 +150,12 @@ ResourceClassification ResourceClassifier::classify(
         // with a DDS image — a check no other record in the corpus passes.
         result.format = "ptx";
         result.byte_derived = true;
-    } else if (starts_with(bytes, "SCM")) {
-        result.format = "scm";
+    } else if (const auto recovered = recovered_content_tag_format(bytes);
+               !recovered.empty()) {
+        // `SCM` reaches this branch, and it reaches it as three bytes. The
+        // stored payload carries `SCM ` with a trailing space, but requiring
+        // that space would make the product stricter than the game.
+        result.format = std::string{recovered};
         result.magic_confirmed = true;
         result.byte_derived = true;
     } else if (starts_with(bytes, std::string_view{"DCA\0", 4U})) {

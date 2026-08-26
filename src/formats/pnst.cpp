@@ -1,5 +1,7 @@
 #include "dmc_rengine/formats/pnst.hpp"
 
+#include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
+
 #include <array>
 
 namespace dmc::rengine::formats {
@@ -12,6 +14,7 @@ constexpr RelativeSlotContainerSpec pnst_spec{
         std::byte{'S'},
         std::byte{'T'},
     },
+    .magic_bytes = profiles::dmc3::RelativeSlotWalkContract::pnst_magic_bytes,
     .document_format = "PNST",
     .max_slot_count = PnstParser::k_max_slot_count,
 };
