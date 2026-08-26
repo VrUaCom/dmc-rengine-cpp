@@ -3,7 +3,7 @@
 **Scope:** reusable reverse-evidence acquisition support for GDSpaces roadmap gaps.  
 **Artifact authority:** canonical DMC3 HD analysis executable only.  
 **Canonical SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.  
-**Current main baseline:** `eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`.
+**Current main baseline:** `2ed43b438f1bf01638f3e56341e98f6085e5b0fd`.
 
 ## 2026-08-26 authority status
 
@@ -156,21 +156,19 @@ Do not relabel:
 
 ## Address-authority correction
 
-The current general blocked-window plan contains the string:
+The pre-#228 general blocked-window plan on main contained the extra-zero staging/materialization address:
 
 ```text
 0x14002EF4D0
 ```
 
-for the staging/materialization helper. Accumulated canonical resource-runtime evidence identifies the relevant materialization wrapper as:
+Accumulated canonical resource-runtime evidence identifies the relevant materialization wrapper as:
 
 ```text
 0x1402EF4D0
 ```
 
-These are different VAs. The focused plan uses `0x1402EF4D0` and supersedes the extra-zero address for this target unless direct canonical bytes prove a separate intended function there.
-
-The general plan must be corrected before that legacy entry is reused.
+These are different VAs. This change corrects the general plan to `0x1402EF4D0`; the focused plan uses the same canonical target. The extra-zero form remains superseded for this target unless direct canonical bytes prove an independent intended function there.
 
 ## L1 ZIP / loose-container support
 
@@ -185,7 +183,7 @@ Already strong architecture should not be restarted without a concrete acceptanc
 
 Exact malformed/error/lifetime breadth is reacquired only when it changes a claimed compatibility boundary.
 
-The general plan also contains `0x14002DA40` as a `.lst` follow-up anchor. Treat it as an unresolved lower/helper candidate until its direct body/caller role is independently established; it does not replace the confirmed `0x1401B85C0` materializer authority.
+The general plan also retains `0x14002DA40` as a `.lst` follow-up anchor. Treat it as an unresolved lower/helper candidate until its direct body/caller role is independently established; it does not replace the confirmed `0x1401B85C0` materializer authority.
 
 ## L2 regression / static anchors
 
@@ -212,7 +210,7 @@ Current strong central anchors include:
 - `0x1401B9FA0` — central typed dispatcher;
 - `0x1403051B0` — SCM contradiction follow-up.
 
-The fresh 2026-08-26 raw pass already strengthens many of these. Reacquisition should be treated as regression/reproducibility work unless new bytes/callers close an open gate.
+The fresh 2026-08-26 raw pass and merged #230 scheduler/context pass already strengthen many of these. Reacquisition should be treated as regression/reproducibility work unless new bytes/callers close an open gate.
 
 ## Probe-window rule
 
