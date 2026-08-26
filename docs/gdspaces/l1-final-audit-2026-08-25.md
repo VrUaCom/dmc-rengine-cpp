@@ -1,21 +1,24 @@
 # GDSpaces Layer 1 — Final Pre-Level-E Audit
 
 **Audit date:** 2026-08-25  
-**Canonical code base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`  
+**Reconciled:** 2026-08-26 against `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
 **Layer:** L1 — Resource Materialization  
-**Verdict:** INTERNAL PRODUCT PATH CLOSED; L1 COMPLETE remains blocked by real-retail / original-game evidence.
+**Verdict:** INTERNAL PRODUCT PATH CLOSED; L1 COMPLETE remains blocked by real-retail / original-game evidence.  
+**EXE boundary authority:** `l1-exe-boundary-review-2026-08-26.md`
 
 ## 1. Purpose
 
-This audit reconciles Layer 1 after the publication, artifact-stability, retail-acquisition, authoring, nested-reflow and protected-retail closure work merged through PR #213.
+This audit reconciles Layer 1 after the publication, artifact-stability, retail-acquisition, authoring, nested-reflow and protected-retail closure work merged through PR #213, and remains valid after the 2026-08-26 EXE boundary reconciliation.
 
 It answers one question:
 
 > Is there any remaining **internal GDSpaces implementation gap** that must be closed before a representative protected-DMC3 Level-E acceptance run can decide Layer-1 completion?
 
-The answer on this head is **no known mandatory internal implementation gap** for the currently evidenced DMC3-HD L1 acceptance scope.
+The answer on the current canonical head is **no known mandatory internal implementation gap** for the currently evidenced DMC3-HD L1 acceptance scope.
 
 That does **not** mean L1 is already COMPLETE. The remaining mandatory gates are evidence executions against a real protected retail installation and the original game process.
+
+The 2026-08-26 EXE review refines the reverse boundary but does not weaken this acceptance rule: byte transport/materialization through the resource-level `state 1 -> 2` handoff is L1; typed post-load, `state 2 -> 3` and lifecycle are L3.
 
 ## 2. Current canonical L1 product chain
 
@@ -210,49 +213,70 @@ The following are **not remaining mandatory internal L1 blockers** on this head:
 - product reopen/rematerialization;
 - product resolver composition required by the closure receipt;
 - protected executable authority preflight;
-- output isolation from the retail executable tree.
+- output isolation from the retail executable tree;
+- type-0 physical-provider post-`0x0C` static final-open contract at the bounded recovered scope, promoted by #215.
 
 If a new real-retail representation falls outside these supported domains, that becomes a **new evidence-derived bounded gate**, not permission to retroactively mark all current implementation work incomplete.
 
 ## 5. Bounded reverse gaps that do not block L1 unless activated by acceptance evidence
 
-These remain legitimate research items, but they are not automatic blockers for the current representative L1 acceptance scope:
+The canonical reverse matrix and corrected labels are maintained in `l1-exe-boundary-review-2026-08-26.md`.
 
-### Exact type-0 physical-provider Win32 semantics
+### Materialization fan-in / completion semantics
 
-This is primarily L2. It becomes an L1 blocker only if the representative acceptance resource materially depends on the unresolved physical-provider path rather than the proven numbered-NBZ path.
+This is now the highest-value open L1 EXE handoff seam.
 
-### Complete ZIP stream initializer / compressed seek bodies
+`0x1400335A0` is a transport/whole-file completion callback. `0x1401B8DC0` is a higher resource scheduler/materialization completion handoff registered through `0x1402EF580` and publishes the normal `state 1 -> 2` transition.
 
-`0x140328540` and `0x140328FE0` still have bounded reverse details open. Current supported product materialization is not allowed to claim exhaustive original error/seek equivalence from that absence.
+Open exact breadth includes:
 
-They become L1 blockers only if the final acceptance claim requires those unresolved semantics.
+- outstanding child/direct submission aggregation;
+- parent completion condition;
+- nested `.lst` child participation in completion;
+- one-child-failure behavior;
+- partial destination lifetime on failure;
+- transport-failure mapping into resource-level completion/failure;
+- exact conditions that suppress state2 publication.
 
-### Exhaustive malformed/partial-read error equivalence
+These are bounded reverse details. They become a mandatory blocker only if a concrete acceptance claim depends on unresolved behavior rather than the successful representative path.
+
+### `.lst` temporary-buffer lifetime/error breadth
+
+The `.lst` text is known to be loaded synchronously into aligned temporary storage before bounded parsing, but there is no direct evidence equating that loader with the synchronous-style wrapper around `0x1402EF920`.
+
+Allocation/free identity, failure cleanup, malformed/truncated propagation and original recursion failure behavior remain open. A real `.lst` corpus receipt is mandatory only if L1 completion is claimed for real loose-list consumption or if the representative acceptance path selects `.lst`.
+
+### FileSlot / ReadRequest error breadth
+
+The transport architecture, 100×`0x20` FileSlot pool and `ReadRequestV2` callback ABI are strong. Exact partial-read/error/cancellation breadth remains bounded and should be closed when a compatibility claim requires it.
+
+### Complete ZIP initializer / compressed-seek body breadth
+
+`0x140328540` and `0x140328FE0` retain exact-body/error-state details, but their architecture is already strong: lazy realization is known and compressed seek is reset + reinflate/discard replay. They are no longer automatic first-priority reverse targets.
+
+### Exhaustive malformed ZIP/error equivalence
 
 Not required for a successful representative materialization receipt. It remains bounded reverse breadth and must be completed before any claim of exhaustive malformed-input original equivalence.
 
-### `.lst` real-corpus / malformed / lifetime breadth
+### Binary AFS / PACK
 
-Packed-first `.lst` fallback and synthesis structure is statically recovered and product support exists at the evidenced scope.
-
-A real `.lst` corpus receipt is mandatory only if L1 completion is claimed specifically for real loose-list consumption or if the representative acceptance path resolves through `.lst` synthesis.
-
-It is not a mandatory blocker for a representative packed-NBZ/PAC/PNST Level-E receipt.
-
-### Binary AFS
-
-Not evidenced as a DMC3-HD binary backend on this path. Logical namespaces containing `.afs/` do not create a binary-AFS L1 requirement.
-
-### PACK
-
-Historical product parser evidence does not establish original DMC3 runtime PACK authority. PACK remains non-blocking absent a direct runtime dependency.
+Binary AFS is not evidenced as a DMC3-HD binary backend on this path. Historical PACK parser evidence does not establish original DMC3 runtime PACK authority. Both remain evidence-gated non-blockers absent a direct dependency.
 
 ### Capcom offline writer equivalence
 
 Not an L1 completion requirement. DMC Rengine writers are product authoring implementations constrained by evidenced read/runtime behavior and explicit receipts.
 
-## 6. Completion scope rule
+## 6. EXE boundary corrections that are now canonical
+
+Do not use the following superseded shorthand:
+
+- `0x1402EF4D0` as a packed-file reader, exact-path resolver or final provider open. Safe label: **resource materialization submission/scheduling wrapper**.
+- `0x1401B8DC0` as a raw I/O callback. Raw transport completion is represented by callbacks such as `0x1400335A0`; `0x1401B8DC0` is the resource-level scheduler/materialization handoff.
+- `.lst synchronous temporary load == 0x1402EF920`. The two synchronous behaviors are independently evidenced but not directly tied.
+- FileSlot/AsyncIO as wholly L3. The byte-transport portion is L1; lifecycle/ownership/cancellation/reset breadth remains L3.
+- type-0 physical final-open semantics as still open after #215.
+
+## 7. Completion scope rule
 
 `L1 COMPLETE` means the evidenced DMC3-HD Layer-1 materialization architecture and the promoted supported authoring path are validated end to end at the declared scope.
 
@@ -262,13 +286,13 @@ It does **not** mean:
 - every hypothetical binary format is supported;
 - every resource family has a bespoke editor;
 - Capcom's offline authoring tools were reconstructed;
-- L2 physical-provider equivalence or L3 lifecycle breadth is complete.
+- complete L2/L3 closure is achieved.
 
 Those claims have their own gates.
 
-## 7. Remaining critical path
+## 8. Remaining critical path
 
-After `main@fd80f2b6...`, the mandatory work order is:
+The mandatory acceptance work order remains:
 
 ```text
 1. run direct-retail acquisition on protected DMC3
@@ -283,12 +307,22 @@ After `main@fd80f2b6...`, the mandatory work order is:
 10. only then mark L1 100% / COMPLETE
 ```
 
-No new synthetic-only feature is allowed to displace this path unless the real-retail run reveals a concrete missing dependency.
+While this external sequence is blocked, supporting reverse follows:
 
-## 8. Environment boundary
+```text
+materialization fan-in/completion
+ -> transport-to-resource error mapping
+ -> .lst temp allocation/free/failure cleanup
+ -> acceptance-activated FileSlot/error breadth
+ -> acceptance-activated ZIP exact-body breadth
+```
 
-The current connected automation environment does not expose exact raw `dmc3.exe` and `DMC3-0.nbz` files required to execute the protected-install Level-E run here.
+No synthetic-only feature is allowed to displace the real acceptance path unless evidence reveals a concrete missing dependency.
 
-Therefore the remaining real-retail / original-process receipts must be produced on a machine that has the protected DMC3 installation, or after those exact artifacts become available through an authorized evidence channel.
+## 9. Environment boundary
+
+The current connected automation environment does not expose all exact raw protected-install artifacts required to execute the protected-install Level-E run here.
+
+Current main does contain guarded canonical-analysis EXE window acquisition infrastructure. Static reverse reacquisition must use that authority/plan rather than ad hoc unbound byte ranges.
 
 This is an **external evidence blocker**, not justification for changing `L1 COMPLETE` criteria.
