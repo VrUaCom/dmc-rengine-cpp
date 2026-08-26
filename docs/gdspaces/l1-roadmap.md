@@ -5,7 +5,8 @@
 **Canonical implementation base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Primary tracking:** #100, #182, #209  
 **Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
-**Canonical EXE boundary review:** `l1-exe-boundary-review-2026-08-26.md`
+**Canonical EXE boundary review:** `l1-exe-boundary-review-2026-08-26.md`  
+**Completion-ordering follow-up:** `l1-exe-materialization-completion-pass-2026-08-26.md`
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
@@ -45,13 +46,15 @@ L2 selected logical/provider/member identity
  -> L1 STORE direct OR raw-DEFLATE materialization
  -> L1 caller-owned destination bytes
  -> L1 packed representation OR .lst synthesis
- -> L1 resource-level completion/fan-in
+ -> L1 resource-level completion ordering / dependency barrier
  -> L1 state 1 -> 2
  ===== END L1 =====
  -> L3 typed post-load / state 2 -> 3 / consumer lifecycle
 ```
 
 `FileSlot`/AsyncIO therefore participates in L1 where it transports the selected bytes. Pool ownership, cancellation/release/reset policy and typed-ready lifecycle remain L3. `0x1401B84E0` is explicitly cross-layer rather than wholly owned by one layer.
+
+The 2026-08-26 completion-ordering follow-up explicitly rejects an overclaim: a generic child/outstanding-work **fan-in counter is not evidenced**. The recovered boundary is scheduler-mediated completion ordering; exact success-side dependency mechanics remain a bounded reverse target.
 
 L2 may supply exact selected identity and L3 may supply original consumer/lifecycle evidence. Their broader completion is not required for L1 unless a concrete L1 acceptance path activates one of their unresolved boundaries.
 
@@ -205,7 +208,10 @@ The commands are product authoring/validation seams. They do not claim to reprod
 
 ## 5. Supporting EXE reverse boundaries
 
-The canonical detailed review is [L1 EXE Boundary Review — 2026-08-26](l1-exe-boundary-review-2026-08-26.md).
+The canonical detailed reviews are:
+
+- [L1 EXE Boundary Review — 2026-08-26](l1-exe-boundary-review-2026-08-26.md)
+- [L1 EXE Materialization Completion Ordering Pass — 2026-08-26](l1-exe-materialization-completion-pass-2026-08-26.md)
 
 Do **not** restart these without contradictory direct evidence:
 
@@ -215,6 +221,7 @@ Do **not** restart these without contradictory direct evidence:
 - type-0 post-`0x0C` physical final-open static contract promoted by #215;
 - whole-file caller-owned-destination transfer family `0x1400333F0/3C0/500/5A0`;
 - bounded FileSlot / ReadRequest transport architecture;
+- scheduler-ring enqueue/worker/pending-clear architecture at `0x1402EF580/790/460`;
 - ZIP EOCD/central/member identity path;
 - `ZipEntryRead 0x140328F50` STORE-vs-compressed split;
 - `InflateRead 0x140328820` raw-DEFLATE streaming behavior;
@@ -227,14 +234,18 @@ Important corrected labels:
 - `0x1402EF4D0` = **resource materialization submission/scheduling wrapper**, not proven exact-path resolver, final provider open or raw file reader;
 - `0x1400335A0` = transport/whole-file completion callback;
 - `0x1401B8DC0` = resource scheduler/materialization completion handoff to state 2, **not** a raw I/O callback;
-- `.lst` synchronous temporary-text acquisition is **not** proven to be the synchronous-style wrapper around `0x1402EF920`.
+- `0x1402EF460` = pending scheduled-entry clear/rollback, **not** OS AsyncIO cancellation;
+- `.lst` synchronous temporary-text acquisition is **not** proven to be the synchronous-style wrapper around `0x1402EF920`;
+- no generic original fan-in counter is promoted without direct evidence.
 
 ### Current reverse priority when evidence is available
 
-1. **materialization fan-in/completion semantics** between submitted child/direct work and `0x1401B8DC0` state-2 publication;
-2. **transport failure -> resource scheduler/materialization failure mapping**;
-3. **`.lst` temporary allocation/free identity and failure cleanup**;
-4. `.lst` malformed/truncated/recursion failure propagation if real loose-list acceptance activates it;
+Use the focused acquisition plan `data/reverse/dmc3-l1-materialization-completion-plan.v1.json` first:
+
+1. **materialization completion ordering / dependency barrier** between submission/scheduler work and `0x1401B8DC0` state-2 publication;
+2. **scheduler pending-entry rollback semantics** around `0x1402EF460` and cancellation writer `0x1401B8430`;
+3. **transport failure -> resource scheduler/materialization failure mapping**;
+4. **`.lst` child completion/failure ordering** plus temporary allocation/free identity and failure cleanup;
 5. FileSlot/ReadRequest partial-read/error/cancellation breadth where required by a compatibility claim;
 6. complete `0x140328540` and `0x140328FE0` exact-body/error breadth only when a concrete acceptance claim requires it.
 
@@ -271,7 +282,7 @@ While external Level-E is blocked, supporting static reverse follows the priorit
 
 The connected automation environment currently does not expose all exact raw protected-install artifacts needed to execute the protected-install Level-E run here.
 
-Current main does expose guarded canonical-analysis EXE window acquisition infrastructure, so static EXE targets should be reacquired through the packet plan rather than by ad hoc range extraction.
+Current main exposes guarded canonical-analysis EXE window acquisition infrastructure. During the completion-ordering follow-up no fresh raw canonical `e454...` executable blob was exposed through the connected file surface, so no new byte-disassembly claim was made. The next exact-byte run should use `data/reverse/dmc3-l1-materialization-completion-plan.v1.json` rather than ad hoc range extraction.
 
 This external evidence boundary does not justify substituting synthetic CI for L1-G.
 
@@ -281,6 +292,7 @@ When L1 evidence or reverse boundaries change, synchronize:
 
 - this roadmap;
 - `l1-exe-boundary-review-2026-08-26.md`;
+- `l1-exe-materialization-completion-pass-2026-08-26.md`;
 - `l1-final-audit-2026-08-25.md` or its completion successor;
 - `decompilation-layer-classification.md`;
 - `dmc3-loose-container-list.md` when `.lst` boundaries change;
@@ -291,6 +303,7 @@ When L1 evidence or reverse boundaries change, synchronize:
 - `docs/status/canonical-status.json`;
 - `docs/reverse/gdspaces-blocked-window-acquisition.md`;
 - `data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json`;
+- `data/reverse/dmc3-l1-materialization-completion-plan.v1.json`;
 - issues #100, #182 and #209.
 
 Percentage estimates are planning aids only; mandatory gates remain the completion authority.
