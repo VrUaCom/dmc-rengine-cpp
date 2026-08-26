@@ -1,7 +1,7 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Canonical implementation base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
 **Latest L2 promotion:** PR #219 — protected-runtime RVA mapping acquisition/tooling  
 **Active L2 evidence slice:** PR #221 — selected-identity content-candidate contract/binder  
 **Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2 support  
