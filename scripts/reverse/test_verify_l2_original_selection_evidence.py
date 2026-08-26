@@ -13,6 +13,8 @@ assert SPEC is not None and SPEC.loader is not None
 verify = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(verify)
 
+PROCESS_CREATION_FILETIME = 133_801_234_567_890_123
+
 
 def write_json(path: Path, value: dict[str, object]) -> bytes:
     raw = (json.dumps(value, indent=2) + "\n").encode("utf-8")
@@ -28,12 +30,13 @@ def mapping_child(rva: int, digit: str) -> dict[str, object]:
     module_base = 0x7FF600000000
     window_sha = digit * 64
     return {
-        "schema": "dmc-rengine.exe-process-window.v1",
+        "schema": "dmc-rengine.exe-process-window.v2",
         "artifact_sha256": verify.PROTECTED_SHA256,
         "artifact_size": verify.PROTECTED_SIZE,
         "image_path": "C:/Games/DMC3/dmc3.exe",
         "preferred_image_base": f"0x{verify.RUNTIME_MAPPING.PREFERRED_IMAGE_BASE:X}",
         "pid": 4242,
+        "process_creation_filetime": PROCESS_CREATION_FILETIME,
         "module_base": f"0x{module_base:X}",
         "rva": f"0x{rva:X}",
         "runtime_va": f"0x{module_base + rva:X}",
@@ -66,11 +69,12 @@ def selection_candidate(
         "executable_size": verify.PROTECTED_SIZE,
         "runtime_mapping_packet_sha256": mapping_sha,
         "observer_id": "dmc-rengine-l2-observer",
-        "observer_version": "synthetic-contract-test",
+        "observer_version": "synthetic-contract-test-v2",
         "observer_build_sha256": observer_sha,
         "trace_complete": True,
         "dropped_event_count": 0,
         "pid": 4242,
+        "process_creation_filetime": PROCESS_CREATION_FILETIME,
         "module_base": "0x7FF600000000",
         "flags": 1,
         "request": "scr\\st001.pac",
@@ -161,7 +165,7 @@ def main() -> None:
         mapping_sha = sha(mapping_raw)
 
         observer_path = root / "observer.bin"
-        observer_bytes = b"observer-build-v1"
+        observer_bytes = b"observer-build-v2"
         observer_path.write_bytes(observer_bytes)
 
         archive0 = root / "DMC3-0.nbz"
@@ -190,14 +194,33 @@ def main() -> None:
             observer_path,
             archives,
         )
+        assert packet["schema"] == verify.BOUND_SCHEMA
         assert packet["status"] == "bound_candidate"
         assert packet["promotion_eligible"] is False
         assert packet["trusted_capture_bound"] is False
         assert packet["runtime_mapping_packet_sha256"] == mapping_sha
+        assert packet["process_creation_filetime"] == PROCESS_CREATION_FILETIME
         assert len(packet["runtime_mapping_child_receipts"]) == 3
         assert packet["observer"]["sha256"] == sha(observer_bytes)
         assert len(packet["archives"]) == 2
         assert packet["selected"]["archive_volume_index"] == 1
+        assert (
+            "mapping-and-selection-candidate-share-one-process-instance-identity"
+            in packet["proves"]
+        )
+
+        wrong_process_instance = json.loads(json.dumps(valid_selection))
+        wrong_process_instance["process_creation_filetime"] = PROCESS_CREATION_FILETIME + 1
+        wrong_process_instance_path = root / "wrong-process-instance.json"
+        write_json(wrong_process_instance_path, wrong_process_instance)
+        rejected(
+            mapping_path,
+            wrong_process_instance_path,
+            child_paths,
+            observer_path,
+            archives,
+            "process creation identities differ",
+        )
 
         wrong_hash = dict(valid_selection)
         wrong_hash["runtime_mapping_packet_sha256"] = "0" * 64
