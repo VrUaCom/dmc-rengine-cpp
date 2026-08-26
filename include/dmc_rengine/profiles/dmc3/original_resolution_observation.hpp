@@ -85,6 +85,9 @@ struct OriginalResolutionObservation final {
     std::uint64_t dropped_event_count{};
 
     std::uint32_t pid{};
+    // Windows process creation FILETIME. This must match the R2B mapping packet
+    // before any candidate can be bound to that runtime session.
+    std::uint64_t process_creation_filetime{};
     std::uint64_t module_base{};
     std::uint32_t flags{1U};
     std::string request;
@@ -99,9 +102,9 @@ struct OriginalResolutionObservation final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-// Legacy metadata-only producer. The emitted v1 labels predate the trusted-origin
-// correction and are not promotion authority. Consumers must pass its output
-// through normalize_l2_original_selection_candidate.py before the binder.
+// Metadata-only producer. The emitted v2 surface carries the process-instance
+// creation identity but remains non-trusted content. Consumers must pass its
+// output through normalize_l2_original_selection_candidate.py before binding.
 [[nodiscard]] std::string original_resolution_observation_to_json(
     const OriginalResolutionObservation& observation);
 
