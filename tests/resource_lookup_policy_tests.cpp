@@ -40,6 +40,9 @@ namespace gdspaces = dmc::rengine::gdspaces;
         .runtime_mapping_packet_sha256 = std::string(64U, 'a'),
         .observer_id = "dmc-rengine-l2-observer",
         .observer_version = "test-contract-v1",
+        .observer_build_sha256 = std::string(64U, 'c'),
+        .trace_complete = true,
+        .dropped_event_count = 0U,
         .pid = 4242U,
         .module_base = 0x7FF600000000ULL,
         .flags = 1U,
@@ -183,6 +186,7 @@ int main() {
            std::string::npos);
     assert(json.find("original-process-observation") != std::string::npos);
     assert(json.find("dmc-rengine-l2-observer") != std::string::npos);
+    assert(json.find("\"trace_complete\": true") != std::string::npos);
     assert(json.find("bytes_hex") == std::string::npos);
 
     // Analysis EXE cannot be laundered into protected original-process evidence.
@@ -215,6 +219,24 @@ int main() {
     {
         auto bad = valid;
         bad.observer_version.clear();
+        assert(!bad.valid());
+    }
+
+    {
+        auto bad = valid;
+        bad.observer_build_sha256 = "not-a-build-sha";
+        assert(!bad.valid());
+    }
+
+    // An incomplete or lossy trace cannot support a winner claim.
+    {
+        auto bad = valid;
+        bad.trace_complete = false;
+        assert(!bad.valid());
+    }
+    {
+        auto bad = valid;
+        bad.dropped_event_count = 1U;
         assert(!bad.valid());
     }
 
@@ -299,6 +321,9 @@ int main() {
             .runtime_mapping_packet_sha256 = std::string(64U, 'b'),
             .observer_id = "dmc-rengine-l2-observer",
             .observer_version = "test-contract-v1",
+            .observer_build_sha256 = std::string(64U, 'd'),
+            .trace_complete = true,
+            .dropped_event_count = 0U,
             .pid = 5000U,
             .module_base = 0x7FF700000000ULL,
             .flags = 1U,
