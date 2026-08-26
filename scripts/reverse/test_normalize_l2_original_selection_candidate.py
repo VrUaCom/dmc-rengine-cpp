@@ -2,7 +2,12 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 
 SCRIPT = Path(__file__).with_name("normalize_l2_original_selection_candidate.py")
 SPEC = importlib.util.spec_from_file_location("selection_candidate_normalizer", SCRIPT)
@@ -77,8 +82,8 @@ def main() -> None:
     assert "original-process-selected-resource-identity" not in value["proves"]
     assert "trusted-observer-execution-or-trace-origin" in value["does_not_prove"]
     assert "original-process-selected-provider-identity" in value["does_not_prove"]
-    assert set(value["selected"]) == normalizer.SELECTED_KEYS
-    assert set(value["probes"][0]) == normalizer.PROBE_KEYS
+    assert tuple(value["selected"]) == normalizer.SELECTED_FIELDS
+    assert tuple(value["probes"][0]) == normalizer.PROBE_FIELDS
 
     wrong_schema = legacy()
     wrong_schema["schema"] = "other"
@@ -111,6 +116,27 @@ def main() -> None:
     missing = legacy()
     del missing["observer_build_sha256"]
     rejected(missing, "missing required field observer_build_sha256")
+
+    # Byte determinism must not depend on Python hash randomization. Run the CLI
+    # in two fresh processes with different hash seeds and compare exact output.
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        source = root / "legacy.json"
+        out_a = root / "candidate-a.json"
+        out_b = root / "candidate-b.json"
+        source.write_text(json.dumps(legacy(), indent=2) + "\n", encoding="utf-8")
+        for seed, output in (("1", out_a), ("987654", out_b)):
+            env = dict(os.environ)
+            env["PYTHONHASHSEED"] = seed
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), "--input", str(source), "--output", str(output)],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
+        assert out_a.read_bytes() == out_b.read_bytes()
 
     print("selection candidate normalizer guardrails: ok")
 
