@@ -45,7 +45,7 @@ Archive normalization uses `0x0E`; physical normalization uses `0x0C`. The physi
 
 ## Required real acquisition chain
 
-### 1. Preflight the exact process and corpus
+### 1. Preflight the exact process, corpus and observer
 
 Before instrumentation:
 
@@ -53,9 +53,11 @@ Before instrumentation:
 - enumerate the contiguous `DMC3-0..N-1.nbz` set with first-gap stop;
 - hash every mounted NBZ and record exact size;
 - preserve those identities in the R3 observation;
-- validate the real R2B mapping packet and record its exact file SHA-256.
+- validate the real R2B mapping packet and record its exact file SHA-256;
+- record stable observer id/version;
+- compute and record the exact SHA-256 of the instrumentation/observer build actually used for the trace.
 
-A trace without the exact NBZ artifact census cannot promote an archive winner identity.
+A trace without the exact NBZ artifact census cannot promote an archive winner identity. A trace without cryptographic observer-build identity cannot be promoted either.
 
 ### 2. Enter through mapped `OpenGameResource`
 
@@ -82,13 +84,23 @@ For every provider operation that actually executes, record an ordered probe:
 - archive volume index for archive probes;
 - outcome `miss` or `selected`.
 
+The observer must expose an explicit trace-integrity result:
+
+```text
+trace_complete = true
+dropped_event_count = 0
+```
+
+Any detected ring-buffer overflow, callback loss, parser loss, truncated run, observer shutdown before terminal selection, or other event-loss condition must set the run invalid. It is not acceptable to keep a plausible winner while declaring the ordering incomplete.
+
 The receipt contract rejects:
 
 - skipped earlier prefixes;
 - skipped higher archive volumes;
 - a physical probe before the archive phase is exhausted;
 - a probe after the first selected result;
-- a candidate/provider key inconsistent with the recovered normalizer profile.
+- a candidate/provider key inconsistent with the recovered normalizer profile;
+- incomplete traces or any nonzero dropped-event count.
 
 ### 4. Archive selected identity
 
@@ -125,6 +137,15 @@ OriginalResolutionObservation
  -> dmc-rengine.gdspaces-l2-original-selection.v1
 ```
 
+The receipt requires:
+
+- canonical protected executable SHA/size;
+- exact mapping-packet SHA;
+- observer id/version and observer-build SHA-256;
+- `trace_complete = true`;
+- `dropped_event_count = 0`;
+- exact request/corpus/probe/selected identities.
+
 Then bind it to the **actual mapping packet file**:
 
 ```text
@@ -141,9 +162,11 @@ The validator independently hashes the supplied mapping packet and requires:
 - `OpenGameResource` plus at least two type-0 mapping anchors;
 - identical PID and module base between mapping and selection receipts;
 - exact mapping-file SHA equals the SHA recorded by the selection receipt;
+- canonical observer-build SHA-256;
+- complete zero-loss trace markers;
 - recovered provider/candidate/volume order;
 - terminal selected identity consistency;
-- metadata-only inputs with no `bytes_hex`.
+- metadata-only inputs with no `bytes_hex` at any nesting depth.
 
 Successful output schema:
 
@@ -151,7 +174,7 @@ Successful output schema:
 dmc-rengine.gdspaces-l2-original-selection-bound.v1
 ```
 
-A successful validator run proves only a **mapping-bound selected identity for that exact request/process/corpus session**.
+A successful validator run proves only a **mapping-bound selected identity for that exact request/process/corpus/observer session**.
 
 ## Product comparison
 
@@ -174,14 +197,16 @@ Do not promote R3 if any of the following occurs:
 - no valid real R2B mapping packet;
 - executable SHA/size differs;
 - mapping and selection PID/module base differ;
-- observer build identity is absent;
+- observer id/version or exact observer-build SHA-256 is absent;
+- trace is not explicitly complete;
+- `dropped_event_count != 0` or any observer overflow/loss marker exists;
 - NBZ artifact census is incomplete or unhashed;
 - candidate or provider order is incomplete;
 - a higher archive volume is skipped;
 - selected archive member identity is inferred rather than observed;
 - selected physical identity is only an absolute/private path or unresolved candidate guess;
 - instrumentation changes the branch/provider result being claimed;
-- trace overflow/drop is possible without a detectable invalid-run marker;
+- raw `bytes_hex` appears anywhere in the promoted metadata packet;
 - synthetic tests are substituted for original-process execution.
 
 ## What remains after a valid R3 receipt
