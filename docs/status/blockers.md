@@ -2,7 +2,8 @@
 
 **Snapshot date:** 2026-08-26  
 **Canonical base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Active L2 evidence slice:** PR #219  
+**Canonical L1 EXE review:** [l1-exe-boundary-review-2026-08-26.md](../gdspaces/l1-exe-boundary-review-2026-08-26.md)
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
@@ -80,6 +81,54 @@ Before `L1 COMPLETE / 100%`:
 - #100, #182, #209, code and current documentation agree;
 - no unresolved contradiction alters the declared supported L1 scope.
 
+## Supporting L1 reverse gaps — bounded, not automatic completion blockers
+
+These are the current EXE reverse seams found by the three-pass 2026-08-26 review. They become P0 only if the selected acceptance path or claimed compatibility scope depends on them.
+
+### B-L1-R1 — Materialization fan-in / completion
+
+**Status:** STATIC REVERSE BREADTH OPEN
+
+Known distinction:
+
+- `0x1400335A0(ticketId,userContext,errorFlag,bytesRead)` = transport/whole-file completion;
+- `0x1401B8DC0` = scheduler/resource materialization completion handoff registered through `0x1402EF580`, normal branch publishes `state 1 -> 2`.
+
+Open exact questions:
+
+- outstanding direct/child submission aggregation;
+- parent-completion condition;
+- nested `.lst` participation in completion;
+- one-child-failure behavior;
+- partial destination lifetime on failure;
+- exact condition preventing state2 publication.
+
+### B-L1-R2 — Transport error -> resource scheduler/materialization error mapping
+
+**Status:** STATIC REVERSE BREADTH OPEN
+
+Raw transfer error/status behavior is substantially recovered, but the exact bridge from transport failure into resource-level scheduling/completion failure is not fully closed.
+
+### B-L1-R3 — `.lst` temporary allocation/free/failure cleanup
+
+**Status:** STATIC REVERSE BREADTH OPEN
+
+The list text is known to be loaded synchronously into aligned temporary storage before bounded parsing. It is **not** proven to use the synchronous-style wrapper around `0x1402EF920`.
+
+Exact allocator/free identity, malformed/truncated failure cleanup and recursion-failure propagation remain open.
+
+### B-L1-R4 — FileSlot / ReadRequest exact error breadth
+
+**Status:** BOUNDED
+
+The 100×`0x20` FileSlot pool, `ReadRequestV2` architecture and completion ABI are strong. Partial-read/error/cancellation breadth should be recovered only where a compatibility or acceptance claim requires it.
+
+### B-L1-R5 — ZIP initializer / compressed-seek exact-body breadth
+
+**Status:** BOUNDED / LOWER PRIORITY
+
+`0x140328540` lazy realization and `0x140328FE0` reset+reinflate/discard seek architecture are already strong. Complete exact-body/state-error details remain open but are no longer the automatic first reverse target.
+
 ## Layer 2 evidence blockers
 
 These are L2 closure gates. They are not substitutes for the L1 Level-E acceptance sequence.
@@ -123,9 +172,9 @@ Layer 2 remains incomplete until real-retail collision evidence, protected-runti
 
 Do not reopen these absent contradictory direct evidence:
 
-- atomic/no-replace publication — closed by #194;
-- artifact-bound archive/member stability — closed by #195;
-- direct-retail acquisition implementation — closed by #196;
+- atomic/no-replace publication — #194;
+- artifact-bound archive/member stability — #195;
+- direct-retail acquisition implementation — #196;
 - raw-DEFLATE artifact-bound regression — #197;
 - first-gap retail-read behavior — #198;
 - verified immutable NBZ copy rebuild — #199;
@@ -145,15 +194,16 @@ Do not reopen absent contradictory direct evidence:
 - exact type-0 physical-provider post-`0x0C` Win32 final path/open/miss semantics — static reverse closed by #215/#204;
 - product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation.
 
-## Bounded reverse gaps — not automatic L1 blockers
+## Explicit superseded reverse shorthand
 
-These become P0 only if the chosen real acceptance path depends on them:
+Do not reintroduce:
 
-- complete ZIP stream initializer `0x140328540` body/lifetime;
-- complete compressed seek/reset/reinflate `0x140328FE0` behavior;
-- exhaustive malformed/partial-read original error equivalence;
-- dynamic `.lst` allocation/free/error/cycle semantics;
-- real `.lst` corpus validation when claiming real loose-list consumption.
+- `0x1402EF4D0 == packed-file reader/exact-path resolver/final backend open`;
+- `0x1401B8DC0 == raw I/O callback`;
+- `.lst synchronous temporary load == 0x1402EF920`;
+- `FileSlot/AsyncIO == wholly L3` for byte-transport accounting;
+- `type-0 physical final-open semantics still open` after #215;
+- `0x140328540/0x140328FE0 architecture unknown`.
 
 ## Evidence-gated freezes / non-blockers
 
@@ -164,6 +214,8 @@ These become P0 only if the chosen real acceptance path depends on them:
 
 ## Environment blocker
 
-The connected automation environment does not currently expose the exact raw protected installation artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process runtime mapping here.
+The connected automation environment does not currently expose all exact raw protected-install artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process runtime mapping here.
+
+Canonical-analysis static EXE reacquisition is available through the guarded window-packet tooling on current `main`. Supporting reverse should use that authority rather than ad hoc unbound byte windows.
 
 This is an external evidence/access limitation. It must not be hidden by synthetic CI or converted into a weaker completion criterion.
