@@ -2,7 +2,8 @@
 
 **Scope:** reverse-evidence acquisition support for GDSpaces roadmap gaps.  
 **Artifact authority:** canonical DMC3 HD analysis executable only.  
-**Canonical SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
+**Canonical SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.  
+**Reconciled:** 2026-08-26 against the three-pass L1 EXE boundary review.
 
 This runbook groups reusable EXE-window acquisition across several GDSpaces reverse targets. Some targets remain blocked on reacquisition; others are already recovered and are retained only as optional regression/reacquisition anchors.
 
@@ -88,7 +89,63 @@ If any requested window fails SHA/PE/range/schema/raw-byte validation, the packe
 
 ## Current packet targets
 
-The profile plan groups blocked and supporting/regression targets across the three-layer roadmap.
+### L1 / materialization fan-in and error handoff — current first priority
+
+The 2026-08-26 three-pass review distinguishes raw transport completion from resource-level materialization completion.
+
+Current first-priority windows are:
+
+- `0x1400333F0` — whole-file selected-resource open/load-state construction;
+- `0x140033500` — whole-file caller-owned-destination transfer submission;
+- `0x1400335A0` — raw transport/whole-file completion callback and error/status mapping;
+- `0x1402EF4D0` — resource materialization submission/scheduling wrapper;
+- `0x1402EF580` — scheduler-ring enqueue helper;
+- `0x1402EF790` — scheduler worker/callback execution neighborhood;
+- `0x1401B84E0` — acquisition constructor, backing/destination setup and scheduling success boundary;
+- `0x1401B8CA0` — direct/packed/loose materialization dispatch;
+- `0x1401B8DC0` — resource scheduler/materialization completion handoff, normal `state 1 -> 2` publication.
+
+Primary questions:
+
+1. how direct/child submissions aggregate to one parent completion;
+2. which counter/state/queue condition permits `0x1401B8DC0`;
+3. how transport failure from the `0x1400335A0` layer propagates to the resource scheduler;
+4. which failure branches suppress state2 publication;
+5. whether partial parent payload remains allocated/live during failed materialization.
+
+Correct labels are mandatory:
+
+- `0x1400335A0` = transport completion;
+- `0x1401B8DC0` = resource-level completion handoff;
+- `0x1402EF4D0` = materialization submission/scheduling wrapper, not proven exact-path resolver/final open/raw reader.
+
+### L1 / `.lst` temporary storage and recursive child completion
+
+Direct grammar/layout anchors are already strong and should be used to close lifetime/error/fan-in breadth, not to rediscover the grammar:
+
+- `0x1401B79E0` — packed-vs-loose representation selector;
+- `0x1401B7B90` — allocation-size planner;
+- `0x1401B85C0` — loose-container in-place materializer/recursive builder;
+- `0x1401B8CA0` / `0x1402EF4D0` — child submission seam.
+
+Questions:
+
+- temporary aligned list-text allocator/free identity;
+- synchronous text acquisition failure cleanup;
+- malformed/truncated parse propagation;
+- nested recursion failure behavior;
+- child fan-in into parent resource completion.
+
+Do **not** equate the `.lst` synchronous temporary loader with the separate synchronous-style wrapper around `0x1402EF920` without a direct caller/callee edge.
+
+### L1 / ZIP support — secondary bounded probes
+
+- `0x140328540` — ZIP/inflater stream initializer;
+- `0x140328820` — known InflateRead neighbor/context anchor;
+- `0x140328F50` — known ZipEntryRead neighbor/context anchor;
+- `0x140328FE0` — compressed seek/reset/reinflate path.
+
+These are no longer the automatic first targets. Lazy realization, STORE-vs-inflate, raw-DEFLATE streaming, reset+replay compressed seek, raw seek and teardown architecture are already strong. Reacquire exact-body/error breadth when a concrete acceptance claim requires it or when it helps resolve the fan-in/error seam.
 
 ### L2 / physical-provider regression anchors
 
@@ -96,51 +153,36 @@ The profile plan groups blocked and supporting/regression targets across the thr
 - `0x140327430` — resource mount resolution;
 - `0x140327720` — path-existence/final-open caller context.
 
-These three L2 windows are **not blockers for #204 anymore**. The canonical `e454...` executable was reacquired separately on 2026-08-25 and the type-0 post-`0x0C` physical chain was recovered directly, including `FindFirstFileA` / `FindClose` and the exact `CreateFileA` final-open flags. They remain in this packet only as optional regression/reacquisition anchors for #100/#55 and future evidence reproducibility.
+These three L2 windows are **not blockers for #204 anymore**. The canonical `e454...` executable was reacquired separately on 2026-08-25 and the type-0 post-`0x0C` physical chain was recovered directly, including `FindFirstFileA` / `FindClose` and exact `CreateFileA` final-open flags. They remain only as optional regression/reacquisition anchors.
 
-The current unresolved Layer-2 acquisition target is different: protected-distribution runtime address reacquisition/mapping is required before an original-process selected-identity receipt can be trusted. This canonical-analysis packet does not solve that distribution mapping gate.
-
-### L1 / ZIP and loose-container support
-
-- `0x140328540` — ZIP/inflater stream initializer;
-- `0x140328820` — known InflateRead neighbor/context anchor;
-- `0x140328F50` — known ZipEntryRead neighbor/context anchor;
-- `0x140328FE0` — compressed seek/reset/reinflate path;
-- `0x14002DA40` — `.lst` synthesis/builder follow-up;
-- `0x14002EF4D0` — shared staging/materialization helper.
-
-Primary ledger: #100 / #55.
+The current unresolved Layer-2 acquisition target is protected-distribution runtime address mapping before an original-process selected-identity receipt can be trusted. This canonical-analysis packet does not solve that protected-process mapping gate.
 
 ### L3 / original runtime lifecycle support
 
-The L3 set is aligned to the canonical roadmap order rather than to the old broad #88 checklist.
+The L3 set remains aligned to the canonical lifecycle roadmap. L3 starts from materialized state2 input for the layer cut; the byte-transport and state1→2 materialization handoff above are L1.
 
 **R1 — state-writer/caller census**
 
-- `0x1401B84E0` — acquisition construction and state `0 -> 1`;
-- `0x1401B8DC0` — normal completion callback and state `1 -> 2`;
 - `0x1401B92D0` — state-2 typed finalizer, ready callback and state `2 -> 3`;
 - `0x1401B8430` — canonical unfinished-resource cancellation writer, state `1|2 -> 4`;
 - `0x1401B8F00` — deferred cancellation cleanup, state `4 -> 0`;
 - `0x1401B9530` — ordinary owner-driven conditional release to state 0;
-- `0x1401B9560` / `0x1401B95E0` — group/full forced-reset writers.
+- `0x1401B9560` / `0x1401B95E0` — group/full reset writers.
+
+`0x1401B84E0`, `0x1401B8CA0` and `0x1401B8DC0` remain shared acquisition/boundary probes in the packet, but their L1 behavior must not be counted as L3 completion.
 
 **R2 — known-field ownership / topology writers**
 
-- `0x1401B8380` — registry initialization, group/state/backing baseline;
-- `0x1401B84E0` — `+0x18` TypeInfo, `+0x20` payload, optional `+0x10` callback ordering;
-- `0x1401B8D60`, `0x1401B8F50`, `0x1401B8FF0`, `0x1401B90B0`, `0x1401B9160`, `0x1401B9270` — fixed-family wrappers and family-specific selector/index writes;
-- `0x1401B8DF0` — group-5 first-free dynamic pool and `+0x08` initialization/ownership.
+- `0x1401B8380` — registry initialization;
+- fixed-family wrappers `0x1401B8D60`, `0x1401B8F50`, `0x1401B8FF0`, `0x1401B90B0`, `0x1401B9160`, `0x1401B9270`;
+- `0x1401B8DF0` — group-5 first-free dynamic pool.
 
 **R3 — typed-dispatch breadth / failure semantics**
 
-- `0x1401B8CA0` — direct/packed/loose-list materialization dispatch before state 1 publication;
-- `0x1401B9FA0` — recursive typed post-load dispatcher and default/unknown branch census;
+- `0x1401B9FA0` — recursive typed post-load dispatcher;
 - `0x1403051B0` — SCM post-load layout contradiction follow-up.
 
-Primary ledger: #88 / #55. The `0x1401B92D0` finalizer is directly relevant to future #209 instrumentation because Level-E needs consumer-ready evidence rather than a crash-free launch.
-
-Historical note: an earlier packet description mislabeled `0x1401B84E0` as a release path, `0x1401B8CA0` as state lookup, and `0x1401B8DC0` as the state-2 finalizer. Pass 25/27 evidence rejects those labels; the current plan uses the corrected function roles above.
+Primary ledger: #88 / #55. Dynamic lifecycle receipts remain separate acceptance work.
 
 ## Probe-window rule
 
@@ -164,17 +206,16 @@ For each target:
 6. promote only semantics supported by the reacquired bytes;
 7. keep unresolved tails explicitly unresolved.
 
-Priority after acquisition remains roadmap-driven. The already recovered Layer-2 physical final-open chain is no longer at the front of this queue:
+Priority after acquisition is now:
 
 ```text
-#100 ZIP initializer / compressed seek where needed
- -> .lst dynamic semantics if activated by acceptance
- -> #88 exact state-writer census
- -> #88 known-field writer ownership
- -> #88 typed-dispatch breadth/failure semantics
+#100 materialization fan-in/completion
+ -> #100 transport-to-resource error mapping
+ -> #100 .lst temp allocation/free/failure cleanup
+ -> acceptance-activated FileSlot/error breadth
+ -> acceptance-activated ZIP exact-body breadth
+ -> #88 typed-ready/lifecycle static breadth
  -> Level-E original-process instrumentation/receipts
 ```
-
-For Layer 3 specifically, the packet is only the acquisition gate for the roadmap's first reverse slices. Dynamic initial-load/transition/cancellation/reset/shutdown receipts remain separate acceptance work after the static writer boundaries are closed.
 
 This packet reduces evidence-acquisition friction. It does not change the rule that any layer reaches completion only after its real-corpus/original-process acceptance receipts are valid.
