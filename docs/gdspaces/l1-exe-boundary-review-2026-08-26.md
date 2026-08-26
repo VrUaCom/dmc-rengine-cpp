@@ -1,7 +1,7 @@
 # GDSpaces L1 — Canonical EXE Boundary Review
 
 **Review date:** 2026-08-26  
-**Canonical repository base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Canonical repository base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Layer:** L1 — Resource Materialization  
 **Primary ledgers:** #100, #55
