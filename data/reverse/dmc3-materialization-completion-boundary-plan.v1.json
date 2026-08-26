@@ -10,6 +10,7 @@
     "no generic fan-in counter or child-count mechanism is asserted",
     "scheduler rollback is not relabeled as OS-level AsyncIO cancellation",
     "state1/state2 are lifecycle states owned by L3 even when their ordering is supporting evidence for L1 materialization",
+    "parallel PR #227 scheduler ABI findings are branch evidence until merged",
     "successful byte-window acquisition alone does not prove original-process equivalence",
     "the protected distribution executable is not substituted for the canonical analysis executable"
   ],
@@ -20,7 +21,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "L1-support: reacquire caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
+      "purpose": "Priority support: reacquire caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
     },
     {
       "id": "whole-file-transport-callback-1400335a0",
@@ -28,7 +29,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "L1-support: reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and any exact handoff into higher materialization/lifecycle scheduling."
+      "purpose": "Priority support: reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and the exact upward error/status handoff."
     },
     {
       "id": "async-read-submit-14002ea40",
@@ -36,7 +37,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55, 88],
-      "purpose": "L1/L3 boundary support: reacquire ReadRequest/FileSlot submission ownership and distinguish byte transport from request lifecycle."
+      "purpose": "Priority support: reacquire ReadRequest/FileSlot submission ownership and distinguish byte transport from higher materialization scheduler state."
     },
     {
       "id": "scheduler-pending-clear-1402ef460",
@@ -44,7 +45,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "L3 priority: reacquire scheduler pending-entry clear/rollback, queue matching and ordering; do not infer OS AsyncIO cancellation."
+      "purpose": "Primary L3 control target: reacquire scheduler pending-entry clear/rollback, queue matching and already-dispatched behavior; do not infer OS AsyncIO cancellation."
     },
     {
       "id": "materialization-submit-wrapper-1402ef4d0",
@@ -52,7 +53,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55, 88],
-      "purpose": "Cross-layer priority: close the resource materialization submission/scheduling wrapper body, callees and inherited load-context consumption without assuming a fan-in counter."
+      "purpose": "Primary cross-layer target: close the materialization submission/scheduling wrapper body, callees, queued work ordering, failure return and inherited load-context consumption without assuming a fan-in counter."
     },
     {
       "id": "scheduler-enqueue-1402ef580",
@@ -60,7 +61,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "L3 priority: reacquire scheduler enqueue metadata, callback/context writes and ring ordering relative to materialization submission and completion callback registration."
+      "purpose": "Regression/context anchor: parallel PR #227 recovers 0x88 queue records, callback at +0x08, one copied u32 argument at +0x10 for 1B8DC0; reacquire only to connect 2EF4D0 materialization work into the same ordering model."
     },
     {
       "id": "scheduler-worker-1402ef790",
@@ -68,7 +69,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "L3 priority: reacquire scheduler callback execution and slot-clear ordering to identify the actual completion dependency mechanism."
+      "purpose": "Regression/context anchor: parallel PR #227 recovers one-argument dispatch through ECX and callback +0x08; use this window to test ordering relative to materialization work, not to re-prove the callback ABI."
     },
     {
       "id": "loaded-resource-cancel-writer-1401b8430",
@@ -84,7 +85,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 100],
-      "purpose": "Cross-layer seam: reacquire materialization dispatch success gate, state1 publication and completion callback registration ordering."
+      "purpose": "Regression/context anchor: current main proves materialization-success -> state1 -> completion registration; parallel PR #227 further recovers context=record-base and argument_count=1."
     },
     {
       "id": "lst-materializer-1401b85c0",
@@ -92,7 +93,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "L1 priority when loose-list behavior is in scope: reacquire in-place child population, nested synthesis, child submission return handling and temporary/failure cleanup."
+      "purpose": "Activated L1 target for loose-list scope: reacquire child submission return handling, recursive in-place population, temporary/failure cleanup and relationship to 2EF4D0 work ordering."
     },
     {
       "id": "loaded-resource-materialization-dispatch-1401b8ca0",
@@ -100,7 +101,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 88, 55],
-      "purpose": "Explicit L1/L3 seam: reacquire representation/materialization mechanics and boolean return contract that gates L3 state1 publication."
+      "purpose": "Explicit L1/L3 seam: reacquire representation/materialization mechanics and the boolean success contract entering 2EF4D0/1B85C0 before L3 state1 publication."
     },
     {
       "id": "loaded-resource-completion-state1-to2-1401b8dc0",
@@ -108,7 +109,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "L3 completion writer: reacquire callback context decoding, normal state1 to state2 publication and unusual tagged/sentinel branch without inventing semantics."
+      "purpose": "Regression/context anchor: current main proves normal state2 publication; parallel PR #227 proves normal context ABI and excludes odd contexts from the canonical acquisition-registration domain."
     },
     {
       "id": "loaded-resource-state4-cleanup-1401b8f00",
@@ -116,7 +117,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "L3 control path: reacquire deferred state4 cleanup and backing-release ordering to complete the cancellation-side comparison."
+      "purpose": "L3 control path: reacquire deferred state4 cleanup and backing-release ordering to compare failure/cancellation against successful completion ordering."
     }
   ]
 }
