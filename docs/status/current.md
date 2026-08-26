@@ -1,18 +1,20 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-25  
-**Canonical implementation base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`  
-**Latest L1 promotion:** PR #213 — nested PAC/PNST slot-path reflow + CLI  
-**Primary execution program:** GDSpaces Layer 1 final acceptance  
-**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; subsystem remains NOT COMPLETE pending real-retail and original-game Level-E receipts.
+**Snapshot date:** 2026-08-26  
+**Canonical implementation base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Latest L2 promotion:** PR #215 — type-0 physical-provider reverse/model/controlled receipts  
+**Active L2 evidence slice:** PR #219 — protected-runtime RVA mapping acquisition  
+**Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2 support  
+**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 PHYSICAL-PROVIDER INTERNAL SLICE CLOSED; subsystem remains NOT COMPLETE pending real-retail/original-process receipts.
 
 ## Authority split
 
 - GitHub `main` is canonical implementation truth.
 - Reverse claims remain bounded to their recorded artifact/range/scope.
-- Synthetic/public CI proves product behavior only.
+- Synthetic/public CI proves product/tool behavior only.
 - Original-game equivalence requires original-process evidence.
 - GDSpaces owns product resource identity/materialization/authoring; recovered original functions do not move into GDSpaces.
+- Canonical analysis executable authority and protected original-execution authority are separate and must not be silently substituted.
 
 ## GDSpaces layer model
 
@@ -72,18 +74,31 @@ Issue #209 is the final original-game Level-E gate.
 
 The following remain real research gaps but only block L1 if the chosen acceptance path depends on them:
 
-- exact type-0 physical-provider Win32 final-open semantics — primarily L2;
 - complete `0x140328540` ZIP stream initializer lifetime;
 - complete `0x140328FE0` compressed seek/reset/reinflate behavior;
 - exhaustive malformed/partial-read original error equivalence;
 - dynamic `.lst` allocation/free/error/cycle semantics and real loose-list corpus validation;
 - unsupported/evidence-absent binary backends or formats.
 
+The exact type-0 physical-provider post-`0x0C` final-open contract is no longer in this list: #215 recovered and integrated that bounded L2 slice and added controlled product/parity receipts.
+
 Binary AFS and original-runtime PACK remain frozen absent direct evidence. Capcom offline writer equivalence is not an L1 requirement.
 
 ## L2 current frontier
 
-Canonical L2 audit remains valid. Major open boundary: exact original type-0 physical provider after recovered `0x0C` normalization. Collision-census support is canonical; real-retail census and original-process selection receipts remain open.
+The type-0 physical-provider static reverse and controlled product model are closed on `main` through #215/#204. Current L2 closure is split into independent evidence gates:
+
+1. **real-retail `0x0E` collision census** — externally blocked until an exact DMC3 retail central-directory/member-list surface is available;
+2. **protected-distribution runtime RVA mapping** — PR #219 implements explicit-PID, RVA-based, SHA/size-gated live acquisition plus bounded multi-anchor receipt validation; real original-process packet still required;
+3. **original-process selected-provider identity** — blocked by a valid runtime mapping packet;
+4. **final L2 audit** — only after retail corpus + original-process receipts and exact-head validation agree.
+
+Authority identities:
+
+- canonical analysis executable: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes;
+- protected distribution/original execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, 6,567,320 bytes.
+
+The protected build is not instruction-reverse authority. Canonical analysis VAs/RVAs cannot be promoted into the protected process without independent mapping evidence.
 
 L2 work may support L1 but must not replace the final L1 acceptance run.
 
@@ -95,6 +110,8 @@ For the first vertical proof, L3 only needs enough original-process observation 
 
 ## Current critical path
 
+### L1 vertical acceptance
+
 1. obtain access to a protected DMC3 installation;
 2. run direct-retail acquisition and preserve provenance;
 3. classify the exact retail representation;
@@ -104,11 +121,18 @@ For the first vertical proof, L3 only needs enough original-process observation 
 7. run final L1 acceptance audit;
 8. mark `L1 = 100% / COMPLETE` only if every mandatory receipt is valid.
 
-No new synthetic-only feature should displace this sequence unless the real-retail run reveals a concrete missing dependency.
+### L2 closure support
+
+1. obtain cryptographically bound retail DMC3 member-list/central-directory evidence and run the `0x0E` collision census;
+2. run PR #219 tooling against the exact protected process and produce a multi-anchor bounded mapping packet;
+3. use only proven mapped anchors to capture original-process resolver selection identity;
+4. reconcile code/docs/evidence and run final L2 audit.
+
+No synthetic-only feature should displace the real evidence sequence unless a real run reveals a concrete missing dependency.
 
 ## Environment boundary
 
-The currently connected automation environment does not expose exact raw `dmc3.exe` and `DMC3-0.nbz` artifacts required for the protected-install run. Synthetic CI must not substitute for that evidence.
+The currently connected automation environment does not expose all exact raw protected-install artifacts required for the real-retail/original-process runs. Synthetic CI must not substitute for those receipts.
 
 ## Navigation
 

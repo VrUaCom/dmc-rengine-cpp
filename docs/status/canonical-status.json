@@ -1,11 +1,11 @@
 {
   "schema_version": 3,
-  "snapshot_date": "2026-08-25",
+  "snapshot_date": "2026-08-26",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "fd80f2b63c0a9920230d3e74b1debafc07e240b1",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open",
+  "snapshot_main_sha": "c147facb310d32ef084c56ba82d1e4b6b9b1b496",
+  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-evidence-closure-active",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -40,7 +40,10 @@
       "next-contiguous-store-nbz-overlay-authoring",
       "generated-overlay-runtime-resolver-selection",
       "protected-dmc3-executable-authority-preflight",
-      "protected-retail-product-authoring-closure-orchestration"
+      "protected-retail-product-authoring-closure-orchestration",
+      "l2-type0-physical-provider-static-reverse",
+      "l2-native-physical-path-product-model",
+      "l2-controlled-physical-hit-miss-fallback-receipts"
     ],
     "mandatory_L1_gates": [
       {
@@ -93,10 +96,10 @@
       "199-verified-nbz-copy-rebuild",
       "201-relative-slot-cli",
       "208-protected-retail-authoring-closure",
-      "213-nested-slot-path-reflow"
+      "213-nested-slot-path-reflow",
+      "215-l2-type0-physical-provider"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
-      "type0-physical-provider-final-win32-open-semantics",
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
       "compressed-seek-reset-0x140328FE0-complete-behavior",
       "malformed-partial-read-error-equivalence",
@@ -110,7 +113,49 @@
     "preferred_direct_retail_request_target": "obj\\em000.pac",
     "preferred_target_is_mandatory": false,
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
-    "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-exposed-to-connected-automation-environment"
+    "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
+    "L2": {
+      "overall_status": "advanced-not-complete-real-corpus-and-original-process-evidence-open",
+      "canonical_analysis_executable": {
+        "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+        "size": 6356432,
+        "role": "instruction-reverse-authority"
+      },
+      "protected_distribution_executable": {
+        "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+        "size": 6567320,
+        "role": "distribution-provenance-and-original-execution-candidate",
+        "instruction_reverse_authority": false
+      },
+      "gates": [
+        {
+          "id": "L2-R1",
+          "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model",
+          "status": "closed-canonical-pr-215-issue-204"
+        },
+        {
+          "id": "L2-R2A",
+          "name": "real-retail-0x0e-collision-census",
+          "status": "external-artifact-required"
+        },
+        {
+          "id": "L2-R2B",
+          "name": "protected-distribution-runtime-rva-mapping",
+          "status": "tooling-active-pr-219-real-process-receipt-required"
+        },
+        {
+          "id": "L2-R3",
+          "name": "original-process-selected-provider-identity",
+          "status": "blocked-by-l2-r2b"
+        },
+        {
+          "id": "L2-R4",
+          "name": "final-layer2-audit",
+          "status": "open-depends-on-real-retail-and-original-process-receipts"
+        }
+      ],
+      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping"
+    }
   },
   "project_priority": [
     "direct-retail-provenance-receipt",
@@ -118,10 +163,12 @@
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
     "final-l1-cross-stack-audit",
-    "only-then-l1-complete-100-percent"
+    "l2-real-retail-collision-census",
+    "l2-protected-runtime-mapping-receipt",
+    "l2-original-process-selected-identity-receipt"
   ],
   "other_layers": {
-    "L2": "advanced-supporting-not-complete",
+    "L2": "advanced-physical-provider-closed-real-corpus-and-original-process-evidence-open",
     "L3": "advanced-static-spine-dynamic-level-e-open"
   },
   "navigation": {

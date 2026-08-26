@@ -126,6 +126,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         evidence_address_resolver
         exe_byte_window
         exe_byte_window_receipt
+        process_memory_window
+        process_memory_window_receipt
         integration_workspace
         workspace_manifest
         project_graph
@@ -307,6 +309,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine extract-exe-window)
     set_tests_properties(
         dmc_rengine_cli_extract_exe_window_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_capture_exe_process_window_usage
+        COMMAND dmc-rengine capture-exe-process-window)
+    set_tests_properties(
+        dmc_rengine_cli_capture_exe_process_window_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_compare_hits_spatial_usage
