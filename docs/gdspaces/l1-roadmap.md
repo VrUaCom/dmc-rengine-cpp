@@ -1,10 +1,11 @@
 # GDSpaces Layer 1 Roadmap
 
 **Status:** INTERNAL PRODUCT PATH CLOSED / EXTERNAL ACCEPTANCE OPEN  
-**Snapshot date:** 2026-08-25  
-**Canonical implementation base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`  
+**Snapshot date:** 2026-08-26  
+**Canonical implementation base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
 **Primary tracking:** #100, #182, #209  
-**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`
+**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
+**Canonical EXE boundary review:** `l1-exe-boundary-review-2026-08-26.md`
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
@@ -15,6 +16,8 @@ L1 answers:
 Synthetic tests, a working resolver, a valid parser or a crash-free game launch are not sufficient for `L1 COMPLETE`.
 
 ## 1. Canonical L1 boundary
+
+Product acceptance chain:
 
 ```text
 physical source bytes
@@ -31,6 +34,24 @@ physical source bytes
  -> product closure receipt
  -> original DMC3 Level-E consumption + rollback receipt
 ```
+
+Original EXE review boundary:
+
+```text
+L2 selected logical/provider/member identity
+ -> L1 materialization submission
+ -> L1 whole-file/FileSlot transport
+ -> L1 physical backend OR NBZ member backend
+ -> L1 STORE direct OR raw-DEFLATE materialization
+ -> L1 caller-owned destination bytes
+ -> L1 packed representation OR .lst synthesis
+ -> L1 resource-level completion/fan-in
+ -> L1 state 1 -> 2
+ ===== END L1 =====
+ -> L3 typed post-load / state 2 -> 3 / consumer lifecycle
+```
+
+`FileSlot`/AsyncIO therefore participates in L1 where it transports the selected bytes. Pool ownership, cancellation/release/reset policy and typed-ready lifecycle remain L3. `0x1401B84E0` is explicitly cross-layer rather than wholly owned by one layer.
 
 L2 may supply exact selected identity and L3 may supply original consumer/lifecycle evidence. Their broader completion is not required for L1 unless a concrete L1 acceptance path activates one of their unresolved boundaries.
 
@@ -55,7 +76,9 @@ Current `main` includes:
 - staged NBZ reopen and exact member verification before publication;
 - protected distribution executable preflight;
 - protected retail authoring closure orchestration through resolver rematerialization;
-- Windows + Ubuntu CI for all promoted product paths.
+- recovered/promoted type-0 physical-provider post-`0x0C` boundary through #215;
+- guarded canonical-analysis EXE window acquisition packet on current main;
+- Windows + Ubuntu CI for promoted product paths.
 
 These close the known mandatory **internal implementation** work for the current representative DMC3-HD L1 acceptance scope.
 
@@ -181,23 +204,38 @@ The commands are product authoring/validation seams. They do not claim to reprod
 
 ## 5. Supporting EXE reverse boundaries
 
+The canonical detailed review is [L1 EXE Boundary Review — 2026-08-26](l1-exe-boundary-review-2026-08-26.md).
+
 Do **not** restart these without contradictory direct evidence:
 
 - numbered-volume bootstrap / first-gap behavior;
 - generic basename candidate construction and archive-first/physical-second attempt order;
 - archive normalized lookup/index behavior;
-- bounded FileSlot / AsyncIO whole-file materialization spine;
-- ZIP stored-vs-inflated path and raw-DEFLATE core behavior;
-- PAC/PNST recursive typed traversal;
-- primary `.lst` packed-first selection/synthesis structure.
+- type-0 post-`0x0C` physical final-open static contract promoted by #215;
+- whole-file caller-owned-destination transfer family `0x1400333F0/3C0/500/5A0`;
+- bounded FileSlot / ReadRequest transport architecture;
+- ZIP EOCD/central/member identity path;
+- `ZipEntryRead 0x140328F50` STORE-vs-compressed split;
+- `InflateRead 0x140328820` raw-DEFLATE streaming behavior;
+- compressed seek reset+replay architecture and raw seek architecture;
+- ZIP member teardown ownership architecture;
+- primary `.lst` packed-first grammar/layout/recursive synthesis structure.
 
-Still-open reverse breadth is activated only when a completion claim depends on it:
+Important corrected labels:
 
-1. exact type-0 physical-provider Win32 path/case/open/failure semantics — primarily L2;
-2. complete ZIP stream initializer `0x140328540` body/lifetime;
-3. complete compressed seek/reset `0x140328FE0` behavior;
-4. exhaustive malformed/partial-read error-code equivalence;
-5. dynamic `.lst` allocation/free/error/cycle behavior where a real loose-list acceptance path requires it.
+- `0x1402EF4D0` = **resource materialization submission/scheduling wrapper**, not proven exact-path resolver, final provider open or raw file reader;
+- `0x1400335A0` = transport/whole-file completion callback;
+- `0x1401B8DC0` = resource scheduler/materialization completion handoff to state 2, **not** a raw I/O callback;
+- `.lst` synchronous temporary-text acquisition is **not** proven to be the synchronous-style wrapper around `0x1402EF920`.
+
+### Current reverse priority when evidence is available
+
+1. **materialization fan-in/completion semantics** between submitted child/direct work and `0x1401B8DC0` state-2 publication;
+2. **transport failure -> resource scheduler/materialization failure mapping**;
+3. **`.lst` temporary allocation/free identity and failure cleanup**;
+4. `.lst` malformed/truncated/recursion failure propagation if real loose-list acceptance activates it;
+5. FileSlot/ReadRequest partial-read/error/cancellation breadth where required by a compatibility claim;
+6. complete `0x140328540` and `0x140328FE0` exact-body/error breadth only when a concrete acceptance claim requires it.
 
 These bounded gaps do not automatically block a representative packed-NBZ/PAC/PNST L1 Level-E receipt.
 
@@ -226,23 +264,32 @@ No new synthetic-only feature may displace this path unless real evidence reveal
 9. mark L1 100% / COMPLETE only if every mandatory receipt is valid
 ```
 
+While external Level-E is blocked, supporting static reverse follows the priority in section 5 and must remain bounded to evidence-backed seams.
+
 ## 8. Environment boundary
 
-The connected automation environment currently does not expose exact raw `dmc3.exe` and `DMC3-0.nbz` artifacts needed to execute the protected-install Level-E run here.
+The connected automation environment currently does not expose all exact raw protected-install artifacts needed to execute the protected-install Level-E run here.
 
-That is an external evidence boundary. It does not justify substituting synthetic CI for L1-G.
+Current main does expose guarded canonical-analysis EXE window acquisition infrastructure, so static EXE targets should be reacquired through the packet plan rather than by ad hoc range extraction.
+
+This external evidence boundary does not justify substituting synthetic CI for L1-G.
 
 ## 9. Documentation synchronization
 
-When a real receipt changes L1 status, synchronize:
+When L1 evidence or reverse boundaries change, synchronize:
 
 - this roadmap;
+- `l1-exe-boundary-review-2026-08-26.md`;
 - `l1-final-audit-2026-08-25.md` or its completion successor;
+- `decompilation-layer-classification.md`;
+- `dmc3-loose-container-list.md` when `.lst` boundaries change;
 - `docs/status/current.md`;
 - `docs/status/blockers.md`;
 - `docs/status/phase-map.md`;
 - `docs/status/risks.md`;
 - `docs/status/canonical-status.json`;
+- `docs/reverse/gdspaces-blocked-window-acquisition.md`;
+- `data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json`;
 - issues #100, #182 and #209.
 
 Percentage estimates are planning aids only; mandatory gates remain the completion authority.
