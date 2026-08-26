@@ -9,7 +9,9 @@
 
 int main() {
     using dmc::rengine::exe::ProcessMemoryWindowReceipt;
+    using dmc::rengine::exe::ProcessMemoryWindowReceiptV2;
     using dmc::rengine::exe::process_memory_window_receipt_to_json;
+    using dmc::rengine::exe::process_memory_window_receipt_v2_to_json;
 
     const std::array<std::byte, 2> mz{
         std::byte{0x4d}, std::byte{0x5a}};
@@ -41,6 +43,7 @@ int main() {
     const auto json = process_memory_window_receipt_to_json(receipt, "4d5a");
     assert(!json.empty());
     assert(json.find("dmc-rengine.exe-process-window.v1") != std::string::npos);
+    assert(json.find("process_creation_filetime") == std::string::npos);
     assert(json.find("\"matches_expected_window\": true") != std::string::npos);
     assert(json.find(canonical_artifact_sha) != std::string::npos);
 
@@ -62,6 +65,46 @@ int main() {
     assert(!bad_runtime_va.valid());
 
     assert(process_memory_window_receipt_to_json(receipt, "4d00").empty());
+
+    ProcessMemoryWindowReceiptV2 receipt_v2{
+        .artifact_sha256 = artifact_sha,
+        .artifact_size = 6567320U,
+        .image_path = "C:/Games/DMC3/dmc3.exe",
+        .preferred_image_base = 0x140000000ULL,
+        .pid = 1234U,
+        .process_creation_filetime = 133800000000000000ULL,
+        .module_base = 0x7FF600000000ULL,
+        .rva = 0x1000U,
+        .runtime_va = 0x7FF600001000ULL,
+        .size = 2U,
+        .section_name = ".text",
+        .window_sha256 = window_sha,
+        .expected_window_artifact_sha256 = canonical_artifact_sha,
+        .expected_window_sha256 = window_sha,
+    };
+    assert(receipt_v2.valid());
+    assert(receipt_v2.has_mapping_expectation());
+    assert(receipt_v2.matches_expected_window());
+
+    const auto json_v2 = process_memory_window_receipt_v2_to_json(
+        receipt_v2, "4d5a");
+    assert(!json_v2.empty());
+    assert(json_v2.find("dmc-rengine.exe-process-window.v2") != std::string::npos);
+    assert(json_v2.find("\"process_creation_filetime\": 133800000000000000") !=
+           std::string::npos);
+    assert(json_v2.find("\"matches_expected_window\": true") !=
+           std::string::npos);
+
+    auto no_instance = receipt_v2;
+    no_instance.process_creation_filetime = 0U;
+    assert(!no_instance.valid());
+    assert(process_memory_window_receipt_v2_to_json(no_instance).empty());
+
+    auto v2_bad_runtime_va = receipt_v2;
+    ++v2_bad_runtime_va.runtime_va;
+    assert(!v2_bad_runtime_va.valid());
+
+    assert(process_memory_window_receipt_v2_to_json(receipt_v2, "4d00").empty());
 
     return 0;
 }
