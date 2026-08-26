@@ -6,6 +6,7 @@
 **Active L2 evidence slice:** PR #221 — selected-identity content-candidate contract  
 **Latest L3 static reconciliation:** PR #224 — canonical raw-EXE L3 boundary  
 **Active EXE boundary audit:** #225 / PR #226  
+**Active V/LV architecture integration:** #222 / draft PR #223 — branch truth until promoted  
 **Primary execution program:** GDSpaces final real-retail/original-process acceptance with evidence-driven L2/L3 support  
 **Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2/L3 STATIC SPINES ADVANCED; subsystem remains NOT COMPLETE pending real-retail/original-process validation.
 
@@ -18,14 +19,15 @@
 - GDSpaces owns product resource identity/materialization/authoring; recovered original functions do not move into GDSpaces.
 - Canonical analysis executable authority and protected original-execution authority are separate and must not be silently substituted.
 - Closed/unmerged historical recovered-source PRs may guide reacquisition targets but do not silently become current-main canonical authority.
+- Draft #223 is branch truth for unified V/LV implementation until reviewed/merged; this status must not describe its code contracts as current-main implementation.
 
 ## GDSpaces layer model
 
 - **L1 — Resource Materialization:** exact bytes, transform/decompression, nested expansion, bounded authoring, rebuild/repack, reopen/rematerialization.
 - **L2 — Resource Resolution:** request, candidates, normalization, provider/volume/source identity, fallback/ambiguity.
 - **L3 — Original Runtime/Lifecycle:** FileSlot/async/LoadedResource/typed-ready/claim/reset/release/consumer behavior.
-- **V — Validation / Equivalence:** cross-cutting validation/promotion authority, not L4.
-- **LV — Live Validation / Original-Process Observation:** V-owned acquisition plane, not L4.
+- **V — Validation / Equivalence:** existing cross-cutting validation category; the single-promotion-authority architecture is being integrated in #222/#223.
+- **LV — Live Validation / Original-Process Observation:** proposed V-owned acquisition plane in #222/#223; not L4 and not yet current-main implementation authority.
 
 Execution follows the dependency-driven [master roadmap](../gdspaces/master-roadmap.md).
 
@@ -33,7 +35,7 @@ Execution follows the dependency-driven [master roadmap](../gdspaces/master-road
 
 The two-pass audit tracked in #225 / PR #226 finds **no evidence-based need for L4**.
 
-The current architecture additionally recognizes an orthogonal **Resource Control Plane (RCP)**:
+The proposed canonical boundary model additionally recognizes an orthogonal **Resource Control Plane (RCP)**:
 
 - root request planning/emission;
 - dependency planning/emission;
@@ -78,7 +80,7 @@ manager_ready_state3
 
 State3 is a strong manager/lifecycle readiness boundary, but not universal family-semantic success.
 
-Canonical grey-boundary docs:
+Canonical grey-boundary docs proposed in #226:
 
 - `../gdspaces/exe-grey-boundary-audit-2026-08-26.md`;
 - `../gdspaces/exe-grey-boundary-pass2-2026-08-26.md`;
@@ -201,7 +203,7 @@ Parent #225 work order:
 4. P2-R4 factory/resource-set demand edges;
 5. P2-R5 ownership hierarchy breadth;
 6. P2-R6 manager-ready/family-ready/consumer-effect taxonomy;
-7. P2-R7 dependency-aware LV/V integration after the static graph is bounded.
+7. P2-R7 dependency-aware LV/V integration after the static graph is bounded and #222/#223 architecture is promoted or explicitly reconciled.
 
 Historical Wave-3 PR #84 is a high-value target source, especially for StageCfg-driven enemy dependency preload and resource-set demand mapping, but remains historical/unmerged evidence until reconfirmed against current canonical authority.
 
@@ -216,7 +218,7 @@ Historical Wave-3 PR #84 is a high-value target source, especially for StageCfg-
 5. run next-volume authoring + canonical rematerialization closure;
 6. execute issue #209 original-game consumption + rollback;
 7. run final L1 acceptance audit;
-8. allow final completion promotion only through the canonical V authority once #222/#223 integration is promoted.
+8. once the unified V authority in #222/#223 is promoted, route final equivalence/completion promotion through that authority rather than a layer-local boolean.
 
 ### L2 closure support
 
@@ -250,4 +252,4 @@ The currently connected automation environment does not expose all exact raw pro
 - [Machine-readable status](canonical-status.json)
 - [GDSpaces contract](../gdspaces-contract.md)
 
-No percentage or implementation milestone overrides the gate-based/V-owned completion rule.
+No percentage or implementation milestone overrides the gate-based completion rule. Unified V-owned promotion remains branch truth until #222/#223 is promoted.
