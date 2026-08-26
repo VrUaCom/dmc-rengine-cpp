@@ -12,6 +12,19 @@
     "va": "0x1402db1f0",
     "window_sha256": "4e614cc2d0168d6049a449ed4a1c6a78e0ebdd6b5c4b9699fabd98a63c153d19"
   },
+  "efm-relocate-and-strip-rebuild": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2f6e90",
+    "image_base": "0x140000000",
+    "name": "efm-relocate-and-strip-rebuild",
+    "rva": "0x2f7a90",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 709,
+    "va": "0x1402f7a90",
+    "window_sha256": "0b5ccd9aaa1701fab677ea35bd44924f4d2ad1ab9cbfac754dcf7e246ca1052b"
+  },
   "extension-literal-table": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
@@ -115,6 +128,19 @@
     "size": 48,
     "va": "0x1402ef6a2",
     "window_sha256": "2168b7b727294a3eda65ab157f75546496730e8c14f92cd91f30a2626bac614f"
+  },
+  "shw-relocate": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x31f8c0",
+    "image_base": "0x140000000",
+    "name": "shw-relocate",
+    "rva": "0x3204c0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 48,
+    "va": "0x1403204c0",
+    "window_sha256": "14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d"
   },
   "type-dispatch-and-pnst-walk": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",

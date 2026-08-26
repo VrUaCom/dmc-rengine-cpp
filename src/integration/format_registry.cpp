@@ -298,14 +298,16 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "efm",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.efm-structural",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
-            .stage_category = gdspaces::StageResourceCategory::unknown,
+            .stage_category = gdspaces::StageResourceCategory::models,
             .evidence_claim_ids = {},
             .limitations = {
-                "Recognized by the recovered three-byte runtime probe; the runtime handler is identified but its structure is not modelled.",
+                "Layout recovered from the runtime relocation routine: the MOD batch plus one more relocated array.",
+                "No EFM payload exists in the supplied corpus, so this is recovered and never checked against a real file.",
+                "The extra array's element width is not recoverable, so only its base is bounded. No writer.",
             },
         },
         FormatIntegrationDescriptor{
@@ -317,19 +319,21 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .stage_category = gdspaces::StageResourceCategory::unknown,
             .evidence_claim_ids = {},
             .limitations = {
-                "Recognized by the recovered three-byte runtime probe. The runtime records the type and calls no handler, so nothing is known about the payload beyond its tag.",
+                "Recognized by the recovered three-byte runtime probe. The runtime records the type and calls no handler at all, so there is no routine to recover and nothing is known about the payload beyond its tag.",
             },
         },
         FormatIntegrationDescriptor{
             .format = "shw",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.shw-structural",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::unknown,
             .evidence_claim_ids = {},
             .limitations = {
-                "Recognized by the recovered three-byte runtime probe; shadow payload structure is not modelled.",
+                "Layout recovered from the runtime relocation routine. It does not share the document shell the other three model formats use: its table starts at 0x30, with no groups, batches or strip rebuild.",
+                "No SHW payload exists in the supplied corpus, so this is recovered and never checked against a real file.",
+                "The routine relocates four bases per entry and never indexes through them, so no array extent is claimed. No writer.",
             },
         },
         FormatIntegrationDescriptor{
