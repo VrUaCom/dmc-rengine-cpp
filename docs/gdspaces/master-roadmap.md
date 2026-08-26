@@ -1,8 +1,8 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Active L2 evidence slice:** PR #221
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -90,9 +90,9 @@ No new synthetic-only feature may displace this sequence unless real retail evid
 
 ## Track B — L2 closure
 
-Canonical review baseline: `l2-review-2026-08-25.md` plus the 2026-08-26 protected-runtime mapping slice.
+Canonical review baseline: `l2-review-2026-08-25.md`, `l2-review-2026-08-26.md`, and `l2-exe-reconciliation-2026-08-26.md`.
 
-### Closed L2 internal slice
+### Closed/integrated L2 internal slices
 
 PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 
@@ -103,7 +103,16 @@ PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 - Windows bounded `CreateFileA` parity scenario + Ubuntu/Windows exact-head validation passed;
 - direct caller census and `0x400` overflow behavior are closed for the recovered direct-call surface.
 
-Do not reopen this slice absent contradictory direct evidence.
+PR #219 integrated the protected-runtime mapping acquisition/tooling seam:
+
+- explicit PID and actual module-base + RVA capture;
+- exact protected executable SHA/size gate;
+- bounded process-memory window receipts;
+- canonical-window expectation binding;
+- multi-anchor mapping validator requiring `OpenGameResource` plus at least two type-0 anchors;
+- no global build-equivalence claim.
+
+Do not reopen these slices absent contradictory direct evidence.
 
 ### Current L2 work order
 
@@ -111,11 +120,15 @@ Do not reopen this slice absent contradictory direct evidence.
 L2-R2A real-retail 0x0E collision census
   -> direct-retail exact resolver identity receipt
 
-L2-R2B protected-distribution runtime RVA mapping (#219)
-  -> multi-anchor bounded mapping receipt from one protected process
-  -> L2-R3 original-process selected-provider identity receipt
+L2-R2B real protected-process multi-anchor mapping receipt
+  -> uses integrated #219 tooling
 
-[R2A + R3]
+L2-R3 selected-provider identity
+  -> #221 content-candidate + artifact binder tooling
+  -> trusted runtime publisher/origin binding
+  -> zero-loss real protected-process selected-identity receipt
+
+[R2A + real R2B + trusted R3]
   -> docs/issues/evidence reconciliation
   -> exact-head Windows + Ubuntu validation
   -> final L2 audit / promotion
@@ -154,29 +167,33 @@ Synthetic/DMCL corpus results do not close this DMC3 retail gate.
 
 ### L2-R2B — protected runtime address mapping
 
-PR #219 adds the acquisition seam, not the original-process proof itself:
+#219 tooling is integrated on `main`; the real evidence gate remains open.
 
-- explicit PID;
-- runtime read by `module_base + RVA`, never copied static VA;
-- exact running image SHA + size gate;
-- PE `SizeOfImage` and section containment checks;
-- exact full-range `ReadProcessMemory` only;
-- metadata-only child receipt by default;
-- optional canonical artifact/window hash expectation;
-- mismatch is negative evidence and non-zero;
-- multi-anchor mapping validator requires one OpenGameResource anchor plus at least two independent type-0 physical anchors from one process/module session.
+A valid real packet requires one exact protected process/module session and:
+
+- `OpenGameResource` canonical RVA `0x2FCA0`;
+- at least two independent type-0 anchors among `0x326D20`, `0x327430`, `0x327800`;
+- exact `0x40` live windows at actual `module_base + RVA`;
+- canonical analysis-window hash expectations;
+- exact protected executable SHA/size;
+- zero cross-session PID/module drift.
 
 A child receipt proves only its listed range. A successful multi-anchor packet proves bounded mapping only for the listed anchors. It does **not** prove global build equivalence or original selected-provider identity.
 
-### L2-R3 — original-process selected identity
+### L2-R3 — selected-provider identity
 
-Only after a valid protected-runtime mapping packet exists:
+PR #221 defines the content-candidate boundary, not trusted original-process proof:
 
-1. instrument mapped resolver entry/selection points;
-2. capture exact logical request and ordered candidate/provider traversal;
-3. capture final provider/source/archive/member identity selected by original DMC3;
-4. bind the receipt to the exact protected executable and real retail corpus;
-5. compare to GDSpaces product resolver without relabeling product evidence as original-process evidence.
+1. recovered request/candidate/provider/volume order is structurally validated;
+2. legacy self-authored serializer output must pass a strict deterministic normalizer;
+3. mapping packet is reconstructed from process-window child receipts;
+4. exact observer artifact is hashed and bound;
+5. every claimed numbered NBZ artifact is hashed and size-checked;
+6. bound output remains `promotion_eligible=false` / `trusted_capture_bound=false` until a separate trusted publisher/origin mechanism exists.
+
+Fresh canonical EXE review adds one mandatory failure distinction: archive normalized lookup may succeed while wrapper/open creation at `0x140328290` fails. `0x140327430` then exits through null/cleanup; it does **not** continue to a lower-volume lookup as a clean miss. Therefore clean-path R3 v1 supports only `miss -> selected`; provider/backend failure is fail-closed.
+
+Only after real R2B mapping and trusted publisher binding may a real selected identity be promoted and compared to GDSpaces product resolution. Product comparison helpers are diagnostic/content-only before that point.
 
 `preflight-dmc3-game-test` is build/archive-presence preflight, not a selected-identity receipt.
 
@@ -205,7 +222,7 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 
 | Acceptance question | Primary | Required support |
 |---|---|---|
-| Which resource wins for a real game request? | L2 | protected retail corpus + mapped original-process observation |
+| Which resource wins for a real game request? | L2 | protected retail corpus + mapped trusted original-process observation |
 | Are selected bytes exact? | L1 | L2 selected identity + artifact binding |
 | Can the selected representation be edited safely? | L1 | direct retail representation evidence |
 | Will the authored overlay win? | L2 | L1 generated artifact |
@@ -216,11 +233,12 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
-2. Complete PR #219 acquisition/tooling review and exact-head CI.
-3. When a protected original process is available, produce the L2 multi-anchor mapping packet.
-4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
-5. Capture original-process selected identity only after mapped L2 anchors are proven.
-6. Reconcile final L2 evidence and run the final Layer-2 audit.
+2. Finish review/promotion of PR #221 as candidate/normalizer/binder tooling only.
+3. When a protected original process is available, produce the real L2 multi-anchor R2B mapping packet using integrated #219 tooling.
+4. Implement/use the trusted R3 publisher path; do not accept manually authored JSON as original-process authority.
+5. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
+6. Capture and bind a zero-loss original-process selected identity only after mapped L2 anchors are proven.
+7. Reconcile final L2 evidence and run the final Layer-2 audit.
 
 ## Completion rule
 
