@@ -1,7 +1,7 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Active L2 evidence slice:** PR #219  
 **Latest L3 static authority:** `l3-boundary-audit-2026-08-26.md`
 
