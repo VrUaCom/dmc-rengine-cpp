@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Validate and bind one GDSpaces L2 selected-identity content candidate.
+"""Artifact-bind one sanitized GDSpaces L2 selected-identity content candidate.
 
-This tool is deliberately fail-closed. It does not create trusted original-process
-evidence from editable JSON. It reconstructs the R2B mapping from validated child
-process-window receipts, binds the candidate to the exact mapping bytes, hashes the
-observer artifact and every claimed numbered NBZ artifact, and emits a bounded
-promotion *candidate*. Trusted-capture/original-process promotion remains a later gate.
+This validator cannot create trusted original-process evidence. It accepts only the
+strict candidate emitted by `normalize_l2_original_selection_candidate.py`, rebuilds
+R2B mapping from child process-window receipts, hashes the exact observer and numbered
+NBZ artifacts, validates the recovered clean-path resolver order, and emits a bounded
+non-promotable candidate packet.
 """
 
 from __future__ import annotations
@@ -32,6 +32,52 @@ PREFIXES = (
     "SAVEDATA/",
     "",
 )
+
+SELECTION_KEYS = {
+    "schema",
+    "evidence_class",
+    "promotion_eligible",
+    "trusted_capture_bound",
+    "legacy_schema_normalized",
+    "executable_sha256",
+    "executable_size",
+    "runtime_mapping_packet_sha256",
+    "observer_id",
+    "observer_version",
+    "observer_build_sha256",
+    "trace_complete",
+    "dropped_event_count",
+    "pid",
+    "module_base",
+    "flags",
+    "request",
+    "basename",
+    "first_missing_archive_volume",
+    "archives",
+    "probes",
+    "selected",
+    "proves",
+    "does_not_prove",
+}
+ARCHIVE_KEYS = {"volume_index", "filename", "sha256", "size"}
+PROBE_KEYS = {
+    "sequence_index",
+    "lookup_attempt_index",
+    "provider",
+    "candidate",
+    "provider_key",
+    "archive_volume_index",
+    "outcome",
+}
+SELECTED_KEYS = {
+    "provider",
+    "lookup_attempt_index",
+    "candidate",
+    "provider_key",
+    "archive_volume_index",
+    "archive_member_path",
+    "physical_relative_path",
+}
 
 
 def _load_runtime_mapping_verifier() -> Any:
@@ -75,6 +121,18 @@ def _contains_forbidden_key(value: Any, key: str) -> bool:
     if isinstance(value, list):
         return any(_contains_forbidden_key(child, key) for child in value)
     return False
+
+
+def _exact_keys(value: Any, allowed: set[str], context: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{context} must be an object")
+    extra = set(value) - allowed
+    missing = allowed - set(value)
+    if extra:
+        raise ValueError(f"{context} contains unsupported field(s): {', '.join(sorted(extra))}")
+    if missing:
+        raise ValueError(f"{context} is missing field(s): {', '.join(sorted(missing))}")
+    return value
 
 
 def _read_json(path: Path) -> tuple[dict[str, Any], bytes]:
@@ -146,115 +204,125 @@ def _basename(request: str) -> str:
     return request if position < 0 else request[position + 1 :]
 
 
-def _validate_mapping(mapping: dict[str, Any]) -> tuple[int, int]:
+def _reconstruct_mapping(
+    child_paths: list[Path],
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    if len(child_paths) < RUNTIME_MAPPING.MIN_ANCHORS:
+        raise ValueError(
+            f"at least {RUNTIME_MAPPING.MIN_ANCHORS} mapping child receipts are required"
+        )
+    child_receipts: list[dict[str, str]] = []
+    for path in child_paths:
+        payload, raw = _read_json(path)
+        if payload.get("schema") != "dmc-rengine.exe-process-window.v1":
+            raise ValueError(f"mapping child {path} has unsupported schema")
+        rva = payload.get("rva")
+        if not isinstance(rva, str):
+            raise ValueError(f"mapping child {path} has invalid RVA")
+        child_receipts.append({"rva": rva, "receipt_sha256": _sha256_bytes(raw)})
+
+    rebuilt = RUNTIME_MAPPING.build_packet(child_paths)
+    child_receipts.sort(key=lambda item: _hex_u64(item["rva"], "mapping child rva"))
+    return rebuilt, child_receipts
+
+
+def _mapping_session(mapping: dict[str, Any]) -> tuple[int, int]:
     if mapping.get("schema") != "dmc-rengine.gdspaces-l2-runtime-mapping.v1":
         raise ValueError("mapping packet schema mismatch")
     if mapping.get("status") != "bounded_match":
-        raise ValueError("mapping packet is not a bounded_match")
-    if mapping.get("scope") != "approved-l2-rva-anchors-only":
-        raise ValueError("mapping packet scope mismatch")
-    if _sha(mapping.get("protected_artifact_sha256"), "mapping protected SHA") != PROTECTED_SHA256:
-        raise ValueError("mapping packet is not bound to protected DMC3 executable")
+        raise ValueError("mapping packet is not bounded_match")
+    if mapping.get("protected_artifact_sha256") != PROTECTED_SHA256:
+        raise ValueError("mapping protected artifact SHA mismatch")
     if mapping.get("protected_artifact_size") != PROTECTED_SIZE:
         raise ValueError("mapping protected artifact size mismatch")
-    if (
-        _sha(mapping.get("canonical_analysis_artifact_sha256"), "mapping canonical analysis SHA")
-        != RUNTIME_MAPPING.CANONICAL_ANALYSIS_SHA256
-    ):
-        raise ValueError("mapping canonical analysis authority mismatch")
-    if (
-        _hex_u64(mapping.get("preferred_image_base"), "mapping preferred_image_base")
-        != RUNTIME_MAPPING.PREFERRED_IMAGE_BASE
-    ):
-        raise ValueError("mapping preferred image base mismatch")
-
     pid = mapping.get("pid")
     if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
         raise ValueError("mapping pid is invalid")
-    module_base = _hex_u64(mapping.get("module_base"), "mapping module_base")
-    image_name = mapping.get("image_name")
+    return pid, _hex_u64(mapping.get("module_base"), "mapping module_base")
+
+
+def _validate_archives(selection: dict[str, Any]) -> dict[int, dict[str, Any]]:
+    first_missing = selection.get("first_missing_archive_volume")
     if (
-        not isinstance(image_name, str)
-        or not image_name
-        or "/" in image_name
-        or "\\" in image_name
+        not isinstance(first_missing, int)
+        or isinstance(first_missing, bool)
+        or first_missing < 0
+        or first_missing > 0x7FFFFFFF
     ):
-        raise ValueError("mapping image_name must be a basename")
+        raise ValueError("first_missing_archive_volume is invalid")
+    archives = selection.get("archives")
+    if not isinstance(archives, list) or len(archives) != first_missing:
+        raise ValueError("archive identity census is not contiguous")
 
-    anchors = mapping.get("anchors")
-    if (
-        not isinstance(anchors, list)
-        or mapping.get("anchor_count") != len(anchors)
-        or len(anchors) < RUNTIME_MAPPING.MIN_ANCHORS
-    ):
-        raise ValueError("mapping anchor census is invalid")
+    claims: dict[int, dict[str, Any]] = {}
+    for position, raw in enumerate(archives):
+        item = _exact_keys(raw, ARCHIVE_KEYS, f"archive[{position}]")
+        index = item["volume_index"]
+        if (
+            not isinstance(index, int)
+            or isinstance(index, bool)
+            or index < 0
+            or index >= first_missing
+            or index in claims
+        ):
+            raise ValueError("archive volume index is invalid/duplicate")
+        if item["filename"] != f"DMC3-{index}.nbz":
+            raise ValueError("archive filename does not match runtime volume identity")
+        _sha(item["sha256"], f"archive {index} SHA")
+        size = item["size"]
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0:
+            raise ValueError("archive size is invalid")
+        claims[index] = item
 
-    seen_rvas: set[int] = set()
-    seen_ids: set[str] = set()
-    for item in anchors:
-        if not isinstance(item, dict):
-            raise ValueError("mapping anchor entry is invalid")
-        anchor_id = item.get("id")
-        if not isinstance(anchor_id, str):
-            raise ValueError("mapping anchor id is invalid")
-        rva = _hex_u64(item.get("rva"), "mapping anchor rva")
-        runtime_va = _hex_u64(item.get("runtime_va"), "mapping anchor runtime_va")
-        if rva not in RUNTIME_MAPPING.ANCHORS or RUNTIME_MAPPING.ANCHORS[rva] != anchor_id:
-            raise ValueError("mapping contains an unapproved or mismatched anchor")
-        if rva in seen_rvas or anchor_id in seen_ids:
-            raise ValueError("mapping contains a duplicate anchor")
-        if runtime_va != module_base + rva:
-            raise ValueError("mapping anchor runtime VA is inconsistent")
-        if item.get("size") != RUNTIME_MAPPING.WINDOW_SIZE:
-            raise ValueError("mapping anchor window size is invalid")
-        _sha(item.get("window_sha256"), "mapping anchor window SHA")
-        seen_rvas.add(rva)
-        seen_ids.add(anchor_id)
-
-    open_game_rva = 0x0002FCA0
-    if open_game_rva not in seen_rvas:
-        raise ValueError("mapping lacks OpenGameResource anchor")
-    if len(seen_rvas & RUNTIME_MAPPING.PHYSICAL_ANCHORS) < 2:
-        raise ValueError("mapping lacks required physical-provider anchor breadth")
-    return pid, module_base
+    if set(claims) != set(range(first_missing)):
+        raise ValueError("archive volume identity set has a gap")
+    return claims
 
 
-def _validate_selection(
+def _validate_candidate(
     selection: dict[str, Any],
     mapping_sha: str,
     mapping_pid: int,
     mapping_base: int,
-) -> None:
-    if selection.get("schema") != SELECTION_SCHEMA:
+) -> dict[int, dict[str, Any]]:
+    _exact_keys(selection, SELECTION_KEYS, "selection candidate")
+    if selection["schema"] != SELECTION_SCHEMA:
         raise ValueError("selection receipt schema mismatch")
-    if selection.get("evidence_class") != SELECTION_EVIDENCE_CLASS:
+    if selection["evidence_class"] != SELECTION_EVIDENCE_CLASS:
         raise ValueError("selection evidence class mismatch")
-    if _sha(selection.get("executable_sha256"), "selection executable SHA") != PROTECTED_SHA256:
+    if selection["promotion_eligible"] is not False:
+        raise ValueError("selection candidate may not predeclare promotion eligibility")
+    if selection["trusted_capture_bound"] is not False:
+        raise ValueError("selection candidate may not predeclare trusted capture")
+    if selection["legacy_schema_normalized"] is not True:
+        raise ValueError("selection candidate lacks legacy-normalizer provenance marker")
+
+    if _sha(selection["executable_sha256"], "selection executable SHA") != PROTECTED_SHA256:
         raise ValueError("selection is not bound to protected DMC3 executable")
-    if selection.get("executable_size") != PROTECTED_SIZE:
+    if selection["executable_size"] != PROTECTED_SIZE:
         raise ValueError("selection executable size mismatch")
-    if _sha(selection.get("runtime_mapping_packet_sha256"), "mapping packet SHA") != mapping_sha:
+    if _sha(selection["runtime_mapping_packet_sha256"], "mapping packet SHA") != mapping_sha:
         raise ValueError("selection does not hash-bind the supplied mapping packet")
-    if selection.get("pid") != mapping_pid:
+    if selection["pid"] != mapping_pid:
         raise ValueError("selection and mapping pid differ")
-    if _hex_u64(selection.get("module_base"), "selection module_base") != mapping_base:
+    if _hex_u64(selection["module_base"], "selection module_base") != mapping_base:
         raise ValueError("selection and mapping module base differ")
-    if selection.get("flags") != 1:
+    if selection["flags"] != 1:
         raise ValueError("selection must use recovered direct-call flags=1 mode")
 
     for field in ("observer_id", "observer_version"):
-        value = selection.get(field)
+        value = selection[field]
         if not isinstance(value, str) or not value or len(value) > 128 or "\0" in value:
             raise ValueError(f"selection {field} is invalid")
-    _sha(selection.get("observer_build_sha256"), "observer build SHA")
-    if selection.get("trace_complete") is not True:
+    _sha(selection["observer_build_sha256"], "observer build SHA")
+    if selection["trace_complete"] is not True:
         raise ValueError("selection trace is not marked complete")
-    dropped = selection.get("dropped_event_count")
+    dropped = selection["dropped_event_count"]
     if not isinstance(dropped, int) or isinstance(dropped, bool) or dropped != 0:
         raise ValueError("selection trace reports dropped events")
 
-    request = selection.get("request")
-    basename = selection.get("basename")
+    request = selection["request"]
+    basename = selection["basename"]
     if (
         not isinstance(request, str)
         or not isinstance(basename, str)
@@ -265,93 +333,55 @@ def _validate_selection(
     if len(PREFIXES[0] + basename) >= 0x400:
         raise ValueError("selection request violates recovered 0x400 first-candidate bound")
 
-    first_missing = selection.get("first_missing_archive_volume")
-    archives = selection.get("archives")
-    if (
-        not isinstance(first_missing, int)
-        or isinstance(first_missing, bool)
-        or first_missing < 0
-        or first_missing > 0x7FFFFFFF
-    ):
-        raise ValueError("first_missing_archive_volume is invalid")
-    if not isinstance(archives, list) or len(archives) != first_missing:
-        raise ValueError("archive identity census is not contiguous")
+    archive_claims = _validate_archives(selection)
+    first_missing = selection["first_missing_archive_volume"]
 
-    seen: set[int] = set()
-    for item in archives:
-        if not isinstance(item, dict):
-            raise ValueError("archive identity entry is invalid")
-        index = item.get("volume_index")
-        if (
-            not isinstance(index, int)
-            or isinstance(index, bool)
-            or index < 0
-            or index >= first_missing
-            or index in seen
-        ):
-            raise ValueError("archive volume index is invalid/duplicate")
-        seen.add(index)
-        if item.get("filename") != f"DMC3-{index}.nbz":
-            raise ValueError("archive filename does not match runtime volume identity")
-        _sha(item.get("sha256"), "archive SHA")
-        size = item.get("size")
-        if not isinstance(size, int) or isinstance(size, bool) or size <= 0:
-            raise ValueError("archive size is invalid")
-    if seen != set(range(first_missing)):
-        raise ValueError("archive volume identity set has a gap")
+    probes_raw = selection["probes"]
+    if not isinstance(probes_raw, list) or not probes_raw:
+        raise ValueError("selection probes are missing")
+    selected = _exact_keys(selection["selected"], SELECTED_KEYS, "selected identity")
 
-    probes = selection.get("probes")
-    selected = selection.get("selected")
-    if not isinstance(probes, list) or not probes or not isinstance(selected, dict):
-        raise ValueError("selection probes/selected identity are missing")
-
-    # v1 intentionally accepts only clean misses followed by one selection.
-    # Canonical EXE review proves an archive lookup hit can still fail in the
-    # wrapper/open path; that terminates provider resolution and must never be
-    # rewritten as a miss merely to satisfy this schema.
     expected: list[tuple[int, str, str, int | None]] = []
     for attempt in range(12):
         provider = "archive" if attempt < 6 else "physical"
-        prefix = PREFIXES[attempt % 6]
-        candidate = prefix + basename
+        candidate = PREFIXES[attempt % 6] + basename
         if provider == "archive":
             for volume in range(first_missing - 1, -1, -1):
                 expected.append((attempt, provider, candidate, volume))
         else:
             expected.append((attempt, provider, candidate, None))
 
-    if len(probes) > len(expected):
+    if len(probes_raw) > len(expected):
         raise ValueError("selection contains more probes than recovered policy permits")
 
     selected_seen = False
-    for sequence, probe in enumerate(probes):
-        if not isinstance(probe, dict):
-            raise ValueError("probe is not an object")
+    for sequence, raw in enumerate(probes_raw):
+        probe = _exact_keys(raw, PROBE_KEYS, f"probe[{sequence}]")
         attempt, provider, candidate, volume = expected[sequence]
-        if probe.get("sequence_index") != sequence or probe.get("lookup_attempt_index") != attempt:
+        if probe["sequence_index"] != sequence or probe["lookup_attempt_index"] != attempt:
             raise ValueError("probe sequence/attempt order mismatch")
-        if probe.get("provider") != provider or probe.get("candidate") != candidate:
+        if probe["provider"] != provider or probe["candidate"] != candidate:
             raise ValueError("probe provider/candidate order mismatch")
-        if probe.get("archive_volume_index") != volume:
+        if probe["archive_volume_index"] != volume:
             raise ValueError("probe archive volume precedence mismatch")
         expected_key = _normalize(candidate, 0x0E if provider == "archive" else 0x0C)
-        if probe.get("provider_key") != expected_key:
+        if probe["provider_key"] != expected_key:
             raise ValueError("probe provider key mismatch")
-        outcome = probe.get("outcome")
+        outcome = probe["outcome"]
         if outcome not in ("miss", "selected"):
             raise ValueError(
                 "v1 selection candidate supports only clean miss/selected outcomes; "
                 "provider/backend failure is fail-closed"
             )
         if outcome == "selected":
-            if sequence != len(probes) - 1:
+            if sequence != len(probes_raw) - 1:
                 raise ValueError("selected probe must terminate trace")
             selected_seen = True
 
     if not selected_seen:
         raise ValueError("trace has no selected probe")
 
-    terminal = probes[-1]
+    terminal = probes_raw[-1]
     for key in (
         "provider",
         "lookup_attempt_index",
@@ -359,21 +389,21 @@ def _validate_selection(
         "provider_key",
         "archive_volume_index",
     ):
-        if selected.get(key) != terminal.get(key):
+        if selected[key] != terminal[key]:
             raise ValueError(f"selected identity disagrees with terminal probe field {key}")
 
-    selected_provider = selected.get("provider")
-    selected_key = selected.get("provider_key")
+    selected_provider = selected["provider"]
+    selected_key = selected["provider_key"]
     if not isinstance(selected_key, str) or not selected_key:
         raise ValueError("selected provider key is invalid")
     if selected_provider == "archive":
-        member = selected.get("archive_member_path")
+        member = selected["archive_member_path"]
         if not isinstance(member, str) or not member or _normalize(member, 0x0E) != selected_key:
             raise ValueError("selected archive member identity does not match provider key")
-        if selected.get("physical_relative_path") != "":
+        if selected["physical_relative_path"] != "":
             raise ValueError("archive selection carries physical identity")
     elif selected_provider == "physical":
-        relative = selected.get("physical_relative_path")
+        relative = selected["physical_relative_path"]
         if (
             not isinstance(relative, str)
             or not relative
@@ -383,74 +413,31 @@ def _validate_selection(
             raise ValueError("physical identity must be mounted-root-relative")
         if _normalize(relative, 0x0C) != selected_key:
             raise ValueError("selected physical identity does not match provider key")
-        if selected.get("archive_member_path") != "":
+        if selected["archive_member_path"] != "":
             raise ValueError("physical selection carries archive member identity")
     else:
         raise ValueError("selected provider is invalid")
 
-
-def _reconstruct_mapping(
-    mapping_child_paths: list[Path],
-) -> tuple[dict[str, Any], list[dict[str, str]]]:
-    if len(mapping_child_paths) < RUNTIME_MAPPING.MIN_ANCHORS:
-        raise ValueError(
-            f"at least {RUNTIME_MAPPING.MIN_ANCHORS} mapping child receipts are required"
-        )
-
-    child_receipts: list[dict[str, str]] = []
-    for path in mapping_child_paths:
-        payload, raw = _read_json(path)
-        if payload.get("schema") != "dmc-rengine.exe-process-window.v1":
-            raise ValueError(f"mapping child {path} has unsupported schema")
-        rva = payload.get("rva")
-        if not isinstance(rva, str):
-            raise ValueError(f"mapping child {path} has invalid RVA")
-        child_receipts.append({"rva": rva, "receipt_sha256": _sha256_bytes(raw)})
-
-    rebuilt = RUNTIME_MAPPING.build_packet(mapping_child_paths)
-    child_receipts.sort(key=lambda item: _hex_u64(item["rva"], "mapping child rva"))
-    return rebuilt, child_receipts
+    return archive_claims
 
 
-def _bind_observer_artifact(
-    selection: dict[str, Any], observer_artifact_path: Path
-) -> dict[str, Any]:
-    actual_sha, actual_size = _sha256_file(observer_artifact_path)
-    expected_sha = _sha(selection.get("observer_build_sha256"), "observer build SHA")
-    if actual_sha != expected_sha:
+def _bind_observer(selection: dict[str, Any], observer_path: Path) -> dict[str, Any]:
+    actual_sha, actual_size = _sha256_file(observer_path)
+    if actual_sha != selection["observer_build_sha256"]:
         raise ValueError("observer artifact SHA does not match selection receipt")
     return {"sha256": actual_sha, "size": actual_size}
 
 
-def _archive_claims(selection: dict[str, Any]) -> dict[int, dict[str, Any]]:
-    claims: dict[int, dict[str, Any]] = {}
-    archives = selection.get("archives")
-    if not isinstance(archives, list):
-        raise ValueError("selection archive claims are missing")
-    for item in archives:
-        if not isinstance(item, dict):
-            raise ValueError("selection archive claim is invalid")
-        index = item.get("volume_index")
-        if not isinstance(index, int) or isinstance(index, bool):
-            raise ValueError("selection archive index is invalid")
-        claims[index] = item
-    return claims
-
-
-def _bind_archive_artifacts(
-    selection: dict[str, Any], archive_artifacts: dict[int, Path]
+def _bind_archives(
+    claims: dict[int, dict[str, Any]], artifacts: dict[int, Path]
 ) -> list[dict[str, Any]]:
-    claims = _archive_claims(selection)
-    if set(archive_artifacts) != set(claims):
+    if set(artifacts) != set(claims):
         raise ValueError("archive artifact set does not exactly match selection volume set")
-
     bound: list[dict[str, Any]] = []
     for index in sorted(claims):
         claim = claims[index]
-        actual_sha, actual_size = _sha256_file(archive_artifacts[index])
-        expected_sha = _sha(claim.get("sha256"), f"archive {index} SHA")
-        expected_size = claim.get("size")
-        if actual_sha != expected_sha or actual_size != expected_size:
+        actual_sha, actual_size = _sha256_file(artifacts[index])
+        if actual_sha != claim["sha256"] or actual_size != claim["size"]:
             raise ValueError(f"archive artifact {index} does not match claimed SHA/size")
         bound.append(
             {
@@ -480,27 +467,27 @@ def build_bound_packet(
         )
 
     mapping_sha = _sha256_bytes(mapping_raw)
-    mapping_pid, mapping_base = _validate_mapping(mapping)
-    _validate_selection(selection, mapping_sha, mapping_pid, mapping_base)
-    observer_artifact = _bind_observer_artifact(selection, observer_artifact_path)
-    bound_archives = _bind_archive_artifacts(selection, archive_artifacts)
+    mapping_pid, mapping_base = _mapping_session(mapping)
+    archive_claims = _validate_candidate(selection, mapping_sha, mapping_pid, mapping_base)
+    observer = _bind_observer(selection, observer_artifact_path)
+    bound_archives = _bind_archives(archive_claims, archive_artifacts)
 
     return {
         "schema": BOUND_SCHEMA,
         "status": "bound_candidate",
-        "evidence_class": "original-process-observation-candidate",
+        "evidence_class": SELECTION_EVIDENCE_CLASS,
         "promotion_eligible": False,
         "trusted_capture_bound": False,
         "protected_artifact_sha256": PROTECTED_SHA256,
         "protected_artifact_size": PROTECTED_SIZE,
         "runtime_mapping_packet_sha256": mapping_sha,
         "runtime_mapping_child_receipts": child_receipts,
-        "original_selection_candidate_sha256": _sha256_bytes(selection_raw),
+        "selection_candidate_sha256": _sha256_bytes(selection_raw),
         "observer": {
             "id": selection["observer_id"],
             "version": selection["observer_version"],
-            "sha256": observer_artifact["sha256"],
-            "size": observer_artifact["size"],
+            "sha256": observer["sha256"],
+            "size": observer["size"],
         },
         "archives": bound_archives,
         "pid": mapping_pid,
@@ -508,11 +495,11 @@ def build_bound_packet(
         "trace_complete": True,
         "dropped_event_count": 0,
         "request": selection["request"],
-        "selected": selection["selected"],
+        "selected": dict(selection["selected"]),
         "proves": [
             "selection-candidate-structure-matches-recovered-clean-path-policy",
             "mapping-reconstructs-from-supplied-process-window-receipts",
-            "selection-candidate-hash-binds-exact-mapping-file",
+            "candidate-hash-binds-exact-mapping-file",
             "observer-artifact-matches-declared-build-sha",
             "numbered-archive-artifacts-match-declared-sha-and-size",
         ],
@@ -543,7 +530,7 @@ def _parse_archive_artifacts(values: list[str]) -> dict[int, Path]:
 
 
 def _write_no_replace(path: Path, packet: dict[str, Any]) -> None:
-    data = (json.dumps(packet, indent=2) + "\n").encode("utf-8")
+    encoded = (json.dumps(packet, indent=2) + "\n").encode("utf-8")
     descriptor: int | None = None
     created = False
     try:
@@ -551,7 +538,7 @@ def _write_no_replace(path: Path, packet: dict[str, Any]) -> None:
         created = True
         with os.fdopen(descriptor, "wb", closefd=True) as stream:
             descriptor = None
-            stream.write(data)
+            stream.write(encoded)
             stream.flush()
     except Exception:
         if descriptor is not None:
@@ -581,13 +568,12 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        archive_artifacts = _parse_archive_artifacts(args.archive_artifact)
         packet = build_bound_packet(
             args.mapping,
             args.selection,
             args.mapping_child,
             args.observer_artifact,
-            archive_artifacts,
+            _parse_archive_artifacts(args.archive_artifact),
         )
         _write_no_replace(args.output, packet)
     except (OSError, ValueError, TypeError, RuntimeError) as exc:
