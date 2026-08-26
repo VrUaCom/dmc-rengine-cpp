@@ -107,6 +107,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         evidence_json_import
         evidence_packet_project
         evidence_packet_range
+        validation_run
         binary_reader
         binary_document
         binary_fields
