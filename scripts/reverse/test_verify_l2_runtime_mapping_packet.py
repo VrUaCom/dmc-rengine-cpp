@@ -20,7 +20,7 @@ def make_receipt(rva: int, digit: str, *, pid: int = 4242) -> dict[str, object]:
         "schema": "dmc-rengine.exe-process-window.v1",
         "artifact_sha256": mapping.PROTECTED_DISTRIBUTION_SHA256,
         "artifact_size": mapping.PROTECTED_DISTRIBUTION_SIZE,
-        "image_path": "C:/Games/DMC3/dmc3.exe",
+        "image_path": "C:/Users/LocalUser/Games/DMC3/dmc3.exe",
         "preferred_image_base": f"0x{mapping.PREFERRED_IMAGE_BASE:X}",
         "pid": pid,
         "module_base": f"0x{module_base:X}",
@@ -76,6 +76,9 @@ def main() -> None:
         assert packet["canonical_analysis_artifact_sha256"] == (
             mapping.CANONICAL_ANALYSIS_SHA256
         )
+        assert packet["image_name"] == "dmc3.exe"
+        assert "image_path" not in packet
+        assert "LocalUser" not in json.dumps(packet)
         assert "original-process-selected-provider-identity" in packet["does_not_prove"]
 
         expect_rejected(
