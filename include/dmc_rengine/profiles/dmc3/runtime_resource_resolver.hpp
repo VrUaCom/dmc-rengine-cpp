@@ -24,10 +24,13 @@ struct ArchiveSourceBinding final {
 };
 
 struct RuntimeSourceBindings final {
+    // Empty is required when the physical registration attempt did not produce
+    // a mounted type-0 node. A non-empty source ID is required only when the
+    // successful topology contains the physical mount.
     std::string physical_source_id;
     std::vector<ArchiveSourceBinding> archives;
 
-    [[nodiscard]] bool valid_for(const VolumeBootstrapPlan& bootstrap) const noexcept;
+    [[nodiscard]] bool valid_for(const RuntimeMountTopology& topology) const noexcept;
     [[nodiscard]] const ArchiveSourceBinding* archive(
         std::uint32_t volume_index) const noexcept;
 };
@@ -111,16 +114,17 @@ struct RuntimeResolutionReport final {
 };
 
 // DMC3-profile composition layer. It owns recovered candidate/provider/source
-// traversal order. Archive ResourceKeyIndex values are derived inside resolve()
-// from the exact currently-mounted ISource enumeration. Physical sources may
-// additionally expose IDirectPathSource so the physical phase can use source-
-// native path lookup instead of forcing archive-style index equality. Exact
-// byte I/O remains in SourceRegistry/ISource.
+// traversal order over a separately supplied successful mount topology. Filename
+// discovery is validated independently and cannot manufacture mounted providers.
+// Archive ResourceKeyIndex values are derived inside resolve() from the exact
+// currently-mounted ISource enumeration. Physical sources may additionally expose
+// IDirectPathSource so the physical phase can use source-native path lookup.
 class RuntimeResourceResolver final {
 public:
     [[nodiscard]] static RuntimeResolutionReport resolve(
         std::string_view request,
-        const VolumeBootstrapPlan& bootstrap,
+        const VolumeBootstrapPlan& discovery,
+        const RuntimeMountTopology& topology,
         const RuntimeSourceBindings& bindings,
         const gdspaces::SourceRegistry& sources);
 };
