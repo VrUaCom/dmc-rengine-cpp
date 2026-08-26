@@ -2,7 +2,7 @@
 
 **Status:** INTERNAL PRODUCT PATH CLOSED / EXTERNAL ACCEPTANCE OPEN  
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Canonical implementation base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
 **Primary tracking:** #100, #182, #209  
 **Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
 **Canonical EXE boundary review:** `l1-exe-boundary-review-2026-08-26.md`
@@ -77,7 +77,8 @@ Current `main` includes:
 - protected distribution executable preflight;
 - protected retail authoring closure orchestration through resolver rematerialization;
 - recovered/promoted type-0 physical-provider post-`0x0C` boundary through #215;
-- guarded canonical-analysis EXE window acquisition packet on current main;
+- guarded canonical-analysis EXE window acquisition packet;
+- protected-runtime RVA mapping acquisition tooling promoted through #219, while the real original-process mapping receipt remains open;
 - Windows + Ubuntu CI for promoted product paths.
 
 These close the known mandatory **internal implementation** work for the current representative DMC3-HD L1 acceptance scope.
