@@ -1,86 +1,115 @@
-# HITS$ Record Scanner
+# HITS Collision Resource
 
-The clean C++ repository implements the confirmed, narrow HITS$ record layer without claiming a complete undocumented file schema.
+**Reconciled:** 2026-08-26  
+**Status:** CURRENT CLEAN-C++ STRUCTURAL AUTHORITY / COLLISION PURPOSE CONFIRMED  
+**Supersedes:** the obsolete `HITS$` + universal `0x18060001` marker-scanner interpretation.
 
-## Confirmed facts used
+HITS is a DMC3 spatial collision resource. The current clean C++ parser models a bounded header, a three-dimensional spatial grid, per-cell triangle references and fixed-size triangle/plane records.
 
-- file magic: `HITS$`;
-- record marker: `0x18060001`;
-- record size: 56 bytes;
-- record payload: one little-endian `u32` marker followed by thirteen little-endian `float32` values.
+## Canonical magic
 
-These facts are migrated from the historical DMC Rengine format research. The current public repository does not yet contain a sample-hash Evidence Packet for the original game file family.
-
-## API
-
-```cpp
-formats::hits::RecordScanner::scan(bytes)
+```text
+HITS
 ```
 
-The result contains:
+The current parser and GDSpaces classifier use the first **four bytes** `HITS`.
 
-- whether `HITS$` magic was recognized;
-- zero or more complete confirmed records;
-- structured diagnostics.
+`HITS$` is not the current canonical magic. Historical documentation that required five-byte `HITS$` is superseded.
 
-Each record contains:
+## Structural envelope
 
-- byte offset;
-- marker;
-- thirteen raw float values.
+Constants in the current C++ format module:
 
-The floats remain semantically unnamed. Naming them without fresh evidence would convert a structural fact into an unsupported interpretation.
+```text
+header size     = 0x44
+triangle stride = 0x38
+relative-offset base = 0x08
+```
 
-## Scan strategy
+Header fields currently parsed:
 
-1. Require `HITS$` at offset zero.
-2. Begin scanning after the five-byte magic.
-3. Search byte-by-byte for little-endian marker `0x18060001`.
-4. When a marker is found, require the complete 56-byte range.
-5. Decode thirteen floats with the shared bounds-checked binary Reader.
-6. Advance by one full record after a successful match.
+```text
++0x00 char[4]  magic = HITS
++0x04 u32      end_offset
++0x08 vec3f    bounds_min
++0x14 vec3f    bounds_max
++0x20 vec3f    cell_size
++0x2C u32      grid_count_x
++0x30 u32      grid_count_y
++0x34 u32      grid_count_z
++0x38 u32      triangle_count
++0x3C u32      spatial_table_relative_offset
++0x40 u32      triangle_array_relative_offset
+```
 
-This strategy intentionally permits unknown header/padding bytes before records. It does not assume a record count or fixed first-record offset that has not been confirmed.
+The parser validates arithmetic/ranges before slicing the spatial table or triangle array.
 
-## Diagnostics
+## Spatial grid
 
-- `hits.unrecognized` — magic absent;
-- `hits.no_records` — magic recognized, but no complete marker/record found;
-- `hits.truncated_record` — marker found without 56 available bytes;
-- `hits.invalid_record` — complete record range could not be decoded.
+The resource partitions the collision space into a 3-D grid derived from:
 
-No-record is a warning, not a structural error. A truncated confirmed marker is an error.
+```text
+bounds_min / bounds_max
+cell_size
+(grid_count_x, grid_count_y, grid_count_z)
+```
 
-## Synthetic tests
+The spatial table provides per-cell references into lists of triangle byte offsets. Lists terminate with `-1`.
 
-The test corpus creates original bytes containing:
+This is structural collision acceleration/index data, not merely a flat list of anonymous 56-byte records.
 
-- HITS$ magic;
-- unknown padding;
-- two valid 56-byte records;
-- deterministic float values;
-- wrong-magic input;
-- magic-only input;
-- truncated-record input.
+## Triangle record
 
-No original game bytes are committed.
+Each triangle record is `0x38` bytes:
 
-## Current boundary
+```text
++0x00 u32    raw_flags
++0x04 vec3f  point_a
++0x10 vec3f  point_b
++0x1C vec3f  point_c
++0x28 vec3f  normal
++0x34 f32    plane_d
+```
 
-Implemented:
+The clean implementation can evaluate the plane equation against triangle vertices as a structural/diagnostic check.
 
-- recognition;
-- confirmed record scanning;
-- raw float decoding;
+### Flag boundary
+
+`0x18060001` has been observed as a raw flag value in historical research. It is **not** a universal record marker and must not be used to discover every HITS triangle by byte scanning.
+
+Exact bit-level semantics of `raw_flags` remain evidence-gated.
+
+## Purpose
+
+**Confirmed/bounded purpose:** stage/spatial collision geometry plus an acceleration grid mapping world cells to triangle planes.
+
+This is the collision family exposed to Stage/inspection tooling. Stronger semantics such as material, collision class, traversal policy or gameplay response must be attached only after direct evidence for the relevant flag/consumer path.
+
+## Product boundary
+
+Current clean C++ support is structural:
+
+- exact four-byte magic recognition;
+- bounded header parsing;
+- grid dimension/range validation;
+- spatial-cell list decoding;
+- triangle/plane decoding;
 - structured diagnostics;
-- cross-platform tests.
+- integration as a collision resource family.
 
-Not implemented:
+A product working-copy/write policy does not by itself prove topology-changing output is accepted by the original game. Original-game writer/consumer acceptance remains a separate gate.
 
-- semantic names for the thirteen floats;
-- file-level record count/header interpretation;
-- editing or export;
-- Stage Ops visualization adapter;
-- game-sample Evidence Packet.
+## Architecture rule
 
-The next evidence-backed step is to identify record semantics and sample hashes through local legal files, then attach the scanner output to Binary Inspector regions and StageBundle collision resources.
+HITS parsing belongs in the shared format/GDSpaces path. Stage Ops, ModViz and other consumers must not create private collision parsers or infer HITS from `.ukn` alone.
+
+A misleading filename such as `*.ukn` may still contain HITS; validated bytes/structure outrank the extension.
+
+## Related authority
+
+- `include/dmc_rengine/formats/hits.hpp`
+- `src/formats/hits.cpp`
+- `src/integration/format_registry.cpp`
+- `src/gdspaces/classifier.cpp`
+- [DMC3 HD format and purpose catalog](dmc3-hd-format-catalog.md)
+- `docs/gdspaces/l3-residual-format-pass-2026-08-26.md`
