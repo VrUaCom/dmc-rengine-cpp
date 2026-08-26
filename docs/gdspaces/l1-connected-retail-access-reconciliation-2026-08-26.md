@@ -20,7 +20,7 @@ protected retail install is locatable in connected Drive
  -> dmc3-0.nbz exact observed size = 960,358,951 bytes
  -> connected raw transfer/materialization cannot deliver that archive
  -> no exact central-directory/member surface is exposed separately
- -> no separately extracted em000.pac is present
+ -> no separately extracted em000.pac was found by connected search
  -> exact obj\em000.pac retail member-byte/provenance receipt remains OPEN
 ```
 
@@ -36,7 +36,7 @@ Fresh Drive/Library enumeration locates:
 
 The executable size is consistent with the already-recorded protected-distribution/original-execution candidate authority. This census does not replace executable SHA/preflight authority; the real run must still pass the canonical protected executable gate.
 
-No separately extracted file named `em000.pac` / matching `em000*` was found in the connected Drive corpus during this pass.
+No separately extracted file named `em000.pac` / matching `em000*` was found by the connected Drive search performed during this pass. That search miss is not evidence that a member with that identity is absent from the NBZ.
 
 ## 3. Transfer/materialization negative receipt
 
@@ -59,7 +59,7 @@ A zero-result semantic search is not evidence that a ZIP member does not exist; 
 - `data/dmc3/dmc3-0.nbz` is present;
 - the exact observed NBZ file size is `960,358,951` bytes;
 - connected full-byte transfer/materialization of that NBZ is unavailable through the tested channels;
-- there is no separately exposed `em000.pac` derivative available to substitute for direct archive acquisition.
+- no separately exposed `em000.pac` derivative was found by the connected search that could substitute for direct archive acquisition.
 
 ### What is still not proven
 
