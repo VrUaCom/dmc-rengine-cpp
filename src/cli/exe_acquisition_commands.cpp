@@ -245,7 +245,7 @@ int run_capture_exe_process_window(
             << "Usage: dmc-rengine capture-exe-process-window <pid> "
                "<expected-image-sha256> <expected-image-size> <rva> <size> "
                "[--expect-window <canonical-artifact-sha256> "
-               "<canonical-window-sha256>] [--hex]\n";
+               "<canonical-window-sha256>] [--process-instance-v2] [--hex]\n";
         return 2;
     }
 
@@ -268,6 +268,7 @@ int run_capture_exe_process_window(
     }
 
     bool include_hex = false;
+    bool process_instance_v2 = false;
     std::optional<std::string> expected_window_artifact_sha;
     std::optional<std::string> expected_window_sha;
     for (int index = 7; index < argc;) {
@@ -278,6 +279,15 @@ int run_capture_exe_process_window(
                 return 2;
             }
             include_hex = true;
+            ++index;
+            continue;
+        }
+        if (flag == "--process-instance-v2") {
+            if (process_instance_v2) {
+                std::cerr << "--process-instance-v2 may be specified only once.\n";
+                return 2;
+            }
+            process_instance_v2 = true;
             ++index;
             continue;
         }
@@ -357,8 +367,7 @@ int run_capture_exe_process_window(
         return 4;
     }
 
-    const auto runtime_bytes =
-        std::span<const std::byte>{process_window.bytes};
+    const auto runtime_bytes = std::span<const std::byte>{process_window.bytes};
     const auto runtime_window_sha = core::Sha256::compute(runtime_bytes).hex();
 
     std::string bytes_hex;
@@ -369,32 +378,57 @@ int run_capture_exe_process_window(
         bytes_hex = bytes_to_hex(runtime_bytes);
     }
 
-    const exe::ProcessMemoryWindowReceipt receipt{
-        .artifact_sha256 = actual_image_sha,
-        .artifact_size = static_cast<std::uint64_t>(payload->bytes.size()),
-        .image_path = process_window.image_path.generic_string(),
-        .preferred_image_base = pe.image->image_base,
-        .pid = process_window.pid,
-        .process_creation_filetime = process_window.process_creation_filetime,
-        .module_base = process_window.module_base,
-        .rva = process_window.rva,
-        .runtime_va = process_window.runtime_va,
-        .size = static_cast<std::uint64_t>(process_window.bytes.size()),
-        .section_name = *section_name,
-        .window_sha256 = runtime_window_sha,
-        .expected_window_artifact_sha256 = expected_window_artifact_sha,
-        .expected_window_sha256 = expected_window_sha,
-    };
+    std::string json;
+    bool has_mapping_expectation = false;
+    bool matches_expected_window = false;
+    if (process_instance_v2) {
+        const exe::ProcessMemoryWindowReceiptV2 receipt{
+            .artifact_sha256 = actual_image_sha,
+            .artifact_size = static_cast<std::uint64_t>(payload->bytes.size()),
+            .image_path = process_window.image_path.generic_string(),
+            .preferred_image_base = pe.image->image_base,
+            .pid = process_window.pid,
+            .process_creation_filetime = process_window.process_creation_filetime,
+            .module_base = process_window.module_base,
+            .rva = process_window.rva,
+            .runtime_va = process_window.runtime_va,
+            .size = static_cast<std::uint64_t>(process_window.bytes.size()),
+            .section_name = *section_name,
+            .window_sha256 = runtime_window_sha,
+            .expected_window_artifact_sha256 = expected_window_artifact_sha,
+            .expected_window_sha256 = expected_window_sha,
+        };
+        json = exe::process_memory_window_receipt_v2_to_json(receipt, bytes_hex);
+        has_mapping_expectation = receipt.has_mapping_expectation();
+        matches_expected_window = receipt.matches_expected_window();
+    } else {
+        const exe::ProcessMemoryWindowReceipt receipt{
+            .artifact_sha256 = actual_image_sha,
+            .artifact_size = static_cast<std::uint64_t>(payload->bytes.size()),
+            .image_path = process_window.image_path.generic_string(),
+            .preferred_image_base = pe.image->image_base,
+            .pid = process_window.pid,
+            .module_base = process_window.module_base,
+            .rva = process_window.rva,
+            .runtime_va = process_window.runtime_va,
+            .size = static_cast<std::uint64_t>(process_window.bytes.size()),
+            .section_name = *section_name,
+            .window_sha256 = runtime_window_sha,
+            .expected_window_artifact_sha256 = expected_window_artifact_sha,
+            .expected_window_sha256 = expected_window_sha,
+        };
+        json = exe::process_memory_window_receipt_to_json(receipt, bytes_hex);
+        has_mapping_expectation = receipt.has_mapping_expectation();
+        matches_expected_window = receipt.matches_expected_window();
+    }
 
-    const auto json =
-        exe::process_memory_window_receipt_to_json(receipt, bytes_hex);
     if (json.empty()) {
         std::cerr << "Failed to construct a valid process-window receipt.\n";
         return 6;
     }
 
     std::cout << json;
-    if (receipt.has_mapping_expectation() && !receipt.matches_expected_window()) {
+    if (has_mapping_expectation && !matches_expected_window) {
         std::cerr
             << "Runtime window SHA-256 does not match the canonical expected window. "
                "No address-mapping claim is promoted.\n";
