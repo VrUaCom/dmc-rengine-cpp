@@ -1,39 +1,40 @@
-# GDSpaces Layer 2 — original-process selected identity runbook — 2026-08-26
+# GDSpaces Layer 2 — selected identity content-candidate runbook — 2026-08-26
 
 **Primary gate:** L2 / issue #220 R3.  
 **Tooling PR:** #221.  
-**Prerequisite:** a **real** protected-process `dmc-rengine.gdspaces-l2-runtime-mapping.v1` packet from #220 R2B.  
-**Status:** tooling/contract in review; real original-process receipt **not yet acquired**.
+**Prerequisite:** a **real** protected-process `dmc-rengine.gdspaces-l2-runtime-mapping.v1` packet reconstructed from real #219 child process-window receipts.  
+**Status:** candidate tooling in review; trusted original-process selected-identity evidence **not yet acquired**.
 
-## Authority boundary
+## 1. Authority boundary
 
 Two executable roles remain separate:
 
-- canonical instruction reverse authority: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size `6,356,432`;
-- protected distribution / original execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size `6,567,320`.
+- canonical instruction reverse authority: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes;
+- protected distribution/original execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, 6,567,320 bytes.
 
-R3 runs only against the protected execution candidate. Canonical analysis VAs/RVAs are not direct protected-process breakpoint authority. The real R2B mapping packet is the prerequisite bridge.
+Canonical analysis addresses are not direct protected-process breakpoint authority. The real R2B mapping packet is the bridge.
 
-## Recovered policy that R3 must observe, not assume
+Fresh canonical EXE review is recorded in `l2-exe-reconciliation-2026-08-26.md`.
 
-For the canonical direct-call surface of `OpenGameResource` (`0x14002FCA0` in the analysis build), all recovered direct callers use `flags = 1`.
+## 2. Recovered clean-path policy
 
-That mode is:
+For the canonical direct-call surface of `OpenGameResource` (`0x14002FCA0`, RVA `0x2FCA0`), all three observed direct callers pass `flags = 1`.
+
+Recovered candidate/provider order:
 
 ```text
-request
- -> basename
- -> archive candidate 0: GDataX360.afs/<basename>
- -> archive candidate 1: GData.afs/<basename>
- -> archive candidate 2: Video/<basename>
- -> archive candidate 3: afs/sound/<basename>
- -> archive candidate 4: SAVEDATA/<basename>
- -> archive candidate 5: <basename>
- -> physical candidate 0..5 in the same prefix order
- -> first selected resource or -1
+archive:
+  GDataX360.afs/<basename>
+  GData.afs/<basename>
+  Video/<basename>
+  afs/sound/<basename>
+  SAVEDATA/<basename>
+  <basename>
+physical:
+  same six candidates in the same order
 ```
 
-For every archive candidate, mounted numbered volumes are consulted in recovered effective precedence:
+Within every archive candidate, numbered volumes are traversed in effective mounted precedence:
 
 ```text
 DMC3-(N-1).nbz -> ... -> DMC3-1.nbz -> DMC3-0.nbz
@@ -41,181 +42,215 @@ DMC3-(N-1).nbz -> ... -> DMC3-1.nbz -> DMC3-0.nbz
 
 where `N` is the first missing contiguous volume index.
 
-Archive normalization uses `0x0E`; physical normalization uses `0x0C`. The physical provider chain after `0x0C`, including `CreateFileA` flags/miss behavior, is already closed by #215/#204 and must not be re-reversed here.
+Archive normalization uses `0x0E`; physical normalization uses `0x0C`.
 
-## Required real acquisition chain
+### Important EXE-review correction
 
-### 1. Preflight the exact process, corpus and observer
+Archive `normalized lookup hit` is **not automatically equal to selected resource**.
 
-Before instrumentation:
+Canonical instructions at `0x1403274BE..0x1403274CD` show:
 
-- verify on-disk process executable SHA/size is the protected authority above;
-- enumerate the contiguous `DMC3-0..N-1.nbz` set with first-gap stop;
-- hash every mounted NBZ and record exact size;
-- preserve those identities in the R3 observation;
-- validate the real R2B mapping packet and record its exact file SHA-256;
-- record stable observer id/version;
-- compute and record the exact SHA-256 of the instrumentation/observer build actually used for the trace.
+1. `0x140328160` returns a matched archive entry;
+2. `0x140328290` attempts wrapper/open construction;
+3. if wrapper/open returns null, `0x140327430` exits through cleanup/null return;
+4. it does not continue to a lower volume as if the hit had been a clean lookup miss.
 
-A trace without the exact NBZ artifact census cannot promote an archive winner identity. A trace without cryptographic observer-build identity cannot be promoted either.
+Therefore R3 v1 covers only the clean path:
 
-### 2. Enter through mapped `OpenGameResource`
+- `miss` = clean provider lookup miss;
+- `selected` = successfully produced selected resource identity.
 
-Use the R2B-mapped protected-process address corresponding to canonical `OpenGameResource` RVA `0x2FCA0`.
+Any observed provider/backend/wrapper failure is **unsupported by v1 and fails closed**. Never encode it as `miss` merely to preserve expected precedence order.
 
-At entry record, without modifying control flow:
+## 3. Preflight required for a real run
 
-- PID and actual module base;
-- request bytes interpreted as the original C string;
-- `flags` value;
-- derived basename only after observing the original branch inputs.
+Before observing selection:
 
-For the first R3 receipt, require `flags = 1`. Another flag mode remains a separate evidence slice.
+1. verify the on-disk process executable is exact protected SHA/size;
+2. build a real R2B mapping from child process-window receipts;
+3. enumerate contiguous `DMC3-0..N-1.nbz` with first-gap stop;
+4. retain the exact mounted NBZ files for later artifact binding;
+5. retain the exact observer/instrumentation executable or package used for the run;
+6. record observer id/version;
+7. ensure capture can report `trace_complete` and `dropped_event_count`.
 
-### 3. Observe provider traversal
+Do not use self-declared archive or observer hashes as promotion authority. The binder hashes the artifacts itself.
 
-For every provider operation that actually executes, record an ordered probe:
+## 4. Observation content
 
-- monotonically increasing trace `sequence_index`;
-- recovered lookup-attempt index `0..11`;
-- provider class (`archive` or `physical`);
-- exact candidate before provider normalization;
-- exact normalized provider key;
-- archive volume index for archive probes;
-- outcome `miss` or `selected`.
+At mapped `OpenGameResource` entry record without changing control flow:
 
-The observer must expose an explicit trace-integrity result:
+- PID;
+- actual module base;
+- exact C-string request;
+- observed flags;
+- basename derived from the observed request.
+
+For each actually executed provider operation record:
+
+- `sequence_index`;
+- lookup attempt index `0..11`;
+- provider class;
+- exact candidate;
+- normalized provider key;
+- archive volume index when archive;
+- clean outcome `miss` or `selected`.
+
+Trace integrity must be explicit:
 
 ```text
 trace_complete = true
 dropped_event_count = 0
 ```
 
-Any detected ring-buffer overflow, callback loss, parser loss, truncated run, observer shutdown before terminal selection, or other event-loss condition must set the run invalid. It is not acceptable to keep a plausible winner while declaring the ordering incomplete.
+Any overflow, dropped callback/event, truncated run, or uncertain ordering invalidates the candidate.
 
-The receipt contract rejects:
+## 5. Selected archive identity
 
-- skipped earlier prefixes;
-- skipped higher archive volumes;
-- a physical probe before the archive phase is exhausted;
-- a probe after the first selected result;
-- a candidate/provider key inconsistent with the recovered normalizer profile;
-- incomplete traces or any nonzero dropped-event count.
+An `archive hit` label is insufficient.
 
-### 4. Archive selected identity
+For an archive selection record the exact:
 
-A generic `archive hit` is insufficient.
+- volume index;
+- central-directory/member pathname selected by original lookup;
+- normalized provider key;
+- terminal candidate/attempt identity.
 
-For an archive winner, observe enough of the returned original archive lookup/stream identity to bind the selected result to:
+Do not derive the member pathname from GDSpaces or from the request.
 
-- exact numbered volume index;
-- that volume's SHA-256/size from preflight;
-- exact physical central-directory/member pathname selected by the runtime lookup;
-- normalized provider key used for the lookup.
+The exact `DMC3-N.nbz` SHA/size is not trusted from JSON; the later binder hashes the supplied archive artifact itself.
 
-Do **not** infer the member path from the request or GDSpaces. It must come from the original archive lookup/returned central-entry identity.
+## 6. Selected physical identity
 
-The recovered static model establishes normalized sorted index + `qsort`/`bsearch` architecture, but this runbook intentionally does not invent a protected-build helper address for that inner lookup before R2B/runtime acquisition identifies it.
+For a physical selection record a mounted-root-relative identity, never an absolute workstation path.
 
-### 5. Physical selected identity
+It must normalize under `0x0C` to the observed provider key. If actual final filesystem identity/casing cannot be observed, do not claim exact ResourceRef parity from candidate text alone.
 
-If the original selects the physical provider, record a mounted-root-relative final resource identity. Do not publish an absolute workstation path in the public receipt.
+## 7. Legacy C++ serializer -> explicit candidate
 
-The identity must normalize under `0x0C` to the observed physical provider key. If exact final filesystem casing cannot be observed safely, do not claim exact `ResourceRef` parity from candidate text alone; acquire the final opened-file identity first.
-
-### 6. Terminate at first selected resource
-
-The original selected identity is the terminal R3 event. Any later provider event in the same receipt invalidates the trace.
-
-## Receipt pipeline
-
-The in-process/tooling representation is:
+The existing C++ serializer predates the trusted-origin review correction and emits the historical labels:
 
 ```text
-OriginalResolutionObservation
- -> valid()
- -> dmc-rengine.gdspaces-l2-original-selection.v1
+dmc-rengine.gdspaces-l2-original-selection.v1
+original-process-observation
 ```
 
-The receipt requires:
+Those labels are **legacy content labels, not promotion authority**.
 
-- canonical protected executable SHA/size;
-- exact mapping-packet SHA;
-- observer id/version and observer-build SHA-256;
-- `trace_complete = true`;
-- `dropped_event_count = 0`;
-- exact request/corpus/probe/selected identities.
+Before binding, normalize them through the fail-closed adapter:
 
-Then bind it to the **actual mapping packet file**:
+```text
+python scripts/reverse/normalize_l2_original_selection_candidate.py \
+  --input <legacy-selection.json> \
+  --output <selection-candidate.json>
+```
+
+The adapter accepts only the exact legacy schema/evidence pair, rejects raw `bytes_hex`, rejects predeclared trust/promotion fields, replaces overclaiming `proves`, and emits:
+
+```text
+dmc-rengine.gdspaces-l2-original-selection-candidate.v1
+original-process-observation-candidate
+promotion_eligible = false
+trusted_capture_bound = false
+```
+
+A normalized candidate is still self-authored content, not proof of process origin.
+
+## 8. Artifact-backed candidate binder
+
+Bind the normalized candidate to the actual R2B and artifact set:
 
 ```text
 python scripts/reverse/verify_l2_original_selection_evidence.py \
   --mapping <real-r2b-mapping.json> \
-  --selection <real-original-selection.json> \
-  --output <bound-selection-evidence.json>
+  --mapping-child <open-game-child.json> \
+  --mapping-child <type0-child-a.json> \
+  --mapping-child <type0-child-b.json> \
+  --selection <selection-candidate.json> \
+  --observer-artifact <exact-observer-build> \
+  --archive-artifact 0=<exact-DMC3-0.nbz> \
+  --archive-artifact 1=<exact-DMC3-1.nbz> \
+  --output <bound-selection-candidate.json>
 ```
 
-The validator independently hashes the supplied mapping packet and requires:
+Repeat `--archive-artifact INDEX=PATH` for **every** mounted contiguous numbered volume. For zero mounted archives, provide none.
 
-- `dmc-rengine.gdspaces-l2-runtime-mapping.v1` / `bounded_match`;
-- protected executable SHA/size;
-- `OpenGameResource` plus at least two type-0 mapping anchors;
-- identical PID and module base between mapping and selection receipts;
-- exact mapping-file SHA equals the SHA recorded by the selection receipt;
-- canonical observer-build SHA-256;
-- complete zero-loss trace markers;
-- recovered provider/candidate/volume order;
-- terminal selected identity consistency;
-- metadata-only inputs with no `bytes_hex` at any nesting depth.
+The binder independently:
 
-Successful output schema:
+- rebuilds the R2B mapping from child process-window receipts;
+- requires exact semantic equality with the supplied mapping packet;
+- hashes the exact mapping file;
+- verifies same PID/module base;
+- hashes the observer artifact and requires equality with declared observer SHA;
+- hashes every numbered NBZ and requires exact declared SHA/size;
+- validates request/basename, archive topology and recovered order;
+- rejects incomplete/lossy traces;
+- rejects provider/backend failure under clean-path v1;
+- rejects raw `bytes_hex` recursively;
+- writes output with no-replace semantics.
+
+Successful output is deliberately:
 
 ```text
-dmc-rengine.gdspaces-l2-original-selection-bound.v1
+schema = dmc-rengine.gdspaces-l2-original-selection-bound.v1
+status = bound_candidate
+promotion_eligible = false
+trusted_capture_bound = false
 ```
 
-A successful validator run proves only a **mapping-bound selected identity for that exact request/process/corpus/observer session**.
+It proves artifact/provenance consistency of the **candidate** only. It still does not prove trusted original-process origin.
 
-## Product comparison
+## 9. Trusted-capture gate still required
 
-`compare_original_to_product(...)` compares the real selected identity against one GDSpaces `RuntimeResolutionReport` using the exact `RuntimeSourceBindings` topology.
+A separate trusted publisher/origin mechanism must bind the observation to the actual protected process without relying on an editable JSON boolean or string.
 
-A `matched` result means only:
+Until that exists and is exercised:
+
+- #220 remains OPEN;
+- a `bound_candidate` is not original-process evidence;
+- `compare_original_to_product(...)` must not be used to claim original/product parity from a synthetic/self-authored candidate.
+
+## 10. Product comparison after trusted promotion
+
+Only after trusted original-process promotion may the selected identity be compared against a GDSpaces `RuntimeResolutionReport` for the same request and exact source topology.
+
+A bounded `matched` result means only:
 
 ```text
-same bounded request
-+ same selected provider/volume source identity
-+ same exact selected archive member or physical ResourceRef identity
+same request
++ same selected provider/volume
++ same exact archive member or physical resource identity
 ```
 
-It does not relabel product `RuntimeResolutionProbe` objects as original evidence and does not prove global resolver equivalence.
+It does not prove global resolver equivalence.
 
-## Fail-closed / non-promotion conditions
+## 11. Fail-closed conditions
 
-Do not promote R3 if any of the following occurs:
+Do not promote if any of these occurs:
 
-- no valid real R2B mapping packet;
-- executable SHA/size differs;
-- mapping and selection PID/module base differ;
-- observer id/version or exact observer-build SHA-256 is absent;
-- trace is not explicitly complete;
-- `dropped_event_count != 0` or any observer overflow/loss marker exists;
-- NBZ artifact census is incomplete or unhashed;
-- candidate or provider order is incomplete;
-- a higher archive volume is skipped;
-- selected archive member identity is inferred rather than observed;
-- selected physical identity is only an absolute/private path or unresolved candidate guess;
-- instrumentation changes the branch/provider result being claimed;
-- raw `bytes_hex` appears anywhere in the promoted metadata packet;
-- synthetic tests are substituted for original-process execution.
+- no valid real R2B mapping;
+- protected EXE SHA/size differs;
+- PID/module base mismatch;
+- observer artifact is unavailable or its actual SHA differs;
+- any mounted NBZ artifact is unavailable or its actual SHA/size differs;
+- archive topology has a gap;
+- trace is incomplete or dropped-event count is nonzero;
+- prefix/provider/volume order is incomplete or reordered;
+- provider/backend/wrapper failure is encoded as `miss`;
+- selected archive member is inferred rather than observed;
+- selected physical identity is an unresolved candidate/absolute private path;
+- raw `bytes_hex` enters public evidence;
+- a legacy/self-authored schema attempts to predeclare promotion/trust;
+- synthetic fixtures are substituted for protected-process execution.
 
-## What remains after a valid R3 receipt
+## 12. Remaining L2 work
 
-A valid R3 receipt closes the protected original selected-identity gate for its bounded request only. Full L2 still requires:
+Even after one trusted R3 receipt, full Layer 2 still requires:
 
-1. cryptographically bound real-retail `0x0E` collision census;
-2. enough representative original/process/product receipts to cover the declared L2 scope;
-3. final contradiction audit and exact-head Windows + Ubuntu validation;
-4. explicit final L2 promotion.
+1. real-retail `0x0E` collision census;
+2. enough representative trusted selected-identity receipts for the claimed resolver scope;
+3. contradiction/reconciliation audit;
+4. final exact-head Windows + Ubuntu validation;
+5. explicit final L2 promotion.
 
 Layer 1 materialization and Layer 3 lifecycle remain separate acceptance programs.
