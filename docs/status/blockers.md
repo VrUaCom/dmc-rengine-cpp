@@ -1,8 +1,8 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-26  
-**Canonical base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Canonical base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Active L2 evidence slice:** PR #221
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
@@ -92,9 +92,9 @@ The exact `dmc3-0.nbz` artifact is approximately 960 MB and cannot currently be 
 
 Required evidence is an exact member-name/central-directory surface cryptographically bound to the retail archive, followed by the canonical `0x0E` normalized-key collision census.
 
-### B-L2-02 — Protected-distribution runtime RVA mapping
+### B-L2-02 — Real protected-distribution runtime RVA mapping receipt
 
-**Status:** PRODUCT ACQUISITION SEAM IN PR #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
+**Status:** TOOLING INTEGRATED BY #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
 
 Authority split:
 
@@ -103,21 +103,40 @@ Authority split:
 
 Canonical analysis VAs/RVAs must not be applied to the protected process without independent mapping evidence.
 
-PR #219 adds bounded live main-module acquisition by explicit PID + RVA, exact protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. Promotion still requires a real protected-process packet covering the approved L2 anchors. Synthetic/self-process CI proves tooling behavior only.
+#219 is already integrated. It provides bounded live main-module acquisition by explicit PID + RVA, exact protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. The blocker is now execution: produce a real protected-process packet containing `OpenGameResource` plus at least two approved type-0 physical anchors from one process/module session.
 
-### B-L2-03 — Original-process selected-provider identity
+Synthetic/self-process CI proves tooling behavior only.
 
-**Status:** BLOCKED BY B-L2-02
+### B-L2-03 — Trusted original-process selected-provider identity
 
-After bounded runtime mapping is proven, instrument the mapped resolver path and preserve the original-process request, candidate order and exact selected provider/source/member identity.
+**Status:** CANDIDATE/BINDER TOOLING IN PR #221 / BLOCKED BY REAL B-L2-02 + TRUSTED PUBLISHER
+
+#221 defines a strict selected-identity **content candidate** and artifact-binding pipeline. It intentionally does not turn editable JSON into original-process evidence.
+
+A real R3 promotion still requires:
+
+1. a valid real B-L2-02 mapping packet;
+2. a runtime publisher/observer attached to that exact protected process without altering resolver selection semantics;
+3. a zero-loss trace (`trace_complete=true`, `dropped_event_count=0`);
+4. exact observer artifact SHA binding;
+5. exact mounted `DMC3-0..N-1.nbz` artifact SHA/size binding;
+6. a trusted origin/capture binding that is not asserted by editable JSON fields.
+
+Fresh canonical EXE review adds a mandatory failure distinction: archive normalized lookup can find an entry and still fail during wrapper/open creation at `0x140328290`. In that case `0x140327430` exits through null/cleanup and does **not** continue to a lower volume as a clean lookup miss. Clean-path R3 v1 therefore supports only `miss` and terminal `selected`; provider/backend failure must fail closed.
 
 `preflight-dmc3-game-test` is not this receipt; it validates executable/archive presence and authority only.
 
-### B-L2-04 — Final L2 audit
+### B-L2-04 — Direct-retail resolver identity receipt
 
-**Status:** OPEN / DEPENDS ON B-L2-01..03
+**Status:** BLOCKED BY B-L2-01
 
-Layer 2 remains incomplete until real-retail collision evidence, protected-runtime mapping, original-process selected identity, exact-head CI and canonical code/docs agree.
+A real-retail `ResourceRef`/member winner cannot be promoted until the exact retail member surface is bound and the `0x0E` collision state is known. DMCL/synthetic collision results do not close this gate.
+
+### B-L2-05 — Final L2 audit
+
+**Status:** OPEN / DEPENDS ON B-L2-01..04
+
+Layer 2 remains incomplete until real-retail collision evidence, protected-runtime mapping, trusted original-process selected identity, exact-head CI and canonical code/docs agree.
 
 ## Closed former L1 blockers
 
@@ -138,12 +157,13 @@ Do not reopen these absent contradictory direct evidence:
 - ByteProvenance;
 - next-volume STORE overlay generation and resolver selection composition.
 
-## Closed former L2 blocker
+## Closed/integrated former L2 blockers/tooling gaps
 
 Do not reopen absent contradictory direct evidence:
 
 - exact type-0 physical-provider post-`0x0C` Win32 final path/open/miss semantics — static reverse closed by #215/#204;
-- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation.
+- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation;
+- protected-runtime explicit-PID RVA acquisition + bounded multi-anchor mapping tooling — integrated by #219; only the real receipt remains open under B-L2-02.
 
 ## Bounded reverse gaps — not automatic L1 blockers
 
@@ -164,6 +184,6 @@ These become P0 only if the chosen real acceptance path depends on them:
 
 ## Environment blocker
 
-The connected automation environment does not currently expose the exact raw protected installation artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process runtime mapping here.
+The connected automation environment does not currently expose the exact raw protected installation artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process R2B/R3 runs here.
 
 This is an external evidence/access limitation. It must not be hidden by synthetic CI or converted into a weaker completion criterion.
