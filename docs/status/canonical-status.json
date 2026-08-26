@@ -4,7 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "4dd9f65ec36ce27127fa56eaf1f00879ed4087c8",
+  "snapshot_main_sha": "453373ff0977fc0aa1f6fab39273cdd9716da6af",
+  "latest_merged_cross_layer_reverse": "pr-228-materialization-completion-boundary-and-0x1402ef4d0-address-correction",
   "latest_merged_status_correction": "pr-233-connected-retail-artifacts-locatable-transfer-blocked",
   "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-real-evidence-process-instance-hardening-active-l3-dynamic-validation-open",
   "truth_layers": {
@@ -20,6 +21,7 @@
     "master_roadmap": "../gdspaces/master-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
     "connected_retail_access_reconciliation": "../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md",
+    "materialization_completion_boundary": "../gdspaces/materialization-completion-boundary-pass-2026-08-26.md",
     "completion_model": "mandatory-gates",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
     "canonical_capabilities": [
@@ -50,6 +52,7 @@
       "l2-protected-runtime-rva-window-acquisition",
       "l2-bounded-multi-anchor-runtime-mapping-validator",
       "l2-selected-identity-content-candidate-normalizer-artifact-binder",
+      "l1-l3-materialization-completion-boundary-narrowed-pr-228",
       "l3-r1-leaf-context-abi",
       "l3-derived-record-alias-and-family-release-writer-authority"
     ],
@@ -77,14 +80,15 @@
       "219-l2-protected-runtime-mapping-tooling",
       "221-l2-selected-identity-content-candidate-normalizer-artifact-binder",
       "230-l3-r1-leaf-derived-alias-authority",
-      "233-connected-retail-artifact-access-reconciliation"
+      "233-connected-retail-artifact-access-reconciliation",
+      "228-materialization-completion-boundary-and-address-authority-correction"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
       "compressed-seek-reset-0x140328FE0-complete-behavior",
       "malformed-partial-read-error-equivalence",
       "dynamic-lst-lifetime-error-cycle-and-real-corpus-if-loose-list-acceptance-is-claimed",
-      "materialization-completion-dependency-mechanism-pr-228"
+      "materialization-completion-dependency-mechanism-remains-open-after-pr-228-boundary-narrowing"
     ],
     "non_blocking_evidence_gated_families": [
       "binary-afs-backend",
@@ -161,7 +165,7 @@
     },
     "L3": {
       "overall_status": "advanced-static-spine-dynamic-level-e-open",
-      "latest_merged_authority": "pr-230-r1-leaf-context-and-derived-alias-release-writers",
+      "latest_merged_authority": "pr-230-r1-leaf-context-and-derived-alias-release-writers-plus-pr-228-cross-layer-materialization-boundary",
       "dynamic_validation_issue": 217,
       "completion_status": "not-complete"
     }
@@ -181,12 +185,13 @@
   ],
   "other_layers": {
     "L2": "advanced-static-product-tooling-integrated-process-instance-hardening-active-real-retail-r2b-r3-evidence-open",
-    "L3": "advanced-static-spine-after-pr-230-dynamic-level-e-open"
+    "L3": "advanced-static-spine-after-pr-230-plus-pr-228-boundary-dynamic-level-e-open"
   },
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
     "l1_connected_retail_access": "../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md",
+    "materialization_completion_boundary": "../gdspaces/materialization-completion-boundary-pass-2026-08-26.md",
     "l2_exe_reconciliation": "../gdspaces/l2-exe-reconciliation-2026-08-26.md",
     "l2_selected_identity_runbook": "../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md",
     "current_status": "current.md",
