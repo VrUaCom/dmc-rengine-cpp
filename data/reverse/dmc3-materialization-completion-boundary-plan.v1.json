@@ -10,7 +10,7 @@
     "no generic fan-in counter or child-count mechanism is asserted",
     "scheduler rollback is not relabeled as OS-level AsyncIO cancellation",
     "state1/state2 are lifecycle states owned by L3 even when their ordering is supporting evidence for L1 materialization",
-    "parallel PR #227 scheduler ABI findings are branch evidence until merged",
+    "parallel PR #230 scheduler ABI findings are branch evidence until merged; stale-base #227 is superseded",
     "successful byte-window acquisition alone does not prove original-process equivalence",
     "the protected distribution executable is not substituted for the canonical analysis executable"
   ],
@@ -61,7 +61,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "Regression/context anchor: parallel PR #227 recovers 0x88 queue records, callback at +0x08, one copied u32 argument at +0x10 for 1B8DC0; reacquire only to connect 2EF4D0 materialization work into the same ordering model."
+      "purpose": "Regression/context anchor: parallel PR #230 recovers 0x88 queue records, callback at +0x08, one copied u32 argument at +0x10 for 1B8DC0; reacquire only to connect 2EF4D0 materialization work into the same ordering model."
     },
     {
       "id": "scheduler-worker-1402ef790",
@@ -69,7 +69,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "Regression/context anchor: parallel PR #227 recovers one-argument dispatch through ECX and callback +0x08; use this window to test ordering relative to materialization work, not to re-prove the callback ABI."
+      "purpose": "Regression/context anchor: parallel PR #230 recovers one-argument dispatch through ECX and callback +0x08; use this window to test ordering relative to materialization work, not to re-prove the callback ABI."
     },
     {
       "id": "loaded-resource-cancel-writer-1401b8430",
@@ -85,7 +85,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 100],
-      "purpose": "Regression/context anchor: current main proves materialization-success -> state1 -> completion registration; parallel PR #227 further recovers context=record-base and argument_count=1."
+      "purpose": "Regression/context anchor: current main proves materialization-success -> state1 -> completion registration; parallel PR #230 further recovers context=record-base and argument_count=1."
     },
     {
       "id": "lst-materializer-1401b85c0",
@@ -109,7 +109,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "Regression/context anchor: current main proves normal state2 publication; parallel PR #227 proves normal context ABI and excludes odd contexts from the canonical acquisition-registration domain."
+      "purpose": "Regression/context anchor: current main proves normal state2 publication; parallel PR #230 proves normal context ABI and excludes odd contexts from the canonical acquisition-registration domain."
     },
     {
       "id": "loaded-resource-state4-cleanup-1401b8f00",
