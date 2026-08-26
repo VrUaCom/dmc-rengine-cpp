@@ -17,12 +17,12 @@
   ],
   "windows": [
     {
-      "id": "whole-file-load-state-release-140033390",
+      "id": "whole-file-terminal-cluster-140033390",
       "va": "0x140033390",
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55, 88],
-      "purpose": "Pass-2 primary support: reacquire the historical whole-file load-state release/close anchor and determine whether cleanup occurs only after terminal transfer state and before materialization scheduler-job retirement."
+      "purpose": "Pass-2 primary support: one deduplicated acquisition window covering the historical load-state release anchor 0x140033390, status/poll anchor 0x1400333E0, transfer submit 0x140033500 and transport callback 0x1400335A0; recover terminal status, cleanup ordering and the upward failure bridge without asserting those historical helper labels before fresh canonical confirmation."
     },
     {
       "id": "whole-file-transfer-submit-140033500",
@@ -30,7 +30,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Priority support: reacquire caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
+      "purpose": "Regression/context overlap retained from the parent plan: caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
     },
     {
       "id": "whole-file-transport-callback-1400335a0",
@@ -38,15 +38,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Priority support: reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and the exact upward error/status handoff."
-    },
-    {
-      "id": "whole-file-load-state-poll-1400333e0",
-      "va": "0x1400333E0",
-      "size": "0x400",
-      "mode": "probe",
-      "issues": [100, 55, 88],
-      "purpose": "Pass-2 primary support: reacquire the historical whole-file load-state polling/status helper, exact pending/success/error return domain and its use as a possible completion-aware scheduler-job terminal condition."
+      "purpose": "Regression/context overlap retained from the parent plan: callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and the exact upward error/status handoff."
     },
     {
       "id": "async-read-submit-14002ea40",
