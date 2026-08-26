@@ -1,8 +1,8 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219  
+**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Latest L2 tooling promotion:** PR #219 — protected-runtime RVA mapping acquisition seam  
 **Canonical L1 EXE review:** `l1-exe-boundary-review-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership/review layers, but execution follows dependencies rather than strict numeric order.
@@ -117,9 +117,9 @@ Correct labels:
 
 ## Track B — L2 closure
 
-Canonical review baseline: `l2-review-2026-08-25.md` plus the 2026-08-26 protected-runtime mapping slice.
+Canonical review baseline: `l2-review-2026-08-25.md` plus the protected-runtime mapping tooling promoted by #219.
 
-### Closed L2 internal slice
+### Closed L2 internal slices
 
 PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 
@@ -130,7 +130,16 @@ PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 - Windows bounded `CreateFileA` parity scenario + Ubuntu/Windows exact-head validation passed;
 - direct caller census and `0x400` overflow behavior are closed for the recovered direct-call surface.
 
-Do not reopen this slice absent contradictory direct evidence.
+PR #219 promoted the protected-runtime RVA mapping **acquisition/tooling seam**:
+
+- explicit PID and module-base + RVA reads;
+- protected image SHA/size gating;
+- PE image/section/range validation;
+- exact full-range `ReadProcessMemory` behavior;
+- metadata-only receipts by default;
+- multi-anchor mapping receipt validation.
+
+Neither promotion is an original-process selected-provider receipt. Real process evidence remains mandatory.
 
 ### Current L2 work order
 
@@ -138,7 +147,7 @@ Do not reopen this slice absent contradictory direct evidence.
 L2-R2A real-retail 0x0E collision census
   -> direct-retail exact resolver identity receipt
 
-L2-R2B protected-distribution runtime RVA mapping (#219)
+L2-R2B real protected-process runtime mapping receipt using merged #219 tooling
   -> multi-anchor bounded mapping receipt from one protected process
   -> L2-R3 original-process selected-provider identity receipt
 
@@ -179,21 +188,11 @@ Required closure:
 
 Synthetic/DMCL corpus results do not close this DMC3 retail gate.
 
-### L2-R2B — protected runtime address mapping
+### L2-R2B — protected runtime address mapping receipt
 
-PR #219 adds the acquisition seam, not the original-process proof itself:
+Merged #219 tooling is the acquisition seam, not the original-process proof itself.
 
-- explicit PID;
-- runtime read by `module_base + RVA`, never copied static VA;
-- exact running image SHA + size gate;
-- PE `SizeOfImage` and section containment checks;
-- exact full-range `ReadProcessMemory` only;
-- metadata-only child receipt by default;
-- optional canonical artifact/window hash expectation;
-- mismatch is negative evidence and non-zero;
-- multi-anchor mapping validator requires one OpenGameResource anchor plus at least two independent type-0 physical anchors from one process/module session.
-
-A child receipt proves only its listed range. A successful multi-anchor packet proves bounded mapping only for the listed anchors. It does **not** prove global build equivalence or original selected-provider identity.
+A valid real packet must preserve one protected process/module session and satisfy the approved multi-anchor mapping contract. A child receipt proves only its listed range. A successful multi-anchor packet proves bounded mapping only for the listed anchors. It does **not** prove global build equivalence or original selected-provider identity.
 
 ### L2-R3 — original-process selected identity
 
@@ -245,11 +244,10 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
 2. While external acceptance is unavailable, reverse the L1 materialization fan-in/error handoff through the guarded EXE acquisition packet.
-3. Complete PR #219 acquisition/tooling review and exact-head CI without conflating it with L1 completion.
-4. When a protected original process is available, produce the L2 multi-anchor mapping packet.
-5. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
-6. Capture original-process selected identity only after mapped L2 anchors are proven.
-7. Reconcile final L2 evidence and run the final Layer-2 audit.
+3. Use merged #219 tooling to produce a real protected-process multi-anchor mapping packet when the process is available.
+4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
+5. Capture original-process selected identity only after mapped L2 anchors are proven.
+6. Reconcile final L2 evidence and run the final Layer-2 audit.
 
 ## Completion rule
 
