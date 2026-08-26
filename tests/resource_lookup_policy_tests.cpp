@@ -38,6 +38,8 @@ namespace gdspaces = dmc::rengine::gdspaces;
         .executable_sha256 = std::string{executable.sha256},
         .executable_size = executable.file_size,
         .runtime_mapping_packet_sha256 = std::string(64U, 'a'),
+        .observer_id = "dmc-rengine-l2-observer",
+        .observer_version = "test-contract-v1",
         .pid = 4242U,
         .module_base = 0x7FF600000000ULL,
         .flags = 1U,
@@ -180,6 +182,7 @@ int main() {
     assert(json.find("dmc-rengine.gdspaces-l2-original-selection.v1") !=
            std::string::npos);
     assert(json.find("original-process-observation") != std::string::npos);
+    assert(json.find("dmc-rengine-l2-observer") != std::string::npos);
     assert(json.find("bytes_hex") == std::string::npos);
 
     // Analysis EXE cannot be laundered into protected original-process evidence.
@@ -191,9 +194,27 @@ int main() {
         assert(!bad.valid());
     }
 
+    // Authority recognition is case-tolerant elsewhere, but evidence receipts
+    // require one canonical lowercase SHA spelling.
+    {
+        auto bad = valid;
+        for (auto& ch : bad.executable_sha256) {
+            if (ch >= 'a' && ch <= 'f') {
+                ch = static_cast<char>(ch - 'a' + 'A');
+            }
+        }
+        assert(!bad.valid());
+    }
+
     {
         auto bad = valid;
         bad.runtime_mapping_packet_sha256 = "not-a-sha";
+        assert(!bad.valid());
+    }
+
+    {
+        auto bad = valid;
+        bad.observer_version.clear();
         assert(!bad.valid());
     }
 
@@ -250,6 +271,12 @@ int main() {
         };
         assert(dmc3::compare_original_to_product(valid, product, bindings).matched());
 
+        auto invalid_bindings = bindings;
+        invalid_bindings.archives[2].source_id = "archive-1";
+        assert(dmc3::compare_original_to_product(
+                   valid, product, invalid_bindings).status ==
+               dmc3::OriginalProductComparisonStatus::invalid_product_configuration);
+
         product.resolved = resource("archive-0", "GDataX360.afs/ST001.PAC");
         assert(dmc3::compare_original_to_product(valid, product, bindings).status ==
                dmc3::OriginalProductComparisonStatus::provider_identity_mismatch);
@@ -270,6 +297,8 @@ int main() {
             .executable_sha256 = std::string{executable.sha256},
             .executable_size = executable.file_size,
             .runtime_mapping_packet_sha256 = std::string(64U, 'b'),
+            .observer_id = "dmc-rengine-l2-observer",
+            .observer_version = "test-contract-v1",
             .pid = 5000U,
             .module_base = 0x7FF700000000ULL,
             .flags = 1U,
