@@ -1,9 +1,9 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
-**Active L2 evidence slice:** PR #219  
-**Latest L3 static authority:** `l3-boundary-audit-2026-08-26.md`
+**Base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
+**L2 runtime-mapping seam:** PR #219 merged; R2A/R2B/R3 evidence execution remains open  
+**Latest L3 static authority:** `l3-r1-leaf-alias-pass-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -114,7 +114,7 @@ Do not reopen this slice absent contradictory direct evidence.
 L2-R2A real-retail 0x0E collision census
   -> direct-retail exact resolver identity receipt
 
-L2-R2B protected-distribution runtime RVA mapping (#219)
+L2-R2B protected-distribution runtime RVA mapping (seam merged in #219)
   -> multi-anchor bounded mapping receipt from one protected process
   -> L2-R3 original-process selected-provider identity receipt
 
@@ -157,7 +157,7 @@ Synthetic/DMCL corpus results do not close this DMC3 retail gate.
 
 ### L2-R2B — protected runtime address mapping
 
-PR #219 adds the acquisition seam, not the original-process proof itself:
+Merged PR #219 provides the acquisition seam, not the original-process proof itself:
 
 - explicit PID;
 - runtime read by `module_base + RVA`, never copied static VA;
@@ -189,7 +189,9 @@ Canonical static authority:
 
 - baseline subsystem audit: `l3-audit-2026-08-25.md`;
 - raw canonical-EXE reconciliation: `l3-boundary-audit-2026-08-26.md`;
-- detailed second raw pass: `l3-raw-exe-pass-2026-08-26.md`.
+- detailed second raw pass: `l3-raw-exe-pass-2026-08-26.md`;
+- direct-base state-writer census: `l3-r1-direct-writer-census-2026-08-26.md`;
+- leaf/no-unwind + completion-callback alias pass: `l3-r1-leaf-alias-pass-2026-08-26.md`.
 
 ### L3 acquisition blocker — CLOSED
 
@@ -214,7 +216,11 @@ Do not restart without contradictory evidence:
 - representative MOD/EFM/SCM/SHW typed post-load and recursive PNST traversal;
 - central typed dispatcher unknown/default behavior as best-effort no-op/return rather than a failure return that blocks state 3;
 - higher-level loader-node claim/zero-claim release concept;
-- runtime vs CRT vs process-lifetime teardown distinction.
+- runtime vs CRT vs process-lifetime teardown distinction;
+- direct-base/unwind-bounded state-like false-positive class is separated from actual LoadedResource state authority;
+- exact-immediate leaf/no-unwind `+0x04 <- 0..4` candidate class contains no new LoadedResource writer beyond canonical `0x1401B8DC0`;
+- `0x1401B8DC0` normal completion callback is registered from `0x1401B84E0` with one `u32` context equal to `record_ptr - 0x140C99D30` and dispatched by `0x1402EF580/0x1402EF790`;
+- valid normal callback contexts are `index*0x48` for `0..362`, so the odd/low-bit branch of `1B8DC0` is outside the recovered canonical normal acquisition-registration domain.
 
 ### L1/L3 seam now explicit
 
@@ -231,14 +237,21 @@ Classify evidence by semantics, not by assigning the whole helper to one layer.
 ### Current L3 static work order
 
 ```text
-finish alias-aware whole-image state-writer census
+finish residual R1 data-flow census
+  -> non-immediate state writes
+  -> caller-propagated / indexed / derived record aliases
+  -> indirect callback registrations
  -> finish family-specific +0x08/+0x18/+0x20/+0x28 ownership census
  -> close external typed/factory/dependency and SCM edges
  -> finish shared-owner coordination breadth
  -> original-process Level-E receipts
 ```
 
+Do not repeat the already-bounded direct-base or exact-immediate leaf census unless contradictory evidence appears.
+
 The central old question "does unknown/default `0x1401B9FA0` post-load leave state 2?" is no longer open for that path: the dispatcher is best-effort/void and the state-2 finalizer proceeds to callback then state3.
+
+The old low-bit question on `0x1401B8DC0` is also narrowed: the odd branch is not reachable from the recovered canonical normal acquisition registration, whose context is always `index*0x48`. Its semantic intent outside that domain remains deliberately unnamed.
 
 ### Current L3 dynamic work order — issue #217
 
