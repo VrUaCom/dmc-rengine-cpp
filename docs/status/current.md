@@ -24,7 +24,7 @@
 
 `FileSlot`/AsyncIO is not wholesale L3: the byte-transport portion belongs to L1; wider pool ownership/lifecycle policy remains L3. Cross-layer functions are classified by behavior.
 
-Execution follows the dependency-driven [master roadmap](../gdspaces/master-roadmap.md). The canonical EXE cut is [L1 EXE Boundary Review](../gdspaces/l1-exe-boundary-review-2026-08-26.md).
+Execution follows the dependency-driven [master roadmap](../gdspaces/master-roadmap.md). The canonical EXE cut is [L1 EXE Boundary Review](../gdspaces/l1-exe-boundary-review-2026-08-26.md), with the focused [Materialization Completion Ordering Pass](../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md).
 
 ## L1 current state
 
@@ -47,12 +47,13 @@ Canonical L1 implementation now includes:
 - higher-volume resolver verification;
 - protected distribution executable preflight;
 - product closure orchestration through exact authored rematerialization;
-- guarded canonical-analysis EXE window acquisition packet for bounded supporting reverse.
+- guarded canonical-analysis EXE window acquisition infrastructure for bounded supporting reverse.
 
 Canonical L1 reviews:
 
 - [Final Pre-Level-E Audit](../gdspaces/l1-final-audit-2026-08-25.md)
 - [Canonical EXE Boundary Review](../gdspaces/l1-exe-boundary-review-2026-08-26.md)
+- [Materialization Completion Ordering Pass](../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md)
 
 ## L1 mandatory remaining work
 
@@ -83,26 +84,34 @@ Strong distinctions now canonical:
 - `0x1401B8DC0` is the higher resource scheduler/materialization completion handoff registered through `0x1402EF580`; normal record context publishes `state 1 -> 2`;
 - `0x1401B8DC0` is **not** a raw I/O callback;
 - `0x1402EF4D0` is a **resource materialization submission/scheduling wrapper**, not proven exact-path resolver/final backend open/raw reader;
+- `0x1402EF580` is scheduler enqueue and `0x1402EF790` is scheduler worker/callback execution;
+- `0x1402EF460` is **pending scheduled-entry clear/rollback**, not OS AsyncIO cancellation;
 - `.lst` text is synchronously loaded into aligned temporary storage, but is not proven to use the synchronous-style `0x1402EF920` wrapper;
-- `0x1401B84E0` is cross-layer: L1 allocation/materialization start plus scheduler/state boundary behavior.
+- `0x1401B84E0` is cross-layer: L1 allocation/materialization start plus scheduler/state boundary behavior;
+- a generic child/outstanding-work **fan-in counter is not evidenced** and is not part of the recovered contract.
 
-Current highest-value supporting L1 reverse order while Level-E is externally blocked:
+The canonical open seam is now:
 
 ```text
-materialization fan-in/completion
+materialization completion ordering / dependency barrier
+ -> scheduler rollback semantics
  -> transport failure -> resource scheduler/materialization failure mapping
- -> .lst temporary allocation/free/failure cleanup
- -> acceptance-activated FileSlot partial-read/cancellation breadth
+ -> .lst child completion/failure ordering and temporary-buffer cleanup
+ -> acceptance-activated FileSlot error/cancellation breadth
  -> acceptance-activated ZIP exact-body/error breadth
 ```
+
+A new focused guarded plan is `data/reverse/dmc3-l1-materialization-completion-plan.v1.json`.
 
 ## Bounded open reverse breadth — not automatic L1 blockers
 
 The following remain real research gaps but only block L1 if the chosen acceptance path depends on them:
 
-- materialization fan-in/completion and one-child-failure aggregation before state2 publication;
+- exact materialization completion ordering/dependency condition before state2 publication;
+- whether any explicit outstanding-work/fan-in counter exists at all;
+- scheduler pending-entry rollback matching/ordering and interaction with already-running transport work;
 - transport-error to resource-scheduler/materialization error mapping;
-- `.lst` temporary allocation/free/failure cleanup and malformed/recursion breadth;
+- `.lst` child completion/failure ordering, temporary allocation/free/failure cleanup and malformed/recursion breadth;
 - FileSlot/ReadRequest partial-read/error/cancellation breadth where required;
 - complete `0x140328540` ZIP stream initializer exact-body/error breadth;
 - complete `0x140328FE0` compressed seek/reset exact-body/error breadth;
@@ -137,7 +146,9 @@ L2 work may support L1 but must not replace the final L1 acceptance run.
 
 The static LoadedResource/typed-ready/lifetime spine is strong. L3 begins from materialized state2 for the canonical layer cut, while FileSlot transport used to produce those bytes remains an L1 transport dependency.
 
-Exact writer ownership/ordering and broader dynamic lifecycle receipts remain open. For the first vertical proof, L3 only needs enough original-process observation to prove that the authored L1 bytes reached a deterministic consumer. Broader L3 completion is separate.
+Exact broader dynamic lifecycle receipts remain open. The scheduler rollback behavior immediately guarding unfinished materialization is valid boundary evidence for the L1 completion-ordering review, while wider cancellation/reset/release policy remains L3.
+
+For the first vertical proof, L3 only needs enough original-process observation to prove that the authored L1 bytes reached a deterministic consumer. Broader L3 completion is separate.
 
 ## Current critical path
 
@@ -154,11 +165,12 @@ Exact writer ownership/ordering and broader dynamic lifecycle receipts remain op
 
 ### Supporting static L1 reverse while external acceptance is unavailable
 
-1. reacquire the materialization submission/scheduler neighborhood through the guarded EXE packet;
-2. close fan-in/completion semantics to the extent supported by exact evidence;
-3. map raw transport failure into resource-level scheduling/completion behavior;
-4. close `.lst` temporary allocation/free/failure cleanup where evidence permits;
-5. do not reopen already strong ZIP/FileSlot architecture without contradictory evidence.
+1. reacquire the focused completion packet from `data/reverse/dmc3-l1-materialization-completion-plan.v1.json` against exact `e454...`;
+2. close success-side completion ordering/dependency mechanics without presupposing a fan-in counter;
+3. close `0x1402EF460` scheduler rollback matching/ordering and its relationship to cancellation;
+4. map raw transport failure into resource-level scheduling/completion behavior;
+5. close `.lst` child failure/completion and temporary allocation/free/failure cleanup where evidence permits;
+6. do not reopen already strong ZIP/FileSlot architecture without contradictory evidence.
 
 ### L2 closure support
 
@@ -173,13 +185,14 @@ No synthetic-only feature should displace the real evidence sequence unless a re
 
 The currently connected automation environment does not expose all exact raw protected-install artifacts required for the real-retail/original-process runs. Synthetic CI must not substitute for those receipts.
 
-Canonical-analysis EXE static reacquisition is supported by the guarded packet tooling on `main`; use that path rather than ad hoc unbound byte windows.
+Canonical-analysis EXE static reacquisition is supported by the guarded packet tooling on `main`. During the current completion-ordering pass a fresh raw `e454...` executable blob was not exposed through the connected file surface, so this pass is explicitly evidence reconciliation plus acquisition-plan preparation, not a fresh-disassembly claim.
 
 ## Navigation
 
 - [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
 - [Final pre-Level-E L1 audit](../gdspaces/l1-final-audit-2026-08-25.md)
 - [Canonical L1 EXE boundary review](../gdspaces/l1-exe-boundary-review-2026-08-26.md)
+- [Materialization Completion Ordering Pass](../gdspaces/l1-exe-materialization-completion-pass-2026-08-26.md)
 - [Three-layer master roadmap](../gdspaces/master-roadmap.md)
 - [Blockers](blockers.md)
 - [Machine-readable status](canonical-status.json)
