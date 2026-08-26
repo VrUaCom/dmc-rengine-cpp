@@ -1,8 +1,8 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-26  
-**Canonical base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219  
+**Canonical base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Latest L2 tooling promotion:** PR #219 — protected-runtime RVA mapping acquisition seam  
 **Canonical L1 EXE review:** [l1-exe-boundary-review-2026-08-26.md](../gdspaces/l1-exe-boundary-review-2026-08-26.md)
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
@@ -141,9 +141,9 @@ The exact `dmc3-0.nbz` artifact is approximately 960 MB and cannot currently be 
 
 Required evidence is an exact member-name/central-directory surface cryptographically bound to the retail archive, followed by the canonical `0x0E` normalized-key collision census.
 
-### B-L2-02 — Protected-distribution runtime RVA mapping
+### B-L2-02 — Protected-distribution runtime RVA mapping receipt
 
-**Status:** PRODUCT ACQUISITION SEAM IN PR #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
+**Status:** TOOLING MERGED IN #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
 
 Authority split:
 
@@ -152,11 +152,11 @@ Authority split:
 
 Canonical analysis VAs/RVAs must not be applied to the protected process without independent mapping evidence.
 
-PR #219 adds bounded live main-module acquisition by explicit PID + RVA, exact protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. Promotion still requires a real protected-process packet covering the approved L2 anchors. Synthetic/self-process CI proves tooling behavior only.
+Merged #219 provides bounded live main-module acquisition by explicit PID + RVA, protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. The remaining blocker is execution against the real protected process and preservation of a valid packet covering the approved L2 anchors. Synthetic/self-process CI proves tooling behavior only.
 
 ### B-L2-03 — Original-process selected-provider identity
 
-**Status:** BLOCKED BY B-L2-02
+**Status:** BLOCKED BY REAL B-L2-02 RECEIPT
 
 After bounded runtime mapping is proven, instrument the mapped resolver path and preserve the original-process request, candidate order and exact selected provider/source/member identity.
 
@@ -187,12 +187,13 @@ Do not reopen these absent contradictory direct evidence:
 - ByteProvenance;
 - next-volume STORE overlay generation and resolver selection composition.
 
-## Closed former L2 blocker
+## Closed former L2 blockers/tooling gates
 
 Do not reopen absent contradictory direct evidence:
 
 - exact type-0 physical-provider post-`0x0C` Win32 final path/open/miss semantics — static reverse closed by #215/#204;
-- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation.
+- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — #215;
+- protected-runtime RVA mapping acquisition/validation tooling — #219; real process evidence remains separate.
 
 ## Explicit superseded reverse shorthand
 
