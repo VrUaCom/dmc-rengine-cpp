@@ -70,15 +70,22 @@ struct OriginalSelectedResourceIdentity final {
 
 struct OriginalResolutionObservation final {
     // Must classify as the canonical protected-distribution/original-execution
-    // candidate, never the canonical analysis executable.
+    // candidate, never the canonical analysis executable. Evidence serialization
+    // additionally requires canonical lowercase SHA-256 spelling.
     std::string executable_sha256;
     std::uint64_t executable_size{};
 
-    // SHA-256 of the validated dmc-rengine.gdspaces-l2-runtime-mapping.v1 packet
-    // used to authorize these runtime probe locations. This field binds the
-    // observation to mapping evidence but does not by itself validate that
-    // packet; the acquisition pipeline must validate the packet first.
+    // SHA-256 of the already validated
+    // dmc-rengine.gdspaces-l2-runtime-mapping.v1 packet used to authorize these
+    // runtime probe locations. This binds the observation to mapping evidence;
+    // the acquisition pipeline still owns validation of that packet itself.
     std::string runtime_mapping_packet_sha256;
+
+    // Observer provenance is metadata only. A synthetic test observer may fill
+    // these fields, but that never upgrades the resulting object into real
+    // original-process evidence.
+    std::string observer_id;
+    std::string observer_version;
 
     std::uint32_t pid{};
     std::uint64_t module_base{};
@@ -96,14 +103,16 @@ struct OriginalResolutionObservation final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-// Metadata-only public receipt. Raw executable/resource bytes are never
-// serialized. Empty string means structural validation failed.
+// Metadata-only public receipt. Raw executable/resource bytes and absolute
+// workstation paths are never serialized. Empty string means structural
+// validation failed.
 [[nodiscard]] std::string original_resolution_observation_to_json(
     const OriginalResolutionObservation& observation);
 
 enum class OriginalProductComparisonStatus {
     matched,
     invalid_original_observation,
+    invalid_product_configuration,
     product_not_resolved,
     provider_identity_mismatch,
     resource_identity_mismatch,
@@ -115,6 +124,8 @@ enum class OriginalProductComparisonStatus {
     case OriginalProductComparisonStatus::matched: return "matched";
     case OriginalProductComparisonStatus::invalid_original_observation:
         return "invalid-original-observation";
+    case OriginalProductComparisonStatus::invalid_product_configuration:
+        return "invalid-product-configuration";
     case OriginalProductComparisonStatus::product_not_resolved:
         return "product-not-resolved";
     case OriginalProductComparisonStatus::provider_identity_mismatch:
