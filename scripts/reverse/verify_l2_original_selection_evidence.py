@@ -30,6 +30,16 @@ def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _contains_forbidden_key(value: Any, key: str) -> bool:
+    if isinstance(value, dict):
+        if key in value:
+            return True
+        return any(_contains_forbidden_key(child, key) for child in value.values())
+    if isinstance(value, list):
+        return any(_contains_forbidden_key(child, key) for child in value)
+    return False
+
+
 def _read_json(path: Path) -> tuple[dict[str, Any], bytes]:
     try:
         raw = path.read_bytes()
@@ -38,8 +48,8 @@ def _read_json(path: Path) -> tuple[dict[str, Any], bytes]:
         raise ValueError(f"could not read JSON {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain one JSON object")
-    if "bytes_hex" in value:
-        raise ValueError(f"{path} contains raw bytes_hex")
+    if _contains_forbidden_key(value, "bytes_hex"):
+        raise ValueError(f"{path} contains forbidden raw bytes_hex")
     return value, raw
 
 
@@ -109,7 +119,7 @@ def _validate_mapping(mapping: dict[str, Any]) -> tuple[int, int]:
     if mapping.get("protected_artifact_size") != PROTECTED_SIZE:
         raise ValueError("mapping protected artifact size mismatch")
     pid = mapping.get("pid")
-    if not isinstance(pid, int) or pid <= 0:
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
         raise ValueError("mapping pid is invalid")
     module_base = _hex_u64(mapping.get("module_base"), "mapping module_base")
     anchors = mapping.get("anchors")
@@ -121,7 +131,12 @@ def _validate_mapping(mapping: dict[str, Any]) -> tuple[int, int]:
     return pid, module_base
 
 
-def _validate_selection(selection: dict[str, Any], mapping_sha: str, mapping_pid: int, mapping_base: int) -> None:
+def _validate_selection(
+    selection: dict[str, Any],
+    mapping_sha: str,
+    mapping_pid: int,
+    mapping_base: int,
+) -> None:
     if selection.get("schema") != "dmc-rengine.gdspaces-l2-original-selection.v1":
         raise ValueError("selection receipt schema mismatch")
     if selection.get("evidence_class") != "original-process-observation":
@@ -138,10 +153,17 @@ def _validate_selection(selection: dict[str, Any], mapping_sha: str, mapping_pid
         raise ValueError("selection and mapping module base differ")
     if selection.get("flags") != 1:
         raise ValueError("selection must use recovered direct-call flags=1 mode")
+
     for field in ("observer_id", "observer_version"):
         value = selection.get(field)
         if not isinstance(value, str) or not value or len(value) > 128 or "\0" in value:
             raise ValueError(f"selection {field} is invalid")
+    _sha(selection.get("observer_build_sha256"), "observer build SHA")
+    if selection.get("trace_complete") is not True:
+        raise ValueError("selection trace is not marked complete")
+    dropped = selection.get("dropped_event_count")
+    if not isinstance(dropped, int) or isinstance(dropped, bool) or dropped != 0:
+        raise ValueError("selection trace reports dropped events")
 
     request = selection.get("request")
     basename = selection.get("basename")
@@ -152,7 +174,7 @@ def _validate_selection(selection: dict[str, Any], mapping_sha: str, mapping_pid
 
     first_missing = selection.get("first_missing_archive_volume")
     archives = selection.get("archives")
-    if not isinstance(first_missing, int) or first_missing < 0 or first_missing > 0x7FFFFFFF:
+    if not isinstance(first_missing, int) or isinstance(first_missing, bool) or first_missing < 0 or first_missing > 0x7FFFFFFF:
         raise ValueError("first_missing_archive_volume is invalid")
     if not isinstance(archives, list) or len(archives) != first_missing:
         raise ValueError("archive identity census is not contiguous")
@@ -161,13 +183,14 @@ def _validate_selection(selection: dict[str, Any], mapping_sha: str, mapping_pid
         if not isinstance(item, dict):
             raise ValueError("archive identity entry is invalid")
         index = item.get("volume_index")
-        if not isinstance(index, int) or index < 0 or index >= first_missing or index in seen:
+        if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= first_missing or index in seen:
             raise ValueError("archive volume index is invalid/duplicate")
         seen.add(index)
         if item.get("filename") != f"DMC3-{index}.nbz":
             raise ValueError("archive filename does not match runtime volume identity")
         _sha(item.get("sha256"), "archive SHA")
-        if not isinstance(item.get("size"), int) or item["size"] <= 0:
+        size = item.get("size")
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0:
             raise ValueError("archive size is invalid")
     if seen != set(range(first_missing)):
         raise ValueError("archive volume identity set has a gap")
@@ -218,20 +241,27 @@ def _validate_selection(selection: dict[str, Any], mapping_sha: str, mapping_pid
     for key in ("provider", "lookup_attempt_index", "candidate", "provider_key", "archive_volume_index"):
         if selected.get(key) != last.get(key):
             raise ValueError(f"selected identity disagrees with terminal probe field {key}")
-    if selected["provider"] == "archive":
+
+    selected_provider = selected.get("provider")
+    selected_key = selected.get("provider_key")
+    if not isinstance(selected_key, str) or not selected_key:
+        raise ValueError("selected provider key is invalid")
+    if selected_provider == "archive":
         member = selected.get("archive_member_path")
-        if not isinstance(member, str) or not member or _normalize(member, 0x0E) != selected["provider_key"]:
+        if not isinstance(member, str) or not member or _normalize(member, 0x0E) != selected_key:
             raise ValueError("selected archive member identity does not match provider key")
         if selected.get("physical_relative_path") != "":
             raise ValueError("archive selection carries physical identity")
-    else:
+    elif selected_provider == "physical":
         relative = selected.get("physical_relative_path")
         if not isinstance(relative, str) or not relative or relative.startswith(("/", "\\")) or (len(relative) >= 2 and relative[1] == ":"):
             raise ValueError("physical identity must be mounted-root-relative")
-        if _normalize(relative, 0x0C) != selected["provider_key"]:
+        if _normalize(relative, 0x0C) != selected_key:
             raise ValueError("selected physical identity does not match provider key")
         if selected.get("archive_member_path") != "":
             raise ValueError("physical selection carries archive member identity")
+    else:
+        raise ValueError("selected provider is invalid")
 
 
 def build_bound_packet(mapping_path: Path, selection_path: Path) -> dict[str, Any]:
@@ -252,6 +282,9 @@ def build_bound_packet(mapping_path: Path, selection_path: Path) -> dict[str, An
         "module_base": f"0x{mapping_base:X}",
         "observer_id": selection["observer_id"],
         "observer_version": selection["observer_version"],
+        "observer_build_sha256": selection["observer_build_sha256"],
+        "trace_complete": True,
+        "dropped_event_count": 0,
         "request": selection["request"],
         "selected": selection["selected"],
         "proves": ["mapping-bound-original-selected-resource-identity"],
@@ -294,7 +327,7 @@ def main() -> int:
     try:
         packet = build_bound_packet(args.mapping, args.selection)
         _write_no_replace(args.output, packet)
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, TypeError) as exc:
         print(f"original selection evidence rejected: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(packet, indent=2))
