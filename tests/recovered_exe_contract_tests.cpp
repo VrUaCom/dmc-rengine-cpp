@@ -1,3 +1,5 @@
+#include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/loose_container_list.hpp"
 #include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_bootstrap_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_lookup_policy.hpp"
@@ -5,6 +7,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -109,6 +112,61 @@ void bootstrap_matches_the_recovered_shape() {
         dmc3::Dmc3ResourceBootstrapContract::runtime_index_max + 1U).empty());
 }
 
+[[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text) {
+    std::vector<std::byte> bytes;
+    bytes.reserve(text.size());
+    for (const char value : text) {
+        bytes.push_back(static_cast<std::byte>(value));
+    }
+    return bytes;
+}
+
+void loose_container_matches_the_recovered_grammar() {
+    // The correction the contract exists to hold: `/` comments and `#`
+    // directs. An older shorthand had these the other way round, and copying
+    // it would turn every directive into a comment and every comment into a
+    // magic.
+    const auto document = dmc3::LooseContainerListPolicy::parse(
+        bytes_of("#PNST\r\n/ a comment line\r\nem000.mod\r\n"));
+    assert(document.magic_from_directive);
+    assert(document.magic[0] == static_cast<std::byte>('P'));
+    assert(document.magic[1] == static_cast<std::byte>('N'));
+
+    // Only the declared child slot counts. The directive and the comment do
+    // not.
+    assert(document.entries.size() == 1U);
+    assert(document.entries.front().token == "em000.mod");
+    assert(!dmc3::LooseContainerContract::directive_increments_slot_count);
+    assert(!dmc3::LooseContainerContract::comment_increments_slot_count);
+
+    // With no directive the synthesized container takes the default magic, so
+    // `#PNST` above is an ordinary four-byte capture rather than a special
+    // parser.
+    const auto plain = dmc3::LooseContainerListPolicy::parse(
+        bytes_of("em000.mod\r\n"));
+    assert(!plain.magic_from_directive);
+    for (std::size_t index = 0U;
+         index < dmc3::LooseContainerContract::directive_magic_bytes;
+         ++index) {
+        assert(plain.magic[index] == static_cast<std::byte>(
+            dmc3::LooseContainerContract::default_magic[index]));
+    }
+
+    // An LF-only normal line is not proven equivalent, so it fails closed
+    // instead of being advertised as original-compatible.
+    const auto lf_only =
+        dmc3::LooseContainerListPolicy::parse(bytes_of("em000.mod\n"));
+    assert(lf_only.status == dmc3::LooseContainerStatus::lf_only_normal_line);
+    assert(!dmc3::LooseContainerContract::lf_only_normal_line_is_equivalent);
+
+    // The rewrite replaces an existing extension. A path with no extension
+    // boundary cannot enter the fallback at all, so it has no `.lst` form.
+    assert(dmc3::LooseContainerListPolicy::list_path_for("obj/em000.pac") ==
+        "obj/em000.lst");
+    assert(!dmc3::LooseContainerListPolicy::list_path_for("obj/em000").has_value());
+    assert(dmc3::LooseContainerContract::requires_existing_extension);
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -117,6 +175,10 @@ void contracts_are_bound_to_one_image() {
         dmc3::Dmc3ResourceBootstrapContract::canonical_target_sha256);
     assert(dmc3::OpenGameResourceContract::image_base ==
         dmc3::Dmc3ResourceBootstrapContract::image_base);
+    assert(dmc3::OpenGameResourceContract::canonical_target_sha256 ==
+        dmc3::LooseContainerContract::canonical_target_sha256);
+    assert(dmc3::OpenGameResourceContract::image_base ==
+        dmc3::LooseContainerContract::image_base);
 }
 
 } // namespace
@@ -125,6 +187,7 @@ int main() {
     request_path_matches_the_recovered_shape();
     overflow_aborts_the_whole_request();
     bootstrap_matches_the_recovered_shape();
+    loose_container_matches_the_recovered_grammar();
     contracts_are_bound_to_one_image();
     return 0;
 }

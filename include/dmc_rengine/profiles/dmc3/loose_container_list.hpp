@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -97,9 +99,12 @@ struct LooseContainerMaterialization final {
 
 class LooseContainerListPolicy final {
 public:
-    static constexpr std::size_t scan_limit = 0x1FC0U;
-    static constexpr std::size_t token_limit = 0x100U;
-    static constexpr std::size_t synthesis_alignment = 0x40U;
+    // The recovered scanner bounds, read from the contract that recovered
+    // them rather than restated beside it.
+    static constexpr std::size_t scan_limit = LooseContainerContract::scan_limit;
+    static constexpr std::size_t token_limit = LooseContainerContract::token_limit;
+    static constexpr std::size_t synthesis_alignment =
+        LooseContainerContract::synthesis_alignment;
 
     [[nodiscard]] static LooseListDocument parse(std::span<const std::byte> bytes);
 
