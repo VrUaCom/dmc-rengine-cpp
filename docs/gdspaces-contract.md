@@ -4,7 +4,21 @@ GDSpaces is the single public resource-resolution/materialization authority of D
 
 It is a **product** resource layer. Recovered original DMC3 resource-runtime functions, FileSlot/LoadedResource internals, registries, loader nodes, cache/claim semantics and scene-transition lifetime code belong to the **Recovered Game Source Tree**, not GDSpaces.
 
-The current execution/completion plan for Layer 1 is [GDSpaces L1 Roadmap](gdspaces/l1-roadmap.md).
+The current execution plan is [GDSpaces Master Roadmap](gdspaces/master-roadmap.md). Validation/equivalence is centralized under [V / LV Architecture](gdspaces/validation-equivalence-architecture.md).
+
+## Validation ownership
+
+GDSpaces uses three decompilation/runtime ownership layers plus one cross-cutting validation authority:
+
+- **L1** — Resource Materialization;
+- **L2** — Resource Resolution;
+- **L3** — Original Runtime / Lifecycle;
+- **V** — Validation / Equivalence, not L4;
+- **LV** — V-owned Live Validation / Original-Process Observation evidence acquisition, not a decompilation layer.
+
+L1/L2/L3 may submit evidence and report implementation/reverse closure. **V alone owns original-equivalence and completion promotion for the declared scope.** LV may acquire trusted original-process observations but cannot self-promote them.
+
+A layer-local PASS, green CI, real-corpus success, static disassembly agreement or schema-valid receipt is not automatically original-game equivalence.
 
 ## Core product contracts
 
@@ -125,9 +139,10 @@ Strong current recovered behavior includes:
 - archive candidate ordering;
 - archive-first complete pass before physical-provider pass;
 - numbered contiguous `DMC3-N.nbz` bootstrap/precedence;
-- archive normalization/index behavior.
+- archive normalization/index behavior;
+- bounded type-0 physical-provider root-join/existence/open/miss semantics recovered and promoted through #215.
 
-The exact final type-0 physical-provider Win32 filename/case/open/failure semantics after recovered `0x0C` normalization remain unresolved. Product `LocalDirectorySource` behavior must not be relabeled as exact original behavior.
+Product physical-path behavior remains explicitly classified as product evidence unless a V-accepted original-process observation proves the claimed equivalence at the relevant scope.
 
 For acquisition, begin with a **game request** and record the actual resolver-selected member. Do not predeclare `GData*.afs/...` archive member identity from filename intuition.
 
@@ -164,9 +179,33 @@ Recovered Game Source Tree
 
 GDSpaces
   -> safe product resolver/materializer/provenance/authoring contracts
+
+LV
+  -> trusted live/original-process observation acquisition
+
+V
+  -> provenance validation + cross-layer binding + equivalence/promotion verdict
 ```
 
-Validation receipts connect these layers without moving original-game functions into product resource code.
+Validation receipts connect these authorities without moving original-game functions into product resource code.
+
+## Cross-layer validation binding
+
+A promoted end-to-end validation must not combine unrelated layer-local receipts by name alone.
+
+Where the declared scope requires an original-process vertical proof, V must bind at least:
+
+- one validation run/session identity;
+- exact executable authority;
+- trusted LV observer/publisher identity when live observation is used;
+- logical request;
+- L2 selected provider/source/volume/member;
+- L1 materialized/authored/rematerialized byte identities;
+- L3 consumer/lifecycle identity where required;
+- child receipt hashes;
+- rollback/cleanup status.
+
+`L1 PASS + L2 PASS + L3 PASS` from unrelated runs is not a vertical equivalence proof.
 
 ## Identity rules
 
@@ -179,6 +218,7 @@ Validation receipts connect these layers without moving original-game functions 
 7. Authored output never inherits source provenance by convenience.
 8. Evidence-grade archive/member receipts require artifact-stability binding.
 9. Acquisition starts from canonical resolver input and records the actual winner.
+10. Cross-layer V promotion requires a bound same-run/same-resource evidence chain.
 
 ## Original behavior vs product safety
 
@@ -204,12 +244,20 @@ Rejected patterns include:
 - archive SHA computed independently of the member/index state while claiming one provenance snapshot;
 - hard-coded archive member winner where the runtime resolver has not observed it;
 - original LoadedResource/cache/lifecycle implementation moved into GDSpaces;
-- binary AFS/PACK authority inferred from strings or product history.
+- binary AFS/PACK authority inferred from strings or product history;
+- layer-local code assigning itself original-equivalence or COMPLETE;
+- LV live traces self-promoting without V validation;
+- composing L1/L2/L3 receipts from unrelated runs as one vertical proof.
 
 ## Promotion rule
 
 Historical branches/PRs are evidence history, not automatic current authority. Promotion requires reconciliation with current evidence, exact current-main composition and fresh required CI.
 
-Current detailed reverse ledger: issue #100.  
-Direct-retail/game-consumption acceptance gate: issue #182.  
+For GDSpaces equivalence/completion claims, the final promotion authority is **V**. Layer-local implementation/reverse closure remains separately reportable.
+
+Current detailed archive reverse ledger: issue #100.  
+Unified validation authority ledger: issue #222.  
+V:L1 original-game consumption gate: issue #209.  
+LV/V:L2 original selected-identity gate: issue #220 / PR #221.  
+LV/V:L3 lifecycle validation gate: issue #217 / PR #218.  
 Broader request-to-unload reverse authority: issue #55.
