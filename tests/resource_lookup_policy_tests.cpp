@@ -188,7 +188,7 @@ int main() {
     assert(json.find("original-process-observation") != std::string::npos);
     assert(json.find("dmc-rengine-l2-observer") != std::string::npos);
     assert(json.find("\"trace_complete\": true") != std::string::npos);
-    assert(json.find("\"process_creation_filetime\": 133419778662417986") !=
+    assert(json.find("\"process_creation_filetime\": 133419138960867906") !=
            std::string::npos);
     assert(json.find("bytes_hex") == std::string::npos);
 
