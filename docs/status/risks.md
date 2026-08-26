@@ -1,77 +1,78 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-26  
-**Canonical base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`
+**Snapshot date:** 2026-08-27  
+**Reconciled canonical main:** through merged PR #242  
+**Pending branch truth:** #226, #238, #240, #241
 
 ## R-001 — Second resolver/materializer regression
 **Severity:** critical
 
 A tool or Stage subsystem may reopen paths, parse archives or rediscover resources independently.
 
-**Mitigation:** GDSpaces remains the only product resource resolver/materializer. Parsers consume supplied spans. Stage Ops/ModViz/Binary Inspector consume shared identities and payloads.
+**Mitigation:** GDSpaces remains the only product resource resolver/materializer. Parsers consume supplied spans. Stage Ops/ModViz/Binary Inspector consume shared identities and payloads. Pocket GDS must remain a thin execution/UI surface over its pinned canonical GDSpaces snapshot rather than grow an independent NBZ/PAC/PNST parser.
 
-## R-002 — False L1 completion from synthetic composition
+## R-002 — False L1 completion from synthetic or mobile composition
 **Severity:** critical
 
-Green A-to-Z synthetic tests, resolver success or structural parsing may be reported as original-game materialization equivalence.
+Green synthetic A-to-Z tests, resolver success, structural parsing, successful Pocket export or crash-free original launch may be reported as original-game materialization equivalence.
 
-**Mitigation:** [L1 roadmap](../gdspaces/l1-roadmap.md) mandatory gates require direct-retail provenance, real rebuild/reopen and original-game consumption before completion.
+**Mitigation:** L1 requires same-lineage selected-source/member provenance, exact materialization, real rebuild/reopen/rematerialization, #209 deterministic original-game consumption, rollback and final V:L1 audit.
 
-## R-003 — Artifact snapshot split regression
-**Severity:** high
+## R-003 — Evidence receipt snapshot split
+**Severity:** critical
 
-Future code may again observe archive index metadata, selected member bytes and archive SHA from different physical file states.
+Archive metadata, selected bytes and archive SHA may be observed from different physical states.
 
-**Mitigation:** preserve the artifact-bound serialization/member observation contract promoted through #195–#197; provenance-grade receipts must bind all observations to one stable artifact identity.
+**Mitigation:** canonical NBZ acquisition uses artifact-bound serialization/member observation (#195–#197). Final acceptance still requires all cross-tool receipts belong to one reconciled lineage.
 
-## R-004 — No-clobber publication regression
-**Severity:** high
+## R-004 — False no-clobber publication
+**Severity:** critical
 
-New authoring/evidence commands may bypass the shared atomic/no-replace publication primitive.
+`exists() -> ofstream` can race and violate claimed no-clobber behavior.
 
-**Mitigation:** generated artifacts use staged validation + final no-replace publication; concurrency behavior remains a Windows+Ubuntu regression requirement.
+**Mitigation:** shared atomic/no-replace publication (#194) and Windows/Ubuntu concurrency regressions remain mandatory.
 
 ## R-005 — Acquisition mutates measured retail tree
 **Severity:** critical
 
-An evidence command may publish output inside the same retail tree whose identity/provider surface it measures.
+Evidence tooling may publish into the same retail tree whose identity it measures.
 
-**Mitigation:** fail closed for outputs inside measured retail source trees; keep generated artifacts in explicit output/export locations.
+**Mitigation:** fail closed for outputs inside measured retail source trees. Level-E may temporarily add only the explicit next-volume overlay followed by verified rollback.
 
-## R-006 — Closed type-0 static boundary accidentally reopened
+## R-006 — Product physical lookup mistaken for original Win32 semantics
 **Severity:** high
 
-Older docs may still describe the bounded post-`0x0C` type-0 final-open path as the primary unresolved static reverse target.
+Product `LocalDirectorySource` behavior may be described as exact DMC3 type-0 provider behavior.
 
-**Mitigation:** #215/#204 is canonical for that bounded static chain. Protected-process selected identity and cross-build runtime mapping remain separate evidence gates.
+**Mitigation:** #215 closes only the bounded evidenced original edge. Keep product filesystem behavior and unobserved failure cases distinct.
 
 ## R-007 — Materializer/repacker authority collapse
 **Severity:** high
 
-Read/materialization behavior may be treated as proof of original writer/offline-packer behavior.
+Read/materialization behavior may be treated as proof of original writer/offline packer behavior.
 
-**Mitigation:** separate product materializer, DMC Rengine writer, retail serialization preservation and Capcom offline-tool equivalence claims.
+**Mitigation:** separate original materializer behavior, DMC Rengine writer, retail serialization preservation and Capcom offline-tool equivalence.
 
 ## R-008 — Retail representation laundering
 **Severity:** critical
 
-A transformed or historical corpus may be treated as pristine retail authority before direct-retail member provenance is established.
+A filename-familiar or transformed resource may be treated as pristine retail writer authority before exact source/member provenance and representation are established.
 
-**Mitigation:** acquire exact retail member bytes first, then classify representation. Only an observed representation inside an evidenced writer domain may advance to writeback.
+**Mitigation:** acquire exact bytes + ByteProvenance first, then classify representation. Only an observed representation inside an evidenced writer domain advances to writeback.
 
 ## R-009 — Pre-guessed archive member identity
 **Severity:** high
 
-Documentation or tooling may hard-code `GData*.afs/...` member paths instead of letting the recovered resolver select the actual basename candidate/volume winner.
+Tooling/docs may hard-code assumed paths or treat `obj\em000.pac` as the winner without preserving actual selection evidence.
 
-**Mitigation:** acquisition begins from the game request and records the resolver-selected member/source/volume.
+**Mitigation:** protected-install acquisition begins from the game request and records actual selected provider/member. Pocket evidence joins final acceptance only after independent selected-source binding; filename equality is insufficient.
 
 ## R-010 — Inferred parent extent treated as intrinsic child EOF
 **Severity:** critical
 
 Parent slot ranges may include padding/alignment and cannot automatically become intrinsic editable-child size authority.
 
-**Mitigation:** exact-child authority requires independent intrinsic framing or validated complete-image writer receipts.
+**Mitigation:** exact-child authority requires independent framing or validated complete-image writer receipts.
 
 ## R-011 — Recovered C++ false confidence
 **Severity:** high
@@ -85,88 +86,111 @@ Readable/compiling recovered code may hide ABI, ownership or lifecycle errors.
 
 LoadedResource/FileSlot/cache/lifecycle code may be moved into product resource modules because GDSpaces consumes its behavior.
 
-**Mitigation:** original runtime reconstruction remains in Recovered Game Source Tree. FileSlot byte-read mechanics may support L1, but original request ownership/scheduler/callback lifecycle and LoadedResource states remain L3.
+**Mitigation:** original runtime reconstruction remains separate. #230/#242 preserve the L1/L3 materialization boundary.
 
 ## R-013 — AFS/PACK inference from names/history
 **Severity:** high
 
-Logical `.afs/` namespaces or historical product PACK parser code may be promoted as original DMC3 binary backend authority.
+Logical `.afs/` namespaces or historical PACK parser code may be promoted as original DMC3 binary-backend authority.
 
-**Mitigation:** freeze both absent direct runtime/raw evidence that places them on the supported path.
+**Mitigation:** freeze absent direct runtime/raw evidence.
 
 ## R-014 — Stage identity/scene truth collapse
 **Severity:** high
 
 Descriptor identity, numeric Stage identity and semantic gameplay identity may collapse, or ModViz may create a second scene truth.
 
-**Mitigation:** preserve distinct identity axes; Stage Ops owns assembly/orchestration; ModViz consumes Stage Ops state.
+**Mitigation:** preserve distinct identity axes; Stage Ops owns downstream assembly; ModViz consumes Stage Ops state.
 
-## R-015 — Historical/active branch truth reported as main truth
+## R-015 — Branch truth reported as main truth
 **Severity:** high
 
-Stacked or stale PR findings may be described as canonical implementation/evidence.
+An active PR/local APK/operator report may be described as canonical before merge or receipt review.
 
-**Mitigation:** every current status names exact main SHA. A branch remains branch truth until merged; stale branches are superseded explicitly rather than silently reused.
+**Mitigation:** current status names merged authority. #226/#238/#240/#241 remain branch truth until merged.
 
 ## R-016 — Historical checklist drift
 **Severity:** high
 
-Old issues/docs may continue to list promoted work as pending or preserve superseded function labels/addresses.
+Old issues/docs may keep already-promoted work pending or preserve superseded environment assumptions.
 
-**Mitigation:** canonical current docs point to merged #228/#230 and the focused materialization-completion packet. Historical evidence remains history with explicit supersession notices.
+**Mitigation:** current status/roadmaps are synchronized together. Historical pass/audit docs remain chronology and receive explicit supersession/reconciliation rather than silent rewrite.
 
-## R-017 — Public repository contamination
+## R-017 — Repository contamination
 **Severity:** high
 
 Proprietary game bytes or leaked source may be committed.
 
-**Mitigation:** synthetic/public-safe fixtures, sanitized receipts and legal local artifacts only. Canonical EXE raw windows remain private local evidence unless redistribution is lawful.
+**Mitigation:** synthetic/public-safe fixtures, byte-free receipts and legal local artifacts only.
 
 ## R-018 — Premature original-file modification
 **Severity:** high
 
-Safe authoring work may evolve into implicit retail file mutation.
+Safe authoring may evolve into implicit retail mutation.
 
-**Mitigation:** WorkingCopy + explicit generated output + atomic publication + reopen/validation; retail files remain immutable by default.
+**Mitigation:** WorkingCopy + explicit generated output + atomic publication + reopen validation. Retail originals remain immutable; Level-E temporarily adds only a known overlay and removes it after verification.
 
-## R-019 — Transport callback and higher completion conflation
-**Severity:** critical
-
-A reverse pass may treat `0x1400335A0` lower transport completion as equivalent to `0x1401B8DC0` LoadedResource state2 completion.
-
-**Mitigation:** keep the layers separate. `0x1400335A0` writes lower transfer progress/status; normal `0x1401B8DC0` receives only a u32 registry-relative context and does not receive raw transport error/status metadata.
-
-## R-020 — Generic fan-in counter overclaim
-**Severity:** critical
-
-The phrase `fan-in/completion` may be read as proof of an original generic outstanding-child counter or `N -> 1` completion object.
-
-**Mitigation:** merged #228 explicitly narrows the claim to **materialization completion ordering / dependency bridge**. A counter remains only one hypothesis until direct bytes prove it.
-
-## R-021 — FIFO-only completion proof
-**Severity:** critical
-
-Queue insertion order may be treated as sufficient proof that materialization is terminal before the later `0x1401B8DC0` callback executes.
-
-**Mitigation:** Pass 2 requires completion-aware persistence/retirement, callback-driven terminal state, another scheduler gate, synchronous completion, or another directly evidenced mechanism. FIFO alone is insufficient if the materialization job can retire immediately after async submission.
-
-## R-022 — Historical Pass-90 helper-role laundering
+## R-019 — Transport ceiling misreported as artifact absence
 **Severity:** high
 
-Historical derivative evidence around `0x1400333E0` and `0x140033390` may be promoted as fresh canonical function semantics.
+Failure to ingest the 960,358,951-byte `DMC3-0.nbz` may be reported as archive absence.
 
-**Mitigation:** keep them as **reacquisition anchors** only until exact canonical `e454...` bytes validate status/poll and terminal release roles.
+**Mitigation:** preserve separate facts: archive locatable, observed size 960,358,951 bytes, connected raw materialization ceiling 268,435,456 bytes. Treat as transport/execution scope.
 
-## R-023 — `0x1402EF460` mislabeled as OS cancellation
+## R-020 — Mobile receipt authority laundering
+**Severity:** critical
+
+A valid Pocket `gdspaces.l1.member-acquisition-receipt.v1` may be promoted into protected executable authority, original resolver winner, successful original mount topology or original-game consumption.
+
+**Mitigation:** mobile receipts are local snapshot/member/materialization evidence only. Final promotion independently binds selected source and #209 consumption/rollback.
+
+## R-021 — Filename discovery collapsed into successful mount topology
+**Severity:** critical
+
+`first_missing_archive_volume` or filename presence may be interpreted as proof that every discovered archive mounted successfully. #235 proves bootstrap can continue after an existing archive registration failure.
+
+**Mitigation:** keep discovery/attempt plan and actual successful mounted set distinct. Issue #237 tracks correction; PR #241 is pending. Successful mounts may be sparse. Successful archive registration prepends, so precedence is higher successful volume -> lower successful volume -> physical. Provider/backend failure must not become a clean miss.
+
+## R-022 — Independent PASS receipts composed by filename
+**Severity:** critical
+
+Mobile member PASS, desktop authoring PASS, L2 selected-identity PASS and original-game observation from different lineages may be combined because they share a path string.
+
+**Mitigation:** V/LV requires one reconciled selected provider/archive/member -> L1 bytes -> authored/rebuilt/overlay identity -> original consumer effect -> rollback lineage. Filenames are descriptive, not evidence joins.
+
+## R-023 — PID reuse / runtime mapping instance confusion
+**Severity:** critical
+
+A protected-process mapping packet may combine windows from different launches that reused a PID or trust child-declared canonical hashes.
+
+**Mitigation:** #235 R2B v2 requires PID + non-zero OS-derived process creation FILETIME + module identity across all windows and independently derives seven canonical anchor hashes from the canonical EXE. Legacy v1 is not promotion authority.
+
+## R-024 — Archive normalized-key collision ambiguity
+**Severity:** critical
+
+Original archive indexing sorts/searches `0x0E` normalized strings with no equal-key secondary tie-break. Collisions could make a deterministic winner claim unsafe.
+
+**Mitigation:** require exact archive-SHA-bound retail member surface and run the `0x0E` collision census before uniqueness-dependent selection claims.
+
+## R-025 — Completion callback publishes state2 before transport is terminal
+**Severity:** critical
+
+Older wording could imply scheduler FIFO or a generic child/outstanding-work counter guarantees safe materialization completion. #230/#242 prove normal `0x1401B8DC0` receives only one u32 registry-relative context and no lower transport status/error/byte count/FileSlot/child metadata.
+
+If the earlier scheduler job merely submits asynchronous work and retires, a later normal completion callback could publish state2 too early.
+
+**Mitigation:** treat this as materialization completion ordering / dependency bridge. Reacquire exact bytes in order `0x1402EF4D0` -> relevant `0x1402EF790` -> historical `0x1400333E0`/`0x140033390` hypotheses -> `0x1400335A0` -> normal `0x1401B8DC0` suppression/block condition -> `0x1402EF460` -> `.lst` recursive failure ordering. Do not promote FIFO-only or generic fan-in models without direct evidence.
+
+## R-026 — Static L3 bounded closure reported as full L3 completion
 **Severity:** high
 
-Higher scheduler pending-entry clear/rollback may be described as `CancelIo`/AsyncIO cancellation.
+Pending #240 may promote exact canonical `LoadedResource +0x04` writer census to `STATIC BOUNDED-CLOSED / APPROVED / CONTRADICTION-GATED` and be misreported as Layer 3 complete.
 
-**Mitigation:** use the bounded label **pending scheduler-entry clear/rollback** until direct lower-I/O interaction is recovered. Already-running FileSlot/ReadRequest cancellation remains a separate question.
+**Mitigation:** until merge it is branch truth. After promotion it closes only R1 for its exact artifact/scope; R2-R5 and V1-V7 remain open.
 
-## R-024 — `.lst` completion semantics inferred before direct-resource closure
+## R-027 — Control plane or validation architecture becomes accidental L4
 **Severity:** high
 
-Loose-container child/recursive failure may be generalized before the direct-resource terminal dependency mechanism is known.
+Draft RCP/V-LV work may absorb ownership from L1/L2/L3 or be described as a fourth execution layer.
 
-**Mitigation:** close the direct-resource `2EF4D0 -> 2EF790 -> 333E0/333390/3335A0 -> B8DC0` dependency model first; then apply it to `.lst` child failure/recursive ordering without reopening already recovered grammar/layout.
+**Mitigation:** RCP is orthogonal orchestration; V/LV is cross-cutting validation. L1 owns materialization/authoring, L2 resolution/selection, L3 original runtime/lifecycle. Neither changes completion accounting by itself.
