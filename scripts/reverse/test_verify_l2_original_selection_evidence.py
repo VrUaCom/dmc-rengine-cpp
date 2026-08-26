@@ -52,6 +52,9 @@ def selection_receipt(mapping_sha: str) -> dict[str, object]:
         "runtime_mapping_packet_sha256": mapping_sha,
         "observer_id": "dmc-rengine-l2-observer",
         "observer_version": "synthetic-contract-test",
+        "observer_build_sha256": "c" * 64,
+        "trace_complete": True,
+        "dropped_event_count": 0,
         "pid": 4242,
         "module_base": "0x7FF600000000",
         "flags": 1,
@@ -108,6 +111,9 @@ def main() -> None:
         packet = verify.build_bound_packet(mapping_path, selection_path)
         assert packet["status"] == "bound"
         assert packet["runtime_mapping_packet_sha256"] == mapping_sha
+        assert packet["observer_build_sha256"] == "c" * 64
+        assert packet["trace_complete"] is True
+        assert packet["dropped_event_count"] == 0
         assert packet["request"] == "scr\\st001.pac"
         assert packet["selected"]["archive_volume_index"] == 1
 
@@ -128,6 +134,36 @@ def main() -> None:
         write_json(skipped_path, skipped_volume)
         rejected(mapping_path, skipped_path, "volume precedence")
 
+        incomplete = selection_receipt(mapping_sha)
+        incomplete["trace_complete"] = False
+        incomplete_path = root / "incomplete.json"
+        write_json(incomplete_path, incomplete)
+        rejected(mapping_path, incomplete_path, "not marked complete")
+
+        dropped = selection_receipt(mapping_sha)
+        dropped["dropped_event_count"] = 1
+        dropped_path = root / "dropped.json"
+        write_json(dropped_path, dropped)
+        rejected(mapping_path, dropped_path, "dropped events")
+
+        bad_observer = selection_receipt(mapping_sha)
+        bad_observer["observer_build_sha256"] = "not-a-sha"
+        bad_observer_path = root / "bad-observer.json"
+        write_json(bad_observer_path, bad_observer)
+        rejected(mapping_path, bad_observer_path, "observer build SHA")
+
+        malformed_selected = selection_receipt(mapping_sha)
+        malformed_selected["selected"] = {}
+        malformed_selected_path = root / "malformed-selected.json"
+        write_json(malformed_selected_path, malformed_selected)
+        rejected(mapping_path, malformed_selected_path, "terminal probe field")
+
+        nested_raw = selection_receipt(mapping_sha)
+        nested_raw["selected"]["debug"] = {"bytes_hex": "00"}
+        nested_raw_path = root / "nested-raw.json"
+        write_json(nested_raw_path, nested_raw)
+        rejected(mapping_path, nested_raw_path, "forbidden raw bytes_hex")
+
         bad_mapping = mapping_packet()
         bad_mapping["anchors"] = bad_mapping["anchors"][:2]
         bad_mapping["anchor_count"] = 2
@@ -137,6 +173,17 @@ def main() -> None:
         rebound_path = root / "rebound.json"
         write_json(rebound_path, rebound)
         rejected(bad_mapping_path, rebound_path, "anchor census")
+
+        nested_mapping_raw = mapping_packet()
+        nested_mapping_raw["anchors"][0]["debug"] = {"bytes_hex": "00"}
+        nested_mapping_path = root / "nested-mapping-raw.json"
+        nested_mapping_bytes = write_json(nested_mapping_path, nested_mapping_raw)
+        nested_mapping_selection = selection_receipt(
+            hashlib.sha256(nested_mapping_bytes).hexdigest()
+        )
+        nested_mapping_selection_path = root / "nested-mapping-selection.json"
+        write_json(nested_mapping_selection_path, nested_mapping_selection)
+        rejected(nested_mapping_path, nested_mapping_selection_path, "forbidden raw bytes_hex")
 
         output = root / "bound.json"
         verify._write_no_replace(output, packet)
