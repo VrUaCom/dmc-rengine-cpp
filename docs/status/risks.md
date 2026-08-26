@@ -1,7 +1,8 @@
 # Architecture and Project Risks
 
-**Snapshot date:** 2026-08-26  
-**Reconciled main base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`
+**Snapshot date:** 2026-08-27  
+**Reconciled canonical main:** through merged PR #242  
+**Pending branch truth:** #226, #238, #240, #241
 
 ## R-001 — Second resolver/materializer regression
 **Severity:** critical
@@ -85,7 +86,7 @@ Readable/compiling recovered code may hide ABI, ownership or lifecycle errors.
 
 LoadedResource/FileSlot/cache/lifecycle code may be moved into product resource modules because GDSpaces consumes its behavior.
 
-**Mitigation:** original runtime reconstruction remains in Recovered Game Source Tree; L2/L3 and V receipts bridge behavior without collapsing ownership. #228 explicitly preserves this separation for the materialization-completion boundary.
+**Mitigation:** original runtime reconstruction remains in Recovered Game Source Tree; L2/L3 and V receipts bridge behavior without collapsing ownership. #228 and merged #230/#242 preserve this separation for the materialization-completion boundary.
 
 ## R-013 — AFS/PACK inference from names/history
 **Severity:** high
@@ -106,14 +107,14 @@ Descriptor identity, numeric Stage identity and semantic gameplay identity may c
 
 An active PR, local APK or operator report may be described as canonical implementation/evidence before merge or receipt review.
 
-**Mitigation:** current status names a reconciled main SHA; branch work stays branch truth until merged. Pocket GDS PR #2 tooling is not a real member receipt until an operator actually runs the merged/bound build against the real archive.
+**Mitigation:** current status names canonical merged authority. Open #226/#238/#240/#241 remain branch truth until merged. Pocket GDS tooling is not a real member receipt until an operator actually runs a bound build against the real archive.
 
 ## R-016 — Historical checklist drift
 **Severity:** high
 
-Old issues/docs may continue to list already-promoted PNST/NBZ/provider work as pending or preserve superseded environment assumptions.
+Old issues/docs may continue to list already-promoted work as pending or preserve superseded environment assumptions.
 
-**Mitigation:** current docs point to the canonical L1 roadmap and post-audit reconciliation. Historical material remains history, while explicit addenda supersede stale current-state claims such as “retail NBZ absent” when later evidence shows it is locatable but transport-blocked.
+**Mitigation:** current docs point to the canonical L1 roadmap and explicit reconciliation addenda. Historical pass/audit documents remain history; current-status claims are superseded explicitly rather than silently rewritten.
 
 ## R-017 — Repository contamination
 **Severity:** high
@@ -132,7 +133,7 @@ Safe authoring work may evolve into implicit retail file mutation.
 ## R-019 — Transport ceiling misreported as artifact absence
 **Severity:** high
 
-A failed connected download/materialization of the 960,358,951-byte `DMC3-0.nbz` may be reported as “the retail archive is unavailable/not present”. That can restart pointless acquisition work or distort blockers.
+A failed connected download/materialization of the 960,358,951-byte `DMC3-0.nbz` may be reported as “the retail archive is unavailable/not present”.
 
 **Mitigation:** preserve separate facts: artifact locatable, observed archive size 960,358,951 bytes, connected raw-transfer/materialization ceiling 268,435,456 bytes. Treat this as transport/execution scope. Use a local real-device/PC execution surface for member evidence instead of weakening acceptance.
 
@@ -146,9 +147,9 @@ A valid Pocket `gdspaces.l1.member-acquisition-receipt.v1` may be promoted into 
 ## R-021 — Filename discovery collapsed into successful mount topology
 **Severity:** critical
 
-`first_missing_archive_volume` or pre-gap filename presence may be interpreted as proof that every discovered archive mounted successfully. #235 confirms original bootstrap ignores archive-registration return and continues discovery after an existing archive mount failure.
+`first_missing_archive_volume` or pre-gap filename presence may be interpreted as proof that every discovered archive mounted successfully. Merged #235 confirms original bootstrap can continue after an existing archive mount-registration failure.
 
-**Mitigation:** keep discovery and successful-mounted set distinct. Open #237 corrects the product model. Clean successful precedence remains higher successful index -> lower successful index -> physical. Failure cases must not be modeled as ordinary lookup misses or inferred mounts.
+**Mitigation:** keep `VolumeBootstrapPlan` discovery/attempt order and `RuntimeMountTopology` actual successful outcomes distinct. Issue #237 tracks the correction; PR #241 is the active product implementation and remains pending. The successful set may be sparse. Successful archive registrations still prepend, so precedence among successful mounts remains higher successful volume -> lower successful volume -> physical. Provider/backend failure must not be converted into a clean lower-volume miss.
 
 ## R-022 — Independent PASS receipts composed by filename
 **Severity:** critical
@@ -170,3 +171,26 @@ A protected-process mapping packet may combine windows from different launches t
 Original archive indexing sorts and searches `0x0E` normalized strings with no equal-key secondary tie-break. Two retail central entries with one normalized key would make a deterministic winner claim unsafe.
 
 **Mitigation:** require an exact archive-SHA-bound retail member surface and run the `0x0E` collision census before uniqueness-dependent original-selection claims. A single Pocket member receipt is insufficient; a complete bound derivative could support this later.
+
+## R-025 — Completion callback publishes state2 before transport is terminal
+**Severity:** critical
+
+Older wording could imply that scheduler FIFO ordering or a generic child/outstanding-work counter is sufficient to guarantee safe materialization completion. Merged #230/#242 instead prove that normal `0x1401B8DC0` receives only one u32 registry-relative context and no lower transport status/error/byte count, FileSlot/ReadRequest handle or child metadata.
+
+If the earlier materialization scheduler job merely submits asynchronous work and retires, a later normal completion callback could publish state2 before bytes are terminal.
+
+**Mitigation:** treat this as a materialization completion ordering / dependency bridge. Reacquire exact bytes in the bounded order `0x1402EF4D0` -> relevant `0x1402EF790` persistence/retirement -> historical `0x1400333E0`/`0x140033390` hypotheses -> `0x1400335A0` terminal writes -> normal `0x1401B8DC0` suppression/block condition -> `0x1402EF460` clear/rollback -> `.lst` recursive failure ordering. Do not promote FIFO-only or a generic fan-in counter without direct evidence.
+
+## R-026 — Static L3 bounded closure reported as full L3 completion
+**Severity:** high
+
+Pending #240 may promote the exact canonical `LoadedResource +0x04` writer census to `STATIC BOUNDED-CLOSED / APPROVED / CONTRADICTION-GATED`. That could be misreported as Layer 3 complete.
+
+**Mitigation:** until #240 merges it remains branch truth. After promotion it closes only R1 static writer census at its exact artifact/scope. R2-R5 and V1-V7 original-process lifecycle/consumer evidence remain separate open gates.
+
+## R-027 — Control plane or validation architecture becomes an accidental L4
+**Severity:** high
+
+Draft RCP/V-LV work may be described as a fourth execution layer and absorb ownership from L1/L2/L3.
+
+**Mitigation:** #226 Resource Control Plane is orthogonal orchestration; V/LV is cross-cutting validation. L1 owns materialization/authoring, L2 owns resolution/selection, L3 owns original runtime/lifecycle. Neither RCP nor V/LV changes completion accounting by itself.
