@@ -113,7 +113,7 @@ bool ProcessMemoryWindowReceipt::matches_expected_window() const noexcept {
 bool ProcessMemoryWindowReceipt::valid() const noexcept {
     if (!is_canonical_sha256(artifact_sha256) || artifact_size == 0U ||
         image_path.empty() || preferred_image_base == 0U || pid == 0U ||
-        module_base == 0U || size == 0U ||
+        process_creation_filetime == 0U || module_base == 0U || size == 0U ||
         size > k_max_process_memory_window_size || section_name.empty() ||
         !is_canonical_sha256(window_sha256)) {
         return false;
@@ -153,13 +153,15 @@ std::string process_memory_window_receipt_to_json(
 
     std::ostringstream output;
     output << "{\n"
-           << "  \"schema\": \"dmc-rengine.exe-process-window.v1\",\n"
+           << "  \"schema\": \"dmc-rengine.exe-process-window.v2\",\n"
            << "  \"artifact_sha256\": \"" << receipt.artifact_sha256 << "\",\n"
            << "  \"artifact_size\": " << receipt.artifact_size << ",\n"
            << "  \"image_path\": \"" << escape_json(receipt.image_path) << "\",\n"
            << "  \"preferred_image_base\": \""
            << hex_u64(receipt.preferred_image_base) << "\",\n"
            << "  \"pid\": " << receipt.pid << ",\n"
+           << "  \"process_creation_filetime\": "
+           << receipt.process_creation_filetime << ",\n"
            << "  \"module_base\": \"" << hex_u64(receipt.module_base) << "\",\n"
            << "  \"rva\": \"" << hex_u64(receipt.rva) << "\",\n"
            << "  \"runtime_va\": \"" << hex_u64(receipt.runtime_va) << "\",\n"
