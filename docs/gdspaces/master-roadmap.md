@@ -3,7 +3,7 @@
 **Snapshot:** 2026-08-26  
 **Base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
 **L2 runtime-mapping seam:** PR #219 merged; R2A/R2B/R3 evidence execution remains open  
-**Latest L3 static authority:** `l3-r1-leaf-alias-pass-2026-08-26.md`
+**Latest L3 static authority:** `l3-r1-derived-alias-pass-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -191,7 +191,8 @@ Canonical static authority:
 - raw canonical-EXE reconciliation: `l3-boundary-audit-2026-08-26.md`;
 - detailed second raw pass: `l3-raw-exe-pass-2026-08-26.md`;
 - direct-base state-writer census: `l3-r1-direct-writer-census-2026-08-26.md`;
-- leaf/no-unwind + completion-callback alias pass: `l3-r1-leaf-alias-pass-2026-08-26.md`.
+- leaf/no-unwind + completion-callback alias pass: `l3-r1-leaf-alias-pass-2026-08-26.md`;
+- derived/indexed/stored-record release pass: `l3-r1-derived-alias-pass-2026-08-26.md`.
 
 ### L3 acquisition blocker — CLOSED
 
@@ -208,11 +209,15 @@ The old "raw canonical EXE unavailable" statement is superseded. Acquisition too
 Do not restart without contradictory evidence:
 
 - LoadedResource registry `363 x 0x48` and seven-group topology;
+- canonical raw `.data` counts `[4,136,60,28,1,128,6]` and bases `[0,4,140,200,228,229,357,363]`;
 - central lifecycle `0 -> 1 -> 2 -> typed post-load -> optional callback -> 3`;
 - canonical cancellation source domain `1|2 -> 4`;
 - quiescence predicate: every record must be state `0` or `3`;
 - cancellation cleanup `4 -> 0` ordering;
 - distinct ordinary/group/full release-reset policies;
+- acquisition-failure rollback state0 writers for bounded base-228, group5 and base-357 paths;
+- fixed-family indexed state3->release->state0 helpers for registry bases `0/4/140/200`;
+- stored group5 record aliases through higher-level `object+0x10` are proven from `1B8DF0` acquisition through conditional backing release and state0 publication;
 - representative MOD/EFM/SCM/SHW typed post-load and recursive PNST traversal;
 - central typed dispatcher unknown/default behavior as best-effort no-op/return rather than a failure return that blocks state 3;
 - higher-level loader-node claim/zero-claim release concept;
@@ -220,7 +225,8 @@ Do not restart without contradictory evidence:
 - direct-base/unwind-bounded state-like false-positive class is separated from actual LoadedResource state authority;
 - exact-immediate leaf/no-unwind `+0x04 <- 0..4` candidate class contains no new LoadedResource writer beyond canonical `0x1401B8DC0`;
 - `0x1401B8DC0` normal completion callback is registered from `0x1401B84E0` with one `u32` context equal to `record_ptr - 0x140C99D30` and dispatched by `0x1402EF580/0x1402EF790`;
-- valid normal callback contexts are `index*0x48` for `0..362`, so the odd/low-bit branch of `1B8DC0` is outside the recovered canonical normal acquisition-registration domain.
+- valid normal callback contexts are `index*0x48` for `0..362`, so the odd/low-bit branch of `1B8DC0` is outside the recovered canonical normal acquisition-registration domain;
+- nearby higher-level `1B9EE0` `+0x04` copy is rejected as LoadedResource state by caller/subobject provenance.
 
 ### L1/L3 seam now explicit
 
@@ -237,17 +243,18 @@ Classify evidence by semantics, not by assigning the whole helper to one layer.
 ### Current L3 static work order
 
 ```text
-finish residual R1 data-flow census
-  -> non-immediate state writes
-  -> caller-propagated / indexed / derived record aliases
-  -> indirect callback registrations
+finish residual R1 value-flow census
+  -> non-state0/non-immediate writes carrying states 1/2/3/4
+  -> record aliases outside the reviewed 0x1401B8xxx..0x1401B9xxx lifecycle cluster
+  -> indirect callback/function-pointer registrations
+  -> final whole-image contradiction sweep
  -> finish family-specific +0x08/+0x18/+0x20/+0x28 ownership census
  -> close external typed/factory/dependency and SCM edges
  -> finish shared-owner coordination breadth
  -> original-process Level-E receipts
 ```
 
-Do not repeat the already-bounded direct-base or exact-immediate leaf census unless contradictory evidence appears.
+Do not repeat the already-bounded direct-base, exact-immediate leaf, or reviewed state0 release/rollback scans unless contradictory evidence appears.
 
 The central old question "does unknown/default `0x1401B9FA0` post-load leave state 2?" is no longer open for that path: the dispatcher is best-effort/void and the state-2 finalizer proceeds to callback then state3.
 
