@@ -1,10 +1,12 @@
 # GDSpaces Layer 1 Roadmap
 
 **Status:** INTERNAL PRODUCT PATH CLOSED / EXTERNAL ACCEPTANCE OPEN  
-**Snapshot date:** 2026-08-25  
-**Canonical implementation base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`  
+**Snapshot date:** 2026-08-26  
+**Canonical implementation base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
 **Primary tracking:** #100, #182, #209  
-**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`
+**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
+**Canonical EXE boundary review:** `l1-exe-boundary-review-2026-08-26.md`  
+**L1/L3 handoff follow-up:** `l1-l3-exe-materialization-lifecycle-handoff-pass-2026-08-26.md`
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
@@ -17,11 +19,11 @@ Synthetic tests, a working resolver, a valid parser or a crash-free game launch 
 ## 1. Canonical L1 boundary
 
 ```text
-physical source bytes
- -> archive/container identity
+L2 selected logical/provider identity
+ -> L1 physical/container byte acquisition
  -> exact member/span acquisition
- -> transform/decompression
- -> materialized bytes + ByteProvenance
+ -> read/seek/decompression mechanics
+ -> exact materialized byte buffer + ByteProvenance
  -> PAC/PNST nested expansion
  -> exact editable child identity
  -> bounded edit
@@ -29,8 +31,23 @@ physical source bytes
  -> next-volume NBZ publication
  -> canonical resolver/reopen/rematerialization
  -> product closure receipt
- -> original DMC3 Level-E consumption + rollback receipt
+ -> original DMC3 vertical acceptance
 ```
+
+The canonical raw-L3 audit now controls the runtime boundary after exact materialized bytes:
+
+```text
+L1 exact materialized bytes
+ -> [L3] FileSlot/async request ownership and scheduling
+ -> [L3] LoadedResource acquisition/state 0->1
+ -> [L3] completion/state 1->2
+ -> [L3] typed post-load/state 2->3
+ -> [L3] consumer lifecycle/release/reset/teardown
+```
+
+FileSlot is a boundary subsystem: byte-read mechanics can support L1, while request ownership/scheduling/completion/cancellation/close lifetime are L3.
+
+`0x1401B8CA0` is an explicit semantic seam: representation/materialization mechanics are L1-relevant, while success gates L3 state1 publication.
 
 L2 may supply exact selected identity and L3 may supply original consumer/lifecycle evidence. Their broader completion is not required for L1 unless a concrete L1 acceptance path activates one of their unresolved boundaries.
 
@@ -55,7 +72,10 @@ Current `main` includes:
 - staged NBZ reopen and exact member verification before publication;
 - protected distribution executable preflight;
 - protected retail authoring closure orchestration through resolver rematerialization;
-- Windows + Ubuntu CI for all promoted product paths.
+- type-0 physical-provider post-`0x0C` static contract promoted through #215;
+- protected-runtime RVA mapping acquisition tooling promoted through #219;
+- guarded canonical-analysis EXE window acquisition infrastructure;
+- Windows + Ubuntu CI for promoted product paths.
 
 These close the known mandatory **internal implementation** work for the current representative DMC3-HD L1 acceptance scope.
 
@@ -123,9 +143,9 @@ rebuilt member
 
 ### L1-G — original DMC3 consumption
 
-**OPEN / EXTERNAL LEVEL-E / FINAL MATERIALIZATION ACCEPTANCE**
+**OPEN / EXTERNAL LEVEL-E / FINAL VERTICAL ACCEPTANCE**
 
-Canonical tracking: #209.
+Canonical tracking: issue #209.
 
 Required controlled run:
 
@@ -181,25 +201,50 @@ The commands are product authoring/validation seams. They do not claim to reprod
 
 ## 5. Supporting EXE reverse boundaries
 
-Do **not** restart these without contradictory direct evidence:
+Detailed authorities:
+
+- [L1 EXE Boundary Review](l1-exe-boundary-review-2026-08-26.md)
+- [L1/L3 Materialization-to-Lifecycle Handoff Pass](l1-l3-exe-materialization-lifecycle-handoff-pass-2026-08-26.md)
+- [Canonical L3 Raw-EXE Boundary Audit](l3-boundary-audit-2026-08-26.md)
+
+Do **not** restart without contradictory evidence:
 
 - numbered-volume bootstrap / first-gap behavior;
 - generic basename candidate construction and archive-first/physical-second attempt order;
 - archive normalized lookup/index behavior;
-- bounded FileSlot / AsyncIO whole-file materialization spine;
-- ZIP stored-vs-inflated path and raw-DEFLATE core behavior;
-- PAC/PNST recursive typed traversal;
-- primary `.lst` packed-first selection/synthesis structure.
+- type-0 post-`0x0C` physical final-open static contract promoted by #215;
+- whole-file caller-owned byte-transfer mechanics;
+- FileSlot/ReadRequest byte-read architecture at the L1 support scope;
+- ZIP EOCD/central/member identity path;
+- `ZipEntryRead 0x140328F50` STORE-vs-compressed split;
+- `InflateRead 0x140328820` raw-DEFLATE streaming behavior;
+- compressed seek reset+replay architecture and raw seek architecture;
+- primary `.lst` packed-first grammar/layout/recursive synthesis structure.
 
-Still-open reverse breadth is activated only when a completion claim depends on it:
+Correct labels/boundaries:
 
-1. exact type-0 physical-provider Win32 path/case/open/failure semantics — primarily L2;
-2. complete ZIP stream initializer `0x140328540` body/lifetime;
-3. complete compressed seek/reset `0x140328FE0` behavior;
-4. exhaustive malformed/partial-read error-code equivalence;
-5. dynamic `.lst` allocation/free/error/cycle behavior where a real loose-list acceptance path requires it.
+- `0x1402EF4D0` = **resource materialization submission/scheduling wrapper**, not proven exact-path resolver/final provider open/raw reader;
+- `0x1401B8CA0` = L1/L3 seam: materialization mechanics + success result gating L3 acquisition;
+- `0x1400335A0` = lower transfer progress/status callback, not LoadedResource state2 writer;
+- `0x1401B8DC0` = **L3** normal lifecycle completion/state1->2 writer;
+- `0x1402EF460` = pending scheduled-entry clear/rollback, not OS AsyncIO cancellation;
+- `.lst` synchronous temporary acquisition is not proven equal to `0x1402EF920`;
+- no generic child/outstanding-work fan-in counter is currently evidenced.
 
-These bounded gaps do not automatically block a representative packed-NBZ/PAC/PNST L1 Level-E receipt.
+### Current supporting reverse priority
+
+Use `data/reverse/dmc3-materialization-lifecycle-handoff-plan.v1.json`:
+
+1. exact `0x1402EF4D0` body/callees and load-context consumer;
+2. exact L1 byte-materialization -> L3 request/scheduler handoff;
+3. success-side completion ordering/dependency mechanics without assuming a generic fan-in counter;
+4. scheduler rollback semantics around `0x1402EF460` and cancellation;
+5. lower transfer failure -> L3 acquisition/cancellation mapping;
+6. `.lst` child-population failure + temporary-buffer cleanup;
+7. FileSlot/ReadRequest partial/error/cancellation breadth where a compatibility claim requires it;
+8. complete `0x140328540`/`0x140328FE0` exact-body/error breadth only when activated by acceptance evidence.
+
+These bounded reverse gaps do not automatically block a representative packed-NBZ/PAC/PNST L1 Level-E receipt.
 
 ## 6. Explicit non-blockers / freezes
 
@@ -228,21 +273,23 @@ No new synthetic-only feature may displace this path unless real evidence reveal
 
 ## 8. Environment boundary
 
-The connected automation environment currently does not expose exact raw `dmc3.exe` and `DMC3-0.nbz` artifacts needed to execute the protected-install Level-E run here.
+The connected automation environment does not expose all exact raw protected-install artifacts needed to execute the protected-install Level-E run here.
 
-That is an external evidence boundary. It does not justify substituting synthetic CI for L1-G.
+Guarded canonical-analysis EXE reacquisition tooling exists on `main`. During the new handoff review a fresh raw canonical `e454...` blob was not exposed through the connected file surface, so the pass records reconciliation plus a focused next acquisition plan rather than claiming a fresh byte-disassembly execution.
 
 ## 9. Documentation synchronization
 
-When a real receipt changes L1 status, synchronize:
+When L1 evidence or cross-layer boundaries change, synchronize:
 
 - this roadmap;
+- `l1-exe-boundary-review-2026-08-26.md`;
+- `l1-l3-exe-materialization-lifecycle-handoff-pass-2026-08-26.md`;
 - `l1-final-audit-2026-08-25.md` or its completion successor;
+- `l3-boundary-audit-2026-08-26.md` only when new L3 evidence warrants it;
 - `docs/status/current.md`;
 - `docs/status/blockers.md`;
-- `docs/status/phase-map.md`;
-- `docs/status/risks.md`;
 - `docs/status/canonical-status.json`;
-- issues #100, #182 and #209.
+- `data/reverse/dmc3-materialization-lifecycle-handoff-plan.v1.json`;
+- issues #100, #88, #182 and #209.
 
 Percentage estimates are planning aids only; mandatory gates remain the completion authority.
