@@ -3,8 +3,9 @@
 
 This validator cannot create trusted original-process evidence. It accepts only the
 strict candidate emitted by `normalize_l2_original_selection_candidate.py`, rebuilds
-R2B mapping from child process-window receipts, hashes the exact observer and numbered
-NBZ artifacts, validates the recovered clean-path resolver order, and emits a bounded
+R2B mapping from child process-window receipts, requires the same Windows process
+creation identity on R2B and R3 content, hashes the exact observer and numbered NBZ
+artifacts, validates the recovered clean-path resolver order, and emits a bounded
 non-promotable candidate packet.
 """
 
@@ -21,9 +22,9 @@ from typing import Any
 
 PROTECTED_SHA256 = "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6"
 PROTECTED_SIZE = 6_567_320
-SELECTION_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-candidate.v1"
+SELECTION_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-candidate.v2"
 SELECTION_EVIDENCE_CLASS = "original-process-observation-candidate"
-BOUND_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-bound.v1"
+BOUND_SCHEMA = "dmc-rengine.gdspaces-l2-original-selection-bound.v2"
 PREFIXES = (
     "GDataX360.afs/",
     "GData.afs/",
@@ -48,6 +49,7 @@ SELECTION_KEYS = {
     "trace_complete",
     "dropped_event_count",
     "pid",
+    "process_creation_filetime",
     "module_base",
     "flags",
     "request",
@@ -156,6 +158,16 @@ def _sha(value: Any, field: str) -> str:
     return value
 
 
+def _u64(value: Any, field: str, *, nonzero: bool = False) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{field} must be an unsigned 64-bit integer")
+    if value < 0 or value > 0xFFFFFFFFFFFFFFFF:
+        raise ValueError(f"{field} is outside uint64 range")
+    if nonzero and value == 0:
+        raise ValueError(f"{field} must be non-zero")
+    return value
+
+
 def _hex_u64(value: Any, field: str) -> int:
     if not isinstance(value, str) or not value.startswith("0x"):
         raise ValueError(f"{field} must be 0x-prefixed hexadecimal")
@@ -214,8 +226,10 @@ def _reconstruct_mapping(
     child_receipts: list[dict[str, str]] = []
     for path in child_paths:
         payload, raw = _read_json(path)
-        if payload.get("schema") != "dmc-rengine.exe-process-window.v1":
-            raise ValueError(f"mapping child {path} has unsupported schema")
+        if payload.get("schema") != "dmc-rengine.exe-process-window.v2":
+            raise ValueError(
+                f"mapping child {path} has unsupported schema; v2 process identity is required"
+            )
         rva = payload.get("rva")
         if not isinstance(rva, str):
             raise ValueError(f"mapping child {path} has invalid RVA")
@@ -226,8 +240,8 @@ def _reconstruct_mapping(
     return rebuilt, child_receipts
 
 
-def _mapping_session(mapping: dict[str, Any]) -> tuple[int, int]:
-    if mapping.get("schema") != "dmc-rengine.gdspaces-l2-runtime-mapping.v1":
+def _mapping_session(mapping: dict[str, Any]) -> tuple[int, int, int]:
+    if mapping.get("schema") != "dmc-rengine.gdspaces-l2-runtime-mapping.v2":
         raise ValueError("mapping packet schema mismatch")
     if mapping.get("status") != "bounded_match":
         raise ValueError("mapping packet is not bounded_match")
@@ -238,7 +252,16 @@ def _mapping_session(mapping: dict[str, Any]) -> tuple[int, int]:
     pid = mapping.get("pid")
     if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
         raise ValueError("mapping pid is invalid")
-    return pid, _hex_u64(mapping.get("module_base"), "mapping module_base")
+    process_creation_filetime = _u64(
+        mapping.get("process_creation_filetime"),
+        "mapping process_creation_filetime",
+        nonzero=True,
+    )
+    return (
+        pid,
+        process_creation_filetime,
+        _hex_u64(mapping.get("module_base"), "mapping module_base"),
+    )
 
 
 def _validate_archives(selection: dict[str, Any]) -> dict[int, dict[str, Any]]:
@@ -283,6 +306,7 @@ def _validate_candidate(
     selection: dict[str, Any],
     mapping_sha: str,
     mapping_pid: int,
+    mapping_process_creation_filetime: int,
     mapping_base: int,
 ) -> dict[int, dict[str, Any]]:
     _exact_keys(selection, SELECTION_KEYS, "selection candidate")
@@ -305,6 +329,13 @@ def _validate_candidate(
         raise ValueError("selection does not hash-bind the supplied mapping packet")
     if selection["pid"] != mapping_pid:
         raise ValueError("selection and mapping pid differ")
+    selection_creation = _u64(
+        selection["process_creation_filetime"],
+        "selection process_creation_filetime",
+        nonzero=True,
+    )
+    if selection_creation != mapping_process_creation_filetime:
+        raise ValueError("selection and mapping process creation identities differ")
     if _hex_u64(selection["module_base"], "selection module_base") != mapping_base:
         raise ValueError("selection and mapping module base differ")
     if selection["flags"] != 1:
@@ -370,7 +401,7 @@ def _validate_candidate(
         outcome = probe["outcome"]
         if outcome not in ("miss", "selected"):
             raise ValueError(
-                "v1 selection candidate supports only clean miss/selected outcomes; "
+                "v2 selection candidate supports only clean miss/selected outcomes; "
                 "provider/backend failure is fail-closed"
             )
         if outcome == "selected":
@@ -467,8 +498,14 @@ def build_bound_packet(
         )
 
     mapping_sha = _sha256_bytes(mapping_raw)
-    mapping_pid, mapping_base = _mapping_session(mapping)
-    archive_claims = _validate_candidate(selection, mapping_sha, mapping_pid, mapping_base)
+    mapping_pid, mapping_creation, mapping_base = _mapping_session(mapping)
+    archive_claims = _validate_candidate(
+        selection,
+        mapping_sha,
+        mapping_pid,
+        mapping_creation,
+        mapping_base,
+    )
     observer = _bind_observer(selection, observer_artifact_path)
     bound_archives = _bind_archives(archive_claims, archive_artifacts)
 
@@ -491,6 +528,7 @@ def build_bound_packet(
         },
         "archives": bound_archives,
         "pid": mapping_pid,
+        "process_creation_filetime": mapping_creation,
         "module_base": f"0x{mapping_base:X}",
         "trace_complete": True,
         "dropped_event_count": 0,
@@ -499,6 +537,7 @@ def build_bound_packet(
         "proves": [
             "selection-candidate-structure-matches-recovered-clean-path-policy",
             "mapping-reconstructs-from-supplied-process-window-receipts",
+            "mapping-and-selection-candidate-share-one-process-instance-identity",
             "candidate-hash-binds-exact-mapping-file",
             "observer-artifact-matches-declared-build-sha",
             "numbered-archive-artifacts-match-declared-sha-and-size",
