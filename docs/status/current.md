@@ -1,12 +1,12 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@4dd9f65ec36ce27127fa56eaf1f00879ed4087c8`  
+**Canonical implementation base:** `main@453373ff0977fc0aa1f6fab39273cdd9716da6af`  
+**Latest merged cross-layer reverse:** PR #228 — materialization-completion ordering/dependency bridge and `0x1402EF4D0` address-authority correction  
 **Latest merged status correction:** PR #233 — connected retail artifacts locatable; exact NBZ/member transfer remains blocked  
 **Latest merged L2 promotion:** PR #221 — selected-identity content-candidate / normalizer / artifact-binder tooling  
 **Latest merged L3 promotion:** PR #230 — R1 leaf/context and derived-record alias/release authority  
 **Active L2 hardening:** issue #229 / PR #236 — one-process-instance R2B/R3 evidence binding  
-**Independent focused reverse:** PR #228 — materialization-completion ordering/dependency bridge  
 **Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2/L3 support  
 **Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 STATIC/PRODUCT TOOLING ADVANCED BUT REAL R2B/TRUSTED R3 OPEN; L3 STATIC SPINE ADVANCED BUT DYNAMIC LEVEL-E OPEN; GDSpaces remains NOT COMPLETE.
 
@@ -89,16 +89,16 @@ Binary AFS and original-runtime PACK remain evidence-gated. Capcom offline write
 
 ## L1/L3 materialization-completion seam
 
-Merged #230 preserves the current scheduler/callback context authority. PR #228 independently narrows the remaining seam to the mechanism that prevents L3 state2 publication until required materialization work is valid.
+Merged PR #228 is now canonical cross-layer authority for the narrowed materialization-completion dependency seam. It preserves merged #230 scheduler/callback context authority, corrects the stale extra-zero `0x14002EF4D0` plan address to canonical `0x1402EF4D0`, and explicitly rejects an unevidenced generic fan-in/outstanding-work counter claim.
 
-Current focused targets are:
+The remaining focused reverse targets are:
 
 - `0x1402EF4D0` body/callees/queued materialization work and inherited load-context consumption;
 - `0x1402EF460` pending-entry clear/rollback semantics;
 - `0x1400335A0` transport error -> materialization/scheduler failure bridge;
 - `.lst` child failure/return ordering through `0x1401B85C0` only if loose-list scope is activated.
 
-No generic fan-in/outstanding-work counter is currently claimed. `0x1401B8CA0` remains an explicit mixed seam: L1 materialization result -> boolean success -> L3 state1 publication.
+`0x1401B8CA0` remains the explicit mixed seam: L1 materialization result -> boolean success -> L3 state1 publication. PR #228 narrows the question; it does not manufacture the still-missing dependency mechanism or dynamic original-process receipt.
 
 ## L2 current frontier
 
@@ -195,17 +195,17 @@ For the first vertical proof, L3 only needs enough trusted original-process obse
 
 ### L2 closure support
 
-1. complete and validate #229 process-instance v2 hardening without claiming trusted origin;
+1. finish exact-head validation and promotion of PR #236 as process-instance v2 tooling without trusted-origin claims;
 2. obtain real-retail member-list/central-directory evidence and run the `0x0E` collision census;
 3. capture one real protected-process R2B v2 multi-anchor packet;
-4. implement/use a trusted process-bound publisher that re-checks the exact process-instance identity;
+4. implement/use a trusted process-bound publisher that independently re-checks the exact process-instance identity around capture;
 5. capture trusted R3 selected-provider identity from that same process instance;
 6. bind observer + exact numbered NBZ artifacts and compare product resolution only after trusted origin is established;
 7. reconcile code/docs/evidence and run final L2 audit.
 
 ### L3 support
 
-1. finish the now-narrow residual static census without reopening already bounded core writer classes;
+1. continue from merged #228/#230 authority without reopening already bounded core writer or scheduler ABI classes;
 2. prioritize V1 initial load and V5 in-flight cancellation because they exercise the ready/cancellation boundaries needed by the first vertical proof;
 3. continue V2/V3/V4/V6/V7 breadth after the first same-resource vertical receipt.
 
@@ -221,6 +221,7 @@ The protected retail installation artifacts are **locatable** in the connected D
 - [Final pre-Level-E L1 audit](../gdspaces/l1-final-audit-2026-08-25.md)
 - [Connected retail access reconciliation](../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md)
 - [Three-layer master roadmap](../gdspaces/master-roadmap.md)
+- [Materialization completion boundary](../gdspaces/materialization-completion-boundary-pass-2026-08-26.md)
 - [L2 EXE reconciliation checkpoint](../gdspaces/l2-exe-reconciliation-2026-08-26.md)
 - [L2 selected-identity runbook](../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md)
 - [Blockers](blockers.md)
