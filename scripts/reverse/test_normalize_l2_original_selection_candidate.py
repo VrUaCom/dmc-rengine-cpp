@@ -30,8 +30,26 @@ def legacy() -> dict[str, object]:
         "basename": "st001.pac",
         "first_missing_archive_volume": 0,
         "archives": [],
-        "probes": [{"outcome": "selected"}],
-        "selected": {"provider": "physical"},
+        "probes": [
+            {
+                "sequence_index": 0,
+                "lookup_attempt_index": 6,
+                "provider": "physical",
+                "candidate": "GDataX360.afs/st001.pac",
+                "provider_key": "GDataX360.afs\\st001.pac",
+                "archive_volume_index": None,
+                "outcome": "selected",
+            }
+        ],
+        "selected": {
+            "provider": "physical",
+            "lookup_attempt_index": 6,
+            "candidate": "GDataX360.afs/st001.pac",
+            "provider_key": "GDataX360.afs\\st001.pac",
+            "archive_volume_index": None,
+            "archive_member_path": "",
+            "physical_relative_path": "GDataX360.afs/st001.pac",
+        },
         "proves": [
             "original-process-provider-traversal-prefix",
             "original-process-selected-resource-identity",
@@ -59,6 +77,8 @@ def main() -> None:
     assert "original-process-selected-resource-identity" not in value["proves"]
     assert "trusted-observer-execution-or-trace-origin" in value["does_not_prove"]
     assert "original-process-selected-provider-identity" in value["does_not_prove"]
+    assert set(value["selected"]) == normalizer.SELECTED_KEYS
+    assert set(value["probes"][0]) == normalizer.PROBE_KEYS
 
     wrong_schema = legacy()
     wrong_schema["schema"] = "other"
@@ -70,10 +90,22 @@ def main() -> None:
 
     forged_trust = legacy()
     forged_trust["promotion_eligible"] = True
-    rejected(forged_trust, "may not predeclare promotion/trust")
+    rejected(forged_trust, "unsupported field(s): promotion_eligible")
+
+    forged_top_level = legacy()
+    forged_top_level["trusted_origin"] = True
+    rejected(forged_top_level, "unsupported field(s): trusted_origin")
+
+    nested_extra = legacy()
+    selected = dict(nested_extra["selected"])
+    selected["trusted_origin"] = True
+    nested_extra["selected"] = selected
+    rejected(nested_extra, "legacy selected contains unsupported field(s): trusted_origin")
 
     nested_raw = legacy()
-    nested_raw["selected"] = {"debug": {"bytes_hex": "00"}}
+    selected = dict(nested_raw["selected"])
+    selected["debug"] = {"bytes_hex": "00"}
+    nested_raw["selected"] = selected
     rejected(nested_raw, "forbidden raw bytes_hex")
 
     missing = legacy()
