@@ -1,93 +1,122 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-26  
-**Canonical base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`
+**Snapshot date:** 2026-08-27  
+**Reconciled canonical main:** through merged PR #242 (`f886f27e62ec9a05b6829df7fd074981a06a4b49`)  
+**Pending branch truth:** #226, #238, #240, #241
 
 The project is tracked by subsystem/layer gates rather than one linear phase number.
 
 ## Foundation — maintained
 
-C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output infrastructure and guarded canonical-EXE window acquisition are maintained foundations.
+C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy and guarded output infrastructure are maintained foundations.
 
-## GDSpaces L1 — INTERNAL PRODUCT PATH CLOSED / FINAL ACCEPTANCE ACTIVE
+## GDSpaces L1 — ACTIVE PRIMARY / INTERNAL PRODUCT PATH CLOSED
 
 Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
 
-Mandatory acceptance sequence:
+Remaining sequence:
 
 ```text
-direct-retail member provenance
+exact real selected/member lineage
+ -> exact member materialization receipt
  -> representation classification
  -> real bounded edit
  -> bottom-up PAC/PNST rebuild
- -> next-volume NBZ publication/reopen
- -> exact authored rematerialization
- -> original-game consumption
+ -> next-volume NBZ publication/reopen/rematerialization
+ -> original-game consumption + rollback
+ -> final V:L1 acceptance audit
+```
+
+Internal NBZ/PAC/PNST materialization and authoring are not the primary blocker. The open work is real same-lineage evidence.
+
+Merged #233 proves protected `dmc3.exe` and the 960,358,951-byte `DMC3-0.nbz` are locatable. The connected materialization channel cannot ingest the full NBZ because of the observed 268,435,456-byte ceiling. This is transport/access scope, not archive absence or an L1 parser failure.
+
+Pocket GDS PR #2 and pending DMC Rengine PR #238 provide an out-of-band exact-member evidence bridge. It can narrow L1-C/D but does not replace protected selected-provider authority, real edit/rebuild closure, #209 consumption or rollback.
+
+### L1/L3 materialization completion seam — merged #230/#242
+
+Normal `0x1401B8DC0` receives one u32 registry-relative context and no raw transport status, error flag, byte count, FileSlot/ReadRequest handle or child/outstanding-work metadata. Lower transport/materialization success or failure must therefore already be terminal before normal state2 publication, or the completion must be suppressed/removed.
+
+FIFO insertion order alone is not a proven dependency barrier. The open seam is **materialization completion ordering / dependency bridge**, not a generic fan-in counter.
+
+Exact-byte priority:
+
+```text
+0x1402EF4D0 queued materialization job
+ -> relevant 0x1402EF790 persistence/re-poll/retirement case
+ -> reacquire historical 0x1400333E0 / 0x140033390 hypotheses
+ -> 0x1400335A0 transport terminal writes
+ -> identify incomplete/failure suppression of normal 0x1401B8DC0
+ -> 0x1402EF460 higher-scheduler clear/rollback
+ -> only then .lst recursive child failure ordering
+```
+
+This supporting reverse does not reopen closed L1 product materialization/authoring and does not make L3 complete.
+
+## GDSpaces L2 — ADVANCED SUPPORTING / REAL EVIDENCE + TOPOLOGY CORRECTION OPEN
+
+Merged slices:
+
+- #215: type-0 physical-provider final-open static reverse and product model;
+- #219: legacy runtime-window/mapping tooling;
+- #221: selected-provider content-candidate normalizer/validator/artifact binder;
+- #235: process-instance-bound R2B v2 with PID + creation FILETIME + module identity + seven canonical anchors.
+
+Open L2 gates:
+
+```text
+exact retail 0x0E collision census
+ -> issue #237 / pending PR #241 discovery-vs-successful-mount correction
+ -> real protected-process seven-anchor R2B v2 packet
+ -> trusted zero-loss R3 selected-provider capture
+ -> exact actually-successful archive/member binding
+ -> final L2 audit
+```
+
+Merged #235 confirms filename discovery and successful archive mounting are distinct. First missing filename bounds discovery only; an existing archive can fail registration while discovery continues, so successful mounts can be sparse. Successful archive registrations prepend, preserving higher successful volume -> lower successful volume -> physical precedence.
+
+## Original runtime / lifecycle L3 — ADVANCED STATIC SPINE / NOT COMPLETE
+
+Current vertical validation boundary:
+
+```text
+exact L2 selected identity
+ -> exact L1 materialized byte identity
+ -> L3 acquisition/state1
+ -> lower transport/materialization terminal condition
+ -> normal completion/state2
+ -> typed-ready/state3
+ -> deterministic consumer effect
  -> rollback
- -> final L1 acceptance audit
 ```
 
-Current main already contains the representative internal product path. Remaining completion gates are real-retail/original-process evidence, not another parser rewrite.
+Pending #240 proposes exact canonical `LoadedResource +0x04` writer census as `STATIC BOUNDED-CLOSED / APPROVED / CONTRADICTION-GATED`. Until merge this is branch truth. Even after promotion, R2-R5 and V1-V7 remain open.
 
-### Supporting EXE reverse — materialization completion dependency bridge
+No generic fan-in/outstanding-work field should be invented absent direct evidence.
 
-Merged #228 canonically replaced old generic `fan-in/completion` shorthand with the narrower **materialization completion ordering / dependency bridge**. Merged #230 further proves that normal `0x1401B8DC0` receives only one u32 registry-relative context and does not receive transport status/error/byte-count/outstanding-work metadata.
+## Validation V/LV — ACTIVE CROSS-CUTTING
 
-The follow-up pass therefore asks a small terminal-state question rather than searching for a generic child counter:
+Validation does not own resolution/materialization/lifecycle. It binds evidence across those owners and decides promotion.
 
-```text
-0x1402EF4D0 materialization job/submission
- -> lower whole-file/FileSlot transport
- -> terminal status / job-retirement condition
- -> queued 0x1401B8DC0(record-context)
- -> state2
-```
+The L1 completion verdict requires one reconciled lineage rather than independent PASS packets matched by filenames. V/LV is not L4.
 
-FIFO insertion order alone is not enough unless the earlier materialization job has completion-aware persistence/retirement semantics.
+## Resource Control Plane / grey boundary — DRAFT ORCHESTRATION, NOT L4
 
-Current raw-pass priority:
-
-```text
-0x1402EF4D0 queued job identity/type
- -> 0x1402EF790 materialization-job persistence/re-poll/retirement
- -> 0x1400333E0 historical status/poll anchor
- -> 0x140033390 historical terminal cleanup/release anchor
- -> 0x1400335A0 transport status/error writes
- -> 0x1402EF460 queued-completion suppression/rollback
- -> .lst child/recursive failure ordering after the direct-resource mechanism is closed
-```
-
-`0x1400333E0` and `0x140033390` remain reacquisition hypotheses until fresh canonical bytes confirm their exact historical roles. No generic fan-in counter is claimed.
-
-## GDSpaces L2 — ADVANCED / REAL EVIDENCE CLOSURE ACTIVE
-
-Type-0 post-`0x0C` static physical-provider behavior is no longer the primary gap. Current closure depends on real-retail collision evidence, protected-process RVA mapping and trusted selected-provider identity receipts.
-
-L2 may support the L1 vertical proof but does not substitute for L1 materialization acceptance.
-
-## Original runtime / lifecycle L3 — ADVANCED, NOT COMPLETE
-
-Static authority is strong for the central LoadedResource state spine, scheduler callback ABI, cancellation/quiescence/release distinctions and representative typed post-load families.
-
-The materialization completion bridge is cross-layer evidence: FileSlot byte-read mechanics may support L1, while FileSlot/AsyncIO request ownership/scheduling/callback lifecycle and LoadedResource states remain L3.
-
-Open L3 work is now residual static ownership/value-flow breadth plus trusted original-process lifecycle receipts.
+Draft #226 models request/dependency planning, pending/ready coordination, claims and transition control above the three execution layers. It may not move resource byte ownership, selection authority or lifecycle truth out of L1/L2/L3.
 
 ## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM
 
-Stage Ops owns product-side stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents that state. ModViz consumes it. None may create a private resource resolver or archive materializer.
-
-Major game-backed Stage Ops expansion should not displace GDS real acceptance or evidence-driven closure.
+Stage Ops consumes GDSpaces outputs and owns downstream assembly/orchestration. ModViz consumes Stage Ops state. None may create a private resolver/materializer. Major game-backed Stage Ops expansion must not displace L1 closure.
 
 ## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
-EXE Editor should expose one canonical recovered-source tree linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
+Recovered source must remain linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
 
 ## Long-term ordering
 
 ```text
-L1 real-retail/game-backed acceptance
- -> narrow L2 evidence closure
+L1 real-retail/original-game acceptance
+ -> narrow L2 real-evidence closure
  -> representative L3 dynamic lifecycle validation
  -> Stage Ops game-backed assembly
  -> semantic/editor verticals
@@ -96,4 +125,6 @@ L1 real-retail/game-backed acceptance
  -> working rebuilt executable milestones
 ```
 
-This ordering is dependency priority, not a ban on parallel evidence work.
+This is dependency priority, not a ban on parallel evidence work.
+
+No documentation update, synthetic CI result or pending PR creates an L1/L2/L3 COMPLETE claim by itself.
