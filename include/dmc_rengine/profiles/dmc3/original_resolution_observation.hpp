@@ -35,10 +35,11 @@ struct OriginalArchiveArtifactIdentity final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-// One directly observed provider operation from the protected original process.
+// One candidate provider operation shaped after the recovered original policy.
 // Archive candidates can emit several probes at the same lookup_attempt_index,
 // one per mounted volume in recovered highest-to-lowest precedence order.
-// Physical candidates emit exactly one probe.
+// Physical candidates emit exactly one probe. Structure alone is never trusted
+// original-process evidence; trusted origin belongs to the external binder gate.
 struct OriginalResolutionProbe final {
     std::size_t sequence_index{};
     std::size_t lookup_attempt_index{};
@@ -57,39 +58,29 @@ struct OriginalSelectedResourceIdentity final {
     std::string candidate;
     std::string provider_key;
 
-    // Archive selection authority.
     std::optional<std::uint32_t> archive_volume_index;
     std::string archive_member_path;
 
-    // Physical selection authority. This is the mounted-root-relative resource
-    // identity, not an absolute private workstation path.
+    // Mounted-root-relative resource identity, never a private absolute path.
     std::string physical_relative_path;
 
     [[nodiscard]] bool valid_shape() const noexcept;
 };
 
+// Content candidate shaped after one protected-process resolver observation.
+// This aggregate is intentionally forgeable for parser/contract tests, so
+// valid() means structural/content validity only. It must pass the external
+// normalization + artifact-backed + trusted-origin gates before promotion.
 struct OriginalResolutionObservation final {
-    // Must classify as the canonical protected-distribution/original-execution
-    // candidate, never the canonical analysis executable. Evidence serialization
-    // additionally requires canonical lowercase SHA-256 spelling.
     std::string executable_sha256;
     std::uint64_t executable_size{};
 
-    // SHA-256 of the already validated
-    // dmc-rengine.gdspaces-l2-runtime-mapping.v1 packet used to authorize these
-    // runtime probe locations. This binds the observation to mapping evidence;
-    // the acquisition pipeline still owns validation of that packet itself.
     std::string runtime_mapping_packet_sha256;
 
-    // Observer provenance. id/version are human-readable; build SHA is the exact
-    // binary/script/package identity used for the trace. Synthetic tests may use
-    // synthetic canonical hashes, but that never creates original-process evidence.
     std::string observer_id;
     std::string observer_version;
     std::string observer_build_sha256;
 
-    // Trace-integrity boundary. Any known event loss or an incomplete capture
-    // invalidates the observation rather than permitting a partial winner claim.
     bool trace_complete{};
     std::uint64_t dropped_event_count{};
 
@@ -99,7 +90,6 @@ struct OriginalResolutionObservation final {
     std::string request;
     std::string basename;
 
-    // Recovered numbered-volume bootstrap is contiguous [0, first_missing).
     std::uint32_t first_missing_archive_volume{};
     std::vector<OriginalArchiveArtifactIdentity> archives;
 
@@ -109,9 +99,9 @@ struct OriginalResolutionObservation final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-// Metadata-only public receipt. Raw executable/resource bytes and absolute
-// workstation paths are never serialized. Empty string means structural
-// validation failed.
+// Legacy metadata-only producer. The emitted v1 labels predate the trusted-origin
+// correction and are not promotion authority. Consumers must pass its output
+// through normalize_l2_original_selection_candidate.py before the binder.
 [[nodiscard]] std::string original_resolution_observation_to_json(
     const OriginalResolutionObservation& observation);
 
@@ -127,9 +117,9 @@ enum class OriginalProductComparisonStatus {
 [[nodiscard]] constexpr std::string_view to_string(
     OriginalProductComparisonStatus status) noexcept {
     switch (status) {
-    case OriginalProductComparisonStatus::matched: return "matched";
+    case OriginalProductComparisonStatus::matched: return "candidate-content-match";
     case OriginalProductComparisonStatus::invalid_original_observation:
-        return "invalid-original-observation";
+        return "invalid-content-candidate";
     case OriginalProductComparisonStatus::invalid_product_configuration:
         return "invalid-product-configuration";
     case OriginalProductComparisonStatus::product_not_resolved:
@@ -139,7 +129,7 @@ enum class OriginalProductComparisonStatus {
     case OriginalProductComparisonStatus::resource_identity_mismatch:
         return "resource-identity-mismatch";
     }
-    return "invalid-original-observation";
+    return "invalid-content-candidate";
 }
 
 struct OriginalProductResolutionComparison final {
@@ -147,16 +137,24 @@ struct OriginalProductResolutionComparison final {
         OriginalProductComparisonStatus::invalid_original_observation};
     std::string detail;
 
-    [[nodiscard]] bool matched() const noexcept {
+    // This is a content-only comparison. It is never a trusted/original-process
+    // evidence predicate and must not drive promotion.
+    [[nodiscard]] bool candidate_content_matched() const noexcept {
         return status == OriginalProductComparisonStatus::matched;
+    }
+
+    [[deprecated("matched() is candidate-content-only; it is not original-process evidence. Use candidate_content_matched().")]]
+    [[nodiscard]] bool matched() const noexcept {
+        return candidate_content_matched();
     }
 };
 
-// Compares only the selected identity. It never upgrades product probes into
-// original-process evidence and never treats a synthetic/product match as proof
-// that the original process emitted the observation.
+// Content-only helper for development diagnostics. It compares the candidate
+// selected identity with one product resolution result. It does not bind observer
+// artifacts, archive artifacts or trusted capture origin and therefore must never
+// be used as an R3 promotion predicate.
 [[nodiscard]] OriginalProductResolutionComparison compare_original_to_product(
-    const OriginalResolutionObservation& original,
+    const OriginalResolutionObservation& candidate,
     const RuntimeResolutionReport& product,
     const RuntimeSourceBindings& bindings) noexcept;
 
