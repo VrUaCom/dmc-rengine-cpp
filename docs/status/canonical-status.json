@@ -4,8 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "453373ff0977fc0aa1f6fab39273cdd9716da6af",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-real-same-lineage-acceptance-open-l2-real-evidence-closure-active",
+  "reconciled_main_sha": "a90b017ab29171e00174f2a56c719c32241a63f1",
+  "overall_status": "gdspaces-l1-internal-product-path-closed-real-same-lineage-acceptance-open-l2-real-evidence-and-topology-correction-active",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -38,17 +38,17 @@
       "nested-root-to-leaf-relative-slot-path-reflow",
       "byte-exact-untouched-sibling-preservation",
       "verified-immutable-nbz-copy-rebuild",
-      "numbered-volume-bootstrap-first-gap-and-precedence",
+      "numbered-volume-discovery-first-gap-clean-path",
       "direct-retail-resolver-based-member-acquisition",
       "next-contiguous-store-nbz-overlay-authoring",
-      "generated-overlay-runtime-resolver-selection",
+      "generated-overlay-runtime-resolver-selection-clean-path",
       "protected-dmc3-executable-authority-preflight",
       "protected-retail-product-authoring-closure-orchestration",
       "l2-type0-physical-provider-static-reverse",
       "l2-native-physical-path-product-model",
       "l2-controlled-physical-hit-miss-fallback-receipts",
-      "l2-protected-runtime-rva-window-acquisition",
-      "l2-bounded-multi-anchor-runtime-mapping-validator"
+      "l2-selected-provider-candidate-normalizer-validator-binder",
+      "l2-process-instance-bound-r2b-v2-tooling-seven-canonical-anchors"
     ],
     "external_evidence_surfaces": {
       "connected_drive_artifact_discovery": {
@@ -71,10 +71,12 @@
           "resource-identity",
           "byte-provenance",
           "exact-exported-member-sha-size",
-          "representation-classification"
+          "representation-classification",
+          "producer-build-and-native-snapshot-provenance"
         ],
         "cannot_prove_alone": [
           "protected-original-process-resolver-selection",
+          "successful-original-mount-topology",
           "protected-executable-authority",
           "original-game-consumption",
           "rollback-retail-immutability"
@@ -85,7 +87,7 @@
     "mandatory_L1_gates": [
       {"id": "L1-A", "name": "shared-atomic-no-replace-publication", "status": "closed-canonical"},
       {"id": "L1-B", "name": "artifact-stable-retail-member-acquisition", "status": "closed-canonical"},
-      {"id": "L1-C", "name": "same-lineage-selected-source-and-representative-member-provenance", "status": "implementation-closed-real-receipt-required-mobile-member-subreceipt-ready"},
+      {"id": "L1-C", "name": "same-lineage-selected-successful-source-and-representative-member-provenance", "status": "implementation-closed-real-receipt-required-mobile-member-subreceipt-ready"},
       {"id": "L1-D", "name": "exact-retail-representation-classification", "status": "real-receipt-required-mobile-execution-path-ready"},
       {"id": "L1-E", "name": "real-retail-bounded-edit-bottom-up-rebuild", "status": "product-implementation-closed-real-receipt-required"},
       {"id": "L1-F", "name": "real-next-volume-publication-canonical-reopen", "status": "product-implementation-closed-real-receipt-required"},
@@ -97,19 +99,29 @@
       "195-artifact-bound-member",
       "196-direct-retail-acquisition",
       "197-deflate-artifact-regression",
-      "198-first-gap-retail-read",
+      "198-clean-first-gap-retail-read-scope",
       "199-verified-nbz-copy-rebuild",
       "201-relative-slot-cli",
       "208-protected-retail-authoring-closure",
       "213-nested-slot-path-reflow",
       "215-l2-type0-physical-provider",
-      "219-l2-protected-runtime-mapping-tooling"
+      "219-l2-runtime-mapping-v1-tooling",
+      "221-l2-selected-provider-candidate-tooling",
+      "235-l2-r2b-v2-process-instance-tooling"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
       "compressed-seek-reset-0x140328FE0-complete-behavior",
       "malformed-partial-read-error-equivalence",
       "dynamic-lst-lifetime-error-cycle-and-real-corpus-if-loose-list-acceptance-is-claimed"
+    ],
+    "cross_stack_corrective_gates": [
+      {
+        "id": "L2-237",
+        "name": "separate-filename-discovery-from-successful-mounted-topology",
+        "status": "open-product-correction",
+        "l1_effect": "blocks-l1-only-if-selected-acceptance-lineage-relies-on-unresolved-mount-failure-topology"
+      }
     ],
     "non_blocking_evidence_gated_families": [
       "binary-afs-backend",
@@ -118,10 +130,10 @@
     ],
     "preferred_direct_retail_request_target": "obj\\em000.pac",
     "preferred_target_is_mandatory": false,
-    "member_identity_rule": "bind-exact-materialized-member-to-accepted-selected-provider-lineage-do-not-compose-by-filename-alone",
+    "member_identity_rule": "bind-exact-materialized-member-to-accepted-selected-successful-provider-lineage-do-not-compose-by-filename-alone",
     "external_environment_blocker": "retail-artifacts-locatable-but-full-960358951-byte-nbz-cannot-enter-connected-execution-container-through-268435456-byte-transfer-ceiling",
     "L2": {
-      "overall_status": "advanced-not-complete-real-retail-r2b-and-trusted-r3-evidence-open",
+      "overall_status": "advanced-not-complete-real-retail-r2b-v2-trusted-r3-and-topology-correction-open",
       "canonical_analysis_executable": {
         "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
         "size": 6356432,
@@ -135,19 +147,30 @@
       },
       "gates": [
         {"id": "L2-R1", "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model", "status": "closed-canonical-pr-215-issue-204"},
-        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "external-exact-member-surface-required-mobile-derivative-potentially-useful-if-archive-bound"},
-        {"id": "L2-R2B-TOOLING", "name": "protected-distribution-runtime-rva-mapping-tooling", "status": "closed-canonical-pr-219"},
-        {"id": "L2-R2B-EVIDENCE", "name": "real-protected-process-multi-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required"},
-        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-and-artifact-binder", "status": "candidate-tooling-real-trusted-origin-required"},
-        {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-and-trusted-publisher"},
-        {"id": "L2-R4", "name": "final-layer2-audit", "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"}
+        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "exact-archive-bound-member-surface-required"},
+        {"id": "L2-R2B-V2-TOOLING", "name": "process-instance-bound-canonical-artifact-derived-seven-anchor-runtime-mapping", "status": "closed-canonical-pr-235"},
+        {"id": "L2-R2B-V2-EVIDENCE", "name": "real-protected-process-seven-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required"},
+        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-validator-and-artifact-binder", "status": "closed-canonical-pr-221-candidate-only"},
+        {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-v2-and-trusted-publisher"},
+        {"id": "L2-TOPOLOGY", "name": "filename-discovery-vs-successful-mounted-set-product-model", "status": "open-issue-237"},
+        {"id": "L2-R4", "name": "final-layer2-audit", "status": "open-depends-on-retail-r2b-v2-r3-topology-and-ci-reconciliation"}
       ],
       "fresh_exe_review_2026_08_26": {
         "direct_callers_flags_1": true,
         "archive_normalization_flags": "0x0E",
         "physical_normalization_flags": "0x0C",
         "archive_lookup_hit_wrapper_failure_behavior": "terminal-null-cleanup-not-lower-volume-miss",
-        "r3_v1_provider_backend_failure_policy": "fail-closed"
+        "archive_index_equal_key_secondary_tie_break": false,
+        "filename_discovery_vs_successful_mount": "distinct-bootstrap-continues-after-existing-archive-mount-failure",
+        "clean_successful_mount_precedence": "higher-successful-volume-to-lower-successful-volume-to-physical",
+        "r3_clean_path_provider_backend_failure_policy": "fail-closed"
+      },
+      "r2b_v2": {
+        "process_instance_fields": ["pid", "process_creation_filetime", "module_base", "image_path"],
+        "canonical_anchor_count": 7,
+        "canonical_anchor_rvas": ["0x2FCA0", "0x326D20", "0x326DA0", "0x327430", "0x327800", "0x328160", "0x328290"],
+        "legacy_v1_promotion_authority": false,
+        "real_packet_status": "not-yet-acquired"
       },
       "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping",
       "candidate_rule": "self-authored-selection-json-is-content-candidate-only-until-normalized-artifact-bound-and-trusted-origin-bound"
@@ -155,18 +178,19 @@
   },
   "project_priority": [
     "real-device-or-protected-install-exact-member-materialization-receipt",
-    "bind-materialized-member-to-selected-provider-lineage",
+    "bind-materialized-member-to-selected-successful-provider-lineage",
     "exact-retail-representation-classification",
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
     "final-l1-cross-stack-v-audit",
+    "l2-product-topology-correction-issue-237",
     "l2-real-retail-collision-census",
-    "l2-real-protected-runtime-mapping-receipt",
+    "l2-real-protected-runtime-r2b-v2-receipt",
     "l2-trusted-runtime-publisher",
     "l2-original-process-selected-identity-receipt"
   ],
   "other_layers": {
-    "L2": "advanced-static-and-mapping-tooling-integrated-real-retail-r2b-r3-evidence-open",
+    "L2": "advanced-static-and-v2-mapping-tooling-integrated-real-retail-topology-r2b-r3-evidence-open",
     "L3": "advanced-static-spine-dynamic-level-e-open"
   },
   "navigation": {
