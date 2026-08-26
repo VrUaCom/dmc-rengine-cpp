@@ -21,6 +21,8 @@ jobs:
         run: python scripts/reverse/test_extract_exe_window_packet.py
       - name: Test L2 runtime mapping packet guardrails
         run: python scripts/reverse/test_verify_l2_runtime_mapping_packet.py
+      - name: Test L2 process-instance mapping v2 guardrails
+        run: python scripts/reverse/test_verify_l2_runtime_mapping_packet_v2.py
       - name: Test L2 legacy selection candidate normalization
         run: python scripts/reverse/test_normalize_l2_original_selection_candidate.py
       - name: Test L2 original selection evidence guardrails
