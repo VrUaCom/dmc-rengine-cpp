@@ -1,0 +1,130 @@
+#include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_bootstrap_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_lookup_policy.hpp"
+#include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
+
+#include <cassert>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+// The contracts state what the executable does. These check that the product
+// implementations actually behave that way — the compile-time assertions can
+// only prove the numbers agree, not that the code built from them produces the
+// recovered shape.
+
+namespace {
+
+namespace dmc3 = dmc::rengine::profiles::dmc3;
+
+void request_path_matches_the_recovered_shape() {
+    const auto plan = dmc3::ResourceLookupPolicy::plan("obj/em000.pac");
+    assert(plan.valid());
+    assert(plan.basename == "em000.pac");
+    assert(plan.attempts.size() ==
+        dmc3::OpenGameResourceContract::attempts_per_request);
+
+    // One complete archive pass over the six prefixes, then one physical pass
+    // over the same six, each carrying the mask its pass uses.
+    const auto& prefixes = dmc3::OpenGameResourceContract::namespace_prefixes;
+    for (std::size_t index = 0U; index < plan.attempts.size(); ++index) {
+        const auto& attempt = plan.attempts[index];
+        const auto pass = index / prefixes.size();
+        assert(attempt.attempt_index == index);
+        assert(attempt.prefix == prefixes[index % prefixes.size()]);
+        assert(attempt.provider_mask ==
+            dmc3::OpenGameResourceContract::provider_mask_for_pass(pass));
+        assert(attempt.candidate == attempt.prefix + plan.basename);
+    }
+
+    // The basename is taken after the last separator of either spelling, and
+    // its bytes are preserved: normalization belongs to the provider, later.
+    assert(dmc3::ResourceLookupPolicy::plan("A\\B/MiXeD.Pac").basename ==
+        "MiXeD.Pac");
+}
+
+void overflow_aborts_the_whole_request() {
+    // The recovered path builds the first and longest candidate first, and a
+    // candidate that will not fit the 0x400 destination releases the slot and
+    // returns the miss value. It does not try a shorter prefix, so the longest
+    // prefix alone fixes the largest basename the request can ever carry.
+    constexpr auto limit = dmc3::OpenGameResourceContract::max_basename_bytes();
+    assert(limit == 1009U);
+
+    const auto fits = dmc3::ResourceLookupPolicy::plan(std::string(limit, 'a'));
+    assert(fits.valid());
+    assert(fits.attempts.size() ==
+        dmc3::OpenGameResourceContract::attempts_per_request);
+
+    // One byte more overflows the first candidate. A plan with no attempts is
+    // the product's fail-closed spelling of the recovered abort, and it must
+    // not degrade into a shorter-prefix retry that would resolve something the
+    // original runtime never could.
+    const auto overflows =
+        dmc3::ResourceLookupPolicy::plan(std::string(limit + 1U, 'a'));
+    assert(!overflows.valid());
+    assert(overflows.attempts.empty());
+    assert(!dmc3::OpenGameResourceOverflowBehavior::advances_prefix_index);
+    assert(!dmc3::OpenGameResourceOverflowBehavior::enters_physical_pass);
+}
+
+void bootstrap_matches_the_recovered_shape() {
+    // Contiguous volumes register ascending and resolve descending, because
+    // every mount node is prepended.
+    const auto plan = dmc3::VolumeBootstrapPolicy::plan(
+        std::vector<std::uint32_t>{0U, 1U, 2U});
+    assert(plan.valid());
+    assert(plan.registered_archives.size() == 3U);
+    assert(plan.physical_root_registered_before_archives ==
+        dmc3::Dmc3ResourceBootstrapContract::physical_root_registered_first);
+    assert(plan.mount_list_is_prepend ==
+        dmc3::Dmc3ResourceBootstrapContract::mount_list_is_prepend);
+    assert((plan.archive_resolution_order ==
+        std::vector<std::uint32_t>{2U, 1U, 0U}));
+
+    for (const auto& volume : plan.registered_archives) {
+        assert(volume.resolution_rank ==
+            dmc3::Dmc3ResourceBootstrapContract::resolution_rank(
+                volume.index, 3U));
+    }
+
+    // Probing stops at the first gap; what lies past it is discovery evidence,
+    // never a mount the recovered runtime could reach.
+    const auto gapped = dmc3::VolumeBootstrapPolicy::plan(
+        std::vector<std::uint32_t>{0U, 2U});
+    assert(gapped.registered_archives.size() == 1U);
+    assert(gapped.first_missing_index == 1U);
+    assert((gapped.present_after_first_gap == std::vector<std::uint32_t>{2U}));
+
+    // `%d` is signed decimal, so a suffix past INT32_MAX is a file the product
+    // may find but not a name this runtime could have produced.
+    assert(dmc3::Dmc3ResourceBootstrapContract::in_runtime_index_domain(
+        dmc3::Dmc3ResourceBootstrapContract::runtime_index_max));
+    assert(!dmc3::Dmc3ResourceBootstrapContract::in_runtime_index_domain(
+        dmc3::Dmc3ResourceBootstrapContract::runtime_index_max + 1U));
+    assert(dmc3::VolumeBootstrapPolicy::volume_filename(
+        dmc3::Dmc3ResourceBootstrapContract::runtime_index_max) ==
+        "DMC3-2147483647.nbz");
+    assert(dmc3::VolumeBootstrapPolicy::volume_filename(
+        dmc3::Dmc3ResourceBootstrapContract::runtime_index_max + 1U).empty());
+}
+
+void contracts_are_bound_to_one_image() {
+    // Two contracts recovered from the same binary must say so identically.
+    // Addresses from different images cannot be reasoned about together, and
+    // an unbound address is a number rather than evidence.
+    assert(dmc3::OpenGameResourceContract::canonical_target_sha256 ==
+        dmc3::Dmc3ResourceBootstrapContract::canonical_target_sha256);
+    assert(dmc3::OpenGameResourceContract::image_base ==
+        dmc3::Dmc3ResourceBootstrapContract::image_base);
+}
+
+} // namespace
+
+int main() {
+    request_path_matches_the_recovered_shape();
+    overflow_aborts_the_whole_request();
+    bootstrap_matches_the_recovered_shape();
+    contracts_are_bound_to_one_image();
+    return 0;
+}

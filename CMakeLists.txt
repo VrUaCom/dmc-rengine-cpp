@@ -83,6 +83,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         next_volume_overlay_resolution
         resource_path_normalizer
         resource_lookup_policy
+        recovered_exe_contract
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
