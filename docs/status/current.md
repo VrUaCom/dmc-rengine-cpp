@@ -1,11 +1,10 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Latest L2 promotion:** PR #215 — type-0 physical-provider reverse/model/controlled receipts  
-**Active L2 evidence slice:** PR #219 — protected-runtime RVA mapping acquisition  
+**Canonical implementation base:** `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`  
+**Latest L2 promotions:** PR #215 — type-0 physical-provider reverse/model/controlled receipts; PR #219 — protected-runtime RVA mapping acquisition tooling  
 **Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven supporting reverse  
-**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 PHYSICAL-PROVIDER INTERNAL SLICE CLOSED; subsystem remains NOT COMPLETE pending real-retail/original-process receipts.
+**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 PHYSICAL-PROVIDER AND RUNTIME-MAPPING TOOLING SLICES CLOSED; subsystem remains NOT COMPLETE pending real-retail/original-process receipts.
 
 ## Authority split
 
@@ -116,12 +115,14 @@ Binary AFS and original-runtime PACK remain frozen absent direct evidence. Capco
 
 ## L2 current frontier
 
-The type-0 physical-provider static reverse and controlled product model are closed on `main` through #215/#204. Current L2 closure is split into independent evidence gates:
+The type-0 physical-provider static reverse and controlled product model are closed on `main` through #215/#204. Protected-runtime RVA mapping acquisition/tooling is also promoted on `main` through #219.
+
+Current L2 closure therefore requires **real evidence**, not more tooling promotion:
 
 1. **real-retail `0x0E` collision census** — externally blocked until an exact DMC3 retail central-directory/member-list surface is available;
-2. **protected-distribution runtime RVA mapping** — PR #219 implements explicit-PID, RVA-based, SHA/size-gated live acquisition plus bounded multi-anchor receipt validation; real original-process packet still required;
-3. **original-process selected-provider identity** — blocked by a valid runtime mapping packet;
-4. **final L2 audit** — only after retail corpus + original-process receipts and exact-head validation agree.
+2. **real protected-process multi-anchor RVA mapping receipt** using merged #219 tooling;
+3. **original-process selected-provider identity** after the mapping receipt is valid;
+4. **final L2 audit** after retail corpus + original-process receipts and exact-head validation agree.
 
 Authority identities:
 
@@ -162,7 +163,7 @@ Exact writer ownership/ordering and broader dynamic lifecycle receipts remain op
 ### L2 closure support
 
 1. obtain cryptographically bound retail DMC3 member-list/central-directory evidence and run the `0x0E` collision census;
-2. run PR #219 tooling against the exact protected process and produce a multi-anchor bounded mapping packet;
+2. use merged #219 tooling against the exact protected process and preserve a valid multi-anchor bounded mapping packet;
 3. use only proven mapped anchors to capture original-process resolver selection identity;
 4. reconcile code/docs/evidence and run final L2 audit.
 
@@ -172,7 +173,7 @@ No synthetic-only feature should displace the real evidence sequence unless a re
 
 The currently connected automation environment does not expose all exact raw protected-install artifacts required for the real-retail/original-process runs. Synthetic CI must not substitute for those receipts.
 
-Canonical-analysis EXE static reacquisition is now supported by the guarded packet tooling on `main`; use that path rather than ad hoc unbound byte windows.
+Canonical-analysis EXE static reacquisition is supported by the guarded packet tooling on `main`; use that path rather than ad hoc unbound byte windows.
 
 ## Navigation
 
