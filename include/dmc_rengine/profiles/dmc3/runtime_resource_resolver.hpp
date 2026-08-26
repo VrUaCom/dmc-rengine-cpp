@@ -24,29 +24,20 @@ struct ArchiveSourceBinding final {
 };
 
 struct RuntimeSourceBindings final {
+    // Empty iff the physical registration outcome is known to have failed.
     std::string physical_source_id;
     std::vector<ArchiveSourceBinding> archives;
 
-    [[nodiscard]] bool valid_for(const VolumeBootstrapPlan& bootstrap) const noexcept;
+    [[nodiscard]] bool valid_for(
+        const VolumeBootstrapPlan& discovery,
+        const RuntimeMountTopology& mounts) const noexcept;
     [[nodiscard]] const ArchiveSourceBinding* archive(
         std::uint32_t volume_index) const noexcept;
 };
 
 enum class RuntimeLookupEvidenceClass {
-    // The original ZIP/NBZ backend owns a normalized sorted lookup array and
-    // queries it after 0x0E normalization.
     recovered_archive_index,
-
-    // Product-native direct path lookup through an IDirectPathSource. On
-    // Windows LocalDirectorySource this follows the host filesystem path
-    // semantics rather than forcing archive-style key equality. It remains
-    // product-classified because containment hardening and non-Windows host
-    // behavior are intentionally not claimed as original CreateFileA parity.
     product_physical_native_path,
-
-    // Fallback for physical sources that do not expose direct path lookup.
-    // This is a source-derived 0x0C ResourceKeyIndex and is mechanically
-    // different from the recovered original direct path backend.
     product_physical_index,
 };
 
@@ -110,17 +101,15 @@ struct RuntimeResolutionReport final {
     }
 };
 
-// DMC3-profile composition layer. It owns recovered candidate/provider/source
-// traversal order. Archive ResourceKeyIndex values are derived inside resolve()
-// from the exact currently-mounted ISource enumeration. Physical sources may
-// additionally expose IDirectPathSource so the physical phase can use source-
-// native path lookup instead of forcing archive-style index equality. Exact
-// byte I/O remains in SourceRegistry/ISource.
+// DMC3-profile composition layer. Discovery and registration outcomes are
+// deliberately separate inputs: no filename-presence plan can manufacture a
+// successful mount. Archive traversal follows only RuntimeMountTopology.
 class RuntimeResourceResolver final {
 public:
     [[nodiscard]] static RuntimeResolutionReport resolve(
         std::string_view request,
-        const VolumeBootstrapPlan& bootstrap,
+        const VolumeBootstrapPlan& discovery,
+        const RuntimeMountTopology& mounts,
         const RuntimeSourceBindings& bindings,
         const gdspaces::SourceRegistry& sources);
 };
