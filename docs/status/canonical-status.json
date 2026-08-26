@@ -4,7 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "2ed43b438f1bf01638f3e56341e98f6085e5b0fd",
+  "snapshot_main_sha": "4dd9f65ec36ce27127fa56eaf1f00879ed4087c8",
+  "latest_merged_status_correction": "pr-233-connected-retail-artifacts-locatable-transfer-blocked",
   "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-real-evidence-process-instance-hardening-active-l3-dynamic-validation-open",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
@@ -18,6 +19,7 @@
     "roadmap": "../gdspaces/l1-roadmap.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
     "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
+    "connected_retail_access_reconciliation": "../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md",
     "completion_model": "mandatory-gates",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
     "canonical_capabilities": [
@@ -74,7 +76,8 @@
       "215-l2-type0-physical-provider",
       "219-l2-protected-runtime-mapping-tooling",
       "221-l2-selected-identity-content-candidate-normalizer-artifact-binder",
-      "230-l3-r1-leaf-derived-alias-authority"
+      "230-l3-r1-leaf-derived-alias-authority",
+      "233-connected-retail-artifact-access-reconciliation"
     ],
     "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
       "zip-stream-initializer-0x140328540-complete-body-lifetime",
@@ -91,7 +94,20 @@
     "preferred_direct_retail_request_target": "obj\\em000.pac",
     "preferred_target_is_mandatory": false,
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
-    "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
+    "connected_retail_access": {
+      "install_locatable": true,
+      "protected_dmc3_exe_locatable": true,
+      "dmc3_0_nbz_locatable": true,
+      "dmc3_0_nbz_observed_size": 960358951,
+      "archive_sha_authority_from_listing": false,
+      "raw_transfer_available": false,
+      "files_materialization_available": false,
+      "parsed_member_surface_available": false,
+      "separate_em000_provenance_derivative_found": false,
+      "blocker_class": "connected-large-file-transfer-materialization",
+      "required_next_seam": "direct-filesystem-canonical-acquisition-or-cryptographically-bound-exact-member-surface"
+    },
+    "external_environment_blocker": "retail-artifacts-locatable-but-960358951-byte-nbz-not-transferable-materializable-and-no-exact-member-surface-exposed",
     "L2": {
       "overall_status": "advanced-not-complete-real-retail-r2b-and-trusted-r3-evidence-open-process-instance-v2-hardening-active",
       "canonical_analysis_executable": {
@@ -107,10 +123,10 @@
       },
       "gates": [
         {"id": "L2-R1", "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model", "status": "closed-canonical-pr-215-issue-204"},
-        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "external-artifact-required"},
-        {"id": "L2-R2B-TOOLING", "name": "protected-distribution-runtime-rva-mapping-tooling", "status": "closed-canonical-pr-219-process-instance-v2-hardening-active-under-229"},
+        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "exact-member-surface-required-connected-transfer-blocked"},
+        {"id": "L2-R2B-TOOLING", "name": "protected-distribution-runtime-rva-mapping-tooling", "status": "closed-canonical-pr-219-process-instance-v2-hardening-active-pr-236"},
         {"id": "L2-R2B-EVIDENCE", "name": "real-protected-process-multi-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required-after-v2-hardening"},
-        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-and-artifact-binder", "status": "closed-canonical-pr-221-process-instance-v2-hardening-active-under-229"},
+        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-and-artifact-binder", "status": "closed-canonical-pr-221-process-instance-v2-hardening-active-pr-236"},
         {"id": "L2-R3-TRUSTED-PUBLISHER", "name": "trusted-process-bound-publisher-requeries-active-process-instance", "status": "open-issue-229"},
         {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-and-trusted-publisher"},
         {"id": "L2-R4", "name": "final-layer2-audit", "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"}
@@ -122,8 +138,9 @@
         "archive_lookup_hit_wrapper_failure_behavior": "terminal-null-cleanup-not-lower-volume-miss",
         "clean_path_provider_backend_failure_policy": "fail-closed"
       },
-      "process_instance_hardening_branch": {
+      "process_instance_hardening": {
         "issue": 229,
+        "pr": 236,
         "branch": "fix/gdspaces-process-instance-status-sync-2026-08-26",
         "status": "branch-truth-until-merged",
         "identity": "windows-getprocesstimes-creation-filetime",
@@ -150,8 +167,8 @@
     }
   },
   "project_priority": [
-    "finish-issue-229-process-instance-v2-hardening-without-trusted-origin-claim",
-    "direct-retail-provenance-receipt",
+    "finish-pr-236-process-instance-v2-hardening-without-trusted-origin-claim",
+    "direct-retail-provenance-receipt-via-direct-filesystem-or-exact-bound-member-surface",
     "exact-retail-representation-classification",
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
@@ -169,6 +186,7 @@
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
+    "l1_connected_retail_access": "../gdspaces/l1-connected-retail-access-reconciliation-2026-08-26.md",
     "l2_exe_reconciliation": "../gdspaces/l2-exe-reconciliation-2026-08-26.md",
     "l2_selected_identity_runbook": "../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md",
     "current_status": "current.md",
