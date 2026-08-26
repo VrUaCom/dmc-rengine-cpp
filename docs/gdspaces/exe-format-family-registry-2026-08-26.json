@@ -1,0 +1,146 @@
+{
+  "schema": "dmc-rengine.gdspaces.exe-format-family-registry.v1",
+  "snapshot_date": "2026-08-26",
+  "canonical_executable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "role": "instruction-reverse-authority"
+  },
+  "proof_classes": [
+    "raw_instruction",
+    "raw_catalog",
+    "raw_static_table",
+    "project_canonical_corpus",
+    "middleware_capability",
+    "excluded_nonresource"
+  ],
+  "master_catalog": {
+    "base_va": "0x140553050",
+    "entry_count": 4039,
+    "extension_counts": {
+      "pac": 3398,
+      "txt": 424,
+      "adx": 154,
+      "bin": 24,
+      "sfd": 19,
+      "mod": 4,
+      "ico": 3,
+      "tm2": 3,
+      "fon": 2,
+      "ptx": 2,
+      "phd": 1,
+      "tsb": 1,
+      "bd": 1,
+      "sys": 1,
+      "ptz": 1,
+      "afs": 1
+    }
+  },
+  "families": {
+    "F_ARCHIVE": ["NBZ", "ZIP", "AFS"],
+    "F_CONTAINER": ["PAC", "PNST", "LST"],
+    "F_MODEL_GEOMETRY_RENDER": ["MOD", "EFM", "SCM", "MRP", "SHW", "EFW", "EFE"],
+    "F_TEXTURE_IMAGE": ["PTX", "PTZ", "CLT@registry_a", "C1D", "TM2", "DDS", "ICO"],
+    "F_CLIP_TIMELINE_CONTROL": ["MOT", "MCV", "CAM", "HID", "CLT@registry_b", "TSC"],
+    "F_STAGE_GAMEPLAY_DATA": ["TXT", "BIN", "EventTbl", "LIG2", "ITM", "HITS$", "DCA"],
+    "F_AUDIO": ["ADX", "OGG", "VAGp", "PHD", "TSB", "BD", "SpuMap.bin", "sound-PAC-set"],
+    "F_VIDEO": ["SFD", "WMV", "PSS", "THP", "PAM", "XMV", "PMF", "AVI", "MPG", "BIK", "MP4"],
+    "F_SAVE_SYSTEM_UI": ["dmc3.sav", "options.sav", "icon.sys", "ICO@save", "FON"],
+    "F_SHADER_EMBEDDED": ["DXBC"]
+  },
+  "formats": [
+    {"id":"NBZ","family":"F_ARCHIVE","proof":["raw_instruction"],"identity":"DMC3-%d.nbz","status":"bounded","notes":"DMC3 numbered archive; classic ZIP-backed representation."},
+    {"id":"ZIP","family":"F_ARCHIVE","proof":["raw_instruction"],"status":"bounded","notes":"Transport representation inside NBZ; STORE/raw-DEFLATE members."},
+    {"id":"AFS","family":"F_ARCHIVE","proof":["raw_catalog","raw_static_table"],"status":"logical_legacy_only","notes":"GData*.afs namespaces/endof.afs do not prove an active physical AFS backend."},
+
+    {"id":"PAC","family":"F_CONTAINER","proof":["raw_instruction","raw_catalog","project_canonical_corpus"],"status":"bounded","magic":"PAC\\0","notes":"Relative-slot packed container; dominant logical catalog extension."},
+    {"id":"PNST","family":"F_CONTAINER","proof":["raw_instruction","project_canonical_corpus"],"status":"bounded","magic":"PNST","notes":"Recursive sparse-slot container."},
+    {"id":"LST","family":"F_CONTAINER","proof":["raw_instruction"],"status":"bounded_partial_grammar","notes":"Runtime fallback/manifest; supports dummy, nested lists, ordinary entry -> PAC rewrite."},
+
+    {"id":"MOD","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction","raw_catalog"],"status":"direct","magic":"MOD","registry_a_type":0},
+    {"id":"EFM","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction"],"status":"direct","magic":"EFM","registry_a_type":1},
+    {"id":"SCM","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction","project_canonical_corpus"],"status":"direct","magic":"SCM","registry_a_type":2},
+    {"id":"MRP","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction"],"status":"identity_closed_schema_open","magic":"MRP","registry_a_type":3},
+    {"id":"SHW","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction"],"status":"direct","magic":"SHW","registry_a_type":7},
+    {"id":"EFW","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction"],"status":"identity_closed_schema_open","notes":"Explicit central typed-dispatch terminal-prefix check."},
+    {"id":"EFE","family":"F_MODEL_GEOMETRY_RENDER","proof":["raw_instruction"],"status":"identity_closed_schema_open","notes":"Explicit central typed-dispatch terminal-prefix check."},
+
+    {"id":"PTX","family":"F_TEXTURE_IMAGE","proof":["raw_instruction","raw_catalog"],"status":"runtime_known_schema_partial","registry_a_type":4},
+    {"id":"PTZ","family":"F_TEXTURE_IMAGE","proof":["raw_catalog"],"status":"schema_open","notes":"basic.ptz logical identity."},
+    {"id":"CLT","family":"F_TEXTURE_IMAGE","proof":["raw_instruction"],"status":"contextual","loader_context":"registry_a","registry_a_type":5,"notes":"Do not classify by extension alone."},
+    {"id":"C1D","family":"F_TEXTURE_IMAGE","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_a","registry_a_type":6},
+    {"id":"TM2","family":"F_TEXTURE_IMAGE","proof":["raw_instruction","raw_catalog"],"status":"direct","magic":"TM2"},
+    {"id":"DDS","family":"F_TEXTURE_IMAGE","proof":["raw_instruction","project_canonical_corpus"],"status":"direct","magic":"DDS ","variants":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4U","BC4S","BC5U","BC5S","RGBG","GRGB","YUY2","DX10"]},
+    {"id":"ICO","family":"F_TEXTURE_IMAGE","proof":["raw_catalog"],"status":"catalog_and_save_member"},
+
+    {"id":"MOT","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_b","registry_b_type":0},
+    {"id":"MCV","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_b","registry_b_type":1},
+    {"id":"CAM","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_b","registry_b_type":2},
+    {"id":"HID","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_b","registry_b_type":3},
+    {"id":"CLT","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"contextual","loader_context":"registry_b","registry_b_type":4,"notes":"Same extension as Registry A, different manager context."},
+    {"id":"TSC","family":"F_CLIP_TIMELINE_CONTROL","proof":["raw_instruction"],"status":"schema_open","loader_context":"registry_b","registry_b_type":5},
+
+    {"id":"TXT","family":"F_STAGE_GAMEPLAY_DATA","proof":["raw_catalog","project_canonical_corpus"],"status":"contextual","variants":["localized_message","stage_main","stage_cfg","stage_effect"],"notes":"Do not assume one TXT grammar."},
+    {"id":"BIN","family":"F_STAGE_GAMEPLAY_DATA","proof":["raw_catalog","raw_static_table"],"status":"schema_qualified_only","notes":"Extension envelope for multiple unrelated tables."},
+    {"id":"EventTbl","family":"F_STAGE_GAMEPLAY_DATA","proof":["raw_catalog","raw_static_table"],"status":"identity_closed_schema_open","count":22,"logical_pattern":"EventTbl00.bin..EventTbl21.bin"},
+    {"id":"LIG2","family":"F_STAGE_GAMEPLAY_DATA","proof":["raw_instruction","project_canonical_corpus"],"status":"bounded_partial_schema","magic":"LIG2"},
+    {"id":"ITM","family":"F_STAGE_GAMEPLAY_DATA","proof":["project_canonical_corpus"],"status":"contextual_schema","notes":"ITM V1 placement format; no generic whole-image dispatcher claimed."},
+    {"id":"HITS$","family":"F_STAGE_GAMEPLAY_DATA","proof":["project_canonical_corpus"],"status":"bounded_partial_schema","magic":"HITS$","notes":"0x18060001 marker; 56-byte records."},
+    {"id":"DCA","family":"F_STAGE_GAMEPLAY_DATA","proof":["project_canonical_corpus"],"status":"bounded_partial_schema","magic":"DCA\\0","notes":"0x10 header; known 0x410 records in bounded samples."},
+
+    {"id":"ADX","family":"F_AUDIO","proof":["raw_catalog","raw_instruction"],"status":"logical_translated","catalog_count":154,"runtime_representation":"OGG"},
+    {"id":"OGG","family":"F_AUDIO","proof":["raw_static_table","raw_instruction"],"status":"runtime_physical","descriptor_table_va":"0x14055C610","descriptor_count":154,"descriptor_stride":16,"notes":"Filename + loopStartMs + loopEndMs."},
+    {"id":"VAGp","family":"F_AUDIO","proof":["raw_instruction"],"status":"legacy_supported","magic":"VAGp"},
+    {"id":"PHD","family":"F_AUDIO","proof":["raw_catalog"],"status":"schema_open"},
+    {"id":"TSB","family":"F_AUDIO","proof":["raw_catalog"],"status":"schema_open"},
+    {"id":"BD","family":"F_AUDIO","proof":["raw_catalog"],"status":"schema_open"},
+    {"id":"SpuMap.bin","family":"F_AUDIO","proof":["raw_catalog"],"status":"schema_open"},
+    {"id":"sound-PAC-set","family":"F_AUDIO","proof":["raw_instruction","raw_catalog"],"status":"container_backed_family","notes":"Stage/enemy/weapon/style sound resource sets; PAC remains container identity."},
+
+    {"id":"SFD","family":"F_VIDEO","proof":["raw_catalog","raw_instruction"],"status":"logical_translated","catalog_count":19,"runtime_representation":"WMV"},
+    {"id":"WMV","family":"F_VIDEO","proof":["raw_instruction","middleware_capability"],"status":"runtime_physical"},
+    {"id":"PSS","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"THP","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"PAM","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"XMV","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"PMF","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"AVI","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"MPG","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"BIK","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+    {"id":"MP4","family":"F_VIDEO","proof":["middleware_capability"],"status":"capability_only"},
+
+    {"id":"dmc3.sav","family":"F_SAVE_SYSTEM_UI","proof":["raw_instruction","project_canonical_corpus"],"status":"separately_canonical"},
+    {"id":"options.sav","family":"F_SAVE_SYSTEM_UI","proof":["raw_instruction"],"status":"filename_backend_identity"},
+    {"id":"icon.sys","family":"F_SAVE_SYSTEM_UI","proof":["raw_catalog","project_canonical_corpus"],"status":"legacy_save_member"},
+    {"id":"FON","family":"F_SAVE_SYSTEM_UI","proof":["raw_catalog"],"status":"font_resource"},
+
+    {"id":"DXBC","family":"F_SHADER_EMBEDDED","proof":["raw_static_table"],"status":"embedded_executable_data","notes":"Embedded shader bytecode; not an ordinary GDSpaces file request."}
+  ],
+  "classifier_precedence": [
+    "content_magic_or_signature",
+    "parent_container_member_lineage",
+    "original_loader_registry_context",
+    "logical_exe_catalog_identity",
+    "runtime_translation_identity",
+    "path_namespace_context",
+    "extension_fallback",
+    "unknown_fail_closed"
+  ],
+  "required_provenance": [
+    "logical_name",
+    "logical_extension",
+    "physical_source",
+    "physical_representation",
+    "parent_container_chain",
+    "content_magic",
+    "loader_context",
+    "format_family",
+    "format_variant",
+    "evidence_status"
+  ],
+  "explicit_exclusions": [
+    {"id":".index","proof":"excluded_nonresource","reason":"tool/extraction metadata, not original runtime resource format"},
+    {"id":"DLL/EXE/PDB/certificate/CRL/HTTP strings","proof":"excluded_nonresource","reason":"platform/build/debug data"},
+    {"id":"HLSL/FXH path strings","proof":"excluded_nonresource","reason":"no external file-load authority established"}
+  ]
+}
