@@ -11,10 +11,19 @@
     "scheduler rollback is not relabeled as OS-level AsyncIO cancellation",
     "state1/state2 are lifecycle states owned by L3 even when their ordering is supporting evidence for L1 materialization",
     "merged PR #230 scheduler ABI is current-main regression/context authority and is not re-opened by this plan; stale-base #227 is superseded",
+    "0x1400333E0 and 0x140033390 are historical Pass-90 reacquisition anchors until fresh canonical bytes confirm their exact polling/release roles",
     "successful byte-window acquisition alone does not prove original-process equivalence",
     "the protected distribution executable is not substituted for the canonical analysis executable"
   ],
   "windows": [
+    {
+      "id": "whole-file-load-state-release-140033390",
+      "va": "0x140033390",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Pass-2 primary support: reacquire the historical whole-file load-state release/close anchor and determine whether cleanup occurs only after terminal transfer state and before materialization scheduler-job retirement."
+    },
     {
       "id": "whole-file-transfer-submit-140033500",
       "va": "0x140033500",
@@ -30,6 +39,14 @@
       "mode": "probe",
       "issues": [100, 55],
       "purpose": "Priority support: reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and the exact upward error/status handoff."
+    },
+    {
+      "id": "whole-file-load-state-poll-1400333e0",
+      "va": "0x1400333E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Pass-2 primary support: reacquire the historical whole-file load-state polling/status helper, exact pending/success/error return domain and its use as a possible completion-aware scheduler-job terminal condition."
     },
     {
       "id": "async-read-submit-14002ea40",
@@ -53,7 +70,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55, 88],
-      "purpose": "Primary cross-layer target: close the materialization submission/scheduling wrapper body, callees, queued work ordering, failure return and inherited load-context consumption without assuming a fan-in counter."
+      "purpose": "Primary cross-layer target: close the materialization submission/scheduling wrapper body, callees, queued job identity, failure return and inherited load-context consumption; test completion-aware job persistence rather than assuming FIFO alone or a fan-in counter."
     },
     {
       "id": "scheduler-enqueue-1402ef580",
@@ -69,7 +86,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "Regression/context anchor: merged PR #230 proves one-argument dispatch through ECX and callback +0x08; use this window to test ordering relative to materialization work, not to re-prove the callback ABI."
+      "purpose": "Pass-2 primary scheduler target: retain merged #230 callback ABI as regression authority while identifying the materialization-job dispatch case, record persistence/re-poll behavior and exact terminal retirement condition."
     },
     {
       "id": "loaded-resource-cancel-writer-1401b8430",
@@ -93,7 +110,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Activated L1 target for loose-list scope: reacquire child submission return handling, recursive in-place population, temporary/failure cleanup and relationship to 2EF4D0 work ordering."
+      "purpose": "Activated L1 target for loose-list scope: reacquire child submission return handling, recursive in-place population, temporary/failure cleanup and relationship to the direct-resource completion-aware job model."
     },
     {
       "id": "loaded-resource-materialization-dispatch-1401b8ca0",
@@ -109,7 +126,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55, 217],
-      "purpose": "Regression/context anchor: merged current-main authority proves normal state2 publication, normal context ABI and that odd contexts are outside the canonical acquisition-registration domain."
+      "purpose": "Regression/context anchor: merged current-main authority proves normal state2 publication, one-u32 normal context ABI and that the normal callback itself does not receive raw transport status/error metadata."
     },
     {
       "id": "loaded-resource-state4-cleanup-1401b8f00",
