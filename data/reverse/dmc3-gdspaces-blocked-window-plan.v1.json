@@ -1,11 +1,35 @@
 {
   "schema": "dmc-rengine.exe-window-packet-plan.v1",
-  "id": "dmc3-hd-gdspaces-blocked-reverse-2026-08-25",
+  "id": "dmc3-hd-gdspaces-blocked-reverse-2026-08-26",
   "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "artifact_size": 6356432,
   "authority_role": "analysis-reverse",
   "window_size_policy": "Probe sizes are acquisition coverage only. They are not function-body sizes and must not be promoted as body boundaries.",
   "windows": [
+    {
+      "id": "whole-file-transfer-submit-140033500",
+      "va": "0x140033500",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Cross-layer support: reacquire caller-owned-destination whole-file transfer submission, offset/status/error behavior and its relationship to higher materialization completion."
+    },
+    {
+      "id": "whole-file-transport-callback-1400335a0",
+      "va": "0x1400335A0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Cross-layer support: reacquire lower transport callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and any upward handoff."
+    },
+    {
+      "id": "async-read-submit-14002ea40",
+      "va": "0x14002EA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire ReadRequest/FileSlot submission ownership and distinguish byte transport mechanics from request lifecycle."
+    },
     {
       "id": "physical-mount-add-140326d20",
       "va": "0x140326D20",
@@ -36,7 +60,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Recover the complete ZIP/inflater stream initializer lifetime and error contract."
+      "purpose": "Recover remaining ZIP/inflater stream initializer lifetime/error breadth only when a claimed compatibility boundary requires it."
     },
     {
       "id": "inflate-read-anchor-140328820",
@@ -44,7 +68,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Provide a known neighboring InflateRead anchor for cross-checking stream state and caller relationships."
+      "purpose": "Known neighboring InflateRead anchor for cross-checking stream state and caller relationships."
     },
     {
       "id": "zip-entry-read-anchor-140328f50",
@@ -52,7 +76,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Provide a known neighboring ZipEntryRead anchor for direct-vs-inflated member path reconciliation."
+      "purpose": "Known neighboring ZipEntryRead anchor for direct-vs-inflated member reconciliation."
     },
     {
       "id": "compressed-seek-reset-140328fe0",
@@ -60,23 +84,47 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Recover compressed seek/reset/reinflate ordering, reset state, discard loop and error behavior."
+      "purpose": "Recover remaining compressed seek/reset/reinflate error breadth only when required; reset+replay architecture is already strong."
     },
     {
-      "id": "lst-builder-anchor-14002da40",
+      "id": "lst-lower-helper-candidate-14002da40",
       "va": "0x14002DA40",
       "size": "0x400",
       "mode": "probe",
       "issues": [100, 55],
-      "purpose": "Reacquire the loose-container synthesis path for allocation/free/error/cycle follow-up without altering the already recovered static grammar."
+      "purpose": "Unresolved lower/helper candidate retained for direct body/caller classification; do not substitute it for the confirmed 0x1401B85C0 loose-container materializer."
     },
     {
-      "id": "shared-staging-helper-14002ef4d0",
-      "va": "0x14002EF4D0",
+      "id": "scheduler-pending-clear-1402ef460",
+      "va": "0x1402EF460",
       "size": "0x400",
       "mode": "probe",
-      "issues": [100, 55],
-      "purpose": "Reacquire the shared materialization/staging helper used around wrappers and loose-container paths."
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire scheduler pending-entry clear/rollback candidate and exact queue matching; do not relabel as OS-level AsyncIO cancellation."
+    },
+    {
+      "id": "materialization-submit-wrapper-1402ef4d0",
+      "va": "0x1402EF4D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire materialization submission/scheduling wrapper, callees and inherited load-context consumption. Corrected from the invalid extra-zero 0x14002EF4D0 plan entry."
+    },
+    {
+      "id": "scheduler-enqueue-1402ef580",
+      "va": "0x1402EF580",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire scheduler enqueue callback/context metadata and ordering around materialization completion."
+    },
+    {
+      "id": "scheduler-worker-1402ef790",
+      "va": "0x1402EF790",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire scheduler callback execution and slot-clear ordering to identify the actual completion dependency mechanism."
     },
     {
       "id": "loaded-resource-registry-init-1401b8380",
@@ -91,32 +139,48 @@
       "va": "0x1401B8430",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55],
-      "purpose": "Reacquire the canonical state-4 writer and exact ordering for state 1 or 2 -> 4 cancellation/invalidation."
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire canonical state-4 writer ordering for state1/state2 -> state4 and its relationship to scheduler rollback/deferred cleanup."
+    },
+    {
+      "id": "loaded-resource-quiescence-1401b84b0",
+      "va": "0x1401B84B0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Regression/reacquisition anchor for the canonical global quiescence predicate requiring all records to be in states 0 or 3."
     },
     {
       "id": "loaded-resource-acquire-1401b84e0",
       "va": "0x1401B84E0",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55],
-      "purpose": "Reacquire generic acquisition construction, +0x18/+0x20/+0x10 writer ordering, scheduling success and the state 0 -> 1 write."
+      "issues": [88, 55, 100],
+      "purpose": "Reacquire generic acquisition construction, materialization success gate, state1 publication and completion callback registration ordering."
+    },
+    {
+      "id": "lst-materializer-1401b85c0",
+      "va": "0x1401B85C0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Reacquire confirmed loose-container in-place materializer/recursive builder for child return/failure, temporary storage and completion-ordering follow-up without reopening grammar."
     },
     {
       "id": "loaded-resource-materialization-dispatch-1401b8ca0",
       "va": "0x1401B8CA0",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55],
-      "purpose": "Reacquire direct versus packed versus loose-list materialization dispatch and its return contract before state 1 is published."
+      "issues": [100, 88, 55],
+      "purpose": "Explicit L1/L3 seam: reacquire direct/packed/loose materialization mechanics and boolean return contract before L3 state1 publication."
     },
     {
       "id": "loaded-resource-completion-state1-to2-1401b8dc0",
       "va": "0x1401B8DC0",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55, 209],
-      "purpose": "Reacquire the normal completion callback, registry-relative context recovery and exact state 1 -> 2 write ordering."
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire normal completion callback, registry-relative context recovery, state1 -> state2 write and unusual tagged/sentinel branch without inventing semantics."
     },
     {
       "id": "loaded-resource-group4-wrapper-1401b8d60",
@@ -124,7 +188,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire the fixed group-4 singleton wrapper for state-3 reuse and family-specific selector/ownership writer census."
+      "purpose": "Reacquire fixed group-4 singleton wrapper for state3 reuse and family-specific selector/ownership writer census."
     },
     {
       "id": "loaded-resource-dynamic-pool-1401b8df0",
@@ -139,8 +203,8 @@
       "va": "0x1401B8F00",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55],
-      "purpose": "Reacquire deferred state-4 cleanup, exact state 4 -> 0 ordering and backing release ordering."
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire deferred state4 cleanup, exact state4 -> 0 ordering and backing release ordering."
     },
     {
       "id": "loaded-resource-group0-wrapper-1401b8f50",
@@ -148,7 +212,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire fixed group-0 state-3 reuse and family-specific selector/descriptor acquisition behavior for the R2 writer census."
+      "purpose": "Reacquire fixed group-0 state3 reuse and family-specific selector/descriptor acquisition behavior."
     },
     {
       "id": "loaded-resource-group3-wrapper-1401b8ff0",
@@ -156,7 +220,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire fixed group-3 state-3 reuse and family-specific selector/descriptor acquisition behavior for the R2 writer census."
+      "purpose": "Reacquire fixed group-3 state3 reuse and family-specific selector/descriptor acquisition behavior."
     },
     {
       "id": "loaded-resource-group1-wrapper-1401b90b0",
@@ -164,7 +228,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire fixed group-1 state-3 reuse and exact +0x08 family selector/index writer behavior."
+      "purpose": "Reacquire fixed group-1 state3 reuse and exact +0x08 family selector/index writer behavior."
     },
     {
       "id": "loaded-resource-group2-wrapper-1401b9160",
@@ -172,7 +236,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire fixed group-2 state-3 reuse and exact +0x08 family selector/index writer behavior."
+      "purpose": "Reacquire fixed group-2 state3 reuse and exact +0x08 family selector/index writer behavior."
     },
     {
       "id": "loaded-resource-group6-wrapper-1401b9270",
@@ -180,15 +244,15 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire fixed group-6 state-3 reuse and exact +0x08 family selector/index writer behavior."
+      "purpose": "Reacquire fixed group-6 state3 reuse and exact +0x08 family selector/index writer behavior."
     },
     {
       "id": "loaded-resource-state2-finalizer-1401b92d0",
       "va": "0x1401B92D0",
       "size": "0x400",
       "mode": "probe",
-      "issues": [88, 55, 209],
-      "purpose": "Reacquire the 363-record state-2 finalizer, typed post-load/callback sequence and exact state 2 -> 3 readiness write ordering."
+      "issues": [88, 55, 217],
+      "purpose": "Reacquire state2 finalizer, typed post-load/callback sequence and exact state2 -> state3 readiness ordering."
     },
     {
       "id": "loaded-resource-normal-release-1401b9530",
@@ -196,7 +260,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire ordinary owner-driven release, backing-release success dependency and conditional state -> 0 write ordering."
+      "purpose": "Reacquire ordinary owner-driven release, backing-release success dependency and conditional state -> 0 ordering."
     },
     {
       "id": "loaded-resource-group-reset-1401b9560",
@@ -220,7 +284,7 @@
       "size": "0x400",
       "mode": "probe",
       "issues": [88, 55],
-      "purpose": "Reacquire the recursive typed post-load dispatcher for exhaustive key/family/default/failure branch census."
+      "purpose": "Reacquire recursive typed post-load dispatcher for residual key/family/default/failure branch census."
     },
     {
       "id": "scm-post-load-1403051b0",
