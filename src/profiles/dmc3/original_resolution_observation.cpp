@@ -206,9 +206,10 @@ bool OriginalResolutionObservation::valid() const noexcept {
     if (!protected_execution_authority(*this) ||
         !canonical_sha256(runtime_mapping_packet_sha256) ||
         !bounded_metadata(observer_id) || !bounded_metadata(observer_version) ||
-        pid == 0U || module_base == 0U || flags != 1U || request.empty() ||
-        basename.empty() || !selected.has_value() ||
-        !selected->valid_shape() ||
+        !canonical_sha256(observer_build_sha256) || !trace_complete ||
+        dropped_event_count != 0U || pid == 0U || module_base == 0U ||
+        flags != 1U || request.empty() || basename.empty() ||
+        !selected.has_value() || !selected->valid_shape() ||
         first_missing_archive_volume > VolumeBootstrapPolicy::runtime_index_max() ||
         archives.size() != static_cast<std::size_t>(first_missing_archive_volume)) {
         return false;
@@ -314,6 +315,10 @@ std::string original_resolution_observation_to_json(
            << "\",\n"
            << "  \"observer_version\": \""
            << escape_json(observation.observer_version) << "\",\n"
+           << "  \"observer_build_sha256\": \""
+           << observation.observer_build_sha256 << "\",\n"
+           << "  \"trace_complete\": true,\n"
+           << "  \"dropped_event_count\": " << observation.dropped_event_count << ",\n"
            << "  \"pid\": " << observation.pid << ",\n"
            << "  \"module_base\": \"" << hex_u64(observation.module_base)
            << "\",\n"
