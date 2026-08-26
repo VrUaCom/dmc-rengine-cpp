@@ -34,6 +34,7 @@ int main() {
     const auto self = capture_main_module_window(current_pid, 0U, 2U);
     assert(self.ok());
     assert(self.window->pid == current_pid);
+    assert(self.window->process_creation_filetime != 0U);
     assert(!self.window->image_path.empty());
     assert(self.window->module_base != 0U);
     assert(self.window->rva == 0U);
@@ -41,6 +42,17 @@ int main() {
     assert(self.window->bytes.size() == 2U);
     assert(std::to_integer<unsigned char>(self.window->bytes[0]) == 'M');
     assert(std::to_integer<unsigned char>(self.window->bytes[1]) == 'Z');
+
+    // A second bounded read from the same live process must carry the same
+    // OS-derived process-instance identity. This is the evidence seam that
+    // later R2B mapping receipts use to reject PID reuse across launches.
+    const auto self_again = capture_main_module_window(current_pid, 0U, 2U);
+    assert(self_again.ok());
+    assert(self_again.window->pid == self.window->pid);
+    assert(self_again.window->process_creation_filetime ==
+           self.window->process_creation_filetime);
+    assert(self_again.window->module_base == self.window->module_base);
+    assert(self_again.window->image_path == self.window->image_path);
 #else
     const auto unsupported = capture_main_module_window(1U, 0U, 2U);
     assert(!unsupported.ok());
