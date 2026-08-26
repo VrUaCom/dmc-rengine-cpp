@@ -4,7 +4,7 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "c20544cfb7f3ddba69a128a88246550a35eb51c1",
+  "snapshot_main_sha": "eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc",
   "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-real-evidence-closure-active",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
@@ -100,41 +100,13 @@
         "instruction_reverse_authority": false
       },
       "gates": [
-        {
-          "id": "L2-R1",
-          "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model",
-          "status": "closed-canonical-pr-215-issue-204"
-        },
-        {
-          "id": "L2-R2A",
-          "name": "real-retail-0x0e-collision-census",
-          "status": "external-artifact-required"
-        },
-        {
-          "id": "L2-R2B-TOOLING",
-          "name": "protected-distribution-runtime-rva-mapping-tooling",
-          "status": "closed-canonical-pr-219"
-        },
-        {
-          "id": "L2-R2B-EVIDENCE",
-          "name": "real-protected-process-multi-anchor-runtime-mapping-receipt",
-          "status": "real-process-receipt-required"
-        },
-        {
-          "id": "L2-R3-TOOLING",
-          "name": "selected-provider-content-candidate-normalizer-and-artifact-binder",
-          "status": "active-pr-221-candidate-only"
-        },
-        {
-          "id": "L2-R3-EVIDENCE",
-          "name": "trusted-original-process-selected-provider-identity",
-          "status": "blocked-by-real-r2b-and-trusted-publisher"
-        },
-        {
-          "id": "L2-R4",
-          "name": "final-layer2-audit",
-          "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"
-        }
+        {"id": "L2-R1", "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model", "status": "closed-canonical-pr-215-issue-204"},
+        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "external-artifact-required"},
+        {"id": "L2-R2B-TOOLING", "name": "protected-distribution-runtime-rva-mapping-tooling", "status": "closed-canonical-pr-219"},
+        {"id": "L2-R2B-EVIDENCE", "name": "real-protected-process-multi-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required"},
+        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-and-artifact-binder", "status": "active-pr-221-candidate-only"},
+        {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-and-trusted-publisher"},
+        {"id": "L2-R4", "name": "final-layer2-audit", "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"}
       ],
       "fresh_exe_review_2026_08_26": {
         "direct_callers_flags_1": true,
