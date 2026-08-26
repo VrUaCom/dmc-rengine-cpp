@@ -26,6 +26,10 @@ enum class OriginalResolutionProbeOutcome {
     return "miss";
 }
 
+// Identity of one successfully mounted numbered archive. The archive index must
+// be below first_missing_archive_volume, but the mounted set is allowed to be a
+// strict subset of the discovered 0..first-missing-1 filenames because archive
+// initialization can fail without stopping later discovery/mount attempts.
 struct OriginalArchiveArtifactIdentity final {
     std::uint32_t volume_index{};
     std::string filename;
@@ -35,11 +39,12 @@ struct OriginalArchiveArtifactIdentity final {
     [[nodiscard]] bool valid() const noexcept;
 };
 
-// One candidate provider operation shaped after the recovered original policy.
-// Archive candidates can emit several probes at the same lookup_attempt_index,
-// one per mounted volume in recovered highest-to-lowest precedence order.
-// Physical candidates emit exactly one probe. Structure alone is never trusted
-// original-process evidence; trusted origin belongs to the external binder gate.
+// One actually executed candidate-provider operation shaped after the recovered
+// original policy. Archive candidates emit one probe per successfully mounted
+// archive in recovered mount-list precedence (highest successful discovery index
+// first). Discovered-but-failed archives do not become lookup probes. Physical
+// candidates emit exactly one probe. Structure alone is never trusted original-
+// process evidence; trusted origin belongs to the external publisher gate.
 struct OriginalResolutionProbe final {
     std::size_t sequence_index{};
     std::size_t lookup_attempt_index{};
@@ -93,7 +98,13 @@ struct OriginalResolutionObservation final {
     std::string request;
     std::string basename;
 
+    // Discovery stop: first numbered DMC3-N.nbz filename that was absent.
+    // This does NOT imply every lower discovered archive mounted successfully.
     std::uint32_t first_missing_archive_volume{};
+
+    // Successfully mounted numbered archives only, sorted by ascending volume
+    // index for deterministic serialization. Resolver traversal uses reverse
+    // order because successful registrations are prepended during bootstrap.
     std::vector<OriginalArchiveArtifactIdentity> archives;
 
     std::vector<OriginalResolutionProbe> probes;
@@ -103,8 +114,8 @@ struct OriginalResolutionObservation final {
 };
 
 // Metadata-only producer. The emitted v2 surface carries the process-instance
-// creation identity but remains non-trusted content. Consumers must pass its
-// output through normalize_l2_original_selection_candidate.py before binding.
+// creation identity and explicit mounted archive set but remains non-trusted
+// content. Consumers must normalize and artifact-bind it before promotion.
 [[nodiscard]] std::string original_resolution_observation_to_json(
     const OriginalResolutionObservation& observation);
 
