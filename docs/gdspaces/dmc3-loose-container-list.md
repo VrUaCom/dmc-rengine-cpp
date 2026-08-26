@@ -1,7 +1,7 @@
 # DMC3 `.lst` Loose-Container Reconstruction
 
 **Status:** canonical structural/runtime reconstruction at the evidenced scope; product safety guards remain explicitly separate.  
-**Reconciled:** 2026-08-26 against `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`.
+**Reconciled:** 2026-08-26 against `main@c20544cfb7f3ddba69a128a88246550a35eb51c1`.
 
 Canonical executable authority: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
 
@@ -13,7 +13,7 @@ Direct reverse anchors:
 - `.lst` extension rewrite helper `0x1401B9390`;
 - resource materialization submission/scheduling wrapper `0x1402EF4D0`.
 
-The three-pass L1 EXE reconciliation is maintained in `l1-exe-boundary-review-2026-08-26.md`.
+The canonical L1 EXE reconciliation is maintained in `l1-exe-boundary-review-2026-08-26.md`; the focused completion-ordering correction is in `l1-exe-materialization-completion-pass-2026-08-26.md`.
 
 ## Representation precedence
 
@@ -147,20 +147,28 @@ After layout planning, `0x1401B85C0` populates the already allocated parent dest
 
 Safe label for `0x1402EF4D0` is **resource materialization submission/scheduling wrapper**. It is not proven to be the final provider open, exact-path resolver or raw file reader.
 
-## Materialization completion / fan-in boundary
+## Materialization completion-ordering boundary
 
-The static grammar/layout is strong, but the exact parent-completion aggregation remains open.
+The static grammar/layout is strong, but the exact parent-completion dependency mechanism remains open.
 
 Transport completion callbacks such as `0x1400335A0(ticketId,userContext,errorFlag,bytesRead)` operate below the resource-level completion handoff. `0x1401B8DC0` is registered through scheduler helper `0x1402EF580` and publishes the normal LoadedResource `state 1 -> 2` completion.
 
-For `.lst` this leaves exact open questions:
+The higher scheduler layer is bounded by enqueue `0x1402EF580`, worker `0x1402EF790` and pending-entry clear/rollback `0x1402EF460`.
 
-- how multiple ordinary/packed child submissions are counted or aggregated;
+For `.lst`, current evidence does **not** prove an explicit child-count/outstanding-work fan-in counter. The correct open question is:
+
+> What ordering/dependency mechanism prevents parent state2 publication before every required child population is valid?
+
+Exact open questions:
+
+- whether ordinary/packed child submission is synchronous, queue-ordered or callback/dependency-driven at the relevant boundary;
+- whether an unobserved status/dependency object or explicit counter exists;
 - how recursive in-place child completion participates in parent completion;
 - what condition permits the parent resource-level state2 handoff;
 - how one-child transport/submission failure propagates;
 - whether partially populated parent bytes remain allocated/live on failure;
-- which cleanup path releases temporary list text and partially built state.
+- which cleanup path releases temporary list text and partially built state;
+- what higher scheduler rollback can and cannot cancel once lower transport has started.
 
 These are the highest-value remaining `.lst` L1 EXE reverse seams. They do not weaken the already recovered grammar/layout facts.
 
@@ -197,7 +205,8 @@ These safety rules must not be quoted as recovered original error semantics unti
 - exact temporary-buffer allocator/free path and failure cleanup remain unresolved;
 - exact original recursion-cycle/depth behavior remains unresolved;
 - exact malformed/truncated-list error propagation remains unresolved;
-- exact multi-child materialization fan-in/completion and transport-to-resource error mapping remain unresolved;
+- exact multi-child completion ordering/dependency mechanism and transport-to-resource error mapping remain unresolved;
+- a generic child/outstanding-work fan-in counter is **not evidenced**;
 - game-backed exact-build receipts remain separate from synthetic product regression.
 
 `.index` remains a separate external extraction/naming metadata family. It is not the original `.lst` runtime representation mechanism.
