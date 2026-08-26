@@ -16,6 +16,11 @@ The remaining P0 gates are evidence executions.
 
 **Status:** EXTERNAL REAL-RETAIL RECEIPT REQUIRED
 
+The acquisition and its receipt emitter are library code
+(`profiles::dmc3::RetailMemberAcquisition`), not command-only, so the receipt
+can be produced by whichever frontend actually reaches a retail installation.
+The remaining requirement is the run itself.
+
 Run the canonical direct-retail acquisition command against a protected DMC3 installation and preserve:
 
 - protected executable authority;
