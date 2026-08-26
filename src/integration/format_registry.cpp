@@ -214,13 +214,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "dds",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
-            .write_policy = ResourceWritePolicy::read_only,
+            .parser_id = "dmc3.dds-profile",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::working_copy_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::textures,
             .evidence_claim_ids = {},
-            .limitations = {"DDS is recognized, but texture editing/export is not yet integrated."},
+            .limitations = {
+                "The profile is the exact DMC3 header observed across the 154 descriptor-backed corpus images, not the DDS specification; a conformant DDS outside that profile is refused.",
+                "Only DXT1 and DXT5 with a full mip chain are covered.",
+                "The builder reconstructs the header deterministically from width, height and compression; it is not a general DDS encoder.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "ptx",
