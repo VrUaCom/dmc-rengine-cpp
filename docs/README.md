@@ -4,6 +4,7 @@
 
 - [Current project status](status/current.md)
 - [GDSpaces Layer 1 roadmap](gdspaces/l1-roadmap.md)
+- [GDSpaces L1/L2/L3 master roadmap](gdspaces/master-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
 - [GDSpaces contract](gdspaces-contract.md)
@@ -13,22 +14,34 @@
 - [Constitution](../.specify/memory/constitution.md)
 - [Contributing](../CONTRIBUTING.md)
 
-## Current execution authority
+## Current execution authority — 2026-08-27
 
-The primary execution program is **GDSpaces L1 — Resource Materialization**. Its completion authority is gate-based:
+The primary execution program is **GDSpaces L1 — final real same-lineage Resource Materialization acceptance**.
+
+Canonical current authority is reconciled through merged PR #242, with merged #233/#235 supporting access/L2 evidence. Open #226/#238/#240/#241 remain branch truth until merged.
+
+L1 completion remains gate-based:
 
 ```text
-publication integrity
- -> artifact-stable retail acquisition
- -> direct-retail provenance
+exact real selected/member lineage
+ -> exact materialized bytes + ByteProvenance
  -> representation classification
  -> real bounded edit/rebuild
- -> next-volume reopen/rematerialization
- -> original-game consumption
- -> final L1 acceptance audit
+ -> next-volume publication + canonical reopen/rematerialization
+ -> deterministic original-game consumer-visible effect
+ -> rollback
+ -> final cross-stack/V audit
 ```
 
-Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver progress, or structural parsing alone.
+Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver progress, structural parsing, a Pocket export or crash-free game launch alone.
+
+### Current cross-layer corrections
+
+- **#233 access:** protected `dmc3.exe` and executable-relative `data/dmc3/dmc3-0.nbz` are locatable; the NBZ is observed at 960,358,951 bytes while the connected raw materialization ceiling is 268,435,456 bytes. This is transport/access scope, not archive absence.
+- **#235 L2:** numbered filename discovery and actual successful mount topology are separate. The successful set may be sparse; successful mounts prepend, preserving higher successful volume -> lower successful volume -> physical precedence. Issue #237 / pending PR #241 owns the product correction.
+- **#230/#242 L1/L3:** normal `0x1401B8DC0` receives one u32 registry-relative context and cannot inspect raw transport success/error. Lower materialization must be terminal before normal state2 dispatch, or completion must be suppressed/removed. FIFO alone is not a proven barrier; no generic fan-in counter is claimed.
+- **pending #240 L3:** exact canonical `LoadedResource +0x04` R1 writer census may become static bounded-closed if merged, but R2-R5/V1-V7 remain open and L3 is not complete.
+- **draft #226 RCP:** Resource Control Plane is orthogonal orchestration, not L4; V/LV is cross-cutting validation/live observation, also not L4.
 
 ## Architecture and contracts
 
@@ -44,6 +57,9 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 
 - [GDSpaces contract](gdspaces-contract.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
+- [Canonical L1/L2/L3 master roadmap](gdspaces/master-roadmap.md)
+- [Materialization completion dependency Pass 2](gdspaces/materialization-completion-dependency-pass2-2026-08-26.md)
+- [L2 EXE reconciliation](gdspaces/l2-exe-reconciliation-2026-08-26.md)
 - [Layer classification](gdspaces/decompilation-layer-classification.md)
 - [Reverse progress scale](gdspaces/reverse-progress-scale.md) — planning aid only; roadmap gates control completion
 - [Resource classification](gdspaces/classification.md)
@@ -67,7 +83,7 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 - [PNST structural parser](formats/pnst-readonly-parser.md)
 - [Residual DMC3 format census — 2026-08-26](gdspaces/l3-residual-format-pass-2026-08-26.md)
 
-The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. It separates resource purpose, binary-schema maturity, original-runtime evidence and current clean-product support. Unknown families stay explicitly `RESEARCH_REQUIRED`; extensions and short ASCII hits are never promoted as semantic truth by themselves.
+The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. Unknown families stay explicitly `RESEARCH_REQUIRED`; extensions and short ASCII hits are never promoted as semantic truth by themselves.
 
 ### Stage and downstream tools
 
@@ -98,11 +114,13 @@ Recovered original-game functions/types/lifetime code belong to the Recovered Ga
 
 - [Current status](status/current.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
+- [Master L1/L2/L3 roadmap](gdspaces/master-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Phase map](status/phase-map.md)
 - [Blockers](status/blockers.md)
 - [Risk register](status/risks.md)
 - [Machine-readable status](status/canonical-status.json)
+- [Status system rules](status/README.md)
 - [Weekly reports](status/weekly/)
 - [Specifications](../specs/)
 
@@ -116,6 +134,8 @@ Research baselines and historical receipts remain useful evidence sources, but t
 - [Migrated findings](history/migrated-findings.md)
 - [Artifact registry](history/artifact-registry.md)
 
+Historical pass/audit documents are not silently rewritten to look current. New current truth is recorded by explicit reconciliation/addendum and synchronized current-status surfaces.
+
 ## Product ownership map
 
 - **GDSpaces — The Archive:** only product resource resolver/materializer/provenance authority.
@@ -127,6 +147,7 @@ Research baselines and historical receipts remain useful evidence sources, but t
 - **Stage Semantic Graph:** derived semantic/evidence representation of Stage Ops state.
 - **ModViz — The Observatory:** editor/visualization consumer.
 - **Build & Test Lab — The Trial Chamber:** reproducibility and behavioral validation.
+- **RCP / V / LV:** orthogonal orchestration/validation surfaces; not numbered execution layers.
 
 ## Status language
 
@@ -135,5 +156,6 @@ Research baselines and historical receipts remain useful evidence sources, but t
 - **confirmed / high / bounded:** reverse-evidence status, not subsystem completion;
 - **validated:** only the named bounded test/receipt scope;
 - **open / research required:** unresolved by direct evidence;
+- **pending / branch truth:** present in an unmerged PR, not current `main` authority;
 - **superseded / historical:** preserved for audit history but not current execution authority;
 - **complete:** allowed only after the applicable formal completion gate passes.

@@ -1,93 +1,106 @@
 {
-  "schema_version": 3,
-  "snapshot_date": "2026-08-26",
+  "schema_version": 4,
+  "snapshot_date": "2026-08-27",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "version": "0.2.0",
-  "snapshot_main_sha": "eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc",
-  "overall_status": "gdspaces-l1-internal-product-path-closed-external-acceptance-open-l2-real-evidence-closure-active",
+  "reconciled_main_authority": {
+    "through_pr": 242,
+    "merge_commit": "f886f27e62ec9a05b6829df7fd074981a06a4b49"
+  },
+  "overall_status": "gdspaces-l1-internal-product-path-closed-real-same-lineage-acceptance-open-l2-real-evidence-and-successful-mount-topology-correction-active-l3-static-spine-advanced-not-complete",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
     "reverse_evidence": "artifact-range-scope-bound",
     "synthetic_ci": "bounded-product-validation-not-original-game-equivalence",
+    "real_device_member_receipt": "exact-local-snapshot-member-materialization-evidence-not-original-process-selection-or-consumption",
     "level_e": "original-process-consumption-and-rollback-required"
+  },
+  "pending_prs": {
+    "226": "draft-resource-control-plane-grey-boundary-not-l4",
+    "238": "l1-pocket-real-device-member-evidence-reconciliation",
+    "240": "l3-r1-static-loadedresource-state-writer-census-review",
+    "241": "l2-discovery-vs-successful-mount-runtime-topology-product-correction"
   },
   "gdspaces": {
     "primary_execution_layer": "L1-resource-materialization-final-acceptance",
-    "roadmap": "../gdspaces/l1-roadmap.md",
-    "master_roadmap": "../gdspaces/master-roadmap.md",
-    "final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
-    "completion_model": "mandatory-gates",
+    "completion_model": "mandatory-same-lineage-gates-plus-final-v-verdict",
     "internal_product_path_status": "closed-for-current-representative-dmc3-hd-acceptance-scope",
-    "canonical_capabilities": [
-      "nbz-classic-zip-indexing",
-      "nbz-store-materialization",
-      "nbz-raw-deflate-materialization",
-      "byte-provenance",
-      "artifact-bound-nbz-serialization-and-member-observation",
-      "atomic-no-replace-publication",
-      "pac-relative-slot-structural-parsing",
-      "pnst-relative-slot-structural-parsing",
-      "pnst-structural-classification-hardening",
-      "recursive-pac-pnst-expansion",
-      "same-size-relative-slot-authoring",
-      "bounded-size-changing-relative-slot-reflow",
-      "nested-root-to-leaf-relative-slot-path-reflow",
-      "byte-exact-untouched-sibling-preservation",
-      "verified-immutable-nbz-copy-rebuild",
-      "numbered-volume-bootstrap-first-gap-and-precedence",
-      "direct-retail-resolver-based-member-acquisition",
-      "next-contiguous-store-nbz-overlay-authoring",
-      "generated-overlay-runtime-resolver-selection",
-      "protected-dmc3-executable-authority-preflight",
-      "protected-retail-product-authoring-closure-orchestration",
-      "l2-type0-physical-provider-static-reverse",
-      "l2-native-physical-path-product-model",
-      "l2-controlled-physical-hit-miss-fallback-receipts",
-      "l2-protected-runtime-rva-window-acquisition",
-      "l2-bounded-multi-anchor-runtime-mapping-validator"
-    ],
+    "external_evidence_surfaces": {
+      "connected_drive_artifact_discovery": {
+        "protected_dmc3_exe_locatable": true,
+        "dmc3_0_nbz_locatable": true,
+        "dmc3_0_nbz_observed_size": 960358951
+      },
+      "connected_raw_transfer": {
+        "full_dmc3_0_nbz_transferable": false,
+        "observed_ceiling_bytes": 268435456,
+        "blocker_class": "transport-materialization-not-artifact-discovery"
+      },
+      "pocket_gdspace_member_evidence": {
+        "receipt_schema": "gdspaces.l1.member-acquisition-receipt.v1",
+        "dmc_rengine_reconciliation_pr": 238,
+        "can_prove": [
+          "sha-bound-local-nbz-snapshot-identity",
+          "canonical-member-materialization",
+          "resource-identity",
+          "byte-provenance",
+          "exact-exported-member-sha-size",
+          "representation-classification",
+          "producer-build-and-native-snapshot-provenance"
+        ],
+        "cannot_prove_alone": [
+          "protected-original-process-resolver-selection",
+          "successful-original-mount-topology",
+          "protected-executable-authority",
+          "original-game-consumption",
+          "rollback-retail-immutability"
+        ],
+        "real_receipt_status": "operator-execution-required"
+      }
+    },
     "mandatory_L1_gates": [
       {"id": "L1-A", "name": "shared-atomic-no-replace-publication", "status": "closed-canonical"},
       {"id": "L1-B", "name": "artifact-stable-retail-member-acquisition", "status": "closed-canonical"},
-      {"id": "L1-C", "name": "direct-retail-representative-member-provenance", "status": "implementation-closed-real-receipt-required"},
-      {"id": "L1-D", "name": "direct-retail-representation-classification", "status": "real-receipt-required"},
+      {"id": "L1-C", "name": "same-lineage-selected-successful-source-and-representative-member-provenance", "status": "implementation-closed-real-receipt-required"},
+      {"id": "L1-D", "name": "exact-retail-representation-classification", "status": "real-receipt-required"},
       {"id": "L1-E", "name": "real-retail-bounded-edit-bottom-up-rebuild", "status": "product-implementation-closed-real-receipt-required"},
       {"id": "L1-F", "name": "real-next-volume-publication-canonical-reopen", "status": "product-implementation-closed-real-receipt-required"},
       {"id": "L1-G", "name": "original-dmc3-consumption-and-rollback-receipt", "status": "open-external-level-e-issue-209"},
-      {"id": "L1-H", "name": "final-cross-stack-l1-acceptance-audit", "status": "open-depends-on-real-receipts"}
+      {"id": "L1-H", "name": "final-cross-stack-l1-acceptance-audit", "status": "open-depends-on-same-lineage-real-receipts-and-v-verdict"}
     ],
-    "closed_promotion_chain": [
-      "194-atomic-publication",
-      "195-artifact-bound-member",
-      "196-direct-retail-acquisition",
-      "197-deflate-artifact-regression",
-      "198-first-gap-retail-read",
-      "199-verified-nbz-copy-rebuild",
-      "201-relative-slot-cli",
-      "208-protected-retail-authoring-closure",
-      "213-nested-slot-path-reflow",
-      "215-l2-type0-physical-provider",
-      "219-l2-protected-runtime-mapping-tooling"
-    ],
-    "supporting_exe_reverse_gaps_bounded_nonblocking_unless_activated": [
-      "zip-stream-initializer-0x140328540-complete-body-lifetime",
-      "compressed-seek-reset-0x140328FE0-complete-behavior",
-      "malformed-partial-read-error-equivalence",
-      "dynamic-lst-lifetime-error-cycle-and-real-corpus-if-loose-list-acceptance-is-claimed"
-    ],
-    "non_blocking_evidence_gated_families": [
-      "binary-afs-backend",
-      "pack-original-runtime-authority",
-      "capcom-offline-writer-equivalence"
-    ],
-    "preferred_direct_retail_request_target": "obj\\em000.pac",
-    "preferred_target_is_mandatory": false,
-    "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
-    "external_environment_blocker": "exact-raw-protected-dmc3-install-artifacts-not-fully-exposed-to-connected-automation-environment",
+    "materialization_completion_dependency": {
+      "status": "bounded-static-open-mechanism",
+      "canonical_authority_prs": [230, 242],
+      "normal_completion_callback": "0x1401B8DC0",
+      "normal_context": "u32-record-offset-from-0x140C99D30",
+      "normal_context_record_stride": "0x48",
+      "record_count": 363,
+      "callback_does_not_receive": [
+        "raw-transport-status",
+        "error-flag",
+        "bytes-read",
+        "fileslot-readrequest-handle",
+        "child-or-outstanding-work-metadata"
+      ],
+      "required_property": "lower-materialization-terminal-success-or-failure-established-before-normal-state2-dispatch-or-queued-completion-suppressed",
+      "rejected_or_unproven_models": [
+        "generic-original-fan-in-counter",
+        "fifo-insertion-order-alone-as-sufficient-dependency-barrier"
+      ],
+      "exact_byte_priority": [
+        "0x1402EF4D0-queued-materialization-job",
+        "0x1402EF790-materialization-persistence-repoll-retirement",
+        "0x1400333E0-reacquire-status-poll-hypothesis",
+        "0x140033390-reacquire-terminal-cleanup-release-hypothesis",
+        "0x1400335A0-transport-terminal-writes",
+        "identify-normal-0x1401B8DC0-incomplete-failure-prevention",
+        "0x1402EF460-higher-scheduler-clear-rollback-completion-suppression",
+        "lst-child-recursive-failure-ordering-after-direct-mechanism"
+      ]
+    },
     "L2": {
-      "overall_status": "advanced-not-complete-real-retail-r2b-and-trusted-r3-evidence-open",
+      "overall_status": "advanced-not-complete-real-retail-r2b-v2-trusted-r3-collision-and-successful-mount-topology-evidence-open",
       "canonical_analysis_executable": {
         "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
         "size": 6356432,
@@ -100,49 +113,73 @@
         "instruction_reverse_authority": false
       },
       "gates": [
-        {"id": "L2-R1", "name": "type0-physical-provider-post-0x0c-static-reverse-and-product-model", "status": "closed-canonical-pr-215-issue-204"},
-        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "external-artifact-required"},
-        {"id": "L2-R2B-TOOLING", "name": "protected-distribution-runtime-rva-mapping-tooling", "status": "closed-canonical-pr-219"},
-        {"id": "L2-R2B-EVIDENCE", "name": "real-protected-process-multi-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required"},
-        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-and-artifact-binder", "status": "active-pr-221-candidate-only"},
-        {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-and-trusted-publisher"},
-        {"id": "L2-R4", "name": "final-layer2-audit", "status": "open-depends-on-real-retail-r2b-and-trusted-r3-receipts"}
+        {"id": "L2-R1", "name": "type0-physical-provider-static-reverse-and-product-model", "status": "closed-canonical-pr-215"},
+        {"id": "L2-R2A", "name": "real-retail-0x0e-collision-census", "status": "exact-archive-bound-member-surface-required"},
+        {"id": "L2-R2B-V2-TOOLING", "name": "process-instance-bound-seven-anchor-runtime-mapping", "status": "closed-canonical-pr-235"},
+        {"id": "L2-R2B-V2-EVIDENCE", "name": "real-protected-process-seven-anchor-runtime-mapping-receipt", "status": "real-process-receipt-required"},
+        {"id": "L2-R3-TOOLING", "name": "selected-provider-content-candidate-normalizer-validator-binder", "status": "closed-canonical-pr-221-candidate-only"},
+        {"id": "L2-R3-EVIDENCE", "name": "trusted-original-process-selected-provider-identity", "status": "blocked-by-real-r2b-v2-and-trusted-publisher"},
+        {"id": "L2-TOPOLOGY", "name": "filename-discovery-vs-successful-mounted-set-product-model", "status": "issue-237-open-pr-241-pending"},
+        {"id": "L2-R4", "name": "final-layer2-audit", "status": "open"}
       ],
-      "fresh_exe_review_2026_08_26": {
-        "direct_callers_flags_1": true,
-        "archive_normalization_flags": "0x0E",
-        "physical_normalization_flags": "0x0C",
-        "archive_lookup_hit_wrapper_failure_behavior": "terminal-null-cleanup-not-lower-volume-miss",
-        "r3_v1_provider_backend_failure_policy": "fail-closed"
+      "mount_topology": {
+        "discovery_and_successful_mounts_are_distinct": true,
+        "first_missing_filename_bounds": "discovery-only",
+        "successful_set_can_be_sparse": true,
+        "successful_archive_registration_behavior": "prepend",
+        "successful_precedence": "higher-successful-volume-to-lower-successful-volume-to-physical",
+        "active_product_implementation_pr": 241,
+        "pr_241_canonical_main": false
       },
-      "authority_rule": "canonical-analysis-va-rva-locators-must-not-be-applied-to-protected-process-without-independent-runtime-mapping",
-      "candidate_rule": "self-authored-selection-json-is-content-candidate-only-until-normalized-artifact-bound-and-trusted-origin-bound"
+      "r2b_v2": {
+        "process_instance_fields": ["pid", "process_creation_filetime", "module_base", "image_path"],
+        "canonical_anchor_count": 7,
+        "canonical_anchor_rvas": ["0x2FCA0", "0x326D20", "0x326DA0", "0x327430", "0x327800", "0x328160", "0x328290"],
+        "legacy_v1_promotion_authority": false,
+        "real_packet_status": "not-yet-acquired"
+      }
+    },
+    "L3": {
+      "overall_status": "advanced-static-spine-not-complete",
+      "pending_r1_review_pr": 240,
+      "r1_pending_claim": "static-bounded-closed-approved-contradiction-gated-for-exact-canonical-loadedresource-plus0x04-writer-census",
+      "r1_claim_is_main_truth": false,
+      "remaining_after_r1": ["R2", "R3", "R4", "R5", "V1", "V2", "V3", "V4", "V5", "V6", "V7"],
+      "minimum_l1_dependency": "prove-exact-authored-materialized-bytes-reach-intended-original-consumer-without-claiming-full-l3-completion"
+    },
+    "control_and_validation_planes": {
+      "resource_control_plane": {
+        "pr": 226,
+        "status": "draft-pending",
+        "classification": "orthogonal-orchestration-not-l4"
+      },
+      "validation_v_lv": {
+        "classification": "cross-cutting-validation-not-l4",
+        "completion_authority": "final-gate-verdict-only"
+      }
     }
   },
   "project_priority": [
-    "direct-retail-provenance-receipt",
+    "real-device-or-protected-install-exact-member-materialization-receipt",
+    "bind-materialized-member-to-selected-successful-provider-lineage",
     "exact-retail-representation-classification",
     "representative-real-edit-rebuild-rematerialization-receipt",
     "issue-209-original-dmc3-consumption-and-rollback",
-    "final-l1-cross-stack-audit",
-    "l2-pr-221-candidate-tooling-promotion",
+    "final-l1-cross-stack-v-audit",
+    "merge-or-reconcile-pr-241-successful-mount-topology-correction",
     "l2-real-retail-collision-census",
-    "l2-real-protected-runtime-mapping-receipt",
-    "l2-trusted-runtime-publisher",
-    "l2-original-process-selected-identity-receipt"
+    "l2-real-protected-runtime-r2b-v2-receipt",
+    "l2-trusted-runtime-selected-identity-receipt",
+    "l3-materialization-terminal-condition-dependency-byte-closure",
+    "review-and-promote-pr-240-r1-only-if-no-contradiction"
   ],
-  "other_layers": {
-    "L2": "advanced-static-and-mapping-tooling-integrated-real-retail-r2b-r3-evidence-open",
-    "L3": "advanced-static-spine-dynamic-level-e-open"
-  },
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
-    "l1_final_pre_level_e_audit": "../gdspaces/l1-final-audit-2026-08-25.md",
-    "l2_exe_reconciliation": "../gdspaces/l2-exe-reconciliation-2026-08-26.md",
-    "l2_selected_identity_runbook": "../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md",
+    "master_roadmap": "../gdspaces/master-roadmap.md",
+    "materialization_completion_dependency": "../gdspaces/materialization-completion-dependency-pass2-2026-08-26.md",
     "current_status": "current.md",
     "blockers": "blockers.md",
-    "master_roadmap": "../gdspaces/master-roadmap.md",
-    "gdspaces_contract": "../gdspaces-contract.md"
+    "phase_map": "phase-map.md",
+    "risks": "risks.md"
   }
 }

@@ -1,10 +1,11 @@
 # GDSpaces Layer 1 Roadmap
 
-**Status:** INTERNAL PRODUCT PATH CLOSED / EXTERNAL ACCEPTANCE OPEN  
-**Snapshot date:** 2026-08-25  
-**Canonical implementation base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`  
+**Status:** INTERNAL PRODUCT PATH CLOSED / REAL ACCEPTANCE OPEN  
+**Snapshot date:** 2026-08-27  
+**Reconciled canonical main:** through merged PR #242 (`f886f27e62ec9a05b6829df7fd074981a06a4b49`)  
 **Primary tracking:** #100, #182, #209  
-**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`
+**Final pre-Level-E audit:** `l1-final-audit-2026-08-25.md`  
+**Materialization dependency authority:** `materialization-completion-dependency-pass2-2026-08-26.md`
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
@@ -12,12 +13,14 @@ L1 answers:
 
 > Can DMC Rengine obtain the exact bytes selected for a DMC3 resource, preserve their provenance, safely edit an evidenced representation, rebuild the required nested container/archive stack, reopen/rematerialize the authored result, and prove that the original protected game consumed those authored bytes?
 
-Synthetic tests, a working resolver, a valid parser or a crash-free game launch are not sufficient for `L1 COMPLETE`.
+Synthetic tests, a working resolver, a valid parser, a successful mobile archive open or a crash-free game launch are not sufficient for `L1 COMPLETE`.
+
+Open PRs #226, #238, #240 and #241 remain branch truth until merged. Their findings may support planning but may not be described as current-main implementation authority.
 
 ## 1. Canonical L1 boundary
 
 ```text
-physical source bytes
+selected physical source identity
  -> archive/container identity
  -> exact member/span acquisition
  -> transform/decompression
@@ -30,120 +33,180 @@ physical source bytes
  -> canonical resolver/reopen/rematerialization
  -> product closure receipt
  -> original DMC3 Level-E consumption + rollback receipt
+ -> final V:L1 verdict
 ```
 
-L2 may supply exact selected identity and L3 may supply original consumer/lifecycle evidence. Their broader completion is not required for L1 unless a concrete L1 acceptance path activates one of their unresolved boundaries.
+L2 supplies selected-provider/source identity where that authority is required. L1 owns byte materialization and authoring. L3 supplies original request/consumer/lifecycle evidence where needed. Validation binds those layers into one same-lineage acceptance proof; unrelated receipts must not be composed by filename alone.
 
 ## 2. Canonical product capabilities on current main
 
-Current `main` includes:
+Canonical main includes:
 
 - classic NBZ/ZIP indexing and bounded central/member acquisition;
 - STORE and raw-DEFLATE method-8 materialization;
 - CRC, size, SHA and explicit `ByteProvenance`;
 - artifact-bound serialization/member observation preventing stale snapshot receipts;
-- recovered contiguous numbered-volume / first-gap runtime namespace;
-- canonical runtime resolver composition and higher-volume precedence;
+- numbered-volume filename discovery / first-gap product support for the accepted clean path;
+- canonical runtime resolver composition and higher-successful-volume precedence for the represented mounted set;
 - atomic/no-replace artifact publication with staged validation;
 - direct-retail resolver-based member extraction + provenance sidecar;
 - PAC and PNST sparse/empty/alias-preserving relative-slot parsing;
 - recursive PAC/PNST expansion;
 - size-changing relative-slot reflow with byte-exact untouched physical spans;
-- nested root-to-leaf slot-path authoring, e.g. `0/2/1`, with bottom-up parent reflow and chained SHA receipts;
+- nested root-to-leaf slot-path authoring with bottom-up parent reflow and chained SHA receipts;
 - verified immutable NBZ copy rebuild;
 - deterministic next-contiguous STORE NBZ overlay authoring;
 - staged NBZ reopen and exact member verification before publication;
 - protected distribution executable preflight;
 - protected retail authoring closure orchestration through resolver rematerialization;
-- Windows + Ubuntu CI for all promoted product paths.
+- process-instance-bound L2 R2B v2 tooling from #235;
+- normal materialization completion callback/context ABI from #230;
+- materialization dependency narrowing/document synchronization from #242;
+- Windows + Ubuntu CI for promoted product paths.
 
-These close the known mandatory **internal implementation** work for the current representative DMC3-HD L1 acceptance scope.
+These close the known mandatory **L1 implementation** work for the current representative DMC3-HD acceptance scope.
 
-## 3. Gate status
+### L2 topology correction relevant to final L1 evidence
+
+Merged #235 proves that **filename discovery is not proof of successful mount topology**. The first missing numbered filename terminates discovery, but an existing archive may fail registration and discovery may continue. The actually successful mounted set may therefore be sparse.
+
+Successful archive registrations still prepend, preserving:
+
+```text
+higher successful volume -> lower successful volume -> physical
+```
+
+Issue #237 tracks the product correction and PR #241 is the active implementation separating discovery/attempt authority from successful runtime mount outcomes. Until #241 merges it is pending branch truth. Final L1 acceptance must validate the actual successful selected/reopened source lineage and must never infer successful mounting from filename presence alone.
+
+### Pocket GDS evidence bridge
+
+Pocket GDS / GDSpace Manager can hold a large NBZ locally, execute canonical mobile GDSpaces materialization and emit a byte-free exact-member receipt without transferring the full archive through the connected environment.
+
+Pending DMC Rengine PR #238 reconciles that evidence seam. It is an evidence bridge, not a second format implementation and not an original-process substitute.
+
+## 3. Materialization completion dependency bridge — merged #230/#242
+
+Canonical normal completion flow:
+
+```text
+0x1401B84E0
+ -> registers 0x1401B8DC0
+ -> one u32 context = record_ptr - 0x140C99D30
+ -> valid contexts = index * 0x48 for 363 records
+```
+
+Normal `0x1401B8DC0` receives no:
+
+- raw transport status pointer;
+- error flag;
+- byte count;
+- FileSlot/ReadRequest handle;
+- child/outstanding-work metadata.
+
+Therefore the lower materialization success/error dependency cannot be decided inside normal `0x1401B8DC0`. By normal state2 publication time, lower transport/materialization success must already be terminal, or the queued completion must have been suppressed/removed.
+
+**FIFO insertion order alone is not a proven dependency barrier.** If the earlier materialization scheduler job merely submits asynchronous I/O and retires, a later completion record could run too early. No generic original fan-in/outstanding-child counter is currently evidenced.
+
+Focused exact-byte acquisition order:
+
+1. `0x1402EF4D0` queued materialization job identity/type, callees and inherited load-context consumer;
+2. relevant `0x1402EF790` dispatch case, persistence/re-poll/terminal retirement;
+3. reacquire historical `0x1400333E0` status/poll role as hypothesis until fresh bytes;
+4. reacquire historical `0x140033390` terminal cleanup/release role as hypothesis until fresh bytes;
+5. `0x1400335A0` lower transport success/error terminal writes;
+6. identify what prevents normal `0x1401B8DC0` on incomplete or failed transport;
+7. `0x1402EF460` pending higher-scheduler clear/rollback and queued-completion suppression;
+8. only then apply the confirmed direct-resource mechanism to `.lst` child/recursive failure ordering.
+
+Layer ownership is unchanged:
+
+- exact FileSlot byte-read mechanics may support L1;
+- FileSlot/AsyncIO request ownership, scheduling, callback lifetime and cancellation are L3;
+- `0x1401B8CA0` is the explicit L1/L3 materialization-success seam;
+- LoadedResource state semantics remain L3.
+
+This seam does not reopen closed L1 product authoring capabilities and does not make L3 complete.
+
+## 4. Gate status
 
 ### L1-A — publication integrity
 
-**CLOSED / CANONICAL**
-
-Closed by #194 and all subsequent authoring/acquisition seams using the shared final no-replace publication contract.
+**CLOSED / CANONICAL** — closed by #194 and subsequent authoring/acquisition seams using the shared final no-replace publication contract.
 
 ### L1-B — artifact-stable retail acquisition
 
-**CLOSED / CANONICAL**
+**CLOSED / CANONICAL** — closed by #195–#197 and consumed by the direct-retail acquisition command.
 
-Closed by #195–#197 and consumed by the direct-retail acquisition command.
+### L1-C — representative source/member provenance
 
-### L1-C — direct-retail representative provenance
+**IMPLEMENTATION CLOSED / REAL SAME-LINEAGE RECEIPT OPEN**
 
-**IMPLEMENTATION CLOSED / REAL RECEIPT OPEN**
-
-Use:
+Canonical protected-install path:
 
 ```text
 dmc-rengine extract-dmc3-retail-member <exe-dir> <game-request> <output-file>
 ```
 
-The request, not a pre-guessed archive path, is the input authority. The receipt must preserve the actual resolver winner, selected volume/archive identity, central-entry metadata, materialized SHA/size and byte transform.
+The game request, not a pre-guessed archive path, is the selection authority. The receipt must preserve the actual selected provider/archive/member identity, central-entry metadata, materialized SHA/size and byte transform.
+
+If the topology includes mount failures, selected identity must come from the actual successful-mounted set. Issue #237 / pending PR #241 owns that product distinction.
 
 `obj\em000.pac` remains a high-value target but is not mandatory if another representative resource gives a stronger deterministic authoring/consumer receipt.
 
+#### Pocket real-device sub-receipt
+
+Pocket GDS PR #2 adds `gdspaces.l1.member-acquisition-receipt.v1`. When run against the actual NBZ on-device it can preserve archive SHA/size, ResourceIdentity, central/nested identity, compression metadata, ByteProvenance, exact exported SHA/size, representation class and producer/core provenance.
+
+This can close the **member-byte acquisition/materialization sub-gate**. It does **not** by itself prove protected original-process resolver selection. Final L1-C promotion must independently bind the same archive/member identity to the accepted selected-source authority.
+
 ### L1-D — retail representation classification
 
-**REAL RECEIPT OPEN**
+**REAL RECEIPT OPEN / MOBILE EXECUTION PATH READY**
 
-Classify the exact bytes obtained in L1-C. Only use an existing writer if the observed retail representation is inside its evidenced domain.
-
-If not, stop and create a new bounded evidence gate; do not force the bytes through a convenient writer.
+Classify the exact bytes obtained in L1-C. Only use an existing writer if the observed representation is inside its evidenced domain. If not, create a new bounded evidence gate.
 
 ### L1-E — bounded real edit + bottom-up rebuild
 
-**PRODUCT IMPLEMENTATION CLOSED / REAL-RETAIL RECEIPT OPEN**
+**PRODUCT IMPLEMENTATION CLOSED / REAL SAME-LINEAGE RECEIPT OPEN**
 
-Current writers support top-level and nested PAC/PNST slot paths, size-changing reflow, sparse/alias preservation and exact untouched-sibling validation.
-
-Relevant promotion includes #201 and #213.
+Current writers support top-level and nested PAC/PNST slot paths, size-changing reflow, sparse/alias preservation and exact untouched-sibling validation. A materialization receipt alone does not close E.
 
 ### L1-F — next-volume publication + canonical reopen
 
-**PRODUCT IMPLEMENTATION CLOSED / REAL-RETAIL RECEIPT OPEN**
-
-Current product path supports:
+**PRODUCT IMPLEMENTATION CLOSED / REAL SAME-LINEAGE RECEIPT OPEN**
 
 ```text
 rebuilt member
  -> next contiguous DMC3-N.nbz
  -> staged canonical reopen
  -> atomic/no-replace publication
- -> RuntimeResourceResolver higher-volume winner
+ -> RuntimeResourceResolver higher-successful-volume winner
  -> exact rebuilt-member rematerialization
  -> exact authored-child verification
 ```
 
-`verify-dmc3-l1-authoring` composes the protected preflight, retail acquisition, top-level PAC/PNST authoring, next-volume overlay and resolver/rematerialization checks into one product closure receipt. Nested authoring is also canonical through `rebuild-relative-slot-path`; closure orchestration may be widened to slot paths as a usability refinement, but this is not a correctness prerequisite for a representative acceptance resource that fits the current closure command.
+The #235/#241 correction does not invalidate a verified all-success topology; it forbids claiming mount success from filename presence alone.
 
 ### L1-G — original DMC3 consumption
 
-**OPEN / EXTERNAL LEVEL-E / FINAL MATERIALIZATION ACCEPTANCE**
+**OPEN / EXTERNAL LEVEL-E / MANDATORY** — tracking #209.
 
-Canonical tracking: #209.
-
-Required controlled run:
+Required run:
 
 ```text
-product closure receipt
+same-lineage product closure receipt
  -> exact generated DMC3-N.nbz
- -> verify destination absent
  -> controlled copy into retail data/dmc3
- -> post-copy SHA == closure overlay SHA
- -> launch protected distribution executable
- -> deterministic request / consumer path
+ -> post-copy SHA verification
+ -> protected distribution launch
+ -> deterministic request/consumer path
  -> observable effect attributable to authored bytes
  -> clean transition/exit
  -> remove only test overlay
  -> verify original retail artifacts unchanged
 ```
 
-A crash-free launch alone fails this gate.
+A crash-free launch or Pocket receipt alone fails this gate.
 
 ### L1-H — final cross-stack audit
 
@@ -152,97 +215,74 @@ A crash-free launch alone fails this gate.
 Before `L1 COMPLETE`:
 
 - exact executable authority is recorded;
-- direct-retail archive/member provenance exists;
-- representation classification is explicit;
-- real authored replacement/rebuild receipt exists;
-- generated overlay identity is exact;
-- canonical resolver/rematerialization succeeds on that real artifact;
+- selected-provider/archive/member provenance exists;
+- successful-mounted topology assumptions are evidenced rather than inferred;
+- exact materialized member identity and representation classification exist;
+- real authored replacement/rebuild and generated overlay identities are exact;
+- canonical resolver/rematerialization succeeds on the real artifact;
 - original DMC3 consumer observation exists;
 - rollback proves retail immutability;
-- exact-head Windows + Ubuntu CI is green on final canonical code/docs;
+- materialization terminal-condition ordering is consistent with the bounded L1/L3 seam;
+- exact-head Windows + Ubuntu CI is green;
 - #100, #182, #209 and current status agree;
-- no unresolved contradiction changes the claimed L1 architecture or accepted representation scope.
+- no unresolved contradiction changes the accepted scope.
 
-Only then may the project state **L1 = 100% / COMPLETE**.
+Only then may V promote **L1 = 100% / COMPLETE**.
 
-## 4. Commands on the closure path
+## 5. Remaining work order
 
 ```text
-preflight-dmc3-game-test <exe-dir>
-extract-dmc3-retail-member <exe-dir> <game-request> <output-file>
-rebuild-relative-slot <container-file> <slot-index> <replacement-file> <output-file>
-rebuild-relative-slot-path <container-file> <slot/path> <replacement-file> <output-file>
-build-nbz-copy <source-nbz> <central-index> <replacement-file> <output-nbz>
-build-dmc3-overlay <exe-dir> <game-request> <authored-file> <output-dir>
-verify-dmc3-l1-authoring <exe-dir> <game-request> <slot-index> <replacement-file> <workspace-dir>
+1. produce an exact real member/materialization receipt
+2. bind it to the protected request / actual-successful-source lineage
+3. classify the exact representation
+4. perform one bounded real edit through an evidenced writer
+5. generate next-contiguous NBZ and require canonical reopen/rematerialization
+6. execute #209 original-game consumption + rollback
+7. run final L1 cross-stack/V audit
+8. mark L1 COMPLETE only if every mandatory receipt is valid
 ```
 
-The commands are product authoring/validation seams. They do not claim to reproduce Capcom's offline writer implementation.
+Supporting work may run only where it discharges a dependency:
 
-## 5. Supporting EXE reverse boundaries
-
-Do **not** restart these without contradictory direct evidence:
-
-- numbered-volume bootstrap / first-gap behavior;
-- generic basename candidate construction and archive-first/physical-second attempt order;
-- archive normalized lookup/index behavior;
-- bounded FileSlot / AsyncIO whole-file materialization spine;
-- ZIP stored-vs-inflated path and raw-DEFLATE core behavior;
-- PAC/PNST recursive typed traversal;
-- primary `.lst` packed-first selection/synthesis structure.
-
-Still-open reverse breadth is activated only when a completion claim depends on it:
-
-1. exact type-0 physical-provider Win32 path/case/open/failure semantics — primarily L2;
-2. complete ZIP stream initializer `0x140328540` body/lifetime;
-3. complete compressed seek/reset `0x140328FE0` behavior;
-4. exhaustive malformed/partial-read error-code equivalence;
-5. dynamic `.lst` allocation/free/error/cycle behavior where a real loose-list acceptance path requires it.
-
-These bounded gaps do not automatically block a representative packed-NBZ/PAC/PNST L1 Level-E receipt.
+- review/merge #241 if its successful-mount contract survives validation;
+- acquire real R2B v2 protected-process evidence using #235 tooling;
+- close #242's exact materialization terminal-condition dependency mechanism;
+- review/merge #240 only at its bounded R1 static scope.
 
 ## 6. Explicit non-blockers / freezes
 
-- **Binary AFS:** `.afs/` strings are evidenced logical namespaces, not a binary-backend proof.
-- **PACK:** historical product parsing is not original DMC3 runtime authority absent a direct dependency.
-- **Capcom offline writer equivalence:** not required for L1 product authoring completion.
-- **Stage Ops / ModViz:** downstream consumers; they do not define L1 truth.
-- **Exhaustive malformed-input equivalence:** remains separate reverse breadth unless the claimed acceptance scope explicitly includes it.
-- **Real `.lst` corpus:** mandatory only for a claim covering real loose-list consumption or when the representative acceptance path actually selects `.lst`.
+- Binary AFS is not inferred from `.afs/` namespace strings.
+- Historical PACK parsing is not original DMC3 runtime authority absent direct evidence.
+- Capcom offline writer equivalence is not required for L1 authoring acceptance.
+- Stage Ops / ModViz do not define L1 truth.
+- Exhaustive malformed-input equivalence remains separate reverse breadth unless activated by the accepted path.
+- Real `.lst` corpus/lifetime semantics are mandatory only if the representative acceptance actually selects `.lst`.
+- Connected 960 MB transfer failure is a transport limitation, not archive absence.
+- #241 is primarily L2 and blocks L1 only if the chosen lineage depends on unresolved mount-failure topology.
+- #240 is bounded L3 static work, not L1 completion and not full L3 completion.
+- #226 RCP / V-LV architecture is orthogonal orchestration/validation, not L4.
 
-## 7. Remaining work order
+## 7. Environment boundary
 
-No new synthetic-only feature may displace this path unless real evidence reveals a concrete missing dependency.
+Merged #233 establishes that protected `dmc3.exe` and executable-relative `data/dmc3/dmc3-0.nbz` are locatable. The NBZ is observed at `960,358,951` bytes, while the connected Drive/Files raw materialization ceiling is `268,435,456` bytes.
 
-```text
-1. run direct-retail acquisition on a protected DMC3 installation
-2. preserve acquisition/provenance receipt
-3. classify exact retail representation
-4. perform one bounded real edit through the supported authoring domain
-5. generate next-contiguous NBZ and require canonical reopen/resolver/rematerialization
-6. preserve product closure receipt
-7. execute #209 original-game consumption + rollback
-8. run final L1 audit
-9. mark L1 100% / COMPLETE only if every mandatory receipt is valid
-```
+Pocket GDS can materialize individual members where the archive is already local. The protected game PC/process remains required for original selected identity, R2B/R3 evidence, #209 consumption/rollback and original lifecycle evidence.
 
-## 8. Environment boundary
+Synthetic CI must not substitute for L1-G.
 
-The connected automation environment currently does not expose exact raw `dmc3.exe` and `DMC3-0.nbz` artifacts needed to execute the protected-install Level-E run here.
+## 8. Documentation synchronization
 
-That is an external evidence boundary. It does not justify substituting synthetic CI for L1-G.
-
-## 9. Documentation synchronization
-
-When a real receipt changes L1 status, synchronize:
+When a real receipt or merged reverse/implementation changes current truth, synchronize:
 
 - this roadmap;
-- `l1-final-audit-2026-08-25.md` or its completion successor;
+- `master-roadmap.md`;
 - `docs/status/current.md`;
 - `docs/status/blockers.md`;
 - `docs/status/phase-map.md`;
 - `docs/status/risks.md`;
 - `docs/status/canonical-status.json`;
+- relevant completion/audit successor or explicit addendum;
+- canonical Drive Architecture / Layer Classification / Technical Status / Audit documents;
 - issues #100, #182 and #209.
 
-Percentage estimates are planning aids only; mandatory gates remain the completion authority.
+Historical evidence/pass documents remain chronology and are superseded by explicit reconciliation/addendum rather than silently rewritten. Documentation synchronization itself never creates a completion claim.
