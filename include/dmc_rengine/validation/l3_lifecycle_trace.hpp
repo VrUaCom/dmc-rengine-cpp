@@ -116,10 +116,38 @@ struct L3LifecycleImportLimits final {
     std::size_t max_writer_bytes{512U};
 };
 
+// A manually imported JSON trace can prove that its *content* satisfies the
+// current promotion predicate, but it cannot prove that it actually originated
+// from the claimed original process. The trusted-origin bit is therefore not a
+// public aggregate field and schema-v1 import can never manufacture it.
+//
+// A later instrumentation/publisher slice must introduce a trusted binder type
+// instead of toggling this gate from self-asserted JSON metadata.
+class L3LifecyclePromotionGate final {
+public:
+    L3LifecyclePromotionGate() = default;
+
+    L3LifecyclePromotionGate& operator=(bool content_candidate) noexcept {
+        content_candidate_ = content_candidate;
+        return *this;
+    }
+
+    [[nodiscard]] bool content_candidate() const noexcept {
+        return content_candidate_;
+    }
+
+    [[nodiscard]] bool eligible() const noexcept {
+        return false;
+    }
+
+private:
+    bool content_candidate_{};
+};
+
 struct L3LifecycleImportResult final {
     std::optional<L3LifecycleTrace> trace;
     std::vector<L3LifecycleDiagnostic> diagnostics;
-    bool promotion_eligible{};
+    L3LifecyclePromotionGate promotion_eligible;
 
     [[nodiscard]] bool ok() const noexcept {
         return trace.has_value() && diagnostics.empty();
