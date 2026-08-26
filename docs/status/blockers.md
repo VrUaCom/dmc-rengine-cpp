@@ -1,9 +1,10 @@
 # Current Blockers
 
-**Snapshot date:** 2026-08-25  
-**Canonical base:** `main@fd80f2b63c0a9920230d3e74b1debafc07e240b1`
+**Snapshot date:** 2026-08-26  
+**Canonical base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
+**Active L2 evidence slice:** PR #219
 
-The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The detailed classification is [Final Pre-Level-E Audit](../gdspaces/l1-final-audit-2026-08-25.md).
+The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
 ## P0 — GDSpaces L1 completion blockers
 
@@ -79,6 +80,45 @@ Before `L1 COMPLETE / 100%`:
 - #100, #182, #209, code and current documentation agree;
 - no unresolved contradiction alters the declared supported L1 scope.
 
+## Layer 2 evidence blockers
+
+These are L2 closure gates. They are not substitutes for the L1 Level-E acceptance sequence.
+
+### B-L2-01 — Real-retail `0x0E` collision census
+
+**Status:** EXTERNAL ARTIFACT ACCESS REQUIRED
+
+The exact `dmc3-0.nbz` artifact is approximately 960 MB and cannot currently be transferred through the connected Drive channel. No exact central-directory/member-list derivative is available in the connected corpus.
+
+Required evidence is an exact member-name/central-directory surface cryptographically bound to the retail archive, followed by the canonical `0x0E` normalized-key collision census.
+
+### B-L2-02 — Protected-distribution runtime RVA mapping
+
+**Status:** PRODUCT ACQUISITION SEAM IN PR #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
+
+Authority split:
+
+- canonical analysis executable: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432;
+- protected distribution execution candidate: SHA-256 `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320.
+
+Canonical analysis VAs/RVAs must not be applied to the protected process without independent mapping evidence.
+
+PR #219 adds bounded live main-module acquisition by explicit PID + RVA, exact protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. Promotion still requires a real protected-process packet covering the approved L2 anchors. Synthetic/self-process CI proves tooling behavior only.
+
+### B-L2-03 — Original-process selected-provider identity
+
+**Status:** BLOCKED BY B-L2-02
+
+After bounded runtime mapping is proven, instrument the mapped resolver path and preserve the original-process request, candidate order and exact selected provider/source/member identity.
+
+`preflight-dmc3-game-test` is not this receipt; it validates executable/archive presence and authority only.
+
+### B-L2-04 — Final L2 audit
+
+**Status:** OPEN / DEPENDS ON B-L2-01..03
+
+Layer 2 remains incomplete until real-retail collision evidence, protected-runtime mapping, original-process selected identity, exact-head CI and canonical code/docs agree.
+
 ## Closed former L1 blockers
 
 Do not reopen these absent contradictory direct evidence:
@@ -98,11 +138,17 @@ Do not reopen these absent contradictory direct evidence:
 - ByteProvenance;
 - next-volume STORE overlay generation and resolver selection composition.
 
+## Closed former L2 blocker
+
+Do not reopen absent contradictory direct evidence:
+
+- exact type-0 physical-provider post-`0x0C` Win32 final path/open/miss semantics — static reverse closed by #215/#204;
+- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation.
+
 ## Bounded reverse gaps — not automatic L1 blockers
 
 These become P0 only if the chosen real acceptance path depends on them:
 
-- exact type-0 physical-provider Win32 final path/case/open/failure semantics — primarily L2;
 - complete ZIP stream initializer `0x140328540` body/lifetime;
 - complete compressed seek/reset/reinflate `0x140328FE0` behavior;
 - exhaustive malformed/partial-read original error equivalence;
@@ -118,6 +164,6 @@ These become P0 only if the chosen real acceptance path depends on them:
 
 ## Environment blocker
 
-The connected automation environment does not currently expose exact raw `dmc3.exe` and `DMC3-0.nbz` artifacts required to execute B-L1-01..04 here.
+The connected automation environment does not currently expose the exact raw protected installation artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process runtime mapping here.
 
 This is an external evidence/access limitation. It must not be hidden by synthetic CI or converted into a weaker completion criterion.
