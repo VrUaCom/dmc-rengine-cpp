@@ -1,0 +1,130 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-materialization-lifecycle-handoff-2026-08-26",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "scope": "L1 byte-materialization mechanics to L3 request/scheduler/lifecycle handoff",
+  "window_size_policy": "Every 0x400 window is acquisition coverage only. It is not an asserted function body size or semantic boundary.",
+  "non_claims": [
+    "no generic child or outstanding-work fan-in counter is asserted",
+    "scheduler pending-entry rollback is not relabeled as OS AsyncIO cancellation",
+    "LoadedResource state publication is L3 lifecycle authority, not L1 byte-materialization ownership",
+    "successful byte-window acquisition alone does not prove semantic equivalence",
+    "no original-process or Level-E receipt is produced by this plan"
+  ],
+  "windows": [
+    {
+      "id": "whole-file-transfer-open-1400333f0",
+      "va": "0x1400333F0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire the whole-file materialization load-state constructor and the boundary between selected resource opening, byte-read mechanics and lifecycle-owned request state."
+    },
+    {
+      "id": "whole-file-transfer-submit-140033500",
+      "va": "0x140033500",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire caller-owned-destination transfer submission and exact submit-failure/status behavior without conflating byte mechanics with request ownership."
+    },
+    {
+      "id": "whole-file-transport-callback-1400335a0",
+      "va": "0x1400335A0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55, 209],
+      "purpose": "Reacquire callback(ticketId,userContext,errorFlag,bytesRead), byte-progress/status writes and its relationship to L3 request/completion ownership."
+    },
+    {
+      "id": "async-read-submit-14002ea40",
+      "va": "0x14002EA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire ReadRequest/FileSlot submission mechanics and separate physical byte-read behavior from L3 request ownership/scheduling."
+    },
+    {
+      "id": "scheduler-pending-clear-1402ef460",
+      "va": "0x1402EF460",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55, 209],
+      "purpose": "Reacquire pending scheduled-entry clear/rollback, queue matching and exact ordering. This is scheduler rollback evidence and must not be relabeled as OS-level AsyncIO cancellation."
+    },
+    {
+      "id": "materialization-submit-wrapper-1402ef4d0",
+      "va": "0x1402EF4D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Close the materialization submission/scheduling wrapper body, callees and inherited load-context consumption; determine exactly where L1 byte-materialization mechanics hand off to L3 request/scheduler ownership."
+    },
+    {
+      "id": "scheduler-enqueue-1402ef580",
+      "va": "0x1402EF580",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55, 209],
+      "purpose": "Reacquire scheduler-ring enqueue metadata, callback/context writes, ring advancement and ordering relative to materialization submission and LoadedResource completion."
+    },
+    {
+      "id": "scheduler-worker-1402ef790",
+      "va": "0x1402EF790",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55, 209],
+      "purpose": "Reacquire scheduler worker callback execution and slot-clear ordering to establish the L3 lifecycle completion barrier without presupposing a generic fan-in counter."
+    },
+    {
+      "id": "loaded-resource-cancel-writer-1401b8430",
+      "va": "0x1401B8430",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 209],
+      "purpose": "Reacquire exact L3 cancellation sequence around scheduler rollback, state1/state2 to state4 writes and deferred cleanup enqueue."
+    },
+    {
+      "id": "loaded-resource-acquire-1401b84e0",
+      "va": "0x1401B84E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire acquisition construction, materialization-dispatch success gate, state0 to state1 publication and completion-callback registration ordering."
+    },
+    {
+      "id": "lst-materializer-1401b85c0",
+      "va": "0x1401B85C0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire loose-container child submission/recursive in-place synthesis and determine the exact materialization-to-lifecycle completion dependency without assuming a child counter."
+    },
+    {
+      "id": "loaded-resource-materialization-dispatch-1401b8ca0",
+      "va": "0x1401B8CA0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Reacquire the explicit L1/L3 seam: materialization mechanics and return semantics whose success gates L3 state1 publication."
+    },
+    {
+      "id": "loaded-resource-completion-state1-to2-1401b8dc0",
+      "va": "0x1401B8DC0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 209],
+      "purpose": "Reacquire the L3 normal completion callback, record-context decoding and exact conditions for state1 to state2 publication; this is not raw byte-read ownership."
+    },
+    {
+      "id": "loaded-resource-state4-cleanup-1401b8f00",
+      "va": "0x1401B8F00",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 209],
+      "purpose": "Reacquire deferred state4 cleanup and backing-release ordering to close the cancellation side of the lifecycle boundary."
+    }
+  ]
+}
