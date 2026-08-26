@@ -191,13 +191,18 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "scm",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.scm-structural",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::models,
             .evidence_claim_ids = {},
-            .limitations = {"SCM object/node/buffer parser migration is pending."},
+            .limitations = {
+                "Layout recovered from the runtime relocation routine and verified against the real stage corpus; group and batch counts are bytes, and the tag is three.",
+                "Position, normal, attribute and index arrays are located and bounded. What the attribute and index words mean is not claimed.",
+                "The strip index list is scratch the runtime rebuilds; this reader records its marker and stored length without regenerating it.",
+                "No writer.",
+            },
         },
         FormatIntegrationDescriptor{
             .format = "mod",

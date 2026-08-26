@@ -77,6 +77,19 @@
     "va": "0x1402db370",
     "window_sha256": "1034eb8ba08d79dcf04fae4e1e5567f61666ec88597faf34eab249829ee5065c"
   },
+  "scm-relocate-and-strip-rebuild": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x3045b0",
+    "image_base": "0x140000000",
+    "name": "scm-relocate-and-strip-rebuild",
+    "rva": "0x3051b0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 647,
+    "va": "0x1403051b0",
+    "window_sha256": "5f3923913db171026470d8d15537d58b823f19f9a6770b6508cee778d1fbd321"
+  },
   "sector-size-shift": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
