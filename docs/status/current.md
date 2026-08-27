@@ -20,7 +20,7 @@
 - **L1 — Resource Materialization:** selected-resource size/capacity, allocation, exact bytes, transfer/decompression, packed/loose representation construction, nested expansion, authoring/rebuild/repack and exact reopen/rematerialization.
 - **L2 — Resource Resolution:** logical request, candidates, normalization, provider/volume/source/member selection and exact selected identity.
 - **L3 — Original Runtime/Lifecycle:** request/queue/callback ownership, LoadedResource state publication, typed post-load, ready visibility, claims/cache, cancellation/reset/release/shutdown.
-- **L1/L3 seam:** terminal L1 byte/result state gates normal L3 lifecycle publication; upstream queue/writer booleans are not automatically terminal-byte receipts.
+- **L1/L3 seam:** terminal L1 byte/result state gates normal L3 lifecycle publication; upstream queue/writer booleans are not automatically terminal-byte receipts. The canonical static normal-path seam is now bounded and documented; dynamic current-slot cancellation/concurrency remains L3 breadth.
 - Validation is cross-cutting.
 
 ## L1 current state — INCOMPLETE
@@ -57,22 +57,48 @@ Confirmed/corrected:
 - `0x1401B8CA0` has branch-dependent boolean semantics;
 - `0x1401B84E0` ignores type-3 completion enqueue failure from `0x1402EF580`;
 - original planner/chunk arithmetic is 32-bit and wrap-prone;
-- `.lst` scan/token ceilings are bounds, not clean original error enums.
+- `.lst` scan/token ceilings are bounds, not clean original error enums;
+- accepted type-2 materialization jobs and the normal type-3 `0x1401B8DC0` callback share one per-lane FIFO;
+- whole-file status `2` keeps the current type-2 job pending, status `4` retries that same current job without FIFO retirement, and status `3` retires it and permits the later callback to become current;
+- because status `3` lacks an independent actual-bytes == planned-bytes check, an original short-success transfer can permit normal `state1 -> state2` completion;
+- cancellation `0x1401B8430 -> 0x1402EF460` suppresses queued normal work and publishes state `4`; exact concurrent/current-slot races remain L3 dynamic scope.
 
 Canonical detail:
 
 - `../gdspaces/l1-writer-failure-width-reconciliation-2026-08-28.md`
+- `../gdspaces/l1-terminal-l3-completion-seam-2026-08-28.md`
 - `../gdspaces/dmc3-loose-container-list.md`
 - `../gdspaces/l1-roadmap.md`
 - `../../data/reverse/dmc3-l1-writer-failure-width-2026-08-28.v1.json`
+- `../../data/reverse/dmc3-l1-terminal-l3-completion-seam-2026-08-28.v1.json`
+
+### Static L1/L3 seam — bounded closed
+
+At the canonical static normal-path scope, the old L1 question “what allows or suppresses normal completion after materialization?” is no longer open.
+
+For **admitted** jobs:
+
+```text
+L1 type-2 byte job current
+ -> status 2: remain pending
+ -> status 4: reset local phase and retry same job
+ -> status 3: close/clear/retire type-2 and advance FIFO
+ ===== L1 native byte/result terminal =====
+ -> later admitted type-3 callback becomes current
+ -> 0x1401B8DC0 publishes LoadedResource state 1 -> 2
+ ===== L3 lifecycle =====
+```
+
+This does not repair the original upstream failure-swallowing defects: outer writer/setup `true` still does not prove every expected type-2/type-3 job was admitted. It also does not close dynamic current-slot cancellation races or broader L3 lifecycle behavior.
 
 ### L1 reverse still open
 
 - exact recursive `.lst` cycle/depth and allocation/free lifetime behavior;
 - residual allocator/backend failure branches;
-- final L1 terminal-byte/result -> L3 normal-completion suppression/eligibility reconciliation (`0x1402EF460`, relevant `0x1401B8DC0` context);
-- representative real `.lst` corpus receipt if real loose-list equivalence is claimed;
-- final contradiction sweep.
+- final contradiction sweep across the now-recovered L1 byte/materialization path and bounded seam;
+- representative real `.lst` corpus receipt if real loose-list equivalence is claimed.
+
+Dynamic current-slot cancellation/concurrency and broader transition/reset/shutdown behavior remain **L3**, not an L1 reverse blocker unless a concrete L1 acceptance receipt activates them.
 
 ### L1 real acceptance still open
 
@@ -103,7 +129,7 @@ Current evidence requires an explicit separation:
 | loose writer can swallow child enqueue failure | successful product receipt must preserve explicit failure |
 | completion enqueue can be ignored by original setup | no authority laundering into product success |
 | malformed scan/token bounds lack clean error status | explicit fail-closed product diagnostics |
-| short transfer may reach original success status | exact declared/observed validation where product receipt claims exact bytes |
+| short status-3 transfer can permit original normal completion | exact declared/observed validation where product receipt claims exact bytes |
 
 ## L2 current frontier
 
@@ -119,20 +145,19 @@ Canonical analysis VAs/RVAs must not be applied to a different protected distrib
 
 The static LoadedResource / typed-ready / release spine is strong, but dynamic lifecycle breadth and original-process receipts remain open.
 
-For the immediate L1 reverse, the critical L3 dependency is narrower: reconcile how the terminal L1 byte/result state permits or suppresses normal completion/lifecycle publication. This is not permission to reclassify all scheduler/lifecycle logic as L1.
+The static normal L1-terminal -> L3 completion seam is now bounded: same-lane FIFO ordering, status `2/4/3` behavior, normal callback eligibility, short-success consequence and queued cancellation suppression are recorded. Dynamic current-slot cancellation/concurrency, transitions, reset and shutdown remain L3 work.
 
 ## Current critical path
 
 ```text
-1. finish L1 terminal-byte/result -> L3 normal-completion seam
-2. finish residual recursive .lst / allocator/backend failure branches
-3. final L1 original-runtime contradiction sweep
-4. obtain representative real-retail acquisition/provenance
-5. classify exact representation
-6. perform supported bounded real edit/rebuild/rematerialization
-7. execute original-game consumption + rollback (#209)
-8. final L1 audit
-9. only then mark L1 COMPLETE / 100%
+1. finish residual recursive .lst / allocator/backend failure branches
+2. final L1 original-runtime contradiction sweep
+3. obtain representative real-retail acquisition/provenance
+4. classify exact representation
+5. perform supported bounded real edit/rebuild/rematerialization
+6. execute original-game consumption + rollback (#209)
+7. final L1 audit
+8. only then mark L1 COMPLETE / 100%
 ```
 
 L2/L3 broad programs continue independently when they directly support these gates or their own closure requirements.
@@ -147,6 +172,7 @@ External evidence limits do not justify promoting a layer to complete.
 
 - [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
 - [L1 writer/failure/width reverse checkpoint](../gdspaces/l1-writer-failure-width-reconciliation-2026-08-28.md)
+- [L1 terminal → L3 completion seam](../gdspaces/l1-terminal-l3-completion-seam-2026-08-28.md)
 - [DMC3 loose-container reconstruction](../gdspaces/dmc3-loose-container-list.md)
 - [Three-layer master roadmap](../gdspaces/master-roadmap.md)
 - [Machine-readable status](canonical-status.json)
