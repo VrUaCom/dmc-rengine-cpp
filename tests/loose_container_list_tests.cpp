@@ -146,8 +146,9 @@ int main() {
         assert(document.entries.size() == 1U);
     }
 
-    // No magic directive -> PAC\0 default. Ordinary child tokens are loaded as
-    // baseDirectory + raw token; there is no generic rewrite to .pac.
+    // No magic directive -> PAC\0 default. Direct whole-file children use the
+    // recovered ceil(size/0x800)*0x800 transfer extent; the allocator zeroes
+    // all unwritten transfer slack.
     {
         Fixture fixture;
         fixture.put("room\\stage.lst", bytes(
@@ -163,14 +164,20 @@ int main() {
         assert(report.ok());
         assert(report.representation == LooseContainerRepresentation::loose_list);
         assert(report.selected_path == "room\\stage.lst");
-        assert(report.bytes.size() == 0xC0U);
+        assert(report.bytes.size() == 0x1040U);
         assert(magic_string(report.bytes) == std::string("PAC\0", 4U));
         assert(read_u32(report.bytes, 4U) == 3U);
         assert(read_u32(report.bytes, 8U) == 0x40U);
         assert(read_u32(report.bytes, 12U) == 0U);
-        assert(read_u32(report.bytes, 16U) == 0x80U);
+        assert(read_u32(report.bytes, 16U) == 0x840U);
         assert(report.bytes[0x40U] == static_cast<std::byte>('O'));
-        assert(report.bytes[0x80U] == static_cast<std::byte>('T'));
+        assert(report.bytes[0x840U] == static_cast<std::byte>('T'));
+        for (std::size_t index = 0x43U; index < 0x840U; ++index) {
+            assert(report.bytes[index] == std::byte{0});
+        }
+        for (std::size_t index = 0x844U; index < report.bytes.size(); ++index) {
+            assert(report.bytes[index] == std::byte{0});
+        }
 
         bool read_first_bin = false;
         bool read_first_pac = false;
@@ -183,6 +190,8 @@ int main() {
     }
 
     // Nested .lst uses the specifically recovered packed sibling precedence.
+    // A positive-size packed sibling is still a direct whole-file child and
+    // therefore consumes a 0x800 transfer extent.
     {
         Fixture fixture;
         fixture.put("root\\parent.lst", bytes("nested.lst\r\n"));
@@ -193,6 +202,7 @@ int main() {
         const auto report = LooseContainerListPolicy::materialize(
             "root\\parent.pac", fixture.reader());
         assert(report.ok());
+        assert(report.bytes.size() == 0x840U);
         assert(read_u32(report.bytes, 4U) == 1U);
         assert(read_u32(report.bytes, 8U) == 0x40U);
         assert(report.bytes[0x40U] == static_cast<std::byte>('N'));
@@ -211,7 +221,8 @@ int main() {
     }
 
     // If nested sibling .pac is unavailable, the nested .lst is synthesized in
-    // place and its own magic/layout is preserved in the parent child span.
+    // place. The nested complete image uses its structural 0x40 alignment,
+    // while its direct leaf still consumes a 0x800 transfer extent.
     {
         Fixture fixture;
         fixture.put("root\\parent.lst", bytes("nested.lst\r\n"));
@@ -225,7 +236,7 @@ int main() {
         assert(report.ok());
         const auto nested_offset = read_u32(report.bytes, 8U);
         assert(nested_offset == 0x40U);
-        assert(report.bytes.size() == 0xC0U);
+        assert(report.bytes.size() == 0x880U);
         assert(static_cast<char>(std::to_integer<unsigned char>(
                    report.bytes[nested_offset + 0U])) == 'P');
         assert(static_cast<char>(std::to_integer<unsigned char>(
@@ -236,6 +247,7 @@ int main() {
                    report.bytes[nested_offset + 3U])) == 'T');
         assert(read_u32(report.bytes, nested_offset + 4U) == 1U);
         assert(read_u32(report.bytes, nested_offset + 8U) == 0x40U);
+        assert(report.bytes[nested_offset + 0x40U] == static_cast<std::byte>('L'));
     }
 
     // Ordinary missing/zero-size child is not the recovered explicit `dummy`.
@@ -300,7 +312,8 @@ int main() {
         assert(report.status == LooseContainerStatus::recursion_limit);
     }
 
-    // Helper boundaries.
+    // Helper boundaries: 0x40 is structural; direct whole-file transfer is
+    // 0x800-granular.
     assert(LooseContainerListPolicy::list_path_for("a\\b.PAC") == "a\\b.lst");
     assert(!LooseContainerListPolicy::list_path_for("a\\b").has_value());
     assert(LooseContainerListPolicy::packed_sibling_for_list("a\\b.lst") ==
@@ -308,6 +321,10 @@ int main() {
     assert(!LooseContainerListPolicy::packed_sibling_for_list("a\\b.LST").has_value());
     assert(LooseContainerListPolicy::header_size(0U) == 0x40U);
     assert(LooseContainerListPolicy::header_size(15U) == 0x80U);
+    assert(LooseContainerListPolicy::aligned_size(0x41U) == 0x80U);
+    assert(LooseContainerListPolicy::direct_transfer_extent(1U) == 0x800U);
+    assert(LooseContainerListPolicy::direct_transfer_extent(0x800U) == 0x800U);
+    assert(LooseContainerListPolicy::direct_transfer_extent(0x801U) == 0x1000U);
 
     return 0;
 }
