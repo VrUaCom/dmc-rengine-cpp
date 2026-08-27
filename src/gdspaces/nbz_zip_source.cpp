@@ -241,17 +241,7 @@ std::optional<ResourcePayload> NbzZipSource::read(
         },
         .bytes = {},
         .diagnostics = {},
-        .byte_provenance = ByteProvenance{
-            .kind = entry->compression_method == 0U
-                ? ByteOriginKind::direct_source_span
-                : ByteOriginKind::transformed_source_span,
-            .authority_id = source_id_,
-            .offset = entry->data_offset,
-            .stored_size = entry->compressed_size,
-            .materialized_size = entry->uncompressed_size,
-            .transform = transform_for(entry->compression_method),
-            .crc32 = entry->crc32,
-        },
+        .byte_provenance = std::nullopt,
     };
 
     if (entry->directory) {
@@ -375,6 +365,18 @@ std::optional<ResourcePayload> NbzZipSource::read(
             resource);
         return payload;
     }
+
+    payload.byte_provenance = ByteProvenance{
+        .kind = entry->compression_method == 0U
+            ? ByteOriginKind::direct_source_span
+            : ByteOriginKind::transformed_source_span,
+        .authority_id = source_id_,
+        .offset = entry->data_offset,
+        .stored_size = entry->compressed_size,
+        .materialized_size = entry->uncompressed_size,
+        .transform = transform_for(entry->compression_method),
+        .crc32 = entry->crc32,
+    };
 
     const auto classification = ResourceClassifier::classify(
         entry->logical_path,
