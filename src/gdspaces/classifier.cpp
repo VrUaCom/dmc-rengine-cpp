@@ -175,6 +175,14 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "hits";
         result.magic_confirmed = true;
         result.byte_derived = true;
+    } else if (starts_with(bytes, std::string_view{"TM2\0", 4U})) {
+        // Four bytes including the NUL, because the runtime compares the whole
+        // dword at `0x1403365BA`. `PAC` is the opposite case and the
+        // difference is the point: match what the game matches, no more and no
+        // less.
+        result.format = "tm2";
+        result.magic_confirmed = true;
+        result.byte_derived = true;
     } else if (starts_with(bytes, "DDS ")) {
         result.format = "dds";
         result.magic_confirmed = true;

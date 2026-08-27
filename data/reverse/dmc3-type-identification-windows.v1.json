@@ -164,6 +164,20 @@
     "va": "0x14055aef8",
     "window_sha256": "1b8ab3f655edf38cd026d57d711145395f4a5a67cc89a2ec47374fa9984b1c18"
   },
+  "content-tag-probe-chain": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2da5f0",
+    "image_base": "0x140000000",
+    "name": "content-tag-probe-chain",
+    "note": "The first registry's content probe: MOD, EFM, SCM, MRP, SHW. With the dispatcher this is every payload tag the image compares.",
+    "rva": "0x2db1f0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 112,
+    "va": "0x1402db1f0",
+    "window_sha256": "c1c95bc4f2d6d06dfb85354a777d2b1b4b68fa31d50237da57010567b32d063d"
+  },
   "content-type-probe": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
@@ -176,6 +190,20 @@
     "size": 114,
     "va": "0x1402db1f0",
     "window_sha256": "4e614cc2d0168d6049a449ed4a1c6a78e0ebdd6b5c4b9699fabd98a63c153d19"
+  },
+  "dds-fourcc-format-chain": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x49d46",
+    "image_base": "0x140000000",
+    "name": "dds-fourcc-format-chain",
+    "note": "The DDS FourCC to DXGI format chain: ten formats and four aliases, which is the runtime's own compression set rather than the corpus's.",
+    "rva": "0x4a946",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 160,
+    "va": "0x14004a946",
+    "window_sha256": "acd499138834bf073989f1e64fa718f395d7b1f8d1c94cabd7d79e593a6884df"
   },
   "efm-relocate-and-strip-rebuild": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -518,6 +546,34 @@
     "size": 48,
     "va": "0x1403204c0",
     "window_sha256": "14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d"
+  },
+  "tm2-fallback-path": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x335a79",
+    "image_base": "0x140000000",
+    "name": "tm2-fallback-path",
+    "note": "On a magic mismatch the reader constructs a fallback object and reports its dimensions rather than returning an error, so a mismatch is never announced.",
+    "rva": "0x336679",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 48,
+    "va": "0x140336679",
+    "window_sha256": "55818002cb399e7b61706ba6de5b9dda800b638fd4df5b5416a1bde7fe2f0e20"
+  },
+  "tm2-reader-magic": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x3359b0",
+    "image_base": "0x140000000",
+    "name": "tm2-reader-magic",
+    "note": "The TM2 image reader. The magic is compared as one dword at offset zero, NUL included, and +0x08 holds a base-relative offset to the payload.",
+    "rva": "0x3365b0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 80,
+    "va": "0x1403365b0",
+    "window_sha256": "7b9900289a273ca2e7293ba43418f9f2d674c45e30913855ca4e5af836de68c9"
   },
   "type-dispatch-and-pnst-walk": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
