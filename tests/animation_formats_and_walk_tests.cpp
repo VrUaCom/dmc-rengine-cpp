@@ -1,4 +1,5 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/resource_ref.hpp"
 #include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 
@@ -77,6 +78,21 @@ void the_classifier_reports_the_registry_verdict() {
 // The walk facts that answer "why is animation missing from an unpacked
 // folder". None of these are about animation formats; all of them are about
 // what the walk reaches.
+// The verdict has to survive the trip from the classifier to the thing the
+// tree actually holds, or the app asks a ref that always says no.
+void the_verdict_reaches_the_resource_ref() {
+    gdspaces::ResourceRef ref;
+    assert(ref.animation_type == -1);
+    assert(!ref.animation_structure_recovered);
+
+    const auto classified =
+        gdspaces::ResourceClassifier::classify("GData.afs/pl000.hid");
+    ref.animation_type = classified.animation_type;
+    ref.animation_structure_recovered = classified.animation_structure_recovered;
+    assert(ref.animation_type == static_cast<std::int32_t>(Code::hide));
+    assert(!ref.animation_structure_recovered);
+}
+
 void the_walk_is_not_the_path_to_animation() {
     // The dispatcher handles four payload tags and recurses into PNST.
     static_assert(Walk::dispatched_payload_tags.size() == 4U);
@@ -150,6 +166,7 @@ int main() {
     an_uncompared_case_variant_is_not_a_match();
     only_the_motion_can_be_found_without_a_name();
     the_classifier_reports_the_registry_verdict();
+    the_verdict_reaches_the_resource_ref();
     the_walk_is_not_the_path_to_animation();
     return 0;
 }

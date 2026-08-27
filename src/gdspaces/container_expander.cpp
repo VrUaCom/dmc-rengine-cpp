@@ -274,6 +274,9 @@ ContainerExpansion ContainerExpander::expand(
                     !entry.synthetic_name);
                 child_ref.format = classification.format;
                 child_ref.container = classification.container;
+                child_ref.animation_type = classification.animation_type;
+                child_ref.animation_structure_recovered =
+                    classification.animation_structure_recovered;
 
                 // A relative-slot container stores no names, so the parser
                 // supplies one. Where the payload itself decides its type —

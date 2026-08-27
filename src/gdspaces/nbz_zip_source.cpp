@@ -213,6 +213,9 @@ std::vector<ResourceRef> NbzZipSource::enumerate() const {
             .profile = std::string(to_string(classification.profile)),
             .synthetic_name = false,
             .container = classification.container,
+            .animation_type = classification.animation_type,
+            .animation_structure_recovered =
+                classification.animation_structure_recovered,
         });
     }
     return resources;
@@ -368,6 +371,9 @@ std::optional<ResourcePayload> NbzZipSource::read(
     payload.resource.format = classification.format;
     payload.resource.profile = std::string(to_string(classification.profile));
     payload.resource.container = classification.container;
+    payload.resource.animation_type = classification.animation_type;
+    payload.resource.animation_structure_recovered =
+        classification.animation_structure_recovered;
     return payload;
 }
 

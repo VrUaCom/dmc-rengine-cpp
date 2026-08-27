@@ -211,6 +211,9 @@ std::optional<ResourcePayload> LocalDirectorySource::read(
     payload.resource.format = classification.format;
     payload.resource.profile = std::string(to_string(classification.profile));
     payload.resource.container = classification.container;
+    payload.resource.animation_type = classification.animation_type;
+    payload.resource.animation_structure_recovered =
+        classification.animation_structure_recovered;
     payload.byte_provenance = ByteProvenance{
         .kind = ByteOriginKind::direct_source_span,
         .authority_id = resource.canonical(),
@@ -340,6 +343,9 @@ ResourceRef LocalDirectorySource::describe(
         .profile = std::string(to_string(classification.profile)),
         .synthetic_name = false,
         .container = classification.container,
+        .animation_type = classification.animation_type,
+        .animation_structure_recovered =
+            classification.animation_structure_recovered,
     };
 }
 
