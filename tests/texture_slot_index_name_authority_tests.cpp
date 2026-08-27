@@ -262,7 +262,7 @@ int main() {
     source_textures.reserve(17U);
     for (std::uint32_t index = 0U; index < 17U; ++index) {
         source_textures.push_back(make_dds(
-            16U, 16U, true, static_cast<std::uint8_t>(0x20U + index)));
+            64U, 64U, true, static_cast<std::uint8_t>(0x20U + index)));
     }
 
     auto parent = bundle_payload(make_bundle(source_textures));
@@ -331,7 +331,7 @@ int main() {
     // Same-size DDS authoring keeps the physical layout stable. Reopen must
     // therefore recover the exact same TEXTURE[7] ResourceId despite the
     // presentation rename.
-    const auto replacement1 = make_dds(16U, 16U, true, 0xA1U);
+    const auto replacement1 = make_dds(64U, 64U, true, 0xA1U);
     const auto authored1 = authored(expansion, 7U, replacement1);
     const std::vector<dmc3::AuthoredPackedTextureDds> authored_set1{authored1};
     const auto rebuilt1 = dmc3::TextureSlotPackedReflowWriter::rebuild(
@@ -360,7 +360,7 @@ int main() {
     assert(reopened.children[7].payload.resource.display_name ==
            "renamed_tex_007.dds");
     const auto target_id = reopened.children[7].payload.resource.id;
-    const auto replacement2 = make_dds(16U, 16U, true, 0xB2U);
+    const auto replacement2 = make_dds(64U, 64U, true, 0xB2U);
     const auto authored2 = authored(reopened, 7U, replacement2);
     const std::vector<dmc3::AuthoredPackedTextureDds> authored_set2{authored2};
     const auto rebuilt2 = dmc3::TextureSlotPackedReflowWriter::rebuild(
