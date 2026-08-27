@@ -42,6 +42,14 @@ struct ResourceTypeContract final {
 
     // Recovered type codes. The probe returns these; the registrar stores them
     // in the table's per-entry type array.
+    //
+    // **The stored code is not a dispatch key.** A whole-image search finds
+    // the type array written and never read back through its offset. Dispatch
+    // happens at registration, where the registrar calls the handler directly,
+    // and the second dispatcher re-probes the payload's tag rather than
+    // consulting what was stored. So the array is recorded state for a later
+    // query, and a product that treated the code as the thing that selects a
+    // reader would be describing a mechanism the runtime does not have.
     enum class TypeCode : std::int32_t {
         model = 0,          // tag "MOD"
         effect_model = 1,   // tag "EFM"
@@ -113,6 +121,7 @@ struct ResourceTypeContract final {
     static constexpr std::size_t table_entry_c_offset = 0x4008U;
     static constexpr std::size_t table_flag_offset = 0x6008U;
     static constexpr std::size_t table_type_offset = 0x6108U;
+    static constexpr bool stored_type_is_read_back = false;
     static constexpr std::int32_t table_reset_type_value = -1;
 
     // The name the registrar resolves is built from two components.

@@ -59,6 +59,13 @@ struct AnimationTypeContract final {
         ExtensionType{".TSC", TypeCode::tsc},
     };
 
+    // The payload's own tag is inert here. A `.mot` record carries `MOT` at
+    // `+4`, and a whole-image search finds that four-byte value nowhere in
+    // `.text` — not as a comparison and not as a constructor's type field, the
+    // way `LIG2` appears once. The runtime knows a motion by its name and by
+    // nothing else, so the tag in the file is for whoever made the file.
+    static constexpr bool payload_tag_is_compared = false;
+
     // The difference that matters. The first registry types by extension and,
     // failing that, by the payload's own three-byte tag. This one has no
     // content probe: an unmatched name is not registered at all.
@@ -72,6 +79,8 @@ struct AnimationTypeContract final {
     static constexpr std::size_t table_name_offset = 0x8008U;
     static constexpr std::size_t table_flag_offset = 0x18008U;
     static constexpr std::size_t table_type_offset = 0x18408U;
+    // Written and never read back, exactly as in the first registry.
+    static constexpr bool stored_type_is_read_back = false;
     static constexpr std::int32_t table_reset_type_value = -1;
 
     // `.clt` appears in both registries. It is the one extension two different

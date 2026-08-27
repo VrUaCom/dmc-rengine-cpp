@@ -350,6 +350,16 @@ void the_animation_registry_is_a_second_registry() {
     }
     assert(shared_in_first);
 
+    // Neither registry reads its own type array back. Dispatch happens at
+    // registration and the second dispatcher re-probes the tag, so the stored
+    // code is recorded state rather than the key that selects a reader. A
+    // product that modelled it as a dispatch key would be describing a
+    // mechanism the runtime does not have.
+    static_assert(!Animation::stored_type_is_read_back);
+    static_assert(!Types::stored_type_is_read_back);
+    // And this registry's payloads carry a tag the runtime never compares.
+    static_assert(!Animation::payload_tag_is_compared);
+
     static_assert(
         Animation::canonical_target_sha256 == Types::canonical_target_sha256);
     static_assert(Animation::image_base == Types::image_base);
