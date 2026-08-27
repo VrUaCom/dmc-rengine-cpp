@@ -3,189 +3,140 @@
 **Snapshot date:** 2026-08-27  
 **Canonical base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
 **Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`  
-**Primary execution program:** GDSpaces Layer-1 terminal materialization closure + real-retail/original-process acceptance  
-**Overall status:** **L1 INCOMPLETE / L2 INCOMPLETE / L3 INCOMPLETE; subsystem NOT COMPLETE.**
+**Focused L1 gap authority:** PR #244  
+**Overall status:** **L1 INCOMPLETE / L2 INCOMPLETE / L3 INCOMPLETE; GDSpaces NOT COMPLETE.**
 
-## Authority split
+## Completion truth
 
-- GitHub `main` is canonical implementation truth.
-- Reverse claims remain bounded to exact artifact/range/scope.
-- Synthetic/public CI proves product/tool behavior only.
-- Original-game equivalence requires original-process evidence where the gate calls for it.
-- Canonical analysis EXE authority and protected original-execution authority remain separate.
-- Layer ownership is semantic: behavior is assigned by the question it answers, not by helper address, queue name or historical issue label.
+- L1 product implementation is advanced at a bounded representative scope.
+- L1 original EXE materialization reverse is **not exhaustive**.
+- L1 real-retail/original-game acceptance is open.
+- Therefore **L1 is NOT 100% / NOT COMPLETE**.
+- L2 and L3 are also NOT COMPLETE.
+
+Synthetic/public CI proves bounded product/tool behavior only. Original-game equivalence requires the evidence gates defined by each layer and V.
 
 ## Canonical layer model
 
 ### L2 — Resource Resolution
 
-Owns request/candidate/path normalization, provider/source/volume traversal, ambiguity/fallback/failure classification and the successful selected ResourceRef/provider/member identity.
-
-L2 ends when a usable selected identity exists. Provider/open failure before that point remains L2 failure semantics.
+Owns logical request/candidates, normalization, provider/source/volume traversal, ambiguity/fallback/failure classification and usable selected ResourceRef/provider/member identity.
 
 ### L1 — Resource Materialization
 
-Owns selected backend/member byte acquisition, FileSlot/ReadRequest selected-byte transport, transport completion/status required for materialization correctness, transform/decompression, destination population, packed/loose representation materialization, nested PAC/PNST/.lst byte construction, terminal completion dependency, normal `state 1 -> 2` publication, provenance, edit/rebuild/repack and reopen/rematerialization.
+Owns exact selected-resource byte semantics:
+
+```text
+selected identity
+ -> logical/materialized size
+ -> capacity/allocation
+ -> byte/span acquisition semantics
+ -> EOF/final-chunk/short-read/progress
+ -> transform/decompression
+ -> exact destination bytes
+ -> packed/.lst representation
+ -> nested PAC/PNST/.lst bytes
+ -> terminal materializer result via 0x1401B8CA0
+```
+
+Product provenance/edit/rebuild/repack/publication/reopen-rematerialization also remain L1.
 
 ### L3 — Original Runtime / Lifecycle
 
-Begins from state2/materialized bytes and owns typed post-load, optional ready callback, `state 2 -> 3`, consumer-ready visibility, claims/cache/factory ownership, cancellation/replacement policy, state4 cleanup, release/reset and teardown.
+Owns scheduler/request/callback lifetime, LoadedResource state publication, typed-ready behavior, claims/cache/factory ownership, cancellation/replacement, cleanup, release/reset and teardown.
 
-L3 cancellation may target unfinished state1/state2 records, but that does not make the underlying byte terminal mechanism L3.
+Normal `state1 -> state2` remains L3 lifecycle publication. L1 byte-terminal success is a prerequisite, not ownership transfer.
 
-### DOMAIN / V
-
-Stage Ops/Stage Semantic Graph/ModViz are downstream DOMAIN consumers. Validation receipts are cross-cutting V evidence.
-
-## L1 current state
-
-### Product implementation maturity
-
-Canonical product capabilities remain advanced:
-
-- NBZ classic ZIP bounded acquisition;
-- STORE + raw-DEFLATE method 8;
-- CRC/size/SHA/ByteProvenance;
-- artifact-bound archive/member observations;
-- resolver-selected retail acquisition tooling;
-- PAC/PNST sparse/empty/alias-preserving parse + expansion;
-- size-changing and nested slot-path reflow;
-- byte-exact untouched sibling preservation;
-- immutable verified NBZ copy rebuild;
-- deterministic next-volume overlay authoring;
-- staged canonical NBZ reopen/rematerialization;
-- protected distribution executable preflight;
-- atomic/no-replace publication;
-- Windows + Ubuntu CI for promoted product paths.
-
-This does **not** make L1 complete.
-
-### Mandatory internal reverse gap — materialization terminal dependency
-
-Current proven chain:
+### Cross-layer seam
 
 ```text
-0x1401B8CA0 materialization dispatch
- -> 0x1402EF4D0 job/submission
- -> lower whole-file/FileSlot transport
- -> UNKNOWN exact terminal success/error condition
- -> normal 0x1401B8DC0 eligibility/suppression
- -> state 1 -> 2
+[L1] terminal byte/result state
+ -> completion eligibility/suppression seam
+ -> [L3] normal 0x1401B8DC0 -> state1 -> state2
 ```
 
-Merged evidence proves normal `0x1401B8DC0` receives only a registry-relative context. It cannot itself decide raw transport success/error. Therefore the exact job persistence/poll/retirement/gating or failed-work suppression mechanism must still be recovered.
+Do not classify FileSlot/AsyncIO wholesale. Byte-count/EOF/result semantics can be L1 while request/queue/callback ownership is L3.
 
-No generic fan-in counter is evidenced.
+Stage Ops/ModViz remain downstream DOMAIN consumers. Validation is V cross-cutting.
 
-This is now a **mandatory L1 completion gate**, not optional supporting breadth.
+## L1 current frontier
 
-### Mandatory real acceptance gates
+PR #244 establishes that L1 has more remaining reverse work than the completion bridge alone.
 
-Still open:
+Mandatory focused gaps:
+
+1. `0x14002F9F0 -> 0x140048E20` materialized-size, zero/error/sentinel semantics;
+2. rounded `ceil(totalBytes/0x800)` request vs exact final byte extent;
+3. physical/ZIP final-chunk clamp, EOF and short-read/progress semantics;
+4. `0x1401B7B90` capacity, 64-byte rounding, integer width/overflow and allocation failure;
+5. original backing initialization / synthesized `.lst` padding contents;
+6. `0x1401B79E0` + `0x1401B7FD0` representation tests and `.lst` size planning;
+7. `0x1401B85C0` planner/writer equivalence, child failure propagation and partial image behavior;
+8. exact byte-producing ingress/context behind `0x1402EF4D0`;
+9. partial STORE/InflateRead terminal composition;
+10. preserve the scope limit that relative slot starts do not prove universal intrinsic packed-child length.
+
+After these byte semantics are closed, reconcile the terminal-result -> L3 completion seam around `0x1402EF4D0`, relevant `0x1402EF790`, `0x1400333E0/0x140033390/0x1400335A0`, `0x1402EF460` and normal `0x1401B8DC0` suppression/eligibility.
+
+No generic fan-in counter is evidenced; FIFO alone is insufficient proof.
+
+## L1 real acceptance
+
+Still mandatory:
 
 ```text
 real retail selected-member provenance
- -> exact retail representation classification
+ -> exact representation classification
  -> supported real edit/rebuild/rematerialization
  -> original DMC3 consumer-visible effect
- -> rollback / original retail immutability
+ -> rollback / retail immutability
  -> final audit
 ```
 
-Issue #209 remains the external Level-E original-game gate.
-
-## L1 current reverse priority
-
-```text
-1. 0x1402EF4D0 exact queued materialization job identity/type
-2. matching 0x1402EF790 dispatch + persistence/re-poll/retirement
-3. 0x1400333E0 pending/success/error status domain
-4. 0x140033390 terminal cleanup/release ordering
-5. bind 0x1400335A0 transport writes into terminal state
-6. prove failed/incomplete suppression before normal 0x1401B8DC0
-7. recover relevant 0x1402EF460 pending-entry clear/rollback behavior
-8. apply confirmed terminal model to .lst child/recursive failure ordering
-```
-
-After that, continue the real-retail/Level-E path.
+Issue #209 remains the external Level-E gate.
 
 ## L2 current frontier
 
-L2 is advanced but not complete.
+L2 is advanced but incomplete. Open gates remain:
 
-Integrated/strong slices include:
-
-- type-0 physical provider static chain and controlled product model (#215/#204);
-- protected-runtime explicit-PID RVA acquisition and bounded mapping tooling (#219);
-- selected-identity candidate/normalizer/artifact binder tooling (#221), which is not trusted original-process evidence by itself.
-
-Open L2 gates:
-
-1. exact retail `0x0E` normalized-key collision census;
+1. exact retail `0x0E` collision census;
 2. real protected-process multi-anchor mapping receipt;
 3. trusted zero-loss original-process selected-provider identity;
 4. final contradiction-free L2 audit.
 
-Authority identities remain:
-
-- analysis EXE: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432;
-- protected distribution/original execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320.
-
-Canonical VA/RVA mappings must not be applied to the protected process without independent mapping evidence.
+Analysis EXE authority remains `e454272e...`, size 6,356,432. Protected execution candidate remains `81c7e619...`, size 6,567,320. Do not apply canonical VAs/RVAs to the protected process without independent mapping.
 
 ## L3 current frontier
 
-L3 begins from completed state2/materialized bytes for canonical layer accounting.
+L3 retains:
 
-Static authority is strong for:
-
-- registry topology and seven groups;
-- state2 typed post-load -> optional callback -> state3 ready path;
-- cancellation policy `1|2 -> 4`;
+- LoadedResource registry/state lifecycle including normal `state1 -> state2`;
+- typed post-load / optional callback / state2 -> state3 ready;
+- cancellation `1|2 -> 4`;
 - quiescence `{0,3}`;
-- state4 cleanup and distinct ordinary/group/full release/reset paths;
-- representative typed families;
-- loader-node claim/release model;
-- runtime vs CRT vs process-lifetime teardown distinction.
+- state4 cleanup and release/reset distinctions;
+- loader-node/shared-owner behavior;
+- scheduler/request/callback lifetime;
+- runtime/CRT/process teardown.
 
-Open L3 work remains residual static ownership breadth, external typed/factory/dependency edges, shared-owner breadth, SCM reconciliation, cross-build differences and original-process V1–V7 lifecycle receipts.
-
-The unresolved materialization terminal dependency is **not L3** after this reconciliation.
+Open L3 work remains residual writer/field ownership, factory/dependency/SCM/shared-owner breadth, scheduler details needed at the cross-layer completion seam, cross-build differences and original-process V1–V7 receipts.
 
 ## Current critical path
 
-### L1
+```text
+L1 size/zero/error
+ -> L1 final-chunk/EOF/short-read
+ -> L1 capacity/allocation/padding
+ -> L1 .lst planner/writer/failure semantics
+ -> L1 exact 0x1402EF4D0 byte ingress/context
+ -> L1/L3 completion seam
+ -> L2/L1 real selected-resource lineage
+ -> L1 real edit/rebuild/rematerialization
+ -> L3/V same-resource consumer evidence
+ -> #209 consumption + rollback
+ -> final L1 audit
+```
 
-1. close the terminal materialization dependency from exact EXE evidence;
-2. prove failed/incomplete completion suppression;
-3. apply the confirmed direct-resource terminal model to `.lst` child/recursive failure handling;
-4. obtain real retail selected-member provenance;
-5. classify exact retail representation;
-6. run one supported real edit/rebuild/rematerialization;
-7. execute #209 original-game consumption + rollback;
-8. run final contradiction-free L1 audit;
-9. mark L1 `100% / COMPLETE` only if all mandatory static and real gates are closed.
-
-### L2
-
-Continue real collision, protected mapping and trusted selected-identity receipts in parallel where artifacts/process access allow.
-
-### L3
-
-Continue residual static lifecycle reverse and V1–V7 receipts, but do not absorb L1 transport/completion work into L3.
-
-## Environment boundary
-
-The connected environment does not expose every protected-install artifact/process needed for the real-retail/original-process gates. Synthetic CI must not substitute for them.
-
-## Navigation
-
-- [Layer boundary/status reconciliation](../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md)
-- [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
-- [Three-layer master roadmap](../gdspaces/master-roadmap.md)
-- [Decompilation layer classification](../gdspaces/decompilation-layer-classification.md)
-- [L3 boundary audit](../gdspaces/l3-boundary-audit-2026-08-26.md)
-- [Blockers](blockers.md)
-- [Machine-readable status](canonical-status.json)
+L2 and L3 can progress in parallel, but progress in one layer never promotes another layer.
 
 **Current completion labels: L1 NOT COMPLETE, L2 NOT COMPLETE, L3 NOT COMPLETE.**
