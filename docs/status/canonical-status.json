@@ -19,6 +19,7 @@
     "roadmap": "../gdspaces/l1-roadmap.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
     "reverse_checkpoint": "../gdspaces/l1-writer-failure-width-reconciliation-2026-08-28.md",
+    "l1_l3_static_seam_checkpoint": "../gdspaces/l1-terminal-l3-completion-seam-2026-08-28.md",
     "completion_model": "mandatory-reverse-plus-real-acceptance-gates",
     "L1_overall_status": "incomplete-not-100-percent",
     "internal_product_path_status": "advanced-many-representative-paths-implemented-but-not-a-completion-claim",
@@ -50,6 +51,7 @@
       "protected-dmc3-executable-authority-preflight",
       "runtime-synth-direct-0x800-vs-recursive-0x40-extent-model",
       "runtime-synth-original-zero-padding-model",
+      "bounded-static-l1-terminal-to-l3-normal-completion-seam",
       "windows-and-ubuntu-ci"
     ],
     "L1_reverse_gate": {
@@ -67,12 +69,24 @@
         "0x1401b8ca0-branch-dependent-boolean-semantics",
         "0x1401b84e0-ignores-type3-completion-enqueue-result",
         "original-32bit-chunk-planner-wrap-semantics",
-        "scan-and-token-ceilings-are-not-clean-original-error-enums"
+        "scan-and-token-ceilings-are-not-clean-original-error-enums",
+        "same-lane-fifo-orders-admitted-type2-materialization-before-admitted-type3-normal-callback",
+        "whole-file-status2-pending-status4-retry-status3-retire",
+        "original-short-status3-transfer-can-permit-loadedresource-state1-to-state2",
+        "cancellation-flushes-queued-work-and-publishes-state4-l3-suppression"
+      ],
+      "closed_bounded_subgates": [
+        {
+          "id": "L1-R-SEAM-STATIC",
+          "status": "closed-bounded-static-normal-path",
+          "scope": "same-lane-fifo-status2-4-3-normal-callback-eligibility-and-queued-cancellation-suppression",
+          "evidence_packet": "../../data/reverse/dmc3-l1-terminal-l3-completion-seam-2026-08-28.v1.json",
+          "non_claim": "dynamic-current-slot-cancellation-concurrency-remains-l3"
+        }
       ],
       "remaining": [
         "recursive-lst-cycle-depth-allocation-free-lifetime-semantics",
         "remaining-allocator-backend-failure-branches",
-        "l1-terminal-to-l3-normal-completion-suppression-eligibility-seam",
         "representative-real-lst-corpus-if-loose-list-equivalence-is-claimed",
         "final-original-l1-contradiction-sweep"
       ],
@@ -98,7 +112,7 @@
       "writer_enqueue_failure_swallowing": "original-observed-product-must-not-launder-into-success",
       "completion_enqueue_failure_swallowing": "original-observed-product-keeps-explicit-authority",
       "scan_token_limits": "original-bounds-without-clean-error-enums-product-explicit-fail-closed",
-      "short_read": "original-can-publish-short-success-product-validates-exactness-when-receipt-claims-exact-bytes"
+      "short_read": "original-status3-can-permit-normal-completion-without-planned-length-equality-product-validates-exactness-when-receipt-claims-exact-bytes"
     },
     "preferred_direct_retail_request_target": "obj\\em000.pac",
     "preferred_target_is_mandatory": false,
@@ -121,11 +135,11 @@
     },
     "L3": {
       "overall_status": "incomplete-strong-static-spine-dynamic-lifecycle-and-level-e-open",
-      "immediate_l1_dependency": "reconcile-l1-terminal-byte-result-with-normal-completion-suppression-eligibility-without-moving-lifecycle-ownership-into-l1"
+      "bounded_static_l1_dependency": "closed-same-lane-fifo-and-status2-4-3-normal-completion-seam",
+      "remaining_dynamic_scope": "current-slot-cancellation-concurrency-transitions-reset-shutdown-and-level-e"
     }
   },
   "project_priority": [
-    "finish-l1-terminal-to-l3-normal-completion-seam",
     "finish-residual-recursive-lst-and-allocator-backend-failure-branches",
     "final-original-l1-contradiction-sweep",
     "direct-retail-provenance-receipt",
@@ -142,6 +156,7 @@
   "navigation": {
     "l1_roadmap": "../gdspaces/l1-roadmap.md",
     "l1_reverse_checkpoint": "../gdspaces/l1-writer-failure-width-reconciliation-2026-08-28.md",
+    "l1_l3_static_seam": "../gdspaces/l1-terminal-l3-completion-seam-2026-08-28.md",
     "loose_container_reconstruction": "../gdspaces/dmc3-loose-container-list.md",
     "current_status": "current.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
