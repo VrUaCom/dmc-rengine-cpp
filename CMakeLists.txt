@@ -94,6 +94,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         manifest_names_and_slot_numbering
         animation_formats_and_walk
         content_tag_census
+        demo_script_naming
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

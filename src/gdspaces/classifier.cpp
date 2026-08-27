@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/demo_script_contract.hpp"
 
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/mot.hpp"
@@ -173,6 +174,14 @@ ResourceClassification ResourceClassifier::classify(
         result.byte_derived = true;
     } else if (starts_with(bytes, "HITS")) {
         result.format = "hits";
+        result.magic_confirmed = true;
+        result.byte_derived = true;
+    } else if (starts_with(bytes, profiles::dmc3::ClothSim1dContract::first_token)) {
+        // The one self-identifying text format in this game: its parser
+        // compares the file's first token for equality against `ClothSim1D`
+        // and bails when it differs. Recognizing it costs a prefix compare and
+        // claims nothing about the grammar, which is unrecovered.
+        result.format = std::string{profiles::dmc3::ClothSim1dContract::extension};
         result.magic_confirmed = true;
         result.byte_derived = true;
     } else if (starts_with(bytes, std::string_view{"TM2\0", 4U})) {
