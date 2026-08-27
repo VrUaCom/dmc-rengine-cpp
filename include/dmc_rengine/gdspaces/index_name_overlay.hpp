@@ -30,6 +30,7 @@ public:
     [[nodiscard]] const ResourceId& child_resource() const noexcept;
     [[nodiscard]] std::string_view display_name() const noexcept;
     [[nodiscard]] std::string_view raw_index_label() const noexcept;
+    [[nodiscard]] std::string_view index_name() const noexcept;
     [[nodiscard]] std::size_t manifest_line() const noexcept;
     [[nodiscard]] std::string_view semantic_format() const noexcept;
     [[nodiscard]] IndexDisplayEvidenceKind evidence_kind() const noexcept;
@@ -42,6 +43,7 @@ private:
         ResourceId child_resource,
         std::string display_name,
         std::string raw_index_label,
+        std::string index_name,
         std::size_t manifest_line,
         std::string semantic_format,
         IndexDisplayEvidenceKind evidence_kind);
@@ -50,6 +52,7 @@ private:
     ResourceId child_resource_;
     std::string display_name_;
     std::string raw_index_label_;
+    std::string index_name_;
     std::size_t manifest_line_{};
     std::string semantic_format_;
     IndexDisplayEvidenceKind evidence_kind_{
