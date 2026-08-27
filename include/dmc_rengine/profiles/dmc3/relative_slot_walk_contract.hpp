@@ -71,6 +71,7 @@ struct RelativeSlotWalkContract final {
     // because "recognized but not expanded" is a real state, distinct from
     // unknown, and a product that expands it would be inventing structure.
     static constexpr std::string_view recognized_not_walked = "EFW";
+    static constexpr std::uint64_t recognized_not_walked_va = 0x1401BA00DULL;
 
     // The loaded-resource pool the PAC walk finalizes over: a fixed array, not
     // a dynamic list.
