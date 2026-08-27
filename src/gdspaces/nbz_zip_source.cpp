@@ -321,6 +321,20 @@ std::optional<ResourcePayload> NbzZipSource::read(
         return payload;
     }
 
+    stream.seekg(0, std::ios::end);
+    const auto current_end = stream.tellg();
+    if (!stream || current_end < std::streampos{0} ||
+        static_cast<std::uint64_t>(
+            static_cast<std::streamoff>(current_end)) != archive_size_) {
+        add_diagnostic(
+            payload.diagnostics,
+            DiagnosticSeverity::error,
+            "gdspaces.nbz.safe.source-size-changed",
+            "NBZ archive size changed after indexing; refusing stale member materialization.",
+            resource);
+        return payload;
+    }
+
     std::vector<std::byte> stored(entry->compressed_size);
     if (!read_exact(stream, entry->data_offset, stored)) {
         add_diagnostic(
