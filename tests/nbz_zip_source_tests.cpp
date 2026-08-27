@@ -314,6 +314,7 @@ int main() {
     assert(stored_plain_ref != nullptr);
     const auto stored_limited = stored_budget.read(stored_plain_ref->id);
     assert(stored_limited.has_value() && !stored_limited->readable());
+    assert(!stored_limited->byte_provenance.has_value());
     assert(has_code(
         stored_limited->diagnostics, "gdspaces.nbz.safe.stored-member-budget"));
 
@@ -332,6 +333,7 @@ int main() {
     assert(materialized_nested_ref != nullptr);
     const auto materialized_limited = materialized_budget.read(materialized_nested_ref->id);
     assert(materialized_limited.has_value() && !materialized_limited->readable());
+    assert(!materialized_limited->byte_provenance.has_value());
     assert(has_code(
         materialized_limited->diagnostics,
         "gdspaces.nbz.safe.materialized-member-budget"));
@@ -363,6 +365,7 @@ int main() {
     const auto crc_ref = wrong_crc.enumerate().front();
     const auto crc_payload = wrong_crc.read(crc_ref.id);
     assert(crc_payload.has_value() && !crc_payload->readable());
+    assert(!crc_payload->byte_provenance.has_value());
     assert(has_code(crc_payload->diagnostics, "gdspaces.nbz.safe.crc-mismatch"));
 
     // SafeProductValidation: a source object must not materialize against an
@@ -388,6 +391,7 @@ int main() {
     const auto stale_payload = stale_source.read(stale_refs.front().id);
     assert(stale_payload.has_value() && !stale_payload->readable());
     assert(stale_payload->bytes.empty());
+    assert(!stale_payload->byte_provenance.has_value());
     assert(has_code(
         stale_payload->diagnostics,
         "gdspaces.nbz.safe.source-size-changed"));
@@ -421,6 +425,7 @@ int main() {
     const auto unknown_ref = unknown.enumerate().front();
     const auto unknown_payload = unknown.read(unknown_ref.id);
     assert(unknown_payload.has_value() && !unknown_payload->readable());
+    assert(!unknown_payload->byte_provenance.has_value());
     assert(has_code(
         unknown_payload->diagnostics,
         "gdspaces.nbz.safe.compression-method-unsupported"));
