@@ -1,64 +1,86 @@
 # GDSpaces Decompilation-Layer Classification
 
-**Canonical reconciliation:** 2026-08-26  
-**Current-main base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
-**L3 raw authority:** [`l3-boundary-audit-2026-08-26.md`](l3-boundary-audit-2026-08-26.md)  
+**Canonical reconciliation:** 2026-08-27  
+**Base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
+**Boundary/status authority:** [`layer-boundary-status-reconciliation-2026-08-27.md`](layer-boundary-status-reconciliation-2026-08-27.md)  
 **Materialization completion authority:** [`materialization-completion-boundary-pass-2026-08-26.md`](materialization-completion-boundary-pass-2026-08-26.md) + [`materialization-completion-dependency-pass2-2026-08-26.md`](materialization-completion-dependency-pass2-2026-08-26.md)
 
-This document keeps GDSpaces/resource-runtime work separated by ownership and acceptance layer. Layer ownership is semantic and evidence-driven; it is not inferred from tool ownership or one contiguous executable address range.
+Layer ownership is semantic and evidence-driven. A helper, queue, object or EXE address is not assigned wholesale to a layer merely because it sits near lifecycle or resolver code. Classify each behavior by the question it answers.
 
 ## Canonical tags
 
-### [L1] Resource Materialization
+### [L2] Resource Resolution
+
+Question:
+
+> Which logical resource/provider/source/member is selected?
 
 ```text
-physical/container bytes
- -> bounded acquisition
+logical request
+ -> candidate construction
+ -> path normalization
+ -> provider/source/volume traversal
+ -> duplicate/ambiguity/fallback/failure classification
+ -> successful selected ResourceRef/provider/member identity
+```
+
+L2 ends at successful usable selection. A lookup hit whose provider wrapper/open creation fails remains L2 selection/failure semantics because no usable selected resource exists yet.
+
+### [L1] Resource Materialization
+
+Question:
+
+> How do selected resource bytes become exact materialized bytes, and how are those bytes reproduced/edited/rebuilt?
+
+```text
+selected provider/member identity
+ -> selected backend/member range acquisition
+ -> FileSlot/ReadRequest sync-or-async byte transport required by materialization
+ -> transport completion/status needed for materialization success
  -> transform/decompression
- -> exact materialized bytes
- -> nested extraction
- -> exact editable child authority
+ -> caller-owned destination population
+ -> packed OR loose-list representation materialization
+ -> nested PAC/PNST/.lst construction
+ -> terminal materialization dependency/error suppression
+ -> normal state 1 -> 2 publication
+ -> exact materialized bytes + provenance
  -> WorkingCopy/edit
  -> rebuild/repack/publication
  -> reopen/rematerialization
 ```
 
-L1 is not closed by lookup, enumeration, structural parsing or synthetic composition alone.
-
-### [L2] Resource Resolution
-
-```text
-logical request
- -> candidate construction
- -> normalization
- -> provider/source/volume selection
- -> duplicate/ambiguity behavior
- -> exact ResourceRef identity
-```
+L1 is not closed by lookup, enumeration, structural parsing, green synthetic CI or a product writer alone.
 
 ### [L3] Original Runtime / Lifecycle
 
+Question:
+
+> What happens after materialized bytes exist: typed normalization, ready visibility, ownership, reuse, cancellation policy, release and teardown?
+
 ```text
-selected/materialized resource
- -> FileSlot / AsyncIO ownership and callbacks
- -> LoadedResource states
+state 2 / materialized bytes complete
  -> typed post-load
- -> ready visibility
- -> claims/cache/factory handoff
- -> cancellation/reset/release/unload/shutdown
+ -> optional ready callback
+ -> state 2 -> 3
+ -> state-3 consumer visibility
+ -> claims/cache/factory/dependency ownership
+ -> cancellation/replacement policy
+ -> state4 cleanup semantics
+ -> owner release / group reset / full reset
+ -> CRT/process-lifetime teardown
 ```
 
-Original code here belongs to the Recovered Game Source Tree.
+L3 can act on unfinished state1/state2 records during cancellation/replacement. That policy interaction does not move selected-byte transport or the materialization terminal dependency into L3.
 
 ### [V] Validation
 
 Cross-cutting hashes, corpus receipts, CI, original-vs-reconstruction comparison and original-game execution. Validation is not a fourth decompilation layer.
 
-### [DOMAIN] Stage Assembly / Stage Ops
+### [DOMAIN] Stage Assembly / Stage Ops / ModViz
 
-Stage/room semantic assembly, geometry/collision/camera/lighting/events/effects/audio relationships and Stage Ops UI are downstream consumers of resource authority.
+Stage/room semantic assembly, geometry/collision/camera/lighting/events/effects/audio relationships, Stage Ops and ModViz are downstream consumers of resource authority.
 
-They are **not Layer 3** in the canonical L1/L2/L3 resource-runtime model and must not create their own materializer/resolver/lifecycle authority.
+They are not L3 and must not create private resolver/materializer/lifecycle authority.
 
 ### [OUTSIDE]
 
@@ -66,137 +88,136 @@ Product/extraction metadata or tooling information not established as original D
 
 ## Current classification matrix
 
-| Area | Layer | Current boundary |
+| Area / behavior | Canonical layer | Boundary |
 |---|---|---|
-| NBZ local/central/EOCD and stored spans | L1 | canonical bounded read/serialization evidence |
-| STORE/raw-DEFLATE member materialization | L1 | strong canonical |
-| archive/member provenance stability | L1 + V | evidence execution remains representation-specific |
-| PAC/PNST relative-slot parsing | L1 | strong canonical |
-| recursive PAC/PNST byte expansion | L1 | strong canonical |
-| bounded PAC/PNST reflow/reintegration | L1 | canonical at evidenced writer scope |
-| `.lst` synthesized bytes | L1 | structurally recovered; dynamic completion/error edges separate |
-| `.lst` packed-first representation choice | L2 | recovered selection behavior |
-| `DMC3-N.nbz` bootstrap/first-gap/precedence | L2 | strong canonical |
-| request basename candidates | L2 | strong recovered boundary |
-| archive normalization/index/qsort/bsearch | L2 | strong recovered boundary |
-| type-0 physical final filename/open behavior | L2 | bounded static chain recovered; protected-process selected identity separate |
-| FileSlot byte-read mechanics | L1 support | byte acquisition behavior only |
-| FileSlot pool/AsyncIO request ownership | L3 | substantial recovered static spine |
-| `0x1401B8CA0` representation/materialization dispatch | L1/L3 seam | mechanics are L1; success controls L3 state1 publication |
-| `0x1402EF4D0` materialization submission/job creation | L1 support + L3 scheduling seam | exact queued job/terminal dependency behavior still open |
-| lower whole-file transport `0x140033500/0x1400335A0` | L1 support + L3 request lifecycle | caller-owned byte transport/status; not LoadedResource state2 callback |
-| materialization completion ordering / dependency bridge | cross-layer | no generic fan-in counter evidenced; terminal gating before normal `1B8DC0` dispatch remains open |
-| LoadedResource 0/1/2/3/4 lifecycle | L3 | strong central static spine |
-| cancellation `1|2 -> 4` | L3 | source-state domain closed for canonical writer |
-| quiescence predicate | L3 | all 363 records must be in `{0,3}` |
-| ordinary/cancel/group/full release policies | L3 | distinct ordering/result semantics recovered |
-| typed MOD/EFM/SCM/SHW post-load | L3 | bounded family authority |
-| central typed unknown/default behavior | L3 | best-effort/no-op; not a state2-blocking failure return |
-| loader-node claims/reset/release | L3 | substantial recovered authority |
-| group-5 exhaustion | L3 original behavior | hard capacity invariant; not safe product policy |
-| runtime vs CRT vs process-lifetime teardown | L3 | distinct lifetime domains recovered |
-| dynamic transition/reload/shutdown receipts | L3 + V | OPEN representative Level-E coverage |
-| StageBundle / StageAssemblyWorkspace | DOMAIN | downstream consumer, not L3 |
-| Stage Ops / Stage Editor | DOMAIN | downstream tooling, not L3 |
-| `.index` manifests | OUTSIDE | metadata, not original lookup authority on recovered path |
+| NBZ local/central/EOCD structure and physical stored spans | L1 | byte acquisition/serialization |
+| Archive normalized lookup / qsort/bsearch identity | L2 | selected member identity |
+| Type-0 physical provider candidate/root/open selection | L2 | usable provider selection/failure |
+| Selected archive/physical backend range read | L1 | byte acquisition starts after usable selection |
+| STORE/raw-DEFLATE member materialization | L1 | exact bytes |
+| FileSlot/ReadRequest selected-byte transport | L1 | sync/async transport required for materialization |
+| `0x140033500` whole-file transfer submission | L1 | caller-owned destination transport |
+| `0x1400335A0` whole-file transport completion/status | L1 | raw transport terminal information |
+| `0x1402EF4D0` materialization submission/job creation | L1 boundary | exact job semantics still open |
+| `0x1402EF790` materialization-job dispatch/persistence behavior | L1 boundary | exact persistence/re-poll/retirement still open |
+| `0x1400333E0` terminal status/poll candidate | L1 OPEN | exact semantics require reacquisition |
+| `0x140033390` terminal load-state release/close candidate | L1 OPEN | exact semantics require reacquisition |
+| materialization completion ordering/dependency bridge | L1 MANDATORY OPEN | no generic fan-in counter evidenced |
+| normal `0x1401B8DC0` `state1 -> state2` publication | L1 end boundary | callback receives registry-relative context only |
+| PAC/PNST relative-slot parsing | L1 | exact materialized topology |
+| recursive PAC/PNST expansion | L1 | nested bytes |
+| bounded PAC/PNST reflow/reintegration | L1 | product authoring at evidenced scope |
+| `.lst` packed-first-vs-loose representation choice | L1 | representation of same selected resource identity |
+| `.lst` synthesized bytes / recursive children | L1 | materialization |
+| `DMC3-N.nbz` bootstrap/first-gap/precedence | L2 | source/volume selection |
+| request basename/six-prefix candidates | L2 | request policy |
+| provider/backend failure before usable selected resource | L2 | selection failure, not byte materialization |
+| typed MOD/EFM/SCM/SHW post-load | L3 | begins from state2 bytes |
+| `0x1401B92D0` typed finalizer / optional callback / state3 | L3 | ready publication |
+| loader-node claims/cache/factory ownership | L3 | shared ownership above LoadedResource |
+| cancellation policy `state1|state2 -> state4` | L3 policy + L1 interaction | invalidates unfinished materialization but does not own its transport |
+| `0x1402EF460` pending scheduler-entry clear/rollback | semantic seam | classify exact action by target: L1 completion suppression vs L3 cancellation policy |
+| quiescence predicate | L3 | replacement/lifecycle coordination |
+| state4 deferred cleanup | L3 | lifecycle cleanup |
+| ordinary/group/full release/reset | L3 | ownership/lifecycle |
+| runtime vs CRT vs process-lifetime teardown | L3 | lifecycle |
+| archive/member provenance stability | L1 + V | materialization evidence |
+| protected selected-provider trace | L2 + V | original selection evidence |
+| dynamic typed-ready/use/release trace | L3 + V | original lifecycle evidence |
+| StageBundle / StageAssemblyWorkspace | DOMAIN | downstream stage consumer |
+| Stage Ops / Stage Editor / ModViz | DOMAIN | downstream tooling |
+| `.index` manifests | OUTSIDE | metadata, not recovered original lookup authority |
 | binary AFS backend | evidence-gated | not established by `.afs/` namespace strings |
 | PACK original runtime use | evidence-gated | historical product parser is not original-runtime proof |
 
-## GDS-relevant EXE function-boundary matrix
+## Function-boundary guidance
 
-### Strong / do not restart without contradiction
+### L2 strong boundaries
 
-#### L1/L2
+Do not reopen absent contradiction:
 
-- resource bootstrap / numbered-volume registration family around `0x14002E930`;
-- mounted-source resolver family around `0x140327430`;
-- basename-oriented `OpenGameResource` request path around `0x14002FCA0`;
-- normalization family including archive `0x0E` and physical `0x0C` behavior;
-- archive central index/sort/search family;
-- `ZipEntryRead 0x140328F50` direct-vs-inflated branch;
-- `InflateRead 0x140328820` raw-DEFLATE streaming behavior at the recovered scope;
-- major `.lst` packed-first/synthesis structure;
-- caller-owned whole-file transfer submission/callback boundary around `0x140033500/0x1400335A0`.
+- bootstrap / numbered-volume registration around `0x14002E930`;
+- `OpenGameResource 0x14002FCA0` basename/six-prefix/provider traversal;
+- `ResourceMountResolve 0x140327430` provider selection;
+- normalization: archive `0x0E`, physical `0x0C`;
+- archive normalized index/sort/search;
+- bounded type-0 static final-open chain at the recovered direct-call scope.
 
-#### L3 / cross-layer scheduler
+### L1 strong boundaries
 
-- LoadedResource registry `0x140C99D30`, 363 records × `0x48`, seven groups;
-- acquisition `0x1401B84E0` with state1 only after materialization success;
-- normal completion `0x1401B8DC0` state2 publication;
-- merged #230 one-u32 normal completion context ABI through `0x1402EF580/0x1402EF790`;
-- finalizer `0x1401B92D0`: typed post-load -> optional callback -> state3;
-- cancellation `0x1401B8430`: only states1/2 -> state4;
-- quiescence `0x1401B84B0`: every record must be state0 or state3;
-- cancel cleanup `0x1401B8F00` vs ordinary release `0x1401B9530` vs group/full reset `0x1401B9560/0x1401B95E0`;
-- typed dispatcher `0x1401B9FA0`, representative families and recursive PNST behavior;
-- loader claim/release anchors `0x1401AE220`, `0x1401AF6A0`, `0x1401AF6F0`;
-- runtime backing release `0x140337710` distinguished from CRT backing destructor `0x140337440`.
+Do not reopen absent contradiction:
 
-These boundaries may still have open family/error/profile edges; that does not justify restarting the already recovered core behavior.
+- whole-file caller-owned destination transport around `0x140033500/0x1400335A0`;
+- FileSlot/ReadRequest transport architecture at bounded recovered scope;
+- `ZipEntryRead 0x140328F50` STORE-vs-compressed split;
+- `InflateRead 0x140328820` raw-DEFLATE streaming behavior;
+- PAC/PNST relative-slot structure and recursive expansion;
+- `.lst` grammar/layout/synthesis structure;
+- normal `0x1401B8DC0` callback ABI/context and state2 publication.
 
-## Materialization completion dependency correction
+### L1 mandatory open boundary
 
-Merged #228 supersedes broad `fan-in/completion` wording as evidence of a generic child/outstanding-work counter. No such universal counter is currently established.
+The exact terminal dependency between submitted materialization work and normal state2 publication remains open:
 
-Merged #230 proves the normal `0x1401B8DC0` callback receives only one u32 registry-relative context. It does **not** receive transport status, error flag, byte count, FileSlot handle or child/outstanding-work metadata.
+```text
+0x1402EF4D0 job/submission
+ -> lower transport
+ -> terminal success/error state
+ -> job persistence/re-poll/retirement OR another gate
+ -> failed/incomplete completion suppression
+ -> normal 0x1401B8DC0
+```
 
-Therefore the success/error dependency must be resolved before normal `0x1401B8DC0` dispatch, or the queued completion must be removed/suppressed before it executes.
+Merged evidence rejects a generic fan-in-counter assumption. FIFO order alone is not sufficient unless the earlier materialization job is completion-aware.
 
-FIFO insertion order alone is insufficient if a prior materialization scheduler job can submit asynchronous transport and retire immediately. The next raw pass must determine the actual terminal condition: persistent polling job, callback-driven terminal state, separate scheduler gate, synchronous completion, or another directly evidenced mechanism.
+Focused targets:
 
-Historical helper roles around `0x1400333E0` (status/poll) and `0x140033390` (terminal release/close) remain reacquisition hypotheses until fresh canonical bytes confirm them.
+1. `0x1402EF4D0` exact queued job identity/type and inherited load-context consumer;
+2. matching `0x1402EF790` dispatch/persistence/re-poll/retirement behavior;
+3. `0x1400333E0` pending/success/error domain;
+4. `0x140033390` terminal cleanup/release ordering;
+5. `0x1400335A0` transport writes into that domain;
+6. failed/incomplete suppression before normal `0x1401B8DC0`;
+7. relevant `0x1402EF460` pending-entry clear/rollback behavior;
+8. `.lst` child/recursive failure ordering after the direct-resource terminal model is closed.
 
-## Bounded open reverse targets
+### L3 strong boundaries
 
-### Cross-layer materialization completion bridge — current first priority
+Do not restart absent contradiction:
 
-1. `0x1402EF4D0`: exact queued materialization job callback/state/type and inherited load-context consumer;
-2. `0x1402EF790`: identify that job's dispatch case and persistence/re-poll/retirement behavior;
-3. `0x1400333E0`: reacquire pending/success/error status domain;
-4. `0x140033390`: reacquire terminal cleanup/release ordering;
-5. `0x1400335A0`: bind lower transport writes into the terminal state;
-6. determine what prevents normal `0x1401B8DC0` dispatch on failed/incomplete transport;
-7. `0x1402EF460`: recover higher scheduler suppression/rollback without relabeling it OS AsyncIO cancellation;
-8. only then apply the confirmed direct-resource mechanism to `.lst` child/recursive failure ordering.
+- LoadedResource registry `363 x 0x48`, seven groups;
+- state2 typed finalizer `0x1401B92D0` and state3 ready publication;
+- cancellation policy `0x1401B8430`: states1/2 -> state4;
+- quiescence `0x1401B84B0`: all records in `{0,3}`;
+- state4 cleanup `0x1401B8F00`;
+- ordinary release `0x1401B9530`;
+- group/full reset `0x1401B9560/0x1401B95E0`;
+- typed dispatcher `0x1401B9FA0` and representative typed families;
+- loader claim/release `0x1401AE220`, `0x1401AF6A0`, `0x1401AF6F0`;
+- runtime backing release vs CRT destructor distinction.
 
-### L1/L2
-
-1. exact protected-process selected-provider identity after independent runtime mapping;
-2. real-retail normalized-key collision evidence where required by final L2 acceptance;
-3. remaining ZIP/loose-container error/lifetime edges only where they affect a claimed compatibility boundary.
-
-### L3
-
-1. alias-aware residual whole-image census of possible `LoadedResource +0x04` value-flow writers/callers;
-2. family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable adjacent fields;
-3. external typed/factory/dependency failure paths outside the central best-effort dispatcher;
-4. SCM `mesh +0x28` reconciliation;
-5. shared-owner coordination breadth outside already bounded loader-node families;
-6. protected original-process V1–V7 lifecycle receipts;
-7. cross-build/profile differences.
+The existence of state fields 0/1/2 does not make their entire acquisition/materialization path L3. State2 is the handoff boundary: L1 proves materialized-byte completion; L3 begins typed-ready lifecycle from that completed state.
 
 ## Cross-boundary rules
 
-- Physical provider selection is L2; materializing the selected bytes is L1.
-- `.lst` representation choice is L2; synthesized container bytes are L1.
-- `0x1401B8CA0` is an explicit L1/L3 seam: materialization mechanics are L1, its success result gates L3 state1 publication.
-- FileSlot can support L1 byte-read reconstruction while original pool/scheduler/callback ownership remains L3.
-- State1/state2 remain L3 lifecycle states even when their ordering is supporting evidence for L1 byte/materialization correctness.
-- `0x1400335A0` lower transport completion and `0x1401B8DC0` state2 completion are distinct layers.
-- A lower generic allocator/backing helper is not automatically L3; classify by caller/state ownership context.
-- Stage Ops consumes L1/L2/L3 authority and is not itself one of the three resource-runtime layers.
-- Product hardening never becomes original-game acceptance behavior automatically.
-- Writer compatibility with read/runtime contracts does not prove Capcom offline-writer equivalence.
-- Evidence-grade archive/member receipts require artifact stability across index/member/hash observation.
+- Selection/identity is L2; transfer/transform of selected bytes is L1.
+- Provider failure before a usable selected resource exists is L2 failure semantics.
+- `.lst` representation choice is L1, because it selects how the same resource identity becomes bytes.
+- FileSlot/ReadRequest selected-byte transfer is L1; service/pool/shutdown ownership outside byte correctness is L3.
+- Normal state1->2 completion is the L1 end boundary.
+- Typed post-load/state2->3 is L3.
+- L3 cancellation policy may suppress L1 completion; classify policy and byte mechanism separately.
+- A shared scheduler helper is not automatically L3; classify the specific queued action.
+- Stage Ops consumes L1/L2/L3 authority and is not one of these resource-runtime layers.
+- Product hardening does not become original-game behavior automatically.
+- Writer compatibility does not prove Capcom offline-writer equivalence.
 
 ## Current priority accounting
 
-The three layers have separate remaining gates:
-
 ```text
-L1 -> real-retail / edit-rebuild-rematerialization evidence
-L2 -> protected-process mapped selected identity + retail collision gate
-L3 -> narrow residual static census + materialization-completion scheduler bridge + V1–V7 original-process lifecycle
+L1 -> mandatory materialization terminal-dependency reverse + real-retail/edit/rebuild/rematerialization/Level-E receipts
+L2 -> retail collision evidence + real protected mapping + trusted selected identity + final audit
+L3 -> residual static ownership breadth + original-process typed-ready/transition/cancellation/release/shutdown receipts
 ```
 
-Progress in one layer must not be reported as completion of another, even when a vertical acceptance receipt spans all three.
+All three layers are currently **INCOMPLETE / NOT 100%**. Progress in one layer must never be reported as completion of another.
