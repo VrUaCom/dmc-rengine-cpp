@@ -1,0 +1,115 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-byte-exactness-raw-pass.v1",
+  "id": "dmc3-hd-l1-byte-exactness-raw-pass-2026-08-27",
+  "artifact": {
+    "name": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "role": "canonical-analysis-reverse-authority"
+  },
+  "layer_model": {
+    "L1_end": "0x1401B8CA0-materializer-byte-result-seam",
+    "L3_state_publication": "0x1401B8DC0-state1-to-state2",
+    "cross_layer_seam": "L1-terminal-result-to-L3-completion-eligibility-suppression"
+  },
+  "findings": [
+    {
+      "id": "L1-R1",
+      "status": "bounded-closed",
+      "anchors": ["0x14002F9F0", "0x140048E20", "0x14002FCA0", "0x1403272A0", "0x1400629C0", "0x1403277C0"],
+      "claim": "0x14002F9F0 is a pure thunk to 0x140048E20; FileSlot+0x10 is selected-backend logical/materialized size authority at this path. Lower whole-file open permits size zero, while the packed/.lst representation selector requires rounded size > 0."
+    },
+    {
+      "id": "L1-R2",
+      "status": "bounded-closed-common-path",
+      "anchors": ["0x1400333C0", "0x140033500", "0x14002F930", "0x140049200", "0x1403275C0", "0x140327910", "0x140328F50", "0x140328820", "0x1400335A0"],
+      "claim": "whole-file transfer is rounded to 0x800, but physical/ZIP STORE/raw-DEFLATE paths terminate or clamp at logical EOF; read==0 is normal terminal short completion, read<0 is error, and callback reports actual produced bytes"
+    },
+    {
+      "id": "whole-file-status-domain",
+      "status": "closed-bounded",
+      "anchors": ["0x1400333E0", "0x140033500", "0x1400335A0"],
+      "values": {
+        "2": "pending",
+        "3": "success",
+        "4": "error"
+      }
+    },
+    {
+      "id": "L1-R3",
+      "status": "bounded-closed",
+      "anchors": ["0x1402EF620", "0x1401B7B90", "0x1401B84E0", "0x140337600"],
+      "claim": "0x1402EF620 returns ceil(logicalSize/0x800)*0x800; direct/packed planning uses rounded capacity; canonical allocator zeroes full requested payload before materialization"
+    },
+    {
+      "id": "L1-R5",
+      "status": "closed-canonical-allocator-path",
+      "anchors": ["0x140337600", "0x140346BEA"],
+      "claim": "full materialization payload is memset to zero before writer/materializer use, so unwritten .lst alignment gaps remain zero"
+    },
+    {
+      "id": "L1-R4",
+      "status": "structural-bounded-closed-terminal-child-failure-seam-open",
+      "anchors": ["0x1401B79E0", "0x1401B7FD0", "0x1401B85C0", "0x1402EF620", "0x1402EF4D0"],
+      "claim": ".lst planner/writer use matching aligned header/child placement and rounded/recursive size sources; child queue/recursive return values are not universally aggregated into terminal parent success"
+    },
+    {
+      "id": "L1-R6",
+      "status": "bounded-closed",
+      "anchors": ["0x1402EF4D0", "0x1402EF4C0"],
+      "claim": "0x1402EF4D0 enqueues a type-2 whole-file path-load job into a caller-owned destination buffer, normalizes path separators, advances lane producer and returns insertion success/failure"
+    },
+    {
+      "id": "scheduler-persistent-poll",
+      "status": "closed-bounded-success-path",
+      "anchors": ["0x1402EF790", "0x1400333F0", "0x1400333C0", "0x140033500", "0x1400333E0", "0x140033390"],
+      "claim": "type-2 job persists while status==2; status==3 closes whole-file state, clears job and advances lane; FIFO-only completion model is rejected"
+    },
+    {
+      "id": "L1-L3-error-suppression-seam",
+      "status": "open-p0",
+      "anchors": ["0x1402EF790", "0x1402EF460", "0x1401B8430", "0x1401B8DC0"],
+      "claim": "status-4 local path does not mirror success retirement; 0x1402EF460 is pending queue rollback/truncation under LoadedResource cancellation policy. Exact owner that converts terminal transfer error into suppression of later normal state2 publication remains open"
+    },
+    {
+      "id": "L1-R7",
+      "status": "bounded-closed-common-path-secondary-error-breadth-open",
+      "anchors": ["0x14002F930", "0x140327910", "0x140328F50", "0x140328820"],
+      "claim": "partial production composes as progress, zero production as normal terminal EOF, negative as failure for common physical/STORE/DEFLATE paths; exhaustive malformed/error breadth remains secondary"
+    },
+    {
+      "id": "L1-R8",
+      "status": "scope-limit-retained",
+      "claim": "relative slot starts/parent spans do not establish a universal intrinsic serialized child EOF"
+    },
+    {
+      "id": "materializer-return-semantics",
+      "status": "closed-bounded-path-dependent",
+      "anchors": ["0x1401B8CA0", "0x1402EF4D0", "0x1401B85C0"],
+      "claim": "0x1401B8CA0 true is not universal terminal-byte completion: nonzero descriptor direct path ignores 0x1402EF4D0 insertion result, packed selector path propagates it, and .lst path returns local structural/scheduling acceptance"
+    },
+    {
+      "id": "synchronous-helper-error-caveat",
+      "status": "bounded-open-secondary-error-path",
+      "anchors": ["0x1402EF920"],
+      "claim": "helper polls to status 3 or 4, closes state, then returns rounded capacity without encoding status4 as distinct return; relevant to .lst descriptor-load error breadth"
+    }
+  ],
+  "open_priority": [
+    "trace-status4-owner-caller-path-around-0x1402EF790",
+    "prove-failed-job-rollback-or-suppression-before-normal-0x1401B8DC0",
+    "bind-0x1402EF460-to-exact-cancellation-suppression-cases-without-os-cancelio-overclaim",
+    "reconcile-lst-queued-child-failure-through-confirmed-seam",
+    "whole-image-contradiction-sweep-for-alternate-type2-error-owners",
+    "real-retail-provenance-representation-edit-rebuild-rematerialization-level-e"
+  ],
+  "non_claims": [
+    "L1 complete",
+    "state1-to-state2 belongs to L1",
+    "0x1401B8CA0 true means all async bytes are terminally complete",
+    "FIFO alone proves completion",
+    "0x1402EF460 is OS AsyncIO cancellation",
+    "relative slot span is intrinsic child EOF",
+    "exhaustive malformed-input equivalence"
+  ]
+}
