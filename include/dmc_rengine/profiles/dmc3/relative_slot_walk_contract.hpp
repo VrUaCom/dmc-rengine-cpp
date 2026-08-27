@@ -67,11 +67,65 @@ struct RelativeSlotWalkContract final {
     // by type instead, which is how a PNST nested in a PAC still expands.
     static constexpr bool pnst_walk_is_recursive = true;
 
-    // A tag the dispatcher recognizes and deliberately does not walk. Recorded
+    // Tags the dispatcher recognizes and deliberately does not walk. Recorded
     // because "recognized but not expanded" is a real state, distinct from
-    // unknown, and a product that expands it would be inventing structure.
+    // unknown, and a product that expands one would be inventing structure.
+    //
+    // `EFE` was missed the first time this was read: the compiler collapsed
+    // the second comparison into `cmp cl, cl` followed by `cmp [rbx+2], al`,
+    // which tests the third byte against `E` — the value `al` still holds from
+    // the first byte's own comparison. It reads like dead code and is not.
     static constexpr std::string_view recognized_not_walked = "EFW";
     static constexpr std::uint64_t recognized_not_walked_va = 0x1401BA00DULL;
+    static constexpr std::string_view second_recognized_not_walked = "EFE";
+    static constexpr std::uint64_t second_recognized_not_walked_va =
+        0x1401BA024ULL;
+
+    // The four payload handlers the dispatcher runs before it ever looks for a
+    // container, each matched on three bytes.
+    static constexpr std::array<std::string_view, 4> dispatched_payload_tags{
+        "MOD", "EFM", "SCM", "SHW"};
+    static constexpr std::array<std::uint64_t, 4> dispatched_payload_handlers{
+        0x1402FE3B0ULL, 0x1402F7A90ULL, 0x1403051B0ULL, 0x1403204C0ULL};
+
+    // The dispatcher walks `PNST` and nothing else.
+    //
+    // A nested `PAC` is not walked by it: the `P` branch requires `PNST`, so
+    // `PAC\0` falls out at the second byte. Only the pool finalizer walks a
+    // PAC, and only the one held in a pool slot. `st001.pac` slot 7 is a PAC
+    // holding a motion, and the runtime's own dispatcher would not descend
+    // into it — this project's expander does, which is a tool going further
+    // than the game rather than a shape the game reads.
+    static constexpr bool dispatcher_walks_nested_pac = false;
+
+    // The negative that makes unpacking ambiguous, and the reason it is a
+    // product decision rather than a recovered one.
+    //
+    // Neither walk computes or reads a child's size. Both compute
+    // `container + stored_offset` and pass that bare pointer to the handler,
+    // which finds its own end from its own contents. So a container does not
+    // record how long a slot is, and "up to the next non-zero offset" is this
+    // project's reading, not the game's.
+    static constexpr bool walk_computes_child_size = false;
+
+    // The bound is re-read from the container on every iteration rather than
+    // held in a register, so a handler that rewrites the count mid-walk moves
+    // the end of the walk. Recorded because a reader that hoists it is not
+    // reproducing this loop.
+    static constexpr bool slot_count_reread_each_iteration = true;
+
+    // The pool finalizer acts on a slot only in this state, and leaves it in
+    // the next one. A slot in any other state is stepped over untouched.
+    static constexpr std::int32_t pool_slot_state_walked = 2;
+    static constexpr std::int32_t pool_slot_state_after_walk = 3;
+    static constexpr std::size_t pool_slot_state_offset = 0x04U;
+    static constexpr std::size_t pool_slot_finalizer_offset = 0x10U;
+    static constexpr std::size_t pool_slot_payload_offset = 0x20U;
+
+    // A pool slot's payload does not have to be a container. When it is not a
+    // PAC the finalizer dispatches it directly, so a slot can hold a bare
+    // `SCM`, `MOD` or `PNST`.
+    static constexpr bool pool_slot_payload_may_be_a_bare_record = true;
 
     // The loaded-resource pool the PAC walk finalizes over: a fixed array, not
     // a dynamic list.

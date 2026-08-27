@@ -25,6 +25,20 @@
     "va": "0x1402e01a0",
     "window_sha256": "6cce68d77d1496dc153b32d4d1d1dfba93e8e48721c006da48ff1f4f07f23edb"
   },
+  "animation-shared-clt-literals": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2df69a",
+    "image_base": "0x140000000",
+    "name": "animation-shared-clt-literals",
+    "note": "The animation classifier comparing .clt and .CLT, which live in the first registry's literal block rather than its own.",
+    "rva": "0x2e029a",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 50,
+    "va": "0x1402e029a",
+    "window_sha256": "ecb7f27639f17fb1b6e230a86b21247c4f9020341a3a2eed87e98ef5ab01deb3"
+  },
   "animation-table-reset": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
@@ -37,6 +51,20 @@
     "size": 71,
     "va": "0x1402e0150",
     "window_sha256": "29305a5f33490bd252191b3bca574bff0cf6cefde0c65af6202af6719eb85b56"
+  },
+  "animation-type-code-stores": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2df777",
+    "image_base": "0x140000000",
+    "name": "animation-type-code-stores",
+    "note": "The tsc type code store, 5, at the fallthrough of the extension chain.",
+    "rva": "0x2e0377",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 11,
+    "va": "0x1402e0377",
+    "window_sha256": "04923b2be954e3f0573450bd6264a15c8abdda761263605a5d4e972be42a7876"
   },
   "archive-name-catalogue-head": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -329,6 +357,62 @@
     "size": 746,
     "va": "0x1402fe3b0",
     "window_sha256": "2319717d2b827fddf1821832ca8bf12a665317d954d116400151f0e95c60c565"
+  },
+  "pac-pool-finalizer-slot-loop": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b86e0",
+    "image_base": "0x140000000",
+    "name": "pac-pool-finalizer-slot-loop",
+    "note": "The pool finalizer: 0x16B slots of stride 0x48, acting only on state 2 and setting it to 3, walking a PAC payload's slots and dispatching anything else directly.",
+    "rva": "0x1b92e0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 138,
+    "va": "0x1401b92e0",
+    "window_sha256": "1676db8cbbafe07de17e6e3cba80e65c7508018b22c9e8bb2e7b7f2f5e8db169"
+  },
+  "pnst-dispatch-handled-tags": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b93ae",
+    "image_base": "0x140000000",
+    "name": "pnst-dispatch-handled-tags",
+    "note": "The dispatcher's four payload handlers, matched on three bytes each: MOD, EFM, SCM, SHW.",
+    "rva": "0x1b9fae",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 92,
+    "va": "0x1401b9fae",
+    "window_sha256": "af12be625d34bb9cfcc2ae825c1822b7ddc13a43584d49f047d8f0418c44bc98"
+  },
+  "pnst-recognized-not-walked-pair": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b940a",
+    "image_base": "0x140000000",
+    "name": "pnst-recognized-not-walked-pair",
+    "note": "EFW and EFE: both recognized and deliberately not walked. Only EFW had been recorded.",
+    "rva": "0x1ba00a",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 31,
+    "va": "0x1401ba00a",
+    "window_sha256": "fb3945c6168d4761e370f775d7107c73bcfe8da4ca070ca92e1692d130a8566d"
+  },
+  "pnst-walk-loop": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b9429",
+    "image_base": "0x140000000",
+    "name": "pnst-walk-loop",
+    "note": "The PNST check and the recursive slot loop. The count is re-read from memory on every iteration; a child is passed as a bare pointer and no size is ever computed.",
+    "rva": "0x1ba029",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 97,
+    "va": "0x1401ba029",
+    "window_sha256": "2a37230456521723328204588d03efccc9c5dbfc54c38b6d991fdc26d1880a80"
   },
   "pool-finalize-and-pac-walk": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",

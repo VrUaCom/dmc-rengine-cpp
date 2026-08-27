@@ -3,6 +3,7 @@
 #include "dmc_rengine/gdspaces/profile.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <string>
 #include <string_view>
@@ -19,6 +20,16 @@ struct ResourceClassification final {
     // trusting the path. A magic signature is one way to earn this; a record
     // that is structurally text is another, and that one carries no magic.
     bool byte_derived{false};
+
+    // The animation registry's type code for this resource, or -1.
+    //
+    // Animation is typed by a second registry that asks the name and never the
+    // bytes, so this is a claim about the name in every case but one. `mot` is
+    // the exception: its structure is recovered, so a motion found inside a
+    // container with no name at all still lands here.
+    std::int32_t animation_type{-1};
+    // True where this project can read the kind and not merely name it.
+    bool animation_structure_recovered{false};
 };
 
 class ResourceClassifier final {

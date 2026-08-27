@@ -88,6 +88,44 @@ struct AnimationTypeContract final {
     // type code is only meaningful together with the registry that issued it.
     static constexpr std::string_view shared_extension = ".clt";
 
+    // And it is shared literally, not just conceptually.
+    //
+    // This registry's own literal block holds ten entries — five extensions in
+    // lower and upper case — in 80 bytes at `extension_literal_table_va`. The
+    // classifier compares twelve. The other two are `.clt` and `.CLT`, and it
+    // reaches into the *first* registry's block for them rather than carrying
+    // its own copies. That is why a reader that measures this table by its
+    // contiguous bytes finds five formats and the code implements six.
+    static constexpr std::size_t own_literal_count = 10U;
+    static constexpr std::size_t own_literal_bytes = 0x50U;
+    static constexpr std::size_t compared_literal_count = 12U;
+    static constexpr std::uint64_t shared_lowercase_literal_va = 0x140507088ULL;
+    static constexpr std::uint64_t shared_uppercase_literal_va = 0x140507090ULL;
+    // The first registry carries a third, capitalized variant of the shared
+    // extension. This classifier does not compare it.
+    static constexpr std::string_view uncompared_case_variant = ".Clt";
+
+    // The key the registrar builds before storing: the group and the name,
+    // joined by a slash. A resource is identified by a pair, not by a name
+    // alone, which is what lets two containers hold the same member name.
+    static constexpr std::string_view registry_key_format = "%s/%s";
+    static constexpr std::uint64_t registry_key_format_va = 0x140507068ULL;
+    static constexpr std::size_t registry_key_arity = 2U;
+
+    // The lookup that runs first; the registrar is called only when it returns
+    // a negative index, so registration is idempotent per key.
+    static constexpr std::uint64_t find_or_register_va = 0x1402E0020ULL;
+    static constexpr std::uint64_t lookup_va = 0x1402E0060ULL;
+
+    // The extension is matched against the name's tail, and the whole chain is
+    // an ordered sequence of comparisons rather than a table walk: the first
+    // match wins and the last pair falls through to its own store. Recorded
+    // because a reader that sorts the table changes which extension wins for a
+    // name that ends in two of them.
+    static constexpr bool comparison_order_is_significant = true;
+    static constexpr std::uint64_t first_comparison_va = 0x1402E01D2ULL;
+    static constexpr std::uint64_t fallthrough_store_va = 0x1402E0377ULL;
+
     [[nodiscard]] static consteval std::size_t table_bytes() noexcept {
         return table_type_offset + table_capacity * sizeof(std::int32_t);
     }
@@ -100,6 +138,45 @@ struct AnimationTypeContract final {
             }
         }
         return TypeCode::unregistered;
+    }
+
+    // The registry's own rule, applied to a whole name.
+    //
+    // The classifier matches the extension against the tail of the name, and
+    // it enumerates case in pairs rather than folding it — so `.Mot` is not a
+    // motion here, and neither is `.Clt`, which exists as a literal but is
+    // compared only by the other registry. Folding case would make this
+    // reader accept names the game refuses, which is the same class of error
+    // as demanding a fourth magic byte the game never reads.
+    [[nodiscard]] static constexpr TypeCode type_for_name(
+        std::string_view name) noexcept {
+        for (const auto& entry : extension_types) {
+            if (name.size() >= entry.extension.size() &&
+                name.substr(name.size() - entry.extension.size()) ==
+                    entry.extension) {
+                return entry.code;
+            }
+        }
+        return TypeCode::unregistered;
+    }
+
+    [[nodiscard]] static constexpr bool is_animation_format(
+        std::string_view format) noexcept {
+        // A format string carries no dot, so compare against the tail.
+        for (const auto& entry : extension_types) {
+            if (entry.extension.substr(1U) == format) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Whether this project can read the kind, as opposed to name it. Recorded
+    // in the contract so the gap is a fact the code holds rather than a note
+    // in a document that drifts.
+    [[nodiscard]] static constexpr bool structure_is_recovered(
+        TypeCode code) noexcept {
+        return code == TypeCode::motion;
     }
 };
 

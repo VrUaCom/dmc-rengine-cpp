@@ -1,5 +1,7 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
+#include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
+
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
@@ -207,6 +209,23 @@ ResourceClassification ResourceClassifier::classify(
     } else {
         result.format = "unknown";
     }
+
+    // The second registry's verdict, recorded whether or not this project can
+    // read the kind.
+    //
+    // Five of the six animation kinds have no corpus, so nothing here can
+    // recognize one inside a container: the container stores no names and
+    // there is no structure to probe. Saying that plainly is worth more than
+    // leaving them indistinguishable from `unknown` — an operator looking for
+    // animation deserves to know which of the six the tool can see and which
+    // it can only be handed by name.
+    using Animation = profiles::dmc3::AnimationTypeContract;
+    const auto animation = Animation::is_animation_format(result.format)
+        ? Animation::type_for_name(std::string{"."} + result.format)
+        : Animation::TypeCode::unregistered;
+    result.animation_type = static_cast<std::int32_t>(animation);
+    result.animation_structure_recovered =
+        Animation::structure_is_recovered(animation);
 
     // A container claim is a claim about bytes, so it must not be made from a
     // name when the bytes were there to check.

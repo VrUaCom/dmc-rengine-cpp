@@ -92,6 +92,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         effect_pack_structural
         named_but_not_a_container
         manifest_names_and_slot_numbering
+        animation_formats_and_walk
         resource_lookup_policy
         recovered_exe_contract
         source_lookup
