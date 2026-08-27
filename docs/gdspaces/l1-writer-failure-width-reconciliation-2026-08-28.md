@@ -5,6 +5,8 @@
 **Canonical executable:** `dmc3.exe`, 6,356,432 bytes, SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.  
 **Canonical implementation base for this pass:** `main@94692e8f9971cf8249b4b16ee88d309de8b49f11`.
 
+> **Follow-up:** the narrow static normal-path L1-terminal -> L3 completion seam that was still open at the end of this checkpoint is now bounded/closed by `l1-terminal-l3-completion-seam-2026-08-28.md`. Dynamic current-slot cancellation/concurrency remains L3 breadth. The failure/width findings below remain unchanged.
+
 This pass follows the transfer-extent correction merged in #255. It does not reopen the recovered `0x800` direct-child / `0x40` recursively-synthesized layout distinction. Its purpose is to reconcile the remaining **failure propagation and integer-width semantics** around the original `.lst` planner/writer and the queued whole-file ingress.
 
 ## Executive result
@@ -123,6 +125,8 @@ The previously recovered byte spine still applies:
 
 The queue/writer booleans are consequently insufficient terminal byte evidence.
 
+The follow-up seam pass further proves that, for admitted jobs in the canonical normal lane, status `2` keeps the type-2 job current, status `4` retries that same job without retirement, and status `3` retires it and allows a later admitted type-3 callback to become current.
+
 ## 6. Original planner arithmetic is 32-bit and wrap-prone
 
 The original planner/writer performs key size arithmetic in 32-bit registers. The product implementation intentionally uses checked host/32-bit bounds instead of reproducing unsafe wrap.
@@ -203,6 +207,8 @@ representation/planner accepted
 
 Because the original outer writer can swallow enqueue/recursive failure, the exact L1 terminal state cannot be represented by one upstream boolean alone.
 
+The follow-up static seam now additionally establishes the normal-path ordering between an **admitted** type-2 materialization job and a later **admitted** type-3 `0x1401B8DC0` callback; see `l1-terminal-l3-completion-seam-2026-08-28.md`.
+
 ## 9. Product implications
 
 No product code change is required to imitate the unsafe original behavior.
@@ -227,16 +233,18 @@ Now substantially closed by fresh raw EXE review:
 - enqueue vs byte-producing ingress behind `0x1402EF4D0`;
 - writer child-failure propagation behavior;
 - original 32-bit chunk/extent wrap semantics;
-- scanner/token bounds vs product fail-closed policy.
+- scanner/token bounds vs product fail-closed policy;
+- bounded static L1-terminal -> L3 normal-completion eligibility/suppression seam for the canonical admitted-job path.
 
 Still open before an exhaustive L1 original-runtime claim:
 
-1. exact recursive cycle/depth behavior and lifetime/free semantics;
+1. exact recursive cycle/depth behavior and allocation/free lifetime semantics;
 2. remaining allocator/backend failure branches not already classified;
-3. final L1-terminal -> L3 normal-completion suppression/eligibility reconciliation, including `0x1402EF460` / `0x1401B8DC0` context;
-4. representative real `.lst` artifact/corpus receipt for a real loose-list claim;
-5. controlled original-game consumption receipt for authored bytes;
-6. final contradiction-free cross-stack audit.
+3. representative real `.lst` artifact/corpus receipt for a real loose-list claim;
+4. final contradiction-free original-L1 audit;
+5. controlled original-game consumption receipt for authored bytes remains a separate acceptance gate.
+
+Dynamic current-slot cancellation/concurrency and broader transition/reset/shutdown behavior remain L3 breadth.
 
 ## Non-claims
 
@@ -246,4 +254,5 @@ This checkpoint does not claim:
 - original malformed-input safety;
 - Capcom offline writer equivalence;
 - that unsafe original queue/wrap behavior should be reproduced in GDSpaces;
+- all L3 concurrency behavior recovered;
 - controlled original-game consumption.
