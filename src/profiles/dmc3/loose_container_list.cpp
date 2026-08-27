@@ -40,7 +40,17 @@ struct ChildImage final {
     std::string selected_path;
     std::vector<std::byte> bytes;
     bool dummy{false};
+    bool synthesized_nested{false};
 };
+
+[[nodiscard]] std::size_t placement_extent(const ChildImage& child) noexcept {
+    if (child.dummy) {
+        return 0U;
+    }
+    return child.synthesized_nested
+        ? LooseContainerListPolicy::aligned_size(child.bytes.size())
+        : LooseContainerListPolicy::direct_transfer_extent(child.bytes.size());
+}
 
 struct SynthesisContext final {
     const LooseContainerRead& read;
@@ -81,7 +91,12 @@ struct SynthesisContext final {
     LooseContainerStatus& failure_status,
     std::string& failure_detail) {
     if (entry.dummy) {
-        return ChildImage{.selected_path = {}, .bytes = {}, .dummy = true};
+        return ChildImage{
+            .selected_path = {},
+            .bytes = {},
+            .dummy = true,
+            .synthesized_nested = false,
+        };
     }
 
     auto child_path = join_child_path(base, entry.token);
@@ -98,6 +113,7 @@ struct SynthesisContext final {
             .selected_path = std::move(child_path),
             .bytes = std::move(*bytes),
             .dummy = false,
+            .synthesized_nested = false,
         };
     }
 
@@ -117,6 +133,7 @@ struct SynthesisContext final {
             .selected_path = *packed_sibling,
             .bytes = std::move(*packed),
             .dummy = false,
+            .synthesized_nested = false,
         };
     }
 
@@ -139,6 +156,7 @@ struct SynthesisContext final {
         .selected_path = child_path,
         .bytes = std::move(nested.bytes),
         .dummy = false,
+        .synthesized_nested = true,
     };
 }
 
@@ -213,11 +231,11 @@ struct SynthesisContext final {
         }
 
         if (!child->dummy) {
-            const auto aligned =
-                LooseContainerListPolicy::aligned_size(child->bytes.size());
-            if (aligned < child->bytes.size() ||
-                total > context.safety.max_output_bytes -
-                    std::min(aligned, context.safety.max_output_bytes)) {
+            const auto extent = placement_extent(*child);
+            if (extent < child->bytes.size() ||
+                extent == std::numeric_limits<std::size_t>::max() ||
+                extent > context.safety.max_output_bytes ||
+                total > context.safety.max_output_bytes - extent) {
                 return failure(
                     LooseContainerStatus::output_too_large,
                     std::string{requested_packed_path},
@@ -225,7 +243,7 @@ struct SynthesisContext final {
                     "Synthesized .lst child placement exceeds the product output budget.",
                     context.dependencies);
             }
-            total += aligned;
+            total += extent;
             if (total > context.safety.max_output_bytes ||
                 total > static_cast<std::size_t>(
                     std::numeric_limits<std::uint32_t>::max())) {
@@ -240,6 +258,9 @@ struct SynthesisContext final {
         children.push_back(std::move(*child));
     }
 
+    // The recovered allocator zeroes the complete planned image before the
+    // writer copies exact child bytes into it. Direct-child transfer slack and
+    // structural alignment gaps therefore remain deterministically zero.
     std::vector<std::byte> output(total, std::byte{0});
     std::copy(document.magic.begin(), document.magic.end(), output.begin());
     write_u32_le(
@@ -258,7 +279,7 @@ struct SynthesisContext final {
         std::copy(
             child.bytes.begin(), child.bytes.end(),
             output.begin() + static_cast<std::ptrdiff_t>(cursor));
-        cursor += LooseContainerListPolicy::aligned_size(child.bytes.size());
+        cursor += placement_extent(child);
     }
 
     return LooseContainerMaterialization{
@@ -421,6 +442,15 @@ std::optional<std::string> LooseContainerListPolicy::packed_sibling_for_list(
 
 std::size_t LooseContainerListPolicy::aligned_size(std::size_t value) noexcept {
     constexpr auto mask = synthesis_alignment - 1U;
+    if (value > std::numeric_limits<std::size_t>::max() - mask) {
+        return std::numeric_limits<std::size_t>::max();
+    }
+    return (value + mask) & ~mask;
+}
+
+std::size_t LooseContainerListPolicy::direct_transfer_extent(
+    std::size_t value) noexcept {
+    constexpr auto mask = transfer_granularity - 1U;
     if (value > std::numeric_limits<std::size_t>::max() - mask) {
         return std::numeric_limits<std::size_t>::max();
     }
