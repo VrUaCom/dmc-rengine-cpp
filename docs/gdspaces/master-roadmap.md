@@ -4,7 +4,7 @@
 **Base:** `main@94692e8f9971cf8249b4b16ee88d309de8b49f11`  
 **L1 status:** **INCOMPLETE / NOT 100% — active original-materialization reverse + real acceptance open**  
 **Latest L1 layout promotion:** #255  
-**Latest L1 raw checkpoint:** `l1-writer-failure-width-reconciliation-2026-08-28.md`  
+**Latest L1 raw checkpoints:** `l1-writer-failure-width-reconciliation-2026-08-28.md`, `l1-terminal-l3-completion-seam-2026-08-28.md`  
 **L2:** incomplete; advanced static/tooling, real selected-identity evidence open  
 **L3:** incomplete; strong static spine, dynamic lifecycle/original-process evidence open
 
@@ -25,7 +25,7 @@ The previous master-roadmap wording that L1's internal path was closed is supers
  -> packed/.lst/nested representation construction
  -> bounded authoring + rebuild/repack
  -> reopen/rematerialize
- -> terminal byte/result authority
+ -> native terminal byte/result authority
 ```
 
 ### L2 — Resource Resolution
@@ -42,8 +42,8 @@ logical request
 ### L3 — Original Runtime / Lifecycle
 
 ```text
-L1 terminal byte/result state
- -> request/queue/callback lifetime
+L1 native terminal byte/result state
+ -> FIFO callback eligibility / request-callback lifetime
  -> normal LoadedResource publication
  -> typed post-load
  -> ready visibility
@@ -70,7 +70,7 @@ real protected DMC3 installation
  -> [L1] supported representation + bounded edit/rebuild
  -> [L2] authored next-volume winner
  -> [L1] exact authored rematerialization
- -> [L1/L3 seam] terminal byte/result permits normal completion
+ -> [bounded L1/L3 seam] native terminal result permits admitted normal callback to become eligible
  -> [L3] original lifecycle reaches consumer-ready visibility
  -> observable effect attributable to authored bytes
  -> rollback / transition receipt
@@ -81,7 +81,7 @@ A crash-free launch is not sufficient.
 ## Track A — L1 reverse + final acceptance
 
 Canonical L1 roadmap: `l1-roadmap.md`.  
-Current raw checkpoint: `l1-writer-failure-width-reconciliation-2026-08-28.md`.
+Current raw checkpoints: `l1-writer-failure-width-reconciliation-2026-08-28.md` and `l1-terminal-l3-completion-seam-2026-08-28.md`.
 
 **Status: INCOMPLETE / active.**
 
@@ -117,19 +117,46 @@ The canonical EXE pass now confirms/corrects:
 - `0x1401B8CA0` branch-dependent boolean semantics;
 - `0x1401B84E0` ignoring type-3 completion enqueue failure;
 - 32-bit wrap-prone chunk/planner arithmetic;
-- scanner/token ceilings as bounds rather than clean original error enums.
+- scanner/token ceilings as bounds rather than clean original error enums;
+- admitted type-2 materialization jobs and the admitted normal type-3 callback share one per-lane FIFO;
+- whole-file status `2` leaves current materialization pending, status `4` retries the same current type-2 job without retirement, and status `3` retires it and advances the FIFO;
+- original status `3` can be published after fewer actual bytes than originally planned, so short-success can make normal completion eligible;
+- cancellation `0x1401B8430 -> 0x1402EF460` flushes queued work and moves LoadedResource `1/2 -> 4`, establishing a queued-work suppression path owned by L3.
 
-This means the old model “materializer boolean == exact byte success” is not valid globally.
+This means the old model “materializer boolean == exact byte success” is not valid globally, while the static normal FIFO gate is now bounded well enough to separate the native L1 terminal result from L3 publication.
+
+### Bounded static L1/L3 seam — CLOSED
+
+For **successfully admitted** canonical normal-path jobs:
+
+```text
+current type-2 materialization
+ -> status 2: pending, no FIFO advance
+ -> status 4: phase reset/retry same current job, no FIFO advance
+ -> status 3: close/clear/retire type-2, advance consumer index
+ ===== native L1 byte/result terminal =====
+ -> admitted later type-3 callback can become current
+ -> 0x1401B8DC0 publishes LoadedResource state 1 -> 2
+ ===== L3 lifecycle =====
+```
+
+Important qualifications:
+
+- this FIFO guarantee does not retroactively prove that every expected child/completion job was admitted; upstream original code can swallow enqueue failure;
+- status `3` is the original success criterion and does not independently prove actual-bytes == planned-bytes;
+- cancellation can flush queued-but-not-current work and publish state `4` instead;
+- exact concurrent/current-slot cancellation races remain L3 dynamic scope.
+
+Static seam evidence: `l1-terminal-l3-completion-seam-2026-08-28.md`.
 
 ### L1 reverse work order
 
 ```text
-A-R1 finish L1 terminal-byte/result -> L3 normal-completion suppression/eligibility seam
- -> A-R2 finish residual recursive .lst cycle/depth/lifetime + allocator/backend failure branches
- -> A-R3 final original-L1 contradiction sweep
+A-R1 finish residual recursive .lst cycle/depth/allocation/free lifetime + allocator/backend failure branches
+ -> A-R2 final original-L1 contradiction sweep
 ```
 
-The current seam must include at least the relevant value flow around `0x1402EF460`, `0x1402EF580/0x1402EF790`, whole-file terminal status, and canonical `0x1401B8DC0` normal-completion context without reclassifying broader L3 lifecycle ownership into L1.
+Dynamic current-slot cancellation/concurrency, transitions, reset and shutdown remain L3. They are not an L1 reverse blocker unless a concrete L1 acceptance receipt activates them.
 
 ### L1 real acceptance sequence
 
@@ -156,7 +183,7 @@ Unsafe original behavior is evidence, not a product requirement:
 | child enqueue failure may be swallowed | successful receipt must not launder rejected work |
 | completion enqueue failure may be ignored | completion authority stays explicit |
 | malformed scanner/token boundary lacks clean error enum | explicit fail-closed diagnostics |
-| short transfer can reach original success state | exactness validation when product receipt claims exact bytes |
+| short status-3 transfer can permit normal completion | exactness validation when product receipt claims exact bytes |
 
 ## Track B — L2 closure
 
@@ -222,7 +249,7 @@ Current evidence strongly supports:
 
 Do not restart already bounded static areas absent contradictory evidence.
 
-### L1/L3 seam — corrected
+### L1/L3 seam — corrected and bounded
 
 Older shorthand:
 
@@ -230,30 +257,38 @@ Older shorthand:
 0x1401B8CA0 true -> L3 normal completion
 ```
 
-is too coarse.
+is false as a general statement.
 
-Fresh L1 reverse proves:
+Fresh reverse proves:
 
 - packed `0x1401B8CA0` branch can directly propagate type-2 enqueue admission;
 - loose branch inherits `0x1401B85C0`, which can swallow child enqueue/recursive failure;
 - another branch can force success after a failed enqueue;
 - `0x1401B84E0` can return success despite failed type-3 completion enqueue;
-- whole-file terminal callback/status can represent fewer actual bytes than originally planned.
+- admitted materialization/completion jobs use the same lane/FIFO;
+- status `2` blocks later FIFO work as pending;
+- status `4` retries the current type-2 job and still blocks later FIFO work;
+- status `3` retires the current type-2 job, after which a later admitted normal callback can become current;
+- status `3` itself does not prove exact planned length;
+- cancellation can remove queued normal work and publish state `4` instead.
 
-Therefore the seam must be modeled as:
+Correct seam:
 
 ```text
-L1 representation/planner accepted
- -> dispatch/queue admission(s)
- -> queued consumer(s)
- -> actual whole-file byte terminal state
- ===== exact L1 byte/result authority =====
- -> normal completion eligibility/suppression
- -> LoadedResource/lifecycle publication
- ===== L3 =====
+[L1]
+representation/planner accepted
+ -> queue-admission attempts
+ -> admitted type-2 consumer execution
+ -> native status-3 byte/result terminal
+===== END L1 BYTE/RESULT AUTHORITY =====
+
+[L3]
+FIFO reaches admitted type-3 normal callback
+ -> 0x1401B8DC0 state 1 -> 2
+ -> typed post-load / ready lifecycle
 ```
 
-The next cross-layer reverse pass owns **only this narrow seam**. Broader lifecycle remains L3.
+The bounded static seam is **closed** for this scope. Dynamic current-slot cancellation/concurrency remains L3 and must not be pulled back into L1.
 
 ### L3 dynamic work order
 
@@ -276,7 +311,7 @@ For the first L1 vertical proof, L3 only needs enough original-process evidence 
 |---|---|---|
 | Which resource wins for a real request? | L2 | real retail/protected evidence |
 | Are selected bytes exact? | L1 | L2 selected identity + artifact binding |
-| Is original materialization result semantics understood? | L1 | narrow L3 queue/completion seam evidence |
+| Is original materialization result semantics understood? | L1 | bounded static queue/completion seam evidence now recorded |
 | Can selected representation be edited safely? | L1 | representation-specific authority |
 | Will authored overlay win? | L2 | L1 generated artifact |
 | Are authored bytes rematerialized exactly? | L1 | L2 authored winner |
@@ -285,15 +320,14 @@ For the first L1 vertical proof, L3 only needs enough original-process evidence 
 
 ## Current priority queue
 
-1. Finish the narrow L1 terminal-byte/result -> L3 normal-completion seam.
-2. Finish residual recursive `.lst` / allocator/backend failure branches.
-3. Run final original-L1 contradiction sweep.
-4. Execute representative real-retail L1 acquisition/classification/edit/rebuild/rematerialization.
-5. Execute #209 original-game consumption + rollback.
-6. Run final L1 audit.
-7. Continue L2 real collision/mapping/trusted-selection evidence as dependencies/artifacts permit.
-8. Continue L3 dynamic receipts without reopening already strong static boundaries.
-9. Reconcile final L2/L3 audits independently.
+1. Finish residual recursive `.lst` cycle/depth/allocation/free lifetime and allocator/backend failure branches.
+2. Run final original-L1 contradiction sweep.
+3. Execute representative real-retail L1 acquisition/classification/edit/rebuild/rematerialization.
+4. Execute #209 original-game consumption + rollback.
+5. Run final L1 audit.
+6. Continue L2 real collision/mapping/trusted-selection evidence as dependencies/artifacts permit.
+7. Continue L3 dynamic receipts without reopening already strong static boundaries or the bounded static L1/L3 seam.
+8. Reconcile final L2/L3 audits independently.
 
 ## Completion rule
 
