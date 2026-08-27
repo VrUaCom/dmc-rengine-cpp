@@ -1,3 +1,4 @@
+#include "dmc_rengine/profiles/dmc3/archive_catalog_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/archive_entry_read_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loaded_resource_pool_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
@@ -545,6 +546,80 @@ void contracts_are_bound_to_one_image() {
     static_assert(
         dmc3::ResourceTypeContract::type_dispatch_va ==
         dmc3::RelativeSlotWalkContract::pnst_walk_va);
+    static_assert(
+        dmc3::ArchiveCatalogContract::canonical_target_sha256 ==
+        dmc3::RelativeSlotWalkContract::canonical_target_sha256);
+    static_assert(
+        dmc3::ArchiveCatalogContract::image_base ==
+        dmc3::RelativeSlotWalkContract::image_base);
+}
+
+// How the runtime finds a named archive, and the catalogue of names the image
+// carries but never reads.
+//
+// The two halves of that sentence are the point of these assertions. The
+// search path is instruction-backed, twice over. The catalogue is not backed at
+// all, and the contract has to keep saying so — a later edit that quietly flips
+// `catalog_read_site_found` to true would turn 4,039 candidate names into 4,039
+// claimed ones, which is exactly the failure this project keeps having to undo.
+void the_search_path_is_recovered_and_the_catalogue_is_not() {
+    using Catalog = dmc3::ArchiveCatalogContract;
+
+    // Six prefixes, because two routines bound their loop at six.
+    static_assert(Catalog::search_prefix_count == 6U);
+    static_assert(Catalog::search_prefixes.size() == Catalog::search_prefix_count);
+    static_assert(Catalog::resolver_va != Catalog::second_resolver_va);
+    // The fetch site must lie inside the resolver it belongs to, or the
+    // contract is quoting a bound from some other function.
+    static_assert(Catalog::resolver_table_fetch_va > Catalog::resolver_va);
+    static_assert(
+        Catalog::resolver_table_fetch_va < Catalog::resolver_va + 0x100U);
+
+    // The prefix this project picked from the corpus is in the table, which is
+    // corroboration and not proof — recorded as its index, so the claim stays
+    // exactly as strong as "it appears there".
+    static_assert(
+        Catalog::search_prefixes[Catalog::volume_prefix_index] ==
+        Catalog::volume_prefix);
+    // The last entry is empty: that is how a name with no prefix resolves.
+    static_assert(Catalog::search_prefixes.back().empty());
+    // ... and it is the only empty one, or "try the name as given" would
+    // happen more than once.
+    static_assert(!Catalog::search_prefixes[0].empty());
+    static_assert(!Catalog::search_prefixes[4].empty());
+
+    // The catalogue: present, ordered, and unread.
+    static_assert(Catalog::catalog_entry_count == 4039U);
+    static_assert(Catalog::catalog_pac_entry_count < Catalog::catalog_entry_count);
+    static_assert(!Catalog::catalog_read_site_found);
+    static_assert(!Catalog::catalog_index_is_a_known_identifier);
+    // The declared extent must reach the entry the contract calls the last one.
+    static_assert(
+        Catalog::catalog_entry_va(Catalog::catalog_entry_count - 1U) ==
+        Catalog::catalog_last_entry_va);
+    // A stage's files are consecutive, and the group is four wide. The first
+    // version of this assertion said three, from the two stages the corpus
+    // contains, and failed: 380 - 276 is 104. Checking the whole catalogue
+    // instead of the two files on hand gave the fourth member, the sound bank.
+    static_assert(
+        Catalog::st114_catalog_index > Catalog::st001_catalog_index);
+    static_assert(
+        (Catalog::st114_catalog_index - Catalog::st001_catalog_index) %
+            Catalog::stage_group_stride == 0U);
+    // Not every group is complete, and the contract must not round that up.
+    static_assert(
+        Catalog::complete_stage_group_count < Catalog::stage_group_count);
+    static_assert(
+        Catalog::stage_group_count * Catalog::stage_group_stride <
+        Catalog::catalog_entry_count);
+
+    static_assert(
+        Catalog::search_prefix_entry_va(0U) == Catalog::search_prefix_table_va);
+    static_assert(
+        Catalog::search_prefix_entry_va(Catalog::search_prefix_count - 1U) ==
+        Catalog::search_prefix_table_va +
+            (Catalog::search_prefix_count - 1U) *
+                Catalog::search_prefix_entry_bytes);
 }
 
 } // namespace
@@ -561,5 +636,6 @@ int main() {
     the_loaded_resource_pool_is_a_fixed_partition();
     the_l1_lifecycle_closes();
     contracts_are_bound_to_one_image();
+    the_search_path_is_recovered_and_the_catalogue_is_not();
     return 0;
 }

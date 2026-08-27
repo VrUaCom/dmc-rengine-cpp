@@ -89,6 +89,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         effect_and_shadow_structural
         slot_name_manifest
         mot_structural
+        effect_pack_structural
         resource_lookup_policy
         recovered_exe_contract
         source_lookup
