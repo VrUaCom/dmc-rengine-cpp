@@ -100,6 +100,7 @@ public:
     static constexpr std::size_t scan_limit = 0x1FC0U;
     static constexpr std::size_t token_limit = 0x100U;
     static constexpr std::size_t synthesis_alignment = 0x40U;
+    static constexpr std::size_t transfer_granularity = 0x800U;
 
     [[nodiscard]] static LooseListDocument parse(std::span<const std::byte> bytes);
 
@@ -112,7 +113,12 @@ public:
     [[nodiscard]] static std::optional<std::string> packed_sibling_for_list(
         std::string_view list_path);
 
+    // 0x40 structural alignment is used by the synthesized header and by a
+    // recursively synthesized child complete image. Direct whole-file children
+    // use the recovered 0x800 transfer extent instead.
     [[nodiscard]] static std::size_t aligned_size(std::size_t value) noexcept;
+    [[nodiscard]] static std::size_t direct_transfer_extent(
+        std::size_t value) noexcept;
     [[nodiscard]] static std::optional<std::size_t> header_size(
         std::size_t slot_count) noexcept;
 
