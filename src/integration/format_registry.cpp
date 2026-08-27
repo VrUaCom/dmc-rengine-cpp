@@ -425,15 +425,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "mot",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.mot-structural",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
             .stage_category = gdspaces::StageResourceCategory::animations,
             .evidence_claim_ids = {},
             .limitations = {
-                "Motion. Typed by extension in the recovered animation registry.",
-                "That registry has no content-tag fallback, so a payload with no recognized name is never registered. Structure is not modelled.",
+                "Typed by extension in the recovered animation registry, which has no content-tag fallback. The MOT tag the payload carries is compared nowhere in the executable.",
+                "The track layout is structural, not recovered: it is arithmetic that closes on the one real payload in the corpus, checked 69 times over by that file's own tracks.",
+                "A key is four signed 16-bit values. Only the first is understood, as a strictly increasing stamp; the other three are read and not named.",
+                "No writer.",
             },
         },
         FormatIntegrationDescriptor{

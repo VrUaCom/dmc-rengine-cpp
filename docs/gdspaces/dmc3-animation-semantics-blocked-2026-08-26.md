@@ -2,9 +2,16 @@
 
 **Image:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
+> **Superseded in part, 2026-08-26 (same day).** §4 and §5 below said the
+> animation payloads were blocked on data. That was wrong for `MOT`: the one
+> `.mot` file contains 69 tracks, and its structure is now recovered and
+> asserted — see `dmc3-mot-recovery-2026-08-26.md`. §§1–3 stand unchanged, and
+> the block still holds for `MCV`, `HID`, `TSC`, `EFM` and `SHW`. The
+> corrections are marked inline.
+
 The plan's third step was to reverse the animation payloads rather than only
-the registry that types them. It does not work with what is available, and the
-reasons are worth more than a guess would have been.
+the registry that types them. It works only in part with what is available, and
+the reasons are worth more than a guess would have been.
 
 ## 1. The payload's tag is inert
 
@@ -44,19 +51,33 @@ invention.
 
 ## 4. What would unblock it
 
-Not more reversing. **Data.**
+**Corrected.** This section claimed `MOT` needed a second file. It did not.
 
-- More than one `.mot` file. There is exactly one in everything supplied:
-  `st001.pac` slot 7 slot 0, 63,440 bytes. Its header reads `0x50`, `MOT`,
-  two floats of `650.0`, then `u16` pairs that repeat `0x0038` — a stride or a
-  count that one sample cannot distinguish from a coincidence.
+The original argument was that one `.mot` cannot distinguish a stride from a
+coincidence. That holds for the `u16` table at `+0x18` — and it still does, so
+that table remains unread. It does **not** hold for the payload's body: the
+single file at `st001.pac` slot 7 slot 0, 63,440 bytes, declares **69 tracks**,
+which makes every per-track claim testable 69 times inside one sample. The size
+identity, the increasing stamps and the 650-frame span all hold 69 of 69, and
+the size chain closes on a terminator exactly at the end of the file. See
+`dmc3-mot-recovery-2026-08-26.md`.
+
+What is still genuinely blocked on data:
+
 - A `.mcv`, `.hid` or `.tsc` file, of which the corpus contains none at all.
+- One `EFM` and one `SHW` payload, likewise absent.
 - The consumer's call site, which would come from a runtime trace rather than
   from static reading: the registry hands out an entry handle, and what reads
-  that handle is not reachable by searching for the type array.
+  that handle is not reachable by searching for the type array. This is what
+  would give the track kind, the 24 header floats and the three `s16` per key a
+  meaning; without it those stay extents.
 
 ## 5. What this changes about the plan
 
-Step 3 is blocked on data, not on effort, and the same is already true of `EFM`
-and `SHW`. Three of the four remaining semantic targets need files rather than
-hours.
+**Corrected.** Step 3 is done for `MOT` and blocked for the rest. `MCV`, `HID`,
+`TSC`, `EFM` and `SHW` need files rather than hours; the semantics of what a
+`MOT` track *drives* need a trace rather than a file.
+
+The general lesson, which the first version of this note missed: before
+declaring a format blocked on data, count the repeating structures inside the
+sample already in hand. A file with 69 of something is a corpus.

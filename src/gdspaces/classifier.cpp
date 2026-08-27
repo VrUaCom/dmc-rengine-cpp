@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
 #include "dmc_rengine/gdspaces/text_record.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
@@ -143,6 +144,12 @@ ResourceClassification ResourceClassifier::classify(
         // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
+        result.byte_derived = true;
+    } else if (formats::MotParser::structurally_valid(bytes)) {
+        // A motion carries `MOT` at +4, but the runtime compares that tag
+        // nowhere, so the tag alone is not authority. What is: the track chain
+        // closing on the terminator with every declared size accounted for.
+        result.format = "mot";
         result.byte_derived = true;
     } else if (formats::PtxParser::structurally_valid(bytes)) {
         // A texture pack has no magic. It is recognized by its own arithmetic
