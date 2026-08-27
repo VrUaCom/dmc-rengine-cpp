@@ -53,36 +53,76 @@ is full the original runtime has nowhere else to put a resource, and any model
 of loading that treats the pool as one undifferentiated space is wrong about
 what the game can hold.
 
-## 3. The state machine
+## 3. The state machine closes
 
-| state | meaning |
-|---|---|
-| 0 | free |
-| 1 | requested |
-| 2 | loaded |
-| 3 | relocated — the payload's offsets are now pointers |
-| 4 | releasing |
+Every state has a routine that leaves it. Nothing is reachable and unleavable.
 
-`0x1401B8DC0` moves 1 → 2. `0x1401B92D0` walks records in 2, relocates each
-payload through the type dispatch, and leaves them at 3. A group wrapper skips
-a record already at 3, which is how a second acquisition of a loaded resource
-becomes a no-op rather than a reload.
+| from | to | routine | what happens |
+|---|---|---|---|
+| 0 free | 1 requested | `0x1401B84E0` | allocate the payload, materialize it |
+| 1 requested | 2 loaded | `0x1401B8DC0` | the load completed |
+| 2 loaded | 3 relocated | `0x1401B92D0` | offsets become pointers, each payload dispatched by tag |
+| 3 relocated | 0 free | `0x1401B9530` | destroy the embedded object, free the record |
+| 4 releasing | 0 free | `0x1401B8F00` | the deferred sweep over every record marked for release |
+| any | 0 free | `0x1401B95E0` | full reset of all 363 |
 
-That last point ties L1 to the type layer: the finalizer is where `PAC` is
-walked and every child dispatched by tag, so *relocation is loading*. A
-resource is not usable until L1 has moved it to state 3.
+Free is reached three ways. That is not redundancy — an ordinary release, a
+deferred sweep and a full reset are three different lifetimes ending the same
+way.
 
-## 4. What this changes for the product
+Relocation *is* loading: the finalizer is where `PAC` is walked and every child
+dispatched by tag, so a resource is not usable until L1 has moved it to state
+3. A group wrapper skips a record already at 3, which is how a second
+acquisition becomes a no-op rather than a reload.
 
-Nothing about correctness yet — the product does not emulate the pool. What it
-changes is what may be claimed: any statement about how many resources of a
-kind can be live, or about reload behavior, now has a table to be checked
-against instead of an assumption.
+## 4. The pool is one global, and a handle is a byte offset
 
-## 5. Open
+`0x140C99D30`, confirmed three ways: acquire computes a handle by subtracting
+it, the completion helper adds it back, and the deferred sweep walks from it.
+
+A handle is that record's **byte offset**, not an index. The completion helper
+traps deliberately on an odd handle — it writes through a null pointer rather
+than continuing — because the stride is even and an odd offset can never name a
+record.
+
+## 5. Where L1 meets the loose-container layer
+
+`0x1401B8CA0` is the junction, and it is the caller the loose-container
+contract never had.
+
+```text
+request = record[0x18]
+if (*(uint16*)request != 0)          -> generic materializer 0x1402EF4D0
+else                                    // container-backed, kind 0
+    switch (selector 0x1401B79E0):
+        0        -> refuse
+        1        -> packed wins: generic materializer 0x1402EF4D0
+        anything -> the .lst list representation 0x1401B85C0
+```
+
+Every address in `LooseContainerContract` now has a recovered caller, and its
+`container_backed_kind16 = 0` is exactly the `u16` this dispatch tests. Two
+contracts recovered a week apart agree at the branch, and a test says so.
+
+## 6. The alternate allocator
+
+When the pool flag at `+0x6760` is 1 and the descriptor pointer at `+0x6720`
+is non-null, acquire allocates through the pool's own arena at `+0x6718`
+instead of the shared loader. That is what the `0x148` bytes between the record
+array and the flag are for, in part.
+
+## 7. What this changes for the product
+
+Nothing about correctness — the product does not emulate the pool. What it
+changes is what may be claimed. Any statement about how many resources of a
+kind can be live, about reload behavior, or about when a materialized resource
+becomes usable, now has a table and a state machine to be checked against
+instead of an assumption.
+
+## 8. Still open
 
 - group 5's wrapper, the largest group at 128 records, is not in the acquired
   set;
 - what selects a group for a given resource;
-- the `0x28` embedded object's own layout;
-- the `0x148` bytes of pool fields between the record array and the flag.
+- the `0x28` embedded object's own layout, and the destructor at `0x140337710`;
+- the rest of the `0x148` bytes of pool fields.

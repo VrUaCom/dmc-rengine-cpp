@@ -33,6 +33,20 @@ struct LoadedResourcePoolContract final {
     static constexpr std::uint64_t normal_release_va = 0x1401B9530ULL;
     static constexpr std::uint64_t group_reset_va = 0x1401B9560ULL;
     static constexpr std::uint64_t full_reset_va = 0x1401B95E0ULL;
+    static constexpr std::uint64_t loose_materializer_va = 0x1401B85C0ULL;
+
+    // The pool is a single global object, not an instance passed around.
+    // Three routines address it directly and agree: the acquire path computes
+    // a record's handle by subtracting this, the completion helper adds it
+    // back, and the deferred sweep walks from it.
+    static constexpr std::uint64_t pool_global_va = 0x140C99D30ULL;
+
+    // A record handle is that record's *byte offset* from the pool base, not
+    // an index. The completion helper traps deliberately on an odd handle —
+    // it writes through a null pointer rather than continuing — because the
+    // record stride is even and an odd offset can never name a record.
+    static constexpr bool handle_is_byte_offset = true;
+    static constexpr bool odd_handle_traps = true;
 
     // Record geometry, from the initializer and the finalizer agreeing.
     static constexpr std::size_t record_stride = 0x48U;
@@ -55,6 +69,57 @@ struct LoadedResourcePoolContract final {
     // leaves them `relocated`. A group wrapper skips a record already there.
     static constexpr State finalize_from = State::loaded;
     static constexpr State finalize_to = State::relocated;
+
+    // Every transition has a routine, and the set closes: there is no state
+    // the pool can reach and not leave.
+    struct Transition final {
+        State from;
+        State to;
+        std::uint64_t routine_va;
+        std::string_view what;
+    };
+    static constexpr std::array<Transition, 6> transitions{
+        Transition{State::free, State::requested, acquire_va,
+                   "allocate the payload and materialize it"},
+        Transition{State::requested, State::loaded, completion_state1_to_2_va,
+                   "the load completed"},
+        Transition{State::loaded, State::relocated, state2_finalizer_va,
+                   "relocate offsets to pointers, dispatching each payload by tag"},
+        Transition{State::relocated, State::free, normal_release_va,
+                   "destroy the embedded object and free the record"},
+        Transition{State::releasing, State::free, state4_cleanup_va,
+                   "the deferred sweep, over every record marked for release"},
+        Transition{State::relocated, State::free, full_reset_va,
+                   "reset every record in the pool unconditionally"},
+    };
+
+    // The request descriptor a caller hands to acquire, kept at the record.
+    static constexpr std::size_t record_request_offset = 0x18U;
+    static constexpr std::size_t record_user_offset = 0x10U;
+    static constexpr std::size_t request_kind_offset = 0x00U;
+    static constexpr std::size_t request_pointer_offset = 0x08U;
+    static constexpr std::size_t request_kind_bytes = 2U;
+
+    // Materialization is where L1 meets the loose-container layer. The
+    // dispatch reads the request's `u16` kind; a non-zero kind goes straight
+    // to the generic materializer, and only kind zero — container-backed —
+    // consults the representation selector, whose three outcomes are:
+    //
+    //   0        refuse
+    //   1        the packed container wins, materialize it generically
+    //   anything the `.lst` list representation
+    //
+    // Those are `LooseContainerContract`'s own addresses, reached from here.
+    // Until now that contract had no recovered caller; this is it.
+    static constexpr std::int32_t representation_refused = 0;
+    static constexpr std::int32_t representation_packed = 1;
+
+    // The alternate allocator. When the pool flag is 1 and the descriptor
+    // pointer is non-null, acquire allocates through the pool's own arena
+    // instead of the shared loader.
+    static constexpr std::size_t pool_arena_descriptor_offset = 0x6718U;
+    static constexpr std::size_t pool_arena_pointer_offset = 0x6720U;
+    static constexpr std::uint8_t pool_flag_arena_enabled = 1U;
 
     // The static partition. Both tables are image data, not computed.
     static constexpr std::uint64_t partition_count_table_va = 0x140581A10ULL;

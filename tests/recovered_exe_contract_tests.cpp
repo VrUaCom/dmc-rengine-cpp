@@ -416,6 +416,60 @@ void the_loaded_resource_pool_is_a_fixed_partition() {
         dmc3::ResourceTypeContract::canonical_target_sha256);
 }
 
+void the_l1_lifecycle_closes() {
+    using Pool = dmc3::LoadedResourcePoolContract;
+    using Loose = dmc3::LooseContainerContract;
+
+    // Every state the pool can reach has a routine that leaves it. A state
+    // with an entry and no exit would be a leak the recovered code does not
+    // have, and asserting the closure is what keeps a future edit from
+    // inventing one.
+    const Pool::State states[]{
+        Pool::State::free, Pool::State::requested, Pool::State::loaded,
+        Pool::State::relocated, Pool::State::releasing,
+    };
+    for (const auto state : states) {
+        bool leaves = false;
+        for (const auto& transition : Pool::transitions) {
+            leaves = leaves || transition.from == state;
+        }
+        assert(leaves);
+    }
+    // Free is reachable from three different places: an ordinary release, the
+    // deferred sweep and the full reset. That is not redundancy — they are
+    // three different lifetimes ending the same way.
+    std::size_t to_free = 0U;
+    for (const auto& transition : Pool::transitions) {
+        to_free += transition.to == Pool::State::free ? 1U : 0U;
+        assert(transition.routine_va > Pool::image_base);
+        assert(!transition.what.empty());
+    }
+    assert(to_free == 3U);
+
+    // The pool is one global object. A record handle is its byte offset from
+    // that base, so an odd handle cannot name a record — and the recovered
+    // completion helper traps on one rather than continuing.
+    static_assert(Pool::pool_global_va > Pool::image_base);
+    static_assert(Pool::handle_is_byte_offset);
+    static_assert(Pool::odd_handle_traps);
+    static_assert(Pool::record_stride % 2U == 0U);
+
+    // The junction. Materialization consults the loose-container selector
+    // only for a container-backed request, and that contract's own constant
+    // says which kind that is. Two contracts recovered a week apart have to
+    // agree here or one of them is describing a different branch.
+    static_assert(Loose::container_backed_kind16 == 0U);
+    static_assert(Pool::request_kind_bytes == sizeof(std::uint16_t));
+    static_assert(Pool::representation_packed == 1);
+    static_assert(Pool::representation_refused == 0);
+    // The packed outcome is the one the loose contract calls the winner.
+    static_assert(Loose::packed_representation_wins);
+    // And the two materializers the dispatch jumps to are that contract's.
+    static_assert(Pool::loose_materializer_va == Loose::loose_materializer_va);
+    static_assert(
+        Pool::canonical_target_sha256 == Loose::canonical_target_sha256);
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -461,6 +515,7 @@ int main() {
     the_product_walks_slots_the_way_the_runtime_does();
     the_animation_registry_is_a_second_registry();
     the_loaded_resource_pool_is_a_fixed_partition();
+    the_l1_lifecycle_closes();
     contracts_are_bound_to_one_image();
     return 0;
 }
