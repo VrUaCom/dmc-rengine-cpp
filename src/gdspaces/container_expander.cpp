@@ -3,7 +3,6 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include <algorithm>
-#include <cctype>
 #include <iomanip>
 #include <limits>
 #include <optional>
@@ -22,29 +21,6 @@ namespace {
     case formats::ParseSeverity::error: return DiagnosticSeverity::error;
     }
     return DiagnosticSeverity::error;
-}
-
-[[nodiscard]] std::string safe_component(
-    std::string_view name,
-    std::uint32_t slot) {
-    std::string result;
-    result.reserve(name.size());
-    for (const unsigned char character : name) {
-        if (std::isalnum(character) != 0 || character == '.' ||
-            character == '-' || character == '_') {
-            result.push_back(static_cast<char>(character));
-        } else {
-            result.push_back('_');
-        }
-    }
-
-    if (!result.empty() && result != "." && result != "..") {
-        return result;
-    }
-
-    std::ostringstream output;
-    output << "slot_" << std::setfill('0') << std::setw(4) << slot << ".bin";
-    return output.str();
 }
 
 [[nodiscard]] std::string slot_component(std::uint32_t slot) {
@@ -185,10 +161,11 @@ ContainerExpansion ContainerExpander::expand(
             continue;
         }
 
-        const auto name = safe_component(entry.logical_name, entry.slot_index);
+        // Stable child identity is physical: parent resource + parser format +
+        // exact physical slot. Presentation/index names must never become part
+        // of ResourceId::logical_path or ResourceId::canonical().
         const auto logical_path = parent.resource.id.logical_path + "::" +
-            parsed.document.format + "/" + slot_component(entry.slot_index) +
-            "/" + name;
+            parsed.document.format + "/" + slot_component(entry.slot_index);
 
         ResourceRef child_ref{
             .id = ResourceId{

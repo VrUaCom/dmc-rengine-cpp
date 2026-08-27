@@ -100,6 +100,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         runtime_synth_result_integrity
         runtime_synth_format_registry
         nested_relative_slot_reintegrator
+        index_name_nested_reopen
         sha256
         patch
         json_parser
@@ -152,10 +153,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pc_save_file
         working_copy
         byte_provenance
+        index_name_authority
         pac
         pnst
         dmc3_container_parsers
         container_tree_expander
+        container_expander_identity
         classifier
         known_target
         executable_authority
