@@ -108,7 +108,15 @@ struct ResourceTypeContract final {
     // The extension is tested with a substring search over the whole name, not
     // against its suffix. `at.ptx.bak` therefore classifies as a texture pack
     // in the original runtime.
+    //
+    // The comparison goes through the same import slot as the animation
+    // registry's — `0x14034F3D0`, `strstr` in `VCRUNTIME140.dll`. Both
+    // registries share it. This flag stood here with nothing implementing it
+    // until the animation side was caught disagreeing with its own flag, so
+    // the matcher below exists to be asserted against.
     static constexpr bool extension_matched_as_substring = true;
+    static constexpr std::string_view match_function = "strstr";
+    static constexpr std::uint64_t match_import_slot_va = 0x14034F3D0ULL;
     static constexpr bool extension_outranks_content_tag = true;
 
     // Table geometry, from the reset routine and the registrar's index
@@ -123,6 +131,26 @@ struct ResourceTypeContract final {
     static constexpr std::size_t table_type_offset = 0x6108U;
     static constexpr bool stored_type_is_read_back = false;
     static constexpr std::int32_t table_reset_type_value = -1;
+
+    // The registrar's rule, applied to a whole name.
+    //
+    // Substring, not suffix, and case enumerated rather than folded — the same
+    // two properties as the animation registry, because it is literally the
+    // same comparison function over a different literal table.
+    //
+    // What this answers is narrow and worth being precise about: it is what
+    // the *runtime* would call a name, which is not the same as what this
+    // project can read. `at.ptx` is a texture pack by this rule whether or not
+    // any parser here accepts its bytes.
+    [[nodiscard]] static constexpr TypeCode type_for_name(
+        std::string_view name) noexcept {
+        for (const auto& entry : extension_types) {
+            if (name.find(entry.extension) != std::string_view::npos) {
+                return entry.code;
+            }
+        }
+        return TypeCode::unknown;
+    }
 
     // The name the registrar resolves is built from two components.
     static constexpr std::string_view registered_name_format = "%s/%s";

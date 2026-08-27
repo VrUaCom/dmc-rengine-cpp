@@ -174,7 +174,40 @@ name from a real volume — is what turns each row of that table. A numbered
 motion (`.mot1` … `.mot6`) needs nothing: it is already read, because the
 numbering never changed the kind.
 
-## 7. A volume family is numbered
+## 7. Both registries share the comparison, and one had no matcher at all
+
+The first registry — `.ptx`, `.clt`, `.c1d` — calls through the **same import
+slot**, `0x14034F3D0`. One `strstr` over two literal tables. So both of its
+properties carry: substring rather than suffix, and case enumerated rather than
+folded.
+
+`ResourceTypeContract` had recorded `extension_matched_as_substring` since it
+was written and implemented **nothing**. There was no matcher to disagree with
+the flag, which is precisely how the animation side got away with disagreeing
+with its own. It now has one, and a test asserts the two together.
+
+This also settles `at.ptx` in principle, if not yet in bytes: by the runtime's
+own rule it is a texture pack, because its name contains `.ptx`. What this
+project cannot do is *read* it. Those are different statements and the code now
+makes both of them separately.
+
+`.clt` is claimed by both registries with different codes — 5 in the first, 4
+in the animation one. A type code means nothing without the registry that
+issued it, and the test says so.
+
+## 8. An extent runs to the next greater offset, and that is a decision
+
+Since the walk stores no size, the extent of a slot is this project's reading.
+The reading is "up to the next **greater offset in the file**", which is not
+the same as "up to the next slot": an offset table need not ascend, and in a
+sparse container it frequently does not start at slot 0.
+
+The parser already sorted distinct populated offsets and bounded each entry by
+the next greater one — the correct reading — but nothing tested a table whose
+slots address the file out of order. There is now a container whose slot 0
+points last, and it comes back with every extent right.
+
+## 9. A volume family is numbered
 
 `0x14036E930` holds `%sDMC3-%d.nbz`. A real archive is `dmc3-0.nbz` because the
 game builds the name that way, which means a volume has siblings and a member

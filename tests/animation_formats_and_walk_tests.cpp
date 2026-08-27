@@ -1,7 +1,9 @@
+#include "dmc_rengine/formats/relative_slot_container.hpp"
 #include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
 #include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -21,6 +23,7 @@
 
 namespace {
 
+namespace formats = dmc::rengine::formats;
 namespace gdspaces = dmc::rengine::gdspaces;
 namespace dmc3 = dmc::rengine::profiles::dmc3;
 using Animation = dmc3::AnimationTypeContract;
@@ -184,6 +187,82 @@ void the_verdict_reaches_the_resource_ref() {
     assert(!ref.animation_structure_recovered);
 }
 
+// The other registry shares the comparison function, so it shares both of its
+// properties. It had the flag and no matcher, which is how the animation side
+// got away with disagreeing with itself.
+void the_first_registry_matches_the_same_way() {
+    using Resource = dmc3::ResourceTypeContract;
+    static_assert(Resource::extension_matched_as_substring);
+    static_assert(Resource::match_function == "strstr");
+    // Literally the same import slot: one comparison over two literal tables.
+    static_assert(
+        Resource::match_import_slot_va == Animation::match_import_slot_va);
+
+    // Substring, so a name that merely contains the extension is typed.
+    assert(Resource::type_for_name("at.ptx") == Resource::TypeCode::texture_pack);
+    assert(
+        Resource::type_for_name("at.ptx.bak") == Resource::TypeCode::texture_pack);
+    assert(Resource::type_for_name("x.c1d") == Resource::TypeCode::c1d);
+    // Case is enumerated, not folded.
+    assert(Resource::type_for_name("at.PTx") == Resource::TypeCode::unknown);
+    assert(Resource::type_for_name("at.pac") == Resource::TypeCode::unknown);
+
+    // `.clt` is claimed by both registries with different codes, so a type
+    // code means nothing without the registry that issued it.
+    assert(Resource::type_for_name("x.clt") == Resource::TypeCode::palette);
+    assert(Animation::type_for_name("x.clt") == Code::palette);
+    assert(
+        static_cast<std::int32_t>(Resource::TypeCode::palette) !=
+        static_cast<std::int32_t>(Code::palette));
+}
+
+// The container stores no size, so an extent is this project's decision. The
+// decision is "up to the next greater offset in the file" — which is not the
+// same as "up to the next slot", because an offset table need not ascend.
+void an_extent_runs_to_the_next_greater_offset() {
+    // Three payloads, addressed out of order: slot 0 points last.
+    constexpr std::size_t table = 8U + 3U * 4U;
+    constexpr std::size_t first = 0x20U;
+    std::vector<std::byte> bytes(first + 3U * 0x10U, std::byte{0});
+    const auto put_u32 = [&bytes](std::size_t at, std::uint32_t value) {
+        for (std::size_t index = 0U; index < 4U; ++index) {
+            bytes[at + index] =
+                static_cast<std::byte>((value >> (8U * index)) & 0xFFU);
+        }
+    };
+    static_assert(table <= first);
+    bytes[0] = static_cast<std::byte>('P');
+    bytes[1] = static_cast<std::byte>('N');
+    bytes[2] = static_cast<std::byte>('S');
+    bytes[3] = static_cast<std::byte>('T');
+    put_u32(4U, 3U);
+    put_u32(8U, static_cast<std::uint32_t>(first + 0x20U));  // slot 0 -> last
+    put_u32(12U, static_cast<std::uint32_t>(first));         // slot 1 -> first
+    put_u32(16U, static_cast<std::uint32_t>(first + 0x10U)); // slot 2 -> middle
+
+    formats::RelativeSlotContainerSpec spec;
+    spec.magic = {std::byte{'P'}, std::byte{'N'}, std::byte{'S'}, std::byte{'T'}};
+    spec.magic_bytes = 4U;
+    spec.document_format = "pnst";
+    const auto parsed = formats::parse_relative_slot_container(
+        std::span<const std::byte>{bytes}, spec);
+    assert(parsed.ok());
+    const auto& entries = parsed.document->entries;
+    assert(entries.size() == 3U);
+
+    // Each slot keeps its own offset, and each extent runs to the next greater
+    // offset — not to the offset of the next slot index.
+    assert(entries[0].offset == first + 0x20U);
+    assert(entries[0].size == 0x10U);
+    assert(entries[1].offset == first);
+    assert(entries[1].size == 0x10U);
+    assert(entries[2].offset == first + 0x10U);
+    assert(entries[2].size == 0x10U);
+
+    // And this is a product reading, not the game's: the walk stores no size.
+    static_assert(!Walk::walk_computes_child_size);
+}
+
 void the_walk_is_not_the_path_to_animation() {
     // The dispatcher handles four payload tags and recurses into PNST.
     static_assert(Walk::dispatched_payload_tags.size() == 4U);
@@ -260,6 +339,8 @@ int main() {
     only_the_motion_can_be_found_without_a_name();
     the_classifier_reports_the_registry_verdict();
     the_verdict_reaches_the_resource_ref();
+    the_first_registry_matches_the_same_way();
+    an_extent_runs_to_the_next_greater_offset();
     the_walk_is_not_the_path_to_animation();
     return 0;
 }
