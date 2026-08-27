@@ -25,6 +25,9 @@ namespace {
     if (format == "pe") {
         return "exe";
     }
+    if (format == "name-list") {
+        return "txt";
+    }
     return std::string{format};
 }
 
@@ -218,6 +221,13 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
             display_extension = canonical_extension(classification.format);
             semantic_format = classification.format;
             evidence_kind = IndexDisplayEvidenceKind::magic_confirmed_format;
+        } else if (child->payload.resource.format == "name-list") {
+            // A sealed embedded-name-list observation is structural semantic
+            // evidence. Preserve it when .index is applied later so call order
+            // cannot turn the proven name-list back into a misleading .ukn.
+            display_extension = "txt";
+            semantic_format = "name-list";
+            evidence_kind = IndexDisplayEvidenceKind::embedded_name_list_format;
         } else if (profile_resolver != nullptr) {
             const auto profile_semantic = profile_resolver(child->payload, authority);
             if (profile_semantic.has_value() &&

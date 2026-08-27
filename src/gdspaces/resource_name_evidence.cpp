@@ -90,7 +90,9 @@ bool ResourceNameEvidence::valid() const noexcept {
                (mapping_mode_ == ResourceNameMappingMode::physical_position ||
                 mapping_mode_ == ResourceNameMappingMode::populated_slot_sequence);
     case ResourceNameEvidenceKind::embedded_alias:
-        return !source_line_.has_value() && source_offset_.has_value() &&
+        return physical_slot_index_ > 0U &&
+               !source_line_.has_value() && source_offset_.has_value() &&
+               *source_offset_ < authority_resource_.size &&
                mapping_mode_ == ResourceNameMappingMode::embedded_alias_sequence;
     }
     return false;

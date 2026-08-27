@@ -22,6 +22,7 @@ enum class IndexDisplayEvidenceKind : unsigned char {
     index_source_extension,
     magic_confirmed_format,
     profile_structural_format,
+    embedded_name_list_format,
 };
 
 class IndexNameOverlayEntry final {
