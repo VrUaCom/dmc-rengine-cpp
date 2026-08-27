@@ -156,6 +156,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         byte_provenance
         index_name_authority
         index_name_evidence_persistence
+        embedded_name_evidence
         pac
         pnst
         dmc3_container_parsers
