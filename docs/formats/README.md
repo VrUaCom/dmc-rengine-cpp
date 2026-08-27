@@ -4,7 +4,9 @@ This directory contains format-specific structural documentation and the canonic
 
 ## Start here
 
-- [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary.
+- [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical human-readable inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary.
+- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized 66-family registry separating identity, subsystem purpose, schema maturity and current clean-product support.
+- [DMC3 HD format-purpose closure pass — 2026-08-27](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — direct canonical-EXE dispatcher/parser evidence used for the latest promotions and corrections.
 - [HITS collision resource](hits.md) — current collision-grid/triangle layout; supersedes the obsolete `HITS$` scanner interpretation.
 - [PAC read-only structural parser](pac-readonly-parser.md)
 - [PNST read-only structural parser](pnst-readonly-parser.md)
@@ -25,9 +27,10 @@ validated magic / structural grammar
  -> fallback/unknown
 ```
 
-The catalog deliberately separates:
+The catalog and registry deliberately separate:
 
-- **resource purpose** — what the family is used for;
+- **resource identity** — what family the bytes belong to;
+- **resource purpose** — what subsystem uses the family;
 - **binary schema maturity** — how much of the byte layout is understood;
 - **original-runtime evidence** — what canonical DMC3 code actually recognizes/consumes;
 - **DMC Rengine product support** — what the current C++ repository can recognize, parse, edit or export.
@@ -42,6 +45,7 @@ A known purpose does not imply a complete schema, and a parser does not imply or
 - `HIGH_CONFIDENCE` — convergent evidence, but one promotion boundary remains.
 - `CANDIDATE` — plausible and evidence-linked; not canonical semantics.
 - `RESEARCH_REQUIRED` — identity or label exists, exact purpose/schema unresolved.
+- `CAPABILITY_ONLY` — executable/media support exists; shipped DMC3 presence is not claimed.
 - `REJECTED` — superseded or contradicted claim; not current authority.
 
 Historical research remains useful acquisition evidence but does not override stronger current `main` code or later canonical reverse documentation.
