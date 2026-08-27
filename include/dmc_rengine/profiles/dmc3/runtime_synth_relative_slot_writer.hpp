@@ -252,12 +252,22 @@ struct RuntimeSynthReceipt final {
 };
 
 struct RuntimeSynthResult final {
+    RuntimeSynthResult() = default;
+
     RuntimeSynthStatus status{RuntimeSynthStatus::invalid_source};
     std::vector<std::byte> bytes;
     std::optional<RuntimeSynthReceipt> receipt;
     std::string detail;
 
     [[nodiscard]] bool ok() const noexcept;
+
+private:
+    friend class RuntimeSynthRelativeSlotWriter;
+
+    // Private capability seal. A caller may inspect/copy a successful result,
+    // but cannot turn arbitrary bytes plus a rewritten public receipt hash into
+    // writer authority. The writer binds this seal to the exact output hash.
+    std::string writer_output_sha256_;
 };
 
 class RuntimeSynthRelativeSlotWriter final {

@@ -36,12 +36,10 @@ void write_u32_le(
 [[nodiscard]] RuntimeSynthResult failure(
     RuntimeSynthStatus status,
     std::string detail) {
-    return RuntimeSynthResult{
-        .status = status,
-        .bytes = {},
-        .receipt = std::nullopt,
-        .detail = std::move(detail),
-    };
+    RuntimeSynthResult result;
+    result.status = status;
+    result.detail = std::move(detail);
+    return result;
 }
 
 [[nodiscard]] RelativeSlotTopology topology_of(
@@ -251,6 +249,8 @@ bool RuntimeSynthReceipt::valid() const noexcept {
 
 bool RuntimeSynthResult::ok() const noexcept {
     if (status != RuntimeSynthStatus::ok || !receipt.has_value() ||
+        writer_output_sha256_.size() != 64U ||
+        receipt->output_sha256 != writer_output_sha256_ ||
         !receipt->valid() ||
         receipt->output_topology.container_size != bytes.size()) {
         return false;
@@ -515,12 +515,11 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
             "Runtime-synth authoring receipt failed internal validation.");
     }
 
-    RuntimeSynthResult result{
-        .status = RuntimeSynthStatus::ok,
-        .bytes = std::move(output),
-        .receipt = std::move(receipt),
-        .detail = {},
-    };
+    RuntimeSynthResult result;
+    result.status = RuntimeSynthStatus::ok;
+    result.bytes = std::move(output);
+    result.receipt = std::move(receipt);
+    result.writer_output_sha256_ = result.receipt->output_sha256;
     if (!result.ok()) {
         return failure(
             RuntimeSynthStatus::invalid_receipt,
