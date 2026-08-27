@@ -26,9 +26,9 @@ Canonical semantic cut:
  -> [L1] exact byte acquisition / decompression / transfer
  -> [L1] exact destination bytes
  -> [L1] packed or .lst representation construction
- -> [L1] terminal byte/result state
+ -> [L1] native terminal byte/result state
  ===== END L1 BYTE/RESULT AUTHORITY =====
- -> [L3] request/callback lifecycle publication / LoadedResource state transitions
+ -> [L3] FIFO callback eligibility / LoadedResource lifecycle publication
 ```
 
 FileSlot/AsyncIO helpers are classified by concrete behavior, not wholesale by subsystem. A helper can contain L1 byte-result semantics and L3 scheduling/lifetime semantics around the seam.
@@ -62,7 +62,7 @@ These capabilities do **not** by themselves prove exhaustive original-runtime eq
 
 **STATUS: OPEN / substantially narrowed, not complete.**
 
-Fresh canonical-EXE review on 2026-08-27/28 has now closed or sharply bounded much of the #244 frontier.
+Fresh canonical-EXE review on 2026-08-27/28 has now closed or sharply bounded most of the original #244 byte-exactness frontier.
 
 ### Confirmed / corrected
 
@@ -78,7 +78,7 @@ Fresh canonical-EXE review on 2026-08-27/28 has now closed or sharply bounded mu
 
 3. **Short-read terminal behavior**
    - the lower worker repeats reads until request filled or backend returns EOF/no-progress/error;
-   - callback `0x1400335A0` accumulates actual transferred bytes and does not independently enforce `loadedBytes == plannedBytes` before success publication;
+   - callback `0x1400335A0` accumulates actual transferred bytes and does not independently enforce `loadedBytes == plannedBytes` before status `3` publication;
    - a source shortened after the cached size query can therefore produce a short-success condition in the original path.
 
 4. **`.lst` planner/writer layout**
@@ -107,7 +107,18 @@ Fresh canonical-EXE review on 2026-08-27/28 has now closed or sharply bounded mu
    - they are not clean original error enums;
    - product `scan_limit_exceeded` / `token_limit_exceeded` statuses are fail-closed hardening.
 
-Canonical detailed checkpoint: `l1-writer-failure-width-reconciliation-2026-08-28.md`.
+9. **Static L1 terminal -> L3 normal-completion seam**
+   - materialization type-2 jobs and normal type-3 `0x1401B8DC0` callback use the same lane/FIFO when admitted;
+   - `0x1402EF790` leaves current type-2 work in place while whole-file status is `2` (pending);
+   - status `4` resets the local phase and retries the same current type-2 job rather than retiring/advancing it;
+   - status `3` closes/clears the type-2 job and advances the consumer index, making the later type-3 callback eligible;
+   - because status `3` does not require an independent actual-bytes == planned-bytes equality check, original short-success can permit normal completion;
+   - cancellation `0x1401B8430 -> 0x1402EF460` flushes queued work, moves LoadedResource states `1/2 -> 4`, and queues `0x1401B8F00` cleanup; this suppression/lifecycle behavior remains L3 ownership.
+
+Canonical detailed checkpoints:
+
+- `l1-writer-failure-width-reconciliation-2026-08-28.md`;
+- `l1-terminal-l3-completion-seam-2026-08-28.md`.
 
 ### Reverse still open
 
@@ -115,9 +126,10 @@ Before an **exhaustive original L1** claim:
 
 - exact recursive `.lst` cycle/depth behavior and allocation/free lifetime semantics;
 - remaining allocator/backend failure branches not already classified;
-- final L1-terminal -> L3 normal-completion suppression/eligibility reconciliation, including `0x1402EF460` and relevant `0x1401B8DC0` context;
-- representative real `.lst` corpus receipt for any claim covering real loose-list consumption;
-- contradiction sweep across current L1/L3 seam docs/code/evidence.
+- final contradiction sweep across L1 byte/materialization functions and the now-bounded L1/L3 seam;
+- representative real `.lst` corpus receipt for any claim covering real loose-list consumption.
+
+Dynamic current-slot cancellation concurrency and broader transition/reset/shutdown behavior remain **L3**, not an L1 reverse blocker unless a concrete L1 acceptance receipt activates them.
 
 L1-R remains a mandatory gate because the project explicitly targets deep original behavior, not merely a convenient product approximation.
 
@@ -206,7 +218,7 @@ Keep separate:
 | writer may ignore child enqueue failure | successful product receipt must not launder rejected work |
 | completion enqueue result may be ignored | product completion authority remains explicit |
 | malformed scan/token bounds lack clean error enums | explicit fail-closed statuses |
-| short source can terminate with fewer bytes than cached plan | product acquisition validates exact declared/observed bytes where required |
+| short status-3 transfer can permit original normal completion | product acquisition validates exact declared/observed bytes where required |
 
 Original behavior is reverse truth; product safety is authoring truth. Neither may be mislabeled as the other.
 
@@ -215,17 +227,18 @@ Original behavior is reverse truth; product safety is authoring truth. Neither m
 No broad L2/L3 or tooling work should displace the remaining L1 sequence unless it directly closes an L1 dependency.
 
 ```text
-1. finish L1-terminal -> L3 normal-completion suppression/eligibility seam
-2. finish residual allocator/backend + recursive .lst lifetime/failure branches
-3. run a final L1 original-runtime contradiction sweep
-4. acquire representative real-retail member/provenance receipt
-5. classify exact representation
-6. perform one bounded real edit + rebuild + rematerialization
-7. publish/reopen next-volume overlay and preserve closure receipt
-8. execute #209 original-game consumption + rollback
-9. final cross-stack audit
-10. only then mark L1 COMPLETE / 100%
+1. finish residual allocator/backend + recursive .lst lifetime/failure branches
+2. run final L1 original-runtime contradiction sweep
+3. acquire representative real-retail member/provenance receipt
+4. classify exact representation
+5. perform one bounded real edit + rebuild + rematerialization
+6. publish/reopen next-volume overlay and preserve closure receipt
+7. execute #209 original-game consumption + rollback
+8. final cross-stack audit
+9. only then mark L1 COMPLETE / 100%
 ```
+
+The static normal L1-terminal -> L3 completion seam is no longer an open L1 item. Dynamic cancellation/concurrency breadth remains L3.
 
 ## 7. Non-blockers / freezes
 
@@ -249,7 +262,7 @@ Any change to L1 completion status or recovered byte semantics must synchronize 
 
 - this roadmap;
 - `dmc3-loose-container-list.md` when `.lst` behavior changes;
-- the current reverse checkpoint/evidence packet;
+- current reverse checkpoints/evidence packets;
 - `docs/status/current.md`;
 - `docs/status/canonical-status.json`;
 - `master-roadmap.md` when the cross-layer critical path changes;
