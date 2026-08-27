@@ -3,6 +3,7 @@
 #include "dmc_rengine/formats/pac.hpp"
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -191,6 +192,101 @@ void a_container_without_a_manifest_attributes_nothing() {
     }
 }
 
+void the_sidecar_records_where_every_name_came_from() {
+    const auto bytes = stage_with_manifest();
+    gdspaces::ResourcePayload parent{
+        .resource = gdspaces::ResourceRef{
+            .id = gdspaces::ResourceId{"test", "thing.pac", {}, 0U, bytes.size()},
+            .display_name = "thing.pac",
+            .format = "pac",
+            .profile = "dmc3-hd",
+            .synthetic_name = false,
+            .container = true,
+        },
+        .bytes = bytes,
+        .diagnostics = {},
+        .byte_provenance = std::nullopt,
+    };
+    formats::ContainerParseResult parsed;
+    const auto document = formats::PacParser::parse(bytes);
+    assert(document.ok());
+    parsed.document = *document.document;
+    parsed.recognized = true;
+    const auto expansion = gdspaces::ContainerExpander::expand(parent, parsed);
+
+    std::vector<gdspaces::SlotNameAttribution> attributions;
+    for (const auto& child : expansion.children) {
+        attributions.push_back(child.name_attribution);
+    }
+    const auto sidecar = SlotNameManifest::render_sidecar(
+        parsed.document.format, attributions);
+
+    // The corpus shape: a directive line naming the container, then one line
+    // per slot. CRLF, as those files use.
+    assert(sidecar.rfind("PAC\r\n", 0U) == 0U);
+    assert(sidecar.find("\n0\t") != std::string::npos);
+    assert(sidecar.find("1\tthing.scm\tcontainer-manifest\tpayload-agrees\r\n") !=
+        std::string::npos);
+    // The disagreeing line is written without the corroboration column rather
+    // than omitted: a name the container claims is still what it claims.
+    assert(sidecar.find("2\tthing.hits\tcontainer-manifest\r\n") !=
+        std::string::npos);
+    // Every slot gets a line, so the line count is the slot count.
+    assert(std::count(sidecar.begin(), sidecar.end(), '\n') ==
+        static_cast<std::ptrdiff_t>(expansion.children.size() + 1U));
+}
+
+void an_absent_slot_gets_a_line_that_says_so() {
+    // A sparse container's absent slot must appear in the sidecar as an absent
+    // slot, not go missing. A reader that saw a gap in the indices would read
+    // the sparseness as damage, which is the thing this project has spent
+    // three commits refusing to do.
+    std::vector<std::byte> bytes(0x100U, std::byte{0});
+    bytes[0] = static_cast<std::byte>('P');
+    bytes[1] = static_cast<std::byte>('A');
+    bytes[2] = static_cast<std::byte>('C');
+    bytes[4] = std::byte{3};
+    bytes[8] = std::byte{0x40};
+    // slot 1 absent
+    bytes[16] = std::byte{0x80};
+    bytes[0x40] = static_cast<std::byte>('H');
+    bytes[0x41] = static_cast<std::byte>('I');
+    bytes[0x42] = static_cast<std::byte>('T');
+    bytes[0x43] = static_cast<std::byte>('S');
+
+    gdspaces::ResourcePayload parent{
+        .resource = gdspaces::ResourceRef{
+            .id = gdspaces::ResourceId{"test", "sparse.pac", {}, 0U, bytes.size()},
+            .display_name = "sparse.pac",
+            .format = "pac",
+            .profile = "dmc3-hd",
+            .synthetic_name = false,
+            .container = true,
+        },
+        .bytes = bytes,
+        .diagnostics = {},
+        .byte_provenance = std::nullopt,
+    };
+    formats::ContainerParseResult parsed;
+    const auto document = formats::PacParser::parse(bytes);
+    assert(document.ok());
+    parsed.document = *document.document;
+    parsed.recognized = true;
+    const auto expansion = gdspaces::ContainerExpander::expand(parent, parsed);
+    assert(expansion.children.size() == 3U);
+    assert(expansion.children[1].name_attribution.origin ==
+        SlotNameOrigin::absent_slot);
+
+    std::vector<gdspaces::SlotNameAttribution> attributions;
+    for (const auto& child : expansion.children) {
+        attributions.push_back(child.name_attribution);
+    }
+    const auto sidecar = SlotNameManifest::render_sidecar("PAC", attributions);
+    assert(sidecar.find("1\tslot_0001.empty\tabsent-slot\r\n") !=
+        std::string::npos);
+    assert(std::count(sidecar.begin(), sidecar.end(), '\n') == 4);
+}
+
 } // namespace
 
 int main() {
@@ -198,5 +294,7 @@ int main() {
     text_that_names_nothing_is_not_a_manifest();
     a_manifest_name_is_attributed_never_asserted();
     a_container_without_a_manifest_attributes_nothing();
+    the_sidecar_records_where_every_name_came_from();
+    an_absent_slot_gets_a_line_that_says_so();
     return 0;
 }

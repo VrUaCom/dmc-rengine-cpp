@@ -24,6 +24,11 @@ enum class SlotNameOrigin : std::uint8_t {
     // A line from a name list stored inside the container, attributed to this
     // slot by position. Never asserted as recovered truth.
     container_manifest,
+    // The slot carries nothing. Distinct from a placeholder, because there is
+    // no payload here to have a name for — a sparse container is intact, and a
+    // reader that cannot tell this from "we did not know" will read the
+    // sparseness as damage.
+    absent_slot,
 };
 
 [[nodiscard]] constexpr std::string_view to_string(
@@ -32,6 +37,7 @@ enum class SlotNameOrigin : std::uint8_t {
     case SlotNameOrigin::parser_placeholder: return "parser-placeholder";
     case SlotNameOrigin::byte_derived_suffix: return "byte-derived-suffix";
     case SlotNameOrigin::container_manifest: return "container-manifest";
+    case SlotNameOrigin::absent_slot: return "absent-slot";
     }
     return "parser-placeholder";
 }
@@ -82,6 +88,34 @@ public:
     // The extension a manifest line carries, lowercased, without the dot.
     // Empty when the line has none.
     [[nodiscard]] static std::string extension_of(std::string_view name);
+
+    // Renders a sidecar manifest for an expanded container.
+    //
+    // The extracted corpus carries external `.index` files next to unpacked
+    // containers: a directive line naming the container, then one line per
+    // slot. This project has read thirteen of them and written none, so a
+    // folder it unpacks loses everything it knew the moment it is closed.
+    //
+    // What is written here is that shape plus the one thing those files do not
+    // record: where each name came from. A reader who cannot tell a
+    // placeholder from a name the container itself carried is exactly the
+    // reader this project keeps trying not to create.
+    //
+    // Format, CRLF-terminated to match the corpus:
+    //
+    //     PAC
+    //     0<TAB>slot_0000.txt<TAB>byte-derived-suffix
+    //     1<TAB>st001.ptx<TAB>container-manifest<TAB>payload-agrees
+    //     2<TAB>slot_0002.empty<TAB>absent-slot
+    //
+    // The slot index leads every line, so a sparse container reads correctly:
+    // an absent slot is a line that says so, never a line that is missing.
+    [[nodiscard]] static std::string render_sidecar(
+        std::string_view container_format,
+        std::span<const SlotNameAttribution> attributions);
+
+    static constexpr std::string_view k_sidecar_extension = ".index";
+    static constexpr std::string_view k_corroborated = "payload-agrees";
 };
 
 } // namespace dmc::rengine::gdspaces

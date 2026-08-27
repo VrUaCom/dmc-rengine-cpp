@@ -320,6 +320,8 @@ ContainerExpansion ContainerExpander::expand(
         } else {
             child_ref.format = "empty-slot";
             provenance.reset();
+            // Not a placeholder: there is no payload here to have a name for.
+            attribution.origin = SlotNameOrigin::absent_slot;
         }
 
         expansion.children.push_back(ContainerChild{

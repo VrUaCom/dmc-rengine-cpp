@@ -66,6 +66,28 @@ std::vector<std::string> SlotNameManifest::parse(
     return names;
 }
 
+std::string SlotNameManifest::render_sidecar(
+    std::string_view container_format,
+    std::span<const SlotNameAttribution> attributions) {
+    std::string output;
+    output.reserve(attributions.size() * 48U + container_format.size() + 2U);
+    output.append(container_format);
+    output.append("\r\n");
+    for (const auto& attribution : attributions) {
+        output.append(std::to_string(attribution.slot_index));
+        output.push_back('\t');
+        output.append(attribution.name);
+        output.push_back('\t');
+        output.append(to_string(attribution.origin));
+        if (attribution.corroborated_by_payload) {
+            output.push_back('\t');
+            output.append(k_corroborated);
+        }
+        output.append("\r\n");
+    }
+    return output;
+}
+
 std::string SlotNameManifest::extension_of(std::string_view name) {
     const auto dot = name.rfind('.');
     if (dot == std::string_view::npos || dot + 1U >= name.size()) {
