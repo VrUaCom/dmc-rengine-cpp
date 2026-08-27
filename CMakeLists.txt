@@ -96,6 +96,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         texture_slot_framing
         texture_slot_packed_reflow_writer
         texture_slot_runtime_materialization
+        texture_slot_index_name_authority
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
         runtime_synth_format_registry
