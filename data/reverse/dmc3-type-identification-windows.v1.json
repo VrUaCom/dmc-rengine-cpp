@@ -116,6 +116,19 @@
     "va": "0x1401b9560",
     "window_sha256": "6cf2ff4071a0129a47456da89abd51d3aa8f56f861ca85611b11e54e4b2f6680"
   },
+  "l1-group5-dynamic-acquire": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b81f0",
+    "image_base": "0x140000000",
+    "name": "l1-group5-dynamic-acquire",
+    "rva": "0x1b8df0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 165,
+    "va": "0x1401b8df0",
+    "window_sha256": "ccb10e34fe5d152fa6e7ad9fdb50b9ce0959a3df4d0fe07e9e143940ad3b1e05"
+  },
   "l1-materialization-dispatch": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,

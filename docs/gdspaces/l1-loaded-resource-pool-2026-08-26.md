@@ -36,7 +36,7 @@ Two `u16` tables at `0x140581A10` and `0x140581A20`:
 | 2 | 140 | 60 | `0x1401B9160` |
 | 3 | 200 | 28 | `0x1401B8FF0` |
 | 4 | 228 | **1** | `0x1401B8D60` |
-| 5 | 229 | 128 | not acquired |
+| 5 | 229 | 128 | `0x1401B8DF0` |
 | 6 | 357 | 6 | `0x1401B9270` |
 | | | **363** | |
 
@@ -48,10 +48,33 @@ Each wrapper reads its own base out of `0x140581A20` — group 4 from
 wrappers are seven views onto one array.
 
 **A resource does not go "somewhere in the pool".** It goes into a specific
-group with a fixed capacity, and group 4 holds exactly one record. When a group
-is full the original runtime has nowhere else to put a resource, and any model
-of loading that treats the pool as one undifferentiated space is wrong about
-what the game can hold.
+group with a fixed capacity, and group 4 holds exactly one record. Any model of
+loading that treats the pool as one undifferentiated space is wrong about what
+the game can hold.
+
+### Only one group is a pool
+
+Six wrappers take the index the caller names. **Group 5 alone searches** — it
+scans its 128 records for the first in state 0. So what picks a group is the
+caller, by calling that group's wrapper; group 5 is the only one that allocates
+in the usual sense.
+
+It is not the largest. Group 1 holds 136 records to group 5's 128 and still
+takes a named index, so *dynamic* here describes how a record is chosen and
+never how many there are. The obvious reading — that the biggest group must be
+the pool — is wrong, and a test says so, because it was the first thing this
+pass got wrong.
+
+### There is no failure path at capacity
+
+When the scan finds nothing it falls out of its loop with a **null** record and
+stores into it immediately. The original runtime writes through a null pointer
+rather than reporting a full pool. The completion helper does the same on an
+odd handle.
+
+This bounds what may honestly be said about the game: loading does not degrade
+gracefully at capacity, it crashes. A tool must neither claim otherwise nor
+reproduce it.
 
 ## 3. The state machine closes
 

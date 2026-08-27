@@ -132,17 +132,47 @@ struct LoadedResourcePoolContract final {
         0U, 4U, 140U, 200U, 228U, 229U, 357U};
 
     // One wrapper per group, each reading its own base out of the table above.
-    // Group 5 has no wrapper of its own in the acquired set, which is recorded
-    // rather than filled in: an absent routine is a fact about the image.
     static constexpr std::array<std::uint64_t, group_count> group_wrapper_vas{
         0x1401B8F50ULL,  // group 0, base 0, capacity 4
         0x1401B90B0ULL,  // group 1, base 4, capacity 136
         0x1401B9160ULL,  // group 2, base 140, capacity 60
         0x1401B8FF0ULL,  // group 3, base 200, capacity 28
         0x1401B8D60ULL,  // group 4, base 228, capacity 1
-        0U,              // group 5, base 229, capacity 128 — not acquired
+        0x1401B8DF0ULL,  // group 5, base 229, capacity 128
         0x1401B9270ULL,  // group 6, base 357, capacity 6
     };
+
+    // How a group hands out a record. Six groups take the index the caller
+    // names; group 5 searches. That is the answer to "what picks a group": the
+    // caller does, by calling that group's own wrapper, and only one group is
+    // a pool in the usual sense.
+    //
+    // It is not the largest one — group 1 holds 136 records to its 128 and
+    // still takes a named index. "Dynamic" describes how a record is chosen,
+    // never how many there are.
+    enum class Allocation : std::uint8_t {
+        caller_named_index,
+        first_free_scan,
+    };
+    static constexpr std::array<Allocation, group_count> group_allocation{
+        Allocation::caller_named_index,
+        Allocation::caller_named_index,
+        Allocation::caller_named_index,
+        Allocation::caller_named_index,
+        Allocation::caller_named_index,
+        Allocation::first_free_scan,
+        Allocation::caller_named_index,
+    };
+    static constexpr std::size_t dynamic_group = 5U;
+
+    // What the original runtime does when the dynamic group is full: it writes
+    // through a null pointer. There is no failure path — the scan falls out of
+    // its loop with a null record and stores into it immediately.
+    //
+    // This is recorded because it bounds what may honestly be said about the
+    // game's behavior. A tool must not claim loading degrades gracefully at
+    // capacity, and must not reproduce this either.
+    static constexpr bool exhaustion_is_handled = false;
 
     // A pool-level flag the initializer clears last, past the record array.
     static constexpr std::size_t pool_flag_offset = 0x6760U;

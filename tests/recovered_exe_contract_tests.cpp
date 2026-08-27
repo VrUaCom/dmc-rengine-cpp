@@ -397,15 +397,30 @@ void the_loaded_resource_pool_is_a_fixed_partition() {
     assert(Pool::group_of(Pool::group_bases[4]) == 4U);
     assert(Pool::group_of(Pool::group_bases[4] + 1U) == 5U);
 
-    // Group 5 has no acquired wrapper. Recording the absence is the point —
-    // a zero here is "not acquired", never "address zero".
-    assert(Pool::group_wrapper_vas[5] == 0U);
+    // Every group has a wrapper now, and exactly one of them searches. Six
+    // take the index the caller names; group 5 scans for a free record, which
+    // is why it is the only one that is a pool in the usual sense — and why it
+    // is the largest.
+    std::size_t scanning = 0U;
     for (std::size_t index = 0U; index < Pool::group_count; ++index) {
-        if (index == 5U) {
-            continue;
-        }
         assert(Pool::group_wrapper_vas[index] > Pool::image_base);
+        scanning += Pool::group_allocation[index] == Pool::Allocation::first_free_scan
+            ? 1U : 0U;
     }
+    assert(scanning == 1U);
+    assert(Pool::group_allocation[Pool::dynamic_group] ==
+        Pool::Allocation::first_free_scan);
+    // The searching group is *not* the largest — group 1 holds 136 records
+    // against its 128, and takes the index the caller names. So "dynamic"
+    // here means how a record is chosen, never how many there are, and the
+    // obvious reading that the biggest group must be the pool is wrong.
+    assert(Pool::group_capacities[1] > Pool::group_capacities[Pool::dynamic_group]);
+    assert(Pool::group_allocation[1] == Pool::Allocation::caller_named_index);
+
+    // The runtime has no failure path at capacity: the scan falls out of its
+    // loop with a null record and stores into it. Recorded so nothing in this
+    // product claims the game degrades gracefully there.
+    static_assert(!Pool::exhaustion_is_handled);
 
     // The record array ends before the pool flag the initializer clears, so
     // the flag is a pool field rather than a record that was miscounted.
