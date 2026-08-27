@@ -220,48 +220,59 @@ NbzOverlayWriteResult NbzStoreOverlayWriter::build(
         }
         if (!normalized_keys.insert(normalized).second) {
             return failure(
-                NbzOverlayWriteStatus::duplicate_normalized_key,
-                "Generated overlay contains two raw paths that collapse to one DMC3 archive runtime key.");
+                NbzOverlayWriteStatus::normalized_key_collision,
+                "Two generated member paths collapse to one DMC3 0x0E archive key; no semantic duplicate winner is invented.");
         }
 
         prepared.push_back(PreparedMember{
             .source = &member,
             .normalized_key = std::move(normalized),
-            .crc32 = crc32_of(member.bytes),
+            .crc32 = crc32_of(std::span<const std::byte>{
+                member.bytes.data(), member.bytes.size()}),
         });
     }
 
     std::sort(
         prepared.begin(), prepared.end(),
         [](const PreparedMember& left, const PreparedMember& right) {
-            return left.normalized_key < right.normalized_key;
+            if (left.normalized_key != right.normalized_key) {
+                return left.normalized_key < right.normalized_key;
+            }
+            return left.source->logical_path < right.source->logical_path;
         });
 
-    const auto volume_index = bootstrap.first_missing_index;
-    const auto filename = VolumeBootstrapPolicy::volume_filename(volume_index);
-    if (filename.empty()) {
+    std::uint64_t local_bytes = 0U;
+    std::uint64_t central_bytes = 0U;
+    for (const auto& item : prepared) {
+        const auto name_size =
+            static_cast<std::uint64_t>(item.source->logical_path.size());
+        local_bytes += k_local_fixed_size + name_size + item.source->bytes.size();
+        central_bytes += k_central_fixed_size + name_size;
+        if (!fits_generated_u32(local_bytes) ||
+            !fits_generated_u32(central_bytes)) {
+            return failure(
+                NbzOverlayWriteStatus::archive_too_large,
+                "Generated local or central byte domain exceeds the classic-ZIP 32-bit envelope.");
+        }
+    }
+
+    const auto total_size = local_bytes + central_bytes + k_eocd_size;
+    if (!fits_generated_u32(total_size)) {
         return failure(
-            NbzOverlayWriteStatus::volume_index_out_of_domain,
-            "The next numbered-volume filename cannot be represented in the recovered runtime namespace.");
+            NbzOverlayWriteStatus::archive_too_large,
+            "Generated NBZ archive reaches the unsupported classic-ZIP 32-bit sentinel domain.");
     }
 
     std::vector<std::byte> output;
+    output.reserve(static_cast<std::size_t>(total_size));
     std::vector<NbzOverlayMemberReceipt> receipts;
     receipts.reserve(prepared.size());
 
     for (const auto& item : prepared) {
         const auto& member = *item.source;
-        const auto local_offset = static_cast<std::uint64_t>(output.size());
-        const auto data_offset = local_offset + k_local_fixed_size +
-            static_cast<std::uint64_t>(member.logical_path.size());
-        const auto end_offset = data_offset + member.bytes.size();
-        if (!fits_generated_u32(local_offset) ||
-            !fits_generated_u32(data_offset) ||
-            !fits_generated_u32(end_offset)) {
-            return failure(
-                NbzOverlayWriteStatus::archive_too_large,
-                "Generated local entry layout reaches the unsupported classic-ZIP 32-bit sentinel domain.");
-        }
+        const auto local_offset = static_cast<std::uint32_t>(output.size());
+        const auto member_size = static_cast<std::uint32_t>(member.bytes.size());
+        const auto name_size = static_cast<std::uint16_t>(member.logical_path.size());
 
         append_u32(output, k_local_signature);
         append_u16(output, k_version_20);
@@ -270,90 +281,82 @@ NbzOverlayWriteResult NbzStoreOverlayWriter::build(
         append_u16(output, k_dos_time);
         append_u16(output, k_dos_date_1980_01_01);
         append_u32(output, item.crc32);
-        append_u32(output, static_cast<std::uint32_t>(member.bytes.size()));
-        append_u32(output, static_cast<std::uint32_t>(member.bytes.size()));
-        append_u16(output, static_cast<std::uint16_t>(member.logical_path.size()));
-        append_u16(output, 0U);
+        append_u32(output, member_size);
+        append_u32(output, member_size);
+        append_u16(output, name_size);
+        append_u16(output, 0U); // local extra length
         append_text(output, member.logical_path);
-        append_bytes(output, member.bytes);
+        const auto data_offset = static_cast<std::uint32_t>(output.size());
+        append_bytes(
+            output,
+            std::span<const std::byte>{
+                member.bytes.data(), member.bytes.size()});
 
         receipts.push_back(NbzOverlayMemberReceipt{
             .logical_path = member.logical_path,
             .normalized_archive_key = item.normalized_key,
             .crc32 = item.crc32,
-            .size = static_cast<std::uint32_t>(member.bytes.size()),
-            .local_header_offset = static_cast<std::uint32_t>(local_offset),
-            .data_offset = static_cast<std::uint32_t>(data_offset),
+            .size = member_size,
+            .local_header_offset = local_offset,
+            .data_offset = data_offset,
         });
     }
 
-    const auto central_offset = static_cast<std::uint64_t>(output.size());
-    for (const auto& receipt : receipts) {
-        const auto& member = *std::find_if(
-            prepared.begin(), prepared.end(),
-            [&receipt](const PreparedMember& candidate) {
-                return candidate.normalized_key == receipt.normalized_archive_key;
-            })->source;
+    const auto central_offset = static_cast<std::uint32_t>(output.size());
+    for (std::size_t index = 0U; index < prepared.size(); ++index) {
+        const auto& item = prepared[index];
+        const auto& member = *item.source;
+        const auto& receipt = receipts[index];
+        const auto name_size = static_cast<std::uint16_t>(member.logical_path.size());
 
         append_u32(output, k_central_signature);
-        append_u16(output, k_version_20);
+        append_u16(output, k_version_20); // product metadata, host 0
         append_u16(output, k_version_20);
         append_u16(output, k_flags);
         append_u16(output, k_store_method);
         append_u16(output, k_dos_time);
         append_u16(output, k_dos_date_1980_01_01);
-        append_u32(output, receipt.crc32);
+        append_u32(output, item.crc32);
         append_u32(output, receipt.size);
         append_u32(output, receipt.size);
-        append_u16(output, static_cast<std::uint16_t>(member.logical_path.size()));
-        append_u16(output, 0U);
-        append_u16(output, 0U);
-        append_u16(output, 0U);
-        append_u16(output, 0U);
+        append_u16(output, name_size);
+        append_u16(output, 0U); // central extra length
+        append_u16(output, 0U); // comment length
+        append_u16(output, 0U); // disk start
+        append_u16(output, 0U); // internal attributes
         append_u32(output, k_dos_archive_attribute);
         append_u32(output, receipt.local_header_offset);
         append_text(output, member.logical_path);
     }
 
-    const auto central_size =
-        static_cast<std::uint64_t>(output.size()) - central_offset;
-    if (!fits_generated_u32(central_offset) || !fits_generated_u32(central_size) ||
-        receipts.size() >= static_cast<std::size_t>(zip16_u16_sentinel)) {
-        return failure(
-            NbzOverlayWriteStatus::archive_too_large,
-            "Generated central directory reaches an unsupported classic-ZIP sentinel domain.");
-    }
-
+    const auto central_size = static_cast<std::uint32_t>(
+        output.size() - static_cast<std::size_t>(central_offset));
+    const auto count = static_cast<std::uint16_t>(prepared.size());
     append_u32(output, k_eocd_signature);
-    append_u16(output, 0U);
-    append_u16(output, 0U);
-    append_u16(output, static_cast<std::uint16_t>(receipts.size()));
-    append_u16(output, static_cast<std::uint16_t>(receipts.size()));
-    append_u32(output, static_cast<std::uint32_t>(central_size));
-    append_u32(output, static_cast<std::uint32_t>(central_offset));
-    append_u16(output, 0U);
-
-    if (!fits_generated_u32(output.size())) {
-        return failure(
-            NbzOverlayWriteStatus::archive_too_large,
-            "Generated archive reaches the unsupported classic-ZIP 32-bit sentinel domain.");
-    }
+    append_u16(output, 0U); // disk number
+    append_u16(output, 0U); // central-directory disk
+    append_u16(output, count);
+    append_u16(output, count);
+    append_u32(output, central_size);
+    append_u32(output, central_offset);
+    append_u16(output, 0U); // archive comment length
 
     const auto archive_sha = core::Sha256::compute(
         std::span<const std::byte>{output.data(), output.size()}).hex();
     NbzOverlayWriteReceipt receipt{
-        .volume_index = volume_index,
-        .filename = filename,
-        .archive_size = static_cast<std::uint32_t>(output.size()),
+        .volume_index = bootstrap.first_missing_index,
+        .filename = VolumeBootstrapPolicy::volume_filename(
+            bootstrap.first_missing_index),
         .archive_sha256 = archive_sha,
-        .central_offset = static_cast<std::uint32_t>(central_offset),
-        .central_size = static_cast<std::uint32_t>(central_size),
+        .archive_size = static_cast<std::uint64_t>(output.size()),
+        .central_offset = central_offset,
+        .central_size = central_size,
         .members = std::move(receipts),
     };
     if (!receipt.valid()) {
         return failure(
-            NbzOverlayWriteStatus::internal_error,
-            "Generated NBZ overlay receipt failed its deterministic structural contract.");
+            NbzOverlayWriteStatus::invalid_receipt,
+            "Generated NBZ bytes failed deterministic writer-receipt validation.");
     }
 
     return NbzOverlayWriteResult{
