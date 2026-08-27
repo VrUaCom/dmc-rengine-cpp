@@ -7,242 +7,180 @@
 **EntryPoint:** `0x14034615C`  
 **Ownership reconciliation:** 2026-08-27 — see `layer-boundary-status-reconciliation-2026-08-27.md`
 
-> **Supersession note:** the raw EXE findings in this audit remain valid unless separately contradicted, but the earlier layer interpretation that placed FileSlot/AsyncIO transport and the normal `state 1 -> 2` materialization completion wholly inside L3 is superseded. Selected-byte transport/completion through state2 is now canonically L1. L3 begins from completed state2/materialized bytes for typed-ready and lifecycle semantics.
+> **Supersession note:** raw findings remain historical evidence. The corrected ownership split does not assign all FileSlot/AsyncIO work to either L1 or L3. Exact byte-result semantics are L1 where they determine materialized bytes; request/queue/callback ownership and LoadedResource state publication remain L3. Normal `state1 -> state2` is L3 lifecycle publication, gated by an L1 terminal result through a cross-layer seam.
 
 ## Canonical Layer-3 definition
 
-Layer 3 is **Original Runtime / Resource Lifecycle after materialization**.
-
-It begins when exact materialized bytes have reached the recovered state2 boundary and continues through typed normalization, ready visibility, shared ownership, cancellation/replacement policy, release/reset and teardown.
+Layer 3 is **Original Runtime / Resource Lifecycle and scheduling ownership**.
 
 ```text
-[L2] selected logical/provider/member identity
- -> [L1] selected-byte acquisition / FileSlot transport / transform
- -> [L1] terminal materialization dependency
- -> [L1] normal state 1 -> 2 publication
- -> [L3 START]
-    state2 materialized bytes
-    typed post-load
-    optional ready callback
-    state 2 -> 3
-    state-3 consumer visibility
-    loader-node claims/reuse
-    cancellation/replacement policy
-    state 1|2 -> 4 policy action on unfinished records
-    deferred state 4 -> 0 cleanup
-    owner release / group reset / full reset
-    runtime vs CRT vs process-lifetime teardown
- -> [L3 END]
+[L2] usable selected identity
+ -> [L1] exact byte representation / materializer result
+ -> [SEAM] terminal-result completion eligibility
+ -> [L3] scheduler / callback ownership
+ -> normal state1 -> state2 publication
+ -> typed post-load
+ -> optional ready callback
+ -> state2 -> state3
+ -> consumer-ready visibility
+ -> claims/reuse/cache/factory ownership
+ -> cancellation/replacement
+ -> state4 cleanup
+ -> owner release / group reset / full reset
+ -> runtime / CRT / process-lifetime teardown
 ```
 
-The fact that L3 cancellation policy can target unfinished state1/state2 records does not make the underlying byte transport or completion dependency L3. Policy ownership and byte-mechanism ownership are classified separately.
+Stage Assembly / Stage Ops / ModViz remain downstream DOMAIN work and are not L3.
 
-Stage Assembly / Stage Ops / ModViz remains downstream DOMAIN work and is not L3.
+## Behavior-level boundary split
 
-## Layer boundaries
+### L1 behavior inside shared I/O/materialization machinery
 
-### Not L3 — Layer 1
+- logical/materialized size semantics;
+- exact byte extent, EOF, short-read/progress and final-chunk clamp;
+- selected-byte transform/decompression;
+- destination capacity/initialization relevant to exact bytes;
+- PAC/PNST/.lst byte representation;
+- terminal materializer success/error returned through `0x1401B8CA0`;
+- product provenance/edit/rebuild/repack/rematerialization.
 
-The following are now canonically L1:
+### L3 behavior inside shared I/O/materialization machinery
 
-- selected archive/physical backend byte acquisition;
-- FileSlot/ReadRequest byte transport required for materialization;
-- whole-file transfer submission `0x140033500`;
-- whole-file transport completion/status `0x1400335A0`;
-- STORE/raw-DEFLATE transforms;
-- caller-owned destination population;
-- PAC/PNST nested byte expansion;
-- `.lst` packed-vs-loose representation materialization and recursive synthesis;
-- materialization scheduler/job behavior needed to determine terminal success/error;
-- failed/incomplete completion suppression;
-- normal `0x1401B8DC0` `state1 -> state2` publication as the end-of-materialization boundary;
-- byte provenance and rebuild/repack/rematerialization.
+- FileSlot/ReadRequest object ownership and request lifetime;
+- queue insertion, persistence, polling, retirement and callback lifetime;
+- normal `0x1401B8DC0` completion dispatch;
+- LoadedResource state1 -> state2 publication;
+- cancellation/replacement policy and scheduler suppression initiated by lifecycle decisions;
+- runtime service/pool/shutdown ownership.
 
-FileSlot/AsyncIO **service lifetime**, pool lifetime, shutdown ownership and broader runtime infrastructure may still be L3. The selected-byte transfer itself is L1.
-
-### Not L3 — Layer 2
-
-L2 owns logical selection:
-
-- candidate construction;
-- provider/source precedence;
-- numbered-volume choice;
-- archive-vs-physical fallback;
-- normalization/ambiguity;
-- selected provider/member identity;
-- provider/open failure before a usable selected resource exists.
-
-Any provider-selection finding discovered while tracing lifecycle remains L2.
-
-### Not L3 — Stage/domain tooling
-
-- StageBundle / StageAssemblyWorkspace;
-- SCM geometry assembly;
-- collision, triggers/events, lighting, camera, effects/audio composition;
-- Stage Ops / Stage Editor / ModViz.
-
-These are downstream consumers and must not create independent resolver/materializer/lifecycle authority.
+A helper can contain both categories. Do not classify the entire helper by its name.
 
 ## Raw-EXE lifecycle anchors
 
 ### Registry topology
 
-- global LoadedResource registry base: `0x140C99D30`;
+- LoadedResource registry base `0x140C99D30`;
 - `363` records;
-- record stride `0x48`;
-- observed seven-group partition `[4,136,60,28,1,128,6]`.
+- stride `0x48`;
+- seven groups with counts `[4,136,60,28,1,128,6]`.
 
-Known fields remain:
+Known fields remain bounded by the original audit and later writer-census passes.
 
-- `+0x00` group;
-- `+0x04` state;
-- `+0x08` family-specific selector/index metadata;
-- `+0x10` optional ready callback/context path where applicable;
-- `+0x18` descriptor/type authority;
-- `+0x20` materialized payload;
-- `+0x28` owned/backing subobject region requiring family-complete ownership census.
+### State spine
 
-### State spine — corrected ownership split
+The state transitions remain L3 lifecycle authority:
 
-The raw state transitions remain evidenced; only their layer ownership is corrected.
-
-#### L1 materialization boundary
-
-- `0x1401B84E0` — cross-layer acquisition constructor; backing/destination setup and materialization start are L1, while the record participates in lifecycle state;
-- successful state `0 -> 1` publication is acquisition bookkeeping tied to materialization start and is treated as the L1/L3 boundary state;
-- `0x1401B8DC0` — normal completion callback and `state 1 -> 2`; the callback ABI/context is strong, but the exact terminal dependency that permits its dispatch remains an **L1 mandatory open gate**.
-
-#### L3 ready/lifecycle path
-
-- `0x1401B92D0` — scans state2 records, performs typed post-load, invokes optional ready callback and writes state3;
-- `0x1401B8430` — cancellation/replacement policy marks unfinished state1/state2 records state4;
-- `0x1401B8F00` — deferred state4 cleanup to state0 and backing release path;
-- `0x1401B9530` — ordinary owner-driven release to state0 only when runtime backing release succeeds;
+- `0x1401B84E0` — acquisition/lifecycle setup; materializer invocation is an L1 interaction, while LoadedResource bookkeeping/state ownership is L3;
+- `0x1401B8DC0` — normal completion callback, `state1 -> state2`; callback ABI/context remains strong L3 evidence;
+- `0x1401B92D0` — typed post-load -> optional callback -> state3;
+- `0x1401B8430` — cancellation/replacement marks states1/2 -> state4;
+- `0x1401B8F00` — state4 cleanup -> state0;
+- `0x1401B9530` — ordinary owner-driven release;
 - `0x1401B9560` — group reset;
-- `0x1401B95E0` — full 363-record reset.
+- `0x1401B95E0` — full reset.
 
-State3 remains a **consumer-ready lifecycle state after typed post-load and optional callback**, not merely bytes loaded.
+State2 is a lifecycle publication that indicates materialization completion has been accepted by the runtime. It does not make the byte-production mechanics themselves L3.
+
+## L1/L3 completion seam
+
+Normal `0x1401B8DC0` receives only one registry-relative u32 context. It cannot inspect raw FileSlot transfer status, byte count or transform error directly.
+
+Therefore the remaining question spans the boundary:
+
+```text
+[L1] exact materializer terminal result
+ -> [SEAM] scheduler eligibility / suppression
+ -> [L3] normal B8DC0 dispatch -> state2
+```
+
+For layer accounting:
+
+- byte-terminal semantics, final extent and transform success are L1;
+- `0x1402EF790` scheduler persistence/re-poll/retirement is L3;
+- the exact byte-producing role/context inside `0x1402EF4D0` is L1-relevant;
+- its queued-job ownership/lifetime is L3-relevant;
+- `0x1402EF460` remains a semantic seam until exact action is known;
+- state1 -> state2 publication itself is L3.
+
+This corrects both over-broad interpretations: “all AsyncIO is L3” and “all completion machinery through state2 is L1.”
 
 ## Typed post-load
 
-Central typed-dispatch/finalization path includes:
+The central typed-dispatch/finalization path remains L3, including representative MOD/EFM/SCM/SHW helpers and recursive PNST typed processing where evidenced.
 
-- dispatcher `0x1401B9FA0`;
-- MOD helper `0x1402FE3B0`;
-- EFM helper `0x1402F7A90`;
-- SCM helper `0x1403051B0`;
-- SHW helper `0x1403204C0`;
-- recursive PNST traversal where applicable.
-
-These are L3 because they consume completed materialized bytes and prepare consumer-ready runtime state.
-
-Known branches are direct EXE evidence. Remaining work includes branch breadth, external factory/dependency failure behavior, SCM `mesh +0x28` reconciliation and profile differences.
+Open breadth remains external factory/dependency failures, SCM `mesh +0x28`, family differences and profile/build differences.
 
 ## Shared ownership above LoadedResource
 
-The original runtime does not support one universal `LoadedResource.refCount` model.
+The bounded loader-node claim/release model remains L3:
 
-Evidence-backed loader-node ownership remains:
+- `0x1401AE220` claim increment;
+- `0x1401AF6A0` decrement;
+- `0x1401AF6F0` zero-claim sweep and underlying release.
 
-- `0x1401AE220` — claim increment;
-- `0x1401AF6A0` — claim decrement;
-- `0x1401AF6F0` — zero-claim sweep and underlying release;
-- `(kind,id)` is the bounded node identity in the recovered gameplay path.
+No universal LoadedResource refcount is claimed.
 
-This is L3 shared ownership after resources are ready/retained. Family breadth remains open.
+## Cancellation interaction
 
-## Cancellation interaction with L1
-
-`0x1401B8430` and state4 policy are L3. They may suppress/remove unfinished work that would otherwise lead to L1 completion.
-
-Therefore cancellation must be described as an interaction:
+Cancellation/replacement is L3 policy. It may invalidate work whose byte production belongs to L1.
 
 ```text
-[L3] replacement/cancel policy decides unfinished resource is invalid
- -> [seam] pending scheduler entry may be cleared/rolled back
- -> [L1] failed/incomplete materialization must not publish normal state2
- -> [L3] state4 cleanup/release returns lifecycle state toward 0
+[L3] lifecycle decides unfinished resource is invalid
+ -> [SEAM] pending completion may be suppressed/rolled back
+ -> [L1] incomplete/failed materializer must not be treated as terminal success
+ -> [L3] state4 cleanup/release
 ```
 
-`0x1402EF460` remains safely labeled **pending scheduler-entry clear/rollback** until exact target semantics are closed. If it removes normal materialization completion eligibility, that action is L1 completion suppression driven by L3 policy. It is not automatically OS AsyncIO cancellation.
+Do not relabel `0x1402EF460` as OS `CancelIo` without direct evidence.
 
-## Release and shutdown boundary
+## Release and teardown
 
-L3 contains multiple lifetime layers rather than one symmetric `ResourceRuntime::Shutdown()`.
+L3 retains:
 
-### Runtime/owner lifetime
-
-- ordinary LoadedResource release;
-- cancellation and deferred cleanup;
-- group/full resets;
+- ordinary resource release;
+- cancellation cleanup;
+- group/full reset;
 - loader-node zero-claim release;
-- ready-resource owner/family lifecycle.
+- FileSlot/AsyncIO service/pool lifetime;
+- runtime backing lifetime distinct from CRT/static destruction;
+- process-lifetime infrastructure distinctions.
 
-### Transport/backend close nuance
-
-Closing a FileSlot/backend as part of a specific selected-byte materialization operation can be L1 terminal cleanup. Global service/pool/resource-runtime lifetime for FileSlot/AsyncIO remains L3. Classify the concrete action, not the helper name.
-
-### CRT/static destruction
-
-The LoadedResource manager is statically constructed and atexit-registered. The registered path destructs manager backing and all 363 record backing subobjects after application return. This is not equivalent to runtime full reset.
-
-### Process-lifetime infrastructure
-
-Current canonical DMC3 evidence does not recover normal explicit teardown for all infrastructure, including:
-
-- NBZ/physical mount linked list;
-- FileSlot critical section;
-- successfully started lazy AsyncIO manager/thread object.
-
-These are bounded original-lifetime findings, not recommendations for reconstructed-product ownership.
-
-## Important call-graph consequence
-
-L3 is a **semantic/lifetime boundary, not one contiguous EXE address range**.
-
-The same scheduler/allocator/helper family may contain L1 materialization actions and L3 lifecycle actions. Each writer/caller must be classified by what it does to selected bytes versus post-materialization ownership.
+Closing a backend/request as part of a single selected-byte operation may also carry L1 terminal evidence; classify that concrete action separately.
 
 ## Current L3 completion state
 
 ### Strong/bounded
 
-- registry topology and seven groups;
-- state2 -> typed post-load -> optional callback -> state3 ready path;
-- representative typed post-load families;
-- state3 consumer-ready meaning;
-- cancellation policy `1|2 -> 4`;
-- quiescence predicate `{0,3}`;
-- state4 deferred cleanup;
-- ordinary/group/full release/reset distinction;
-- loader-node claim model for bounded gameplay families;
-- runtime vs CRT vs process-lifetime teardown distinction.
+- registry topology and groups;
+- normal state1 -> state2 callback ABI/state publication;
+- state2 typed post-load -> optional callback -> state3;
+- representative typed families;
+- state3 ready meaning;
+- cancellation `1|2 -> 4`;
+- quiescence `{0,3}`;
+- state4 cleanup;
+- distinct release/reset policies;
+- bounded loader-node claims;
+- runtime vs CRT vs process-lifetime distinctions.
 
 ### Still mandatory
 
-1. residual alias-aware state writer/value-flow census outside already bounded paths;
-2. family-complete writer/owner census for `+0x08/+0x18/+0x20/+0x28` and remaining stable fields;
+1. residual alias-aware writer/value-flow census outside bounded paths;
+2. family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable fields;
 3. external typed/factory/dependency failure breadth;
 4. SCM `mesh +0x28` reconciliation;
-5. shared-owner breadth outside bounded loader-node families;
-6. cancellation/replacement interactions after the L1 terminal mechanism is closed;
+5. shared-owner breadth;
+6. scheduler persistence/retirement details required by the L1/L3 completion seam;
 7. cross-build/profile differences;
 8. original-process V1–V7 lifecycle receipts;
 9. final contradiction-free L3 audit.
 
-The unresolved materialization terminal dependency itself is **L1**, not an L3 completion item.
+The L1 byte-exactness gaps themselves are not L3 blockers. The L3 scheduler half of the seam is L3 work.
 
 ## Acceptance rule
 
-A static EXE pass cannot by itself mark L3 complete.
+L3 cannot be completed by a static pass, Stage Ops success, synthetic trace or crash-free launch.
 
-L3 is complete only when static reverse and original-process receipts jointly prove, at required breadth:
-
-```text
-L2 selected provider/member identity
- + L1 completed state2 materialized-byte identity
- + L3 ordered typed-ready/ownership/use/release evidence
-```
-
-No Stage Ops success, crash-free launch, synthetic trace or manually edited JSON is sufficient promotion evidence.
+Completion requires static lifecycle closure plus trusted original-process evidence at the declared breadth, bound to the same L2 identity and L1 materialized bytes.
 
 **Current status: L3 INCOMPLETE / NOT 100%.**
