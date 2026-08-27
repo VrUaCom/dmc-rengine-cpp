@@ -27,6 +27,35 @@ using Animation = dmc3::AnimationTypeContract;
 using Walk = dmc3::RelativeSlotWalkContract;
 using Code = Animation::TypeCode;
 
+// The smallest byte image the motion parser accepts: a header, one track of
+// two keys, and a chain that lands exactly on the terminator.
+[[nodiscard]] std::vector<std::byte> one_track_motion() {
+    constexpr std::size_t track_bytes = 32U + 8U * 2U;
+    std::vector<std::byte> bytes(0x54U + track_bytes + 4U, std::byte{0});
+    const auto put_u32 = [&bytes](std::size_t at, std::uint32_t value) {
+        for (std::size_t index = 0U; index < 4U; ++index) {
+            bytes[at + index] =
+                static_cast<std::byte>((value >> (8U * index)) & 0xFFU);
+        }
+    };
+    const auto put_u16 = [&bytes](std::size_t at, std::uint16_t value) {
+        bytes[at] = static_cast<std::byte>(value & 0xFFU);
+        bytes[at + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+    };
+    put_u32(0x00U, 0x50U);
+    bytes[0x04] = static_cast<std::byte>('M');
+    bytes[0x05] = static_cast<std::byte>('O');
+    bytes[0x06] = static_cast<std::byte>('T');
+    put_u32(0x0CU, 0x42C80000U); // 100.0f
+    put_u32(0x50U, 1U);
+    put_u16(0x54U, static_cast<std::uint16_t>(track_bytes));
+    put_u16(0x56U, 2U);
+    put_u32(0x58U, 3U);
+    put_u16(0x54U + 0x20U, static_cast<std::uint16_t>(-32768));
+    put_u16(0x54U + 0x28U, static_cast<std::uint16_t>(-32668));
+    return bytes;
+}
+
 void the_image_knows_six_animation_kinds() {
     assert(Animation::type_for_name("pl000.mot") == Code::motion);
     assert(Animation::type_for_name("pl000.mcv") == Code::curve);
@@ -39,6 +68,40 @@ void the_image_knows_six_animation_kinds() {
     assert(Animation::type_for_name("PL000.TSC") == Code::tsc);
 }
 
+// The numbered motions. The game reads `pl000.mot1` through `pl000.mot6`, and
+// carries no numbered literal for any of them: the comparison is `strstr`, so
+// `.mot` is found inside `.mot1`. A tail match — the obvious reading — refuses
+// exactly these, which is how this was wrong before.
+void a_numbered_motion_is_a_motion() {
+    for (const auto* name : {"pl000.mot1", "pl000.mot2", "pl000.mot3",
+                             "pl000.mot4", "pl000.mot5", "pl000.mot6"}) {
+        assert(Animation::type_for_name(name) == Code::motion);
+    }
+    // The same rule for the other kinds, since it is one comparison.
+    assert(Animation::type_for_name("pl000.cam2") == Code::camera);
+    assert(Animation::type_for_name("pl000.hid3") == Code::hide);
+    // And the extension need not be at the end at all, because `strstr` does
+    // not care where it is.
+    assert(Animation::type_for_name("a.mot/b") == Code::motion);
+}
+
+// The flag and the implementation must agree. The contract said the match was
+// a substring from the day the registry was recovered, and a tail matcher was
+// written anyway; nothing failed because nothing tied the two together.
+void the_flag_and_the_matcher_agree() {
+    static_assert(Animation::extension_matched_as_substring);
+    // A tail matcher cannot pass this; a substring matcher cannot fail it.
+    assert(Animation::type_for_name("pl000.mot1") == Code::motion);
+    assert(Animation::type_for_name("pl000.mot") == Code::motion);
+    static_assert(Animation::match_function == "strstr");
+
+    // Chain order decides, not position in the name. `.mot` is compared before
+    // `.cam`, so a name carrying both is a motion wherever each one sits.
+    static_assert(Animation::first_match_wins_by_chain_order);
+    assert(Animation::type_for_name("x.cam.mot") == Code::motion);
+    assert(Animation::type_for_name("x.mot.cam") == Code::motion);
+}
+
 // Case is enumerated in pairs, so a variant the chain does not carry is not a
 // match. Folding case would accept names the game refuses.
 void an_uncompared_case_variant_is_not_a_match() {
@@ -47,7 +110,9 @@ void an_uncompared_case_variant_is_not_a_match() {
     // classifier never compares it.
     assert(Animation::type_for_name("pl000.Clt") == Code::unregistered);
     assert(Animation::type_for_name("pl000.pac") == Code::unregistered);
+    // No dot, so no substring either — the literals all carry one.
     assert(Animation::type_for_name("mot") == Code::unregistered);
+    assert(Animation::type_for_name("motion") == Code::unregistered);
 }
 
 // One of the six can be found without a name; five cannot.
@@ -61,6 +126,32 @@ void only_the_motion_can_be_found_without_a_name() {
 }
 
 void the_classifier_reports_the_registry_verdict() {
+    // The classifier has to ask the path, not the format it derived from it.
+    // `pl000.mot1` has the extension `mot1`, which is not one of the six.
+    const auto numbered =
+        gdspaces::ResourceClassifier::classify("GData.afs/pl000.mot1");
+    assert(numbered.format == "mot1");
+    assert(numbered.animation_type == static_cast<std::int32_t>(Code::motion));
+    assert(numbered.animation_structure_recovered);
+
+    // A synthesized name is not a name, so the bytes answer instead. This is
+    // the one case the registry itself could not type: a container slot has no
+    // name for `strstr` to search, and only the structural probe can say what
+    // it holds.
+    const auto motion = one_track_motion();
+    const auto nameless = gdspaces::ResourceClassifier::classify(
+        "slot_0000.bin", std::span<const std::byte>{motion}, false);
+    assert(nameless.format == "mot");
+    assert(nameless.byte_derived);
+    assert(nameless.animation_type == static_cast<std::int32_t>(Code::motion));
+    assert(nameless.animation_structure_recovered);
+
+    // And with neither a real name nor bytes there is no verdict, which is the
+    // honest answer rather than a default.
+    const auto nothing =
+        gdspaces::ResourceClassifier::classify("slot_0000.mot", {}, false);
+    assert(nothing.animation_type == -1);
+
     const auto curve = gdspaces::ResourceClassifier::classify("GData.afs/pl000.mcv");
     assert(curve.format == "mcv");
     assert(curve.animation_type == static_cast<std::int32_t>(Code::curve));
@@ -163,6 +254,8 @@ static_assert(
 
 int main() {
     the_image_knows_six_animation_kinds();
+    a_numbered_motion_is_a_motion();
+    the_flag_and_the_matcher_agree();
     an_uncompared_case_variant_is_not_a_match();
     only_the_motion_can_be_found_without_a_name();
     the_classifier_reports_the_registry_verdict();

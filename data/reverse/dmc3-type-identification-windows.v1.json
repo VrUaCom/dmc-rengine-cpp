@@ -12,6 +12,20 @@
     "va": "0x1405071d0",
     "window_sha256": "21eed8361b583dccf6855d4cbdc20712e7e71ca01dbc5ea7cba5d871516ba65c"
   },
+  "animation-extension-strstr-call": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x2df5d2",
+    "image_base": "0x140000000",
+    "name": "animation-extension-strstr-call",
+    "note": "The first extension comparison: lea of the .mot literal and the call through the import slot at 0x14034F3D0, which resolves to strstr. The match is a substring search, not a tail compare.",
+    "rva": "0x2e01d2",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 22,
+    "va": "0x1402e01d2",
+    "window_sha256": "6981d1a2a64125ed3fbc6e8764d265eb80e5641aa7e60a7906e5c243c5b8d568"
+  },
   "animation-register-and-classify": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
@@ -517,5 +531,19 @@
     "size": 240,
     "va": "0x1401b9fa0",
     "window_sha256": "7639949ae6c572589a975fb930b496c473d7fffd0caf3e5bdfafe5d1fb4e5671"
+  },
+  "volume-name-format": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x36db30",
+    "image_base": "0x140000000",
+    "name": "volume-name-format",
+    "note": "The volume filename pattern, %sDMC3-%d.nbz: a volume family is numbered, which is why a real archive is dmc3-0.nbz.",
+    "rva": "0x36e930",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".rdata",
+    "size": 16,
+    "va": "0x14036e930",
+    "window_sha256": "78286816a392b90116e7649cb3cc46c874f2107fce0ea35de0c1ecbc29535b67"
   }
 }

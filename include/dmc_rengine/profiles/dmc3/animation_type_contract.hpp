@@ -142,23 +142,40 @@ struct AnimationTypeContract final {
 
     // The registry's own rule, applied to a whole name.
     //
-    // The classifier matches the extension against the tail of the name, and
-    // it enumerates case in pairs rather than folding it — so `.Mot` is not a
+    // The comparison is `strstr`, resolved through the import table at
+    // `0x14034F3D0`: the extension is looked for **anywhere in the name**, not
+    // at its end. That is not a detail. It is why the game reads `pl000.mot1`
+    // through `pl000.mot6` as motions without carrying a single numbered
+    // literal — a whole-image search finds no `.mot1` anywhere, because none
+    // is needed.
+    //
+    // This reader first matched the tail instead, which is the obvious reading
+    // and the wrong one: it refused exactly the numbered names the game
+    // accepts. `extension_matched_as_substring` had said so since the registry
+    // was recovered, and nothing asserted the implementation against it.
+    //
+    // Case is still enumerated in pairs rather than folded, so `.Mot` is not a
     // motion here, and neither is `.Clt`, which exists as a literal but is
-    // compared only by the other registry. Folding case would make this
-    // reader accept names the game refuses, which is the same class of error
-    // as demanding a fourth magic byte the game never reads.
+    // compared only by the other registry.
     [[nodiscard]] static constexpr TypeCode type_for_name(
         std::string_view name) noexcept {
         for (const auto& entry : extension_types) {
-            if (name.size() >= entry.extension.size() &&
-                name.substr(name.size() - entry.extension.size()) ==
-                    entry.extension) {
+            if (name.find(entry.extension) != std::string_view::npos) {
                 return entry.code;
             }
         }
         return TypeCode::unregistered;
     }
+
+    // The import the comparison actually goes through, and its slot.
+    static constexpr std::string_view match_function = "strstr";
+    static constexpr std::uint64_t match_import_slot_va = 0x14034F3D0ULL;
+
+    // A consequence of substring matching worth stating rather than
+    // rediscovering: a name carrying two of these extensions is typed by
+    // whichever comes first in the *chain*, not by whichever appears first in
+    // the name. The chain order is the code's, not the table's.
+    static constexpr bool first_match_wins_by_chain_order = true;
 
     [[nodiscard]] static constexpr bool is_animation_format(
         std::string_view format) noexcept {

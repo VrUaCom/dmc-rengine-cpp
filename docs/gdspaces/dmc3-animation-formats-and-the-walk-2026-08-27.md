@@ -42,6 +42,33 @@ What is new is the literal accounting, the shared pair, and that the chain is
 an ordered sequence of comparisons — the first match wins — rather than a table
 walk that could be sorted.
 
+### The comparison is `strstr`, and that is what makes `.mot1` work
+
+**Corrected the same day.** This note first said the extension is matched
+against the tail of the name, and this project implemented a tail match. It is
+wrong. The call at `0x1402E01DC` goes through the import slot at `0x14034F3D0`,
+which resolves to **`strstr`** in `VCRUNTIME140.dll`. The extension is searched
+for **anywhere in the name**.
+
+That is not a detail. It is why the game reads `pl000.mot1` through
+`pl000.mot6` as motions while carrying no numbered literal for any of them — a
+whole-image search finds no `.mot1`, `.mot2` or `.mot6` anywhere, because none
+is needed. A tail matcher refuses exactly the names the game accepts.
+
+`extension_matched_as_substring` had said so in the contract since the registry
+was first recovered. Nothing asserted the implementation against the flag, so
+the flag and the code disagreed silently. There is now a test that fails for a
+tail matcher and passes for a substring one.
+
+One consequence follows and is worth stating rather than rediscovering: a name
+carrying two of these extensions is typed by whichever comes first in the
+**chain**, not by whichever appears first in the name. `x.cam.mot` and
+`x.mot.cam` are both motions.
+
+And a second: the classifier must be asked the **path**, not the format derived
+from it. `pl000.mot1` has the extension `mot1`, which is not one of the six;
+only the whole name reaches `strstr`.
+
 Two further details worth holding. The first registry's block carries a third,
 capitalized variant `.Clt` that this classifier never compares, so `.Clt` is
 not an animation here. And the registrar builds its key with `"%s/%s"` at
@@ -143,7 +170,15 @@ probe for. `mot` is the exception only because one file gave 69 tracks to check
 a reading against.
 
 One `.mcv`, one `.cam`, one `.hid`, one `.clt` or one `.tsc` — extracted by
-name from a real volume — is what turns each row of that table.
+name from a real volume — is what turns each row of that table. A numbered
+motion (`.mot1` … `.mot6`) needs nothing: it is already read, because the
+numbering never changed the kind.
+
+## 7. A volume family is numbered
+
+`0x14036E930` holds `%sDMC3-%d.nbz`. A real archive is `dmc3-0.nbz` because the
+game builds the name that way, which means a volume has siblings and a member
+absent from one may sit in another.
 
 ## 6. Where it lives
 

@@ -219,10 +219,22 @@ ResourceClassification ResourceClassifier::classify(
     // leaving them indistinguishable from `unknown` — an operator looking for
     // animation deserves to know which of the six the tool can see and which
     // it can only be handed by name.
+    // Asked of the path, because the registry is asked of the path.
+    //
+    // Deriving this from the format string instead loses the numbered names:
+    // `pl000.mot1` has the extension `mot1`, which is not one of the six, but
+    // the runtime runs `strstr(name, ".mot")` and finds one. So the name goes
+    // in whole, exactly as the game passes it.
+    //
+    // Where the caller synthesized the name there is nothing to ask, and the
+    // format is used instead — that is the nameless slot whose bytes were
+    // recognized as a motion, the one case the registry itself could not type.
     using Animation = profiles::dmc3::AnimationTypeContract;
-    const auto animation = Animation::is_animation_format(result.format)
-        ? Animation::type_for_name(std::string{"."} + result.format)
-        : Animation::TypeCode::unregistered;
+    const auto animation = path_names_the_resource
+        ? Animation::type_for_name(logical_path)
+        : (Animation::is_animation_format(result.format)
+               ? Animation::type_for_name(std::string{"."} + result.format)
+               : Animation::TypeCode::unregistered);
     result.animation_type = static_cast<std::int32_t>(animation);
     result.animation_structure_recovered =
         Animation::structure_is_recovered(animation);
