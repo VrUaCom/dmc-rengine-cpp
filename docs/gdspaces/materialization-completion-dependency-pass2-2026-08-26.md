@@ -3,11 +3,14 @@
 **Current-main reconciliation base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary target:** materialization completion ordering / dependency bridge  
-**Authority used:** merged #228 + merged raw scheduler ABI from #230; historical Pass-90 direct-resource trace is reacquisition hypothesis only.
+**Authority used:** merged #228 + merged raw scheduler ABI from #230; historical Pass-90 direct-resource trace is reacquisition hypothesis only.  
+**Status interpretation superseded:** 2026-08-27 by `layer-boundary-status-reconciliation-2026-08-27.md`.
+
+> The technical findings in this pass remain valid. Only the old status sentence saying this gap did not change L1 completion criteria is superseded. The unresolved terminal dependency is now a mandatory L1 completion gate, and selected-byte FileSlot/transport/completion through normal state2 publication is canonically L1.
 
 ## 1. Scope
 
-This pass does not claim a fresh raw re-disassembly of `0x1402EF4D0`. The current connected file surface does not expose a fresh canonical `e454...` raw executable blob/window for direct byte inspection in this session.
+This pass does not claim a fresh raw re-disassembly of `0x1402EF4D0`. The connected file surface in that session did not expose a fresh canonical `e454...` raw executable blob/window for direct byte inspection.
 
 It narrows the remaining question after merged #228/#230:
 
@@ -110,7 +113,7 @@ transport error
 
 ## 7. Focused acquisition anchors
 
-The focused plan now needs the terminal cluster explicitly:
+The focused plan needs the terminal cluster explicitly:
 
 - `0x140033390` — historical load-state release/close anchor;
 - `0x1400333E0` — historical whole-file status/poll anchor;
@@ -152,10 +155,22 @@ Still not claimed:
 - `.lst` child failure aggregation;
 - original-process timing equivalence.
 
-## 10. Completion consequence
+## 10. Completion consequence — reconciled 2026-08-27
 
-This is static model narrowing and acquisition planning. It does not reopen the current internal product path and does not change L1/L2/L3 completion criteria.
+This unresolved dependency is now a **mandatory Layer-1 completion gate**.
 
-The next reverse question is now precise:
+The product authoring/materialization implementation may remain advanced and representative-path-ready, but L1 cannot be reported as `COMPLETE`, `100%`, or as having only external receipts remaining while this terminal condition is unresolved.
+
+Canonical ownership after reconciliation:
+
+```text
+selected-byte FileSlot/ReadRequest transport -> L1
+transport completion/status needed for materialization -> L1
+materialization job terminal dependency -> L1
+normal state1 -> state2 publication -> L1 end boundary
+state2 typed post-load -> L3 start
+```
+
+The next reverse question remains:
 
 > **What terminal condition keeps or releases the materialization scheduler job, and how does that condition prevent normal `0x1401B8DC0` from dispatching on failed or incomplete transport?**
