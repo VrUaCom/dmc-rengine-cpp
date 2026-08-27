@@ -1,0 +1,77 @@
+{
+  "schema": "dmc-rengine.gdspaces-l1-materialization-failure-seam.v1",
+  "artifact": {
+    "name": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "verdict": "bounded-closed-false-state2-suppression-direct-normal-surface",
+  "queue_model": {
+    "type2_enqueue": "0x1402EF4D0",
+    "callback_enqueue": "0x1402EF580",
+    "lane_tick": "0x1402EF750",
+    "consumer_state_machine": "0x1402EF790",
+    "normal_state2_callback": "0x1401B8DC0",
+    "pending_rollback": "0x1402EF460",
+    "lifecycle_cancel_policy": "0x1401B8430"
+  },
+  "whole_file_status": {
+    "getter": "0x1400333E0",
+    "pending": 2,
+    "success": 3,
+    "error": 4
+  },
+  "status4_behavior": [
+    "reset-lane-phase-to-zero",
+    "retain-current-type2-record",
+    "retain-nonnull-fileloadstate",
+    "do-not-advance-consumer-index",
+    "next-tick-phase0-sees-nonnull-fileloadstate-and-returns",
+    "later-same-lane-records-remain-unreachable"
+  ],
+  "direct_caller_census": {
+    "0x1401B84E0_direct_calls": 7,
+    "0x1401B8DF0_direct_calls": 26,
+    "0x1401B8DF0_direct_callers_with_R8D_zero": 26,
+    "0x1401B8DF0_direct_callers_with_R9D_zero": 26,
+    "bounded_normal_queue_domain": "zero-lane-control-domain",
+    "nonclaim": "does-not-prove-absence-of-runtime-computed-indirect-callers"
+  },
+  "failure_suppression_proof": [
+    "0x1401B84E0-enqueues-normal-state2-callback-after-materializer-acceptance",
+    "type2-materialization-records-retire-only-after-status3-success",
+    "status4-does-not-retire-current-consumer-record",
+    "consumer-index-does-not-advance-on-status4",
+    "normal-state2-callback-cannot-overtake-failed-current-record-on-bounded-normal-lane"
+  ],
+  "lst_consequence": "local-child-return-aggregation-is-not-required-for-false-success-prevention-on-bounded-lane0-surface-because-failed-child-type2-record-stalls-before-later-state2-callback",
+  "0x1402EF460": {
+    "role": "pending-queue-rollback-truncation",
+    "only_direct_call": "0x1401B8430",
+    "not_claimed": "os-asyncio-cancel"
+  },
+  "0x1402EF920": {
+    "role": "synchronous-whole-file-helper",
+    "terminal_poll": [3, 4],
+    "return": "rounded-capacity-in-both-terminal-cases",
+    "error_encoded_in_return": false,
+    "consequence": "permissive-original-lst-description-io-error-behavior"
+  },
+  "remaining_open": [
+    "failed-active-fileloadstate-recovery-cleanup-timing",
+    "indirect-caller-contradiction-sweep",
+    "rare-malformed-error-breadth-where-claimed",
+    "zip-lazy-stream-initializer-breadth",
+    "compressed-seek-reset-reinflate-breadth",
+    "lst-malformed-temp-buffer-error-exits",
+    "real-retail-and-level-e-acceptance"
+  ],
+  "non_claims": [
+    "L1-complete",
+    "state1-to-state2-is-L1",
+    "generic-fan-in-counter",
+    "fifo-alone-without-persistent-head-state",
+    "0x1402EF460-is-cancelio",
+    "global-absence-of-indirect-callers"
+  ]
+}
