@@ -275,9 +275,9 @@ int run_extract_dmc3_retail_member(
     }
 
     const auto bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_indices);
-    if (!bootstrap.valid() || bootstrap.registered_archives.empty()) {
+    if (!bootstrap.valid() || bootstrap.discovered_archives.empty()) {
         std::cerr
-            << "extract-dmc3-retail-member: no valid contiguous runtime DMC3 archive bootstrap\n";
+            << "extract-dmc3-retail-member: no valid discovered contiguous DMC3 archive range\n";
         return 4;
     }
 
@@ -286,17 +286,19 @@ int run_extract_dmc3_retail_member(
     if (!registry.mount(std::make_unique<gdspaces::LocalDirectorySource>(
             std::string{physical_source_id}, data_directory, false))) {
         std::cerr
-            << "extract-dmc3-retail-member: cannot mount physical data directory\n";
+            << "extract-dmc3-retail-member: cannot mount physical product data source\n";
         return 5;
     }
 
     std::vector<MountedArchive> mounted_archives;
-    mounted_archives.reserve(bootstrap.registered_archives.size());
-    for (const auto& archive : bootstrap.registered_archives) {
+    mounted_archives.reserve(bootstrap.discovered_archives.size());
+    std::vector<std::uint32_t> successful_archive_indices;
+    successful_archive_indices.reserve(bootstrap.discovered_archives.size());
+    for (const auto& archive : bootstrap.discovered_archives) {
         const auto* physical = find_volume(*discovered, archive.index);
         if (physical == nullptr) {
             std::cerr
-                << "extract-dmc3-retail-member: runtime bootstrap references an undiscovered archive\n";
+                << "extract-dmc3-retail-member: discovery references an unavailable archive\n";
             return 5;
         }
 
@@ -306,16 +308,17 @@ int run_extract_dmc3_retail_member(
             source_id, physical->path);
         if (!source->valid()) {
             std::cerr
-                << "extract-dmc3-retail-member: invalid runtime-mounted NBZ/ZIP volume: "
+                << "extract-dmc3-retail-member: discovered NBZ cannot establish a clean product mount topology: "
                 << physical->path.string() << '\n';
             return 6;
         }
         const auto* source_pointer = source.get();
         if (!registry.mount(std::move(source))) {
             std::cerr
-                << "extract-dmc3-retail-member: cannot mount NBZ source\n";
+                << "extract-dmc3-retail-member: cannot mount product NBZ source\n";
             return 6;
         }
+        successful_archive_indices.push_back(archive.index);
         mounted_archives.push_back(MountedArchive{
             .index = archive.index,
             .source_id = std::move(source_id),
@@ -324,9 +327,19 @@ int run_extract_dmc3_retail_member(
         });
     }
 
+    const auto topology = dmc3::VolumeBootstrapPolicy::successful_mount_topology(
+        bootstrap,
+        true,
+        successful_archive_indices);
+    if (!topology.has_value()) {
+        std::cerr
+            << "extract-dmc3-retail-member: explicit product successful-mount topology is invalid\n";
+        return 7;
+    }
+
     dmc3::RuntimeSourceBindings bindings;
     bindings.physical_source_id = std::string{physical_source_id};
-    for (const auto volume_index : bootstrap.archive_resolution_order) {
+    for (const auto volume_index : topology->archive_resolution_order) {
         const auto iterator = std::find_if(
             mounted_archives.begin(), mounted_archives.end(),
             [volume_index](const MountedArchive& archive) {
@@ -334,7 +347,7 @@ int run_extract_dmc3_retail_member(
             });
         if (iterator == mounted_archives.end()) {
             std::cerr
-                << "extract-dmc3-retail-member: incomplete archive source binding\n";
+                << "extract-dmc3-retail-member: incomplete successful archive source binding\n";
             return 7;
         }
         bindings.archives.push_back(dmc3::ArchiveSourceBinding{
@@ -342,14 +355,14 @@ int run_extract_dmc3_retail_member(
             .source_id = iterator->source_id,
         });
     }
-    if (!bindings.valid_for(bootstrap)) {
+    if (!bindings.valid_for(*topology)) {
         std::cerr
-            << "extract-dmc3-retail-member: invalid runtime source bindings\n";
+            << "extract-dmc3-retail-member: invalid explicit product runtime source bindings\n";
         return 7;
     }
 
     const auto resolved = dmc3::RuntimeResourceResolver::resolve(
-        game_request, bootstrap, bindings, registry);
+        game_request, *topology, bindings, registry);
     if (!resolved.ok()) {
         std::cerr
             << "extract-dmc3-retail-member: resolver did not produce one resource: "
@@ -435,18 +448,26 @@ int run_extract_dmc3_retail_member(
     std::ostringstream receipt;
     receipt
         << "{\n"
-        << "  \"schema_version\": 2,\n"
+        << "  \"schema_version\": 3,\n"
         << "  \"evidence_class\": \"artifact-bound-retail-member-acquisition\",\n"
         << "  \"game_request\": \"" << escape_json(game_request) << "\",\n"
         << "  \"resolver_status\": \"resolved\",\n"
         << "  \"resolver_probe_count\": " << resolved.probes.size() << ",\n"
         << "  \"selected_volume_index\": " << archive_iterator->index << ",\n"
-        << "  \"bootstrap\": {\n"
+        << "  \"bootstrap_discovery\": {\n"
         << "    \"first_missing_index\": " << bootstrap.first_missing_index << ",\n"
+        << "    \"discovered_archive_count\": " << bootstrap.discovered_archives.size() << ",\n"
         << "    \"ignored_after_first_gap_count\": "
         << bootstrap.present_after_first_gap.size() << ",\n"
         << "    \"ignored_outside_runtime_domain_count\": "
         << bootstrap.present_outside_runtime_index_domain.size() << "\n"
+        << "  },\n"
+        << "  \"product_mount_topology\": {\n"
+        << "    \"basis\": \"nbz-source-valid-plus-source-registry-mount-success\",\n"
+        << "    \"physical_source_mounted\": true,\n"
+        << "    \"successful_archive_count\": " << topology->mounted_archives.size() << ",\n"
+        << "    \"all_discovered_archives_required_to_mount_for_this_receipt\": true,\n"
+        << "    \"original_process_mount_topology_proven\": false\n"
         << "  },\n"
         << "  \"archive\": {\n"
         << "    \"path\": \"" << escape_json(archive_iterator->path.generic_string()) << "\",\n"
@@ -518,6 +539,9 @@ int run_extract_dmc3_retail_member(
         << "Member SHA-256: " << resource_digest.hex() << '\n'
         << "Materialized bytes: " << bytes.size() << '\n'
         << "Transform: " << gdspaces::to_string(provenance.transform) << '\n'
+        << "Discovery first missing: " << bootstrap.first_missing_index << '\n'
+        << "Product successful archives: " << topology->mounted_archives.size() << '\n'
+        << "Original process mount topology: NOT PROVEN BY THIS RECEIPT\n"
         << "Ignored after first gap: " << bootstrap.present_after_first_gap.size() << '\n'
         << "Ignored outside runtime domain: "
         << bootstrap.present_outside_runtime_index_domain.size() << '\n'
@@ -529,7 +553,7 @@ int run_extract_dmc3_retail_member(
 void print_dmc3_retail_acquisition_help() {
     std::cout
         << "  extract-dmc3-retail-member <exe-dir> <game-request> <output-file>\n"
-        << "                            Resolve and artifact-bind one exact member from runtime-contiguous retail DMC3 NBZ volumes with SHA/provenance receipt\n";
+        << "                            Discover first-gap retail DMC3 NBZ filenames, require explicit clean product mounts, resolve one archive member and publish artifact-bound SHA/provenance receipt without claiming original-process mount topology\n";
 }
 
 int try_run_dmc3_retail_acquisition_command(int argc, char** argv) {
