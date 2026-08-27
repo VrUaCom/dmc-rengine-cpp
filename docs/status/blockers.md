@@ -2,164 +2,133 @@
 
 **Snapshot date:** 2026-08-27  
 **Canonical base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
-**Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`
-
-The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). Cross-layer ownership/order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
+**Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`  
+**Focused L1 gap authority:** PR #244
 
 ## P0 — GDSpaces L1 completion blockers
 
-Layer 1 is **INCOMPLETE / NOT 100%**.
+**L1 = INCOMPLETE / NOT 100%.** Product maturity does not close original byte-equivalence or real acceptance.
 
-There is now one mandatory internal reverse/equivalence blocker in addition to the real-retail/original-game acceptance gates.
-
-### B-L1-00 — Original materialization terminal dependency
+### B-L1-00 — Materialized-size / zero / error authority
 
 **Status:** MANDATORY STATIC REVERSE OPEN
 
-Current proven chain:
+Close `0x14002F9F0 -> 0x140048E20`: exact logical/uncompressed size, error sentinel domain and zero-size behavior.
+
+### B-L1-01 — Rounded transfer / final byte extent
+
+**Status:** MANDATORY STATIC REVERSE OPEN
+
+Close `ceil(totalBytes/0x800)` request versus exact logical EOF, physical/ZIP final-chunk clamp, short-read/progress/no-progress and success/failure composition around `0x140033390..0x1400335A0` plus the actual backend read path.
+
+### B-L1-02 — Capacity / allocation / initialization
+
+**Status:** MANDATORY STATIC REVERSE OPEN
+
+Close `0x1401B7B90`: logical size vs rounded capacity, 64-byte alignment, integer width/overflow, allocation failure and initial backing-byte state.
+
+### B-L1-03 — `.lst` planner/writer/failure equivalence
+
+**Status:** MANDATORY STATIC REVERSE OPEN
+
+Close `0x1401B79E0`, `0x1401B7FD0`, `0x1401B85C0`: packed/loose tests, planner/writer size authority, recursive propagation, child failure ordering, temporary cleanup, partial parent state and original padding-byte contents.
+
+### B-L1-04 — Exact byte-producing ingress behind `0x1402EF4D0`
+
+**Status:** MANDATORY STATIC REVERSE OPEN
+
+Recover the actual byte-producing job/path and inherited materialization context without assigning the entire scheduler helper to L1. Queue/persistence/callback ownership remains L3 behavior unless direct evidence says otherwise.
+
+### B-L1-05 — Partial-read / transform terminal composition
+
+**Status:** MANDATORY STATIC REVERSE OPEN
+
+Close STORE short-read, InflateRead partial production, early stream-end, retry/progress/no-progress and truncated-input behavior so partially written destinations cannot be mislabeled as successfully materialized.
+
+### B-L1-06 — Packed-child extent scope boundary
+
+**Status:** OPEN SCOPE LIMIT
+
+Relative slot starts do not prove a universal original intrinsic child length. Layout-preserving patch scope and synthesized/reflowed scope must stay distinct unless new evidence closes this boundary.
+
+### B-SEAM-01 — L1 terminal result -> L3 normal completion
+
+**Status:** MANDATORY CROSS-LAYER RECONCILIATION
+
+Known:
 
 ```text
-0x1401B8CA0 materialization dispatch
- -> 0x1402EF4D0 job/submission
- -> lower whole-file/FileSlot transport
- -> UNKNOWN exact terminal success/error condition
- -> normal 0x1401B8DC0 eligibility/suppression
- -> state 1 -> 2
+[L1] terminal byte/result state
+ -> UNKNOWN exact dependency / eligibility mechanism
+ -> [L3] normal 0x1401B8DC0
+ -> LoadedResource state1 -> state2
 ```
 
-Normal `0x1401B8DC0` receives only one u32 registry-relative context. It does not receive raw transport error/status, byte count, FileSlot handle, child count or outstanding-work metadata. Therefore transport/materialization success must already be resolved before normal callback dispatch, or the queued completion must be removed/suppressed.
+Normal `0x1401B8DC0` receives only one registry-relative u32 context and cannot inspect raw transfer status itself. After direct byte-terminal semantics are exact, reconcile:
 
-FIFO order alone is insufficient if an earlier materialization job can submit async I/O and retire before transport becomes terminal. No generic fan-in counter is evidenced.
+- `0x1402EF4D0` byte job versus queued-job ownership;
+- relevant `0x1402EF790` persistence/re-poll/retirement;
+- fresh `0x1400333E0` / `0x140033390` semantics;
+- `0x1400335A0` result binding;
+- failed/incomplete completion suppression;
+- relevant `0x1402EF460` pending-entry clear/rollback;
+- `.lst` recursive failure ordering.
 
-Required closure:
+No generic fan-in counter is evidenced and FIFO alone is insufficient.
 
-1. recover exact `0x1402EF4D0` queued materialization job identity/type and inherited load-context consumer;
-2. identify matching `0x1402EF790` dispatch/persistence/re-poll/retirement behavior;
-3. reacquire `0x1400333E0` pending/success/error semantics;
-4. reacquire `0x140033390` terminal cleanup/release ordering;
-5. bind `0x1400335A0` transport writes into that state;
-6. prove what prevents normal `0x1401B8DC0` dispatch on failed/incomplete transfer;
-7. recover relevant `0x1402EF460` pending scheduler-entry clear/rollback behavior;
-8. apply the confirmed mechanism to `.lst` child/recursive failure ordering where required.
+This seam does **not** reclassify LoadedResource `state1 -> state2` as L1; state publication remains L3.
 
-This blocker belongs to L1. L3 cancellation policy may interact with it but does not own the selected-byte terminal mechanism.
+### B-L1-07 — Direct-retail representative provenance
 
-### B-L1-01 — Direct-retail representative provenance
+**Status:** REAL-RETAIL RECEIPT REQUIRED
 
-**Status:** EXTERNAL REAL-RETAIL RECEIPT REQUIRED
+Preserve actual L2 resolver winner, archive/member identity, hashes/central metadata and exact materialized SHA/size/transform provenance.
 
-Run canonical direct-retail acquisition against a protected DMC3 installation and preserve:
+### B-L1-08 — Exact retail representation classification
 
-- protected executable authority;
-- observed numbered-volume topology;
-- resolver-selected volume/archive/member identity;
-- archive SHA/size;
-- central-entry metadata;
-- materialized SHA/size;
-- compression transform and ByteProvenance.
+**Status:** REAL EVIDENCE REQUIRED
 
-A preferred request such as `obj\em000.pac` is not a predeclared archive-member authority.
+Classify exact selected bytes before applying a writer.
 
-### B-L1-02 — Exact retail representation classification
+### B-L1-09 — Real edit/rebuild/rematerialization
 
-**Status:** EXTERNAL EVIDENCE REQUIRED
+**Status:** REAL VALIDATION REQUIRED
 
-Classify exact bytes from B-L1-01. If the representation falls outside current writer authority, stop and open a bounded evidence gate.
+Prove one supported real bounded edit, bottom-up rebuild, next-volume publication and exact rematerialization.
 
-### B-L1-03 — Representative real edit/rebuild/rematerialization receipt
+### B-L1-10 — Original DMC3 consumption + rollback
 
-**Status:** EXTERNAL VALIDATION REQUIRED
+**Status:** FINAL EXTERNAL ACCEPTANCE REQUIRED / issue #209
 
-Product code supports top-level/nested PAC/PNST size-changing authoring, next-volume NBZ creation and canonical rematerialization. One real protected-install receipt remains mandatory.
+Require an attributable original-game effect and rollback that preserves retail immutability. Crash-free launch is not enough.
 
-```text
-retail-selected member
- -> supported bounded edit
- -> top-level or nested bottom-up rebuild
- -> exact untouched-span validation
- -> next-contiguous NBZ
- -> authored higher-volume winner
- -> exact rebuilt-member rematerialization
- -> exact authored-child verification
-```
+### B-L1-11 — Final L1 audit
 
-### B-L1-04 — Original DMC3 Level-E consumption + rollback
+**Status:** OPEN / DEPENDS ON ALL MANDATORY DECLARED-SCOPE GATES
 
-**Status:** FINAL EXTERNAL ACCEPTANCE REQUIRED
+L1 can be `COMPLETE / 100%` only if static byte-exactness, required cross-layer seam evidence, real receipts, exact-head validation and canonical docs all agree without contradiction.
 
-Canonical tracking: issue #209.
+## Layer 2 blockers
 
-The exact generated overlay must be copied into the protected installation under controlled conditions, consumed through a deterministic original-game path, then removed without changing original retail artifacts.
+**L2 = INCOMPLETE / NOT 100%.**
 
-A crash-free launch alone is insufficient.
+- **B-L2-01:** exact retail `0x0E` normalized-key collision census;
+- **B-L2-02:** real protected-process multi-anchor mapping receipt;
+- **B-L2-03:** trusted zero-loss original-process selected-provider identity;
+- **B-L2-04:** direct-retail resolver identity promotion after collision state is known;
+- **B-L2-05:** final contradiction-free L2 audit.
 
-### B-L1-05 — Final L1 cross-stack audit
-
-**Status:** OPEN / DEPENDS ON B-L1-00..04
-
-Before `L1 COMPLETE / 100%`:
-
-- B-L1-00 terminal materialization dependency is closed;
-- real acquisition provenance exists;
-- real representation classification exists;
-- real edit/rebuild/rematerialization receipt exists;
-- original-game consumer observation exists;
-- rollback proves original retail immutability;
-- exact-head Windows + Ubuntu CI is green;
-- #100, #182, #209, code and canonical docs agree;
-- no unresolved contradiction alters the declared L1 scope.
-
-## Layer 2 evidence blockers
-
-L2 is **INCOMPLETE / NOT 100%**. These gates do not substitute for L1.
-
-### B-L2-01 — Real-retail `0x0E` collision census
-
-**Status:** EXTERNAL ARTIFACT ACCESS REQUIRED
-
-Required evidence is an exact retail member-name/central-directory surface cryptographically bound to the archive, followed by the canonical `0x0E` normalized-key collision census.
-
-### B-L2-02 — Real protected runtime RVA mapping receipt
-
-**Status:** TOOLING INTEGRATED / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
-
-Authority split:
-
-- analysis EXE: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432;
-- protected execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320.
-
-Canonical analysis VA/RVA mappings require independent protected-process mapping evidence.
-
-### B-L2-03 — Trusted original-process selected-provider identity
-
-**Status:** REAL PROCESS + TRUSTED CAPTURE REQUIRED
-
-Candidate/binder tooling is not original-process authority. Required promotion needs a valid mapping packet, trusted runtime publisher/origin, zero-loss trace and exact observer/NBZ artifact binding.
-
-Provider/backend failure before a usable selected resource exists is L2 failure semantics and must not be rewritten as a clean miss.
-
-### B-L2-04 — Direct-retail resolver identity receipt
-
-**Status:** BLOCKED BY B-L2-01
-
-A real-retail selected identity cannot be promoted before exact collision state is known for the bound retail member surface.
-
-### B-L2-05 — Final L2 audit
-
-**Status:** OPEN
-
-Requires real-retail collision evidence, protected mapping, trusted selected identity, exact-head validation and contradiction-free canonical documentation.
+Selection and failure before a usable selected resource exist are L2. Exact selected-byte production is L1.
 
 ## Layer 3 blockers
 
-L3 is **INCOMPLETE / NOT 100%**.
+**L3 = INCOMPLETE / NOT 100%.**
 
-Canonical L3 starts from completed state2/materialized bytes.
+Open L3 work includes:
 
-Open L3 gates include:
-
-- residual alias-aware state writer/value-flow census outside already bounded paths;
-- family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and other stable fields;
+- scheduler/request/callback persistence details needed at B-SEAM-01;
+- residual LoadedResource writer/value-flow census;
+- family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable fields;
 - external typed/factory/dependency failure breadth;
 - SCM `mesh +0x28` reconciliation;
 - shared-owner coordination breadth;
@@ -167,59 +136,45 @@ Open L3 gates include:
 - protected original-process V1–V7 lifecycle receipts;
 - final contradiction-free L3 audit.
 
-The L1 materialization terminal dependency is explicitly **not** an L3 blocker after the 2026-08-27 ownership correction.
+Normal LoadedResource `state1 -> state2` remains L3 lifecycle state publication. The L1 byte-terminal prerequisite must not be conflated with its owner.
 
-## Closed/strong slices not to reopen without contradiction
+## Strong slices not to reopen without contradiction
 
 ### L1/product
 
+- artifact-bound acquisition implementation;
 - atomic/no-replace publication;
-- artifact-bound archive/member stability;
-- direct-retail acquisition implementation;
-- NBZ STORE/raw-DEFLATE product materialization;
-- PAC/PNST sparse/empty/alias-preserving parsing;
-- recursive PAC/PNST expansion;
-- same-level/nested size-changing reflow;
-- verified immutable NBZ copy rebuild;
-- next-volume STORE overlay authoring;
-- ByteProvenance;
-- `.lst` core grammar/layout/recursive synthesis.
+- ZIP method-0/raw-DEFLATE core architecture;
+- PAC/PNST sparse relative-slot structure and recursive traversal;
+- bounded writer/product paths already promoted.
+
+Strong structure does not erase open size/EOF/capacity/padding/error semantics.
 
 ### L2
 
-- type-0 physical-provider post-`0x0C` static chain at bounded direct-call scope;
-- controlled native physical product hit/miss/fallback model;
-- protected-runtime RVA acquisition/mapping tooling.
+- numbered-volume/bootstrap structure;
+- basename candidates/provider order;
+- archive normalization/index/search;
+- bounded type-0 physical static chain.
 
 ### L3
 
-- registry `363 x 0x48` / seven-group topology;
-- state2 typed-finalizer -> optional callback -> state3 ready path;
-- cancellation policy `1|2 -> 4`;
+- registry `363 x 0x48` and seven groups;
+- normal state1 -> state2 callback ABI/publication;
+- state2 typed-ready -> state3;
+- cancellation `1|2 -> 4`;
 - quiescence `{0,3}`;
-- state4 cleanup;
-- distinct ordinary/group/full release/reset paths;
-- representative typed post-load families;
-- bounded loader-node claim/release model;
-- runtime vs CRT vs process-lifetime distinction.
-
-## Bounded secondary reverse breadth
-
-After B-L1-00, activate only when required by the claimed scope:
-
-- FileSlot/ReadRequest partial-read/cancellation breadth;
-- complete ZIP lazy-realization error/lifetime breadth;
-- complete compressed-seek/reset error breadth;
-- `.lst` temporary allocation/free/malformed failure breadth;
-- exhaustive malformed original error equivalence.
+- state4 cleanup and distinct release/reset paths;
+- representative typed families and bounded loader-node claims;
+- runtime/CRT/process teardown distinction.
 
 ## Evidence-gated freezes
 
-- Binary AFS is not inferred from `.afs/` namespace strings.
-- Historical PACK parsing does not establish original DMC3 PACK runtime authority.
-- Capcom offline writer equivalence is not required for product authoring acceptance.
+- Binary AFS is not inferred from `.afs/` strings.
+- Historical PACK parsing is not original DMC3 runtime authority.
+- Capcom offline-writer equivalence is not required for bounded DMC Rengine product authoring.
 - Stage Ops/ModViz do not count as L1/L2/L3 completion.
 
-## Environment blocker
+## Environment boundary
 
-The connected environment does not expose every exact protected-install artifact/process required for real retail and original-process gates. This must not be replaced by synthetic CI or weaker completion criteria.
+The connected environment does not expose every exact protected-install artifact/process required for real retail and original-process gates. Synthetic CI must not replace those receipts.
