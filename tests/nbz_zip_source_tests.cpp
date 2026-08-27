@@ -368,10 +368,9 @@ int main() {
     assert(!crc_payload->byte_provenance.has_value());
     assert(has_code(crc_payload->diagnostics, "gdspaces.nbz.safe.crc-mismatch"));
 
-    // SafeProductValidation: a source object must not materialize against an
-    // archive whose byte length changed after indexing. A zero-byte STORE
-    // member used to make this especially easy to miss because read_exact()
-    // legitimately has no payload bytes to fetch and CRC32(empty) is valid.
+    // SafeProductValidation: a successful zero-byte STORE member still has a
+    // valid materialized-byte lineage; emptiness alone is not a failure signal.
+    // The same source must drop provenance after its archive becomes stale.
     const std::vector<EntrySpec> stale_specs{
         EntrySpec{"empty.bin", 0U, {}, {}},
     };
@@ -381,6 +380,12 @@ int main() {
     assert(stale_source.valid());
     const auto stale_refs = stale_source.enumerate();
     assert(stale_refs.size() == 1U);
+    const auto empty_payload = stale_source.read(stale_refs.front().id);
+    assert(empty_payload.has_value() && empty_payload->readable());
+    assert(empty_payload->bytes.empty());
+    assert(empty_payload->byte_provenance.has_value());
+    assert(empty_payload->byte_provenance->kind == ByteOriginKind::direct_source_span);
+    assert(empty_payload->byte_provenance->transform == ByteTransform::zip_stored);
     {
         std::ofstream stream(stale_path, std::ios::binary | std::ios::app);
         const char marker = '\x7f';
