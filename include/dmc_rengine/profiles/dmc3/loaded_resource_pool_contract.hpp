@@ -1,0 +1,123 @@
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <numeric>
+#include <string_view>
+
+namespace dmc::rengine::profiles::dmc3 {
+
+// Instruction-backed contract for L1's loaded-resource pool.
+//
+// Thirty byte windows of this layer were acquired in an earlier pass and none
+// of them became code — the addresses sat in documents while the product
+// modelled resource lifetime its own way. This is that layer read out.
+//
+// The finding that matters: the pool is **not** a dynamic list. It is a fixed
+// array of 363 records, statically partitioned into seven groups whose bases
+// and counts live in the image as data. A resource does not go "somewhere in
+// the pool"; it goes into a specific group with a fixed capacity, and when
+// that group is full the original runtime has nowhere else to put it.
+struct LoadedResourcePoolContract final {
+    static constexpr std::string_view canonical_target_sha256 =
+        "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
+    static constexpr std::uint64_t image_base = 0x140000000ULL;
+
+    static constexpr std::uint64_t registry_init_va = 0x1401B8380ULL;
+    static constexpr std::uint64_t acquire_va = 0x1401B84E0ULL;
+    static constexpr std::uint64_t materialization_dispatch_va = 0x1401B8CA0ULL;
+    static constexpr std::uint64_t completion_state1_to_2_va = 0x1401B8DC0ULL;
+    static constexpr std::uint64_t state2_finalizer_va = 0x1401B92D0ULL;
+    static constexpr std::uint64_t state4_cleanup_va = 0x1401B8F00ULL;
+    static constexpr std::uint64_t normal_release_va = 0x1401B9530ULL;
+    static constexpr std::uint64_t group_reset_va = 0x1401B9560ULL;
+    static constexpr std::uint64_t full_reset_va = 0x1401B95E0ULL;
+
+    // Record geometry, from the initializer and the finalizer agreeing.
+    static constexpr std::size_t record_stride = 0x48U;
+    static constexpr std::size_t record_group_offset = 0x00U;
+    static constexpr std::size_t record_state_offset = 0x04U;
+    static constexpr std::size_t record_payload_offset = 0x20U;
+    static constexpr std::size_t record_embedded_offset = 0x28U;
+    static constexpr std::size_t record_count = 0x16BU;
+
+    // The state machine, as the recovered routines move through it.
+    enum class State : std::int32_t {
+        free = 0,
+        requested = 1,
+        loaded = 2,
+        relocated = 3,
+        releasing = 4,
+    };
+
+    // The finalizer walks records in `loaded`, relocates the payload and
+    // leaves them `relocated`. A group wrapper skips a record already there.
+    static constexpr State finalize_from = State::loaded;
+    static constexpr State finalize_to = State::relocated;
+
+    // The static partition. Both tables are image data, not computed.
+    static constexpr std::uint64_t partition_count_table_va = 0x140581A10ULL;
+    static constexpr std::uint64_t partition_base_table_va = 0x140581A20ULL;
+    static constexpr std::size_t group_count = 7U;
+
+    static constexpr std::array<std::uint16_t, group_count> group_capacities{
+        4U, 136U, 60U, 28U, 1U, 128U, 6U};
+    static constexpr std::array<std::uint16_t, group_count> group_bases{
+        0U, 4U, 140U, 200U, 228U, 229U, 357U};
+
+    // One wrapper per group, each reading its own base out of the table above.
+    // Group 5 has no wrapper of its own in the acquired set, which is recorded
+    // rather than filled in: an absent routine is a fact about the image.
+    static constexpr std::array<std::uint64_t, group_count> group_wrapper_vas{
+        0x1401B8F50ULL,  // group 0, base 0, capacity 4
+        0x1401B90B0ULL,  // group 1, base 4, capacity 136
+        0x1401B9160ULL,  // group 2, base 140, capacity 60
+        0x1401B8FF0ULL,  // group 3, base 200, capacity 28
+        0x1401B8D60ULL,  // group 4, base 228, capacity 1
+        0U,              // group 5, base 229, capacity 128 — not acquired
+        0x1401B9270ULL,  // group 6, base 357, capacity 6
+    };
+
+    // A pool-level flag the initializer clears last, past the record array.
+    static constexpr std::size_t pool_flag_offset = 0x6760U;
+
+    [[nodiscard]] static consteval std::size_t record_array_bytes() noexcept {
+        return record_count * record_stride;
+    }
+
+    // The partition must tile the pool exactly: every record belongs to one
+    // group, and no group reaches past the end. This is the invariant that
+    // makes the two tables trustworthy, and it is checked rather than assumed.
+    [[nodiscard]] static consteval bool partition_tiles_the_pool() noexcept {
+        std::size_t cursor = 0U;
+        for (std::size_t index = 0U; index < group_count; ++index) {
+            if (group_bases[index] != cursor) {
+                return false;
+            }
+            cursor += group_capacities[index];
+        }
+        return cursor == record_count;
+    }
+
+    [[nodiscard]] static constexpr std::size_t record_offset(
+        std::size_t slot) noexcept {
+        return slot * record_stride;
+    }
+
+    [[nodiscard]] static constexpr std::size_t group_of(
+        std::size_t slot) noexcept {
+        for (std::size_t index = group_count; index-- > 0U;) {
+            if (slot >= group_bases[index]) {
+                return index;
+            }
+        }
+        return 0U;
+    }
+};
+
+static_assert(
+    LoadedResourcePoolContract::partition_tiles_the_pool(),
+    "the recovered group partition must tile the recovered pool exactly");
+
+} // namespace dmc::rengine::profiles::dmc3

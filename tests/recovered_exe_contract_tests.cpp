@@ -1,4 +1,5 @@
 #include "dmc_rengine/profiles/dmc3/archive_entry_read_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/loaded_resource_pool_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/loose_container_list.hpp"
 #include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
@@ -354,6 +355,67 @@ void the_animation_registry_is_a_second_registry() {
     static_assert(Animation::image_base == Types::image_base);
 }
 
+void the_loaded_resource_pool_is_a_fixed_partition() {
+    using Pool = dmc3::LoadedResourcePoolContract;
+    using Walk = dmc3::RelativeSlotWalkContract;
+
+    // The pool is an array, not a list, and the two routines that walk it
+    // agree about its shape. If these ever drift, one contract is describing a
+    // different structure than the other claims.
+    static_assert(Pool::record_count == Walk::pool_slot_count);
+    static_assert(Pool::record_stride == Walk::pool_slot_stride);
+    static_assert(Pool::record_state_offset == Walk::pool_state_offset);
+    static_assert(Pool::record_payload_offset == Walk::pool_payload_offset);
+    static_assert(
+        static_cast<std::int32_t>(Pool::finalize_from) == Walk::pool_state_loaded);
+    static_assert(
+        static_cast<std::int32_t>(Pool::finalize_to) == Walk::pool_state_finalized);
+
+    // Seven groups tile 363 records exactly. The consteval check above already
+    // refuses to compile otherwise; this states the arithmetic in the open so
+    // a future edit to either table has to face it.
+    static_assert(Pool::partition_tiles_the_pool());
+    static_assert(Pool::record_array_bytes() == 0x6618U);
+    std::size_t total = 0U;
+    for (const auto capacity : Pool::group_capacities) {
+        total += capacity;
+    }
+    assert(total == Pool::record_count);
+
+    // Every group's own wrapper must land inside that group.
+    for (std::size_t index = 0U; index < Pool::group_count; ++index) {
+        const auto base = Pool::group_bases[index];
+        assert(Pool::group_of(base) == index);
+        if (Pool::group_capacities[index] > 1U) {
+            const std::size_t last = base + Pool::group_capacities[index] - 1U;
+            assert(Pool::group_of(last) == index);
+        }
+    }
+    // The first record of group 4 is the only record of group 4: a capacity of
+    // one is a real value in this table, not a placeholder.
+    assert(Pool::group_capacities[4] == 1U);
+    assert(Pool::group_of(Pool::group_bases[4]) == 4U);
+    assert(Pool::group_of(Pool::group_bases[4] + 1U) == 5U);
+
+    // Group 5 has no acquired wrapper. Recording the absence is the point —
+    // a zero here is "not acquired", never "address zero".
+    assert(Pool::group_wrapper_vas[5] == 0U);
+    for (std::size_t index = 0U; index < Pool::group_count; ++index) {
+        if (index == 5U) {
+            continue;
+        }
+        assert(Pool::group_wrapper_vas[index] > Pool::image_base);
+    }
+
+    // The record array ends before the pool flag the initializer clears, so
+    // the flag is a pool field rather than a record that was miscounted.
+    static_assert(Pool::record_array_bytes() < Pool::pool_flag_offset);
+
+    static_assert(
+        Pool::canonical_target_sha256 ==
+        dmc3::ResourceTypeContract::canonical_target_sha256);
+}
+
 void contracts_are_bound_to_one_image() {
     // Two contracts recovered from the same binary must say so identically.
     // Addresses from different images cannot be reasoned about together, and
@@ -398,6 +460,7 @@ int main() {
     the_product_identifies_types_the_way_the_runtime_does();
     the_product_walks_slots_the_way_the_runtime_does();
     the_animation_registry_is_a_second_registry();
+    the_loaded_resource_pool_is_a_fixed_partition();
     contracts_are_bound_to_one_image();
     return 0;
 }

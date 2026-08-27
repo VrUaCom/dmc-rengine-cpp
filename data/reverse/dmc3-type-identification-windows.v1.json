@@ -77,6 +77,58 @@
     "va": "0x140507070",
     "window_sha256": "15c1727cc9f41f08f9b77e41721ebeb6d950bcdd064a307173281c1b881a0a7e"
   },
+  "l1-pool-acquire": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b78e0",
+    "image_base": "0x140000000",
+    "name": "l1-pool-acquire",
+    "rva": "0x1b84e0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 288,
+    "va": "0x1401b84e0",
+    "window_sha256": "54686b56ec7596f9609940e8b9716aa94b9f59947a7852f062f16cd6f938b248"
+  },
+  "l1-pool-group-partition-table": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x580010",
+    "image_base": "0x140000000",
+    "name": "l1-pool-group-partition-table",
+    "rva": "0x581a10",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".data",
+    "size": 32,
+    "va": "0x140581a10",
+    "window_sha256": "c0397215f7c85228398eb4548338ce8830895b8177ac27b120a1659fe19a730f"
+  },
+  "l1-pool-registry-init": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b7780",
+    "image_base": "0x140000000",
+    "name": "l1-pool-registry-init",
+    "rva": "0x1b8380",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 171,
+    "va": "0x1401b8380",
+    "window_sha256": "0b34f5374a1a7699d1721f60e60f892443c9ccb4e1cdda874593096178ecd4da"
+  },
+  "l1-pool-state2-finalizer": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b86d0",
+    "image_base": "0x140000000",
+    "name": "l1-pool-state2-finalizer",
+    "rva": "0x1b92d0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 183,
+    "va": "0x1401b92d0",
+    "window_sha256": "6e2a3a5f36b35e0c8c86f34b387c74b9cdd4ec55be87e2bcf40134667ea8b8de"
+  },
   "mod-relocate-and-strip-rebuild": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
