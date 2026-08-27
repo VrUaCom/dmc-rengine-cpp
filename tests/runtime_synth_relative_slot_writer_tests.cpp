@@ -119,10 +119,13 @@ int main() {
             repeated(70U, std::byte{0x5A})),
     };
 
+    // Intrinsic/direct children follow the recovered whole-file transfer
+    // extent: ceil(intrinsic_size/0x800)*0x800. The allocator zeroes transfer
+    // slack, so 3-byte and 70-byte leaves occupy two 0x800 extents.
     const auto rebuilt = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
         pac_source, children);
     assert(rebuilt.ok());
-    assert(rebuilt.bytes.size() == 0x100U);
+    assert(rebuilt.bytes.size() == 0x1040U);
     assert(rebuilt.receipt->writer_mode == "runtime-synth-relative-slot");
     assert(rebuilt.receipt->children.size() == 2U);
     assert(rebuilt.receipt->children[0].slot_index() == 0U);
@@ -132,7 +135,7 @@ int main() {
     assert(rebuilt.receipt->children[0].emitted_offset() == 0x40U);
     assert(rebuilt.receipt->children[0].intrinsic_size() == 3U);
     assert(rebuilt.receipt->children[1].slot_index() == 2U);
-    assert(rebuilt.receipt->children[1].emitted_offset() == 0x80U);
+    assert(rebuilt.receipt->children[1].emitted_offset() == 0x840U);
     assert(rebuilt.receipt->children[1].intrinsic_size() == 70U);
 
     const auto parsed = formats::PacParser::parse(rebuilt.bytes);
@@ -142,18 +145,18 @@ int main() {
     assert(parsed.document->entries[0].populated);
     assert(!parsed.document->entries[1].populated);
     assert(parsed.document->entries[1].offset == 0U);
-    assert(parsed.document->entries[2].offset == 0x80U);
+    assert(parsed.document->entries[2].offset == 0x840U);
     assert(parsed.document->entries[2].populated);
     assert(rebuilt.bytes[0x40U] == std::byte{0x11});
     assert(rebuilt.bytes[0x41U] == std::byte{0x22});
     assert(rebuilt.bytes[0x42U] == std::byte{0x33});
-    for (std::size_t index = 0x43U; index < 0x80U; ++index) {
+    for (std::size_t index = 0x43U; index < 0x840U; ++index) {
         assert(rebuilt.bytes[index] == std::byte{0});
     }
-    for (std::size_t index = 0x80U; index < 0x80U + 70U; ++index) {
+    for (std::size_t index = 0x840U; index < 0x840U + 70U; ++index) {
         assert(rebuilt.bytes[index] == std::byte{0x5A});
     }
-    for (std::size_t index = 0x80U + 70U; index < 0x100U; ++index) {
+    for (std::size_t index = 0x840U + 70U; index < 0x1040U; ++index) {
         assert(rebuilt.bytes[index] == std::byte{0});
     }
 
@@ -240,6 +243,7 @@ int main() {
     const auto pnst = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
         pnst_source, children);
     assert(pnst.ok());
+    assert(pnst.bytes.size() == 0x1040U);
     assert(pnst.receipt->source_topology.format == "PNST");
     assert(pnst.receipt->output_topology.format == "PNST");
     assert(formats::PnstParser::parse(pnst.bytes).ok());
@@ -254,6 +258,36 @@ int main() {
     const auto zero_parsed = formats::PacParser::parse(zero_rebuilt.bytes);
     assert(zero_parsed.ok());
     assert(zero_parsed.document->declared_slot_count == 0U);
+
+    // A verified synthesized child is not a direct whole-file leaf. Its writer
+    // receipt proves a complete generated image, so the parent uses only the
+    // 0x40 structural extent of that image. This keeps extent provenance and
+    // byte-provider provenance mechanically distinct.
+    auto generated_child = dmc3::ExactChildImage::
+        from_verified_runtime_synth_result(0U, zero_rebuilt);
+    assert(generated_child.has_value());
+    std::vector<dmc3::ExactChildImage> mixed_children;
+    mixed_children.push_back(std::move(*generated_child));
+    mixed_children.push_back(exact_child(
+        2U,
+        dmc3::ExactChildAuthorityKind::loose_resource,
+        "loose:mixed-slot2",
+        repeated(70U, std::byte{0x6B})));
+    const auto mixed = dmc3::RuntimeSynthRelativeSlotWriter::rebuild(
+        pac_source, mixed_children);
+    assert(mixed.ok());
+    assert(mixed.bytes.size() == 0x880U);
+    assert(mixed.receipt->children[0].extent_kind() ==
+        dmc3::ExactChildExtentKind::writer_defined_complete_image);
+    assert(mixed.receipt->children[0].emitted_offset() == 0x40U);
+    assert(mixed.receipt->children[0].intrinsic_size() == 0x40U);
+    assert(mixed.receipt->children[1].extent_kind() ==
+        dmc3::ExactChildExtentKind::intrinsic_resource);
+    assert(mixed.receipt->children[1].emitted_offset() == 0x80U);
+    const auto mixed_parsed = formats::PacParser::parse(mixed.bytes);
+    assert(mixed_parsed.ok());
+    assert(mixed_parsed.document->entries[0].offset == 0x40U);
+    assert(mixed_parsed.document->entries[2].offset == 0x80U);
 
     std::vector<std::byte> dds(32U, std::byte{0});
     dds[0] = std::byte{'D'};
