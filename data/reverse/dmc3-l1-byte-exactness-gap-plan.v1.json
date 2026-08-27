@@ -1,0 +1,140 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-l1-byte-exactness-gap-pass-2026-08-27",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "base_main_sha": "f886f27e62ec9a05b6829df7fd074981a06a4b49",
+  "layer": "L1-resource-materialization",
+  "window_size_policy": "Probe sizes are acquisition coverage only; they are not function-body sizes.",
+  "non_claims": [
+    "this plan does not claim fresh raw disassembly",
+    "LoadedResource states and scheduler publication remain L3",
+    "0x1401B8CA0 is the explicit L1/L3 seam",
+    "0x1402EF4D0 is not pre-labeled OpenGameResource, ReadFile or a synchronous loader",
+    "product zero-filled synthesized padding is not promoted as original byte-equivalence without direct allocation/write proof",
+    "generic packed ContainerEntry extent is not promoted as intrinsic child-file length"
+  ],
+  "windows": [
+    {
+      "id": "whole-file-terminal-and-final-chunk-140033390",
+      "va": "0x140033390",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "L1 primary: reacquire the terminal whole-file cluster including 0x1400333C0 chunk rounding, historical 0x1400333E0 poll/status anchor, 0x140033500 transfer submit and 0x1400335A0 callback. Determine exact final rounded-chunk clamp, short-read/progress semantics, loadedBytes-vs-totalBytes terminal condition and destination write extent. Historical 333E0/333390 labels remain hypotheses until raw bytes confirm them."
+    },
+    {
+      "id": "whole-file-open-size-state-1400333f0",
+      "va": "0x1400333F0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 context: reacquire whole-file open/state construction and exact interpretation of size result stored as totalBytes, including zero/error branches and relation to rounded transfer capacity."
+    },
+    {
+      "id": "resource-fileslot-size-wrapper-14002f9f0",
+      "va": "0x14002F9F0",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 primary: close FileSlot/resource materialized-size wrapper ABI, signed/error/zero domain and exact forwarding to the lower backend size helper."
+    },
+    {
+      "id": "fileslot-backend-size-helper-140048e20",
+      "va": "0x140048E20",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 primary: determine physical vs ZIP-backed logical size semantics, compressed-member logical/uncompressed size selection, invalid FileSlot behavior and zero-size handling."
+    },
+    {
+      "id": "async-read-submit-14002ea40",
+      "va": "0x14002EA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "L1/L3 support: retain ReadRequest submission ABI while tracing requested byte count, backend clamping and partial-read progress. Do not expand into unrelated AsyncIO service lifecycle."
+    },
+    {
+      "id": "fileslot-read-dispatch-140048d00",
+      "va": "0x140048D00",
+      "size": "0x800",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Discovery window around FileSlot read/seek/size dispatch near the known 0x140048E20 size helper. Identify the exact read callee used by ReadRequest, physical-vs-FileBackendHandle dispatch, request-length clamping, short-read and EOF return semantics. No exact function label is pre-promoted for the window start."
+    },
+    {
+      "id": "lst-representation-selector-1401b79e0",
+      "va": "0x1401B79E0",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1/L2 seam support: reacquire packed positive-size test, .lst rewrite/fallback positive-size test and exact helper calls. Distinguish missing, zero-size and size-query failure without reopening already-confirmed packed-first grammar."
+    },
+    {
+      "id": "resource-required-size-planner-1401b7b90",
+      "va": "0x1401B7B90",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "L1 primary: close direct/container required backing size, 64-byte rounding arithmetic, integer width/overflow, zero-size behavior and allocation-size result contract."
+    },
+    {
+      "id": "lst-required-size-planner-1401b7fd0",
+      "va": "0x1401B7FD0",
+      "size": "0x800",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 primary: prove .lst planner child-size source, packed-sibling precedence, dummy/zero/missing behavior, recursive size propagation, align64 arithmetic and failure return semantics."
+    },
+    {
+      "id": "loaded-resource-acquire-allocation-context-1401b84e0",
+      "va": "0x1401B84E0",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "L1/L3 seam context: identify the actual backing allocation callees, destination pointer/capacity setup and initialization behavior before 0x1401B8CA0. State1 publication remains L3; do not treat the whole function as L1."
+    },
+    {
+      "id": "lst-materializer-byte-write-1401b85c0",
+      "va": "0x1401B85C0",
+      "size": "0x1000",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "L1 primary: close planner/writer equivalence, header/table commit order, alignment-gap byte contents, ordinary child return/failure propagation, nested recursive failure propagation, partial parent state and temporary-list-buffer release on every exit. Grammar/layout facts already recovered remain regression authority."
+    },
+    {
+      "id": "materialization-dispatch-l1-seam-1401b8ca0",
+      "va": "0x1401B8CA0",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "L1 terminal seam: confirm exact boolean/success return semantics from direct/packed/loose byte materialization before L3 state publication."
+    },
+    {
+      "id": "materialization-submit-wrapper-1402ef4d0",
+      "va": "0x1402EF4D0",
+      "size": "0x800",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Cross-layer follow-up: connect the materialization job to the actual whole-file/FileSlot byte-producing path, recover inherited load-context consumption and exact immediate failure return. Scheduler completion ordering remains Pass-55/L3 work after byte success semantics are closed."
+    },
+    {
+      "id": "zip-entry-read-terminal-anchor-140328f50",
+      "va": "0x140328F50",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Regression/terminal anchor only: verify direct STORE clamp/EOF and compressed short-produced return composition where needed by the outer whole-file final-chunk proof; do not reopen known ZIP architecture."
+    },
+    {
+      "id": "inflate-read-terminal-anchor-140328820",
+      "va": "0x140328820",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Regression/terminal anchor only: relate fewer-produced-bytes, stream-end, no-progress and -1 error states to the outer exact-byte completion contract; raw-DEFLATE architecture itself is already strong."
+    }
+  ]
+}
