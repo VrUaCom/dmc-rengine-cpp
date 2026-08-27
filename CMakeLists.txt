@@ -91,6 +91,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mot_structural
         effect_pack_structural
         named_but_not_a_container
+        manifest_names_and_slot_numbering
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

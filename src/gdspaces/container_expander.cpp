@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/gdspaces/slot_name_manifest.hpp"
+#include "dmc_rengine/profiles/dmc3/authoring_extension_contract.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -311,9 +312,17 @@ ContainerExpansion ContainerExpander::expand(
                         // declares for itself agree with the extension the
                         // manifest line carries? Agreement does not prove the
                         // mapping, and disagreement is worth seeing.
+                        // `.sch` and `hits` are the same record under two
+                        // names, and comparing the strings called that a
+                        // disagreement. The equivalence is corpus evidence
+                        // with a count behind it, not a guess about what an
+                        // extension means.
                         attribution.corroborated_by_payload =
-                            SlotNameManifest::extension_of(attribution.name) ==
-                            classification.format;
+                            profiles::dmc3::AuthoringExtensionContract::
+                                names_the_same_resource(
+                                    SlotNameManifest::extension_of(
+                                        attribution.name),
+                                    classification.format);
                     }
                 }
             }
@@ -335,6 +344,27 @@ ContainerExpansion ContainerExpander::expand(
             .name_attribution = std::move(attribution),
         });
     }
+
+    // Describe how this container numbers its slots, from this container.
+    // The stride is the one the corpus shows; whether *this* file follows it
+    // is measured here, so a container that does not is described rather than
+    // forced into the pattern.
+    using Numbering = profiles::dmc3::ModelGroupNumberingContract;
+    expansion.numbering.stride = Numbering::observed_stride;
+    expansion.numbering.declared_slots =
+        static_cast<std::uint32_t>(expansion.children.size());
+    bool on_stride = true;
+    for (const auto& child : expansion.children) {
+        if (child.entry.populated) {
+            expansion.numbering.populated_slots += 1U;
+            on_stride = on_stride && Numbering::index_is_on_stride(
+                child.entry.slot_index);
+        } else {
+            expansion.numbering.absent_slots += 1U;
+        }
+    }
+    expansion.numbering.every_populated_index_on_stride =
+        expansion.numbering.populated_slots != 0U && on_stride;
 
     return expansion;
 }
