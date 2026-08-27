@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/gdspaces/byte_provenance.hpp"
 #include "dmc_rengine/gdspaces/diagnostic.hpp"
+#include "dmc_rengine/gdspaces/resource_name_evidence.hpp"
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
 
 #include <cstddef>
@@ -15,6 +16,7 @@ struct ResourcePayload final {
     std::vector<std::byte> bytes;
     std::vector<Diagnostic> diagnostics;
     std::optional<ByteProvenance> byte_provenance;
+    std::vector<ResourceNameEvidence> name_evidence;
 
     [[nodiscard]] bool readable() const noexcept {
         if (!resource.valid()) {
