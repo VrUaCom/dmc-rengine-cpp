@@ -2,97 +2,97 @@
 
 **Snapshot date:** 2026-08-27  
 **Canonical base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
-**Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`
+**Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`  
+**Focused L1 gap authority:** PR #244
 
-The project is tracked by subsystem/layer gates rather than one linear phase number.
+The project is tracked by subsystem/layer gates, not one linear phase number.
 
 ## Foundation — maintained
 
-C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output infrastructure and canonical-EXE acquisition/disassembly support are maintained foundations.
+C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output and canonical-EXE acquisition/disassembly support remain maintained foundations.
 
 ## GDSpaces L1 — INCOMPLETE / NOT 100%
 
-Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
+L1 product implementation is advanced, but original byte-materialization reverse is **not exhaustive**.
 
-L1 now explicitly includes selected-byte FileSlot/ReadRequest transport, transform/decompression, packed/loose representation materialization, the terminal materialization dependency and normal `state 1 -> 2` publication, plus product edit/rebuild/repack/rematerialization.
-
-### Mandatory static gate — materialization terminal dependency
+Current static order:
 
 ```text
-0x1401B8CA0 materialization dispatch
- -> 0x1402EF4D0 job/submission
- -> lower whole-file/FileSlot transport
- -> UNKNOWN terminal success/error condition
- -> normal 0x1401B8DC0 eligibility/suppression
- -> state 1 -> 2
+size/zero/error: 0x14002F9F0 -> 0x140048E20
+ -> rounded-transfer/final-chunk/EOF/short-read: 0x140033390..0x1400335A0 + backend clamp
+ -> capacity/alignment/overflow: 0x1401B7B90
+ -> backing initialization / .lst padding
+ -> representation/planning: 0x1401B79E0 + 0x1401B7FD0
+ -> .lst writer/failure equivalence: 0x1401B85C0
+ -> exact byte-producing ingress/context behind 0x1402EF4D0
+ -> partial STORE/InflateRead terminal composition
+ -> L1 terminal-result / L3 completion seam
 ```
 
-Normal `0x1401B8DC0` receives only a registry-relative context, so success/error eligibility must be resolved before its dispatch or the queued completion must be suppressed/removed. No generic fan-in counter is evidenced.
+The original L1 byte-materialization cut ends at the materializer result through `0x1401B8CA0`. Normal LoadedResource `state1 -> state2` remains L3 lifecycle publication.
 
-Current raw-pass priority:
-
-```text
-0x1402EF4D0 queued job identity/type
- -> matching 0x1402EF790 persistence/re-poll/retirement case
- -> 0x1400333E0 pending/success/error domain
- -> 0x140033390 terminal cleanup/release ordering
- -> 0x1400335A0 transport completion/status binding
- -> prove failed/incomplete suppression before 0x1401B8DC0
- -> 0x1402EF460 relevant pending-entry clear/rollback
- -> .lst child/recursive failure ordering using confirmed terminal model
-```
-
-### Real acceptance still mandatory
+Real acceptance then remains:
 
 ```text
 direct-retail selected-member provenance
  -> exact representation classification
- -> supported real edit/rebuild
- -> next-volume publication/reopen/rematerialization
- -> original-game consumption
+ -> supported real edit/rebuild/rematerialization
+ -> original DMC3 consumption
  -> rollback
  -> final L1 audit
 ```
 
-The product implementation is advanced, but neither implementation maturity nor a future successful Level-E run alone may bypass the static terminal-dependency gate for an L1 `100% / COMPLETE` claim.
-
 ## GDSpaces L2 — ADVANCED / INCOMPLETE
 
-L2 owns logical request/candidate/provider/source/volume selection, ambiguity/fallback/failure classification and successful selected ResourceRef/provider/member identity.
+L2 owns logical request/candidate/provider/source/volume/member selection and pre-usable-selection failure semantics.
 
-Strong/integrated slices include type-0 static provider behavior and protected runtime mapping/selected-identity tooling. Real-retail collision evidence, real protected-process mapping, trusted selected identity and final audit remain open.
+Open gates:
 
-Important boundary: once a usable selected provider/member exists, byte transfer/transform is L1.
+- retail `0x0E` collision census;
+- real protected-process mapping;
+- trusted selected-provider identity;
+- final L2 audit.
+
+Once usable identity exists, exact byte production is L1.
 
 ## Original runtime / lifecycle L3 — ADVANCED / INCOMPLETE
 
-Canonical L3 now begins from completed state2/materialized bytes.
+L3 owns:
 
-Strong static authority includes typed post-load -> optional callback -> state3 ready, cancellation policy, quiescence, state4 cleanup, distinct release/reset policies, representative typed families, loader-node claim/release and teardown distinctions.
+- request/queue/callback ownership and scheduler lifetime;
+- normal LoadedResource `state1 -> state2` publication;
+- typed post-load / state2 -> state3 ready;
+- cancellation/replacement;
+- quiescence and state4 cleanup;
+- claims/cache/factory ownership;
+- release/reset/shutdown and lifetime distinctions.
 
-The earlier wording that placed selected-byte FileSlot/AsyncIO transport and normal state1->2 completion wholly in L3 is superseded.
+The cross-layer completion seam is:
 
-L3 cancellation/replacement policy may invalidate state1/state2 records, but the byte-terminal dependency it suppresses is L1.
+```text
+[L1] terminal materializer result
+ -> eligibility/suppression dependency
+ -> [L3] scheduler/callback -> state1 -> state2
+```
 
-Open L3 work is residual static ownership breadth plus protected original-process V1–V7 lifecycle receipts.
+Open L3 work remains scheduler/lifecycle breadth plus V1–V7 original-process receipts.
 
 ## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM DOMAIN
 
-Stage Ops owns stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents domain state. ModViz consumes it.
-
-None may create a private resource resolver/materializer or treat Stage/domain progress as L1/L2/L3 completion.
+Stage Ops owns stage assembly/orchestration over GDSpaces outputs. Stage/domain progress does not count as L1/L2/L3 completion and must not create a private resolver/materializer/lifecycle authority.
 
 ## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
-EXE Editor should expose one canonical recovered-source tree linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
+Recovered-source work stays linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation is downstream of bounded behavioral comparison.
 
-## Long-term ordering
+## Current long-term ordering
 
 ```text
-L1 terminal materialization dependency closure
+L1 byte-exactness reverse closure
+ -> L1/L3 terminal-completion seam reconciliation
  -> L2/L1 real selected-resource evidence
  -> L1 real edit/rebuild/rematerialization
- -> L3 consumer-ready/use evidence for same resource
+ -> L3/V same-resource typed-ready/use evidence
  -> original-game consumption + rollback
  -> final L1 audit
  -> independent final L2/L3 audits
@@ -102,6 +102,6 @@ L1 terminal materialization dependency closure
  -> progressive recompilation
 ```
 
-This ordering is dependency priority, not a ban on parallel evidence work.
+This is dependency priority, not a ban on parallel evidence work.
 
-**Current layer labels: L1 NOT COMPLETE, L2 NOT COMPLETE, L3 NOT COMPLETE.**
+**Current labels: L1 NOT COMPLETE, L2 NOT COMPLETE, L3 NOT COMPLETE.**
