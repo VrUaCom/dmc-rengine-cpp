@@ -86,12 +86,23 @@ Every state has a routine that leaves it. Nothing is reachable and unleavable.
 | 1 requested | 2 loaded | `0x1401B8DC0` | the load completed |
 | 2 loaded | 3 relocated | `0x1401B92D0` | offsets become pointers, each payload dispatched by tag |
 | 3 relocated | 0 free | `0x1401B9530` | destroy the embedded object, free the record |
+| 1 requested | 4 releasing | `0x1401B8430` | abort an in-flight load |
+| 2 loaded | 4 releasing | `0x1401B8430` | abort a load that never got relocated |
 | 4 releasing | 0 free | `0x1401B8F00` | the deferred sweep over every record marked for release |
 | any | 0 free | `0x1401B95E0` | full reset of all 363 |
 
 Free is reached three ways. That is not redundancy — an ordinary release, a
 deferred sweep and a full reset are three different lifetimes ending the same
 way.
+
+**Cancellation is deferred.** `0x1401B8430` marks every record in state 1 or 2
+as `releasing` and leaves the destroying to the sweep; a record already at 3 is
+not cancelled, because a load that got that far is finished rather than in
+flight. Marking instead of destroying is what makes this safe while a loader is
+still working, and it is why states 4 and 0 exist separately at all.
+
+Its loop is unrolled three records at a time, 121 iterations — 363 again, from
+a fourth routine.
 
 Relocation *is* loading: the finalizer is where `PAC` is walked and every child
 dispatched by tag, so a resource is not usable until L1 has moved it to state
@@ -149,3 +160,7 @@ instead of an assumption.
 - what selects a group for a given resource;
 - the `0x28` embedded object's own layout, and the destructor at `0x140337710`;
 - the rest of the `0x148` bytes of pool fields.
+
+Two addresses in this range are accounted for and deliberately not modelled:
+`0x1401B985D`–`0x1401B9860` are a divide-by-100 inside a formatting call, part
+of a diagnostic print rather than of the pool's structure.

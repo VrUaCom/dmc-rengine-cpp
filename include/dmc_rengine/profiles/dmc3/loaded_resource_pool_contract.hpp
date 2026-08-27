@@ -34,6 +34,7 @@ struct LoadedResourcePoolContract final {
     static constexpr std::uint64_t group_reset_va = 0x1401B9560ULL;
     static constexpr std::uint64_t full_reset_va = 0x1401B95E0ULL;
     static constexpr std::uint64_t loose_materializer_va = 0x1401B85C0ULL;
+    static constexpr std::uint64_t cancel_inflight_va = 0x1401B8430ULL;
 
     // The pool is a single global object, not an instance passed around.
     // Three routines address it directly and agree: the acquire path computes
@@ -78,7 +79,11 @@ struct LoadedResourcePoolContract final {
         std::uint64_t routine_va;
         std::string_view what;
     };
-    static constexpr std::array<Transition, 6> transitions{
+    static constexpr std::array<Transition, 8> transitions{
+        Transition{State::requested, State::releasing, cancel_inflight_va,
+                   "abort an in-flight load by marking it for the sweep"},
+        Transition{State::loaded, State::releasing, cancel_inflight_va,
+                   "abort a load that finished but was never relocated"},
         Transition{State::free, State::requested, acquire_va,
                    "allocate the payload and materialize it"},
         Transition{State::requested, State::loaded, completion_state1_to_2_va,
@@ -164,6 +169,14 @@ struct LoadedResourcePoolContract final {
         Allocation::caller_named_index,
     };
     static constexpr std::size_t dynamic_group = 5U;
+
+    // Cancellation is deferred, not immediate: it marks records in state 1 or
+    // 2 as `releasing` and leaves the destroying to the sweep. A load that has
+    // already reached `relocated` is not cancelled — it is finished.
+    //
+    // Marking rather than destroying is what makes this safe while a loader is
+    // still working, and it is why states 4 and 0 are separate at all.
+    static constexpr bool cancellation_is_deferred = true;
 
     // What the original runtime does when the dynamic group is full: it writes
     // through a null pointer. There is no failure path — the scan falls out of

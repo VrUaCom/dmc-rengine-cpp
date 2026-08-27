@@ -461,6 +461,25 @@ void the_l1_lifecycle_closes() {
     }
     assert(to_free == 3U);
 
+    // Cancellation is deferred: it moves an in-flight record to `releasing`
+    // and leaves the destroying to the sweep. Both unfinished states can be
+    // cancelled and `relocated` cannot — a load that got that far is finished,
+    // not in flight.
+    static_assert(Pool::cancellation_is_deferred);
+    bool cancels_requested = false;
+    bool cancels_loaded = false;
+    bool cancels_relocated = false;
+    for (const auto& transition : Pool::transitions) {
+        if (transition.routine_va != Pool::cancel_inflight_va) {
+            continue;
+        }
+        assert(transition.to == Pool::State::releasing);
+        cancels_requested = cancels_requested || transition.from == Pool::State::requested;
+        cancels_loaded = cancels_loaded || transition.from == Pool::State::loaded;
+        cancels_relocated = cancels_relocated || transition.from == Pool::State::relocated;
+    }
+    assert(cancels_requested && cancels_loaded && !cancels_relocated);
+
     // The pool is one global object. A record handle is its byte offset from
     // that base, so an odd handle cannot name a record — and the recovered
     // completion helper traps on one rather than continuing.
