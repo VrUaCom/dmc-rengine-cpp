@@ -35,6 +35,11 @@ public:
     [[nodiscard]] static GameProfile profile_from_path(
         std::string_view logical_path);
 
+    // The formats whose container-ness is a claim about bytes rather than
+    // about a name. See the note in `classify`.
+    [[nodiscard]] static bool is_structural_container_format(
+        std::string_view format) noexcept;
+
     [[nodiscard]] static bool is_container_format(
         std::string_view format) noexcept;
 };

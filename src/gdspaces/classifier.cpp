@@ -208,7 +208,23 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "unknown";
     }
 
-    result.container = is_container_format(result.format);
+    // A container claim is a claim about bytes, so it must not be made from a
+    // name when the bytes were there to check.
+    //
+    // `at.ptx` in a real volume is exactly this case: nothing structural
+    // recognized it, the extension named it `ptx`, and the product then
+    // offered to expand it — a promise the expander refused the moment it was
+    // taken up. The name is still worth keeping as the format, because the
+    // name does say more than "bytes"; what it does not do is establish that
+    // this file is a container.
+    //
+    // Where no bytes were supplied the claim stays optimistic, because an
+    // index built before materialization has nothing better to go on, and a
+    // tree that refused to offer expansion until every member was read would
+    // be worse than one that occasionally has to take the offer back.
+    const auto structural = !bytes.empty() &&
+        is_structural_container_format(result.format) && !result.byte_derived;
+    result.container = is_container_format(result.format) && !structural;
     return result;
 }
 
@@ -239,6 +255,14 @@ bool ResourceClassifier::is_container_format(
     std::string_view format) noexcept {
     return format == "nbz" || format == "afs" || format == "pac" ||
            format == "pnst" || format == "ptx";
+}
+
+bool ResourceClassifier::is_structural_container_format(
+    std::string_view format) noexcept {
+    // The three whose container-ness is a statement about their bytes. `nbz`
+    // and `afs` are volumes: they are mounted by name through a different
+    // path, and a volume that fails to open says so as a volume.
+    return format == "pac" || format == "pnst" || format == "ptx";
 }
 
 } // namespace dmc::rengine::gdspaces
