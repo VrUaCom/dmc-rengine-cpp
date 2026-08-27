@@ -365,6 +365,33 @@ int main() {
     assert(crc_payload.has_value() && !crc_payload->readable());
     assert(has_code(crc_payload->diagnostics, "gdspaces.nbz.safe.crc-mismatch"));
 
+    // SafeProductValidation: a source object must not materialize against an
+    // archive whose byte length changed after indexing. A zero-byte STORE
+    // member used to make this especially easy to miss because read_exact()
+    // legitimately has no payload bytes to fetch and CRC32(empty) is valid.
+    const std::vector<EntrySpec> stale_specs{
+        EntrySpec{"empty.bin", 0U, {}, {}},
+    };
+    const auto stale_fixture = make_zip(stale_specs);
+    const auto stale_path = write_fixture(stale_fixture.bytes, "nbz-stale-size");
+    NbzZipSource stale_source("nbz-stale-size", stale_path);
+    assert(stale_source.valid());
+    const auto stale_refs = stale_source.enumerate();
+    assert(stale_refs.size() == 1U);
+    {
+        std::ofstream stream(stale_path, std::ios::binary | std::ios::app);
+        const char marker = '\x7f';
+        stream.write(&marker, 1);
+        assert(stream.good());
+    }
+    assert(stale_source.valid());
+    const auto stale_payload = stale_source.read(stale_refs.front().id);
+    assert(stale_payload.has_value() && !stale_payload->readable());
+    assert(stale_payload->bytes.empty());
+    assert(has_code(
+        stale_payload->diagnostics,
+        "gdspaces.nbz.safe.source-size-changed"));
+
     // SafeProductValidation: ZIP64 sentinels remain a bounded-product reject.
     auto zip64_fixture = make_zip(specs);
     patch_u32(zip64_fixture.bytes, zip64_fixture.eocd_offset + 16U, 0xFFFFFFFFU);
@@ -403,6 +430,7 @@ int main() {
     std::filesystem::remove(bad_count_path);
     std::filesystem::remove(overlap_path);
     std::filesystem::remove(wrong_crc_path);
+    std::filesystem::remove(stale_path);
     std::filesystem::remove(zip64_path);
     std::filesystem::remove(bad_name_path);
     std::filesystem::remove(unknown_path);
