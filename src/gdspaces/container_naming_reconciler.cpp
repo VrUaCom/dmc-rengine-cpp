@@ -117,7 +117,8 @@ bool ContainerNamingReconcileResult::ok() const noexcept {
 
 ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
     ContainerExpansion& expansion,
-    const ResourcePayload* external_index) {
+    const ResourcePayload* external_index,
+    IndexProfileDisplayResolver profile_resolver) {
     ContainerNamingReconcileResult result;
     if (!expansion.usable()) {
         add_error(
@@ -175,9 +176,9 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
         }
 
         // Synthetic presentation is deliberately leaf-only. A path-like
-        // upstream display hint (for example "DMC3/st001.pac") must never leak
-        // namespace components into a loose filename. External .index evidence,
-        // when supplied below, still owns the stronger canonical stem.
+        // upstream display hint must never leak namespace components into a
+        // loose filename. External .index evidence below still owns the
+        // stronger extracted stem when present.
         if (slot_zero->payload.resource.synthetic_name) {
             slot_zero->payload.resource.display_name =
                 semantic_slot_zero_display(staged, canonical_extension);
@@ -211,7 +212,7 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
         }
 
         const auto overlay = IndexNameOverlayBuilder::build(
-            staged, *binding.binding);
+            staged, *binding.binding, profile_resolver);
         append_diagnostics(result.diagnostics, overlay.diagnostics);
         if (!overlay.ok()) {
             return result;
