@@ -90,7 +90,7 @@ void add_error(
     case IndexSlotMappingMode::populated_slot_sequence:
         return ResourceNameMappingMode::populated_slot_sequence;
     }
-    return ResourceNameMappingMode::physical_position;
+    return ResourceNameMappingMode::populated_slot_sequence;
 }
 
 } // namespace
@@ -104,6 +104,7 @@ IndexNameOverlayEntry::IndexNameOverlayEntry(
     std::string index_name,
     std::size_t manifest_line,
     std::string semantic_format,
+    std::string canonical_extension_value,
     IndexDisplayEvidenceKind evidence_kind)
     : slot_index_(slot_index),
       extracted_ordinal_(extracted_ordinal),
@@ -113,6 +114,7 @@ IndexNameOverlayEntry::IndexNameOverlayEntry(
       index_name_(std::move(index_name)),
       manifest_line_(manifest_line),
       semantic_format_(std::move(semantic_format)),
+      canonical_extension_(std::move(canonical_extension_value)),
       evidence_kind_(evidence_kind) {}
 
 std::uint32_t IndexNameOverlayEntry::slot_index() const noexcept { return slot_index_; }
@@ -123,6 +125,7 @@ std::string_view IndexNameOverlayEntry::raw_index_label() const noexcept { retur
 std::string_view IndexNameOverlayEntry::index_name() const noexcept { return index_name_; }
 std::size_t IndexNameOverlayEntry::manifest_line() const noexcept { return manifest_line_; }
 std::string_view IndexNameOverlayEntry::semantic_format() const noexcept { return semantic_format_; }
+std::string_view IndexNameOverlayEntry::canonical_extension() const noexcept { return canonical_extension_; }
 IndexDisplayEvidenceKind IndexNameOverlayEntry::evidence_kind() const noexcept { return evidence_kind_; }
 
 IndexNameOverlay::IndexNameOverlay(
@@ -225,9 +228,6 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
             semantic_format = classification.format;
             evidence_kind = IndexDisplayEvidenceKind::magic_confirmed_format;
         } else if (child->payload.resource.format == "name-list") {
-            // A sealed embedded-name-list observation is structural semantic
-            // evidence. Preserve it when .index is applied later so call order
-            // cannot turn the proven name-list back into a misleading .ukn.
             display_extension = canonical_extension("name-list");
             semantic_format = "name-list";
             evidence_kind = IndexDisplayEvidenceKind::embedded_name_list_format;
@@ -252,7 +252,7 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
             make_display_name(authority.stem(), display_extension),
             std::string{authority.raw_index_label()},
             std::string{authority.index_name()}, authority.manifest_line(),
-            std::move(semantic_format), evidence_kind));
+            std::move(semantic_format), display_extension, evidence_kind));
     }
 
     result.overlay = IndexNameOverlay(
