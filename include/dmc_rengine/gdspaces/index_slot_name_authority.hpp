@@ -31,6 +31,7 @@ struct IndexSlotBindingDiagnostic final {
 class IndexSlotNameAuthority final {
 public:
     [[nodiscard]] std::uint32_t slot_index() const noexcept;
+    [[nodiscard]] std::size_t extracted_ordinal() const noexcept;
     [[nodiscard]] const ResourceId& child_resource() const noexcept;
     [[nodiscard]] std::string_view raw_index_label() const noexcept;
     [[nodiscard]] std::string_view index_name() const noexcept;
@@ -44,6 +45,7 @@ private:
 
     IndexSlotNameAuthority(
         std::uint32_t slot_index,
+        std::size_t extracted_ordinal,
         ResourceId child_resource,
         std::string raw_index_label,
         std::string index_name,
@@ -53,6 +55,7 @@ private:
         std::size_t manifest_line);
 
     std::uint32_t slot_index_{};
+    std::size_t extracted_ordinal_{};
     ResourceId child_resource_;
     std::string raw_index_label_;
     std::string index_name_;
