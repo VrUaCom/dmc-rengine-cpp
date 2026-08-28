@@ -471,6 +471,34 @@
     "va": "0x1401b8f00",
     "window_sha256": "772aaa9fc4812c9c3479474e7f88b25101b24f76dc08d26132d0ad3041a074bf"
   },
+  "loose-extension-rewrite-lst": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b87d0",
+    "image_base": "0x140000000",
+    "name": "loose-extension-rewrite-lst",
+    "note": "The representation rewrite writing 'lst' into the path buffer at +0x6618, the loose-container fallback for a packed .pac.",
+    "rva": "0x1b93d0",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 66,
+    "va": "0x1401b93d0",
+    "window_sha256": "ae3a7ccd07bae15cd8030d63241c671acb861d901e723de3a74919498b04c718"
+  },
+  "loose-parser-literal-pool": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x4db6cc",
+    "image_base": "0x140000000",
+    "name": "loose-parser-literal-pool",
+    "note": "The loose-container parser's literals: a separator, the dummy token, and the lst extension.",
+    "rva": "0x4dc4cc",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".rdata",
+    "size": 32,
+    "va": "0x1404dc4cc",
+    "window_sha256": "50256f6f474a2b0a73cd482331bbe92e44af6edea17b26c858c319b13753e08d"
+  },
   "mod-relocate-and-strip-rebuild": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "artifact_size": 6356432,
@@ -497,6 +525,20 @@
     "size": 138,
     "va": "0x1401b92e0",
     "window_sha256": "1676db8cbbafe07de17e6e3cba80e65c7508018b22c9e8bb2e7b7f2f5e8db169"
+  },
+  "pac-walk-first-slot-index": {
+    "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "artifact_size": 6356432,
+    "file_offset": "0x1b8716",
+    "image_base": "0x140000000",
+    "name": "pac-walk-first-slot-index",
+    "note": "The PAC walk's index register initialised to 2, so the first offset-table entry read is byte 8 - slot 0. Slot 0 is reached, not skipped.",
+    "rva": "0x1b9316",
+    "schema": "dmc-rengine.exe-byte-window.v1",
+    "section": ".text",
+    "size": 26,
+    "va": "0x1401b9316",
+    "window_sha256": "9549bed1aa57fbeac7eff8e032c9d82d6bc1263d16c8b44b361a4aa73ec00330"
   },
   "pnst-dispatch-handled-tags": {
     "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",

@@ -97,6 +97,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         demo_script_naming
         classifier_registry_agreement
         effect_pack_names
+        slot_zero_manifest_authority
         resource_lookup_policy
         recovered_exe_contract
         source_lookup
