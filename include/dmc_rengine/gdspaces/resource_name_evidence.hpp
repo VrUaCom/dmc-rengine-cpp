@@ -39,6 +39,7 @@ public:
     [[nodiscard]] std::uint32_t physical_slot_index() const noexcept;
     [[nodiscard]] const std::optional<std::size_t>& source_line() const noexcept;
     [[nodiscard]] const std::optional<std::uint64_t>& source_offset() const noexcept;
+    [[nodiscard]] const std::optional<std::size_t>& extracted_ordinal() const noexcept;
     [[nodiscard]] bool valid() const noexcept;
 
 private:
@@ -54,7 +55,8 @@ private:
         std::string normalized_name,
         std::uint32_t physical_slot_index,
         std::optional<std::size_t> source_line,
-        std::optional<std::uint64_t> source_offset);
+        std::optional<std::uint64_t> source_offset,
+        std::optional<std::size_t> extracted_ordinal = std::nullopt);
 
     ResourceNameEvidenceKind kind_{ResourceNameEvidenceKind::external_index};
     ResourceNameMappingMode mapping_mode_{ResourceNameMappingMode::physical_position};
@@ -65,6 +67,7 @@ private:
     std::uint32_t physical_slot_index_{};
     std::optional<std::size_t> source_line_;
     std::optional<std::uint64_t> source_offset_;
+    std::optional<std::size_t> extracted_ordinal_;
 };
 
 } // namespace dmc::rengine::gdspaces
