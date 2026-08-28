@@ -272,6 +272,35 @@ Still read and shown here, attributed as the container's own text. The proof
 changes its authority, not its accuracy.
 → [`dmc3-slot-zero-manifest-authority-2026-08-28.md`](../gdspaces/dmc3-slot-zero-manifest-authority-2026-08-28.md)
 
+### Where the index is, in every kind of archive
+
+A census of **every** text slot in **every** container of the corpus, at every
+nesting depth, finds 26 candidates and **four** real indexes. Both dialects sit
+in slot 0:
+
+| dialect | containers | lines | names |
+|---|---|---|---|
+| filename list | `st001.pac`, `st114.pac` | 3 filenames | **its own** slots 1..N |
+| kind + identifier | `st001_effect.pac`, `st114_effect.pac` | `V 922`, `E 1454`, … `# End` | the slots of the **sibling** container in slot 1 |
+
+That last column is the distinction worth keeping: a stage index names its own
+siblings; an effect index names the children of the slot beside it. A probe
+that answered "index found" without saying which would apply every name one
+level off.
+
+Two things are **not** indexes and used to look like them:
+
+- **tagged binary records** whose first bytes are printable — `CAM`, `EVE`,
+  `POS`, `ITM`, `STE`, `DCA`, `HITS`. Read as text they give one line, and the
+  line count is what gives them away.
+- **text that names nothing** — `# END`, `# GAME`, `# DOOR 0`. These are scene
+  and config blocks. They are text; they are not indexes.
+
+`ContainerIndexProbe` is the single entry point that answers for all of them.
+It exists because the two dialects were being detected in two unrelated places
+under two sets of rules, so nothing could answer "does this archive have an
+index" without knowing in advance which kind to look for.
+
 ### `INDEX` — ours, not the game's
 Extraction and tooling metadata. The literal `.index` occurs **zero** times in
 the executable in any case and no format string can construct it, so the

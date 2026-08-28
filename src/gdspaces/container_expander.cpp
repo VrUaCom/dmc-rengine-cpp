@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/container_index_probe.hpp"
 #include "dmc_rengine/gdspaces/slot_name_manifest.hpp"
 #include "dmc_rengine/profiles/dmc3/authoring_extension_contract.hpp"
 
@@ -192,6 +193,11 @@ ContainerExpansion ContainerExpander::expand(
         }
     }
 
+    // And ask, once, whether this container carries an index at all — in any
+    // dialect. The manifest read above answers only for the filename one.
+    const auto index_probe = ContainerIndexProbe::probe(
+        std::span<const std::byte>{parent.bytes});
+
     expansion.children.reserve(parsed.document.entries.size());
     for (const auto& entry : parsed.document.entries) {
         if (parent.resource.id.offset >
@@ -301,13 +307,19 @@ ContainerExpansion ContainerExpander::expand(
                     attribution.origin = SlotNameOrigin::byte_derived_suffix;
                 }
 
-                // Slot 0, when it holds the name list, is the index — that is
+                // Slot 0, when it holds an index, is named for that — it is
                 // exactly the file an unpacked folder carries as `.index`, and
                 // calling it `slot_0000.txt` hides the one slot that explains
                 // all the others. The suffix says what it is; the format stays
                 // `txt`, because it is text and nothing about that changed.
-                if (!manifest.empty() &&
-                    entry.slot_index == SlotNameManifest::k_manifest_slot) {
+                //
+                // The probe answers for every dialect, not just the filename
+                // one. A stage container's index names its own siblings and an
+                // effect container's names the children of the slot beside it,
+                // and both are indexes; only the earlier, narrower test called
+                // one of them plain text.
+                if (index_probe.found() &&
+                    entry.slot_index == index_probe.index_slot_index) {
                     auto named = child_ref.display_name;
                     const auto dot = named.rfind('.');
                     if (dot != std::string::npos) {
