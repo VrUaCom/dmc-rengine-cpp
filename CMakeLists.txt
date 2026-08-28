@@ -96,6 +96,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         content_tag_census
         demo_script_naming
         classifier_registry_agreement
+        effect_pack_names
         resource_lookup_policy
         recovered_exe_contract
         source_lookup

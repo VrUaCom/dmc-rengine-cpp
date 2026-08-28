@@ -1,10 +1,13 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
+#include "dmc_rengine/profiles/dmc3/tm2_contract.hpp"
+
 #include <algorithm>
 #include <array>
 #include <bit>
 #include <limits>
 #include <optional>
+#include <string_view>
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
@@ -217,10 +220,32 @@ struct DescriptorParseResult final {
         bytes_per_width_unit = 4U;
         block_bytes = 16U;
     } else {
+        // Two different refusals wear one status here, and telling them apart
+        // matters to whoever reads it.
+        //
+        // The runtime's own FourCC chain accepts ten compressed formats. This
+        // parser maps two, because the descriptor fields that go with a
+        // mapping — the format word, the encoding byte, the width unit — are
+        // known only from files, and the corpus contains DXT1 and DXT5. So a
+        // `BC5S` texture is one the *game* reads and this parser does not,
+        // while `XXXX` is one nothing reads.
+        //
+        // Saying "unsupported" for both would report a gap in this project as
+        // if it were a property of the format.
+        const char fourcc_text[5] = {
+            std::to_integer<char>(fourcc[0]), std::to_integer<char>(fourcc[1]),
+            std::to_integer<char>(fourcc[2]), std::to_integer<char>(fourcc[3]),
+            '\0'};
+        const auto runtime_accepts =
+            DdsPixelFormatContract::format_for(std::string_view{fourcc_text}) != 0U;
         return {
             .status = TextureSlotFramingStatus::unsupported_compression,
             .entry = {},
-            .detail = "only DXT1 and DXT5 descriptor mappings are corpus-confirmed",
+            .detail = runtime_accepts
+                ? "the original runtime reads this FourCC, but no descriptor "
+                  "mapping for it is corpus-confirmed here"
+                : "the FourCC is not one the original runtime's own format "
+                  "chain accepts",
         };
     }
 

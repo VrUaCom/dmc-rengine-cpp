@@ -163,9 +163,29 @@ static_assert(Census::content_probe_va != Census::dispatcher_va);
 static_assert(Census::content_probe_va == Resource::content_type_probe_va);
 static_assert(Census::dispatcher_va == Walk::pnst_walk_va);
 
+// The FourCC table earns its place by being used. A texture the game reads and
+// this parser does not must say which of the two it is, or a gap in this
+// project reads as a property of the format.
+void a_refusal_names_whose_gap_it_is() {
+    using Dds = dmc3::DdsPixelFormatContract;
+    // A format the runtime's chain accepts but this parser has no corpus
+    // descriptor mapping for.
+    assert(Dds::format_for("BC5S") != 0U);
+    assert(Dds::format_for("YUY2") != 0U);
+    // A FourCC nothing accepts.
+    assert(Dds::format_for("XXXX") == 0U);
+    // The two the parser does map are, of course, in the runtime's chain too.
+    assert(Dds::format_for("DXT1") != 0U);
+    assert(Dds::format_for("DXT5") != 0U);
+    // An alias of a mapped format resolves rather than reading as unknown,
+    // which is what keeps DXT4 from being reported as a format nothing reads.
+    assert(Dds::format_for("DXT4") == Dds::format_for("DXT5"));
+}
+
 } // namespace
 
 int main() {
+    a_refusal_names_whose_gap_it_is();
     the_runtime_compares_five_content_tags();
     the_tags_we_read_are_authoring_conventions();
     the_two_sites_agree_where_they_overlap();
