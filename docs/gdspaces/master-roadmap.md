@@ -1,8 +1,9 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-26  
-**Base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Active L2 evidence slice:** PR #219
+**Base:** `main@af23e58e9511fbd99d6b17890818e4d62a60e74f`  
+**L2 R3 candidate tooling:** PR #221 merged; real R2B/trusted original-process R3 remains open under #220/#229  
+**Latest L3 static authority:** `l3-r1-derived-alias-pass-2026-08-26.md`
 
 This is the execution roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 are separate ownership layers, but execution follows dependencies rather than strict numeric order.
 
@@ -35,13 +36,15 @@ logical request
 
 ```text
 selected/materialized bytes
- -> FileSlot/async completion
+ -> FileSlot/async lifecycle ownership
  -> LoadedResource states
  -> typed post-load
  -> ready visibility
  -> claims/cache
- -> reset/release/shutdown
+ -> cancellation/reset/release/shutdown
 ```
+
+**Stage Assembly / Stage Ops is not L3.** It is a downstream domain/tooling consumer of the three-layer resource authority.
 
 Validation is cross-cutting and is not a fourth layer.
 
@@ -49,7 +52,7 @@ Validation is cross-cutting and is not a fourth layer.
 
 A task from another layer is allowed when it closes the current acceptance gap. Every task must record its primary layer, dependency and return condition to the vertical critical path.
 
-Do not start broad L2/L3 work merely because it is interesting. Do not block required L2/L3 evidence because L1 is still open.
+Do not start broad work merely because it is interesting. Do not block required cross-layer evidence because another layer is still open.
 
 ## Current vertical acceptance target
 
@@ -60,7 +63,7 @@ real protected DMC3 installation
  -> [L1] supported top-level or nested edit/rebuild
  -> [L2] authored next-volume winner
  -> [L1] exact authored rematerialization
- -> [L3] original consumer visibility
+ -> [L3] original lifecycle reaches consumer-ready visibility
  -> observable effect attributable to authored bytes
  -> rollback / transition receipt
 ```
@@ -90,9 +93,9 @@ No new synthetic-only feature may displace this sequence unless real retail evid
 
 ## Track B — L2 closure
 
-Canonical review baseline: `l2-review-2026-08-25.md` plus the 2026-08-26 protected-runtime mapping slice.
+Canonical review baseline: `l2-review-2026-08-25.md`, `l2-review-2026-08-26.md`, and `l2-exe-reconciliation-2026-08-26.md`.
 
-### Closed L2 internal slice
+### Closed/integrated L2 internal slices
 
 PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 
@@ -103,7 +106,18 @@ PR #215 / issue #204 closed the type-0 physical-provider post-`0x0C` boundary:
 - Windows bounded `CreateFileA` parity scenario + Ubuntu/Windows exact-head validation passed;
 - direct caller census and `0x400` overflow behavior are closed for the recovered direct-call surface.
 
-Do not reopen this slice absent contradictory direct evidence.
+PR #219 integrated the protected-runtime mapping acquisition/tooling seam:
+
+- explicit PID and actual module-base + RVA capture;
+- exact protected executable SHA/size gate;
+- bounded process-memory window receipts;
+- canonical-window expectation binding;
+- multi-anchor mapping validator requiring `OpenGameResource` plus at least two type-0 anchors;
+- no global build-equivalence claim.
+
+PR #221 integrated the selected-identity **content-candidate** contract, deterministic normalizer, artifact-backed binder and EXE reconciliation tooling. It did **not** promote trusted original-process selection evidence.
+
+Do not reopen these slices absent contradictory direct evidence.
 
 ### Current L2 work order
 
@@ -111,11 +125,15 @@ Do not reopen this slice absent contradictory direct evidence.
 L2-R2A real-retail 0x0E collision census
   -> direct-retail exact resolver identity receipt
 
-L2-R2B protected-distribution runtime RVA mapping (#219)
-  -> multi-anchor bounded mapping receipt from one protected process
-  -> L2-R3 original-process selected-provider identity receipt
+L2-R2B real protected-process multi-anchor mapping receipt
+  -> uses integrated #219 tooling
 
-[R2A + R3]
+L2-R3 selected-provider identity
+  -> uses integrated #221 content-candidate + artifact binder tooling
+  -> trusted runtime publisher/origin binding
+  -> zero-loss real protected-process selected-identity receipt
+
+[R2A + real R2B + trusted R3]
   -> docs/issues/evidence reconciliation
   -> exact-head Windows + Ubuntu validation
   -> final L2 audit / promotion
@@ -154,48 +172,123 @@ Synthetic/DMCL corpus results do not close this DMC3 retail gate.
 
 ### L2-R2B — protected runtime address mapping
 
-PR #219 adds the acquisition seam, not the original-process proof itself:
+#219 tooling is integrated on `main`; the real evidence gate remains open.
 
-- explicit PID;
-- runtime read by `module_base + RVA`, never copied static VA;
-- exact running image SHA + size gate;
-- PE `SizeOfImage` and section containment checks;
-- exact full-range `ReadProcessMemory` only;
-- metadata-only child receipt by default;
-- optional canonical artifact/window hash expectation;
-- mismatch is negative evidence and non-zero;
-- multi-anchor mapping validator requires one OpenGameResource anchor plus at least two independent type-0 physical anchors from one process/module session.
+A valid real packet requires one exact protected process/module session and:
+
+- `OpenGameResource` canonical RVA `0x2FCA0`;
+- at least two independent type-0 anchors among `0x326D20`, `0x327430`, `0x327800`;
+- exact `0x40` live windows at actual `module_base + RVA`;
+- canonical analysis-window hash expectations;
+- exact protected executable SHA/size;
+- zero cross-session PID/module drift.
 
 A child receipt proves only its listed range. A successful multi-anchor packet proves bounded mapping only for the listed anchors. It does **not** prove global build equivalence or original selected-provider identity.
 
-### L2-R3 — original-process selected identity
+### L2-R3 — selected-provider identity
 
-Only after a valid protected-runtime mapping packet exists:
+Integrated PR #221 defines the content-candidate boundary, not trusted original-process proof:
 
-1. instrument mapped resolver entry/selection points;
-2. capture exact logical request and ordered candidate/provider traversal;
-3. capture final provider/source/archive/member identity selected by original DMC3;
-4. bind the receipt to the exact protected executable and real retail corpus;
-5. compare to GDSpaces product resolver without relabeling product evidence as original-process evidence.
+1. recovered request/candidate/provider/volume order is structurally validated;
+2. legacy self-authored serializer output must pass a strict deterministic normalizer;
+3. mapping packet is reconstructed from process-window child receipts;
+4. exact observer artifact is hashed and bound;
+5. every claimed numbered NBZ artifact is hashed and size-checked;
+6. bound output remains `promotion_eligible=false` / `trusted_capture_bound=false` until a separate trusted publisher/origin mechanism exists.
+
+Fresh canonical EXE review adds one mandatory failure distinction: archive normalized lookup may succeed while wrapper/open creation at `0x140328290` fails. `0x140327430` then exits through null/cleanup; it does **not** continue to a lower-volume lookup as a clean miss. Therefore clean-path R3 v1 supports only `miss -> selected`; provider/backend failure is fail-closed.
+
+Only after real R2B mapping and trusted publisher binding may a real selected identity be promoted and compared to GDSpaces product resolution. Product comparison helpers are diagnostic/content-only before that point.
 
 `preflight-dmc3-game-test` is build/archive-presence preflight, not a selected-identity receipt.
 
 ## Track C — L3 closure
 
-Canonical audit: `l3-audit-2026-08-25.md`.
+Canonical static authority:
 
-Current work order:
+- baseline subsystem audit: `l3-audit-2026-08-25.md`;
+- raw canonical-EXE reconciliation: `l3-boundary-audit-2026-08-26.md`;
+- detailed second raw pass: `l3-raw-exe-pass-2026-08-26.md`;
+- direct-base state-writer census: `l3-r1-direct-writer-census-2026-08-26.md`;
+- leaf/no-unwind + completion-callback alias pass: `l3-r1-leaf-alias-pass-2026-08-26.md`;
+- derived/indexed/stored-record release pass: `l3-r1-derived-alias-pass-2026-08-26.md`.
+
+### L3 acquisition blocker — CLOSED
+
+The canonical instruction-reverse `dmc3.exe` has been reacquired and independently re-identified as:
+
+- size `6,356,432`;
+- SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`;
+- PE32+ x64, preferred image base `0x140000000`.
+
+The old "raw canonical EXE unavailable" statement is superseded. Acquisition tooling remains useful for reproducibility/regression packets, not as the current L3 semantic blocker.
+
+### Static L3 boundaries now strong
+
+Do not restart without contradictory evidence:
+
+- LoadedResource registry `363 x 0x48` and seven-group topology;
+- canonical raw `.data` counts `[4,136,60,28,1,128,6]` and bases `[0,4,140,200,228,229,357,363]`;
+- central lifecycle `0 -> 1 -> 2 -> typed post-load -> optional callback -> 3`;
+- canonical cancellation source domain `1|2 -> 4`;
+- quiescence predicate: every record must be state `0` or `3`;
+- cancellation cleanup `4 -> 0` ordering;
+- distinct ordinary/group/full release-reset policies;
+- acquisition-failure rollback state0 writers for bounded base-228, group5 and base-357 paths;
+- fixed-family indexed state3->release->state0 helpers for registry bases `0/4/140/200`;
+- stored group5 record aliases through higher-level `object+0x10` are proven from `1B8DF0` acquisition through conditional backing release and state0 publication;
+- representative MOD/EFM/SCM/SHW typed post-load and recursive PNST traversal;
+- central typed dispatcher unknown/default behavior as best-effort no-op/return rather than a failure return that blocks state 3;
+- higher-level loader-node claim/zero-claim release concept;
+- runtime vs CRT vs process-lifetime teardown distinction;
+- direct-base/unwind-bounded state-like false-positive class is separated from actual LoadedResource state authority;
+- exact-immediate leaf/no-unwind `+0x04 <- 0..4` candidate class contains no new LoadedResource writer beyond canonical `0x1401B8DC0`;
+- `0x1401B8DC0` normal completion callback is registered from `0x1401B84E0` with one `u32` context equal to `record_ptr - 0x140C99D30` and dispatched by `0x1402EF580/0x1402EF790`;
+- valid normal callback contexts are `index*0x48` for `0..362`, so the odd/low-bit branch of `1B8DC0` is outside the recovered canonical normal acquisition-registration domain;
+- nearby higher-level `1B9EE0` `+0x04` copy is rejected as LoadedResource state by caller/subobject provenance.
+
+### L1/L3 seam now explicit
+
+`0x1401B8CA0` is a mixed materialization/lifecycle boundary:
 
 ```text
-state-writer/caller census
- -> known-field write ownership/order
- -> typed-dispatch breadth/failure semantics
- -> shared-owner coordination by family
- -> initial-load Level-E receipt
- -> transition/restart/cancellation receipts
- -> menu/full-reset receipt
- -> shutdown receipt
- -> family/build breadth
+L1 representation/materialization dispatch
+ -> boolean success
+ -> L3 acquisition publishes state 1 only after success
+```
+
+Classify evidence by semantics, not by assigning the whole helper to one layer.
+
+### Current L3 static work order
+
+```text
+finish residual R1 value-flow census
+  -> non-state0/non-immediate writes carrying states 1/2/3/4
+  -> record aliases outside the reviewed 0x1401B8xxx..0x1401B9xxx lifecycle cluster
+  -> indirect callback/function-pointer registrations
+  -> final whole-image contradiction sweep
+ -> finish family-specific +0x08/+0x18/+0x20/+0x28 ownership census
+ -> close external typed/factory/dependency and SCM edges
+ -> finish shared-owner coordination breadth
+ -> original-process Level-E receipts
+```
+
+Do not repeat the already-bounded direct-base, exact-immediate leaf, or reviewed state0 release/rollback scans unless contradictory evidence appears.
+
+The central old question "does unknown/default `0x1401B9FA0` post-load leave state 2?" is no longer open for that path: the dispatcher is best-effort/void and the state-2 finalizer proceeds to callback then state3.
+
+The old low-bit question on `0x1401B8DC0` is also narrowed: the odd branch is not reachable from the recovered canonical normal acquisition registration, whose context is always `index*0x48`. Its semantic intent outside that domain remains deliberately unnamed.
+
+### Current L3 dynamic work order — issue #217
+
+```text
+V1 initial load
+ -> V2 room/stage transition
+ -> V3 restart/reload
+ -> V5 in-flight cancellation
+ -> V4 return-to-menu/full reset
+ -> V6 shutdown
+ -> V7 family/build breadth
  -> final L3 audit
 ```
 
@@ -205,7 +298,7 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 
 | Acceptance question | Primary | Required support |
 |---|---|---|
-| Which resource wins for a real game request? | L2 | protected retail corpus + mapped original-process observation |
+| Which resource wins for a real game request? | L2 | protected retail corpus + mapped trusted original-process observation |
 | Are selected bytes exact? | L1 | L2 selected identity + artifact binding |
 | Can the selected representation be edited safely? | L1 | direct retail representation evidence |
 | Will the authored overlay win? | L2 | L1 generated artifact |
@@ -216,11 +309,15 @@ For the first L1 vertical proof, L3 need only provide enough original-process ev
 ## Current priority queue
 
 1. Keep the L1 real-retail/Level-E acceptance path ready; do not replace it with synthetic work.
-2. Complete PR #219 acquisition/tooling review and exact-head CI.
-3. When a protected original process is available, produce the L2 multi-anchor mapping packet.
-4. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
-5. Capture original-process selected identity only after mapped L2 anchors are proven.
-6. Reconcile final L2 evidence and run the final Layer-2 audit.
+2. Use the merged #221 content-candidate/normalizer/binder only as tooling; do not treat it as trusted original-process evidence.
+3. When a protected original process is available, produce the real L2 multi-anchor R2B mapping packet using integrated #219 tooling.
+4. Implement/use the trusted R3 publisher path; do not accept manually authored JSON as original-process authority.
+5. Acquire a cryptographically bound DMC3 retail member-list/central-directory surface and run the `0x0E` census.
+6. Capture and bind a zero-loss original-process selected identity only after mapped L2 anchors are proven.
+7. Finish the now-narrow L3 R1 value-flow census instead of reopening the recovered core/state0 surface.
+8. Capture L3 V1 and V5 first because they directly exercise ready-state and cancellation boundaries needed by the vertical proof.
+9. Continue transition/reset/shutdown receipts and family/build breadth.
+10. Reconcile final L2/L3 evidence and run their final audits independently.
 
 ## Completion rule
 

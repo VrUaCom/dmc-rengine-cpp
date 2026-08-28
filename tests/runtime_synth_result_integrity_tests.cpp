@@ -54,6 +54,7 @@ int main() {
     static_assert(!std::is_aggregate_v<dmc3::RuntimeSynthChildReceipt>);
     static_assert(
         !std::is_default_constructible_v<dmc3::RuntimeSynthChildReceipt>);
+    static_assert(!std::is_aggregate_v<dmc3::RuntimeSynthResult>);
 
     std::vector<std::byte> source_bytes(0x60U, std::byte{0});
     source_bytes[0] = std::byte{'P'};
@@ -165,6 +166,23 @@ int main() {
     assert(!mutated_child.ok());
     assert(!dmc3::ExactChildImage::from_verified_runtime_synth_result(
         0U, mutated_child).has_value());
+
+    // Padding is not covered by an intrinsic child hash. Before the private
+    // writer-authority seal, a caller could mutate only alignment padding,
+    // recompute the public output SHA and manufacture a successful-looking
+    // complete-image result. The seal binds authority to the writer-produced
+    // output hash, so this must now fail closed.
+    auto mutated_padding = built;
+    const auto padding_offset = static_cast<std::size_t>(
+        mutated_padding.receipt->children[0].emitted_offset() +
+        mutated_padding.receipt->children[0].intrinsic_size());
+    assert(padding_offset <
+        static_cast<std::size_t>(mutated_padding.receipt->children[1].emitted_offset()));
+    mutated_padding.bytes[padding_offset] ^= std::byte{1};
+    mutated_padding.receipt->output_sha256 = sha256_of(mutated_padding.bytes);
+    assert(!mutated_padding.ok());
+    assert(!dmc3::ExactChildImage::from_verified_runtime_synth_result(
+        0U, mutated_padding).has_value());
 
     auto reordered_receipt = *built.receipt;
     std::swap(reordered_receipt.children[0], reordered_receipt.children[1]);

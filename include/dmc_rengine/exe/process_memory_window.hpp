@@ -17,6 +17,7 @@ enum class ProcessMemoryWindowError {
     invalid_request,
     platform_not_supported,
     open_process_failed,
+    process_time_failed,
     image_path_failed,
     module_query_failed,
     module_identity_mismatch,
@@ -34,6 +35,8 @@ enum class ProcessMemoryWindowError {
         return "platform_not_supported";
     case ProcessMemoryWindowError::open_process_failed:
         return "open_process_failed";
+    case ProcessMemoryWindowError::process_time_failed:
+        return "process_time_failed";
     case ProcessMemoryWindowError::image_path_failed: return "image_path_failed";
     case ProcessMemoryWindowError::module_query_failed: return "module_query_failed";
     case ProcessMemoryWindowError::module_identity_mismatch:
@@ -47,6 +50,10 @@ enum class ProcessMemoryWindowError {
 
 struct ProcessMemoryWindow final {
     std::uint32_t pid{};
+    // Exact Windows process creation FILETIME (100-ns ticks since 1601-01-01)
+    // captured from the same process HANDLE used for the memory read. This is
+    // an OS-derived process-instance discriminator; PID alone may be reused.
+    std::uint64_t process_creation_filetime{};
     std::filesystem::path image_path;
     std::uint64_t module_base{};
     std::uint64_t rva{};
@@ -69,10 +76,11 @@ struct ProcessMemoryWindowResult final {
 
 // Reads a bounded byte window from the main executable module of one explicit
 // process. The caller supplies an RVA, never a preferred/static VA. On Windows
-// the implementation opens exactly the requested PID, verifies that the first
-// Toolhelp module path matches QueryFullProcessImageNameW for that process, and
-// requires ReadProcessMemory to return the complete requested range. Other
-// platforms fail closed with platform_not_supported.
+// the implementation opens exactly the requested PID, captures the process
+// creation FILETIME from that same HANDLE, verifies that the first Toolhelp
+// module path matches QueryFullProcessImageNameW for that process, and requires
+// ReadProcessMemory to return the complete requested range. Other platforms
+// fail closed with platform_not_supported.
 [[nodiscard]] ProcessMemoryWindowResult capture_main_module_window(
     std::uint32_t pid,
     std::uint64_t rva,

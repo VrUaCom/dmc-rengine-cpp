@@ -1,0 +1,132 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-materialization-completion-boundary-2026-08-26",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "scope": "Cross-layer materialization completion ordering: L1 byte/materialization support -> L3 scheduler/LoadedResource state publication",
+  "window_size_policy": "Every 0x400 window is acquisition coverage only. It is not an asserted function-body size or semantic boundary.",
+  "non_claims": [
+    "no generic fan-in counter or child-count mechanism is asserted",
+    "scheduler rollback is not relabeled as OS-level AsyncIO cancellation",
+    "state1/state2 are lifecycle states owned by L3 even when their ordering is supporting evidence for L1 materialization",
+    "merged PR #230 scheduler ABI is current-main regression/context authority and is not re-opened by this plan; stale-base #227 is superseded",
+    "0x1400333E0 and 0x140033390 are historical Pass-90 reacquisition anchors until fresh canonical bytes confirm their exact polling/release roles",
+    "successful byte-window acquisition alone does not prove original-process equivalence",
+    "the protected distribution executable is not substituted for the canonical analysis executable"
+  ],
+  "windows": [
+    {
+      "id": "whole-file-terminal-cluster-140033390",
+      "va": "0x140033390",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Pass-2 primary support: one acquisition window covering the historical load-state release anchor 0x140033390, status/poll anchor 0x1400333E0, transfer submit 0x140033500 and transport callback 0x1400335A0; recover terminal status, cleanup ordering and the upward failure bridge without asserting those historical helper labels before fresh canonical confirmation."
+    },
+    {
+      "id": "whole-file-transfer-submit-140033500",
+      "va": "0x140033500",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Regression/context overlap retained from the parent plan: caller-owned-destination whole-file transfer submission, submit failure and transport status writes."
+    },
+    {
+      "id": "whole-file-transport-callback-1400335a0",
+      "va": "0x1400335A0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Regression/context overlap retained from the parent plan: callback(ticketId,userContext,errorFlag,bytesRead), byte progress/status writes and the exact upward error/status handoff."
+    },
+    {
+      "id": "async-read-submit-14002ea40",
+      "va": "0x14002EA40",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Priority support: reacquire ReadRequest/FileSlot submission ownership and distinguish byte transport from higher materialization scheduler state."
+    },
+    {
+      "id": "scheduler-pending-clear-1402ef460",
+      "va": "0x1402EF460",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Primary L3 control target: reacquire scheduler pending-entry clear/rollback, queue matching and already-dispatched behavior; do not infer OS AsyncIO cancellation."
+    },
+    {
+      "id": "materialization-submit-wrapper-1402ef4d0",
+      "va": "0x1402EF4D0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55, 88],
+      "purpose": "Primary cross-layer target: close the materialization submission/scheduling wrapper body, callees, queued job identity, failure return and inherited load-context consumption; test completion-aware job persistence rather than assuming FIFO alone or a fan-in counter."
+    },
+    {
+      "id": "scheduler-enqueue-1402ef580",
+      "va": "0x1402EF580",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Regression/context anchor: merged PR #230 proves 0x88 queue records, callback at +0x08 and one copied u32 argument at +0x10 for 1B8DC0; reacquire only to connect 2EF4D0 materialization work into the same ordering model."
+    },
+    {
+      "id": "scheduler-worker-1402ef790",
+      "va": "0x1402EF790",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Pass-2 primary scheduler target: retain merged #230 callback ABI as regression authority while identifying the materialization-job dispatch case, record persistence/re-poll behavior and exact terminal retirement condition."
+    },
+    {
+      "id": "loaded-resource-cancel-writer-1401b8430",
+      "va": "0x1401B8430",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 control path: reacquire exact cancellation sequence around scheduler rollback, state1/state2 to state4 writes and deferred cleanup enqueue."
+    },
+    {
+      "id": "loaded-resource-acquire-1401b84e0",
+      "va": "0x1401B84E0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 100],
+      "purpose": "Regression/context anchor: merged current-main authority proves materialization-success -> state1 -> completion registration with context=record-base and argument_count=1."
+    },
+    {
+      "id": "lst-materializer-1401b85c0",
+      "va": "0x1401B85C0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 55],
+      "purpose": "Activated L1 target for loose-list scope: reacquire child submission return handling, recursive in-place population, temporary/failure cleanup and relationship to the direct-resource completion-aware job model."
+    },
+    {
+      "id": "loaded-resource-materialization-dispatch-1401b8ca0",
+      "va": "0x1401B8CA0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [100, 88, 55],
+      "purpose": "Explicit L1/L3 seam: reacquire representation/materialization mechanics and the boolean success contract entering 2EF4D0/1B85C0 before L3 state1 publication."
+    },
+    {
+      "id": "loaded-resource-completion-state1-to2-1401b8dc0",
+      "va": "0x1401B8DC0",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "Regression/context anchor: merged current-main authority proves normal state2 publication, one-u32 normal context ABI and that the normal callback itself does not receive raw transport status/error metadata."
+    },
+    {
+      "id": "loaded-resource-state4-cleanup-1401b8f00",
+      "va": "0x1401B8F00",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [88, 55, 217],
+      "purpose": "L3 control path: reacquire deferred state4 cleanup and backing-release ordering to compare failure/cancellation against successful completion ordering."
+    }
+  ]
+}

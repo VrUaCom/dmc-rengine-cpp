@@ -1,0 +1,152 @@
+{
+  "schema": "dmc-rengine.gdspaces-l2-resolver-static-census.v1",
+  "status": "canonical-analysis-static-reverse",
+  "artifact": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "functions": {
+    "OpenGameResource": {
+      "va": "0x14002FCA0",
+      "rva": "0x2FCA0",
+      "direct_callers": [
+        "0x14003340A",
+        "0x1403380C7",
+        "0x1403381F7"
+      ],
+      "observed_direct_caller_edx": [1, 1, 1]
+    },
+    "ResourceMountResolve": {
+      "va": "0x140327430",
+      "direct_callers": ["0x14002FDAC"]
+    },
+    "ArchiveNormalizedLookup": {
+      "va": "0x140328160",
+      "direct_callers": ["0x1403274B0"]
+    },
+    "ArchiveWrapperOpen": {
+      "va": "0x140328290",
+      "direct_callers": ["0x1403274C5"]
+    },
+    "ArchiveIndexBuild": {
+      "va": "0x140327CC0",
+      "qsort_call_va": "0x140327D6D",
+      "comparator_va": "0x1403291D0"
+    },
+    "ArchiveKeyComparator": {
+      "va": "0x1403291D0",
+      "comparison": "normalized C-string only",
+      "secondary_tie_break": false
+    },
+    "LowLevelCreateFileAOpen": {
+      "va": "0x140327800",
+      "direct_callers": [
+        "0x140326DDA",
+        "0x14032755C",
+        "0x14032858F"
+      ],
+      "resolver_final_open_edge": "0x14032755C -> 0x140327800"
+    },
+    "RegisterPhysicalMount": {
+      "va": "0x140326D20",
+      "direct_callers": ["0x14002E9A9"]
+    },
+    "RegisterArchiveMount": {
+      "va": "0x140326DA0",
+      "direct_callers": ["0x14002E9E8"]
+    }
+  },
+  "prefix_table": {
+    "va": "0x14055AEF8",
+    "entries": [
+      "GDataX360.afs/",
+      "GData.afs/",
+      "Video/",
+      "afs/sound/",
+      "SAVEDATA/",
+      ""
+    ]
+  },
+  "bootstrap": {
+    "function_va": "0x14002E930",
+    "physical_root_suffix": "\\data\\dmc3\\",
+    "archive_format": "%sDMC3-%d.nbz",
+    "physical_registration_flags": "0x0C",
+    "global_mount_list_va": "0x140CF3180",
+    "list_insertion": "prepend",
+    "archive_discovery": "start at 0 and continue while path-exists; stop at first missing filename",
+    "archive_mount_return_used_by_bootstrap": false
+  },
+  "normalization": {
+    "function_va": "0x140327160",
+    "bits": {
+      "0x01": "ASCII lowercase a-z -> uppercase A-Z",
+      "0x02": "ASCII uppercase A-Z -> lowercase a-z",
+      "0x04": "strip leading slash/backslash separators",
+      "0x08": "strip trailing slash/backslash separators"
+    },
+    "always_after_flag_steps": [
+      "convert '/' separators to '\\'",
+      "collapse repeated '\\' separators"
+    ],
+    "archive_flags": "0x0E",
+    "physical_flags": "0x0C"
+  },
+  "clean_mount_order": {
+    "construction": "physical is prepended first, then each successful DMC3-N archive is prepended in ascending discovery order",
+    "result": "DMC3-(N-1) -> ... -> DMC3-1 -> DMC3-0 -> physical",
+    "resolver_traversal": "head to next pointer at node+0x50",
+    "archive_phase_mask": 1,
+    "physical_phase_mask": 2
+  },
+  "archive_search_index": {
+    "builder_va": "0x140327CC0",
+    "entry_width": "0x10",
+    "per_entry_normalization_flags": "0x0E",
+    "sort": "CRT qsort",
+    "sort_call_va": "0x140327D6D",
+    "lookup": "CRT bsearch",
+    "lookup_call_va": "0x1403281E0",
+    "shared_comparator_va": "0x1403291D0",
+    "comparator_key": "normalized C-string only",
+    "equal_key_secondary_tie_break": "none",
+    "duplicate_key_winner_contract": "not defined by recovered code; qsort is not stable and bsearch may return any equal element"
+  },
+  "failure_boundaries": {
+    "archive_path_exists_but_mount_fails": "bootstrap ignores archive-mount return, increments N, and continues discovery; failed archive is not inserted into mount list",
+    "archive_lookup_hit_but_wrapper_open_fails": "ResourceMountResolve exits via cleanup/null path and does not continue as a lower-volume lookup miss",
+    "candidate_overflow": "canonical direct-call path fails the request instead of falling through to a shorter prefix",
+    "archive_duplicate_normalized_key": "recovered qsort/bsearch comparator has no secondary tie-break; exact winner is not a stable semantic contract"
+  },
+  "xref_census": {
+    "absolute_qword_references_found": {
+      "0x14002FCA0": 0,
+      "0x140327430": 0,
+      "0x140328160": 0,
+      "0x140328290": 0,
+      "0x140327800": 0
+    },
+    "scope_note": "No absolute qword function-pointer references were found by whole-image exact-value scan. This is not a proof that no indirect runtime call can exist."
+  },
+  "proves": [
+    "canonical direct-call OpenGameResource surface uses flags=1 at all three observed direct callers",
+    "clean successful numbered-archive precedence is higher-volume to lower-volume because archive mounts prepend to the resolver list",
+    "physical root is registered before numbered archives and is reached in the second provider phase",
+    "0x0E archive and 0x0C physical path normalization differ by lowercase conversion",
+    "first missing archive filename bounds discovery but does not itself prove every lower existing archive mounted successfully",
+    "0x140327800 is a shared low-level file-open helper; resolver semantics belong specifically to its 0x14032755C caller edge",
+    "archive qsort and bsearch use the same normalized-string-only comparator with no secondary equal-key tie-break"
+  ],
+  "does_not_prove": [
+    "protected-distribution runtime addresses without an R2B mapping receipt",
+    "all possible indirect callers are absent at runtime",
+    "all discovered retail archives mount successfully",
+    "retail 0x0E normalized-key collision freedom",
+    "a deterministic original winner when two central entries share one normalized 0x0E key",
+    "trusted original-process selected identity",
+    "global canonical/protected build equivalence",
+    "Layer 1 or Layer 3 completion"
+  ]
+}

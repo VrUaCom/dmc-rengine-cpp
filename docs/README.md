@@ -8,6 +8,10 @@
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
 - [GDSpaces contract](gdspaces-contract.md)
+- [DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
+- [DMC3 HD machine-readable format-purpose registry](formats/dmc3-hd-format-purpose-registry.json)
+- [DMC3 HD format-purpose closure pass — 2026-08-27](research/dmc3-format-purpose-closure-pass-2026-08-27.md)
+- [Format documentation index](formats/README.md)
 - [Status system](status/README.md)
 - [Constitution](../.specify/memory/constitution.md)
 - [Contributing](../CONTRIBUTING.md)
@@ -57,6 +61,19 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 - [DMC3 NBZ STORE overlay writer](gdspaces/dmc3-nbz-store-overlay-writer.md)
 - [DMC3 NBZ retail serialization preservation](gdspaces/dmc3-nbz-retail-serialization.md)
 
+### Formats and resource semantics
+
+- [Format documentation index](formats/README.md)
+- [Canonical DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
+- [Machine-readable DMC3 HD format-purpose registry](formats/dmc3-hd-format-purpose-registry.json)
+- [Direct format-purpose closure pass — 2026-08-27](research/dmc3-format-purpose-closure-pass-2026-08-27.md)
+- [HITS collision resource](formats/hits.md)
+- [PAC structural parser](formats/pac-readonly-parser.md)
+- [PNST structural parser](formats/pnst-readonly-parser.md)
+- [Residual DMC3 format census — 2026-08-26](gdspaces/l3-residual-format-pass-2026-08-26.md)
+
+The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. The JSON registry is its machine-readable companion and currently enumerates 66 evidence-tracked families, including rejected and synthetic-only entries needed to prevent historical claims from resurfacing as game truth. Both separate resource identity, subsystem purpose, binary-schema maturity, original-runtime evidence and current clean-product support. Unknown semantics stay explicitly bounded; extensions and short ASCII hits are never promoted as semantic truth by themselves.
+
 ### Stage and downstream tools
 
 - Stage Ops owns product-side stage/scene assembly and orchestration over GDSpaces outputs.
@@ -98,6 +115,7 @@ Recovered original-game functions/types/lifetime code belong to the Recovered Ga
 
 Research baselines and historical receipts remain useful evidence sources, but they do not override current `main`/roadmap authority without explicit promotion.
 
+- [DMC3 Format-Purpose Closure Pass — 2026-08-27](research/dmc3-format-purpose-closure-pass-2026-08-27.md)
 - [DMC3 Vanilla Research Baseline](research/dmc3-vanilla-research-baseline.md)
 - [DMC3 Vanilla Deep Research Wave 2](research/dmc3-vanilla-deep-research-wave-2.md)
 - [Project timeline](history/project-timeline.md)

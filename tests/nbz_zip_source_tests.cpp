@@ -314,6 +314,7 @@ int main() {
     assert(stored_plain_ref != nullptr);
     const auto stored_limited = stored_budget.read(stored_plain_ref->id);
     assert(stored_limited.has_value() && !stored_limited->readable());
+    assert(!stored_limited->byte_provenance.has_value());
     assert(has_code(
         stored_limited->diagnostics, "gdspaces.nbz.safe.stored-member-budget"));
 
@@ -332,6 +333,7 @@ int main() {
     assert(materialized_nested_ref != nullptr);
     const auto materialized_limited = materialized_budget.read(materialized_nested_ref->id);
     assert(materialized_limited.has_value() && !materialized_limited->readable());
+    assert(!materialized_limited->byte_provenance.has_value());
     assert(has_code(
         materialized_limited->diagnostics,
         "gdspaces.nbz.safe.materialized-member-budget"));
@@ -363,7 +365,41 @@ int main() {
     const auto crc_ref = wrong_crc.enumerate().front();
     const auto crc_payload = wrong_crc.read(crc_ref.id);
     assert(crc_payload.has_value() && !crc_payload->readable());
+    assert(!crc_payload->byte_provenance.has_value());
     assert(has_code(crc_payload->diagnostics, "gdspaces.nbz.safe.crc-mismatch"));
+
+    // SafeProductValidation: a successful zero-byte STORE member still has a
+    // valid materialized-byte lineage; emptiness alone is not a failure signal.
+    // The same source must drop provenance after its archive becomes stale.
+    const std::vector<EntrySpec> stale_specs{
+        EntrySpec{"empty.bin", 0U, {}, {}},
+    };
+    const auto stale_fixture = make_zip(stale_specs);
+    const auto stale_path = write_fixture(stale_fixture.bytes, "nbz-stale-size");
+    NbzZipSource stale_source("nbz-stale-size", stale_path);
+    assert(stale_source.valid());
+    const auto stale_refs = stale_source.enumerate();
+    assert(stale_refs.size() == 1U);
+    const auto empty_payload = stale_source.read(stale_refs.front().id);
+    assert(empty_payload.has_value() && empty_payload->readable());
+    assert(empty_payload->bytes.empty());
+    assert(empty_payload->byte_provenance.has_value());
+    assert(empty_payload->byte_provenance->kind == ByteOriginKind::direct_source_span);
+    assert(empty_payload->byte_provenance->transform == ByteTransform::zip_stored);
+    {
+        std::ofstream stream(stale_path, std::ios::binary | std::ios::app);
+        const char marker = '\x7f';
+        stream.write(&marker, 1);
+        assert(stream.good());
+    }
+    assert(stale_source.valid());
+    const auto stale_payload = stale_source.read(stale_refs.front().id);
+    assert(stale_payload.has_value() && !stale_payload->readable());
+    assert(stale_payload->bytes.empty());
+    assert(!stale_payload->byte_provenance.has_value());
+    assert(has_code(
+        stale_payload->diagnostics,
+        "gdspaces.nbz.safe.source-size-changed"));
 
     // SafeProductValidation: ZIP64 sentinels remain a bounded-product reject.
     auto zip64_fixture = make_zip(specs);
@@ -394,6 +430,7 @@ int main() {
     const auto unknown_ref = unknown.enumerate().front();
     const auto unknown_payload = unknown.read(unknown_ref.id);
     assert(unknown_payload.has_value() && !unknown_payload->readable());
+    assert(!unknown_payload->byte_provenance.has_value());
     assert(has_code(
         unknown_payload->diagnostics,
         "gdspaces.nbz.safe.compression-method-unsupported"));
@@ -403,6 +440,7 @@ int main() {
     std::filesystem::remove(bad_count_path);
     std::filesystem::remove(overlap_path);
     std::filesystem::remove(wrong_crc_path);
+    std::filesystem::remove(stale_path);
     std::filesystem::remove(zip64_path);
     std::filesystem::remove(bad_name_path);
     std::filesystem::remove(unknown_path);

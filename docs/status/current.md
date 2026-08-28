@@ -1,11 +1,11 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@c147facb310d32ef084c56ba82d1e4b6b9b1b496`  
-**Latest L2 promotion:** PR #215 — type-0 physical-provider reverse/model/controlled receipts  
-**Active L2 evidence slice:** PR #219 — protected-runtime RVA mapping acquisition  
+**Canonical implementation base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
+**Latest L2 promotion:** PR #219 — protected-runtime RVA mapping acquisition/tooling  
+**Active L2 evidence slice:** PR #221 — selected-identity content-candidate contract/binder  
 **Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2 support  
-**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 PHYSICAL-PROVIDER INTERNAL SLICE CLOSED; subsystem remains NOT COMPLETE pending real-retail/original-process receipts.
+**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 STATIC PHYSICAL + RUNTIME-MAPPING TOOLING INTEGRATED; subsystem remains NOT COMPLETE pending real-retail/protected-process receipts.
 
 ## Authority split
 
@@ -51,7 +51,7 @@ Canonical L1 review: [Final Pre-Level-E Audit](../gdspaces/l1-final-audit-2026-0
 
 ## L1 mandatory remaining work
 
-No known mandatory **internal implementation** blocker remains for the current representative DMC3-HD acceptance scope.
+No known mandatory **internal implementation** blocker remains for the current representative DMC3-HD L1 acceptance scope.
 
 The remaining gates require a real protected installation:
 
@@ -86,12 +86,19 @@ Binary AFS and original-runtime PACK remain frozen absent direct evidence. Capco
 
 ## L2 current frontier
 
-The type-0 physical-provider static reverse and controlled product model are closed on `main` through #215/#204. Current L2 closure is split into independent evidence gates:
+Closed/integrated internal L2 slices:
+
+- #215/#204: canonical type-0 physical-provider static reverse, direct native physical product path and controlled receipts;
+- #219: explicit-PID protected-runtime RVA acquisition and multi-anchor bounded mapping tooling.
+
+The remaining L2 closure is split into independent real-evidence gates:
 
 1. **real-retail `0x0E` collision census** — externally blocked until an exact DMC3 retail central-directory/member-list surface is available;
-2. **protected-distribution runtime RVA mapping** — PR #219 implements explicit-PID, RVA-based, SHA/size-gated live acquisition plus bounded multi-anchor receipt validation; real original-process packet still required;
-3. **original-process selected-provider identity** — blocked by a valid runtime mapping packet;
-4. **final L2 audit** — only after retail corpus + original-process receipts and exact-head validation agree.
+2. **real protected-process R2B mapping receipt** — tooling is integrated through #219, but no real `81c7...` multi-anchor packet exists in the connected environment;
+3. **R3 selected-provider identity** — PR #221 defines a fail-closed content-candidate/normalizer/artifact-binder surface; real trusted-capture origin and a real protected-process trace remain required;
+4. **final L2 audit** — only after retail corpus + real R2B/R3 receipts and exact-head validation agree.
+
+Fresh canonical EXE review on 2026-08-26 re-confirmed the direct-call policy and added one important boundary: an archive normalized lookup hit can fail during wrapper/open creation (`0x140328290`), and `0x140327430` then exits through null/cleanup instead of treating that as a lower-volume miss. R3 clean-path v1 therefore accepts only `miss -> selected`; provider/backend failure is fail-closed and must not be rewritten as `miss`.
 
 Authority identities:
 
@@ -123,10 +130,13 @@ For the first vertical proof, L3 only needs enough original-process observation 
 
 ### L2 closure support
 
-1. obtain cryptographically bound retail DMC3 member-list/central-directory evidence and run the `0x0E` collision census;
-2. run PR #219 tooling against the exact protected process and produce a multi-anchor bounded mapping packet;
-3. use only proven mapped anchors to capture original-process resolver selection identity;
-4. reconcile code/docs/evidence and run final L2 audit.
+1. finish review/promotion of #221 as **candidate/tooling only**;
+2. obtain cryptographically bound retail DMC3 member-list/central-directory evidence and run the `0x0E` collision census;
+3. run integrated #219 tooling against the exact protected process and produce a multi-anchor bounded R2B mapping packet;
+4. use only proven mapped anchors with a trusted publisher path to capture a zero-loss R3 selected-identity trace;
+5. bind observer artifact + exact numbered NBZ artifacts and preserve the selected identity without treating provider/backend failure as a miss;
+6. compare product resolution only after trusted origin is established, keeping product and original evidence classes separate;
+7. reconcile code/docs/evidence and run final L2 audit.
 
 No synthetic-only feature should displace the real evidence sequence unless a real run reveals a concrete missing dependency.
 
@@ -139,6 +149,8 @@ The currently connected automation environment does not expose all exact raw pro
 - [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
 - [Final pre-Level-E L1 audit](../gdspaces/l1-final-audit-2026-08-25.md)
 - [Three-layer master roadmap](../gdspaces/master-roadmap.md)
+- [L2 EXE reconciliation checkpoint](../gdspaces/l2-exe-reconciliation-2026-08-26.md)
+- [L2 selected-identity runbook](../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md)
 - [Blockers](blockers.md)
 - [Machine-readable status](canonical-status.json)
 - [GDSpaces contract](../gdspaces-contract.md)

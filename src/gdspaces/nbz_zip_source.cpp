@@ -244,17 +244,7 @@ std::optional<ResourcePayload> NbzZipSource::read(
         },
         .bytes = {},
         .diagnostics = {},
-        .byte_provenance = ByteProvenance{
-            .kind = entry->compression_method == 0U
-                ? ByteOriginKind::direct_source_span
-                : ByteOriginKind::transformed_source_span,
-            .authority_id = source_id_,
-            .offset = entry->data_offset,
-            .stored_size = entry->compressed_size,
-            .materialized_size = entry->uncompressed_size,
-            .transform = transform_for(entry->compression_method),
-            .crc32 = entry->crc32,
-        },
+        .byte_provenance = std::nullopt,
     };
 
     if (entry->directory) {
@@ -324,6 +314,20 @@ std::optional<ResourcePayload> NbzZipSource::read(
         return payload;
     }
 
+    stream.seekg(0, std::ios::end);
+    const auto current_end = stream.tellg();
+    if (!stream || current_end < std::streampos{0} ||
+        static_cast<std::uint64_t>(
+            static_cast<std::streamoff>(current_end)) != archive_size_) {
+        add_diagnostic(
+            payload.diagnostics,
+            DiagnosticSeverity::error,
+            "gdspaces.nbz.safe.source-size-changed",
+            "NBZ archive size changed after indexing; refusing stale member materialization.",
+            resource);
+        return payload;
+    }
+
     std::vector<std::byte> stored(entry->compressed_size);
     if (!read_exact(stream, entry->data_offset, stored)) {
         add_diagnostic(
@@ -364,6 +368,18 @@ std::optional<ResourcePayload> NbzZipSource::read(
             resource);
         return payload;
     }
+
+    payload.byte_provenance = ByteProvenance{
+        .kind = entry->compression_method == 0U
+            ? ByteOriginKind::direct_source_span
+            : ByteOriginKind::transformed_source_span,
+        .authority_id = source_id_,
+        .offset = entry->data_offset,
+        .stored_size = entry->compressed_size,
+        .materialized_size = entry->uncompressed_size,
+        .transform = transform_for(entry->compression_method),
+        .crc32 = entry->crc32,
+    };
 
     const auto classification = ResourceClassifier::classify(
         entry->logical_path,

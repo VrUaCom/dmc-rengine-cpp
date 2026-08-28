@@ -2,6 +2,8 @@
 
 Status: bounded Layer-1 product writer derived from original runtime `.lst` synthesis. It is not Capcom offline packed-file builder equivalence.
 
+Canonical executable authority for the recovered layout below: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
+
 ## Recovered layout authority
 
 The canonical `.lst` runtime path establishes the synthesized materialized-image layout used by this writer:
@@ -11,11 +13,26 @@ The canonical `.lst` runtime path establishes the synthesized materialized-image
 - `u32` relative-offset table beginning at `+0x08`;
 - empty / exact `dummy` slot = offset `0`;
 - `headerSize = align64((slotCount + 2) * 4)`;
-- every populated child begins at a 64-byte boundary;
 - child bytes are copied in physical slot order;
-- alignment gaps are zero-filled.
+- the complete planned image is zero-initialized before child emission;
+- **direct whole-file children reserve `ceil(size / 0x800) * 0x800`;**
+- **recursively synthesized complete child images reserve `align64(completeImageSize)`.**
 
-`RuntimeSynthRelativeSlotWriter` reuses `LooseContainerListPolicy::header_size()` and `aligned_size()` so writer arithmetic cannot drift from the recovered runtime synthesizer.
+This corrects the older shorthand that treated every child as merely `align64(intrinsicSize)`.
+
+`RuntimeSynthRelativeSlotWriter` now reuses both `LooseContainerListPolicy::direct_transfer_extent()` and the existing 0x40 structural `aligned_size()` so product writer arithmetic cannot drift from the recovered representation distinction.
+
+## Reverse anchors for the corrected extent model
+
+Fresh canonical-EXE reverse establishes:
+
+- `0x1402EF620`: direct whole-file extent helper; opens the resource, obtains `ceil(logicalSize/0x800)` from the whole-file chunk-count path, closes it, and returns `chunkCount << 11`;
+- `0x1401B7FD0`: `.lst` planner using the direct helper for ordinary/direct packed children and recursive synthesis size for nested `.lst` fallback;
+- `0x1401B85C0`: `.lst` writer using the same placement decisions;
+- `0x140337600`: allocation path that zeroes the complete requested image;
+- `0x140346BEA`: imported `memset` thunk used by that allocator;
+- `0x1402EF4D0`: type-2 materialization **enqueue** entry, not the byte-producing body;
+- `0x1402EF790`: queued-job consumer that enters the whole-file read spine.
 
 ## Size-changing tier
 
@@ -43,23 +60,33 @@ A packed `ContainerEntry.size` is a bounded extraction extent inferred from the 
 - SHA-256;
 - bytes.
 
+That separation now directly controls placement:
+
+### `intrinsic_resource`
+
+Produced by `from_intrinsic_resource(...)` for `loose_resource` or `external_exact_resource`.
+
+It models a direct whole-file child, so parent placement uses:
+
+```text
+ceil(intrinsicSize / 0x800) * 0x800
+```
+
+The child SHA still binds only the intrinsic bytes. The remainder of the transfer extent is zero-filled output slack, not part of the intrinsic child identity.
+
+### `writer_defined_complete_image`
+
+Produced only by `from_verified_runtime_synth_result(...)` from a currently valid successful runtime-synth result.
+
+It models the complete image already produced by a recursive synthesis level, so parent placement uses:
+
+```text
+align64(completeImageSize)
+```
+
+This matches the recovered nested `.lst` fallback branch and prevents a recursively synthesized image from being incorrectly inflated to a fresh direct-file 0x800 extent.
+
 `ExactChildImage` is intentionally **not** a public aggregate. Its constructor is private, so callers cannot self-declare a `format_writer_receipt` capability by filling fields or by supplying a plausible writer-mode string.
-
-There are two public authority factories:
-
-1. `from_intrinsic_resource(...)`
-   - accepts only `loose_resource` or `external_exact_resource`;
-   - assigns `intrinsic_resource` extent authority;
-   - computes SHA-256 internally;
-   - rejects empty authority IDs and empty byte images.
-
-2. `from_verified_runtime_synth_result(slot, result)`
-   - accepts only a live `RuntimeSynthResult` for which `result.ok()` is true;
-   - requires the canonical `runtime-synth-relative-slot` writer receipt;
-   - derives the output SHA and bytes from the verified result itself;
-   - emits a typed `format_writer_receipt + writer_defined_complete_image` child capability.
-
-This prevents an inferred packed span from being laundered through a same-size or self-declared writer receipt. A writer-defined complete image can feed a size-changing parent only through the typed verified-result factory.
 
 ## Deterministic algorithm
 
@@ -68,17 +95,32 @@ This prevents an inferred packed span from being laundered through a same-size o
 3. validate every supplied child capability/provider/extent/hash;
 4. require one accepted exact child for every populated source slot;
 5. compute recovered 64-byte header size;
-6. compute a bounded 32-bit output layout;
-7. allocate zero-filled output;
-8. copy source four-byte magic and declared slot count;
-9. preserve empty slots as zero offsets;
-10. place every populated child in physical slot order;
-11. canonical PAC/PNST reparse;
-12. require format, slot count and occupancy to match source;
-13. require reparsed offsets to equal emitted offsets and each child image size to fit its reparsed bounded extent;
-14. return authored bytes + receipt.
+6. choose each child placement extent from typed extent authority:
+   - intrinsic/direct -> 0x800 transfer granularity;
+   - verified writer complete image -> 0x40 structural alignment;
+7. compute a bounded product-safe 32-bit output layout;
+8. allocate zero-filled output;
+9. copy source four-byte magic and declared slot count;
+10. preserve empty slots as zero offsets;
+11. place every populated child in physical slot order;
+12. canonical PAC/PNST reparse;
+13. require format, slot count and occupancy to match source;
+14. require reparsed offsets to equal emitted offsets and each intrinsic/complete image byte span to fit its reparsed bounded extent;
+15. return authored bytes + receipt.
 
 Input `ExactChildImage` ordering is not layout authority; physical slot index determines output order.
+
+## Zero-padding authority
+
+Padding is no longer only a deterministic product choice for this path. The recovered allocation route converges on `0x140337600`, which calls `memset(buffer, 0, requestedSize)` through `0x140346BEA` before the writer emits header/children.
+
+Therefore the original runtime-synth image has zero bytes in:
+
+- header alignment padding;
+- direct whole-file transfer slack up to the next 0x800 boundary;
+- structural alignment slack after recursively synthesized complete images.
+
+The product writer intentionally preserves that behavior by allocating `std::vector<std::byte>(total_size, std::byte{0})` before writes.
 
 ## Result and receipt integrity
 
@@ -97,14 +139,16 @@ Therefore mutating returned bytes, mutating an embedded child while rewriting on
 
 ## Nested size-changing composition
 
-Typed complete-image composition is now mechanically supported:
+Typed complete-image composition is mechanically supported:
 
 ```text
 independently intrinsic leaf bytes
     -> ExactChildImage::from_intrinsic_resource()
+       [parent reserves 0x800 transfer extent]
     -> child RuntimeSynthRelativeSlotWriter
     -> verified RuntimeSynthResult
     -> ExactChildImage::from_verified_runtime_synth_result(parent_slot, child_result)
+       [parent reserves 0x40-aligned complete-image extent]
     -> parent RuntimeSynthRelativeSlotWriter
     -> verified parent RuntimeSynthResult
 ```
@@ -113,7 +157,7 @@ This may be repeated bottom-up through multiple PAC/PNST levels and the rebuilt 
 
 The typed factory proves only **complete-image writer provenance and extent**. It does **not** prove that a child belongs to a particular semantic parent slot. Real child-to-slot linkage remains a separate evidence/representation authority and must not be inferred from synthetic `slot_NNNN.bin` names or packed parser extents.
 
-## Product safety
+## Product safety vs original arithmetic
 
 Default output budget is 1 GiB. The writer fails closed on:
 
@@ -127,9 +171,12 @@ Default output budget is 1 GiB. The writer fails closed on:
 - unsupported or self-declared provider/extent combinations;
 - child SHA mismatch;
 - invalid or mutated verified runtime-synth child result;
+- transfer/structural extent overflow;
 - output budget / 32-bit offset overflow;
 - canonical output reparse/topology mismatch;
 - invalid authoring receipt.
+
+The original planner performs important size arithmetic in 32-bit registers and does not expose the same explicit product overflow guards. GDSpaces intentionally fails closed rather than reproducing unsafe wraparound. That hardening is not relabeled as original behavior.
 
 No source `ByteProvenance` is copied onto authored output bytes.
 
@@ -141,9 +188,9 @@ The receipt records:
 - writer mode `runtime-synth-relative-slot`;
 - output SHA-256;
 - source/output structural fingerprints;
-- for every populated slot: slot index, provider kind, extent kind, authority ID, writer-mode lineage, input SHA, complete child-image size and emitted offset.
+- for every populated slot: slot index, provider kind, extent kind, authority ID, writer-mode lineage, input SHA, complete/intrinsic child byte size and emitted offset.
 
-A writer-defined child receipt can only enter through a typed `ExactChildImage` factory that consumed a currently valid successful runtime-synth result.
+The extent kind is now operational layout authority, not descriptive metadata only.
 
 ## Composition boundary
 
@@ -167,29 +214,32 @@ The registered CTest regressions cover:
 
 - 3-slot PAC with populated/empty/populated topology;
 - recovered header `0x40`;
-- 3-byte slot0 at `0x40`;
-- 70-byte slot2 at `0x80`;
-- deterministic zero padding and total output `0x100`;
+- direct intrinsic 3-byte slot0 at `0x40` with a reserved 0x800 transfer extent;
+- direct intrinsic 70-byte slot2 at `0x840`;
+- deterministic zero transfer slack and total output `0x1040`;
+- mixed extent authority: verified writer-defined `0x40` complete image followed by a direct 0x800-granular leaf;
 - input-order invariant bytes/SHA;
 - missing/empty/unknown/duplicate child rejection;
 - rejected construction of packed-span or self-declared writer-receipt capabilities;
 - safety-budget rejection;
 - duplicate source-offset rejection;
-- PNST through the same physical layout;
-- zero-slot source rebuilding to the recovered 64-byte runtime image;
+- PNST through the same physical extent policy;
+- zero-slot source rebuilding to the recovered 64-byte structural image;
 - unsupported non-PAC/PNST source rejection;
 - post-construction byte mutation invalidating `ok()`;
 - embedded child mutation remaining detectable even if the caller recomputes the public top-level output hash;
+- padding mutation invalidating writer authority;
 - immutable/non-aggregate child capability and child receipt type boundaries;
 - invalid/mutated runtime-synth results rejected by the typed writer-child factory;
-- two consecutive size-changing container levels: child runtime-synth result -> verified child capability -> parent runtime-synth result;
-- parent receipt and parent embedded span remaining bound to the exact child output SHA/bytes.
+- consecutive size-changing container levels with typed complete-image authority.
 
 ## Still open
 
 - representative real child-to-slot linkage authority for size-changing nested authoring;
 - broad real DMC3 intrinsic-byte providers;
 - representative real `.lst` corpus receipt;
-- real size-changing resource round-trip receipt on representative game resources;
-- controlled original-game consumption receipt;
+- final original failure-propagation reconciliation for malformed/truncated/enqueue-failure paths;
+- controlled real size-changing resource round-trip and original-game consumption receipt;
 - Capcom offline packer behavior/equivalence.
+
+Layer 1 remains **INCOMPLETE / NOT 100%** until those evidence gates are closed.

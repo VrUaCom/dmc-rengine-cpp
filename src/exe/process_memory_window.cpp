@@ -63,6 +63,11 @@ private:
     HANDLE handle_{};
 };
 
+[[nodiscard]] std::uint64_t filetime_to_u64(const FILETIME& value) noexcept {
+    return (static_cast<std::uint64_t>(value.dwHighDateTime) << 32U) |
+        static_cast<std::uint64_t>(value.dwLowDateTime);
+}
+
 [[nodiscard]] std::wstring normalized_windows_path(
     const std::filesystem::path& path) {
     std::error_code error;
@@ -116,7 +121,8 @@ private:
 } // namespace
 
 bool ProcessMemoryWindow::valid() const noexcept {
-    if (pid == 0U || image_path.empty() || module_base == 0U || bytes.empty() ||
+    if (pid == 0U || process_creation_filetime == 0U || image_path.empty() ||
+        module_base == 0U || bytes.empty() ||
         bytes.size() > k_max_process_memory_window_size) {
         return false;
     }
@@ -149,6 +155,32 @@ ProcessMemoryWindowResult capture_main_module_window(
             .error = ProcessMemoryWindowError::open_process_failed,
             .message = win32_error_message(
                 "OpenProcess failed", GetLastError()),
+        };
+    }
+
+    FILETIME creation_time{};
+    FILETIME exit_time{};
+    FILETIME kernel_time{};
+    FILETIME user_time{};
+    if (GetProcessTimes(
+            process.get(),
+            &creation_time,
+            &exit_time,
+            &kernel_time,
+            &user_time) == FALSE) {
+        return {
+            .window = std::nullopt,
+            .error = ProcessMemoryWindowError::process_time_failed,
+            .message = win32_error_message(
+                "GetProcessTimes failed", GetLastError()),
+        };
+    }
+    const auto process_creation_filetime = filetime_to_u64(creation_time);
+    if (process_creation_filetime == 0U) {
+        return {
+            .window = std::nullopt,
+            .error = ProcessMemoryWindowError::process_time_failed,
+            .message = "GetProcessTimes returned a zero creation FILETIME.",
         };
     }
 
@@ -239,6 +271,7 @@ ProcessMemoryWindowResult capture_main_module_window(
 
     ProcessMemoryWindow window{
         .pid = pid,
+        .process_creation_filetime = process_creation_filetime,
         .image_path = process_image_path,
         .module_base = module_base,
         .rva = rva,
