@@ -26,7 +26,7 @@ namespace {
         return "exe";
     }
     if (format == "name-list") {
-        return "txt";
+        return "index";
     }
     return std::string{format};
 }
@@ -225,7 +225,7 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
             // A sealed embedded-name-list observation is structural semantic
             // evidence. Preserve it when .index is applied later so call order
             // cannot turn the proven name-list back into a misleading .ukn.
-            display_extension = "txt";
+            display_extension = canonical_extension("name-list");
             semantic_format = "name-list";
             evidence_kind = IndexDisplayEvidenceKind::embedded_name_list_format;
         } else if (profile_resolver != nullptr) {
