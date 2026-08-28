@@ -7,6 +7,7 @@
 #include <cctype>
 #include <span>
 #include <string_view>
+#include <unordered_set>
 #include <utility>
 
 namespace dmc::rengine::gdspaces {
@@ -88,11 +89,18 @@ bool ResourceNamingIdentity::valid() const noexcept {
         semantic_format.empty()) {
         return false;
     }
-    if (external_index_name.has_value() != extracted_ordinal.has_value() ||
-        external_index_raw_label.has_value() != external_index_name.has_value()) {
+    if (external_index_raw_label.has_value() != external_index_name.has_value()) {
+        return false;
+    }
+    if (external_index_name.has_value() && !extracted_ordinal.has_value()) {
         return false;
     }
     if (external_index_folder && !external_index_name.has_value()) {
+        return false;
+    }
+    if (!populated &&
+        (extracted_ordinal.has_value() || external_index_name.has_value() ||
+         external_index_raw_label.has_value() || external_index_folder)) {
         return false;
     }
     return true;
@@ -110,11 +118,48 @@ bool ContainerNamingIdentitySnapshot::ok() const noexcept {
         !valid_container_index_evidence(*external_index_evidence)) {
         return false;
     }
-    return std::all_of(
-        children.begin(), children.end(),
-        [](const ResourceNamingIdentity& identity) {
-            return identity.valid();
+
+    std::size_t expected_ordinal = 0U;
+    std::size_t external_count = 0U;
+    std::unordered_set<std::uint32_t> physical_slots;
+    physical_slots.reserve(children.size());
+
+    std::vector<const ResourceNamingIdentity*> ordered;
+    ordered.reserve(children.size());
+    for (const auto& identity : children) {
+        if (!identity.valid() ||
+            !physical_slots.insert(identity.physical_slot_index).second) {
+            return false;
+        }
+        ordered.push_back(&identity);
+    }
+    std::sort(
+        ordered.begin(), ordered.end(),
+        [](const ResourceNamingIdentity* left,
+           const ResourceNamingIdentity* right) {
+            return left->physical_slot_index < right->physical_slot_index;
         });
+
+    for (const auto* identity : ordered) {
+        if (!identity->populated) {
+            continue;
+        }
+        if (!identity->extracted_ordinal.has_value() ||
+            *identity->extracted_ordinal != expected_ordinal) {
+            return false;
+        }
+        if (identity->external_index_name.has_value()) {
+            ++external_count;
+        }
+        ++expected_ordinal;
+    }
+
+    if (external_index_evidence.has_value() &&
+        (external_count != expected_ordinal ||
+         external_count != external_index_evidence->entry_count)) {
+        return false;
+    }
+    return true;
 }
 
 ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
@@ -295,6 +340,54 @@ ContainerNamingIdentitySnapshot ResourceNamingIdentityBuilder::build(
             return result;
         }
         result.children.push_back(std::move(*built.identity));
+    }
+
+    std::vector<ResourceNamingIdentity*> ordered;
+    ordered.reserve(result.children.size());
+    std::unordered_set<std::uint32_t> physical_slots;
+    physical_slots.reserve(result.children.size());
+    for (auto& identity : result.children) {
+        if (!physical_slots.insert(identity.physical_slot_index).second) {
+            add_error(
+                result.diagnostics,
+                identity.resource_id,
+                "gdspaces.naming-identity.duplicate-physical-slot",
+                "Container naming identity requires unique physical slot indices.");
+            return result;
+        }
+        ordered.push_back(&identity);
+    }
+    std::sort(
+        ordered.begin(), ordered.end(),
+        [](const ResourceNamingIdentity* left,
+           const ResourceNamingIdentity* right) {
+            return left->physical_slot_index < right->physical_slot_index;
+        });
+
+    std::size_t ordinal = 0U;
+    for (auto* identity : ordered) {
+        if (!identity->populated) {
+            continue;
+        }
+        if (identity->extracted_ordinal.has_value() &&
+            *identity->extracted_ordinal != ordinal) {
+            add_error(
+                result.diagnostics,
+                identity->resource_id,
+                "gdspaces.naming-identity.external-ordinal-mismatch",
+                "External .index ordinal disagrees with the populated physical payload sequence.");
+            return result;
+        }
+        identity->extracted_ordinal = ordinal;
+        ++ordinal;
+    }
+
+    if (!result.ok()) {
+        add_error(
+            result.diagnostics,
+            expansion.parent.id,
+            "gdspaces.naming-identity.invalid-final-snapshot",
+            "Derived extracted ordinals or external naming context violate the recovered naming model.");
     }
     return result;
 }
