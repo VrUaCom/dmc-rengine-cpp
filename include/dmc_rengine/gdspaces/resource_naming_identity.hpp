@@ -45,6 +45,7 @@ struct ResourceNamingIdentityBuildResult final {
 
 struct ContainerNamingIdentitySnapshot final {
     ResourceId parent_resource;
+    std::optional<ContainerIndexNamingEvidence> external_index_evidence;
     std::vector<ResourceNamingIdentity> children;
     std::vector<Diagnostic> diagnostics;
 
