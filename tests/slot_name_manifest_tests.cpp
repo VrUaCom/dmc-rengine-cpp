@@ -128,9 +128,16 @@ void a_manifest_name_is_attributed_never_asserted() {
     assert(expansion.children.size() == 3U);
 
     // The manifest itself: text, named by its own bytes, attributed to nothing
-    // else. A manifest never names the slot it occupies.
+    // else. A manifest never names the slot it occupies — but it is the slot
+    // that explains all the others, so it is named for what it is rather than
+    // hidden behind a generic text suffix. This is the file an unpacked folder
+    // carries as `.index`.
     const auto& zero = expansion.children[0];
     assert(zero.name_attribution.origin == SlotNameOrigin::byte_derived_suffix);
+    assert(zero.payload.resource.display_name == "slot_0000.index");
+    // The format is untouched: it is text, and recognizing what it holds does
+    // not change what it is.
+    assert(zero.payload.resource.format == "txt");
 
     // Line 0 names slot 1, and the payload's own tag agrees with the
     // extension. That agreement is recorded; it still is not proof.
@@ -138,8 +145,19 @@ void a_manifest_name_is_attributed_never_asserted() {
     assert(one.name_attribution.origin == SlotNameOrigin::container_manifest);
     assert(one.name_attribution.name == "thing.scm");
     assert(one.name_attribution.corroborated_by_payload);
-    // The identity and the display name are untouched by the attribution.
-    assert(one.payload.resource.display_name == "slot_0001.scm");
+    // A corroborated line becomes the display name.
+    //
+    // This assertion used to require the opposite — that the display name stay
+    // `slot_0001.scm` and the manifest line live only in the attribution. That
+    // was defensible in the abstract and wrong on screen: an operator saw a
+    // name this tool invented sitting beside a container that says
+    // `thing.scm` and a payload that agrees, and asked why the names do not
+    // match. They were right. A name someone wrote and the payload confirms
+    // beats a name we made up.
+    assert(one.payload.resource.display_name == "thing.scm");
+    // It is no longer a name this parser synthesized, and says so.
+    assert(!one.payload.resource.synthetic_name);
+    // The identity is still untouched — only the display name moved.
     assert(one.payload.resource.id.logical_path.find("slot-0001") !=
         std::string::npos);
 
@@ -151,6 +169,12 @@ void a_manifest_name_is_attributed_never_asserted() {
     assert(two.name_attribution.name == "thing.hits");
     assert(!two.name_attribution.corroborated_by_payload);
     assert(two.payload.resource.format == "lig2");
+    // And an uncorroborated line does *not* become the display name. An
+    // unconfirmed name presented as the name is the failure this whole
+    // attribution channel exists to prevent, so the placeholder stands and the
+    // claim stays visible beside it.
+    assert(two.payload.resource.display_name == "slot_0002.lig2");
+    assert(two.payload.resource.synthetic_name);
 }
 
 void a_container_without_a_manifest_attributes_nothing() {

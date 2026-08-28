@@ -301,10 +301,39 @@ ContainerExpansion ContainerExpander::expand(
                     attribution.origin = SlotNameOrigin::byte_derived_suffix;
                 }
 
-                // A manifest line, where one exists for this slot. It replaces
-                // the attributed name and nothing else: the identity and the
-                // display name stay as they were, so an operator sees both what
-                // the container calls this slot and what the tool does.
+                // Slot 0, when it holds the name list, is the index — that is
+                // exactly the file an unpacked folder carries as `.index`, and
+                // calling it `slot_0000.txt` hides the one slot that explains
+                // all the others. The suffix says what it is; the format stays
+                // `txt`, because it is text and nothing about that changed.
+                if (!manifest.empty() &&
+                    entry.slot_index == SlotNameManifest::k_manifest_slot) {
+                    auto named = child_ref.display_name;
+                    const auto dot = named.rfind('.');
+                    if (dot != std::string::npos) {
+                        named.erase(dot);
+                    }
+                    named.append(SlotNameManifest::k_sidecar_extension);
+                    child_ref.display_name = named;
+                    attribution.name = named;
+                    attribution.origin = SlotNameOrigin::byte_derived_suffix;
+                }
+
+                // A manifest line, where one exists for this slot.
+                //
+                // Where the payload's independently read type agrees with it,
+                // the line also becomes the display name. It has to: the
+                // alternative on screen was `slot_0001.ptx` — a name this tool
+                // invented — sitting beside a container that says `st001.ptx`
+                // and a payload that agrees. Showing the invention there is
+                // strictly worse, and it is what made an operator ask why the
+                // names do not match.
+                //
+                // Where it does not corroborate, the placeholder stays the
+                // display name and the line stays in the attribution, because
+                // an unconfirmed name presented as the name is the failure
+                // this project keeps undoing. The identity never changes
+                // either way.
                 if (entry.slot_index > SlotNameManifest::k_manifest_slot) {
                     const auto line = static_cast<std::size_t>(
                         entry.slot_index - SlotNameManifest::k_manifest_slot - 1U);
@@ -326,6 +355,11 @@ ContainerExpansion ContainerExpander::expand(
                                     SlotNameManifest::extension_of(
                                         attribution.name),
                                     classification.format);
+                        if (attribution.corroborated_by_payload) {
+                            child_ref.display_name = attribution.name;
+                            // The name is no longer one this parser made up.
+                            child_ref.synthetic_name = false;
+                        }
                     }
                 }
             }

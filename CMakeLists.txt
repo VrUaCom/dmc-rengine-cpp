@@ -98,6 +98,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         classifier_registry_agreement
         effect_pack_names
         slot_zero_manifest_authority
+        index_sidecar_manifest
         resource_lookup_policy
         recovered_exe_contract
         source_lookup
