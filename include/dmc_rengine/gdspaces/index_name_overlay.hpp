@@ -35,6 +35,7 @@ public:
     [[nodiscard]] std::string_view index_name() const noexcept;
     [[nodiscard]] std::size_t manifest_line() const noexcept;
     [[nodiscard]] std::string_view semantic_format() const noexcept;
+    [[nodiscard]] std::string_view canonical_extension() const noexcept;
     [[nodiscard]] IndexDisplayEvidenceKind evidence_kind() const noexcept;
 
 private:
@@ -49,6 +50,7 @@ private:
         std::string index_name,
         std::size_t manifest_line,
         std::string semantic_format,
+        std::string canonical_extension,
         IndexDisplayEvidenceKind evidence_kind);
 
     std::uint32_t slot_index_{};
@@ -59,6 +61,7 @@ private:
     std::string index_name_;
     std::size_t manifest_line_{};
     std::string semantic_format_;
+    std::string canonical_extension_;
     IndexDisplayEvidenceKind evidence_kind_{
         IndexDisplayEvidenceKind::index_source_extension};
 };
