@@ -220,6 +220,20 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "tm2",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = gdspaces::StageResourceCategory::textures,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "PlayStation 2 texture format. The runtime reads one at 0x1403365B0, comparing the whole dword TM2\\0 at offset zero including the NUL.",
+                "Recognized by magic only. +0x08 is a base-relative data offset; nothing beyond that is read, and no TM2 file exists in any supplied corpus.",
+                "On a magic mismatch the reader reports fallback dimensions rather than an error, so a mismatch is never announced by the runtime.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "dds",
             .parser_id = "dmc3.dds-profile",
             .maturity = IntegrationMaturity::structural,
@@ -360,7 +374,9 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .stage_category = gdspaces::StageResourceCategory::unknown,
             .evidence_claim_ids = {},
             .limitations = {
-                "Identified by extension in the recovered runtime, which carries no magic to confirm it from bytes alone.",
+                "Identified as ClothSim1D: the parser at 0x1402C8D2D compares the file's first token for equality against that literal and bails when it differs, so this is a text format that names itself.",
+                "Its keyword vocabulary is cloth simulation - Gravity, SpringForce, Damping, MaxSpeed, FloorLevel, ClothNo, Wind, WindLocal, WindParent, Stiffness, WindType, LimitLength, Bone, NX, NY, NZ, ClothNum - recovered from the pool at 0x1405067F8.",
+                "The vocabulary is recovered and the grammar is not. No .c1d file exists in any supplied corpus.",
             },
         },
         FormatIntegrationDescriptor{
@@ -457,7 +473,7 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .maturity = IntegrationMaturity::recognized,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
-            .stage_category = gdspaces::StageResourceCategory::unknown,
+            .stage_category = gdspaces::StageResourceCategory::animations,
             .evidence_claim_ids = {},
             .limitations = {
                 "Typed by extension in the recovered animation registry.",
@@ -470,7 +486,7 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .maturity = IntegrationMaturity::recognized,
             .write_policy = ResourceWritePolicy::read_only,
             .binary_adapter = false,
-            .stage_category = gdspaces::StageResourceCategory::unknown,
+            .stage_category = gdspaces::StageResourceCategory::animations,
             .evidence_claim_ids = {},
             .limitations = {
                 "Typed by extension in the recovered animation registry.",
