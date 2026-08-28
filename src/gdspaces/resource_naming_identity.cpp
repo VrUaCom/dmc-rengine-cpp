@@ -20,6 +20,22 @@ namespace {
         });
 }
 
+[[nodiscard]] bool valid_digest(std::string_view digest) noexcept {
+    return digest.size() == 64U && std::all_of(
+        digest.begin(), digest.end(),
+        [](unsigned char character) {
+            return std::isxdigit(character) != 0;
+        });
+}
+
+[[nodiscard]] bool valid_container_index_evidence(
+    const ContainerIndexNamingEvidence& evidence) noexcept {
+    return evidence.manifest_resource.valid() &&
+        valid_digest(evidence.manifest_sha256) &&
+        evidence.entry_count > 0U &&
+        (evidence.directive.empty() || evidence.directive == "PNST");
+}
+
 void add_error(
     std::vector<Diagnostic>& diagnostics,
     const ResourceId& resource,
@@ -87,12 +103,18 @@ bool ResourceNamingIdentityBuildResult::ok() const noexcept {
 }
 
 bool ContainerNamingIdentitySnapshot::ok() const noexcept {
-    return parent_resource.valid() && !has_error(diagnostics) &&
-        std::all_of(
-            children.begin(), children.end(),
-            [](const ResourceNamingIdentity& identity) {
-                return identity.valid();
-            });
+    if (!parent_resource.valid() || has_error(diagnostics)) {
+        return false;
+    }
+    if (external_index_evidence.has_value() &&
+        !valid_container_index_evidence(*external_index_evidence)) {
+        return false;
+    }
+    return std::all_of(
+        children.begin(), children.end(),
+        [](const ResourceNamingIdentity& identity) {
+            return identity.valid();
+        });
 }
 
 ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
@@ -244,12 +266,22 @@ ContainerNamingIdentitySnapshot ResourceNamingIdentityBuilder::build(
     const ContainerExpansion& expansion) {
     ContainerNamingIdentitySnapshot result;
     result.parent_resource = expansion.parent.id;
+    result.external_index_evidence = expansion.external_index_evidence;
     if (!expansion.usable()) {
         add_error(
             result.diagnostics,
             expansion.parent.id,
             "gdspaces.naming-identity.invalid-expansion",
             "Container naming snapshot requires a usable physical expansion.");
+        return result;
+    }
+    if (result.external_index_evidence.has_value() &&
+        !valid_container_index_evidence(*result.external_index_evidence)) {
+        add_error(
+            result.diagnostics,
+            expansion.parent.id,
+            "gdspaces.naming-identity.invalid-container-index-evidence",
+            "Container-level external .index context is incomplete or malformed.");
         return result;
     }
 
