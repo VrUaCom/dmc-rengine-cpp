@@ -444,11 +444,14 @@ int main() {
         gdspaces::IndexManifestParser::parse(duplicate_index);
     assert(duplicate_manifest.ok());
     auto duplicate_expansion = sparse_pnst_expansion();
+    duplicate_expansion.children[1] = duplicate_expansion.children[2];
     duplicate_expansion.children.resize(2U);
     duplicate_expansion.children[0].entry.slot_index = 0U;
     duplicate_expansion.children[1].entry.slot_index = 1U;
     duplicate_expansion.children[1].payload.resource.id.logical_path =
         "GData.afs/em000.pac::PNST/slot-0001";
+    duplicate_expansion.children[1].payload.resource.id.container_chain =
+        "nbz[4]/PNST[3]/PNST[1]";
     const auto duplicate_binding = gdspaces::IndexSlotNameBinder::bind(
         duplicate_expansion, *duplicate_manifest.manifest);
     assert(duplicate_binding.ok());
