@@ -28,6 +28,7 @@ enum class IndexDisplayEvidenceKind : unsigned char {
 class IndexNameOverlayEntry final {
 public:
     [[nodiscard]] std::uint32_t slot_index() const noexcept;
+    [[nodiscard]] std::size_t extracted_ordinal() const noexcept;
     [[nodiscard]] const ResourceId& child_resource() const noexcept;
     [[nodiscard]] std::string_view display_name() const noexcept;
     [[nodiscard]] std::string_view raw_index_label() const noexcept;
@@ -41,6 +42,7 @@ private:
 
     IndexNameOverlayEntry(
         std::uint32_t slot_index,
+        std::size_t extracted_ordinal,
         ResourceId child_resource,
         std::string display_name,
         std::string raw_index_label,
@@ -50,6 +52,7 @@ private:
         IndexDisplayEvidenceKind evidence_kind);
 
     std::uint32_t slot_index_{};
+    std::size_t extracted_ordinal_{};
     ResourceId child_resource_;
     std::string display_name_;
     std::string raw_index_label_;

@@ -30,7 +30,8 @@ ResourceNameEvidence::ResourceNameEvidence(
     std::string normalized_name,
     std::uint32_t physical_slot_index,
     std::optional<std::size_t> source_line,
-    std::optional<std::uint64_t> source_offset)
+    std::optional<std::uint64_t> source_offset,
+    std::optional<std::size_t> extracted_ordinal)
     : kind_(kind),
       mapping_mode_(mapping_mode),
       authority_resource_(std::move(authority_resource)),
@@ -39,7 +40,8 @@ ResourceNameEvidence::ResourceNameEvidence(
       normalized_name_(std::move(normalized_name)),
       physical_slot_index_(physical_slot_index),
       source_line_(source_line),
-      source_offset_(source_offset) {}
+      source_offset_(source_offset),
+      extracted_ordinal_(extracted_ordinal) {}
 
 ResourceNameEvidenceKind ResourceNameEvidence::kind() const noexcept {
     return kind_;
@@ -77,6 +79,10 @@ const std::optional<std::uint64_t>& ResourceNameEvidence::source_offset() const 
     return source_offset_;
 }
 
+const std::optional<std::size_t>& ResourceNameEvidence::extracted_ordinal() const noexcept {
+    return extracted_ordinal_;
+}
+
 bool ResourceNameEvidence::valid() const noexcept {
     if (!authority_resource_.valid() || !valid_digest(authority_sha256_) ||
         raw_label_.empty() || normalized_name_.empty()) {
@@ -86,12 +92,13 @@ bool ResourceNameEvidence::valid() const noexcept {
     switch (kind_) {
     case ResourceNameEvidenceKind::external_index:
         return source_line_.has_value() && *source_line_ > 0U &&
-               !source_offset_.has_value() &&
+               !source_offset_.has_value() && extracted_ordinal_.has_value() &&
                (mapping_mode_ == ResourceNameMappingMode::physical_position ||
                 mapping_mode_ == ResourceNameMappingMode::populated_slot_sequence);
     case ResourceNameEvidenceKind::embedded_alias:
         return physical_slot_index_ > 0U &&
                !source_line_.has_value() && source_offset_.has_value() &&
+               !extracted_ordinal_.has_value() &&
                *source_offset_ < authority_resource_.size &&
                mapping_mode_ == ResourceNameMappingMode::embedded_alias_sequence;
     }
