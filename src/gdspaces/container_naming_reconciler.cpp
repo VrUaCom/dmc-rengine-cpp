@@ -176,6 +176,13 @@ void add_error(
     return true;
 }
 
+[[nodiscard]] std::string manifest_directive_text(
+    IndexContainerDirective directive) {
+    return directive == IndexContainerDirective::pnst_non_empty_slots
+        ? std::string{"PNST"}
+        : std::string{};
+}
+
 } // namespace
 
 bool ContainerNamingReconcileResult::ok() const noexcept {
@@ -266,6 +273,13 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
         if (!manifest.ok()) {
             return result;
         }
+
+        staged.external_index_evidence = ContainerIndexNamingEvidence{
+            .manifest_resource = manifest.manifest->source(),
+            .manifest_sha256 = std::string{manifest.manifest->observed_sha256()},
+            .directive = manifest_directive_text(manifest.manifest->directive()),
+            .entry_count = manifest.manifest->entries().size(),
+        };
 
         const auto binding = IndexSlotNameBinder::bind(
             staged, *manifest.manifest);
