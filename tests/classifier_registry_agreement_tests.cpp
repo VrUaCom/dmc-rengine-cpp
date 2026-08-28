@@ -127,6 +127,43 @@ void the_naming_commands_reach_registered_formats() {
 // The published format reference states these counts. A doc that drifts from
 // the registry is worse than no doc, because a reader trusts it.
 // docs/formats/README.md, "Current integration state".
+// The extensions this project actually meets in a real unpacked tree must all
+// resolve, or the tree labels a resource with a format nothing can describe.
+//
+// This is not a claim that every extension resolves — the classifier falls back
+// to the path, so any extension at all becomes a format string. It is a claim
+// about the ones we know we will meet.
+void the_extensions_we_meet_are_all_registered() {
+    const integration::FormatIntegrationRegistry registry;
+    for (const auto* path : {
+             "GData.afs/st001_000.index",  // our own unpacking sidecar
+             "GData.afs/st001.lst",        // the runtime's loose container
+             "GData.afs/st001.sch",        // the manifest's name for a HITS slot
+             "GData.afs/st001.pac",
+             "GData.afs/pl000.mot",
+         }) {
+        const auto classified = gdspaces::ResourceClassifier::classify(path);
+        assert(registry.find(classified.format) != nullptr);
+    }
+}
+
+// `.index` is ours and `.lst` is the game's. Recording which is which in the
+// registry is what stops a later reader treating a sidecar as authority.
+void the_sidecar_is_not_the_runtime_mechanism() {
+    const integration::FormatIntegrationRegistry registry;
+    const auto* sidecar = registry.find("index");
+    const auto* loose = registry.find("lst");
+    assert(sidecar != nullptr);
+    assert(loose != nullptr);
+    // Nothing parses a sidecar: reading one back would be reading back our own
+    // decision as evidence.
+    assert(sidecar->parser_id.empty());
+    assert(sidecar->maturity == integration::IntegrationMaturity::recognized);
+    // The loose container is a recovered runtime mechanism and does have one.
+    assert(!loose->parser_id.empty());
+    assert(loose->maturity != integration::IntegrationMaturity::recognized);
+}
+
 void the_published_counts_match_the_registry() {
     const integration::FormatIntegrationRegistry registry;
     std::size_t structural = 0U;
@@ -140,9 +177,9 @@ void the_published_counts_match_the_registry() {
         default: break;
         }
     }
-    assert(registry.formats().size() == 32U);
-    assert(structural == 17U);
-    assert(recognized == 15U);
+    assert(registry.formats().size() == 35U);
+    assert(structural == 18U);
+    assert(recognized == 17U);
     // Nothing has reached semantic. When one does, this fails and the
     // reference gets updated with it.
     assert(semantic == 0U);
@@ -152,6 +189,8 @@ void the_published_counts_match_the_registry() {
 
 int main() {
     the_published_counts_match_the_registry();
+    the_extensions_we_meet_are_all_registered();
+    the_sidecar_is_not_the_runtime_mechanism();
     every_byte_derived_verdict_is_registered();
     every_animation_kind_is_registered();
     maturity_and_parser_agree();

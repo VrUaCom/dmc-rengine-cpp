@@ -239,6 +239,53 @@ but because the executable does not contain the thing being looked for.
 
 ---
 
+## Naming: five different things, and only one the game reads
+
+These are routinely conflated, and each is a different claim:
+
+```
+runtime semantic name   ≠   .lst loose member name
+                        ≠   slot 0 build manifest
+                        ≠   physical PAC slot
+                        ≠   detected binary format
+```
+
+### `LST` — the only container-side name the game itself reads
+The runtime's loose alternative to a packed container. The representation
+selector at `0x1401B79E0` prefers the exact packed `.pac` and rewrites the
+extension to lowercase `lst` **only when the packed one is absent**, so it is a
+fallback and never an override. A `dummy` token occupies a declared slot and
+carries no payload. *Recovered.*
+→ [`dmc3-loose-container-list.md`](../gdspaces/dmc3-loose-container-list.md)
+
+### Slot 0's manifest — build metadata, proven
+`st001.pac` slot 0 carries `st001.ptx / st001.scm / st001.sch`. The runtime
+**reaches** slot 0 — the walk starts there — hands it to the dispatcher, and
+the dispatcher recognizes nothing in it and returns.
+
+`.sch` occurs **zero** times in the executable in any case; `.scm` occurs zero
+times as a string, `SCM` being only ever the three-byte magic; and none of the
+three names is constructible. Only `.ptx` resolves anywhere, which is why the
+manifest looked authoritative — one line of three is not a naming system.
+
+Still read and shown here, attributed as the container's own text. The proof
+changes its authority, not its accuracy.
+→ [`dmc3-slot-zero-manifest-authority-2026-08-28.md`](../gdspaces/dmc3-slot-zero-manifest-authority-2026-08-28.md)
+
+### `INDEX` — ours, not the game's
+Extraction and tooling metadata. The literal `.index` occurs **zero** times in
+the executable in any case and no format string can construct it, so the
+original game cannot name such a file at all. This project *writes* one as an
+unpacking sidecar and parses none — reading a sidecar back as naming authority
+would be reading back our own decision as evidence.
+
+### `SCH` — an authoring extension, not a runtime one
+The name a stage manifest gives the slot holding a `HITS` record, in both
+corpus files. It has no entry in either type registry, so a name ending `.sch`
+types nothing.
+
+---
+
 ## The archive name catalogue
 
 `0x140553050` holds **4,039 consecutive pointers** naming every archive the
@@ -257,7 +304,7 @@ says so with `catalog_read_site_found = false`.
 
 ## Current integration state
 
-32 formats registered: **17 structural, 15 recognized, 0 semantic**.
+35 formats registered: **18 structural, 17 recognized, 0 semantic**.
 
 The ladder is recognized → structural → semantic → editable → exportable.
 Nothing has reached semantic, and the honest reason is usually the same one:
