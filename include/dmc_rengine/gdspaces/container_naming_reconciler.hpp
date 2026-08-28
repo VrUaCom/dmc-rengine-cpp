@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/gdspaces/container_expander.hpp"
+#include "dmc_rengine/gdspaces/index_name_overlay.hpp"
 
 #include <vector>
 
@@ -23,7 +24,8 @@ class ContainerNamingReconciler final {
 public:
     [[nodiscard]] static ContainerNamingReconcileResult reconcile(
         ContainerExpansion& expansion,
-        const ResourcePayload* external_index = nullptr);
+        const ResourcePayload* external_index = nullptr,
+        IndexProfileDisplayResolver profile_resolver = nullptr);
 };
 
 } // namespace dmc::rengine::gdspaces
