@@ -110,6 +110,72 @@ namespace {
     return expansion;
 }
 
+[[nodiscard]] dmc::rengine::gdspaces::ContainerExpansion sparse_pac_fixture() {
+    namespace formats = dmc::rengine::formats;
+    namespace gdspaces = dmc::rengine::gdspaces;
+
+    const gdspaces::ResourceRef parent{
+        .id = gdspaces::ResourceId{
+            .source_id = "sparse-pac-source",
+            .logical_path = "em035_037.pac",
+            .container_chain = {},
+            .offset = 0U,
+            .size = 0x80U,
+        },
+        .display_name = "em035_037.pac",
+        .format = "pac",
+        .profile = "dmc3-hd",
+        .synthetic_name = false,
+        .container = true,
+    };
+
+    gdspaces::ContainerExpansion expansion{
+        .parent = parent,
+        .parser_format = "PAC",
+        .children = {},
+        .diagnostics = {},
+    };
+
+    for (std::uint32_t slot = 0U; slot < 3U; ++slot) {
+        const bool populated = slot != 1U;
+        const auto size = populated ? 4U : 0U;
+        expansion.children.push_back(gdspaces::ContainerChild{
+            .entry = formats::ContainerEntry{
+                .slot_index = slot,
+                .offset = populated ? 0x20U + slot * 0x10U : 0U,
+                .size = size,
+                .logical_name = "slot_000" + std::to_string(slot) + ".bin",
+                .populated = populated,
+                .synthetic_name = true,
+            },
+            .payload = gdspaces::ResourcePayload{
+                .resource = gdspaces::ResourceRef{
+                    .id = gdspaces::ResourceId{
+                        .source_id = parent.id.source_id,
+                        .logical_path = "em035_037.pac::PAC/slot-000" +
+                            std::to_string(slot),
+                        .container_chain = "PAC[" + std::to_string(slot) + "]",
+                        .offset = populated ? 0x20U + slot * 0x10U : 0U,
+                        .size = size,
+                    },
+                    .display_name = "slot_000" + std::to_string(slot) + ".bin",
+                    .format = populated ? "bin" : "empty-slot",
+                    .profile = "dmc3-hd",
+                    .synthetic_name = true,
+                    .container = false,
+                },
+                .bytes = populated
+                    ? std::vector<std::byte>(4U, static_cast<std::byte>(slot + 1U))
+                    : std::vector<std::byte>{},
+                .diagnostics = {},
+                .byte_provenance = std::nullopt,
+                .name_evidence = {},
+            },
+        });
+    }
+    return expansion;
+}
+
 void apply_index(
     dmc::rengine::gdspaces::ContainerExpansion& expansion,
     const dmc::rengine::gdspaces::ResourcePayload& index) {
@@ -161,6 +227,8 @@ int main() {
     assert(first_external.source_line().has_value());
     assert(*first_external.source_line() == 1U);
     assert(!first_external.source_offset().has_value());
+    assert(first_external.extracted_ordinal().has_value());
+    assert(*first_external.extracted_ordinal() == 0U);
     const auto first_hash = std::string{first_external.authority_sha256()};
 
     // Replacing the active external manifest must replace, not accumulate,
@@ -185,6 +253,52 @@ int main() {
     assert(renamed_external.physical_slot_index() == 0U);
     assert(renamed_external.source_line().has_value());
     assert(*renamed_external.source_line() == 1U);
+    assert(renamed_external.extracted_ordinal().has_value());
+    assert(*renamed_external.extracted_ordinal() == 0U);
+
+    // Corpus correction: sparse PAC manifests use the same dense extraction
+    // ordinal sequence observed for PNST. The .index does not name empty
+    // physical slots and does not require a PNST directive to skip them.
+    auto sparse = sparse_pac_fixture();
+    assert(sparse.usable());
+    const auto sparse_index = index_payload(
+        "em035_037_000.mod\nem035_037_001.mod\n");
+    const auto sparse_manifest = gdspaces::IndexManifestParser::parse(sparse_index);
+    assert(sparse_manifest.ok());
+    assert(
+        sparse_manifest.manifest->directive() ==
+        gdspaces::IndexContainerDirective::none);
+    const auto sparse_binding = gdspaces::IndexSlotNameBinder::bind(
+        sparse, *sparse_manifest.manifest);
+    assert(sparse_binding.ok());
+    assert(
+        sparse_binding.binding->mapping_mode() ==
+        gdspaces::IndexSlotMappingMode::populated_slot_sequence);
+    assert(sparse_binding.binding->authorities().size() == 2U);
+    assert(sparse_binding.binding->authorities()[0].slot_index() == 0U);
+    assert(sparse_binding.binding->authorities()[0].extracted_ordinal() == 0U);
+    assert(sparse_binding.binding->authorities()[1].slot_index() == 2U);
+    assert(sparse_binding.binding->authorities()[1].extracted_ordinal() == 1U);
+
+    const auto sparse_overlay = gdspaces::IndexNameOverlayBuilder::build(
+        sparse, *sparse_binding.binding);
+    assert(sparse_overlay.ok());
+    assert(sparse_overlay.overlay->entries()[1].slot_index() == 2U);
+    assert(sparse_overlay.overlay->entries()[1].extracted_ordinal() == 1U);
+    const auto sparse_applied = gdspaces::IndexNameOverlayBuilder::apply(
+        sparse, *sparse_overlay.overlay);
+    assert(sparse_applied.ok());
+    assert(sparse.children[1].payload.name_evidence.empty());
+    assert(sparse.children[2].payload.name_evidence.size() == 1U);
+    const auto& sparse_second = sparse.children[2].payload.name_evidence.front();
+    assert(sparse_second.valid());
+    assert(
+        sparse_second.mapping_mode() ==
+        gdspaces::ResourceNameMappingMode::populated_slot_sequence);
+    assert(sparse_second.physical_slot_index() == 2U);
+    assert(sparse_second.extracted_ordinal().has_value());
+    assert(*sparse_second.extracted_ordinal() == 1U);
+    assert(sparse_second.normalized_name() == "em035_037_001.mod");
 
     // ResourceNameEvidence cannot be aggregate-constructed by arbitrary callers;
     // only the sealed index overlay builder (and a future dedicated embedded-name
