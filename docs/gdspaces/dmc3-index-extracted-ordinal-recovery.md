@@ -108,13 +108,25 @@ The same corpus contains 71 `folder` entries. All 71 materialize as nested direc
 
 This is strong evidence that `folder` in this retained extraction corpus marks a recursively materialized texture-bundle representation. It is not part of the filename and is not a physical slot locator. This semantic is documented here as corpus evidence but is not used by Pass 7 to redirect physical identity.
 
-## Exact extractor provenance
+## Extractor lineage provenance
 
-The public DMC3 HDC modding trail strongly points to the legacy Python 2 `ex.py` / “Pac tool update 7” workflow as the producer family for this extraction convention. The exact script revision that produced the retained corpus has not yet been code-level matched.
+The public modding trail supports a more specific lineage than the earlier generic `ex.py` attribution:
 
-Status: **STRONG PROVENANCE CANDIDATE, NOT CONFIRMED**.
+1. **jamesuminator** authored the original DMC3 tools used to read, extract and repack the older DMC3 resource containers;
+2. for **Devil May Cry HD Collection**, public community history states that **ChebuRat0r modified those original jamesuminator tools to work with the HDC “new” files**;
+3. HDC tutorials still refer to the resulting Python 2 workflow as “Pac tool update 7” / James tooling and show the same folder + `.ukn` style of extraction.
 
-Do not turn that attribution into a canonical fact until the exact extractor implementation is recovered and its numbering / `.index` / `folder` behavior is matched against the corpus.
+This lineage is consistent with the retained HDC corpus, including DDS-based texture bundles, but the exact script/archive revision that produced the retained stage drops has not yet been code-level recovered and matched.
+
+Status:
+
+```text
+Jamesuminator original PAC-tool lineage          SUPPORTED
+ChebuRat0r HDC adaptation of that lineage        SUPPORTED BY PUBLIC COMMUNITY HISTORY
+exact extractor revision for retained corpus     NOT CONFIRMED
+```
+
+Do not collapse these levels into the claim that the retained corpus was produced by an unchanged original James script. Exact producer attribution remains blocked until the HDC-adapted implementation is recovered and its numbering / `.index` / `folder` behavior is matched against the corpus.
 
 ## Pass 7 implementation consequence
 
