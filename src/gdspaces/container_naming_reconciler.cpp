@@ -1,5 +1,6 @@
 #include "dmc_rengine/gdspaces/container_naming_reconciler.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/gdspaces/embedded_name_evidence.hpp"
 #include "dmc_rengine/gdspaces/format_identity.hpp"
 #include "dmc_rengine/gdspaces/index_manifest.hpp"
@@ -9,6 +10,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -109,6 +111,71 @@ void add_error(
     return true;
 }
 
+[[nodiscard]] bool persist_overlay_semantics(
+    ContainerExpansion& expansion,
+    const IndexNameOverlay& overlay,
+    ContainerNamingReconcileResult& result) {
+    for (const auto& entry : overlay.entries()) {
+        if (entry.semantic_format().empty() || entry.semantic_format() == "unknown") {
+            continue;
+        }
+
+        auto* child = find_slot(expansion, entry.slot_index());
+        if (child == nullptr || child->payload.resource.id != entry.child_resource()) {
+            add_error(
+                result,
+                entry.child_resource(),
+                "gdspaces.naming-reconcile.overlay-semantic-child-missing",
+                "Overlay semantic evidence no longer resolves to the same physical child.");
+            return false;
+        }
+
+        child->payload.resource.format = std::string{entry.semantic_format()};
+
+        if (entry.evidence_kind() != IndexDisplayEvidenceKind::profile_structural_format) {
+            continue;
+        }
+        if (entry.canonical_extension().empty()) {
+            add_error(
+                result,
+                child->payload.resource.id,
+                "gdspaces.naming-reconcile.profile-semantic-extension-missing",
+                "Profile structural semantic evidence must carry its canonical presentation extension.");
+            return false;
+        }
+
+        const auto bytes = std::span<const std::byte>{
+            child->payload.bytes.data(), child->payload.bytes.size()};
+        ResourceSemanticEvidence semantic_evidence(
+            ResourceSemanticEvidenceKind::profile_structural_format,
+            child->payload.resource.id,
+            core::Sha256::compute(bytes).hex(),
+            std::string{entry.semantic_format()},
+            std::string{entry.canonical_extension()},
+            entry.slot_index());
+        if (!semantic_evidence.valid()) {
+            add_error(
+                result,
+                child->payload.resource.id,
+                "gdspaces.naming-reconcile.profile-semantic-evidence-invalid",
+                "Profile structural classification could not form valid sealed semantic evidence.");
+            return false;
+        }
+
+        auto& evidence = child->payload.semantic_evidence;
+        evidence.erase(
+            std::remove_if(
+                evidence.begin(), evidence.end(),
+                [](const ResourceSemanticEvidence& existing) {
+                    return existing.kind() ==
+                        ResourceSemanticEvidenceKind::profile_structural_format;
+                }),
+            evidence.end());
+        evidence.push_back(std::move(semantic_evidence));
+    }
+    return true;
+}
+
 } // namespace
 
 bool ContainerNamingReconcileResult::ok() const noexcept {
@@ -175,10 +242,6 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
             return result;
         }
 
-        // Synthetic presentation is deliberately leaf-only. A path-like
-        // upstream display hint must never leak namespace components into a
-        // loose filename. External .index evidence below still owns the
-        // stronger extracted stem when present.
         if (slot_zero->payload.resource.synthetic_name) {
             slot_zero->payload.resource.display_name =
                 semantic_slot_zero_display(staged, canonical_extension);
@@ -222,6 +285,9 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
             staged, *overlay.overlay);
         append_diagnostics(result.diagnostics, applied.diagnostics);
         if (!applied.ok()) {
+            return result;
+        }
+        if (!persist_overlay_semantics(staged, *overlay.overlay, result)) {
             return result;
         }
         result.external_index_applied = true;
