@@ -97,6 +97,7 @@ void add_error(
 
 IndexNameOverlayEntry::IndexNameOverlayEntry(
     std::uint32_t slot_index,
+    std::size_t extracted_ordinal,
     ResourceId child_resource,
     std::string display_name,
     std::string raw_index_label,
@@ -105,6 +106,7 @@ IndexNameOverlayEntry::IndexNameOverlayEntry(
     std::string semantic_format,
     IndexDisplayEvidenceKind evidence_kind)
     : slot_index_(slot_index),
+      extracted_ordinal_(extracted_ordinal),
       child_resource_(std::move(child_resource)),
       display_name_(std::move(display_name)),
       raw_index_label_(std::move(raw_index_label)),
@@ -114,6 +116,7 @@ IndexNameOverlayEntry::IndexNameOverlayEntry(
       evidence_kind_(evidence_kind) {}
 
 std::uint32_t IndexNameOverlayEntry::slot_index() const noexcept { return slot_index_; }
+std::size_t IndexNameOverlayEntry::extracted_ordinal() const noexcept { return extracted_ordinal_; }
 const ResourceId& IndexNameOverlayEntry::child_resource() const noexcept { return child_resource_; }
 std::string_view IndexNameOverlayEntry::display_name() const noexcept { return display_name_; }
 std::string_view IndexNameOverlayEntry::raw_index_label() const noexcept { return raw_index_label_; }
@@ -145,15 +148,15 @@ bool IndexNameOverlay::valid() const noexcept {
         !valid_digest(manifest_sha256_) || entries_.empty()) {
         return false;
     }
-    return std::all_of(
-        entries_.begin(), entries_.end(),
-        [](const IndexNameOverlayEntry& entry) {
-            return entry.child_resource().valid() &&
-                   !entry.display_name().empty() &&
-                   !entry.raw_index_label().empty() &&
-                   !entry.index_name().empty() &&
-                   entry.manifest_line() > 0U;
-        });
+    for (std::size_t index = 0U; index < entries_.size(); ++index) {
+        const auto& entry = entries_[index];
+        if (!entry.child_resource().valid() || entry.display_name().empty() ||
+            entry.raw_index_label().empty() || entry.index_name().empty() ||
+            entry.manifest_line() == 0U || entry.extracted_ordinal() != index) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool IndexNameOverlayBuildResult::ok() const noexcept {
@@ -244,7 +247,8 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
         }
 
         overlay_entries.push_back(IndexNameOverlayEntry(
-            authority.slot_index(), authority.child_resource(),
+            authority.slot_index(), authority.extracted_ordinal(),
+            authority.child_resource(),
             make_display_name(authority.stem(), display_extension),
             std::string{authority.raw_index_label()},
             std::string{authority.index_name()}, authority.manifest_line(),
@@ -290,7 +294,8 @@ IndexNameOverlayApplyResult IndexNameOverlayBuilder::apply(
             name_mapping_mode(overlay.mapping_mode()), overlay.manifest_resource(),
             std::string{overlay.manifest_sha256()},
             std::string{entry.raw_index_label()}, std::string{entry.index_name()},
-            entry.slot_index(), entry.manifest_line(), std::nullopt);
+            entry.slot_index(), entry.manifest_line(), std::nullopt,
+            entry.extracted_ordinal());
         if (!evidence.valid()) {
             add_error(result.diagnostics, entry.child_resource(),
                 "gdspaces.index-overlay.apply-name-evidence-invalid",
