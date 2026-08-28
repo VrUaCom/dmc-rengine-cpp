@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/effect_pack_names.hpp"
 #include "dmc_rengine/gdspaces/container_index_probe.hpp"
 #include "dmc_rengine/gdspaces/slot_name_manifest.hpp"
 #include "dmc_rengine/profiles/dmc3/authoring_extension_contract.hpp"
@@ -129,7 +130,8 @@ bool ContainerExpansion::usable() const noexcept {
 
 ContainerExpansion ContainerExpander::expand(
     const ResourcePayload& parent,
-    const formats::ContainerParseResult& parsed) {
+    const formats::ContainerParseResult& parsed,
+    const ContainerNamingContext& naming) {
     ContainerExpansion expansion{
         .parent = parent.resource,
         .parser_format = parsed.document.format,
@@ -412,6 +414,35 @@ ContainerExpansion ContainerExpander::expand(
             expansion.numbering.absent_slots += 1U;
         }
     }
+    // Names the enclosing container holds for this one. Applied here so every
+    // consumer of this library gets them, not just the caller that happened to
+    // implement the rule first.
+    if (!naming.empty()) {
+        const auto enclosing_names = effect_pack_slot_names(
+            naming.enclosing_container, naming.slot_index_within_enclosing);
+        if (enclosing_names.size() == expansion.children.size()) {
+            bool slots_line_up = true;
+            for (std::size_t index = 0U; index < enclosing_names.size(); ++index) {
+                if (expansion.children[index].entry.slot_index !=
+                    enclosing_names[index].slot_index) {
+                    slots_line_up = false;
+                }
+            }
+            // Total or absent. A partial rename would mix stored names with
+            // invented ones under one origin.
+            if (slots_line_up) {
+                for (std::size_t index = 0U; index < enclosing_names.size();
+                     ++index) {
+                    auto& child = expansion.children[index];
+                    child.name_attribution = enclosing_names[index];
+                    child.payload.resource.display_name =
+                        enclosing_names[index].name;
+                    child.payload.resource.synthetic_name = false;
+                }
+            }
+        }
+    }
+
     expansion.numbering.every_populated_index_on_stride =
         expansion.numbering.populated_slots != 0U && on_stride;
 

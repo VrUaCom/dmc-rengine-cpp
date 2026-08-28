@@ -6,6 +6,7 @@
 #include "dmc_rengine/gdspaces/slot_name_manifest.hpp"
 
 #include <cstdint>
+#include <span>
 #include <vector>
 
 namespace dmc::rengine::gdspaces {
@@ -58,11 +59,35 @@ struct ContainerExpansion final {
     [[nodiscard]] bool usable() const noexcept;
 };
 
+// What a caller knows that the container being expanded does not.
+//
+// Some containers are named by their *enclosing* one — an effect pack writes
+// its record names in the outer container's slot 0 and they name the slots of
+// the inner container in slot 1. The expander sees one container at a time and
+// cannot reach across, so the caller, which holds the enclosing bytes, brings
+// them.
+//
+// This exists because the alternative was worse. The rule lived in one
+// application's session layer, so a phone showed `V 922` and every other
+// consumer of this library showed `slot_0000.bin` for the same slot. A naming
+// rule that only one caller has is not a naming rule.
+struct ContainerNamingContext final {
+    // The container that encloses the one being expanded, if any.
+    std::span<const std::byte> enclosing_container;
+    // Which slot of that enclosing container holds what is being expanded.
+    std::uint32_t slot_index_within_enclosing{};
+
+    [[nodiscard]] bool empty() const noexcept {
+        return enclosing_container.empty();
+    }
+};
+
 class ContainerExpander final {
 public:
     [[nodiscard]] static ContainerExpansion expand(
         const ResourcePayload& parent,
-        const formats::ContainerParseResult& parsed);
+        const formats::ContainerParseResult& parsed,
+        const ContainerNamingContext& naming = {});
 
     static void connect_graph(
         const ContainerExpansion& expansion,
