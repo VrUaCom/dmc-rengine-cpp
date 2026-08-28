@@ -4,6 +4,7 @@
 #include "dmc_rengine/gdspaces/diagnostic.hpp"
 #include "dmc_rengine/gdspaces/resource_name_evidence.hpp"
 #include "dmc_rengine/gdspaces/resource_ref.hpp"
+#include "dmc_rengine/gdspaces/resource_semantic_evidence.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -17,6 +18,7 @@ struct ResourcePayload final {
     std::vector<Diagnostic> diagnostics;
     std::optional<ByteProvenance> byte_provenance;
     std::vector<ResourceNameEvidence> name_evidence;
+    std::vector<ResourceSemanticEvidence> semantic_evidence;
 
     [[nodiscard]] bool readable() const noexcept {
         if (!resource.valid()) {

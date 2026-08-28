@@ -1,6 +1,8 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/gdspaces/resource_payload.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -96,6 +98,50 @@ ResourceClassification ResourceClassifier::classify(
     }
 
     result.container = is_container_format(result.format);
+    return result;
+}
+
+ResourceClassification ResourceClassifier::classify(
+    const ResourcePayload& payload,
+    std::string_view naming_hint) {
+    const auto bytes = std::span<const std::byte>{
+        payload.bytes.data(), payload.bytes.size()};
+    const auto physical_profile = profile_from_path(
+        payload.resource.id.logical_path);
+
+    const bool has_semantic_records = !payload.semantic_evidence.empty();
+    if (has_semantic_records) {
+        const auto digest = core::Sha256::compute(bytes).hex();
+        for (const auto& evidence : payload.semantic_evidence) {
+            if (!evidence.valid() ||
+                evidence.authority_resource() != payload.resource.id ||
+                evidence.authority_sha256() != digest) {
+                continue;
+            }
+
+            ResourceClassification result;
+            result.format = std::string{evidence.semantic_format()};
+            result.profile = physical_profile;
+            result.container = is_container_format(result.format);
+            result.structural_confirmed = true;
+            return result;
+        }
+
+        // A semantic record is present but does not validate against the exact
+        // current byte image. Ignore presentation/name hints entirely: only the
+        // physical logical identity plus fresh bytes may classify this stale
+        // resource. This prevents e.g. display "st001_000.index" from turning
+        // stale embedded-name evidence into a fake external-index semantic type.
+        auto result = classify(payload.resource.id.logical_path, bytes);
+        result.profile = physical_profile;
+        return result;
+    }
+
+    auto result = classify(
+        naming_hint.empty() ? std::string_view{payload.resource.id.logical_path}
+                            : naming_hint,
+        bytes);
+    result.profile = physical_profile;
     return result;
 }
 
