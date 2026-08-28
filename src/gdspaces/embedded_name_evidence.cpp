@@ -455,7 +455,7 @@ void split_name(
         return "exe";
     }
     if (format == "name-list") {
-        return "txt";
+        return "index";
     }
     return std::string{format};
 }
@@ -507,7 +507,7 @@ void split_name(
     const ContainerExpansion& expansion) {
     std::ostringstream output;
     output << parent_stem(expansion) << '_' << std::setfill('0')
-           << std::setw(3) << 0 << ".name-list.txt";
+           << std::setw(3) << 0 << ".index";
     return output.str();
 }
 
@@ -794,7 +794,8 @@ EmbeddedNameApplyResult EmbeddedNameEvidenceBuilder::apply(
         std::string stem;
         std::string extension;
         split_name(index_evidence->normalized_name(), stem, extension);
-        slot_zero->payload.resource.display_name = make_display_name(stem, "txt");
+        slot_zero->payload.resource.display_name = make_display_name(
+            stem, canonical_extension("name-list"));
         slot_zero->payload.resource.synthetic_name = false;
     } else {
         slot_zero->payload.resource.display_name =

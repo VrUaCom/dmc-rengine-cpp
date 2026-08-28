@@ -174,6 +174,19 @@ void apply_index(
         }));
 }
 
+[[nodiscard]] const dmc::rengine::gdspaces::ResourceNameEvidence*
+external_index_evidence(
+    const dmc::rengine::gdspaces::ResourcePayload& payload) {
+    const auto iterator = std::find_if(
+        payload.name_evidence.begin(), payload.name_evidence.end(),
+        [](const dmc::rengine::gdspaces::ResourceNameEvidence& evidence) {
+            return evidence.kind() ==
+                       dmc::rengine::gdspaces::ResourceNameEvidenceKind::external_index &&
+                   evidence.valid();
+        });
+    return iterator == payload.name_evidence.end() ? nullptr : &*iterator;
+}
+
 void assert_real_observation(
     const dmc::rengine::gdspaces::EmbeddedNameListObservation& observation) {
     assert(observation.authority_sha256() ==
@@ -218,7 +231,7 @@ int main() {
     assert(embedded_applied.ok());
     assert(embedded_then_index.children[0].payload.resource.format == "name-list");
     assert(embedded_then_index.children[0].payload.resource.display_name ==
-           "st001_000.name-list.txt");
+           "st001_000.index");
     assert(embedded_then_index.children[1].payload.resource.display_name ==
            "st001.ptx");
     assert(embedded_then_index.children[2].payload.resource.display_name ==
@@ -235,7 +248,11 @@ int main() {
 
     apply_index(embedded_then_index, real_index);
     assert(embedded_then_index.children[0].payload.resource.display_name ==
-           "st001_000.txt");
+           "st001_000.index");
+    const auto* slot_zero_index = external_index_evidence(
+        embedded_then_index.children[0].payload);
+    assert(slot_zero_index != nullptr);
+    assert(slot_zero_index->normalized_name() == "st001_000.ukn");
     assert(embedded_then_index.children[3].payload.resource.display_name ==
            "st001_003.hits");
     for (std::size_t slot = 0U; slot < embedded_then_index.children.size(); ++slot) {
@@ -272,7 +289,11 @@ int main() {
     }
     assert(index_then_embedded.children[0].payload.resource.format == "name-list");
     assert(index_then_embedded.children[0].payload.resource.display_name ==
-           "st001_000.txt");
+           "st001_000.index");
+    const auto* slot_zero_index_second = external_index_evidence(
+        index_then_embedded.children[0].payload);
+    assert(slot_zero_index_second != nullptr);
+    assert(slot_zero_index_second->normalized_name() == "st001_000.ukn");
     assert(index_then_embedded.children[3].payload.resource.display_name ==
            "st001_003.hits");
 
