@@ -45,6 +45,7 @@ A known purpose is not a complete schema. A parser is not proof of complete orig
 | `GAME_VERIFIED` | bounded behavior observed in the original game |
 | `EXE_CONFIRMED` | direct canonical executable evidence |
 | `DATA_CONFIRMED` | stable binary/corpus evidence |
+| `PRODUCT_ONLY` | implementation exists in DMC Rengine product code, without independent raw/original-runtime authority |
 | `HIGH_CONFIDENCE` | convergent evidence; one promotion boundary remains |
 | `CANDIDATE` | evidence-linked interpretation, not yet canonical semantics |
 | `RESEARCH_REQUIRED` | identity/subsystem or label exists; exact purpose/schema remains open |
@@ -69,10 +70,11 @@ A known purpose is not a complete schema. A parser is not proof of complete orig
 | `NBZ` | numbered top-level HD resource volume; ZIP-backed materialization surface | `EXE_CONFIRMED` + product validation | `structural` | overlay writer equivalence is bounded product behavior, not Capcom packer equivalence |
 | `PAC` / `PAC0` | relative-slot resource container; preserves sparse/empty/alias slot topology | `EXE_CONFIRMED` + `DATA_CONFIRMED` | `structural` | physical slot is identity; ordinal is not universal semantic type |
 | `PNST` | distinct relative-slot container recursively traversed by original runtime | `EXE_CONFIRMED` + `DATA_CONFIRMED` | `structural` | envelope similarity to PAC does not imply the same slot schema |
-| `PACK` | legacy/observed container label | `DATA_CONFIRMED`; original runtime authority `RESEARCH_REQUIRED` | `research-only` | do not promote without direct original consumer evidence |
+| `PACK` candidate | Web DMC Rengine v6 product parser label | `PRODUCT_ONLY`; raw/original runtime authority `RESEARCH_REQUIRED` | candidate-only | no raw PACK payload is bound; do not promote the unnamed Web-parser fields without independent corpus and consumer evidence |
 | `.index` | extraction/display naming manifest and child metadata | `DATA_CONFIRMED` | recognized metadata | not runtime lookup authority and not semantic-format authority |
 | `.lst` | original loose/list-driven PAC fallback manifest | `EXE_CONFIRMED` bounded | `runtime-only` | full grammar/lifetime/recursion/error semantics remain open |
-| `GData.afs/`, `GDataX360.afs/`, `AFS` tokens | logical resource namespace / legacy AFS surface | `EXE_CONFIRMED` | recognized namespace | not proof of an opaque binary AFS backend in the current HD path |
+| `GData.afs/`, `GDataX360.afs/`, `afs/sound/` | logical resource namespace / legacy AFS-named path surface | `EXE_CONFIRMED` | recognized namespace | not proof of an opaque binary AFS backend in the current HD path |
+| binary `AFS` candidate | possible profile-specific physical archive | `RESEARCH_REQUIRED` | candidate-only | separate from the DMC3-HD namespace; requires raw artifact, parser/backend evidence and round-trip/game-consumption receipts |
 | `.ukn` | placeholder/source extension where extraction lacks semantic identity | `DATA_CONFIRMED` | `fallback-only` | known `.ukn` payloads include HITS and ITM; never route by extension alone |
 | `.bin` | generic leaf extension | contextual | `fallback-only` | multiple unrelated resources use it; bytes/context decide identity |
 | `PE` / `dmc3.exe` | runtime executable, registries, descriptors and translation tables | `EXE_CONFIRMED` | `structural` | analysis-build and protected execution-build authority stay separate |

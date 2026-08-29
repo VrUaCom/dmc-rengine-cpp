@@ -49,6 +49,7 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 - [Layer classification](gdspaces/decompilation-layer-classification.md)
 - [Reverse progress scale](gdspaces/reverse-progress-scale.md) — planning aid only; roadmap gates control completion
 - [Resource classification](gdspaces/classification.md)
+- [Binary AFS/PACK authority boundary](gdspaces/binary-afs-pack-authority.md)
 - [Working copy](gdspaces/working-copy.md)
 - [Container tree reconciliation](gdspaces/container-tree-reconciliation.md)
 - [DMC3 runtime resource resolver](gdspaces/dmc3-runtime-resource-resolver.md)

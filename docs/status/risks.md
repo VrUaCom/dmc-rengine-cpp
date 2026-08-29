@@ -90,7 +90,7 @@ LoadedResource/FileSlot/cache/lifecycle code may be moved into product resource 
 ## R-013 — AFS/PACK inference from names/history
 **Severity:** high
 
-Logical `.afs/` namespaces or historical product PACK parser code may be promoted as original DMC3 binary backend authority.
+Logical `.afs/` namespaces or Web DMC Rengine v6 PACK parser code may be promoted as original DMC3 binary backend authority.
 
 **Mitigation:** freeze both absent direct runtime/raw evidence that places them on the supported path.
 

@@ -8,7 +8,7 @@ This timeline records the known evolution of DMC Rengine before and during the c
 
 The project began by investigating how the Devil May Cry 3 HD executable discovers and consumes game resources.
 
-Early work established that the resource system cannot be modeled as a single PAC editor. The game uses layered sources and containers, including NBZ, AFS, PAC, and PNST, with logical identities that are not always equivalent to physical filenames.
+Early work established that the resource system cannot be modeled as a single PAC editor. The game uses layered NBZ, PAC and PNST sources/containers plus AFS-named logical namespaces, with logical identities that are not always equivalent to physical filenames. Later evidence explicitly rejected treating the namespace name as proof of a binary AFS layer.
 
 ### 2026-06 — DMC Rengine identity is established
 

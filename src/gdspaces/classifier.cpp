@@ -43,6 +43,21 @@ namespace {
     return lower_copy(extension);
 }
 
+[[nodiscard]] bool is_dmc3_afs_namespace_identity(
+    std::string_view logical_path) {
+    auto path = lower_copy(logical_path);
+    std::replace(path.begin(), path.end(), '\\', '/');
+    while (!path.empty() && path.back() == '/') {
+        path.pop_back();
+    }
+
+    const auto separator = path.find_last_of('/');
+    const auto leaf = separator == std::string::npos
+        ? std::string_view{path}
+        : std::string_view{path}.substr(separator + 1U);
+    return leaf == "gdata.afs" || leaf == "gdatax360.afs";
+}
+
 [[nodiscard]] bool structurally_valid_binary_pnst(
     std::span<const std::byte> bytes) {
     if (!starts_with(bytes, "PNST")) {
@@ -78,6 +93,19 @@ ResourceClassification ResourceClassifier::classify(
         // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
+    } else if (starts_with(bytes, std::string_view{"AFS\0", 4U})) {
+        // A four-byte signature is sufficient to retain an acquisition
+        // candidate, but it is not a DMC3-HD parser/backend authority. Keep it
+        // outside the expandable container set until a supported raw artifact
+        // and a structurally validated parser are promoted together.
+        result.format = "afs-binary-candidate";
+        result.magic_confirmed = true;
+    } else if (starts_with(bytes, "PACK")) {
+        // The Web DMC Rengine v6 parser is product source, not original-game or
+        // raw-corpus evidence. Do not route PACK-prefixed bytes into a parser
+        // merely because the four-byte candidate identity was observed.
+        result.format = "pack-binary-candidate";
+        result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
         result.format = "scm";
         result.magic_confirmed = true;
@@ -92,10 +120,17 @@ ResourceClassification ResourceClassifier::classify(
         result.magic_confirmed = true;
     } else {
         const auto extension = extension_from_path(logical_path);
-        result.format = extension.empty() ? "unknown" : extension;
+        if (extension == "afs") {
+            result.format = is_dmc3_afs_namespace_identity(logical_path)
+                ? "afs-namespace"
+                : "afs-binary-candidate";
+        } else {
+            result.format = extension.empty() ? "unknown" : extension;
+        }
     }
 
     result.container = is_container_format(result.format);
+    result.logical_namespace = result.format == "afs-namespace";
     return result;
 }
 
@@ -124,8 +159,9 @@ GameProfile ResourceClassifier::profile_from_path(
 
 bool ResourceClassifier::is_container_format(
     std::string_view format) noexcept {
-    return format == "nbz" || format == "afs" || format == "pac" ||
-           format == "pnst";
+    // GData.afs is a logical namespace on the evidenced DMC3-HD path. Binary
+    // AFS/PACK candidates remain non-expandable until parser authority exists.
+    return format == "nbz" || format == "pac" || format == "pnst";
 }
 
 } // namespace dmc::rengine::gdspaces

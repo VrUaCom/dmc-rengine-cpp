@@ -100,7 +100,7 @@ Product/extraction metadata or tooling information not established as original D
 | Stage Ops / Stage Editor | DOMAIN | downstream tooling, not L3 |
 | `.index` manifests | OUTSIDE | metadata, not original lookup authority on recovered path |
 | binary AFS backend | evidence-gated | not established by `.afs/` namespace strings |
-| PACK original runtime use | evidence-gated | historical product parser is not original-runtime proof |
+| PACK original runtime use | evidence-gated | Web DMC Rengine v6 product parser is not original-runtime proof |
 
 ## GDS-relevant EXE function-boundary matrix
 

@@ -187,7 +187,8 @@ GDSpaces may be stricter than the recovered game. Receipts must keep product har
 ## Evidence-gated freezes
 
 - `.afs/` logical namespaces do not prove a binary AFS backend.
-- Historical GDSpaces PACK parser code does not prove original DMC3 PACK runtime authority.
+- The PACK parser in the Web DMC Rengine v6 source is product code, not a raw
+  DMC3 corpus receipt or original-runtime authority.
 - Capcom offline-packer equivalence is not inferred from successful DMC Rengine authoring.
 - Stage/HITS/gameplay semantic rules do not belong in generic resource/container parsers.
 
@@ -204,7 +205,7 @@ Rejected patterns include:
 - archive SHA computed independently of the member/index state while claiming one provenance snapshot;
 - hard-coded archive member winner where the runtime resolver has not observed it;
 - original LoadedResource/cache/lifecycle implementation moved into GDSpaces;
-- binary AFS/PACK authority inferred from strings or product history.
+- binary AFS/PACK authority inferred from namespace strings or Web-product code.
 
 ## Promotion rule
 

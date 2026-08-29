@@ -91,7 +91,8 @@ Not yet implemented:
 
 - parsing the real executable table/pointers;
 - resolving the four parents from a user game installation;
-- PAC/PNST/AFS/NBZ production parsers;
+- PAC/PNST/NBZ production materialization for the selected members; binary AFS
+  is not part of the evidenced DMC3-HD path;
 - nested child expansion for actual `st001` data;
 - game-backed integration test.
 

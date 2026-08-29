@@ -85,16 +85,25 @@ Unknown extensions remain visible rather than being hidden or force-mapped.
 Current internal container/source labels include:
 
 - `nbz`;
-- `afs`;
 - `pac`;
 - `pnst`.
+
+AFS/PACK identities are deliberately split from that expandable set:
+
+- `afs-namespace` — logical `GData.afs` / `GDataX360.afs` resolver namespace;
+- `afs-binary-candidate` — unpromoted raw-format acquisition candidate;
+- `pack-binary-candidate` — unpromoted raw-format acquisition candidate.
 
 Important DMC3-HD boundary:
 
 - `GData.afs/` / `GDataX360.afs/` are established logical namespace prefixes;
 - that fact is not proof of an opaque binary AFS archive backend in the current HD runtime path.
+- matching an `AFS\0` or `PACK` prefix retains an acquisition candidate but does
+  not make the bytes expandable, editable or writable.
 
-A container flag does not imply the container is already parsed, semantically understood or writable.
+Only `nbz`, `pac` and `pnst` currently receive a container flag. A candidate
+format must gain a validated parser and profile-specific evidence before it can
+enter recursive expansion.
 
 ## Local source integration
 

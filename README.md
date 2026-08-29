@@ -89,7 +89,7 @@ After correction, the first high-value direct-retail request is `obj\\em000.pac`
 ## Important evidence boundaries
 
 - `.afs/` strings such as `GData.afs/` are logical namespace evidence, not proof of a binary AFS backend.
-- Historical GDSpaces PACK parsing does not prove original DMC3 PACK runtime authority.
+- Web DMC Rengine v6 PACK parsing is product code and does not prove original DMC3 PACK runtime authority.
 - A product writer that creates game-accepted output is not automatically equivalent to Capcom's external/offline authoring tool.
 - Product materialization and StageBundle/Stage Ops state are not automatically original game-ready state 3.
 - Synthetic CI proves bounded composition only; direct-retail/game-backed receipts are required for L1 closure.
@@ -143,6 +143,7 @@ ctest --preset vs2022-release
 - [Phase map](docs/status/phase-map.md)
 - [Architecture](docs/architecture.md)
 - [GDSpaces contract](docs/gdspaces-contract.md)
+- [Binary AFS/PACK authority boundary](docs/gdspaces/binary-afs-pack-authority.md)
 - [Layer classification](docs/gdspaces/decompilation-layer-classification.md)
 - [Evidence Packets](docs/evidence/evidence-packets.md)
 - [PE Inspector](docs/exe/pe-inspector.md)

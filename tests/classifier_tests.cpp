@@ -47,6 +47,40 @@ int main() {
     assert(pac_by_magic.container);
     assert(pac_by_magic.magic_confirmed);
 
+    // GData.afs is a resolver namespace in DMC3 HD, not an expandable binary
+    // archive. A resource below it is classified by the resource bytes/path,
+    // while the namespace identity itself remains explicit and non-container.
+    const auto afs_namespace = ResourceClassifier::classify(
+        "DMC3/data/GData.afs");
+    assert(afs_namespace.format == "afs-namespace");
+    assert(afs_namespace.logical_namespace);
+    assert(!afs_namespace.container);
+    assert(!afs_namespace.magic_confirmed);
+
+    const auto member_under_afs_namespace = ResourceClassifier::classify(
+        "GData.afs/room/st001cfg.pac");
+    assert(member_under_afs_namespace.format == "pac");
+    assert(!member_under_afs_namespace.logical_namespace);
+    assert(member_under_afs_namespace.container);
+
+    const std::vector<std::byte> afs_candidate_bytes{
+        std::byte{'A'}, std::byte{'F'}, std::byte{'S'}, std::byte{0x00}};
+    const auto afs_candidate = ResourceClassifier::classify(
+        "unknown/raw.afs", std::span<const std::byte>{afs_candidate_bytes});
+    assert(afs_candidate.format == "afs-binary-candidate");
+    assert(afs_candidate.magic_confirmed);
+    assert(!afs_candidate.logical_namespace);
+    assert(!afs_candidate.container);
+
+    const std::vector<std::byte> pack_candidate_bytes{
+        std::byte{'P'}, std::byte{'A'}, std::byte{'C'}, std::byte{'K'}};
+    const auto pack_candidate = ResourceClassifier::classify(
+        "unknown/raw.pac", std::span<const std::byte>{pack_candidate_bytes});
+    assert(pack_candidate.format == "pack-binary-candidate");
+    assert(pack_candidate.magic_confirmed);
+    assert(!pack_candidate.logical_namespace);
+    assert(!pack_candidate.container);
+
     // Real extracted DMC3 corpora contain binary PNST payloads under misleading
     // .pac names. A structurally valid relative-slot image must still classify
     // by bytes rather than by extension.
@@ -107,6 +141,11 @@ int main() {
         GameProfile::dmc_launcher_hd);
     assert(ResourceClassifier::profile_from_path("other/data") ==
         GameProfile::unknown);
+
+    assert(!ResourceClassifier::is_container_format("afs"));
+    assert(!ResourceClassifier::is_container_format("afs-namespace"));
+    assert(!ResourceClassifier::is_container_format("afs-binary-candidate"));
+    assert(!ResourceClassifier::is_container_format("pack-binary-candidate"));
 
     return 0;
 }
