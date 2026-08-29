@@ -158,6 +158,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         index_name_evidence_persistence
         embedded_name_evidence
         resource_naming_identity
+        companion_index_locator
+        legacy_index_replay
         pac
         pnst
         dmc3_container_parsers
