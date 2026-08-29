@@ -131,7 +131,8 @@ const std::vector<IndexSlotBindingDiagnostic>& IndexSlotBindingResult::diagnosti
 bool IndexSlotBindingResult::valid() const noexcept {
     if (!parent_resource_.valid() || !manifest_resource_.valid() ||
         !valid_digest(manifest_sha256_) || authorities_.empty() ||
-        !diagnostics_.empty()) {
+        !diagnostics_.empty() ||
+        mapping_mode_ != IndexSlotMappingMode::populated_slot_sequence) {
         return false;
     }
 
