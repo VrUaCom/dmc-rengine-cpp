@@ -111,7 +111,20 @@ void add_error(
     return true;
 }
 
-[[nodiscard]] bool persist_overlay_semantics(
+[[nodiscard]] std::string manifest_directive_text(
+    IndexContainerDirective directive) {
+    return directive == IndexContainerDirective::pnst_non_empty_slots
+        ? std::string{"PNST"}
+        : std::string{};
+}
+
+} // namespace
+
+bool ContainerNamingReconcileResult::ok() const noexcept {
+    return reconciled && !has_error(diagnostics);
+}
+
+bool ContainerNamingReconciler::persist_overlay_semantics(
     ContainerExpansion& expansion,
     const IndexNameOverlay& overlay,
     ContainerNamingReconcileResult& result) {
@@ -174,19 +187,6 @@ void add_error(
         evidence.push_back(std::move(semantic_evidence));
     }
     return true;
-}
-
-[[nodiscard]] std::string manifest_directive_text(
-    IndexContainerDirective directive) {
-    return directive == IndexContainerDirective::pnst_non_empty_slots
-        ? std::string{"PNST"}
-        : std::string{};
-}
-
-} // namespace
-
-bool ContainerNamingReconcileResult::ok() const noexcept {
-    return reconciled && !has_error(diagnostics);
 }
 
 ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
