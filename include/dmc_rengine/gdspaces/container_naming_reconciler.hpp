@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/gdspaces/container_expander.hpp"
+#include "dmc_rengine/gdspaces/index_name_overlay.hpp"
 
 #include <vector>
 
@@ -23,7 +24,17 @@ class ContainerNamingReconciler final {
 public:
     [[nodiscard]] static ContainerNamingReconcileResult reconcile(
         ContainerExpansion& expansion,
-        const ResourcePayload* external_index = nullptr);
+        const ResourcePayload* external_index = nullptr,
+        IndexProfileDisplayResolver profile_resolver = nullptr);
+
+private:
+    // Kept as a class member because ResourceSemanticEvidence is deliberately
+    // non-forgeable outside this reconciler. A free helper would not inherit
+    // the class friendship granted by ResourceSemanticEvidence.
+    [[nodiscard]] static bool persist_overlay_semantics(
+        ContainerExpansion& expansion,
+        const IndexNameOverlay& overlay,
+        ContainerNamingReconcileResult& result);
 };
 
 } // namespace dmc::rengine::gdspaces

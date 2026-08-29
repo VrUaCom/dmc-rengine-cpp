@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <unordered_set>
 #include <utility>
 
 namespace dmc::rengine::gdspaces {
@@ -130,16 +131,20 @@ const std::vector<IndexSlotBindingDiagnostic>& IndexSlotBindingResult::diagnosti
 bool IndexSlotBindingResult::valid() const noexcept {
     if (!parent_resource_.valid() || !manifest_resource_.valid() ||
         !valid_digest(manifest_sha256_) || authorities_.empty() ||
-        !diagnostics_.empty()) {
+        !diagnostics_.empty() ||
+        mapping_mode_ != IndexSlotMappingMode::populated_slot_sequence) {
         return false;
     }
 
+    std::unordered_set<std::uint32_t> seen_slots;
+    seen_slots.reserve(authorities_.size());
     for (std::size_t index = 0U; index < authorities_.size(); ++index) {
         const auto& authority = authorities_[index];
         if (!authority.child_resource().valid() ||
             authority.index_name().empty() || authority.stem().empty() ||
             authority.manifest_line() == 0U ||
-            authority.extracted_ordinal() != index) {
+            authority.extracted_ordinal() != index ||
+            !seen_slots.insert(authority.slot_index()).second) {
             return false;
         }
     }
@@ -178,87 +183,62 @@ IndexSlotBindingBuildResult IndexSlotNameBinder::bind(
         return result;
     }
 
+    std::unordered_set<std::uint32_t> physical_slots;
+    physical_slots.reserve(expansion.children.size());
+    for (const auto& child : expansion.children) {
+        if (!physical_slots.insert(child.entry.slot_index).second) {
+            add_error(
+                result,
+                child.payload.resource.id,
+                "gdspaces.index-binding.duplicate-physical-slot",
+                "Container expansion contains duplicate physical slot indices; extracted-ordinal authority cannot be bound safely.");
+            return result;
+        }
+    }
+
     std::vector<IndexSlotNameAuthority> authorities;
     std::vector<IndexSlotBindingDiagnostic> binding_diagnostics;
-    const bool has_empty_slots = std::any_of(
-        expansion.children.begin(), expansion.children.end(),
-        [](const ContainerChild& child) {
-            return !child.entry.populated;
-        });
-    const bool uses_populated_sequence =
-        manifest.directive() == IndexContainerDirective::pnst_non_empty_slots ||
-        has_empty_slots;
-    const auto mode = uses_populated_sequence
-        ? IndexSlotMappingMode::populated_slot_sequence
-        : IndexSlotMappingMode::physical_position;
 
+    // Recovered DMC3 HDC extraction invariant: .index entry N names the
+    // N-th populated payload. Empty physical slots never consume an ordinal.
+    // Dense containers only make physical_slot_index == extracted_ordinal by
+    // coincidence; physical position is never the naming authority.
+    constexpr auto mode = IndexSlotMappingMode::populated_slot_sequence;
     authorities.reserve(manifest.entries().size());
-    const auto add_authority = [&](
-        const ContainerChild& child,
-        const IndexManifestEntry& entry,
-        std::size_t extracted_ordinal) {
-        authorities.push_back(IndexSlotNameAuthority(
-            child.entry.slot_index,
-            extracted_ordinal,
-            child.payload.resource.id,
-            entry.raw,
-            entry.name,
-            entry.stem,
-            entry.extension,
-            entry.is_folder,
-            entry.line_number));
-    };
 
-    if (uses_populated_sequence) {
-        std::size_t extracted_ordinal = 0U;
-        for (const auto& child : expansion.children) {
-            if (!child.entry.populated) {
-                continue;
-            }
-            if (extracted_ordinal < manifest.entries().size()) {
-                add_authority(
-                    child,
-                    manifest.entries()[extracted_ordinal],
-                    extracted_ordinal);
-                ++extracted_ordinal;
-            } else {
-                binding_diagnostics.push_back(IndexSlotBindingDiagnostic{
-                    .issue = IndexSlotBindingIssue::slot_without_manifest_entry,
-                    .slot_index = child.entry.slot_index,
-                    .manifest_line = std::nullopt,
-                });
-            }
+    std::size_t extracted_ordinal = 0U;
+    for (const auto& child : expansion.children) {
+        if (!child.entry.populated) {
+            continue;
         }
-        for (; extracted_ordinal < manifest.entries().size(); ++extracted_ordinal) {
-            binding_diagnostics.push_back(IndexSlotBindingDiagnostic{
-                .issue = IndexSlotBindingIssue::manifest_entry_without_slot,
-                .slot_index = std::nullopt,
-                .manifest_line = manifest.entries()[extracted_ordinal].line_number,
-            });
-        }
-    } else {
-        const auto common = std::min(
-            expansion.children.size(), manifest.entries().size());
-        for (std::size_t index = 0U; index < common; ++index) {
-            add_authority(
-                expansion.children[index],
-                manifest.entries()[index],
-                index);
-        }
-        for (std::size_t index = common; index < expansion.children.size(); ++index) {
+        if (extracted_ordinal < manifest.entries().size()) {
+            const auto& entry = manifest.entries()[extracted_ordinal];
+            authorities.push_back(IndexSlotNameAuthority(
+                child.entry.slot_index,
+                extracted_ordinal,
+                child.payload.resource.id,
+                entry.raw,
+                entry.name,
+                entry.stem,
+                entry.extension,
+                entry.is_folder,
+                entry.line_number));
+            ++extracted_ordinal;
+        } else {
             binding_diagnostics.push_back(IndexSlotBindingDiagnostic{
                 .issue = IndexSlotBindingIssue::slot_without_manifest_entry,
-                .slot_index = expansion.children[index].entry.slot_index,
+                .slot_index = child.entry.slot_index,
                 .manifest_line = std::nullopt,
             });
         }
-        for (std::size_t index = common; index < manifest.entries().size(); ++index) {
-            binding_diagnostics.push_back(IndexSlotBindingDiagnostic{
-                .issue = IndexSlotBindingIssue::manifest_entry_without_slot,
-                .slot_index = std::nullopt,
-                .manifest_line = manifest.entries()[index].line_number,
-            });
-        }
+    }
+
+    for (; extracted_ordinal < manifest.entries().size(); ++extracted_ordinal) {
+        binding_diagnostics.push_back(IndexSlotBindingDiagnostic{
+            .issue = IndexSlotBindingIssue::manifest_entry_without_slot,
+            .slot_index = std::nullopt,
+            .manifest_line = manifest.entries()[extracted_ordinal].line_number,
+        });
     }
 
     result.binding = IndexSlotBindingResult(

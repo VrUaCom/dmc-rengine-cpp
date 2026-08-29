@@ -12,6 +12,7 @@ class ContainerNamingReconciler;
 
 enum class ResourceSemanticEvidenceKind : std::uint8_t {
     embedded_name_list,
+    profile_structural_format,
 };
 
 // Read-only semantic evidence attached to a materialized resource. This is
