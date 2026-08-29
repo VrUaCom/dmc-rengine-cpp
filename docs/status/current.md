@@ -82,7 +82,7 @@ The following remain real research gaps but only block L1 if the chosen acceptan
 
 The exact type-0 physical-provider post-`0x0C` final-open contract is no longer in this list: #215 recovered and integrated that bounded L2 slice and added controlled product/parity receipts.
 
-Binary AFS and original-runtime PACK remain frozen absent direct evidence. Capcom offline writer equivalence is not an L1 requirement.
+Binary AFS and original-runtime PACK remain evidence-gated absent direct evidence. The Web DMC Rengine v6 PACK parser is product-only input, not a promotion source. Capcom offline writer equivalence is not an L1 requirement.
 
 ## L2 current frontier
 

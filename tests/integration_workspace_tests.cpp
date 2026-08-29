@@ -208,11 +208,28 @@ void test_registries() {
     assert(nbz->write_policy == ResourceWritePolicy::read_only);
     assert(nbz->allows_writer_mode("store-overlay-nbz"));
 
-    const auto* afs = formats.find("AFS");
-    assert(afs != nullptr);
-    assert(afs->maturity == IntegrationMaturity::recognized);
-    assert(afs->parser_id.empty());
-    assert(afs->source_adapter_id.empty());
+    assert(formats.find("AFS") == nullptr);
+
+    const auto* afs_namespace = formats.find("AFS-NAMESPACE");
+    assert(afs_namespace != nullptr);
+    assert(afs_namespace->maturity == IntegrationMaturity::recognized);
+    assert(afs_namespace->parser_id.empty());
+    assert(afs_namespace->source_adapter_id.empty());
+    assert(!afs_namespace->binary_adapter);
+
+    const auto* afs_binary = formats.find("AFS-BINARY-CANDIDATE");
+    assert(afs_binary != nullptr);
+    assert(afs_binary->maturity == IntegrationMaturity::recognized);
+    assert(afs_binary->write_policy == ResourceWritePolicy::read_only);
+    assert(afs_binary->parser_id.empty());
+    assert(!afs_binary->allows_working_copy());
+
+    const auto* pack_binary = formats.find("PACK-BINARY-CANDIDATE");
+    assert(pack_binary != nullptr);
+    assert(pack_binary->maturity == IntegrationMaturity::recognized);
+    assert(pack_binary->write_policy == ResourceWritePolicy::read_only);
+    assert(pack_binary->parser_id.empty());
+    assert(!pack_binary->allows_working_copy());
 }
 
 void test_hits_workspace() {

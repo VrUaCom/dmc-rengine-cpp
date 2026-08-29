@@ -34,7 +34,7 @@ These layers cooperate but do not collapse ownership.
 
 Sources expose mounted origins. GDSpaces owns logical resolution, source/volume selection, materialization, ByteProvenance, container expansion, WorkingCopy handoff and bounded authoring/publication contracts.
 
-PAC, PNST and NBZ are supported internal container/archive layers. `.afs/` strings are currently logical namespace evidence; a dedicated binary AFS backend remains evidence-gated and must not be inferred from the names alone. Historical PACK product parsing likewise does not establish original DMC3 runtime authority.
+PAC, PNST and NBZ are supported internal container/archive layers. `.afs/` strings are currently logical namespace evidence; a dedicated binary AFS backend remains evidence-gated and must not be inferred from the names alone. The PACK parser preserved in the Web DMC Rengine v6 source is a product hypothesis and does not establish original DMC3 runtime authority.
 
 ### Reverse Core and Recovered Game Source Tree
 

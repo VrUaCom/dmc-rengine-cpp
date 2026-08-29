@@ -204,7 +204,7 @@ These bounded gaps do not automatically block a representative packed-NBZ/PAC/PN
 ## 6. Explicit non-blockers / freezes
 
 - **Binary AFS:** `.afs/` strings are evidenced logical namespaces, not a binary-backend proof.
-- **PACK:** historical product parsing is not original DMC3 runtime authority absent a direct dependency.
+- **PACK:** Web DMC Rengine v6 product parsing is not original DMC3 runtime authority absent raw/consumer evidence.
 - **Capcom offline writer equivalence:** not required for L1 product authoring completion.
 - **Stage Ops / ModViz:** downstream consumers; they do not define L1 truth.
 - **Exhaustive malformed-input equivalence:** remains separate reverse breadth unless the claimed acceptance scope explicitly includes it.

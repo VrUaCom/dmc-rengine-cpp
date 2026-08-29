@@ -87,11 +87,27 @@ int run_list_tools() {
 int run_list_formats() {
     const integration::FormatIntegrationRegistry registry;
     for (const auto& format : registry.formats()) {
+        const auto parser_status = [&format]() -> std::string {
+            if (!format.parser_id.empty()) {
+                return format.parser_id;
+            }
+            if (!format.source_adapter_id.empty()) {
+                return "not-applicable(source-adapter=" +
+                    format.source_adapter_id + ")";
+            }
+            if (format.format == "afs-namespace") {
+                return "not-applicable(namespace)";
+            }
+            if (format.format == "afs-binary-candidate" ||
+                format.format == "pack-binary-candidate") {
+                return "not-promoted(candidate)";
+            }
+            return "not-promoted";
+        }();
         std::cout << format.format
                   << " maturity=" << integration::to_string(format.maturity)
                   << " write=" << integration::to_string(format.write_policy)
-                  << " parser="
-                  << (format.parser_id.empty() ? "pending" : format.parser_id)
+                  << " parser=" << parser_status
                   << " binary-adapter="
                   << (format.binary_adapter ? "yes" : "no");
         if (format.stage_category.has_value()) {
@@ -151,7 +167,8 @@ int run_integration_status() {
         << "Invariant: GDSpaces owns all source access and canonical identity.\n"
         << "Invariant: tool mutations require WorkingCopy events.\n"
         << "Invariant: Stage Ops and ModViz consume shared stage state.\n"
-        << "Invariant: PAC/PNST/AFS/NBZ remain read-only until evidence-backed parsers exist.\n";
+        << "Invariant: only NBZ/PAC/PNST are expandable DMC3-HD container layers.\n"
+        << "Invariant: AFS/PACK binary candidates remain acquisition-only until profile-specific parser and writer evidence is promoted.\n";
     return 0;
 }
 

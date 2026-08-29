@@ -14,6 +14,7 @@ struct ResourceClassification final {
     GameProfile profile{GameProfile::unknown};
     bool container{false};
     bool magic_confirmed{false};
+    bool logical_namespace{false};
 };
 
 class ResourceClassifier final {

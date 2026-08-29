@@ -114,7 +114,7 @@ Format capability is explicit and may vary by representation/domain:
 
 PAC/PNST/NBZ are **not globally read-only anymore**: current code contains bounded writer/reflow/repack/overlay paths at specific evidenced scopes. A writer capability must therefore be declared per supported representation and acceptance boundary, not by a blanket archive-family label.
 
-A binary AFS backend is not currently promoted from `.afs/` logical namespaces. Historical PACK product parsing is not original DMC3 runtime writer/read authority.
+A binary AFS backend is not currently promoted from `.afs/` logical namespaces. The PACK parser in the Web DMC Rengine v6 source is product code, not original DMC3 runtime writer/read authority.
 
 ## Event and revision rules
 
@@ -152,5 +152,5 @@ Preserve separately:
 - `exists() -> ofstream` is described as atomic/no-clobber publication;
 - evidence acquisition writes into the measured retail tree;
 - a `GData*.afs/...` member winner is hard-coded instead of recorded from canonical resolver selection;
-- binary AFS or original PACK authority is inferred without direct evidence;
+- binary AFS or original PACK authority is inferred from namespace names or Web-product code without direct evidence;
 - legacy PAC Editor/PAC Manager is revived as top-level architecture.

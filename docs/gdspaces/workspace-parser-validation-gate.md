@@ -82,7 +82,7 @@ Future modes such as runtime-synth relative-slot output or full metadata-preserv
 
 ## AFS correction
 
-DMC3 HD `.afs/` strings remain confirmed logical namespaces. The integration descriptor no longer says a binary AFS source is simply pending implementation; the dedicated binary backend remains evidence-frozen until raw/backend authority exists.
+DMC3 HD `.afs/` strings remain confirmed logical namespaces. The integration registry now separates `afs-namespace` from non-expandable `afs-binary-candidate` and `pack-binary-candidate` identities. A binary parser remains evidence-gated until raw/profile/backend authority exists; it is not a pending namespace parser.
 
 ## Compatibility boundary
 

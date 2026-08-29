@@ -178,7 +178,7 @@ These become P0 only if the chosen real acceptance path depends on them:
 ## Evidence-gated freezes / non-blockers
 
 - Binary AFS is not inferred from `.afs/` logical namespace strings.
-- Historical PACK parsing does not establish original DMC3 PACK runtime authority.
+- Web DMC Rengine v6 PACK parsing does not establish original DMC3 PACK runtime authority.
 - Capcom offline writer equivalence is not required for DMC Rengine L1 product authoring acceptance.
 - Stage Ops, ModViz and unrelated HITS semantics do not count as L1 closure.
 

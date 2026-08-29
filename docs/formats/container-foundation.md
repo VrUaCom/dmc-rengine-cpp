@@ -1,6 +1,6 @@
 # Generic Container Foundation
 
-The container foundation exposes nested resources through GDSpaces without making PAC, PNST, AFS, or NBZ a top-level product architecture.
+The container foundation exposes nested resources through GDSpaces without making PAC, PNST or NBZ a top-level product architecture. DMC3-HD AFS-named paths are logical namespaces; binary AFS/PACK candidates are not registered with this foundation until parser authority is promoted.
 
 ## Domain contracts
 
