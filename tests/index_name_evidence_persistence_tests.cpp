@@ -218,7 +218,7 @@ int main() {
         gdspaces::ResourceNameEvidenceKind::external_index);
     assert(
         first_external.mapping_mode() ==
-        gdspaces::ResourceNameMappingMode::physical_position);
+        gdspaces::ResourceNameMappingMode::populated_slot_sequence);
     assert(first_external.authority_resource() == first_index.resource.id);
     assert(first_external.authority_sha256().size() == 64U);
     assert(first_external.raw_label() == "external_name.ukn");
