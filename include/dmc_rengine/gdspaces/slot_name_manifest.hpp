@@ -24,6 +24,12 @@ enum class SlotNameOrigin : std::uint8_t {
     // A line from a name list stored inside the container, attributed to this
     // slot by position. Never asserted as recovered truth.
     container_manifest,
+    // A line from an *external* .index that an extraction tool wrote beside
+    // the unpacked folder. Weaker than container_manifest and deliberately
+    // distinct from it: the container stored nothing here, a tool decided
+    // this. It is the largest supply of real slot names available anywhere,
+    // and it is still somebody else's decision rather than the game's.
+    external_index,
     // The slot carries nothing. Distinct from a placeholder, because there is
     // no payload here to have a name for — a sparse container is intact, and a
     // reader that cannot tell this from "we did not know" will read the
@@ -37,6 +43,7 @@ enum class SlotNameOrigin : std::uint8_t {
     case SlotNameOrigin::parser_placeholder: return "parser-placeholder";
     case SlotNameOrigin::byte_derived_suffix: return "byte-derived-suffix";
     case SlotNameOrigin::container_manifest: return "container-manifest";
+    case SlotNameOrigin::external_index: return "external-index";
     case SlotNameOrigin::absent_slot: return "absent-slot";
     }
     return "parser-placeholder";
