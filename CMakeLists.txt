@@ -160,6 +160,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         resource_naming_identity
         companion_index_locator
         legacy_index_replay
+        dmc3_naming_pipeline
         pac
         pnst
         dmc3_container_parsers
