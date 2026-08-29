@@ -364,7 +364,7 @@ int main() {
         expansion, *parsed.manifest);
     assert(binding.ok());
     assert(binding.binding->mapping_mode() ==
-           gdspaces::IndexSlotMappingMode::physical_position);
+           gdspaces::IndexSlotMappingMode::populated_slot_sequence);
     assert(binding.binding->authorities().size() == 8U);
     assert(binding.binding->authorities()[5].slot_index() == 5U);
     assert(binding.binding->authorities()[5].index_name() == "st001_005.pac");
