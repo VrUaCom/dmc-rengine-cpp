@@ -2,6 +2,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/gdspaces/resource_naming_identity.hpp"
 #include "dmc_rengine/profiles/dmc3/effect_stored_name_evidence.hpp"
+#include "dmc_rengine/profiles/dmc3/legacy_extraction_naming.hpp"
 #include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
 
 #include <cassert>
@@ -95,9 +96,10 @@ void put_u32(
     };
 }
 
-[[nodiscard]] dmc::rengine::gdspaces::ResourcePayload make_index() {
+[[nodiscard]] dmc::rengine::gdspaces::ResourcePayload make_index(
+    std::string_view text = "effect_000.ukn\r\neffect_001.ukn\r\n") {
     namespace gdspaces = dmc::rengine::gdspaces;
-    auto bytes = text_bytes("effect_000.ukn\r\neffect_001.ukn\r\n");
+    auto bytes = text_bytes(text);
     const auto size = static_cast<std::uint64_t>(bytes.size());
     return gdspaces::ResourcePayload{
         .resource = gdspaces::ResourceRef{
@@ -189,6 +191,32 @@ int main() {
         std::optional<std::string>{"effect_000.ukn"});
     assert(dual_result.snapshot->children[0].enclosing_container_stored_name == "E 17");
     assert(dual_result.snapshot->children[0].canonical_display_name == "effect_000.ukn");
+
+    const auto safe_export = dmc3::LegacyExtractionNamingPlanner::build(
+        dual_result.snapshot->children[0]);
+    assert(safe_export.valid());
+    assert(safe_export.export_safe);
+    assert(safe_export.export_name == "effect_000.ukn");
+    assert(safe_export.export_path == "effect_000.ukn");
+
+    // Historical extraction evidence is retained verbatim even when it is not
+    // a safe host path. The export projection fails closed instead of silently
+    // rewriting traversal into a different name.
+    auto unsafe = records_expansion(enclosing);
+    const auto unsafe_index = make_index("../escape.ukn\r\neffect_001.ukn\r\n");
+    const auto unsafe_result = dmc3::Dmc3NamingPipeline::apply(
+        unsafe, &unsafe_index, nullptr, &enclosing);
+    assert(unsafe_result.ok());
+    assert(
+        unsafe_result.snapshot->children[0].external_index_normalized_name() ==
+        std::optional<std::string>{"../escape.ukn"});
+    const auto unsafe_export = dmc3::LegacyExtractionNamingPlanner::build(
+        unsafe_result.snapshot->children[0]);
+    assert(unsafe_export.valid());
+    assert(unsafe_export.extraction_name == "../escape.ukn");
+    assert(!unsafe_export.export_safe);
+    assert(!unsafe_export.export_name.has_value());
+    assert(!unsafe_export.export_path.has_value());
 
     // A look-alike PNST with altered parent identity is not allowed to inherit
     // names from the enclosing effect container.
