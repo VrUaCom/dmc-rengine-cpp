@@ -88,7 +88,7 @@ int main() {
     assert(!first.empty());
     assert(first == second);
     assert(first.find("\"schema_version\": 1") != std::string::npos);
-    assert(first.find("\"canonical_id\": \"synthetic:manifest-fixture.bin#SLTC[1]@100+32\"") !=
+    assert(first.find("\"canonical_id\": \"rid2|9:synthetic|20:manifest-fixture.bin|7:SLTC[1]|100|32\"") !=
         std::string::npos);
     assert(first.find("\"coverage_bytes\": 12") != std::string::npos);
     assert(first.find("\"unknown_ranges\"") != std::string::npos);

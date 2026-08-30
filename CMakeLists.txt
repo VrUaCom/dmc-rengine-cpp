@@ -179,6 +179,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pc_save_file
         working_copy
         byte_provenance
+        resource_id_canonical
         index_name_authority
         index_name_evidence_persistence
         embedded_name_evidence
