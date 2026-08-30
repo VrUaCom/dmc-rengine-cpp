@@ -1,4 +1,5 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
+#include <string>
 
 #include "dmc_rengine/profiles/dmc3/tm2_contract.hpp"
 
@@ -68,11 +69,11 @@ constexpr std::array<std::size_t, 13> kDescriptorZeroOffsets{
 
 [[nodiscard]] TextureSlotFramingResult failure(
     TextureSlotFramingStatus status,
-    std::string_view detail) {
+    std::string detail) {
     return TextureSlotFramingResult{
         .status = status,
         .document = {},
-        .detail = detail,
+        .detail = std::move(detail),
     };
 }
 
@@ -135,7 +136,10 @@ constexpr std::array<std::size_t, 13> kDescriptorZeroOffsets{
 struct DescriptorParseResult final {
     TextureSlotFramingStatus status{TextureSlotFramingStatus::invalid_dds};
     TextureSlotEntry entry;
-    std::string_view detail;
+    // Owned, not viewed. These messages now quote the numbers they refuse, and
+    // a view onto a temporary built at the return statement dangles the moment
+    // the caller reads it.
+    std::string detail;
 
     [[nodiscard]] bool ok() const noexcept {
         return status == TextureSlotFramingStatus::ok;
@@ -147,7 +151,8 @@ struct DescriptorParseResult final {
     std::uint32_t texture_index,
     std::size_t descriptor_offset,
     std::uint32_t sector_span,
-    std::size_t bounded_end) {
+    std::size_t bounded_end,
+    TextureSlotFramingSafety safety) {
     if (!contains(
             bytes, descriptor_offset,
             TextureSlotFramingParser::k_descriptor_size)) {
@@ -182,13 +187,34 @@ struct DescriptorParseResult final {
     const auto width = read_u32_le(bytes, dds_offset + kDdsWidthOffset);
     const auto height = read_u32_le(bytes, dds_offset + kDdsHeightOffset);
     const auto mip_count = read_u32_le(bytes, dds_offset + kDdsMipCountOffset);
+    // Sanity bounds first, and separately, because they are structural: a DDS
+    // declaring a zero or absurd dimension cannot be read at all.
     if (width == 0U || height == 0U || width > 0xFFFFU ||
-        height > 0xFFFFU || mip_count == 0U || mip_count > 0xFFU ||
-        mip_count != full_mip_count(width, height)) {
+        height > 0xFFFFU || mip_count == 0U || mip_count > 0xFFU) {
         return {
             .status = TextureSlotFramingStatus::invalid_dds,
             .entry = {},
-            .detail = "DDS dimensions or mip count lie outside the evidenced full-chain descriptor domain",
+            .detail = "DDS header declares unusable dimensions: " +
+                std::to_string(width) + "x" + std::to_string(height) +
+                ", mip count " + std::to_string(mip_count),
+        };
+    }
+
+    // The chain length is a different kind of claim. It is what the corpus
+    // showed, not something the reverse work established the runtime demands,
+    // so it stops reading only when the caller is authoring.
+    const auto expected_mip_count = full_mip_count(width, height);
+    const auto partial_chain = mip_count != expected_mip_count;
+    if (partial_chain && safety.require_full_mip_chain) {
+        return {
+            .status = TextureSlotFramingStatus::invalid_dds,
+            .entry = {},
+            .detail = "DDS carries " + std::to_string(mip_count) +
+                " mip levels where a complete chain for " +
+                std::to_string(width) + "x" + std::to_string(height) +
+                " is " + std::to_string(expected_mip_count) +
+                "; every texture in the recovered corpus carries a complete "
+                "chain, so authoring stays inside that and reading does not",
         };
     }
 
@@ -358,6 +384,8 @@ struct DescriptorParseResult final {
             .width = width,
             .height = height,
             .mip_map_count = mip_count,
+            .full_mip_chain_length = expected_mip_count,
+            .partial_mip_chain = partial_chain,
             .compression = compression,
             .secondary_width = secondary_width,
             .secondary_height = secondary_height,
@@ -370,7 +398,8 @@ struct DescriptorParseResult final {
 }
 
 [[nodiscard]] TextureSlotFramingResult parse_wrapped_dds(
-    std::span<const std::byte> bytes) {
+    std::span<const std::byte> bytes,
+    TextureSlotFramingSafety safety) {
     if (!has_dds_magic(bytes, TextureSlotFramingParser::k_descriptor_size)) {
         return failure(
             TextureSlotFramingStatus::not_recognized,
@@ -378,7 +407,7 @@ struct DescriptorParseResult final {
     }
 
     const auto parsed = parse_descriptor(
-        bytes, 0U, 0U, 0U, bytes.size());
+        bytes, 0U, 0U, 0U, bytes.size(), safety);
     if (!parsed.ok()) {
         return failure(parsed.status, parsed.detail);
     }
@@ -472,7 +501,7 @@ struct DescriptorParseResult final {
         }
 
         const auto parsed = parse_descriptor(
-            bytes, index, descriptor_offset, sector_span, bounded_end);
+            bytes, index, descriptor_offset, sector_span, bounded_end, safety);
         if (!parsed.ok()) {
             return failure(parsed.status, parsed.detail);
         }
@@ -563,7 +592,7 @@ TextureSlotFramingResult TextureSlotFramingParser::parse(
             "texture framing parser requires a non-zero product count budget");
     }
 
-    const auto wrapped = parse_wrapped_dds(bytes);
+    const auto wrapped = parse_wrapped_dds(bytes, safety);
     if (wrapped.status != TextureSlotFramingStatus::not_recognized) {
         return wrapped;
     }

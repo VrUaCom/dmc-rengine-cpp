@@ -62,7 +62,15 @@ PtxParseResult PtxParser::parse(std::span<const std::byte> bytes) {
     // second recognizer here would eventually disagree with it about a file —
     // which is the failure that matters, because the disagreeing pair would be
     // "the tree says texture pack" and "the writer says it is not".
-    const auto framed = dmc3::TextureSlotFramingParser::parse(bytes);
+    // Reading does not require a complete mip chain. Every texture in the
+    // corpus this framing was recovered from carries one, but that was never
+    // evidence that the runtime demands one, and refusing to read a
+    // structurally valid DDS on the strength of it made a real retail at.ptx
+    // unopenable. Authoring keeps the bound; the packed-reflow writer takes
+    // the default.
+    dmc3::TextureSlotFramingSafety reading;
+    reading.require_full_mip_chain = false;
+    const auto framed = dmc3::TextureSlotFramingParser::parse(bytes, reading);
     if (!framed.ok()) {
         return fail(
             error_for(framed.status),

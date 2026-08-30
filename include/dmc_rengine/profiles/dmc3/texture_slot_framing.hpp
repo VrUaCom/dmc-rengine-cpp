@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -59,6 +60,26 @@ struct TextureSlotFramingSafety final {
     // Product-side denial-of-service bound. It is not an original DMC3 ABI
     // limit and must not be reported as one.
     std::uint32_t max_texture_count{4096U};
+
+    /**
+     * Whether a texture must carry a complete mip chain to be accepted.
+     *
+     * Every texture in the corpus this framing was recovered from carries one,
+     * and authoring stays inside that observation: writing a chain length
+     * nobody has seen the game load is a risk this project does not take on an
+     * operator's behalf. So this defaults to true, and the writer keeps it.
+     *
+     * Reading is a different question. "Every sample we have is a full chain"
+     * was never evidence that the runtime requires one, and a DDS header
+     * declaring three mips for a 128x128 image is perfectly well formed —
+     * nothing about parsing it depends on the chain being complete. Refusing
+     * to *read* such a texture states a recovered fact the reverse work never
+     * established, and it is what made a real retail at.ptx unopenable.
+     *
+     * The entry records what was found either way, so a caller that relaxed
+     * this can still see which textures are partial.
+     */
+    bool require_full_mip_chain{true};
 };
 
 struct TextureSlotEntry final {
@@ -70,6 +91,10 @@ struct TextureSlotEntry final {
     std::uint32_t width{};
     std::uint32_t height{};
     std::uint32_t mip_map_count{};
+    /// The chain length these dimensions would have if it were complete.
+    std::uint32_t full_mip_chain_length{};
+    /// True when the two above disagree: read, never authored from.
+    bool partial_mip_chain{false};
     TextureCompressionKind compression{TextureCompressionKind::dxt1};
 
     // Corpus-confirmed structural descriptor fields. Their original runtime
@@ -95,7 +120,12 @@ struct TextureSlotFramingDocument final {
 struct TextureSlotFramingResult final {
     TextureSlotFramingStatus status{TextureSlotFramingStatus::not_recognized};
     TextureSlotFramingDocument document;
-    std::string_view detail;
+    // Owned. This was a view, which was safe only while every refusal message
+    // was a string literal; the first message that quoted the numbers it was
+    // refusing produced a view onto a temporary and printed garbage. A result
+    // struct that dangles the moment someone writes a useful message is a trap
+    // rather than an optimization.
+    std::string detail;
 
     [[nodiscard]] bool ok() const noexcept;
 };
