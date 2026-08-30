@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/container_naming_reconciler.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/gdspaces/embedded_name_evidence.hpp"
 #include "dmc_rengine/gdspaces/format_identity.hpp"
 #include "dmc_rengine/gdspaces/index_manifest.hpp"
@@ -122,6 +123,65 @@ void add_error(
 
 bool ContainerNamingReconcileResult::ok() const noexcept {
     return reconciled && !has_error(diagnostics);
+}
+
+bool ContainerNamingReconciler::persist_magic_semantics(
+    ContainerExpansion& expansion,
+    ContainerNamingReconcileResult& result) {
+    for (auto& child : expansion.children) {
+        if (!child.entry.populated || child.payload.bytes.empty()) {
+            continue;
+        }
+
+        const auto bytes = std::span<const std::byte>{
+            child.payload.bytes.data(), child.payload.bytes.size()};
+        const auto classification = ResourceClassifier::classify(
+            child.payload.resource.display_name, bytes);
+        if (!classification.magic_confirmed || classification.format.empty()) {
+            continue;
+        }
+
+        const auto canonical_extension =
+            ResourceFormatIdentity::canonical_extension(classification.format);
+        if (canonical_extension.empty()) {
+            add_error(
+                result,
+                child.payload.resource.id,
+                "gdspaces.naming-reconcile.magic-semantic-extension-missing",
+                "Magic-confirmed semantic format has no canonical extension and cannot become sealed naming evidence.");
+            return false;
+        }
+
+        ResourceSemanticEvidence semantic_evidence(
+            ResourceSemanticEvidenceKind::magic_confirmed_format,
+            child.payload.resource.id,
+            core::Sha256::compute(bytes).hex(),
+            classification.format,
+            canonical_extension,
+            child.entry.slot_index);
+        if (!semantic_evidence.valid()) {
+            add_error(
+                result,
+                child.payload.resource.id,
+                "gdspaces.naming-reconcile.magic-semantic-evidence-invalid",
+                "Magic-confirmed byte classification could not form valid sealed semantic evidence.");
+            return false;
+        }
+
+        child.payload.resource.format = classification.format;
+        auto& evidence = child.payload.semantic_evidence;
+        evidence.erase(
+            std::remove_if(
+                evidence.begin(), evidence.end(),
+                [](const ResourceSemanticEvidence& existing) {
+                    return existing.kind() ==
+                        ResourceSemanticEvidenceKind::magic_confirmed_format;
+                }),
+            evidence.end());
+        evidence.push_back(std::move(semantic_evidence));
+        result.magic_semantics_applied = true;
+    }
+    return true;
 }
 
 bool ContainerNamingReconciler::persist_overlay_semantics(
@@ -265,6 +325,10 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
             evidence.end());
         evidence.push_back(std::move(semantic_evidence));
         result.embedded_name_list_applied = true;
+    }
+
+    if (!persist_magic_semantics(staged, result)) {
+        return result;
     }
 
     if (external_index != nullptr) {
