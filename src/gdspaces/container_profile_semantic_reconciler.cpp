@@ -51,13 +51,35 @@ void add_profile_error(
     return true;
 }
 
-[[nodiscard]] bool has_stronger_semantic_evidence(
-    const ResourcePayload& payload) noexcept {
+[[nodiscard]] bool magic_matches_runtime_semantic(
+    const ResourceSemanticEvidence& evidence,
+    const ResourceProfileSemantic& semantic) noexcept {
+    return evidence.kind() == ResourceSemanticEvidenceKind::magic_confirmed_format &&
+        semantic.evidence_kind == ResourceProfileSemanticKind::runtime_content_tag &&
+        evidence.semantic_format() == semantic.semantic_format &&
+        evidence.canonical_extension() == semantic.canonical_extension;
+}
+
+[[nodiscard]] bool has_blocking_semantic_evidence(
+    const ResourcePayload& payload,
+    const ResourceProfileSemantic& semantic) noexcept {
     return std::any_of(
         payload.semantic_evidence.begin(), payload.semantic_evidence.end(),
-        [](const ResourceSemanticEvidence& evidence) {
-            return evidence.kind() == ResourceSemanticEvidenceKind::embedded_name_list ||
-                evidence.kind() == ResourceSemanticEvidenceKind::magic_confirmed_format;
+        [&](const ResourceSemanticEvidence& evidence) {
+            if (evidence.kind() == ResourceSemanticEvidenceKind::embedded_name_list) {
+                return true;
+            }
+            if (evidence.kind() != ResourceSemanticEvidenceKind::magic_confirmed_format) {
+                return false;
+            }
+
+            // Generic classification historically recognizes SCM as a
+            // magic-confirmed format. The DMC3 profile has stronger provenance:
+            // the recovered runtime itself compares exactly the same three-byte
+            // SCM tag. When both claims agree exactly, refine the reason for the
+            // same semantic type instead of blocking the runtime-backed proof.
+            // A conflicting magic claim remains stronger and blocks the profile.
+            return !magic_matches_runtime_semantic(evidence, semantic);
         });
 }
 
@@ -119,10 +141,10 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
             return result;
         }
 
-        // A profile recognizer may add information where generic magic has no
-        // answer. It never overrides a stronger sealed observation of the same
-        // bytes, such as a generic magic-confirmed format or embedded name-list.
-        if (has_stronger_semantic_evidence(child.payload)) {
+        // Embedded name-list evidence and conflicting generic magic remain
+        // stronger. A matching generic magic claim may be refined only when
+        // the canonical DMC3 runtime-content probe proves the exact same type.
+        if (has_blocking_semantic_evidence(child.payload, *semantic)) {
             continue;
         }
 
@@ -149,8 +171,14 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
         semantic_evidence.erase(
             std::remove_if(
                 semantic_evidence.begin(), semantic_evidence.end(),
-                [](const ResourceSemanticEvidence& existing) {
-                    return is_profile_semantic_kind(existing.kind());
+                [&](const ResourceSemanticEvidence& existing) {
+                    if (is_profile_semantic_kind(existing.kind())) {
+                        return true;
+                    }
+                    // Replace a generic magic record only when it is exactly
+                    // the same semantic claim and the DMC3 runtime probe gives
+                    // us a more precise reason for believing it.
+                    return magic_matches_runtime_semantic(existing, *semantic);
                 }),
             semantic_evidence.end());
         semantic_evidence.push_back(std::move(evidence));
