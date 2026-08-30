@@ -1,10 +1,61 @@
 #include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
 
+#include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
+#include <optional>
 #include <span>
+#include <string_view>
 
 namespace dmc::rengine::profiles::dmc3 {
+namespace {
+
+[[nodiscard]] bool starts_with(
+    std::span<const std::byte> bytes,
+    std::string_view signature) noexcept {
+    if (bytes.size() < signature.size()) {
+        return false;
+    }
+    for (std::size_t index = 0U; index < signature.size(); ++index) {
+        if (std::to_integer<unsigned char>(bytes[index]) !=
+            static_cast<unsigned char>(signature[index])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
+resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
+    using Contract = ResourceTypeContract;
+    for (const auto& tagged : Contract::tagged_types) {
+        // The recovered DMC3 content probe compares exactly three bytes. Do
+        // not strengthen this to a four-byte magic check: that would make the
+        // tool stricter than the original runtime and would reject evidence
+        // that the game itself classifies.
+        if (!starts_with(bytes, tagged.tag)) {
+            continue;
+        }
+
+        std::string_view format;
+        switch (tagged.code) {
+        case Contract::TypeCode::model: format = "mod"; break;
+        case Contract::TypeCode::effect_model: format = "efm"; break;
+        case Contract::TypeCode::scene_model: format = "scm"; break;
+        case Contract::TypeCode::mrp: format = "mrp"; break;
+        case Contract::TypeCode::shadow: format = "shw"; break;
+        default: return std::nullopt;
+        }
+
+        return gdspaces::ResourceProfileSemantic{
+            .canonical_extension = std::string{format},
+            .semantic_format = std::string{format},
+        };
+    }
+    return std::nullopt;
+}
+
+} // namespace
 
 std::optional<gdspaces::ResourceProfileSemantic>
 resolve_materialized_display_semantic(
@@ -13,33 +64,36 @@ resolve_materialized_display_semantic(
         return std::nullopt;
     }
 
-    // Do not gate this structural probe on ResourceRef::profile. Retail NBZ
-    // member paths such as GData.afs/obj/em000.pac do not themselves carry a
-    // "dmc3" token, so generic path classification legitimately reports the
+    // Do not gate these byte/structural probes on ResourceRef::profile. Retail
+    // NBZ member paths such as GData.afs/obj/em000.pac do not themselves carry
+    // a "dmc3" token, so generic path classification legitimately reports the
     // physical profile as unknown. This resolver is reached only through the
-    // explicit DMC3 naming pipeline/profile adapter; the structure, not a path
-    // label, is the evidence for PTX/wrapped-DDS semantics.
-    const auto framing = TextureSlotFramingParser::parse(
-        std::span<const std::byte>{child.bytes.data(), child.bytes.size()});
-    if (!framing.ok()) {
-        return std::nullopt;
+    // explicit DMC3 naming pipeline/profile adapter.
+    const auto bytes = std::span<const std::byte>{
+        child.bytes.data(), child.bytes.size()};
+
+    const auto framing = TextureSlotFramingParser::parse(bytes);
+    if (framing.ok()) {
+        if (framing.document.kind == TextureSlotFramingKind::texture_bundle) {
+            return gdspaces::ResourceProfileSemantic{
+                .canonical_extension = "ptx",
+                .semantic_format = "texture-bundle",
+            };
+        }
+
+        if (framing.document.kind == TextureSlotFramingKind::wrapped_dds) {
+            return gdspaces::ResourceProfileSemantic{
+                .canonical_extension = "dds",
+                .semantic_format = "wrapped-dds",
+            };
+        }
     }
 
-    if (framing.document.kind == TextureSlotFramingKind::texture_bundle) {
-        return gdspaces::ResourceProfileSemantic{
-            .canonical_extension = "ptx",
-            .semantic_format = "texture-bundle",
-        };
-    }
-
-    if (framing.document.kind == TextureSlotFramingKind::wrapped_dds) {
-        return gdspaces::ResourceProfileSemantic{
-            .canonical_extension = "dds",
-            .semantic_format = "wrapped-dds",
-        };
-    }
-
-    return std::nullopt;
+    // Nameless relative-slot payloads can still carry the exact content tags
+    // used by the original runtime dispatcher. In particular, em000 model
+    // payloads beginning with "MOD" are therefore byte-backed `mod` resources,
+    // not files named `.mod` because a UI guessed a suffix.
+    return resolve_runtime_content_tag_semantic(bytes);
 }
 
 std::optional<gdspaces::IndexProfileDisplaySemantic>
