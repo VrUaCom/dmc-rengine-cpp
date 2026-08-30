@@ -21,12 +21,16 @@ namespace {
 EnclosingContainerNameEvidence::EnclosingContainerNameEvidence(
     ResourceId authority_resource,
     std::string authority_sha256,
+    ResourceId target_resource,
+    std::string target_sha256,
     std::string raw_label,
     std::string normalized_name,
     std::uint32_t physical_slot_index,
     std::size_t source_line)
     : authority_resource_(std::move(authority_resource)),
       authority_sha256_(std::move(authority_sha256)),
+      target_resource_(std::move(target_resource)),
+      target_sha256_(std::move(target_sha256)),
       raw_label_(std::move(raw_label)),
       normalized_name_(std::move(normalized_name)),
       physical_slot_index_(physical_slot_index),
@@ -38,6 +42,14 @@ const ResourceId& EnclosingContainerNameEvidence::authority_resource() const noe
 
 std::string_view EnclosingContainerNameEvidence::authority_sha256() const noexcept {
     return authority_sha256_;
+}
+
+const ResourceId& EnclosingContainerNameEvidence::target_resource() const noexcept {
+    return target_resource_;
+}
+
+std::string_view EnclosingContainerNameEvidence::target_sha256() const noexcept {
+    return target_sha256_;
 }
 
 std::string_view EnclosingContainerNameEvidence::raw_label() const noexcept {
@@ -58,6 +70,7 @@ std::size_t EnclosingContainerNameEvidence::source_line() const noexcept {
 
 bool EnclosingContainerNameEvidence::valid() const noexcept {
     return authority_resource_.valid() && valid_digest(authority_sha256_) &&
+        target_resource_.valid() && valid_digest(target_sha256_) &&
         !raw_label_.empty() && !normalized_name_.empty() && source_line_ > 0U;
 }
 
