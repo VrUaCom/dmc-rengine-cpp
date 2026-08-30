@@ -123,7 +123,23 @@ ResourceClassification ResourceClassifier::classify(
             result.format = std::string{evidence.semantic_format()};
             result.profile = physical_profile;
             result.container = is_container_format(result.format);
-            result.structural_confirmed = true;
+
+            // Preserve the reason the semantic record is authoritative. The
+            // old blanket `structural_confirmed = true` laundered every sealed
+            // record into structural-parser proof, including generic magic and
+            // the recovered DMC3 runtime content-tag dispatcher.
+            switch (evidence.kind()) {
+            case ResourceSemanticEvidenceKind::embedded_name_list:
+            case ResourceSemanticEvidenceKind::profile_structural_format:
+                result.structural_confirmed = true;
+                break;
+            case ResourceSemanticEvidenceKind::magic_confirmed_format:
+                result.magic_confirmed = true;
+                break;
+            case ResourceSemanticEvidenceKind::profile_runtime_content_tag:
+                result.runtime_content_tag_confirmed = true;
+                break;
+            }
             return result;
         }
 
