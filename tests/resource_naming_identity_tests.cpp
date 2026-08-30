@@ -1,8 +1,8 @@
 #include "dmc_rengine/gdspaces/container_naming_reconciler.hpp"
 #include "dmc_rengine/gdspaces/resource_naming_identity.hpp"
 #include "dmc_rengine/profiles/dmc3/dds_profile.hpp"
-#include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
 #include "dmc_rengine/profiles/dmc3/legacy_extraction_naming.hpp"
+#include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <algorithm>
@@ -298,11 +298,10 @@ int main() {
         "st001_001 folder\r\n"
         "st001_002.scm\r\n"
         "st001_003.ukn\r\n");
-    const auto reconciled = gdspaces::ContainerNamingReconciler::reconcile(
-        expansion,
-        &index,
-        dmc3::resolve_index_display_semantic);
-    assert(reconciled.ok());
+    // The profile resolver is deliberately not a public reconciler argument.
+    // Exercise the canonical authority path exactly as product code does.
+    const auto naming = dmc3::Dmc3NamingPipeline::apply(expansion, &index);
+    assert(naming.ok());
     assert(expansion.external_index_evidence.has_value());
     assert(expansion.external_index_evidence->directive.empty());
     assert(expansion.external_index_evidence->entry_count == 4U);
@@ -311,7 +310,8 @@ int main() {
         assert(expansion.children[i].payload.resource.id == original_ids[i]);
     }
 
-    const auto snapshot = gdspaces::ResourceNamingIdentityBuilder::build(expansion);
+    assert(naming.snapshot.has_value());
+    const auto& snapshot = *naming.snapshot;
     assert(snapshot.ok());
     assert(snapshot.children.size() == 4U);
 
@@ -405,11 +405,12 @@ int main() {
         assert(!identity.external_index_name.has_value());
     }
 
-    // Duplicate physical slots make extracted-ordinal binding ambiguous.
+    // Duplicate physical slots make extracted-ordinal binding ambiguous. Use
+    // the canonical DMC3 entry point here too; the forbidden public resolver
+    // overload must not be revived just to make a test convenient.
     auto duplicate = st001_expansion();
     duplicate.children[1].entry.slot_index = 0U;
-    const auto duplicate_result = gdspaces::ContainerNamingReconciler::reconcile(
-        duplicate, &index, dmc3::resolve_index_display_semantic);
+    const auto duplicate_result = dmc3::Dmc3NamingPipeline::apply(duplicate, &index);
     assert(!duplicate_result.ok());
 
     return 0;
