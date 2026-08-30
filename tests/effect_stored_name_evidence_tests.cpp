@@ -1,6 +1,6 @@
-#include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/gdspaces/resource_naming_identity.hpp"
+#include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 #include "dmc_rengine/profiles/dmc3/effect_stored_name_evidence.hpp"
 #include "dmc_rengine/profiles/dmc3/legacy_extraction_naming.hpp"
 #include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
@@ -127,23 +127,27 @@ void put_u32(
 
 [[nodiscard]] dmc::rengine::gdspaces::ContainerExpansion records_expansion(
     const dmc::rengine::gdspaces::ResourcePayload& enclosing) {
-    namespace formats = dmc::rengine::formats;
     namespace gdspaces = dmc::rengine::gdspaces;
+    namespace dmc3 = dmc::rengine::profiles::dmc3;
 
-    const auto outer = formats::PnstParser::parse(
-        std::span<const std::byte>{enclosing.bytes.data(), enclosing.bytes.size()});
+    const auto registry = dmc3::make_container_parser_registry();
+    const auto enclosing_bytes = std::span<const std::byte>{
+        enclosing.bytes.data(), enclosing.bytes.size()};
+    const auto outer = registry.parse(
+        enclosing_bytes, enclosing.resource.id.logical_path);
     assert(outer.ok());
-    const auto expanded_outer = gdspaces::ContainerExpander::expand(enclosing, *outer.document);
+    const auto expanded_outer = gdspaces::ContainerExpander::expand(enclosing, outer);
     assert(expanded_outer.usable());
     assert(expanded_outer.children.size() == 2U);
     assert(expanded_outer.children[1].entry.slot_index == 1U);
 
     const auto& records_payload = expanded_outer.children[1].payload;
-    const auto inner = formats::PnstParser::parse(
-        std::span<const std::byte>{
-            records_payload.bytes.data(), records_payload.bytes.size()});
+    const auto records_bytes = std::span<const std::byte>{
+        records_payload.bytes.data(), records_payload.bytes.size()};
+    const auto inner = registry.parse(
+        records_bytes, records_payload.resource.id.logical_path);
     assert(inner.ok());
-    auto expansion = gdspaces::ContainerExpander::expand(records_payload, *inner.document);
+    auto expansion = gdspaces::ContainerExpander::expand(records_payload, inner);
     assert(expansion.usable());
     return expansion;
 }
