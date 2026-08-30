@@ -135,7 +135,7 @@ void test_resource_identity() {
     };
 
     assert(valid.valid());
-    assert(valid.canonical() == std::string{"source:dmc3/st001#NBZ/PAC@16+32"});
+    assert(valid.canonical() == std::string{"rid2|6:source|10:dmc3/st001|7:NBZ/PAC|16|32"});
     assert(!ResourceId{}.valid());
 }
 
