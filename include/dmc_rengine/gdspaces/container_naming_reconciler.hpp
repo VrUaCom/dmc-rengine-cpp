@@ -51,17 +51,28 @@ struct ContainerNamingReconcileResult final {
 // expansion is replaced only after all supplied authorities validate.
 class ContainerNamingReconciler final {
 public:
+    // Public reconciliation consumes only authorities already present in the
+    // materialized bytes / exact external index. It deliberately accepts no
+    // profile resolver: arbitrary callers must not be able to feed semantic
+    // strings into the trusted sealing path.
     [[nodiscard]] static ContainerNamingReconcileResult reconcile(
         ContainerExpansion& expansion,
-        const ResourcePayload* external_index = nullptr,
-        IndexProfileDisplayResolver profile_resolver = nullptr);
+        const ResourcePayload* external_index = nullptr);
 
 private:
     // Profile semantic sealing is deliberately not public. A public resolver
     // callback would let arbitrary callers ask this trusted reconciler to turn
     // an invented semantic string into sealed evidence. Only the canonical
-    // DMC3 pipeline owns this profile transition.
+    // DMC3 pipeline owns both profile transitions below.
     friend class ::dmc::rengine::profiles::dmc3::Dmc3NamingPipeline;
+
+    // Same transaction as public reconcile, but with DMC3-owned interpretation
+    // of an exact .index binding. Private so IndexProfileDisplayResolver cannot
+    // be used as an authority-injection surface by product callers.
+    [[nodiscard]] static ContainerNamingReconcileResult reconcile_profiled(
+        ContainerExpansion& expansion,
+        const ResourcePayload* external_index,
+        IndexProfileDisplayResolver profile_resolver);
 
     [[nodiscard]] static ContainerNamingReconcileResult apply_profile_semantics(
         ContainerExpansion& expansion,
