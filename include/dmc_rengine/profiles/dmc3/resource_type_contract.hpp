@@ -105,13 +105,6 @@ struct ResourceTypeContract final {
         return TypeCode::unknown;
     }
 
-    static constexpr std::string_view registered_name_format = "%s/%s";
-
-    [[nodiscard]] static consteval std::size_t table_bytes() noexcept {
-        return table_type_offset +
-            table_capacity * sizeof(std::int32_t);
-    }
-
     [[nodiscard]] static constexpr TypeCode type_for_tag(
         std::string_view tag) noexcept {
         for (const auto& entry : tagged_types) {
@@ -121,22 +114,47 @@ struct ResourceTypeContract final {
         }
         return TypeCode::unknown;
     }
+
+    // Canonical semantic/presentation extension for a recovered runtime type.
+    // This is deliberately separate from historical filename authority: it
+    // states what the runtime identifies the bytes as, not what an extractor
+    // happened to call them.
+    [[nodiscard]] static constexpr std::string_view canonical_extension(
+        TypeCode code) noexcept {
+        switch (code) {
+        case TypeCode::model: return "mod";
+        case TypeCode::effect_model: return "efm";
+        case TypeCode::scene_model: return "scm";
+        case TypeCode::mrp: return "mrp";
+        case TypeCode::texture_pack: return "ptx";
+        case TypeCode::palette: return "clt";
+        case TypeCode::c1d: return "c1d";
+        case TypeCode::shadow: return "shw";
+        case TypeCode::unknown: return {};
+        }
+        return {};
+    }
+
+    static constexpr std::string_view registered_name_format = "%s/%s";
+
+    [[nodiscard]] static consteval std::size_t table_bytes() noexcept {
+        return table_type_offset +
+            table_capacity * sizeof(std::int32_t);
+    }
 };
 
 static_assert(
     ResourceTypeContract::type_for_tag("MOD") ==
     ResourceTypeContract::TypeCode::model);
-static_assert(
-    ResourceTypeContract::type_for_tag("EFM") ==
-    ResourceTypeContract::TypeCode::effect_model);
-static_assert(
-    ResourceTypeContract::type_for_tag("SCM") ==
-    ResourceTypeContract::TypeCode::scene_model);
-static_assert(
-    ResourceTypeContract::type_for_tag("MRP") ==
-    ResourceTypeContract::TypeCode::mrp);
-static_assert(
-    ResourceTypeContract::type_for_tag("SHW") ==
-    ResourceTypeContract::TypeCode::shadow);
+static_assert(ResourceTypeContract::canonical_extension(
+                  ResourceTypeContract::TypeCode::model) == "mod");
+static_assert(ResourceTypeContract::canonical_extension(
+                  ResourceTypeContract::TypeCode::effect_model) == "efm");
+static_assert(ResourceTypeContract::canonical_extension(
+                  ResourceTypeContract::TypeCode::scene_model) == "scm");
+static_assert(ResourceTypeContract::canonical_extension(
+                  ResourceTypeContract::TypeCode::mrp) == "mrp");
+static_assert(ResourceTypeContract::canonical_extension(
+                  ResourceTypeContract::TypeCode::shadow) == "shw");
 
 } // namespace dmc::rengine::profiles::dmc3
