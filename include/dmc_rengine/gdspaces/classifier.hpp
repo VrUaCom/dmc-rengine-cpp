@@ -17,6 +17,11 @@ struct ResourceClassification final {
     bool container{false};
     bool magic_confirmed{false};
     bool structural_confirmed{false};
+    // True only when sealed semantic authority comes from a recovered runtime
+    // content-tag comparison. Keep this distinct from both generic magic and a
+    // structural parser so downstream code cannot launder instruction-backed
+    // evidence into a stronger/different proof category.
+    bool runtime_content_tag_confirmed{false};
 };
 
 class ResourceClassifier final {
