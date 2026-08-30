@@ -6,10 +6,12 @@
 #include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <iomanip>
 #include <span>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace dmc::rengine::profiles::dmc3 {
@@ -76,10 +78,14 @@ void add_error(
 [[nodiscard]] bool same_evidence(
     const gdspaces::EnclosingContainerNameEvidence& evidence,
     const gdspaces::ResourceId& authority,
-    std::string_view digest,
+    std::string_view authority_digest,
+    const gdspaces::ResourceId& target,
+    std::string_view target_digest,
     const formats::EffectRecord& record) noexcept {
     return evidence.valid() && evidence.authority_resource() == authority &&
-        evidence.authority_sha256() == digest &&
+        evidence.authority_sha256() == authority_digest &&
+        evidence.target_resource() == target &&
+        evidence.target_sha256() == target_digest &&
         evidence.raw_label() == record.name &&
         evidence.normalized_name() == record.name &&
         evidence.physical_slot_index() == record.slot_index &&
@@ -111,8 +117,6 @@ EffectStoredNameApplyResult EffectStoredNameEvidenceBuilder::apply(
         enclosing_container.bytes.data(), enclosing_container.bytes.size()};
     const auto parsed = formats::EffectPackParser::parse(enclosing_bytes);
     if (!parsed.ok()) {
-        // An explicitly supplied enclosing context is authority-bearing input;
-        // a structural near miss must fail closed rather than silently naming.
         add_error(
             result,
             enclosing_container.resource.id,
@@ -156,7 +160,7 @@ EffectStoredNameApplyResult EffectStoredNameEvidenceBuilder::apply(
         return result;
     }
 
-    const auto digest = core::Sha256::compute(enclosing_bytes).hex();
+    const auto authority_digest = core::Sha256::compute(enclosing_bytes).hex();
     auto staged = records_expansion;
     std::size_t bound = 0U;
 
@@ -207,12 +211,18 @@ EffectStoredNameApplyResult EffectStoredNameEvidenceBuilder::apply(
             return result;
         }
 
+        const auto target_bytes = std::span<const std::byte>{
+            child_it->payload.bytes.data(), child_it->payload.bytes.size()};
+        const auto target_digest = core::Sha256::compute(target_bytes).hex();
+
         if (!child_it->payload.enclosing_container_name_evidence.empty()) {
             const bool identical = child_it->payload.enclosing_container_name_evidence.size() == 1U &&
                 same_evidence(
                     child_it->payload.enclosing_container_name_evidence.front(),
                     enclosing_container.resource.id,
-                    digest,
+                    authority_digest,
+                    child_it->payload.resource.id,
+                    target_digest,
                     record);
             if (!identical) {
                 add_error(
@@ -227,13 +237,16 @@ EffectStoredNameApplyResult EffectStoredNameEvidenceBuilder::apply(
             continue;
         }
 
-        child_it->payload.enclosing_container_name_evidence.emplace_back(
-            enclosing_container.resource.id,
-            digest,
-            record.name,
-            record.name,
-            record.slot_index,
-            record.source_line);
+        child_it->payload.enclosing_container_name_evidence.push_back(
+            gdspaces::EnclosingContainerNameEvidence(
+                enclosing_container.resource.id,
+                authority_digest,
+                child_it->payload.resource.id,
+                target_digest,
+                record.name,
+                record.name,
+                record.slot_index,
+                record.source_line));
         ++bound;
     }
 
