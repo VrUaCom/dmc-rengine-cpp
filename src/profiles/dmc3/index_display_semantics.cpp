@@ -20,6 +20,7 @@ resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
     return gdspaces::ResourceProfileSemantic{
         .canonical_extension = std::string{format},
         .semantic_format = std::string{format},
+        .evidence_kind = gdspaces::ResourceProfileSemanticKind::runtime_content_tag,
     };
 }
 
@@ -46,6 +47,7 @@ resolve_materialized_display_semantic(
             return gdspaces::ResourceProfileSemantic{
                 .canonical_extension = "ptx",
                 .semantic_format = "texture-bundle",
+                .evidence_kind = gdspaces::ResourceProfileSemanticKind::structural_format,
             };
         }
 
@@ -53,6 +55,7 @@ resolve_materialized_display_semantic(
             return gdspaces::ResourceProfileSemantic{
                 .canonical_extension = "dds",
                 .semantic_format = "wrapped-dds",
+                .evidence_kind = gdspaces::ResourceProfileSemanticKind::structural_format,
             };
         }
     }
@@ -72,9 +75,15 @@ resolve_index_display_semantic(
     if (!semantic.has_value()) {
         return std::nullopt;
     }
+
+    const auto evidence_kind =
+        semantic->evidence_kind == gdspaces::ResourceProfileSemanticKind::runtime_content_tag
+            ? gdspaces::IndexDisplayEvidenceKind::profile_runtime_content_tag
+            : gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
     return gdspaces::IndexProfileDisplaySemantic{
         .canonical_extension = semantic->canonical_extension,
         .semantic_format = semantic->semantic_format,
+        .evidence_kind = evidence_kind,
     };
 }
 
