@@ -243,13 +243,20 @@ int main() {
                 bad_auxiliary.data(), bad_auxiliary.size()}).status ==
         dmc3::TextureSlotFramingStatus::descriptor_mismatch);
 
+    // Rewriting only the DDS mip count used to be refused as `invalid_dds`,
+    // by a rule that said a chain had to be complete. The runtime imposes no
+    // such rule (TextureMipChainContract), so what refuses this now is the
+    // file disagreeing with itself: the descriptor's DDS size still describes
+    // the eight-level payload while the header claims four levels. That is the
+    // stronger refusal — it is a fact about these bytes rather than a
+    // generalization from the corpus — and it is the one that survives.
     auto bad_mip_chain = wrapped;
     put_u32(bad_mip_chain, 0x70U + 28U, 4U);
     assert(
         dmc3::TextureSlotFramingParser::parse(
             std::span<const std::byte>{
                 bad_mip_chain.data(), bad_mip_chain.size()}).status ==
-        dmc3::TextureSlotFramingStatus::invalid_dds);
+        dmc3::TextureSlotFramingStatus::descriptor_mismatch);
 
     auto bad_padding = bundle;
     bad_padding[0x0A00U] = std::byte{1};

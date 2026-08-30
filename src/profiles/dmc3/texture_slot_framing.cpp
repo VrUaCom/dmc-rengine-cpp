@@ -1,6 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 #include <string>
 
+#include "dmc_rengine/profiles/dmc3/texture_mip_chain_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/tm2_contract.hpp"
 
 #include <algorithm>
@@ -187,22 +188,36 @@ struct DescriptorParseResult final {
     const auto width = read_u32_le(bytes, dds_offset + kDdsWidthOffset);
     const auto height = read_u32_le(bytes, dds_offset + kDdsHeightOffset);
     const auto mip_count = read_u32_le(bytes, dds_offset + kDdsMipCountOffset);
-    // Sanity bounds first, and separately, because they are structural: a DDS
-    // declaring a zero or absurd dimension cannot be read at all.
-    if (width == 0U || height == 0U || width > 0xFFFFU ||
-        height > 0xFFFFU || mip_count == 0U || mip_count > 0xFFU) {
+    // Bounds first, and separately, because they are structural rather than a
+    // matter of taste: these are the limits the runtime's own loader applies,
+    // recovered at TextureMipChainContract::mip_count_bound_va and
+    // ::dimension_bound_va. They were previously guessed at 0xFFFF and 0xFF,
+    // which is looser than the game in both directions — a texture the parser
+    // called well formed could be one the runtime refuses outright. Because
+    // they bound loadability, they hold for reading too: a descriptor naming
+    // dimensions past them names a texture that cannot exist in a shipped
+    // container.
+    using Contract = TextureMipChainContract;
+    if (!Contract::dimensions_are_loadable(width, height) ||
+        !Contract::mip_count_is_loadable(mip_count)) {
         return {
             .status = TextureSlotFramingStatus::invalid_dds,
             .entry = {},
-            .detail = "DDS header declares unusable dimensions: " +
-                std::to_string(width) + "x" + std::to_string(height) +
-                ", mip count " + std::to_string(mip_count),
+            .detail = "DDS header declares dimensions the runtime cannot "
+                "load: " + std::to_string(width) + "x" +
+                std::to_string(height) + ", mip count " +
+                std::to_string(mip_count) + "; the loader accepts up to " +
+                std::to_string(Contract::max_dimension) + " per side and " +
+                std::to_string(Contract::max_mip_count) + " mip levels",
         };
     }
 
-    // The chain length is a different kind of claim. It is what the corpus
-    // showed, not something the reverse work established the runtime demands,
-    // so it stops reading only when the caller is authoring.
+    // Chain completeness is a different kind of claim, and no longer a rule.
+    // The runtime does not compare the declared count against a computed full
+    // chain anywhere; it walks exactly the levels the header names and refuses
+    // only when that walk runs off the end of the payload, which the size
+    // check below already covers. So this is measured and recorded, and it
+    // stops nothing unless a caller has explicitly asked for corpus fidelity.
     const auto expected_mip_count = full_mip_count(width, height);
     const auto partial_chain = mip_count != expected_mip_count;
     if (partial_chain && safety.require_full_mip_chain) {
@@ -213,8 +228,8 @@ struct DescriptorParseResult final {
                 " mip levels where a complete chain for " +
                 std::to_string(width) + "x" + std::to_string(height) +
                 " is " + std::to_string(expected_mip_count) +
-                "; every texture in the recovered corpus carries a complete "
-                "chain, so authoring stays inside that and reading does not",
+                "; the runtime would load this, and the caller asked for a "
+                "complete chain anyway",
         };
     }
 

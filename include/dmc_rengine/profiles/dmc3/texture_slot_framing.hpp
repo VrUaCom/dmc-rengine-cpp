@@ -64,22 +64,22 @@ struct TextureSlotFramingSafety final {
     /**
      * Whether a texture must carry a complete mip chain to be accepted.
      *
-     * Every texture in the corpus this framing was recovered from carries one,
-     * and authoring stays inside that observation: writing a chain length
-     * nobody has seen the game load is a risk this project does not take on an
-     * operator's behalf. So this defaults to true, and the writer keeps it.
+     * This used to default to true, on the argument that every texture in the
+     * corpus carries a complete chain and authoring should stay inside what
+     * had been seen. The argument was never reverse evidence, and the image
+     * has since been asked directly: the runtime reads dwMipMapCount verbatim,
+     * substitutes 1 only for a declared 0, bounds it from above at 15 and from
+     * nowhere below, and answers a single-level file by *generating* the rest
+     * rather than refusing it. See TextureMipChainContract for the receipts.
      *
-     * Reading is a different question. "Every sample we have is a full chain"
-     * was never evidence that the runtime requires one, and a DDS header
-     * declaring three mips for a 128x128 image is perfectly well formed —
-     * nothing about parsing it depends on the chain being complete. Refusing
-     * to *read* such a texture states a recovered fact the reverse work never
-     * established, and it is what made a real retail at.ptx unopenable.
-     *
-     * The entry records what was found either way, so a caller that relaxed
-     * this can still see which textures are partial.
+     * So the default is false, because a default that refuses what the game
+     * demonstrably loads is not conservatism — it is a claim about the format
+     * that the reverse work disproves. What survives is the flag itself: a
+     * caller who wants byte-for-byte corpus fidelity rather than runtime
+     * loadability can still ask for it, and the entry records
+     * `partial_mip_chain` either way so nobody has to recompute it.
      */
-    bool require_full_mip_chain{true};
+    bool require_full_mip_chain{false};
 };
 
 struct TextureSlotEntry final {

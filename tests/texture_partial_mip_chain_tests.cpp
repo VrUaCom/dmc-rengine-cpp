@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_mip_chain_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <cassert>
@@ -8,18 +9,21 @@
 #include <string>
 #include <vector>
 
-// Reading a texture whose mip chain is not complete.
+// A texture's mip chain, against what the runtime actually does with it.
 //
-// Every texture in the corpus this framing was recovered from carries a full
-// chain, and the parser turned that observation into a refusal: a DDS
-// declaring three mips where the dimensions allow eight was rejected outright.
-// That is a claim about the runtime the reverse work never established, and a
-// real retail `at.ptx` could not be opened because of it.
+// The parser once refused a DDS declaring three mips where the dimensions
+// allow eight, on the strength of every corpus sample carrying a full chain.
+// That was an inference from a sample rather than a fact about the game, and
+// the image says so plainly: the loader reads dwMipMapCount verbatim,
+// substitutes 1 only for a declared 0, bounds it at 15 from above and nowhere
+// from below, and answers a single-level file by generating the rest.
+// TextureMipChainContract carries the receipts.
 //
-// The bound stays where it was earned. Authoring keeps it, because writing a
-// chain length nobody has seen the game load is a risk this project does not
-// take on an operator's behalf. Reading drops it, because parsing a DDS header
-// does not depend on the chain being complete.
+// So these pin two things at once. Completeness is not a rule, in either
+// direction — it is measured, recorded, and available as an opt-in for a
+// caller who wants corpus fidelity rather than loadability. And the bounds
+// that *are* real are the runtime's own, which are tighter than the round
+// numbers that stood in for them.
 
 namespace {
 
@@ -89,76 +93,131 @@ void text(std::vector<std::byte>& bytes, std::size_t offset, std::string_view va
     return bytes;
 }
 
-void the_reader_accepts_a_partial_chain() {
+void a_partial_chain_is_read_by_default() {
     const auto bytes = wrapped_texture(3U);
 
-    dmc3::TextureSlotFramingSafety reading;
-    reading.require_full_mip_chain = false;
     const auto framed = dmc3::TextureSlotFramingParser::parse(
-        std::span<const std::byte>{bytes}, reading);
+        std::span<const std::byte>{bytes});
     assert(framed.ok());
     assert(!framed.document.textures.empty());
 
     const auto& texture = framed.document.textures.front();
     assert(texture.mip_map_count == 3U);
-    // What was found travels with the entry, so a caller that relaxed the
-    // bound can still tell which textures are partial.
+    // What was found travels with the entry either way, so nothing downstream
+    // has to recompute a chain length to know the texture is partial.
     assert(texture.full_mip_chain_length == 8U);
     assert(texture.partial_mip_chain);
 }
 
-void authoring_still_refuses_it() {
+void corpus_fidelity_is_still_available_on_request() {
     const auto bytes = wrapped_texture(3U);
 
-    // The default is the authoring bound, and the packed-reflow writer takes
-    // the default. If this ever passes, the writer has quietly been allowed to
-    // emit a chain length no corpus sample demonstrates.
+    // The flag survives the default flip: a caller writing a mod that must
+    // match retail byte for byte can still ask for a complete chain. What it
+    // no longer does is speak for callers who only need the game to load the
+    // file.
+    dmc3::TextureSlotFramingSafety fidelity;
+    fidelity.require_full_mip_chain = true;
+    const auto framed = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{bytes}, fidelity);
+    assert(!framed.ok());
+    assert(framed.status == dmc3::TextureSlotFramingStatus::invalid_dds);
+    // The refusal names the numbers, and says whose choice it was — the
+    // runtime would have taken this texture.
+    assert(framed.detail.find("3 mip levels") != std::string::npos);
+    assert(framed.detail.find("128x128") != std::string::npos);
+    assert(framed.detail.find("runtime would load this") != std::string::npos);
+}
+
+void a_full_chain_is_accepted_either_way() {
+    const auto bytes = wrapped_texture(8U);
+
+    const auto relaxed = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{bytes});
+    assert(relaxed.ok());
+    assert(!relaxed.document.textures.front().partial_mip_chain);
+
+    dmc3::TextureSlotFramingSafety fidelity;
+    fidelity.require_full_mip_chain = true;
+    const auto strict = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{bytes}, fidelity);
+    assert(strict.ok());
+    assert(!strict.document.textures.front().partial_mip_chain);
+}
+
+void a_single_level_texture_is_read() {
+    // The case the runtime has a designed path for: one declared level, the
+    // rest generated at load. If anything here still treats a short chain as
+    // malformed, this is where it shows.
+    const auto bytes = wrapped_texture(
+        dmc3::TextureMipChainContract::mip_count_that_triggers_autogen);
+
+    const auto framed = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{bytes});
+    assert(framed.ok());
+    assert(framed.document.textures.front().mip_map_count == 1U);
+    assert(framed.document.textures.front().partial_mip_chain);
+}
+
+void a_chain_longer_than_the_runtime_loads_is_refused() {
+    using Contract = dmc3::TextureMipChainContract;
+    static_assert(Contract::max_mip_count == 15U);
+
+    // Past D3D11_REQ_MIP_LEVELS the loader refuses outright, so a container
+    // declaring this holds a texture the game cannot use. That is structural,
+    // not a matter of authoring taste, and it holds for reading too.
+    const auto bytes = wrapped_texture(Contract::max_mip_count + 1U);
+
     const auto framed = dmc3::TextureSlotFramingParser::parse(
         std::span<const std::byte>{bytes});
     assert(!framed.ok());
     assert(framed.status == dmc3::TextureSlotFramingStatus::invalid_dds);
-    // The refusal names the numbers rather than gesturing at a domain.
-    assert(framed.detail.find("3 mip levels") != std::string::npos);
-    assert(framed.detail.find("128x128") != std::string::npos);
+    assert(framed.detail.find("runtime cannot") != std::string::npos);
+    assert(framed.detail.find("15 mip levels") != std::string::npos);
 }
 
-void a_full_chain_is_accepted_by_both() {
-    const auto bytes = wrapped_texture(8U);
+void a_dimension_past_the_runtime_bound_is_refused() {
+    using Contract = dmc3::TextureMipChainContract;
+    static_assert(Contract::max_dimension == 16384U);
 
-    const auto authored = dmc3::TextureSlotFramingParser::parse(
+    auto bytes = wrapped_texture(8U);
+    // Only the DDS width, so the bound is what refuses this rather than the
+    // descriptor cross-check further down.
+    u32(bytes, 0x70U + 16U, Contract::max_dimension + 1U);
+
+    const auto framed = dmc3::TextureSlotFramingParser::parse(
         std::span<const std::byte>{bytes});
-    assert(authored.ok());
-    assert(!authored.document.textures.front().partial_mip_chain);
-
-    dmc3::TextureSlotFramingSafety reading;
-    reading.require_full_mip_chain = false;
-    const auto read = dmc3::TextureSlotFramingParser::parse(
-        std::span<const std::byte>{bytes}, reading);
-    assert(read.ok());
-    assert(!read.document.textures.front().partial_mip_chain);
+    assert(!framed.ok());
+    assert(framed.status == dmc3::TextureSlotFramingStatus::invalid_dds);
+    assert(framed.detail.find("16384") != std::string::npos);
 }
 
-void unusable_dimensions_are_still_refused_either_way() {
+void a_zero_dimension_is_refused_either_way() {
     auto bytes = wrapped_texture(8U);
     u32(bytes, 0x70U + 16U, 0U); // width 0
 
-    dmc3::TextureSlotFramingSafety reading;
-    reading.require_full_mip_chain = false;
-    const auto read = dmc3::TextureSlotFramingParser::parse(
-        std::span<const std::byte>{bytes}, reading);
-    // Relaxing the chain bound must not relax the structural ones: a DDS with
-    // a zero dimension cannot be read at all, and saying otherwise would trade
-    // one over-strict refusal for a crash.
-    assert(!read.ok());
-    assert(read.detail.find("unusable dimensions") != std::string::npos);
+    dmc3::TextureSlotFramingSafety fidelity;
+    fidelity.require_full_mip_chain = true;
+    for (const auto safety : {dmc3::TextureSlotFramingSafety{}, fidelity}) {
+        const auto framed = dmc3::TextureSlotFramingParser::parse(
+            std::span<const std::byte>{bytes}, safety);
+        // Relaxing the chain rule must not relax the structural bounds: a DDS
+        // with a zero dimension cannot be read at all, and saying otherwise
+        // would trade one over-strict refusal for a crash.
+        assert(!framed.ok());
+        assert(framed.detail.find("runtime cannot") != std::string::npos);
+    }
 }
 
 } // namespace
 
 int main() {
-    the_reader_accepts_a_partial_chain();
-    authoring_still_refuses_it();
-    a_full_chain_is_accepted_by_both();
-    unusable_dimensions_are_still_refused_either_way();
+    a_partial_chain_is_read_by_default();
+    corpus_fidelity_is_still_available_on_request();
+    a_full_chain_is_accepted_either_way();
+    a_single_level_texture_is_read();
+    a_chain_longer_than_the_runtime_loads_is_refused();
+    a_dimension_past_the_runtime_bound_is_refused();
+    a_zero_dimension_is_refused_either_way();
     return 0;
 }
