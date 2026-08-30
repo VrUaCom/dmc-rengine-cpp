@@ -270,6 +270,12 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
 
 ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
     ContainerExpansion& expansion,
+    const ResourcePayload* external_index) {
+    return reconcile_profiled(expansion, external_index, nullptr);
+}
+
+ContainerNamingReconcileResult ContainerNamingReconciler::reconcile_profiled(
+    ContainerExpansion& expansion,
     const ResourcePayload* external_index,
     IndexProfileDisplayResolver profile_resolver) {
     ContainerNamingReconcileResult result;
