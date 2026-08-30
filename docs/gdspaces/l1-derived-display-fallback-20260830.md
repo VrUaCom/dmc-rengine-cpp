@@ -17,8 +17,8 @@ accidentally on `.index` processing before they could influence presentation.
 
 ## Canonical correction
 
-DMC3 profile byte/structural semantics are now reconciled independently of
-external `.index` availability:
+DMC3 profile byte/structural semantics are reconciled independently of external
+`.index` availability:
 
 ```text
 materialized payload bytes
@@ -28,11 +28,22 @@ materialized payload bytes
     -> ResourceNamingIdentity
 ```
 
-The profile semantic pass is sealed by `ContainerNamingReconciler`, and only the
-`Dmc3NamingPipeline` is allowed to invoke that sealing path. A UI suffix,
-filename or arbitrary caller therefore cannot forge `ResourceSemanticEvidence`.
+The profile semantic pass is sealed by `ContainerNamingReconciler`. Profile
+callbacks are not themselves evidence and are no longer a public sealing input:
 
-Crucially, the two profile provenance families are not collapsed into one enum:
+- public `ContainerNamingReconciler::reconcile` accepts only the materialized
+  expansion plus an optional exact external `.index`;
+- the callback-bearing `reconcile_profiled` path is private;
+- `apply_profile_semantics` is private;
+- only the friended `Dmc3NamingPipeline` may invoke those profile transitions.
+
+Therefore a UI suffix, filename, arbitrary resolver callback or product caller
+cannot ask the trusted reconciler to seal an invented profile semantic string.
+The registered regression compile-time checks that neither a three-argument
+public `reconcile(..., resolver)` nor `reconcile_profiled` is accessible outside
+that authority boundary.
+
+Crucially, the profile provenance families are not collapsed into one enum:
 
 - `profile_structural_format` means a structural parser proved the interpretation;
 - `profile_runtime_content_tag` means the interpretation comes from the exact
@@ -41,7 +52,7 @@ Crucially, the two profile provenance families are not collapsed into one enum:
 This distinction is retained both with and without an external `.index`, so an
 index overlay cannot launder a runtime tag into a structural-parser claim.
 
-Two DMC3 evidence families currently feed that pass:
+Two DMC3 evidence families currently feed the private profile pass:
 
 1. **Texture structure** — `TextureSlotFramingParser` proves a texture bundle or
    wrapped DDS and yields canonical `ptx` / `dds` presentation semantics with
@@ -50,13 +61,56 @@ Two DMC3 evidence families currently feed that pass:
    original `dmc3.exe` three-byte content probe at `0x1402DB1F0` and the second
    dispatcher at `0x1401B9FA0`. Nameless payload prefixes `MOD`, `EFM`, `SCM`,
    `MRP`, and `SHW` therefore yield `mod`, `efm`, `scm`, `mrp`, and `shw`
-   semantics with `profile_runtime_content_tag` provenance when generic magic
-   evidence has not already supplied a stronger sealed interpretation.
+   semantics with `profile_runtime_content_tag` provenance.
 
 The three-byte boundary is deliberate. `ResourceTypeContract::type_for_prefix`
 compares exactly bytes 0..2, with no fourth-byte test and no case folding.
 Requiring a fourth byte would be stricter than the recovered game code and would
 convert instruction-backed evidence into a product invention.
+
+### Compatible generic magic refinement
+
+The generic classifier historically recognizes `SCM` as `magic_confirmed`.
+That result and the DMC3 runtime probe agree on the semantic type but do not have
+the same provenance. The profile pass therefore applies this rule:
+
+```text
+generic magic says scm
+AND recovered DMC3 runtime probe says scm
+    -> replace the lower-precision magic record
+       with profile_runtime_content_tag
+
+conflicting generic magic
+    -> block profile refinement
+```
+
+The result is one active semantic reason for the physical byte image, not two
+parallel records that happen to spell the same format differently. A dedicated
+full-pipeline `SCM ` regression requires exactly one final semantic record and
+requires its kind to be `profile_runtime_content_tag`.
+
+### Downstream classification provenance
+
+Sealed evidence remains distinct after naming reconciliation. Materialized
+`ResourceClassifier::classify(payload)` no longer turns every sealed semantic
+record into `structural_confirmed = true`. Its confirmation flags preserve the
+actual reason:
+
+```text
+embedded_name_list / profile_structural_format
+    -> structural_confirmed
+
+magic_confirmed_format
+    -> magic_confirmed
+
+profile_runtime_content_tag
+    -> runtime_content_tag_confirmed
+```
+
+Thus an instruction-backed `MOD` or `SCM` claim cannot be laundered into a
+structural-parser claim merely by crossing the naming/classifier API boundary.
+
+## Derived display name
 
 For a populated resource that is still synthetically named after all exact
 naming authorities have been considered, the DMC3 naming snapshot may derive a
@@ -80,6 +134,10 @@ GData.afs/obj/em000.pac + ordinal 1 + runtime tag MOD
 GData.afs/scr/st001.pac + ordinal 0 + HITS
     -> st001_000.hits
 ```
+
+The second example describes the deterministic derived-display rule; it is not a
+claim that `em000_001.mod` was a retained historical extractor filename unless
+separate `.index` evidence proves that name.
 
 Nested synthetic containers retain physical topology in the derived stem so the
 presentation remains deterministic rather than collapsing unrelated descendants
@@ -116,12 +174,28 @@ slot_0000.bin (physical parser placeholder)
     -> canonical_display_name = em000_000.ptx
 ```
 
+`dmc3_runtime_content_tag_provenance_tests` pins the recovered-runtime path:
+
+```text
+SCM bytes
+    -> full Dmc3NamingPipeline
+    -> exactly one semantic evidence record
+    -> profile_runtime_content_tag
+    -> ResourceClassifier.runtime_content_tag_confirmed = true
+    -> magic_confirmed = false
+    -> structural_confirmed = false
+```
+
+The same test also pins the non-forgeable reconciler surface at compile time.
+Tests that require profile-aware `.index` semantics now enter through
+`Dmc3NamingPipeline`; they do not retain a privileged test-only route through a
+public resolver callback.
+
 `ResourceTypeContract` compile-time assertions independently pin the exact
 three-byte `MOD` and `SCM` prefix behavior, including the fact that an arbitrary
 fourth byte does not change a `MOD` result and lowercase `mod` is not accepted.
-The DMC3 resolver maps that runtime result into the separate
-`profile_runtime_content_tag` evidence path.
 
 The tests additionally verify that external-index evidence remains absent where
 no exact `.index` exists and that physical `ResourceId` and payload bytes do not
-change. Whole-head CI must remain green on both Ubuntu and Windows.
+change. Whole-head CI must remain green on both Ubuntu and Windows for the exact
+validation head before promotion.
