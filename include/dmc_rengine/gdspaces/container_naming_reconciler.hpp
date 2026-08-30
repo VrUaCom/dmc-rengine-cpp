@@ -3,6 +3,7 @@
 #include "dmc_rengine/gdspaces/container_expander.hpp"
 #include "dmc_rengine/gdspaces/index_name_overlay.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,12 +14,21 @@ class Dmc3NamingPipeline;
 
 namespace dmc::rengine::gdspaces {
 
+enum class ResourceProfileSemanticKind : std::uint8_t {
+    structural_format,
+    runtime_content_tag,
+};
+
 // A byte/structure-backed profile interpretation that does not depend on an
 // external extraction name. Constructing this value alone grants no authority:
 // only the canonical DMC3 naming pipeline may ask the reconciler to seal it.
+// The observation kind is retained so an instruction-backed content tag is not
+// mislabeled as a structural-parser proof.
 struct ResourceProfileSemantic final {
     std::string canonical_extension;
     std::string semantic_format;
+    ResourceProfileSemanticKind evidence_kind{
+        ResourceProfileSemanticKind::structural_format};
 };
 
 using ResourceProfileSemanticResolver = std::optional<ResourceProfileSemantic> (*)(
