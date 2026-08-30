@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -119,6 +120,24 @@ void add_error(
         : std::string{};
 }
 
+[[nodiscard]] std::optional<ResourceSemanticEvidenceKind> overlay_profile_kind(
+    IndexDisplayEvidenceKind kind) noexcept {
+    switch (kind) {
+    case IndexDisplayEvidenceKind::profile_structural_format:
+        return ResourceSemanticEvidenceKind::profile_structural_format;
+    case IndexDisplayEvidenceKind::profile_runtime_content_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+    default:
+        return std::nullopt;
+    }
+}
+
+[[nodiscard]] bool is_profile_semantic_kind(
+    ResourceSemanticEvidenceKind kind) noexcept {
+    return kind == ResourceSemanticEvidenceKind::profile_structural_format ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+}
+
 } // namespace
 
 bool ContainerNamingReconcileResult::ok() const noexcept {
@@ -205,7 +224,8 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
 
         child->payload.resource.format = std::string{entry.semantic_format()};
 
-        if (entry.evidence_kind() != IndexDisplayEvidenceKind::profile_structural_format) {
+        const auto semantic_kind = overlay_profile_kind(entry.evidence_kind());
+        if (!semantic_kind.has_value()) {
             continue;
         }
         if (entry.canonical_extension().empty()) {
@@ -213,14 +233,14 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
                 result,
                 child->payload.resource.id,
                 "gdspaces.naming-reconcile.profile-semantic-extension-missing",
-                "Profile structural semantic evidence must carry its canonical presentation extension.");
+                "Profile semantic evidence must carry its canonical presentation extension.");
             return false;
         }
 
         const auto bytes = std::span<const std::byte>{
             child->payload.bytes.data(), child->payload.bytes.size()};
         ResourceSemanticEvidence semantic_evidence(
-            ResourceSemanticEvidenceKind::profile_structural_format,
+            *semantic_kind,
             child->payload.resource.id,
             core::Sha256::compute(bytes).hex(),
             std::string{entry.semantic_format()},
@@ -231,7 +251,7 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
                 result,
                 child->payload.resource.id,
                 "gdspaces.naming-reconcile.profile-semantic-evidence-invalid",
-                "Profile structural classification could not form valid sealed semantic evidence.");
+                "Profile byte/structural classification could not form valid sealed semantic evidence.");
             return false;
         }
 
@@ -240,8 +260,7 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
             std::remove_if(
                 evidence.begin(), evidence.end(),
                 [](const ResourceSemanticEvidence& existing) {
-                    return existing.kind() ==
-                        ResourceSemanticEvidenceKind::profile_structural_format;
+                    return is_profile_semantic_kind(existing.kind());
                 }),
             evidence.end());
         evidence.push_back(std::move(semantic_evidence));
