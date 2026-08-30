@@ -1,5 +1,6 @@
 #include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
 
+#include "dmc_rengine/profiles/dmc3/effect_stored_name_evidence.hpp"
 #include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
 
 #include <algorithm>
@@ -34,9 +35,21 @@ bool Dmc3NamingPipelineResult::ok() const noexcept {
 Dmc3NamingPipelineResult Dmc3NamingPipeline::apply(
     gdspaces::ContainerExpansion& expansion,
     const gdspaces::ResourcePayload* external_index,
-    const gdspaces::ISource* companion_source) {
+    const gdspaces::ISource* companion_source,
+    const gdspaces::ResourcePayload* enclosing_container) {
     Dmc3NamingPipelineResult result;
     const auto before = expansion;
+
+    if (enclosing_container != nullptr) {
+        const auto enclosing = EffectStoredNameEvidenceBuilder::apply(
+            *enclosing_container, expansion);
+        append_diagnostics(result.diagnostics, enclosing.diagnostics);
+        if (!enclosing.ok()) {
+            expansion = before;
+            return result;
+        }
+        result.enclosing_stored_names_applied = true;
+    }
 
     const gdspaces::ResourcePayload* selected_index = external_index;
     std::optional<gdspaces::ResourcePayload> discovered_index;
@@ -48,6 +61,7 @@ Dmc3NamingPipelineResult Dmc3NamingPipeline::apply(
             *companion_source, expansion.parent.id);
         append_diagnostics(result.diagnostics, discovery.diagnostics);
         if (has_error(discovery.diagnostics)) {
+            expansion = before;
             return result;
         }
 
