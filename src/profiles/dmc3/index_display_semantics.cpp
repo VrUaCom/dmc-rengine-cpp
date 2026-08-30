@@ -9,10 +9,16 @@ namespace dmc::rengine::profiles::dmc3 {
 std::optional<gdspaces::ResourceProfileSemantic>
 resolve_materialized_display_semantic(
     const gdspaces::ResourcePayload& child) {
-    if (child.resource.profile != "dmc3-hd" || child.bytes.empty()) {
+    if (child.bytes.empty()) {
         return std::nullopt;
     }
 
+    // Do not gate this structural probe on ResourceRef::profile. Retail NBZ
+    // member paths such as GData.afs/obj/em000.pac do not themselves carry a
+    // "dmc3" token, so generic path classification legitimately reports the
+    // physical profile as unknown. This resolver is reached only through the
+    // explicit DMC3 naming pipeline/profile adapter; the structure, not a path
+    // label, is the evidence for PTX/wrapped-DDS semantics.
     const auto framing = TextureSlotFramingParser::parse(
         std::span<const std::byte>{child.bytes.data(), child.bytes.size()});
     if (!framing.ok()) {
