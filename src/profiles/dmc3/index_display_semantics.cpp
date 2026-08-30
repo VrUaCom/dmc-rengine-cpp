@@ -37,16 +37,10 @@ resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
             continue;
         }
 
-        std::string_view format;
-        switch (tagged.code) {
-        case Contract::TypeCode::model: format = "mod"; break;
-        case Contract::TypeCode::effect_model: format = "efm"; break;
-        case Contract::TypeCode::scene_model: format = "scm"; break;
-        case Contract::TypeCode::mrp: format = "mrp"; break;
-        case Contract::TypeCode::shadow: format = "shw"; break;
-        default: return std::nullopt;
+        const auto format = Contract::canonical_extension(tagged.code);
+        if (format.empty()) {
+            return std::nullopt;
         }
-
         return gdspaces::ResourceProfileSemantic{
             .canonical_extension = std::string{format},
             .semantic_format = std::string{format},
