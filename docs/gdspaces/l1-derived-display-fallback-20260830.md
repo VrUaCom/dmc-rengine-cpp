@@ -23,7 +23,8 @@ external `.index` availability:
 ```text
 materialized payload bytes
     -> generic magic semantic evidence
-    -> DMC3 profile byte/structural semantic evidence
+    -> DMC3 profile semantic observation
+       -> structural-parser evidence OR runtime-content-tag evidence
     -> ResourceNamingIdentity
 ```
 
@@ -31,19 +32,31 @@ The profile semantic pass is sealed by `ContainerNamingReconciler`, and only the
 `Dmc3NamingPipeline` is allowed to invoke that sealing path. A UI suffix,
 filename or arbitrary caller therefore cannot forge `ResourceSemanticEvidence`.
 
+Crucially, the two profile provenance families are not collapsed into one enum:
+
+- `profile_structural_format` means a structural parser proved the interpretation;
+- `profile_runtime_content_tag` means the interpretation comes from the exact
+  instruction-backed runtime content probe.
+
+This distinction is retained both with and without an external `.index`, so an
+index overlay cannot launder a runtime tag into a structural-parser claim.
+
 Two DMC3 evidence families currently feed that pass:
 
 1. **Texture structure** — `TextureSlotFramingParser` proves a texture bundle or
-   wrapped DDS and yields canonical `ptx` / `dds` presentation semantics.
+   wrapped DDS and yields canonical `ptx` / `dds` presentation semantics with
+   `profile_structural_format` provenance.
 2. **Recovered runtime content tags** — `ResourceTypeContract` records the
    original `dmc3.exe` three-byte content probe at `0x1402DB1F0` and the second
    dispatcher at `0x1401B9FA0`. Nameless payload prefixes `MOD`, `EFM`, `SCM`,
    `MRP`, and `SHW` therefore yield `mod`, `efm`, `scm`, `mrp`, and `shw`
-   semantics from the same comparisons used by the original runtime.
+   semantics with `profile_runtime_content_tag` provenance when generic magic
+   evidence has not already supplied a stronger sealed interpretation.
 
-The three-byte boundary is deliberate. Requiring a fourth byte would be stricter
-than the recovered game code and would convert instruction-backed evidence into
-a product invention.
+The three-byte boundary is deliberate. `ResourceTypeContract::type_for_prefix`
+compares exactly bytes 0..2, with no fourth-byte test and no case folding.
+Requiring a fourth byte would be stricter than the recovered game code and would
+convert instruction-backed evidence into a product invention.
 
 For a populated resource that is still synthetically named after all exact
 naming authorities have been considered, the DMC3 naming snapshot may derive a
@@ -99,14 +112,16 @@ product fallback; this does not manufacture format evidence.
 slot_0000.bin (physical parser placeholder)
     -> semantic_format = texture-bundle
     -> canonical_extension = ptx
+    -> semantic evidence = profile_structural_format
     -> canonical_display_name = em000_000.ptx
 ```
 
-The existing pipeline corpus also exercises an `SCM` runtime content tag through
-the same profile-semantic phase, while `ResourceTypeContract` compile-time
-assertions pin `MOD -> mod` and the other recovered tag mappings. Whole-head CI
-must remain green on both Ubuntu and Windows.
+`ResourceTypeContract` compile-time assertions independently pin the exact
+three-byte `MOD` and `SCM` prefix behavior, including the fact that an arbitrary
+fourth byte does not change a `MOD` result and lowercase `mod` is not accepted.
+The DMC3 resolver maps that runtime result into the separate
+`profile_runtime_content_tag` evidence path.
 
 The tests additionally verify that external-index evidence remains absent where
 no exact `.index` exists and that physical `ResourceId` and payload bytes do not
-change.
+change. Whole-head CI must remain green on both Ubuntu and Windows.
