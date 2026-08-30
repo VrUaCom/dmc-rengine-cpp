@@ -9,21 +9,24 @@
 
 namespace dmc::rengine::gdspaces {
 
+enum class IndexDisplayEvidenceKind : unsigned char {
+    index_source_extension,
+    magic_confirmed_format,
+    profile_structural_format,
+    profile_runtime_content_tag,
+    embedded_name_list_format,
+};
+
 struct IndexProfileDisplaySemantic final {
     std::string canonical_extension;
     std::string semantic_format;
+    IndexDisplayEvidenceKind evidence_kind{
+        IndexDisplayEvidenceKind::profile_structural_format};
 };
 
 using IndexProfileDisplayResolver = std::optional<IndexProfileDisplaySemantic> (*)(
     const ResourcePayload& child,
     const IndexSlotNameAuthority& authority);
-
-enum class IndexDisplayEvidenceKind : unsigned char {
-    index_source_extension,
-    magic_confirmed_format,
-    profile_structural_format,
-    embedded_name_list_format,
-};
 
 class IndexNameOverlayEntry final {
 public:
