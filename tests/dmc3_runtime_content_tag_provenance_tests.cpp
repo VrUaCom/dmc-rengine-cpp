@@ -1,13 +1,47 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/gdspaces/container_naming_reconciler.hpp"
 #include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
 
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 
+namespace {
+
+namespace gdspaces = dmc::rengine::gdspaces;
+
+template <typename Reconciler>
+concept PublicResolverInjectionSurface = requires(
+    gdspaces::ContainerExpansion& expansion,
+    const gdspaces::ResourcePayload* index,
+    gdspaces::IndexProfileDisplayResolver resolver) {
+    {
+        Reconciler::reconcile(expansion, index, resolver)
+    } -> std::same_as<gdspaces::ContainerNamingReconcileResult>;
+};
+
+template <typename Reconciler>
+concept PublicProfiledReconcileSurface = requires(
+    gdspaces::ContainerExpansion& expansion,
+    const gdspaces::ResourcePayload* index,
+    gdspaces::IndexProfileDisplayResolver resolver) {
+    {
+        Reconciler::reconcile_profiled(expansion, index, resolver)
+    } -> std::same_as<gdspaces::ContainerNamingReconcileResult>;
+};
+
+// A profile callback is interpretation code, not evidence. Keep both possible
+// callback-bearing reconciliation entry points inaccessible to product callers.
+static_assert(
+    !PublicResolverInjectionSurface<gdspaces::ContainerNamingReconciler>);
+static_assert(
+    !PublicProfiledReconcileSurface<gdspaces::ContainerNamingReconciler>);
+
+} // namespace
+
 int main() {
-    namespace gdspaces = dmc::rengine::gdspaces;
     namespace formats = dmc::rengine::formats;
     namespace dmc3 = dmc::rengine::profiles::dmc3;
 
