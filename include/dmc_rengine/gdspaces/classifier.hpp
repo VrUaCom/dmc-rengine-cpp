@@ -10,6 +10,8 @@
 
 namespace dmc::rengine::gdspaces {
 
+struct ResourcePayload;
+
 struct ResourceClassification final {
     std::string format{"unknown"};
     GameProfile profile{GameProfile::unknown};
@@ -30,6 +32,16 @@ struct ResourceClassification final {
     std::int32_t animation_type{-1};
     // True where this project can read the kind and not merely name it.
     bool animation_structure_recovered{false};
+
+    // True when this format came from sealed semantic evidence that still
+    // validates against the exact current bytes.
+    //
+    // Distinct from `byte_derived`, which says the raw probe read the payload.
+    // This says something stronger and narrower: a recovered semantic record
+    // was checked against this resource's identity and digest and agreed. A
+    // `.ukn` that reads as `.hits` earns this; a `.pac` recognized by its
+    // extension earns neither.
+    bool structural_confirmed{false};
 };
 
 class ResourceClassifier final {
@@ -42,6 +54,14 @@ public:
         std::string_view logical_path,
         std::span<const std::byte> bytes = {},
         bool path_names_the_resource = true);
+
+    // Materialized-resource API. Valid sealed semantic evidence outranks any
+    // presentation or name hint. Where semantic evidence exists but no longer
+    // matches the current bytes the hint is deliberately ignored, so a display
+    // suffix cannot launder stale evidence into semantic authority.
+    [[nodiscard]] static ResourceClassification classify(
+        const ResourcePayload& payload,
+        std::string_view naming_hint = {});
 
     [[nodiscard]] static GameProfile profile_from_path(
         std::string_view logical_path);

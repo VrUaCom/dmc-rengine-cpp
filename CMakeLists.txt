@@ -119,10 +119,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         texture_slot_framing
         texture_slot_packed_reflow_writer
         texture_slot_runtime_materialization
+        texture_slot_index_name_authority
         runtime_synth_relative_slot_writer
         runtime_synth_result_integrity
         runtime_synth_format_registry
         nested_relative_slot_reintegrator
+        index_name_nested_reopen
         sha256
         patch
         json_parser
@@ -177,10 +179,15 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         pc_save_file
         working_copy
         byte_provenance
+        index_name_authority
+        index_name_evidence_persistence
+        embedded_name_evidence
+        resource_naming_identity
         pac
         pnst
         dmc3_container_parsers
         container_tree_expander
+        container_expander_identity
         classifier
         known_target
         executable_authority

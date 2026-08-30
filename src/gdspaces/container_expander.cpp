@@ -213,10 +213,19 @@ ContainerExpansion ContainerExpander::expand(
             continue;
         }
 
-        const auto name = safe_component(entry.logical_name, entry.slot_index);
+        // Stable child identity is physical: parent resource, parser format
+        // and the exact physical slot. Presentation and index names must never
+        // become part of ResourceId::logical_path or ResourceId::canonical() —
+        // a name that can change is not an identity, and one that came from an
+        // extraction tool is not even ours.
         const auto logical_path = parent.resource.id.logical_path + "::" +
-            parsed.document.format + "/" + slot_component(entry.slot_index) +
-            "/" + name;
+            parsed.document.format + "/" + slot_component(entry.slot_index);
+
+        // The filesystem-safe form of whatever the container called this slot.
+        // It is presentation only — it names the row and travels with the
+        // attribution, and it is deliberately no longer part of the identity
+        // above. Both are needed and they are not the same thing.
+        const auto name = safe_component(entry.logical_name, entry.slot_index);
 
         ResourceRef child_ref{
             .id = ResourceId{

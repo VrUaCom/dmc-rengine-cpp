@@ -3,9 +3,11 @@
 #include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/demo_script_contract.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/gdspaces/text_record.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
@@ -273,6 +275,55 @@ ResourceClassification ResourceClassifier::classify(
     const auto structural = !bytes.empty() &&
         is_structural_container_format(result.format) && !result.byte_derived;
     result.container = is_container_format(result.format) && !structural;
+    return result;
+}
+
+ResourceClassification ResourceClassifier::classify(
+    const ResourcePayload& payload,
+    std::string_view naming_hint) {
+    const auto bytes = std::span<const std::byte>{
+        payload.bytes.data(), payload.bytes.size()};
+    const auto physical_profile = profile_from_path(
+        payload.resource.id.logical_path);
+
+    if (!payload.semantic_evidence.empty()) {
+        const auto digest = core::Sha256::compute(bytes).hex();
+        for (const auto& evidence : payload.semantic_evidence) {
+            if (!evidence.valid() ||
+                evidence.authority_resource() != payload.resource.id ||
+                evidence.authority_sha256() != digest) {
+                continue;
+            }
+
+            ResourceClassification result;
+            result.format = std::string{evidence.semantic_format()};
+            result.profile = physical_profile;
+            result.container = is_container_format(result.format);
+            result.structural_confirmed = true;
+            // Sealed evidence is a claim about bytes that was checked against
+            // these exact bytes, so it satisfies the weaker claim too. Leaving
+            // it false would tell every downstream reader of `byte_derived`
+            // that the strongest evidence this project has is a path guess.
+            result.byte_derived = true;
+            return result;
+        }
+
+        // A semantic record is present but does not validate against the exact
+        // current byte image. Ignore presentation and name hints entirely:
+        // only the physical logical identity plus fresh bytes may classify a
+        // stale resource. This is what stops a display name like
+        // "st001_000.index" from turning stale embedded-name evidence into a
+        // fake external-index semantic type.
+        auto result = classify(payload.resource.id.logical_path, bytes);
+        result.profile = physical_profile;
+        return result;
+    }
+
+    auto result = classify(
+        naming_hint.empty() ? std::string_view{payload.resource.id.logical_path}
+                            : naming_hint,
+        bytes);
+    result.profile = physical_profile;
     return result;
 }
 
