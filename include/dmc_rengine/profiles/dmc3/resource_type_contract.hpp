@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string_view>
 
 namespace dmc::rengine::profiles::dmc3 {
@@ -115,6 +116,30 @@ struct ResourceTypeContract final {
         return TypeCode::unknown;
     }
 
+    // Exact implementation of the recovered three-byte content probe over an
+    // already materialized payload. No fourth byte is inspected and no case
+    // folding occurs.
+    [[nodiscard]] static constexpr TypeCode type_for_prefix(
+        std::span<const std::byte> bytes) noexcept {
+        if (bytes.size() < content_tag_bytes) {
+            return TypeCode::unknown;
+        }
+        for (const auto& entry : tagged_types) {
+            bool matches = true;
+            for (std::size_t index = 0U; index < content_tag_bytes; ++index) {
+                if (std::to_integer<unsigned char>(bytes[index]) !=
+                    static_cast<unsigned char>(entry.tag[index])) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                return entry.code;
+            }
+        }
+        return TypeCode::unknown;
+    }
+
     // Canonical semantic/presentation extension for a recovered runtime type.
     // This is deliberately separate from historical filename authority: it
     // states what the runtime identifies the bytes as, not what an extractor
@@ -156,5 +181,24 @@ static_assert(ResourceTypeContract::canonical_extension(
                   ResourceTypeContract::TypeCode::mrp) == "mrp");
 static_assert(ResourceTypeContract::canonical_extension(
                   ResourceTypeContract::TypeCode::shadow) == "shw");
+
+static_assert([] {
+    constexpr std::array<std::byte, 4> bytes{
+        std::byte{'M'}, std::byte{'O'}, std::byte{'D'}, std::byte{0x7F}};
+    return ResourceTypeContract::type_for_prefix(bytes) ==
+        ResourceTypeContract::TypeCode::model;
+}());
+static_assert([] {
+    constexpr std::array<std::byte, 4> bytes{
+        std::byte{'S'}, std::byte{'C'}, std::byte{'M'}, std::byte{' '}};
+    return ResourceTypeContract::type_for_prefix(bytes) ==
+        ResourceTypeContract::TypeCode::scene_model;
+}());
+static_assert([] {
+    constexpr std::array<std::byte, 3> bytes{
+        std::byte{'m'}, std::byte{'o'}, std::byte{'d'}};
+    return ResourceTypeContract::type_for_prefix(bytes) ==
+        ResourceTypeContract::TypeCode::unknown;
+}());
 
 } // namespace dmc::rengine::profiles::dmc3
