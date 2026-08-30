@@ -65,7 +65,7 @@ void put_u32(
     namespace gdspaces = dmc::rengine::gdspaces;
 
     const auto records = make_pnst({
-        text_bytes("record-zero"),
+        text_bytes("HITS$record-zero"),
         text_bytes("record-one-longer"),
     });
     const auto manifest = text_bytes("E 17\r\nT 3\r\n# End\r\n");
@@ -168,18 +168,24 @@ int main() {
     assert(result.snapshot->children[0].extracted_ordinal == 0U);
     assert(result.snapshot->children[0].enclosing_container_stored_name == "E 17");
     assert(result.snapshot->children[0].enclosing_container_stored_name_evidence.has_value());
+    assert(result.snapshot->children[0].semantic_format == "hits");
+    assert(result.snapshot->children[0].semantic_format_evidence.has_value());
+    assert(
+        result.snapshot->children[0].semantic_format_evidence->kind() ==
+        gdspaces::ResourceSemanticEvidenceKind::magic_confirmed_format);
     assert(result.snapshot->children[0].canonical_display_name == "E 17");
     assert(!result.snapshot->children[0].external_index_normalized_name().has_value());
 
-    // A later payload edit invalidates the sealed target-byte evidence instead
-    // of silently retaining a stale display label.
+    // A later payload edit invalidates both target-bound stored-name evidence
+    // and byte-magic semantic evidence instead of retaining stale presentation.
     expansion.children[0].payload.bytes[0] = std::byte{'X'};
     const auto stale = gdspaces::ResourceNamingIdentityBuilder::build(expansion);
     assert(!stale.ok());
 
-    // Enclosing stored names and external extraction names coexist as distinct
-    // domains. `.index` still maps by populated ordinal and remains the display
-    // authority for historical extraction naming.
+    // Enclosing stored names, semantic bytes and external extraction names
+    // coexist as distinct domains. `.index` still maps by populated ordinal;
+    // semantic bytes can change canonical display extension without changing
+    // the historical external extraction label.
     auto dual = records_expansion(enclosing);
     const auto index = make_index();
     const auto dual_result = dmc3::Dmc3NamingPipeline::apply(
@@ -190,12 +196,15 @@ int main() {
         dual_result.snapshot->children[0].external_index_normalized_name() ==
         std::optional<std::string>{"effect_000.ukn"});
     assert(dual_result.snapshot->children[0].enclosing_container_stored_name == "E 17");
-    assert(dual_result.snapshot->children[0].canonical_display_name == "effect_000.ukn");
+    assert(dual_result.snapshot->children[0].semantic_format == "hits");
+    assert(dual_result.snapshot->children[0].semantic_format_evidence.has_value());
+    assert(dual_result.snapshot->children[0].canonical_display_name == "effect_000.hits");
 
     const auto safe_export = dmc3::LegacyExtractionNamingPlanner::build(
         dual_result.snapshot->children[0]);
     assert(safe_export.valid());
     assert(safe_export.export_safe);
+    assert(safe_export.extraction_name == "effect_000.ukn");
     assert(safe_export.export_name == "effect_000.ukn");
     assert(safe_export.export_path == "effect_000.ukn");
 
