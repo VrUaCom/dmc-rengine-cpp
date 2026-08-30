@@ -12,12 +12,13 @@ class ContainerNamingReconciler;
 
 enum class ResourceSemanticEvidenceKind : std::uint8_t {
     embedded_name_list,
+    magic_confirmed_format,
     profile_structural_format,
 };
 
 // Read-only semantic evidence attached to a materialized resource. This is
 // presentation-independent and is never ResourceId/write authority. Only the
-// naming reconciler can persist evidence produced by a sealed structural
+// naming reconciler can persist evidence produced by a sealed byte/structural
 // observation, so a display suffix cannot manufacture semantic authority.
 class ResourceSemanticEvidence final {
 public:
