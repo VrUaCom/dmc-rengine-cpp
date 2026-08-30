@@ -1,3 +1,4 @@
+#include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/profiles/dmc3/naming_pipeline.hpp"
 
 #include <cassert>
@@ -97,6 +98,17 @@ int main() {
     assert(
         expansion.children[0].payload.semantic_evidence[0].kind() ==
         gdspaces::ResourceSemanticEvidenceKind::profile_runtime_content_tag);
+
+    // Downstream materialized classification must preserve the same reason.
+    // Runtime-tag evidence is neither generic magic nor structural-parser proof.
+    const auto classified = gdspaces::ResourceClassifier::classify(
+        expansion.children[0].payload,
+        identity.canonical_display_name);
+    assert(classified.format == "scm");
+    assert(classified.runtime_content_tag_confirmed);
+    assert(!classified.magic_confirmed);
+    assert(!classified.structural_confirmed);
+
     assert(expansion.children[0].payload.bytes[0] == std::byte{'S'});
     assert(expansion.children[0].payload.resource.id == identity.resource_id);
 
