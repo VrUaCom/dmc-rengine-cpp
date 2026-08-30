@@ -10,6 +10,7 @@ namespace dmc::rengine::gdspaces {
 struct ContainerNamingReconcileResult final {
     bool reconciled{false};
     bool embedded_name_list_applied{false};
+    bool magic_semantics_applied{false};
     bool external_index_applied{false};
     std::vector<Diagnostic> diagnostics;
 
@@ -28,9 +29,13 @@ public:
         IndexProfileDisplayResolver profile_resolver = nullptr);
 
 private:
-    // Kept as a class member because ResourceSemanticEvidence is deliberately
-    // non-forgeable outside this reconciler. A free helper would not inherit
-    // the class friendship granted by ResourceSemanticEvidence.
+    // Kept as class members because ResourceSemanticEvidence is deliberately
+    // non-forgeable outside this reconciler. Free helpers would not inherit the
+    // class friendship granted by ResourceSemanticEvidence.
+    [[nodiscard]] static bool persist_magic_semantics(
+        ContainerExpansion& expansion,
+        ContainerNamingReconcileResult& result);
+
     [[nodiscard]] static bool persist_overlay_semantics(
         ContainerExpansion& expansion,
         const IndexNameOverlay& overlay,
