@@ -87,6 +87,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        runtime_naming_bridge
         physical_provider_receipt
         loose_container_list
         relative_slot_writer
