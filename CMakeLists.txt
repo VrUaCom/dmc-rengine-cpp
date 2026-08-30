@@ -164,6 +164,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         companion_index_locator
         legacy_index_replay
         dmc3_naming_pipeline
+        dmc3_runtime_content_tag_provenance
         pac
         pnst
         dmc3_container_parsers
