@@ -7,12 +7,15 @@
 #include <string>
 #include <vector>
 
+namespace dmc::rengine::profiles::dmc3 {
+class Dmc3NamingPipeline;
+}
+
 namespace dmc::rengine::gdspaces {
 
 // A byte/structure-backed profile interpretation that does not depend on an
-// external extraction name. The resolver only describes what the materialized
-// payload is; the reconciler remains the sole authority allowed to seal that
-// observation into ResourceSemanticEvidence.
+// external extraction name. Constructing this value alone grants no authority:
+// only the canonical DMC3 naming pipeline may ask the reconciler to seal it.
 struct ResourceProfileSemantic final {
     std::string canonical_extension;
     std::string semantic_format;
@@ -43,15 +46,17 @@ public:
         const ResourcePayload* external_index = nullptr,
         IndexProfileDisplayResolver profile_resolver = nullptr);
 
-    // Adds profile-specific semantic evidence independently of `.index`.
-    // This is deliberately a second phase: profile structure may identify a
-    // texture bundle even when no historical extraction sidecar exists, but it
-    // must never manufacture external-index authority or alter physical state.
+private:
+    // Profile semantic sealing is deliberately not public. A public resolver
+    // callback would let arbitrary callers ask this trusted reconciler to turn
+    // an invented semantic string into sealed evidence. Only the canonical
+    // DMC3 pipeline owns this profile transition.
+    friend class ::dmc::rengine::profiles::dmc3::Dmc3NamingPipeline;
+
     [[nodiscard]] static ContainerNamingReconcileResult apply_profile_semantics(
         ContainerExpansion& expansion,
         ResourceProfileSemanticResolver resolver);
 
-private:
     // Kept as class members because ResourceSemanticEvidence is deliberately
     // non-forgeable outside this reconciler. Free helpers would not inherit the
     // class friendship granted by ResourceSemanticEvidence.
