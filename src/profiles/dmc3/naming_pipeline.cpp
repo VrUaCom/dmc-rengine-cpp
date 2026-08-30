@@ -208,19 +208,23 @@ Dmc3NamingPipelineResult Dmc3NamingPipeline::apply(
         }
     }
 
-    const auto reconcile = gdspaces::ContainerNamingReconciler::reconcile(
-        expansion,
-        selected_index,
-        resolve_index_display_semantic);
+    // Profiled reconciliation is private to this class by friendship. Product
+    // callers can invoke public reconcile, but cannot inject their own profile
+    // resolver and have arbitrary semantic strings sealed as trusted evidence.
+    const auto reconcile =
+        gdspaces::ContainerNamingReconciler::reconcile_profiled(
+            expansion,
+            selected_index,
+            resolve_index_display_semantic);
     append_diagnostics(result.diagnostics, reconcile.diagnostics);
     if (!reconcile.ok()) {
         expansion = before;
         return result;
     }
 
-    // DMC3 structural semantics are valid even when no extraction sidecar
-    // exists. Run them independently so texture-bundle/wrapped-DDS identity is
-    // not accidentally gated on historical `.index` availability.
+    // DMC3 structural/runtime semantics are valid even when no extraction
+    // sidecar exists. Run them independently so texture-bundle/wrapped-DDS or
+    // recovered runtime-tag identity is not gated on historical `.index`.
     const auto profile_semantics =
         gdspaces::ContainerNamingReconciler::apply_profile_semantics(
             expansion, resolve_materialized_display_semantic);
