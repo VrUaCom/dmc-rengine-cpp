@@ -61,6 +61,23 @@ void add_profile_error(
         });
 }
 
+[[nodiscard]] ResourceSemanticEvidenceKind sealed_profile_kind(
+    ResourceProfileSemanticKind kind) noexcept {
+    switch (kind) {
+    case ResourceProfileSemanticKind::structural_format:
+        return ResourceSemanticEvidenceKind::profile_structural_format;
+    case ResourceProfileSemanticKind::runtime_content_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+    }
+    return ResourceSemanticEvidenceKind::profile_structural_format;
+}
+
+[[nodiscard]] bool is_profile_semantic_kind(
+    ResourceSemanticEvidenceKind kind) noexcept {
+    return kind == ResourceSemanticEvidenceKind::profile_structural_format ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+}
+
 } // namespace
 
 ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantics(
@@ -98,13 +115,13 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
                 result,
                 child.payload.resource.id,
                 "gdspaces.naming-reconcile.profile.invalid-semantic",
-                "A profile structural observation must provide both semantic format and canonical extension.");
+                "A profile byte/structural observation must provide both semantic format and canonical extension.");
             return result;
         }
 
         // A profile recognizer may add information where generic magic has no
         // answer. It never overrides a stronger sealed observation of the same
-        // bytes, such as a magic-confirmed format or the embedded name-list.
+        // bytes, such as a generic magic-confirmed format or embedded name-list.
         if (has_stronger_semantic_evidence(child.payload)) {
             continue;
         }
@@ -112,7 +129,7 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
         const auto bytes = std::span<const std::byte>{
             child.payload.bytes.data(), child.payload.bytes.size()};
         ResourceSemanticEvidence evidence(
-            ResourceSemanticEvidenceKind::profile_structural_format,
+            sealed_profile_kind(semantic->evidence_kind),
             child.payload.resource.id,
             core::Sha256::compute(bytes).hex(),
             semantic->semantic_format,
@@ -123,7 +140,7 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
                 result,
                 child.payload.resource.id,
                 "gdspaces.naming-reconcile.profile.evidence-invalid",
-                "The profile structural observation could not form valid sealed semantic evidence.");
+                "The profile byte/structural observation could not form valid sealed semantic evidence.");
             return result;
         }
 
@@ -133,8 +150,7 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
             std::remove_if(
                 semantic_evidence.begin(), semantic_evidence.end(),
                 [](const ResourceSemanticEvidence& existing) {
-                    return existing.kind() ==
-                        ResourceSemanticEvidenceKind::profile_structural_format;
+                    return is_profile_semantic_kind(existing.kind());
                 }),
             semantic_evidence.end());
         semantic_evidence.push_back(std::move(evidence));
