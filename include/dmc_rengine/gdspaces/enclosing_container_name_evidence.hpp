@@ -34,7 +34,7 @@ public:
     [[nodiscard]] bool valid() const noexcept;
 
 private:
-    friend class profiles::dmc3::EffectStoredNameEvidenceBuilder;
+    friend class ::dmc::rengine::profiles::dmc3::EffectStoredNameEvidenceBuilder;
 
     EnclosingContainerNameEvidence(
         ResourceId authority_resource,
