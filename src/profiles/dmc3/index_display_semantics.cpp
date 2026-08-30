@@ -5,48 +5,22 @@
 
 #include <optional>
 #include <span>
-#include <string_view>
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
 
-[[nodiscard]] bool starts_with(
-    std::span<const std::byte> bytes,
-    std::string_view signature) noexcept {
-    if (bytes.size() < signature.size()) {
-        return false;
-    }
-    for (std::size_t index = 0U; index < signature.size(); ++index) {
-        if (std::to_integer<unsigned char>(bytes[index]) !=
-            static_cast<unsigned char>(signature[index])) {
-            return false;
-        }
-    }
-    return true;
-}
-
 [[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
 resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
     using Contract = ResourceTypeContract;
-    for (const auto& tagged : Contract::tagged_types) {
-        // The recovered DMC3 content probe compares exactly three bytes. Do
-        // not strengthen this to a four-byte magic check: that would make the
-        // tool stricter than the original runtime and would reject evidence
-        // that the game itself classifies.
-        if (!starts_with(bytes, tagged.tag)) {
-            continue;
-        }
-
-        const auto format = Contract::canonical_extension(tagged.code);
-        if (format.empty()) {
-            return std::nullopt;
-        }
-        return gdspaces::ResourceProfileSemantic{
-            .canonical_extension = std::string{format},
-            .semantic_format = std::string{format},
-        };
+    const auto code = Contract::type_for_prefix(bytes);
+    const auto format = Contract::canonical_extension(code);
+    if (format.empty()) {
+        return std::nullopt;
     }
-    return std::nullopt;
+    return gdspaces::ResourceProfileSemantic{
+        .canonical_extension = std::string{format},
+        .semantic_format = std::string{format},
+    };
 }
 
 } // namespace
