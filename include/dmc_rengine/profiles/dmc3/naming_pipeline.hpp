@@ -15,6 +15,8 @@ struct Dmc3NamingPipelineResult final {
     bool explicit_external_index_used{false};
     bool companion_index_discovered{false};
     bool enclosing_stored_names_applied{false};
+    bool profile_semantics_applied{false};
+    bool derived_display_names_applied{false};
     std::optional<CompanionIndexCandidateKind> companion_kind;
     std::optional<gdspaces::ContainerNamingIdentitySnapshot> snapshot;
     std::vector<gdspaces::Diagnostic> diagnostics;
@@ -31,10 +33,14 @@ struct Dmc3NamingPipelineResult final {
 //    expansion (currently the recovered effect-container convention);
 // 2) explicit external_index, when supplied, is used exactly as provided;
 // 3) otherwise companion_source may resolve one exact physical-path `.index`;
-// 4) embedded aliases and DMC3 structural semantic format evidence are
-//    reconciled by ContainerNamingReconciler;
+// 4) embedded aliases plus generic and DMC3 profile structural semantic
+//    evidence are reconciled without requiring an external `.index`;
 // 5) ResourceNamingIdentityBuilder emits one read-only snapshot that retains
-//    each evidence domain without laundering it into physical identity.
+//    each evidence domain without laundering it into physical identity;
+// 6) if a populated resource is still synthetically named, the snapshot may
+//    receive a deterministic derived display name from physical container
+//    identity + extracted ordinal + semantic extension. That display is never
+//    external-index evidence and never export/write authority.
 //
 // Explicit external evidence intentionally outranks companion discovery so a
 // retained extraction corpus may name an NBZ-materialized PAC even when the
