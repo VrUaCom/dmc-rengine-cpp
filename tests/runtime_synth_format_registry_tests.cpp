@@ -69,7 +69,7 @@ int main() {
     assert(pnst->allows_writer_mode("runtime-synth-relative-slot"));
     assert(!pnst->allows_writer_mode("generic-writer-receipt"));
     assert(has_limitation(*pnst, "typed runtime-synth composition"));
-    assert(has_limitation(*pnst, "semantic child-to-slot"));
+    assert(has_limitation(*pnst, "Semantic child-to-slot"));
 
     const auto* nbz = registry.find("NBZ");
     assert(nbz != nullptr);
