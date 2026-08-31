@@ -4,7 +4,7 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "0d0a604f63eb70706f177e2dde02f7a3586d1e25",
+  "snapshot_main_sha": "d358a2e69a98b13d36d42b594c353afd6546ffb8",
   "snapshot_relationship": "reconciliation-branch-synchronized-through-snapshot-main-sha",
   "overall_status": "gdspaces-l1-incomplete-original-reverse-naming-type-validation-and-real-acceptance-open-l2-l3-incomplete",
   "truth_layers": {
