@@ -51,11 +51,6 @@ namespace {
         return false;
     }
 
-    // Real DMC3 extracted corpora also contain text .index manifests whose
-    // first line is literally "PNST\r\n". The four-byte prefix is therefore a
-    // probe candidate, not sufficient binary-container authority. Reuse the
-    // canonical structural parser so classification and materialization cannot
-    // disagree about whether the supplied byte image is a relative-slot PNST.
     return formats::PnstParser::parse(bytes).ok();
 }
 
@@ -74,10 +69,6 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "pac";
         result.magic_confirmed = true;
     } else if (structurally_valid_binary_pnst(bytes)) {
-        // Binary PNST commonly survives under a misleading .pac extension in
-        // the extracted corpus. Structurally validated byte identity therefore
-        // outranks extension, while PNST-prefixed text .index manifests fall
-        // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
@@ -124,10 +115,6 @@ ResourceClassification ResourceClassifier::classify(
             result.profile = physical_profile;
             result.container = is_container_format(result.format);
 
-            // Preserve the reason the semantic record is authoritative. The
-            // old blanket `structural_confirmed = true` laundered every sealed
-            // record into structural-parser proof, including generic magic and
-            // the recovered DMC3 runtime content-tag dispatcher.
             switch (evidence.kind()) {
             case ResourceSemanticEvidenceKind::embedded_name_list:
             case ResourceSemanticEvidenceKind::profile_structural_format:
@@ -139,15 +126,13 @@ ResourceClassification ResourceClassifier::classify(
             case ResourceSemanticEvidenceKind::profile_runtime_content_tag:
                 result.runtime_content_tag_confirmed = true;
                 break;
+            case ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag:
+                result.runtime_family_mask_confirmed = true;
+                break;
             }
             return result;
         }
 
-        // A semantic record is present but does not validate against the exact
-        // current byte image. Ignore presentation/name hints entirely: only the
-        // physical logical identity plus fresh bytes may classify this stale
-        // resource. This prevents e.g. display "st001_000.index" from turning
-        // stale embedded-name evidence into a fake external-index semantic type.
         auto result = classify(payload.resource.id.logical_path, bytes);
         result.profile = physical_profile;
         return result;
