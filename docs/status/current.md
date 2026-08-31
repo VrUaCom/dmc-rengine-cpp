@@ -1,11 +1,11 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
 **Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
-**Latest L1 naming/type checkpoint:** #268 landed by fast-forward; direct instruction-level corrections continue on `main`  
+**Latest L1 naming/type checkpoints:** #268 landed by fast-forward; subsequent instruction-level type-family corrections are also synchronized into this branch  
 **Primary execution program:** GDSpaces Layer 1 original-materialization reverse + naming/type evidence reconciliation + real acceptance  
-**Overall status:** **L1 INCOMPLETE / NOT 100%; L2 INCOMPLETE; L3 INCOMPLETE.** Product capabilities are advanced, but no layer may be promoted to complete from implementation or synthetic CI alone. Exact-head CI for the newest `main@08231d6` runtime-type corrections is pending.
+**Overall status:** **L1 INCOMPLETE / NOT 100%; L2 INCOMPLETE; L3 INCOMPLETE.** Product capabilities are advanced, but no layer may be promoted to complete from implementation or synthetic CI alone. Exact-head CI for the final #269 reconciliation head is required before promotion.
 
 ## Authority split
 
@@ -50,7 +50,8 @@ Current `main` includes:
 - sealed separation of external `.index`, embedded aliases, enclosing stored names, semantic evidence, display and export projection;
 - exact `ResourceId` runtime-to-L1 naming bridge;
 - no-`.index` semantic derived display that remains presentation-only;
-- instruction-backed runtime type evidence split by recovered call path rather than one global detector.
+- instruction-backed runtime type evidence split by recovered call path rather than one global detector;
+- current primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
 
 These are strong product capabilities, not a completion claim.
 
@@ -164,25 +165,28 @@ The static LoadedResource / typed-ready / release spine is strong. The static no
 ## Current critical path
 
 ```text
-1. land #269 status/evidence reconciliation after current-head review and CI
-2. finish residual recursive .lst + allocator/backend reverse
-3. run final original-L1 contradiction sweep
-4. finish naming/type-evidence real-corpus, producer-lineage and replay validation
-5. obtain representative real-retail selected identity + acquisition provenance
-6. classify exact representation
-7. perform supported real edit/rebuild/rematerialization
-8. execute original-game consumption + rollback (#209)
-9. final L1 cross-stack audit
-10. only then mark L1 COMPLETE / 100%
+1. land #269 status/evidence reconciliation after final current-head review and CI
+2. obtain trustworthy canonical-analysis bytes/disassembly for the residual .lst frontier
+3. finish residual recursive .lst + allocator/backend reverse without substituting product guards for original behavior
+4. run final original-L1 contradiction sweep
+5. finish naming/type-evidence real-corpus, producer-lineage and replay validation
+6. obtain representative real-retail selected identity + acquisition provenance
+7. classify exact representation
+8. perform supported real edit/rebuild/rematerialization
+9. execute original-game consumption + rollback (#209)
+10. final L1 cross-stack audit
+11. only then mark L1 COMPLETE / 100%
 ```
 
 No synthetic-only feature should displace the real evidence sequence unless a real run reveals a concrete missing dependency.
 
 ## Environment boundary
 
-The canonical analysis executable is available for direct reverse. The connected environment still does not expose every protected-install artifact/process condition required for the complete real-retail/original-game acceptance chain.
+The canonical analysis executable identity and prior canonical-EXE reverse packets are well established, but the **current connected session does not expose the complete raw canonical analysis image** (`e454...`, 6,356,432 bytes). The accessible raw `dmc3.exe` artifact is the protected/distribution build (`81c7...`, 6,567,320 bytes), which is not instruction-reverse authority for canonical analysis VAs.
 
-External evidence limits do not justify promoting a layer to complete.
+Accordingly, this session does not promote any new instruction-level claim for recursive `.lst` cycle/depth/allocation/free behavior from the protected build. That frontier remains open until the canonical raw image, a trustworthy bounded disassembly/byte packet, or equivalent evidence is available. This evidence boundary must not be hidden by product safety tests or synthetic CI.
+
+The connected environment also does not expose every protected-install artifact/process condition required for the complete real-retail/original-game Level-E acceptance chain.
 
 ## Navigation
 
