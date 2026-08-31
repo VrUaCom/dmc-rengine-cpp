@@ -4,7 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "08231d669666d2bdfefe3d74f123600ca365cc3d",
+  "snapshot_main_sha": "0d0a604f63eb70706f177e2dde02f7a3586d1e25",
+  "snapshot_relationship": "reconciliation-branch-synchronized-through-snapshot-main-sha",
   "overall_status": "gdspaces-l1-incomplete-original-reverse-naming-type-validation-and-real-acceptance-open-l2-l3-incomplete",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-product-truth",
@@ -27,13 +28,20 @@
     "internal_product_path_status": "advanced-many-representative-paths-implemented-but-not-a-completion-claim",
     "original_materialization_reverse_status": "active-substantially-narrowed-not-exhaustive",
     "naming_status": "main-landed-validation-open",
-    "runtime_type_evidence_status": "main-landed-scoped-instruction-level-correction-active",
+    "runtime_type_evidence_status": "main-landed-scoped-instruction-level-corrections-synchronized-through-snapshot",
     "latest_landed_naming_type_checkpoint": 268,
-    "latest_main_ci_status": "pending-for-08231d669666d2bdfefe3d74f123600ca365cc3d",
+    "latest_reconciliation_ci_status": "required-for-final-pr-269-head-before-promotion",
     "canonical_analysis_executable": {
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
       "size": 6356432,
-      "role": "instruction-reverse-authority"
+      "role": "instruction-reverse-authority",
+      "raw_image_available_in_current_connected_session": false
+    },
+    "connected_raw_executable": {
+      "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+      "size": 6567320,
+      "role": "protected-distribution-build",
+      "instruction_reverse_authority_for_canonical_analysis_vas": false
     },
     "canonical_capabilities": [
       "nbz-classic-zip-indexing",
@@ -63,7 +71,8 @@
       "runtime-to-l1-exact-resourceid-naming-bridge",
       "no-index-derived-display-presentation-only",
       "runtime-type-evidence-separated-registry-container-and-family-mask-paths",
-      "semantic-provenance-distinguishes-structural-magic-and-runtime-instruction-evidence"
+      "semantic-provenance-distinguishes-structural-magic-and-runtime-instruction-evidence",
+      "primary-3d-render-resource-family-reverse-documentation-synchronized"
     ],
     "L1_reverse_gate": {
       "id": "L1-R",
@@ -102,6 +111,7 @@
         "representative-real-lst-corpus-if-loose-list-equivalence-is-claimed",
         "final-original-l1-contradiction-sweep"
       ],
+      "current_evidence_constraint": "do-not-promote-new-instruction-level-lst-cycle-lifetime-claims-without-canonical-analysis-bytes-or-trustworthy-equivalent-evidence",
       "evidence_packet": "../../data/reverse/dmc3-l1-writer-failure-width-2026-08-28.v1.json"
     },
     "L1_naming_gate": {
@@ -164,7 +174,10 @@
     "preferred_direct_retail_request_target": "obj\\em000.pac",
     "preferred_target_is_mandatory": false,
     "member_identity_rule": "record-runtime-resolver-winner-do-not-predeclare-gdata-member-path",
-    "external_environment_blocker": "not-all-protected-install-artifacts-and-original-process-conditions-are-exposed-for-final-level-e",
+    "external_environment_blockers": [
+      "complete-raw-canonical-analysis-executable-not-exposed-in-current-connected-session-for-new-instruction-level-reverse",
+      "not-all-protected-install-artifacts-and-original-process-conditions-are-exposed-for-final-level-e"
+    ],
     "L2": {
       "overall_status": "incomplete-advanced-static-and-tooling-real-retail-and-original-process-evidence-open",
       "canonical_analysis_executable": {
@@ -188,6 +201,7 @@
   },
   "project_priority": [
     "land-l1-status-evidence-reconciliation-pr-269",
+    "obtain-canonical-analysis-bytes-or-trustworthy-bounded-disassembly-for-residual-lst-frontier",
     "finish-residual-recursive-lst-and-allocator-backend-failure-branches",
     "final-original-l1-contradiction-sweep",
     "finish-naming-runtime-type-real-corpus-producer-lineage-and-replay-validation",
