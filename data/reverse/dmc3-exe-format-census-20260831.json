@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-exe-format-census-20260831",
+  "status": "evidence-backed-bounded-census",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "format": "PE32+ x86-64",
+    "image_base": "0x140000000"
+  },
+  "scope": {
+    "purpose": "Consolidate format/type identities observed directly in the canonical executable for reuse by Native Reader and other consumers.",
+    "methods": [
+      "existing bounded registry/dispatcher reverse",
+      "whole-.text objdump immediate compare census",
+      "whole-.text immediate FourCC write census",
+      "bounded ASCII runtime path/extension census"
+    ],
+    "non_goal": "This census does not claim that every listed format has a completely recovered on-disk schema."
+  },
+  "runtime_type_paths": {
+    "registry_content_probe": {
+      "va": "0x1402DB1F0",
+      "width": 3,
+      "fourth_byte_checked": false,
+      "mapping": {
+        "MOD": 0,
+        "EFM": 1,
+        "SCM": 2,
+        "MRP": 3,
+        "SHW": 7
+      }
+    },
+    "family_mask_probe": {
+      "va": "0x1402FD650",
+      "width": 4,
+      "requires_trailing_space": true,
+      "mapping": {
+        "MOD ": "0x10000000",
+        "EFM ": "0x20000000",
+        "SCM ": "0x30000000",
+        "MRP ": "0x40000000",
+        "MCV ": "0x50000000",
+        "SHW ": "0x60000000"
+      }
+    },
+    "container_dispatcher": {
+      "va": "0x1401B9FA0",
+      "normal_handlers": {
+        "MOD": "0x1402FE3B0",
+        "EFM": "0x1402F7A90",
+        "SCM": "0x1403051B0",
+        "SHW": "0x1403204C0"
+      },
+      "recognized_no_normal_handler": ["EFE", "EFW"],
+      "recursive_four_byte_identity": "PNST",
+      "mrp_generic_handler": null
+    }
+  },
+  "additional_direct_content_checks": [
+    {
+      "family": "VAGp",
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_va": "0x140032970",
+      "instruction": "cmp DWORD PTR [rdi],0x70474156",
+      "bytes": "56 41 47 70",
+      "meaning": "direct first-DWORD VAGp payload check"
+    },
+    {
+      "family": "DDS",
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_vas": ["0x140049A8E", "0x14004AD9D"],
+      "instruction": "cmp first DWORD to 0x20534444",
+      "bytes": "44 44 53 20",
+      "meaning": "direct DDS magic check"
+    },
+    {
+      "family": "TM2",
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_va": "0x1403365BA",
+      "instruction": "cmp DWORD PTR [rcx],0x00324D54",
+      "bytes": "54 4D 32 00",
+      "meaning": "canonical DMC3 texture payload identity is TM2\\0 on this path",
+      "correction": "Do not use a TIM2-only content probe as canonical EXE authority."
+    }
+  ],
+  "object_tags": [
+    {
+      "family": "LIG2",
+      "status": "EXE_CONFIRMED_OBJECT_TAG",
+      "constructor_va": "0x14023ECB0",
+      "instruction_va": "0x14023ECC9",
+      "instruction": "mov DWORD PTR [rcx+0x8],0x3247494C",
+      "bytes": "4C 49 47 32",
+      "object_offset": "0x08",
+      "boundary": "This proves an executable-side LIG2 FourCC/type tag, not complete field semantics."
+    }
+  ],
+  "extension_classifiers": {
+    "primary": {
+      "function_va": "0x1402DB3C0",
+      "families": ["PTX", "CLT", "C1D"]
+    },
+    "auxiliary": {
+      "function_va_candidate": "0x1402E01A0",
+      "families": ["MOT", "MCV", "CAM", "HID", "CLT", "TSC"]
+    },
+    "media_capability": {
+      "families": ["PSS", "THP", "PAM", "XMV", "WMV", "PMF", "AVI", "MPG", "BIK", "MP4"],
+      "boundary": "Capability recognition is not ownership of these common media formats by DMC resource tooling."
+    }
+  },
+  "runtime_path_or_filename_evidence": [
+    "NBZ",
+    "AFS namespace",
+    "PAC",
+    "ADX",
+    "OGG",
+    "SFD",
+    "TM2",
+    "PTZ",
+    "DDS",
+    "FON",
+    "ICO",
+    "icon.sys",
+    "SAV",
+    "PHD",
+    "TSB",
+    "BD",
+    "BIN",
+    "TXT",
+    "SPUMAPDT"
+  ],
+  "dds_subformats_not_standalone_resources": [
+    "DX10",
+    "DXT1",
+    "DXT2",
+    "DXT3",
+    "DXT4",
+    "DXT5",
+    "ATI1",
+    "ATI2",
+    "BC4U",
+    "BC4S",
+    "BC5U",
+    "BC5S",
+    "RGBG",
+    "GRGB",
+    "YUY2"
+  ],
+  "explicit_exclusions": [
+    {
+      "name": "HITS$",
+      "status": "REJECTED",
+      "reason": "Historical five-byte claim; must not be reintroduced."
+    },
+    {
+      "name": "HITS",
+      "status": "DATA_CONFIRMED_NOT_EXE_REGISTRY_TAG",
+      "reason": "Real four-byte collision payload identity in corpus/parser evidence, but bounded canonical EXE ASCII sweep reports zero HITS occurrences."
+    },
+    {
+      "name": "shader compiler metadata",
+      "examples": ["RDEF", "SPDB", "D3DSHDR", "SHEX"],
+      "reason": "Embedded compiler/container metadata, not DMC resource families."
+    },
+    {
+      "name": "PE section names and printable machine-code fragments",
+      "reason": "Not accepted as format evidence without a classifier, handler, content check, constructor tag, or runtime path ownership."
+    }
+  ],
+  "consumer_policy": {
+    "identity_vs_schema": "Keep EXE identity evidence independent from structural/semantic decoder support.",
+    "mesh_policy": "Only validated canonical MOD<space>/SCM<space> layouts may enter current mesh decode. Three-byte runtime recognition must not imply mesh compatibility.",
+    "native_reader": "Use EXE-confirmed identities for recognition/inspection and fail closed for unresolved decoding."
+  },
+  "related_existing_evidence": [
+    "data/reverse/dmc3-runtime-type-identification-20260831.json",
+    "data/reverse/dmc3-primary-3d-family-20260831.json"
+  ]
+}
