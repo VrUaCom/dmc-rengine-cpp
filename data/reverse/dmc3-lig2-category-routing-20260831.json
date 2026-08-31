@@ -1,0 +1,72 @@
+{
+  "schema": "dmc-rengine.dmc3-lig2-category-routing.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-08-31",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "selector": {
+    "va": "0x1402EE560",
+    "categoryRules": {
+      "1": "accepted when routing mask contains 0x01 or 0x02",
+      "2": "accepted when routing mask contains 0x02",
+      "3": "accepted when routing mask contains 0x01",
+      "4": "special shadow category accepted when mask contains 0x10"
+    },
+    "sourceListBits": {
+      "0x04": "scan CLightMgr list +0x20",
+      "0x08": "scan CLightMgr list +0x38"
+    },
+    "recordByte0Model": "category/flags byte; preserve raw value"
+  },
+  "consumers": {
+    "generalCDraw": {
+      "constructorVA": "0x140089270",
+      "routingMaskOffset": "0x744",
+      "defaultRoutingMask": 2,
+      "updateVA": "0x14008B500",
+      "builderVA": "0x1402FD040",
+      "acceptedCategories": [1, 2],
+      "semantic": "general CDraw / MOD-EFM-facing plus shared"
+    },
+    "cDrawSCM": {
+      "constructorVA": "0x140089320",
+      "constructorWrite": "DWORD +0x570 = 0x00010000",
+      "routingMaskOffset": "0x572",
+      "defaultRoutingMask": 1,
+      "updateVA": "0x14008B5D0",
+      "builderVA": "0x1402FD2B0",
+      "perMeshBuilderVA": "0x1402FD370",
+      "acceptedCategories": [1, 3],
+      "semantic": "CDrawSCM/stage-facing plus shared"
+    },
+    "cDrawShadow": {
+      "queryMask": "0x1C",
+      "acceptedSpecialCategory": 4,
+      "semantic": "SHW shadow-projection source"
+    }
+  },
+  "canonicalCategorySemantics": {
+    "0": {"semantic": "inactive", "status": "EXE_CONFIRMED"},
+    "1": {"semantic": "shared general+SCM lighting routing category", "status": "EXE_CONFIRMED"},
+    "2": {"semantic": "general CDraw/MOD-EFM-facing lighting routing category", "status": "EXE_CONFIRMED"},
+    "3": {"semantic": "CDrawSCM/stage-geometry-facing lighting routing category", "status": "EXE_CONFIRMED"},
+    "4": {"semantic": "shadow-projection lighting category", "status": "EXE_CONFIRMED"}
+  },
+  "distanceBehavior": {
+    "evaluatorVA": "0x1402EE2A0",
+    "modeOffset": "0x02",
+    "falloffOffset": "0x20",
+    "attenuatedFormula": "max(1 - distance * falloff, 0)",
+    "derivedZeroContributionRange": "1 / falloff when falloff > 0",
+    "nonzeroModeBehavior": "distance weight = 1.0",
+    "status": "EXE_CONFIRMED"
+  },
+  "colourChannels": {
+    "offsets": ["0x24", "0x26", "0x28"],
+    "rawType": "u16",
+    "runtimeConversion": "direct integer-to-float conversion into three consecutive contribution channels",
+    "semantic": "RGB-like light colour/contribution channels",
+    "status": "HIGH_CONFIDENCE"
+  },
+  "rejectedInterpretation": "Do not map categories 1/2/3 to point/spot/directional without separate physical-light evidence.",
+  "nextBoundary": "Trace CLightMgr +0x38 registrations to determine whether stage effect/SEF runtime produces the second light pool."
+}
