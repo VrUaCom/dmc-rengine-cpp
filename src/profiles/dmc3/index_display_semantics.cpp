@@ -10,9 +10,9 @@ namespace dmc::rengine::profiles::dmc3 {
 namespace {
 
 [[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
-resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
+resolve_registry_content_tag_semantic(std::span<const std::byte> bytes) {
     using Contract = ResourceTypeContract;
-    const auto code = Contract::type_for_prefix(bytes);
+    const auto code = Contract::registry_type_for_prefix(bytes);
     const auto format = Contract::canonical_extension(code);
     if (format.empty()) {
         return std::nullopt;
@@ -75,18 +75,19 @@ resolve_materialized_display_semantic(
         }
     }
 
-    // PAC/PNST slot semantics first use the exact three-byte registry/content
-    // probe that is also mirrored by the container dispatcher for
-    // MOD/EFM/SCM/SHW. Its fourth byte is intentionally irrelevant at that
-    // site, so preserve that recovered behavior here.
-    if (const auto semantic = resolve_runtime_content_tag_semantic(bytes);
+    // Evidence site A: the registry probe compares exactly bytes 0..2. This is
+    // the source of profile_runtime_content_tag provenance. The independent
+    // container dispatcher is corroborating runtime evidence, not a naming
+    // source for its EFW/EFE sentinel-only cases.
+    if (const auto semantic = resolve_registry_content_tag_semantic(bytes);
         semantic.has_value()) {
         return semantic;
     }
 
-    // A second, independent runtime classifier uses four bytes and requires an
-    // ASCII-space terminator. It adds MCV to the recognized families. This is
-    // separate provenance, not a widening of the three-byte rule.
+    // Evidence site C: a separate higher-level classifier compares exactly four
+    // bytes including trailing ASCII space and additionally recognizes MCV.
+    // Preserve it as a separate provenance family rather than widening the
+    // three-byte registry rule.
     return resolve_runtime_family_mask_semantic(bytes);
 }
 
