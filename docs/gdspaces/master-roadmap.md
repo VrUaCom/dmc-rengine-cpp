@@ -1,7 +1,7 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-31  
-**Canonical implementation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
 **L1:** **INCOMPLETE / NOT 100%** — original materialization reverse, naming/type validation and real acceptance open  
 **L2:** INCOMPLETE — advanced static/tooling, real selected-identity evidence open  
 **L3:** INCOMPLETE — strong static spine, dynamic lifecycle/original-process evidence open  
@@ -9,7 +9,7 @@
 
 This is the dependency roadmap for GDSpaces as one resource-runtime program. L1/L2/L3 keep separate authority, but work is scheduled by the evidence dependency that blocks the next real vertical proof.
 
-The historical statement that the L1 internal path was closed is superseded. Product implementation is advanced, but fresh canonical-EXE reverse proved that the original materialization/result/failure contract is not exhaustively recovered. Naming and scoped runtime type evidence are now substantially integrated in `main`, but real-corpus/replay validation remains open. Original-game Level-E acceptance also remains open.
+The historical statement that the L1 internal path was closed is superseded. Product implementation is advanced, but canonical-EXE reverse proved that the original materialization/result/failure contract is not exhaustively recovered. Naming and scoped runtime type evidence are substantially integrated in `main`, but real-corpus/replay validation remains open. Original-game Level-E acceptance also remains open.
 
 ## 1. Layer ownership
 
@@ -91,7 +91,8 @@ Naming/type checkpoints:
 
 - `l1-naming-full-integration-20260830.md`;
 - `dmc3-runtime-l1-naming-bridge-20260830.md`;
-- historical PR #268, landed by fast-forward and followed by direct instruction-level corrections on `main`.
+- historical PR #268, landed by fast-forward and followed by instruction-level corrections on `main`;
+- primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
 
 **Track A status: INCOMPLETE / ACTIVE.**
 
@@ -119,7 +120,7 @@ These are product capabilities, not an L1 completion certificate.
 
 ## A2 — Original materialization reverse gate L1-R
 
-Fresh canonical-EXE reverse confirms/corrects:
+Canonical-EXE reverse confirms/corrects:
 
 - FileSlot cached-size source for physical and NBZ entries;
 - direct whole-file `0x800` transfer extent in the safe positive domain;
@@ -177,6 +178,12 @@ A-R1 recursive .lst cycle/depth semantics
  -> A-R4 representative real .lst corpus only if loose-list equivalence is claimed
  -> A-R5 final original-L1 contradiction sweep
 ```
+
+### Current evidence constraint for A-R1..A-R3
+
+The complete raw canonical analysis executable (`e454...`, 6,356,432 bytes) is not exposed in the current connected session. The accessible raw EXE is the protected/distribution build (`81c7...`, 6,567,320 bytes) and is not instruction authority for canonical analysis VAs. Therefore no new instruction-level `.lst` cycle/depth/allocation/free claim may be promoted from that protected image without independent mapping/equivalence evidence.
+
+The next reverse step is to obtain canonical bytes, trustworthy bounded disassembly, or an equivalent evidence packet. Product recursion/depth guards may still be reviewed as product hardening, but they cannot be mislabeled as recovered original semantics.
 
 ## A3 — Naming/type gate L1-N
 
@@ -286,7 +293,7 @@ For the L1 vertical proof, only the L2 identity evidence needed to bind the sele
 
 **Status: INCOMPLETE.**
 
-The static LoadedResource/typed-ready/release-reset spine is strong. The bounded static L1-terminal → normal-completion seam is now closed at its stated scope.
+The static LoadedResource/typed-ready/release-reset spine is strong. The bounded static L1-terminal → normal-completion seam is closed at its stated scope.
 
 Do not restart that seam or already bounded static writer areas absent contradictory evidence.
 
@@ -321,15 +328,16 @@ For the first L1 vertical proof, L3 only needs enough original-process evidence 
 
 # Current priority queue
 
-1. Land PR #269 so canonical status/evidence matches the already-confirmed reverse and current naming/type main history.
-2. Finish residual recursive `.lst` cycle/depth/allocation/free lifetime and allocator/backend failure branches.
-3. Run final original-L1 contradiction sweep.
-4. Finish naming/type real-corpus, historical producer-lineage and replay/export/reopen validation.
-5. Obtain one representative real-retail selected identity + L1 acquisition receipt.
-6. Classify its exact representation and perform one supported edit/rebuild/rematerialization chain.
-7. Execute #209 original-game consumption + rollback.
-8. Run final L1 audit.
-9. Continue L2/L3 broader evidence programs without displacing the L1 vertical critical path.
+1. Land PR #269 so canonical status/evidence matches the confirmed reverse and current naming/type main history.
+2. Obtain canonical-analysis bytes/trustworthy bounded disassembly for the residual `.lst` frontier.
+3. Finish recursive `.lst` cycle/depth/allocation/free lifetime and residual allocator/backend failure branches.
+4. Run final original-L1 contradiction sweep.
+5. Finish naming/type real-corpus, historical producer-lineage and replay/export/reopen validation.
+6. Obtain one representative real-retail selected identity + L1 acquisition receipt.
+7. Classify its exact representation and perform one supported edit/rebuild/rematerialization chain.
+8. Execute #209 original-game consumption + rollback.
+9. Run final L1 audit.
+10. Continue L2/L3 broader evidence programs without displacing the L1 vertical critical path.
 
 # Completion rule
 
