@@ -1,0 +1,67 @@
+{
+  "schema": "dmc-rengine.dmc3-lig2-shadow-projection.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-08-31",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "lig2": {
+    "headerSize": "0x20",
+    "recordStride": "0x30",
+    "fixedRecordCapacity": 48,
+    "clightStaticConstructorVA": "0x14023ECB0",
+    "clightStaticVtable": "0x1404E3128",
+    "registrationVA": "0x140089000",
+    "registrationRule": "record[0] != 0",
+    "recordFields": {
+      "0x00": {"type":"u8","semantic":"active/type/category byte; zero disables registration","status":"EXE_CONFIRMED"},
+      "0x01": {"type":"u8","semantic":"secondary mode flag","status":"OPEN"},
+      "0x02": {"type":"u8","semantic":"distance attenuation mode","status":"EXE_CONFIRMED"},
+      "0x10": {"type":"f32","semantic":"world position X","status":"EXE_CONFIRMED"},
+      "0x14": {"type":"f32","semantic":"world position Y","status":"EXE_CONFIRMED"},
+      "0x18": {"type":"f32","semantic":"world position Z","status":"EXE_CONFIRMED"},
+      "0x1C": {"type":"f32","semantic":"contribution parameter","status":"OPEN"},
+      "0x20": {"type":"f32","semantic":"distance attenuation/falloff scale","status":"EXE_CONFIRMED"},
+      "0x24": {"type":"u16","semantic":"colour-like channel 0","status":"HIGH_CONFIDENCE"},
+      "0x26": {"type":"u16","semantic":"colour-like channel 1","status":"HIGH_CONFIDENCE"},
+      "0x28": {"type":"u16","semantic":"colour-like channel 2","status":"HIGH_CONFIDENCE"}
+    },
+    "lightEvaluationVA": "0x1402EE2A0",
+    "lightSelectionVA": "0x1402EE560"
+  },
+  "shadow": {
+    "cdrawShadowUpdateVA": "0x14008BCF0",
+    "globalCLightMgrPointerVA": "0x140C90E38",
+    "shadowLightPrepareVA": "0x14031FA80",
+    "shadowProjectionVA": "0x14031F830",
+    "queryMask": "0x1C",
+    "selectedLig2Category": 4,
+    "selectedCategoryEvidence": "query mask contains the special 0x10 selection bit while ordinary type-1/2/3 low-mask selectors are absent",
+    "directionSource": "selected LIG2 type-4 world position minus model/root world position",
+    "fallbackOffsetApprox": [200.0,300.0,50.0],
+    "directionStatus": "EXE_CONFIRMED"
+  },
+  "samples": {
+    "st001": {
+      "lig2Size": "0x920",
+      "activeRecordCount": 8,
+      "shadowSelectedType4": {"position":[5000.0,2500.0,0.0],"distanceAttenuationDisabled":true}
+    },
+    "st114": {
+      "lig2Size": "0x920",
+      "activeRecordCount": 11,
+      "shadowSelectedType4": {"position":[2500.0,99998.0,2500.0],"distanceAttenuationDisabled":true}
+    }
+  },
+  "ownership": {
+    "shw": "shadow caster geometry/topology and transform indices",
+    "lig2_type4": "shadow light world point and projection direction/tilt source",
+    "model_set_shadow_parameters": ["ShadowDarkness","ShadowSoftness","ShadowSoftRange","ShadowParamSet"],
+    "stage_effect_pac": "examined st001/st114 effect archives are effect banks, not the static LIG2 rig storage"
+  },
+  "openBoundaries": [
+    "exact semantic names of LIG2 types 1/2/3",
+    "exact normalization and naming of colour channels",
+    "remaining LIG2 header and record fields",
+    "live-game one-field validation of type-4 position -> shadow direction",
+    "whether effect-created/dynamic lights can satisfy the same shadow query"
+  ]
+}
