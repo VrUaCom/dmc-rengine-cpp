@@ -2,13 +2,13 @@
 
 **Status:** **INCOMPLETE / NOT 100% — original-runtime reverse + naming validation + real acceptance open**  
 **Snapshot date:** 2026-08-31  
-**Reconciliation base:** `main@d58a0e8794a9c115418ec64a18fbc2e0095facbc`  
+**Reconciliation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes  
-**Primary tracking:** #100, #182, #209; reverse checkpoint #258; naming validation #268
+**Primary tracking:** #100, #182, #209; historical reverse checkpoint #258; landed naming/type checkpoint #268
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
-The old wording `INTERNAL PRODUCT PATH CLOSED` is superseded. Product capabilities are advanced and the main materialization/authoring spine is mature, but fresh canonical-EXE reverse proved that the original byte/result/failure path was not exhaustively recovered. Naming is also main-landed but still under real-corpus/replay validation. L1 must not be reported as `COMPLETE / 100%` until the mandatory reverse, naming and real acceptance gates below are closed.
+The old wording `INTERNAL PRODUCT PATH CLOSED` is superseded. Product capabilities are advanced and the main materialization/authoring spine is mature, but fresh canonical-EXE reverse proved that the original byte/result/failure path was not exhaustively recovered. Naming and scoped runtime type evidence are now main-landed, while real-corpus/replay validation remains open. L1 must not be reported as `COMPLETE / 100%` until the mandatory reverse, naming and real acceptance gates below are closed.
 
 ## 1. Canonical L1 question and boundary
 
@@ -60,7 +60,11 @@ Current `main` already contains, at bounded/evidenced scope:
 - exact `.index` rule: extraction entry `N` binds to extracted ordinal `N`, i.e. the N-th populated physical payload, not physical slot N;
 - independent naming authority domains for external `.index`, embedded aliases, enclosing-container stored names, semantic-format evidence, display projection and export projection;
 - exact `ResourceId` runtime-to-L1 naming bridge with fail-closed physical-identity equality;
-- whole-head Windows + Ubuntu CI green on current `main@d58a0e8`.
+- no-`.index` deterministic derived display as presentation only, without manufacturing historical extraction authority;
+- scoped runtime type evidence separated into independent original-code paths rather than one global magic detector: three-byte registry probe, PAC/PNST container dispatcher, and four-byte family-mask classifier;
+- explicit provenance separation between structural, generic magic and instruction-backed runtime type evidence.
+
+The latest direct runtime-type corrections are on `main@08231d6`; its exact-head CI is currently pending and must be green before this reconciliation is promoted.
 
 These capabilities prove product maturity. They do **not** prove exhaustive original-runtime equivalence or original-game consumption.
 
@@ -110,7 +114,9 @@ Dynamic current-slot cancellation/concurrency, broader transition/reset/shutdown
 
 **STATUS: MAIN-LANDED / VALIDATION OPEN.**
 
-The #251-#262 naming stack and the semantically retained parts of #254 are integrated into `main`. The canonical model keeps these authorities separate:
+The #251-#262 naming stack, semantically retained parts of #254, and the #268 derived-display/runtime-type correction are now integrated into `main`. The historical PRs remain evidence/review checkpoints rather than separate implementation authorities.
+
+The canonical model keeps these authorities separate:
 
 ```text
 ResourceId
@@ -137,6 +143,16 @@ It is not a direct physical-slot mapping.
 
 `RuntimeNamingBridge` links runtime resolution to L1 naming only by exact complete `ResourceId` equality. Filename/display/alias/semantic-name fallback joins are forbidden.
 
+The no-`.index` fallback now derives only a deterministic presentation name from physical container identity + populated ordinal + independently evidenced semantic extension. It remains synthetic presentation, not historical extraction evidence or write authority.
+
+Runtime type evidence is now explicitly scoped rather than collapsed into one global detector:
+
+- registry/resource-registration three-byte content probe;
+- PAC/PNST materialized-child dispatcher;
+- four-byte higher-level family-mask classifier.
+
+Therefore the earlier global shorthand “exactly five runtime tags” is superseded; only the narrower three-byte registry probe has that five-tag boundary.
+
 Still open before naming completion:
 
 - representative real retained effect-corpus replay/reconciliation;
@@ -144,9 +160,7 @@ Still open before naming completion:
 - exact historical `.index` producer/extractor lineage recovered or explicitly bounded unresolved;
 - real-retail selected runtime identity -> exact L1 parent identity receipt;
 - replay/export/reopen validation for retained historical extraction representations;
-- final naming contradiction audit.
-
-PR #268 further corrects the no-`.index` presentation fallback and preserves instruction-backed `MOD/EFM/SCM/MRP/SHW` provenance separately from structural/magic proof. Its branch head is Windows+Ubuntu green, but it remains validation-branch truth until promoted.
+- final naming/type-evidence contradiction audit after the direct instruction-level corrections now on main.
 
 ## 5. Product / real-acceptance gates
 
@@ -226,10 +240,10 @@ Original behavior is reverse truth. Product hardening is product truth. Neither 
 ## 7. Current work order
 
 ```text
-1. synchronize canonical status/evidence with the confirmed #258 reverse findings
+1. land canonical status/evidence reconciliation for the confirmed #258 findings on current main
 2. finish residual recursive .lst + allocator/backend reverse
 3. run final original-L1 contradiction sweep
-4. finish/review #268 and remaining naming validation gates without authority laundering
+4. finish naming/type-evidence real-corpus, producer-lineage and replay validation
 5. obtain representative real-retail selected identity + acquisition provenance
 6. classify exact retail representation
 7. perform one bounded real edit + rebuild + canonical rematerialization
