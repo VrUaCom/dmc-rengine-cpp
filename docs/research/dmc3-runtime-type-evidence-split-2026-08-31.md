@@ -1,53 +1,46 @@
 # DMC3 runtime type-evidence split — 2026-08-31
 
-**Status:** CANONICAL CORRECTION PASS  
+**Status:** CANONICAL CORRECTION PASS — reconciled with full EXE format census  
 **Target:** canonical unpacked DMC3 HD analysis executable  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
 **Size:** `6,356,432` bytes  
-**ImageBase:** `0x140000000`  
-**EntryPoint:** `0x14034615C`
+**ImageBase:** `0x140000000`
 
-## 1. Correction summary
+Current machine-readable authorities:
 
-The original runtime does **not** expose one universal `DMC3 type detector`.
-Direct reverse of the canonical executable separates at least three distinct
-instruction-backed evidence paths:
+- [`../../data/reverse/dmc3-runtime-type-identification-20260831.json`](../../data/reverse/dmc3-runtime-type-identification-20260831.json)
+- [`../../data/reverse/dmc3-exe-format-census-20260831.json`](../../data/reverse/dmc3-exe-format-census-20260831.json)
+
+## 1. Core correction
+
+The original runtime does **not** expose one universal DMC3 type detector. The canonical executable contains multiple independent evidence paths with different byte widths and meanings:
 
 ```text
-A. registry / resource registration
-   name extension precedence
+A. registry/resource registration
+   extension precedence
    -> three-byte content probe @ 0x1402DB1F0
 
 B. PAC/PNST materialized-child traversal
    -> container dispatcher @ 0x1401B9FA0
 
-C. higher-level runtime resource/object systems
+C. higher-level model/resource systems
    -> four-byte family-mask probe @ 0x1402FD650
+
+D. motion/control manager
+   -> extension dispatcher @ 0x1402E01A0
+
+E. format-specific direct content checks
+   -> VAGp / DDS / TM2
+
+F. constructor/object type tags
+   -> LIG2
 ```
 
-The old global claim:
+Therefore the global claims “the runtime compares exactly five tags” and “byte 3 never matters” are superseded.
 
-> the runtime compares exactly five payload tags
+## 2. Registry content probe — `0x1402DB1F0`
 
-is **SUPERSEDED**.
-
-The narrower statement remains correct:
-
-> registry content probe `0x1402DB1F0` compares exactly three bytes and recognizes five registry content tags.
-
-Likewise the old global statement:
-
-> the fourth byte does not matter
-
-is **REJECTED**.
-
-Correct replacement:
-
-> `0x1402DB1F0` ignores byte 3, while `0x1402FD650` explicitly compares four bytes and requires trailing ASCII space (`0x20`).
-
-## 2. Evidence site A — registry content probe
-
-Exact function window:
+Bounded window:
 
 ```text
 VA          0x1402DB1F0
@@ -56,9 +49,9 @@ size        0x72
 SHA-256     4e614cc2d0168d6049a449ed4a1c6a78e0ebdd6b5c4b9699fabd98a63c153d19
 ```
 
-Recovered mapping:
+Mapping:
 
-| bytes 0..2 | registry type |
+| bytes 0..2 | type |
 |---|---:|
 | `MOD` | 0 |
 | `EFM` | 1 |
@@ -67,56 +60,35 @@ Recovered mapping:
 | `SHW` | 7 |
 | other | -1 |
 
-This function does not inspect the fourth byte. Therefore **at this site only**:
+Only bytes `0..2` are inspected. At this site:
 
 ```text
 MOD\x00 -> MOD
 MOD\x20 -> MOD
-MOD\x7F -> MOD
+MODX     -> MOD
 ```
 
-Direct callers recovered from the canonical image include:
+This rule is **site-scoped**. It must not be promoted into a global file-magic rule or automatic mesh-decode permission.
+
+Direct callers include `0x1402D9184` and `0x1402DB5A2`.
+
+## 3. Registrar/classifier — `0x1402DB3C0`
+
+Resource-name extension checks precede the three-byte content probe. The matching import resolves to `strstr`.
+
+Confirmed extension families:
 
 ```text
-0x1402D9184
-0x1402DB5A2
+PTX -> class 4
+CLT -> class 5
+C1D -> class 6
 ```
 
-The second caller is inside registrar/classifier `0x1402DB3C0`.
+Observed case variants are explicitly checked. Extension identity is original-runtime evidence, but it does not imply a complete binary schema.
 
-### 2.1 Registrar precedence
+## 4. Container dispatcher — `0x1401B9FA0`
 
-`0x1402DB3C0` checks resource-name extensions before falling back to the content
-probe. The matching import slot `0x14034F3D0` resolves to `strstr`.
-
-Observed variants:
-
-```text
-.ptx / .PTX / .Ptx
-.clt / .CLT / .Clt
-.c1d / .C1D / .c1D / .C1d
-```
-
-Recovered precedence:
-
-```text
-runtime resource name
-  -> extension substring checks
-  -> if no extension match
-     -> registry_content_probe @ 0x1402DB1F0
-```
-
-This must not be collapsed into one generic magic detector.
-
-## 3. Evidence site B — container dispatcher
-
-Independent materialized-child dispatcher:
-
-```text
-VA 0x1401B9FA0
-```
-
-It reaches the recovered normal post-load handlers:
+Normal post-load handler mapping:
 
 ```text
 MOD -> 0x1402FE3B0
@@ -125,54 +97,28 @@ SCM -> 0x1403051B0
 SHW -> 0x1403204C0
 ```
 
-This independently corroborates the same four handlers reached from the
-registry/resource-manager path.
-
-The dispatcher also compares:
+Additional identities:
 
 ```text
-EFW
-EFE
+EFE -> explicitly compared sentinel, no normal handler established
+EFW -> explicitly compared sentinel, no normal handler established
+PNST -> exact four-byte recursive identity
+MRP -> no generic handler branch established here
 ```
 
-but no normal handler is established from those branches in this path.
-Therefore the current evidence boundary is deliberately narrow:
+Therefore:
 
 ```text
-EFW / EFE runtime-recognized dispatcher prefix = EXE_CONFIRMED
-normal handler                                  = NOT CONFIRMED
-exact schema                                    = OPEN
-semantic/acronym expansion                      = OPEN
+EFE/EFW identity on this dispatcher = EXE_CONFIRMED
+EFE/EFW exact semantics/schema       = RESEARCH_REQUIRED
+PNST recursion identity              = EXE_CONFIRMED
 ```
 
-No canonical extension or format schema may be invented solely from these
-sentinel comparisons.
+The dispatcher reaches physical slot 0; an embedded text name-list in slot 0 is not a runtime type manifest.
 
-### 3.1 PAC physical slot 0
+## 5. Four-byte family-mask probe — `0x1402FD650`
 
-The PAC walk reaches physical slot 0; it is not skipped as a privileged manifest
-slot.
-
-If slot 0 contains text such as:
-
-```text
-st001.ptx
-st001.scm
-st001.sch
-```
-
-the type dispatcher simply fails to classify that text as one of its typed
-payload prefixes and returns through the non-match path.
-
-This strengthens the authority separation:
-
-```text
-embedded slot-0 name list != runtime type manifest
-```
-
-## 4. Evidence site C — four-byte family-mask classifier
-
-Exact function window:
+Bounded window:
 
 ```text
 VA          0x1402FD650
@@ -181,9 +127,9 @@ size        0x273
 SHA-256     a31a8c1e225bc62c07dea05921c42eeff85c28b2f4872713594262e579b91961
 ```
 
-Recovered mapping:
+Exact mapping:
 
-| exact bytes 0..3 | returned mask |
+| exact bytes 0..3 | mask |
 |---|---:|
 | `MOD ` | `0x10000000` |
 | `EFM ` | `0x20000000` |
@@ -193,200 +139,176 @@ Recovered mapping:
 | `SHW ` | `0x60000000` |
 | other | `0` |
 
-Here the fourth byte is authoritative:
+Here the trailing ASCII space is authoritative:
 
 ```text
-MOD\x20 -> 0x10000000
-MODX    -> 0
+MOD<space> -> 0x10000000
+MODX       -> 0
 ```
 
-This is active runtime evidence, not a dead helper. Multiple direct callers are
-present. One confirmed caller at `0x1402F9628` stores the returned family mask in
-its runtime object at `+0xE0`; downstream paths test mask values for type-specific
-behavior.
+The probe has 14 recovered direct call sites. At least one caller stores the resulting family mask into runtime object state for downstream type-specific behavior.
 
-### 4.1 MCV promotion
+### MCV promotion
 
-`MCV` does not participate in the older three-byte registry probe, but the
-four-byte family classifier directly recognizes:
+`MCV` is absent from the three-byte registry, but `MCV ` is directly recognized here. It is independently corroborated by the motion/control extension dispatcher below.
 
 ```text
-MCV<space> -> 0x50000000
+MCV runtime family identity = EXE_CONFIRMED
+MCV three-byte registry tag = NOT PRESENT
+MCV mesh schema             = NOT PROVEN
 ```
 
-Therefore:
+## 6. Motion/control extension dispatcher — `0x1402E01A0`
 
 ```text
-MCV runtime family recognition = EXE_CONFIRMED
-MCV registry three-byte tag    = NOT PRESENT
+.mot -> 0
+.mcv -> 1
+.cam -> 2
+.hid -> 3
+.clt -> 4
+.tsc -> 5
 ```
 
-This upgrades MCV from extension/subsystem-only identity to independent byte-backed
-runtime family recognition without pretending both classifiers are the same.
+This confirms runtime family/subsystem registration for `MOT`, `MCV`, `CAM`, `HID`, `CLT`, `TSC`. It does not authorize invented field schemas.
 
-## 5. Product evidence provenance
+## 7. Direct canonical content checks
 
-The canonical core now preserves the evidence sites separately:
+The expanded census found direct first-DWORD comparisons that are stronger than filename-only evidence.
+
+### `VAGp`
 
 ```text
-ResourceTypeContract::registry_type_for_prefix(...)
-    -> profile_runtime_content_tag
-    -> ResourceClassifier.runtime_content_tag_confirmed
-
-ResourceTypeContract::family_mask_for_prefix(...)
-    -> profile_runtime_family_mask_tag
-    -> ResourceClassifier.runtime_family_mask_confirmed
-
-ResourceTypeContract::container_dispatch_*(...)
-    -> runtime processing/corroboration evidence
-    -> EFW/EFE sentinel recognition does not manufacture a semantic format
+0x140032970
+cmp DWORD PTR [rdi], 0x70474156
+56 41 47 70 = VAGp
 ```
 
-Both registry and family-mask byte evidence may support a **presentation-only**
-derived semantic suffix because they directly classify the payload bytes and are
-stored with distinct provenance. Neither becomes historical extraction authority,
-`ResourceId`, write authority or proof that every runtime subsystem shares the same
-classifier.
+Status: `EXE_CONFIRMED_MAGIC`.
 
-## 6. Handler ABI correction
-
-Recovered normalizer functions:
-
-| family | function VA | recovered function/window SHA-256 |
-|---|---:|---|
-| MOD | `0x1402FE3B0` | `2319717d2b827fddf1821832ca8bf12a665317d954d116400151f0e95c60c565` |
-| EFM | `0x1402F7A90` | `0b5ccd9aaa1701fab677ea35bd44924f4d2ad1ab9cbfac754dcf7e246ca1052b` |
-| SCM | `0x1403051B0` | `5f3923913db171026470d8d15537d58b823f19f9a6770b6508cee778d1fbd321` |
-| SHW | `0x1403204C0` | `14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d` |
-
-The old common-shell description was too broad.
-
-### 6.1 MOD / EFM / SCM related family
-
-Direct reverse supports a related runtime document family with a broad pattern:
+### `DDS `
 
 ```text
-header
-  -> count-like field near +0x10
-  -> relocated base-relative pointer near +0x20
-  -> groups beginning near +0x40
-  -> group stride 0x40
-  -> format-specific inner records / relocation
+0x140049A8E
+0x14004AD9D
+44 44 53 20 = DDS<space>
 ```
 
-The inner layouts are related but not identical.
+Status: `EXE_CONFIRMED_MAGIC`.
 
-`MOD` specifically reads header byte `+0x11` and compares it with `1`; that field
-must not be projected onto EFM or SCM without independent evidence.
+DDS compression/layout FourCCs such as DXT/ATI/BC/RGBG/GRGB/YUY2 remain subformats, not independent DMC resource families.
 
-### 6.2 SHW correction
-
-`SHW` does not prove the same generic document shell. Its normalizer is much
-smaller and operates on its own record arrangement, including four qword pointer
-relocations.
-
-Therefore:
+### `TM2\0`
 
 ```text
-MOD/EFM/SCM related runtime document family = EXE_CONFIRMED, PARTIAL ABI
-SHW identical shared shell                  = REJECTED / OVERGENERALIZED
+0x1403365BA
+cmp DWORD PTR [rcx], 0x00324D54
+54 4D 32 00 = TM2\0
 ```
 
-## 7. MRP boundary
+Status: `EXE_CONFIRMED_MAGIC`.
 
-`MRP` is independently recognized by two byte-backed systems:
+Canonical correction:
+
+> Do not use a `TIM2`-only probe as canonical EXE content authority. `TIM2` may remain an alias/historical tooling label, but the direct content check on this path is exactly `TM2\0`.
+
+## 8. LIG2 owned object tag
+
+The constructor around `0x14023ECB0` writes:
 
 ```text
-registry probe:    MRP -> type 3
-family-mask probe: MRP<space> -> 0x40000000
+0x14023ECC9
+mov DWORD PTR [rcx+0x08], 0x3247494C
+4C 49 47 32 = LIG2
 ```
 
-However neither the registrar nor the container-dispatch path establishes a
-normal immediate post-load handler equivalent to MOD/EFM/SCM/SHW.
+This is stronger than a lone printable-string occurrence: it proves executable-side ownership/construction of a `LIG2` FourCC/type tag.
 
-Current safe boundary:
+Boundary:
 
 ```text
-MRP runtime family identity = EXE_CONFIRMED
-MRP normal post-load handler = NOT CONFIRMED
-MRP exact fields/schema      = OPEN
+EXE owns/constructs LIG2 type tag = CONFIRMED
+exact tag-to-file-header relation = OPEN
+complete on-disk LIG2 schema      = OPEN/PARTIAL from corpus
 ```
 
-## 8. Negative and separate evidence domains
+Runtime type construction is not the same thing as generic file dispatch.
 
-### 8.1 HITS
+## 9. Media capability extension checks
 
-No canonical EXE evidence currently promotes `HITS` to one of these runtime type
-tags. The structural/corpus format remains a different evidence domain.
+A bounded comparison region around `0x14002A5D1..0x14002A779` recognizes:
 
 ```text
-HITS structural/corpus identity = separate data/authoring evidence
-HITS runtime type tag           = REJECTED for this type system
+PSS THP PAM XMV WMV PMF AVI MPG BIK MP4
 ```
 
-A format can be structurally real without participating in these runtime byte
-classifiers.
+These are `EXE_CONFIRMED_CAPABILITY_ONLY`. The media layer recognizing a generic extension does not make that format a native DMC resource family or give DMC Rengine ownership over the system format.
 
-### 8.2 LIG2
+## 10. Runtime/path reference evidence
 
-`LIG2` occurs in executable code as a constructed/stored immediate, including the
-store near `0x14023ECC9`:
+The canonical executable contains owned runtime references for:
 
 ```text
-mov [rcx+8], 0x3247494C
+NBZ: %sDMC3-%d.nbz @ 0x14036E930
+AFS: GData.afs/ @ 0x140363188, plus GDataX360.afs/
+PAC: large resource-name corpus
+ADX / OGG / SFD / TM2 / TXT: filename corpora
+PTZ: basic.ptz
+DDS: LOADERICON.dds plus direct content checks
+FON / ICO / icon.sys / SAV: runtime/save/UI names
+PHD / TSB / BD: snd_sys.phd / snd_sys.tsb / snd_sys.bd
+BIN: SpuMap.bin and EventTblNN.bin
+SPUMAPDT: explicit string @ 0x140508988
 ```
 
-This proves runtime use/construction of the identifier, not generic type-dispatch
-comparison.
+These prove references/ownership context, not automatically complete file grammars.
 
-Keep the distinction:
+## 11. HITS correction
+
+`HITS` is a real four-byte collision identity in retained corpus/parser evidence. However the bounded canonical EXE type-identification sweep reports **zero ASCII `HITS` occurrences**.
+
+The correct status is:
 
 ```text
-runtime writes/constructs identifier
-!=
-runtime dispatches resource by identifier
+HITS corpus/parser identity            = DATA_CONFIRMED
+HITS participation in these EXE tags   = NOT ESTABLISHED
+HITS$ historical five-byte magic       = REJECTED
 ```
 
-## 9. Canonical evidence matrix
+Do **not** say “HITS runtime tag is rejected” when the evidence only establishes absence from this bounded type system. Absence from these classifiers is not proof that no other runtime consumer exists elsewhere.
 
-| Claim | Status |
-|---|---|
-| MOD registry recognition | EXE_CONFIRMED |
-| EFM registry recognition | EXE_CONFIRMED |
-| SCM registry recognition | EXE_CONFIRMED |
-| MRP registry recognition | EXE_CONFIRMED |
-| SHW registry recognition | EXE_CONFIRMED |
-| registry probe uses exactly 3 bytes | EXE_CONFIRMED, SITE-SCOPED |
-| fourth byte globally ignored | REJECTED |
-| four-byte family-mask classifier | EXE_CONFIRMED |
-| MCV four-byte family recognition | EXE_CONFIRMED |
-| EFW/EFE container-dispatch comparison | EXE_CONFIRMED |
-| EFW/EFE exact semantics | RESEARCH_REQUIRED |
-| MOD/EFM/SCM related runtime layouts | EXE_CONFIRMED, PARTIAL ABI |
-| SHW identical MOD/EFM/SCM shell | REJECTED / OVERGENERALIZED |
-| MRP normal handler | NOT CONFIRMED |
-| HITS runtime tag | REJECTED for these classifiers |
-| HITS structural/corpus format | SEPARATE EVIDENCE DOMAIN |
+## 12. Explicit exclusions
 
-## 10. Supersession rule
-
-Any older project text, test description or downstream port saying one of the
-following without an evidence-site qualifier is superseded:
+The following are not standalone DMC resource families merely because they appear in the executable:
 
 ```text
-"the runtime compares exactly five payload tags"
-"the runtime only checks the first three bytes"
-"the fourth byte does not matter"
-"MOD/EFM/SCM/SHW all use one identical document shell"
+DDS subformat/layout tags:
+DX10 DXT1 DXT2 DXT3 DXT4 DXT5 ATI1 ATI2 BC4U BC4S BC5U BC5S RGBG GRGB YUY2
+
+shader compiler/container metadata:
+RDEF SPDB D3DSHDR SHEX
+
+source/debug/dependency artifacts:
+HLSL FXH PDB DLL
 ```
 
-Correct replacements must name the evidence site explicitly:
+Printable machine-code fragments and PE section names require a bounded owner/classifier/handler/content check before they count as format evidence.
+
+## 13. Product provenance rule
+
+Clean C++ must preserve independent evidence dimensions:
 
 ```text
-registry_content_probe @ 0x1402DB1F0
-container_dispatch     @ 0x1401B9FA0
-family_mask_probe      @ 0x1402FD650
+three-byte runtime content tag
+four-byte runtime family-mask tag
+direct file/content magic
+constructor/object type tag
+extension registration
+runtime path/reference
+structural corpus grammar
 ```
 
-Pocket/mobile parity and any later web implementation must preserve those
-separate authorities rather than reintroducing one universal detector.
+They may converge on the same family, but they are not interchangeable.
+
+Recognition is allowed to advance ahead of decoding. Unknown schemas remain fail-closed. In particular, three-byte `MOD`/`SCM` runtime recognition must not automatically authorize mesh decode unless the validated canonical layout contract is also satisfied.
+
+Pocket/mobile/web consumers must preserve these same boundaries rather than reconstructing one universal detector.
