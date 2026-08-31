@@ -1,11 +1,11 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation base:** `main@d58a0e8794a9c115418ec64a18fbc2e0095facbc`  
-**Active L1 reconciliation:** `ada/l1-status-reconcile-20260831`  
-**Active naming validation:** PR #268  
-**Primary execution program:** GDSpaces Layer 1 original-materialization reverse + naming reconciliation + real acceptance  
-**Overall status:** **L1 INCOMPLETE / NOT 100%; L2 INCOMPLETE; L3 INCOMPLETE.** Product capabilities are advanced and current `main` is Windows+Ubuntu green, but no layer may be promoted to complete from implementation or synthetic CI alone.
+**Canonical implementation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
+**Latest L1 naming/type checkpoint:** #268 landed by fast-forward; direct instruction-level corrections continue on `main`  
+**Primary execution program:** GDSpaces Layer 1 original-materialization reverse + naming/type evidence reconciliation + real acceptance  
+**Overall status:** **L1 INCOMPLETE / NOT 100%; L2 INCOMPLETE; L3 INCOMPLETE.** Product capabilities are advanced, but no layer may be promoted to complete from implementation or synthetic CI alone. Exact-head CI for the newest `main@08231d6` runtime-type corrections is pending.
 
 ## Authority split
 
@@ -19,7 +19,7 @@
 
 ## GDSpaces layer model
 
-- **L1 — Resource Materialization:** selected-resource size/capacity, allocation, exact bytes, transfer/decompression, nested topology, physical child identity, naming evidence reconciliation, bounded authoring/rebuild/repack and exact reopen/rematerialization.
+- **L1 — Resource Materialization:** selected-resource size/capacity, allocation, exact bytes, transfer/decompression, nested topology, physical child identity, naming/type evidence reconciliation, bounded authoring/rebuild/repack and exact reopen/rematerialization.
 - **L2 — Resource Resolution:** logical request, candidates, normalization, provider/volume/source/member selection and exact selected identity.
 - **L3 — Original Runtime/Lifecycle:** queue/callback ownership, LoadedResource state publication, typed post-load, ready visibility, cancellation/reset/release/shutdown and consumer lifecycle.
 - **L1/L3 seam:** terminal L1 byte/result state gates normal L3 lifecycle publication; upstream queue/writer booleans are not automatically terminal-byte receipts.
@@ -49,7 +49,8 @@ Current `main` includes:
 - consolidated L1 naming architecture and exact extracted-ordinal `.index` mapping;
 - sealed separation of external `.index`, embedded aliases, enclosing stored names, semantic evidence, display and export projection;
 - exact `ResourceId` runtime-to-L1 naming bridge;
-- Windows + Ubuntu green on current `main@d58a0e8`.
+- no-`.index` semantic derived display that remains presentation-only;
+- instruction-backed runtime type evidence split by recovered call path rather than one global detector.
 
 These are strong product capabilities, not a completion claim.
 
@@ -87,9 +88,9 @@ Canonical evidence:
 
 Dynamic current-slot cancellation/concurrency and broader transition/reset/shutdown behavior remain L3 unless a concrete L1 acceptance receipt activates them.
 
-### L1 naming / identity state
+### L1 naming / type-evidence state
 
-The #251-#262 naming stack and semantically valid #254 contributions are in `main`, but naming remains **validation-open**.
+The #251-#262 naming stack, semantically valid #254 contributions and #268 derived-display/runtime-type work are now in `main`; historical PRs remain evidence checkpoints.
 
 Canonical rules now include:
 
@@ -98,7 +99,15 @@ Canonical rules now include:
 - `.index entry N == extracted ordinal N == N-th populated payload`, not physical slot N;
 - external `.index`, embedded alias, enclosing stored name and semantic-format evidence remain separate authorities;
 - safe host export is separate from historical extraction evidence;
-- runtime-to-L1 naming joins only on exact complete `ResourceId` equality.
+- runtime-to-L1 naming joins only on exact complete `ResourceId` equality;
+- no-`.index` derived display remains synthetic presentation, not historical extraction or write authority;
+- runtime type evidence is scoped to separate recovered instruction paths.
+
+The old shorthand that the runtime has one global “exactly five tags” detector is superseded. Current main distinguishes at least:
+
+1. a three-byte registry/resource-registration content probe;
+2. a PAC/PNST materialized-child dispatcher, including evidence-bounded EFW/EFE sentinels;
+3. a four-byte higher-level family-mask classifier, including MCV evidence.
 
 Still open:
 
@@ -107,9 +116,7 @@ Still open:
 - historical `.index` producer/extractor lineage or explicit unresolved bound;
 - real-retail runtime-selected identity -> exact L1 parent identity receipt;
 - historical extraction replay/export/reopen validation;
-- final naming contradiction audit.
-
-PR #268 adds the no-`.index` semantic derived-display fallback and separates recovered runtime content-tag provenance (`MOD/EFM/SCM/MRP/SHW`) from magic/structural proof. Its current branch head is Windows+Ubuntu green but remains branch truth until promotion.
+- final naming/type-evidence contradiction audit after the latest instruction-level corrections.
 
 ### L1 real acceptance still open
 
@@ -157,10 +164,10 @@ The static LoadedResource / typed-ready / release spine is strong. The static no
 ## Current critical path
 
 ```text
-1. land this L1 status/evidence reconciliation on current main after exact-head review/CI
+1. land #269 status/evidence reconciliation after current-head review and CI
 2. finish residual recursive .lst + allocator/backend reverse
 3. run final original-L1 contradiction sweep
-4. finish/review #268 and remaining naming validation gates
+4. finish naming/type-evidence real-corpus, producer-lineage and replay validation
 5. obtain representative real-retail selected identity + acquisition provenance
 6. classify exact representation
 7. perform supported real edit/rebuild/rematerialization
