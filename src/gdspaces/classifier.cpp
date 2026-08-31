@@ -72,16 +72,33 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "pnst";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
+        // Generic clean classification retains the historical SCM prefix rule.
+        // Exact DMC3 runtime three-byte vs four-byte identity semantics are
+        // preserved separately by sealed profile evidence and must not be
+        // generalized to all formats here.
         result.format = "scm";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, std::string_view{"DCA\0", 4U})) {
         result.format = "dca";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "HITS")) {
+        // DATA_CONFIRMED corpus/parser magic. The bounded canonical EXE census
+        // does not establish HITS as an EXE runtime type tag; HITS$ is rejected.
         result.format = "hits";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "DDS ")) {
+        // Canonical DMC3 EXE directly compares this DWORD at 0x140049A8E and
+        // 0x14004AD9D, so DDS content identity is EXE-backed as well as standard.
         result.format = "dds";
+        result.magic_confirmed = true;
+    } else if (starts_with(bytes, std::string_view{"TM2\0", 4U})) {
+        // Canonical EXE content check at 0x1403365BA is exactly TM2\0.
+        // TIM2 remains an alias/historical label, not canonical direct magic.
+        result.format = "tm2";
+        result.magic_confirmed = true;
+    } else if (starts_with(bytes, "VAGp")) {
+        // Canonical EXE direct first-DWORD check at 0x140032970.
+        result.format = "vagp";
         result.magic_confirmed = true;
     } else {
         const auto extension = extension_from_path(logical_path);
