@@ -1,9 +1,12 @@
+#include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace {
 
@@ -29,9 +32,19 @@ void expect_recognized_read_only(
     assert(descriptor->parser_id.empty());
 }
 
+std::vector<std::byte> bytes(std::string_view text) {
+    std::vector<std::byte> result;
+    result.reserve(text.size());
+    for (const unsigned char character : text) {
+        result.push_back(static_cast<std::byte>(character));
+    }
+    return result;
+}
+
 } // namespace
 
 int main() {
+    namespace gdspaces = dmc::rengine::gdspaces;
     namespace integration = dmc::rengine::integration;
 
     const integration::FormatIntegrationRegistry registry;
@@ -103,6 +116,34 @@ int main() {
     const auto* efe = registry.find("efe");
     assert(efe != nullptr);
     assert(has_limitation(*efe, "0x1401B9FA0"));
+
+    // Direct content probes copied into the clean GDSpaces classifier only
+    // where the canonical EXE itself performs a first-DWORD content check.
+    const auto vagp_bytes = bytes("VAGp");
+    const auto vagp_class = gdspaces::ResourceClassifier::classify(
+        "unknown/blob.bin", std::span<const std::byte>{vagp_bytes});
+    assert(vagp_class.format == "vagp");
+    assert(vagp_class.magic_confirmed);
+
+    const std::vector<std::byte> tm2_bytes{
+        std::byte{'T'}, std::byte{'M'}, std::byte{'2'}, std::byte{0}};
+    const auto tm2_class = gdspaces::ResourceClassifier::classify(
+        "unknown/blob.bin", std::span<const std::byte>{tm2_bytes});
+    assert(tm2_class.format == "tm2");
+    assert(tm2_class.magic_confirmed);
+
+    const std::vector<std::byte> tim2_alias_bytes{
+        std::byte{'T'}, std::byte{'I'}, std::byte{'M'}, std::byte{'2'}};
+    const auto tim2_alias = gdspaces::ResourceClassifier::classify(
+        "unknown/blob.bin", std::span<const std::byte>{tim2_alias_bytes});
+    assert(tim2_alias.format == "bin");
+    assert(!tim2_alias.magic_confirmed);
+
+    const auto dds_bytes = bytes("DDS ");
+    const auto dds_class = gdspaces::ResourceClassifier::classify(
+        "unknown/blob.bin", std::span<const std::byte>{dds_bytes});
+    assert(dds_class.format == "dds");
+    assert(dds_class.magic_confirmed);
 
     return 0;
 }
