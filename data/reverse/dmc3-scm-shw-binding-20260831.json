@@ -1,0 +1,91 @@
+{
+  "schema": "dmc-rengine.dmc3-scm-shw-binding.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-08-31",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "conclusion": {
+    "scmCanAttachShw": true,
+    "confidence": "EXE_CONFIRMED",
+    "gameVerified": false,
+    "stockScmShadowBindingObservedInBoundedCorpus": false
+  },
+  "parser": {
+    "modelSetParserVA": "0x1402D83E0",
+    "contentClassifierVA": "0x1402DB1F0",
+    "acceptedModelTypes": {
+      "MOD": 0,
+      "EFM": 1,
+      "SCM": 2
+    },
+    "independentTokens": ["Texture", "Cloth", "Shadow"],
+    "shadowResourceFieldOffset": "0x48"
+  },
+  "demoModelRuntime": {
+    "class": "CDemoModelWork",
+    "constructorVA": "0x1402DB7B0",
+    "createPathVA": "0x1402DBA30",
+    "resolvedModelTypeOffset": "0x1730",
+    "scmType": 2,
+    "scmDrawObjectOffset": "0x800"
+  },
+  "scmDraw": {
+    "class": "CDrawSCM",
+    "rtti": ".?AVCDrawSCM@@",
+    "constructorVA": "0x140089320",
+    "vtableVA": "0x1404C9360",
+    "modelCoreVirtualSlot": "0x08",
+    "modelCoreGetterVA": "0x140089DF0",
+    "modelCoreOffset": "0x50",
+    "sharedModelCoreInitializerVA": "0x1400893B0",
+    "modelShadowBackPointerOffset": "0x1A0"
+  },
+  "modEfmDrawComparison": {
+    "class": "CDraw",
+    "modelCoreGetterVA": "0x140089DE0",
+    "modelCoreOffset": "0x80",
+    "sharedModelCoreInitializerVA": "0x1400893B0"
+  },
+  "shadowDraw": {
+    "class": "CDrawShadow",
+    "interface": "IDrawShadow",
+    "rtti": ".?AVCDrawShadow@@",
+    "vtableVA": "0x1404C97C0",
+    "attachVirtualSlot": "0x08",
+    "attachVA": "0x14008BC60",
+    "lowLevelBinderVA": "0x1403204B0",
+    "binding": {
+      "shadowModelOffset": "0x10",
+      "shadowShwOffset": "0x28",
+      "modelShadowOffset": "0x1A0"
+    }
+  },
+  "scmCommonShadowBranch": {
+    "approxVA": "0x1402DBCBC",
+    "behavior": [
+      "read separately resolved Shadow resource",
+      "obtain CDrawSCM model core through vtable +0x08",
+      "call CDrawShadow attach with SCM model core and SHW document"
+    ],
+    "familyRejectionAfterBindingObserved": false
+  },
+  "boundedStockCorpus": {
+    "sample": "m20_s00 extracted Model Set corpus",
+    "scmModelSetCount": 9,
+    "scmWithShadowCount": 0,
+    "modWithShadowCount": 4,
+    "crossStemReuseExample": {
+      "model": "pl102_00.mod",
+      "shadow": "pl002_00.shw"
+    }
+  },
+  "moddingBoundary": {
+    "engineCapability": "SCM Model instance may bind a separate SHW resource",
+    "binaryNesting": false,
+    "requirements": [
+      "SHW geometry must match desired scene shadow caster",
+      "SHW per-vertex matrix indices must be valid for the attached SCM model-core palette",
+      "a runtime game experiment is required before GAME_VERIFIED promotion"
+    ],
+    "safeFirstExperiment": "simple SCM plus purpose-built or matrix-compatible SHW, initially using the simplest valid matrix mapping"
+  }
+}
