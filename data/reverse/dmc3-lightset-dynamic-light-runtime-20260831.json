@@ -1,0 +1,94 @@
+{
+  "schema": "dmc-rengine.dmc3-lightset-dynamic-light-runtime.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-08-31",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "functions": {
+    "lightUpdateInterpolationVA": "0x1402EE0B0",
+    "lightEvaluateVA": "0x1402EE2A0",
+    "lightSelectorVA": "0x1402EE560",
+    "lightRegisterVA": "0x1402EE9F0",
+    "stageSetLightApplyVA": "0x140263030",
+    "stageSetLightUpdateVA": "0x140263B00",
+    "stageSetLightTransformVA": "0x140263CF0",
+    "inverseSquareEncodingVA": "0x14032E900"
+  },
+  "lightSetCorpus": {
+    "clipCount": 64,
+    "files": [
+      {"name":"m20_b00_002_077.txt","clips":15,"validType":{"2":9,"8":4,"3":2}},
+      {"name":"m20_c00_002_080.txt","clips":23,"validType":{"2":18,"8":3,"3":2}},
+      {"name":"m20_s00_002_086.txt","clips":26,"validType":{"2":13,"4":10,"3":1,"6":1,"8":1}}
+    ],
+    "observedInterpolationType": {"0":64},
+    "observedMoveType": {"0":64},
+    "stockDestinationFields": "zero in the bounded 64-clip corpus"
+  },
+  "authoring": {
+    "type": {
+      "semantic":"interpolation type",
+      "evidence":"original LightSet comment 補間タイプ plus executable consumer",
+      "type0":"source/start state without source-to-destination interpolation",
+      "type1":"linear source-to-destination interpolation over Life",
+      "status":"EXE_CONFIRMED+DATA_CONFIRMED"
+    },
+    "moveType": {
+      "0":{"token":"once","semantic":"one lifetime then deactivate","status":"EXE_CONFIRMED"},
+      "1":{"token":"loop0","semantic":"restart/reapply source cycle","status":"EXE_CONFIRMED"},
+      "2":{"token":"loop1","semantic":"alternate source/destination sides (ping-pong)","status":"EXE_CONFIRMED"},
+      "3":{"token":"loop2","semantic":"supported by parser; disables interpolation after first completion and reapplies destination side","status":"PARTIAL"}
+    },
+    "fields": ["ValidType","IsMinus","Life","Type","SrcPos","SrcForce","SrcRange","SrcRgb","DstPos","DstForce","DstRange","DstRgb","MoveType","bwait","await","const"]
+  },
+  "routingFlags": {
+    "base1":"objscr/shared object+stage route",
+    "base2":"obj/object-model route",
+    "base3":"scr/stage-SCM route",
+    "shadowRoleBit":"0x04",
+    "specialRuntimeBit":"0x08",
+    "example4":"shadow-only role",
+    "example6":"object/model route + shadow role",
+    "status":"EXE_CONFIRMED"
+  },
+  "selectorRequestBits": {
+    "0x04":"scan static light pool",
+    "0x08":"scan dynamic/runtime light pool",
+    "0x10":"accept shadow-role bit",
+    "0x02":"query special CLightMgr +0x70 reference"
+  },
+  "shadow": {
+    "cdrawShadowMask":"0x1C",
+    "interpretation":"scan static + dynamic pools and request shadow-role lights",
+    "dynamicShadowRoleSupported":true,
+    "status":"EXE_CONFIRMED",
+    "realExamples": {
+      "validType4CountInM20S00":10,
+      "validType6": {
+        "setFrame":440.0,
+        "position":[3500.0,8000.0,3500.0],
+        "force":5300.0,
+        "range":5500.0,
+        "rgb":[80,20,20]
+      }
+    }
+  },
+  "encoding": {
+    "range":"runtime coefficient = 1 / authoredRange^2",
+    "force":"runtime coefficient = 1 / authoredForce^2",
+    "rgb":"u16 channels from authoring RGB",
+    "minus":"subtractive/minus light flag"
+  },
+  "otherDynamicProducers": {
+    "lightRegistrationCallersWithRttiEvidence":["CEm030","CPlDante/CPlayer","CPlLady/CPlNewVergil","CPlDante/CPlVergil"],
+    "status":"EXE_CONFIRMED_CALLER_IDENTITY",
+    "exactGameplayEffect":"RESEARCH_REQUIRED"
+  },
+  "openBoundaries": [
+    "exact semantic role of raw 0x08 / CLightMgr +0x70 special reference",
+    "complete const transform-binding operands",
+    "per-caller semantics of character/enemy dynamic lights",
+    "SEF/effect-bank CLight producer trace",
+    "live-game validation of authored Type 1 interpolation and dynamic shadow-role light",
+    "production-safe writer/repack validation"
+  ]
+}
