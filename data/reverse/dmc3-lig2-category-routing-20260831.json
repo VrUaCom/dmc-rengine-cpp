@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.dmc3-lig2-category-routing.v1",
+  "schema": "dmc-rengine.dmc3-lig2-category-routing.v2",
   "status": "canonical-research",
   "snapshot": "2026-08-31",
   "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -12,61 +12,95 @@
       "4": "special shadow category accepted when mask contains 0x10"
     },
     "sourceListBits": {
-      "0x04": "scan CLightMgr list +0x20",
-      "0x08": "scan CLightMgr list +0x38"
+      "0x04": "scan CLightMgr pool/list 0 through +0x20",
+      "0x08": "scan CLightMgr pool/list 1 through +0x38"
     },
     "recordByte0Model": "category/flags byte; preserve raw value"
   },
-  "consumers": {
+  "canonicalCategorySemantics": {
+    "0": {"semantic":"inactive","status":"EXE_CONFIRMED"},
+    "1": {"semantic":"objscr: shared object + screen/stage routing","status":"EXE_CONFIRMED"},
+    "2": {"semantic":"obj: object/general-model routing","status":"EXE_CONFIRMED"},
+    "3": {"semantic":"scr: screen/stage/SCM routing","status":"EXE_CONFIRMED"},
+    "4": {"semantic":"SHW shadow-projection routing","status":"EXE_CONFIRMED"}
+  },
+  "defaultConsumers": {
     "generalCDraw": {
-      "constructorVA": "0x140089270",
-      "routingMaskOffset": "0x744",
-      "defaultRoutingMask": 2,
-      "updateVA": "0x14008B500",
-      "builderVA": "0x1402FD040",
-      "acceptedCategories": [1, 2],
-      "semantic": "general CDraw / MOD-EFM-facing plus shared"
+      "constructorVA":"0x140089270",
+      "routingMaskOffset":"0x744",
+      "defaultRoutingMask":2,
+      "acceptedCategories":[1,2]
     },
     "cDrawSCM": {
-      "constructorVA": "0x140089320",
-      "constructorWrite": "DWORD +0x570 = 0x00010000",
-      "routingMaskOffset": "0x572",
-      "defaultRoutingMask": 1,
-      "updateVA": "0x14008B5D0",
-      "builderVA": "0x1402FD2B0",
-      "perMeshBuilderVA": "0x1402FD370",
-      "acceptedCategories": [1, 3],
-      "semantic": "CDrawSCM/stage-facing plus shared"
+      "constructorVA":"0x140089320",
+      "routingMaskOffset":"0x572",
+      "defaultRoutingMask":1,
+      "acceptedCategories":[1,3]
     },
     "cDrawShadow": {
-      "queryMask": "0x1C",
-      "acceptedSpecialCategory": 4,
-      "semantic": "SHW shadow-projection source"
+      "queryMask":"0x1C",
+      "selectedCategory":4
     }
   },
-  "canonicalCategorySemantics": {
-    "0": {"semantic": "inactive", "status": "EXE_CONFIRMED"},
-    "1": {"semantic": "shared general+SCM lighting routing category", "status": "EXE_CONFIRMED"},
-    "2": {"semantic": "general CDraw/MOD-EFM-facing lighting routing category", "status": "EXE_CONFIRMED"},
-    "3": {"semantic": "CDrawSCM/stage-geometry-facing lighting routing category", "status": "EXE_CONFIRMED"},
-    "4": {"semantic": "shadow-projection lighting category", "status": "EXE_CONFIRMED"}
+  "modelSetLightSelector": {
+    "parserField":"Light",
+    "parsedOffset":"0x8F2",
+    "valueMapping": {
+      "1":"draw routing mask 2 -> categories 1 + 2",
+      "2":"draw routing mask 1 -> categories 1 + 3"
+    },
+    "realCorpus": {
+      "m20_s00_efm_files_with_Light_2":5,
+      "interpretation":"EFM explicitly routed through shared+screen/stage light categories"
+    },
+    "status":"EXE_CONFIRMED+DATA_CONFIRMED"
+  },
+  "stageSetLight": {
+    "rtti":".?AVCStageSetLight@@",
+    "classifierVA":"0x140246680",
+    "stageSetEnum":8,
+    "dispatcherTargetVA":"0x14024713A",
+    "parserFactoryVA":"0x140263310",
+    "grammar": ["move","valid","minus","life","type","spos","sforce","srange","srgb","epos","eforce","erange","ergb","bwait","await","const"],
+    "validMapping": {
+      "objscr":1,
+      "obj":2,
+      "scr":3
+    },
+    "runtimeCLightRegistrationVA":"0x1402EE9F0",
+    "registrationTarget":"CLightMgr pool/list object rooted at +0x30, observed by selector through +0x38",
+    "status":"EXE_CONFIRMED"
+  },
+  "recordFields": {
+    "0x00":{"semantic":"category/flags; low categories 1/2/3 correspond objscr/obj/scr, 4 shadow","status":"EXE_CONFIRMED"},
+    "0x01":{"semantic":"subtractive/minus light flag","sourceGrammar":"minus","status":"EXE_CONFIRMED"},
+    "0x02":{"semantic":"distance attenuation bypass mode; nonzero gives distance weight 1","status":"EXE_CONFIRMED"},
+    "0x10":{"semantic":"world position X","status":"EXE_CONFIRMED"},
+    "0x14":{"semantic":"world position Y","status":"EXE_CONFIRMED"},
+    "0x18":{"semantic":"world position Z","status":"EXE_CONFIRMED"},
+    "0x1C":{"semantic":"inverse-force-squared coefficient generated from force authoring value","encoding":"1/(force^2)","sourceGrammar":"sforce/eforce","status":"EXE_CONFIRMED"},
+    "0x20":{"semantic":"inverse-range-squared coefficient","encoding":"1/(range^2)","sourceGrammar":"srange/erange","status":"EXE_CONFIRMED"},
+    "0x24":{"semantic":"R light contribution channel","type":"u16","sourceGrammar":"srgb/ergb","status":"EXE_CONFIRMED"},
+    "0x26":{"semantic":"G light contribution channel","type":"u16","sourceGrammar":"srgb/ergb","status":"EXE_CONFIRMED"},
+    "0x28":{"semantic":"B light contribution channel","type":"u16","sourceGrammar":"srgb/ergb","status":"EXE_CONFIRMED"}
   },
   "distanceBehavior": {
-    "evaluatorVA": "0x1402EE2A0",
-    "modeOffset": "0x02",
-    "falloffOffset": "0x20",
-    "attenuatedFormula": "max(1 - distance * falloff, 0)",
-    "derivedZeroContributionRange": "1 / falloff when falloff > 0",
-    "nonzeroModeBehavior": "distance weight = 1.0",
-    "status": "EXE_CONFIRMED"
+    "evaluatorVA":"0x1402EE2A0",
+    "distanceSquaredHelperVA":"0x140030D30",
+    "rangeEncoderVA":"0x14032E900",
+    "attenuatedFormula":"max(1 - distanceSquared * inverseRangeSquared, 0)",
+    "derivedRange":"1 / sqrt(record[+0x20]) when coefficient > 0",
+    "nonzeroModeBehavior":"distance weight = 1.0",
+    "correctsV1":"v1 incorrectly described linear distance and range=1/falloff",
+    "status":"EXE_CONFIRMED"
   },
-  "colourChannels": {
-    "offsets": ["0x24", "0x26", "0x28"],
-    "rawType": "u16",
-    "runtimeConversion": "direct integer-to-float conversion into three consecutive contribution channels",
-    "semantic": "RGB-like light colour/contribution channels",
-    "status": "HIGH_CONFIDENCE"
-  },
-  "rejectedInterpretation": "Do not map categories 1/2/3 to point/spot/directional without separate physical-light evidence.",
-  "nextBoundary": "Trace CLightMgr +0x38 registrations to determine whether stage effect/SEF runtime produces the second light pool."
+  "rejectedInterpretations": [
+    "categories 1/2/3 are point/spot/directional",
+    "range = 1 / record[+0x20]"
+  ],
+  "openBoundaries": [
+    "exact StageSet LIGHT type/move interpolation semantics",
+    "whether Effect/EffectI/SEF runtime also produces CLightMgr pool-1 lights",
+    "live-game validation of edited static and StageSet dynamic lights"
+  ]
 }
