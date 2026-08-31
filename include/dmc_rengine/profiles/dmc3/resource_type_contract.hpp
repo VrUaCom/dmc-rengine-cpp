@@ -8,40 +8,44 @@
 
 namespace dmc::rengine::profiles::dmc3 {
 
-// Instruction-backed contract for how the original runtime decides what a
-// resource *is*.
-//
-// The runtime's content probe reads exactly three bytes. Extension-backed
-// types are handled by the registrar before this probe; nameless PAC/PNST slot
-// payloads therefore rely on the content tag when one exists. Keeping this
-// contract in the canonical core prevents mobile/tooling consumers from
-// inventing their own format authority.
+// Instruction-backed contracts for the original DMC3 HD runtime's resource
+// identification paths. There is no single global "magic detector": reverse of
+// the canonical executable proves three distinct mechanisms with different
+// byte widths and scopes.
 struct ResourceTypeContract final {
     static constexpr std::string_view canonical_target_sha256 =
         "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
     static constexpr std::uint64_t image_base = 0x140000000ULL;
 
-    // Reads bytes 0..2 of the resource and returns a type code, or -1.
+    // Registry content probe. Reads exactly bytes 0..2 and returns a small
+    // registry type code, or -1. This is one runtime identification path, not a
+    // claim that every runtime consumer ignores byte 3.
     static constexpr std::uint64_t content_type_probe_va = 0x1402DB1F0ULL;
 
-    // Registrar/classifier. Extension tests run before the content probe.
+    // Registrar/classifier. Extension tests run before the three-byte probe.
     static constexpr std::uint64_t register_and_classify_va = 0x1402DB3C0ULL;
-
     static constexpr std::uint64_t table_reset_va = 0x1402DB370ULL;
     static constexpr std::uint64_t table_find_va = 0x1402DB270ULL;
 
-    // Independent dispatcher reached from the container walk.
+    // Independent container dispatcher reached from PAC/PNST walks. It handles
+    // MOD/EFM/SCM/SHW, recognizes EFW/EFE as no-handler sentinels, and recurses
+    // into PNST.
     static constexpr std::uint64_t type_dispatch_va = 0x1401B9FA0ULL;
 
+    // Independent four-byte family-mask classifier. Unlike the registry probe,
+    // this site requires the fourth byte to be ASCII space and additionally
+    // recognizes MCV.
+    static constexpr std::uint64_t family_mask_probe_va = 0x1402FD650ULL;
+
     enum class TypeCode : std::int32_t {
-        model = 0,          // tag "MOD"
-        effect_model = 1,   // tag "EFM"
-        scene_model = 2,    // tag "SCM"
-        mrp = 3,            // tag "MRP"
+        model = 0,          // three-byte tag "MOD"
+        effect_model = 1,   // three-byte tag "EFM"
+        scene_model = 2,    // three-byte tag "SCM"
+        mrp = 3,            // three-byte tag "MRP"
         texture_pack = 4,   // extension ".ptx"
         palette = 5,        // extension ".clt"
         c1d = 6,            // extension ".c1d"
-        shadow = 7,         // tag "SHW"
+        shadow = 7,         // three-byte tag "SHW"
         unknown = -1,
     };
 
@@ -52,13 +56,44 @@ struct ResourceTypeContract final {
     };
 
     static constexpr std::size_t content_tag_bytes = 3U;
-
     static constexpr std::array<TaggedType, 5> tagged_types{
         TaggedType{"MOD", TypeCode::model, 0x1402FE3B0ULL},
         TaggedType{"EFM", TypeCode::effect_model, 0x1402F7A90ULL},
         TaggedType{"SCM", TypeCode::scene_model, 0x1403051B0ULL},
         TaggedType{"MRP", TypeCode::mrp, 0U},
         TaggedType{"SHW", TypeCode::shadow, 0x1403204C0ULL},
+    };
+
+    // The container dispatcher also compares these exact three-byte prefixes,
+    // but returns without dispatching a recovered handler. They are therefore
+    // runtime-recognized sentinels, not promoted here to semantic file formats.
+    static constexpr std::array<std::string_view, 2> dispatcher_no_handler_tags{
+        "EFW", "EFE"};
+
+    enum class FamilyMask : std::uint32_t {
+        unknown = 0x00000000U,
+        model = 0x10000000U,          // "MOD "
+        effect_model = 0x20000000U,   // "EFM "
+        scene_model = 0x30000000U,    // "SCM "
+        mrp = 0x40000000U,            // "MRP "
+        motion_curve = 0x50000000U,   // "MCV "
+        shadow = 0x60000000U,         // "SHW "
+    };
+
+    struct FamilyTaggedType final {
+        std::string_view tag_with_space;
+        FamilyMask mask;
+        std::string_view canonical_extension;
+    };
+
+    static constexpr std::size_t family_tag_bytes = 4U;
+    static constexpr std::array<FamilyTaggedType, 6> family_tagged_types{
+        FamilyTaggedType{"MOD ", FamilyMask::model, "mod"},
+        FamilyTaggedType{"EFM ", FamilyMask::effect_model, "efm"},
+        FamilyTaggedType{"SCM ", FamilyMask::scene_model, "scm"},
+        FamilyTaggedType{"MRP ", FamilyMask::mrp, "mrp"},
+        FamilyTaggedType{"MCV ", FamilyMask::motion_curve, "mcv"},
+        FamilyTaggedType{"SHW ", FamilyMask::shadow, "shw"},
     };
 
     struct ExtensionType final {
@@ -116,9 +151,8 @@ struct ResourceTypeContract final {
         return TypeCode::unknown;
     }
 
-    // Exact implementation of the recovered three-byte content probe over an
-    // already materialized payload. No fourth byte is inspected and no case
-    // folding occurs.
+    // Exact implementation of the recovered registry three-byte probe. No
+    // fourth byte is inspected and no case folding occurs at this site.
     [[nodiscard]] static constexpr TypeCode type_for_prefix(
         std::span<const std::byte> bytes) noexcept {
         if (bytes.size() < content_tag_bytes) {
@@ -140,10 +174,29 @@ struct ResourceTypeContract final {
         return TypeCode::unknown;
     }
 
-    // Canonical semantic/presentation extension for a recovered runtime type.
-    // This is deliberately separate from historical filename authority: it
-    // states what the runtime identifies the bytes as, not what an extractor
-    // happened to call them.
+    // Exact implementation of the independent four-byte family-mask probe.
+    // Here byte 3 is significant and must be ASCII space.
+    [[nodiscard]] static constexpr FamilyMask family_mask_for_prefix(
+        std::span<const std::byte> bytes) noexcept {
+        if (bytes.size() < family_tag_bytes) {
+            return FamilyMask::unknown;
+        }
+        for (const auto& entry : family_tagged_types) {
+            bool matches = true;
+            for (std::size_t index = 0U; index < family_tag_bytes; ++index) {
+                if (std::to_integer<unsigned char>(bytes[index]) !=
+                    static_cast<unsigned char>(entry.tag_with_space[index])) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                return entry.mask;
+            }
+        }
+        return FamilyMask::unknown;
+    }
+
     [[nodiscard]] static constexpr std::string_view canonical_extension(
         TypeCode code) noexcept {
         switch (code) {
@@ -156,6 +209,16 @@ struct ResourceTypeContract final {
         case TypeCode::c1d: return "c1d";
         case TypeCode::shadow: return "shw";
         case TypeCode::unknown: return {};
+        }
+        return {};
+    }
+
+    [[nodiscard]] static constexpr std::string_view canonical_extension(
+        FamilyMask mask) noexcept {
+        for (const auto& entry : family_tagged_types) {
+            if (entry.mask == mask) {
+                return entry.canonical_extension;
+            }
         }
         return {};
     }
@@ -182,6 +245,7 @@ static_assert(ResourceTypeContract::canonical_extension(
 static_assert(ResourceTypeContract::canonical_extension(
                   ResourceTypeContract::TypeCode::shadow) == "shw");
 
+// Three-byte registry probe: byte 3 is deliberately ignored.
 static_assert([] {
     constexpr std::array<std::byte, 4> bytes{
         std::byte{'M'}, std::byte{'O'}, std::byte{'D'}, std::byte{0x7F}};
@@ -189,16 +253,32 @@ static_assert([] {
         ResourceTypeContract::TypeCode::model;
 }());
 static_assert([] {
-    constexpr std::array<std::byte, 4> bytes{
-        std::byte{'S'}, std::byte{'C'}, std::byte{'M'}, std::byte{' '}};
-    return ResourceTypeContract::type_for_prefix(bytes) ==
-        ResourceTypeContract::TypeCode::scene_model;
-}());
-static_assert([] {
     constexpr std::array<std::byte, 3> bytes{
         std::byte{'m'}, std::byte{'o'}, std::byte{'d'}};
     return ResourceTypeContract::type_for_prefix(bytes) ==
         ResourceTypeContract::TypeCode::unknown;
+}());
+
+// Four-byte family-mask probe: byte 3 is part of the recovered signature.
+static_assert([] {
+    constexpr std::array<std::byte, 4> bytes{
+        std::byte{'M'}, std::byte{'O'}, std::byte{'D'}, std::byte{' '}};
+    return ResourceTypeContract::family_mask_for_prefix(bytes) ==
+        ResourceTypeContract::FamilyMask::model;
+}());
+static_assert([] {
+    constexpr std::array<std::byte, 4> bytes{
+        std::byte{'M'}, std::byte{'O'}, std::byte{'D'}, std::byte{'X'}};
+    return ResourceTypeContract::family_mask_for_prefix(bytes) ==
+        ResourceTypeContract::FamilyMask::unknown;
+}());
+static_assert([] {
+    constexpr std::array<std::byte, 4> bytes{
+        std::byte{'M'}, std::byte{'C'}, std::byte{'V'}, std::byte{' '}};
+    return ResourceTypeContract::family_mask_for_prefix(bytes) ==
+        ResourceTypeContract::FamilyMask::motion_curve &&
+        ResourceTypeContract::canonical_extension(
+            ResourceTypeContract::FamilyMask::motion_curve) == "mcv";
 }());
 
 } // namespace dmc::rengine::profiles::dmc3
