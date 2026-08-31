@@ -24,6 +24,21 @@ resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
     };
 }
 
+[[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
+resolve_runtime_family_mask_semantic(std::span<const std::byte> bytes) {
+    using Contract = ResourceTypeContract;
+    const auto mask = Contract::family_mask_for_prefix(bytes);
+    const auto format = Contract::canonical_extension(mask);
+    if (format.empty()) {
+        return std::nullopt;
+    }
+    return gdspaces::ResourceProfileSemantic{
+        .canonical_extension = std::string{format},
+        .semantic_format = std::string{format},
+        .evidence_kind = gdspaces::ResourceProfileSemanticKind::runtime_family_mask_tag,
+    };
+}
+
 } // namespace
 
 std::optional<gdspaces::ResourceProfileSemantic>
@@ -60,11 +75,19 @@ resolve_materialized_display_semantic(
         }
     }
 
-    // Nameless relative-slot payloads can still carry the exact content tags
-    // used by the original runtime dispatcher. In particular, em000 model
-    // payloads beginning with "MOD" are therefore byte-backed `mod` resources,
-    // not files named `.mod` because a UI guessed a suffix.
-    return resolve_runtime_content_tag_semantic(bytes);
+    // PAC/PNST slot semantics first use the exact three-byte registry/content
+    // probe that is also mirrored by the container dispatcher for
+    // MOD/EFM/SCM/SHW. Its fourth byte is intentionally irrelevant at that
+    // site, so preserve that recovered behavior here.
+    if (const auto semantic = resolve_runtime_content_tag_semantic(bytes);
+        semantic.has_value()) {
+        return semantic;
+    }
+
+    // A second, independent runtime classifier uses four bytes and requires an
+    // ASCII-space terminator. It adds MCV to the recognized families. This is
+    // separate provenance, not a widening of the three-byte rule.
+    return resolve_runtime_family_mask_semantic(bytes);
 }
 
 std::optional<gdspaces::IndexProfileDisplaySemantic>
@@ -76,10 +99,20 @@ resolve_index_display_semantic(
         return std::nullopt;
     }
 
-    const auto evidence_kind =
-        semantic->evidence_kind == gdspaces::ResourceProfileSemanticKind::runtime_content_tag
-            ? gdspaces::IndexDisplayEvidenceKind::profile_runtime_content_tag
-            : gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+    gdspaces::IndexDisplayEvidenceKind evidence_kind =
+        gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+    switch (semantic->evidence_kind) {
+    case gdspaces::ResourceProfileSemanticKind::structural_format:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+        break;
+    case gdspaces::ResourceProfileSemanticKind::runtime_content_tag:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_runtime_content_tag;
+        break;
+    case gdspaces::ResourceProfileSemanticKind::runtime_family_mask_tag:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_runtime_family_mask_tag;
+        break;
+    }
+
     return gdspaces::IndexProfileDisplaySemantic{
         .canonical_extension = semantic->canonical_extension,
         .semantic_format = semantic->semantic_format,
