@@ -2,7 +2,7 @@
 
 **Status:** **INCOMPLETE / NOT 100% — original-runtime reverse + naming validation + real acceptance open**  
 **Snapshot date:** 2026-08-31  
-**Reconciliation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
+**Reconciliation synchronized through:** `main@d358a2e69a98b13d36d42b594c353afd6546ffb8`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes  
 **Primary tracking:** #100, #182, #209; historical reverse checkpoint #258; landed naming/type checkpoint #268; active status reconciliation #269
 
@@ -63,7 +63,7 @@ Current `main` already contains, at bounded/evidenced scope:
 - no-`.index` deterministic derived display as presentation only, without manufacturing historical extraction authority;
 - scoped runtime type evidence separated into independent original-code paths rather than one global magic detector: three-byte registry probe, PAC/PNST container dispatcher, and four-byte family-mask classifier;
 - explicit provenance separation between structural, generic magic and instruction-backed runtime type evidence;
-- primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
+- primary 3D/render-family reverse documentation synchronized through `main@d358a2e`.
 
 Exact-head Windows + Ubuntu CI for the final #269 reconciliation head is required before promotion.
 
