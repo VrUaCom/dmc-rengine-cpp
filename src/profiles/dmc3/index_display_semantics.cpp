@@ -10,9 +10,14 @@ namespace dmc::rengine::profiles::dmc3 {
 namespace {
 
 [[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
-resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
+resolve_registry_content_tag_semantic(std::span<const std::byte> bytes) {
     using Contract = ResourceTypeContract;
-    const auto code = Contract::type_for_prefix(bytes);
+
+    // L1 presentation semantics intentionally consume evidence site A only:
+    // registry_content_probe @ 0x1402DB1F0. Do not substitute the container
+    // dispatcher or the four-byte family-mask classifier here; they have
+    // different runtime scopes and therefore different authority boundaries.
+    const auto code = Contract::registry_type_for_prefix(bytes);
     const auto format = Contract::canonical_extension(code);
     if (format.empty()) {
         return std::nullopt;
@@ -60,11 +65,12 @@ resolve_materialized_display_semantic(
         }
     }
 
-    // Nameless relative-slot payloads can still carry the exact content tags
-    // used by the original runtime dispatcher. In particular, em000 model
+    // Nameless relative-slot payloads can still carry the exact three-byte tags
+    // used by the original registry content probe. In particular, em000 model
     // payloads beginning with "MOD" are therefore byte-backed `mod` resources,
-    // not files named `.mod` because a UI guessed a suffix.
-    return resolve_runtime_content_tag_semantic(bytes);
+    // not files named `.mod` because a UI guessed a suffix. The separate
+    // four-byte family-mask probe is not used as naming authority here.
+    return resolve_registry_content_tag_semantic(bytes);
 }
 
 std::optional<gdspaces::IndexProfileDisplaySemantic>
