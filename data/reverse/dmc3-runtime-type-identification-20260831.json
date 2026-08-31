@@ -1,6 +1,6 @@
 {
-  "schema": "dmc-rengine.dmc3-runtime-type-identification.v1",
-  "status": "exe-confirmed",
+  "schema": "dmc-rengine.dmc3-runtime-type-identification.v2",
+  "status": "exe-confirmed-bounded-census",
   "artifact": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "size": 6356432,
@@ -9,7 +9,9 @@
   },
   "supersedes": [
     "global claim that the runtime compares exactly five payload tags",
-    "global claim that DMC3 resource identification always ignores byte 3"
+    "global claim that DMC3 resource identification always ignores byte 3",
+    "TIM2-only content identity as canonical DMC3 EXE authority",
+    "HITS as an EXE-confirmed runtime type tag"
   ],
   "identification_paths": [
     {
@@ -28,13 +30,11 @@
         "SHW": 7,
         "other": -1
       },
-      "direct_call_sites": [
-        "0x1402D9184",
-        "0x1402DB5A2"
-      ],
+      "direct_call_sites": ["0x1402D9184", "0x1402DB5A2"],
       "notes": [
         "This is a scoped registry/content probe, not the only runtime type classifier.",
-        "MODX still returns model because only bytes 0..2 are inspected at this site."
+        "MODX still returns model because only bytes 0..2 are inspected at this site.",
+        "Three-byte identity recognition does not prove compatibility with the canonical MOD<space>/SCM<space> mesh layouts."
       ]
     },
     {
@@ -43,12 +43,10 @@
       "file_offset": "0x2DA3C0",
       "window_size": "0x2CC",
       "window_sha256": "86c670d76a5a8618006ce76f64cc845b9c750081c8e425dd050604213bb7dbd3",
-      "precedence": [
-        "filename substring extension checks",
-        "registry-content-probe"
-      ],
+      "precedence": ["filename substring extension checks", "registry-content-probe"],
       "extension_match_import_slot": "0x14034F3D0",
       "extension_match_function": "strstr",
+      "extension_families": ["PTX", "CLT", "C1D"],
       "handlers": {
         "0": "0x1402FE3B0",
         "1": "0x1402F7A90",
@@ -69,10 +67,7 @@
         "SCM": "0x1403051B0",
         "SHW": "0x1403204C0"
       },
-      "recognized_without_handler": [
-        "EFW",
-        "EFE"
-      ],
+      "recognized_without_handler": ["EFW", "EFE"],
       "container_recursion": {
         "magic": "PNST",
         "byte_width": 4,
@@ -80,7 +75,7 @@
       },
       "notes": [
         "MRP is absent from this handler dispatcher even though the registry probe returns type code 3 for MRP.",
-        "EFW and EFE are compared and then return through the no-handler path; their semantic purpose remains unknown."
+        "EFW and EFE are EXE-confirmed sentinel identities on this path; their exact semantic purpose and schema remain open."
       ]
     },
     {
@@ -102,28 +97,96 @@
         "other": "0x00000000"
       },
       "direct_call_sites": [
-        "0x14024815C",
-        "0x140270735",
-        "0x1402F2A1F",
-        "0x1402F2B0D",
-        "0x1402F2D61",
-        "0x1402F2FE2",
-        "0x1402F313B",
-        "0x1402F39BE",
-        "0x1402F3A9C",
-        "0x1402F5310",
-        "0x1402F9628",
-        "0x1402FD8FD",
-        "0x1402FDB68",
-        "0x140307374"
+        "0x14024815C", "0x140270735", "0x1402F2A1F", "0x1402F2B0D",
+        "0x1402F2D61", "0x1402F2FE2", "0x1402F313B", "0x1402F39BE",
+        "0x1402F3A9C", "0x1402F5310", "0x1402F9628", "0x1402FD8FD",
+        "0x1402FDB68", "0x140307374"
       ],
       "direct_call_site_count": 14,
       "notes": [
         "MODX does not match this classifier; MOD<space> does.",
-        "MCV<space> is runtime-recognized here even though MCV is absent from the three-byte registry probe."
+        "MCV<space> is EXE-confirmed here even though MCV is absent from the three-byte registry probe."
       ]
+    },
+    {
+      "id": "motion-control-extension-dispatcher",
+      "va": "0x1402E01A0",
+      "status": "exe-confirmed-extension-family",
+      "mapping": {
+        "MOT": 0,
+        "MCV": 1,
+        "CAM": 2,
+        "HID": 3,
+        "CLT": 4,
+        "TSC": 5
+      },
+      "boundary": "Extension classification proves runtime family identity/subsystem registration, not complete binary schemas."
     }
   ],
+  "direct_content_checks": [
+    {
+      "family": "VAGp",
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_va": "0x140032970",
+      "instruction": "cmp DWORD PTR [rdi],0x70474156",
+      "bytes": "56 41 47 70",
+      "meaning": "direct first-DWORD VAGp payload check"
+    },
+    {
+      "family": "DDS",
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_vas": ["0x140049A8E", "0x14004AD9D"],
+      "instruction": "cmp first DWORD to 0x20534444",
+      "bytes": "44 44 53 20",
+      "meaning": "direct DDS magic checks"
+    },
+    {
+      "family": "TM2",
+      "aliases": ["TIM2"],
+      "status": "EXE_CONFIRMED_MAGIC",
+      "instruction_va": "0x1403365BA",
+      "instruction": "cmp DWORD PTR [rcx],0x00324D54",
+      "bytes": "54 4D 32 00",
+      "meaning": "canonical direct content identity on this path is TM2\\0",
+      "boundary": "TIM2 may remain a corpus/tooling alias, but must not replace TM2\\0 as canonical EXE content evidence."
+    }
+  ],
+  "owned_object_tags": [
+    {
+      "family": "LIG2",
+      "status": "EXE_CONFIRMED_OBJECT_TAG",
+      "constructor_va": "0x14023ECB0",
+      "instruction_va": "0x14023ECC9",
+      "instruction": "mov DWORD PTR [rcx+0x8],0x3247494C",
+      "bytes": "4C 49 47 32",
+      "object_offset": "0x08",
+      "boundary": "This proves executable-side ownership of a LIG2 FourCC/type tag, not a complete on-disk schema."
+    }
+  ],
+  "media_capability_extensions": {
+    "status": "EXE_CONFIRMED_CAPABILITY_ONLY",
+    "families": ["PSS", "THP", "PAM", "XMV", "WMV", "PMF", "AVI", "MPG", "BIK", "MP4"],
+    "bounded_compare_region": "0x14002A5D1..0x14002A779",
+    "boundary": "Media capability recognition is not proof that DMC resource tooling owns these common external formats or that each is shipped as a DMC3 resource."
+  },
+  "runtime_path_reference_evidence": {
+    "NBZ": "%sDMC3-%d.nbz at VA 0x14036E930",
+    "AFS": "GData.afs/ at VA 0x140363188; GDataX360.afs/ also present",
+    "PAC": "large embedded runtime resource-name corpus",
+    "ADX": "embedded runtime filename corpus",
+    "OGG": "embedded runtime filename corpus",
+    "SFD": "mission/cutscene runtime filename corpus",
+    "TM2": "multiple runtime texture filenames",
+    "PTZ": "basic.ptz runtime filename",
+    "DDS": "LOADERICON.dds plus direct DDS content checks",
+    "FON": "font/*.fon runtime names",
+    "ICO": "icon00.ico/icon01.ico/icon02.ico",
+    "SAV": "options.sav and dmc3.sav",
+    "PHD_TSB_BD": "snd_sys.phd / snd_sys.tsb / snd_sys.bd",
+    "BIN": "SpuMap.bin and EventTblNN.bin families",
+    "TXT": "large text/config filename corpus",
+    "SPUMAPDT": "explicit string at VA 0x140508988"
+  },
   "direct_call_sweep_summary": {
     "registry_content_probe_calls": 2,
     "family_mask_probe_calls": 14,
@@ -131,8 +194,18 @@
   },
   "negative_and_boundary_facts": {
     "HITS_ascii_occurrences_in_artifact": 0,
-    "HITS_runtime_tag_status": "not established by these runtime identification paths",
+    "HITS_runtime_tag_status": "not established by these canonical EXE identification paths; HITS remains DATA_CONFIRMED from corpus/parser evidence",
+    "HITS_dollar_status": "REJECTED",
     "LIG2_ascii_occurrences_in_artifact": 1,
-    "scope_rule": "Do not generalize one identification path's byte width, tag set, or return code namespace to another path."
-  }
+    "LIG2_owned_tag_status": "EXE_CONFIRMED_OBJECT_TAG via constructor write at 0x14023ECC9",
+    "dds_subformats_are_not_resource_families": ["DX10", "DXT1", "DXT2", "DXT3", "DXT4", "DXT5", "ATI1", "ATI2", "BC4U", "BC4S", "BC5U", "BC5S", "RGBG", "GRGB", "YUY2"],
+    "shader_compiler_metadata_is_not_resource_family": ["RDEF", "SPDB", "D3DSHDR", "SHEX"],
+    "scope_rule": "Do not generalize one identification path's byte width, tag set, return-code namespace, object tag, or path reference into another path or into complete schema support."
+  },
+  "related_evidence": [
+    "data/reverse/dmc3-exe-format-census-20260831.json",
+    "data/reverse/dmc3-primary-3d-family-20260831.json",
+    "docs/formats/dmc3-hd-format-purpose-registry.json",
+    "docs/formats/dmc3-hd-format-catalog.md"
+  ]
 }
