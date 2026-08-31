@@ -4,9 +4,11 @@ This directory contains format-specific structural documentation and the canonic
 
 ## Start here
 
-- [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical human-readable inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary.
-- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized 66-family registry separating identity, subsystem purpose, schema maturity and current clean-product support.
-- [DMC3 HD format-purpose closure pass — 2026-08-27](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — direct canonical-EXE dispatcher/parser evidence used for the latest promotions and corrections.
+- [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical human-readable inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary. For `MOD/EFM/SCM/MRP/SHW`, later 2026-08-31 research below supersedes older broad 3D/render wording where more precise evidence exists.
+- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized registry separating identity, subsystem purpose, schema maturity and current clean-product support; reconciled through the 2026-08-31 runtime-type and primary-3D correction passes.
+- [DMC3 runtime type-evidence split — 2026-08-31](../research/dmc3-runtime-type-evidence-split-2026-08-31.md) — canonical correction separating the three-byte registry probe, PAC/PNST container dispatcher and four-byte family-mask classifier; supersedes global “exactly five tags / byte 3 never matters” claims.
+- [DMC3 primary 3D / render family reverse — 2026-08-31](../research/dmc3-primary-3d-render-family-reverse-2026-08-31.md) — current evidence-backed `MOD/EFM/SCM/MRP/SHW` classification, including EFM model/mesh proof, SHW topology ownership and the remaining MRP boundary.
+- [DMC3 HD format-purpose closure pass — 2026-08-27](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — earlier canonical-EXE dispatcher/parser closure pass; retain as historical evidence, subject to the later 2026-08-31 corrections above.
 - [HITS collision resource](hits.md) — current collision-grid/triangle layout; supersedes the obsolete `HITS$` scanner interpretation.
 - [PAC read-only structural parser](pac-readonly-parser.md)
 - [PNST read-only structural parser](pnst-readonly-parser.md)
@@ -26,6 +28,8 @@ validated magic / structural grammar
  -> index/path label
  -> fallback/unknown
 ```
+
+When the executable exposes multiple type-identification sites, keep their scopes separate rather than merging them into one global detector. A registry content probe, a container child dispatcher and a higher-level family classifier may recognize overlapping families while using different byte widths and semantics.
 
 The catalog and registry deliberately separate:
 
