@@ -17,13 +17,15 @@ namespace dmc::rengine::gdspaces {
 enum class ResourceProfileSemanticKind : std::uint8_t {
     structural_format,
     runtime_content_tag,
+    runtime_family_mask_tag,
 };
 
 // A byte/structure-backed profile interpretation that does not depend on an
 // external extraction name. Constructing this value alone grants no authority:
 // only the canonical DMC3 naming pipeline may ask the reconciler to seal it.
-// The observation kind is retained so an instruction-backed content tag is not
-// mislabeled as a structural-parser proof.
+// The observation kind is retained so instruction-backed runtime evidence is
+// not mislabeled as structural-parser proof, and so the three-byte registry
+// probe remains distinct from the independent four-byte family-mask classifier.
 struct ResourceProfileSemantic final {
     std::string canonical_extension;
     std::string semantic_format;
@@ -66,9 +68,6 @@ private:
     // DMC3 pipeline owns both profile transitions below.
     friend class ::dmc::rengine::profiles::dmc3::Dmc3NamingPipeline;
 
-    // Same transaction as public reconcile, but with DMC3-owned interpretation
-    // of an exact .index binding. Private so IndexProfileDisplayResolver cannot
-    // be used as an authority-injection surface by product callers.
     [[nodiscard]] static ContainerNamingReconcileResult reconcile_profiled(
         ContainerExpansion& expansion,
         const ResourcePayload* external_index,
@@ -78,9 +77,6 @@ private:
         ContainerExpansion& expansion,
         ResourceProfileSemanticResolver resolver);
 
-    // Kept as class members because ResourceSemanticEvidence is deliberately
-    // non-forgeable outside this reconciler. Free helpers would not inherit the
-    // class friendship granted by ResourceSemanticEvidence.
     [[nodiscard]] static bool persist_magic_semantics(
         ContainerExpansion& expansion,
         ContainerNamingReconcileResult& result);
