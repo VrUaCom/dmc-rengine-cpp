@@ -1,58 +1,63 @@
 # DMC3 primary 3D / render family reverse — 2026-08-31
 
-**Status:** CANONICAL RESEARCH ADDENDUM  
+**Status:** CANONICAL RESEARCH ADDENDUM — reconciled with EXE format census  
 **Target:** canonical unpacked DMC3 HD analysis executable  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
-## 1. Question
+Machine-readable authorities:
 
-This pass answers the narrower question:
+- [`../../data/reverse/dmc3-primary-3d-family-20260831.json`](../../data/reverse/dmc3-primary-3d-family-20260831.json)
+- [`../../data/reverse/dmc3-runtime-type-identification-20260831.json`](../../data/reverse/dmc3-runtime-type-identification-20260831.json)
+- [`../../data/reverse/dmc3-exe-format-census-20260831.json`](../../data/reverse/dmc3-exe-format-census-20260831.json)
 
-> Which of `MOD / EFM / SCM / MRP / SHW` are actual mesh-bearing 3D resources, and which are render/shadow companions?
-
-The answer must not collapse runtime recognition, geometry ownership, shader input,
-post-load fixup and exact on-disk schema into one claim.
-
-## 2. Current canonical classification
+## 1. Current canonical classification
 
 | Family | Runtime identity | 3D/model conclusion | Current boundary |
 |---|---|---|---|
-| `MOD` | EXE confirmed by registry + family-mask probes | **mesh-bearing actor/object model** | exact full schema/writer still partial |
-| `EFM` | EXE confirmed by registry + family-mask probes | **mesh-bearing effect model** | exact mapping of every on-disk stream still partial |
-| `SCM` | EXE confirmed by registry + family-mask probes | **mesh-bearing stage/scene model** | exact full schema/writer still partial |
-| `MRP` | EXE confirmed by two byte-backed classifiers | **render/model-side companion; not proven as standalone mesh** | no normal generic fixup recovered; exact schema open |
-| `SHW` | EXE confirmed by registry + family-mask probes | **shadow geometry/topology companion** | contains triangle/index-like topology over an external vector pool; not a MOD/SCM-style self-contained mesh |
+| `MOD` | EXE-confirmed by 3-byte registry, container handler and 4-byte family mask | **mesh-bearing actor/object model** | full variants/writer partial; 3-byte identity is broader than canonical `MOD ` mesh-layout proof |
+| `EFM` | EXE-confirmed by 3-byte registry, container handler and 4-byte family mask | **mesh-bearing effect model** | real retail EFM needed for exact stream-to-shader binding |
+| `SCM` | EXE-confirmed by 3-byte registry, container handler and 4-byte family mask | **mesh-bearing stage/scene model** | full material/ownership/writer schema partial; 3-byte identity is broader than canonical `SCM ` mesh-layout proof |
+| `MRP` | EXE-confirmed by 3-byte registry + 4-byte family mask | **model/render-side companion identity; standalone mesh not proven** | no generic handler/factory specialization established; exact schema open |
+| `MCV` | EXE-confirmed by exact `MCV ` family mask + `.mcv` motion/control registration | **runtime motion/model companion identity; mesh ownership not proven** | exact fields and downstream owner open; no MOD/SCM-compatible decoder claim |
+| `SHW` | EXE-confirmed by 3-byte registry, container handler and 4-byte family mask | **shadow geometry/topology companion** | triangle/index topology references external spatial pool; not a self-contained textured mesh |
 
-The previous shorthand `MOD + SCM = geometry; EFM/MRP/SHW = companions` is therefore
-superseded. `EFM` belongs on the mesh-bearing side.
+The old shorthand `MOD + SCM = geometry; EFM/MRP/SHW = companions` is superseded. `EFM` is mesh-bearing. `MCV` is now an independently confirmed runtime family identity, but it is **not** promoted to a mesh family.
 
-## 3. Runtime type systems remain separate
-
-The evidence split from `dmc3-runtime-type-evidence-split-2026-08-31.md` applies:
+## 2. Runtime identity systems remain separate
 
 ```text
 registry_content_probe @ 0x1402DB1F0
+    width: 3 bytes
     MOD / EFM / SCM / MRP / SHW
 
 container_dispatch @ 0x1401B9FA0
     MOD / EFM / SCM / SHW -> normal post-load handlers
-    EFW / EFE -> recognized sentinel prefixes
+    EFW / EFE              -> recognized sentinels, no normal handler established
+    PNST                   -> exact four-byte recursion identity
 
 family_mask_probe @ 0x1402FD650
+    exact four-byte values, trailing ASCII space required
     MOD  -> 0x10000000
     EFM  -> 0x20000000
     SCM  -> 0x30000000
     MRP  -> 0x40000000
     MCV  -> 0x50000000
     SHW  -> 0x60000000
+
+motion/control extension dispatcher @ 0x1402E01A0
+    .mot -> 0
+    .mcv -> 1
+    .cam -> 2
+    .hid -> 3
+    .clt -> 4
+    .tsc -> 5
 ```
 
-This document uses those classifiers as identity evidence, not as a substitute for
-geometry evidence.
+This means `MCV` has two independent EXE-backed identity paths even though it is absent from the three-byte registry probe.
 
-## 4. MOD / EFM / SCM are one related model-document family
+## 3. MOD / EFM / SCM related model-document family
 
-The original post-load normalizers are:
+Original normalizers:
 
 ```text
 MOD -> 0x1402FE3B0
@@ -60,73 +65,31 @@ EFM -> 0x1402F7A90
 SCM -> 0x1403051B0
 ```
 
-Direct disassembly shows a shared high-level document topology:
+Direct reverse supports a related high-level topology:
 
 ```text
-resource header
-  +0x10  outer/object count-like byte
-  +0x20  base-relative pointer relocated in place
-
-outer records from +0x40
-  stride 0x40
-  +0x00  inner/mesh count-like byte
-  +0x08  inner-record array pointer
-
-inner records
-  stride 0x50
-  multiple base-relative stream pointers
-  format-specific topology/fixup work
+header
+  count-like field near +0x10
+  base-relative pointer near +0x20
+outer records from +0x40, stride 0x40
+inner records, stride 0x50
+multiple relocated data/topology pointers
+format-specific topology/fixup work
 ```
 
-This establishes a related original-runtime document family. It does **not** imply
-that every field is identical across all three formats.
+This is a related runtime document family, not one byte-identical schema.
 
-### 4.1 MOD
+### MOD
 
-`0x1402FE3B0` relocates mesh-side pointers and rebuilds an index/topology stream.
-Observed inner-record behavior includes:
+`0x1402FE3B0` relocates mesh-side pointers and rebuilds topology. Observed inner offsets include `+0x10`, `+0x18`, `+0x20`, `+0x28`, `+0x30`, generated output near `+0x40` and count near `+0x48`. The topology source is a `u16` stream with control bit `0x8000`.
 
-```text
-inner +0x10 -> base-relative data stream
-inner +0x18 -> base-relative data stream
-inner +0x20 -> base-relative data stream
-inner +0x28 -> base-relative data stream
-inner +0x30 -> base-relative u16 topology/index stream
-inner +0x40 -> inner-record-relative generated/output stream
-inner +0x48 -> generated/output count
-```
+MOD also has format-specific header behavior (`+0x11` compared with `1`) that must not be projected to EFM/SCM.
 
-The topology pass reads `u16` elements from `+0x30`, interprets bit `0x8000` as a
-strip/control marker and clears that bit from the source values while generating a
-second index sequence.
+### EFM
 
-MOD additionally reads header byte `+0x11` and compares it with `1`; that field must
-not be projected onto EFM or SCM merely because the outer shape is related.
+`0x1402F7A90` traverses the related `0x40` outer / `0x50` inner topology and relocates streams at `+0x10`, `+0x18`, `+0x20`, `+0x28`, `+0x30`, `+0x38`. It rebuilds topology from the `+0x30` stream and writes generated count at `+0x48`.
 
-### 4.2 EFM
-
-`0x1402F7A90` is not a parameter-only effect-table fixup. It traverses the same
-`0x40` outer / `0x50` inner document topology and relocates:
-
-```text
-inner +0x10
-inner +0x18
-inner +0x20
-inner +0x28
-inner +0x30
-inner +0x38
-```
-
-It resolves `inner +0x40` relative to the inner record itself and uses the `+0x30`
-`u16` stream plus the same `0x8000` control bit to generate triangle/index topology,
-storing the resulting count at `inner +0x48`.
-
-That alone is strong mesh-bearing evidence. The canonical executable adds an even
-stronger independent proof through embedded DMC3 HLSL source.
-
-## 5. EFM shader contract: direct EXE proof of an effect model
-
-The canonical EXE embeds multiple effect-model vertex shader sources:
+Embedded effect-model shaders independently confirm mesh semantics:
 
 ```text
 DMC3_EFM.hlsl
@@ -136,78 +99,21 @@ DMC3_EFM_VA.hlsl
 DMC3_EFM_VA_SP.hlsl
 ```
 
-The source itself contains the explicit engine comment:
+The recovered vertex contract includes:
 
 ```text
-// EFM models have extra vertex RGB that you modulate in...
+POSITION NORMAL TEXCOORD0 BLENDINDICES PSIZE COLOR0
 ```
 
-The recovered `VS_IN` contract is:
+and the embedded engine comment explicitly describes “EFM models” with extra vertex RGB. Therefore EFM is safely classified as **mesh-bearing effect model**, while exact stream-to-semantic field binding still waits for a real retail payload.
 
-```hlsl
-struct VS_IN
-{
-    float3 position : POSITION;
-    float3 normal   : NORMAL;
-    float2 tex0     : TEXCOORD0;
-    uint4  matIndex : BLENDINDICES;
-    float  flags    : PSIZE;
-    float4 rgba     : COLOR0;
-};
-```
+### SCM
 
-The shader consumes `position`, `normal`, `tex0`, matrix/blend indices and per-vertex
-RGBA. It also converts the texture coordinates from fixed-point PS2-style units and
-uses `rgba` to modulate lit effect colour.
+SCM remains a stage/scene mesh family with its own related but separate normalizer and factory branch. Existing corpus tooling independently corroborates positions, normals, UVs, faces and vertex colours.
 
-This promotes the safe purpose boundary to:
+## 4. Construction/factory split
 
-> **EFM is an effect-model / mesh-bearing model family with extra per-vertex colour data.**
-
-Exact on-disk stream-to-semantic mapping is still not declared field-perfect until a
-real EFM payload is bound against these runtime inputs.
-
-## 6. MOD shader corroboration
-
-The embedded `DMC3_MOD.hlsl` family exposes the closely related input contract:
-
-```hlsl
-struct VS_IN
-{
-    float3 position : POSITION;
-    float3 normal   : NORMAL;
-    float2 tex0     : TEXCOORD0;
-    uint4  matIndex : BLENDINDICES;
-    float  flags    : PSIZE;
-};
-```
-
-The important structural comparison is therefore:
-
-```text
-MOD vertex input
-    position + normal + UV + blend/matrix indices + flags
-
-EFM vertex input
-    MOD-like inputs + per-vertex RGBA
-```
-
-This independently agrees with the related MOD/EFM post-load layouts.
-
-## 7. Runtime construction/allocation path confirms the split
-
-A higher-level factory/construction path at `0x140248140` calls the four-byte
-family-mask classifier.
-
-Recovered behavior:
-
-```text
-MOD / EFM -> shared branch, size argument 0x780
-SCM       -> separate branch, size argument 0x580
-other masks (MRP / MCV / SHW) -> no object from this factory path
-```
-
-Exact function window for this bounded factory evidence:
+Bounded factory path:
 
 ```text
 VA          0x140248140
@@ -216,169 +122,106 @@ size        0xA0
 SHA-256     8ae56885624cbcbc89ece904fe8dc38ba3ea89291ac6575e0f0cf1c16a6f8079
 ```
 
-This is a strong independent reason to group EFM with MOD as a model/render object
-family rather than treating EFM as effect metadata only.
-
-## 8. Runtime memory-footprint specialization
-
-`0x1402FD8D0` independently calls the family-mask classifier and calculates runtime
-memory requirements.
-
-Its type-specialized branch is:
+Recovered behavior:
 
 ```text
-MOD / EFM -> 0x1402FDB40 size/layout contribution
-SCM       -> 0x1402FDD10 size/layout contribution
-MRP/MCV/SHW -> no MOD/EFM/SCM-specific contribution in this function
+MOD / EFM -> shared branch, size 0x780
+SCM       -> separate branch, size 0x580
+MRP       -> no branch here
+MCV       -> no branch here
+SHW       -> no branch here
 ```
 
-Bounded window:
+A separate runtime memory specialization around `0x1402FD8D0` likewise has MOD/EFM and SCM-specific contributions, but no MRP/MCV/SHW-specific branch in that bounded function.
 
-```text
-VA          0x1402FD8D0
-file offset 0x2FCCD0
-size        0xF0
-SHA-256     972aa71b8c6a33be636e727bae8747b9496017ed2de2bd42da51cea7844d3abe
-```
+This negative evidence is scoped: it does not prove those families lack consumers elsewhere.
 
-`0x1402FDB40` repeatedly accounts for the `0x40` outer and `0x50` inner document
-structures, while the SCM path has its own related size model.
+## 5. SHW boundary
 
-A census of the obvious high-nibble family checks in the surrounding model-runtime
-code likewise specializes `0x10000000`, `0x20000000` and `0x30000000`; no equivalent
-MRP/MCV/SHW branch was recovered in that model-specific neighborhood. This is a
-bounded negative result, not a claim that those families have no consumers anywhere.
+`SHW` normalizer `0x1403204C0` operates on a distinct record arrangement and relocates four qword pointers per `0x40` record. Downstream code around `0x1403204F0` consumes triplets of 32-bit indices into an external `0x10`-stride spatial/vector pool. Helper `0x140320BB0` forms two triangle edges and computes their cross product.
 
-## 9. SCM / stage model corroboration
-
-SCM remains a confirmed stage/scene mesh family. The original `0x1403051B0` fixup is
-related to MOD/EFM but format-specific, and external corpus tooling independently
-decodes SCM positions, normals, UVs, faces and vertex colours.
-
-The canonical executable also contains stage vertex-shader inputs with static-model
-characteristics (`POSITION`, `NORMAL`, `TEXCOORD0`, `COLOR0`), consistent with the
-known SCM vertex-colour path. Shader naming alone is not used as the SCM format
-identity proof; it is corroboration of the already established stage-render model.
-
-## 10. SHW is geometry-related, but not a self-contained MOD/SCM mesh
-
-The SHW post-load fixup is fundamentally different:
-
-```text
-0x1403204C0
-header +0x10 -> record count-like byte
-for each record, stride 0x40:
-    relocate four qword pointers
-```
-
-Exact bounded function:
-
-```text
-VA          0x1403204C0
-size        0x30
-SHA-256     14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d
-```
-
-There is no MOD/EFM/SCM-style `0x40 outer -> 0x50 mesh -> six vertex streams ->
-triangle-strip rebuild` in this normalizer.
-
-However, downstream SHW-side code proves that the resource is still geometric.
-Around `0x1403204F0`, a record supplies triplets of 32-bit indices. Each index is
-scaled by `0x10` and applied to an **external array of 16-byte spatial/vector
-records**. The resulting three vectors are passed to `0x140320BB0`.
-
-`0x140320BB0` reads the three 4-float vectors, forms two edge vectors and computes
-their cross product, writing a four-float result with `w = 0`. In other words, this
-is direct triangle-plane/normal-style geometry processing.
-
-The embedded `DMC3_SHW.hlsl` input is correspondingly minimal:
-
-```hlsl
-struct VS_IN
-{
-    float3 position : POSITION;
-};
-```
-
-and the shader colours the generated geometry from a uniform shadow colour.
+Embedded `DMC3_SHW.hlsl` uses `POSITION` only.
 
 Safe conclusion:
 
-> **SHW owns/organizes shadow triangle/topology information that references an external spatial vertex pool; it is geometry-related but not proven to be a self-contained textured model mesh.**
+> SHW owns/organizes shadow triangle/topology information over an external spatial vertex pool; it is geometry-related but not proven to be a MOD/SCM-style self-contained textured mesh.
 
-This is stronger and more precise than the previous generic label `shadow/render
-companion`.
+## 6. MRP boundary
 
-## 11. MRP remains the major open member
-
-MRP is real runtime identity twice over:
+MRP is a real runtime identity twice over:
 
 ```text
-registry probe: MRP -> type 3
-family mask:    MRP<space> -> 0x40000000
+MRP -> type 3                  @ 0x1402DB1F0
+MRP<space> -> 0x40000000       @ 0x1402FD650
 ```
 
-But:
+But no immediate generic container handler, MOD/EFM/SCM factory branch or model-memory specialization is established in the bounded paths above.
 
-- registrar path has no immediate MOD/EFM/SCM/SHW-style handler for type 3;
-- container dispatcher has no MRP handler branch;
-- the `0x140248140` model/render construction path does not construct the
-  MOD/EFM/SCM object type for MRP;
-- the `0x1402FD8D0` model memory-footprint calculation does not take a dedicated MRP
-  branch;
-- no MRP-specific embedded shader filename/string was recovered in the current
-  printable-string census.
-
-Therefore the evidence supports **runtime model/render-side companion identity**, but
-not standalone mesh ownership.
-
-The next MRP gate is downstream ownership: locate where an object carrying
-`family_mask == 0x40000000` is consumed, or acquire a real retail MRP payload and
-bind its fields to that consumer.
-
-## 12. Retail corpus gap
-
-Current Library search found standalone retail/model samples for MOD/SCM but did not
-locate independently named `.efm`, `.mrp` or `.shw` files. Those payloads may remain
-inside PAC/NBZ/corpus archives.
-
-Therefore this pass intentionally distinguishes:
+Therefore:
 
 ```text
-EXE-confirmed runtime/layout/shader evidence
-from
-real-payload field binding
+MRP identity                 = EXE_CONFIRMED
+MRP standalone mesh          = NOT PROVEN
+MRP normal generic handler   = NOT ESTABLISHED
+MRP exact fields/schema      = OPEN
 ```
 
-EFM is already strong enough to promote to effect-model/mesh-bearing purpose from
-EXE evidence alone. Exact per-field on-disk schema promotion still waits for a real
-payload receipt.
+Next gate: find a downstream owner/consumer of the `0x40000000` family mask or bind a real retail MRP payload.
 
-## 13. Canonical viewer implication
+## 7. MCV boundary — newly promoted identity
 
-A future DMC3 3D viewer should not be architected as a single `MOD/SCM parser`.
-The evidence supports a layered design:
+`MCV` is absent from the 3-byte registry probe, but two independent runtime systems now establish it:
+
+```text
+MCV<space> -> 0x50000000      @ 0x1402FD650
+.mcv       -> class 1         @ 0x1402E01A0
+```
+
+Therefore:
+
+```text
+MCV runtime family identity  = EXE_CONFIRMED
+MCV 3-byte registry tag      = NOT PRESENT
+MCV mesh ownership           = NOT PROVEN
+MCV MOD/SCM decoder parity   = NOT PROVEN
+MCV exact fields/consumer    = OPEN
+```
+
+MCV belongs in the primary model/motion identity census because the family-mask system recognizes it beside MOD/EFM/SCM/MRP/SHW, but that fact must not be turned into a guessed mesh schema.
+
+## 8. Retail corpus gap
+
+Current retained evidence has standalone MOD and SCM samples, but no independently named standalone EFM, MRP, MCV or SHW retail payloads in the bounded corpus used by this pass.
+
+Keep these layers separate:
+
+```text
+EXE-confirmed identity/layout/shader evidence
+!=
+real-payload field-perfect schema binding
+```
+
+## 9. Viewer/product implication
+
+A safe viewer architecture is layered:
 
 ```text
 PrimaryModelDocument
-  -> shared object / mesh traversal concepts
-  -> MOD variant
-       skinned model inputs
-  -> EFM variant
-       MOD-like inputs + vertex RGBA / effect rendering
-  -> SCM variant
-       stage/static geometry variant
+  MOD
+  EFM
+  SCM
 
 ShadowTopologyDocument
-  -> SHW records
-  -> triangle index triplets
-  -> external spatial vertex pool
-  -> shadow plane/normal generation
+  SHW
+  external spatial pool
 
 RenderCompanion
-  -> MRP
-  -> exact schema/ownership still open
+  MRP
+  exact schema open
+
+MotionModelCompanionIdentity
+  MCV
+  exact schema/owner open
 ```
 
-Do not force SHW into the MOD/SCM mesh ABI and do not invent MRP fields to make the
-viewer API look uniform.
+Do not force SHW, MRP or MCV into the MOD/SCM mesh ABI merely to make a uniform API. Recognition may be EXE-confirmed while decoding remains fail-closed.
