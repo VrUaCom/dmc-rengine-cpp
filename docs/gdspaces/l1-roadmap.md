@@ -2,13 +2,13 @@
 
 **Status:** **INCOMPLETE / NOT 100% — original-runtime reverse + naming validation + real acceptance open**  
 **Snapshot date:** 2026-08-31  
-**Reconciliation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Reconciliation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes  
-**Primary tracking:** #100, #182, #209; historical reverse checkpoint #258; landed naming/type checkpoint #268
+**Primary tracking:** #100, #182, #209; historical reverse checkpoint #258; landed naming/type checkpoint #268; active status reconciliation #269
 
 This is the canonical execution roadmap for **GDSpaces Layer 1 — Resource Materialization**.
 
-The old wording `INTERNAL PRODUCT PATH CLOSED` is superseded. Product capabilities are advanced and the main materialization/authoring spine is mature, but fresh canonical-EXE reverse proved that the original byte/result/failure path was not exhaustively recovered. Naming and scoped runtime type evidence are now main-landed, while real-corpus/replay validation remains open. L1 must not be reported as `COMPLETE / 100%` until the mandatory reverse, naming and real acceptance gates below are closed.
+The old wording `INTERNAL PRODUCT PATH CLOSED` is superseded. Product capabilities are advanced and the main materialization/authoring spine is mature, but fresh canonical-EXE reverse proved that the original byte/result/failure path was not exhaustively recovered. Naming and scoped runtime type evidence are main-landed, while real-corpus/replay validation remains open. L1 must not be reported as `COMPLETE / 100%` until the mandatory reverse, naming and real acceptance gates below are closed.
 
 ## 1. Canonical L1 question and boundary
 
@@ -62,9 +62,10 @@ Current `main` already contains, at bounded/evidenced scope:
 - exact `ResourceId` runtime-to-L1 naming bridge with fail-closed physical-identity equality;
 - no-`.index` deterministic derived display as presentation only, without manufacturing historical extraction authority;
 - scoped runtime type evidence separated into independent original-code paths rather than one global magic detector: three-byte registry probe, PAC/PNST container dispatcher, and four-byte family-mask classifier;
-- explicit provenance separation between structural, generic magic and instruction-backed runtime type evidence.
+- explicit provenance separation between structural, generic magic and instruction-backed runtime type evidence;
+- primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
 
-The latest direct runtime-type corrections are on `main@08231d6`; its exact-head CI is currently pending and must be green before this reconciliation is promoted.
+Exact-head Windows + Ubuntu CI for the final #269 reconciliation head is required before promotion.
 
 These capabilities prove product maturity. They do **not** prove exhaustive original-runtime equivalence or original-game consumption.
 
@@ -108,13 +109,15 @@ Before an exhaustive original-L1 claim:
 3. representative real `.lst` corpus receipt if real loose-list equivalence is claimed;
 4. final contradiction sweep across L1 byte/materialization functions and the bounded L1/L3 seam.
 
+The current connected session does not expose the complete raw canonical analysis image. The protected/distribution EXE is not a substitute for instruction-level claims at canonical analysis VAs. Therefore the `.lst` cycle/depth/lifetime frontier stays open until canonical bytes, trustworthy bounded disassembly, or equivalent evidence is available.
+
 Dynamic current-slot cancellation/concurrency, broader transition/reset/shutdown behavior and typed-ready lifecycle remain L3 breadth unless a concrete L1 acceptance run activates them.
 
 ## 4. Naming / identity gate — L1-N
 
 **STATUS: MAIN-LANDED / VALIDATION OPEN.**
 
-The #251-#262 naming stack, semantically retained parts of #254, and the #268 derived-display/runtime-type correction are now integrated into `main`. The historical PRs remain evidence/review checkpoints rather than separate implementation authorities.
+The #251-#262 naming stack, semantically retained parts of #254, and the #268 derived-display/runtime-type correction are integrated into `main`. The historical PRs remain evidence/review checkpoints rather than separate implementation authorities.
 
 The canonical model keeps these authorities separate:
 
@@ -143,9 +146,9 @@ It is not a direct physical-slot mapping.
 
 `RuntimeNamingBridge` links runtime resolution to L1 naming only by exact complete `ResourceId` equality. Filename/display/alias/semantic-name fallback joins are forbidden.
 
-The no-`.index` fallback now derives only a deterministic presentation name from physical container identity + populated ordinal + independently evidenced semantic extension. It remains synthetic presentation, not historical extraction evidence or write authority.
+The no-`.index` fallback derives only a deterministic presentation name from physical container identity + populated ordinal + independently evidenced semantic extension. It remains synthetic presentation, not historical extraction evidence or write authority.
 
-Runtime type evidence is now explicitly scoped rather than collapsed into one global detector:
+Runtime type evidence is explicitly scoped rather than collapsed into one global detector:
 
 - registry/resource-registration three-byte content probe;
 - PAC/PNST materialized-child dispatcher;
@@ -241,15 +244,16 @@ Original behavior is reverse truth. Product hardening is product truth. Neither 
 
 ```text
 1. land canonical status/evidence reconciliation for the confirmed #258 findings on current main
-2. finish residual recursive .lst + allocator/backend reverse
-3. run final original-L1 contradiction sweep
-4. finish naming/type-evidence real-corpus, producer-lineage and replay validation
-5. obtain representative real-retail selected identity + acquisition provenance
-6. classify exact retail representation
-7. perform one bounded real edit + rebuild + canonical rematerialization
-8. execute #209 original-game consumption + rollback
-9. final cross-stack audit
-10. only then mark L1 COMPLETE / 100%
+2. obtain canonical-analysis bytes/disassembly for the residual .lst frontier
+3. finish recursive .lst + allocator/backend reverse without substituting product hardening for original behavior
+4. run final original-L1 contradiction sweep
+5. finish naming/type-evidence real-corpus, producer-lineage and replay validation
+6. obtain representative real-retail selected identity + acquisition provenance
+7. classify exact retail representation
+8. perform one bounded real edit + rebuild + canonical rematerialization
+9. execute #209 original-game consumption + rollback
+10. final cross-stack audit
+11. only then mark L1 COMPLETE / 100%
 ```
 
 No broad L2/L3/tooling feature should displace this sequence unless it directly closes one of these dependencies.
