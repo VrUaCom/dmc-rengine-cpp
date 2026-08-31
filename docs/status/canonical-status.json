@@ -4,8 +4,8 @@
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "version": "0.2.0",
-  "snapshot_main_sha": "d58a0e8794a9c115418ec64a18fbc2e0095facbc",
-  "overall_status": "gdspaces-l1-incomplete-original-reverse-naming-validation-and-real-acceptance-open-l2-l3-incomplete",
+  "snapshot_main_sha": "08231d669666d2bdfefe3d74f123600ca365cc3d",
+  "overall_status": "gdspaces-l1-incomplete-original-reverse-naming-type-validation-and-real-acceptance-open-l2-l3-incomplete",
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-product-truth",
     "active_pr": "branch-truth-until-merged",
@@ -15,18 +15,21 @@
     "product_safety": "may-fail-closed-more-strictly-than-original-unsafe-behavior"
   },
   "gdspaces": {
-    "primary_execution_layer": "L1-resource-materialization-original-reverse-naming-validation-and-final-acceptance",
+    "primary_execution_layer": "L1-resource-materialization-original-reverse-naming-type-validation-and-final-acceptance",
     "roadmap": "../gdspaces/l1-roadmap.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
     "reverse_checkpoint": "../gdspaces/l1-writer-failure-width-reconciliation-2026-08-28.md",
     "l1_l3_static_seam_checkpoint": "../gdspaces/l1-terminal-l3-completion-seam-2026-08-28.md",
     "naming_checkpoint": "../gdspaces/l1-naming-full-integration-20260830.md",
     "runtime_naming_bridge_checkpoint": "../gdspaces/dmc3-runtime-l1-naming-bridge-20260830.md",
-    "completion_model": "mandatory-reverse-naming-and-real-acceptance-gates",
+    "completion_model": "mandatory-reverse-naming-type-and-real-acceptance-gates",
     "L1_overall_status": "incomplete-not-100-percent",
     "internal_product_path_status": "advanced-many-representative-paths-implemented-but-not-a-completion-claim",
     "original_materialization_reverse_status": "active-substantially-narrowed-not-exhaustive",
     "naming_status": "main-landed-validation-open",
+    "runtime_type_evidence_status": "main-landed-scoped-instruction-level-correction-active",
+    "latest_landed_naming_type_checkpoint": 268,
+    "latest_main_ci_status": "pending-for-08231d669666d2bdfefe3d74f123600ca365cc3d",
     "canonical_analysis_executable": {
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
       "size": 6356432,
@@ -58,7 +61,9 @@
       "l1-naming-extracted-ordinal-index-authority",
       "l1-sealed-naming-authority-domains",
       "runtime-to-l1-exact-resourceid-naming-bridge",
-      "windows-and-ubuntu-ci-current-main"
+      "no-index-derived-display-presentation-only",
+      "runtime-type-evidence-separated-registry-container-and-family-mask-paths",
+      "semantic-provenance-distinguishes-structural-magic-and-runtime-instruction-evidence"
     ],
     "L1_reverse_gate": {
       "id": "L1-R",
@@ -117,19 +122,29 @@
         "safe-export-projection"
       ],
       "runtime_bridge": "exact-complete-resourceid-equality-only",
-      "active_validation_pr": 268,
+      "derived_display_rule": "presentation-only-no-historical-or-write-authority",
+      "runtime_type_evidence_paths": [
+        "three-byte-registry-content-probe",
+        "pac-pnst-materialized-child-dispatcher",
+        "four-byte-higher-level-family-mask-classifier"
+      ],
+      "superseded_global_claims": [
+        "one-universal-runtime-type-detector",
+        "exactly-five-runtime-tags-globally",
+        "fourth-byte-never-matters-globally"
+      ],
       "remaining": [
         "representative-real-effect-corpus-replay-reconciliation",
         "global-naming-corpus-coverage-and-collision-report",
         "historical-index-producer-extractor-lineage-or-explicit-unresolved-bound",
         "real-retail-selected-runtime-identity-to-exact-l1-parent-receipt",
         "historical-extraction-replay-export-reopen-validation",
-        "final-naming-contradiction-audit"
+        "final-naming-and-runtime-type-evidence-contradiction-audit"
       ]
     },
     "mandatory_L1_gates": [
       {"id": "L1-R", "name": "original-materialization-reverse-boundary", "status": "open-substantially-narrowed"},
-      {"id": "L1-N", "name": "naming-identity-reconciliation-and-real-corpus-validation", "status": "main-landed-validation-open"},
+      {"id": "L1-N", "name": "naming-type-identity-reconciliation-and-real-corpus-validation", "status": "main-landed-validation-open"},
       {"id": "L1-A", "name": "shared-atomic-no-replace-publication", "status": "closed-canonical"},
       {"id": "L1-B", "name": "artifact-stable-member-acquisition-and-success-bound-provenance", "status": "closed-canonical-product"},
       {"id": "L1-C", "name": "direct-retail-representative-member-provenance", "status": "implementation-available-real-receipt-required"},
@@ -172,11 +187,10 @@
     }
   },
   "project_priority": [
-    "land-l1-status-evidence-reconciliation",
+    "land-l1-status-evidence-reconciliation-pr-269",
     "finish-residual-recursive-lst-and-allocator-backend-failure-branches",
     "final-original-l1-contradiction-sweep",
-    "review-and-promote-pr-268-if-clean",
-    "finish-naming-real-corpus-and-replay-validation",
+    "finish-naming-runtime-type-real-corpus-producer-lineage-and-replay-validation",
     "direct-retail-selected-identity-and-provenance-receipt",
     "exact-retail-representation-classification",
     "representative-real-edit-rebuild-rematerialization-receipt",
@@ -184,7 +198,7 @@
     "final-l1-cross-stack-audit"
   ],
   "other_layers": {
-    "L1": "incomplete-active-reverse-naming-validation-and-real-acceptance-open",
+    "L1": "incomplete-active-reverse-naming-type-validation-and-real-acceptance-open",
     "L2": "incomplete-advanced-static-and-tooling-real-evidence-open",
     "L3": "incomplete-advanced-static-spine-dynamic-and-level-e-open"
   },
