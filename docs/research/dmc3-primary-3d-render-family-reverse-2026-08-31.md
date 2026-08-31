@@ -336,6 +336,31 @@ The next MRP gate is downstream ownership: locate where an object carrying
 `family_mask == 0x40000000` is consumed, or acquire a real retail MRP payload and
 bind its fields to that consumer.
 
+
+### 11.1 Whole-`.text` census of direct `object + 0xE0` consumers
+
+A later whole-`.text` pass scanned every direct dword load from `[base+0xE0]` and
+retained only sites followed by a family discriminator: `AND 0xF0000000`,
+`SHR 0x1C`, high-bit tests or direct family-mask comparisons.
+
+The bounded result is **10 direct discriminator sites in 9 functions**. Every
+recovered branch specializes only:
+
+```text
+MOD -> 0x10000000
+EFM -> 0x20000000
+SCM -> 0x30000000
+```
+
+No direct `object + 0xE0` downstream branch for `MRP / MCV / SHW` was recovered.
+This strengthens the MRP negative boundary but does not prove that an indirect
+consumer, copied mask or different object layout does not exist.
+
+Exact VAs, 0x30-byte window hashes and the reproducible scan method are recorded in
+the [family-mask object+0xE0 consumer census](dmc3-family-mask-object-e0-consumer-census-20260831.md)
+and its machine-readable evidence packet.
+
+
 ## 12. Retail corpus gap
 
 Current Library search found standalone retail/model samples for MOD/SCM but did not
