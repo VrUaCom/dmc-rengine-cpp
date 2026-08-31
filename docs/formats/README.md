@@ -5,8 +5,10 @@ This directory contains format-specific structural documentation and the canonic
 ## Start here
 
 - [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical human-readable inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary.
-- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized 66-family registry separating identity, subsystem purpose, schema maturity and current clean-product support.
-- [DMC3 HD format-purpose closure pass — 2026-08-27](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — direct canonical-EXE dispatcher/parser evidence used for the latest promotions and corrections.
+- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized format-purpose registry separating identity, subsystem purpose, schema maturity and current clean-product support.
+- [DMC3 runtime type-evidence split — 2026-08-31](../research/dmc3-runtime-type-evidence-split-2026-08-31.md) — supersedes the global “exactly five tags / fourth byte ignored” interpretation by separating the registry three-byte probe, container dispatcher and four-byte family-mask classifier; adds byte-backed MCV and EFE/EFW dispatcher evidence.
+- [DMC3 primary 3D/render ABI reverse — 2026-08-31](../research/dmc3-primary-3d-render-abi-2026-08-31.md) — direct EXE/fixup/shader evidence that MOD, EFM, SCM and SHW are geometry-bearing families with distinct ABI boundaries; MRP remains an unresolved primary render family.
+- [DMC3 HD format-purpose closure pass — 2026-08-27](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — earlier direct canonical-EXE dispatcher/parser evidence; retain as history, with the 2026-08-31 correction passes taking precedence where they explicitly supersede it.
 - [HITS collision resource](hits.md) — current collision-grid/triangle layout; supersedes the obsolete `HITS$` scanner interpretation.
 - [PAC read-only structural parser](pac-readonly-parser.md)
 - [PNST read-only structural parser](pnst-readonly-parser.md)
@@ -48,4 +50,4 @@ A known purpose does not imply a complete schema, and a parser does not imply or
 - `CAPABILITY_ONLY` — executable/media support exists; shipped DMC3 presence is not claimed.
 - `REJECTED` — superseded or contradicted claim; not current authority.
 
-Historical research remains useful acquisition evidence but does not override stronger current `main` code or later canonical reverse documentation.
+Historical research remains useful acquisition evidence but does not override stronger current code or later canonical reverse documentation. When a later evidence pass explicitly marks an older statement as superseded, the later site-scoped statement is authoritative.
