@@ -1,7 +1,7 @@
 # GDSpaces Master Roadmap — L1 / L2 / L3
 
 **Snapshot:** 2026-08-31  
-**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
+**Canonical implementation synchronized through:** `main@d358a2e69a98b13d36d42b594c353afd6546ffb8`  
 **L1:** **INCOMPLETE / NOT 100%** — original materialization reverse, naming/type validation and real acceptance open  
 **L2:** INCOMPLETE — advanced static/tooling, real selected-identity evidence open  
 **L3:** INCOMPLETE — strong static spine, dynamic lifecycle/original-process evidence open  
@@ -92,7 +92,7 @@ Naming/type checkpoints:
 - `l1-naming-full-integration-20260830.md`;
 - `dmc3-runtime-l1-naming-bridge-20260830.md`;
 - historical PR #268, landed by fast-forward and followed by instruction-level corrections on `main`;
-- primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
+- primary 3D/render-family reverse documentation synchronized through `main@d358a2e`.
 
 **Track A status: INCOMPLETE / ACTIVE.**
 
