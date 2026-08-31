@@ -1,7 +1,7 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
+**Canonical implementation synchronized through:** `main@d358a2e69a98b13d36d42b594c353afd6546ffb8`  
 **Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
 **Latest landed naming/type checkpoint:** #268; subsequent instruction-level type-family corrections and primary 3D/render reverse docs are synchronized into this branch
 
@@ -58,7 +58,7 @@ Current correction boundary:
 - current main separates a three-byte registry probe, PAC/PNST dispatcher, and four-byte higher-level family-mask classifier;
 - EFW/EFE remain evidence-bounded dispatcher sentinel/prefix observations until their normal consumer/schema is recovered;
 - MCV evidence belongs to the separate four-byte family-mask path, not the five-tag registry probe;
-- primary 3D/render family reverse documentation is synchronized through `main@0d0a604f`.
+- primary 3D/render family reverse documentation is synchronized through `main@d358a2e`.
 
 Still required:
 
