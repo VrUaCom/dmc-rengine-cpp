@@ -1,15 +1,15 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation base:** `main@d58a0e8794a9c115418ec64a18fbc2e0095facbc`  
-**Active L1 reconciliation:** `ada/l1-status-reconcile-20260831`  
-**Active naming validation:** PR #268
+**Canonical implementation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
+**Latest landed naming/type checkpoint:** #268; direct instruction-level corrections are now on `main`
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
 ## P0 — GDSpaces L1 completion blockers
 
-The old statement “no mandatory internal blocker remains” is superseded. Product capabilities are advanced, but confirmed canonical-EXE reverse leaves a bounded original-L1 frontier and naming validation remains open in addition to real-retail/Level-E evidence.
+The old statement “no mandatory internal blocker remains” is superseded. Product capabilities are advanced, but confirmed canonical-EXE reverse leaves a bounded original-L1 frontier and naming/type validation remains open in addition to real-retail/Level-E evidence.
 
 ### B-L1-00 — Original materialization reverse closure
 
@@ -41,11 +41,21 @@ Remaining reverse work:
 
 Dynamic current-slot cancellation/concurrency and broader transition/reset/shutdown behavior remain L3 unless a concrete L1 acceptance run activates them.
 
-### B-L1-N — Naming / identity validation closure
+### B-L1-N — Naming / type-evidence validation closure
 
 **Status:** MAIN-LANDED / VALIDATION OPEN
 
-The canonical #251-#262 naming architecture is already in `main`, but completion is not proven by landing or CI.
+The canonical #251-#262 naming architecture, semantically valid #254 contributions and #268 derived-display/runtime-type correction are now in `main`. Landing or CI does not independently prove naming completeness.
+
+Current correction boundary:
+
+- no-`.index` derived names are presentation only;
+- exact external/index/stored names remain separate authorities;
+- runtime type evidence is not one universal detector;
+- the old global “exactly five runtime tags” statement is superseded;
+- current main separates a three-byte registry probe, PAC/PNST dispatcher, and four-byte higher-level family-mask classifier;
+- EFW/EFE remain evidence-bounded dispatcher sentinel/prefix observations until their normal consumer/schema is recovered;
+- MCV evidence belongs to the separate four-byte family-mask path, not the five-tag registry probe.
 
 Still required:
 
@@ -54,9 +64,8 @@ Still required:
 - historical `.index` producer/extractor lineage recovered or explicitly bounded unresolved;
 - real-retail runtime-selected identity -> exact L1 parent `ResourceId` receipt;
 - historical extraction replay/export/reopen validation;
-- final naming contradiction audit.
-
-PR #268 adds the no-`.index` derived-display fallback plus separate runtime-content-tag provenance (`MOD/EFM/SCM/MRP/SHW`). Its branch head is Windows+Ubuntu green but remains branch truth until final review/promotion.
+- final naming/type-evidence contradiction audit after current instruction-level corrections;
+- exact-head Windows + Ubuntu green for the current `main@08231d6` and final #269 head.
 
 ### B-L1-01 — Direct-retail representative provenance
 
@@ -116,7 +125,7 @@ A crash-free launch alone is insufficient.
 Before `L1 COMPLETE / 100%`:
 
 - original-L1 reverse frontier is contradiction-free for the claimed scope;
-- applicable naming validation gates are closed;
+- applicable naming/type validation gates are closed;
 - real acquisition provenance exists;
 - real representation classification exists;
 - real edit/rebuild/rematerialization receipt exists;
@@ -188,7 +197,9 @@ Do not reopen absent contradictory direct evidence:
 - runtime-synth direct `0x800` vs recursive `0x40` extent distinction and zero-filled synthesized image;
 - static admitted-job L1-terminal -> L3 callback eligibility seam;
 - `.index` extracted-ordinal mapping rule and physical-slot separation;
-- exact-`ResourceId` runtime-to-L1 naming bridge implementation.
+- exact-`ResourceId` runtime-to-L1 naming bridge implementation;
+- no-`.index` derived-display authority separation;
+- runtime-type evidence separation into scoped instruction-backed paths.
 
 ## Evidence-gated freezes / non-blockers
 
