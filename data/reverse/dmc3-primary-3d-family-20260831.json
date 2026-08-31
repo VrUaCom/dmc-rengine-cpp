@@ -8,160 +8,39 @@
     "image_base": "0x140000000"
   },
   "families": {
-    "MOD": {
-      "classification": "mesh-bearing-actor-object-model",
-      "confidence": "EXE_CONFIRMED",
-      "normalizer_va": "0x1402FE3B0",
-      "normalizer_window_sha256": "2319717d2b827fddf1821832ca8bf12a665317d954d116400151f0e95c60c565",
-      "model_factory_branch": "shared-with-EFM",
-      "model_factory_size": "0x780",
-      "shader_inputs": ["POSITION", "NORMAL", "TEXCOORD0", "BLENDINDICES", "PSIZE"]
-    },
+    "MOD": {"classification":"mesh-bearing-actor-object-model","confidence":"EXE_CONFIRMED","normalizer_va":"0x1402FE3B0","normalizer_window_sha256":"2319717d2b827fddf1821832ca8bf12a665317d954d116400151f0e95c60c565","model_factory_branch":"shared-with-EFM","model_factory_size":"0x780","shader_inputs":["POSITION","NORMAL","TEXCOORD0","BLENDINDICES","PSIZE"]},
     "EFM": {
-      "classification": "mesh-bearing-effect-model",
-      "confidence": "EXE_CONFIRMED",
-      "normalizer_va": "0x1402F7A90",
-      "normalizer_window_sha256": "0b5ccd9aaa1701fab677ea35bd44924f4d2ad1ab9cbfac754dcf7e246ca1052b",
-      "model_factory_branch": "shared-with-MOD",
-      "model_factory_size": "0x780",
-      "shader_files": [
-        "DMC3_EFM.hlsl",
-        "DMC3_EFM_SP.hlsl",
-        "DMC3_EFM_STX.hlsl",
-        "DMC3_EFM_VA.hlsl",
-        "DMC3_EFM_VA_SP.hlsl"
-      ],
-      "shader_inputs": ["POSITION", "NORMAL", "TEXCOORD0", "BLENDINDICES", "PSIZE", "COLOR0"],
-      "embedded_engine_comment": "EFM models have extra vertex RGB that you modulate in...",
-      "layout_evidence": {
-        "outer_stride": "0x40",
-        "inner_stride": "0x50",
-        "relocated_inner_offsets": ["0x10", "0x18", "0x20", "0x28", "0x30", "0x38"],
-        "topology_source_offset": "0x30",
-        "topology_control_bit": "0x8000",
-        "generated_output_offset": "0x40",
-        "generated_count_offset": "0x48"
-      },
-      "open_boundary": "real retail EFM payload required to bind each on-disk stream pointer to exact shader semantic"
+      "classification":"mesh-bearing-effect-model","confidence":"EXE_CONFIRMED+DATA_CONFIRMED","normalizer_va":"0x1402F7A90","normalizer_window_sha256":"0b5ccd9aaa1701fab677ea35bd44924f4d2ad1ab9cbfac754dcf7e246ca1052b","model_factory_branch":"shared-with-MOD","model_factory_size":"0x780",
+      "shader_files":["DMC3_EFM.hlsl","DMC3_EFM_SP.hlsl","DMC3_EFM_STX.hlsl","DMC3_EFM_VA.hlsl","DMC3_EFM_VA_SP.hlsl"],
+      "shader_inputs":["POSITION","NORMAL","TEXCOORD0","BLENDINDICES","PSIZE","COLOR0"],
+      "embedded_engine_comment":"EFM models have extra vertex RGB that you modulate in...",
+      "layout_evidence":{"outer_stride":"0x40","inner_stride":"0x50","relocated_inner_offsets":["0x10","0x18","0x20","0x28","0x30","0x38"],"topology_source_offset":"0x30","topology_control_bit":"0x8000","generated_output_offset":"0x40","generated_count_offset":"0x48","local_corpus_stream_spans":{"0x10":"align16(N*12)","0x18":"align16(N*12)","0x20":"align16(N*4)","0x28":"align16(N*4)","0x30":"align16(N*2)","0x38":"align16(N*4) -> skeletonOffset in 9/9"},"local_corpus_sample_count":9,"local_corpus_vertex_count":2058},
+      "open_boundary":"Exact vertex declaration packing/normalization and full writer equivalence remain open; real local payload binding no longer blocks the format-purpose classification."
     },
-    "SCM": {
-      "classification": "mesh-bearing-stage-scene-model",
-      "confidence": "EXE_CONFIRMED",
-      "normalizer_va": "0x1403051B0",
-      "normalizer_window_sha256": "5f3923913db171026470d8d15537d58b823f19f9a6770b6508cee778d1fbd321",
-      "model_factory_branch": "SCM-specific",
-      "model_factory_size": "0x580"
-    },
-    "MRP": {
-      "classification": "model-render-side-companion-not-proven-standalone-mesh",
-      "confidence": "HIGH_CONFIDENCE_BOUNDARY",
-      "registry_identity": true,
-      "family_mask_identity": "0x40000000",
-      "normal_generic_handler": null,
-      "model_factory_branch": null,
-      "model_memory_specialization": null,
-      "printable_identifiers_found": [],
-      "open_boundary": "find downstream owner/consumer of MRP family identity or acquire a real retail MRP payload"
-    },
+    "SCM": {"classification":"mesh-bearing-stage-scene-model","confidence":"EXE_CONFIRMED","normalizer_va":"0x1403051B0","normalizer_window_sha256":"5f3923913db171026470d8d15537d58b823f19f9a6770b6508cee778d1fbd321","model_factory_branch":"SCM-specific","model_factory_size":"0x580"},
+    "MRP": {"classification":"runtime-primary-family-purpose-unresolved","confidence":"EXE_CONFIRMED_IDENTITY_RESEARCH_REQUIRED_PURPOSE","registry_identity":true,"family_mask_identity":"0x40000000","normal_generic_handler":null,"model_factory_branch":null,"model_memory_specialization":null,"printable_identifiers_found":[],"bounded_local_corpus_strict_signature_hits":0,"open_boundary":"Find downstream owner/consumer of classifier-derived MRP identity or acquire a real payload. Do not infer model/render semantics from classifier neighborhood alone."},
     "SHW": {
-      "classification": "shadow-geometry-topology-companion",
-      "confidence": "EXE_CONFIRMED",
-      "normalizer_va": "0x1403204C0",
-      "normalizer_window_sha256": "14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d",
-      "normalizer_record_stride": "0x40",
-      "normalizer_relocated_qword_count_per_record": 4,
-      "topology_consumer_near_va": "0x1403204F0",
-      "topology_index_width": 32,
-      "indices_per_triangle": 3,
-      "external_spatial_record_stride": "0x10",
-      "triangle_vector_helper_va": "0x140320BB0",
-      "triangle_vector_helper_operation": "forms two edges from three float4 vectors and computes their cross product; output w=0",
-      "shader_file": "DMC3_SHW.hlsl",
-      "shader_inputs": ["POSITION"],
-      "self_contained_textured_mesh_proven": false
+      "classification":"self-contained-shadow-geometry","confidence":"EXE_CONFIRMED+DATA_CONFIRMED","normalizer_va":"0x1403204C0","normalizer_window_sha256":"14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d","normalizer_record_stride":"0x40","normalizer_relocated_qword_count_per_record":4,"topology_consumer_near_va":"0x1403204F0","triangle_vector_helper_va":"0x140320BB0","triangle_vector_helper_operation":"forms two edges from three float4 vectors and computes their cross product; output w=0","shader_file":"DMC3_SHW.hlsl","shader_inputs":["POSITION"],
+      "local_corpus":{"sample_count":16,"record_count":158,"vertex_count":1882,"triangle_count":3104,"record_stride":"0x40","triangle_record":"int32 v0,v1,v2,zero @ +0x10 pointer","adjacency_record":"u16 neighborEdge01,neighborEdge12,neighborEdge20,zero @ +0x18 pointer","vertex_record":"float4 x,y,z,w @ +0x20 pointer; w=1.0 in 1882/1882","matrix_index_stream":"vertexCount bytes @ +0x28 pointer","adjacency_references_checked":9312,"bad_adjacency_references":0,"all_adjacency_targets_share_expected_edge":true},
+      "external_spatial_pool_claim":"REJECTED","open_boundary":"Exact semantic name/ownership of header +0x11 and full lifecycle/writer behavior remain open."
     }
   },
-  "factory_evidence": {
-    "va": "0x140248140",
-    "file_offset": "0x247540",
-    "size": "0xA0",
-    "sha256": "8ae56885624cbcbc89ece904fe8dc38ba3ea89291ac6575e0f0cf1c16a6f8079",
-    "branches": {
-      "MOD": "0x780 shared branch",
-      "EFM": "0x780 shared branch",
-      "SCM": "0x580 separate branch",
-      "MRP": null,
-      "MCV": null,
-      "SHW": null
-    }
-  },
-  "model_memory_evidence": {
-    "va": "0x1402FD8D0",
-    "file_offset": "0x2FCCD0",
-    "size": "0xF0",
-    "sha256": "972aa71b8c6a33be636e727bae8747b9496017ed2de2bd42da51cea7844d3abe",
-    "specialized_paths": {
-      "MOD": "0x1402FDB40",
-      "EFM": "0x1402FDB40",
-      "SCM": "0x1402FDD10",
-      "MRP": null,
-      "MCV": null,
-      "SHW": null
-    }
-  },
+  "factory_evidence":{"va":"0x140248140","file_offset":"0x247540","size":"0xA0","sha256":"8ae56885624cbcbc89ece904fe8dc38ba3ea89291ac6575e0f0cf1c16a6f8079","branches":{"MOD":"0x780 shared branch","EFM":"0x780 shared branch","SCM":"0x580 separate branch","MRP":null,"MCV":null,"SHW":null}},
+  "model_memory_evidence":{"va":"0x1402FD8D0","file_offset":"0x2FCCD0","size":"0xF0","sha256":"972aa71b8c6a33be636e727bae8747b9496017ed2de2bd42da51cea7844d3abe","specialized_paths":{"MOD":"0x1402FDB40","EFM":"0x1402FDB40","SCM":"0x1402FDD10","MRP":null,"MCV":null,"SHW":null}},
   "family_mask_direct_caller_census": {
-    "classifier_va": "0x1402FD650",
-    "unique_direct_call_sites": [
-      "0x14024815C",
-      "0x140270735",
-      "0x1402F2A1F",
-      "0x1402F2B0D",
-      "0x1402F2D61",
-      "0x1402F2FE2",
-      "0x1402F313B",
-      "0x1402F39BE",
-      "0x1402F3A9C",
-      "0x1402F5310",
-      "0x1402F9628",
-      "0x1402FD8FD",
-      "0x1402FDB68",
-      "0x140307374"
-    ],
-    "unique_direct_call_site_count": 14,
-    "nearby_explicit_family_specializations": {
-      "0x14024815C": ["MOD", "EFM", "SCM"],
-      "0x140270735": ["SCM"],
-      "0x1402F2A1F": ["MOD", "EFM"],
-      "0x1402F2B0D": ["MOD", "EFM"],
-      "0x1402F2D61": ["MOD", "EFM"],
-      "0x1402F2FE2": ["MOD", "EFM"],
-      "0x1402F313B": ["MOD", "EFM"],
-      "0x1402F39BE": ["MOD", "EFM"],
-      "0x1402F3A9C": ["MOD", "EFM"],
-      "0x1402F5310": ["MOD", "EFM"],
-      "0x1402F9628": [],
-      "0x1402FD8FD": ["MOD", "EFM", "SCM"],
-      "0x1402FDB68": [],
-      "0x140307374": ["MOD", "EFM"]
-    },
-    "MRP_explicit_branch_found": false,
-    "MCV_explicit_branch_found": false,
-    "SHW_explicit_branch_found": false,
-    "scope_note": "This is a bounded census of direct callers of the four-byte family-mask classifier. It does not prove that MRP/MCV/SHW have no consumers elsewhere."
+    "classifier_va":"0x1402FD650",
+    "unique_direct_call_sites":["0x14024815C","0x140270735","0x1402F2A1F","0x1402F2B0D","0x1402F2D61","0x1402F2FE2","0x1402F313B","0x1402F39BE","0x1402F3A9C","0x1402F5310","0x1402F9628","0x1402FD8FD","0x1402FDB68","0x140307374"],
+    "unique_direct_call_site_count":14,
+    "nearby_explicit_family_specializations":{"0x14024815C":["MOD","EFM","SCM"],"0x140270735":["SCM"],"0x1402F2A1F":["MOD","EFM"],"0x1402F2B0D":["MOD","EFM"],"0x1402F2D61":["MOD","EFM"],"0x1402F2FE2":["MOD","EFM"],"0x1402F313B":["MOD","EFM"],"0x1402F39BE":["MOD","EFM"],"0x1402F3A9C":["MOD","EFM"],"0x1402F5310":["MOD","EFM"],"0x1402F9628":[],"0x1402FD8FD":["MOD","EFM","SCM"],"0x1402FDB68":[],"0x140307374":["MOD","EFM"]},
+    "MRP_explicit_branch_found":false,"MCV_explicit_branch_found":false,"SHW_explicit_branch_found":false,
+    "scope_note":"This is a bounded census of direct callers of the four-byte family-mask classifier. It does not prove that MRP/MCV/SHW have no consumers elsewhere."
   },
-  "bounded_region_hashes": [
+  "bounded_region_hashes":[
     {"va_start":"0x1402F29F0","va_end":"0x1402F5450","file_offset":"0x2F1DF0","size":10848,"sha256":"1bce49e952b61e59b31cf4e2193a804dae72df115574ce5925ad554131d46f98"},
     {"va_start":"0x1402F95F0","va_end":"0x1402F97C0","file_offset":"0x2F89F0","size":464,"sha256":"9e9e28422886294ce1ac7f8ebf6a8a87bc3f14f8b8bec8651868da152232993f"},
     {"va_start":"0x1402FD8D0","va_end":"0x1402FDE80","file_offset":"0x2FCCD0","size":1456,"sha256":"2625db984e62f85428db61b87baccc4bab30a7483280484dcf4f970a1aa34d4e"},
     {"va_start":"0x140307350","va_end":"0x1403075D0","file_offset":"0x306750","size":640,"sha256":"da7583a0146d7b995aaf7adfac4207b7396f2db817294f83b3162303c62ce8bc"}
   ],
-  "retail_sample_gap": {
-    "standalone_MOD_available": true,
-    "standalone_SCM_available": true,
-    "standalone_EFM_available": false,
-    "standalone_MRP_available": false,
-    "standalone_SHW_available": false,
-    "library_NBZ_volume_available": false,
-    "library_PAC_volume_available": false
-  }
+  "corpus_evidence":{"packet":"data/reverse/dmc3-primary-3d-corpus-20260831.json","correction_note":"docs/research/dmc3-primary-3d-corpus-correction-2026-08-31.md","local_stage_drop_samples":{"EFM":9,"SHW":16,"MRP":0},"provenance_note":"Local stage-drop evidence is not automatically promoted to independently reacquired retail-source provenance."},
+  "retail_sample_gap":{"standalone_MOD_available":true,"standalone_SCM_available":true,"standalone_EFM_available":false,"standalone_MRP_available":false,"standalone_SHW_available":false,"library_NBZ_volume_available":false,"library_PAC_volume_available":false,"note":"This field now means independently grounded standalone/retail-style Library availability. Local extracted stage-drop EFM/SHW samples are tracked separately under corpus_evidence."}
 }
