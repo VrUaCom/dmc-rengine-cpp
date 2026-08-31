@@ -1,7 +1,7 @@
 {
   "schema": "dmc-rengine.dmc3-hd-format-purpose-registry.v1",
-  "snapshot": "2026-08-27",
-  "mainBase": "f886f27e62ec9a05b6829df7fd074981a06a4b49",
+  "snapshot": "2026-08-31",
+  "mainBase": "d58a0e8794a9c115418ec64a18fbc2e0095facbc",
   "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "columns": [
     "id",
@@ -24,24 +24,24 @@
     ["ukn",".ukn","metadata","Placeholder/source extension used when extraction naming lacks semantic identity.","DATA_CONFIRMED","DATA_CONFIRMED","NONE","fallback-only"],
     ["bin",".bin","metadata","Generic leaf filename extension used by multiple unrelated resources.","EXE_CONFIRMED","RESEARCH_REQUIRED","NONE","fallback-only"],
     ["pe","PE,dmc3.exe","executable","Executable containing runtime code, registries, translation tables and static resource descriptors.","EXE_CONFIRMED","EXE_CONFIRMED","STRUCTURAL","structural"],
-    ["scm","SCM","geometry","Stage/scene mesh geometry and model data.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
-    ["mod","MOD","geometry","Actor/object/model resource family.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
-    ["hits","HITS","collision","Spatial collision resource: bounds and 3-D grid mapping cells to triangle/plane records.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
+    ["scm","SCM","geometry","Stage/static scene mesh geometry with positions, normals, UV, vertex-RGBA/baked-lighting-side data and derived triangle topology.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
+    ["mod","MOD","geometry","Skinned actor/object model mesh with positions, normals, UV, bone/blend data, packed weight/strip-control stream and derived triangle topology.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
+    ["efm","EFM","geometry","Effect-model mesh geometry in the MOD-related document family with an additional per-vertex RGBA stream.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["shw","SHW","geometry","Shadow geometry / shadow-volume-side resource with position-bearing data and downstream triangle/plane processing; structurally distinct from the MOD/EFM/SCM inner ABI.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["mrp","MRP","render","Primary model/render/effect-side runtime family recognized independently by the registry content probe and four-byte family-mask classifier.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","runtime-only"],
+    ["hits","HITS","collision","Spatial collision resource: bounds and 3-D grid mapping cells to triangle/plane records; structural/consumer evidence is separate from generic runtime content-tag recognition.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
     ["dca","DCA","camera","Mini-demo/cinematic camera data; recovered interpretation correlates paired spatial channels with camera eye/world position and look-at target.","DATA_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","structural"],
     ["dds","DDS","texture","HD texture representation used by tooling/render paths.","DATA_CONFIRMED","DATA_CONFIRMED","STANDARD","recognized"],
     ["ptx","PTX","texture","Texture bundle/container-like resource exposing embedded texture images/resources.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","recognized"],
     ["tm2","TM2,TIM2","texture","Original/legacy texture-image family used before/alongside HD texture translation.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","research-only"],
     ["ptz","PTZ","texture","Texture-side companion resource associated with basic.ptx in the canonical executable asset table.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
-    ["efm","EFM","effect","Typed effect-system resource requiring original post-load relative-offset fixup.","EXE_CONFIRMED","EXE_CONFIRMED","OPEN","runtime-only"],
-    ["shw","SHW","render","Typed shadow/render companion resource with dedicated original post-load fixup.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
-    ["mrp","MRP","render","Primary model/render/effect-side typed resource-manager companion.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["sef","SEF","effect","Stage/effect companion resource family.","DATA_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
-    ["efe","EFE","effect","Effect-system companion resource label.","DATA_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
-    ["efw","EFW","effect","Effect-system companion resource label.","DATA_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
+    ["efe","EFE","effect","Effect-side prefix/family explicitly compared by the PAC/PNST container dispatcher; exact normal consumer/schema remains unresolved.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
+    ["efw","EFW","effect","Effect-side prefix/family explicitly compared by the PAC/PNST container dispatcher; exact normal consumer/schema remains unresolved.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
     ["c1d","C1D","cloth-simulation","One-dimensional cloth-simulation companion resource.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["clt","CLT","cloth-simulation","Cloth/deformation simulation companion used by both primary resource and motion/control managers.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["mot","MOT,MOT2,MOT3,MOT4,MOT5,MOT6","animation","Motion/animation resources and corpus variants.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","research-only"],
-    ["mcv","MCV","animation","Motion companion/control/curve resource in the original motion/control manager.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
+    ["mcv","MCV","animation","Motion companion/control/curve resource; extension-manager membership is independently corroborated by exact four-byte MCV family-mask recognition.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["cam","CAM","camera","Camera resource/track family registered in the original motion/control manager and stage corpus.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
     ["hid","HID,HID2,HID3","visibility-control","Hide/visibility-control resource family and corpus variants.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
     ["tsc","TSC","animation-control","Motion/control-manager companion resource.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","runtime-only"],
@@ -82,18 +82,20 @@
     ["hits-dollar","HITS$","rejected","Historical five-byte collision magic claim.","REJECTED","REJECTED","NONE","none"]
   ],
   "dispatchers": [
-    {"address":"0x1402DB1F0","mapping":{"MOD":0,"EFM":1,"SCM":2,"MRP":3,"SHW":7},"meaning":"primary magic-based typed resource classifier"},
-    {"address":"0x1402DB3C0","mapping":{".ptx":4,".clt":5,".c1d":6},"meaning":"primary extension-side typed resource dispatcher; combines with 0x1402DB1F0"},
+    {"address":"0x1402DB1F0","mapping":{"MOD":0,"EFM":1,"SCM":2,"MRP":3,"SHW":7},"meaning":"registry content probe; compares exactly bytes 0..2 at this evidence site only"},
+    {"address":"0x1402DB3C0","mapping":{".ptx":4,".clt":5,".c1d":6},"meaning":"primary registrar extension-side dispatcher; extension substring checks precede the registry content probe"},
+    {"address":"0x1401B9FA0","mapping":{"MOD":"0x1402FE3B0","EFM":"0x1402F7A90","SCM":"0x1403051B0","SHW":"0x1403204C0","EFE":"recognized-sentinel","EFW":"recognized-sentinel"},"meaning":"PAC/PNST materialized-child dispatcher; EFE/EFW comparison does not by itself prove a normal handler or exact schema"},
+    {"address":"0x1402FD650","mapping":{"MOD ":"0x10000000","EFM ":"0x20000000","SCM ":"0x30000000","MRP ":"0x40000000","MCV ":"0x50000000","SHW ":"0x60000000"},"meaning":"independent four-byte runtime family-mask classifier; trailing ASCII space is part of the comparison"},
     {"address":"0x1402E01A0","mapping":{".mot":0,".mcv":1,".cam":2,".hid":3,".clt":4,".tsc":5},"meaning":"motion/control resource manager extension dispatcher"},
     {"address":"0x140339D80","mapping":{"SPUMAPDT":"validated magic"},"meaning":"SPU sound-memory/sample-map metadata parser"}
   ],
   "excluded": [
-    {"names":["HLSL","FXH"],"reason":"shader source/build/debug path strings; not proof of shipped runtime resource files"},
+    {"names":["HLSL","FXH"],"reason":"shader source/build/debug paths are not proof of shipped shader resource files; embedded DMC3 shader source can still corroborate the vertex ABI of runtime model families"},
     {"names":["PDB"],"reason":"debug-symbol path, not a game resource family"},
     {"names":["DLL"],"reason":"runtime dependency/library names, not game resource formats"},
     {"names":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4","BC5","RGBG","GRGB","YUY2"],"reason":"DDS/pixel encoding or layout tags, not independent resource families"}
   ],
   "openFrontier": [
-    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact consumer/schema","EFW exact consumer/schema","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics","CLT/C1D exact binary schemas"
+    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFM complete variants/field semantics/writer equivalence","SHW complete record semantics/writer equivalence","EFE exact consumer/schema beyond dispatcher sentinel recognition","EFW exact consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MRP exact consumer/geometry ownership/field semantics","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","CLT/C1D exact binary schemas"
   ]
 }
