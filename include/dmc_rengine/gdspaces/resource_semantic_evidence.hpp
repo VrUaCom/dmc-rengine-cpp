@@ -14,11 +14,12 @@ enum class ResourceSemanticEvidenceKind : std::uint8_t {
     embedded_name_list,
     magic_confirmed_format,
     profile_structural_format,
-    // Profile-specific evidence that comes from an instruction-backed runtime
-    // content probe rather than a structural parser. Keeping this distinct is
-    // essential provenance: "MOD" is evidence because dmc3.exe compares those
-    // exact three bytes, not because a MOD document parser proved its shape.
+    // Instruction-backed three-byte registry/content probe (0x1402DB1F0).
     profile_runtime_content_tag,
+    // Independent instruction-backed four-byte family-mask classifier
+    // (0x1402FD650). Kept distinct because byte 3 is significant here and MCV
+    // is recognized only by this path.
+    profile_runtime_family_mask_tag,
 };
 
 // Read-only semantic evidence attached to a materialized resource. This is

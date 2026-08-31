@@ -51,11 +51,17 @@ void add_profile_error(
     return true;
 }
 
+[[nodiscard]] bool is_runtime_profile_semantic(
+    ResourceProfileSemanticKind kind) noexcept {
+    return kind == ResourceProfileSemanticKind::runtime_content_tag ||
+        kind == ResourceProfileSemanticKind::runtime_family_mask_tag;
+}
+
 [[nodiscard]] bool magic_matches_runtime_semantic(
     const ResourceSemanticEvidence& evidence,
     const ResourceProfileSemantic& semantic) noexcept {
     return evidence.kind() == ResourceSemanticEvidenceKind::magic_confirmed_format &&
-        semantic.evidence_kind == ResourceProfileSemanticKind::runtime_content_tag &&
+        is_runtime_profile_semantic(semantic.evidence_kind) &&
         evidence.semantic_format() == semantic.semantic_format &&
         evidence.canonical_extension() == semantic.canonical_extension;
 }
@@ -73,12 +79,9 @@ void add_profile_error(
                 return false;
             }
 
-            // Generic classification historically recognizes SCM as a
-            // magic-confirmed format. The DMC3 profile has stronger provenance:
-            // the recovered runtime itself compares exactly the same three-byte
-            // SCM tag. When both claims agree exactly, refine the reason for the
-            // same semantic type instead of blocking the runtime-backed proof.
-            // A conflicting magic claim remains stronger and blocks the profile.
+            // A compatible generic magic claim may be refined when an exact
+            // recovered DMC3 runtime identification path proves the same
+            // semantic type. A conflicting magic claim remains blocking.
             return !magic_matches_runtime_semantic(evidence, semantic);
         });
 }
@@ -90,6 +93,8 @@ void add_profile_error(
         return ResourceSemanticEvidenceKind::profile_structural_format;
     case ResourceProfileSemanticKind::runtime_content_tag:
         return ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+    case ResourceProfileSemanticKind::runtime_family_mask_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
     }
     return ResourceSemanticEvidenceKind::profile_structural_format;
 }
@@ -97,7 +102,8 @@ void add_profile_error(
 [[nodiscard]] bool is_profile_semantic_kind(
     ResourceSemanticEvidenceKind kind) noexcept {
     return kind == ResourceSemanticEvidenceKind::profile_structural_format ||
-        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
 }
 
 } // namespace
@@ -141,9 +147,6 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
             return result;
         }
 
-        // Embedded name-list evidence and conflicting generic magic remain
-        // stronger. A matching generic magic claim may be refined only when
-        // the canonical DMC3 runtime-content probe proves the exact same type.
         if (has_blocking_semantic_evidence(child.payload, *semantic)) {
             continue;
         }
@@ -175,9 +178,6 @@ ContainerNamingReconcileResult ContainerNamingReconciler::apply_profile_semantic
                     if (is_profile_semantic_kind(existing.kind())) {
                         return true;
                     }
-                    // Replace a generic magic record only when it is exactly
-                    // the same semantic claim and the DMC3 runtime probe gives
-                    // us a more precise reason for believing it.
                     return magic_matches_runtime_semantic(existing, *semantic);
                 }),
             semantic_evidence.end());

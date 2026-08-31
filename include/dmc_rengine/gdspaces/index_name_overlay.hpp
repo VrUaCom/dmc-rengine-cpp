@@ -14,6 +14,7 @@ enum class IndexDisplayEvidenceKind : unsigned char {
     magic_confirmed_format,
     profile_structural_format,
     profile_runtime_content_tag,
+    profile_runtime_family_mask_tag,
     embedded_name_list_format,
 };
 

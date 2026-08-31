@@ -1,8 +1,6 @@
 # GDSpaces L1 derived display fallback — 2026-08-30
 
-Status: **IMPLEMENTED IN VALIDATION BRANCH — NOT HISTORICAL NAME AUTHORITY**
-
-Branch: `ada/l1-naming-display-fallback-20260830`
+Status: **IMPLEMENTED IN MAIN — NOT HISTORICAL NAME AUTHORITY**
 
 ## Problem
 
@@ -24,7 +22,9 @@ DMC3 profile byte/structural semantics are reconciled independently of external
 materialized payload bytes
     -> generic magic semantic evidence
     -> DMC3 profile semantic observation
-       -> structural-parser evidence OR runtime-content-tag evidence
+       -> structural-parser evidence
+       -> registry-content-probe evidence
+       -> family-mask-probe evidence
     -> ResourceNamingIdentity
 ```
 
@@ -43,40 +43,68 @@ The registered regression compile-time checks that neither a three-argument
 public `reconcile(..., resolver)` nor `reconcile_profiled` is accessible outside
 that authority boundary.
 
-Crucially, the profile provenance families are not collapsed into one enum:
+## Evidence-site separation
+
+The original runtime does not expose one universal DMC3 type detector. L1 keeps
+three different evidence reasons separate:
 
 - `profile_structural_format` means a structural parser proved the interpretation;
 - `profile_runtime_content_tag` means the interpretation comes from the exact
-  instruction-backed runtime content probe.
+  three-byte registry content probe at `0x1402DB1F0`;
+- `profile_runtime_family_mask_tag` means the interpretation comes from the
+  independent four-byte family-mask probe at `0x1402FD650`.
 
 This distinction is retained both with and without an external `.index`, so an
-index overlay cannot launder a runtime tag into a structural-parser claim.
+index overlay cannot launder one evidence family into another.
 
-Two DMC3 evidence families currently feed the private profile pass:
+The private DMC3 semantic pass currently uses:
 
 1. **Texture structure** — `TextureSlotFramingParser` proves a texture bundle or
    wrapped DDS and yields canonical `ptx` / `dds` presentation semantics with
    `profile_structural_format` provenance.
-2. **Recovered runtime content tags** — `ResourceTypeContract` records the
-   original `dmc3.exe` three-byte content probe at `0x1402DB1F0` and the second
-   dispatcher at `0x1401B9FA0`. Nameless payload prefixes `MOD`, `EFM`, `SCM`,
-   `MRP`, and `SHW` therefore yield `mod`, `efm`, `scm`, `mrp`, and `shw`
-   semantics with `profile_runtime_content_tag` provenance.
+2. **Registry content tags** — `ResourceTypeContract::registry_type_for_prefix`
+   reproduces the original three-byte probe and recognizes `MOD`, `EFM`, `SCM`,
+   `MRP`, and `SHW`. The fourth byte is deliberately ignored **at this site only**.
+3. **Runtime family masks** — `ResourceTypeContract::family_mask_for_prefix`
+   reproduces the separate four-byte classifier and requires exact tags with a
+   trailing ASCII space: `MOD `, `EFM `, `SCM `, `MRP `, `MCV `, `SHW `.
+   `MCV` therefore receives byte-backed semantic presentation only through the
+   family-mask provenance family, not by widening the registry rule.
 
-The three-byte boundary is deliberate. `ResourceTypeContract::type_for_prefix`
-compares exactly bytes 0..2, with no fourth-byte test and no case folding.
-Requiring a fourth byte would be stricter than the recovered game code and would
-convert instruction-backed evidence into a product invention.
+A third runtime path, `container_dispatch @ 0x1401B9FA0`, is recorded in the
+contract but is not blindly converted into naming semantics. It independently
+reaches the normal handlers for `MOD/EFM/SCM/SHW` and also recognizes `EFW/EFE`
+as sentinel prefixes. `EFW/EFE` currently receive **no invented extension,
+handler or decoded schema** from that fact alone.
+
+Correct evidence topology:
+
+```text
+registry_content_probe @ 0x1402DB1F0
+    3-byte recognition
+    MOD / EFM / SCM / MRP / SHW
+
+container_dispatch @ 0x1401B9FA0
+    MOD / EFM / SCM / SHW -> recovered normal handlers
+    EFW / EFE -> recognized sentinel only
+
+family_mask_probe @ 0x1402FD650
+    exact 4-byte recognition with trailing 0x20
+    MOD / EFM / SCM / MRP / MCV / SHW
+```
+
+The obsolete global statements “the runtime recognizes exactly five tags” and
+“the fourth byte does not matter” are therefore superseded.
 
 ### Compatible generic magic refinement
 
 The generic classifier historically recognizes `SCM` as `magic_confirmed`.
-That result and the DMC3 runtime probe agree on the semantic type but do not have
+That result and the DMC3 registry probe agree on the semantic type but do not have
 the same provenance. The profile pass therefore applies this rule:
 
 ```text
 generic magic says scm
-AND recovered DMC3 runtime probe says scm
+AND registry content probe says scm
     -> replace the lower-precision magic record
        with profile_runtime_content_tag
 
@@ -85,16 +113,12 @@ conflicting generic magic
 ```
 
 The result is one active semantic reason for the physical byte image, not two
-parallel records that happen to spell the same format differently. A dedicated
-full-pipeline `SCM ` regression requires exactly one final semantic record and
-requires its kind to be `profile_runtime_content_tag`.
+parallel records that happen to spell the same format differently.
 
 ### Downstream classification provenance
 
 Sealed evidence remains distinct after naming reconciliation. Materialized
-`ResourceClassifier::classify(payload)` no longer turns every sealed semantic
-record into `structural_confirmed = true`. Its confirmation flags preserve the
-actual reason:
+`ResourceClassifier::classify(payload)` preserves the actual reason:
 
 ```text
 embedded_name_list / profile_structural_format
@@ -105,10 +129,13 @@ magic_confirmed_format
 
 profile_runtime_content_tag
     -> runtime_content_tag_confirmed
+
+profile_runtime_family_mask_tag
+    -> runtime_family_mask_confirmed
 ```
 
-Thus an instruction-backed `MOD` or `SCM` claim cannot be laundered into a
-structural-parser claim merely by crossing the naming/classifier API boundary.
+Thus instruction-backed runtime evidence cannot be laundered into generic magic
+or structural-parser proof merely by crossing the naming/classifier API boundary.
 
 ## Derived display name
 
@@ -128,16 +155,16 @@ Examples:
 GData.afs/obj/em000.pac + ordinal 0 + texture-bundle
     -> em000_000.ptx
 
-GData.afs/obj/em000.pac + ordinal 1 + runtime tag MOD
+GData.afs/obj/em000.pac + ordinal 1 + registry tag MOD
     -> em000_001.mod
 
-GData.afs/scr/st001.pac + ordinal 0 + HITS
-    -> st001_000.hits
+synthetic PAC child + ordinal 2 + family tag MCV<space>
+    -> <container-stem>_002.mcv
 ```
 
-The second example describes the deterministic derived-display rule; it is not a
-claim that `em000_001.mod` was a retained historical extractor filename unless
-separate `.index` evidence proves that name.
+These examples describe the deterministic derived-display rule. They are not
+claims that those names were retained historical extractor filenames unless
+separate `.index` or direct stored-name evidence proves them.
 
 Nested synthetic containers retain physical topology in the derived stem so the
 presentation remains deterministic rather than collapsing unrelated descendants
@@ -174,7 +201,7 @@ slot_0000.bin (physical parser placeholder)
     -> canonical_display_name = em000_000.ptx
 ```
 
-`dmc3_runtime_content_tag_provenance_tests` pins the recovered-runtime path:
+`dmc3_runtime_content_tag_provenance_tests` pins the registry-probe path:
 
 ```text
 SCM bytes
@@ -186,16 +213,16 @@ SCM bytes
     -> structural_confirmed = false
 ```
 
-The same test also pins the non-forgeable reconciler surface at compile time.
-Tests that require profile-aware `.index` semantics now enter through
-`Dmc3NamingPipeline`; they do not retain a privileged test-only route through a
-public resolver callback.
+`ResourceTypeContract` compile-time assertions independently pin the evidence
+sites:
 
-`ResourceTypeContract` compile-time assertions independently pin the exact
-three-byte `MOD` and `SCM` prefix behavior, including the fact that an arbitrary
-fourth byte does not change a `MOD` result and lowercase `mod` is not accepted.
+- registry `MOD`: arbitrary fourth byte is ignored only by the registry probe;
+- family mask: `MOD ` succeeds while `MODX` fails;
+- `MCV ` is family-mask recognized but registry-probe unknown;
+- `EFW`/`EFE` are container-dispatch recognized sentinels with no handler;
+- `SCM` is a normal container-dispatch handler path.
 
 The tests additionally verify that external-index evidence remains absent where
 no exact `.index` exists and that physical `ResourceId` and payload bytes do not
-change. Whole-head CI must remain green on both Ubuntu and Windows for the exact
-validation head before promotion.
+change. Whole-head validation remains required on Ubuntu and Windows after each
+semantic-evidence change.

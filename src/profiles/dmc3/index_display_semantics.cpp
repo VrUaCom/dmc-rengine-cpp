@@ -10,9 +10,9 @@ namespace dmc::rengine::profiles::dmc3 {
 namespace {
 
 [[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
-resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
+resolve_registry_content_tag_semantic(std::span<const std::byte> bytes) {
     using Contract = ResourceTypeContract;
-    const auto code = Contract::type_for_prefix(bytes);
+    const auto code = Contract::registry_type_for_prefix(bytes);
     const auto format = Contract::canonical_extension(code);
     if (format.empty()) {
         return std::nullopt;
@@ -21,6 +21,21 @@ resolve_runtime_content_tag_semantic(std::span<const std::byte> bytes) {
         .canonical_extension = std::string{format},
         .semantic_format = std::string{format},
         .evidence_kind = gdspaces::ResourceProfileSemanticKind::runtime_content_tag,
+    };
+}
+
+[[nodiscard]] std::optional<gdspaces::ResourceProfileSemantic>
+resolve_runtime_family_mask_semantic(std::span<const std::byte> bytes) {
+    using Contract = ResourceTypeContract;
+    const auto mask = Contract::family_mask_for_prefix(bytes);
+    const auto format = Contract::canonical_extension(mask);
+    if (format.empty()) {
+        return std::nullopt;
+    }
+    return gdspaces::ResourceProfileSemantic{
+        .canonical_extension = std::string{format},
+        .semantic_format = std::string{format},
+        .evidence_kind = gdspaces::ResourceProfileSemanticKind::runtime_family_mask_tag,
     };
 }
 
@@ -60,11 +75,20 @@ resolve_materialized_display_semantic(
         }
     }
 
-    // Nameless relative-slot payloads can still carry the exact content tags
-    // used by the original runtime dispatcher. In particular, em000 model
-    // payloads beginning with "MOD" are therefore byte-backed `mod` resources,
-    // not files named `.mod` because a UI guessed a suffix.
-    return resolve_runtime_content_tag_semantic(bytes);
+    // Evidence site A: the registry probe compares exactly bytes 0..2. This is
+    // the source of profile_runtime_content_tag provenance. The independent
+    // container dispatcher is corroborating runtime evidence, not a naming
+    // source for its EFW/EFE sentinel-only cases.
+    if (const auto semantic = resolve_registry_content_tag_semantic(bytes);
+        semantic.has_value()) {
+        return semantic;
+    }
+
+    // Evidence site C: a separate higher-level classifier compares exactly four
+    // bytes including trailing ASCII space and additionally recognizes MCV.
+    // Preserve it as a separate provenance family rather than widening the
+    // three-byte registry rule.
+    return resolve_runtime_family_mask_semantic(bytes);
 }
 
 std::optional<gdspaces::IndexProfileDisplaySemantic>
@@ -76,10 +100,20 @@ resolve_index_display_semantic(
         return std::nullopt;
     }
 
-    const auto evidence_kind =
-        semantic->evidence_kind == gdspaces::ResourceProfileSemanticKind::runtime_content_tag
-            ? gdspaces::IndexDisplayEvidenceKind::profile_runtime_content_tag
-            : gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+    gdspaces::IndexDisplayEvidenceKind evidence_kind =
+        gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+    switch (semantic->evidence_kind) {
+    case gdspaces::ResourceProfileSemanticKind::structural_format:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_structural_format;
+        break;
+    case gdspaces::ResourceProfileSemanticKind::runtime_content_tag:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_runtime_content_tag;
+        break;
+    case gdspaces::ResourceProfileSemanticKind::runtime_family_mask_tag:
+        evidence_kind = gdspaces::IndexDisplayEvidenceKind::profile_runtime_family_mask_tag;
+        break;
+    }
+
     return gdspaces::IndexProfileDisplaySemantic{
         .canonical_extension = semantic->canonical_extension,
         .semantic_format = semantic->semantic_format,
