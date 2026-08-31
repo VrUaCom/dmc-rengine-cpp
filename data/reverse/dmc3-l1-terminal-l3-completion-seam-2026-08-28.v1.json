@@ -1,0 +1,119 @@
+{
+  "schema": "dmc-rengine.reverse-evidence.v1",
+  "topic": "dmc3-l1-terminal-l3-normal-completion-seam",
+  "date": "2026-08-28",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "implementation_base": "94692e8f9971cf8249b4b16ee88d309de8b49f11",
+  "scope": "static-normal-path-l1-byte-result-to-l3-completion-eligibility",
+  "findings": [
+    {
+      "id": "L1L3-S-001",
+      "status": "confirmed",
+      "addresses": ["0x1401B84E0", "0x1401B8CA0", "0x1402EF4D0", "0x1402EF580"],
+      "claim": "Materialization type-2 jobs and the normal type-3 0x1401B8DC0 callback use the same derived lane selector and the same per-lane producer ring."
+    },
+    {
+      "id": "L1L3-S-002",
+      "status": "confirmed",
+      "address": "0x1402EF790",
+      "claim": "The consumer services the current per-lane ring slot and advances the consumer index only after current-job retirement."
+    },
+    {
+      "id": "L1L3-S-003",
+      "status": "confirmed",
+      "addresses": ["0x140033500", "0x1400333E0", "0x1402EF790"],
+      "claim": "Whole-file status 2 is pending and does not retire/advance the type-2 job."
+    },
+    {
+      "id": "L1L3-S-004",
+      "status": "confirmed",
+      "addresses": ["0x140033500", "0x1400335A0", "0x1402EF790"],
+      "claim": "Whole-file status 4 resets the consumer's local phase and retries the same current type-2 job on a later service pass; it does not clear the ring slot or advance the consumer index."
+    },
+    {
+      "id": "L1L3-S-005",
+      "status": "confirmed",
+      "addresses": ["0x1400335A0", "0x1402EF790"],
+      "claim": "Whole-file status 3 retires the normal submitted type-2 job: close whole-file state, clear job/phase, and advance consumer index."
+    },
+    {
+      "id": "L1L3-S-006",
+      "status": "confirmed",
+      "addresses": ["0x1400335A0", "0x1402EF790", "0x1401B8DC0"],
+      "claim": "The original callback publishes status 3 without an independent accumulatedBytes==plannedBytes check; a short no-error transfer can therefore retire type-2 work and permit the later normal LoadedResource state1->state2 callback."
+    },
+    {
+      "id": "L1L3-S-007",
+      "status": "confirmed",
+      "address": "0x1401B8DC0",
+      "claim": "Canonical normal registration passes one u32 context equal to record_ptr - 0x140C99D30; normal record contexts are even index*0x48 values and publish LoadedResource state +4 = 2."
+    },
+    {
+      "id": "L1L3-S-008",
+      "status": "confirmed",
+      "addresses": ["0x1401B8430", "0x1402EF460", "0x1401B8F00"],
+      "claim": "Cancellation flushes queued work back toward the consumer index, changes LoadedResource states 1/2 to 4, and queues state4 cleanup; this is an L3 normal-completion suppression path."
+    },
+    {
+      "id": "L1L3-S-009",
+      "status": "bounded",
+      "address": "0x1402EF460",
+      "claim": "Queue flush stops at the consumer index; static disassembly does not by itself close concurrent/current-slot cancellation races, which remain L3 dynamic breadth."
+    }
+  ],
+  "canonical_seam": {
+    "L1": [
+      "representation-and-planning",
+      "allocation-and-destination",
+      "byte-job-admission-attempt",
+      "admitted-type2-whole-file-execution",
+      "native-status3-byte-result-terminal"
+    ],
+    "boundary": "after-native-type2-byte-result-terminal-before-normal-lifecycle-callback-publication",
+    "L3": [
+      "fifo-callback-eligibility",
+      "0x1401B8DC0-state1-to-state2-publication",
+      "typed-post-load-and-ready-lifecycle",
+      "cancellation-suppression-and-cleanup"
+    ]
+  },
+  "important_conditions": {
+    "fifo_guarantee_requires_job_admission": true,
+    "outer_writer_true_proves_all_children_admitted": false,
+    "top_level_setup_true_proves_completion_callback_admitted": false,
+    "status3_proves_exact_planned_length": false,
+    "status4_is_terminal_job_failure": false,
+    "status4_behavior": "retry-current-type2-job",
+    "product_short_success_policy": "must-remain-stricter-when-exactness-is-claimed"
+  },
+  "closed_frontier": [
+    "static-normal-path-same-lane-fifo-ordering",
+    "status2-pending",
+    "status4-retry-non-retirement",
+    "status3-type2-retirement",
+    "normal-callback-eligibility-after-preceding-admitted-type2-retirement",
+    "short-success-can-enable-original-normal-completion",
+    "cancellation-queued-work-suppression-boundary",
+    "static-l1-vs-l3-ownership-cut"
+  ],
+  "remaining": [
+    "dynamic-current-slot-cancellation-concurrency",
+    "broader-l3-transition-reset-shutdown-receipts",
+    "recursive-lst-cycle-depth-allocation-free-lifetime-semantics",
+    "residual-allocator-backend-failure-branches",
+    "representative-real-lst-corpus-if-claimed",
+    "original-game-level-e-consumption-and-rollback",
+    "final-l1-contradiction-audit"
+  ],
+  "non_claims": [
+    "l3-complete",
+    "all-queue-concurrency-recovered",
+    "short-success-is-valid-product-exactness",
+    "l1-complete-or-100-percent",
+    "original-game-consumption-proven"
+  ]
+}
