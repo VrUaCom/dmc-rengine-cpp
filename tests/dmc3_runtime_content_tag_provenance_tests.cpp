@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -91,7 +93,7 @@ static_assert(
                 .synthetic_name = true,
                 .container = false,
             },
-            .bytes = {bytes.begin(), bytes.end()},
+            .bytes = std::vector<std::byte>(bytes.begin(), bytes.end()),
             .diagnostics = {},
             .byte_provenance = std::nullopt,
             .name_evidence = {},
@@ -136,9 +138,6 @@ int main() {
     assert(
         Contract::canonical_extension(Contract::FamilyMask::motion_curve) == "mcv");
 
-    // SCM is already recognized by the generic classifier. The DMC3 pipeline
-    // must refine that compatible lower-precision claim to the recovered
-    // three-byte runtime content-probe evidence.
     auto scm_expansion = make_single_child_expansion(
         {std::byte{'S'}, std::byte{'C'}, std::byte{'M'}, std::byte{' '}},
         "GData.afs/scr/st001.pac::PAC/slot-0000");
@@ -171,8 +170,8 @@ int main() {
     assert(!scm_classified.magic_confirmed);
     assert(!scm_classified.structural_confirmed);
 
-    // MCV is the critical proof that the four-byte classifier is a separate
-    // evidence path rather than a restatement of the three-byte registry probe.
+    // MCV is the proof that the four-byte classifier is an independent runtime
+    // evidence path rather than a restatement of the three-byte probe.
     auto mcv_expansion = make_single_child_expansion(
         mcv_space,
         "GData.afs/scr/st001.pac::PAC/slot-0000");
