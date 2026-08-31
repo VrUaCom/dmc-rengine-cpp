@@ -1,7 +1,7 @@
 # DMC3 HD Format and Resource-Purpose Catalog
 
-**Snapshot:** 2026-08-27  
-**Reconciliation base:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
+**Snapshot:** 2026-08-31  
+**Reconciliation base:** `main@d58a0e8794a9c115418ec64a18fbc2e0095facbc` plus the evidence-correction work on PR #268  
 **Canonical analysis EXE SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
 **Scope:** all DMC3-HD resource families currently observed/named in the project corpus, canonical executable, current C++ product code or preserved reverse evidence.
 
@@ -11,9 +11,11 @@ Machine-readable companion:
 
 - [`dmc3-hd-format-purpose-registry.json`](dmc3-hd-format-purpose-registry.json)
 
-Latest direct closure evidence:
+Latest direct correction/closure evidence, newest first:
 
-- [`../research/dmc3-format-purpose-closure-pass-2026-08-27.md`](../research/dmc3-format-purpose-closure-pass-2026-08-27.md)
+- [`../research/dmc3-primary-3d-render-abi-2026-08-31.md`](../research/dmc3-primary-3d-render-abi-2026-08-31.md)
+- [`../research/dmc3-runtime-type-evidence-split-2026-08-31.md`](../research/dmc3-runtime-type-evidence-split-2026-08-31.md)
+- [`../research/dmc3-format-purpose-closure-pass-2026-08-27.md`](../research/dmc3-format-purpose-closure-pass-2026-08-27.md) — retained as earlier evidence; later correction passes take precedence where they explicitly supersede it.
 
 The registry is exhaustive over the currently observed/named evidence set. That does **not** mean every binary field or writer contract is known.
 
@@ -81,10 +83,15 @@ A known purpose is not a complete schema. A parser is not proof of complete orig
 
 | Family | Purpose | Evidence | Product | Boundary |
 |---|---|---|---|---|
-| `SCM` | stage/scene mesh geometry and model data | `EXE_CONFIRMED` typed classifier/fixup + corpus | recognized | full mesh/material/ownership schema open |
-| `MOD` | actor/object/model resource | `EXE_CONFIRMED` typed classifier/fixup + corpus | recognized | complete schema/variants/writer contract open |
-| `HITS` | spatial collision: bounds + 3-D grid -> cell triangle refs -> triangle/plane records | `EXE_CONFIRMED` + `DATA_CONFIRMED` | `structural` | raw flag semantics incomplete; `0x18060001` is not a universal delimiter |
+| `SCM` | stage/static scene mesh geometry: positions, normals, UV, vertex-RGBA/baked-lighting-side data and derived triangle topology | `EXE_CONFIRMED` classifier + fixup + embedded stage-shader ABI; independent decoder corroboration | recognized | partial inner ABI is recovered; complete variants/material ownership/writer equivalence remain open |
+| `MOD` | skinned actor/object model mesh: positions, normals, UV, bone/blend data, packed weight/strip-control stream and derived triangle topology | `EXE_CONFIRMED` classifier + fixup + embedded MOD-shader ABI; independent decoder corroboration | recognized | partial inner ABI is recovered; complete variants/material ownership/writer equivalence remain open |
+| `EFM` | effect-model mesh geometry; MOD-related vertex document with an additional per-vertex RGBA stream | `EXE_CONFIRMED` classifier + dedicated fixup + embedded EFM shader/source evidence | runtime-only | mesh-bearing purpose is closed; complete binary schema, variants and writer remain open |
+| `SHW` | shadow geometry / shadow-volume-side resource; position-bearing data feeds triangle/plane-side shadow processing | `EXE_CONFIRMED` classifier + dedicated fixup + SHW vertex shader + downstream three-point plane computation | runtime-only | geometry-bearing purpose is closed; record semantics remain partial and its ABI is distinct from MOD/EFM/SCM |
+| `MRP` | primary model/render/effect-side runtime family | registry 3-byte recognition + independent 4-byte family-mask recognition `EXE_CONFIRMED` | runtime-only | own geometry ownership, normalizer, acronym expansion and exact fields remain open |
+| `HITS` | spatial collision: bounds + 3-D grid -> cell triangle refs -> triangle/plane records | `EXE_CONFIRMED` consumer-side evidence + `DATA_CONFIRMED` structure | `structural` | HITS is not promoted as a generic runtime content tag; raw flag semantics remain incomplete |
 | `DCA` | mini-demo/cinematic camera data; paired spatial channels correlate with camera eye/world position and look-at target | `DATA_CONFIRMED`, purpose `HIGH_CONFIDENCE` | `structural` | 0x10 header + 0x410 records are structural; exact field semantics open |
+
+The core architectural consequence is that DMC3 does not have only a `MOD/SCM` geometry surface. Current evidence supports a shared render-neutral mesh abstraction with separate `MOD`, `EFM` and `SCM` adapters, plus a structurally distinct `SHW` shadow-geometry adapter. `MRP` must remain unresolved until a consumer/sample closes its ownership model.
 
 ## 4. Texture, effect and render families
 
@@ -94,41 +101,69 @@ A known purpose is not a complete schema. A parser is not proof of complete orig
 | `PTX` | texture bundle/container-like resource exposing texture children | `EXE_CONFIRMED` typed extension branch + corpus | recognized | PTX/TIM2/PAC-bundle/extracted DDS identities remain distinct |
 | `TM2` / `TIM2` | original/legacy texture image family | `EXE_CONFIRMED` identifier path + research | research-only | exact HD conversion/ownership chain open |
 | `PTZ` | texture-side companion associated with `basic.ptx` | static presence `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | research-only | direct typed consumer/schema still open |
-| `EFM` | effect-system typed resource with dedicated post-load fixup | `EXE_CONFIRMED` | runtime-only | exact fields/product module open |
-| `SHW` | shadow/render typed companion with dedicated post-load fixup | `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact schema open |
-| `MRP` | primary model/render/effect-side typed resource-manager companion | identity `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact acronym expansion and fields remain open |
+| `EFM` | effect-side **geometry-bearing model** resource, not merely metadata | `EXE_CONFIRMED`; see primary 3D/render ABI pass | runtime-only | complete schema/product reader still open |
+| `SHW` | **geometry-bearing shadow** resource with its own compact fixup/record layout | `EXE_CONFIRMED`; see primary 3D/render ABI pass | runtime-only | do not parse with MOD/EFM/SCM inner-record ABI |
+| `MRP` | primary render/model/effect-side family recognized by two byte-backed runtime type systems | identity `EXE_CONFIRMED`; exact purpose beyond subsystem boundary `RESEARCH_REQUIRED` | runtime-only | exact fields/consumer/geometry ownership remain open |
 | `SEF` | stage/effect companion | `DATA_CONFIRMED`; purpose `HIGH_CONFIDENCE` | research-only | direct consumer/schema requires reacquisition |
-| `EFE` | effect-system companion label | `DATA_CONFIRMED`, exact purpose `RESEARCH_REQUIRED` | research-only | no direct original consumer recovered |
-| `EFW` | effect-system companion label | `DATA_CONFIRMED`, exact purpose `RESEARCH_REQUIRED` | research-only | no direct original consumer recovered |
+| `EFE` | effect-side prefix/family observed by the container dispatcher | dispatcher comparison `EXE_CONFIRMED`; exact purpose `RESEARCH_REQUIRED` | research-only | recognized sentinel/prefix does not prove a normal handler or decoded schema |
+| `EFW` | effect-side prefix/family observed by the container dispatcher | dispatcher comparison `EXE_CONFIRMED`; exact purpose `RESEARCH_REQUIRED` | research-only | recognized sentinel/prefix does not prove a normal handler or decoded schema |
 
-### Direct primary typed classifier
+### Runtime type evidence is site-scoped
 
-The canonical executable now gives a hard type map:
+There is no single global `DMC3 type detector`.
+
+Registry content probe:
 
 ```text
-0x1402DB1F0
+0x1402DB1F0   // exactly bytes 0..2 at this site
 MOD -> 0
 EFM -> 1
 SCM -> 2
 MRP -> 3
 SHW -> 7
+```
 
+Registrar extension precedence:
+
+```text
 0x1402DB3C0
 .ptx -> 4
 .clt -> 5
 .c1d -> 6
 ```
 
-Dedicated post-load calls observed in the same path:
+The extension checks are performed before the registrar falls back to the three-byte content probe.
+
+Container traversal dispatcher:
 
 ```text
+0x1401B9FA0
 MOD -> 0x1402FE3B0
 EFM -> 0x1402F7A90
 SCM -> 0x1403051B0
 SHW -> 0x1403204C0
+EFE / EFW -> compared as recognized sentinel/prefix cases; no normal handler is promoted from this evidence
 ```
 
-`MRP` is therefore a real original-runtime typed family, even though its exact field semantics are still unknown.
+Independent four-byte family-mask classifier:
+
+```text
+0x1402FD650   // exact four bytes, trailing ASCII space required
+MOD  -> 0x10000000
+EFM  -> 0x20000000
+SCM  -> 0x30000000
+MRP  -> 0x40000000
+MCV  -> 0x50000000
+SHW  -> 0x60000000
+```
+
+Thus `MOD\x7f` may still classify as MOD at the registry three-byte probe, while `MODX` is not MOD at the four-byte family-mask probe. Any claim that the fourth byte is globally ignored is superseded.
+
+### Related versus distinct geometry fixups
+
+`MOD`, `EFM` and `SCM` are a related runtime document family with an outer count/pointer/group shell, but their inner layouts are not identical. `MOD` has a MOD-specific `+0x11` mode check; EFM adds an extra vertex-RGBA-side stream; SCM uses a different static-stage colour/control stream arrangement.
+
+`SHW` is not evidence for the same generic document shell. Its immediate handler walks its own records and rebases four qword pointer fields per record. Downstream code and the SHW shader nevertheless prove a geometry-bearing shadow path.
 
 ### DDS encodings are not separate file families
 
@@ -157,7 +192,7 @@ The original motion/control manager at `0x1402E01A0` assigns:
 | Family | Purpose | Evidence | Product | Boundary |
 |---|---|---|---|---|
 | `MOT`, `MOT2`..`MOT6` | motion/animation resources and corpus variants | base `MOT` `EXE_CONFIRMED`; variants `DATA_CONFIRMED` | research-only | exact variant ABI/bindings remain open |
-| `MCV` | motion companion/control/curve resource | identity/subsystem `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact field semantics and MOT relationship open |
+| `MCV` | motion companion/control/curve resource | extension-manager membership + independent exact `MCV ` four-byte family-mask recognition `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact field semantics and MOT relationship open |
 | `CAM` | camera resource/track family | `EXE_CONFIRMED` manager registration + corpus | recognized | full camera schema/writer contract open |
 | `HID`, `HID2`, `HID3` | hide/visibility-control family | base `HID` `EXE_CONFIRMED`; variants `DATA_CONFIRMED`; purpose `HIGH_CONFIDENCE` | research-only | track schema/variant ABI open |
 | `CLT` | cloth/deformation simulation companion used by primary and motion/control managers | identity `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact binary schema open |
@@ -181,7 +216,7 @@ LIG/CAM/EVE/POS/ITM/STE/DCA
 | Family | Purpose | Evidence | Product | Boundary |
 |---|---|---|---|---|
 | `LIG` | stage lighting data | `DATA_CONFIRMED` | `structural` | full field semantics/variant relation open |
-| `LIG2` | stage lighting record resource; 0x20 header + 0x30 records | identifier `EXE_CONFIRMED` + `DATA_CONFIRMED` | `structural` | record field semantics open |
+| `LIG2` | stage lighting record resource; 0x20 header + 0x30 records | identifier `EXE_CONFIRMED` + `DATA_CONFIRMED` | `structural` | an immediate store of `LIG2` is not by itself proof of generic type-dispatch comparison |
 | `EVE` | spatial event/trigger volumes: polygon corners + height + raw id/type/tag | geometry `DATA_CONFIRMED` | research-only | not mission bytecode; id/type/tag semantics open |
 | `POS` | stage position/placement/transform companion | corpus purpose `HIGH_CONFIDENCE` | research-only | exact record schema/direct consumer open |
 | `ITM` | static item placement: item ID + X/Y/Z + Y rotation | `EXE_CONFIRMED` + `DATA_CONFIRMED`; bounded game experiments exist | recognized | persistence/behavior comes from EXE/EventTbl |
@@ -327,10 +362,10 @@ Materialized bytes are not always final consumer representation. Original DMC3 c
 Known typed paths include:
 
 ```text
-MOD  -> dedicated in-place fixup
-EFM  -> dedicated in-place fixup
-SCM  -> dedicated in-place fixup
-SHW  -> dedicated in-place fixup
+MOD  -> dedicated in-place fixup; related mesh-document family
+EFM  -> dedicated in-place fixup; related mesh-document family + RGBA stream
+SCM  -> dedicated in-place fixup; related but distinct stage-mesh inner ABI
+SHW  -> dedicated in-place fixup; distinct shadow-geometry record ABI
 PNST -> recurse non-empty children
 PAC  -> root/child traversal before typed dispatch where applicable
 ```
@@ -343,7 +378,7 @@ The executable string census also contains extension-looking strings which are n
 
 | String family | Classification |
 |---|---|
-| `HLSL`, `FXH` | shader source/build/debug path evidence; not proof of shipped resource files |
+| `HLSL`, `FXH` | shader source/build/debug path/source evidence; useful for vertex-ABI corroboration but not proof of shipped `.hlsl` resource files |
 | `PDB` | debug-symbol path |
 | `DLL` | runtime dependency/library names |
 | `DXT*`, `ATI*`, `BC*`, `RGBG`, `GRGB`, `YUY2` | DDS/pixel encodings/layout tags |
@@ -351,6 +386,18 @@ The executable string census also contains extension-looking strings which are n
 `SLTC` exists in the clean repository as a **synthetic test-only slot container**. It is not original DMC3 evidence and must never be presented as a game-compatible format.
 
 ## 12. Rejected/superseded claims
+
+### Global “exactly five runtime content tags”
+
+**SUPERSEDED.** `0x1402DB1F0` recognizes exactly five three-byte registry tags, but that is only one evidence site. Container dispatch additionally compares `EFE`/`EFW`, and `0x1402FD650` is a separate four-byte family-mask classifier that also recognizes `MCV `.
+
+### Global “only the first three bytes matter” / “the fourth byte is ignored”
+
+**REJECTED globally; retained only for `0x1402DB1F0`.** The family-mask classifier requires exact four-byte tags including trailing `0x20`.
+
+### “MOD / EFM / SCM / SHW share one identical document shell”
+
+**REJECTED / OVERGENERALIZED.** MOD/EFM/SCM are related documents with distinct inner semantics; SHW has a different compact record/fixup ABI.
 
 ### `SCH`
 
@@ -362,9 +409,9 @@ An older note described a `st001` payload as `SCH`; later corpus reconciliation 
 
 **`REJECTED` as canonical magic.**
 
-Current authority uses four-byte `HITS`. The old five-byte `HITS$` scanner model is superseded; `0x18060001` is an observed flag value, not a universal record marker.
+Current structural authority uses four-byte `HITS`; the old five-byte `HITS$` scanner model is superseded and `0x18060001` is an observed flag value, not a universal record marker. Separately, the 2026-08-31 EXE type-evidence audit did not recover `HITS` as a generic runtime content-tag comparison. Structural/corpus identity and runtime type-tag identity are different evidence domains.
 
-## 13. Exact-purpose/schema frontier after this closure pass
+## 13. Exact-purpose/schema frontier after the latest correction passes
 
 The subsystem purpose of most named families is now bounded, but these exact contracts remain open:
 
@@ -373,25 +420,32 @@ PTZ       exact consumer/schema
 PHD       exact fields and cross-links
 TSB       exact fields and cross-links
 BD        exact fields and cross-links
-EFE       exact consumer/schema
-EFW       exact consumer/schema
+EFM       complete variants/field semantics/writer equivalence
+SHW       complete record semantics/writer equivalence
+EFE       exact consumer/schema beyond dispatcher sentinel recognition
+EFW       exact consumer/schema beyond dispatcher sentinel recognition
 POS       exact record schema/consumer
 STE       exact record schema/consumer
 EST       exact header/identity/universal slot map
-MRP       exact field semantics
+MRP       exact consumer, geometry ownership and field semantics
 MCV       exact field semantics
 HID*      exact track schema/variant ABI
 TSC       exact semantic role/schema
 CLT/C1D   exact binary schemas
 ```
 
-This distinction is deliberate: **we have determined the strongest evidence-backed purpose of each currently named family; we have not fabricated exact semantics where the bytes/runtime have not proved them.**
+This distinction is deliberate: **we determine the strongest evidence-backed purpose and ABI boundary without fabricating exact fields where the bytes/runtime have not proved them.**
 
 ## 14. Product integration gaps exposed by the catalog
 
 High-value clean C++ gaps:
 
-- add explicit descriptors/modules for direct-runtime `EFM`, `SHW`, `MRP`, `CLT`, `C1D`, `MCV`, `HID`, `TSC`;
+- introduce one render-neutral read-only mesh IR rather than unrelated MOD/SCM/EFM model classes;
+- implement separate evidence-backed `MOD`, `EFM` and `SCM` read adapters over that IR;
+- implement `SHW` as a separate shadow-geometry adapter rather than forcing it through the MOD/EFM/SCM inner-record parser;
+- acquire real retail `EFM`, `SHW` and especially `MRP` payloads before promoting complete field schemas or writers;
+- trace `MRP` consumers/family-mask `0x40000000` behavior before deciding whether MRP owns geometry or render metadata;
+- add explicit descriptors/modules for direct-runtime `CLT`, `C1D`, `MCV`, `HID`, `TSC`;
 - preserve `SPUMAPDT` parser evidence before implementing an audio-bank module;
 - migrate evidence-backed ITM semantics without introducing a second resource resolver;
 - continue POS/STE/EST exact consumer reverse;
@@ -404,7 +458,9 @@ These are integration targets, not permission to add speculative writers.
 ## 15. Canonical references
 
 - `docs/formats/dmc3-hd-format-purpose-registry.json` — machine-readable format-purpose authority;
-- `docs/research/dmc3-format-purpose-closure-pass-2026-08-27.md` — direct EXE closure evidence from this pass;
+- `docs/research/dmc3-primary-3d-render-abi-2026-08-31.md` — MOD/EFM/SCM/SHW geometry and ABI correction;
+- `docs/research/dmc3-runtime-type-evidence-split-2026-08-31.md` — site-scoped runtime classifier/dispatcher correction;
+- `docs/research/dmc3-format-purpose-closure-pass-2026-08-27.md` — earlier direct EXE closure evidence, retained where not superseded;
 - `docs/gdspaces/l3-residual-format-pass-2026-08-26.md` — prior residual census and StageCfg corrections;
 - `docs/gdspaces/l3-raw-exe-pass-2026-08-26.md` — typed post-load/lifecycle evidence;
 - `docs/research/dmc3-vanilla-deep-research-wave-2.md` — stage/media/runtime research;
