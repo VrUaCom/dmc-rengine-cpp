@@ -7,7 +7,12 @@
 
 The SHW document owns shadow-caster geometry/topology. The visual tuning parameters recovered here are separate Model Set/configuration fields and are not stored in the SHW geometry document.
 
-The Model Set parser already independently resolves the `Shadow` resource and attaches it to the model runtime. This pass recovers the additional shadow-tuning tokens used by the same configuration system.
+The Model Set parser independently resolves the `Shadow` resource and attaches it to the model runtime. A later LIG2 reverse pass additionally proves that shadow projection direction/tilt comes from the active light manager rather than from SHW geometry or `ShadowParamSet`.
+
+Companion direction evidence:
+
+- `dmc3-lig2-shadow-projection-reverse-2026-08-31.md`
+- `data/reverse/dmc3-lig2-shadow-projection-20260831.json`
 
 ## 2. Direct executable tokens
 
@@ -55,7 +60,7 @@ Evidence-safe semantic boundary:
 - `ShadowDarkness` is the shadow darkness/intensity-style control named directly by the original executable.
 - `ShadowSoftness` is the shadow softness control named directly by the original executable.
 - `ShadowSoftRange` is a floating-point softness/range control named directly by the original executable.
-- `ShadowParamSet` selects a shadow parameter set/preset, but the exact contents selected by each value are not yet recovered. Do not infer angle/direction from this field without a downstream table/consumer.
+- `ShadowParamSet` selects a shadow parameter set/preset, but the exact contents selected by each value remain partially open.
 
 ## 4. Recovered defaults
 
@@ -87,25 +92,57 @@ SHW document
 Model Set / shadow runtime
   -> darkness / softness / range / parameter-set controls
 
+LIG2 / CLightMgr
+  -> shadow projection light point / direction
+
 renderer constants
   -> final shadow colour/projection state
 ```
 
-## 7. Direction / tilt / projection angle remains open
+## 7. Direction / tilt / projection source — CLOSED for the recovered static-light path
 
-No direct configuration token equivalent to:
+There is still no configuration token named `ShadowAngle`, `ShadowDirection`, or `ShadowSlope` because the direction is not authored as an independent angle field in the recovered path.
+
+`CDrawShadow` update near `0x14008BCF0` obtains the active global `CLightMgr` and calls `0x14031FA80`. That function queries `CLightMgr` through `0x1402EE560` with mask `0x1C`.
+
+The recovered light-filter logic causes this shadow query to select the special LIG2 type/category `4` while ordinary type-1/2/3 categories are not selected by this query mask.
+
+The selected LIG2 record provides its world-space position from:
 
 ```text
-ShadowAngle
-ShadowDirection
-ShadowSlope
++0x10 f32 X
++0x14 f32 Y
++0x18 f32 Z
 ```
 
-was recovered in the current bounded token/parser pass.
+The shadow projection direction/tilt is derived from:
 
-Therefore shadow direction/tilt must not be assigned to SHW or to `ShadowParamSet` by guesswork. The likely ownership boundary is a separate projection/light/runtime transform path, potentially correlated with stage lighting state, but that exact producer/consumer remains `RESEARCH_REQUIRED` until traced.
+```text
+selected type-4 LIG2 position - model/root world position
+```
 
-`Rot`/model-transform fields in the broader Model Set grammar are model transforms and are not proof of a shadow-light direction control.
+and consumed in the downstream shadow-projection math around `0x14031F830`.
+
+Therefore:
+
+```text
+Shadow direction / tilt source = LIG2 type-4 light position
+```
+
+**Status: EXE_CONFIRMED** for the recovered static-light path.
+
+Observed examples:
+
+```text
+st001 type-4 shadow-selected light ~= (5000, 2500, 0)
+st114 type-4 shadow-selected light ~= (2500, 99998, 2500)
+```
+
+The very distant coordinate in `st114` is consistent with a nearly directional vector across a bounded stage, but `type 4 == directional light` is not promoted as an exact general-purpose type name until the wider light-type system is fully recovered.
+
+If no qualifying light is returned, the shadow preparation path has a fallback offset approximately `(200, 300, 50)`.
+
+`Rot`/model-transform fields remain model transforms; they are not the shadow-light direction control.
 
 ## 8. Editor implication
 
@@ -117,9 +154,41 @@ Shadow enabled       -> context-specific enable/disable
 Shadow darkness      -> ShadowDarkness
 Shadow softness      -> ShadowSoftness
 Shadow soft range    -> ShadowSoftRange
-Shadow parameter set -> ShadowParamSet (preset/set; exact semantics still partial)
-Shadow direction     -> RESEARCH_REQUIRED
-Shadow tilt/angle    -> RESEARCH_REQUIRED
+Shadow parameter set -> ShadowParamSet (preset/set; exact semantics partial)
+
+Shadow direction     -> derived from selected LIG2 type-4 light position
+Shadow tilt/angle    -> derived from the same model-to-light vector
 ```
 
-The next reverse gate is to trace the projection vector/matrix or lighting state consumed by `CDrawShadow`, and identify whether stage LIG data, a global light state, or another runtime parameter owns direction/tilt.
+A professional editor should not store a fake `ShadowAngle` field. Instead it should expose the actual light source spatially:
+
+```text
+Shadow Projection Light
+  X / Y / Z
+  gizmo in scene
+  derived azimuth/elevation preview
+```
+
+Moving that light changes the projection vector while SHW itself continues to describe caster geometry.
+
+## 9. Ownership summary
+
+```text
+SHW
+  = shape of the shadow caster
+
+LIG2 type 4
+  = where the shadow light is
+  = direction / tilt source
+
+ShadowDarkness / ShadowSoftness / ShadowSoftRange
+  = how the shadow looks
+```
+
+## 10. Remaining validation gates
+
+- one-field live-game test moving only the active type-4 LIG2 position;
+- exact semantic names of general LIG2 types 1/2/3;
+- exact normalization of LIG2 colour channels;
+- exact contents selected by `ShadowParamSet`;
+- whether dynamic/effect-created lights can feed the same `CLightMgr` shadow query.
