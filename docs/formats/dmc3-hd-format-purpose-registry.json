@@ -3,16 +3,7 @@
   "snapshot": "2026-08-31",
   "mainBase": "0d0a604f63eb70706f177e2dde02f7a3586d1e25",
   "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-  "columns": [
-    "id",
-    "names",
-    "domain",
-    "purpose",
-    "identityStatus",
-    "purposeStatus",
-    "schemaStatus",
-    "productStatus"
-  ],
+  "columns": ["id","names","domain","purpose","identityStatus","purposeStatus","schemaStatus","productStatus"],
   "families": [
     ["nbz","NBZ","container","Numbered top-level HD resource volume; ZIP-backed source/materialization surface.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
     ["pac","PAC,PAC0","container","Relative-slot resource container preserving physical slot topology, including sparse/empty/alias slots.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
@@ -32,9 +23,9 @@
     ["ptx","PTX","texture","Texture bundle/container-like resource exposing embedded texture images/resources.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","recognized"],
     ["tm2","TM2,TIM2","texture","Original/legacy texture-image family used before/alongside HD texture translation.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","research-only"],
     ["ptz","PTZ","texture","Texture-side companion resource associated with basic.ptx in the canonical executable asset table.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
-    ["efm","EFM","geometry","Mesh-bearing effect-model resource: related MOD/SCM-style model document, triangle/topology reconstruction, and embedded shader inputs POSITION/NORMAL/TEXCOORD/BLENDINDICES/PSIZE plus per-vertex COLOR0.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
-    ["shw","SHW","render","Shadow geometry/topology companion: dedicated fixup plus triangle index triplets referencing an external 16-byte spatial/vector pool; not a MOD/SCM-style self-contained textured mesh.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
-    ["mrp","MRP","render","Primary model/render-side runtime family companion recognized by both registry and family-mask classifiers; standalone mesh ownership is not proven.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
+    ["efm","EFM","geometry","Mesh-bearing effect-model resource with MOD-related object/mesh structure, runtime topology reconstruction, and a data-confirmed 4-byte-per-vertex COLOR0 stream across 9 local stage-drop samples.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["shw","SHW","geometry","Self-contained shadow-geometry resource: internal float4 vertex pool, per-vertex transform/matrix indices, int32 triangle triplets and data-confirmed u16 per-edge triangle adjacency.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["mrp","MRP","render","Primary runtime family recognized independently by registry and four-byte family-mask classifiers; exact downstream owner, semantic purpose and standalone mesh ownership remain unresolved.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","runtime-only"],
     ["sef","SEF","effect","Stage/effect companion resource family.","DATA_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
     ["efe","EFE","effect","Runtime-recognized container-dispatch sentinel/prefix in the effect-side family; no normal handler or exact semantic schema is yet recovered.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
     ["efw","EFW","effect","Runtime-recognized container-dispatch sentinel/prefix in the effect-side family; no normal handler or exact semantic schema is yet recovered.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
@@ -96,6 +87,6 @@
     {"names":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4","BC5","RGBG","GRGB","YUY2"],"reason":"DDS/pixel encoding or layout tags, not independent resource families"}
   ],
   "openFrontier": [
-    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW exact ownership/linkage of external spatial vertex pool","CLT/C1D exact binary schemas"
+    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact purpose/field semantics and downstream owner or real payload","EFM exact vertex declaration packing/normalization and writer equivalence","SHW header +0x11 exact semantic identity and full lifecycle/writer behavior","CLT/C1D exact binary schemas"
   ]
 }
