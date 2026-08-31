@@ -1,0 +1,130 @@
+{
+  "schema": "dmc-rengine.dmc3-primary-3d-corpus.v1",
+  "status": "canonical-research-correction-candidate",
+  "snapshot": "2026-08-31",
+  "source": {
+    "artifact": "DMC 3 RENGINE (6).zip",
+    "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+    "note": "Local preserved Rengine archive containing extracted stage-drop payloads. These payloads are valid local corpus evidence; this packet does not independently promote their upstream retail provenance."
+  },
+  "corrections": [
+    "EFM real-payload gap is closed for the local stage-drop corpus.",
+    "SHW external-spatial-pool interpretation is rejected: each SHW record owns its float4 vertex pool inside the SHW payload.",
+    "MRP remains runtime-identity confirmed but purpose/schema unresolved; no strict payload signature was observed in the bounded local corpus scan."
+  ],
+  "EFM": {
+    "sampleCount": 9,
+    "aggregateVertexCount": 2058,
+    "allSamplesMagic": "EFM ",
+    "versionsObserved": [1.0, 1.01],
+    "commonMeshRecordStride": "0x50",
+    "commonOuterRecordStride": "0x40",
+    "sourceStreams": {
+      "+0x10": "align16(vertexCount * 12); correlated with float3 POSITION",
+      "+0x18": "align16(vertexCount * 12); correlated with float3 NORMAL",
+      "+0x20": "align16(vertexCount * 4); correlated with 2x16-bit TEXCOORD0",
+      "+0x28": "align16(vertexCount * 4); correlated with four-byte blend/matrix-index stream",
+      "+0x30": "align16(vertexCount * 2); packed weights/flags and source strip-control stream; bit 0x8000 participates in runtime topology reconstruction",
+      "+0x38": "align16(vertexCount * 4); per-vertex COLOR0/RGBA stream; final source stream ends exactly at skeletonOffset in 9/9 samples"
+    },
+    "generatedTopology": {
+      "+0x40": "mesh-relative runtime-generated topology destination/reserve",
+      "+0x48": "runtime-generated count; raw value 0 in 9/9 samples"
+    },
+    "validation": {
+      "layoutMatches": "9/9",
+      "allSourceSpansMatchAlignedExpectedSizes": true,
+      "allRawGeneratedCountsZero": true
+    },
+    "samples": [
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_057/em035_057_001/em035_057_001_105.efm","size":9568,"sha256":"fda36531db3f5d7f3e510e56f95a571ec56ab37745f2da731f2d5ee1c45e0424","version":1.01,"vertexCount":210},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_057/em035_057_001/em035_057_001_111.efm","size":2352,"sha256":"2aa78d1abaea8d39e79b97b4bb50cfd661a67695c2006d666c1acc44d0a64d72","version":1.01,"vertexCount":46},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_057/em035_057_001/em035_057_001_121.efm","size":6624,"sha256":"238ff08cc46656f7fa6ffdc37ff608bd544fe9ab498ca12e3f880cf6c68159f1","version":1.01,"vertexCount":144},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_057/em035_057_001/em035_057_001_123.efm","size":2352,"sha256":"fdd95e42002653f09534f41acd5bfda9b1d400b6fc90ea4f3b8c318b92326458","version":1.01,"vertexCount":46},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_037.efm","size":22592,"sha256":"dc839d19073b6f2ef98e5c96e34d037bd12f5676f369070e88ea880890eb5b43","version":1.01,"vertexCount":506},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_038.efm","size":16128,"sha256":"3e38bc2bd5657ce52f72f834cb56f413531f2f0d20ca7b33c01f0c84a787b223","version":1.01,"vertexCount":360},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_039.efm","size":11296,"sha256":"0b3041adf09d77879e3bfa44c2205da652ad665d0fe735c2210efe90399fe66a","version":1.01,"vertexCount":249},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_042.efm","size":9184,"sha256":"3e030af67b4431cd7171f8be72e7cfb398a8faad9b2a68b34405fa67ef4c6352","version":1.01,"vertexCount":201},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_044.efm","size":13312,"sha256":"f7403ee9d8ae78b7316fe728282b7b84cdf4461c9e32eda73a801f831faa3726","version":1.0,"vertexCount":296}
+    ],
+    "remainingBoundary": "Exact vertex declaration packing/normalization details and full writer equivalence remain open."
+  },
+  "SHW": {
+    "sampleCount": 16,
+    "aggregateRecordCount": 158,
+    "aggregateVertexCount": 1882,
+    "aggregateTriangleCount": 3104,
+    "allSamplesMagic": "SHW ",
+    "versionObserved": 0.5,
+    "header": {
+      "+0x10": "u8 recordCount",
+      "+0x11": "u8 matrix-count-like upper-bound observed by per-vertex transform indices",
+      "+0x12": "u8 unknown/flags",
+      "+0x14": "u32 unknown/id"
+    },
+    "record": {
+      "stride": "0x40",
+      "+0x00": "s16 vertexCount",
+      "+0x02": "s16 triangleCount",
+      "+0x10": "rel64 -> triangleCount * 16-byte triangle records",
+      "+0x18": "rel64 -> triangleCount * 8-byte edge-adjacency records",
+      "+0x20": "rel64 -> vertexCount * 16-byte float4 vertex positions",
+      "+0x28": "rel64 -> vertexCount bytes of per-vertex transform/matrix indices"
+    },
+    "triangleRecord": "int32 v0, v1, v2, zero",
+    "adjacencyRecord": "u16 neighborAcrossEdge01, neighborAcrossEdge12, neighborAcrossEdge20, zero",
+    "vertexRecord": "float x, y, z, w; w == 1.0 in 1882/1882 observed vertices",
+    "validation": {
+      "samplesValid": "16/16",
+      "triangleRecordsChecked": 3104,
+      "adjacencyReferencesChecked": 9312,
+      "badAdjacencyReferences": 0,
+      "allAdjacencyTargetsShareExpectedUndirectedEdge": true,
+      "allTrianglePaddingZero": true,
+      "allAdjacencyPaddingZero": true,
+      "allVertexWOne": true,
+      "allMatrixIndicesBelowHeaderMatrixCountLike": true
+    },
+    "samples": [
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_005.shw","size":9952,"sha256":"5a17a4d435d562929f641f29fe4f45d1996a794e107d065ae5c1ad999f07a205","version":0.5,"recordCount":17,"vertices":159,"triangles":250},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_006.shw","size":4992,"sha256":"ef39b3ad8e713c1b14a8ed69571d03fdc6660db6cbb48266e007bacb10e11e2d","version":0.5,"recordCount":7,"vertices":79,"triangles":130},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_021.shw","size":15920,"sha256":"7e6244d695e5407e556d3049f7945c60acc3c1b1ebd18a8ac6b9ae2865cc3c6e","version":0.5,"recordCount":17,"vertices":251,"triangles":434},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_022.shw","size":5840,"sha256":"dc7884346b35c76a83c246b07bb5e616b8ea48f60dc591e2b4b549ef7e7da598","version":0.5,"recordCount":5,"vertices":91,"triangles":162},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_023.shw","size":3904,"sha256":"b51e70ce704205f0a4b00fdf5418db718ac800e5c508b366eb69c5ae6e93c5d6","version":0.5,"recordCount":1,"vertices":60,"triangles":116},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_026.shw","size":1952,"sha256":"7181f038c045f5878a5a7bbda192231dcb4adb16191f2aed02e5d9938e30b8a3","version":0.5,"recordCount":1,"vertices":30,"triangles":56},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_029.shw","size":4832,"sha256":"cf187353af67a90c29d80440cf0c3d80d5a5efb53a0c6de56ceca77e9755998c","version":0.5,"recordCount":4,"vertices":80,"triangles":132},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_033.shw","size":2352,"sha256":"1e582a42ce678c8376813f822233d951aa478b40b0abb6055233b5dbf10df434","version":0.5,"recordCount":1,"vertices":39,"triangles":66},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_048.shw","size":13776,"sha256":"f9d743690cae40e756cd351de824371be2e2cb0e7662756832c3715e6d455581","version":0.5,"recordCount":17,"vertices":218,"triangles":368},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_049.shw","size":5792,"sha256":"cc5d678a0cc92445e2e5b0e1d85ca66883573f2a4ffad828dddf1c14dc9ea86e","version":0.5,"recordCount":4,"vertices":90,"triangles":164},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/em035/em035_059.shw","size":2352,"sha256":"59e690b1eb2f1fc4afc514349949f1cbfab0cde5aaee180f77e50a44c9c20fd0","version":0.5,"recordCount":1,"vertices":39,"triangles":66},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_004.shw","size":10976,"sha256":"21b326601078d426990fa10cdb3fb3e303dd7b31dfd886a1f51fb675e43198e4","version":0.5,"recordCount":17,"vertices":175,"triangles":282},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_023.shw","size":8960,"sha256":"658fad1fe31e02fbc622da6e243a8549b904f1a93959faac77ef9b9575c829ce","version":0.5,"recordCount":15,"vertices":143,"triangles":226},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_028.shw","size":8592,"sha256":"93488d5853359268d995145b7247cfe1d98c9bac082ee6d6f354a74abfcb81e1","version":0.5,"recordCount":17,"vertices":138,"triangles":208},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_004/m20_s00_004_030.shw","size":8592,"sha256":"20c8f446b50c7fd0e4db34465b3ae4c072af0552dc43477b982552adc6a2bb74","version":0.5,"recordCount":17,"vertices":138,"triangles":208},
+      {"path":"DMC 3 RENGINE/analysis_inputs/stage_drops/pl011/pl011_008.shw","size":9488,"sha256":"cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e","version":0.5,"recordCount":17,"vertices":152,"triangles":236}
+    ],
+    "remainingBoundary": "Exact semantic name of header +0x11 and complete runtime ownership/writer behavior remain open."
+  },
+  "MRP": {
+    "runtimeIdentity": {
+      "registryContentProbe": "type 3 @ 0x1402DB1F0",
+      "familyMaskProbe": "MRP<space> -> 0x40000000 @ 0x1402FD650"
+    },
+    "negativeRuntimeEvidence": {
+      "normalGenericPostLoadHandler": false,
+      "MOD_EFM_SCM_modelFactoryBranch": false,
+      "MOD_EFM_SCM_modelMemorySpecialization": false,
+      "explicitBranchInBoundedFamilyMaskDirectCallerCensus": false
+    },
+    "boundedCorpusScan": {
+      "archiveNonDirectoryEntries": 23986,
+      "archiveUncompressedBytes": 566890888,
+      "projectSubsetEntriesExcludingNodeModulesAndNpmCache": 2969,
+      "projectSubsetBytes": 123296119,
+      "strictSignatures": ["MRP<space>", "MRP\\0"],
+      "strictHitCount": 0,
+      "note": "Generic ASCII MRP hits in the full archive were npm/Vite HMR identifiers and are rejected as DMC3 payload evidence."
+    },
+    "canonicalBoundary": "Identity is EXE_CONFIRMED. Purpose and schema remain RESEARCH_REQUIRED. Absence in this bounded corpus does not prove the family is unused or absent from all DMC3 distributions."
+  }
+}
