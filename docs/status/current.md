@@ -1,7 +1,7 @@
 # Current Project Status
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
+**Canonical implementation synchronized through:** `main@d358a2e69a98b13d36d42b594c353afd6546ffb8`  
 **Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
 **Latest L1 naming/type checkpoints:** #268 landed by fast-forward; subsequent instruction-level type-family corrections are also synchronized into this branch  
 **Primary execution program:** GDSpaces Layer 1 original-materialization reverse + naming/type evidence reconciliation + real acceptance  
@@ -51,7 +51,7 @@ Current `main` includes:
 - exact `ResourceId` runtime-to-L1 naming bridge;
 - no-`.index` semantic derived display that remains presentation-only;
 - instruction-backed runtime type evidence split by recovered call path rather than one global detector;
-- current primary 3D/render-family reverse documentation synchronized through `main@0d0a604f`.
+- current primary 3D/render-family reverse documentation synchronized through `main@d358a2e`.
 
 These are strong product capabilities, not a completion claim.
 
