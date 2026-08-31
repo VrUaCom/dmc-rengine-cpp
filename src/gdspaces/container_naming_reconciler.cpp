@@ -127,6 +127,8 @@ void add_error(
         return ResourceSemanticEvidenceKind::profile_structural_format;
     case IndexDisplayEvidenceKind::profile_runtime_content_tag:
         return ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+    case IndexDisplayEvidenceKind::profile_runtime_family_mask_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
     default:
         return std::nullopt;
     }
@@ -135,7 +137,8 @@ void add_error(
 [[nodiscard]] bool is_profile_semantic_kind(
     ResourceSemanticEvidenceKind kind) noexcept {
     return kind == ResourceSemanticEvidenceKind::profile_structural_format ||
-        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
 }
 
 } // namespace
