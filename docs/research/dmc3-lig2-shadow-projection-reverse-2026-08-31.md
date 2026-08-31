@@ -1,287 +1,266 @@
 # DMC3 LIG2 -> SHW shadow projection reverse — 2026-08-31
 
-**Status:** CANONICAL RESEARCH ADDENDUM  
-**Canonical EXE SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
-**Scope:** stage `LIG2` payloads, `CLightStatic` / `CLightMgr`, `CDrawShadow`, SHW projection-direction source.
+**Status:** CANONICAL RESEARCH ADDENDUM — CORRECTED  
+**Canonical EXE SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
-## 1. Question
+## 1. Core result
 
-Does stage lighting data determine the direction/tilt of an SHW shadow, and if so, which part of the light data is used?
-
-## 2. Answer boundary
-
-**EXE_CONFIRMED: yes.** `CDrawShadow` queries the active `CLightMgr` during shadow update. The recovered query specifically selects the special light category represented by LIG2 record type bit/value `0x04`. The selected light's world-space position becomes the shadow light/projection point. The shadow direction is therefore derived from the vector:
+`CDrawShadow` queries the active `CLightMgr`. The recovered shadow request selects LIG2/runtime light **category 4**, and the selected light's world-space position is used to derive SHW projection direction:
 
 ```text
-selected LIG2 shadow-light position - model/root world position
+shadow direction basis = selected category-4 light position - model/root position
 ```
 
-This closes the previously open direction/tilt ownership boundary for the recovered static-light path.
-
-It does not yet prove names for ordinary LIG2 types `1`, `2`, and `3` such as point/spot/directional. Those exact semantic labels remain open.
-
-## 3. Where the static stage lights live
-
-In the bounded stage corpus:
+Therefore the division of responsibility is:
 
 ```text
-st001cfg.pac
-  slot 1 -> LIG2, size 0x920
-
-st114cfg.pac
-  slot 1 -> LIG2, size 0x920
+SHW -> shadow-caster geometry
+LIG2 category 4 -> shadow light point / direction / tilt
+ShadowDarkness / Softness / SoftRange -> visual appearance
 ```
 
-The stage effect archives examined separately (`st001_effect.pac`, `st114_effect.pac`) are PNST/effect banks and are not the storage location of these static LIG2 rigs.
+## 2. Static LIG2 storage
 
-Thus for the examined stages the static spatial light rig is in the stage CFG resource set rather than in `_effect.pac`.
-
-## 4. CLightStatic proves the fixed LIG2 layout
-
-`CLightStatic` constructor:
+Observed stage CFG resources:
 
 ```text
-VA      0x14023ECB0
-RTTI    .?AVCLightStatic@@
-vtable  0x1404E3128
+st001cfg.pac -> LIG2
+st114cfg.pac -> LIG2
 ```
 
-The constructor writes `0x3247494C` (`"LIG2"`) and initializes a fixed block corresponding to the raw LIG2 payload.
-
-The raw file size is:
+Each LIG2 is:
 
 ```text
-0x920 = 0x20 header + 48 * 0x30 records
+0x20 header + 48 * 0x30 light records = 0x920 bytes
 ```
 
-Therefore LIG2 has a fixed capacity of **48 light records**, each with stride `0x30`.
-
-## 5. Active light count and first-byte semantics
-
-The static-light registration path at `0x140089000` loops exactly `0x30` (=48) records. For each record it tests the first byte and registers the light only when that byte is non-zero.
-
-Evidence-safe field:
-
-```cpp
-struct Lig2RecordEvidence {
-    uint8_t typeOrFlags;   // +0x00; zero means inactive/disabled record
-    // ... total stride 0x30
-};
-```
+The original static registration loop visits all 48 records and skips records with byte `+0x00 == 0`.
 
 Observed active counts:
 
 ```text
-st001 LIG2: 8 active records
-st114 LIG2: 11 active records
+st001 -> 8
+st114 -> 11
 ```
 
-A record may contain non-zero stale/auxiliary fields while `+0x00 == 0`; it is still skipped by the original registration path.
-
-## 6. Recovered record fields
-
-Runtime light evaluation at `0x1402EE2A0` consumes the `0x30` record directly.
-
-Current field map:
+## 3. Corrected record map
 
 ```text
-+0x00  u8   type/category/flags; 0 disables the record
-+0x01  u8   secondary mode flag; exact semantics OPEN
-+0x02  u8   distance-attenuation mode
++0x00  u8   category/flags
+              0 = inactive
+              1 = objscr/shared object+stage
+              2 = obj/object-model
+              3 = scr/stage-SCM
+              4 = shadow projection
+
++0x01  u8   minus/subtractive-light flag
++0x02  u8   distance-attenuation bypass mode
 
 +0x10  f32  world position X
 +0x14  f32  world position Y
 +0x18  f32  world position Z
-+0x1C  f32  contribution-related parameter; exact semantic name OPEN
-+0x20  f32  distance attenuation/falloff scale
 
-+0x24  u16  colour-like channel 0
-+0x26  u16  colour-like channel 1
-+0x28  u16  colour-like channel 2
++0x1C  f32  inverse-force-squared coefficient = 1/(force^2)
++0x20  f32  inverse-range-squared coefficient = 1/(range^2)
 
-+0x2A..     remaining fields partial/open
++0x24  u16  R contribution
++0x26  u16  G contribution
++0x28  u16  B contribution
 ```
 
-The position interpretation is direct: `0x1402EE2A0` subtracts a supplied world/query point from the three floats at `+0x10/+0x14/+0x18`.
+These promotions are backed by the StageSet `LIGHT` grammar and its runtime `CLight` encoder, not by field-shape guessing.
 
-Distance behavior:
+## 4. Correct range formula
+
+The evaluator `0x1402EE2A0` computes the XYZ delta and calls `0x140030D30(delta, delta)`. The scalar result used is:
 
 ```text
-if record +0x02 == 0:
-    weight = max(1 - distance * record[+0x20], 0)
-else:
-    weight = 1
+distanceSquared = dx^2 + dy^2 + dz^2
 ```
 
-This proves `+0x20` is a distance attenuation/falloff scale in that path.
-
-The three u16 values at `+0x24/+0x26/+0x28` are converted to floating-point contribution channels and are strongly correlated with light RGB/colour, but exact normalization/range remains to be documented field-perfectly.
-
-## 7. CDrawShadow directly consumes CLightMgr
-
-`CDrawShadow` update path near:
+When `+0x02 == 0`:
 
 ```text
-0x14008BCF0
+weight = max(1 - distanceSquared * record[+0x20], 0)
 ```
 
-obtains the active global light manager from:
+Therefore the previous linear-distance wording is rejected.
+
+Correct decode:
 
 ```text
-0x140C90E38
+range = 1 / sqrt(record[+0x20])
 ```
 
-and calls:
+The StageSet helper `0x14032E900` independently proves the encoding by converting `srange/erange` with:
 
 ```text
-0x14031FA80(shadowCore, CLightMgr)
-0x14031FB50(...)
+rawRangeCoefficient = 1 / range^2
 ```
 
-This is direct original-runtime evidence that SHW shadow projection is not isolated from stage lighting state.
+When `+0x02 != 0`, distance weighting is bypassed and the evaluator uses weight `1.0`.
 
-## 8. The shadow query selects the special 0x04 light category
+## 5. Force and minus
 
-Inside `0x14031FA80`, the shadow code obtains the model/root world position and calls the light-selection routine:
+StageSet `LIGHT` exposes:
 
 ```text
-0x1402EE560(CLightMgr, queryPoint, 0x1C, ...)
+sforce / eforce
+minus true/false
 ```
 
-The light selector filters candidates using the first LIG2 record byte plus query-mask bits.
-
-For the recovered static categories:
-
-- ordinary type families `1/2/3` depend on low query-mask bits not present in the shadow request;
-- the special `0x04` category is accepted when query flags contain `0x10`;
-- the shadow request is `0x1C`, which contains `0x10` and therefore admits the `0x04` category.
-
-In both real stage samples there is exactly one active type-4 record:
+Runtime encodes:
 
 ```text
-st001: type 4 at approximately (5000, 2500, 0)
-st114: type 4 at approximately (2500, 99998, 2500)
++0x1C = 1 / force^2
++0x01 = minus/subtractive flag
 ```
 
-Both use the non-distance-attenuated mode (`+0x02 != 0`).
+When the minus flag is set, the evaluator applies a `-1.0` transform to the light contribution vector.
 
-Evidence-safe semantic promotion:
+## 6. Exact routing semantics for categories 1/2/3
 
-> LIG2 record category/type `4` is the **shadow-selected light category** in the recovered CDrawShadow path.
-
-Do not yet rename types `1/2/3` to point/spot/directional without further consumer evidence.
-
-## 9. Exact direction/tilt derivation
-
-For a selected LIG2 light, `0x1402EE2A0` produces a vector equivalent to:
+The original StageSet `LIGHT` parser accepts:
 
 ```text
-lightWorldPosition - modelWorldPosition
+valid objscr -> category 1
+valid obj    -> category 2
+valid scr    -> category 3
 ```
 
-For the special type-4 records in the examined samples the weight is 1.
-
-`0x14031FA80` then reconstructs/stores the corresponding world-space shadow-light point. The downstream shadow-projection routine around `0x14031F830` subtracts the model/root position again and uses that vector in the projection mathematics.
-
-Therefore the evidence-backed control relation is:
+This matches the draw consumers:
 
 ```text
-LIG2 type-4 world position
-          |
-          v
-(model/root -> light) vector
-          |
-          v
-SHW shadow projection direction / tilt
+CDraw default mask 2    -> category 1 + 2
+CDrawSCM default mask 1 -> category 1 + 3
 ```
 
-A very distant type-4 light approximates a directional-light source because the model-to-light vector changes little across a bounded room. The `st114` type-4 Y coordinate near `99998` is consistent with this behavior, but the semantic label `directional light` is not promoted solely from that observation.
+Thus `1/2/3` are routing categories, not point/spot/directional physical types.
 
-## 10. Fallback when no shadow light is selected
+## 7. Category 4 and SHW
 
-The recovered shadow preparation path has a fallback vector/offset using approximately:
+`CDrawShadow` update obtains global `CLightMgr` and calls the light selector with query mask:
 
 ```text
-(200, 300, 50)
+0x1C
 ```
 
-when no qualifying light contribution is returned.
+The special `0x10` selector bit admits category 4.
 
-This is an engine fallback, not a recommended authoring value and not a field in SHW.
-
-## 11. Complete shadow ownership split
-
-The recovered system can now be separated cleanly:
+Observed category-4 static lights:
 
 ```text
-SHW
-  -> shadow-caster geometry
-  -> triangles / adjacency
-  -> per-vertex transform indices
-
-LIG2 type-4 light
-  -> world-space shadow light point
-  -> direction / tilt of the projected SHW shadow
-
-Model Set / shadow parameters
-  -> ShadowDarkness
-  -> ShadowSoftness
-  -> ShadowSoftRange
-  -> ShadowParamSet
+st001 -> approximately (5000, 2500, 0)
+st114 -> approximately (2500, 99998, 2500)
 ```
 
-In simple terms:
+Both bypass distance attenuation.
+
+A very distant category-4 source can approximate directional lighting geometrically, but category 4 should be named **shadow projection**, not generically `directional light`.
+
+## 8. StageSet LIGHT is the dynamic/runtime light path
+
+StageSet classifier `0x140246680` recognizes:
 
 ```text
-SHW says WHAT shape casts the shadow.
-LIG2 says FROM WHERE the shadow light comes.
-ShadowDarkness/Softness say HOW the shadow looks.
+LIGHT -> enum 8
 ```
 
-## 12. Stage-editor implication
+and dispatches to `CStageSetLight` parser/factory `0x140263310`.
 
-A future evidence-backed Lighting/Shadow Editor can expose separate resources/components:
+RTTI:
 
 ```text
-Stage Lighting
-  Light slots: 48 fixed
-  Active lights: type byte != 0
-
-Shadow Projection Light
-  selected LIG2 type-4 record
-  position X/Y/Z
-
-Shadow Caster
-  SHW resource
-
-Shadow Appearance
-  darkness
-  softness
-  soft range
-  parameter set
+.?AVCStageSetLight@@
 ```
 
-For spatial editing, moving the selected type-4 LIG2 light changes the model-to-light vector and therefore changes shadow direction/tilt without rewriting SHW geometry.
+Recovered grammar includes:
 
-## 13. Status table
+```text
+valid
+minus
+spos
+sforce
+srange
+srgb
+epos
+eforce
+erange
+ergb
+life
+move
+...
+```
 
-| Claim | Status |
-|---|---|
-| LIG2 has 0x20 header + 48 records * 0x30 | DATA_CONFIRMED + EXE_CONFIRMED |
-| first record byte controls active registration | EXE_CONFIRMED |
-| +0x10/+0x14/+0x18 are world-space light position | EXE_CONFIRMED |
-| +0x20 participates in distance falloff | EXE_CONFIRMED |
-| +0x24/+0x26/+0x28 are light colour-like channels | HIGH_CONFIDENCE / runtime-converted channels |
-| CDrawShadow queries global CLightMgr each update | EXE_CONFIRMED |
-| shadow query selects the 0x04/type-4 category | EXE_CONFIRMED |
-| selected type-4 position supplies shadow projection point/direction | EXE_CONFIRMED |
-| exact semantic names of LIG2 types 1/2/3 | RESEARCH_REQUIRED |
-| arbitrary edited type-4 light changes shadow correctly in a live game | GAME TEST REQUIRED |
+`CStageSetLight` owns a runtime `CLight` and registers it through `0x1402EE9F0` into the second/runtime CLightMgr list observed by selector bit `0x08` through `CLightMgr +0x38`.
 
-## 14. Next validation gates
+So DMC3 has at least two light sources in the same manager:
 
-1. Perform a one-field game experiment moving only the active type-4 LIG2 position and record the shadow-direction change.
-2. Recover exact semantics of LIG2 types 1/2/3 from their consumers and shader/light setup.
-3. Finish header-field semantics and remaining record fields.
-4. Test whether dynamic/effect-created lights can also satisfy the same `CLightMgr` shadow query.
-5. Keep `_effect.pac` effect banks separate from the static LIG2 stage-rig ownership unless direct evidence links a specific effect light into `CLightMgr`.
+```text
+static stage rig -> LIG2 / first pool
+dynamic StageSet LIGHT -> runtime second pool
+```
+
+## 9. Model Set `Light 2`
+
+The Model Set parser also has an independent field:
+
+```text
+Light 1 / Light 2
+```
+
+This chooses which lighting routing group a model uses:
+
+```text
+Light 1 -> draw mask 2 -> objscr + obj categories
+Light 2 -> draw mask 1 -> objscr + scr categories
+```
+
+In the bounded real `m20_s00` corpus, five EFM clips explicitly contain `Light 2`, meaning those effect meshes are illuminated using the stage/SCM-facing light group.
+
+This is separate from StageSet `LIGHT` creation and separate from LIG2 category 4 shadow projection.
+
+## 10. Effect-bank boundary
+
+`st001_effect.pac` and `st114_effect.pac` are PNST effect banks. They are not the static LIG2 rig.
+
+The second CLightMgr pool is now proven to receive lights from **StageSet `LIGHT`**. It remains open whether `Effect`, `EffectI`, SEF, or other effect-bank execution can additionally create/register runtime `CLight` objects.
+
+Do not claim `_effect.pac -> light` directly until that producer chain is traced.
+
+## 11. Editor implication
+
+An evidence-backed DMC Rengine Lighting Editor can now model:
+
+```text
+Static Stage Lights (LIG2)
+  48 slots
+  category/valid-for
+  position XYZ
+  range
+  force
+  RGB
+  subtractive flag
+
+Dynamic StageSet LIGHT
+  valid obj / scr / objscr
+  start position / force / range / RGB
+  end position / force / range / RGB
+  lifetime/interpolation
+
+Model Lighting Selector
+  Light 1 / Light 2
+
+Shadow Projection
+  category-4 source
+  SHW caster geometry
+  darkness / softness / soft range
+```
+
+## 12. Remaining validation gates
+
+1. one-field live-game edit of static category-4 position -> record shadow direction change;
+2. live-game StageSet LIGHT test with start/end position and range;
+3. trace Effect/EffectI/SEF to determine whether they also produce runtime CLight;
+4. recover remaining LIG2 header/tail fields;
+5. writer only after byte-preserving round-trip and guarded patch validation.
