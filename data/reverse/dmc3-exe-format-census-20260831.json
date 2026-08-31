@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "dmc3-exe-format-census-20260831",
-  "status": "evidence-backed-bounded-census",
+  "status": "evidence-backed-bounded-census-propagated",
   "target": {
     "artifact": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -10,27 +10,21 @@
     "image_base": "0x140000000"
   },
   "scope": {
-    "purpose": "Consolidate format/type identities observed directly in the canonical executable for reuse by Native Reader and other consumers.",
+    "purpose": "Consolidate format/type identities observed directly in the canonical executable and propagate them into canonical DMC Rengine format authorities and clean product recognition.",
     "methods": [
       "existing bounded registry/dispatcher reverse",
       "whole-.text objdump immediate compare census",
       "whole-.text immediate FourCC write census",
       "bounded ASCII runtime path/extension census"
     ],
-    "non_goal": "This census does not claim that every listed format has a completely recovered on-disk schema."
+    "non_goal": "This census does not claim that every listed format has a completely recovered on-disk schema or writer."
   },
   "runtime_type_paths": {
     "registry_content_probe": {
       "va": "0x1402DB1F0",
       "width": 3,
       "fourth_byte_checked": false,
-      "mapping": {
-        "MOD": 0,
-        "EFM": 1,
-        "SCM": 2,
-        "MRP": 3,
-        "SHW": 7
-      }
+      "mapping": {"MOD":0,"EFM":1,"SCM":2,"MRP":3,"SHW":7}
     },
     "family_mask_probe": {
       "va": "0x1402FD650",
@@ -56,6 +50,10 @@
       "recognized_no_normal_handler": ["EFE", "EFW"],
       "recursive_four_byte_identity": "PNST",
       "mrp_generic_handler": null
+    },
+    "motion_control_extension_dispatcher": {
+      "va": "0x1402E01A0",
+      "mapping": {"MOT":0,"MCV":1,"CAM":2,"HID":3,"CLT":4,"TSC":5}
     }
   },
   "additional_direct_content_checks": [
@@ -73,10 +71,11 @@
       "instruction_vas": ["0x140049A8E", "0x14004AD9D"],
       "instruction": "cmp first DWORD to 0x20534444",
       "bytes": "44 44 53 20",
-      "meaning": "direct DDS magic check"
+      "meaning": "direct DDS magic checks"
     },
     {
       "family": "TM2",
+      "aliases": ["TIM2"],
       "status": "EXE_CONFIRMED_MAGIC",
       "instruction_va": "0x1403365BA",
       "instruction": "cmp DWORD PTR [rcx],0x00324D54",
@@ -94,7 +93,7 @@
       "instruction": "mov DWORD PTR [rcx+0x8],0x3247494C",
       "bytes": "4C 49 47 32",
       "object_offset": "0x08",
-      "boundary": "This proves an executable-side LIG2 FourCC/type tag, not complete field semantics."
+      "boundary": "This proves executable-side LIG2 FourCC/type ownership, not complete field semantics or direct file-header equivalence."
     }
   ],
   "extension_classifiers": {
@@ -103,51 +102,30 @@
       "families": ["PTX", "CLT", "C1D"]
     },
     "auxiliary": {
-      "function_va_candidate": "0x1402E01A0",
+      "function_va": "0x1402E01A0",
       "families": ["MOT", "MCV", "CAM", "HID", "CLT", "TSC"]
     },
     "media_capability": {
+      "bounded_compare_region": "0x14002A5D1..0x14002A779",
       "families": ["PSS", "THP", "PAM", "XMV", "WMV", "PMF", "AVI", "MPG", "BIK", "MP4"],
       "boundary": "Capability recognition is not ownership of these common media formats by DMC resource tooling."
     }
   },
-  "runtime_path_or_filename_evidence": [
-    "NBZ",
-    "AFS namespace",
-    "PAC",
-    "ADX",
-    "OGG",
-    "SFD",
-    "TM2",
-    "PTZ",
-    "DDS",
-    "FON",
-    "ICO",
-    "icon.sys",
-    "SAV",
-    "PHD",
-    "TSB",
-    "BD",
-    "BIN",
-    "TXT",
-    "SPUMAPDT"
-  ],
+  "runtime_path_or_filename_evidence": {
+    "NBZ": "%sDMC3-%d.nbz at VA 0x14036E930",
+    "AFS": "GData.afs/ at VA 0x140363188; GDataX360.afs/ also present",
+    "PAC": "large runtime resource-name corpus",
+    "ADX_OGG_SFD_TM2_TXT": "runtime filename corpora",
+    "PTZ": "basic.ptz",
+    "DDS": "LOADERICON.dds plus direct content checks",
+    "FON_ICO_SYS_SAV": "runtime/save/UI filenames",
+    "PHD_TSB_BD": "snd_sys.phd / snd_sys.tsb / snd_sys.bd",
+    "BIN": "SpuMap.bin and EventTblNN.bin",
+    "SPUMAPDT": "explicit string at VA 0x140508988"
+  },
   "dds_subformats_not_standalone_resources": [
-    "DX10",
-    "DXT1",
-    "DXT2",
-    "DXT3",
-    "DXT4",
-    "DXT5",
-    "ATI1",
-    "ATI2",
-    "BC4U",
-    "BC4S",
-    "BC5U",
-    "BC5S",
-    "RGBG",
-    "GRGB",
-    "YUY2"
+    "DX10","DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2",
+    "BC4U","BC4S","BC5U","BC5S","RGBG","GRGB","YUY2"
   ],
   "explicit_exclusions": [
     {
@@ -157,8 +135,8 @@
     },
     {
       "name": "HITS",
-      "status": "DATA_CONFIRMED_NOT_EXE_REGISTRY_TAG",
-      "reason": "Real four-byte collision payload identity in corpus/parser evidence, but bounded canonical EXE ASCII sweep reports zero HITS occurrences."
+      "status": "DATA_CONFIRMED_NOT_ESTABLISHED_AS_EXE_RUNTIME_TAG",
+      "reason": "Real four-byte collision payload identity in corpus/parser evidence; bounded canonical EXE ASCII/type sweep reports zero HITS occurrences. Absence from this bounded type system is not proof that no other consumer exists elsewhere."
     },
     {
       "name": "shader compiler metadata",
@@ -167,16 +145,35 @@
     },
     {
       "name": "PE section names and printable machine-code fragments",
-      "reason": "Not accepted as format evidence without a classifier, handler, content check, constructor tag, or runtime path ownership."
+      "reason": "Not accepted as format evidence without a classifier, handler, content check, constructor tag or runtime path ownership."
     }
   ],
   "consumer_policy": {
     "identity_vs_schema": "Keep EXE identity evidence independent from structural/semantic decoder support.",
-    "mesh_policy": "Only validated canonical MOD<space>/SCM<space> layouts may enter current mesh decode. Three-byte runtime recognition must not imply mesh compatibility.",
-    "native_reader": "Use EXE-confirmed identities for recognition/inspection and fail closed for unresolved decoding."
+    "mesh_policy": "Only validated canonical MOD<space>/SCM<space> layouts may enter mesh decode. Three-byte runtime recognition must not imply mesh compatibility.",
+    "media_policy": "Capability-only generic media extensions must not be promoted to native DMC resource ownership without independent evidence.",
+    "product_policy": "EXE-confirmed identities may be recognized read-only while unresolved parsers remain fail-closed."
   },
-  "related_existing_evidence": [
+  "propagated_authorities": [
     "data/reverse/dmc3-runtime-type-identification-20260831.json",
-    "data/reverse/dmc3-primary-3d-family-20260831.json"
-  ]
+    "data/reverse/dmc3-primary-3d-family-20260831.json",
+    "docs/formats/dmc3-hd-format-purpose-registry.json",
+    "docs/formats/dmc3-hd-format-catalog.md",
+    "docs/formats/README.md",
+    "docs/research/dmc3-runtime-type-evidence-split-2026-08-31.md",
+    "docs/research/dmc3-primary-3d-render-family-reverse-2026-08-31.md",
+    "src/integration/format_registry.cpp",
+    "src/gdspaces/classifier.cpp",
+    "tests/runtime_synth_format_registry_tests.cpp"
+  ],
+  "propagation_status": {
+    "format_purpose_registry": "UPDATED",
+    "human_format_catalog": "UPDATED",
+    "runtime_type_authority": "UPDATED",
+    "primary_3d_authority": "UPDATED_WITH_MCV",
+    "clean_product_format_registry": "UPDATED_RECOGNIZED_READ_ONLY",
+    "gdspaces_direct_magic": "UPDATED_FOR_VAGP_TM2_DDS",
+    "tests": "UPDATED",
+    "full_schema_decoders": "UNCHANGED_UNLESS_ALREADY_PROVEN"
+  }
 }
