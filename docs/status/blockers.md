@@ -1,9 +1,9 @@
 # Current Blockers
 
 **Snapshot date:** 2026-08-31  
-**Canonical implementation base:** `main@08231d669666d2bdfefe3d74f123600ca365cc3d`  
+**Canonical implementation synchronized through:** `main@0d0a604f63eb70706f177e2dde02f7a3586d1e25`  
 **Active L1 reconciliation:** PR #269 / `ada/l1-status-reconcile-20260831`  
-**Latest landed naming/type checkpoint:** #268; direct instruction-level corrections are now on `main`
+**Latest landed naming/type checkpoint:** #268; subsequent instruction-level type-family corrections and primary 3D/render reverse docs are synchronized into this branch
 
 The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
 
@@ -39,13 +39,15 @@ Remaining reverse work:
 4. representative real `.lst` corpus only if real loose-list equivalence is claimed;
 5. final original-L1 contradiction sweep.
 
+**Current evidence constraint:** the complete raw canonical analysis EXE (`e454...`, 6,356,432 bytes) is not exposed in this connected session. The accessible raw EXE is the protected/distribution build (`81c7...`, 6,567,320 bytes) and must not be substituted as instruction authority for canonical analysis VAs. New `.lst` cycle/depth/lifetime claims therefore require canonical bytes, trustworthy bounded disassembly, or equivalent evidence.
+
 Dynamic current-slot cancellation/concurrency and broader transition/reset/shutdown behavior remain L3 unless a concrete L1 acceptance run activates them.
 
 ### B-L1-N — Naming / type-evidence validation closure
 
 **Status:** MAIN-LANDED / VALIDATION OPEN
 
-The canonical #251-#262 naming architecture, semantically valid #254 contributions and #268 derived-display/runtime-type correction are now in `main`. Landing or CI does not independently prove naming completeness.
+The canonical #251-#262 naming architecture, semantically valid #254 contributions and #268 derived-display/runtime-type correction are in `main`. Landing or CI does not independently prove naming completeness.
 
 Current correction boundary:
 
@@ -55,7 +57,8 @@ Current correction boundary:
 - the old global “exactly five runtime tags” statement is superseded;
 - current main separates a three-byte registry probe, PAC/PNST dispatcher, and four-byte higher-level family-mask classifier;
 - EFW/EFE remain evidence-bounded dispatcher sentinel/prefix observations until their normal consumer/schema is recovered;
-- MCV evidence belongs to the separate four-byte family-mask path, not the five-tag registry probe.
+- MCV evidence belongs to the separate four-byte family-mask path, not the five-tag registry probe;
+- primary 3D/render family reverse documentation is synchronized through `main@0d0a604f`.
 
 Still required:
 
@@ -65,7 +68,7 @@ Still required:
 - real-retail runtime-selected identity -> exact L1 parent `ResourceId` receipt;
 - historical extraction replay/export/reopen validation;
 - final naming/type-evidence contradiction audit after current instruction-level corrections;
-- exact-head Windows + Ubuntu green for the current `main@08231d6` and final #269 head.
+- exact-head Windows + Ubuntu green for the final #269 head.
 
 ### B-L1-01 — Direct-retail representative provenance
 
@@ -152,12 +155,14 @@ A cryptographically bound retail DMC3 member-name/central-directory surface is s
 Canonical analysis executable:
 
 - SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`;
-- size 6,356,432.
+- size 6,356,432;
+- instruction-reverse authority, but complete raw image is not available in this connected session.
 
-Protected distribution execution candidate:
+Protected distribution execution candidate / accessible raw EXE:
 
 - SHA-256 `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`;
-- size 6,567,320.
+- size 6,567,320;
+- not canonical instruction-reverse authority.
 
 Canonical analysis VAs/RVAs must not be applied to the protected process without independent mapping evidence.
 
@@ -209,8 +214,9 @@ Do not reopen absent contradictory direct evidence:
 - Stage Ops / ModViz do not count as L1 closure.
 - Exhaustive malformed-input parity is separate breadth unless explicitly claimed.
 
-## Environment blocker
+## Environment blockers
 
-The connected environment still does not expose every exact protected-install artifact/process condition required for the complete real-retail/original-process acceptance chain.
+1. Complete raw canonical analysis EXE is not exposed in the current connected session, so new canonical instruction-level `.lst` cycle/lifetime claims cannot be produced here without an equivalent trustworthy evidence packet.
+2. The connected environment does not expose every exact protected-install artifact/process condition required for the complete real-retail/original-process Level-E chain.
 
-This external evidence/access limitation must not be hidden by synthetic CI or converted into a weaker completion criterion.
+These evidence/access limitations must not be hidden by synthetic CI or converted into weaker completion criteria.
