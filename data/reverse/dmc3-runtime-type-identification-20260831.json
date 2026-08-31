@@ -115,17 +115,20 @@
         "0x1402F9628",
         "0x1402FD8FD",
         "0x1402FDB68",
-        "0x140307374",
-        "0x14024815C",
-        "0x140270735"
+        "0x140307374"
       ],
-      "direct_call_site_count_note": "The raw direct-call sweep found 16 call instructions; the list retains the sweep result but duplicate-address reconciliation must be kept explicit in future tooling rather than inferred by prose.",
+      "direct_call_site_count": 14,
       "notes": [
         "MODX does not match this classifier; MOD<space> does.",
         "MCV<space> is runtime-recognized here even though MCV is absent from the three-byte registry probe."
       ]
     }
   ],
+  "direct_call_sweep_summary": {
+    "registry_content_probe_calls": 2,
+    "family_mask_probe_calls": 14,
+    "total_calls_to_both_probes": 16
+  },
   "negative_and_boundary_facts": {
     "HITS_ascii_occurrences_in_artifact": 0,
     "HITS_runtime_tag_status": "not established by these runtime identification paths",
