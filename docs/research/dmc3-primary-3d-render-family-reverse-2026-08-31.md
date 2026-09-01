@@ -21,7 +21,7 @@ post-load fixup and exact on-disk schema into one claim.
 | `EFM` | EXE confirmed by registry + family-mask probes | **mesh-bearing effect model** | exact mapping of every on-disk stream still partial |
 | `SCM` | EXE confirmed by registry + family-mask probes | **mesh-bearing stage/scene model** | exact full schema/writer still partial |
 | `MRP` | EXE confirmed by two byte-backed classifiers | **render/model-side companion; not proven as standalone mesh** | no normal generic fixup recovered; exact schema open |
-| `SHW` | EXE confirmed by registry + family-mask probes; real payload bound | **self-contained shadow-hull mesh geometry** | positions, triangles and exact adjacency confirmed; selector-byte semantics remain open; not a MOD/SCM-style textured model |
+| `SHW` | EXE confirmed by registry + family-mask probes; real payload bound | **self-contained shadow-hull mesh geometry** | positions, triangles, exact adjacency and per-vertex transform-matrix selectors confirmed; selected palette ownership remains open |
 
 The previous shorthand `MOD + SCM = geometry; EFM/MRP/SHW = companions` is therefore
 superseded. `EFM` belongs on the mesh-bearing side.
@@ -353,8 +353,12 @@ Safe conclusion:
 > triangle topology and exact triangle adjacency. It is not a MOD/SCM-style
 > textured model document.**
 
-The per-vertex selector byte is structurally confirmed but its exact semantic
-meaning remains open.
+The per-vertex selector byte is also EXE-bound. The runtime builder
+`0x14031FD30` maps raw vertices to runtime hull `+0x38` and selectors to
+`+0x40`. At `0x1403202F0`, the selector is multiplied by `0x40` to choose a
+64-byte transform matrix, and `0x140030A70` multiplies the raw `float4` vertex
+by that matrix. The field is therefore an EXE-confirmed per-vertex
+transform-matrix selector. Ownership of the selected matrix palette remains open.
 
 
 ## 11. MRP remains the major open member
@@ -449,7 +453,8 @@ ShadowHullDocument
   -> SHW records
   -> self-contained float4 positions
   -> triangle topology + exact adjacency
-  -> per-vertex selector semantics still open
+  -> per-vertex transform-matrix selector
+  -> selected palette ownership still open
   -> shadow plane/normal generation
 
 RenderCompanion
