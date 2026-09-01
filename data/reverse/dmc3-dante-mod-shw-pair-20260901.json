@@ -1,0 +1,85 @@
+{
+  "schema": "dmc-rengine.dmc3-mod-shw-pair.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-09-01",
+  "subject": "Dante paired MOD + SHW",
+  "assetsCommitted": false,
+  "sources": {
+    "mod": {
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "size": 216544,
+      "magic": "MOD ",
+      "version": 1.01,
+      "objectCount": 17,
+      "boneCount": 24,
+      "textureCount": 3,
+      "skeletonOffset": "0x2CE50",
+      "sourceVertexCount": 5316,
+      "bbox": {
+        "min": [-88.593384, -0.000231, -13.323054],
+        "max": [88.593384, 181.352325, 23.001238],
+        "size": [177.186768, 181.352556, 36.324292]
+      }
+    },
+    "shw": {
+      "sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "size": 9488,
+      "magic": "SHW ",
+      "version": 0.5,
+      "recordCount": 17,
+      "transformMatrixCount": 24,
+      "vertexCount": 152,
+      "triangleCount": 236,
+      "referencedTransformIndices": [2,3,4,5,7,8,9,11,12,13,14,15,16,17,19,20,21],
+      "bbox": {
+        "min": [-88.302162, 0.036567, -15.676764],
+        "max": [88.302162, 182.277161, 23.016979],
+        "size": [176.604324, 182.240594, 38.693743]
+      }
+    }
+  },
+  "pairEvidence": {
+    "skeletonPaletteCardinalityMatch": true,
+    "modBoneCount": 24,
+    "shwTransformMatrixCount": 24,
+    "shwToModVertexRatio": 0.028593,
+    "envelopeSizeRatio": {
+      "x": 0.996713,
+      "y": 1.004898,
+      "z": 1.065786
+    }
+  },
+  "shwTopologyValidation": {
+    "allRecordsValid": true,
+    "allTriangleIndicesInBounds": true,
+    "allTrianglePaddingZero": true,
+    "allAdjacencyPaddingZero": true,
+    "allVertexWOne": true,
+    "allAdjacencyEdgeMatchesValid": true,
+    "eachEdgeIncidentTriangleCount": 2,
+    "eulerCharacteristicPerRecord": 2,
+    "triangleCountFormulaPerRecord": "F = 2V - 4",
+    "classification": "closed triangulated genus-0 proxy shells"
+  },
+  "observedTransformGrouping": {
+    "centralUpper": [2,3,4,5],
+    "leftArm": [7,8,9],
+    "rightArm": [11,12,13],
+    "pelvis": [14],
+    "leftLeg": [15,16,17],
+    "rightLeg": [19,20,21],
+    "status": "HIGH_CONFIDENCE_SPATIAL_INTERPRETATION"
+  },
+  "authoringImplication": {
+    "candidatePipeline": [
+      "read MOD skeleton and model-space geometry",
+      "partition/select shadow-relevant bone regions",
+      "construct low-poly closed proxy shell per transform region",
+      "assign transform index",
+      "build triangle adjacency",
+      "serialize SHW"
+    ],
+    "exactStockGenerationAlgorithm": "RESEARCH_REQUIRED",
+    "generatedShwGameAcceptance": "GAME_TEST_REQUIRED"
+  }
+}
