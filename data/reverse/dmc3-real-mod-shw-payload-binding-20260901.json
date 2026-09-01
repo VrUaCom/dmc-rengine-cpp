@@ -7,7 +7,10 @@
     "image_base": "0x140000000",
     "mod_normalizer_va": "0x1402FE3B0",
     "shw_normalizer_va": "0x1403204C0",
+    "shw_runtime_builder_va": "0x14031FD30",
     "shw_geometry_consumer_va": "0x1403204F0",
+    "shw_vertex_transform_loop_va": "0x1403202F0",
+    "matrix_vector_helper_va": "0x140030A70",
     "shw_triangle_vector_helper_va": "0x140320BB0"
   },
   "artifacts": {
@@ -37,7 +40,7 @@
       "0x10": "base-relative pointer to triangle records: triangle_count * 0x10; each record is three u32 vertex indices plus zero u32",
       "0x18": "base-relative pointer to adjacency records: triangle_count * 0x08; each record is three u16 neighboring-triangle indices plus zero u16",
       "0x20": "base-relative pointer to vertex positions: vertex_count * float4; w is 1.0 in this artifact",
-      "0x28": "base-relative pointer to vertex selector bytes: vertex_count bytes followed by zero padding to 0x10 alignment; exact selector semantics remain open"
+      "0x28": "base-relative pointer to per-vertex transform-matrix selector bytes: vertex_count bytes followed by zero padding to 0x10 alignment"
     },
     "totals": {
       "records": 17,
@@ -77,13 +80,39 @@
       "all_vertex_w_values_equal_1": true,
       "all_selector_padding_zero": true
     },
+    "runtime_selector_binding": {
+      "builder_function": {
+        "va": "0x14031FD30",
+        "file_offset": "0x31F130",
+        "size": "0x390",
+        "sha256": "6c8e4e05e40ed5bb2cca2830d27da2b93bd94ccc80256163dd5d68e7cd49330d",
+        "mapping": "raw SHW record +0x28 is copied to runtime hull record +0x40; raw +0x20 vertex pointer is copied to runtime +0x38"
+      },
+      "vertex_transform_loop": {
+        "va_start": "0x1403202F0",
+        "window_start": "0x1403202B0",
+        "file_offset": "0x31F6B0",
+        "window_size": "0x6F",
+        "sha256": "a83815ae8f59ad409266b53746ea38f6214685a44b4c2ee0d2ec1a866d4809f2",
+        "operation": "for each vertex: selector = u8[record+0x40]; matrix = matrix_base + selector*0x40; transform(destination, matrix, float4[record+0x38])"
+      },
+      "matrix_vector_helper": {
+        "va": "0x140030A70",
+        "file_offset": "0x2FE70",
+        "size": "0x39",
+        "sha256": "e3a836470aaeea466b89ddebd1999ccf68872f7d5f106df7e16c9b2edd3e23f1",
+        "operation": "multiplies one float4 source vector by four float4 rows of a 0x40-byte transform matrix and stores the float4 result"
+      },
+      "selector_semantics": "per-vertex transform-matrix selector",
+      "evidence": "EXE_CONFIRMED"
+    },
     "conclusion": {
       "classification": "self-contained-shadow-hull-mesh-geometry",
       "identity_evidence": "EXE_CONFIRMED",
       "schema_evidence": "DATA_CONFIRMED",
       "purpose_evidence": "EXE_CONFIRMED",
       "supersedes": "the previous claim that SHW only references a spatial vertex pool external to the payload",
-      "boundary": "SHW is self-contained shadow hull geometry, but it is not a MOD/SCM-style textured model document; the exact meaning of the per-vertex selector byte remains open"
+      "boundary": "SHW is self-contained shadow hull geometry with EXE-confirmed per-vertex transform-matrix selection, but it is not a MOD/SCM-style textured model document; cross-resource ownership of the matrix palette remains open"
     }
   },
   "MOD": {
@@ -146,7 +175,7 @@
   },
   "global_limits": [
     "This packet is hash-bound to one MOD and one SHW payload and does not claim universal coverage of every format revision.",
-    "The SHW selector byte is structurally confirmed but semantically unnamed.",
+    "The SHW selector byte is EXE-confirmed as a per-vertex transform-matrix selector; ownership and construction of the selected matrix palette remain outside this packet.",
     "No writer or mutation safety is promoted by this read-only analysis.",
     "The source payloads are evidence inputs and are not added to the repository."
   ]
