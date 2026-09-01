@@ -1,7 +1,7 @@
 {
   "schema": "dmc-rengine.dmc3-primary-3d-family.v1",
   "status": "canonical-research",
-  "snapshot": "2026-08-31",
+  "snapshot": "2026-09-01",
   "artifact": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "size": 6356432,
@@ -64,21 +64,52 @@
       "open_boundary": "find downstream owner/consumer of MRP family identity or acquire a real retail MRP payload"
     },
     "SHW": {
-      "classification": "shadow-geometry-topology-companion",
-      "confidence": "EXE_CONFIRMED",
+      "classification": "self-contained-shadow-hull-mesh-geometry",
+      "confidence": "EXE_AND_DATA_CONFIRMED",
       "normalizer_va": "0x1403204C0",
       "normalizer_window_sha256": "14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d",
       "normalizer_record_stride": "0x40",
       "normalizer_relocated_qword_count_per_record": 4,
-      "topology_consumer_near_va": "0x1403204F0",
-      "topology_index_width": 32,
+      "real_payload_sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "real_payload_record_count": 17,
+      "real_payload_vertex_count": 152,
+      "real_payload_triangle_count": 236,
+      "triangle_record_stride": "0x10",
+      "triangle_index_width": 32,
       "indices_per_triangle": 3,
-      "external_spatial_record_stride": "0x10",
+      "adjacency_record_stride": "0x08",
+      "adjacency_index_width": 16,
+      "adjacent_triangles_per_triangle": 3,
+      "vertex_record_stride": "0x10",
+      "vertex_shape": "float4; w=1 in the bound artifact",
+      "selector_shape": "u8 per vertex; exact semantics open",
+      "topology_consumer_near_va": "0x1403204F0",
       "triangle_vector_helper_va": "0x140320BB0",
       "triangle_vector_helper_operation": "forms two edges from three float4 vectors and computes their cross product; output w=0",
       "shader_file": "DMC3_SHW.hlsl",
       "shader_inputs": ["POSITION"],
-      "self_contained_textured_mesh_proven": false
+      "self_contained_shadow_mesh_proven": true,
+      "self_contained_textured_model_proven": false,
+      "superseded_claim": "the vertex pool passed separately to the runtime consumer was previously overgeneralized as external to the SHW payload"
+    }
+  },
+  "real_payload_binding": {
+    "evidence_packet": "data/reverse/dmc3-real-mod-shw-payload-binding-20260901.json",
+    "MOD": {
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "size": 216544,
+      "outer_records": 17,
+      "inner_records": 18,
+      "stream_elements": 5316,
+      "result": "real-payload binding confirms the field-major five-stream MOD document grammar"
+    },
+    "SHW": {
+      "sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "size": 9488,
+      "hulls": 17,
+      "vertices": 152,
+      "triangles": 236,
+      "result": "real-payload binding proves self-contained closed shadow-hull geometry and exact triangle adjacency"
     }
   },
   "factory_evidence": {
@@ -160,7 +191,7 @@
     "standalone_SCM_available": true,
     "standalone_EFM_available": false,
     "standalone_MRP_available": false,
-    "standalone_SHW_available": false,
+    "standalone_SHW_available": true,
     "library_NBZ_volume_available": false,
     "library_PAC_volume_available": false
   }
