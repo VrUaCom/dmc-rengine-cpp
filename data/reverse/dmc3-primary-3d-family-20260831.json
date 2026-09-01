@@ -82,7 +82,13 @@
       "adjacent_triangles_per_triangle": 3,
       "vertex_record_stride": "0x10",
       "vertex_shape": "float4; w=1 in the bound artifact",
-      "selector_shape": "u8 per vertex; exact semantics open",
+      "selector_shape": "u8 per vertex; EXE-confirmed transform-matrix selector",
+      "runtime_builder_va": "0x14031FD30",
+      "runtime_builder_window_sha256": "6c8e4e05e40ed5bb2cca2830d27da2b93bd94ccc80256163dd5d68e7cd49330d",
+      "vertex_transform_loop_va": "0x1403202F0",
+      "vertex_transform_loop_window_sha256": "a83815ae8f59ad409266b53746ea38f6214685a44b4c2ee0d2ec1a866d4809f2",
+      "matrix_vector_helper_va": "0x140030A70",
+      "matrix_vector_helper_window_sha256": "e3a836470aaeea466b89ddebd1999ccf68872f7d5f106df7e16c9b2edd3e23f1",
       "topology_consumer_near_va": "0x1403204F0",
       "triangle_vector_helper_va": "0x140320BB0",
       "triangle_vector_helper_operation": "forms two edges from three float4 vectors and computes their cross product; output w=0",
@@ -90,7 +96,8 @@
       "shader_inputs": ["POSITION"],
       "self_contained_shadow_mesh_proven": true,
       "self_contained_textured_model_proven": false,
-      "superseded_claim": "the vertex pool passed separately to the runtime consumer was previously overgeneralized as external to the SHW payload"
+      "superseded_claim": "the vertex pool passed separately to the runtime consumer was previously overgeneralized as external to the SHW payload",
+      "open_boundary": "identify ownership/construction of the selected 0x40-byte matrix palette and its cross-resource model/bone binding"
     }
   },
   "real_payload_binding": {
