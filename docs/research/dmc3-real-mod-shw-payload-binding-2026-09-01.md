@@ -42,7 +42,7 @@ hull record
   +0x10  relptr triangle_count * { u32 a, b, c, zero }
   +0x18  relptr triangle_count * { u16 n0, n1, n2, zero }
   +0x20  relptr vertex_count * float4 position
-  +0x28  relptr vertex_count * u8 selector, then zero padding to 0x10
+  +0x28  relptr vertex_count * u8 transform selector, then zero padding to 0x10
 ```
 
 The four pointers are exactly the four qwords relocated by the canonical normalizer
@@ -85,9 +85,15 @@ It remains distinct from a MOD/SCM textured model document: there are no recover
 normal, UV, material or texture streams in this SHW layout, and the embedded
 `DMC3_SHW.hlsl` consumes only `POSITION`.
 
-The `u8` stream at record `+0x28` is structurally confirmed. In this artifact it is
-constant within each hull, but its exact runtime meaning remains unknown. It must
-not yet be named bone, matrix or material ID in the public parser contract.
+The `u8` stream at record `+0x28` is now EXE-bound. The runtime builder
+`0x14031FD30` maps the raw vertex pointer to runtime hull `+0x38` and this byte
+stream to runtime hull `+0x40`. At `0x1403202F0`, each byte is multiplied by
+`0x40` and added to a transform-matrix base. `0x140030A70` then multiplies the raw
+`float4` vertex by the selected 64-byte matrix and stores the transformed vertex.
+
+Therefore the field is an **EXE-confirmed per-vertex transform-matrix selector**.
+The selected matrix palette's ownership and exact cross-resource model/bone mapping
+remain open.
 
 The runtime code near `0x1403204F0` receives the vertex array separately from its
 runtime record. The payload proves that this separation is a runtime-object layout
@@ -163,10 +169,9 @@ for a safe writer or universal revision coverage.
 
 ## 4. Remaining boundary
 
-- determine the exact meaning of the SHW per-vertex selector byte;
-- bind SHW hull selectors to the owning model/bone runtime path;
+- bind the EXE-confirmed SHW transform selectors to the owning matrix palette and
+  model/bone resource path;
 - acquire additional MOD/SHW variants and prove the grammar is revision-stable;
 - implement guarded read-only parsing before any writer work;
 - require rebuild, reopen and original-game consumption evidence before promoting
   mutation support.
-
