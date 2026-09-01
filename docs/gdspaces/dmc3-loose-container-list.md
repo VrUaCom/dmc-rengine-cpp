@@ -1,6 +1,6 @@
 # DMC3 `.lst` Loose-Container Reconstruction
 
-**Status:** current-main implementation candidate under active Layer-1 reverse; canonical EXE mechanics below are evidence-backed, product safety guards are explicitly separate.
+**Status:** evidence-backed implementation candidate under active Layer-1 reverse; **L1 is INCOMPLETE / NOT 100%**. Product safety guards are explicitly separate from recovered original behavior.
 
 Canonical executable authority: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
 
@@ -13,7 +13,12 @@ Direct reverse anchors:
 - direct whole-file transfer-extent helper `0x1402EF620`;
 - materialization enqueue entry `0x1402EF4D0` and consumer `0x1402EF790`;
 - whole-file open/chunk/read spine `0x1400333F0`, `0x1400333C0`, `0x140033500`, `0x14002F930`;
-- zeroing allocator `0x140337600` with `memset` thunk `0x140346BEA`.
+- zeroing allocator `0x140337600` with `memset` thunk `0x140346BEA`;
+- top-level materialization/result path `0x1401B84E0`, `0x1401B8CA0`;
+- type-3 completion enqueue `0x1402EF580`.
+
+Detailed failure/width reconciliation: `l1-writer-failure-width-reconciliation-2026-08-28.md`.  
+Bounded terminal/callback seam: `l1-terminal-l3-completion-seam-2026-08-28.md`.
 
 ## Representation precedence
 
@@ -35,10 +40,10 @@ The product API accepts an injected read callback. It does not own a second VFS/
 
 ## Scanner grammar and bounds
 
-Recovered bounds:
+Recovered loop/copy bounds:
 
 - total scanner ceiling: `0x1FC0` / 8128 bytes;
-- child-token extraction bound: `0x100` / 256 bytes;
+- child-token copy bound: `0x100` / 256 bytes;
 - normal child text terminates at CR (`0x0D`) or NUL;
 - skip/control states return to normal at LF (`0x0A`).
 
@@ -53,13 +58,24 @@ Normal-state line classes:
 
 Directive, comment and blank lines do not increment `slotCount`. A normal `dummy` line does.
 
+### Important malformed-input correction
+
+The recovered bounds are **not original clean error enums**:
+
+- `0x1401B7C70` is void; reaching its `0x1FC0` ceiling does not return a dedicated scan-limit error;
+- `0x1401B7D10` returns the count accumulated before NUL/ceiling;
+- `0x1401B7E60` returns false when the target child is not found before NUL/ceiling;
+- at the exact `0x100` token-copy boundary, the original path exits the normal copy/terminator flow and continues toward formatting rather than returning a dedicated token-limit failure.
+
+Therefore product statuses such as `scan_limit_exceeded` and `token_limit_exceeded` are intentional **fail-closed hardening**, not reconstructed original status codes.
+
 ## Critical corrections to older shorthand
 
 Three older simplifications are superseded:
 
 1. `hash_comments=true` is wrong. `#` is a magic directive; `/` is the recovered comment/skip marker.
 2. `rewrites_entries_to_pac=true` is too broad. Ordinary children are resolved as `baseDirectory + rawToken`. `.pac` rewrite is evidenced specifically for a nested `.lst` sibling-precedence check.
-3. "every non-empty child is merely align64(size)" is wrong. Fresh canonical-EXE reverse shows that a **direct whole-file child uses a 0x800 transfer extent**. Only the structural header and recursively synthesized complete images use the 0x40 structural alignment.
+3. “every non-empty child is merely align64(size)” is wrong. A **direct whole-file child uses a 0x800 transfer extent** in the normal safe arithmetic domain. Only the structural header and recursively synthesized complete images use the 0x40 structural alignment.
 
 Those historical shorthand fields must not be copied into clean GDSpaces code.
 
@@ -81,7 +97,7 @@ The Nth-child helper uses the same scanner grammar. For each normal child line i
 
 1. captures the raw token;
 2. forms `baseDirectory + token`;
-3. strips CR termination;
+3. strips CR termination on the normal bounded path;
 4. preserves normal-line order as declared slot order.
 
 The exact lowercase token `dummy` is compared as five bytes. It remains a declared slot but:
@@ -114,18 +130,34 @@ Child placement then depends on the child representation authority.
 
 ### Direct whole-file child
 
-`0x1402EF620` opens the resource through the whole-file path, obtains `ceil(logicalSize / 0x800)` from `0x1400333C0`, closes the temporary state, and returns:
+`0x1402EF620` opens the resource through the whole-file path, obtains the chunk count from `0x1400333C0`, closes the temporary state, then returns `chunkCount << 11`.
+
+In the normal positive/safe domain this is:
 
 ```text
 ceil(logicalSize / 0x800) * 0x800
 ```
 
-The planner and writer therefore reserve that **0x800-granular transfer extent** for:
+The planner and writer reserve that **0x800-granular transfer extent** for:
 
 - an ordinary direct child token;
 - a positive-size packed sibling `.pac` selected for a nested `.lst` token.
 
 The actual async read writes only the real materialized bytes. The remainder of the reserved transfer extent remains zero because the complete output allocation is zero-initialized before emission.
+
+### Original 32-bit width caveat
+
+The original helper is not mathematically unbounded `ceil()` arithmetic. `0x1400333C0` performs a 32-bit wrapping add of `0x7ff`, signed correction and arithmetic shift; `0x1402EF620` then performs a 32-bit left shift by 11. Large sizes can therefore become negative or zero after wrap.
+
+Examples:
+
+```text
+size 0x7FFFF800 -> extent 0x7FFFF800
+size 0x7FFFF801 -> extent 0x80000000 (negative as signed 32-bit)
+size 0xFFFFF002 -> extent 0
+```
+
+GDSpaces intentionally uses checked arithmetic and fails closed instead of reproducing those unsafe wrap semantics.
 
 ### Recursively synthesized nested child
 
@@ -158,7 +190,7 @@ nested.lst
     -> construct sibling nested.pac
     -> positive-size nested.pac exists:
          load it as a direct whole-file child
-         reserve ceil(size/0x800)*0x800
+         reserve direct whole-file transfer extent
     -> otherwise:
          recursively synthesize nested.lst in place
          reserve align64(completeSynthesizedImageSize)
@@ -168,18 +200,73 @@ Ordinary non-list children are loaded from their exact directory-relative token 
 
 ## Enqueue vs byte-producing path
 
-`0x1402EF4D0` is an enqueue function, not the byte-producing body itself. It records the destination pointer/path and a type-2 job in the ring.
+`0x1402EF4D0` is an enqueue function, not the byte-producing body itself. It records the destination pointer/path and a type-2 job in a ring.
+
+If the current ring slot already has `state > 0`, `0x1402EF4D0` returns false immediately. Otherwise it publishes `state = 2`, destination/path, advances the producer index modulo capacity and returns true.
 
 The consumer `0x1402EF790` executes the type-2 job through:
 
 ```text
 0x1400333F0(path)          whole-file open / cached logical size
- -> 0x1400333C0(state)     ceil(size/0x800) chunk count
+ -> 0x1400333C0(state)     transfer chunk count
  -> 0x140033500(...)       async submit
  -> 0x14002F930            seek + repeated reads until request filled, EOF/no-progress, or error
 ```
 
-That distinction supersedes older documentation that labeled `0x1402EF4D0` itself as the generic materializer.
+That distinction supersedes older documentation that labeled `0x1402EF4D0` itself as the generic byte-producing materializer.
+
+## Writer failure propagation — confirmed correction
+
+`0x1401B85C0` does **not** propagate all child dispatch failures.
+
+Recovered call sites include:
+
+```text
+0x1401B8C11 -> 0x1402EF4D0   direct child enqueue; return ignored
+0x1401B8C2D -> 0x1401B85C0   recursive child writer; return ignored
+0x1401B8C53 -> 0x1402EF4D0   direct child enqueue; return ignored
+```
+
+Thus the outer loose writer can return success after a child enqueue was rejected by an occupied queue slot or a recursive writer returned failure.
+
+This means:
+
+> `0x1401B85C0 == true` is **not** proof that every child was enqueued or that all exact bytes completed.
+
+`0x1401B8CA0` is also branch-dependent:
+
+- packed branch tail-propagates `0x1402EF4D0` enqueue result;
+- loose branch tail-propagates the coarse `0x1401B85C0` result;
+- another branch calls `0x1402EF4D0` and then forces `AL=1`.
+
+Finally, `0x1401B84E0` calls type-3 completion enqueue `0x1402EF580` after successful setup but ignores its boolean result. `0x1402EF580` itself can return false when its target ring slot is occupied.
+
+Therefore upstream materialization/writer booleans must not be promoted to exact terminal-byte receipts.
+
+## Bounded terminal -> lifecycle seam
+
+The follow-up static pass closes the normal admitted-job seam without moving lifecycle ownership into L1.
+
+For successfully admitted jobs in the same lane/FIFO:
+
+```text
+type-2 current
+ -> status 2: pending, stays current
+ -> status 4: reset local phase, retry same job
+ -> status 3: close/clear/retire and advance FIFO
+ ===== native L1 byte/result terminal =====
+ -> later admitted type-3 callback may become current
+ -> 0x1401B8DC0 publishes LoadedResource state 1 -> 2
+ ===== L3 lifecycle =====
+```
+
+Important boundaries:
+
+- FIFO ordering applies only to work that was actually admitted;
+- status `3` does not independently prove actual transferred bytes equal planned bytes;
+- a short no-error original transfer can therefore retire type-2 work and permit later normal completion;
+- cancellation can flush queued normal work and publish state `4` instead;
+- exact concurrent/current-slot cancellation races remain L3 dynamic breadth.
 
 ## Original mechanics vs product hardening
 
@@ -187,34 +274,45 @@ Evidence-backed original mechanics in this slice:
 
 - packed-first top-level selection;
 - `.lst` extension fallback;
-- scanner/token bounds;
+- scanner/token loop/copy bounds;
 - CRLF-oriented line grammar;
 - `/` comments and `#XXXX` magic directives;
 - default `PAC\0` magic;
 - declared child order/count;
 - exact `dummy` sparse slot;
 - 0x40-aligned synthesized header;
-- direct whole-file child extent `ceil(size/0x800)*0x800`;
+- direct whole-file 0x800-granular extent in the safe positive arithmetic domain;
 - recursively synthesized complete-image extent under 0x40 structural alignment;
 - zero initialization of the complete planned image;
-- nested `.lst` sibling `.pac` precedence and recursive in-place synthesis.
+- nested `.lst` sibling `.pac` precedence and recursive in-place synthesis;
+- 32-bit wrap-prone planner/chunk arithmetic;
+- branch-dependent enqueue/failure propagation, including swallowed child/completion enqueue failures;
+- bounded admitted-job status2/status4/status3 FIFO behavior.
 
 Product-only safety policy in this implementation:
 
 - ancestry cycle rejection;
 - configurable recursion-depth limit;
 - configurable total synthesized-output budget;
-- explicit host/32-bit offset overflow rejection instead of reproducing unsafe original 32-bit wrap;
-- fail-closed treatment of LF-only normal lines and inputs exceeding preserved bounds.
+- explicit host/32-bit offset overflow rejection instead of reproducing unsafe original wrap;
+- fail-closed LF-only normal-line handling;
+- explicit scan/token limit failure instead of continuing through the original malformed boundary;
+- receipt/integrity rules that never launder rejected enqueue or unsafe arithmetic into successful authored-byte authority;
+- exactness checks where a product receipt claims exact bytes.
 
-These safety rules must not be quoted as recovered original error semantics until direct evidence closes those branches.
+Product hardening must not be mislabeled as original error semantics, and original unsafe behavior must not be copied into product code merely for literal parity.
 
 ## Open reverse/validation boundaries
 
-- representative real `.lst` corpus receipt is still required;
-- exact original recursion-cycle/depth behavior remains unresolved;
-- exact malformed/truncated-list and enqueue-failure propagation still require final branch-by-branch reconciliation;
-- original planner/writer 32-bit overflow/wrap behavior is observed but product code intentionally fails closed rather than reproducing unsafe wrap;
-- controlled game-backed materialization/consumption receipts remain separate from synthetic regression.
+Still open before an exhaustive original L1 claim:
+
+- exact recursive cycle/depth behavior;
+- recursive allocation/free lifetime semantics;
+- remaining allocator/backend failure branches not yet classified;
+- representative real `.lst` corpus receipt for any real loose-list equivalence claim;
+- controlled original-game consumption receipt;
+- final contradiction-free L1 audit.
+
+The static normal admitted-job L1-terminal -> L3 completion seam is no longer an open L1 frontier item. Dynamic current-slot cancellation/concurrency remains L3.
 
 `.index` remains a separate external extraction/naming metadata family. It is not the original `.lst` runtime representation mechanism.

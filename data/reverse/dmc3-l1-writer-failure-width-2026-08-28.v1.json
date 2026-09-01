@@ -1,0 +1,111 @@
+{
+  "schema": "dmc-rengine.reverse-evidence.v1",
+  "topic": "dmc3-l1-writer-failure-width-semantics",
+  "date": "2026-08-28",
+  "layer": "L1",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "implementation_base": "94692e8f9971cf8249b4b16ee88d309de8b49f11",
+  "findings": [
+    {
+      "id": "L1-WF-001",
+      "status": "confirmed",
+      "address": "0x1402EF4D0",
+      "claim": "Type-2 materialization enqueue returns false when the current 0x88-byte ring slot state is greater than zero; otherwise it publishes destination/path/state=2 and advances the producer index."
+    },
+    {
+      "id": "L1-WF-002",
+      "status": "confirmed",
+      "address": "0x1401B85C0",
+      "claim": "Loose-container writer does not test the return values of direct child calls to 0x1402EF4D0 or recursive calls to 0x1401B85C0 before continuing to its outer success return."
+    },
+    {
+      "id": "L1-WF-003",
+      "status": "confirmed",
+      "address": "0x1401B8CA0",
+      "claim": "Materialization-result boolean is branch-dependent: packed path tail-propagates 0x1402EF4D0, loose path tail-propagates the coarse 0x1401B85C0 result, and another branch calls 0x1402EF4D0 then forces AL=1."
+    },
+    {
+      "id": "L1-WF-004",
+      "status": "confirmed",
+      "address": "0x1401B84E0",
+      "claim": "After successful allocation/materialization dispatch, the top-level setup calls 0x1402EF580 for a type-3 completion job but does not test its return before returning true."
+    },
+    {
+      "id": "L1-WF-005",
+      "status": "confirmed",
+      "address": "0x1402EF580",
+      "claim": "Type-3 completion enqueue returns false when the target current ring slot state is greater than zero."
+    },
+    {
+      "id": "L1-WF-006",
+      "status": "confirmed",
+      "address": "0x1400333C0",
+      "claim": "Chunk count is computed with 32-bit wrapping add(size,0x7ff), signed correction, and arithmetic right shift by 11; mathematical ceil(size/0x800) is only valid in the safe positive domain."
+    },
+    {
+      "id": "L1-WF-007",
+      "status": "confirmed",
+      "address": "0x1402EF620",
+      "claim": "Direct transfer extent is the 32-bit result of chunkCount << 11 and inherits signed/wrap discontinuities from 0x1400333C0."
+    },
+    {
+      "id": "L1-WF-008",
+      "status": "confirmed",
+      "addresses": ["0x1401B7FD0", "0x1401B85C0"],
+      "claim": "Header/child placement accumulation uses 32-bit arithmetic without a recovered checked-overflow contract."
+    },
+    {
+      "id": "L1-WF-009",
+      "status": "confirmed",
+      "address": "0x1401B7C70",
+      "claim": "The 0x1FC0 scanner ceiling is a bounded loop condition, not a dedicated original scan-limit error return; the helper is void."
+    },
+    {
+      "id": "L1-WF-010",
+      "status": "confirmed",
+      "addresses": ["0x1401B7D10", "0x1401B7E60"],
+      "claim": "NUL/0x1FC0 termination yields accumulated count or false-not-found behavior rather than a dedicated scan-limit error status."
+    },
+    {
+      "id": "L1-WF-011",
+      "status": "confirmed",
+      "addresses": ["0x1401B7D10", "0x1401B7E60", "0x1401B85C0"],
+      "claim": "At the 0x100 token-copy boundary the original path leaves the normal copy/terminator flow and continues toward formatting; no dedicated token-limit error contract is recovered."
+    }
+  ],
+  "chunk_count_boundary_examples": [
+    {"size_hex": "0x00000000", "chunk_count": 0, "extent_hex": "0x00000000"},
+    {"size_hex": "0x00000001", "chunk_count": 1, "extent_hex": "0x00000800"},
+    {"size_hex": "0x7FFFF7FF", "chunk_count": 1048575, "extent_hex": "0x7FFFF800"},
+    {"size_hex": "0x7FFFF800", "chunk_count": 1048575, "extent_hex": "0x7FFFF800"},
+    {"size_hex": "0x7FFFF801", "chunk_count": -1048576, "extent_hex": "0x80000000"},
+    {"size_hex": "0xFFFFF001", "chunk_count": -1, "extent_hex": "0xFFFFF800"},
+    {"size_hex": "0xFFFFF002", "chunk_count": 0, "extent_hex": "0x00000000"},
+    {"size_hex": "0xFFFFFFFF", "chunk_count": 0, "extent_hex": "0x00000000"}
+  ],
+  "product_policy": {
+    "overflow": "fail_closed",
+    "scan_limit": "fail_closed_hardening",
+    "token_limit": "fail_closed_hardening",
+    "enqueue_failure": "must_not_be_laundered_into_success_receipt",
+    "emulate_original_unsafe_wrap": false
+  },
+  "remaining_frontier": [
+    "recursive cycle/depth and lifetime/free behavior",
+    "remaining allocator/backend failure branches",
+    "representative real .lst corpus receipt",
+    "controlled original-game consumption receipt",
+    "final contradiction-free L1 audit"
+  ],
+  "non_claims": [
+    "L1 complete or 100 percent",
+    "original malformed-input safety",
+    "Capcom offline writer equivalence",
+    "product should reproduce unsafe original failure swallowing or integer wrap",
+    "original-game consumption proven"
+  ]
+}
