@@ -33,7 +33,7 @@
     ["tm2","TM2,TIM2","texture","Original/legacy texture-image family used before/alongside HD texture translation.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","research-only"],
     ["ptz","PTZ","texture","Texture-side companion resource associated with basic.ptx in the canonical executable asset table.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
     ["efm","EFM","geometry","Mesh-bearing effect-model resource: related MOD/SCM-style model document, triangle/topology reconstruction, and embedded shader inputs POSITION/NORMAL/TEXCOORD/BLENDINDICES/PSIZE plus per-vertex COLOR0.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
-    ["shw","SHW","geometry","Self-contained shadow-hull mesh geometry: float4 positions, u32 triangle topology and exact u16 triangle adjacency; distinct from a MOD/SCM-style textured model document.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["shw","SHW","geometry","Self-contained shadow-hull mesh geometry: float4 positions, u32 triangle topology, exact u16 triangle adjacency and EXE-confirmed per-vertex transform-matrix selectors; distinct from a MOD/SCM-style textured model document.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
     ["mrp","MRP","render","Primary model/render-side runtime family companion recognized by both registry and family-mask classifiers; standalone mesh ownership is not proven.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["sef","SEF","effect","Stage/effect companion resource family.","DATA_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
     ["efe","EFE","effect","Runtime-recognized container-dispatch sentinel/prefix in the effect-side family; no normal handler or exact semantic schema is yet recovered.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
@@ -96,6 +96,6 @@
     {"names":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4","BC5","RGBG","GRGB","YUY2"],"reason":"DDS/pixel encoding or layout tags, not independent resource families"}
   ],
   "openFrontier": [
-    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW exact per-vertex selector semantics and runtime ownership binding","CLT/C1D exact binary schemas"
+    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW selected-matrix-palette ownership and cross-resource model/bone binding","CLT/C1D exact binary schemas"
   ]
 }
