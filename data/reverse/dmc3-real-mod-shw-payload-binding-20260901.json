@@ -1,0 +1,153 @@
+{
+  "schema": "dmc-rengine.dmc3-real-mod-shw-payload-binding.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-09-01",
+  "canonical_exe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000",
+    "mod_normalizer_va": "0x1402FE3B0",
+    "shw_normalizer_va": "0x1403204C0",
+    "shw_geometry_consumer_va": "0x1403204F0",
+    "shw_triangle_vector_helper_va": "0x140320BB0"
+  },
+  "artifacts": {
+    "SHW": {
+      "source_name": "slot_0008.shw",
+      "size": 9488,
+      "sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e"
+    },
+    "MOD": {
+      "source_name": "slot_0001 (2).mod",
+      "size": 216544,
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89"
+    }
+  },
+  "SHW": {
+    "header": {
+      "magic": "SHW ",
+      "version_f32": 0.5,
+      "record_count_offset": "0x10",
+      "record_count_u8": 17,
+      "record_table_offset": "0x20",
+      "record_stride": "0x40"
+    },
+    "record_layout": {
+      "0x00": "u16 vertex_count",
+      "0x02": "u16 triangle_count",
+      "0x10": "base-relative pointer to triangle records: triangle_count * 0x10; each record is three u32 vertex indices plus zero u32",
+      "0x18": "base-relative pointer to adjacency records: triangle_count * 0x08; each record is three u16 neighboring-triangle indices plus zero u16",
+      "0x20": "base-relative pointer to vertex positions: vertex_count * float4; w is 1.0 in this artifact",
+      "0x28": "base-relative pointer to vertex selector bytes: vertex_count bytes followed by zero padding to 0x10 alignment; exact selector semantics remain open"
+    },
+    "totals": {
+      "records": 17,
+      "vertices": 152,
+      "triangles": 236
+    },
+    "records": [
+      [0,"0x20",12,20,"0x460","0x5A0","0x640","0x700"],
+      [1,"0x60",10,16,"0x710","0x810","0x890","0x930"],
+      [2,"0xA0",8,12,"0x940","0xA00","0xA60","0xAE0"],
+      [3,"0xE0",10,16,"0xAF0","0xBF0","0xC70","0xD10"],
+      [4,"0x120",9,14,"0xD20","0xE00","0xE70","0xF00"],
+      [5,"0x160",9,14,"0xF10","0xFF0","0x1060","0x10F0"],
+      [6,"0x1A0",8,12,"0x1100","0x11C0","0x1220","0x12A0"],
+      [7,"0x1E0",9,14,"0x12B0","0x1390","0x1400","0x1490"],
+      [8,"0x220",8,12,"0x14A0","0x1560","0x15C0","0x1640"],
+      [9,"0x260",9,14,"0x1650","0x1730","0x17A0","0x1830"],
+      [10,"0x2A0",8,12,"0x1840","0x1900","0x1960","0x19E0"],
+      [11,"0x2E0",8,12,"0x19F0","0x1AB0","0x1B10","0x1B90"],
+      [12,"0x320",9,14,"0x1BA0","0x1C80","0x1CF0","0x1D80"],
+      [13,"0x360",9,14,"0x1D90","0x1E70","0x1EE0","0x1F70"],
+      [14,"0x3A0",8,12,"0x1F80","0x2040","0x20A0","0x2120"],
+      [15,"0x3E0",8,12,"0x2130","0x21F0","0x2250","0x22D0"],
+      [16,"0x420",10,16,"0x22E0","0x23E0","0x2460","0x2500"]
+    ],
+    "record_columns": ["index","record_offset","vertex_count","triangle_count","triangle_pointer","adjacency_pointer","vertex_pointer","selector_pointer"],
+    "whole_artifact_validations": {
+      "all_pointer_spans_match_declared_counts_exactly": true,
+      "all_triangle_fourth_lanes_zero": true,
+      "all_triangle_vertex_indices_in_range": true,
+      "all_adjacency_fourth_lanes_zero": true,
+      "all_adjacency_indices_in_triangle_range": true,
+      "every_adjacency_reference_points_to_a_triangle_sharing_exactly_one_edge": true,
+      "every_adjacency_triplet_equals_the_complete_three-edge_neighbor_set": true,
+      "all_records_satisfy_triangle_count_equals_2_times_vertex_count_minus_4": true,
+      "all_vertex_vectors_finite": true,
+      "all_vertex_w_values_equal_1": true,
+      "all_selector_padding_zero": true
+    },
+    "conclusion": {
+      "classification": "self-contained-shadow-hull-mesh-geometry",
+      "identity_evidence": "EXE_CONFIRMED",
+      "schema_evidence": "DATA_CONFIRMED",
+      "purpose_evidence": "EXE_CONFIRMED",
+      "supersedes": "the previous claim that SHW only references a spatial vertex pool external to the payload",
+      "boundary": "SHW is self-contained shadow hull geometry, but it is not a MOD/SCM-style textured model document; the exact meaning of the per-vertex selector byte remains open"
+    }
+  },
+  "MOD": {
+    "header": {
+      "magic": "MOD ",
+      "version_f32": 1.0099999904632568,
+      "outer_count_offset": "0x10",
+      "outer_count_u8": 17,
+      "document_pointer_offset": "0x20",
+      "document_pointer_raw": "0x2CE50",
+      "outer_table_offset": "0x40",
+      "outer_stride": "0x40"
+    },
+    "outer_layout": {
+      "0x00": "u8 inner_record_count",
+      "0x02": "u16 aggregate element_count; equals the sum of inner +0x00 counts for every outer record in this artifact",
+      "0x08": "base-relative pointer to 0x50-byte inner-record array"
+    },
+    "inner_layout": {
+      "stride": "0x50",
+      "0x00": "u16 element_count",
+      "0x10": "base-relative pointer to element_count * float3 stream; position binding is HIGH_CONFIDENCE from values plus MOD shader contract",
+      "0x18": "base-relative pointer to element_count * float3 stream; normal binding is HIGH_CONFIDENCE and every vector is unit length within 4.9e-8",
+      "0x20": "base-relative pointer to element_count * int16x2 stream; fixed-point UV binding is HIGH_CONFIDENCE and corroborated by the MOD shader conversion by 1/4096",
+      "0x28": "base-relative pointer to element_count * u8x4 stream; BLENDINDICES/matrix-row binding is HIGH_CONFIDENCE and values are multiples of four from 0 through 88",
+      "0x30": "base-relative pointer to element_count * u16 flags/control stream; bit 0x8000 is EXE_CONFIRMED as strip/control marker cleared by the normalizer",
+      "0x38": "zero in all 18 inner records in this artifact",
+      "0x40": "inner-record-relative pointer to reserved generated topology output",
+      "0x48": "generated topology count; zero before runtime normalizer"
+    },
+    "totals": {
+      "outer_records": 17,
+      "inner_records": 18,
+      "elements": 5316,
+      "source_control_high_bit_markers": 1636
+    },
+    "outer_inner_counts": [1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1],
+    "outer_aggregate_element_counts": [613,635,500,312,185,143,696,247,213,476,431,151,66,66,22,134,426],
+    "whole_artifact_validations": {
+      "all_outer_aggregate_counts_equal_inner_count_sums": true,
+      "all_five_source_stream_groups_match_count_times_stride_with_0x10_alignment": true,
+      "field_major_multi_inner_stream_order_confirmed": true,
+      "all_position_and_normal_values_finite": true,
+      "normal_length_global_min": 0.9999999525721879,
+      "normal_length_global_max": 1.000000048868151,
+      "raw_uv_component_min": -5,
+      "raw_uv_component_max": 4090,
+      "matrix_index_byte_values": [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88],
+      "all_inner_0x38_qwords_zero": true,
+      "all_generated_output_pointers_resolve_inside_payload": true,
+      "all_generated_counts_zero_before_normalization": true,
+      "last_source_stream_ends_at_header_document_pointer_0x2CE50": true
+    },
+    "conclusion": {
+      "classification": "self-contained-skinned-model-stream-document",
+      "identity_evidence": "EXE_CONFIRMED",
+      "schema_evidence": "DATA_CONFIRMED_WITH_EXE_CORROBORATION",
+      "boundary": "one real payload binds the stream grammar and strongly binds shader semantics; a writer, universal variant coverage and game-consumption round trip remain unproven"
+    }
+  },
+  "global_limits": [
+    "This packet is hash-bound to one MOD and one SHW payload and does not claim universal coverage of every format revision.",
+    "The SHW selector byte is structurally confirmed but semantically unnamed.",
+    "No writer or mutation safety is promoted by this read-only analysis.",
+    "The source payloads are evidence inputs and are not added to the repository."
+  ]
+}
