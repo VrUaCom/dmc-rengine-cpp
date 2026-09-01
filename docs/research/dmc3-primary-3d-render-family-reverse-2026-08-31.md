@@ -21,7 +21,7 @@ post-load fixup and exact on-disk schema into one claim.
 | `EFM` | EXE confirmed by registry + family-mask probes | **mesh-bearing effect model** | exact mapping of every on-disk stream still partial |
 | `SCM` | EXE confirmed by registry + family-mask probes | **mesh-bearing stage/scene model** | exact full schema/writer still partial |
 | `MRP` | EXE confirmed by two byte-backed classifiers | **render/model-side companion; not proven as standalone mesh** | no normal generic fixup recovered; exact schema open |
-| `SHW` | EXE confirmed by registry + family-mask probes | **shadow geometry/topology companion** | contains triangle/index-like topology over an external vector pool; not a MOD/SCM-style self-contained mesh |
+| `SHW` | EXE confirmed by registry + family-mask probes; real payload bound | **self-contained shadow-hull mesh geometry** | positions, triangles and exact adjacency confirmed; selector-byte semantics remain open; not a MOD/SCM-style textured model |
 
 The previous shorthand `MOD + SCM = geometry; EFM/MRP/SHW = companions` is therefore
 superseded. `EFM` belongs on the mesh-bearing side.
@@ -194,6 +194,40 @@ EFM vertex input
 
 This independently agrees with the related MOD/EFM post-load layouts.
 
+
+### 6.1 Real MOD payload binding
+
+A hash-bound real MOD payload now closes the gap between the handler-derived pointer
+shape and actual stream bytes:
+
+```text
+source          slot_0001 (2).mod
+size            216544
+SHA-256         e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89
+outer records   17
+inner records   18
+stream elements 5316
+```
+
+For every outer record, the u16 at `outer +0x02` equals the sum of the inner
+`+0x00` counts. The five pointer groups have exact aligned spans:
+
+```text
++0x10  count * float3
++0x18  count * float3
++0x20  count * int16x2
++0x28  count * u8x4
++0x30  count * u16
+```
+
+One outer contains two inner records and proves that payload streams are field-major
+within the outer group. The two float3 streams are position/normal-shaped; every
+vector in the second stream is unit length within `4.9e-8`. The remaining widths
+match the embedded MOD shader contract for fixed-point UV, `BLENDINDICES` and
+`PSIZE` flags. Exact evidence and the confidence boundary are recorded in the
+[real MOD / SHW payload binding](dmc3-real-mod-shw-payload-binding-2026-09-01.md).
+
+
 ## 7. Runtime construction/allocation path confirms the split
 
 A higher-level factory/construction path at `0x140248140` calls the four-byte
@@ -260,38 +294,51 @@ characteristics (`POSITION`, `NORMAL`, `TEXCOORD0`, `COLOR0`), consistent with t
 known SCM vertex-colour path. Shader naming alone is not used as the SCM format
 identity proof; it is corroboration of the already established stage-render model.
 
-## 10. SHW is geometry-related, but not a self-contained MOD/SCM mesh
+## 10. SHW is self-contained shadow-hull mesh geometry
 
-The SHW post-load fixup is fundamentally different:
+The SHW post-load fixup remains format-specific:
 
 ```text
 0x1403204C0
-header +0x10 -> record count-like byte
-for each record, stride 0x40:
-    relocate four qword pointers
+header +0x10 -> record count
+records from +0x20, stride 0x40
+four base-relative qword pointers relocated per record
 ```
 
-Exact bounded function:
+A real payload now binds all four pointers:
 
 ```text
-VA          0x1403204C0
-size        0x30
-SHA-256     14dc368e054ef8a7ed686e55de23b0ac1e8d20be66a9909576bee01f34ca008d
+source        slot_0008.shw
+size          9488
+SHA-256       cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e
+hull records  17
+vertices      152
+triangles     236
 ```
 
-There is no MOD/EFM/SCM-style `0x40 outer -> 0x50 mesh -> six vertex streams ->
-triangle-strip rebuild` in this normalizer.
+Each `0x40` record contains:
 
-However, downstream SHW-side code proves that the resource is still geometric.
-Around `0x1403204F0`, a record supplies triplets of 32-bit indices. Each index is
-scaled by `0x10` and applied to an **external array of 16-byte spatial/vector
-records**. The resulting three vectors are passed to `0x140320BB0`.
+```text
++0x00  u16 vertex_count
++0x02  u16 triangle_count
++0x10  triangle_count * { u32 a, b, c, 0 }
++0x18  triangle_count * { u16 n0, n1, n2, 0 }
++0x20  vertex_count * float4 position
++0x28  vertex_count * u8 selector, padded to 0x10
+```
 
-`0x140320BB0` reads the three 4-float vectors, forms two edge vectors and computes
-their cross product, writing a four-float result with `w = 0`. In other words, this
-is direct triangle-plane/normal-style geometry processing.
+Every triangle index is in vertex range. Every adjacency triplet is the exact set of
+three triangles sharing the current triangle's edges. All vertex vectors are finite
+and have `w = 1`. All 17 records satisfy
+`triangle_count = 2 * vertex_count - 4`, consistent with their verified closed
+triangulated topology.
 
-The embedded `DMC3_SHW.hlsl` input is correspondingly minimal:
+The runtime path near `0x1403204F0` passes the vertex array separately from the
+runtime record and `0x140320BB0` calculates an edge cross product. The real payload
+shows that this is a runtime-object separation: the spatial vertex pool itself is
+inside SHW. The earlier file-level “external vertex pool” statement is rejected.
+
+The embedded `DMC3_SHW.hlsl` input remains minimal:
 
 ```hlsl
 struct VS_IN
@@ -300,14 +347,15 @@ struct VS_IN
 };
 ```
 
-and the shader colours the generated geometry from a uniform shadow colour.
-
 Safe conclusion:
 
-> **SHW owns/organizes shadow triangle/topology information that references an external spatial vertex pool; it is geometry-related but not proven to be a self-contained textured model mesh.**
+> **SHW is a self-contained shadow-hull mesh resource containing positions,
+> triangle topology and exact triangle adjacency. It is not a MOD/SCM-style
+> textured model document.**
 
-This is stronger and more precise than the previous generic label `shadow/render
-companion`.
+The per-vertex selector byte is structurally confirmed but its exact semantic
+meaning remains open.
+
 
 ## 11. MRP remains the major open member
 
@@ -361,23 +409,26 @@ the [family-mask object+0xE0 consumer census](dmc3-family-mask-object-e0-consume
 and its machine-readable evidence packet.
 
 
-## 12. Retail corpus gap
+## 12. Real-payload boundary
 
-Current Library search found standalone retail/model samples for MOD/SCM but did not
-locate independently named `.efm`, `.mrp` or `.shw` files. Those payloads may remain
-inside PAC/NBZ/corpus archives.
+The evidence set now includes hash-bound standalone MOD and SHW payloads. This
+closes the MOD stream-shape and SHW self-contained-topology gaps for the observed
+artifacts.
 
-Therefore this pass intentionally distinguishes:
+Standalone EFM and MRP payloads remain absent from the current bound corpus.
+Therefore:
 
 ```text
-EXE-confirmed runtime/layout/shader evidence
-from
-real-payload field binding
+MOD / SHW
+  EXE evidence + real-payload structural binding
+
+EFM / MRP
+  EXE evidence; exact real-payload field binding still open
 ```
 
-EFM is already strong enough to promote to effect-model/mesh-bearing purpose from
-EXE evidence alone. Exact per-field on-disk schema promotion still waits for a real
-payload receipt.
+One sample per family does not prove universal revision coverage, and no writer or
+original-game mutation round trip is promoted by this pass.
+
 
 ## 13. Canonical viewer implication
 
@@ -394,10 +445,11 @@ PrimaryModelDocument
   -> SCM variant
        stage/static geometry variant
 
-ShadowTopologyDocument
+ShadowHullDocument
   -> SHW records
-  -> triangle index triplets
-  -> external spatial vertex pool
+  -> self-contained float4 positions
+  -> triangle topology + exact adjacency
+  -> per-vertex selector semantics still open
   -> shadow plane/normal generation
 
 RenderCompanion
