@@ -96,7 +96,7 @@ A known purpose is not a complete schema. A parser is not proof of complete orig
 | `TM2` / `TIM2` | original/legacy texture image family | `EXE_CONFIRMED` identifier path + research | research-only | exact HD conversion/ownership chain open |
 | `PTZ` | texture-side companion associated with `basic.ptx` | static presence `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | research-only | direct typed consumer/schema still open |
 | `EFM` | effect-system typed resource with dedicated post-load fixup | `EXE_CONFIRMED` | runtime-only | exact fields/product module open |
-| `SHW` | self-contained closed shadow-hull mesh geometry with positions, u32 triangles and exact u16 triangle adjacency | `EXE_CONFIRMED` + `DATA_CONFIRMED` | runtime-only | per-vertex selector semantics and guarded parser remain open |
+| `SHW` | self-contained closed shadow-hull mesh geometry with positions, u32 triangles, exact u16 adjacency and per-vertex transform-matrix selectors | `EXE_CONFIRMED` + `DATA_CONFIRMED` | runtime-only | selected matrix-palette ownership and guarded parser remain open |
 | `MRP` | primary model/render/effect-side typed resource-manager companion | identity `EXE_CONFIRMED`; purpose `HIGH_CONFIDENCE` | runtime-only | exact acronym expansion and fields remain open |
 | `SEF` | stage/effect companion | `DATA_CONFIRMED`; purpose `HIGH_CONFIDENCE` | research-only | direct consumer/schema requires reacquisition |
 | `EFE` | effect-system companion label | `DATA_CONFIRMED`, exact purpose `RESEARCH_REQUIRED` | research-only | no direct original consumer recovered |
