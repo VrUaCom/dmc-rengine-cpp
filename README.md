@@ -6,106 +6,154 @@
 
 DMC Rengine is an open-source C++20 framework for reverse engineering, decompiling, editing and progressively recompiling Devil May Cry 3: Special Edition from the HD Collection.
 
-The project connects exact artifact identity, executable research, resource materialization, binary inspection, stage reconstruction, guarded authoring, recovered source, validation and long-term recompilation under one evidence-first architecture.
+The project connects exact artifact identity, executable research, resource resolution/materialization, binary inspection, stage reconstruction, guarded authoring, recovered source, validation and long-term recompilation under one evidence-first architecture.
 
 ## Current state
 
-**Status snapshot:** 2026-08-24  
-**Version:** 0.2.0  
-**Canonical implementation base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`  
-**Primary execution program:** **GDSpaces Layer 1 — Resource Materialization**  
+**Status snapshot:** 2026-09-02  
+**Reviewed implementation base:** `main@9483663959e5452f9a224c1535445bb5a3b33520`
 
-The repository already contains substantial reviewed implementation:
+GDSpaces is tracked as three separate resource-runtime ownership layers:
+
+```text
+L2 — Resource Resolution
+     ADVANCED / INCOMPLETE
+
+L1 — Resource Materialization
+     INCOMPLETE / NOT 100%
+     product authoring capability is advanced
+
+L3 — Original Runtime / Lifecycle
+     INCOMPLETE
+     R1 static writer census bounded-closed
+     R2 field/backing ownership ACTIVE
+```
+
+The repository already contains substantial reviewed implementation and reverse evidence, including:
 
 - C++20/CMake core and CLI with Windows + Ubuntu validation;
 - SHA-256 artifact/evidence infrastructure;
 - GDSpaces ResourceId/ResourceRef/SourceRegistry/ByteProvenance/WorkingCopy;
-- canonical NBZ ZIP indexing and STORE/raw-DEFLATE materialization;
-- PAC/PNST relative-slot parsing with sparse/empty/alias identity preservation;
-- recursive PAC/PNST expansion;
+- canonical NBZ ZIP indexing and STORE/raw-DEFLATE product materialization;
+- PAC/PNST sparse/empty/alias-preserving parsing and recursive expansion;
 - bounded same-size and size-changing PAC/PNST authoring/reintegration;
-- synthetic full nested A-to-Z NBZ rebuild/reopen composition;
-- transformed DDS-bearing texture framing and bounded size-changing writer for the evidenced safe subset;
-- original DMC3 non-TM2 serialized `gfxTexture` relocation compatibility checks for writer output;
-- numbered `DMC3-N.nbz` bootstrap/precedence reconstruction;
-- next-contiguous STORE NBZ overlay generation and canonical resolver selection validation;
-- protected-distribution vs unpacked-analysis executable authority roles;
+- nested root-to-leaf PAC/PNST slot-path authoring;
+- verified NBZ copy rebuild and next-volume overlay generation;
+- atomic/no-replace publication and exact reopen/rematerialization checks;
+- recovered DMC3 runtime resolver/type identity contracts;
+- current naming architecture separating physical identity, extracted ordinals, historical labels, semantic evidence and presentation;
+- strong LoadedResource lifecycle/state reverse with L3-R1 closed for the canonical analysis image;
 - Binary Inspector, EXE evidence, Stage/Item/HITS/save and guarded-modification foundations.
 
-The project does **not** claim full DMC3 decompilation, whole-game behavioral equivalence, Capcom offline-writer equivalence, a complete desktop editor, or a behaviorally equivalent rebuilt executable.
+The project does **not** claim full DMC3 decompilation, whole-game behavioral equivalence, complete original materialization/lifecycle equivalence, Capcom offline-writer equivalence, a complete desktop editor, or a behaviorally equivalent rebuilt executable.
 
-## GDSpaces L1 — current critical path
-
-The canonical execution roadmap is [docs/gdspaces/l1-roadmap.md](docs/gdspaces/l1-roadmap.md).
-
-Completion is **gate-based**, not percentage-based. The immediate path is:
+## Canonical GDSpaces architecture
 
 ```text
-shared atomic/no-replace publication
- -> artifact-stable retail member acquisition
- -> direct-retail provenance receipt
- -> retail representation classification
- -> bounded real edit + PAC/PNST bottom-up rebuild
- -> next-volume NBZ publication
- -> canonical resolver/reopen/rematerialization
- -> original DMC3 consumption receipt
- -> final L1 cross-stack audit
+logical game/resource request
+        |
+        v
+[L2] Resource Resolution
+     choose exact provider/source/volume/member identity
+        |
+        v
+[L1] Resource Materialization
+     produce/reproduce exact bytes + provenance
+     edit/rebuild/repack/reopen/rematerialize
+        |
+        v
+[L3] Original Runtime / Lifecycle
+     scheduler/callback ownership
+     LoadedResource states
+     typed-ready / claims / cancellation / release / reset
+        |
+        v
+[DOMAIN] Stage Ops / ModViz / editors
 ```
 
-### Active acquisition boundary
-
-PR #191 has the correct high-level retail acquisition composition — canonical volume bootstrap, `NbzZipSource`, `RuntimeResourceResolver`, `SourceRegistry::read` and member provenance — but is **not promotion-ready** until three review blockers close:
-
-- CLI output uses true atomic/no-replace publication rather than `exists() -> ofstream`;
-- archive index, member bytes and archive SHA are bound to one stable artifact observation;
-- acquisition output cannot be published inside the measured retail game tree.
-
-After correction, the first high-value direct-retail request is `obj\\em000.pac`. The runtime resolver determines the actual winning archive member; documentation/tooling must not predeclare a `GData*.afs/...` member path.
-
-## Canonical architecture
-
-- **GDSpaces — The Archive:** only product resource resolver/materializer/provenance authority.
-- **Recovered Game Source Tree:** reconstructed original DMC3 functions, ABI, ownership and lifecycle behavior.
-- **Reverse Core:** generic artifact/range/function/type/claim/reconstruction/validation infrastructure.
-- **EXE Editor — The Scriptorium:** frontend over executable mappings, recovered-source identities and guarded patch/rebuild requests.
-- **Binary Inspector — The Reliquary:** byte/structure/evidence inspection; never a source resolver.
-- **Stage Ops — The Theatre:** product-side stage/scene assembly and operational workspace authority.
-- **Stage Semantic Graph:** evidence-aware representation/index emitted from Stage Ops state.
-- **ModViz — The Observatory:** scene/model/menu editor and visualization consumer over Stage Ops/Semantic Graph.
-- **Build & Test Lab — The Trial Chamber:** reproducibility, validation, generated outputs and behavioral receipts.
+Validation/live observation is cross-cutting; it is not a speculative L4.
 
 ### Core engineering laws
 
-> **All product resource access goes through GDSpaces.**
+> **L2 selects. L1 materializes. L3 owns lifecycle.**
 
-> **Recovered original-game code belongs to the Recovered Game Source Tree.**
+> **All product resource access goes through GDSpaces authority.**
+
+> **Recovered original-game code belongs to the Recovered Game Source Tree/profile evidence domain.**
 
 > **No claim without evidence.**
 
 > **No implicit retail-file mutation.**
 
-> **No second resolver or scene truth.**
+> **No second resolver, materializer, lifecycle truth or scene truth.**
+
+## Current critical work
+
+### L3 — R2 active
+
+With R1 current-main writer reconciliation closed, the active static lifecycle frontier is family/group ownership of:
+
+```text
+LoadedResource +0x08
+               +0x10 where applicable
+               +0x18
+               +0x20
+               +0x28
+```
+
+including initialization/finalization/release ordering and the SCM `mesh +0x28` reconciliation.
+
+### L2 — successful mount topology correction
+
+Current product code still needs the recovered distinction:
+
+```text
+filename discovery / registration attempt
+!=
+successful linked runtime mount
+```
+
+Only successful registrations should become resolver topology.
+
+### L1 — original reverse + real acceptance
+
+Current product authoring capability remains advanced, but the Layer-1 status is not complete. The active chain is:
+
+```text
+original byte/result reverse required by claimed scope
+ -> direct-retail selected-member provenance
+ -> exact representation classification
+ -> supported real edit/rebuild
+ -> next-volume reopen/rematerialization
+ -> original DMC3 consumer-visible effect
+ -> rollback
+ -> final L1 audit
+```
+
+### Cross-layer vertical proof
+
+The highest-value integrated receipt is one same-resource lineage:
+
+```text
+[L2] original selected provider/member
+ -> [L1] exact materialized bytes/provenance
+ -> authored rebuild/rematerialization
+ -> [L3] original ready/use lifecycle
+ -> deterministic consumer-visible effect
+ -> rollback
+```
 
 ## Important evidence boundaries
 
 - `.afs/` strings such as `GData.afs/` are logical namespace evidence, not proof of a binary AFS backend.
 - Historical GDSpaces PACK parsing does not prove original DMC3 PACK runtime authority.
+- `.index` is historical extraction/naming evidence, not original runtime lookup authority on the recovered path.
+- Display names, semantic suffixes and embedded aliases do not retarget physical ResourceId/write authority.
+- Runtime type identity is not one universal detector: registry probe, container post-load dispatcher and family-mask classifier are separate evidence sites.
 - A product writer that creates game-accepted output is not automatically equivalent to Capcom's external/offline authoring tool.
-- Product materialization and StageBundle/Stage Ops state are not automatically original game-ready state 3.
-- Synthetic CI proves bounded composition only; direct-retail/game-backed receipts are required for L1 closure.
-- `st001` is a regression/compatibility fixture, not the complete Stage identity model.
-
-## Supporting EXE reverse frontier for GDS
-
-Major bootstrap/candidate/archive-index/ZIP-read/inflate/LoadedResource/post-load boundaries are already strongly recovered and should not be restarted without contradictory direct evidence.
-
-The remaining GDS-relevant exact reverse frontier includes:
-
-- final type-0 physical-provider Win32 filename/case/open/failure semantics after `0x0C` normalization;
-- complete ZIP stream initializer `0x140328540` body/lifetime;
-- complete compressed seek/reset/reinflate `0x140328FE0` behavior;
-- malformed/partial-read error equivalence where required by a promoted claim;
-- dynamic `.lst` lifetime/error/cycle behavior only if real loose-container acceptance depends on it.
+- Product safety may intentionally be stricter than unsafe original wrap/short-success/failure-swallowing behavior.
+- Manager state3 is not automatically universal family-semantic success or a consumer-visible gameplay receipt.
+- Synthetic CI proves bounded composition only; trusted original-process receipts are required for original equivalence claims.
 
 ## Build
 
@@ -134,8 +182,11 @@ ctest --preset vs2022-release
 ## Project navigation
 
 - [Documentation index](docs/README.md)
-- [Canonical GDSpaces L1 roadmap](docs/gdspaces/l1-roadmap.md)
-- [Project roadmap](docs/roadmap.md)
+- [GDSpaces master roadmap](docs/gdspaces/master-roadmap.md)
+- [Layer 1 roadmap](docs/gdspaces/l1-roadmap.md)
+- [Layer 2 roadmap](docs/gdspaces/l2-roadmap.md)
+- [Layer 3 roadmap](docs/gdspaces/l3-roadmap.md)
+- [Layer classification](docs/gdspaces/decompilation-layer-classification.md)
 - [Current status](docs/status/current.md)
 - [Machine-readable status](docs/status/canonical-status.json)
 - [Blockers](docs/status/blockers.md)
@@ -143,7 +194,6 @@ ctest --preset vs2022-release
 - [Phase map](docs/status/phase-map.md)
 - [Architecture](docs/architecture.md)
 - [GDSpaces contract](docs/gdspaces-contract.md)
-- [Layer classification](docs/gdspaces/decompilation-layer-classification.md)
 - [Evidence Packets](docs/evidence/evidence-packets.md)
 - [PE Inspector](docs/exe/pe-inspector.md)
 - [Guarded Patching](docs/patch/guarded-patching.md)
