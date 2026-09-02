@@ -1,99 +1,123 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-26  
-**Canonical base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`
+**Snapshot:** 2026-09-02  
+**Reviewed base:** `main@9483663959e5452f9a224c1535445bb5a3b33520`
 
-The project is tracked by subsystem/layer gates rather than one linear phase number.
+The project is tracked by layer/domain gates rather than one linear phase number.
 
 ## Foundation — maintained
 
-C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output infrastructure and guarded canonical-EXE window acquisition are maintained foundations.
+C++20/CMake, Windows+Ubuntu CI, artifact identity, GDSpaces source/ResourceId/ByteProvenance, Binary Inspector, EXE evidence, guarded output and current DMC3 type/naming contracts remain shared foundations.
 
-## GDSpaces L1 — INTERNAL PRODUCT PATH CLOSED / FINAL ACCEPTANCE ACTIVE
+## GDSpaces L1 — ADVANCED PRODUCT CAPABILITY / INCOMPLETE REVERSE + ACCEPTANCE
 
-Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
+Current product capabilities are mature for representative NBZ/PAC/PNST authoring, but L1 is not `COMPLETE / 100%`.
 
-Mandatory acceptance sequence:
+Active sequence:
 
 ```text
-direct-retail member provenance
- -> representation classification
- -> real bounded edit
- -> bottom-up PAC/PNST rebuild
- -> next-volume NBZ publication/reopen
- -> exact authored rematerialization
- -> original-game consumption
+original-L1 reverse gaps required by claimed scope
+ -> direct-retail selected-member lineage
+ -> exact representation classification
+ -> supported real edit/rebuild
+ -> next-volume reopen/rematerialization
+ -> original-game consumption + rollback
+ -> final L1 audit
+```
+
+The former broad `INTERNAL PRODUCT PATH CLOSED` wording is retained only as a bounded capability observation, not as the Layer-1 completion/reverse status.
+
+See [L1 roadmap](../gdspaces/l1-roadmap.md).
+
+## GDSpaces L2 — ADVANCED / TOPOLOGY + REAL EVIDENCE CLOSURE ACTIVE
+
+Merged resolver/candidate/mapping/binder tooling is strong, but L2 remains incomplete.
+
+Immediate implementation correction:
+
+```text
+filename discovery / registration attempts
+!=
+successful linked mount topology
+```
+
+Port the stronger #246 model into current-main product code so only explicit successful mounts are resolver topology.
+
+Then continue:
+
+```text
+retail 0x0E collision census
+ -> real protected-process mapping
+ -> trusted selected-provider origin/publisher
+ -> zero-loss selected identity
+ -> final L2 audit
+```
+
+See [L2 roadmap](../gdspaces/l2-roadmap.md).
+
+## GDSpaces L3 — R1 CLOSED / R2 ACTIVE / INCOMPLETE
+
+The current-main R1 semantic port closes broad LoadedResource state-writer discovery for the canonical image unless contradicted by exact record provenance.
+
+### Active static phase: L3-R2
+
+```text
+family/group field ownership
+ -> +0x08/+0x10/+0x18/+0x20/+0x28
+ -> initialization/finalization/release ordering
+ -> SCM +0x28 reconciliation
+ -> R3/R4 support only where ownership requires it
+```
+
+### Dynamic validation phase
+
+After/currently alongside R2 as infrastructure permits:
+
+```text
+respawn lifecycle validator on current main
+ -> trusted process-bound lifecycle publisher/binder
+ -> V1 initial load
+ -> V5 in-flight cancellation
+ -> V2/V3/V4/V6/V7
+ -> final L3 audit
+```
+
+See [L3 roadmap](../gdspaces/l3-roadmap.md).
+
+## Cross-layer vertical acceptance — HIGH VALUE
+
+The best integrated proof remains one same-resource chain:
+
+```text
+[L2] exact original selected identity
+ -> [L1] exact selected bytes/provenance
+ -> [L1] authored replacement/rebuild/rematerialization
+ -> [L3] original lifecycle ready/use
+ -> deterministic consumer-visible effect
  -> rollback
- -> final L1 acceptance audit
 ```
 
-Current main already contains the representative internal product path. Remaining completion gates are real-retail/original-process evidence, not another parser rewrite.
+This can close a declared representative acceptance scope without falsely claiming all layer breadth is complete.
 
-### Supporting EXE reverse — materialization completion dependency bridge
+## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM DOMAIN
 
-Merged #228 canonically replaced old generic `fan-in/completion` shorthand with the narrower **materialization completion ordering / dependency bridge**. Merged #230 further proves that normal `0x1401B8DC0` receives only one u32 registry-relative context and does not receive transport status/error/byte-count/outstanding-work metadata.
-
-The follow-up pass therefore asks a small terminal-state question rather than searching for a generic child counter:
-
-```text
-0x1402EF4D0 materialization job/submission
- -> lower whole-file/FileSlot transport
- -> terminal status / job-retirement condition
- -> queued 0x1401B8DC0(record-context)
- -> state2
-```
-
-FIFO insertion order alone is not enough unless the earlier materialization job has completion-aware persistence/retirement semantics.
-
-Current raw-pass priority:
-
-```text
-0x1402EF4D0 queued job identity/type
- -> 0x1402EF790 materialization-job persistence/re-poll/retirement
- -> 0x1400333E0 historical status/poll anchor
- -> 0x140033390 historical terminal cleanup/release anchor
- -> 0x1400335A0 transport status/error writes
- -> 0x1402EF460 queued-completion suppression/rollback
- -> .lst child/recursive failure ordering after the direct-resource mechanism is closed
-```
-
-`0x1400333E0` and `0x140033390` remain reacquisition hypotheses until fresh canonical bytes confirm their exact historical roles. No generic fan-in counter is claimed.
-
-## GDSpaces L2 — ADVANCED / REAL EVIDENCE CLOSURE ACTIVE
-
-Type-0 post-`0x0C` static physical-provider behavior is no longer the primary gap. Current closure depends on real-retail collision evidence, protected-process RVA mapping and trusted selected-provider identity receipts.
-
-L2 may support the L1 vertical proof but does not substitute for L1 materialization acceptance.
-
-## Original runtime / lifecycle L3 — ADVANCED, NOT COMPLETE
-
-Static authority is strong for the central LoadedResource state spine, scheduler callback ABI, cancellation/quiescence/release distinctions and representative typed post-load families.
-
-The materialization completion bridge is cross-layer evidence: FileSlot byte-read mechanics may support L1, while FileSlot/AsyncIO request ownership/scheduling/callback lifecycle and LoadedResource states remain L3.
-
-Open L3 work is now residual static ownership/value-flow breadth plus trusted original-process lifecycle receipts.
-
-## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM
-
-Stage Ops owns product-side stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents that state. ModViz consumes it. None may create a private resource resolver or archive materializer.
-
-Major game-backed Stage Ops expansion should not displace GDS real acceptance or evidence-driven closure.
+Stage systems consume GDSpaces outputs. They must not create private resolution/materialization/lifecycle truth. Expansion here should not displace active layer evidence/acceptance work when a direct dependency exists.
 
 ## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
-EXE Editor should expose one canonical recovered-source tree linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
+Recovered source should preserve exact binary mapping, confidence/status and ownership/lifetime distinctions. Compiling readable C++ is not sufficient equivalence evidence.
 
-## Long-term ordering
+## Current dependency ordering
 
 ```text
-L1 real-retail/game-backed acceptance
- -> narrow L2 evidence closure
- -> representative L3 dynamic lifecycle validation
- -> Stage Ops game-backed assembly
- -> semantic/editor verticals
- -> bounded recovered-subsystem equivalence
- -> progressive recompilation
- -> working rebuilt executable milestones
+all-layer documentation/boundary reconciliation
+ -> L3 R2 ownership research
+ +  L2 successful-mount topology product correction
+ +  L1 original-reverse/retail acceptance preparation
+ -> trusted live observation infrastructure
+ -> first same-lineage L2→L1→L3 vertical receipt
+ -> layer-specific breadth/final audits
+ -> downstream Stage Ops/editor/recompilation milestones
 ```
 
-This ordering is dependency priority, not a ban on parallel evidence work.
+Parallel work is allowed when it closes a concrete dependency, but progress in one layer must not be reported as completion of another.
