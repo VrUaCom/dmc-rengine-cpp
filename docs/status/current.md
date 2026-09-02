@@ -1,158 +1,143 @@
 # Current Project Status
 
-**Snapshot date:** 2026-08-26  
-**Canonical implementation base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
-**Latest L2 promotion:** PR #219 — protected-runtime RVA mapping acquisition/tooling  
-**Active L2 evidence slice:** PR #221 — selected-identity content-candidate contract/binder  
-**Primary execution program:** GDSpaces Layer 1 final acceptance + evidence-driven L2 support  
-**Overall status:** L1 INTERNAL PRODUCT PATH CLOSED; L2 STATIC PHYSICAL + RUNTIME-MAPPING TOOLING INTEGRATED; subsystem remains NOT COMPLETE pending real-retail/protected-process receipts.
+**Snapshot:** 2026-09-02  
+**Reviewed base:** `main@9483663959e5452f9a224c1535445bb5a3b33520`  
+**Overall:** GDSpaces is advanced but **L1, L2 and L3 are all incomplete**. L3-R1 is bounded-closed and R2 is active.
 
-## Authority split
+## Authority model
 
-- GitHub `main` is canonical implementation truth.
-- Reverse claims remain bounded to their recorded artifact/range/scope.
-- Synthetic/public CI proves product/tool behavior only.
-- Original-game equivalence requires original-process evidence.
-- GDSpaces owns product resource identity/materialization/authoring; recovered original functions do not move into GDSpaces.
-- Canonical analysis executable authority and protected original-execution authority are separate and must not be silently substituted.
+- GitHub `main` is merged implementation truth.
+- This reconciliation branch may propose current-main semantic ports after explicit review; it does not make unrelated open-branch code canonical.
+- Reverse claims remain artifact/range/scope bound.
+- Synthetic CI validates product/tool behavior, not original-game equivalence.
+- Original-process promotion requires trusted origin and same-resource identity binding.
+- Historical pass documents remain chronology; current status lives in the roadmaps/status surfaces.
 
-## GDSpaces layer model
+## Layer model
 
-- **L1 — Resource Materialization:** exact bytes, transform/decompression, nested expansion, bounded authoring, rebuild/repack, reopen/rematerialization.
-- **L2 — Resource Resolution:** request, candidates, normalization, provider/volume/source identity, fallback/ambiguity.
-- **L3 — Original Runtime/Lifecycle:** FileSlot/async/LoadedResource/typed-ready/claim/reset/release/consumer behavior.
-- Validation is cross-cutting.
+- **L2 — Resource Resolution:** request, candidates, normalization, successful provider/source/volume/member selection, exact ResourceRef/ResourceId.
+- **L1 — Resource Materialization:** representation, byte acquisition/result semantics, transforms, exact bytes/provenance, edit/rebuild/repack/reopen/rematerialization.
+- **L3 — Original Runtime/Lifecycle:** request/scheduler/callback lifetime, LoadedResource states, typed-ready, claims/reuse, cancellation/release/reset/teardown.
+- Stage Ops/ModViz/editors are downstream DOMAIN consumers.
+- Validation/live observation is cross-cutting, not L4.
 
-Execution follows the dependency-driven [master roadmap](../gdspaces/master-roadmap.md).
+See [master roadmap](../gdspaces/master-roadmap.md).
 
 ## L1 current state
 
-Canonical L1 implementation now includes:
+**Status: INCOMPLETE / NOT 100%.**
 
-- NBZ classic ZIP bounded indexing/materialization;
-- STORE + raw-DEFLATE method 8;
-- CRC/size/SHA/ByteProvenance;
-- artifact-bound archive/member observations;
-- recovered numbered-volume first-gap/runtime-domain behavior;
-- resolver-selected direct-retail member acquisition with provenance receipt;
-- shared staged atomic/no-replace publication;
-- PAC/PNST sparse/empty/alias-preserving parse + expansion;
-- size-changing relative-slot reflow;
-- root-to-leaf nested PAC/PNST slot-path authoring;
-- byte-exact untouched sibling preservation;
-- immutable verified NBZ copy rebuild;
-- deterministic next-contiguous NBZ overlay authoring;
-- staged canonical NBZ reopen;
-- higher-volume resolver verification;
-- protected distribution executable preflight;
-- product closure orchestration through exact authored rematerialization.
+Product capabilities are advanced: NBZ/ZIP materialization, STORE/raw-DEFLATE, ByteProvenance, PAC/PNST expansion/reflow, nested authoring, no-replace publication, next-volume overlays, reopen/rematerialization, and the current naming/identity system are implemented on main.
 
-Canonical L1 review: [Final Pre-Level-E Audit](../gdspaces/l1-final-audit-2026-08-25.md).
+However the old statement `INTERNAL PRODUCT PATH CLOSED; only external receipts remain` is too broad as a Layer-1 status. Newer raw-EXE evidence shows original byte/result/failure/width semantics remain bounded-open. A coarse upstream success boolean cannot be treated as proof that all required child/queue/materialization work completed byte-exactly.
 
-## L1 mandatory remaining work
-
-No known mandatory **internal implementation** blocker remains for the current representative DMC3-HD L1 acceptance scope.
-
-The remaining gates require a real protected installation:
+Current L1 chain:
 
 ```text
-real retail request
- -> exact resolver winner + acquisition receipt
- -> retail representation classification
- -> one supported real edit/rebuild
- -> next-volume overlay + canonical rematerialization receipt
- -> original DMC3 consumer-visible effect
- -> rollback / original retail immutability
- -> final audit
+finish original-L1 reverse gaps required by claimed scope
+ -> direct-retail selected-member provenance
+ -> exact representation classification
+ -> supported real edit/rebuild
+ -> exact next-volume reopen/rematerialization
+ -> original-game consumption + rollback (#209)
+ -> final L1 audit
 ```
 
-Issue #209 is the final original-game Level-E gate.
+Naming authority is now explicitly separated from physical/write authority: physical slot, extracted ordinal, external `.index`, embedded alias, semantic type and display name are distinct evidence domains.
 
-`obj\em000.pac` remains a high-value target, but the archive/member winner must be observed by the resolver and another representative resource may be used if it provides a stronger deterministic consumer effect.
+See [L1 roadmap](../gdspaces/l1-roadmap.md).
 
-## Bounded open reverse breadth — not automatic L1 blockers
+## L2 current state
 
-The following remain real research gaps but only block L1 if the chosen acceptance path depends on them:
+**Status: ADVANCED / INCOMPLETE.**
 
-- complete `0x140328540` ZIP stream initializer lifetime;
-- complete `0x140328FE0` compressed seek/reset/reinflate behavior;
-- exhaustive malformed/partial-read original error equivalence;
-- dynamic `.lst` allocation/free/error/cycle semantics and real loose-list corpus validation;
-- unsupported/evidence-absent binary backends or formats.
+Merged current-main authority includes:
 
-The exact type-0 physical-provider post-`0x0C` final-open contract is no longer in this list: #215 recovered and integrated that bounded L2 slice and added controlled product/parity receipts.
+- bounded direct `OpenGameResource` request/candidate behavior;
+- archive `0x0E` vs physical `0x0C` normalization split;
+- archive lookup/index semantics;
+- bounded type-0 physical final-open behavior;
+- protected-process mapping tooling from #219;
+- selected-identity content-candidate/normalizer/artifact binder from merged #221;
+- exact ResourceId-based `RuntimeNamingBridge` into L1.
 
-Binary AFS and original-runtime PACK remain frozen absent direct evidence. Capcom offline writer equivalence is not an L1 requirement.
+Current product-model gap: `VolumeBootstrapPlan` still represents discovered pre-gap archives as registered. Stronger #246 raw evidence proves discovery/registration attempts are not equivalent to successful linked mounts. Sparse successful mount topology is possible and should be semantically ported into current-main code.
 
-## L2 current frontier
+Remaining L2 evidence gates:
 
-Closed/integrated internal L2 slices:
+```text
+successful-mount topology product correction
+ -> real-retail 0x0E collision census
+ -> real protected-process mapping packet
+ -> trusted selected-provider publisher/origin binding
+ -> zero-loss original selected identity
+ -> final L2 audit
+```
 
-- #215/#204: canonical type-0 physical-provider static reverse, direct native physical product path and controlled receipts;
-- #219: explicit-PID protected-runtime RVA acquisition and multi-anchor bounded mapping tooling.
+See [L2 roadmap](../gdspaces/l2-roadmap.md).
 
-The remaining L2 closure is split into independent real-evidence gates:
+## L3 current state
 
-1. **real-retail `0x0E` collision census** — externally blocked until an exact DMC3 retail central-directory/member-list surface is available;
-2. **real protected-process R2B mapping receipt** — tooling is integrated through #219, but no real `81c7...` multi-anchor packet exists in the connected environment;
-3. **R3 selected-provider identity** — PR #221 defines a fail-closed content-candidate/normalizer/artifact-binder surface; real trusted-capture origin and a real protected-process trace remain required;
-4. **final L2 audit** — only after retail corpus + real R2B/R3 receipts and exact-head validation agree.
+**Status: INCOMPLETE. R1 CLOSED / R2 ACTIVE.**
 
-Fresh canonical EXE review on 2026-08-26 re-confirmed the direct-call policy and added one important boundary: an archive normalized lookup hit can fail during wrapper/open creation (`0x140328290`), and `0x140327430` then exits through null/cleanup instead of treating that as a lower-volume miss. R3 clean-path v1 therefore accepts only `miss -> selected`; provider/backend failure is fail-closed and must not be rewritten as `miss`.
+The historical #240 final R1 writer review has been semantically ported and checked against newer merged type/family/payload research. No contradictory exact `LoadedResource +0x04` writer was found.
 
-Authority identities:
+Current proposed authority:
 
-- canonical analysis executable: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes;
-- protected distribution/original execution candidate: `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, 6,567,320 bytes.
+> **R1 = STATIC BOUNDED-CLOSED / CONTRADICTION-GATED** for the canonical analysis executable.
 
-The protected build is not instruction-reverse authority. Canonical analysis VAs/RVAs cannot be promoted into the protected process without independent mapping evidence.
+Broad state-writer discovery stops unless exact contradictory record provenance appears.
 
-L2 work may support L1 but must not replace the final L1 acceptance run.
+Active static work is now **R2**: family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable adjacent fields, including initialization/finalization/release ordering and the SCM `mesh +0x28` reconciliation.
 
-## L3 current frontier
+R3 is partial and materially improved by the merged runtime type split and MOD/EFM/SCM/SHW family research. R4 is partial. Dynamic R5 remains open.
 
-The static LoadedResource/typed-ready/lifetime spine is strong. Exact writer ownership/ordering and broader dynamic lifecycle receipts remain open.
+The lifecycle trace validator from #218 is not in current main. It should be respawned semantically from current main, followed by a trusted process-bound publisher/binder. Dynamic acceptance order is V1 initial load, then V5 in-flight cancellation, then V2/V3/V4/V6/V7.
 
-For the first vertical proof, L3 only needs enough original-process observation to prove that the authored L1 bytes reached a deterministic consumer. Broader L3 completion is separate.
+See [L3 roadmap](../gdspaces/l3-roadmap.md) and [R1 current-main reconciliation](../gdspaces/l3-r1-current-main-reconciliation-2026-09-02.md).
 
-## Current critical path
+## Critical cross-layer seams
 
-### L1 vertical acceptance
+### L2 -> L1
 
-1. obtain access to a protected DMC3 installation;
-2. run direct-retail acquisition and preserve provenance;
-3. classify the exact retail representation;
-4. perform one supported bounded real edit, top-level or nested;
-5. run next-volume authoring + canonical rematerialization closure;
-6. execute issue #209 original-game consumption + rollback;
-7. run final L1 acceptance audit;
-8. mark `L1 = 100% / COMPLETE` only if every mandatory receipt is valid.
+Exact identity only:
 
-### L2 closure support
+```text
+L2 resolved ResourceId == L1 parent/materialization ResourceId
+```
 
-1. finish review/promotion of #221 as **candidate/tooling only**;
-2. obtain cryptographically bound retail DMC3 member-list/central-directory evidence and run the `0x0E` collision census;
-3. run integrated #219 tooling against the exact protected process and produce a multi-anchor bounded R2B mapping packet;
-4. use only proven mapped anchors with a trusted publisher path to capture a zero-loss R3 selected-identity trace;
-5. bind observer artifact + exact numbered NBZ artifacts and preserve the selected identity without treating provider/backend failure as a miss;
-6. compare product resolution only after trusted origin is established, keeping product and original evidence classes separate;
-7. reconcile code/docs/evidence and run final L2 audit.
+No filename/display/semantic fallback.
 
-No synthetic-only feature should displace the real evidence sequence unless a real run reveals a concrete missing dependency.
+### L1 -> L3
 
-## Environment boundary
+```text
+[L1] exact byte/result semantics -> terminal materializer result
+[L3] scheduler/callback lifetime -> normal state 1 -> 2 publication
+```
 
-The currently connected automation environment does not expose all exact raw protected-install artifacts required for the real-retail/original-process runs. Synthetic CI must not substitute for those receipts.
+Stronger raw evidence says admitted type-2 work remains current while pending/retrying and retires on status 3 before later FIFO work can become current. Dynamic cancellation/concurrency is still an L3 evidence gap.
+
+## Current project priority
+
+1. review/land this all-layer documentation and boundary reconciliation;
+2. run L3-R2 field/backing ownership research;
+3. port the L2 discovery-vs-successful-mount topology correction into current-main product code;
+4. keep L1 product exactness stricter than unsafe original wrap/short-success/failure-swallowing behavior;
+5. obtain real retail/protected-process artifacts and build one same-lineage L2→L1→L3 vertical receipt;
+6. respawn L3 validation tooling and implement trusted publisher/binder infrastructure;
+7. run independent final audits before any `COMPLETE / 100%` claim.
 
 ## Navigation
 
-- [Canonical L1 roadmap](../gdspaces/l1-roadmap.md)
-- [Final pre-Level-E L1 audit](../gdspaces/l1-final-audit-2026-08-25.md)
-- [Three-layer master roadmap](../gdspaces/master-roadmap.md)
-- [L2 EXE reconciliation checkpoint](../gdspaces/l2-exe-reconciliation-2026-08-26.md)
-- [L2 selected-identity runbook](../gdspaces/l2-original-selected-identity-runbook-2026-08-26.md)
+- [L1 roadmap](../gdspaces/l1-roadmap.md)
+- [L2 roadmap](../gdspaces/l2-roadmap.md)
+- [L3 roadmap](../gdspaces/l3-roadmap.md)
+- [Master roadmap](../gdspaces/master-roadmap.md)
+- [Layer classification](../gdspaces/decompilation-layer-classification.md)
+- [2026-09-02 layer/L3 research review](../gdspaces/layer-boundaries-l3-research-review-2026-09-02.md)
 - [Blockers](blockers.md)
+- [Phase map](phase-map.md)
+- [Risks](risks.md)
 - [Machine-readable status](canonical-status.json)
-- [GDSpaces contract](../gdspaces-contract.md)
 
-No percentage or implementation milestone overrides the gate-based completion rule.
+No percentage, preview, parser, writer, resolver or crash-free launch overrides the mandatory evidence gates.
