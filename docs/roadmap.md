@@ -1,101 +1,147 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-08-24  
-**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
+**Snapshot:** 2026-09-02  
+**Reviewed base:** `main@9483663959e5452f9a224c1535445bb5a3b33520`
 
-The project roadmap is dependency-driven rather than a linear feature checklist. The current primary execution program is **GDSpaces Layer 1 — Resource Materialization**. Its detailed acceptance gates live in [GDSpaces L1 Roadmap](gdspaces/l1-roadmap.md).
+The project roadmap is dependency-driven. The active resource-runtime program is no longer described as “finish L1, then the rest”; L1/L2/L3 have separate ownership and completion gates with a shared vertical acceptance target.
 
-## Current critical path — GDSpaces L1
+## Current GDSpaces status
 
 ```text
-publication integrity
- -> artifact-stable retail member acquisition
- -> direct-retail provenance receipt
- -> retail representation classification
- -> bounded real edit
- -> PAC/PNST bottom-up rebuild
- -> next-volume NBZ publication
- -> canonical resolver/reopen/rematerialization
- -> original DMC3 consumption receipt
- -> final L1 acceptance audit
+L1 — Resource Materialization
+     INCOMPLETE / NOT 100%
+     advanced product authoring capability
+     original byte/result reverse + real acceptance open
+
+L2 — Resource Resolution
+     ADVANCED / INCOMPLETE
+     successful-mount topology correction + trusted real selection evidence open
+
+L3 — Original Runtime / Lifecycle
+     INCOMPLETE
+     R1 state-writer census bounded-closed
+     R2 field/backing ownership ACTIVE
 ```
 
-Current immediate work order:
+See [GDSpaces master roadmap](gdspaces/master-roadmap.md).
 
-1. unify atomic/no-replace publication across NBZ repack, overlay and acquisition outputs;
-2. bind NBZ index/member bytes/archive SHA to one stable artifact observation;
-3. correct and promote the retail-member acquisition seam (#191);
-4. acquire an exact retail receipt using game request `obj\\em000.pac` and record the actual resolver-selected member;
-5. classify the direct-retail texture/container representation;
-6. use only an evidenced writer domain for the real edit/rebuild;
-7. publish as the next contiguous `DMC3-N.nbz`, reopen through canonical GDSpaces and verify exact edited bytes;
-8. obtain an original-game consumption receipt on the protected distribution execution authority;
-9. perform final cross-stack review before any L1 completion claim.
+## Current critical work
+
+### 1. L3 R2 static ownership research
+
+Now that R1 is closed for the canonical image, the active static lifecycle frontier is:
+
+```text
+LoadedResource +0x08/+0x10/+0x18/+0x20/+0x28
+ -> family/group producer/writer/owner census
+ -> initialization/finalization/release ordering
+ -> SCM +0x28 reconciliation
+ -> R3/R4 support where ownership requires it
+```
+
+### 2. L2 successful-mount topology correction
+
+Port the recovered distinction:
+
+```text
+filename discovery / registration attempt
+!=
+successful linked mount
+```
+
+into current-main product code. Resolver traversal must be based on explicit successful registrations, including sparse success.
+
+### 3. L1 original-materialization + real acceptance
+
+Keep product exactness stricter than original unsafe behavior while completing the reverse/evidence scope required by the claimed compatibility boundary.
+
+Then execute:
+
+```text
+direct-retail selected member
+ -> representation classification
+ -> supported real edit/rebuild
+ -> next-volume resolver/reopen/rematerialization
+ -> original DMC3 consumer-visible effect
+ -> rollback
+ -> final L1 audit
+```
+
+### 4. Trusted live evidence infrastructure
+
+Respawn current-main lifecycle validation from the useful #218 design and implement trusted process-bound publisher/origin binding. Editable JSON fields cannot self-promote.
+
+The same trust discipline applies to original selected-provider evidence in L2.
+
+### 5. First same-lineage vertical receipt
+
+High-value integrated target:
+
+```text
+[L2] original selected provider/member identity
+ -> [L1] exact materialized bytes/provenance
+ -> authored rebuild/rematerialization
+ -> [L3] original ready/use lifecycle
+ -> deterministic consumer-visible effect
+ -> rollback
+```
+
+This closes a declared representative acceptance scope without pretending every layer's full breadth is finished.
 
 ## Maintained foundations
 
-The following are established infrastructure and remain continuously maintained rather than treated as future phases:
-
 - C++20/CMake and Windows + Ubuntu CI;
-- evidence/artifact identity and hash-gated EXE analysis;
-- GDSpaces ResourceId/ResourceRef/ByteProvenance/SourceRegistry;
-- canonical PAC/PNST/NBZ read/materialization paths;
-- WorkingCopy and bounded authoring contracts;
-- Binary Inspector byte/structure authority;
-- Reverse Core and Recovered Game Source Tree boundaries;
-- guarded patch/export and validation infrastructure.
+- exact artifact/executable identity and hash-gated reverse authority;
+- ResourceId/ResourceRef/ByteProvenance/SourceRegistry;
+- canonical NBZ/PAC/PNST product materialization/authoring paths;
+- current DMC3 naming/type evidence separation;
+- WorkingCopy and guarded publication;
+- Binary Inspector byte/structure/evidence authority;
+- Reverse Core / Recovered Game Source Tree boundaries;
+- EXE Editor linkage to exact recovered-source/binary evidence.
 
-## GDSpaces L2 — Resource Resolution
+## Layer-specific roadmaps
 
-L2 is structurally advanced. Candidate construction, numbered-volume bootstrap/precedence, archive normalization/index lookup and resolver ownership are strong. Remaining work is narrow evidence closure, especially exact type-0 physical-provider final-open semantics and representative real receipts.
-
-L2 work may proceed when it supports L1, but it must not displace L1 closure.
-
-## Original runtime / lifecycle
-
-Recovered DMC3 resource runtime contains a substantial static spine: FileSlot/AsyncIO, ZIP read/inflate, LoadedResource state progression, typed post-load, loader claims and reset/release behavior. Remaining work includes exact open/error boundaries, selected ZIP helper bodies, broader dynamic lifecycle traces and Level-E validation.
-
-Original runtime code remains in the Recovered Game Source Tree; GDSpaces consumes only confirmed contracts.
+- [L1 Resource Materialization](gdspaces/l1-roadmap.md)
+- [L2 Resource Resolution](gdspaces/l2-roadmap.md)
+- [L3 Original Runtime/Lifecycle](gdspaces/l3-roadmap.md)
+- [Layer classification](gdspaces/decompilation-layer-classification.md)
 
 ## Stage Ops and Stage Semantic Graph
 
-After L1 has a real retail edit/rebuild/game-consumption receipt, Stage Ops becomes the primary product-side integration frontier:
+Stage Ops remains a downstream product domain. It may expand in parallel when it consumes canonical GDSpaces identities/materialized resources, but it must not create a second resource resolver/materializer/lifecycle authority.
 
 ```text
-GDSpaces resolved/materialized resources
+GDSpaces L2/L1/L3 authority
  -> Stage Ops assembly/orchestration
  -> Stage Semantic Graph
  -> ModViz
 ```
 
-Stage Ops must never create a second resource resolver/materializer. Stage descriptor identity, numeric Stage identity and semantic gameplay identity remain distinct.
-
 ## EXE Editor / recovered source
 
-The EXE Editor continues to become the front end over the Recovered Game Source Tree, exact binary mappings and evidence identities. Progressive reconstruction goals are:
+Progressive reconstruction remains evidence-driven:
 
-- exact function/data identities;
+- exact function/data identity;
 - source-equivalent bounded C++ units;
-- ABI/ownership/lifetime reconciliation;
+- ABI/field ownership/lifetime reconciliation;
 - isolated compilation;
 - controlled original-vs-reconstruction behavioral receipts;
 - progressive replacement/recompilation milestones.
 
-Readable pseudocode or compile success alone is not completion.
-
-## ModViz / editor verticals
-
-ModViz remains downstream of Stage Ops and shared resource authority. High-value editor verticals should be built only over canonical GDSpaces/Stage Ops state so resource parsing, scene assembly and edit ownership do not fork.
+Readable pseudocode or compile success is not equivalence.
 
 ## Long-term milestones
 
-1. **GDSpaces L1 accepted** with real retail provenance, rebuild/reopen and original-game consumption receipt.
-2. **Narrow L2 closure** including exact physical-provider behavior where required.
-3. **Representative L3 lifecycle validation** across load/reload/transition/release.
-4. **Stage Ops game-backed assembly** over representative catalog selections.
-5. **Stable Stage Semantic Graph and ModViz editing verticals.**
-6. **First bounded recovered subsystem behavioral equivalence receipt.**
-7. **Progressive recompilation** with controlled replacement modules.
-8. **Working rebuilt executable milestones** without weakening evidence gates.
+1. Current three-layer boundary/status reconciliation promoted.
+2. L3 R2 field/backing ownership closed at the declared canonical scope.
+3. L2 successful-mount topology corrected in product code.
+4. Trusted original-process selection/lifecycle observation infrastructure operational.
+5. First same-lineage L2→L1→L3 real vertical acceptance receipt.
+6. Layer-specific final audits for declared scopes.
+7. Stage Ops game-backed assembly over canonical resource authority.
+8. Stable semantic/editor verticals.
+9. First bounded recovered-subsystem behavioral equivalence receipt.
+10. Progressive recompilation and working rebuilt-executable milestones.
 
-No milestone is promoted because of synthetic tests alone. See [completion policy](status/current.md), [blockers](status/blockers.md), and the [canonical L1 roadmap](gdspaces/l1-roadmap.md).
+No milestone is promoted because of a percentage or synthetic success alone. See [current status](status/current.md), [blockers](status/blockers.md) and [machine-readable status](status/canonical-status.json).
