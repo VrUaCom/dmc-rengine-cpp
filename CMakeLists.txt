@@ -82,13 +82,35 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         nbz_overlay_writer
         next_volume_overlay_resolution
         resource_path_normalizer
+        tagged_record_classification
+        texture_pack_container
+        scm_structural
+        mod_structural
+        effect_and_shadow_structural
+        slot_name_manifest
+        mot_structural
+        effect_pack_structural
+        named_but_not_a_container
+        manifest_names_and_slot_numbering
+        animation_formats_and_walk
+        content_tag_census
+        demo_script_naming
+        classifier_registry_agreement
+        effect_pack_names
+        slot_zero_manifest_authority
+        texture_partial_mip_chain
+        no_replace_publication
+        external_index_naming
+        index_sidecar_manifest
+        container_index_probe
         resource_lookup_policy
-        resource_id_canonical
+        recovered_exe_contract
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
         runtime_naming_bridge
         physical_provider_receipt
+        retail_member_acquisition
         loose_container_list
         relative_slot_writer
         relative_slot_packed_reflow_writer
@@ -107,6 +129,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         sha256
         patch
         json_parser
+        json_number_portability
         evidence_json
         evidence_json_import
         evidence_packet_project
@@ -151,11 +174,13 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_integration_evidence_gate
         custom_build
         custom_build_graph
+        custom_build_import
         custom_build_manifest
         custom_build_reopen
         pc_save_file
         working_copy
         byte_provenance
+        resource_id_canonical
         index_name_authority
         index_name_evidence_persistence
         embedded_name_evidence

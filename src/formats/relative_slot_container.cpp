@@ -49,7 +49,10 @@ RelativeSlotParseResult parse_relative_slot_container(
             "relative-slot container header requires at least 8 bytes");
     }
 
-    if (!std::equal(spec.magic.begin(), spec.magic.end(), bytes.begin())) {
+    if (!std::equal(
+            spec.magic.begin(),
+            spec.magic.begin() + static_cast<std::ptrdiff_t>(spec.magic_bytes),
+            bytes.begin())) {
         return fail(
             RelativeSlotParseError::invalid_magic,
             "relative-slot container magic does not match the selected format");

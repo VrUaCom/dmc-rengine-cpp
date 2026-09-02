@@ -3,6 +3,7 @@
 #include "dmc_rengine/formats/container_parser.hpp"
 #include "dmc_rengine/formats/pac.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/formats/ptx.hpp"
 
 #include <memory>
 #include <string>
@@ -59,6 +60,32 @@ namespace {
     case formats::PnstParseError::slot_offset_out_of_bounds:
         return "slot_offset_out_of_bounds";
     case formats::PnstParseError::invalid_document: return "invalid_document";
+    }
+    return "invalid_document";
+}
+
+[[nodiscard]] std::string_view ptx_error_suffix(
+    formats::PtxParseError error) noexcept {
+    switch (error) {
+    case formats::PtxParseError::none: return "none";
+    case formats::PtxParseError::truncated_header: return "truncated_header";
+    case formats::PtxParseError::texture_count_limit:
+        return "texture_count_limit";
+    case formats::PtxParseError::not_a_texture_pack:
+        return "not_a_texture_pack";
+    case formats::PtxParseError::truncated_descriptor:
+        return "truncated_descriptor";
+    case formats::PtxParseError::unsupported_compression:
+        return "unsupported_compression";
+    case formats::PtxParseError::descriptor_mismatch:
+        return "descriptor_mismatch";
+    case formats::PtxParseError::nonzero_alignment_padding:
+        return "nonzero_alignment_padding";
+    case formats::PtxParseError::size_table_does_not_close:
+        return "size_table_does_not_close";
+    case formats::PtxParseError::missing_image_signature:
+        return "missing_image_signature";
+    case formats::PtxParseError::invalid_document: return "invalid_document";
     }
     return "invalid_document";
 }
@@ -155,6 +182,53 @@ public:
     }
 };
 
+class PtxContainerParser final : public formats::IContainerParser {
+public:
+    [[nodiscard]] std::string_view id() const noexcept override {
+        return "dmc3-ptx-structural-v1";
+    }
+
+    [[nodiscard]] std::string_view format() const noexcept override {
+        return "ptx";
+    }
+
+    [[nodiscard]] bool supports_byte_identity_reuse() const noexcept override {
+        return true;
+    }
+
+    [[nodiscard]] int probe(
+        std::span<const std::byte> bytes,
+        std::string_view) const noexcept override {
+        // No magic to match, so this scores below an exact-magic parser and
+        // earns its score by structure instead. A byte image cannot satisfy
+        // both this and a magic parser: a texture pack opens with a count.
+        return formats::PtxParser::structurally_valid(bytes) ? 90 : 0;
+    }
+
+    [[nodiscard]] formats::ContainerParseResult parse(
+        std::span<const std::byte> bytes,
+        std::string_view) const override {
+        auto parsed = formats::PtxParser::parse(bytes);
+        formats::ContainerParseResult result;
+        result.recognized = parsed.ok();
+        if (parsed.document.has_value()) {
+            result.document = std::move(*parsed.document);
+        }
+        if (!parsed.ok()) {
+            result.diagnostics.push_back(formats::ParseDiagnostic{
+                .severity = formats::ParseSeverity::warning,
+                .code = std::string{"dmc3.ptx."} +
+                    std::string{ptx_error_suffix(parsed.error)},
+                .message = parsed.message.empty()
+                    ? "Texture pack structural parse failed."
+                    : std::move(parsed.message),
+                .offset = 0U,
+            });
+        }
+        return result;
+    }
+};
+
 } // namespace
 
 formats::ContainerParserRegistry make_container_parser_registry() {
@@ -163,6 +237,8 @@ formats::ContainerParserRegistry make_container_parser_registry() {
         registry.register_parser(std::make_unique<PacContainerParser>()));
     static_cast<void>(
         registry.register_parser(std::make_unique<PnstContainerParser>()));
+    static_cast<void>(
+        registry.register_parser(std::make_unique<PtxContainerParser>()));
     return registry;
 }
 

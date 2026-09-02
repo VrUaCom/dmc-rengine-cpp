@@ -2,6 +2,7 @@
 
 ## Start here
 
+- [File format reference — what every format is for, and on what evidence](formats/README.md)
 - [Current project status](status/current.md)
 - [GDSpaces Layer 1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)

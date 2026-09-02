@@ -35,6 +35,11 @@ struct RelativeSlotParseResult final {
 
 struct RelativeSlotContainerSpec final {
     std::array<std::byte, 4> magic{};
+    // How many of those four bytes the original runtime actually compares.
+    // It is three for PAC and four for PNST — see RelativeSlotWalkContract.
+    // Comparing more than the runtime does makes a reader stricter than the
+    // game, which is a real difference, not a harmless extra check.
+    std::size_t magic_bytes{4U};
     std::string_view document_format;
     std::uint32_t max_slot_count{1U << 20U};
 };

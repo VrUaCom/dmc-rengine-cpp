@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/resource_bootstrap_contract.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -47,16 +49,18 @@ public:
         return "data/dmc3";
     }
 
+    // These are the recovered bootstrap's, read from the contract that
+    // recovered them. Restating them here would give the same fact two homes.
     [[nodiscard]] static constexpr std::string_view executable_data_suffix() noexcept {
-        return "\\data\\dmc3\\";
+        return Dmc3ResourceBootstrapContract::executable_data_suffix;
     }
 
     [[nodiscard]] static constexpr std::string_view volume_format() noexcept {
-        return "%sDMC3-%d.nbz";
+        return Dmc3ResourceBootstrapContract::volume_format;
     }
 
     [[nodiscard]] static constexpr std::uint32_t runtime_index_max() noexcept {
-        return 0x7FFFFFFFU;
+        return Dmc3ResourceBootstrapContract::runtime_index_max;
     }
 
     [[nodiscard]] static constexpr bool runtime_index_valid(

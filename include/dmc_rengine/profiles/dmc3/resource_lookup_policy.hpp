@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/open_game_resource_contract.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -45,10 +47,18 @@ struct ResourceLookupPlan final {
 
 class ResourceLookupPolicy final {
 public:
-    static constexpr std::size_t candidate_buffer_bytes = 0x400U;
+    // Read from the recovered contract rather than restated. Two copies of a
+    // recovered number drift the first time one of them is edited, and the one
+    // that drifts is never the one anybody looks at.
+    static constexpr std::size_t candidate_buffer_bytes =
+        OpenGameResourceContract::candidate_buffer_bytes;
+    static constexpr std::size_t attempts_per_request =
+        OpenGameResourceContract::attempts_per_request;
 
-    [[nodiscard]] static const std::array<std::string_view, 6>&
-    namespace_prefixes() noexcept;
+    [[nodiscard]] static constexpr const std::array<std::string_view, 6>&
+    namespace_prefixes() noexcept {
+        return OpenGameResourceContract::namespace_prefixes;
+    }
 
     [[nodiscard]] static std::string basename_of(std::string_view logical_path);
 

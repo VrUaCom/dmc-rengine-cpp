@@ -74,6 +74,13 @@ Migration target:
 
 Recorded addresses:
 
+> **Audited 2026-08-26 and largely wrong.** Seven of the ten below do not name
+> a function entry; they land 0x20–0x150 inside one, and two are not even
+> instruction boundaries. See
+> `docs/reverse/inherited-tokenizer-addresses-audit-2026-08-26.md` for the
+> corrections. The labels are not disputed, only the addresses. Do not use any
+> address below as a call target or a receipt anchor without re-deriving it.
+
 - `0x140322CA0` — init;
 - `0x140322CB0` — clear;
 - `0x140322CC0` — advance;

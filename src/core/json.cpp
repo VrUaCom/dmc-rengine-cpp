@@ -3,10 +3,39 @@
 #include <charconv>
 #include <cmath>
 #include <limits>
+#include <locale>
+#include <sstream>
+#include <string>
 #include <utility>
 
 namespace dmc::rengine::core::json {
 namespace {
+
+// Converts an already grammar-validated JSON number token to a double.
+//
+// libc++ ships the integral std::from_chars overloads long before the
+// floating-point ones, so the Android NDK has no from_chars(double). The
+// fallback deliberately uses a classic-locale stream rather than strtod:
+// strtod honours the global C locale, and one whose decimal separator is not
+// '.' would silently truncate a JSON fraction at the separator.
+//
+// The two paths agree because parse_number has already rejected everything
+// they would disagree on — leading whitespace, a '+' sign, and "inf"/"nan" —
+// and full consumption is required either way.
+[[nodiscard]] bool token_to_double(std::string_view token, double& value) {
+#if defined(__cpp_lib_to_chars)
+    const auto* const first = token.data();
+    const auto* const last = token.data() + token.size();
+    const auto conversion =
+        std::from_chars(first, last, value, std::chars_format::general);
+    return conversion.ec == std::errc{} && conversion.ptr == last;
+#else
+    std::istringstream stream{std::string{token}};
+    stream.imbue(std::locale::classic());
+    stream >> value;
+    return !stream.fail() && stream.eof();
+#endif
+}
 
 class ParserState final {
 public:
@@ -371,12 +400,7 @@ private:
         const auto token = input_.substr(begin, position_ - begin);
         if (floating) {
             double value = 0.0;
-            const auto conversion = std::from_chars(
-                token.data(), token.data() + token.size(), value,
-                std::chars_format::general);
-            if (conversion.ec != std::errc{} ||
-                conversion.ptr != token.data() + token.size() ||
-                !std::isfinite(value)) {
+            if (!token_to_double(token, value) || !std::isfinite(value)) {
                 fail("JSON floating-point number is outside the supported range.");
                 return std::nullopt;
             }
