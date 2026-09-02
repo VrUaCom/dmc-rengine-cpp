@@ -55,6 +55,7 @@ add_executable(dmc-rengine
     src/cli/exe_acquisition_commands.cpp
     src/cli/integration_commands.cpp
     src/cli/integration_dispatch.cpp
+    src/cli/l3_validation_commands.cpp
     src/cli/dmc3_build_authority_commands.cpp
     src/cli/dmc3_l1_closure_commands.cpp
     src/cli/dmc3_overlay_commands.cpp
@@ -143,6 +144,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         item_runtime_validation_plan
         item_runtime_validation_graph
         item_runtime_patch_compiler
+        l3_lifecycle_trace
         copy_executor
         source_modification
         source_integration_project
@@ -258,6 +260,18 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_validate_l3_lifecycle_usage
+        COMMAND dmc-rengine validate-l3-lifecycle)
+    set_tests_properties(
+        dmc_rengine_cli_validate_l3_lifecycle_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_validate_l3_lifecycle
+        COMMAND ${CMAKE_COMMAND}
+                -DDMC_RENGINE_CLI=$<TARGET_FILE:dmc-rengine>
+                -DTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/l3-lifecycle-cli-test
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/l3_lifecycle_cli_test.cmake)
     add_test(
         NAME dmc_rengine_cli_preflight_dmc3_game_test_usage
         COMMAND dmc-rengine preflight-dmc3-game-test)
