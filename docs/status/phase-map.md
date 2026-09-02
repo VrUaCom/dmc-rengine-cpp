@@ -1,99 +1,107 @@
 # Phase Map
 
-**Snapshot date:** 2026-08-26  
-**Canonical base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`
+**Snapshot date:** 2026-08-27  
+**Canonical base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
+**Boundary/status authority:** `../gdspaces/layer-boundary-status-reconciliation-2026-08-27.md`  
+**Focused L1 gap authority:** PR #244
 
-The project is tracked by subsystem/layer gates rather than one linear phase number.
+The project is tracked by subsystem/layer gates, not one linear phase number.
 
 ## Foundation — maintained
 
-C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces identity/source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output infrastructure and guarded canonical-EXE window acquisition are maintained foundations.
+C++20/CMake, Windows+Ubuntu CI, evidence/artifact identity, GDSpaces source/provenance, Binary Inspector, EXE evidence, WorkingCopy, guarded output and canonical-EXE acquisition/disassembly support remain maintained foundations.
 
-## GDSpaces L1 — INTERNAL PRODUCT PATH CLOSED / FINAL ACCEPTANCE ACTIVE
+## GDSpaces L1 — INCOMPLETE / NOT 100%
 
-Canonical execution plan: [L1 roadmap](../gdspaces/l1-roadmap.md).
+L1 product implementation is advanced, but original byte-materialization reverse is **not exhaustive**.
 
-Mandatory acceptance sequence:
+Current static order:
 
 ```text
-direct-retail member provenance
- -> representation classification
- -> real bounded edit
- -> bottom-up PAC/PNST rebuild
- -> next-volume NBZ publication/reopen
- -> exact authored rematerialization
- -> original-game consumption
+size/zero/error: 0x14002F9F0 -> 0x140048E20
+ -> rounded-transfer/final-chunk/EOF/short-read: 0x140033390..0x1400335A0 + backend clamp
+ -> capacity/alignment/overflow: 0x1401B7B90
+ -> backing initialization / .lst padding
+ -> representation/planning: 0x1401B79E0 + 0x1401B7FD0
+ -> .lst writer/failure equivalence: 0x1401B85C0
+ -> exact byte-producing ingress/context behind 0x1402EF4D0
+ -> partial STORE/InflateRead terminal composition
+ -> L1 terminal-result / L3 completion seam
+```
+
+The original L1 byte-materialization cut ends at the materializer result through `0x1401B8CA0`. Normal LoadedResource `state1 -> state2` remains L3 lifecycle publication.
+
+Real acceptance then remains:
+
+```text
+direct-retail selected-member provenance
+ -> exact representation classification
+ -> supported real edit/rebuild/rematerialization
+ -> original DMC3 consumption
  -> rollback
- -> final L1 acceptance audit
+ -> final L1 audit
 ```
 
-Current main already contains the representative internal product path. Remaining completion gates are real-retail/original-process evidence, not another parser rewrite.
+## GDSpaces L2 — ADVANCED / INCOMPLETE
 
-### Supporting EXE reverse — materialization completion dependency bridge
+L2 owns logical request/candidate/provider/source/volume/member selection and pre-usable-selection failure semantics.
 
-Merged #228 canonically replaced old generic `fan-in/completion` shorthand with the narrower **materialization completion ordering / dependency bridge**. Merged #230 further proves that normal `0x1401B8DC0` receives only one u32 registry-relative context and does not receive transport status/error/byte-count/outstanding-work metadata.
+Open gates:
 
-The follow-up pass therefore asks a small terminal-state question rather than searching for a generic child counter:
+- retail `0x0E` collision census;
+- real protected-process mapping;
+- trusted selected-provider identity;
+- final L2 audit.
+
+Once usable identity exists, exact byte production is L1.
+
+## Original runtime / lifecycle L3 — ADVANCED / INCOMPLETE
+
+L3 owns:
+
+- request/queue/callback ownership and scheduler lifetime;
+- normal LoadedResource `state1 -> state2` publication;
+- typed post-load / state2 -> state3 ready;
+- cancellation/replacement;
+- quiescence and state4 cleanup;
+- claims/cache/factory ownership;
+- release/reset/shutdown and lifetime distinctions.
+
+The cross-layer completion seam is:
 
 ```text
-0x1402EF4D0 materialization job/submission
- -> lower whole-file/FileSlot transport
- -> terminal status / job-retirement condition
- -> queued 0x1401B8DC0(record-context)
- -> state2
+[L1] terminal materializer result
+ -> eligibility/suppression dependency
+ -> [L3] scheduler/callback -> state1 -> state2
 ```
 
-FIFO insertion order alone is not enough unless the earlier materialization job has completion-aware persistence/retirement semantics.
+Open L3 work remains scheduler/lifecycle breadth plus V1–V7 original-process receipts.
 
-Current raw-pass priority:
+## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM DOMAIN
 
-```text
-0x1402EF4D0 queued job identity/type
- -> 0x1402EF790 materialization-job persistence/re-poll/retirement
- -> 0x1400333E0 historical status/poll anchor
- -> 0x140033390 historical terminal cleanup/release anchor
- -> 0x1400335A0 transport status/error writes
- -> 0x1402EF460 queued-completion suppression/rollback
- -> .lst child/recursive failure ordering after the direct-resource mechanism is closed
-```
-
-`0x1400333E0` and `0x140033390` remain reacquisition hypotheses until fresh canonical bytes confirm their exact historical roles. No generic fan-in counter is claimed.
-
-## GDSpaces L2 — ADVANCED / REAL EVIDENCE CLOSURE ACTIVE
-
-Type-0 post-`0x0C` static physical-provider behavior is no longer the primary gap. Current closure depends on real-retail collision evidence, protected-process RVA mapping and trusted selected-provider identity receipts.
-
-L2 may support the L1 vertical proof but does not substitute for L1 materialization acceptance.
-
-## Original runtime / lifecycle L3 — ADVANCED, NOT COMPLETE
-
-Static authority is strong for the central LoadedResource state spine, scheduler callback ABI, cancellation/quiescence/release distinctions and representative typed post-load families.
-
-The materialization completion bridge is cross-layer evidence: FileSlot byte-read mechanics may support L1, while FileSlot/AsyncIO request ownership/scheduling/callback lifecycle and LoadedResource states remain L3.
-
-Open L3 work is now residual static ownership/value-flow breadth plus trusted original-process lifecycle receipts.
-
-## Stage Ops / Stage Semantic Graph / ModViz — DOWNSTREAM
-
-Stage Ops owns product-side stage assembly/orchestration over GDSpaces outputs. Stage Semantic Graph represents that state. ModViz consumes it. None may create a private resource resolver or archive materializer.
-
-Major game-backed Stage Ops expansion should not displace GDS real acceptance or evidence-driven closure.
+Stage Ops owns stage assembly/orchestration over GDSpaces outputs. Stage/domain progress does not count as L1/L2/L3 completion and must not create a private resolver/materializer/lifecycle authority.
 
 ## EXE Editor / Recovered Game Source Tree — PARALLEL EVIDENCE TRACK
 
-EXE Editor should expose one canonical recovered-source tree linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation remains downstream of bounded behavioral comparison.
+Recovered-source work stays linked to exact binary ranges, ABI/ownership/lifetime evidence and validation receipts. Progressive recompilation is downstream of bounded behavioral comparison.
 
-## Long-term ordering
+## Current long-term ordering
 
 ```text
-L1 real-retail/game-backed acceptance
- -> narrow L2 evidence closure
- -> representative L3 dynamic lifecycle validation
+L1 byte-exactness reverse closure
+ -> L1/L3 terminal-completion seam reconciliation
+ -> L2/L1 real selected-resource evidence
+ -> L1 real edit/rebuild/rematerialization
+ -> L3/V same-resource typed-ready/use evidence
+ -> original-game consumption + rollback
+ -> final L1 audit
+ -> independent final L2/L3 audits
  -> Stage Ops game-backed assembly
  -> semantic/editor verticals
  -> bounded recovered-subsystem equivalence
  -> progressive recompilation
- -> working rebuilt executable milestones
 ```
 
-This ordering is dependency priority, not a ban on parallel evidence work.
+This is dependency priority, not a ban on parallel evidence work.
+
+**Current labels: L1 NOT COMPLETE, L2 NOT COMPLETE, L3 NOT COMPLETE.**

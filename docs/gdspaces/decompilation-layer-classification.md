@@ -1,64 +1,88 @@
 # GDSpaces Decompilation-Layer Classification
 
-**Canonical reconciliation:** 2026-08-26  
-**Current-main base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
-**L3 raw authority:** [`l3-boundary-audit-2026-08-26.md`](l3-boundary-audit-2026-08-26.md)  
-**Materialization completion authority:** [`materialization-completion-boundary-pass-2026-08-26.md`](materialization-completion-boundary-pass-2026-08-26.md) + [`materialization-completion-dependency-pass2-2026-08-26.md`](materialization-completion-dependency-pass2-2026-08-26.md)
+**Canonical reconciliation:** 2026-08-27  
+**Base reviewed:** `main@f886f27e62ec9a05b6829df7fd074981a06a4b49`  
+**Boundary/status authority:** [`layer-boundary-status-reconciliation-2026-08-27.md`](layer-boundary-status-reconciliation-2026-08-27.md)  
+**Focused L1 gap authority:** PR #244 / `l1-byte-exactness-gap-pass-2026-08-27.md`
 
-This document keeps GDSpaces/resource-runtime work separated by ownership and acceptance layer. Layer ownership is semantic and evidence-driven; it is not inferred from tool ownership or one contiguous executable address range.
+Layer ownership is semantic and evidence-driven. A helper, queue, object or EXE address is not assigned wholesale to a layer. Split a helper by behavior when it participates in more than one authority.
 
 ## Canonical tags
 
-### [L1] Resource Materialization
-
-```text
-physical/container bytes
- -> bounded acquisition
- -> transform/decompression
- -> exact materialized bytes
- -> nested extraction
- -> exact editable child authority
- -> WorkingCopy/edit
- -> rebuild/repack/publication
- -> reopen/rematerialization
-```
-
-L1 is not closed by lookup, enumeration, structural parsing or synthetic composition alone.
-
 ### [L2] Resource Resolution
+
+> Which logical resource/provider/source/volume/member is selected?
 
 ```text
 logical request
  -> candidate construction
  -> normalization
- -> provider/source/volume selection
- -> duplicate/ambiguity behavior
- -> exact ResourceRef identity
+ -> provider/source/volume traversal
+ -> duplicate/ambiguity/fallback/failure classification
+ -> usable selected ResourceRef/provider/member identity
 ```
+
+A provider hit that fails before producing a usable selected resource remains L2 failure semantics.
+
+### [L1] Resource Materialization
+
+> Given a selected identity, what exact byte representation is required and produced?
+
+```text
+selected provider/member identity
+ -> logical/materialized size authority
+ -> destination capacity/allocation
+ -> selected byte/span acquisition semantics
+ -> final-chunk / EOF / short-read / progress semantics
+ -> transform/decompression
+ -> exact caller-owned destination bytes
+ -> packed OR .lst synthesized representation
+ -> nested PAC/PNST/.lst byte construction
+ -> terminal materializer success/error
+ -> 0x1401B8CA0 materialization result
+```
+
+Product provenance, edit/rebuild/repack/publication/reopen-rematerialization also remain L1 product responsibilities.
 
 ### [L3] Original Runtime / Lifecycle
 
+> How does the original runtime schedule, publish, ready, own, cancel and release resources?
+
 ```text
-selected/materialized resource
- -> FileSlot / AsyncIO ownership and callbacks
- -> LoadedResource states
+request/job ownership and scheduler lifetime
+ -> completion eligibility
+ -> LoadedResource state 1 -> 2 publication
  -> typed post-load
- -> ready visibility
- -> claims/cache/factory handoff
- -> cancellation/reset/release/unload/shutdown
+ -> optional ready callback
+ -> state 2 -> 3
+ -> consumer-ready visibility
+ -> claims/cache/factory/dependency ownership
+ -> cancellation/replacement
+ -> state4 cleanup
+ -> release/reset/shutdown
 ```
 
-Original code here belongs to the Recovered Game Source Tree.
+LoadedResource `state1 -> state2` remains L3 lifecycle state publication. L1 terminal byte correctness must already be satisfied before that publication can be valid.
+
+### [SEAM] Cross-layer dependency
+
+A seam is used when one layer's result gates another layer's action without transferring ownership of both behaviors.
+
+The primary current seam is:
+
+```text
+[L1] terminal materializer byte/result state
+ -> [SEAM] completion eligibility / suppression
+ -> [L3] scheduler callback and state1 -> state2 publication
+```
 
 ### [V] Validation
 
-Cross-cutting hashes, corpus receipts, CI, original-vs-reconstruction comparison and original-game execution. Validation is not a fourth decompilation layer.
+Hashes, corpus receipts, CI, original-vs-product comparisons and original-process observations. V is cross-cutting, not a numbered layer.
 
-### [DOMAIN] Stage Assembly / Stage Ops
+### [DOMAIN] Stage Assembly / Stage Ops / ModViz
 
-Stage/room semantic assembly, geometry/collision/camera/lighting/events/effects/audio relationships and Stage Ops UI are downstream consumers of resource authority.
-
-They are **not Layer 3** in the canonical L1/L2/L3 resource-runtime model and must not create their own materializer/resolver/lifecycle authority.
+Stage/room semantic assembly, geometry/collision/camera/lighting/events/effects/audio relations, Stage Ops and ModViz are downstream consumers. They are not L3.
 
 ### [OUTSIDE]
 
@@ -66,137 +90,118 @@ Product/extraction metadata or tooling information not established as original D
 
 ## Current classification matrix
 
-| Area | Layer | Current boundary |
+| Area / behavior | Canonical owner | Boundary |
 |---|---|---|
-| NBZ local/central/EOCD and stored spans | L1 | canonical bounded read/serialization evidence |
-| STORE/raw-DEFLATE member materialization | L1 | strong canonical |
-| archive/member provenance stability | L1 + V | evidence execution remains representation-specific |
-| PAC/PNST relative-slot parsing | L1 | strong canonical |
-| recursive PAC/PNST byte expansion | L1 | strong canonical |
-| bounded PAC/PNST reflow/reintegration | L1 | canonical at evidenced writer scope |
-| `.lst` synthesized bytes | L1 | structurally recovered; dynamic completion/error edges separate |
-| `.lst` packed-first representation choice | L2 | recovered selection behavior |
-| `DMC3-N.nbz` bootstrap/first-gap/precedence | L2 | strong canonical |
-| request basename candidates | L2 | strong recovered boundary |
-| archive normalization/index/qsort/bsearch | L2 | strong recovered boundary |
-| type-0 physical final filename/open behavior | L2 | bounded static chain recovered; protected-process selected identity separate |
-| FileSlot byte-read mechanics | L1 support | byte acquisition behavior only |
-| FileSlot pool/AsyncIO request ownership | L3 | substantial recovered static spine |
-| `0x1401B8CA0` representation/materialization dispatch | L1/L3 seam | mechanics are L1; success controls L3 state1 publication |
-| `0x1402EF4D0` materialization submission/job creation | L1 support + L3 scheduling seam | exact queued job/terminal dependency behavior still open |
-| lower whole-file transport `0x140033500/0x1400335A0` | L1 support + L3 request lifecycle | caller-owned byte transport/status; not LoadedResource state2 callback |
-| materialization completion ordering / dependency bridge | cross-layer | no generic fan-in counter evidenced; terminal gating before normal `1B8DC0` dispatch remains open |
-| LoadedResource 0/1/2/3/4 lifecycle | L3 | strong central static spine |
-| cancellation `1|2 -> 4` | L3 | source-state domain closed for canonical writer |
-| quiescence predicate | L3 | all 363 records must be in `{0,3}` |
-| ordinary/cancel/group/full release policies | L3 | distinct ordering/result semantics recovered |
-| typed MOD/EFM/SCM/SHW post-load | L3 | bounded family authority |
-| central typed unknown/default behavior | L3 | best-effort/no-op; not a state2-blocking failure return |
-| loader-node claims/reset/release | L3 | substantial recovered authority |
-| group-5 exhaustion | L3 original behavior | hard capacity invariant; not safe product policy |
-| runtime vs CRT vs process-lifetime teardown | L3 | distinct lifetime domains recovered |
-| dynamic transition/reload/shutdown receipts | L3 + V | OPEN representative Level-E coverage |
-| StageBundle / StageAssemblyWorkspace | DOMAIN | downstream consumer, not L3 |
-| Stage Ops / Stage Editor | DOMAIN | downstream tooling, not L3 |
-| `.index` manifests | OUTSIDE | metadata, not original lookup authority on recovered path |
-| binary AFS backend | evidence-gated | not established by `.afs/` namespace strings |
-| PACK original runtime use | evidence-gated | historical product parser is not original-runtime proof |
+| request basename/candidate construction | L2 | logical request policy |
+| numbered-volume bootstrap/precedence | L2 | provider/source selection |
+| archive normalization/qsort/bsearch | L2 | selected archive/member identity |
+| type-0 physical provider selection/open failure | L2 | usable-resource selection/failure |
+| materialized/logical size authority | L1 OPEN | `0x14002F9F0 -> 0x140048E20` exact zero/error semantics open |
+| selected backend/member byte extent | L1 | selected-byte acquisition |
+| final 0x800 chunk clamp / EOF / short read | L1 OPEN | byte-exactness gap |
+| STORE/raw-DEFLATE byte production | L1 | exact bytes |
+| destination capacity / 64-byte rounding | L1 OPEN | `0x1401B7B90` breadth open |
+| destination initialization / `.lst` padding contents | L1 OPEN | original byte state not proven |
+| PAC/PNST relative-slot topology | L1 | strong bounded byte structure |
+| recursive PAC/PNST expansion | L1 | nested exact bytes |
+| `.lst` packed-vs-loose representation decision | L1 | representation of same selected identity |
+| `.lst` planner `0x1401B7FD0` | L1 OPEN | planner/writer equivalence open |
+| `.lst` materializer `0x1401B85C0` | L1 | grammar/layout strong; error/padding breadth open |
+| generic packed child extent | L1 scope limit | relative starts do not prove universal intrinsic child size |
+| FileSlot/ReadRequest byte count/result semantics | L1 support | only where needed for exact selected bytes |
+| FileSlot/ReadRequest object/queue/callback ownership | L3 | runtime I/O lifecycle |
+| `0x140033500/0x1400335A0` byte/progress/result semantics | L1 support | final-chunk/terminal composition open |
+| `0x140033500/0x1400335A0` request/callback lifetime | L3 support | scheduler/request ownership |
+| `0x1402EF4D0` exact byte-producing ingress/context | L1 OPEN | safe label remains submission/scheduling wrapper |
+| `0x1402EF4D0` queued-job ownership/persistence | L3 OPEN | do not infer from byte role |
+| relevant `0x1402EF790` dispatch/poll/retire behavior | L3 | scheduler behavior supporting seam |
+| materialization terminal -> completion eligibility | SEAM OPEN | no generic fan-in counter evidenced |
+| normal `0x1401B8DC0` state1 -> state2 | L3 | callback ABI strong; state publication lifecycle |
+| typed MOD/EFM/SCM/SHW post-load | L3 | consumes state2/materialized bytes |
+| `0x1401B92D0` state2 -> typed-ready -> state3 | L3 | ready publication |
+| cancellation `1|2 -> 4` | L3 | lifecycle policy; can suppress pending completion |
+| `0x1402EF460` pending-entry clear/rollback | SEAM | classify exact action by target after reverse |
+| state4 cleanup / ordinary/group/full release | L3 | lifecycle ownership |
+| loader-node claims/cache/factory ownership | L3 | post-materialization shared ownership |
+| runtime/CRT/process teardown | L3 | lifetime domains |
+| archive/member provenance stability | L1 + V | materialization evidence |
+| protected selected-provider trace | L2 + V | original selection evidence |
+| typed-ready/use/release trace | L3 + V | original lifecycle evidence |
+| StageBundle / StageAssemblyWorkspace / Stage Ops / ModViz | DOMAIN | downstream consumer/tooling |
+| `.index` manifests | OUTSIDE | metadata, not recovered lookup authority |
+| binary AFS / PACK original runtime use | evidence-gated | no promotion without direct evidence |
 
-## GDS-relevant EXE function-boundary matrix
+## L1 mandatory reverse frontier
 
-### Strong / do not restart without contradiction
+The current L1 reverse is **not exhaustive**. Mandatory focused classes are:
 
-#### L1/L2
+1. rounded transfer vs exact logical extent;
+2. size/zero/error semantics at `0x14002F9F0 -> 0x140048E20`;
+3. capacity/alignment/overflow at `0x1401B7B90`;
+4. `.lst` planner/writer equivalence (`0x1401B7FD0` vs `0x1401B85C0`);
+5. synthesized padding byte initialization;
+6. exact byte-producing ingress/context behind `0x1402EF4D0`;
+7. partial read / InflateRead terminal composition;
+8. explicit non-proof of universal packed-child intrinsic size.
 
-- resource bootstrap / numbered-volume registration family around `0x14002E930`;
-- mounted-source resolver family around `0x140327430`;
-- basename-oriented `OpenGameResource` request path around `0x14002FCA0`;
-- normalization family including archive `0x0E` and physical `0x0C` behavior;
-- archive central index/sort/search family;
-- `ZipEntryRead 0x140328F50` direct-vs-inflated branch;
-- `InflateRead 0x140328820` raw-DEFLATE streaming behavior at the recovered scope;
-- major `.lst` packed-first/synthesis structure;
-- caller-owned whole-file transfer submission/callback boundary around `0x140033500/0x1400335A0`.
+Focused reacquisition order is defined in `l1-roadmap.md` and PR #244.
 
-#### L3 / cross-layer scheduler
+## Cross-layer completion dependency
 
-- LoadedResource registry `0x140C99D30`, 363 records × `0x48`, seven groups;
-- acquisition `0x1401B84E0` with state1 only after materialization success;
-- normal completion `0x1401B8DC0` state2 publication;
-- merged #230 one-u32 normal completion context ABI through `0x1402EF580/0x1402EF790`;
-- finalizer `0x1401B92D0`: typed post-load -> optional callback -> state3;
-- cancellation `0x1401B8430`: only states1/2 -> state4;
-- quiescence `0x1401B84B0`: every record must be state0 or state3;
-- cancel cleanup `0x1401B8F00` vs ordinary release `0x1401B9530` vs group/full reset `0x1401B9560/0x1401B95E0`;
-- typed dispatcher `0x1401B9FA0`, representative families and recursive PNST behavior;
-- loader claim/release anchors `0x1401AE220`, `0x1401AF6A0`, `0x1401AF6F0`;
-- runtime backing release `0x140337710` distinguished from CRT backing destructor `0x140337440`.
+`0x1401B8DC0` receives only one u32 registry-relative context and cannot validate raw I/O status. Therefore the exact L1 terminal result must be converted into an allowed/suppressed L3 completion before normal state2 publication.
 
-These boundaries may still have open family/error/profile edges; that does not justify restarting the already recovered core behavior.
+Do not solve this by relabeling all scheduler code L1. Equally, do not hide L1 byte-terminal gaps by labeling all FileSlot/AsyncIO work L3.
 
-## Materialization completion dependency correction
+## Strong boundaries not to restart generically
 
-Merged #228 supersedes broad `fan-in/completion` wording as evidence of a generic child/outstanding-work counter. No such universal counter is currently established.
+### L2
 
-Merged #230 proves the normal `0x1401B8DC0` callback receives only one u32 registry-relative context. It does **not** receive transport status, error flag, byte count, FileSlot handle or child/outstanding-work metadata.
+- numbered-volume bootstrap/first-gap structure;
+- basename candidate construction;
+- archive/physical provider order;
+- archive normalization/index/search;
+- bounded type-0 static final-open chain.
 
-Therefore the success/error dependency must be resolved before normal `0x1401B8DC0` dispatch, or the queued completion must be removed/suppressed before it executes.
+### L1
 
-FIFO insertion order alone is insufficient if a prior materialization scheduler job can submit asynchronous transport and retire immediately. The next raw pass must determine the actual terminal condition: persistent polling job, callback-driven terminal state, separate scheduler gate, synchronous completion, or another directly evidenced mechanism.
+- ZIP method-0 vs raw-DEFLATE core architecture;
+- PAC/PNST sparse relative-slot structure;
+- recursive PAC/PNST traversal;
+- `.lst` grammar and 64-byte placement structure.
 
-Historical helper roles around `0x1400333E0` (status/poll) and `0x140033390` (terminal release/close) remain reacquisition hypotheses until fresh canonical bytes confirm them.
-
-## Bounded open reverse targets
-
-### Cross-layer materialization completion bridge — current first priority
-
-1. `0x1402EF4D0`: exact queued materialization job callback/state/type and inherited load-context consumer;
-2. `0x1402EF790`: identify that job's dispatch case and persistence/re-poll/retirement behavior;
-3. `0x1400333E0`: reacquire pending/success/error status domain;
-4. `0x140033390`: reacquire terminal cleanup/release ordering;
-5. `0x1400335A0`: bind lower transport writes into the terminal state;
-6. determine what prevents normal `0x1401B8DC0` dispatch on failed/incomplete transport;
-7. `0x1402EF460`: recover higher scheduler suppression/rollback without relabeling it OS AsyncIO cancellation;
-8. only then apply the confirmed direct-resource mechanism to `.lst` child/recursive failure ordering.
-
-### L1/L2
-
-1. exact protected-process selected-provider identity after independent runtime mapping;
-2. real-retail normalized-key collision evidence where required by final L2 acceptance;
-3. remaining ZIP/loose-container error/lifetime edges only where they affect a claimed compatibility boundary.
+These strong structures do not close the newly explicit size/capacity/error/padding gaps.
 
 ### L3
 
-1. alias-aware residual whole-image census of possible `LoadedResource +0x04` value-flow writers/callers;
-2. family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable adjacent fields;
-3. external typed/factory/dependency failure paths outside the central best-effort dispatcher;
-4. SCM `mesh +0x28` reconciliation;
-5. shared-owner coordination breadth outside already bounded loader-node families;
-6. protected original-process V1–V7 lifecycle receipts;
-7. cross-build/profile differences.
+- LoadedResource registry `363 x 0x48` and seven groups;
+- normal `state1 -> state2` callback ABI/state publication;
+- state2 typed-finalizer -> optional callback -> state3;
+- cancellation `1|2 -> 4`;
+- quiescence `{0,3}`;
+- state4 cleanup;
+- ordinary/group/full release/reset distinction;
+- representative typed families;
+- bounded loader claim/release model;
+- runtime vs CRT vs process-lifetime distinction.
 
 ## Cross-boundary rules
 
-- Physical provider selection is L2; materializing the selected bytes is L1.
-- `.lst` representation choice is L2; synthesized container bytes are L1.
-- `0x1401B8CA0` is an explicit L1/L3 seam: materialization mechanics are L1, its success result gates L3 state1 publication.
-- FileSlot can support L1 byte-read reconstruction while original pool/scheduler/callback ownership remains L3.
-- State1/state2 remain L3 lifecycle states even when their ordering is supporting evidence for L1 byte/materialization correctness.
-- `0x1400335A0` lower transport completion and `0x1401B8DC0` state2 completion are distinct layers.
-- A lower generic allocator/backing helper is not automatically L3; classify by caller/state ownership context.
-- Stage Ops consumes L1/L2/L3 authority and is not itself one of the three resource-runtime layers.
-- Product hardening never becomes original-game acceptance behavior automatically.
-- Writer compatibility with read/runtime contracts does not prove Capcom offline-writer equivalence.
-- Evidence-grade archive/member receipts require artifact stability across index/member/hash observation.
+- Identity selection is L2; exact selected-byte representation is L1.
+- `.lst` representation choice is L1, not L2.
+- Byte-count/EOF/result semantics may be L1 even when the owning request object is L3.
+- Queue/poll/callback/state-publication semantics remain L3 even when they must wait on an L1 terminal result.
+- `state1 -> state2` is L3; `0x1401B8CA0` materializer result is the L1 original-byte cut.
+- A shared helper may contain behaviors from multiple layers.
+- Stage Ops consumes L1/L2/L3 authority and is not one of the resource-runtime layers.
+- Product hardening is not original-game equivalence.
+- Writer compatibility is not Capcom offline-writer equivalence.
 
 ## Current priority accounting
 
-The three layers have separate remaining gates:
-
 ```text
-L1 -> real-retail / edit-rebuild-rematerialization evidence
-L2 -> protected-process mapped selected identity + retail collision gate
-L3 -> narrow residual static census + materialization-completion scheduler bridge + V1–V7 original-process lifecycle
+L1 -> byte-exactness G1..G8 + terminal-result/seam reconciliation + real retail/edit/rebuild/Level-E
+L2 -> retail collision evidence + protected mapping + trusted selected identity + final audit
+L3 -> residual static lifecycle ownership + completion-scheduler seam support + V1..V7 receipts
 ```
 
-Progress in one layer must not be reported as completion of another, even when a vertical acceptance receipt spans all three.
+**L1, L2 and L3 are all INCOMPLETE / NOT 100%.** Progress in one layer must never be reported as completion of another.

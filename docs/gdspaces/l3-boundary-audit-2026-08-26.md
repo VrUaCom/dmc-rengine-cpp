@@ -4,200 +4,183 @@
 **Size:** `6,356,432` bytes  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
 **ImageBase:** `0x140000000`  
-**EntryPoint:** `0x14034615C`
+**EntryPoint:** `0x14034615C`  
+**Ownership reconciliation:** 2026-08-27 — see `layer-boundary-status-reconciliation-2026-08-27.md`
+
+> **Supersession note:** raw findings remain historical evidence. The corrected ownership split does not assign all FileSlot/AsyncIO work to either L1 or L3. Exact byte-result semantics are L1 where they determine materialized bytes; request/queue/callback ownership and LoadedResource state publication remain L3. Normal `state1 -> state2` is L3 lifecycle publication, gated by an L1 terminal result through a cross-layer seam.
 
 ## Canonical Layer-3 definition
 
-Layer 3 is **Original Runtime / Resource Lifecycle**.
-
-It begins when the original runtime takes lifecycle ownership of an already selected/materialized resource and ends only after the applicable owner/reuse/release/reset/destruction/process-lifetime policy is accounted for.
+Layer 3 is **Original Runtime / Resource Lifecycle and scheduling ownership**.
 
 ```text
-L2 selected logical/provider identity
- -> L1 exact materialized bytes
- -> [L3 START]
-    FileSlot / async ownership and scheduling
-    LoadedResource acquisition
-    state 0 -> 1
-    completion state 1 -> 2
-    typed post-load
-    optional ready callback
-    state 2 -> 3
-    state-3 consumer visibility
-    loader-node claims/reuse
-    cancellation/replacement
-    state 1|2 -> 4
-    deferred state 4 -> 0 cleanup
-    owner release / group reset / full reset
-    runtime vs CRT vs process-lifetime teardown
- -> [L3 END]
+[L2] usable selected identity
+ -> [L1] exact byte representation / materializer result
+ -> [SEAM] terminal-result completion eligibility
+ -> [L3] scheduler / callback ownership
+ -> normal state1 -> state2 publication
+ -> typed post-load
+ -> optional ready callback
+ -> state2 -> state3
+ -> consumer-ready visibility
+ -> claims/reuse/cache/factory ownership
+ -> cancellation/replacement
+ -> state4 cleanup
+ -> owner release / group reset / full reset
+ -> runtime / CRT / process-lifetime teardown
 ```
 
-Stage Assembly / Stage Ops is a downstream consumer/domain layer and must not be called Layer 3 in the canonical three-layer GDSpaces model.
+Stage Assembly / Stage Ops / ModViz remain downstream DOMAIN work and are not L3.
 
-## Layer boundaries
+## Behavior-level boundary split
 
-### Not L3 — Layer 1
+### L1 behavior inside shared I/O/materialization machinery
 
-Physical byte acquisition and reproduction:
+- logical/materialized size semantics;
+- exact byte extent, EOF, short-read/progress and final-chunk clamp;
+- selected-byte transform/decompression;
+- destination capacity/initialization relevant to exact bytes;
+- PAC/PNST/.lst byte representation;
+- terminal materializer success/error returned through `0x1401B8CA0`;
+- product provenance/edit/rebuild/repack/rematerialization.
 
-- NBZ/ZIP/PAC/PNST parsing;
-- exact member span selection;
-- read/seek/decompression/CRC;
-- materialized byte buffers and byte provenance;
-- rebuild/repack/round-trip.
+### L3 behavior inside shared I/O/materialization machinery
 
-FileSlot is a boundary subsystem: its byte-read mechanics can support L1, while request ownership, scheduling, completion, cancellation and close lifetime are L3.
+- FileSlot/ReadRequest object ownership and request lifetime;
+- queue insertion, persistence, polling, retirement and callback lifetime;
+- normal `0x1401B8DC0` completion dispatch;
+- LoadedResource state1 -> state2 publication;
+- cancellation/replacement policy and scheduler suppression initiated by lifecycle decisions;
+- runtime service/pool/shutdown ownership.
 
-### Not L3 — Layer 2
-
-Logical selection:
-
-- candidate construction;
-- provider/source precedence;
-- numbered-volume choice;
-- archive-vs-physical fallback;
-- selected provider identity;
-- ambiguity/fallback policy.
-
-Any provider-selection finding discovered while tracing lifecycle remains tagged L2.
-
-### Not L3 — Stage/domain tooling
-
-- StageBundle / StageAssemblyWorkspace;
-- SCM geometry assembly;
-- collision, triggers/events, lighting, camera, effects/audio domain composition;
-- Stage Ops / Stage Editor presentation and UX.
-
-Those consumers receive already selected/materialized/ready resource authority. They must not create a second resolver/materializer/lifecycle authority.
+A helper can contain both categories. Do not classify the entire helper by its name.
 
 ## Raw-EXE lifecycle anchors
 
 ### Registry topology
 
-- global LoadedResource registry base: `0x140C99D30`;
+- LoadedResource registry base `0x140C99D30`;
 - `363` records;
-- record stride `0x48`;
-- observed group partition `[4,136,60,28,1,128,6]`.
+- stride `0x48`;
+- seven groups with counts `[4,136,60,28,1,128,6]`.
 
-Known fields remain:
+Known fields remain bounded by the original audit and later writer-census passes.
 
-- `+0x00` group;
-- `+0x04` state;
-- `+0x08` family-specific selector/index metadata;
-- `+0x10` optional ready callback/context path where applicable;
-- `+0x18` descriptor/type authority;
-- `+0x20` loaded payload;
-- `+0x28` owned/backing subobject region requiring family-complete ownership census.
+### State spine
 
-### Canonical state spine
+The state transitions remain L3 lifecycle authority:
 
-- `0x1401B84E0` — acquisition construction and successful state `0 -> 1` publication;
-- `0x1401B8DC0` — normal completion callback and state `1 -> 2`;
-- `0x1401B92D0` — scan/finalize state-2 records, typed post-load, optional ready callback, then state `2 -> 3`;
-- `0x1401B8430` — unfinished-resource cancellation/invalidation state `1|2 -> 4`;
-- `0x1401B8F00` — deferred state `4 -> 0` cleanup before/around backing release;
-- `0x1401B9530` — ordinary owner-driven release to state 0 only when runtime backing release succeeds;
+- `0x1401B84E0` — acquisition/lifecycle setup; materializer invocation is an L1 interaction, while LoadedResource bookkeeping/state ownership is L3;
+- `0x1401B8DC0` — normal completion callback, `state1 -> state2`; callback ABI/context remains strong L3 evidence;
+- `0x1401B92D0` — typed post-load -> optional callback -> state3;
+- `0x1401B8430` — cancellation/replacement marks states1/2 -> state4;
+- `0x1401B8F00` — state4 cleanup -> state0;
+- `0x1401B9530` — ordinary owner-driven release;
 - `0x1401B9560` — group reset;
-- `0x1401B95E0` — full 363-record runtime reset.
+- `0x1401B95E0` — full reset.
 
-State 3 is therefore a **consumer-ready lifecycle state after typed post-load and optional callback**, not merely "bytes loaded".
+State2 is a lifecycle publication that indicates materialization completion has been accepted by the runtime. It does not make the byte-production mechanics themselves L3.
 
-### Typed post-load
+## L1/L3 completion seam
 
-Central typed-dispatch/finalization path includes:
+Normal `0x1401B8DC0` receives only one registry-relative u32 context. It cannot inspect raw FileSlot transfer status, byte count or transform error directly.
 
-- dispatcher `0x1401B9FA0`;
-- MOD helper `0x1402FE3B0`;
-- EFM helper `0x1402F7A90`;
-- SCM helper `0x1403051B0`;
-- SHW helper `0x1403204C0`;
-- recursive PAC/PNST typed traversal where applicable.
+Therefore the remaining question spans the boundary:
 
-Known typed branches are direct EXE evidence. Remaining work is branch breadth, unknown/default/failure behavior, dependency/factory behavior and the SCM `mesh +0x28` contradiction.
+```text
+[L1] exact materializer terminal result
+ -> [SEAM] scheduler eligibility / suppression
+ -> [L3] normal B8DC0 dispatch -> state2
+```
 
-### Shared ownership above LoadedResource
+For layer accounting:
 
-The original runtime does not support one universal `LoadedResource.refCount` model.
+- byte-terminal semantics, final extent and transform success are L1;
+- `0x1402EF790` scheduler persistence/re-poll/retirement is L3;
+- the exact byte-producing role/context inside `0x1402EF4D0` is L1-relevant;
+- its queued-job ownership/lifetime is L3-relevant;
+- `0x1402EF460` remains a semantic seam until exact action is known;
+- state1 -> state2 publication itself is L3.
 
-Evidence-backed loader-node ownership:
+This corrects both over-broad interpretations: “all AsyncIO is L3” and “all completion machinery through state2 is L1.”
 
-- `0x1401AE220` — claim increment;
-- `0x1401AF6A0` — claim decrement;
-- `0x1401AF6F0` — zero-claim sweep and underlying release;
-- `(kind,id)` is the bounded node identity in the recovered gameplay path.
+## Typed post-load
 
-Remaining work is family/breadth coordination outside already bounded callers and cross-build/profile differences.
+The central typed-dispatch/finalization path remains L3, including representative MOD/EFM/SCM/SHW helpers and recursive PNST typed processing where evidenced.
 
-## Release and shutdown boundary
+Open breadth remains external factory/dependency failures, SCM `mesh +0x28`, family differences and profile/build differences.
 
-L3 contains multiple lifetime layers rather than one symmetric `ResourceRuntime::Shutdown()`.
+## Shared ownership above LoadedResource
 
-### Runtime/owner lifetime
+The bounded loader-node claim/release model remains L3:
 
-- ordinary LoadedResource release;
-- cancellation and deferred cleanup;
-- group/full resets;
-- FileSlot/backend/ZipEntryStream close;
-- loader-node zero-claim release.
+- `0x1401AE220` claim increment;
+- `0x1401AF6A0` decrement;
+- `0x1401AF6F0` zero-claim sweep and underlying release.
 
-### CRT/static destruction
+No universal LoadedResource refcount is claimed.
 
-The LoadedResource manager is statically constructed and atexit-registered. The registered destruction path destructs manager backing and all 363 record backing subobjects after application return.
+## Cancellation interaction
 
-This is not equivalent to runtime full reset.
+Cancellation/replacement is L3 policy. It may invalidate work whose byte production belongs to L1.
 
-### Process-lifetime infrastructure
+```text
+[L3] lifecycle decides unfinished resource is invalid
+ -> [SEAM] pending completion may be suppressed/rolled back
+ -> [L1] incomplete/failed materializer must not be treated as terminal success
+ -> [L3] state4 cleanup/release
+```
 
-Current canonical DMC3 evidence does not recover a normal explicit teardown for all infrastructure:
+Do not relabel `0x1402EF460` as OS `CancelIo` without direct evidence.
 
-- NBZ/physical mount linked list;
-- FileSlot critical section;
-- successfully started lazy AsyncIO manager/thread object.
+## Release and teardown
 
-These are bounded original-lifetime findings, not recommendations for reconstructed-product ownership. DMC Rengine/GDSpaces should use explicit safe lifetime while preserving the original behavior in evidence metadata.
+L3 retains:
 
-## Important call-graph consequence
+- ordinary resource release;
+- cancellation cleanup;
+- group/full reset;
+- loader-node zero-claim release;
+- FileSlot/AsyncIO service/pool lifetime;
+- runtime backing lifetime distinct from CRT/static destruction;
+- process-lifetime infrastructure distinctions.
 
-Layer 3 is a **semantic/lifetime boundary, not one contiguous EXE address range**.
+Closing a backend/request as part of a single selected-byte operation may also carry L1 terminal evidence; classify that concrete action separately.
 
-The central state finalizer has a narrow caller set, while ordinary release/backing primitives have broad caller fan-out across many game owners. Therefore ownership must be classified by caller/state contract, not by assigning an arbitrary `[VA start, VA end]` range to L3.
-
-## Current completion state
+## Current L3 completion state
 
 ### Strong/bounded
 
-- registry topology and seven groups;
-- generic 0/1/2/3/4 state spine;
-- representative typed post-load families;
-- state-3 consumer-ready meaning;
-- cancellation `1|2 -> 4 -> 0`;
-- ordinary/group/full release/reset distinction;
-- loader-node claim model for bounded gameplay families;
-- runtime vs CRT vs process-lifetime teardown distinction.
+- registry topology and groups;
+- normal state1 -> state2 callback ABI/state publication;
+- state2 typed post-load -> optional callback -> state3;
+- representative typed families;
+- state3 ready meaning;
+- cancellation `1|2 -> 4`;
+- quiescence `{0,3}`;
+- state4 cleanup;
+- distinct release/reset policies;
+- bounded loader-node claims;
+- runtime vs CRT vs process-lifetime distinctions.
 
 ### Still mandatory
 
-1. whole-image alias-aware census of every `LoadedResource +0x04` writer and caller context;
-2. family-complete writer/owner census for `+0x08/+0x18/+0x20/+0x28` and remaining stable fields;
-3. exhaustive typed dispatcher branch/key/default/failure census;
+1. residual alias-aware writer/value-flow census outside bounded paths;
+2. family-complete ownership of `+0x08/+0x18/+0x20/+0x28` and stable fields;
+3. external typed/factory/dependency failure breadth;
 4. SCM `mesh +0x28` reconciliation;
-5. shared-owner breadth outside currently bounded loader-node families;
-6. allocation/error/cancellation edge paths;
+5. shared-owner breadth;
+6. scheduler persistence/retirement details required by the L1/L3 completion seam;
 7. cross-build/profile differences;
 8. original-process V1–V7 lifecycle receipts;
 9. final contradiction-free L3 audit.
 
+The L1 byte-exactness gaps themselves are not L3 blockers. The L3 scheduler half of the seam is L3 work.
+
 ## Acceptance rule
 
-A static EXE pass can close static boundaries but cannot by itself mark Layer 3 complete.
+L3 cannot be completed by a static pass, Stage Ops success, synthetic trace or crash-free launch.
 
-Layer 3 is complete only when static reverse and original-process receipts jointly prove, at required breadth:
+Completion requires static lifecycle closure plus trusted original-process evidence at the declared breadth, bound to the same L2 identity and L1 materialized bytes.
 
-```text
-L2 selected provider identity
- + L1 exact materialized byte identity
- + L3 ordered lifecycle ownership/ready/use/release evidence
-```
-
-No Stage Ops UI success, crash-free launch, synthetic trace or manually edited JSON is sufficient promotion evidence.
+**Current status: L3 INCOMPLETE / NOT 100%.**

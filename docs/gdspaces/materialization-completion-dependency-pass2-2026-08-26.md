@@ -3,63 +3,57 @@
 **Current-main reconciliation base:** `main@a90b017ab29171e00174f2a56c719c32241a63f1`  
 **Canonical analysis executable:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Primary target:** materialization completion ordering / dependency bridge  
-**Authority used:** merged #228 + merged raw scheduler ABI from #230; historical Pass-90 direct-resource trace is reacquisition hypothesis only.
+**Authority used:** merged #228 + merged raw scheduler ABI from #230; historical Pass-90 trace is reacquisition hypothesis only.  
+**Ownership/status interpretation superseded:** 2026-08-27 by `layer-boundary-status-reconciliation-2026-08-27.md` and PR #244.
+
+> The technical dependency findings in this pass remain valid. The later reconciliation changes only the layer/completion interpretation: exact byte-terminal semantics are L1; queue/request/callback ownership and normal LoadedResource `state1 -> state2` publication remain L3; the dependency that binds the L1 terminal result to an allowed/suppressed L3 completion is a cross-layer seam. PR #244 also establishes additional L1 byte-exactness gaps that must be closed before this scheduler seam can be treated as the only remaining internal question.
 
 ## 1. Scope
 
-This pass does not claim a fresh raw re-disassembly of `0x1402EF4D0`. The current connected file surface does not expose a fresh canonical `e454...` raw executable blob/window for direct byte inspection in this session.
-
-It narrows the remaining question after merged #228/#230:
+This pass does not claim a fresh raw re-disassembly of `0x1402EF4D0`. It narrows the scheduler/completion dependency after merged #228/#230:
 
 ```text
-0x1401B8CA0 materialization mechanics
+0x1401B8CA0 materializer interaction
  -> 0x1402EF4D0 submission/job creation
  -> lower whole-file/FileSlot work
  -> terminal dependency/completion condition
  -> queued 0x1401B8DC0(record-relative-context)
- -> state2 publication
+ -> LoadedResource state2 publication
 ```
 
 No generic child/outstanding-work fan-in counter is claimed.
 
 ## 2. Hard narrowing from merged #230
 
-Normal acquisition registers `0x1401B8DC0` with exactly one u32 argument:
+Normal acquisition registers `0x1401B8DC0` with one u32 context:
 
 ```text
 context = record_ptr - 0x140C99D30
 ```
 
-The normal callback reconstructs the record and writes state2. It does not receive transport status, error flag, byte count, FileSlot handle, child count or outstanding-work metadata.
+The callback reconstructs the LoadedResource record and writes state2. It does not receive transport status, error flag, byte count, FileSlot handle, child count or outstanding-work metadata.
 
-Therefore the normal callback cannot itself decide whether raw materialization succeeded. By the time `0x1401B8DC0` dispatches, success/failure eligibility must already have been resolved, or the queued completion must have been suppressed/removed before dispatch.
+Therefore raw materialization success/failure cannot be decided inside `0x1401B8DC0`. By dispatch time, the L1 byte/materializer result must already be terminal, or the L3 queued completion must have been suppressed/removed.
 
 ## 3. FIFO alone is insufficient
 
-A simple model such as:
+A model of “materialization job queued first, completion queued second, therefore FIFO proves correctness” is insufficient if the first job can submit asynchronous I/O and retire immediately.
 
-```text
-materialization job queued first
- -> completion callback queued second
- -> FIFO guarantees correctness
-```
+A valid dependency requires direct evidence for at least one stronger property:
 
-is insufficient if the first job merely submits async I/O and retires immediately. In that case the later completion record could dispatch while FileSlot transport is still pending, and `0x1401B8DC0` has no transport-status input to reject early state2.
-
-If scheduler order is the dependency barrier, at least one stronger property must hold:
-
-1. the materialization scheduler record persists/re-polls until lower transfer reaches terminal state;
-2. a lower callback marks shared state terminal before the scheduler record retires;
-3. another status/dependency gate blocks later dispatch;
-4. failure removes/invalidates the queued completion record before it can execute.
+1. the earlier scheduler record persists/re-polls until lower transfer is terminal;
+2. a lower callback publishes terminal state before that record retires;
+3. another dependency gate blocks later completion dispatch;
+4. failure removes/invalidates the queued normal completion;
+5. or the path is proven synchronous at the relevant scope.
 
 ## 4. Historical Pass-90 trace — reacquisition hypothesis only
 
-Historical derivative evidence recorded a candidate direct-resource chain:
+Historical derivative evidence recorded a candidate chain:
 
 ```text
 0x1402EF4D0 enqueue direct-read job
- -> 0x1402EF790 process/poll job
+ -> 0x1402EF790 process/poll
  -> 0x1400333F0 VFS open
  -> 0x1400333C0 chunk count
  -> 0x140033500 submit caller-owned destination read
@@ -67,95 +61,94 @@ Historical derivative evidence recorded a candidate direct-resource chain:
  -> 0x140033390 release load-state
 ```
 
-Because that pass did not use a fresh canonical raw-byte window, these helper roles are not promoted solely from the historical trace. They become focused exact-byte reacquisition targets.
+Those helper roles remain focused reacquisition hypotheses until fresh canonical bytes confirm them.
 
 ## 5. Falsifiable dependency models
 
-### H1 — persistent polling scheduler job
+- **H1 persistent scheduler job:** the L3 scheduler record remains alive/re-dispatchable while L1 byte work is pending.
+- **H2 callback-driven terminal state:** lower completion writes terminal status consumed before the scheduler retires.
+- **H3 separate dependency gate:** the job may retire, but another condition blocks normal completion.
+- **H4 synchronous completion:** materialization is already terminal before successful scheduling returns.
 
-The materialization scheduler record stays live/re-dispatchable while whole-file status is pending and retires only on terminal success/error.
-
-### H2 — callback-driven terminal state
-
-`0x1400335A0` writes a terminal shared status; the scheduler observes it and retires the materialization job only after that transition.
-
-### H3 — separate scheduler gate/status dependency
-
-The materialization job may retire after submission, but a separate scheduler condition prevents later completion records from dispatching until terminal state changes.
-
-### H4 — synchronous completion before `0x1402EF4D0` success
-
-`0x1402EF4D0` may not return successful scheduling until bytes are already complete. Existing whole-file async evidence makes this less attractive, but it is not rejected without the canonical body.
+No hypothesis is promoted without direct evidence.
 
 ## 6. Error-path consequence
 
-`0x1400335A0` exposes lower transport success/error information; normal `0x1401B8DC0` does not.
+`0x1400335A0` carries lower transfer result information; normal `0x1401B8DC0` does not.
 
-Therefore transport failure must be handled before normal state2 dispatch by a mechanism equivalent to:
-
-```text
-transport error
- -> materialization job terminal-failed / not retired as success
- -> completion callback cannot execute normally
-```
-
-or:
+Therefore failure must be resolved before normal state2 publication, conceptually as:
 
 ```text
-transport error
- -> queued completion entry is cleared/rolled back before dispatch
+[L1] transfer/materializer terminal failure
+ -> [SEAM] completion not eligible / queued completion cleared
+ -> [L3] normal B8DC0 does not dispatch
 ```
 
-`0x1402EF460` remains the key cancellation/control comparator, with the bounded label **pending scheduler-entry clear/rollback**. It is not promoted as OS AsyncIO cancellation.
+`0x1402EF460` remains safely labeled **pending scheduler-entry clear/rollback**. It is not automatically OS AsyncIO cancellation.
 
-## 7. Focused acquisition anchors
+## 7. Focused anchors
 
-The focused plan now needs the terminal cluster explicitly:
-
-- `0x140033390` — historical load-state release/close anchor;
-- `0x1400333E0` — historical whole-file status/poll anchor;
+- `0x140033390` — historical terminal load-state cleanup anchor;
+- `0x1400333E0` — historical status/poll anchor;
 - `0x140033500` — transfer submit;
-- `0x1400335A0` — transport completion/status write;
-- `0x1402EF4D0` — materialization submission/job creation;
-- `0x1402EF790` — materialization-job dispatch/persistence/retirement case;
-- `0x1402EF460` — pending scheduler clear/rollback;
-- `0x1401B8DC0` — regression anchor for normal state2 publication.
+- `0x1400335A0` — lower transfer completion/result;
+- `0x1402EF4D0` — materialization submission/scheduling wrapper;
+- `0x1402EF790` — scheduler dispatch/persistence/retirement;
+- `0x1402EF460` — pending-entry clear/rollback;
+- `0x1401B8DC0` — L3 normal state2 publication regression anchor.
 
-## 8. Revised raw-pass order
+## 8. Revised use order after PR #244
 
-1. close `0x1402EF4D0` queued job identity/type and inherited load-context consumer;
-2. identify the corresponding `0x1402EF790` dispatch case and whether it persists/re-polls;
-3. recover `0x1400333E0` pending/success/error domain;
-4. recover `0x140033390` terminal cleanup/release point;
-5. bind `0x1400335A0` transport writes into that state;
-6. determine what prevents later `0x1401B8DC0` dispatch on incomplete/failed transfer;
-7. recover `0x1402EF460` suppression/rollback of queued higher work;
-8. only then apply the confirmed direct-resource mechanism to `.lst` child/recursive failure ordering.
+This pass is no longer the first L1 raw step. First close the direct byte-exactness questions defined by PR #244:
+
+```text
+size/zero/error
+ -> final-chunk/EOF/short-read
+ -> capacity/allocation/initialization
+ -> .lst planner/writer/padding/failure
+ -> exact byte-producing ingress behind 0x1402EF4D0
+ -> then this L1-terminal / L3-completion dependency seam
+```
+
+Within this seam, investigate:
+
+1. the queued-job half of `0x1402EF4D0` and inherited context;
+2. matching `0x1402EF790` persistence/re-poll/retirement;
+3. fresh `0x1400333E0` pending/success/error semantics;
+4. fresh `0x140033390` terminal cleanup ordering;
+5. `0x1400335A0` result binding;
+6. what prevents normal `0x1401B8DC0` on incomplete/failure;
+7. relevant `0x1402EF460` suppression/rollback;
+8. `.lst` recursive failure ordering using the confirmed mechanism.
 
 ## 9. Promotion boundary
 
 Stronger after this pass:
 
-- normal `0x1401B8DC0` cannot be the place where raw transport success/error is decided;
-- dependency correctness must be established before normal `0x1401B8DC0` dispatch;
-- FIFO insertion order alone is insufficient unless the earlier materialization work has completion-aware persistence/retirement semantics;
-- terminal polling/status and load-state release are first-class evidence targets;
-- historical Pass-90 semantics are explicitly downgraded to reacquisition hypotheses where fresh canonical bytes are absent.
+- `0x1401B8DC0` cannot decide raw transport success/error itself;
+- dependency correctness must be established before normal state2 dispatch;
+- FIFO alone is insufficient absent completion-aware persistence/retirement;
+- historical Pass-90 roles stay hypotheses until reacquired.
 
 Still not claimed:
 
 - exact canonical `0x1402EF4D0` job body;
-- scheduler FIFO as the proven barrier;
-- exact `0x1400333E0` status values;
-- exact transport-error suppression path;
-- already-running FileSlot cancellation behavior;
+- exact `0x1400333E0` values;
+- exact failure suppression path;
+- already-running lower-I/O cancellation behavior;
 - `.lst` child failure aggregation;
 - original-process timing equivalence.
 
-## 10. Completion consequence
+## 10. Corrected completion consequence
 
-This is static model narrowing and acquisition planning. It does not reopen the current internal product path and does not change L1/L2/L3 completion criteria.
+This dependency is mandatory to reconcile the **L1 terminal result with L3 normal completion**, but it is not authority for moving all completion machinery or `state1 -> state2` into L1.
 
-The next reverse question is now precise:
+Canonical split:
 
-> **What terminal condition keeps or releases the materialization scheduler job, and how does that condition prevent normal `0x1401B8DC0` from dispatching on failed or incomplete transport?**
+```text
+L1: exact byte size/extent/capacity/transform/result
+SEAM: terminal result -> completion eligibility/suppression
+L3: queue/request/callback ownership + normal state1 -> state2 publication
+```
+
+L1 remains **INCOMPLETE / NOT 100%** because PR #244 exposes unresolved original byte-exactness gaps and because real-retail/original-game acceptance is still open. L3 remains **INCOMPLETE / NOT 100%** for its own scheduler/lifecycle breadth and original-process receipts.
