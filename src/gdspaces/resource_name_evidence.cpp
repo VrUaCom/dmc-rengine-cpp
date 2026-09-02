@@ -93,8 +93,7 @@ bool ResourceNameEvidence::valid() const noexcept {
     case ResourceNameEvidenceKind::external_index:
         return source_line_.has_value() && *source_line_ > 0U &&
                !source_offset_.has_value() && extracted_ordinal_.has_value() &&
-               (mapping_mode_ == ResourceNameMappingMode::physical_position ||
-                mapping_mode_ == ResourceNameMappingMode::populated_slot_sequence);
+               mapping_mode_ == ResourceNameMappingMode::populated_slot_sequence;
     case ResourceNameEvidenceKind::embedded_alias:
         return physical_slot_index_ > 0U &&
                !source_line_.has_value() && source_offset_.has_value() &&

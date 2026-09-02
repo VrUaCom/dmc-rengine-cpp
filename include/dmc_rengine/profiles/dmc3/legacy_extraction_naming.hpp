@@ -24,7 +24,9 @@ struct LegacyExtractionNamingPlan final {
     LegacyExtractionRepresentation representation{
         LegacyExtractionRepresentation::unavailable};
 
-    // Exact parent-manifest line and normalized extraction leaf/directory name.
+    // Exact parent-manifest line and normalized historical extraction
+    // leaf/directory name. This evidence is preserved even if the path would be
+    // unsafe to materialize on a host filesystem.
     std::optional<std::string> manifest_entry_raw;
     std::optional<std::string> extraction_name;
 
@@ -34,6 +36,13 @@ struct LegacyExtractionNamingPlan final {
     // Separate namespace: e.g. st001.ptx. Not claimed to be the historical
     // extracted directory name and not used as a write/slot locator.
     std::optional<std::string> embedded_semantic_alias;
+
+    // Explicit host-export projection. No silent sanitization is performed:
+    // absolute paths, drive-like paths, empty components, `.` and `..` fail
+    // closed and leave these fields unset while historical evidence remains.
+    bool export_safe{false};
+    std::optional<std::string> export_name;
+    std::optional<std::string> export_path;
 
     std::string canonical_display_name;
     bool exact_from_external_index{false};

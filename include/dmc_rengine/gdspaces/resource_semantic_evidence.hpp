@@ -12,12 +12,19 @@ class ContainerNamingReconciler;
 
 enum class ResourceSemanticEvidenceKind : std::uint8_t {
     embedded_name_list,
+    magic_confirmed_format,
     profile_structural_format,
+    // Instruction-backed three-byte registry/content probe (0x1402DB1F0).
+    profile_runtime_content_tag,
+    // Independent instruction-backed four-byte family-mask classifier
+    // (0x1402FD650). Kept distinct because byte 3 is significant here and MCV
+    // is recognized only by this path.
+    profile_runtime_family_mask_tag,
 };
 
 // Read-only semantic evidence attached to a materialized resource. This is
 // presentation-independent and is never ResourceId/write authority. Only the
-// naming reconciler can persist evidence produced by a sealed structural
+// naming reconciler can persist evidence produced by a sealed byte/structural
 // observation, so a display suffix cannot manufacture semantic authority.
 class ResourceSemanticEvidence final {
 public:

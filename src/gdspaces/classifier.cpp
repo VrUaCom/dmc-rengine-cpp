@@ -109,11 +109,6 @@ namespace {
         return false;
     }
 
-    // Real DMC3 extracted corpora also contain text .index manifests whose
-    // first line is literally "PNST\r\n". The four-byte prefix is therefore a
-    // probe candidate, not sufficient binary-container authority. Reuse the
-    // canonical structural parser so classification and materialization cannot
-    // disagree about whether the supplied byte image is a relative-slot PNST.
     return formats::PnstParser::parse(bytes).ok();
 }
 
@@ -143,10 +138,6 @@ ResourceClassification ResourceClassifier::classify(
         result.magic_confirmed = true;
         result.byte_derived = true;
     } else if (structurally_valid_binary_pnst(bytes)) {
-        // Binary PNST commonly survives under a misleading .pac extension in
-        // the extracted corpus. Structurally validated byte identity therefore
-        // outranks extension, while PNST-prefixed text .index manifests fall
-        // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
         result.byte_derived = true;
@@ -286,7 +277,8 @@ ResourceClassification ResourceClassifier::classify(
     const auto physical_profile = profile_from_path(
         payload.resource.id.logical_path);
 
-    if (!payload.semantic_evidence.empty()) {
+    const bool has_semantic_records = !payload.semantic_evidence.empty();
+    if (has_semantic_records) {
         const auto digest = core::Sha256::compute(bytes).hex();
         for (const auto& evidence : payload.semantic_evidence) {
             if (!evidence.valid() ||
@@ -299,21 +291,25 @@ ResourceClassification ResourceClassifier::classify(
             result.format = std::string{evidence.semantic_format()};
             result.profile = physical_profile;
             result.container = is_container_format(result.format);
-            result.structural_confirmed = true;
-            // Sealed evidence is a claim about bytes that was checked against
-            // these exact bytes, so it satisfies the weaker claim too. Leaving
-            // it false would tell every downstream reader of `byte_derived`
-            // that the strongest evidence this project has is a path guess.
-            result.byte_derived = true;
+
+            switch (evidence.kind()) {
+            case ResourceSemanticEvidenceKind::embedded_name_list:
+            case ResourceSemanticEvidenceKind::profile_structural_format:
+                result.structural_confirmed = true;
+                break;
+            case ResourceSemanticEvidenceKind::magic_confirmed_format:
+                result.magic_confirmed = true;
+                break;
+            case ResourceSemanticEvidenceKind::profile_runtime_content_tag:
+                result.runtime_content_tag_confirmed = true;
+                break;
+            case ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag:
+                result.runtime_family_mask_confirmed = true;
+                break;
+            }
             return result;
         }
 
-        // A semantic record is present but does not validate against the exact
-        // current byte image. Ignore presentation and name hints entirely:
-        // only the physical logical identity plus fresh bytes may classify a
-        // stale resource. This is what stops a display name like
-        // "st001_000.index" from turning stale embedded-name evidence into a
-        // fake external-index semantic type.
         auto result = classify(payload.resource.id.logical_path, bytes);
         result.profile = physical_profile;
         return result;

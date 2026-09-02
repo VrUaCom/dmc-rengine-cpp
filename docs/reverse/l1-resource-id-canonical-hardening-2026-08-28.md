@@ -4,7 +4,7 @@
 
 This pass closes P1 from the retained `gdspaces-l1-review-findings.md`: the legacy delimiter-only `ResourceId::canonical()` encoding was not injective.
 
-It is intentionally separated from NBZ serialization, WorkingCopy and graph-diagnostic hardening so the identity-key migration has an isolated regression and CI receipt.
+It is integrated into the consolidated naming tree because all naming evidence and physical child identity ultimately bind to `ResourceId`; a non-injective machine key would undermine otherwise-correct naming authority separation.
 
 ## Defect
 
@@ -43,21 +43,18 @@ Required result:
 
 ## Compatibility note
 
-The legacy canonical string was already used as an internal graph/index/session/manfiest identity field. The previous encoding cannot be safely retained as an authoritative key because its ambiguity is the defect being fixed. The explicit `rid2` prefix makes the schema change visible rather than silently changing delimiter behavior.
+The legacy canonical string was already used as an internal graph/index/session/manifest identity field. The previous encoding cannot be safely retained as an authoritative key because its ambiguity is the defect being fixed. The explicit `rid2` prefix makes the schema change visible rather than silently changing delimiter behavior.
 
 This pass does not add a parser for historical canonical strings. Existing structured `ResourceId` fields remain the authority whenever available; any future importer that accepts persisted legacy canonical-only keys must classify them explicitly as legacy/non-injective rather than treating them as equivalent to `rid2`.
 
 ## Deferred related findings
 
-- P6: `ContainerExpander::connect_graph` currently suppresses graph mutation failures; separate graph-status pass.
-- P8: `NbzZipSource::find_entry` reconstructs canonical strings during a linear scan; switch to exact `operator==` in a separate low-risk cleanup.
-- P9: `StageBundle::add` performs the same avoidable canonical-string comparison; same cleanup class.
-
-These are not required for P1 correctness once the graph key itself is injective, so they are not mixed into the schema migration.
+- P6: `ContainerExpander::connect_graph` graph-mutation failure handling is a separate graph-status concern.
+- P8: `NbzZipSource::find_entry` exact-comparison cleanup is separate from injectivity correctness.
+- P9: `StageBundle::add` exact-comparison cleanup is the same low-risk class.
 
 ## Non-claims
 
 - no Layer 1 completion claim;
-- no NBZ archive-member pathname/provenance reconciliation with unpublished local commit `1a76cb4`;
-- no NBZ serialization no-loss fix;
+- no NBZ serialization no-loss claim;
 - no writer behavior change.

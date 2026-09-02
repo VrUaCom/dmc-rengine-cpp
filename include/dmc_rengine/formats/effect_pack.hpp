@@ -20,20 +20,14 @@ enum class EffectPackParseError : std::uint8_t {
     invalid_document,
 };
 
-// One named effect record: a manifest line paired with the slot it names.
-//
-// `name` is the manifest's own text. It is the first name in this project that
-// a container actually stored, so it is not attributed as invented and must
-// not be presented as though it were.
 struct EffectRecord final {
     std::uint32_t slot_index{};
     char kind{};
     std::uint32_t identifier{};
     std::string name;
+    std::size_t source_line{};
     std::uint64_t offset{};
     std::uint64_t extent{};
-    // True where the kind has a fixed extent in the contract and this record
-    // matches it. False for `T`, whose extent varies by design.
     bool extent_matches_kind{false};
     bool kind_known{false};
 };
@@ -41,12 +35,9 @@ struct EffectRecord final {
 struct EffectPackDocument final {
     std::uint64_t document_size{};
     std::uint32_t manifest_line_count{};
-    std::uint32_t record_slot_count{};
-    // The whole point of the format: the manifest names every slot, one line
-    // each, and this says the two agreed.
-    bool manifest_names_every_slot{false};
-    // True where every record whose kind has a fixed extent matched it.
-    bool extents_match_kinds{false};
+    std::uint32_t populated_record_count{};
+    bool manifest_names_every_populated_record{false};
+    bool extents_match_known_kinds{false};
     std::string manifest_text;
     std::vector<EffectRecord> records;
 
@@ -63,11 +54,9 @@ struct EffectPackParseResult final {
     }
 };
 
-// Structural reader for `*_effect.pac`.
-//
-// It refuses anything whose manifest line count does not equal its record slot
-// count, because that equality is the only thing that makes a line a name for
-// a particular slot rather than a line that happens to sit nearby.
+// Structural reader for the effect-container convention recovered in #254.
+// It requires exactly one manifest line for each populated record payload and
+// refuses malformed/ambiguous structures instead of inventing names.
 class EffectPackParser final {
 public:
     static constexpr std::uint32_t k_max_records = 4096U;

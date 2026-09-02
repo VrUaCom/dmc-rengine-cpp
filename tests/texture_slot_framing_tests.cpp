@@ -1,3 +1,4 @@
+#include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <algorithm>
@@ -163,6 +164,7 @@ void append_at(
 } // namespace
 
 int main() {
+    namespace gdspaces = dmc::rengine::gdspaces;
     namespace dmc3 = dmc::rengine::profiles::dmc3;
 
     const auto wrapped = wrapped_dds_fixture();
@@ -202,6 +204,38 @@ int main() {
     assert(bundle_result.document.textures[1].dds_offset == 0x1070U);
     assert(bundle_result.document.textures[1].secondary_width == 8U);
     assert(bundle_result.document.textures[1].sector_span == 1U);
+
+    // Real NBZ paths such as GData.afs/obj/em000.pac do not carry a "dmc3"
+    // token, so generic path classification can legitimately leave the
+    // physical profile unknown. The explicit DMC3 structural resolver must
+    // still identify the payload from bytes rather than silently doing nothing.
+    const gdspaces::ResourcePayload unknown_profile_texture{
+        .resource = gdspaces::ResourceRef{
+            .id = gdspaces::ResourceId{
+                .source_id = "nbz-source",
+                .logical_path = "GData.afs/obj/em000.pac::PAC/slot-0000",
+                .container_chain = "NBZ[41]/PAC[0]",
+                .offset = 0x1000U,
+                .size = static_cast<std::uint64_t>(bundle.size()),
+            },
+            .display_name = "slot_0000.bin",
+            .format = "unknown",
+            .profile = "unknown",
+            .synthetic_name = true,
+            .container = false,
+        },
+        .bytes = bundle,
+        .diagnostics = {},
+        .byte_provenance = std::nullopt,
+        .name_evidence = {},
+        .enclosing_container_name_evidence = {},
+        .semantic_evidence = {},
+    };
+    const auto unknown_profile_semantic =
+        dmc3::resolve_materialized_display_semantic(unknown_profile_texture);
+    assert(unknown_profile_semantic.has_value());
+    assert(unknown_profile_semantic->semantic_format == "texture-bundle");
+    assert(unknown_profile_semantic->canonical_extension == "ptx");
 
     const auto final_zero = zero_final_span_bundle_fixture();
     const auto final_zero_result = dmc3::TextureSlotFramingParser::parse(

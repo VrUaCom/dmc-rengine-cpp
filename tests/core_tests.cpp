@@ -135,18 +135,7 @@ void test_resource_identity() {
     };
 
     assert(valid.valid());
-    // The delimiter-only form was not injective: source, path and chain may
-    // themselves contain ':', '#', '@' and '+', so two different identities
-    // could canonicalize to one string — and canonical() is a machine identity
-    // key used for graph keys, manifests and provenance authority. Every
-    // arbitrary string is now bound by its byte length behind a version tag.
-    //
-    // Written out by hand from that encoding rather than pasted from the
-    // implementation, because a literal copied from the code under test pins
-    // nothing.
-    assert(
-        valid.canonical() ==
-        std::string{"rid2|6:source|10:dmc3/st001|7:NBZ/PAC|16|32"});
+    assert(valid.canonical() == std::string{"rid2|6:source|10:dmc3/st001|7:NBZ/PAC|16|32"});
     assert(!ResourceId{}.valid());
 }
 

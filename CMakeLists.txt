@@ -108,6 +108,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        runtime_naming_bridge
         physical_provider_receipt
         retail_member_acquisition
         loose_container_list
@@ -183,7 +184,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         index_name_authority
         index_name_evidence_persistence
         embedded_name_evidence
+        effect_stored_name_evidence
         resource_naming_identity
+        companion_index_locator
+        legacy_index_replay
+        dmc3_naming_pipeline
+        dmc3_runtime_content_tag_provenance
         pac
         pnst
         dmc3_container_parsers

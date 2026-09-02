@@ -48,7 +48,12 @@ ContainerIndexProbeResult ContainerIndexProbe::probe(
             result.dialect = ContainerIndexDialect::kind_and_identifier;
             result.index_slot_index =
                 static_cast<std::uint32_t>(EffectContract::manifest_slot_index);
-            result.named_slot_count = parsed.document->record_slot_count;
+            // `named_slot_count` is how many slots the index *names*, which
+            // is the manifest's line count. Upstream split that from the
+            // populated-record count precisely because the two can disagree,
+            // and its parser flags when they do; taking the populated count
+            // here would quietly report a different number than the name says.
+            result.named_slot_count = parsed.document->manifest_line_count;
             result.names_a_sibling_container = true;
             result.named_sibling_slot_index =
                 static_cast<std::uint32_t>(EffectContract::records_slot_index);

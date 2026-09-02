@@ -1,8 +1,7 @@
 #include "dmc_rengine/formats/effect_pack.hpp"
 
-#include "dmc_rengine/formats/relative_slot_container.hpp"
+#include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
-#include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 
 #include <algorithm>
 #include <charconv>
@@ -12,7 +11,6 @@ namespace dmc::rengine::formats {
 namespace {
 
 using Contract = profiles::dmc3::EffectPackContract;
-using Walk = profiles::dmc3::RelativeSlotWalkContract;
 
 [[nodiscard]] EffectPackParseResult fail(
     EffectPackParseError error, std::string message) {
@@ -23,19 +21,17 @@ using Walk = profiles::dmc3::RelativeSlotWalkContract;
     };
 }
 
-[[nodiscard]] RelativeSlotContainerSpec pnst_spec() {
-    RelativeSlotContainerSpec spec;
-    for (std::size_t index = 0U; index < Walk::pnst_magic_bytes; ++index) {
-        spec.magic[index] = static_cast<std::byte>(Walk::pnst_magic[index]);
-    }
-    spec.magic_bytes = Walk::pnst_magic_bytes;
-    spec.document_format = "pnst";
-    return spec;
+[[nodiscard]] const ContainerEntry* entry_at_slot(
+    const ContainerDocument& document,
+    std::uint32_t slot) noexcept {
+    const auto found = std::find_if(
+        document.entries.begin(), document.entries.end(),
+        [slot](const ContainerEntry& entry) {
+            return entry.slot_index == slot;
+        });
+    return found == document.entries.end() ? nullptr : &*found;
 }
 
-// The manifest is ASCII, CRLF-terminated and NUL-padded to its slot. Anything
-// outside that is not a manifest, and reading it as one would be inventing the
-// names this format exists to stop inventing.
 [[nodiscard]] bool manifest_is_text(std::span<const std::byte> bytes) noexcept {
     bool saw_text = false;
     for (const auto value : bytes) {
@@ -67,33 +63,47 @@ struct ManifestLine final {
     char kind{};
     std::uint32_t identifier{};
     std::string text;
+    std::size_t source_line{};
 };
 
-// Returns false on a line that is present but not of the form the format uses.
-// A comment is skipped; a blank line is skipped; anything else must parse.
 [[nodiscard]] bool collect_lines(
-    const std::string& text, std::vector<ManifestLine>& lines) {
+    const std::string& text,
+    std::vector<ManifestLine>& lines) {
     std::size_t at = 0U;
+    std::size_t physical_line = 0U;
     while (at <= text.size()) {
+        ++physical_line;
         auto end = text.find('\n', at);
         if (end == std::string::npos) {
             end = text.size();
         }
         auto line = text.substr(at, end - at);
         at = end + 1U;
-        while (!line.empty() && (line.back() == '\r' || line.back() == ' ')) {
+        while (!line.empty() &&
+               (line.back() == '\r' || line.back() == ' ' || line.back() == '\t')) {
             line.pop_back();
         }
+        std::size_t front = 0U;
+        while (front < line.size() &&
+               (line[front] == ' ' || line[front] == '\t')) {
+            ++front;
+        }
+        if (front != 0U) {
+            line.erase(0U, front);
+        }
+
         if (line.empty() || line.front() == Contract::comment_prefix) {
             if (at > text.size()) {
                 break;
             }
             continue;
         }
+
         const auto space = line.find(Contract::field_separator);
         if (space != 1U || line.size() < 3U) {
             return false;
         }
+
         std::uint32_t identifier = 0U;
         const auto* first = line.data() + 2;
         const auto* last = line.data() + line.size();
@@ -101,10 +111,12 @@ struct ManifestLine final {
         if (parsed.ec != std::errc{} || parsed.ptr != last) {
             return false;
         }
+
         lines.push_back(ManifestLine{
             .kind = line.front(),
             .identifier = identifier,
             .text = line,
+            .source_line = physical_line,
         });
         if (at > text.size()) {
             break;
@@ -116,41 +128,43 @@ struct ManifestLine final {
 } // namespace
 
 bool EffectPackDocument::valid() const noexcept {
-    return document_size != 0U && manifest_names_every_slot &&
-        records.size() == record_slot_count &&
-        record_slot_count == manifest_line_count;
+    return document_size != 0U && manifest_names_every_populated_record &&
+        records.size() == populated_record_count &&
+        populated_record_count == manifest_line_count;
 }
 
 EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) {
-    const auto spec = pnst_spec();
-    const auto outer = parse_relative_slot_container(bytes, spec);
+    const auto outer = PnstParser::parse(bytes);
     if (!outer.ok()) {
         return fail(
             EffectPackParseError::not_a_container,
-            "effect pack is not a PNST container");
+            "effect pack is not a valid PNST container");
     }
-    const auto& outer_entries = outer.document->entries;
-    if (outer_entries.size() != Contract::outer_slot_count) {
+    if (outer.document->entries.size() != Contract::outer_slot_count ||
+        outer.document->declared_slot_count != Contract::outer_slot_count) {
         return fail(
             EffectPackParseError::wrong_outer_slot_count,
-            "an effect pack has exactly two slots: a manifest and its records");
+            "effect pack must have exactly manifest slot 0 and records slot 1");
     }
 
-    const auto& manifest_entry = outer_entries[Contract::manifest_slot_index];
-    const auto& records_entry = outer_entries[Contract::records_slot_index];
-    if (!manifest_entry.populated || !records_entry.populated) {
+    const auto* manifest_entry = entry_at_slot(
+        *outer.document, static_cast<std::uint32_t>(Contract::manifest_slot_index));
+    const auto* records_entry = entry_at_slot(
+        *outer.document, static_cast<std::uint32_t>(Contract::records_slot_index));
+    if (manifest_entry == nullptr || records_entry == nullptr ||
+        !manifest_entry->populated || !records_entry->populated) {
         return fail(
             EffectPackParseError::manifest_missing,
-            "an effect pack's manifest or record slot is absent");
+            "effect pack manifest or record container is absent");
     }
 
     const auto manifest_bytes = bytes.subspan(
-        static_cast<std::size_t>(manifest_entry.offset),
-        static_cast<std::size_t>(manifest_entry.size));
+        static_cast<std::size_t>(manifest_entry->offset),
+        static_cast<std::size_t>(manifest_entry->size));
     if (!manifest_is_text(manifest_bytes)) {
         return fail(
             EffectPackParseError::manifest_not_text,
-            "an effect pack's first slot is not an ASCII manifest");
+            "effect pack slot 0 is not an ASCII manifest");
     }
 
     EffectPackDocument document;
@@ -161,22 +175,22 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
     if (!collect_lines(document.manifest_text, lines)) {
         return fail(
             EffectPackParseError::malformed_manifest_line,
-            "a manifest line is not a kind letter followed by an identifier");
+            "effect manifest line is not a kind letter followed by a decimal identifier");
     }
     if (lines.empty() || lines.size() > k_max_records) {
         return fail(
             EffectPackParseError::malformed_manifest_line,
-            "an effect pack's manifest names no records, or too many");
+            "effect manifest names no records or exceeds the safety limit");
     }
 
     const auto records_bytes = bytes.subspan(
-        static_cast<std::size_t>(records_entry.offset),
-        static_cast<std::size_t>(records_entry.size));
-    const auto inner = parse_relative_slot_container(records_bytes, spec);
+        static_cast<std::size_t>(records_entry->offset),
+        static_cast<std::size_t>(records_entry->size));
+    const auto inner = PnstParser::parse(records_bytes);
     if (!inner.ok()) {
         return fail(
             EffectPackParseError::not_a_container,
-            "an effect pack's record slot is not a PNST container");
+            "effect pack records slot is not a valid PNST container");
     }
 
     std::vector<ContainerEntry> populated;
@@ -185,24 +199,29 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             populated.push_back(entry);
         }
     }
+    std::sort(
+        populated.begin(), populated.end(),
+        [](const ContainerEntry& left, const ContainerEntry& right) {
+            return left.slot_index < right.slot_index;
+        });
 
     document.manifest_line_count = static_cast<std::uint32_t>(lines.size());
-    document.record_slot_count = static_cast<std::uint32_t>(populated.size());
-    if (document.manifest_line_count != document.record_slot_count) {
+    document.populated_record_count = static_cast<std::uint32_t>(populated.size());
+    if (document.manifest_line_count != document.populated_record_count) {
         return fail(
             EffectPackParseError::line_count_mismatch,
-            "the manifest does not name exactly one record per slot");
+            "effect manifest does not name exactly one entry per populated record payload");
     }
-    document.manifest_names_every_slot = true;
+    document.manifest_names_every_populated_record = true;
 
     bool extents_match = true;
     document.records.reserve(populated.size());
-    for (std::size_t index = 0U; index < populated.size(); ++index) {
-        const auto& entry = populated[index];
-        const auto& line = lines[index];
+    for (std::size_t ordinal = 0U; ordinal < populated.size(); ++ordinal) {
+        const auto& entry = populated[ordinal];
+        const auto& line = lines[ordinal];
         const auto expected = Contract::extent_for(line.kind);
-        const bool matches =
-            expected != 0U && entry.size == static_cast<std::uint64_t>(expected);
+        const bool matches = expected != 0U &&
+            entry.size == static_cast<std::uint64_t>(expected);
         if (expected != 0U && !matches) {
             extents_match = false;
         }
@@ -211,18 +230,19 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             .kind = line.kind,
             .identifier = line.identifier,
             .name = line.text,
-            .offset = records_entry.offset + entry.offset,
+            .source_line = line.source_line,
+            .offset = records_entry->offset + entry.offset,
             .extent = entry.size,
             .extent_matches_kind = matches,
             .kind_known = Contract::is_known_kind(line.kind),
         });
     }
-    document.extents_match_kinds = extents_match;
+    document.extents_match_known_kinds = extents_match;
 
     if (!document.valid()) {
         return fail(
             EffectPackParseError::invalid_document,
-            "effect pack decoded to an inconsistent document");
+            "effect pack decoded to an inconsistent stored-name document");
     }
 
     return EffectPackParseResult{

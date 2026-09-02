@@ -106,9 +106,9 @@ void a_manifest_names_every_record() {
     assert(parsed.ok());
     const auto& document = *parsed.document;
     assert(document.manifest_line_count == 3U);
-    assert(document.record_slot_count == 3U);
-    assert(document.manifest_names_every_slot);
-    assert(document.extents_match_kinds);
+    assert(document.populated_record_count == 3U);
+    assert(document.manifest_names_every_populated_record);
+    assert(document.extents_match_known_kinds);
 
     // The names are the manifest's own text, not a slot index dressed up.
     assert(document.records[0].name == "V 922");
@@ -183,7 +183,7 @@ void a_variable_kind_does_not_fail_the_extent_check() {
     const auto parsed = formats::EffectPackParser::parse(
         std::span<const std::byte>{bytes});
     assert(parsed.ok());
-    assert(parsed.document->extents_match_kinds);
+    assert(parsed.document->extents_match_known_kinds);
     assert(!parsed.document->records[0].extent_matches_kind);
     assert(parsed.document->records[0].kind_known);
 }
@@ -193,7 +193,7 @@ void a_fixed_kind_at_the_wrong_extent_is_reported() {
     const auto parsed = formats::EffectPackParser::parse(
         std::span<const std::byte>{bytes});
     assert(parsed.ok());
-    assert(!parsed.document->extents_match_kinds);
+    assert(!parsed.document->extents_match_known_kinds);
     assert(!parsed.document->records[0].extent_matches_kind);
 }
 

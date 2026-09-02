@@ -1,7 +1,7 @@
 {
   "schema": "dmc-rengine.dmc3-hd-format-purpose-registry.v1",
-  "snapshot": "2026-08-27",
-  "mainBase": "f886f27e62ec9a05b6829df7fd074981a06a4b49",
+  "snapshot": "2026-09-01",
+  "mainBase": "81e12c869c1cadedf79a8ddd4dbbea3c4f4d407a",
   "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "columns": [
     "id",
@@ -24,24 +24,24 @@
     ["ukn",".ukn","metadata","Placeholder/source extension used when extraction naming lacks semantic identity.","DATA_CONFIRMED","DATA_CONFIRMED","NONE","fallback-only"],
     ["bin",".bin","metadata","Generic leaf filename extension used by multiple unrelated resources.","EXE_CONFIRMED","RESEARCH_REQUIRED","NONE","fallback-only"],
     ["pe","PE,dmc3.exe","executable","Executable containing runtime code, registries, translation tables and static resource descriptors.","EXE_CONFIRMED","EXE_CONFIRMED","STRUCTURAL","structural"],
-    ["scm","SCM","geometry","Stage/scene mesh geometry and model data.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
-    ["mod","MOD","geometry","Actor/object/model resource family.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
+    ["scm","SCM","geometry","Stage/scene mesh geometry and model data; original runtime uses a dedicated related model-document fixup.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
+    ["mod","MOD","geometry","Actor/object mesh-bearing model resource family with original model-document fixup and model shader inputs.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
     ["hits","HITS","collision","Spatial collision resource: bounds and 3-D grid mapping cells to triangle/plane records.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
     ["dca","DCA","camera","Mini-demo/cinematic camera data; recovered interpretation correlates paired spatial channels with camera eye/world position and look-at target.","DATA_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","structural"],
     ["dds","DDS","texture","HD texture representation used by tooling/render paths.","DATA_CONFIRMED","DATA_CONFIRMED","STANDARD","recognized"],
     ["ptx","PTX","texture","Texture bundle/container-like resource exposing embedded texture images/resources.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","recognized"],
     ["tm2","TM2,TIM2","texture","Original/legacy texture-image family used before/alongside HD texture translation.","EXE_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","research-only"],
     ["ptz","PTZ","texture","Texture-side companion resource associated with basic.ptx in the canonical executable asset table.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
-    ["efm","EFM","effect","Typed effect-system resource requiring original post-load relative-offset fixup.","EXE_CONFIRMED","EXE_CONFIRMED","OPEN","runtime-only"],
-    ["shw","SHW","render","Typed shadow/render companion resource with dedicated original post-load fixup.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
-    ["mrp","MRP","render","Primary model/render/effect-side typed resource-manager companion.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
+    ["efm","EFM","geometry","Mesh-bearing effect-model resource: related MOD/SCM-style model document, triangle/topology reconstruction, and embedded shader inputs POSITION/NORMAL/TEXCOORD/BLENDINDICES/PSIZE plus per-vertex COLOR0.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["shw","SHW","geometry","Self-contained shadow-hull mesh geometry: float4 positions, u32 triangle topology, exact u16 triangle adjacency and EXE-confirmed per-vertex transform-matrix selectors; distinct from a MOD/SCM-style textured model document.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","runtime-only"],
+    ["mrp","MRP","render","Primary model/render-side runtime family companion recognized by both registry and family-mask classifiers; standalone mesh ownership is not proven.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["sef","SEF","effect","Stage/effect companion resource family.","DATA_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
-    ["efe","EFE","effect","Effect-system companion resource label.","DATA_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
-    ["efw","EFW","effect","Effect-system companion resource label.","DATA_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
+    ["efe","EFE","effect","Runtime-recognized container-dispatch sentinel/prefix in the effect-side family; no normal handler or exact semantic schema is yet recovered.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
+    ["efw","EFW","effect","Runtime-recognized container-dispatch sentinel/prefix in the effect-side family; no normal handler or exact semantic schema is yet recovered.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","research-only"],
     ["c1d","C1D","cloth-simulation","One-dimensional cloth-simulation companion resource.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["clt","CLT","cloth-simulation","Cloth/deformation simulation companion used by both primary resource and motion/control managers.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["mot","MOT,MOT2,MOT3,MOT4,MOT5,MOT6","animation","Motion/animation resources and corpus variants.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","research-only"],
-    ["mcv","MCV","animation","Motion companion/control/curve resource in the original motion/control manager.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
+    ["mcv","MCV","animation","Motion companion/control/curve resource in the original motion/control manager; independently recognized by the four-byte runtime family-mask classifier as MCV<space>.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","runtime-only"],
     ["cam","CAM","camera","Camera resource/track family registered in the original motion/control manager and stage corpus.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
     ["hid","HID,HID2,HID3","visibility-control","Hide/visibility-control resource family and corpus variants.","EXE_CONFIRMED","HIGH_CONFIDENCE","OPEN","research-only"],
     ["tsc","TSC","animation-control","Motion/control-manager companion resource.","EXE_CONFIRMED","RESEARCH_REQUIRED","OPEN","runtime-only"],
@@ -82,18 +82,20 @@
     ["hits-dollar","HITS$","rejected","Historical five-byte collision magic claim.","REJECTED","REJECTED","NONE","none"]
   ],
   "dispatchers": [
-    {"address":"0x1402DB1F0","mapping":{"MOD":0,"EFM":1,"SCM":2,"MRP":3,"SHW":7},"meaning":"primary magic-based typed resource classifier"},
-    {"address":"0x1402DB3C0","mapping":{".ptx":4,".clt":5,".c1d":6},"meaning":"primary extension-side typed resource dispatcher; combines with 0x1402DB1F0"},
+    {"address":"0x1402DB1F0","mapping":{"MOD":0,"EFM":1,"SCM":2,"MRP":3,"SHW":7},"meaning":"site-scoped three-byte registry content probe; byte 3 is not inspected at this site"},
+    {"address":"0x1402DB3C0","mapping":{".ptx":4,".clt":5,".c1d":6},"meaning":"registrar extension-side classification; extension substring checks precede 0x1402DB1F0"},
+    {"address":"0x1401B9FA0","mapping":{"MOD":"handler 0x1402FE3B0","EFM":"handler 0x1402F7A90","SCM":"handler 0x1403051B0","SHW":"handler 0x1403204C0","EFW":"recognized sentinel/no handler","EFE":"recognized sentinel/no handler"},"meaning":"PAC/PNST materialized-child type dispatcher; separate from registry classification"},
+    {"address":"0x1402FD650","mapping":{"MOD ":"0x10000000","EFM ":"0x20000000","SCM ":"0x30000000","MRP ":"0x40000000","MCV ":"0x50000000","SHW ":"0x60000000"},"meaning":"independent four-byte runtime family-mask classifier; trailing ASCII space is authoritative"},
     {"address":"0x1402E01A0","mapping":{".mot":0,".mcv":1,".cam":2,".hid":3,".clt":4,".tsc":5},"meaning":"motion/control resource manager extension dispatcher"},
     {"address":"0x140339D80","mapping":{"SPUMAPDT":"validated magic"},"meaning":"SPU sound-memory/sample-map metadata parser"}
   ],
   "excluded": [
-    {"names":["HLSL","FXH"],"reason":"shader source/build/debug path strings; not proof of shipped runtime resource files"},
+    {"names":["HLSL","FXH"],"reason":"shader source/build/debug path strings are not independent shipped resource-family proof; embedded DMC3 shader source may still corroborate already identified runtime model families such as EFM"},
     {"names":["PDB"],"reason":"debug-symbol path, not a game resource family"},
     {"names":["DLL"],"reason":"runtime dependency/library names, not game resource formats"},
     {"names":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4","BC5","RGBG","GRGB","YUY2"],"reason":"DDS/pixel encoding or layout tags, not independent resource families"}
   ],
   "openFrontier": [
-    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact consumer/schema","EFW exact consumer/schema","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics","CLT/C1D exact binary schemas"
+    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW selected-matrix-palette ownership and cross-resource model/bone binding","CLT/C1D exact binary schemas"
   ]
 }

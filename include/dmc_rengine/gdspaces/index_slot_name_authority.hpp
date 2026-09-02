@@ -13,6 +13,9 @@
 namespace dmc::rengine::gdspaces {
 
 enum class IndexSlotMappingMode : unsigned char {
+    // Retained as a legacy enum value so persisted/older callers can be
+    // identified explicitly. It is not valid DMC3 .index authority after the
+    // corpus-backed extracted-ordinal correction and must fail validation.
     physical_position,
     populated_slot_sequence,
 };
@@ -89,7 +92,7 @@ private:
     ResourceId parent_resource_;
     ResourceId manifest_resource_;
     std::string manifest_sha256_;
-    IndexSlotMappingMode mapping_mode_{IndexSlotMappingMode::physical_position};
+    IndexSlotMappingMode mapping_mode_{IndexSlotMappingMode::populated_slot_sequence};
     std::vector<IndexSlotNameAuthority> authorities_;
     std::vector<IndexSlotBindingDiagnostic> diagnostics_;
 };

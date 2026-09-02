@@ -18,6 +18,7 @@ struct ResourceClassification final {
     bool container{false};
     bool magic_confirmed{false};
 
+
     // True when the format was decided by reading the payload rather than by
     // trusting the path. A magic signature is one way to earn this; a record
     // that is structurally text is another, and that one carries no magic.
@@ -42,6 +43,14 @@ struct ResourceClassification final {
     // `.ukn` that reads as `.hits` earns this; a `.pac` recognized by its
     // extension earns neither.
     bool structural_confirmed{false};
+
+    // Sealed evidence from the recovered three-byte DMC3 registry/content
+    // probe (0x1402DB1F0).
+    bool runtime_content_tag_confirmed{false};
+    // Sealed evidence from the separate recovered four-byte family-mask probe
+    // (0x1402FD650). Kept separate because byte 3 is significant there and MCV
+    // is recognized only by that path.
+    bool runtime_family_mask_confirmed{false};
 };
 
 class ResourceClassifier final {

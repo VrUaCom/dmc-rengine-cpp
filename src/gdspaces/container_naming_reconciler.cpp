@@ -1,6 +1,7 @@
 #include "dmc_rengine/gdspaces/container_naming_reconciler.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/gdspaces/embedded_name_evidence.hpp"
 #include "dmc_rengine/gdspaces/format_identity.hpp"
 #include "dmc_rengine/gdspaces/index_manifest.hpp"
@@ -10,6 +11,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -111,7 +113,98 @@ void add_error(
     return true;
 }
 
+[[nodiscard]] std::string manifest_directive_text(
+    IndexContainerDirective directive) {
+    return directive == IndexContainerDirective::pnst_non_empty_slots
+        ? std::string{"PNST"}
+        : std::string{};
+}
+
+[[nodiscard]] std::optional<ResourceSemanticEvidenceKind> overlay_profile_kind(
+    IndexDisplayEvidenceKind kind) noexcept {
+    switch (kind) {
+    case IndexDisplayEvidenceKind::profile_structural_format:
+        return ResourceSemanticEvidenceKind::profile_structural_format;
+    case IndexDisplayEvidenceKind::profile_runtime_content_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_content_tag;
+    case IndexDisplayEvidenceKind::profile_runtime_family_mask_tag:
+        return ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
+    default:
+        return std::nullopt;
+    }
+}
+
+[[nodiscard]] bool is_profile_semantic_kind(
+    ResourceSemanticEvidenceKind kind) noexcept {
+    return kind == ResourceSemanticEvidenceKind::profile_structural_format ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_content_tag ||
+        kind == ResourceSemanticEvidenceKind::profile_runtime_family_mask_tag;
+}
+
 } // namespace
+
+bool ContainerNamingReconcileResult::ok() const noexcept {
+    return reconciled && !has_error(diagnostics);
+}
+
+bool ContainerNamingReconciler::persist_magic_semantics(
+    ContainerExpansion& expansion,
+    ContainerNamingReconcileResult& result) {
+    for (auto& child : expansion.children) {
+        if (!child.entry.populated || child.payload.bytes.empty()) {
+            continue;
+        }
+
+        const auto bytes = std::span<const std::byte>{
+            child.payload.bytes.data(), child.payload.bytes.size()};
+        const auto classification = ResourceClassifier::classify(
+            child.payload.resource.display_name, bytes);
+        if (!classification.magic_confirmed || classification.format.empty()) {
+            continue;
+        }
+
+        const auto canonical_extension =
+            ResourceFormatIdentity::canonical_extension(classification.format);
+        if (canonical_extension.empty()) {
+            add_error(
+                result,
+                child.payload.resource.id,
+                "gdspaces.naming-reconcile.magic-semantic-extension-missing",
+                "Magic-confirmed semantic format has no canonical extension and cannot become sealed naming evidence.");
+            return false;
+        }
+
+        ResourceSemanticEvidence semantic_evidence(
+            ResourceSemanticEvidenceKind::magic_confirmed_format,
+            child.payload.resource.id,
+            core::Sha256::compute(bytes).hex(),
+            classification.format,
+            canonical_extension,
+            child.entry.slot_index);
+        if (!semantic_evidence.valid()) {
+            add_error(
+                result,
+                child.payload.resource.id,
+                "gdspaces.naming-reconcile.magic-semantic-evidence-invalid",
+                "Magic-confirmed byte classification could not form valid sealed semantic evidence.");
+            return false;
+        }
+
+        child.payload.resource.format = classification.format;
+        auto& evidence = child.payload.semantic_evidence;
+        evidence.erase(
+            std::remove_if(
+                evidence.begin(), evidence.end(),
+                [](const ResourceSemanticEvidence& existing) {
+                    return existing.kind() ==
+                        ResourceSemanticEvidenceKind::magic_confirmed_format;
+                }),
+            evidence.end());
+        evidence.push_back(std::move(semantic_evidence));
+        result.magic_semantics_applied = true;
+    }
+    return true;
+}
 
 bool ContainerNamingReconciler::persist_overlay_semantics(
     ContainerExpansion& expansion,
@@ -134,7 +227,8 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
 
         child->payload.resource.format = std::string{entry.semantic_format()};
 
-        if (entry.evidence_kind() != IndexDisplayEvidenceKind::profile_structural_format) {
+        const auto semantic_kind = overlay_profile_kind(entry.evidence_kind());
+        if (!semantic_kind.has_value()) {
             continue;
         }
         if (entry.canonical_extension().empty()) {
@@ -142,14 +236,14 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
                 result,
                 child->payload.resource.id,
                 "gdspaces.naming-reconcile.profile-semantic-extension-missing",
-                "Profile structural semantic evidence must carry its canonical presentation extension.");
+                "Profile semantic evidence must carry its canonical presentation extension.");
             return false;
         }
 
         const auto bytes = std::span<const std::byte>{
             child->payload.bytes.data(), child->payload.bytes.size()};
         ResourceSemanticEvidence semantic_evidence(
-            ResourceSemanticEvidenceKind::profile_structural_format,
+            *semantic_kind,
             child->payload.resource.id,
             core::Sha256::compute(bytes).hex(),
             std::string{entry.semantic_format()},
@@ -160,7 +254,7 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
                 result,
                 child->payload.resource.id,
                 "gdspaces.naming-reconcile.profile-semantic-evidence-invalid",
-                "Profile structural classification could not form valid sealed semantic evidence.");
+                "Profile byte/structural classification could not form valid sealed semantic evidence.");
             return false;
         }
 
@@ -169,8 +263,7 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
             std::remove_if(
                 evidence.begin(), evidence.end(),
                 [](const ResourceSemanticEvidence& existing) {
-                    return existing.kind() ==
-                        ResourceSemanticEvidenceKind::profile_structural_format;
+                    return is_profile_semantic_kind(existing.kind());
                 }),
             evidence.end());
         evidence.push_back(std::move(semantic_evidence));
@@ -178,19 +271,13 @@ bool ContainerNamingReconciler::persist_overlay_semantics(
     return true;
 }
 
-[[nodiscard]] std::string manifest_directive_text(
-    IndexContainerDirective directive) {
-    return directive == IndexContainerDirective::pnst_non_empty_slots
-        ? std::string{"PNST"}
-        : std::string{};
-}
-
-
-bool ContainerNamingReconcileResult::ok() const noexcept {
-    return reconciled && !has_error(diagnostics);
-}
-
 ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
+    ContainerExpansion& expansion,
+    const ResourcePayload* external_index) {
+    return reconcile_profiled(expansion, external_index, nullptr);
+}
+
+ContainerNamingReconcileResult ContainerNamingReconciler::reconcile_profiled(
     ContainerExpansion& expansion,
     const ResourcePayload* external_index,
     IndexProfileDisplayResolver profile_resolver) {
@@ -266,6 +353,10 @@ ContainerNamingReconcileResult ContainerNamingReconciler::reconcile(
             evidence.end());
         evidence.push_back(std::move(semantic_evidence));
         result.embedded_name_list_applied = true;
+    }
+
+    if (!persist_magic_semantics(staged, result)) {
+        return result;
     }
 
     if (external_index != nullptr) {

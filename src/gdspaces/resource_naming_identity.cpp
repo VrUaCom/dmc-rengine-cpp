@@ -98,9 +98,32 @@ bool ResourceNamingIdentity::valid() const noexcept {
     if (external_index_folder && !external_index_name.has_value()) {
         return false;
     }
+    if (enclosing_container_stored_name.has_value() !=
+        enclosing_container_stored_name_evidence.has_value()) {
+        return false;
+    }
+    if (enclosing_container_stored_name_evidence.has_value()) {
+        const auto& evidence = *enclosing_container_stored_name_evidence;
+        if (!evidence.valid() || evidence.target_resource() != resource_id ||
+            evidence.physical_slot_index() != physical_slot_index ||
+            evidence.normalized_name() != *enclosing_container_stored_name) {
+            return false;
+        }
+    }
+    if (semantic_format_evidence.has_value()) {
+        const auto& evidence = *semantic_format_evidence;
+        if (!evidence.valid() || evidence.authority_resource() != resource_id ||
+            evidence.physical_slot_index() != physical_slot_index ||
+            evidence.semantic_format() != semantic_format ||
+            evidence.canonical_extension() != canonical_extension) {
+            return false;
+        }
+    }
     if (!populated &&
         (extracted_ordinal.has_value() || external_index_name.has_value() ||
-         external_index_raw_label.has_value() || external_index_folder)) {
+         external_index_raw_label.has_value() || external_index_folder ||
+         embedded_alias.has_value() || enclosing_container_stored_name.has_value() ||
+         semantic_format_evidence.has_value())) {
         return false;
     }
     return true;
@@ -226,17 +249,46 @@ ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
         }
     }
 
+    const EnclosingContainerNameEvidence* stored_name = nullptr;
+    if (!child.payload.enclosing_container_name_evidence.empty()) {
+        const auto bytes = std::span<const std::byte>{
+            child.payload.bytes.data(), child.payload.bytes.size()};
+        const auto digest = core::Sha256::compute(bytes).hex();
+        for (const auto& evidence : child.payload.enclosing_container_name_evidence) {
+            if (!evidence.valid() ||
+                evidence.target_resource() != child.payload.resource.id ||
+                evidence.target_sha256() != digest ||
+                evidence.physical_slot_index() != child.entry.slot_index) {
+                add_error(
+                    result.diagnostics,
+                    child.payload.resource.id,
+                    "gdspaces.naming-identity.stale-enclosing-name-evidence",
+                    "Enclosing-container name evidence does not bind to the current physical child bytes and slot.");
+                return result;
+            }
+            if (stored_name != nullptr) {
+                add_error(
+                    result.diagnostics,
+                    child.payload.resource.id,
+                    "gdspaces.naming-identity.multiple-enclosing-name-authorities",
+                    "More than one enclosing-container naming authority is attached to one physical child.");
+                return result;
+            }
+            stored_name = &evidence;
+        }
+    }
+
     std::string semantic_format = child.payload.resource.format.empty()
         ? std::string{"unknown"}
         : child.payload.resource.format;
     auto canonical_extension = ResourceFormatIdentity::canonical_extension(
         semantic_format);
+    const ResourceSemanticEvidence* active_semantic = nullptr;
 
     if (!child.payload.semantic_evidence.empty()) {
         const auto bytes = std::span<const std::byte>{
             child.payload.bytes.data(), child.payload.bytes.size()};
         const auto digest = core::Sha256::compute(bytes).hex();
-        const ResourceSemanticEvidence* active = nullptr;
         for (const auto& evidence : child.payload.semantic_evidence) {
             if (!evidence.valid() ||
                 evidence.authority_resource() != child.payload.resource.id ||
@@ -249,9 +301,9 @@ ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
                     "Semantic naming evidence does not bind to the current physical child bytes and slot.");
                 return result;
             }
-            if (active != nullptr &&
-                (active->semantic_format() != evidence.semantic_format() ||
-                 active->canonical_extension() != evidence.canonical_extension())) {
+            if (active_semantic != nullptr &&
+                (active_semantic->semantic_format() != evidence.semantic_format() ||
+                 active_semantic->canonical_extension() != evidence.canonical_extension())) {
                 add_error(
                     result.diagnostics,
                     child.payload.resource.id,
@@ -259,11 +311,11 @@ ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
                     "Conflicting active semantic naming authorities are attached to one child.");
                 return result;
             }
-            active = &evidence;
+            active_semantic = &evidence;
         }
-        if (active != nullptr) {
-            semantic_format = std::string{active->semantic_format()};
-            canonical_extension = std::string{active->canonical_extension()};
+        if (active_semantic != nullptr) {
+            semantic_format = std::string{active_semantic->semantic_format()};
+            canonical_extension = std::string{active_semantic->canonical_extension()};
         }
     }
 
@@ -276,8 +328,11 @@ ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
         .external_index_name = std::nullopt,
         .external_index_folder = false,
         .embedded_alias = std::nullopt,
+        .enclosing_container_stored_name = std::nullopt,
+        .enclosing_container_stored_name_evidence = std::nullopt,
         .semantic_format = std::move(semantic_format),
         .canonical_extension = std::move(canonical_extension),
+        .semantic_format_evidence = std::nullopt,
         .canonical_display_name = child.payload.resource.display_name,
     };
 
@@ -292,6 +347,20 @@ ResourceNamingIdentityBuildResult ResourceNamingIdentityBuilder::build(
     if (embedded_alias != nullptr) {
         identity.embedded_alias =
             std::string{embedded_alias->normalized_name()};
+    }
+    if (stored_name != nullptr) {
+        identity.enclosing_container_stored_name =
+            std::string{stored_name->normalized_name()};
+        identity.enclosing_container_stored_name_evidence = *stored_name;
+        // Direct stored naming is stronger than a synthetic fallback display,
+        // but never overrides an external extraction name already reconciled.
+        if (external_index == nullptr && child.payload.resource.synthetic_name) {
+            identity.canonical_display_name =
+                std::string{stored_name->normalized_name()};
+        }
+    }
+    if (active_semantic != nullptr) {
+        identity.semantic_format_evidence = *active_semantic;
     }
 
     if (!identity.valid()) {

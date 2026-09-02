@@ -54,9 +54,8 @@ struct SlotNumberingSummary final {
 };
 
 // Parent-level external .index observation retained after reconciliation.
-//
-// `directive` is presentation and extraction metadata (currently "" or
-// "PNST"); it never controls physical slot identity or write targeting.
+// `directive` is presentation/extraction metadata (currently "" or "PNST");
+// it never controls physical slot identity or write targeting.
 struct ContainerIndexNamingEvidence final {
     ResourceId manifest_resource;
     std::string manifest_sha256;

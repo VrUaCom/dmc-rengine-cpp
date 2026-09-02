@@ -19,6 +19,9 @@ enum class ResourceNameEvidenceKind : unsigned char {
 };
 
 enum class ResourceNameMappingMode : unsigned char {
+    // Legacy/superseded value retained for explicit recognition only. External
+    // DMC3 .index evidence using this mode is invalid after extracted-ordinal
+    // recovery; physical slots remain locators, not naming sequence authority.
     physical_position,
     populated_slot_sequence,
     embedded_alias_sequence,
@@ -59,7 +62,7 @@ private:
         std::optional<std::size_t> extracted_ordinal = std::nullopt);
 
     ResourceNameEvidenceKind kind_{ResourceNameEvidenceKind::external_index};
-    ResourceNameMappingMode mapping_mode_{ResourceNameMappingMode::physical_position};
+    ResourceNameMappingMode mapping_mode_{ResourceNameMappingMode::populated_slot_sequence};
     ResourceId authority_resource_;
     std::string authority_sha256_;
     std::string raw_label_;

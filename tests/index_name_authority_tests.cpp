@@ -363,12 +363,6 @@ int main() {
     const auto binding = gdspaces::IndexSlotNameBinder::bind(
         expansion, *parsed.manifest);
     assert(binding.ok());
-    // The recovered rule, not #254's. `.index` entry N names the N-th
-    // populated payload, so the mapping mode is the extraction sequence and
-    // never physical position. This fixture is dense, which makes the two
-    // coincide slot-for-slot — that coincidence is exactly why the assertion
-    // below was left behind when the rule changed under it, and why the sparse
-    // case further down is the one that can tell them apart.
     assert(binding.binding->mapping_mode() ==
            gdspaces::IndexSlotMappingMode::populated_slot_sequence);
     assert(binding.binding->authorities().size() == 8U);

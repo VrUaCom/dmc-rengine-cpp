@@ -28,6 +28,15 @@ namespace {
     return DiagnosticSeverity::error;
 }
 
+/**
+ * A filesystem-safe display component for whatever a container called a slot.
+ *
+ * Upstream removed this when it took presentation names out of ResourceId, and
+ * that removal was right: identity must not carry a name that can change. It
+ * is back here for the other half of the split — the row still has to be
+ * labelled, and SlotNameAttribution still has to say what it was labelled
+ * with. Presentation only; nothing below builds an identity from it.
+ */
 [[nodiscard]] std::string safe_component(
     std::string_view name,
     std::uint32_t slot) {

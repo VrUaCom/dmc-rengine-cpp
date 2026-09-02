@@ -216,12 +216,6 @@ int main() {
     assert(
         first_external.kind() ==
         gdspaces::ResourceNameEvidenceKind::external_index);
-    // The recovered rule, not #254's. `.index` entry N names the N-th
-    // populated payload, so the mapping mode is the extraction sequence and
-    // never physical position. This fixture is dense, which makes the two
-    // coincide slot-for-slot — that coincidence is exactly why the assertion
-    // below was left behind when the rule changed under it, and why the sparse
-    // case further down is the one that can tell them apart.
     assert(
         first_external.mapping_mode() ==
         gdspaces::ResourceNameMappingMode::populated_slot_sequence);
