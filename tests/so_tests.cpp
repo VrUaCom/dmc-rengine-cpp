@@ -22,6 +22,11 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t offset, std::uint32_t va
     }
 }
 
+void put_u64(std::vector<std::byte>& bytes, std::size_t offset, std::uint64_t value) {
+    put_u32(bytes, offset, static_cast<std::uint32_t>(value & 0xFFFFFFFFULL));
+    put_u32(bytes, offset + 4U, static_cast<std::uint32_t>(value >> 32U));
+}
+
 void put_f32(std::vector<std::byte>& bytes, std::size_t offset, float value) {
     put_u32(bytes, offset, std::bit_cast<std::uint32_t>(value));
 }
@@ -80,5 +85,48 @@ int main() {
 
     const auto correlation = correlate_companions(links, volumes);
     assert(correlation.one_header_plus_one_link_per_volume);
+
+    std::vector<std::byte> mod(0x90U);
+    mod[0U] = std::byte{'M'};
+    mod[1U] = std::byte{'O'};
+    mod[2U] = std::byte{'D'};
+    mod[3U] = std::byte{' '};
+    mod[0x11U] = std::byte{3U};
+    put_u64(mod, 0x20U, 0x40U);
+    put_u32(mod, 0x40U, 0x20U);
+    put_u32(mod, 0x44U, 0x24U);
+    put_u32(mod, 0x48U, 0x28U);
+    put_u32(mod, 0x4CU, 0x30U);
+    mod[0x60U] = std::byte{0xFFU};
+    mod[0x61U] = std::byte{0U};
+    mod[0x62U] = std::byte{1U};
+    mod[0x64U] = std::byte{0U};
+    mod[0x65U] = std::byte{1U};
+    mod[0x66U] = std::byte{2U};
+
+    const auto mod_domain = parse_mod_transform_domain(mod);
+    assert(mod_domain.ok());
+    assert(mod_domain.raw_domain_count == 3U);
+    assert(mod_domain.permutation_is_complete);
+    assert(mod_domain.hierarchy_candidate_is_acyclic);
+    assert(mod_domain.derived_hierarchy_candidate.size() == 3U);
+    assert(mod_domain.derived_hierarchy_candidate[0] == -1);
+    assert(mod_domain.derived_hierarchy_candidate[1] == 0);
+    assert(mod_domain.derived_hierarchy_candidate[2] == 1);
+
+    const std::array<std::byte, 16> binding_links_bytes{
+        std::byte{0x06}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x01}, std::byte{0x00},
+        std::byte{0x01}, std::byte{0x01}, std::byte{0x02}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+    const auto binding_links = parse_links(binding_links_bytes);
+    std::vector<std::byte> binding_volume_bytes(3U * volume_record_size);
+    const auto binding_volumes = parse_volumes(binding_volume_bytes);
+    const auto mod_correlation = correlate_mod_companions(mod_domain, binding_links, binding_volumes);
+    assert(mod_correlation.link_middle_fields_fit_domain);
+    assert(mod_correlation.post_prefix_link_count_equals_domain);
+    assert(mod_correlation.volume_count_equals_domain);
+    assert(mod_correlation.complete_cardinality_alignment);
     return 0;
 }
