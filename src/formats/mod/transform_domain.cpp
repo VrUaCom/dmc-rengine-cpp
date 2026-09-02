@@ -3,6 +3,7 @@
 #include "dmc_rengine/binary/reader.hpp"
 
 #include <algorithm>
+#include <utility>
 
 namespace dmc::rengine::formats::mod::transform_domain {
 namespace {
