@@ -76,7 +76,10 @@ struct Object final {
 struct SceneTransform final {
     Vec3f translation{};
     float translation_magnitude{};
-    Vec3f rotation_candidate{};
+    // EXE-confirmed at 0x1402FA080 -> 0x140330450: serialized
+    // +0x10/+0x14/+0x18 are X/Y/Z Euler angles in radians. The game applies
+    // X, then Y, then Z, yielding the exact rotation product Rz * Ry * Rx.
+    Vec3f rotation_xyz_radians{};
     float reserved1c{};
 };
 
