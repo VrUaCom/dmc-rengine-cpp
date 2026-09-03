@@ -52,6 +52,11 @@ namespace {
         return false;
     }
 
+    // Real DMC3 extracted corpora also contain text .index manifests whose
+    // first line is literally "PNST\r\n". The four-byte prefix is therefore a
+    // probe candidate, not sufficient binary-container authority. Reuse the
+    // canonical structural parser so classification and materialization cannot
+    // disagree about whether the supplied byte image is a relative-slot PNST.
     return formats::PnstParser::parse(bytes).ok();
 }
 
@@ -70,6 +75,10 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "pac";
         result.magic_confirmed = true;
     } else if (structurally_valid_binary_pnst(bytes)) {
+        // Binary PNST commonly survives under a misleading .pac extension in
+        // the extracted corpus. Structurally validated byte identity therefore
+        // outranks extension, while PNST-prefixed text .index manifests fall
+        // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
