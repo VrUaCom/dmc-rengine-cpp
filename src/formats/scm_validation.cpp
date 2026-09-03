@@ -51,20 +51,48 @@ void validate_serialized_document(std::span<const std::byte> bytes,
         return;
     }
 
-    scene.parents.reserve(n); scene.order.reserve(n); scene.object_bindings.reserve(n); scene.transforms.reserve(n);
-    std::vector<bool> order_seen(n, false);
+    scene.parent_by_order_position.reserve(n);
+    scene.node_at_order_position.reserve(n);
+    scene.object_binding_by_node_index.reserve(n);
+    scene.transform_by_node_index.reserve(n);
+
+    std::vector<bool> node_seen(n, false);
+    std::vector<bool> node_evaluated(n, false);
+    std::vector<bool> object_binding_seen(h.object_count, false);
+
     for (std::size_t i = 0; i < n; ++i) {
         const auto parent = static_cast<std::int8_t>(r.u8(scene.offset + scene.parent_rel + i));
-        const auto order = r.u8(scene.offset + scene.order_rel + i);
+        const auto node = r.u8(scene.offset + scene.order_rel + i);
         const auto binding = static_cast<std::int8_t>(r.u8(scene.offset + scene.object_binding_rel + i));
-        scene.parents.push_back(parent); scene.order.push_back(order); scene.object_bindings.push_back(binding);
-        if (parent < -1 || parent >= static_cast<std::int16_t>(n))
-            diag(out, ParseSeverity::error, "scm.scene-parent-out-of-range", "Scene parent is not -1 or a valid node index.", scene.offset + scene.parent_rel + i);
-        if (order >= n || order_seen[order])
-            diag(out, ParseSeverity::error, "scm.scene-order-not-permutation", "Scene order must be a permutation of 0..N-1.", scene.offset + scene.order_rel + i);
-        else order_seen[order] = true;
-        if (binding < -1 || binding >= static_cast<std::int16_t>(h.object_count))
+
+        scene.parent_by_order_position.push_back(parent);
+        scene.node_at_order_position.push_back(node);
+        scene.object_binding_by_node_index.push_back(binding);
+
+        if (node >= n || node_seen[node]) {
+            diag(out, ParseSeverity::error, "scm.scene-order-not-permutation", "Scene +0x04 array must be a permutation mapping evaluation position to node index.", scene.offset + scene.order_rel + i);
+        } else {
+            node_seen[node] = true;
+        }
+
+        if (i == 0U) {
+            if (parent != -1)
+                diag(out, ParseSeverity::error, "scm.scene-root-parent", "Evaluation position 0 must use parent -1.", scene.offset + scene.parent_rel);
+        } else if (parent < 0 || static_cast<std::size_t>(parent) >= n || !node_evaluated[static_cast<std::size_t>(parent)]) {
+            diag(out, ParseSeverity::error, "scm.scene-parent-not-prior", "Each non-root parent must name a scene node already evaluated at an earlier order position.", scene.offset + scene.parent_rel + i);
+        }
+
+        if (node < n)
+            node_evaluated[node] = true;
+
+        if (binding < -1 || binding >= static_cast<std::int16_t>(h.object_count)) {
             diag(out, ParseSeverity::error, "scm.scene-object-binding-out-of-range", "Scene object binding is not -1 or a valid object index.", scene.offset + scene.object_binding_rel + i);
+        } else if (binding >= 0) {
+            const auto object_index = static_cast<std::size_t>(binding);
+            if (object_binding_seen[object_index])
+                diag(out, ParseSeverity::error, "scm.scene-object-binding-duplicate", "A geometry object is bound by more than one scene node in a layout not observed in the confirmed corpus.", scene.offset + scene.object_binding_rel + i);
+            object_binding_seen[object_index] = true;
+        }
 
         SceneTransform t;
         const auto off = scene.offset + scene.transform_rel + static_cast<std::uint64_t>(i) * scene_transform_size;
@@ -78,7 +106,12 @@ void validate_serialized_document(std::span<const std::byte> bytes,
             diag(out, ParseSeverity::warning, "scm.scene-translation-magnitude", "Scene transform +0x0C differs from translation-vector magnitude.", off + 0x0CU);
         if (t.reserved1c != 0.0F)
             diag(out, ParseSeverity::warning, "scm.scene-transform-reserved-nonzero", "Scene transform +0x1C is non-zero.", off + 0x1CU);
-        scene.transforms.push_back(t);
+        scene.transform_by_node_index.push_back(t);
+    }
+
+    for (std::size_t object_index = 0; object_index < object_binding_seen.size(); ++object_index) {
+        if (!object_binding_seen[object_index])
+            diag(out, ParseSeverity::error, "scm.scene-object-binding-missing", "Every serialized geometry object must be bound by exactly one scene node on the confirmed DMC3-HD SCM corpus.", scene.offset + scene.object_binding_rel);
     }
 
     if (expected.file_size != bytes.size())
