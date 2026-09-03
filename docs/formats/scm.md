@@ -5,7 +5,8 @@
 **Canonical analysis EXE:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.  
 **Primary runtime normalizer:** `0x1403051B0`.  
 **Independent fixed-stride SCM mesh consumer:** `0x1402FDD10`.  
-**Runtime object-flags addendum:** [`../research/dmc3-scm-runtime-object-flags-2026-09-03.md`](../research/dmc3-scm-runtime-object-flags-2026-09-03.md).
+**Runtime object-flags addendum:** [`../research/dmc3-scm-runtime-object-flags-2026-09-03.md`](../research/dmc3-scm-runtime-object-flags-2026-09-03.md).  
+**Scene-transform addendum:** [`../research/dmc3-scm-scene-transform-consumer-2026-09-03.md`](../research/dmc3-scm-scene-transform-consumer-2026-09-03.md).
 
 SCM is a mesh-bearing stage/scene geometry family. It is not treated as a MOD alias. The serialized disk layout below is bounded by canonical executable evidence plus a 68-unique-file corpus sweep.
 
@@ -19,13 +20,13 @@ SCM is a mesh-bearing stage/scene geometry family. It is not treated as a MOD al
 | `+0x10` | `u8` | object count |
 | `+0x11` | `u8` | scene-node count |
 | `+0x12` | `u8` | texture-slot count |
-| `+0x13` | `u8` | reserved, zero on confirmed corpus |
-| `+0x14` | `u32` | unresolved structured identifier/metadata field |
+| `+0x13` | `u8` | reserved/manager-carried byte; zero on confirmed corpus |
+| `+0x14` | `u32` | EXE-confirmed runtime-carried metadata; semantic role unresolved |
 | `+0x18` | `u64` | reserved, zero |
 | `+0x20` | `u64` | absolute serialized scene-node-block offset |
 | `+0x28/+0x30/+0x38` | `u64` | reserved, zero |
 
-Do not rename `+0x14` to a semantic stage/material id until a direct producer or consumer closes that meaning.
+`0x1402F9570` directly copies serialized `+0x14` into runtime manager `+0xE4` (`0x1402F95BE..0x1402F95C5`). The field is therefore not offline-only metadata. Its exact semantic name remains open until downstream `manager+0xE4` ownership is closed.
 
 ## Object record — 0x40 bytes
 
@@ -170,17 +171,27 @@ Scene nodes are not equivalent to objects. 66/68 files use `nodeCount = objectCo
 ## Scene transform — 0x20 bytes
 
 ```text
-+0x00 f32 X
-+0x04 f32 Y
-+0x08 f32 Z
++0x00 f32 translationX
++0x04 f32 translationY
++0x08 f32 translationZ
 +0x0C f32 translationMagnitude
-+0x10 f32 rotationCandidateX
-+0x14 f32 rotationCandidateY
-+0x18 f32 rotationCandidateZ
++0x10 f32 rotationX radians
++0x14 f32 rotationY radians
++0x18 f32 rotationZ radians
 +0x1C f32 reserved = 0
 ```
 
-`+0x0C == length(X,Y,Z)` is data-confirmed on 328/328 nodes. The second vec3 strongly behaves like radians/Euler rotation, but the C++ API deliberately calls it `rotation_candidate` until a direct transform consumer closes the semantic convention/order.
+`+0x0C == length(X,Y,Z)` is data-confirmed on 328/328 nodes.
+
+The rotation vec3 is now **EXE_CONFIRMED**, not a candidate. Runtime path `0x1402FA080 -> 0x140330450` consumes the three floats as angular inputs and calls the dedicated X, Y and Z rotation helpers in serialized order. Those helpers use `sinf/cosf` and the shared matrix multiplier. Starting from identity, the resulting basis is:
+
+```text
+Rz * Ry * Rx
+```
+
+The clean C++20 implementation is `scm::build_rotation_xyz_radians()` in `scm_transform.hpp/.cpp`. It reproduces the recovered DMC3 row-major matrix layout without inventing an external OpenGL/DirectX handedness label.
+
+The complete local-to-world hierarchy transform and the engine-specific role of the translation vector's fourth serialized component remain separate runtime reverse targets.
 
 ## Generated-index workspace
 
@@ -209,18 +220,19 @@ Implemented on branch `scm`:
 - typed structural IR;
 - deterministic serialized layout builder;
 - topology/index generator;
+- exact XYZ Euler-radian rotation basis reconstruction;
 - bounds checks and invariant diagnostics;
 - exact object/mesh/scene/index-workspace validation;
 - EXE-confirmed neutral runtime flag projection for `object+0x10`;
-- synthetic regression including compile-time runtime-flag mapping checks;
+- compile-time/runtime regression for flag projection and X/Y/Z scene rotations;
 - 68-file external corpus validation with zero diagnostics.
 
 Not promoted yet:
 
-- semantic name for header `+0x14`;
+- semantic name for runtime-carried header `+0x14` / manager `+0xE4`;
 - exact semantic name for object `+0x01`;
 - semantic names for object flag bits, including unresolved observed bit `0x00200000`;
-- exact Euler order/coordinate convention for scene rotations;
+- complete hierarchy/world transform composition and external coordinate-system naming;
 - material/texture-bundle ownership beyond the validated texture index range;
 - canonical writer/export support;
 - no-edit byte-identical rebuild gate;
