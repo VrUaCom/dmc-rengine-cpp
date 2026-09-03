@@ -2,8 +2,10 @@
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
 #include "dmc_rengine/formats/scm_topology.hpp"
+#include "dmc_rengine/formats/scm_transform.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -15,6 +17,10 @@ namespace {
 template <typename T>
 void put(std::vector<std::byte>& bytes, std::size_t offset, T value) {
     std::memcpy(bytes.data() + offset, &value, sizeof(T));
+}
+
+[[nodiscard]] bool near(float actual, float expected, float epsilon = 0.0001F) {
+    return std::fabs(actual - expected) <= epsilon;
 }
 
 std::vector<std::byte> fixture() {
@@ -188,6 +194,41 @@ int main() {
         static_assert(!projection.helper_secondary_boolean);
         static_assert(
             (projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
+    }
+
+    constexpr float half_pi = 1.57079632679489661923F;
+    {
+        const auto m = build_rotation_xyz_radians(Vec3f{});
+        for (std::size_t row = 0U; row < 4U; ++row) {
+            for (std::size_t column = 0U; column < 4U; ++column) {
+                const auto expected_value = row == column ? 1.0F : 0.0F;
+                assert(near(m(row, column), expected_value));
+            }
+        }
+    }
+    {
+        const auto m = build_rotation_xyz_radians(Vec3f{half_pi, 0.0F, 0.0F});
+        assert(near(m(0U, 0U), 1.0F));
+        assert(near(m(1U, 1U), 0.0F));
+        assert(near(m(1U, 2U), 1.0F));
+        assert(near(m(2U, 1U), -1.0F));
+        assert(near(m(2U, 2U), 0.0F));
+    }
+    {
+        const auto m = build_rotation_xyz_radians(Vec3f{0.0F, half_pi, 0.0F});
+        assert(near(m(0U, 0U), 0.0F));
+        assert(near(m(0U, 2U), -1.0F));
+        assert(near(m(1U, 1U), 1.0F));
+        assert(near(m(2U, 0U), 1.0F));
+        assert(near(m(2U, 2U), 0.0F));
+    }
+    {
+        const auto m = build_rotation_xyz_radians(Vec3f{0.0F, 0.0F, half_pi});
+        assert(near(m(0U, 0U), 0.0F));
+        assert(near(m(0U, 1U), 1.0F));
+        assert(near(m(1U, 0U), -1.0F));
+        assert(near(m(1U, 1U), 0.0F));
+        assert(near(m(2U, 2U), 1.0F));
     }
 
     return 0;
