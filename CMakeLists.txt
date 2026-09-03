@@ -174,6 +174,13 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_expander_identity
         classifier
         scm
+        so
+        so_graph
+        so_link_table
+        so_volume_table
+        so_companion_correlation
+        so_mod_binding
+        mod_transform_domain
         format_registry_contract_coverage
         known_target
         executable_authority
