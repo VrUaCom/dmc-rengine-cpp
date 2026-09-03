@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_hierarchy.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
 #include "dmc_rengine/formats/scm_topology.hpp"
@@ -42,16 +43,14 @@ std::vector<std::byte> fixture() {
     bytes[0x10U] = std::byte{1};
     bytes[0x11U] = std::byte{1};
     bytes[0x12U] = std::byte{1};
-    put<std::uint64_t>(
-        bytes, 0x20U, layout.scene.block_offset);
+    put<std::uint64_t>(bytes, 0x20U, layout.scene.block_offset);
 
     const auto& object_layout = layout.objects[0];
     const auto object_offset = static_cast<std::size_t>(object_layout.record_offset);
     bytes[object_offset] = std::byte{1};
     bytes[object_offset + 1U] = std::byte{0x80};
     put<std::uint16_t>(bytes, object_offset + 0x02U, 3U);
-    put<std::uint64_t>(
-        bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
+    put<std::uint64_t>(bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
 
     const auto& mesh_layout = object_layout.meshes[0];
     const auto mesh_offset = static_cast<std::size_t>(mesh_layout.record_offset);
@@ -124,14 +123,13 @@ int main() {
     assert(parsed.document.objects[0].meshes.size() == 1U);
     assert(parsed.document.objects[0].meshes[0].vertex_count == 3U);
     assert(parsed.document.objects[0].meshes[0].observed_topology_flag_mask == 0U);
-    assert(parsed.document.scene_nodes.parents[0] == -1);
-    assert(parsed.document.scene_nodes.order[0] == 0U);
-    assert(parsed.document.scene_nodes.object_bindings[0] == 0);
+    assert(parsed.document.scene_nodes.parent_by_order_position[0] == -1);
+    assert(parsed.document.scene_nodes.node_at_order_position[0] == 0U);
+    assert(parsed.document.scene_nodes.object_binding_by_node_index[0] == 0);
 
     auto bad_vertex_sum = bytes;
     put<std::uint16_t>(bad_vertex_sum, 0x42U, 4U);
-    const auto bad_sum = Parser::parse(
-        std::span<const std::byte>{bad_vertex_sum});
+    const auto bad_sum = Parser::parse(std::span<const std::byte>{bad_vertex_sum});
     assert(bad_sum.recognized);
     assert(!bad_sum.ok());
 
@@ -139,20 +137,17 @@ int main() {
     const auto mesh_offset = static_cast<std::size_t>(
         parsed.document.objects[0].meshes[0].record_offset);
     put<std::uint64_t>(bad_continuation, mesh_offset + 0x28U, 0x50U);
-    const auto bad_cont = Parser::parse(
-        std::span<const std::byte>{bad_continuation});
+    const auto bad_cont = Parser::parse(std::span<const std::byte>{bad_continuation});
     assert(bad_cont.recognized);
     assert(!bad_cont.ok());
 
     std::vector<std::byte> other(header_size, std::byte{0});
-    const auto unrecognized = Parser::parse(
-        std::span<const std::byte>{other});
+    const auto unrecognized = Parser::parse(std::span<const std::byte>{other});
     assert(!unrecognized.recognized);
     assert(!unrecognized.ok());
 
     const std::vector<std::byte> truncated(0x10U, std::byte{0});
-    const auto short_result = Parser::parse(
-        std::span<const std::byte>{truncated});
+    const auto short_result = Parser::parse(std::span<const std::byte>{truncated});
     assert(!short_result.recognized);
     assert(!short_result.ok());
     assert(short_result.diagnostics[0].code == "scm.truncated-header");
@@ -169,31 +164,27 @@ int main() {
     }
     {
         constexpr auto projection = runtime::project(0x00020000U);
-        static_assert(
-            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_9) != 0U);
+        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_9) != 0U);
         static_assert(projection.initialize_unit_vector);
     }
     {
         constexpr auto projection = runtime::project(0x00100001U);
         static_assert(projection.helper_mode == 1U);
         static_assert(projection.helper_state_selector == 0x0005010DU);
-        static_assert(
-            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_8) != 0U);
+        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_8) != 0U);
     }
     {
         constexpr auto projection = runtime::project(0x04000000U);
         static_assert(projection.high_mode_present);
         static_assert(projection.high_mode_minus_one == 3U);
-        static_assert(
-            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_15) != 0U);
+        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_15) != 0U);
     }
     {
         constexpr auto projection = runtime::project(0x00010004U);
         static_assert(projection.helper_mode == 4U);
         static_assert(projection.helper_state_selector == 0x00050007U);
         static_assert(!projection.helper_secondary_boolean);
-        static_assert(
-            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
+        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
     }
 
     constexpr float half_pi = 1.57079632679489661923F;
@@ -229,6 +220,44 @@ int main() {
         assert(near(m(1U, 0U), -1.0F));
         assert(near(m(1U, 1U), 0.0F));
         assert(near(m(2U, 2U), 1.0F));
+    }
+    {
+        SceneTransform transform{};
+        transform.translation = Vec3f{3.0F, 4.0F, 12.0F};
+        transform.translation_magnitude = 13.0F;
+        const auto local = build_local_transform(transform);
+        assert(near(local(3U, 0U), 3.0F));
+        assert(near(local(3U, 1U), 4.0F));
+        assert(near(local(3U, 2U), 12.0F));
+        assert(near(local(3U, 3U), 1.0F));
+    }
+    {
+        SceneNodeBlock scene{};
+        scene.parent_by_order_position = {-1, 0, 2};
+        scene.node_at_order_position = {0U, 2U, 1U};
+        scene.object_binding_by_node_index = {-1, 0, 1};
+        scene.transform_by_node_index.resize(3U);
+        scene.transform_by_node_index[0].translation = Vec3f{10.0F, 0.0F, 0.0F};
+        scene.transform_by_node_index[1].translation = Vec3f{0.0F, 0.0F, 3.0F};
+        scene.transform_by_node_index[2].translation = Vec3f{0.0F, 2.0F, 0.0F};
+
+        const auto world = build_world_matrices(scene);
+        assert(world.has_value());
+        assert(near((*world)[0](3U, 0U), 10.0F));
+        assert(near((*world)[2](3U, 0U), 10.0F));
+        assert(near((*world)[2](3U, 1U), 2.0F));
+        assert(near((*world)[1](3U, 0U), 10.0F));
+        assert(near((*world)[1](3U, 1U), 2.0F));
+        assert(near((*world)[1](3U, 2U), 3.0F));
+
+        auto root_base = identity_matrix();
+        root_base.values[12] = 100.0F;
+        const auto shifted = build_world_matrices(scene, root_base);
+        assert(shifted.has_value());
+        assert(near((*shifted)[1](3U, 0U), 110.0F));
+
+        scene.parent_by_order_position[2] = 1;
+        assert(!build_world_matrices(scene).has_value());
     }
 
     return 0;
