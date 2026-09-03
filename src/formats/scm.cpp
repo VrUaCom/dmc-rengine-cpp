@@ -77,8 +77,13 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
         for (std::size_t mi = 0; mi < object.mesh_count; ++mi) {
             Mesh mesh;
             mesh.record_offset = object.mesh_table_offset + static_cast<std::uint64_t>(mi) * mesh_record_size;
-            r.read(mesh.record_offset + 0x00U, mesh.vertex_count); r.read(mesh.record_offset + 0x02U, mesh.texture_index);
-            r.read(mesh.record_offset + 0x04U, mesh.reserved04); r.read(mesh.record_offset + 0x08U, mesh.reserved08);
+            r.read(mesh.record_offset + 0x00U, mesh.vertex_count);
+            r.read(mesh.record_offset + 0x02U, mesh.texture_index);
+            r.read(mesh.record_offset + 0x04U, mesh.render_words.values[0]);
+            r.read(mesh.record_offset + 0x06U, mesh.render_words.values[1]);
+            r.read(mesh.record_offset + 0x08U, mesh.render_words.values[2]);
+            r.read(mesh.record_offset + 0x0AU, mesh.render_words.values[3]);
+            r.read(mesh.record_offset + 0x0CU, mesh.reserved0c);
             r.read(mesh.record_offset + 0x10U, mesh.positions_offset); r.read(mesh.record_offset + 0x18U, mesh.normals_offset);
             r.read(mesh.record_offset + 0x20U, mesh.uv_offset); r.read(mesh.record_offset + 0x28U, mesh.continuation_span);
             r.read(mesh.record_offset + 0x30U, mesh.reserved30); r.read(mesh.record_offset + 0x38U, mesh.color_flags_offset);
@@ -92,8 +97,8 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
                 diag(out, ParseSeverity::error, "scm.mesh-continuation-mismatch", "Mesh +0x28 must be 0x50 for non-final meshes and 0 for the final mesh.", mesh.record_offset + 0x28U);
             if (h.texture_slot_count != 0U && mesh.texture_index >= h.texture_slot_count)
                 diag(out, ParseSeverity::error, "scm.texture-index-out-of-range", "Mesh texture index exceeds header texture-slot count.", mesh.record_offset + 0x02U);
-            if (mesh.reserved04 || mesh.reserved08 || mesh.reserved30 || mesh.generated_index_count || mesh.reserved4c)
-                diag(out, ParseSeverity::warning, "scm.mesh-reserved-nonzero", "Serialized reserved/runtime mesh fields differ from confirmed corpus.", mesh.record_offset + 0x04U);
+            if (mesh.reserved0c || mesh.reserved30 || mesh.generated_index_count || mesh.reserved4c)
+                diag(out, ParseSeverity::warning, "scm.mesh-reserved-nonzero", "Serialized reserved/runtime mesh fields differ from confirmed corpus.", mesh.record_offset + 0x0CU);
 
             const std::array ranges{
                 std::pair{mesh.positions_offset, stream_size(mesh.vertex_count, 12U)},
