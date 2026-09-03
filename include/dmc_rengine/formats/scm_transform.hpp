@@ -18,6 +18,21 @@ struct Matrix4f final {
     }
 };
 
+[[nodiscard]] constexpr Matrix4f identity_matrix() noexcept {
+    return Matrix4f{{
+        1.0F, 0.0F, 0.0F, 0.0F,
+        0.0F, 1.0F, 0.0F, 0.0F,
+        0.0F, 0.0F, 1.0F, 0.0F,
+        0.0F, 0.0F, 0.0F, 1.0F,
+    }};
+}
+
+// Reconstruct 0x1400312B0: result = left * right in the recovered
+// DMC3 row-major / row-vector matrix convention.
+[[nodiscard]] Matrix4f multiply_dmc3_matrices(
+    const Matrix4f& left,
+    const Matrix4f& right) noexcept;
+
 // Reconstruct the exact rotation matrix sequence used by the canonical DMC3
 // scene-transform consumer 0x1402FA080 -> 0x140330450.
 //
@@ -26,5 +41,12 @@ struct Matrix4f final {
 // yields the matrix product Rz * Ry * Rx from an identity starting basis.
 [[nodiscard]] Matrix4f build_rotation_xyz_radians(
     const Vec3f& rotation_xyz_radians) noexcept;
+
+// Reconstruct the local scene-node matrix produced by 0x1402FA080 using
+// 0x140330450 followed by 0x140031200. Translation occupies row 3 XYZ.
+// The serialized translation-magnitude lane (+0x0C) is deliberately masked
+// out by the original helper; homogeneous W remains 1.
+[[nodiscard]] Matrix4f build_local_transform(
+    const SceneTransform& transform) noexcept;
 
 } // namespace dmc::rengine::formats::scm
