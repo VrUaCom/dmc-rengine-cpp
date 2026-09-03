@@ -173,6 +173,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_tree_expander
         container_expander_identity
         classifier
+        scm
         format_registry_contract_coverage
         known_target
         executable_authority
