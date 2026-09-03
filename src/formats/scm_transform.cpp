@@ -4,6 +4,21 @@
 
 namespace dmc::rengine::formats::scm {
 
+Matrix4f multiply_dmc3_matrices(
+    const Matrix4f& left,
+    const Matrix4f& right) noexcept {
+    Matrix4f result{};
+    for (std::size_t row = 0U; row < 4U; ++row) {
+        for (std::size_t column = 0U; column < 4U; ++column) {
+            float value = 0.0F;
+            for (std::size_t k = 0U; k < 4U; ++k)
+                value += left(row, k) * right(k, column);
+            result.values[row * 4U + column] = value;
+        }
+    }
+    return result;
+}
+
 Matrix4f build_rotation_xyz_radians(
     const Vec3f& rotation_xyz_radians) noexcept {
     const auto cx = std::cos(rotation_xyz_radians.x);
@@ -36,6 +51,18 @@ Matrix4f build_rotation_xyz_radians(
         0.0F,
         1.0F,
     }};
+}
+
+Matrix4f build_local_transform(const SceneTransform& transform) noexcept {
+    auto result = build_rotation_xyz_radians(transform.rotation_xyz_radians);
+
+    // 0x140031200 copies the basis and adds serialized translation XYZ to
+    // row 3. Its runtime-initialized mask is {0,0,0,0xFFFFFFFF}, preserving
+    // the original homogeneous W instead of adding transform +0x0C.
+    result.values[12] += transform.translation.x;
+    result.values[13] += transform.translation.y;
+    result.values[14] += transform.translation.z;
+    return result;
 }
 
 } // namespace dmc::rengine::formats::scm
