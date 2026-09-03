@@ -89,10 +89,15 @@ struct SceneNodeBlock final {
     std::uint32_t order_rel{};
     std::uint32_t object_binding_rel{};
     std::uint32_t transform_rel{};
-    std::vector<std::int8_t> parents;
-    std::vector<std::uint8_t> order;
-    std::vector<std::int8_t> object_bindings;
-    std::vector<SceneTransform> transforms;
+
+    // EXE-confirmed indexing contract:
+    //   position i in evaluation order -> node_at_order_position[i]
+    //   position i in evaluation order -> parent_by_order_position[i]
+    // Object bindings and transforms are indexed by scene-node index itself.
+    std::vector<std::int8_t> parent_by_order_position;
+    std::vector<std::uint8_t> node_at_order_position;
+    std::vector<std::int8_t> object_binding_by_node_index;
+    std::vector<SceneTransform> transform_by_node_index;
 };
 
 struct Document final {
