@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/formats/diagnostic.hpp"
+#include "dmc_rengine/formats/scm_render.hpp"
 
 #include <array>
 #include <cstddef>
@@ -44,8 +45,8 @@ struct Mesh final {
     std::uint64_t record_offset{};
     std::uint16_t vertex_count{};
     std::uint16_t texture_index{};
-    std::uint32_t reserved04{};
-    std::uint64_t reserved08{};
+    MeshRenderWords render_words{};
+    std::uint32_t reserved0c{};
     std::uint64_t positions_offset{};
     std::uint64_t normals_offset{};
     std::uint64_t uv_offset{};
