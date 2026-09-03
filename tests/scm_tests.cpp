@@ -1,5 +1,6 @@
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
+#include "dmc_rengine/formats/scm_runtime_flags.hpp"
 #include "dmc_rengine/formats/scm_topology.hpp"
 
 #include <cassert>
@@ -149,6 +150,45 @@ int main() {
     assert(!short_result.recognized);
     assert(!short_result.ok());
     assert(short_result.diagnostics[0].code == "scm.truncated-header");
+
+    namespace runtime = dmc::rengine::formats::scm::runtime;
+    static_assert(runtime::observed_corpus_source_mask == 0x003A0003U);
+
+    {
+        constexpr auto projection = runtime::project(0U);
+        static_assert(projection.runtime_flags_to_set == 0U);
+        static_assert(projection.helper_mode == 9U);
+        static_assert(projection.helper_state_selector == 0x0005080BU);
+        static_assert(projection.helper_secondary_boolean);
+    }
+    {
+        constexpr auto projection = runtime::project(0x00020000U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_9) != 0U);
+        static_assert(projection.initialize_unit_vector);
+    }
+    {
+        constexpr auto projection = runtime::project(0x00100001U);
+        static_assert(projection.helper_mode == 1U);
+        static_assert(projection.helper_state_selector == 0x0005010DU);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_8) != 0U);
+    }
+    {
+        constexpr auto projection = runtime::project(0x04000000U);
+        static_assert(projection.high_mode_present);
+        static_assert(projection.high_mode_minus_one == 3U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_15) != 0U);
+    }
+    {
+        constexpr auto projection = runtime::project(0x00010004U);
+        static_assert(projection.helper_mode == 4U);
+        static_assert(projection.helper_state_selector == 0x00050007U);
+        static_assert(!projection.helper_secondary_boolean);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
+    }
 
     return 0;
 }
