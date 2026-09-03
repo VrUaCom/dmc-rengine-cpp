@@ -60,6 +60,7 @@ add_executable(dmc-rengine
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
     src/cli/nbz_copy_commands.cpp
+    src/cli/archive_key_census_commands.cpp
     src/cli/relative_slot_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
@@ -194,6 +195,19 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_relative_slot_cli_tests
         COMMAND dmc_rengine_relative_slot_cli_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_archive_key_census_cli_tests
+        tests/archive_key_census_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE src/cli/archive_key_census_commands.cpp)
+    target_include_directories(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_archive_key_census_cli_tests
+        COMMAND dmc_rengine_archive_key_census_cli_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests

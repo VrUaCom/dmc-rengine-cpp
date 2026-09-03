@@ -1,3 +1,4 @@
+#include "archive_key_census_commands.hpp"
 #include "exe_acquisition_commands.hpp"
 #include "integration_commands.hpp"
 
@@ -45,6 +46,7 @@ void print_help() {
         << "  extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]\n"
         << "                            Hash-gated reverse-evidence byte window\n";
     dmc::rengine::cli::print_integration_help();
+    dmc::rengine::cli::print_archive_key_census_help();
     std::cout << "  help | --help             Show this help\n";
 }
 
@@ -304,6 +306,12 @@ int main(int argc, char** argv) {
         dmc::rengine::cli::try_run_exe_acquisition_command(argc, argv);
     if (acquisition_result != -1) {
         return acquisition_result;
+    }
+
+    const auto census_result =
+        dmc::rengine::cli::try_run_archive_key_census_command(argc, argv);
+    if (census_result != -1) {
+        return census_result;
     }
 
     const std::string_view command{argv[1]};
