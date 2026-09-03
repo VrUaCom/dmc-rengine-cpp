@@ -70,7 +70,7 @@ void validate_serialized_document(std::span<const std::byte> bytes,
         const auto off = scene.offset + scene.transform_rel + static_cast<std::uint64_t>(i) * scene_transform_size;
         r.read(off + 0x00U, t.translation.x); r.read(off + 0x04U, t.translation.y); r.read(off + 0x08U, t.translation.z);
         r.read(off + 0x0CU, t.translation_magnitude);
-        r.read(off + 0x10U, t.rotation_candidate.x); r.read(off + 0x14U, t.rotation_candidate.y); r.read(off + 0x18U, t.rotation_candidate.z);
+        r.read(off + 0x10U, t.rotation_xyz_radians.x); r.read(off + 0x14U, t.rotation_xyz_radians.y); r.read(off + 0x18U, t.rotation_xyz_radians.z);
         r.read(off + 0x1CU, t.reserved1c);
         const auto length = std::sqrt(t.translation.x * t.translation.x + t.translation.y * t.translation.y + t.translation.z * t.translation.z);
         const auto tolerance = std::max(0.001F, length * 0.0001F);
