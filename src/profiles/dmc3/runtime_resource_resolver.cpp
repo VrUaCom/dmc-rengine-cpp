@@ -17,17 +17,21 @@ bool ArchiveSourceBinding::valid() const noexcept {
 }
 
 bool RuntimeSourceBindings::valid_for(
-    const VolumeBootstrapPlan& bootstrap) const noexcept {
-    if (!bootstrap.valid() || physical_source_id.empty() ||
-        archives.size() != bootstrap.registered_archives.size()) {
+    const RuntimeMountTopology& topology) const noexcept {
+    if (!topology.structurally_valid() ||
+        archives.size() != topology.mounted_archives.size()) {
+        return false;
+    }
+
+    if (topology.physical_mount_succeeded != !physical_source_id.empty()) {
         return false;
     }
 
     for (std::size_t index = 0U; index < archives.size(); ++index) {
         const auto& binding = archives[index];
         if (!binding.valid() ||
-            binding.volume_index >= bootstrap.first_missing_index ||
-            binding.source_id == physical_source_id) {
+            (!physical_source_id.empty() &&
+             binding.source_id == physical_source_id)) {
             return false;
         }
 
@@ -39,7 +43,7 @@ bool RuntimeSourceBindings::valid_for(
         }
     }
 
-    for (const auto& volume : bootstrap.registered_archives) {
+    for (const auto& volume : topology.mounted_archives) {
         if (archive(volume.index) == nullptr) {
             return false;
         }
@@ -184,7 +188,8 @@ struct MountedSourceIndex final {
 
 RuntimeResolutionReport RuntimeResourceResolver::resolve(
     std::string_view request,
-    const VolumeBootstrapPlan& bootstrap,
+    const VolumeBootstrapPlan& discovery,
+    const RuntimeMountTopology& topology,
     const RuntimeSourceBindings& bindings,
     const gdspaces::SourceRegistry& sources) {
     const auto plan = ResourceLookupPolicy::plan(request);
@@ -199,43 +204,52 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         };
     }
 
-    if (!bindings.valid_for(bootstrap)) {
+    if (!topology.valid_for(discovery)) {
         return invalid_configuration(
             request,
-            "Runtime source bindings do not exactly match the contiguous bootstrap mount set.");
+            "Successful mount topology is not valid for the supplied bootstrap discovery range.");
     }
-
-    const auto* physical_source = sources.find(bindings.physical_source_id);
-    if (physical_source == nullptr ||
-        physical_source->id() != bindings.physical_source_id) {
+    if (!bindings.valid_for(topology)) {
         return invalid_configuration(
             request,
-            "The physical source binding does not reference the exact mounted source instance.");
+            "Runtime source bindings do not exactly match the successful mount topology.");
     }
 
-    const auto* direct_physical_source =
-        dynamic_cast<const gdspaces::IDirectPathSource*>(physical_source);
+    const gdspaces::ISource* physical_source = nullptr;
+    const gdspaces::IDirectPathSource* direct_physical_source = nullptr;
     std::optional<MountedSourceIndex> physical_index;
-    if (direct_physical_source == nullptr) {
-        physical_index = build_current_source_index(
-            sources,
-            bindings.physical_source_id,
-            ResourcePathPolicy::physical_flags);
-        if (!physical_index.has_value()) {
+    if (topology.physical_mount_succeeded) {
+        physical_source = sources.find(bindings.physical_source_id);
+        if (physical_source == nullptr ||
+            physical_source->id() != bindings.physical_source_id) {
             return invalid_configuration(
                 request,
-                "The physical source exposes no direct path capability and its current enumeration cannot produce a clean 0x0C product lookup index.");
+                "The physical source binding does not reference the exact successful mounted source instance.");
+        }
+
+        direct_physical_source =
+            dynamic_cast<const gdspaces::IDirectPathSource*>(physical_source);
+        if (direct_physical_source == nullptr) {
+            physical_index = build_current_source_index(
+                sources,
+                bindings.physical_source_id,
+                ResourcePathPolicy::physical_flags);
+            if (!physical_index.has_value()) {
+                return invalid_configuration(
+                    request,
+                    "The successful physical source exposes no direct path capability and its current enumeration cannot produce a clean 0x0C product lookup index.");
+            }
         }
     }
 
     std::vector<std::pair<std::uint32_t, MountedSourceIndex>> archive_indexes;
-    archive_indexes.reserve(bootstrap.registered_archives.size());
-    for (const auto& volume : bootstrap.registered_archives) {
+    archive_indexes.reserve(topology.mounted_archives.size());
+    for (const auto& volume : topology.mounted_archives) {
         const auto* binding = bindings.archive(volume.index);
         if (binding == nullptr) {
             return invalid_configuration(
                 request,
-                "A contiguous runtime archive volume has no source binding.");
+                "A successful runtime archive mount has no source binding.");
         }
 
         auto index = build_current_source_index(
@@ -243,7 +257,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         if (!index.has_value()) {
             return invalid_configuration(
                 request,
-                "An archive source is missing or its current enumeration cannot produce a clean 0x0E lookup index.");
+                "A successful archive mount binding is missing or its current enumeration cannot produce a clean 0x0E lookup index.");
         }
         archive_indexes.emplace_back(volume.index, std::move(*index));
     }
@@ -260,7 +274,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                     "Archive provider normalization unexpectedly rejected a canonical lookup candidate.");
             }
 
-            for (const auto volume_index : bootstrap.archive_resolution_order) {
+            for (const auto volume_index : topology.archive_resolution_order) {
                 const auto* binding = bindings.archive(volume_index);
                 const auto* mounted_index = archive_index(archive_indexes, volume_index);
                 if (binding == nullptr || mounted_index == nullptr ||
@@ -268,7 +282,7 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                     return invalid_configuration(
                         request,
                         std::move(probes),
-                        "Archive precedence references a volume without its current mounted-source index.");
+                        "Archive precedence references a successful mount without its current mounted-source index.");
                 }
 
                 auto lookup = mounted_index->index.lookup(provider_key);
@@ -300,13 +314,20 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                         request,
                         std::move(probes),
                         lookup,
-                        "The current highest-precedence archive source contains multiple physical identities for one normalized runtime key; no semantic duplicate winner is promoted.");
+                        "The current highest-precedence successful archive source contains multiple physical identities for one normalized runtime key; no semantic duplicate winner is promoted.");
                 }
                 if (lookup.unique()) {
                     return resolved_report(
                         request, std::move(probes), lookup.matches.front());
                 }
             }
+            continue;
+        }
+
+        // If the bootstrap type-0 registration attempt failed, the original
+        // mount list contains no physical node to visit. Do not manufacture a
+        // physical miss probe from the attempted root path.
+        if (!topology.physical_mount_succeeded) {
             continue;
         }
 
@@ -375,6 +396,13 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
                 "Physical direct lookup returned an unknown status value.");
         }
 
+        if (!physical_index.has_value()) {
+            return invalid_configuration(
+                request,
+                std::move(probes),
+                "Successful physical mount has neither a direct-path capability nor a product fallback index.");
+        }
+
         auto lookup = physical_index->index.lookup(provider_key);
         probes.push_back(RuntimeResolutionProbe{
             .lookup_attempt_index = attempt.attempt_index,
@@ -412,15 +440,22 @@ RuntimeResolutionReport RuntimeResourceResolver::resolve(
         }
     }
 
+    std::string detail;
+    if (!topology.physical_mount_succeeded) {
+        detail = "All mounted archive lookup attempts completed without a resource hit. The bootstrap physical registration attempt did not produce a successful type-0 mount, so no physical provider probes were manufactured.";
+    } else if (direct_physical_source != nullptr) {
+        detail = "All successful archive mounts and physical lookup attempts completed without a resource hit. Physical probes used the source-native direct path capability and remain product-classified outside the bounded Windows parity receipts.";
+    } else {
+        detail = "All successful archive mounts and physical lookup attempts completed without a resource hit. The successful physical source exposes no direct path capability, so probes used the explicitly product-classified 0x0C index fallback.";
+    }
+
     return RuntimeResolutionReport{
         .request = std::string{request},
         .status = RuntimeResolutionStatus::not_found,
         .resolved = std::nullopt,
         .ambiguous_matches = {},
         .probes = std::move(probes),
-        .detail = direct_physical_source != nullptr
-            ? "All canonical archive and physical lookup attempts completed without a resource hit. Physical probes used the source-native direct path capability and remain product-classified outside the bounded Windows parity receipts."
-            : "All canonical archive and physical lookup attempts completed without a resource hit. The physical source exposes no direct path capability, so probes used the explicitly product-classified 0x0C index fallback.",
+        .detail = std::move(detail),
     };
 }
 

@@ -101,9 +101,12 @@ int main() {
     using dmc::rengine::profiles::dmc3::RuntimeResolutionStatus;
     using dmc::rengine::profiles::dmc3::RuntimeResourceResolver;
     using dmc::rengine::profiles::dmc3::RuntimeSourceBindings;
+    using dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy;
 
-    const auto bootstrap = three_volumes();
-    assert(bootstrap.valid());
+    const auto discovery = three_volumes();
+    assert(discovery.valid());
+    const auto topology = VolumeBootstrapPolicy::all_success_topology(discovery);
+    assert(topology.valid_for(discovery));
 
     // Prefix order is outer authority: lower-precedence volume under prefix 0
     // beats a higher-precedence volume under prefix 1.
@@ -117,9 +120,9 @@ int main() {
             make_resource("archive-0", "GDataX360.afs/st001.pac", "nbz[1]")});
 
         auto bindings = three_bindings();
-        assert(bindings.valid_for(bootstrap));
+        assert(bindings.valid_for(topology));
         const auto report = RuntimeResourceResolver::resolve(
-            "scr\\st001.pac", bootstrap, bindings, registry);
+            "scr\\st001.pac", discovery, topology, bindings, registry);
         assert(report.ok());
         assert(report.resolved->id.source_id == "archive-0");
         assert(report.probes.size() == 3U);
@@ -131,7 +134,8 @@ int main() {
         }
     }
 
-    // Highest volume wins within one candidate; archive normalization is lower-case.
+    // Highest successful volume wins within one candidate; archive normalization
+    // is lower-case.
     {
         SourceRegistry registry;
         mount(registry, "physical", {});
@@ -141,14 +145,15 @@ int main() {
         mount(registry, "archive-0", {
             make_resource("archive-0", "gdatax360.afs/st001.pac", "nbz[2]")});
         const auto report = RuntimeResourceResolver::resolve(
-            "room/St001.PAC", bootstrap, three_bindings(), registry);
+            "room/St001.PAC", discovery, topology, three_bindings(), registry);
         assert(report.ok());
         assert(report.resolved->id.source_id == "archive-2");
         assert(report.probes.size() == 1U);
         assert(report.probes[0].provider_key == "gdatax360.afs\\st001.pac");
     }
 
-    // Ambiguity in the highest-precedence archive stops without probing lower volumes.
+    // Ambiguity in the highest-precedence successful archive stops without
+    // probing lower mounted volumes.
     {
         SourceRegistry registry;
         mount(registry, "physical", {});
@@ -158,14 +163,14 @@ int main() {
         mount(registry, "archive-1", {});
         mount(registry, "archive-0", {});
         const auto report = RuntimeResourceResolver::resolve(
-            "st001.pac", bootstrap, three_bindings(), registry);
+            "st001.pac", discovery, topology, three_bindings(), registry);
         assert(report.status == RuntimeResolutionStatus::ambiguous);
         assert(report.ambiguous_matches.size() == 2U);
         assert(report.probes.size() == 1U);
     }
 
-    // Complete miss preserves all six archive candidates x three volumes, then
-    // all six physical candidates: 24 probes in exact provider phase order.
+    // Clean all-success miss preserves six archive candidates x three mounted
+    // volumes, then six physical candidates: 24 probes.
     {
         SourceRegistry registry;
         mount(registry, "physical", {});
@@ -173,7 +178,7 @@ int main() {
         mount(registry, "archive-1", {});
         mount(registry, "archive-0", {});
         const auto report = RuntimeResourceResolver::resolve(
-            "missing.pac", bootstrap, three_bindings(), registry);
+            "missing.pac", discovery, topology, three_bindings(), registry);
         assert(report.status == RuntimeResolutionStatus::not_found);
         assert(report.probes.size() == 24U);
         for (std::size_t index = 0U; index < 18U; ++index) {
@@ -189,11 +194,69 @@ int main() {
         }
     }
 
-    // Zero archive volumes is valid. A source without direct-path capability
-    // continues to use the explicitly product-classified 0x0C index fallback.
+    // Reverse-driven sparse mount topology: DMC3-1 can fail registration while
+    // DMC3-2 still succeeds. Resolver must traverse 2 -> 0, never fabricate a
+    // volume-1 miss.
     {
-        const auto empty_bootstrap = no_volumes();
-        assert(empty_bootstrap.valid());
+        constexpr std::array<std::uint32_t, 2> successful{0U, 2U};
+        const auto sparse = VolumeBootstrapPolicy::mount_topology(
+            discovery, true, successful);
+        assert(sparse.valid_for(discovery));
+        assert((sparse.archive_resolution_order ==
+            std::vector<std::uint32_t>{2U, 0U}));
+
+        SourceRegistry registry;
+        mount(registry, "physical", {});
+        mount(registry, "archive-2", {});
+        mount(registry, "archive-0", {
+            make_resource("archive-0", "GDataX360.afs/st001.pac", "nbz[1]")});
+        RuntimeSourceBindings bindings{
+            .physical_source_id = "physical",
+            .archives = {
+                ArchiveSourceBinding{2U, "archive-2"},
+                ArchiveSourceBinding{0U, "archive-0"},
+            },
+        };
+        assert(bindings.valid_for(sparse));
+        const auto report = RuntimeResourceResolver::resolve(
+            "st001.pac", discovery, sparse, bindings, registry);
+        assert(report.ok());
+        assert(report.resolved->id.source_id == "archive-0");
+        assert(report.probes.size() == 2U);
+        assert(report.probes[0].archive_volume_index == 2U);
+        assert(report.probes[1].archive_volume_index == 0U);
+    }
+
+    // A failed physical registration means there is no type-0 node to probe.
+    // Do not manufacture six physical misses from the attempted root path.
+    {
+        const auto empty_discovery = no_volumes();
+        const auto no_physical = VolumeBootstrapPolicy::mount_topology(
+            empty_discovery, false, std::span<const std::uint32_t>{});
+        assert(no_physical.valid_for(empty_discovery));
+        RuntimeSourceBindings bindings{
+            .physical_source_id = {},
+            .archives = {},
+        };
+        assert(bindings.valid_for(no_physical));
+        SourceRegistry registry;
+        const auto report = RuntimeResourceResolver::resolve(
+            "missing.pac", empty_discovery, no_physical, bindings, registry);
+        assert(report.status == RuntimeResolutionStatus::not_found);
+        assert(report.probes.empty());
+
+        auto forged_physical = bindings;
+        forged_physical.physical_source_id = "physical";
+        assert(!forged_physical.valid_for(no_physical));
+    }
+
+    // Zero archive volumes with successful physical registration is valid. A
+    // source without direct-path capability uses the explicit product 0x0C index.
+    {
+        const auto empty_discovery = no_volumes();
+        const auto physical_only =
+            VolumeBootstrapPolicy::all_success_topology(empty_discovery);
+        assert(physical_only.valid_for(empty_discovery));
         SourceRegistry registry;
         mount(registry, "physical", {
             make_resource("physical", "GDataX360.afs/st001.pac", "disk")});
@@ -201,9 +264,9 @@ int main() {
             .physical_source_id = "physical",
             .archives = {},
         };
-        assert(bindings.valid_for(empty_bootstrap));
+        assert(bindings.valid_for(physical_only));
         const auto report = RuntimeResourceResolver::resolve(
-            "st001.pac", empty_bootstrap, bindings, registry);
+            "st001.pac", empty_discovery, physical_only, bindings, registry);
         assert(report.ok());
         assert(report.resolved->id.source_id == "physical");
         assert(report.probes.size() == 1U);
@@ -216,8 +279,6 @@ int main() {
     // Controlled Windows physical-provider parity receipt. The recovered original
     // delegates final physical filename resolution to CreateFileA after 0x0C,
     // while the old product index preserves case and therefore misses this key.
-    // LocalDirectorySource direct lookup follows the native Windows filesystem,
-    // then recovers the canonical enumerated ResourceRef identity.
     {
         const auto root = std::filesystem::temp_directory_path() /
             "dmc-rengine-l2-physical-parity";
@@ -241,19 +302,13 @@ int main() {
             "GDataX360.afs/caseprobe.pac");
         const auto product_index = ResourceKeyIndex::build(
             "physical", ResourcePathPolicy::physical_flags, enumerated);
-        const auto old_index_lookup = product_index.lookup(provider_key);
-        assert(!old_index_lookup.found());
+        assert(!product_index.lookup(provider_key).found());
 
         const auto mismatched_case_path =
             (root / "GDataX360.afs" / "caseprobe.pac").string();
         const auto handle = CreateFileA(
-            mismatched_case_path.c_str(),
-            GENERIC_READ,
-            FILE_SHARE_READ,
-            nullptr,
-            OPEN_EXISTING,
-            0,
-            nullptr);
+            mismatched_case_path.c_str(), GENERIC_READ, FILE_SHARE_READ,
+            nullptr, OPEN_EXISTING, 0, nullptr);
         assert(handle != INVALID_HANDLE_VALUE);
         assert(CloseHandle(handle) != 0);
 
@@ -264,8 +319,11 @@ int main() {
             .physical_source_id = "physical",
             .archives = {},
         };
+        const auto empty_discovery = no_volumes();
+        const auto physical_only =
+            VolumeBootstrapPolicy::all_success_topology(empty_discovery);
         const auto report = RuntimeResourceResolver::resolve(
-            "caseprobe.pac", no_volumes(), bindings, registry);
+            "caseprobe.pac", empty_discovery, physical_only, bindings, registry);
         assert(report.ok());
         assert(report.resolved->id.logical_path ==
             "GDataX360.afs/CaseProbe.PAC");
@@ -279,11 +337,11 @@ int main() {
     }
 #endif
 
-    // Recovered OpenGameResource 0x400 boundary: the first/longest prefix is
-    // 14 bytes, so a 1009-byte basename yields a 1023-byte candidate and fits.
-    // 1010 bytes yields 1024 and the original direct-call path aborts immediately.
+    // Recovered OpenGameResource 0x400 boundary remains unchanged.
     {
-        const auto empty_bootstrap = no_volumes();
+        const auto empty_discovery = no_volumes();
+        const auto physical_only =
+            VolumeBootstrapPolicy::all_success_topology(empty_discovery);
         RuntimeSourceBindings bindings{
             .physical_source_id = "physical",
             .archives = {},
@@ -293,20 +351,19 @@ int main() {
 
         const std::string fits(1009U, 'a');
         const auto fits_report = RuntimeResourceResolver::resolve(
-            fits, empty_bootstrap, bindings, registry);
+            fits, empty_discovery, physical_only, bindings, registry);
         assert(fits_report.status == RuntimeResolutionStatus::not_found);
         assert(fits_report.probes.size() == 6U);
 
         const std::string overflows_first_candidate(1010U, 'a');
         const auto overflow_report = RuntimeResourceResolver::resolve(
-            overflows_first_candidate, empty_bootstrap, bindings, registry);
+            overflows_first_candidate, empty_discovery, physical_only,
+            bindings, registry);
         assert(overflow_report.status == RuntimeResolutionStatus::invalid_request);
         assert(overflow_report.probes.empty());
     }
 
-    // Pure recovered type-0 path model: 0x0C strips edge separators and
-    // canonicalizes/collapses slash separators. It does not resolve dot segments
-    // and it preserves ASCII case.
+    // Pure recovered type-0 path model remains independent from bootstrap outcome.
     {
         const auto plan = PhysicalProviderModel::plan(
             "C:\\game\\data\\dmc3", "Room/../ROOM/ST001.PAC");
@@ -324,14 +381,15 @@ int main() {
         assert(overflow.status == PhysicalProviderPlanStatus::candidate_overflow);
     }
 
-    // Missing mounted archive source is configuration failure before probes.
+    // Missing source for a provider that is explicitly marked successfully
+    // mounted is configuration failure before probes.
     {
         SourceRegistry registry;
         mount(registry, "physical", {});
         mount(registry, "archive-2", {});
         mount(registry, "archive-0", {});
         const auto report = RuntimeResourceResolver::resolve(
-            "st001.pac", bootstrap, three_bindings(), registry);
+            "st001.pac", discovery, topology, three_bindings(), registry);
         assert(report.status == RuntimeResolutionStatus::invalid_source_configuration);
         assert(report.probes.empty());
     }
@@ -346,7 +404,7 @@ int main() {
                 ArchiveSourceBinding{2U, "archive-2"},
             },
         };
-        assert(!duplicate_volume.valid_for(bootstrap));
+        assert(!duplicate_volume.valid_for(topology));
 
         RuntimeSourceBindings duplicate_source{
             .physical_source_id = "physical",
@@ -356,12 +414,11 @@ int main() {
                 ArchiveSourceBinding{2U, "archive-2"},
             },
         };
-        assert(!duplicate_source.valid_for(bootstrap));
+        assert(!duplicate_source.valid_for(topology));
     }
 
-    // The index is now derived from the exact mounted source enumeration. A
-    // source that emits a ResourceRef belonging to another source cannot be
-    // silently accepted as a same-id stale index configuration.
+    // The index is derived from the exact successful source enumeration. A
+    // source that emits a foreign ResourceRef is rejected.
     {
         SourceRegistry registry;
         mount(registry, "physical", {});
@@ -370,18 +427,30 @@ int main() {
         mount(registry, "archive-1", {});
         mount(registry, "archive-0", {});
         const auto report = RuntimeResourceResolver::resolve(
-            "st001.pac", bootstrap, three_bindings(), registry);
+            "st001.pac", discovery, topology, three_bindings(), registry);
         assert(report.status == RuntimeResolutionStatus::invalid_source_configuration);
         assert(report.probes.empty());
     }
 
-    // Embedded NUL request fails before any provider/source probe.
+    // A topology that claims a successful undiscovered archive fails before probes.
+    {
+        auto forged = topology;
+        forged.mounted_archives.back().index = 9U;
+        assert(!forged.valid_for(discovery));
+        SourceRegistry registry;
+        const auto report = RuntimeResourceResolver::resolve(
+            "st001.pac", discovery, forged, RuntimeSourceBindings{}, registry);
+        assert(report.status == RuntimeResolutionStatus::invalid_source_configuration);
+        assert(report.probes.empty());
+    }
+
+    // Embedded NUL request fails before topology/source validation.
     {
         SourceRegistry registry;
         const std::string embedded_nul{"room/st001\0evil.pac", 19U};
         RuntimeSourceBindings bindings{};
         const auto report = RuntimeResourceResolver::resolve(
-            embedded_nul, bootstrap, bindings, registry);
+            embedded_nul, discovery, topology, bindings, registry);
         assert(report.status == RuntimeResolutionStatus::invalid_request);
         assert(report.probes.empty());
     }

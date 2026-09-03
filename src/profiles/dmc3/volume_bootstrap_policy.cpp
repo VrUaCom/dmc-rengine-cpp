@@ -9,8 +9,11 @@
 #include <vector>
 
 namespace dmc::rengine::profiles::dmc3 {
+namespace {
 
-bool RuntimeArchiveVolume::valid() const noexcept {
+[[nodiscard]] bool runtime_volume_filename_matches(
+    std::uint32_t index,
+    std::string_view filename) noexcept {
     if (!VolumeBootstrapPolicy::runtime_index_valid(index)) {
         return false;
     }
@@ -28,45 +31,44 @@ bool RuntimeArchiveVolume::valid() const noexcept {
     const std::string_view encoded_index{
         digits.data(),
         static_cast<std::size_t>(conversion.ptr - digits.data())};
-    const std::string_view name{filename};
-    if (name.size() != prefix.size() + encoded_index.size() + suffix.size() ||
-        !name.starts_with(prefix) || !name.ends_with(suffix)) {
+    if (filename.size() != prefix.size() + encoded_index.size() + suffix.size() ||
+        !filename.starts_with(prefix) || !filename.ends_with(suffix)) {
         return false;
     }
 
-    return name.substr(prefix.size(), encoded_index.size()) == encoded_index;
+    return filename.substr(prefix.size(), encoded_index.size()) == encoded_index;
+}
+
+[[nodiscard]] RuntimeMountTopology invalid_topology() {
+    RuntimeMountTopology result;
+    result.physical_registration_attempted_before_archives = false;
+    return result;
+}
+
+} // namespace
+
+bool DiscoveredArchiveVolume::valid() const noexcept {
+    return runtime_volume_filename_matches(index, filename);
+}
+
+bool MountedArchiveVolume::valid() const noexcept {
+    return runtime_volume_filename_matches(index, filename);
 }
 
 bool VolumeBootstrapPlan::valid() const noexcept {
-    if (!physical_root_registered_before_archives || !mount_list_is_prepend ||
-        registered_archives.size() != archive_resolution_order.size()) {
+    if (!physical_registration_attempted_before_archives ||
+        !mount_list_is_prepend ||
+        discovered_archives.size() != static_cast<std::size_t>(first_missing_index)) {
         return false;
     }
 
-    const auto archive_count = registered_archives.size();
-    if (archive_count >
-        static_cast<std::size_t>(VolumeBootstrapPolicy::runtime_index_max()) + 1U) {
-        return false;
-    }
-
-    for (std::size_t order = 0U; order < archive_count; ++order) {
-        const auto& volume = registered_archives[order];
+    for (std::size_t order = 0U; order < discovered_archives.size(); ++order) {
+        const auto& volume = discovered_archives[order];
         if (!volume.valid() ||
             volume.index != static_cast<std::uint32_t>(order) ||
-            volume.registration_order != order ||
-            volume.resolution_rank != archive_count - order - 1U) {
+            volume.discovery_order != order) {
             return false;
         }
-
-        const auto expected_index = static_cast<std::uint32_t>(
-            archive_count - order - 1U);
-        if (archive_resolution_order[order] != expected_index) {
-            return false;
-        }
-    }
-
-    if (static_cast<std::size_t>(first_missing_index) != archive_count) {
-        return false;
     }
 
     std::uint32_t previous = first_missing_index;
@@ -87,6 +89,53 @@ bool VolumeBootstrapPlan::valid() const noexcept {
         }
         first_outside = false;
         previous_outside = index;
+    }
+    return true;
+}
+
+bool RuntimeMountTopology::structurally_valid() const noexcept {
+    if (!physical_registration_attempted_before_archives ||
+        !mount_list_is_prepend ||
+        mounted_archives.size() != archive_resolution_order.size()) {
+        return false;
+    }
+
+    const auto mounted_count = mounted_archives.size();
+    for (std::size_t order = 0U; order < mounted_count; ++order) {
+        const auto& volume = mounted_archives[order];
+        if (!volume.valid() || volume.registration_order != order ||
+            volume.resolution_rank != mounted_count - order - 1U) {
+            return false;
+        }
+        if (order != 0U &&
+            mounted_archives[order - 1U].index >= volume.index) {
+            return false;
+        }
+
+        const auto expected_resolution_index =
+            mounted_archives[mounted_count - order - 1U].index;
+        if (archive_resolution_order[order] != expected_resolution_index) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool RuntimeMountTopology::valid_for(
+    const VolumeBootstrapPlan& discovery) const noexcept {
+    if (!discovery.valid() || !structurally_valid()) {
+        return false;
+    }
+
+    for (const auto& volume : mounted_archives) {
+        if (volume.index >= discovery.first_missing_index) {
+            return false;
+        }
+        const auto& discovered = discovery.discovered_archives[volume.index];
+        if (discovered.index != volume.index ||
+            discovered.filename != volume.filename) {
+            return false;
+        }
     }
     return true;
 }
@@ -119,30 +168,21 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
     }
 
     VolumeBootstrapPlan result{
-        .physical_root_registered_before_archives = true,
+        .physical_registration_attempted_before_archives = true,
         .mount_list_is_prepend = true,
         .first_missing_index = first_missing,
-        .registered_archives = {},
-        .archive_resolution_order = {},
+        .discovered_archives = {},
         .present_after_first_gap = {},
         .present_outside_runtime_index_domain = std::move(outside_runtime),
     };
 
-    result.registered_archives.reserve(first_missing);
+    result.discovered_archives.reserve(first_missing);
     for (std::uint32_t index = 0U; index < first_missing; ++index) {
-        const auto registration_order = static_cast<std::size_t>(index);
-        result.registered_archives.push_back(RuntimeArchiveVolume{
+        result.discovered_archives.push_back(DiscoveredArchiveVolume{
             .index = index,
             .filename = volume_filename(index),
-            .registration_order = registration_order,
-            .resolution_rank =
-                static_cast<std::size_t>(first_missing - index - 1U),
+            .discovery_order = static_cast<std::size_t>(index),
         });
-    }
-
-    result.archive_resolution_order.reserve(first_missing);
-    for (std::uint32_t index = first_missing; index > 0U; --index) {
-        result.archive_resolution_order.push_back(index - 1U);
     }
 
     for (; cursor < runtime_present.size(); ++cursor) {
@@ -152,6 +192,70 @@ VolumeBootstrapPlan VolumeBootstrapPolicy::plan(
     }
 
     return result;
+}
+
+RuntimeMountTopology VolumeBootstrapPolicy::mount_topology(
+    const VolumeBootstrapPlan& discovery,
+    bool physical_mount_succeeded,
+    std::span<const std::uint32_t> successful_archive_indices) {
+    if (!discovery.valid()) {
+        return invalid_topology();
+    }
+
+    RuntimeMountTopology result{
+        .physical_registration_attempted_before_archives = true,
+        .physical_mount_succeeded = physical_mount_succeeded,
+        .mount_list_is_prepend = true,
+        .mounted_archives = {},
+        .archive_resolution_order = {},
+    };
+
+    result.mounted_archives.reserve(successful_archive_indices.size());
+    bool first = true;
+    std::uint32_t previous = 0U;
+    for (const auto index : successful_archive_indices) {
+        if (index >= discovery.first_missing_index ||
+            (!first && index <= previous)) {
+            return invalid_topology();
+        }
+        first = false;
+        previous = index;
+
+        const auto& discovered = discovery.discovered_archives[index];
+        result.mounted_archives.push_back(MountedArchiveVolume{
+            .index = index,
+            .filename = discovered.filename,
+            .registration_order = result.mounted_archives.size(),
+            .resolution_rank = 0U,
+        });
+    }
+
+    const auto mounted_count = result.mounted_archives.size();
+    result.archive_resolution_order.reserve(mounted_count);
+    for (std::size_t order = 0U; order < mounted_count; ++order) {
+        result.mounted_archives[order].resolution_rank =
+            mounted_count - order - 1U;
+    }
+    for (std::size_t remaining = mounted_count; remaining > 0U; --remaining) {
+        result.archive_resolution_order.push_back(
+            result.mounted_archives[remaining - 1U].index);
+    }
+
+    return result.valid_for(discovery) ? result : invalid_topology();
+}
+
+RuntimeMountTopology VolumeBootstrapPolicy::all_success_topology(
+    const VolumeBootstrapPlan& discovery) {
+    if (!discovery.valid()) {
+        return invalid_topology();
+    }
+
+    std::vector<std::uint32_t> successful;
+    successful.reserve(discovery.discovered_archives.size());
+    for (const auto& volume : discovery.discovered_archives) {
+        successful.push_back(volume.index);
+    }
+    return mount_topology(discovery, true, successful);
 }
 
 } // namespace dmc::rengine::profiles::dmc3

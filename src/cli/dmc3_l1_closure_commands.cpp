@@ -302,11 +302,11 @@ struct DiscoveredVolume final {
         present_indices.push_back(volume.index);
     }
     const auto base_bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_indices);
-    if (!base_bootstrap.valid() || base_bootstrap.registered_archives.empty() ||
+    if (!base_bootstrap.valid() || base_bootstrap.discovered_archives.empty() ||
         !base_bootstrap.present_after_first_gap.empty() ||
         !base_bootstrap.present_outside_runtime_index_domain.empty()) {
         std::cerr
-            << "verify-dmc3-l1-authoring: retail volume topology is not safe for deterministic next-volume authoring\n";
+            << "verify-dmc3-l1-authoring: retail volume discovery is not safe for deterministic next-volume authoring\n";
         return 4;
     }
 
@@ -375,7 +375,7 @@ struct DiscoveredVolume final {
     if (!verification_bootstrap.valid() ||
         verification_bootstrap.first_missing_index != overlay_index + 1U) {
         std::cerr
-            << "verify-dmc3-l1-authoring: generated overlay does not extend the contiguous runtime volume set exactly once\n";
+            << "verify-dmc3-l1-authoring: generated overlay does not extend the contiguous runtime discovery set exactly once\n";
         return 10;
     }
 
@@ -390,7 +390,7 @@ struct DiscoveredVolume final {
     dmc3::RuntimeSourceBindings bindings;
     bindings.physical_source_id = std::string{physical_source_id};
     std::string overlay_source_id;
-    for (const auto& archive : verification_bootstrap.registered_archives) {
+    for (const auto& archive : verification_bootstrap.discovered_archives) {
         const bool is_overlay = archive.index == overlay_index;
         const auto* retail_volume = is_overlay
             ? nullptr
@@ -400,7 +400,7 @@ struct DiscoveredVolume final {
             : (retail_volume == nullptr ? std::filesystem::path{} : retail_volume->path);
         if (archive_path.empty()) {
             std::cerr
-                << "verify-dmc3-l1-authoring: verification bootstrap references an unavailable archive\n";
+                << "verify-dmc3-l1-authoring: verification discovery references an unavailable archive\n";
             return 10;
         }
         auto source_id = std::string{"l1-closure-volume-"} +
@@ -408,27 +408,36 @@ struct DiscoveredVolume final {
         auto source = std::make_unique<gdspaces::NbzZipSource>(source_id, archive_path);
         if (!source->valid() || !sources.mount(std::move(source))) {
             std::cerr
-                << "verify-dmc3-l1-authoring: cannot mount verification archive\n";
+                << "verify-dmc3-l1-authoring: a discovered verification archive did not successfully open/index/mount\n";
             return 10;
         }
+        bindings.archives.push_back(dmc3::ArchiveSourceBinding{
+            .volume_index = archive.index,
+            .source_id = source_id,
+        });
         if (is_overlay) {
             overlay_source_id = source_id;
         }
     }
-    for (const auto index : verification_bootstrap.archive_resolution_order) {
-        bindings.archives.push_back(dmc3::ArchiveSourceBinding{
-            .volume_index = index,
-            .source_id = std::string{"l1-closure-volume-"} + std::to_string(index),
-        });
-    }
-    if (!bindings.valid_for(verification_bootstrap)) {
+
+    // This closure path has now directly opened/indexed/mounted every discovered
+    // verification archive above. Only after those explicit successes may it use
+    // the named all-success product topology convenience.
+    const auto verification_topology =
+        dmc3::VolumeBootstrapPolicy::all_success_topology(verification_bootstrap);
+    if (!verification_topology.valid_for(verification_bootstrap) ||
+        !bindings.valid_for(verification_topology)) {
         std::cerr
-            << "verify-dmc3-l1-authoring: verification source bindings are invalid\n";
+            << "verify-dmc3-l1-authoring: explicit successful verification topology/bindings are invalid\n";
         return 10;
     }
 
     const auto resolved = dmc3::RuntimeResourceResolver::resolve(
-        game_request, verification_bootstrap, bindings, sources);
+        game_request,
+        verification_bootstrap,
+        verification_topology,
+        bindings,
+        sources);
     if (!resolved.ok() || resolved.resolved->id.source_id != overlay_source_id) {
         std::cerr
             << "verify-dmc3-l1-authoring: generated next-volume artifact did not win canonical resolution\n";
