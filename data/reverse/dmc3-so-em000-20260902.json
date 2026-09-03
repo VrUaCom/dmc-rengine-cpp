@@ -1,0 +1,48 @@
+{
+  "schema": "dmc-rengine.dmc3-so-em000-reverse.v1",
+  "status": "research-branch",
+  "snapshot": "2026-09-02",
+  "branch": "research/so-cpp20",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "naming_boundary": "SO is a project working name; observed archive leaves are .bin and no original .so extension authority is claimed",
+  "artifacts": {
+    "graph": {"name": "slot_0038.bin", "size": 6144, "sha256": "99bfcb7259a3db9b8f97ab441e07d30afdcc16425edcd694a5d758190fa3fb50"},
+    "links": {"name": "slot_0039.bin", "size": 96, "sha256": "147d63c8ca5dac72c78ad869fbc3c20505ef425d087b378051f6bca01b77eb13"},
+    "volumes": {"name": "slot_0040.bin", "size": 1840, "sha256": "e188cc929df800a09b71838142d15461ee3b6d7c6104da370b16e839d355158a"},
+    "mod": {"name": "slot_0001 (3).mod", "size": 110096, "sha256": "34f2c03795b007eac67abdb3a5808f675f1b1fd419ea6f39d4b77b8142c9e7ce"}
+  },
+  "graph": {
+    "type6": {"base": "0x0", "header_size": "0xE", "next_type8_offset": "0xB98", "first_entry_offset": "0xBC", "entry_count": 87},
+    "type8": {"base": "0xB98", "header_size": "0x8", "first_entry_offset": "0x9E", "entry_count": 75},
+    "entry_stride": "variable",
+    "evidence": "DATA_CONFIRMED"
+  },
+  "links": {
+    "record_size": 4,
+    "record_count": 24,
+    "record0_hex": "06 00 00 00",
+    "field3_all_zero": true,
+    "semantics": "RESEARCH_REQUIRED"
+  },
+  "volumes": {
+    "record_size": 80,
+    "record_count": 23,
+    "type_census": {"2": 22, "4": 1},
+    "raw_vectors": ["float4@0x10", "float4@0x20", "float4@0x30", "float4@0x40"],
+    "type2_geometry": "sphere-like candidate: vector0.xyz center candidate, vector1.x extent/radius candidate",
+    "type4_geometry": "capsule-like candidate: vector0/vector1 endpoint candidates, vector2.x radius candidate",
+    "gameplay_semantics": "RESEARCH_REQUIRED"
+  },
+  "correlations": {
+    "links_to_volumes": {"relationship": "24 == 1 + 23", "status": "HIGH_CONFIDENCE"},
+    "mod_matrix_selector_universe": {"raw_values": [0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88], "normalized_indices": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22], "count": 23},
+    "mod_to_volumes": {"relationship": "23 matrix selector indices == 23 volume records", "status": "HIGH_CONFIDENCE", "boundary": "exact runtime ownership/binding not yet EXE_CONFIRMED"}
+  },
+  "implementation": {
+    "language": "C++20",
+    "mode": "read-only",
+    "writer": false,
+    "tests": ["synthetic graph/link/volume regression", "real-corpus development probe outside repository"],
+    "compiler_gate": "-Wall -Wextra -Wpedantic -Wconversion -Werror"
+  }
+}

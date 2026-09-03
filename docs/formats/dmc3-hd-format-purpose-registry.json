@@ -1,7 +1,7 @@
 {
   "schema": "dmc-rengine.dmc3-hd-format-purpose-registry.v1",
-  "snapshot": "2026-09-01",
-  "mainBase": "81e12c869c1cadedf79a8ddd4dbbea3c4f4d407a",
+  "snapshot": "2026-09-03",
+  "mainBase": "9483663959e5452f9a224c1535445bb5a3b33520",
   "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "columns": [
     "id",
@@ -24,7 +24,7 @@
     ["ukn",".ukn","metadata","Placeholder/source extension used when extraction naming lacks semantic identity.","DATA_CONFIRMED","DATA_CONFIRMED","NONE","fallback-only"],
     ["bin",".bin","metadata","Generic leaf filename extension used by multiple unrelated resources.","EXE_CONFIRMED","RESEARCH_REQUIRED","NONE","fallback-only"],
     ["pe","PE,dmc3.exe","executable","Executable containing runtime code, registries, translation tables and static resource descriptors.","EXE_CONFIRMED","EXE_CONFIRMED","STRUCTURAL","structural"],
-    ["scm","SCM","geometry","Stage/scene mesh geometry and model data; original runtime uses a dedicated related model-document fixup.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
+    ["scm","SCM","geometry","Stage/static scene mesh geometry with object records, fixed 0x50 mesh records, vertex streams, scene-node hierarchy/transforms and runtime-generated index workspaces.","EXE_CONFIRMED","EXE_CONFIRMED","STRUCTURAL","structural"],
     ["mod","MOD","geometry","Actor/object mesh-bearing model resource family with original model-document fixup and model shader inputs.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","recognized"],
     ["hits","HITS","collision","Spatial collision resource: bounds and 3-D grid mapping cells to triangle/plane records.","EXE_CONFIRMED","EXE_CONFIRMED","PARTIAL","structural"],
     ["dca","DCA","camera","Mini-demo/cinematic camera data; recovered interpretation correlates paired spatial channels with camera eye/world position and look-at target.","DATA_CONFIRMED","HIGH_CONFIDENCE","PARTIAL","structural"],
@@ -96,6 +96,6 @@
     {"names":["DXT1","DXT2","DXT3","DXT4","DXT5","ATI1","ATI2","BC4","BC5","RGBG","GRGB","YUY2"],"reason":"DDS/pixel encoding or layout tags, not independent resource families"}
   ],
   "openFrontier": [
-    "PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW selected-matrix-palette ownership and cross-resource model/bone binding","CLT/C1D exact binary schemas"
+    "SCM header +0x14 semantics","SCM object +0x01 semantics","SCM object flag bit semantics","SCM exact scene-rotation consumer semantics","SCM material/texture ownership and writer/game-consumption acceptance","PTZ exact consumer/schema","PHD exact fields","TSB exact fields","BD exact fields","EFE exact purpose/consumer/schema beyond dispatcher sentinel recognition","EFW exact purpose/consumer/schema beyond dispatcher sentinel recognition","POS exact records/consumer","STE exact records/consumer","EST exact identity and universal slot map","MCV exact field semantics","HID/HID2/HID3 track schema","TSC exact semantics","MRP exact field semantics and downstream owner","EFM real-payload stream-to-shader-input binding","SHW selected-matrix-palette ownership and cross-resource model/bone binding","CLT/C1D exact binary schemas"
   ]
 }

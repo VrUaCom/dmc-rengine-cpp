@@ -10,7 +10,7 @@ This document is not a claim that save semantics are complete. It promotes only 
 
 - Game profile: `dmc3-hd`
 - Research executable SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
-- Research executable size: `3,735,552`
+- Research executable size: `6,356,432`
 - Canonical save SHA-256: `45379458defd048502f3649e86fcb716ef2ca274a89f025d078b7deaa8df501e`
 - Canonical save size: `0x4A30` / `18,992`
 

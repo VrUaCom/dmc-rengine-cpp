@@ -3,6 +3,7 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
+#include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -51,6 +52,11 @@ namespace {
         return false;
     }
 
+    // Real DMC3 extracted corpora also contain text .index manifests whose
+    // first line is literally "PNST\r\n". The four-byte prefix is therefore a
+    // probe candidate, not sufficient binary-container authority. Reuse the
+    // canonical structural parser so classification and materialization cannot
+    // disagree about whether the supplied byte image is a relative-slot PNST.
     return formats::PnstParser::parse(bytes).ok();
 }
 
@@ -69,6 +75,10 @@ ResourceClassification ResourceClassifier::classify(
         result.format = "pac";
         result.magic_confirmed = true;
     } else if (structurally_valid_binary_pnst(bytes)) {
+        // Binary PNST commonly survives under a misleading .pac extension in
+        // the extracted corpus. Structurally validated byte identity therefore
+        // outranks extension, while PNST-prefixed text .index manifests fall
+        // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
@@ -83,9 +93,27 @@ ResourceClassification ResourceClassifier::classify(
     } else if (starts_with(bytes, "DDS ")) {
         result.format = "dds";
         result.magic_confirmed = true;
+    } else if (starts_with(bytes, std::string_view{"PK\x03\x04", 4U})) {
+        // NBZ is a ZIP container. Without this the format was only ever
+        // reached through a ".nbz" path suffix, so a nested archive under any
+        // other name stopped the container walk.
+        result.format = "nbz";
+        result.magic_confirmed = true;
     } else {
-        const auto extension = extension_from_path(logical_path);
-        result.format = extension.empty() ? "unknown" : extension;
+        // Remaining recognition is driven by the recovered runtime contract
+        // rather than a parallel literal list here, so a type census added to
+        // ResourceTypeContract cannot silently miss the classifier.
+        using profiles::dmc3::ResourceTypeContract;
+        const auto family = ResourceTypeContract::family_mask_for_prefix(bytes);
+        if (family != ResourceTypeContract::FamilyMask::unknown) {
+            result.format =
+                std::string{ResourceTypeContract::canonical_extension(family)};
+            result.magic_confirmed = true;
+            result.runtime_family_mask_confirmed = true;
+        } else {
+            const auto extension = extension_from_path(logical_path);
+            result.format = extension.empty() ? "unknown" : extension;
+        }
     }
 
     result.container = is_container_format(result.format);

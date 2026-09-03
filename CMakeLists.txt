@@ -60,6 +60,8 @@ add_executable(dmc-rengine
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
     src/cli/nbz_copy_commands.cpp
+    src/cli/archive_key_census_commands.cpp
+    src/cli/container_inspect_commands.cpp
     src/cli/relative_slot_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
@@ -171,6 +173,15 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_tree_expander
         container_expander_identity
         classifier
+        scm
+        so
+        so_graph
+        so_link_table
+        so_volume_table
+        so_companion_correlation
+        so_mod_binding
+        mod_transform_domain
+        format_registry_contract_coverage
         known_target
         executable_authority
         stage_table_descriptor
@@ -194,6 +205,32 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_relative_slot_cli_tests
         COMMAND dmc_rengine_relative_slot_cli_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_archive_key_census_cli_tests
+        tests/archive_key_census_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE src/cli/archive_key_census_commands.cpp)
+    target_include_directories(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_archive_key_census_cli_tests
+        COMMAND dmc_rengine_archive_key_census_cli_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_container_inspect_cli_tests
+        tests/container_inspect_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_container_inspect_cli_tests
+        PRIVATE src/cli/container_inspect_commands.cpp)
+    target_include_directories(
+        dmc_rengine_container_inspect_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_container_inspect_cli_tests
+        COMMAND dmc_rengine_container_inspect_cli_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests

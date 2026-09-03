@@ -411,6 +411,7 @@ const std::optional<NbzZipIndexReceipt>& NbzZipSource::index_receipt() const noe
 
 void NbzZipSource::build_index() {
     entries_.clear();
+    entry_index_.clear();
     diagnostics_.clear();
     index_receipt_.reset();
     archive_size_ = 0U;
@@ -751,6 +752,20 @@ void NbzZipSource::build_index() {
             return;
         }
 
+        // Central index is part of the canonical key, so distinct entries
+        // cannot collide here even when two members share a logical path.
+        auto key = id_for(source_id_, entries_.back()).canonical();
+        const auto inserted = entry_index_.emplace(
+            std::move(key), entries_.size() - 1U).second;
+        if (!inserted) {
+            add_diagnostic(
+                diagnostics_,
+                DiagnosticSeverity::error,
+                "gdspaces.nbz.duplicate-entry-identity",
+                "Two central-directory entries produced the same canonical resource identity.");
+            return;
+        }
+
         ++walked;
         index_receipt_->walked_entry_count = walked;
         cursor += *record_size;
@@ -769,12 +784,11 @@ void NbzZipSource::build_index() {
 
 const NbzZipEntry* NbzZipSource::find_entry(
     const ResourceId& resource) const noexcept {
-    const auto iterator = std::find_if(
-        entries_.begin(), entries_.end(),
-        [this, &resource](const NbzZipEntry& entry) {
-            return id_for(source_id_, entry).canonical() == resource.canonical();
-        });
-    return iterator == entries_.end() ? nullptr : &*iterator;
+    const auto iterator = entry_index_.find(resource.canonical());
+    if (iterator == entry_index_.end() || iterator->second >= entries_.size()) {
+        return nullptr;
+    }
+    return &entries_[iterator->second];
 }
 
 } // namespace dmc::rengine::gdspaces

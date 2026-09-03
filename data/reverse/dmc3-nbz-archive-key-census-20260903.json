@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "archive-normalized-key-census",
+  "normalizer": "profiles::dmc3::ResourcePathPolicy::archive",
+  "normalizer_flags": "0x0E",
+  "source_name": "dmc3-0.nbz",
+  "archive_sha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
+  "surface_sha256": "0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af",
+  "central_entry_count": 4334,
+  "passes": [
+    {
+      "scope": "files-only",
+      "entries_considered": 4333,
+      "rejected_by_path_policy": 0,
+      "normalized_key_count": 4333,
+      "unique_normalized_key_count": 4333,
+      "colliding_key_count": 0,
+      "entries_in_collisions": 0,
+      "zero_collisions": true
+    },
+    {
+      "scope": "all-central-entries",
+      "entries_considered": 4334,
+      "rejected_by_path_policy": 0,
+      "normalized_key_count": 4334,
+      "unique_normalized_key_count": 4334,
+      "colliding_key_count": 0,
+      "entries_in_collisions": 0,
+      "zero_collisions": true
+    }
+  ],
+  "clean": true,
+  "generated_by": "dmc-rengine census-archive-keys",
+  "blocker": "B-L2-01",
+  "notes": [
+    "The census reuses profiles::dmc3::ResourcePathPolicy::archive (flags 0x0E) so the product normalizer, not a second implementation, is the census authority.",
+    "surface_sha256 binds the exact central-directory CSV this receipt was computed from; archive_sha256 binds the archive that surface was taken from.",
+    "Zero collisions means the CRT qsort/bsearch duplicate-winner indeterminacy described in docs/gdspaces/l2-archive-index-duplicate-key-reverse-2026-08-26.md cannot arise for this artifact.",
+    "This result covers dmc3-0.nbz only. Every additional volume in a claimed resolver scope needs its own census, plus a cross-volume census, before the scope-wide statement can be made.",
+    "The repository intentionally stores the aggregate receipt, not the member-name surface itself (Constitution Article V)."
+  ]
+}

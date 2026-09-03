@@ -86,11 +86,22 @@ These are L2 closure gates. They are not substitutes for the L1 Level-E acceptan
 
 ### B-L2-01 — Real-retail `0x0E` collision census
 
-**Status:** EXTERNAL ARTIFACT ACCESS REQUIRED
+**Status:** CLOSED FOR `dmc3-0.nbz` / PER-VOLUME CENSUS STILL REQUIRED FOR ANY WIDER SCOPE
 
-The exact `dmc3-0.nbz` artifact is approximately 960 MB and cannot currently be transferred through the connected Drive channel. No exact central-directory/member-list derivative is available in the connected corpus.
+An exact central-directory surface for `dmc3-0.nbz` was supplied and bound by SHA-256, and the canonical `0x0E` census was run over it with `dmc-rengine census-archive-keys`, which reuses `ResourcePathPolicy::archive` rather than a second normalizer.
 
-Required evidence is an exact member-name/central-directory surface cryptographically bound to the retail archive, followed by the canonical `0x0E` normalized-key collision census.
+Result for archive SHA-256 `2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df`, surface SHA-256 `0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af`:
+
+```text
+files-only          : 4333 keys / 4333 unique / 0 collisions
+all central entries : 4334 keys / 4334 unique / 0 collisions
+```
+
+`normalized_key_count == unique_normalized_key_count`. The CRT `qsort`/`bsearch` duplicate-winner indeterminacy therefore cannot arise for this artifact.
+
+Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`. Analysis: `docs/reverse/dmc3-nbz-archive-key-census-2026-09-03.md`.
+
+Still open: this covers one volume. Every additional volume in a claimed resolver scope needs its own census, plus a cross-volume census, before a scope-wide zero-collision statement can be made.
 
 ### B-L2-02 — Real protected-distribution runtime RVA mapping receipt
 
@@ -128,9 +139,9 @@ Fresh canonical EXE review adds a mandatory failure distinction: archive normali
 
 ### B-L2-04 — Direct-retail resolver identity receipt
 
-**Status:** BLOCKED BY B-L2-01
+**Status:** UNBLOCKED FOR `dmc3-0.nbz` / REAL RESOLVER OBSERVATION STILL REQUIRED
 
-A real-retail `ResourceRef`/member winner cannot be promoted until the exact retail member surface is bound and the `0x0E` collision state is known. DMCL/synthetic collision results do not close this gate.
+The `0x0E` collision state for `dmc3-0.nbz` is now known and clean (B-L2-01), so the member surface no longer blocks this gate for that volume. What remains is the real resolver observation itself: a `ResourceRef`/member winner produced by the runtime resolver against a protected installation. DMCL/synthetic collision results do not close this gate.
 
 ### B-L2-05 — Final L2 audit
 

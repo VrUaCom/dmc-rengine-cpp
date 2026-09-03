@@ -8,7 +8,7 @@
       "id": "dmc3-hdc-exe-e454272e",
       "role": "canonical-research-target",
       "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
-      "size": 3735552
+      "size": 6356432
     }
   ],
   "records": [
@@ -30,7 +30,7 @@
           "artifact_id": "dmc3-hdc-exe-e454272e",
           "file_offset": 0,
           "symbol": "PE headers",
-          "note": "The canonical artifact size is 3,735,552 bytes."
+          "note": "The canonical artifact size is 6,356,432 bytes."
         }
       ]
     },
@@ -140,6 +140,31 @@
           "va": 5371094656,
           "symbol": "StageSetTokenClassifier",
           "note": "Function identity is confirmed; the enum map remains partial."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-canonical-target-size-correction",
+      "claim_id": "claim-dmc3-pe-identity",
+      "title": "Canonical target size correction",
+      "summary": "The canonical research target sha256 e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082 is 6,356,432 bytes (0x60FDD0). The 3,735,552 value carried by the Phase 12 public migration record is incorrect and is superseded here. The corrected value already matched data/registries/dmc3-reverse-authorities.v1.json, docs/status/canonical-status.json and profiles::dmc3::ResourceTypeContract, so this correction removes a size contradiction between the evidence tree and the rest of the repository. Verified locally against the identified artifact: size 6,356,432; PE32+ x86-64 GUI (machine 0x8664, optional-header magic 0x020B, subsystem 2); ImageBase 0x140000000; entry RVA 0x34615C / VA 0x14034615C. The two ResourceTypeContract evidence windows also reproduce byte-exact at their declared file offsets: registry_content_probe 0x2DA5F0 length 0x72 sha256 4e614cc2d0168d6049a449ed4a1c6a78e0ebdd6b5c4b9699fabd98a63c153d19, family_mask_probe 0x2FCA50 length 0x273 sha256 a31a8c1e225bc62c07dea05921c42eeff85c28b2f4872713594262e579b91961. Only the size field was wrong; every other checked claim in this packet reproduced exactly.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "canonical-target",
+        "correction",
+        "artifact-size"
+      ],
+      "supersedes": [
+        "ev-dmc3-pe-identity"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 0,
+          "size": 6356432,
+          "symbol": "artifact extent",
+          "note": "Corrected canonical artifact size 6,356,432 bytes (0x60FDD0)."
         }
       ]
     }

@@ -1,0 +1,79 @@
+{
+  "schema": "dmc-rengine.reverse.scm-runtime-object-flags.v1",
+  "snapshot": "2026-09-03",
+  "canonicalExe": {
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "scope": {
+    "sourceObjectStride": "0x40",
+    "sourceControlByteOffset": "0x01",
+    "sourceFlagsOffset": "0x10",
+    "runtimeInitializer": "0x140302F10",
+    "flagHelper": "0x140302640",
+    "status": "EXE_CONFIRMED_OPERATIONAL_MAPPING_SEMANTICS_PARTIAL"
+  },
+  "controlByte": {
+    "copy": {
+      "sourceOffset": "0x01",
+      "runtimeOffset": "0x07",
+      "site": "0x14030303A"
+    },
+    "safeMeaning": "runtime-consumed object control/classification byte; exact semantics unresolved",
+    "runtimeComparisonsObserved": ["0xEA", "0xC4"],
+    "runtimeRewriteValuesObserved": ["0xC5", "0x80"],
+    "corpusCounts": {
+      "0x80": 237,
+      "0xC0": 6,
+      "0xC1": 2,
+      "0xC2": 3,
+      "0xC3": 1,
+      "0xC4": 3,
+      "0xC5": 2
+    }
+  },
+  "flags": {
+    "directProjection": [
+      {"sourceCondition":"flags & 0x0000000F != 0","runtimeAction":"set flag bit 8","site":"0x1403032E1"},
+      {"sourceCondition":"flags & 0x00000020 != 0","runtimeAction":"set flag bit 10","site":"0x1403032FB"},
+      {"sourceCondition":"flags & 0x00020000 != 0","runtimeAction":"set flag bit 9; runtime +0x160/+0x164/+0x168 = 1.0, +0x16C = 0","site":"0x140303315"},
+      {"sourceCondition":"flags & 0x00010000 != 0","runtimeAction":"set flag bit 7","site":"0x14030337C"},
+      {"sourceCondition":"flags & 0x00040000 != 0","runtimeAction":"set flag bit 4","site":"0x140303398"},
+      {"sourceCondition":"flags & 0x0F000000 != 0","runtimeAction":"set flag bit 15; runtime +0x0D = highNibble - 1","site":"0x1403033B3"},
+      {"sourceCondition":"flags & 0x00080000 != 0","runtimeAction":"set flag bit 5","site":"0x1403033E3"}
+    ],
+    "helperProjection": {
+      "lowModeMask": "0x0000000F",
+      "lowModeZero": {"helperMode":9,"stateSelector":"0x5080B"},
+      "lowModeFour": {"helperMode":"source low nibble","stateSelector":"0x50007"},
+      "lowModeOtherWith00100000": {"helperMode":"source low nibble","stateSelector":"0x5010D"},
+      "lowModeOtherDefault": {"helperMode":"source low nibble","stateSelector":"0x5000D"},
+      "source00010000SecondaryBoolean": {"bitSet":false,"bitClear":true}
+    },
+    "corpus": {
+      "uniqueScmFiles": 68,
+      "objects": 254,
+      "observedUnionMask": "0x003A0003",
+      "observedBitPositions": [0, 1, 17, 19, 20, 21],
+      "valueCounts": {
+        "0x00000000": 165,
+        "0x00080000": 32,
+        "0x00200000": 19,
+        "0x00000001": 17,
+        "0x00100001": 9,
+        "0x00180001": 4,
+        "0x00080001": 3,
+        "0x00080002": 3,
+        "0x00020000": 2
+      }
+    }
+  },
+  "nonClaims": [
+    "No semantic names such as transparency, collision, visibility or render priority are assigned to source bits.",
+    "The EXE supports source masks not present in the current 68-file corpus.",
+    "Observed source bit 0x00200000 remains semantically unresolved in this bounded consumer pass.",
+    "Header +0x14 remains structured DATA_CONFIRMED metadata with unresolved semantic role.",
+    "This evidence does not promote an SCM writer or original-game authoring equivalence."
+  ]
+}
