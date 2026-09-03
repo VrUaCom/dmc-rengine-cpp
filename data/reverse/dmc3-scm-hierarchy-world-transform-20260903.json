@@ -28,7 +28,7 @@
     "matrixMultiply": "0x1400312B0",
     "translationApply": "0x140031200",
     "rotationBuild": "0x140330450",
-    "derivedMatrixCache": "0x140030DC0"
+    "inverseWorldCache": "0x140030DC0"
   },
   "matrixContract": {
     "storage": "row-major recovered DMC3 layout",
@@ -36,7 +36,8 @@
     "multiply": "result = left * right",
     "wrapper": "0x140030E40(dest, second, third) => dest = third * second",
     "rootWorld": "world[root] = local[root] * rootBase",
-    "childWorld": "world[current] = local[current] * world[parentByOrderPosition[i]]"
+    "childWorld": "world[current] = local[current] * world[parentByOrderPosition[i]]",
+    "inverseWorld": "rotation = transpose(world.rotation); translation = -world.translation * transpose(world.rotation); W = 1"
   },
   "localTransform": {
     "rotation": "XYZ Euler radians; X then Y then Z; Rz * Ry * Rx",
@@ -66,17 +67,24 @@
     "operation": "if +0x178 > 0 use 1.0 else +0x17C / 255.0",
     "semanticName": "UNRESOLVED"
   },
+  "sourceObjectFlags": {
+    "serialized": "object+0x10",
+    "runtimeCopies": ["runtimeObject+0x10", "runtimeObject+0x14"],
+    "observedUnresolvedBit": "0x00200000",
+    "provenanceCorrection": "0x140303F2F tests manager+0xE0, not runtimeObject+0x10/+0x14; it is not evidence for serialized object bit 0x00200000"
+  },
   "implementation": {
     "sceneIr": "SceneNodeBlock indexing names corrected",
     "localTransform": "scm::build_local_transform",
     "multiply": "scm::multiply_dmc3_matrices",
     "worldBuilder": "scm::build_world_matrices",
+    "inverseWorld": "scm::invert_dmc3_rigid_transform",
     "policy": "fail-closed"
   },
   "open": [
     "translationMagnitude semantic purpose outside local matrix construction",
-    "exact higher-level semantic name of 0x140030DC0 derived matrix cache",
     "external coordinate-system/handedness naming",
-    "final semantic name of object+0x01"
+    "final semantic name of object+0x01",
+    "direct lineage/meaning of serialized object flag 0x00200000"
   ]
 }
