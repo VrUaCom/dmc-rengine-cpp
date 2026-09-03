@@ -33,6 +33,13 @@ struct Matrix4f final {
     const Matrix4f& left,
     const Matrix4f& right) noexcept;
 
+// Reconstruct 0x140030DC0 for the rigid SCM node transforms produced by the
+// original scene path: transpose the 3x3 rotation basis and compute the
+// inverse translation -T * R^T. This is the inverse-world cache form written
+// into the runtime node by 0x1402FA080.
+[[nodiscard]] Matrix4f invert_dmc3_rigid_transform(
+    const Matrix4f& matrix) noexcept;
+
 // Reconstruct the exact rotation matrix sequence used by the canonical DMC3
 // scene-transform consumer 0x1402FA080 -> 0x140330450.
 //
