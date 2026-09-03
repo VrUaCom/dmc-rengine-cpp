@@ -4,7 +4,8 @@
 **Profile:** `dmc3-hd`.  
 **Canonical analysis EXE:** SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.  
 **Primary runtime normalizer:** `0x1403051B0`.  
-**Independent fixed-stride SCM mesh consumer:** `0x1402FDD10`.
+**Independent fixed-stride SCM mesh consumer:** `0x1402FDD10`.  
+**Runtime object-flags addendum:** [`../research/dmc3-scm-runtime-object-flags-2026-09-03.md`](../research/dmc3-scm-runtime-object-flags-2026-09-03.md).
 
 SCM is a mesh-bearing stage/scene geometry family. It is not treated as a MOD alias. The serialized disk layout below is bounded by canonical executable evidence plus a 68-unique-file corpus sweep.
 
@@ -19,12 +20,12 @@ SCM is a mesh-bearing stage/scene geometry family. It is not treated as a MOD al
 | `+0x11` | `u8` | scene-node count |
 | `+0x12` | `u8` | texture-slot count |
 | `+0x13` | `u8` | reserved, zero on confirmed corpus |
-| `+0x14` | `u32` | unresolved structured identifier/flag field |
+| `+0x14` | `u32` | unresolved structured identifier/metadata field |
 | `+0x18` | `u64` | reserved, zero |
 | `+0x20` | `u64` | absolute serialized scene-node-block offset |
 | `+0x28/+0x30/+0x38` | `u64` | reserved, zero |
 
-Do not rename `+0x14` to a semantic stage/material id until a direct consumer closes that meaning.
+Do not rename `+0x14` to a semantic stage/material id until a direct producer or consumer closes that meaning.
 
 ## Object record — 0x40 bytes
 
@@ -33,16 +34,43 @@ Objects begin at file offset `0x40`, fixed stride `0x40`.
 | Offset | Type | Meaning/status |
 | ---: | --- | --- |
 | `+0x00` | `u8` | mesh count |
-| `+0x01` | `u8` | unresolved class/flag byte; observed `0x80, 0xC0..0xC5` |
+| `+0x01` | `u8` | runtime-consumed control/classification byte; exact semantics unresolved |
 | `+0x02` | `u16` | total vertex count; equals sum of child mesh vertex counts |
 | `+0x04` | `u32` | reserved, zero |
 | `+0x08` | `u64` | absolute mesh-table offset |
-| `+0x10` | `u32` | unresolved object flags |
+| `+0x10` | `u32` | runtime-consumed object flags; operational mapping partly EXE-confirmed |
 | `+0x14..+0x2F` | bytes | reserved, zero |
 | `+0x30` | `vec3f` | bounding-sphere center |
 | `+0x3C` | `f32` | bounding-sphere radius |
 
 The center/radius interpretation is data-confirmed on 254/254 objects: the stored radius equals the maximum distance from the stored center to serialized geometry within float tolerance.
+
+### Object `+0x01`
+
+The canonical EXE copies source `object+0x01` verbatim to runtime object `+0x07` at `0x14030303A`. Downstream initialization compares the runtime byte against special values including `0xC4` and `0xEA`, can rewrite it in bounded special cases, and propagates values above `0x80` into adjacent runtime state.
+
+Observed serialized values across 254 objects are `0x80` and `0xC0..0xC5`, dominated by `0x80` (237/254). These observations are not a whitelist.
+
+The serialized C++ IR retains a neutral field name until the higher-level meaning is independently proven.
+
+### Object flags `+0x10`
+
+The flags are no longer structurally opaque. The SCM-like runtime object initializer `0x140302F10` and helper `0x140302640` expose a bounded operational projection:
+
+| Source condition | Runtime operation |
+|---|---|
+| low nibble nonzero | set runtime flag bit 8; pass low nibble as helper mode |
+| `0x00000020` | set runtime flag bit 10 |
+| `0x00020000` | set runtime flag bit 9 and initialize runtime float vector `(1,1,1,0)` |
+| `0x00010000` | set runtime flag bit 7 and flip a helper boolean |
+| `0x00040000` | set runtime flag bit 4 |
+| high nibble `0x0F000000` nonzero | set runtime flag bit 15 and store `highNibble-1` in runtime byte `+0x0D` |
+| `0x00080000` | set runtime flag bit 5 |
+| `0x00100000` with nonzero low mode other than 4 | selects helper numeric state `0x5010D` instead of `0x5000D` |
+
+The exact helper state selectors are reconstructed by `scm::runtime::project()` in `scm_runtime_flags.hpp`. The module deliberately does not rename any source bit to a gameplay/render semantic.
+
+Current 68-file corpus union mask is `0x003A0003`. The EXE supports additional source masks not present in that corpus. Conversely, corpus bit `0x00200000` is observed but remains semantically unresolved in this bounded consumer pass.
 
 ## Mesh record — 0x50 bytes
 
@@ -76,7 +104,7 @@ Per mesh:
 positions  = f32 x,y,z            stride 12
 normals    = f32 x,y,z            stride 12
 UV         = i16 u, i16 v         stride 4, scale 1/4096
-colorFlags = u8 r,g,b,flags      stride 4
+colorFlags = u8 r,g,b,flags       stride 4
 ```
 
 In the confirmed corpus, the fourth color/flags byte contains only `0x00` and `0x02`. Runtime topology reconstruction consumes bit `0x02` as a triangle-run break/skip condition. It is therefore not modeled as alpha.
@@ -101,7 +129,7 @@ for each object in object order:
 scene-node block
 align16
 
-gfor every mesh in object/mesh order:
+for every mesh in object/mesh order:
   generated-index workspace reserve
 
 EOF
@@ -125,7 +153,7 @@ For `N = sceneNodeCount`:
 
 ```text
 parentRel        = 0x20
-iorderRel         = 0x20 + align4(N)
+orderRel         = 0x20 + align4(N)
 objectBindingRel = 0x20 + 2*align4(N)
 transformRel     = align16(0x20 + 3*align4(N))
 ```
@@ -183,12 +211,15 @@ Implemented on branch `scm`:
 - topology/index generator;
 - bounds checks and invariant diagnostics;
 - exact object/mesh/scene/index-workspace validation;
-- synthetic regression;
+- EXE-confirmed neutral runtime flag projection for `object+0x10`;
+- synthetic regression including compile-time runtime-flag mapping checks;
 - 68-file external corpus validation with zero diagnostics.
 
 Not promoted yet:
 
-- semantic names for header `+0x14`, object `+0x01`, object flags `+0x10`;
+- semantic name for header `+0x14`;
+- exact semantic name for object `+0x01`;
+- semantic names for object flag bits, including unresolved observed bit `0x00200000`;
 - exact Euler order/coordinate convention for scene rotations;
 - material/texture-bundle ownership beyond the validated texture index range;
 - canonical writer/export support;
