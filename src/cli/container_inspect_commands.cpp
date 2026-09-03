@@ -5,6 +5,8 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/gdspaces/container_tree_expander.hpp"
 #include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
+#include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 
@@ -101,6 +103,47 @@ constexpr std::uint64_t k_max_container_bytes = 512ULL * 1024ULL * 1024ULL;
     return payload;
 }
 
+// A relative-slot container stores only slot offsets, so a slot's size is
+// derived from the distance to the next distinct offset. Any inter-slot or
+// trailing alignment padding is therefore absorbed into the preceding slot.
+//
+// When a child is a format that can state its own serialized extent, that
+// extent is the resource's real length and the difference is padding. This is
+// reported, not applied: the physical slot span is still the slot's identity,
+// and narrowing it is a separate decision that reaches ResourceId, provenance
+// and the writer path.
+//
+// Only SCM can answer today, because formats::scm::build_serialized_layout
+// reconstructs the canonical layout exactly. Note that scm_validation already
+// requires a SCM image to terminate at that size, so a padded slot fails SCM
+// validation outright rather than merely carrying extra bytes.
+[[nodiscard]] std::optional<std::uint64_t> intrinsic_extent(
+    std::string_view format,
+    std::span<const std::byte> bytes) {
+    if (format != "scm") {
+        return std::nullopt;
+    }
+    const auto parsed = formats::scm::Parser::parse(bytes);
+    if (!parsed.recognized) {
+        return std::nullopt;
+    }
+
+    std::vector<formats::scm::ObjectShape> shapes;
+    shapes.reserve(parsed.document.objects.size());
+    for (const auto& object : parsed.document.objects) {
+        formats::scm::ObjectShape shape;
+        shape.mesh_vertex_counts.reserve(object.meshes.size());
+        for (const auto& mesh : object.meshes) {
+            shape.mesh_vertex_counts.push_back(mesh.vertex_count);
+        }
+        shapes.push_back(std::move(shape));
+    }
+
+    const auto layout = formats::scm::build_serialized_layout(
+        shapes, parsed.document.header.scene_node_count);
+    return layout.file_size;
+}
+
 void print_diagnostics(const std::vector<Diagnostic>& diagnostics) {
     for (const auto& diagnostic : diagnostics) {
         const auto* severity =
@@ -174,6 +217,20 @@ void print_expansion_tree(const ContainerTreeExpansion& expansion) {
                           << digest_of(std::span<const std::byte>{
                                  child.payload.bytes})
                                  .substr(0U, 16U);
+            }
+            const auto exact = intrinsic_extent(
+                child.payload.resource.format,
+                std::span<const std::byte>{child.payload.bytes});
+            if (exact.has_value() && *exact != entry.size) {
+                const auto padding = entry.size > *exact
+                    ? entry.size - *exact
+                    : 0U;
+                std::cout << "  intrinsic=" << *exact;
+                if (padding != 0U) {
+                    std::cout << " padding=" << padding;
+                } else {
+                    std::cout << " OVER-RUNS SLOT";
+                }
             }
             std::cout << '\n';
         }

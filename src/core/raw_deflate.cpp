@@ -126,6 +126,15 @@ public:
         return byte_index_ < input_.size() && byte_index_ + 1U == input_.size();
     }
 
+    // Whole bytes left after the byte holding the last consumed bit. A stream
+    // that ends mid-byte legitimately leaves that byte partially unread, so it
+    // is not counted here. Reported on failure so an operator can tell a
+    // one-byte alignment tail from real trailing data.
+    [[nodiscard]] std::size_t unconsumed_bytes() const noexcept {
+        const auto consumed = bit_index_ == 0U ? byte_index_ : byte_index_ + 1U;
+        return consumed >= input_.size() ? 0U : input_.size() - consumed;
+    }
+
 private:
     std::span<const std::byte> input_;
     std::size_t byte_index_{};
@@ -565,7 +574,12 @@ RawDeflateResult RawDeflate::inflate(
     if (!reader.fully_consumed()) {
         return failure(
             RawDeflateStatus::trailing_input,
-            "The raw DEFLATE stream has trailing bytes after the final block.");
+            "The raw DEFLATE stream has " +
+                std::to_string(reader.unconsumed_bytes()) +
+                " trailing byte(s) after the final block, with " +
+                std::to_string(result.bytes.size()) +
+                " of " + std::to_string(expected) +
+                " expected bytes already materialized.");
     }
 
     result.status = RawDeflateStatus::ok;
