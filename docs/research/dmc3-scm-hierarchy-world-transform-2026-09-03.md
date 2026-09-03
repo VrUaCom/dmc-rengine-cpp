@@ -1,6 +1,6 @@
 # DMC3 HD SCM hierarchy/world-transform reverse — 2026-09-03
 
-**Status:** EXE_CONFIRMED hierarchy indexing + world propagation; corpus-confirmed on 68 unique SCM resources.  
+**Status:** EXE_CONFIRMED hierarchy indexing, local/world propagation and rigid inverse-world cache; corpus-confirmed on 68 unique SCM resources.  
 **Canonical target:** `dmc3.exe`  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
@@ -108,7 +108,7 @@ The serialized transform record remains:
 
 The rotation path was previously closed through `0x140330450`: X, then Y, then Z, producing the DMC3 matrix product `Rz * Ry * Rx` from identity.
 
-The translation helper `0x140031200` now closes the remaining local-matrix part:
+The translation helper `0x140031200` closes the remaining local-matrix part:
 
 - rows 0..2 are copied from the rotation matrix;
 - serialized translation XYZ is added to matrix row 3 XYZ;
@@ -200,11 +200,41 @@ scm::build_world_matrices()
 
 and rejects malformed/non-topological hierarchy data rather than guessing a fallback.
 
-## 8. Initial inverse/cache path
+## 8. Inverse-world cache — 0x140030DC0
 
-After constructing world matrices, `0x1402FA080` calls `0x140030DC0` with the current world matrix and writes a derived 0x40-byte matrix into the first portion of the runtime-node record.
+`0x1402FA080` calls `0x140030DC0` with each current world matrix and stores the returned 0x40-byte matrix in the first 0x40 bytes of the corresponding runtime-node record.
 
-Its instruction shape is consistent with an affine inverse / inverse-transform cache, but that exact higher-level ownership is not required to establish world propagation and remains a separate semantic target. Do not rename the cache until its downstream consumers are bounded.
+The helper is now structurally closed. It is a rigid-transform inverse for the SCM transform family:
+
+1. transpose the upper-left 3x3 rotation basis;
+2. zero the fourth element of the first three rows;
+3. compute inverse translation as `-T * R^T` in the recovered row-vector convention;
+4. set homogeneous W to `1.0`.
+
+Equivalent relation:
+
+```text
+inverseWorld.rotation    = transpose(world.rotation)
+inverseWorld.translation = -world.translation * inverseWorld.rotation
+inverseWorld.W           = 1
+```
+
+No scale inversion is performed, which is correct for the recovered SCM node matrices because serialized transforms contain translation + Euler rotation and no scale channel.
+
+Clean implementation:
+
+```text
+scm::invert_dmc3_rigid_transform()
+```
+
+Regression verifies both:
+
+```text
+world * inverseWorld == identity
+inverseWorld * world == identity
+```
+
+within float tolerance for translation-only and combined XYZ-rotation/translation cases.
 
 ## 9. Object +0x01 additional narrowing
 
@@ -227,7 +257,15 @@ else:
 
 This proves the byte participates in a normalized 8-bit render-facing parameter/control path, but does **not** by itself prove a final name such as opacity/alpha/material class. The clean IR therefore remains semantically neutral.
 
-## 10. Remaining hierarchy boundary
+## 10. Source-object flag lineage correction
+
+Serialized `object+0x10` is copied verbatim into runtime object `+0x10` and `+0x14` by `0x140302F10` before the known operational bit projection runs.
+
+A same-value `0x00200000` test exists at `0x140303F2F`, but provenance review shows that site reads **manager `+0xE0`**, not runtime object `+0x10/+0x14`. Manager `+0xE0` is independently initialized from family classifier `0x1402FD650` plus constructor flags in `0x1402F9570`.
+
+Therefore that site is **not evidence** for the observed serialized object flag `0x00200000`. The object-bit lineage remains open until a direct runtime-object consumer or a proven propagation path is recovered.
+
+## 11. Remaining hierarchy boundary
 
 The following are now closed for the canonical target:
 
@@ -237,12 +275,14 @@ The following are now closed for the canonical target:
 - object-binding node indexing;
 - local rotation matrix;
 - local translation placement;
+- translation-magnitude exclusion from homogeneous W;
 - matrix multiply order;
-- root/non-root world propagation.
+- root/non-root world propagation;
+- rigid inverse-world cache form.
 
 Still separate/open:
 
 - exact semantic purpose of `translationMagnitude` outside matrix construction;
-- exact downstream name of the inverse/cache matrix produced by `0x140030DC0`;
 - external engine coordinate-system naming/handedness conversion for third-party tools;
-- final semantic name of object `+0x01`.
+- final semantic name of object `+0x01`;
+- direct lineage/meaning of serialized object flag `0x00200000`.
