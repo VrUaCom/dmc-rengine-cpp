@@ -435,6 +435,35 @@ int main() {
         unknown_payload->diagnostics,
         "gdspaces.nbz.safe.compression-method-unsupported"));
 
+    // Duplicate logical paths are legal in ZIP. The canonical resource key
+    // includes the central index, so the entry index must still resolve each
+    // one to its own member rather than collapsing them.
+    const std::vector<EntrySpec> duplicate_specs{
+        EntrySpec{"same.txt", 0U, ascii("FIRST"), ascii("FIRST")},
+        EntrySpec{"same.txt", 0U, ascii("SECOND"), ascii("SECOND")},
+    };
+    const auto duplicate_fixture = make_zip(duplicate_specs);
+    const auto duplicate_path =
+        write_fixture(duplicate_fixture.bytes, "nbz-duplicate-name");
+    NbzZipSource duplicate_source("nbz-test", duplicate_path);
+    assert(duplicate_source.valid());
+    const auto duplicate_refs = duplicate_source.enumerate();
+    assert(duplicate_refs.size() == 2U);
+    assert(duplicate_refs[0].id.canonical() != duplicate_refs[1].id.canonical());
+
+    const auto first = duplicate_source.read(duplicate_refs[0].id);
+    const auto second = duplicate_source.read(duplicate_refs[1].id);
+    assert(first.has_value() && first->readable());
+    assert(second.has_value() && second->readable());
+    assert(first->bytes == ascii("FIRST"));
+    assert(second->bytes == ascii("SECOND"));
+
+    // An identity that belongs to no member still resolves to nothing.
+    auto absent = duplicate_refs[0].id;
+    absent.logical_path = "not-a-member.txt";
+    assert(!duplicate_source.read(absent).has_value());
+
+    std::filesystem::remove(duplicate_path);
     std::filesystem::remove(normal_path);
     std::filesystem::remove(bad_offset_path);
     std::filesystem::remove(bad_count_path);
