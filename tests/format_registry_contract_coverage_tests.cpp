@@ -71,6 +71,13 @@ void test_observed_retail_extensions_are_registered() {
 
 // The family-mask probe requires a trailing ASCII space at byte 3. The
 // classifier must reproduce that exactly rather than matching a 3-byte prefix.
+//
+// Five of the six family tags also open with a three-byte tag the registry
+// probe (evidence site A) recognizes on its own — MOD/EFM/SCM/MRP/SHW all do.
+// That probe runs first because it is the more specific site, so those five
+// report runtime_content_tag_confirmed rather than magic_confirmed. MCV is
+// the one tag the registry probe does not recognize at all, so it is the only
+// one that actually falls through to the family-mask branch.
 void test_classifier_recognizes_family_mask_tags() {
     for (const auto& entry : ResourceTypeContract::family_tagged_types) {
         const auto payload = bytes_of(
@@ -79,18 +86,41 @@ void test_classifier_recognizes_family_mask_tags() {
             "unnamed", std::span<const std::byte>{payload});
         assert(classification.format ==
                ResourceTypeContract::canonical_extension(entry.mask));
-        assert(classification.magic_confirmed);
+        assert(classification.byte_derived);
+        if (entry.mask == ResourceTypeContract::FamilyMask::motion_curve) {
+            assert(classification.magic_confirmed);
+            assert(classification.runtime_family_mask_confirmed);
+        } else {
+            assert(!classification.magic_confirmed);
+            assert(classification.runtime_content_tag_confirmed);
+        }
     }
 }
 
-void test_family_tag_without_trailing_space_is_not_confirmed() {
-    // "MODX" is not a family tag. Without a path extension there is nothing
-    // left to fall back to, so it must stay unknown rather than become "mod".
+// "MODX" is not a family tag — the fourth byte is not a space — but the
+// registry probe (evidence site A) never inspects a fourth byte at all, so
+// it recognizes the same three bytes regardless. This is the recovered
+// behavior, not a gap: `type_for_prefix`'s own doc says exactly this.
+void test_registry_probe_ignores_the_fourth_byte() {
     const auto payload = bytes_of("MODXpayload");
+    const auto classification = ResourceClassifier::classify(
+        "unnamed", std::span<const std::byte>{payload});
+    assert(classification.format == "mod");
+    assert(classification.runtime_content_tag_confirmed);
+    assert(!classification.magic_confirmed);
+    assert(!classification.runtime_family_mask_confirmed);
+}
+
+// A prefix neither probe recognizes, and no path extension to fall back to,
+// must stay unknown rather than guess.
+void test_unrecognized_prefix_without_extension_is_not_confirmed() {
+    const auto payload = bytes_of("ZZZZpayload");
     const auto classification = ResourceClassifier::classify(
         "unnamed", std::span<const std::byte>{payload});
     assert(classification.format == "unknown");
     assert(!classification.magic_confirmed);
+    assert(!classification.runtime_content_tag_confirmed);
+    assert(!classification.runtime_family_mask_confirmed);
 }
 
 // Regression for the container walk stopping at a nested archive that did not
@@ -141,7 +171,8 @@ int main() {
     test_every_contract_extension_type_is_registered();
     test_observed_retail_extensions_are_registered();
     test_classifier_recognizes_family_mask_tags();
-    test_family_tag_without_trailing_space_is_not_confirmed();
+    test_registry_probe_ignores_the_fourth_byte();
+    test_unrecognized_prefix_without_extension_is_not_confirmed();
     test_zip_magic_is_recognized_as_nbz_container();
     test_magic_outranks_extension();
     test_extension_fallback_still_applies();

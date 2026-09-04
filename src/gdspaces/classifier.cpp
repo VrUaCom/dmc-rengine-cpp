@@ -188,8 +188,21 @@ ResourceClassification ResourceClassifier::classify(
         // rather than a parallel literal list here, so a type census added to
         // ResourceTypeContract cannot silently miss the classifier.
         using profiles::dmc3::ResourceTypeContract;
-        const auto family = ResourceTypeContract::family_mask_for_prefix(bytes);
-        if (family != ResourceTypeContract::FamilyMask::unknown) {
+        if (const auto registry_type =
+                ResourceTypeContract::registry_type_for_prefix(bytes);
+            registry_type != ResourceTypeContract::TypeCode::unknown) {
+            // Evidence site A: the recovered three-byte registry/content probe
+            // (content_type_probe_va). Distinct from the four-byte family-mask
+            // probe below — a different site, comparing a different number of
+            // bytes — so it is recorded under its own confirmation, not folded
+            // into the family mask's.
+            result.format = std::string{
+                ResourceTypeContract::canonical_extension(registry_type)};
+            result.byte_derived = true;
+            result.runtime_content_tag_confirmed = true;
+        } else if (const auto family =
+                       ResourceTypeContract::family_mask_for_prefix(bytes);
+                   family != ResourceTypeContract::FamilyMask::unknown) {
             result.format =
                 std::string{ResourceTypeContract::canonical_extension(family)};
             result.magic_confirmed = true;
