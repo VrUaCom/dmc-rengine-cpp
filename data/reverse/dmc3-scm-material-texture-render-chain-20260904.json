@@ -1,0 +1,112 @@
+{
+  "schema": "dmc-rengine.scm-material-texture-render.v1",
+  "date": "2026-09-04",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "manager": {
+    "bindFunction": "0x140304AE0",
+    "scmResource": "+0x108",
+    "textureCompanion": "+0x110",
+    "derivedTextureTable": "+0x118",
+    "runtimeHeaderFunction": "0x1402F9570",
+    "runtimeTextureCount": "+0xEC",
+    "textureCountAuthority": "textureCompanion+0x00",
+    "scmHeaderTextureSlotCount": "+0x12 mirror/consistency field; not the authority in this load path"
+  },
+  "textureCompanion": {
+    "builder": "0x140304B30",
+    "count": "u32@+0x000",
+    "blockCounts": "u32[count]@+0x004",
+    "payloadBase": "0x800",
+    "payloadSizeFormula": "blockCount[i] * 0x800",
+    "payloadParser": "0x1403365B0",
+    "tm2MagicCheck": "u32 == 0x00324D54 (TM2\\0)",
+    "tm2MandatoryForEveryPossibleSlot": false
+  },
+  "mesh": {
+    "textureIndex": {
+      "serialized": "u16@+0x02",
+      "consumer": "0x1402F9890",
+      "runtimeTextureRecordStride": "0x40",
+      "runtimeTexturePointerField": "+0x20",
+      "meaning": "external texture-companion runtime slot index",
+      "status": "EXE_CONFIRMED"
+    },
+    "renderWords": {
+      "serialized": ["u16@+0x04", "u16@+0x06", "u16@+0x08", "u16@+0x0A"],
+      "consumer": "0x1402F9890",
+      "stockCorpusAllZero": true,
+      "packedFormula": "word0==0 ? 0 : (word0<<4)|0xF|(word1<<14)|(word2<<24)|(word3<<34)",
+      "semanticNames": "UNRESOLVED",
+      "cpp": "scm::pack_mesh_render_words"
+    },
+    "reserved0c": {
+      "serialized": "u32@+0x0C",
+      "status": "zero on confirmed corpus; unresolved"
+    }
+  },
+  "object": {
+    "alphaControl": {
+      "serialized": "u8@+0x01",
+      "initializer": "0x140302F10",
+      "runtimeControl": "+0x17C",
+      "runtimeOverrideCode": "+0x178",
+      "packetBuilder": "0x140304111..0x140304167",
+      "packetLane": "MDL_PARTS_COLOR_PKT.alpha.w",
+      "commonProjection": "effective<=0x80 ? effective/255 : 1.0",
+      "lowModeForcedControl": "0x80",
+      "cpp": "scm::project_effective_alpha_control",
+      "status": "EXE_CONFIRMED"
+    },
+    "alphaHardcodedCorrections": [
+      {
+        "sourceControl": "0xEA",
+        "objectIndex": 10,
+        "totalVertexCountSignature": [116, 59, 69, 173],
+        "rewriteTo": "0xC5"
+      },
+      {
+        "sourceControl": "0xC4",
+        "objectIndex": 16,
+        "sceneNodeBinding": 17,
+        "totalVertexCountSignature": [1870, 4, 12, 308],
+        "rewriteTo": "0x80"
+      }
+    ],
+    "flag00004000": {
+      "serialized": "object+0x10 & 0x00004000",
+      "consumer": "0x1402F9890",
+      "clearValue": "meshDescriptor.field_08 = 0x60",
+      "setValue": "meshDescriptor.field_08 = 0",
+      "higherLevelMeaning": "UNRESOLVED",
+      "cpp": "scm::mesh_descriptor_field_08"
+    }
+  },
+  "shaderEvidence": {
+    "packet": {
+      "name": "MDL_PARTS_COLOR_PKT",
+      "size": "0x30",
+      "members": ["float4 base", "float4 specular", "float4 alpha"]
+    },
+    "stageVertexShader": {
+      "sourcePath": "DMC3_STG.hlsl",
+      "alphaAssignment": "vo.oColor.w = colors.alpha.w"
+    },
+    "pixelShaderFamily": {
+      "input": "float4 rgba : COLOR0",
+      "behavior": "texture/color variants combine COLOR0 alpha with texture alpha; multiple variants pass final color.a to AlphaTestFunc and clip"
+    },
+    "scmDrawPacketFunction": "0x1402FD040",
+    "scmDrawSubmission": "0x1402FC850",
+    "packetStrideObserved": "0x30"
+  },
+  "open": [
+    "exact downstream semantic name of mesh descriptor field 0x60/0",
+    "semantic meaning/ranges of mesh render words",
+    "exact SCM draw-variant to pixel-shader selection mapping",
+    "direct serialized object+0x10 consumer for observed bit 0x00200000",
+    "writer-level coherence rules between SCM texture slot metadata and texture companion"
+  ]
+}
