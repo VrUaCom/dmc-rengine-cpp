@@ -45,7 +45,11 @@ struct Mesh final {
     std::uint64_t record_offset{};
     std::uint16_t vertex_count{};
     std::uint16_t texture_index{};
-    MeshRenderWords render_words{};
+
+    // Legacy PS2 GS CLAMP REGION_REPEAT state serialized at +0x04..+0x0B.
+    // Stock HD SCM corpus uses zero, but canonical executable support is live.
+    LegacyGsClampRegionRepeat gs_clamp_region_repeat{};
+
     std::uint32_t reserved0c{};
     std::uint64_t positions_offset{};
     std::uint64_t normals_offset{};
