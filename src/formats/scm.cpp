@@ -56,7 +56,8 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
     for (std::size_t oi = 0; oi < h.object_count; ++oi) {
         Object object;
         object.record_offset = header_size + static_cast<std::uint64_t>(oi) * object_record_size;
-        r.read(object.record_offset + 0x00U, object.mesh_count); r.read(object.record_offset + 0x01U, object.unresolved01);
+        r.read(object.record_offset + 0x00U, object.mesh_count);
+        r.read(object.record_offset + 0x01U, object.alpha_control);
         r.read(object.record_offset + 0x02U, object.total_vertex_count); r.read(object.record_offset + 0x04U, object.reserved04);
         r.read(object.record_offset + 0x08U, object.mesh_table_offset); r.read(object.record_offset + 0x10U, object.flags);
         r.read(object.record_offset + 0x30U, object.bounding_center.x); r.read(object.record_offset + 0x34U, object.bounding_center.y);
