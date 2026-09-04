@@ -64,7 +64,13 @@ struct Mesh final {
 struct Object final {
     std::uint64_t record_offset{};
     std::uint8_t mesh_count{};
-    std::uint8_t unresolved01{};
+
+    // EXE-confirmed alpha-control byte. Common values <=0x80 are normalized
+    // to MDL_PARTS_COLOR_PKT.alpha.w as value/255. Values >0x80 act as
+    // control codes and force alpha.w=1 while remaining available to runtime.
+    // The canonical EXE also contains two narrow hard-coded C4/EA corrections.
+    std::uint8_t alpha_control{};
+
     std::uint16_t total_vertex_count{};
     std::uint32_t reserved04{};
     std::uint64_t mesh_table_offset{};
