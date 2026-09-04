@@ -27,6 +27,22 @@ struct Vec3f final {
     float z{};
 };
 
+// Exact serialized UV representation. The canonical DMC3-HD path interprets
+// each component with scale 1/4096. Keeping the signed 16-bit source values in
+// the IR makes no-edit authoring bit preserving and avoids imposing a frontend
+// coordinate convention on the binary model.
+struct SerializedUv final {
+    std::int16_t u{};
+    std::int16_t v{};
+};
+
+struct ColorTopology final {
+    std::uint8_t r{};
+    std::uint8_t g{};
+    std::uint8_t b{};
+    std::uint8_t topology_flags{};
+};
+
 struct Header final {
     float version{};
     std::uint64_t reserved08{};
@@ -73,6 +89,15 @@ struct Mesh final {
     std::uint64_t index_workspace_offset{};
     std::uint64_t index_workspace_capacity{};
     std::uint8_t observed_topology_flag_mask{};
+
+    // Materialized authoring payloads. Their lengths must agree exactly with
+    // vertex_count in preserve-layout mode. Canonical rebuild derives the
+    // serialized vertex count from these vectors instead of trusting stale
+    // dependent metadata.
+    std::vector<Vec3f> positions;
+    std::vector<Vec3f> normals;
+    std::vector<SerializedUv> uvs;
+    std::vector<ColorTopology> colors_topology;
 };
 
 struct Object final {
@@ -90,6 +115,11 @@ struct Object final {
     std::uint64_t mesh_table_offset{};
     // Runtime-consumed source flags. Unknown/undecoded bits must be preserved.
     std::uint32_t flags{};
+
+    // Bytes +0x14..+0x2F are not semantically decoded. They are represented
+    // explicitly so a writer never silently zeroes or drops unknown evidence.
+    std::array<std::byte, 0x1CU> reserved14_2f{};
+
     Vec3f bounding_center{};
     float bounding_radius{};
     std::vector<Mesh> meshes;
@@ -115,6 +145,10 @@ struct SceneNodeBlock final {
     std::uint32_t object_binding_rel{};
     std::uint32_t transform_rel{};
 
+    // Serialized scene-header +0x10..+0x1F remains unresolved. Preserve it
+    // explicitly rather than relying on zero-filled stock fixtures.
+    std::array<std::byte, 0x10U> reserved10_1f{};
+
     // EXE-confirmed indexing contract:
     //   position i in evaluation order -> node_at_order_position[i]
     //   position i in evaluation order -> parent_by_order_position[i]
@@ -129,6 +163,11 @@ struct Document final {
     Header header;
     std::vector<Object> objects;
     SceneNodeBlock scene_nodes;
+
+    // Original recognized byte image. This is the preservation authority for
+    // same-layout authoring: unknown padding/workspace bytes survive unchanged.
+    // Canonical rebuild does not depend on it.
+    std::vector<std::byte> source_bytes;
 };
 
 struct ParseResult final {
