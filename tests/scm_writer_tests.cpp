@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_edit.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
 
@@ -34,7 +35,7 @@ std::vector<std::byte> fixture() {
     put<float>(bytes, 0x04U, 1.01F);
     bytes[0x10U] = std::byte{1};
     bytes[0x11U] = std::byte{1};
-    bytes[0x12U] = std::byte{1};
+    bytes[0x12U] = std::byte{2};
     put<std::uint32_t>(bytes, 0x14U, 300100U);
     put<std::uint64_t>(bytes, 0x20U, layout.scene.block_offset);
 
@@ -118,7 +119,52 @@ int main() {
     assert(rebuilt.bytes == source);
 
     auto edited_document = parsed.document;
-    edited_document.objects[0].meshes[0].positions[0].x = 4.0F;
+    const auto position_edit = set_vertex_position(
+        edited_document, 0U, 0U, 0U, Vec3f{4.0F, 0.0F, 0.0F});
+    assert(position_edit.ok());
+    assert(position_edit.changed);
+
+    const auto uv_edit = set_uv(
+        edited_document, 0U, 0U, 0U, 0.5F, -0.25F);
+    assert(uv_edit.ok());
+    assert(uv_edit.changed);
+
+    const auto texture_edit = set_texture_slot(
+        edited_document, 0U, 0U, 1U);
+    assert(texture_edit.ok());
+    assert(texture_edit.changed);
+
+    const auto alpha_edit = set_alpha_control(
+        edited_document, 0U, 0x40U);
+    assert(alpha_edit.ok());
+    assert(alpha_edit.changed);
+
+    const auto filter_edit = set_texture_filter_nearest(
+        edited_document, 0U, true);
+    assert(filter_edit.ok());
+    assert(filter_edit.changed);
+
+    const auto clamp_edit = set_region_repeat(
+        edited_document,
+        0U,
+        0U,
+        LegacyGsClampRegionRepeat{1U, 2U, 3U, 4U});
+    assert(clamp_edit.ok());
+    assert(clamp_edit.changed);
+
+    const auto translation_edit = set_node_translation(
+        edited_document, 0U, Vec3f{3.0F, 4.0F, 0.0F});
+    assert(translation_edit.ok());
+    assert(translation_edit.changed);
+    assert(
+        edited_document.scene_nodes.transform_by_node_index[0]
+            .translation_magnitude == 5.0F);
+
+    const auto rotation_edit = set_node_rotation(
+        edited_document, 0U, Vec3f{0.1F, 0.2F, 0.3F});
+    assert(rotation_edit.ok());
+    assert(rotation_edit.changed);
+
     const auto edited = Writer::write(
         edited_document, WriteMode::preserve_layout);
     assert(edited.ok());
@@ -127,7 +173,34 @@ int main() {
         std::span<const std::byte>{edited.bytes});
     assert(edited_parse.ok());
     assert(edited_parse.document.objects[0].meshes[0].positions[0].x == 4.0F);
+    assert(edited_parse.document.objects[0].meshes[0].uvs[0].u == 2048);
+    assert(edited_parse.document.objects[0].meshes[0].uvs[0].v == -1024);
+    assert(edited_parse.document.objects[0].meshes[0].texture_index == 1U);
+    assert(edited_parse.document.objects[0].alpha_control == 0x40U);
+    assert(
+        (edited_parse.document.objects[0].flags &
+         object_flag_nearest_texture_filter) != 0U);
+    assert(
+        edited_parse.document.objects[0].meshes[0]
+            .gs_clamp_region_repeat.min_u == 1U);
     assert(edited_parse.document.objects[0].bounding_radius == 4.0F);
+    assert(
+        edited_parse.document.scene_nodes.transform_by_node_index[0]
+            .translation_magnitude == 5.0F);
+
+    auto invalid_edit_document = parsed.document;
+    const auto invalid_uv = set_uv(
+        invalid_edit_document, 0U, 0U, 0U, 100.0F, 0.0F);
+    assert(!invalid_uv.ok());
+    const auto invalid_texture = set_texture_slot(
+        invalid_edit_document, 0U, 0U, 2U);
+    assert(!invalid_texture.ok());
+    const auto invalid_clamp = set_region_repeat(
+        invalid_edit_document,
+        0U,
+        0U,
+        LegacyGsClampRegionRepeat{0x400U, 0U, 0U, 0U});
+    assert(!invalid_clamp.ok());
 
     auto resized_document = parsed.document;
     auto& mesh = resized_document.objects[0].meshes[0];
