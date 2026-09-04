@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-material-texture-render.v1",
+  "schema": "dmc-rengine.scm-material-texture-render.v2",
   "date": "2026-09-04",
   "target": {
     "name": "dmc3.exe",
@@ -13,7 +13,7 @@
     "runtimeHeaderFunction": "0x1402F9570",
     "runtimeTextureCount": "+0xEC",
     "textureCountAuthority": "textureCompanion+0x00",
-    "scmHeaderTextureSlotCount": "+0x12 mirror/consistency field; not the authority in this load path"
+    "scmHeaderTextureSlotCount": "+0x12 mirror/consistency field; not runtime authority in this load path"
   },
   "textureCompanion": {
     "builder": "0x140304B30",
@@ -34,13 +34,29 @@
       "meaning": "external texture-companion runtime slot index",
       "status": "EXE_CONFIRMED"
     },
-    "renderWords": {
-      "serialized": ["u16@+0x04", "u16@+0x06", "u16@+0x08", "u16@+0x0A"],
+    "legacyGsClampRegionRepeat": {
+      "serialized": {
+        "MINU": "u16@+0x04",
+        "MAXU": "u16@+0x06",
+        "MINV": "u16@+0x08",
+        "MAXV": "u16@+0x0A"
+      },
       "consumer": "0x1402F9890",
       "stockCorpusAllZero": true,
-      "packedFormula": "word0==0 ? 0 : (word0<<4)|0xF|(word1<<14)|(word2<<24)|(word3<<34)",
-      "semanticNames": "UNRESOLVED",
-      "cpp": "scm::pack_mesh_render_words"
+      "dmcDisabledSentinel": "MINU == 0 -> packed state 0",
+      "packedFormula": "(MINU<<4)|0xF|(MAXU<<14)|(MINV<<24)|(MAXV<<34)",
+      "gsRegister": "CLAMP",
+      "WMS": 3,
+      "WMT": 3,
+      "mode3": "REGION_REPEAT",
+      "hardwareFieldWidth": 10,
+      "exeMasksBeforeShift": false,
+      "cpp": [
+        "scm::LegacyGsClampRegionRepeat",
+        "scm::pack_legacy_gs_clamp_region_repeat",
+        "scm::legacy_gs_clamp_fields_fit_register"
+      ],
+      "status": "EXE_CONFIRMED + independently matched to PS2 GS register ABI"
     },
     "reserved0c": {
       "serialized": "u32@+0x0C",
@@ -102,11 +118,23 @@
     "scmDrawSubmission": "0x1402FC850",
     "packetStrideObserved": "0x30"
   },
+  "independentGsAbiVerification": {
+    "CLAMPBitLayout": {
+      "WMS": "bits0..1",
+      "WMT": "bits2..3",
+      "MINU": "bits4..13",
+      "MAXU": "bits14..23",
+      "MINV": "bits24..33",
+      "MAXV": "bits34..43"
+    },
+    "mode3": "REGION_REPEAT",
+    "match": "bit-for-bit with DMC3 0x1402F9890 packing"
+  },
   "open": [
     "exact downstream semantic name of mesh descriptor field 0x60/0",
-    "semantic meaning/ranges of mesh render words",
     "exact SCM draw-variant to pixel-shader selection mapping",
     "direct serialized object+0x10 consumer for observed bit 0x00200000",
-    "writer-level coherence rules between SCM texture slot metadata and texture companion"
+    "writer-level coherence rules between SCM texture slot metadata and texture companion",
+    "non-stock or legacy corpus with non-zero GS region-repeat fields"
   ]
 }
