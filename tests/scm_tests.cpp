@@ -42,14 +42,16 @@ std::vector<std::byte> fixture() {
     bytes[0x10U] = std::byte{1};
     bytes[0x11U] = std::byte{1};
     bytes[0x12U] = std::byte{1};
-    put<std::uint64_t>(bytes, 0x20U, layout.scene.block_offset);
+    put<std::uint64_t>(
+        bytes, 0x20U, layout.scene.block_offset);
 
     const auto& object_layout = layout.objects[0];
     const auto object_offset = static_cast<std::size_t>(object_layout.record_offset);
     bytes[object_offset] = std::byte{1};
     bytes[object_offset + 1U] = std::byte{0x80};
     put<std::uint16_t>(bytes, object_offset + 0x02U, 3U);
-    put<std::uint64_t>(bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
+    put<std::uint64_t>(
+        bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
 
     const auto& mesh_layout = object_layout.meshes[0];
     const auto mesh_offset = static_cast<std::size_t>(mesh_layout.record_offset);
@@ -113,8 +115,11 @@ int main() {
     static_assert(!legacy_gs_clamp_fields_fit_register(
         LegacyGsClampRegionRepeat{0x400U, 0U, 0U, 0U}));
 
-    static_assert(mesh_descriptor_field_08(0U) == 0x60U);
-    static_assert(mesh_descriptor_field_08(0x00004000U) == 0U);
+    static_assert(legacy_gs_tex1_filter_from_object_flags(0U) ==
+                  legacy_gs_tex1_linear_filter);
+    static_assert(legacy_gs_tex1_filter_from_object_flags(
+                      object_flag_nearest_texture_filter) ==
+                  legacy_gs_tex1_nearest_filter);
 
     {
         constexpr auto alpha80 = project_effective_alpha_control(0x80U);
@@ -173,7 +178,8 @@ int main() {
     put<std::uint16_t>(nonzero_clamp, mesh_offset + 0x06U, clamp.max_u);
     put<std::uint16_t>(nonzero_clamp, mesh_offset + 0x08U, clamp.min_v);
     put<std::uint16_t>(nonzero_clamp, mesh_offset + 0x0AU, clamp.max_v);
-    const auto clamp_parsed = Parser::parse(std::span<const std::byte>{nonzero_clamp});
+    const auto clamp_parsed = Parser::parse(
+        std::span<const std::byte>{nonzero_clamp});
     assert(clamp_parsed.ok());
     const auto& parsed_clamp =
         clamp_parsed.document.objects[0].meshes[0].gs_clamp_region_repeat;
@@ -184,7 +190,8 @@ int main() {
 
     auto wide_clamp = bytes;
     put<std::uint16_t>(wide_clamp, mesh_offset + 0x04U, 0x400U);
-    const auto wide_parsed = Parser::parse(std::span<const std::byte>{wide_clamp});
+    const auto wide_parsed = Parser::parse(
+        std::span<const std::byte>{wide_clamp});
     assert(wide_parsed.ok());
     bool saw_clamp_warning = false;
     for (const auto& diagnostic : wide_parsed.diagnostics) {
@@ -195,23 +202,27 @@ int main() {
 
     auto bad_vertex_sum = bytes;
     put<std::uint16_t>(bad_vertex_sum, 0x42U, 4U);
-    const auto bad_sum = Parser::parse(std::span<const std::byte>{bad_vertex_sum});
+    const auto bad_sum = Parser::parse(
+        std::span<const std::byte>{bad_vertex_sum});
     assert(bad_sum.recognized);
     assert(!bad_sum.ok());
 
     auto bad_continuation = bytes;
     put<std::uint64_t>(bad_continuation, mesh_offset + 0x28U, 0x50U);
-    const auto bad_cont = Parser::parse(std::span<const std::byte>{bad_continuation});
+    const auto bad_cont = Parser::parse(
+        std::span<const std::byte>{bad_continuation});
     assert(bad_cont.recognized);
     assert(!bad_cont.ok());
 
     std::vector<std::byte> other(header_size, std::byte{0});
-    const auto unrecognized = Parser::parse(std::span<const std::byte>{other});
+    const auto unrecognized = Parser::parse(
+        std::span<const std::byte>{other});
     assert(!unrecognized.recognized);
     assert(!unrecognized.ok());
 
     const std::vector<std::byte> truncated(0x10U, std::byte{0});
-    const auto short_result = Parser::parse(std::span<const std::byte>{truncated});
+    const auto short_result = Parser::parse(
+        std::span<const std::byte>{truncated});
     assert(!short_result.recognized);
     assert(!short_result.ok());
     assert(short_result.diagnostics[0].code == "scm.truncated-header");
@@ -228,44 +239,51 @@ int main() {
     }
     {
         constexpr auto projection = runtime::project(0x00020000U);
-        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_9) != 0U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_9) != 0U);
         static_assert(projection.initialize_unit_vector);
     }
     {
         constexpr auto projection = runtime::project(0x00100001U);
         static_assert(projection.helper_mode == 1U);
         static_assert(projection.helper_state_selector == 0x0005010DU);
-        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_8) != 0U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_8) != 0U);
     }
     {
         constexpr auto projection = runtime::project(0x04000000U);
         static_assert(projection.high_mode_present);
         static_assert(projection.high_mode_minus_one == 3U);
-        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_15) != 0U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_15) != 0U);
     }
     {
         constexpr auto projection = runtime::project(0x00010004U);
         static_assert(projection.helper_mode == 4U);
         static_assert(projection.helper_state_selector == 0x00050007U);
         static_assert(!projection.helper_secondary_boolean);
-        static_assert((projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
+        static_assert(
+            (projection.runtime_flags_to_set & runtime::runtime_flag_bit_7) != 0U);
     }
 
     constexpr float half_pi = 1.57079632679489661923F;
     assert_identity(build_rotation_xyz_radians(Vec3f{}));
     {
-        const auto matrix = build_rotation_xyz_radians(Vec3f{half_pi, 0.0F, 0.0F});
+        const auto matrix = build_rotation_xyz_radians(
+            Vec3f{half_pi, 0.0F, 0.0F});
         assert(near(matrix(0U, 0U), 1.0F));
         assert(near(matrix(1U, 2U), 1.0F));
         assert(near(matrix(2U, 1U), -1.0F));
     }
     {
-        const auto matrix = build_rotation_xyz_radians(Vec3f{0.0F, half_pi, 0.0F});
+        const auto matrix = build_rotation_xyz_radians(
+            Vec3f{0.0F, half_pi, 0.0F});
         assert(near(matrix(0U, 2U), -1.0F));
         assert(near(matrix(2U, 0U), 1.0F));
     }
     {
-        const auto matrix = build_rotation_xyz_radians(Vec3f{0.0F, 0.0F, half_pi});
+        const auto matrix = build_rotation_xyz_radians(
+            Vec3f{0.0F, 0.0F, half_pi});
         assert(near(matrix(0U, 1U), 1.0F));
         assert(near(matrix(1U, 0U), -1.0F));
     }
