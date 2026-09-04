@@ -35,6 +35,14 @@ struct RelativeSlotParseResult final {
 
 struct RelativeSlotContainerSpec final {
     std::array<std::byte, 4> magic{};
+
+    // How much of `magic` the runtime itself compares. PAC's recovered walk
+    // reads three bytes and never looks at the stored NUL — see
+    // RelativeSlotWalkContract::pac_magic_bytes — so a reader that demands all
+    // four is stricter than the game. Defaults to a full match for callers
+    // that have not read a walk proving otherwise.
+    std::size_t magic_bytes{4U};
+
     std::string_view document_format;
     std::uint32_t max_slot_count{1U << 20U};
 };

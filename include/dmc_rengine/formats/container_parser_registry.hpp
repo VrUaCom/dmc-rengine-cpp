@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/formats/container_parser.hpp"
 
+#include <array>
 #include <cstddef>
 #include <memory>
 #include <span>
@@ -20,6 +21,12 @@ public:
 
     [[nodiscard]] const IContainerParser* select(
         std::span<const std::byte> bytes,
+        std::string_view logical_path) const noexcept;
+
+    // A byte probe that finds nothing is indistinguishable from "this file is
+    // of no known kind". The parser the name points at knows the actual
+    // reason; asking it costs one parse and turns a shrug into a diagnosis.
+    [[nodiscard]] const IContainerParser* named_by_path(
         std::string_view logical_path) const noexcept;
 
     [[nodiscard]] ContainerParseResult parse(
