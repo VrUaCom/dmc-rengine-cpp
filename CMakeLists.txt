@@ -124,6 +124,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dca
         lig2
         scm
+        scm_writer
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats
