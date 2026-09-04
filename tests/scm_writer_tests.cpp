@@ -2,7 +2,10 @@
 #include "dmc_rengine/formats/scm_edit.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
+#include "dmc_rengine/profiles/dmc3/scm_resource_bundle.hpp"
 
+#include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -93,10 +96,60 @@ std::vector<std::byte> fixture() {
     return bytes;
 }
 
+std::vector<std::byte> wrapped_texture_fixture() {
+    constexpr std::uint32_t width = 4U;
+    constexpr std::uint32_t height = 4U;
+    constexpr std::uint32_t mip_count = 1U;
+    constexpr std::uint32_t payload_size = 8U;
+
+    std::vector<std::byte> dds(128U + payload_size, std::byte{0});
+    dds[0] = std::byte{'D'};
+    dds[1] = std::byte{'D'};
+    dds[2] = std::byte{'S'};
+    dds[3] = std::byte{' '};
+    put<std::uint32_t>(dds, 4U, 124U);
+    put<std::uint32_t>(dds, 12U, height);
+    put<std::uint32_t>(dds, 16U, width);
+    put<std::uint32_t>(dds, 28U, mip_count);
+    dds[84U] = std::byte{'D'};
+    dds[85U] = std::byte{'X'};
+    dds[86U] = std::byte{'T'};
+    dds[87U] = std::byte{'1'};
+
+    std::vector<std::byte> descriptor(0x70U, std::byte{0});
+    put<std::uint32_t>(descriptor, 0x08U, 0x20000U | (mip_count << 8U) | 0x86U);
+    put<std::uint32_t>(descriptor, 0x0CU, 0xAAE4U);
+    put<std::uint32_t>(descriptor, 0x10U, (height << 16U) | width);
+    put<std::uint32_t>(descriptor, 0x14U, 1U);
+    put<std::uint32_t>(descriptor, 0x18U, width * 2U);
+    put<std::uint32_t>(descriptor, 0x20U, 0x40U);
+    put<std::uint32_t>(descriptor, 0x38U, payload_size);
+    put<std::uint32_t>(descriptor, 0x44U, (height << 16U) | width);
+    put<std::uint32_t>(
+        descriptor,
+        0x48U,
+        std::bit_cast<std::uint32_t>(1.0F / static_cast<float>(width)));
+    put<std::uint32_t>(
+        descriptor,
+        0x4CU,
+        std::bit_cast<std::uint32_t>(1.0F / static_cast<float>(height)));
+    put<std::uint32_t>(descriptor, 0x60U, 0U);
+    put<std::uint32_t>(
+        descriptor, 0x64U, static_cast<std::uint32_t>(dds.size()));
+    put<std::uint32_t>(descriptor, 0x68U, 8U);
+
+    std::vector<std::byte> result;
+    result.reserve(descriptor.size() + dds.size());
+    result.insert(result.end(), descriptor.begin(), descriptor.end());
+    result.insert(result.end(), dds.begin(), dds.end());
+    return result;
+}
+
 } // namespace
 
 int main() {
     using namespace dmc::rengine::formats::scm;
+    namespace dmc3 = dmc::rengine::profiles::dmc3;
 
     const auto source = fixture();
     const auto parsed = Parser::parse(std::span<const std::byte>{source});
@@ -222,6 +275,46 @@ int main() {
     assert(resized_parse.document.objects[0].meshes[0].vertex_count == 4U);
     assert(resized_parse.document.objects[0].total_vertex_count == 4U);
     assert(resized.bytes.size() != source.size());
+
+    const auto texture_source = wrapped_texture_fixture();
+    const auto texture_parse = dmc3::TextureSlotFramingParser::parse(
+        std::span<const std::byte>{texture_source});
+    assert(texture_parse.ok());
+    assert(texture_parse.document.textures.size() == 1U);
+
+    auto bundle_document = parsed.document;
+    bundle_document.header.texture_slot_count = 1U;
+    bundle_document.objects[0].meshes[0].texture_index = 0U;
+    dmc3::ScmResourceBundle bundle{
+        .scm = bundle_document,
+        .texture_companion_source = texture_source,
+    };
+    const auto bundle_write = dmc3::ScmResourceBundleWriter::write(
+        bundle, WriteMode::preserve_layout);
+    assert(bundle_write.ok());
+    assert(bundle_write.texture_companion_bytes == texture_source);
+    const auto bundle_scm_parse = Parser::parse(
+        std::span<const std::byte>{bundle_write.scm_bytes});
+    assert(bundle_scm_parse.ok());
+    assert(bundle_scm_parse.document.header.texture_slot_count == 1U);
+
+    auto bad_count_bundle = bundle;
+    bad_count_bundle.scm.header.texture_slot_count = 2U;
+    const auto bad_count = dmc3::ScmResourceBundleWriter::write(
+        bad_count_bundle, WriteMode::preserve_layout);
+    assert(!bad_count.ok());
+    assert(
+        bad_count.status ==
+        dmc3::ScmResourceBundleStatus::texture_count_mismatch);
+
+    auto bad_index_bundle = bundle;
+    bad_index_bundle.scm.objects[0].meshes[0].texture_index = 1U;
+    const auto bad_index = dmc3::ScmResourceBundleWriter::write(
+        bad_index_bundle, WriteMode::preserve_layout);
+    assert(!bad_index.ok());
+    assert(
+        bad_index.status ==
+        dmc3::ScmResourceBundleStatus::texture_index_out_of_range);
 
     return 0;
 }
