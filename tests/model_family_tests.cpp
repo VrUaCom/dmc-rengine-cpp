@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/model_family.hpp"
+#include "dmc_rengine/formats/model_mesh_core.hpp"
 
 #include <cassert>
 
@@ -27,6 +28,18 @@ int main() {
     static_assert(!family::has(mod.capabilities, family::Capability::experimental_authoring));
     static_assert(mod.max_serialized_skin_influences == 3U);
     static_assert(!mod.production_writer_authorized);
+
+    static_assert(family::MeshCoreAbi::record_size == 0x50U);
+    static_assert(family::MeshCoreAbi::element_count_field == 0x00U);
+    static_assert(family::MeshCoreAbi::positions_field == 0x10U);
+    static_assert(family::MeshCoreAbi::normals_field == 0x18U);
+    static_assert(family::MeshCoreAbi::uv_field == 0x20U);
+    static_assert(family::MeshCoreAbi::topology_workspace_field == 0x40U);
+    static_assert(family::MeshCoreAbi::generated_topology_count_field == 0x48U);
+    static_assert(family::MeshCoreAbi::position_stride == 12U);
+    static_assert(family::MeshCoreAbi::normal_stride == 12U);
+    static_assert(family::MeshCoreAbi::uv_stride == 4U);
+    static_assert(family::MeshCoreAbi::uv_fixed_scale == 4096.0F);
 
     assert(family::to_string(scm.source_format) == "scm");
     assert(family::to_string(mod.source_format) == "mod");
