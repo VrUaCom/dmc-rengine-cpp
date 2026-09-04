@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/formats/diagnostic.hpp"
 #include "dmc_rengine/formats/scm_render.hpp"
+#include "dmc_rengine/formats/scm_resource_code.hpp"
 
 #include <array>
 #include <cstddef>
@@ -31,9 +32,16 @@ struct Header final {
     std::uint64_t reserved08{};
     std::uint8_t object_count{};
     std::uint8_t scene_node_count{};
+    // Serialized consistency/mirror value. The canonical main load path takes
+    // runtime texture-table authority from the external texture companion.
     std::uint8_t texture_slot_count{};
     std::uint8_t reserved13{};
-    std::uint32_t unresolved_id14{};
+
+    // Runtime-carried legacy identity/provenance code from serialized +0x14.
+    // The decimal component decomposition is corpus-confirmed; official names
+    // for family classes 3/4 remain unresolved.
+    LegacyResourceCode resource_code{};
+
     std::uint64_t reserved18{};
     std::uint64_t scene_node_block_offset{};
     std::uint64_t reserved28{};
@@ -44,6 +52,8 @@ struct Header final {
 struct Mesh final {
     std::uint64_t record_offset{};
     std::uint16_t vertex_count{};
+    // EXE-confirmed index into the runtime table derived from the external
+    // texture companion.
     std::uint16_t texture_index{};
 
     // Legacy PS2 GS CLAMP REGION_REPEAT state serialized at +0x04..+0x0B.
@@ -78,6 +88,7 @@ struct Object final {
     std::uint16_t total_vertex_count{};
     std::uint32_t reserved04{};
     std::uint64_t mesh_table_offset{};
+    // Runtime-consumed source flags. Unknown/undecoded bits must be preserved.
     std::uint32_t flags{};
     Vec3f bounding_center{};
     float bounding_radius{};
@@ -86,6 +97,9 @@ struct Object final {
 
 struct SceneTransform final {
     Vec3f translation{};
+    // Corpus-confirmed precomputed length(translation). The local matrix
+    // builder deliberately ignores this fourth lane; other semantics remain
+    // under a separate consumer census.
     float translation_magnitude{};
     // EXE-confirmed at 0x1402FA080 -> 0x140330450: serialized
     // +0x10/+0x14/+0x18 are X/Y/Z Euler angles in radians. The game applies
