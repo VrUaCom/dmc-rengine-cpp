@@ -174,6 +174,11 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_expander_identity
         classifier
         scm
+        mod
+        efm
+        mot
+        ptx
+        shw
         so
         so_graph
         so_link_table

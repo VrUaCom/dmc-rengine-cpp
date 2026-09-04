@@ -115,10 +115,22 @@ void test_magic_outranks_extension() {
 
 // With no bytes to probe, the path extension remains the only signal.
 void test_extension_fallback_still_applies() {
+    const auto classification = ResourceClassifier::classify("obj/basic.mod");
+    assert(classification.format == "mod");
+    assert(!classification.magic_confirmed);
+    assert(!classification.container);
+}
+
+// A container format named by extension alone, with no bytes to check, is
+// reported as a container optimistically: an index built before
+// materialization has nothing better to go on, and refusing to offer
+// expansion until every member is read would cost more than it explains. See
+// ResourceClassifier::classify's note on the `structural` claim.
+void test_container_format_by_extension_alone_is_optimistic() {
     const auto classification = ResourceClassifier::classify("tex/basic.ptx");
     assert(classification.format == "ptx");
     assert(!classification.magic_confirmed);
-    assert(!classification.container);
+    assert(classification.container);
 }
 
 } // namespace
@@ -133,5 +145,6 @@ int main() {
     test_zip_magic_is_recognized_as_nbz_container();
     test_magic_outranks_extension();
     test_extension_fallback_still_applies();
+    test_container_format_by_extension_alone_is_optimistic();
     return 0;
 }
