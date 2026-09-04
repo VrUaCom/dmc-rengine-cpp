@@ -1,12 +1,12 @@
 # DMC3 HD SCM material / texture / render chain — 2026-09-04
 
-**Status:** EXE_CONFIRMED runtime ownership and bounded render projection; semantic decoding of one descriptor field remains open.  
+**Status:** EXE_CONFIRMED runtime ownership, alpha control and legacy GS CLAMP projection; one adjacent descriptor field remains semantically open.  
 **Canonical target:** `dmc3.exe`  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
 ## Executive result
 
-This pass closes the previously missing bridge between serialized SCM geometry and the DMC3 renderer:
+This pass closes the bridge between serialized SCM geometry and the DMC3 renderer:
 
 ```text
 SCM object
@@ -21,15 +21,20 @@ SCM mesh
      -> runtime texture record (stride 0x40)
      -> texture pointer/descriptor
 
-  render_words (+0x04,+0x06,+0x08,+0x0A)
-     -> packed 64-bit render state
+  +0x04 MINU
+  +0x06 MAXU
+  +0x08 MINV
+  +0x0A MAXV
+     -> legacy PS2 GS CLAMP register
+        WMS = REGION_REPEAT (3)
+        WMT = REGION_REPEAT (3)
 
 SCM object flags (+0x10)
   bit 0x00004000
      -> mesh descriptor field +0x08 = 0 instead of 0x60
 ```
 
-The remaining caution is semantic naming of the packed mesh render words and descriptor value `0x60`: the executable behavior is exact, but their higher-level blend/cull/depth/sampler meanings are not yet proven.
+The remaining caution is the higher-level name of descriptor value `0x60`: its executable behavior is exact, but a downstream semantic decoder has not yet been closed.
 
 ## 1. SCM texture companion is a separate runtime resource
 
@@ -39,8 +44,6 @@ The remaining caution is semantic naming of the packed mesh render words and des
 manager +0x108 = SCM resource
 manager +0x110 = texture companion
 ```
-
-The texture companion is therefore not an embedded region of SCM.
 
 `0x1402F9570` copies SCM header/runtime data but obtains the runtime texture count from the companion:
 
@@ -52,11 +55,11 @@ SCM +0x13 -> manager +0xFA
 SCM +0x14 -> manager +0xE4
 ```
 
-Notably, this path does **not** use SCM header `+0x12` as the runtime texture-table authority. On the confirmed corpus SCM `+0x12` agrees with the companion table size, so it remains a useful serialized consistency value, but authoring must keep both resources coherent.
+This path does **not** use SCM header `+0x12` as the runtime texture-table authority. On the confirmed corpus SCM `+0x12` agrees with the companion table size, so it is retained as a serialized mirror/consistency field. Authoring must keep both resources coherent.
 
 ## 2. Texture-companion envelope
 
-The companion builder beginning at `0x140304B30` exposes the physical envelope:
+The companion builder beginning at `0x140304B30` exposes:
 
 ```text
 +0x000 u32 textureCount
@@ -69,25 +72,17 @@ The companion builder beginning at `0x140304B30` exposes the physical envelope:
        ...
 ```
 
-The loop advances each payload pointer by exactly:
-
-```text
-blockCount[i] * 0x800
-```
-
-and advances the block-count table by four bytes per slot.
-
-Texture payload parser `0x1403365B0` has a direct check:
+Texture payload parser `0x1403365B0` directly checks:
 
 ```text
 *(u32*)payload == 0x00324D54   // "TM2\0"
 ```
 
-There are additional/fallback paths, therefore this evidence does not justify the stronger claim that every possible companion slot must be TM2.
+Additional/fallback paths exist, so not every possible companion slot is asserted to be TM2.
 
 ## 3. `mesh+0x02` is the external texture-companion slot
 
-`0x1402F9890` closes the mesh texture mapping directly:
+`0x1402F9890` performs:
 
 ```text
 textureIndex = *(u16*)(serializedMesh + 0x02)
@@ -95,50 +90,71 @@ textureRecord = runtimeTextureTable + textureIndex * 0x40
 runtimeMeshDescriptor.texture = *(textureRecord + 0x20)
 ```
 
-Thus `mesh+0x02` is no longer merely a candidate material index. It is an EXE-confirmed index into the runtime table derived from the external texture companion.
+Thus `mesh+0x02` is an EXE-confirmed slot index into the runtime table derived from the external texture companion.
 
-The current corpus independently agrees with this ownership model: large outer stage groups show SCM `textureSlotCount` equal to the number of extracted textures in the associated texture folder/table, while SCM resources nested under PNST can reuse the outer resource group's companion rather than owning a separate texture folder.
+## 4. Mesh `+0x04..+0x0B` are legacy PS2 GS CLAMP REGION_REPEAT fields
 
-## 4. Mesh `+0x04..+0x0B` are not reserved
-
-A previous corpus-only interpretation labeled `mesh+0x04..+0x0B` reserved because all 481 confirmed stock SCM meshes use zero there. Canonical EXE consumer `0x1402F9890` disproves that label.
-
-The four words are read as:
+Canonical EXE consumer `0x1402F9890` reads:
 
 ```text
-+0x04 u16 renderWord0
-+0x06 u16 renderWord1
-+0x08 u16 renderWord2
-+0x0A u16 renderWord3
++0x04 u16 MINU
++0x06 u16 MAXU
++0x08 u16 MINV
++0x0A u16 MAXV
 ```
 
-If `renderWord0 == 0`, the derived runtime field is zero. Otherwise the executable builds:
+When `MINU == 0`, DMC3 uses a disabled/sentinel convention and emits packed state `0`.
+
+Otherwise it builds:
 
 ```text
 packed =
-    (u64(renderWord0) << 4)  |
-    0x0F                     |
-    (u64(renderWord1) << 14) |
-    (u64(renderWord2) << 24) |
-    (u64(renderWord3) << 34)
+    (u64(MINU) << 4)  |
+    0x0F              |
+    (u64(MAXU) << 14) |
+    (u64(MINV) << 24) |
+    (u64(MAXV) << 34)
 ```
 
-The clean C++20 reconstruction is:
+Independent PS2 GS references define the CLAMP register as:
 
 ```text
-scm::MeshRenderWords
-scm::pack_mesh_render_words()
+WMS  bits 0..1
+WMT  bits 2..3
+MINU bits 4..13
+MAXU bits 14..23
+MINV bits 24..33
+MAXV bits 34..43
 ```
 
-The names deliberately remain operational. No blend/shader/GS-state vocabulary is assigned until the downstream decoder is closed.
+and define mode value `3` as `REGION_REPEAT`. Therefore the literal low nibble `0x0F` is exactly:
+
+```text
+WMS = 3 = REGION_REPEAT
+WMT = 3 = REGION_REPEAT
+```
+
+The serialized fields are consequently a legacy GS region-repeat texture-wrapping state. In REGION_REPEAT terminology MIN fields serve mask semantics and MAX fields fix semantics, while the IR keeps the original GS register field names to avoid hiding the binary mapping.
+
+All 481 meshes in the current HD corpus contain zero in these four words. The feature is nevertheless live in the canonical executable and must be preserved for non-stock/legacy-compatible resources.
+
+Clean C++20 representation:
+
+```text
+scm::LegacyGsClampRegionRepeat
+scm::pack_legacy_gs_clamp_region_repeat()
+scm::legacy_gs_clamp_fields_fit_register()
+```
+
+The original executable shifts the full serialized `u16` values without masking. The clean parser therefore preserves values above the 10-bit GS hardware width and emits a warning instead of silently truncating them.
 
 `mesh+0x0C..+0x0F` remains separately unresolved/zero on the current corpus.
 
 ## 5. Serialized object flag `0x00004000` has a direct render consumer
 
-The caller of `0x1402F9890` passes runtime object `+0x14`, which is copied verbatim from serialized SCM object `+0x10` by `0x140302F10`.
+The caller of `0x1402F9890` passes runtime object `+0x14`, copied verbatim from serialized SCM object `+0x10` by `0x140302F10`.
 
-`0x1402F9890` then performs:
+`0x1402F9890` performs:
 
 ```text
 if (objectFlags & 0x00004000)
@@ -147,9 +163,9 @@ else
     meshDescriptor.field_08 = 0x60
 ```
 
-This is a direct render-path consumer of the serialized object flags and is distinct from the unrelated manager family-mask field at `manager+0xE0`.
+This is distinct from the unrelated manager family-mask field at `manager+0xE0`.
 
-The exact higher-level meaning of descriptor value `0x60` is still open. The current API therefore exposes only the neutral reconstruction:
+The exact higher-level meaning of descriptor value `0x60` remains open. The API exposes only:
 
 ```text
 scm::mesh_descriptor_field_08(objectFlags)
@@ -159,16 +175,18 @@ scm::mesh_descriptor_field_08(objectFlags)
 
 `0x140302F10` copies serialized object `+0x01` to runtime object `+0x07`.
 
-For the common path, after two narrow hard-coded corrections, the effective byte is copied to runtime `+0x17C` and classified:
+After narrow hard-coded corrections, the common path is:
 
 ```text
 if effectiveControl <= 0x80:
     runtime +0x178 = 0
 else:
     runtime +0x178 = effectiveControl
+
+runtime +0x17C = effectiveControl
 ```
 
-Packet construction at `0x140304111..0x140304167` then computes:
+Packet construction at `0x140304111..0x140304167` computes:
 
 ```text
 if runtime +0x178 > 0:
@@ -177,57 +195,48 @@ else:
     MDL_PARTS_COLOR_PKT.alpha.w = (runtime +0x17C) * (1/255)
 ```
 
-The exact constant at `0x14035D558` is the single-precision representation of `1/255`.
+A non-zero low nibble in serialized object flags forces effective control `0x80`, yielding approximately `0.5019608`.
 
-A non-zero low nibble in serialized object flags bypasses the normal correction path and forces effective alpha control `0x80`, yielding approximately `0.5019608`.
+Therefore `object+0x01` is an **alpha-control byte**, not a plain opacity byte:
 
-Therefore `object+0x01` is not safely modeled as a plain opacity byte. It is an **alpha-control byte**:
+- `0x00..0x80` -> `alpha.w = value/255`;
+- values `>0x80` -> runtime control codes, `alpha.w = 1.0`, code retained separately;
+- non-zero low object mode -> forced control `0x80`.
 
-- common values `0x00..0x80` map to `alpha.w = value / 255`;
-- values `>0x80` are runtime control codes and force `alpha.w = 1.0` while the code is retained separately;
-- non-zero low object mode forces control `0x80`.
-
-The clean IR field is now:
+Clean IR/API:
 
 ```text
 Object::alpha_control
-```
-
-and the post-correction projection is reconstructed by:
-
-```text
 scm::project_effective_alpha_control()
 ```
 
 ## 7. Hard-coded C4 / EA corrections
 
-The executable contains two narrow title-specific corrections before the generic alpha projection. They should be preserved as executable evidence, not generalized into format rules.
+Two narrow executable corrections are preserved as target-specific evidence rather than generalized format rules.
 
 ### EA correction
 
-If the source control is `0xEA`, current object index is `10`, and the current plus next three object records have `totalVertexCount` values:
+Source control `0xEA`, object index `10`, and current plus next three object `totalVertexCount` values:
 
 ```text
 0x0074, 0x003B, 0x0045, 0x00AD
 ```
 
-the runtime control byte is rewritten to `0xC5`.
+cause rewrite to `0xC5`.
 
 ### C4 correction
 
-If the source control is `0xC4`, current object index is `16`, the runtime scene-node binding is `17`, and current plus next three object records have `totalVertexCount` values:
+Source control `0xC4`, object index `16`, runtime scene-node binding `17`, and current plus next three `totalVertexCount` values:
 
 ```text
 0x074E, 0x0004, 0x000C, 0x0134
 ```
 
-the runtime control byte is rewritten to `0x80`.
-
-These signatures inspect the SCM object table (`object + 0x02` at successive 0x40-byte records), not mesh texture indices.
+cause rewrite to `0x80`.
 
 ## 8. Shader ABI closes `alpha.w`
 
-The canonical executable embeds the HLSL definition:
+The canonical executable embeds:
 
 ```hlsl
 struct MDL_PARTS_COLOR_PKT
@@ -238,47 +247,38 @@ struct MDL_PARTS_COLOR_PKT
 };
 ```
 
-The packet is exactly `0x30` bytes, matching the per-pass runtime color-packet stride.
-
-The embedded DMC3 stage vertex shader source (`DMC3_STG.hlsl`) declares:
-
-```hlsl
-MDL_PARTS_COLOR_PKT colors;
-```
-
-and explicitly writes:
+The packet is exactly `0x30` bytes. Embedded `DMC3_STG.hlsl` uses the same packet and explicitly writes:
 
 ```hlsl
 vo.oColor.w = colors.alpha.w;
 ```
 
-The fog/stage shader family uses the same packet ABI. Generic DMC3 texture/color pixel shaders accept `COLOR0` and combine its alpha with sampled texture alpha; several variants feed the resulting `color.a` through `AlphaTestFunc(...)` and `clip(...)`.
+Generic DMC3 texture/color pixel-shader variants combine `COLOR0` alpha with sampled texture alpha; several variants feed final `color.a` into `AlphaTestFunc(...)` and `clip(...)`.
 
-This closes the stage-geometry meaning of the CPU-side `alpha.w` lane: it is vertex-output alpha and can participate in final pixel alpha / alpha testing depending on the selected pixel-shader variant.
+Thus the stage-geometry CPU-side `alpha.w` lane is vertex-output alpha and can affect final pixel alpha / alpha testing depending on draw variant.
 
 ## 9. CDrawSCM packet path
 
-The canonical executable contains RTTI for `CDrawSCM` and its draw path reaches `0x1402FD040`.
-
-`0x1402FD040` works with arrays at a strict `0x30` stride, copies 16-byte lanes from those packets and forwards them into the SCM draw submission (`0x1402FC850`). This independently matches `MDL_PARTS_COLOR_PKT` size and ties the recovered color-packet ABI to the SCM draw subsystem rather than relying only on similarly named MOD/EFM shader sources.
+The canonical executable contains RTTI for `CDrawSCM`. Its draw path reaches `0x1402FD040`, which works with arrays at strict `0x30` stride and forwards data into SCM draw submission `0x1402FC850`. This independently ties the recovered color packet ABI to the SCM subsystem.
 
 ## 10. Implementation changes on branch `scm`
 
-Implemented in this pass:
+Implemented:
 
-- `Mesh::render_words` replaces the incorrect reserved interpretation of `+0x04..+0x0B`;
-- `Mesh::reserved0c` preserves the still-unresolved `+0x0C..+0x0F` lane;
-- `Object::alpha_control` replaces `unresolved01`;
-- `scm::pack_mesh_render_words()`;
-- `scm::mesh_descriptor_field_08()` for exact `0x4000` behavior;
-- `scm::project_effective_alpha_control()`;
-- parser regression accepting/preserving non-zero render words;
-- alpha-control, descriptor and inverse-transform regression coverage.
+- `Mesh::gs_clamp_region_repeat` for `+0x04..+0x0B`;
+- `Mesh::reserved0c` for still-unresolved `+0x0C..+0x0F`;
+- `Object::alpha_control`;
+- exact legacy GS CLAMP REGION_REPEAT packer;
+- non-destructive 10-bit GS field validation;
+- exact `0x4000 -> descriptor field 0/0x60` projection;
+- alpha-control projection;
+- parser regression accepting/preserving non-zero clamp fields;
+- alpha, GS clamp, descriptor, hierarchy and inverse-transform regression coverage.
 
 ## Remaining material/render targets
 
-1. Decode the downstream meaning of mesh descriptor field `0x60` / `0`.
-2. Decode semantic meaning/ranges of the four packed mesh render words from a non-zero producer or downstream consumer.
-3. Map exact SCM draw variants to pixel-shader selection rather than only the shared stage/color packet ABI.
-4. Close the remaining observed serialized object flag `0x00200000` through a direct source-flag consumer.
-5. Integrate texture-companion ownership into the canonical writer/rebuild plan so SCM and companion counts/slots cannot drift.
+1. Decode downstream meaning of mesh descriptor field `0x60` / `0`.
+2. Map exact SCM draw variants to pixel-shader selection.
+3. Close remaining observed serialized object flag `0x00200000` through a direct source-flag consumer.
+4. Integrate cross-resource texture-companion ownership into canonical writer/rebuild policy.
+5. Determine whether any non-stock/legacy corpus exists with non-zero GS region-repeat fields and validate their producer semantics.
