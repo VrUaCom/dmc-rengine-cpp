@@ -80,10 +80,10 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
             mesh.record_offset = object.mesh_table_offset + static_cast<std::uint64_t>(mi) * mesh_record_size;
             r.read(mesh.record_offset + 0x00U, mesh.vertex_count);
             r.read(mesh.record_offset + 0x02U, mesh.texture_index);
-            r.read(mesh.record_offset + 0x04U, mesh.render_words.values[0]);
-            r.read(mesh.record_offset + 0x06U, mesh.render_words.values[1]);
-            r.read(mesh.record_offset + 0x08U, mesh.render_words.values[2]);
-            r.read(mesh.record_offset + 0x0AU, mesh.render_words.values[3]);
+            r.read(mesh.record_offset + 0x04U, mesh.gs_clamp_region_repeat.min_u);
+            r.read(mesh.record_offset + 0x06U, mesh.gs_clamp_region_repeat.max_u);
+            r.read(mesh.record_offset + 0x08U, mesh.gs_clamp_region_repeat.min_v);
+            r.read(mesh.record_offset + 0x0AU, mesh.gs_clamp_region_repeat.max_v);
             r.read(mesh.record_offset + 0x0CU, mesh.reserved0c);
             r.read(mesh.record_offset + 0x10U, mesh.positions_offset); r.read(mesh.record_offset + 0x18U, mesh.normals_offset);
             r.read(mesh.record_offset + 0x20U, mesh.uv_offset); r.read(mesh.record_offset + 0x28U, mesh.continuation_span);
@@ -98,6 +98,8 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
                 diag(out, ParseSeverity::error, "scm.mesh-continuation-mismatch", "Mesh +0x28 must be 0x50 for non-final meshes and 0 for the final mesh.", mesh.record_offset + 0x28U);
             if (h.texture_slot_count != 0U && mesh.texture_index >= h.texture_slot_count)
                 diag(out, ParseSeverity::error, "scm.texture-index-out-of-range", "Mesh texture index exceeds header texture-slot count.", mesh.record_offset + 0x02U);
+            if (!legacy_gs_clamp_fields_fit_register(mesh.gs_clamp_region_repeat))
+                diag(out, ParseSeverity::warning, "scm.gs-clamp-field-out-of-range", "Legacy GS CLAMP field exceeds the 10-bit hardware width; source bytes are preserved without masking.", mesh.record_offset + 0x04U);
             if (mesh.reserved0c || mesh.reserved30 || mesh.generated_index_count || mesh.reserved4c)
                 diag(out, ParseSeverity::warning, "scm.mesh-reserved-nonzero", "Serialized reserved/runtime mesh fields differ from confirmed corpus.", mesh.record_offset + 0x0CU);
 
