@@ -75,7 +75,9 @@ void write_triangle(
     write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
     write_vec3(bytes, 0x08U, -10.0F, -2.0F, -10.0F);
     write_vec3(bytes, 0x14U, 10.0F, 2.0F, 10.0F);
-    write_vec3(bytes, 0x20U, 10.0F, 4.0F, 20.0F);
+    write_u32(bytes, 0x20U, 10U);
+    write_u32(bytes, 0x24U, 4U);
+    write_u32(bytes, 0x28U, 20U);
     write_u32(bytes, 0x2CU, 2U);
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
