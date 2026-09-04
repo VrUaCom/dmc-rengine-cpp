@@ -36,11 +36,17 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
     r.read(0x04U, h.version); r.read(0x08U, h.reserved08);
     r.read(0x10U, h.object_count); r.read(0x11U, h.scene_node_count);
     r.read(0x12U, h.texture_slot_count); r.read(0x13U, h.reserved13);
-    r.read(0x14U, h.unresolved_id14); r.read(0x18U, h.reserved18);
+    std::uint32_t raw_resource_code{};
+    r.read(0x14U, raw_resource_code);
+    h.resource_code = decode_legacy_resource_code(raw_resource_code);
+    r.read(0x18U, h.reserved18);
     r.read(0x20U, h.scene_node_block_offset); r.read(0x28U, h.reserved28);
     r.read(0x30U, h.reserved30); r.read(0x38U, h.reserved38);
     if (std::fabs(h.version - 1.01F) > 0.0001F)
         diag(out, ParseSeverity::warning, "scm.unconfirmed-version", "Confirmed DMC3-HD SCM corpus uses version 1.01.", 0x04U);
+    if (h.resource_code.raw != 0U &&
+        !matches_observed_scm_resource_code_shape(h.resource_code))
+        diag(out, ParseSeverity::warning, "scm.resource-code-unconfirmed-shape", "SCM +0x14 differs from the currently observed legacy resource-code classes/sub-index shape; raw value is preserved.", 0x14U);
     if (h.reserved08 || h.reserved13 || h.reserved18 || h.reserved28 || h.reserved30 || h.reserved38)
         diag(out, ParseSeverity::warning, "scm.header-reserved-nonzero", "Reserved SCM header fields differ from the confirmed zero-filled corpus.", 0x08U);
 
