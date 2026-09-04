@@ -8,10 +8,6 @@ namespace dmc::rengine::formats::scm {
 // executable as the four payload fields of a legacy PlayStation 2 GS CLAMP
 // register with WMS=WMT=3 (REGION_REPEAT). The shift pattern is bit-for-bit
 // identical to GS_SETREG_CLAMP(3,3,MINU,MAXU,MINV,MAXV).
-//
-// The original DMC3 runtime uses min_u == 0 as a disabled/sentinel case and
-// returns a zero packed state rather than emitting the otherwise-valid low
-// WMS/WMT bits. Keep that DMC-specific behavior exact.
 struct LegacyGsClampRegionRepeat final {
     std::uint16_t min_u{}; // GS CLAMP.MINU; region-repeat U mask semantics.
     std::uint16_t max_u{}; // GS CLAMP.MAXU; region-repeat U fix semantics.
@@ -30,9 +26,10 @@ inline constexpr std::uint64_t gs_clamp_region_repeat_modes = 0x0FULL;
            clamp.max_v <= gs_clamp_field_max;
 }
 
-// Exact reconstruction of 0x1402F9890. Deliberately does not mask the source
-// u16 values before shifting: anomalous/modded bytes must remain observable
-// rather than being silently normalized to the 10-bit GS field width.
+// Exact reconstruction of 0x1402F9890. The original DMC3 runtime uses
+// MINU==0 as a disabled/sentinel case and returns zero. It also deliberately
+// does not mask source u16 values before shifting, so anomalous bytes remain
+// observable instead of being silently truncated to the GS 10-bit fields.
 [[nodiscard]] constexpr std::uint64_t pack_legacy_gs_clamp_region_repeat(
     const LegacyGsClampRegionRepeat& clamp) noexcept {
     if (clamp.min_u == 0U) return 0U;
@@ -44,19 +41,20 @@ inline constexpr std::uint64_t gs_clamp_region_repeat_modes = 0x0FULL;
            (static_cast<std::uint64_t>(clamp.max_v) << 34U);
 }
 
-// Serialized object +0x10 is copied to runtime object +0x14. The canonical
-// SCM mesh-material builder 0x1402F9890 uses source bit 0x00004000 to select
-// this otherwise-opaque runtime descriptor field. Do not assign a cull,
-// blend, depth or sampler name until its downstream consumer is closed.
-inline constexpr std::uint32_t object_flag_mesh_descriptor_00004000 =
+// The adjacent descriptor qword at +0x08 is a legacy PS2 GS TEX1 filtering
+// state. 0x60 decodes exactly as MMAG=1 and MMIN=1: linear magnification and
+// linear minification, with mipmapping fields zero. Serialized object flag
+// 0x00004000 forces TEX1=0, i.e. nearest magnification/minification.
+inline constexpr std::uint32_t object_flag_nearest_texture_filter =
     0x00004000U;
-inline constexpr std::uint64_t mesh_descriptor_default_field_08 = 0x60U;
+inline constexpr std::uint64_t legacy_gs_tex1_nearest_filter = 0x00U;
+inline constexpr std::uint64_t legacy_gs_tex1_linear_filter = 0x60U;
 
-[[nodiscard]] constexpr std::uint64_t mesh_descriptor_field_08(
+[[nodiscard]] constexpr std::uint64_t legacy_gs_tex1_filter_from_object_flags(
     std::uint32_t object_flags) noexcept {
-    return (object_flags & object_flag_mesh_descriptor_00004000) != 0U
-        ? 0U
-        : mesh_descriptor_default_field_08;
+    return (object_flags & object_flag_nearest_texture_filter) != 0U
+        ? legacy_gs_tex1_nearest_filter
+        : legacy_gs_tex1_linear_filter;
 }
 
 struct AlphaControlProjection final {
