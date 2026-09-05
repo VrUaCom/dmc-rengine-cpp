@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 9U);
+    assert(readers.size() == 10U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
@@ -39,6 +39,7 @@ int main() {
              "formats.stage-txt-lexer",
              "formats.scm-structural-v1",
              "formats.mod-structural-v1",
+             "formats.shw-structural-v1",
              "exe.pe-reader"}) {
         const auto* module = readers.find(parser_id);
         assert(module != nullptr);
@@ -106,6 +107,21 @@ int main() {
     assert(mod->writer_modes.empty());
     assert(has_limitation(*mod, "three serialized influences"));
     assert(has_limitation(*mod, "not authorized"));
+
+    const auto* shw = registry.find("SHW");
+    assert(shw != nullptr);
+    assert(shw->valid());
+    assert(shw->maturity == integration::IntegrationMaturity::structural);
+    assert(shw->parser_id == "formats.shw-structural-v1");
+    assert(shw->parser_validation_required);
+    assert(shw->write_policy == integration::ResourceWritePolicy::read_only);
+    assert(readers.find(shw->parser_id) != nullptr);
+    assert(!shw->allows_working_copy());
+    assert(!shw->allows_guarded_export());
+    assert(shw->writer_modes.empty());
+    assert(has_limitation(*shw, "self-contained shadow-hull"));
+    assert(has_limitation(*shw, "matrix palette"));
+    assert(has_limitation(*shw, "read-only"));
 
     const auto* dds = registry.find("DDS");
     assert(dds != nullptr);

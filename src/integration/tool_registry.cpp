@@ -54,16 +54,17 @@ void add_route(
 }
 
 [[nodiscard]] bool is_scene_format(std::string_view format) noexcept {
-    return format == "scm" || format == "mod" || format == "dds" ||
-           format == "ptx" || format == "cam" || format == "dca" ||
-           format == "lig" || format == "lig2" || format == "hits";
+    return format == "scm" || format == "mod" || format == "shw" ||
+           format == "dds" || format == "ptx" || format == "cam" ||
+           format == "dca" || format == "lig" || format == "lig2" ||
+           format == "hits";
 }
 
 [[nodiscard]] bool is_stage_format(std::string_view format) noexcept {
     return format == "cam" || format == "dca" || format == "lig" ||
            format == "lig2" || format == "hits" || format == "txt" ||
-           format == "scm" || format == "mod" || format == "dds" ||
-           format == "ptx";
+           format == "scm" || format == "mod" || format == "shw" ||
+           format == "dds" || format == "ptx";
 }
 
 [[nodiscard]] bool is_executable_format(std::string_view format) noexcept {
