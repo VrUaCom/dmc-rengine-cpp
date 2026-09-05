@@ -195,7 +195,7 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
             static_cast<std::uint64_t>(hull.vertex_count) * Contract::vertex_record_size;
         const auto selector_bytes = static_cast<std::uint64_t>(hull.vertex_count);
 
-        for (const auto [offset, length, code, message] :
+        for (const auto& [offset, length, code, message] :
              std::array{
                  std::tuple{hull.triangle_offset, triangle_bytes,
                             "shw.triangle-span-out-of-bounds",
