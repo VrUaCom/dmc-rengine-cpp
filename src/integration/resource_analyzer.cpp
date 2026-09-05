@@ -2,6 +2,8 @@
 
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
+#include "dmc_rengine/formats/dds.hpp"
+#include "dmc_rengine/formats/dds_binary.hpp"
 #include "dmc_rengine/formats/dca.hpp"
 #include "dmc_rengine/formats/dca_binary.hpp"
 #include "dmc_rengine/formats/hits.hpp"
@@ -155,6 +157,31 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
 
     const auto bytes = std::span<const std::byte>{
         session->source_payload().bytes};
+
+    if (descriptor->parser_id == "formats.dds-dmc3-reader") {
+        report.parser_available = true;
+        const auto scan = formats::dds::Reader::scan(bytes);
+        report.recognized = scan.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, scan.diagnostics);
+
+        if (scan.ok()) {
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::dds::build_binary_document(
+                    session->resource(), bytes, scan),
+                "DDS"));
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
 
     if (descriptor->parser_id == "formats.hits-record-scanner") {
         report.parser_available = true;
