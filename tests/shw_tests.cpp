@@ -1,4 +1,6 @@
 #include "dmc_rengine/formats/shw.hpp"
+#include "dmc_rengine/integration/project_workspace.hpp"
+#include "dmc_rengine/integration/resource_analyzer.hpp"
 
 #include <algorithm>
 #include <bit>
@@ -188,6 +190,50 @@ int main() {
     assert(has_diag(
         adjacency_variant,
         "shw.adjacency-not-complete-edge-neighborhood"));
+
+    using dmc::rengine::gdspaces::ResourceId;
+    using dmc::rengine::gdspaces::ResourcePayload;
+    using dmc::rengine::gdspaces::ResourceRef;
+    using dmc::rengine::integration::ProjectWorkspace;
+    using dmc::rengine::integration::ResourceAnalyzer;
+    using dmc::rengine::integration::WorkspaceContext;
+    using dmc::rengine::integration::WorkspaceEventType;
+
+    const ResourceRef shw_resource{
+        .id = ResourceId{
+            .source_id = "shw-native-reader-test",
+            .logical_path = "model/test.shw",
+            .container_chain = "NBZ[0]/PAC[0]",
+            .offset = 0U,
+            .size = valid_bytes.size(),
+        },
+        .display_name = "test.shw",
+        .format = "shw",
+        .profile = "dmc3-hd",
+        .synthetic_name = false,
+        .container = false,
+    };
+
+    ProjectWorkspace project;
+    assert(project.create_session(ResourcePayload{
+        .resource = shw_resource,
+        .bytes = valid_bytes,
+        .diagnostics = {},
+    }, WorkspaceContext{}));
+
+    const auto report = ResourceAnalyzer::analyze(project, shw_resource.id);
+    assert(report.ok());
+    assert(report.parser_available);
+    assert(report.recognized);
+    assert(report.parser_id == "formats.shw-structural-v1");
+    assert(!report.binary_document_attached);
+
+    const auto* session = project.find_session(shw_resource.id);
+    assert(session != nullptr);
+    assert(session->format() != nullptr);
+    assert(session->parser_validation() != nullptr);
+    assert(session->parser_validation()->parser_id == "formats.shw-structural-v1");
+    assert(session->events().by_type(WorkspaceEventType::parser_completed).size() == 1U);
 
     return 0;
 }
