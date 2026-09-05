@@ -38,7 +38,7 @@
   },
   "native_reader": {
     "architecture": "NativeReaderModuleRegistry",
-    "canonical_modules_on_snapshot_main": [
+    "canonical_modules": [
       "dds",
       "ptx",
       "hits",
@@ -73,7 +73,7 @@
       "dds",
       "ptx"
     ],
-    "next_reader_frontier_after_active_slice": [
+    "next_reader_frontier": [
       "efm",
       "mot"
     ],
