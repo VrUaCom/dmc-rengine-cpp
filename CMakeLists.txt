@@ -124,6 +124,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dca
         lig2
         model_family
+        mod
         mod_transform_domain
         mod_skin
         scm
