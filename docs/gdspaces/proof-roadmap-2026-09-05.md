@@ -28,7 +28,7 @@ For original-DMC3 claims, the default proof is a bounded canonical-EXE reverse p
 | ✅ | direct-call policy is six archive candidates then six physical candidates | `OpenGameResource 0x14002FCA0`, three direct callers with `EDX=1` | none for bounded direct-call claim |
 | ✅ | archive normalizer is `0x0E`; physical is `0x0C` | `0x140327160` instruction-backed bit semantics | none absent contradiction |
 | ✅ | archive hit requires wrapper/open success | `0x140328160 -> 0x140328290`; wrapper failure is terminal for that resolve attempt | none absent contradiction |
-| ⚠️ | discovery and successful mount topology are distinct in product API | static reverse is closed; historical #246 contains the correction but current `main` still needs semantic port/reconciliation | port onto current main + tests + CI |
+| ⚠️ | discovery and successful mount topology are distinct in product API | static reverse is closed; semantic correction is implemented on PR #287 with sparse-mount/no-physical regressions | final CI/review + promotion to `main` |
 | ❌ | trusted original selected volume/provider/member | static reverse cannot establish a real protected-process winner | R2B mapped observer + trusted R3 receipt |
 
 Primary static authority: `docs/gdspaces/l2-exe-reverse-pass-2026-08-26-pass2.md` and `data/reverse/dmc3-gdspaces-l2-resolver-static-census-2026-08-26.v1.json`.
@@ -59,7 +59,7 @@ Primary receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
 | ❌ | original game consumes authored bytes | no Level-E receipt | deterministic original consumer observation |
 | ❌ | rollback proves retail immutability | no Level-E rollback receipt | remove test overlay + hash-check original artifacts |
 
-Fresh `.index` authority is also preserved in the Library/research record `dmc3-index-exe-reverse-2026-09-03.md`; repository documentation must not regress to treating `.index` as original runtime manifest authority.
+Fresh `.index` authority is now preserved in `docs/reverse/dmc3-index-exe-reverse-2026-09-03.md`; repository documentation must not regress to treating `.index` as original runtime manifest authority.
 
 ## D. L3 lifecycle
 
@@ -112,7 +112,7 @@ These are not claims about Capcom behavior.
 ## G. Current execution queue
 
 1. ✅ Reconcile the project roadmap to proof-level statuses.
-2. ⚠️ Port discovery-vs-successful-mount topology semantics to current main without importing stale branch history.
+2. ⚠️ Discovery-vs-successful-mount correction implemented on PR #287; final CI/review and promotion remain.
 3. ❌ Close the materialization scheduler terminal dependency with a fresh raw canonical-EXE pass when the exact executable bytes are available.
 4. ❌ Produce real R2B protected-process multi-anchor mapping.
 5. ❌ Produce trusted R3 selected-provider/member identity.
