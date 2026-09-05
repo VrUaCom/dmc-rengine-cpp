@@ -1,105 +1,231 @@
-# DMC3 Runtime Resource Resolver — Pass 45 correction + 2026-08-25 physical-provider closure
+# DMC3 Runtime Resource Resolver — successful mount topology correction
 
-**Status:** corrected implementation slice; Layer-2 promotion still pending corpus/runtime receipts, fresh whole-head CI and re-review.
+**Reverse authority:** canonical `dmc3.exe`, SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, 6,356,432 bytes.  
+**Status:** corrected implementation slice under issue #237; Layer 2 remains open pending real retail/runtime evidence and final audit.
 
-This layer composes the recovered DMC3 lookup order while preserving the distinction exposed by Pass 45 between the archive backend and the physical backend.
+The resolver composes the recovered DMC3 lookup order while preserving three distinct facts:
+
+```text
+filename discovery
+ != registration attempt
+ != successful linked mount
+```
+
+Only the final category may become a runtime provider node.
+
+## Recovered resolver surface
+
+Relevant canonical path:
+
+```text
+bootstrap 0x14002E930
+ -> physical registration 0x140326D20
+ -> archive registration 0x140326DA0
+ -> successful nodes prepend to global head 0x140CF3180
+ -> OpenGameResource 0x14002FCA0
+ -> ResourceMountResolve 0x140327430
+```
+
+`ResourceMountResolve` walks the linked list from the actual head through node `+0x50`. A registration that failed before prepend has no node and is therefore absent from resolver traversal.
+
+This is why the product resolver now accepts `RuntimeMountTopology`, not `VolumeBootstrapPlan`.
+
+## Resolution pipeline
 
 ```text
 raw request
-  -> ResourceLookupPolicy: basename + 12 ordered attempts
-  -> ResourcePathPolicy: provider-specific normalization
-  -> VolumeBootstrapPlan: contiguous numbered-volume precedence
-  -> archive: current mounted source enumeration -> owned local ResourceKeyIndex
-  -> physical: current mounted source enumeration -> product 0x0C lookup index
-  -> ResourceRef / ambiguity / miss
-  -> SourceRegistry read by the downstream caller
+ -> ResourceLookupPolicy: basename + recovered 12 ordered attempts
+ -> ResourcePathPolicy: provider-specific normalization
+ -> RuntimeMountTopology: only explicitly successful linked nodes
+ -> archive: successful type-1 nodes in prepend-derived order
+ -> physical: type-0 node only if physical registration succeeded
+ -> ResourceRef / ambiguity / miss
+ -> SourceRegistry read by downstream caller
 ```
 
-## Ownership correction
+Discovery remains relevant to bootstrap diagnostics and next-volume authoring, but it is not resolver authority.
 
-`ISource` remains exact identity/enumeration/read authority and `SourceRegistry` remains mount/routing authority. The resolver no longer accepts caller-owned `const ResourceKeyIndex*` values.
+## Archive topology
 
-For every resolve call it obtains the exact currently mounted `ISource`, enumerates that source, and derives the lookup index locally. This removes the stale-index/same-ID substitution hole and the dangling raw-pointer lifetime hazard identified in review of the original #136 head.
+Successful archive registrations are attempted in ascending discovered-index order and prepend their nodes. Therefore resolver order is the reverse of the **successful registration set**.
 
-A source enumeration is configuration-invalid if it emits invalid resources, resources owned by another source ID, C-string-incompatible paths or paths that normalize to an empty key. Duplicate physical identities may still be diagnosed by `ResourceKeyIndex`; comparator-equal distinct identities remain explicit ambiguity.
+Clean case:
 
-## Archive evidence class
+```text
+0 success, 1 success, 2 success -> 2,1,0
+```
 
-For the original ZIP/NBZ backend the normalized index is directly recovered behavior. The archive object owns the central-entry list and sorted lookup representation; the recovered layout includes the central-entry list, sorted `{normalizedName, ZipCentralEntry*}` array and count. Index construction/lookup use `0x0E` normalization and qsort/bsearch semantics.
+Sparse reverse-valid case:
 
-Resolver probes for this path therefore carry:
+```text
+0 success, 1 mount failure, 2 success -> 2,0
+```
 
-`RuntimeLookupEvidenceClass::recovered_archive_index`.
+Volume `1` in the sparse case is not queried and is not recorded as a lookup miss. It never became a linked archive provider node.
 
-The GDSpaces `ResourceKeyIndex` remains a product representation that preserves all comparator-equal identities rather than pretending the original CRT ambiguity is a semantic winner.
+For a complete miss with three successful archives and a successful physical node, probe count remains:
 
-## Physical evidence class — corrected 2026-08-25
+```text
+6 archive candidates * 3 mounted archives + 6 physical candidates = 24
+```
 
-The original type-0 physical-provider chain is now recovered directly from the canonical executable. After `0x0C` normalization, `ResourceMountResolve` joins the registered physical root and normalized candidate into a bounded `0x400` path and calls a direct Win32 open helper.
+For two successful archives and no physical node:
+
+```text
+6 * 2 = 12 archive probes
+0 physical probes
+```
+
+## Physical topology
+
+Bootstrap attempts physical registration before numbered archives, but it does not consume the return value of `0x140326D20`.
+
+If physical registration fails, the type-0 node does not exist in the mount list. The product resolver therefore skips physical provider operations entirely instead of manufacturing six `not_found` probes for a provider that was never linked.
+
+If the physical node exists, its provider behavior remains separated from archive behavior.
+
+### Recovered physical path
+
+The type-0 edge applies `0x0C` normalization, joins the registered root and candidate into the bounded path, and ultimately reaches the shared low-level open through the specific resolver caller edge:
+
+```text
+0x14032755C -> 0x140327800
+```
 
 The recovered final open is:
 
-`CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL)`.
+```text
+CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL)
+```
 
-`ERROR_FILE_NOT_FOUND` and `ERROR_PATH_NOT_FOUND` are ordinary open misses. `ResourcePathExists` uses `FindFirstFileA` / `FindClose`; `ERROR_NO_MORE_FILES`, `ERROR_FILE_NOT_FOUND` and `ERROR_PATH_NOT_FOUND` are ordinary existence-check misses. Other errors are retried. No extra game-side lowercase/qsort/bsearch stage exists between `0x0C` normalization and these Win32 path APIs in the recovered edge.
+`ERROR_FILE_NOT_FOUND` and `ERROR_PATH_NOT_FOUND` are ordinary open misses. This is distinct from archive `0x0E` qsort/bsearch lookup.
 
-That closes the previous **static reverse** target, but it does not make the current GDSpaces physical implementation identical to the original mechanism. GDSpaces currently resolves the physical pass through a source-derived `0x0C` `ResourceKeyIndex` built from `ISource::enumerate()`.
+### Product physical evidence classes
 
-Every current product physical probe therefore intentionally remains:
+When the mounted source exposes direct path lookup, the resolver uses source-native path behavior and marks probes:
+
+`RuntimeLookupEvidenceClass::product_physical_native_path`.
+
+Otherwise it derives a current-source `0x0C` `ResourceKeyIndex` fallback and marks probes:
 
 `RuntimeLookupEvidenceClass::product_physical_index`.
 
-This classification now means **“portable product lookup differs mechanically from the recovered original direct Win32 path”**, not **“the original final Win32 path is unknown.”** Relabeling it as original-equivalent before a controlled physical-provider parity receipt would be authority laundering.
+Neither label is promoted as exact original Win32 equivalence merely because the static chain is known.
 
-The instruction-backed constants and miss classifications are codified in `PhysicalProviderContract`; the direct reverse receipt is `l2-physical-provider-reverse-2026-08-25.md`.
+## Archive evidence class and collision gate
 
-## Recovered ordering contract
+Archive lookup remains:
 
-The candidate attempt is the outer loop. For an archive attempt, archive precedence is the inner loop. An earlier-prefix hit in a lower-precedence archive therefore beats a later-prefix hit in a higher-precedence archive. Within one candidate the highest contiguous archive volume is consulted first.
+- entry pathname normalization with `0x0E`;
+- CRT `qsort`;
+- CRT `bsearch`;
+- comparator `0x1403291D0` over normalized C-string only.
 
-All six archive attempts complete before the six physical attempts. Numbered archive precedence remains prepend-derived `N..0`.
+No recovered secondary equal-key tie-break exists. Therefore the real-retail `0x0E` normalized-key collision census remains mandatory.
 
-A zero-volume bootstrap is valid: no archive probes are produced and the resolver proceeds directly to the physical six-candidate pass. With three archive volumes, a complete miss produces `6 * 3 + 6 = 24` probes.
+Product `ResourceKeyIndex` preserves comparator-equal identities and reports ambiguity rather than inventing a semantic duplicate winner.
 
-## OpenGameResource direct-call surface — corrected 2026-08-25
+Archive probes remain:
 
-A whole-image census of direct callers to `OpenGameResource 0x14002FCA0` found three direct call sites (`0x14003340A`, `0x1403380C7`, `0x1403381F7`), all passing `flags = 1` in `EDX`.
+`RuntimeLookupEvidenceClass::recovered_archive_index`.
 
-For this canonical direct-call mode the active policy is the recovered generic branch: basename extraction, six prefixes, archive pass, then physical pass. Alternate internal flag branches are not promoted as active DMC3 runtime policy without separate indirect-call/runtime evidence.
+This label refers to the recovered lookup mechanism/normalization class, not to a claim that a synthetic source is original runtime evidence.
 
-Candidate construction uses the bounded helper `0x1403272C0` with capacity `0x400`. If the active candidate does not fit including its terminating NUL, `OpenGameResource` releases the newly allocated file slot/object and returns `-1` immediately. It does not skip to a shorter prefix or continue into the physical pass.
+## Archive lookup-hit failure boundary
 
-Because the first prefix `GDataX360.afs/` is also the longest (14 bytes), the existing GDSpaces whole-plan fail-closed candidate-length check is equivalent to the recovered canonical direct-call behavior. The exact receipt is `l2-open-game-resource-census-2026-08-25.md`.
+Archive lookup success is not automatically selected-resource success:
 
-## Ambiguity
+```text
+0x140328160 normalized lookup -> central entry
+0x140328290 wrapper/open -> usable stream wrapper
+```
 
-Comparator-equal normalized keys inside the current source remain ambiguity. The resolver returns all distinct `ResourceRef` identities and does not continue into a lower-precedence source to manufacture a winner.
+If lookup hits but wrapper/open fails, `0x140327430` exits through cleanup/null. It does not continue to a lower archive as an ordinary miss.
 
-For the archive backend this preserves uncertainty where the original CRT duplicate-key winner has not been proven. For the physical backend it is a product-safe policy of the current source-derived index, not evidence that the original direct `CreateFileA` path performs archive-style normalized-key arbitration.
+The product/evidence model must therefore continue to fail closed for provider/backend failure rather than rewriting it as `miss`.
+
+## Candidate order
+
+For the observed canonical direct-call surface, all three direct callers of `OpenGameResource 0x14002FCA0` pass `flags = 1`.
+
+Recovered outer candidate order:
+
+1. `GDataX360.afs/<basename>`
+2. `GData.afs/<basename>`
+3. `Video/<basename>`
+4. `afs/sound/<basename>`
+5. `SAVEDATA/<basename>`
+6. `<basename>`
+
+All six archive attempts are processed before all six physical attempts.
+
+Candidate order remains the outer loop; successful archive precedence is the inner loop. Therefore an earlier-prefix hit in a lower-precedence mounted archive still beats a later-prefix hit in a higher-precedence mounted archive.
+
+## 0x400 request boundary
+
+Candidate construction uses the recovered bounded helper `0x1403272C0` with capacity `0x400`. If the active candidate does not fit including NUL, the canonical direct-call path aborts the request rather than continuing to a shorter prefix.
+
+The product whole-plan length guard remains fail-closed at this boundary.
+
+## Source ownership
+
+`ISource` remains exact identity/enumeration/read authority and `SourceRegistry` remains product mount/routing authority.
+
+`RuntimeSourceBindings::valid_for(topology)` now requires:
+
+- a physical source ID iff the successful topology contains a physical type-0 node;
+- exactly one source binding for every successfully mounted archive;
+- no archive binding for a discovered-but-failed archive;
+- unique archive volume indices and source IDs;
+- no archive source aliasing the physical source ID.
+
+Every resolve call derives archive/product indexes from the exact currently mounted source enumeration. Caller-owned stale index pointers are not accepted.
 
 ## Fail-closed boundaries
 
-- embedded-NUL/invalid request fails before source enumeration/probes;
-- runtime bindings must exactly cover the contiguous bootstrap archive set;
-- duplicate volume bindings and duplicate archive source IDs are invalid;
-- archive source IDs may not alias the physical source ID;
-- every referenced source must be mounted;
-- a mounted source must enumerate resources belonging to itself;
-- provider normalization unexpectedly rejecting a canonical candidate is configuration failure;
-- an oversized first candidate aborts the recovered canonical direct-call request rather than falling through to shorter prefixes;
-- no external index pointer/profile can be injected into the resolver anymore.
+- embedded-NUL/invalid request fails before source probes;
+- discovery evidence cannot be passed directly as resolver topology;
+- duplicate/undiscovered successful mount claims are invalid;
+- a binding for an archive absent from successful topology is invalid;
+- a physical binding without a successful physical node is invalid;
+- a successful topology node without its exact source binding is invalid;
+- mounted source enumeration with foreign/invalid resources is invalid;
+- archive duplicate normalized identities are ambiguity, not an invented winner;
+- archive lookup-hit + wrapper failure must not become a lower-volume miss;
+- oversized first candidate aborts the request;
+- no external index pointer/profile may establish resolver authority.
 
-## Layer-2 targets still open
+## Reverse regression receipts
 
-Static reverse of the exact type-0 final physical open, the canonical direct-caller census and the caller-level `0x400` overflow aftermath are no longer blockers. The remaining Layer-2 promotion gates are now:
+Tests lock at least these topology cases:
 
-1. controlled physical-provider parity/model receipt;
-2. real DMC3-retail `0x0E` normalized-key collision census;
-3. direct-retail resolver receipt with exact `ResourceRef`/provider/volume identity;
-4. controlled physical-hit, complete-miss and fallback receipts;
-5. original-process selected-identity receipt;
-6. reconciliation of Layer-2 docs/issues/evidence, exact-head Windows + Ubuntu validation and final Layer-2 audit.
+```text
+clean:  0 success,1 success,2 success -> probes 2,1,0
+sparse: 0 success,1 failure,2 success -> probes 2,0
+no physical node -> no physical probes
+no linked nodes -> zero provider probes
+```
 
-The real Drive `dmc3-0.nbz` corpus is identified but is currently inaccessible through the connected raw-download path because its 960,358,951-byte size exceeds that path's 268,435,456-byte transfer ceiling. A smaller central-directory/member-list artifact from the same archive can close the collision-census gate without moving full member payload bytes.
+The next-volume overlay integration test also separates concerns: filename discovery chooses the authored next volume number, while successful synthetic mounting is explicitly recorded before resolver winner assertions.
 
-This slice still does not implement `.lst` synthesis, original FileSlot/async/cache/refcount/LoadedResource lifecycle or Stage Ops assembly. `.afs/` prefixes remain logical namespaces; no binary AFS backend is implied.
+## Evidence references
+
+- `l2-exe-reverse-pass-2026-08-26-pass2.md`
+- `l2-mount-topology-lifetime-reverse-2026-08-26.md`
+- `l2-archive-index-duplicate-key-reverse-2026-08-26.md`
+- `data/reverse/dmc3-gdspaces-l2-resolver-static-census-2026-08-26.v1.json`
+- merged PR #235
+- issue #237
+
+## Remaining Layer 2 gates
+
+This product correction does not close Layer 2. Still required:
+
+1. real-retail `0x0E` collision census;
+2. real protected-process R2B v2 mapping receipt;
+3. trusted process-bound R3 publisher/origin mechanism;
+4. trusted original-process selected-provider identity receipt;
+5. representative contradiction/reconciliation audit;
+6. exact-head Windows + Ubuntu validation and explicit final L2 promotion.
+
+No synthetic topology test is a substitute for those receipts.
