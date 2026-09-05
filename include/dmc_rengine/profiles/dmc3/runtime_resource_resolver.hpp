@@ -24,10 +24,12 @@ struct ArchiveSourceBinding final {
 };
 
 struct RuntimeSourceBindings final {
+    // Empty exactly when the recovered type-0 physical registration did not
+    // successfully link a node into this runtime topology.
     std::string physical_source_id;
     std::vector<ArchiveSourceBinding> archives;
 
-    [[nodiscard]] bool valid_for(const VolumeBootstrapPlan& bootstrap) const noexcept;
+    [[nodiscard]] bool valid_for(const RuntimeMountTopology& topology) const noexcept;
     [[nodiscard]] const ArchiveSourceBinding* archive(
         std::uint32_t volume_index) const noexcept;
 };
@@ -110,17 +112,17 @@ struct RuntimeResolutionReport final {
     }
 };
 
-// DMC3-profile composition layer. It owns recovered candidate/provider/source
-// traversal order. Archive ResourceKeyIndex values are derived inside resolve()
-// from the exact currently-mounted ISource enumeration. Physical sources may
-// additionally expose IDirectPathSource so the physical phase can use source-
-// native path lookup instead of forcing archive-style index equality. Exact
-// byte I/O remains in SourceRegistry/ISource.
+// DMC3-profile composition layer. It consumes only the explicit successful
+// linked-list topology, never filename-discovery evidence. Archive
+// ResourceKeyIndex values are derived inside resolve() from the exact currently
+// mounted ISource enumeration. Physical sources may additionally expose
+// IDirectPathSource so the physical phase can use source-native path lookup.
+// Exact byte I/O remains in SourceRegistry/ISource.
 class RuntimeResourceResolver final {
 public:
     [[nodiscard]] static RuntimeResolutionReport resolve(
         std::string_view request,
-        const VolumeBootstrapPlan& bootstrap,
+        const RuntimeMountTopology& topology,
         const RuntimeSourceBindings& bindings,
         const gdspaces::SourceRegistry& sources);
 };

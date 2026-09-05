@@ -161,18 +161,18 @@ NbzOverlayWriteResult NbzStoreOverlayWriter::build(
     if (!bootstrap.valid()) {
         return failure(
             NbzOverlayWriteStatus::invalid_bootstrap,
-            "Overlay authoring requires a valid recovered numbered-volume bootstrap plan.");
+            "Overlay authoring requires a valid recovered numbered-volume discovery plan.");
     }
     if (!bootstrap.present_after_first_gap.empty()) {
         return failure(
             NbzOverlayWriteStatus::post_gap_volume_present,
-            "Filling the first numbered-volume gap would activate already-present later runtime volumes.");
+            "Filling the first numbered-volume discovery gap would activate already-present later runtime filenames.");
     }
     if (!VolumeBootstrapPolicy::runtime_index_valid(
             bootstrap.first_missing_index)) {
         return failure(
             NbzOverlayWriteStatus::volume_index_out_of_domain,
-            "The next contiguous volume lies outside the recovered non-negative signed %d namespace.");
+            "The next contiguous discovered filename lies outside the recovered non-negative signed %d namespace.");
     }
     if (members.empty()) {
         return failure(

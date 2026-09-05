@@ -302,11 +302,11 @@ struct DiscoveredVolume final {
         present_indices.push_back(volume.index);
     }
     const auto base_bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_indices);
-    if (!base_bootstrap.valid() || base_bootstrap.registered_archives.empty() ||
+    if (!base_bootstrap.valid() || base_bootstrap.discovered_archives.empty() ||
         !base_bootstrap.present_after_first_gap.empty() ||
         !base_bootstrap.present_outside_runtime_index_domain.empty()) {
         std::cerr
-            << "verify-dmc3-l1-authoring: retail volume topology is not safe for deterministic next-volume authoring\n";
+            << "verify-dmc3-l1-authoring: retail volume discovery is not safe for deterministic next-volume authoring\n";
         return 4;
     }
 
@@ -375,7 +375,7 @@ struct DiscoveredVolume final {
     if (!verification_bootstrap.valid() ||
         verification_bootstrap.first_missing_index != overlay_index + 1U) {
         std::cerr
-            << "verify-dmc3-l1-authoring: generated overlay does not extend the contiguous runtime volume set exactly once\n";
+            << "verify-dmc3-l1-authoring: generated overlay does not extend the contiguous runtime discovery set exactly once\n";
         return 10;
     }
 
@@ -383,14 +383,17 @@ struct DiscoveredVolume final {
     constexpr std::string_view physical_source_id = "l1-closure-physical";
     if (!sources.mount(std::make_unique<gdspaces::LocalDirectorySource>(
             std::string{physical_source_id}, data_directory, false))) {
-        std::cerr << "verify-dmc3-l1-authoring: cannot mount physical retail source\n";
+        std::cerr << "verify-dmc3-l1-authoring: cannot mount physical product verification source\n";
         return 10;
     }
 
     dmc3::RuntimeSourceBindings bindings;
     bindings.physical_source_id = std::string{physical_source_id};
+    std::vector<std::uint32_t> successful_archive_indices;
+    successful_archive_indices.reserve(
+        verification_bootstrap.discovered_archives.size());
     std::string overlay_source_id;
-    for (const auto& archive : verification_bootstrap.registered_archives) {
+    for (const auto& archive : verification_bootstrap.discovered_archives) {
         const bool is_overlay = archive.index == overlay_index;
         const auto* retail_volume = is_overlay
             ? nullptr
@@ -400,7 +403,7 @@ struct DiscoveredVolume final {
             : (retail_volume == nullptr ? std::filesystem::path{} : retail_volume->path);
         if (archive_path.empty()) {
             std::cerr
-                << "verify-dmc3-l1-authoring: verification bootstrap references an unavailable archive\n";
+                << "verify-dmc3-l1-authoring: verification discovery references an unavailable archive\n";
             return 10;
         }
         auto source_id = std::string{"l1-closure-volume-"} +
@@ -408,30 +411,41 @@ struct DiscoveredVolume final {
         auto source = std::make_unique<gdspaces::NbzZipSource>(source_id, archive_path);
         if (!source->valid() || !sources.mount(std::move(source))) {
             std::cerr
-                << "verify-dmc3-l1-authoring: cannot mount verification archive\n";
+                << "verify-dmc3-l1-authoring: product verification archive did not mount successfully\n";
             return 10;
         }
+
+        // This is product verification evidence only. A valid NbzZipSource plus
+        // successful SourceRegistry mount establishes membership in the product
+        // resolver fixture; it is not evidence that original 0x140326DA0
+        // succeeded in a protected DMC3 process.
+        successful_archive_indices.push_back(archive.index);
+        bindings.archives.push_back(dmc3::ArchiveSourceBinding{
+            .volume_index = archive.index,
+            .source_id = source_id,
+        });
         if (is_overlay) {
             overlay_source_id = source_id;
         }
     }
-    for (const auto index : verification_bootstrap.archive_resolution_order) {
-        bindings.archives.push_back(dmc3::ArchiveSourceBinding{
-            .volume_index = index,
-            .source_id = std::string{"l1-closure-volume-"} + std::to_string(index),
-        });
-    }
-    if (!bindings.valid_for(verification_bootstrap)) {
+
+    const auto verification_topology =
+        dmc3::VolumeBootstrapPolicy::successful_mount_topology(
+            verification_bootstrap,
+            true,
+            successful_archive_indices);
+    if (!verification_topology.has_value() ||
+        !bindings.valid_for(*verification_topology)) {
         std::cerr
-            << "verify-dmc3-l1-authoring: verification source bindings are invalid\n";
+            << "verify-dmc3-l1-authoring: explicit product successful-mount topology/bindings are invalid\n";
         return 10;
     }
 
     const auto resolved = dmc3::RuntimeResourceResolver::resolve(
-        game_request, verification_bootstrap, bindings, sources);
+        game_request, *verification_topology, bindings, sources);
     if (!resolved.ok() || resolved.resolved->id.source_id != overlay_source_id) {
         std::cerr
-            << "verify-dmc3-l1-authoring: generated next-volume artifact did not win canonical resolution\n";
+            << "verify-dmc3-l1-authoring: generated next-volume artifact did not win canonical product resolution\n";
         return 11;
     }
     const auto rematerialized = sources.read(resolved.resolved->id);
@@ -442,30 +456,31 @@ struct DiscoveredVolume final {
         return 12;
     }
     if (!verify_rematerialized_slot(
-            *rematerialized, slot_index,
-            std::span<const std::byte>{replacement_bytes->data(), replacement_bytes->size()})) {
+            *rematerialized,
+            slot_index,
+            std::span<const std::byte>{*replacement_bytes})) {
         std::cerr
             << "verify-dmc3-l1-authoring: rematerialized target slot does not equal the authored replacement\n";
         return 13;
     }
 
     const auto executable_sha = sha256_of(
-        std::span<const std::byte>{executable_bytes->data(), executable_bytes->size()});
+        std::span<const std::byte>{*executable_bytes});
     const auto retail_sha = sha256_of(
-        std::span<const std::byte>{retail_bytes->data(), retail_bytes->size()});
+        std::span<const std::byte>{*retail_bytes});
     const auto replacement_sha = sha256_of(
-        std::span<const std::byte>{replacement_bytes->data(), replacement_bytes->size()});
+        std::span<const std::byte>{*replacement_bytes});
     const auto rebuilt_sha = sha256_of(
-        std::span<const std::byte>{rebuilt_bytes->data(), rebuilt_bytes->size()});
+        std::span<const std::byte>{*rebuilt_bytes});
     const auto overlay_sha = sha256_of(
-        std::span<const std::byte>{overlay_bytes->data(), overlay_bytes->size()});
+        std::span<const std::byte>{*overlay_bytes});
     const auto rematerialized_sha = sha256_of(
-        std::span<const std::byte>{rematerialized->bytes.data(), rematerialized->bytes.size()});
+        std::span<const std::byte>{rematerialized->bytes});
 
     std::ostringstream receipt;
     receipt
         << "{\n"
-        << "  \"schema_version\": 1,\n"
+        << "  \"schema_version\": 2,\n"
         << "  \"evidence_class\": \"gdspaces-l1-product-end-to-end-authoring\",\n"
         << "  \"status\": \"product-end-to-end-verified\",\n"
         << "  \"game_request\": \"" << escape_json(game_request) << "\",\n"
@@ -486,6 +501,9 @@ struct DiscoveredVolume final {
         << ", \"path\": \"" << escape_json(overlay_path.generic_string())
         << "\", \"size\": " << overlay_bytes->size()
         << ", \"sha256\": \"" << overlay_sha << "\"},\n"
+        << "  \"resolver_topology\": {\"basis\": \"explicit-product-source-validation-and-mount-success\", \"physical_source_mounted\": true, \"successful_archive_count\": "
+        << verification_topology->mounted_archives.size()
+        << ", \"original_process_mount_topology_proven\": false},\n"
         << "  \"resolver_winner\": {\"source_id\": \""
         << escape_json(resolved.resolved->id.source_id)
         << "\", \"logical_path\": \""
@@ -530,7 +548,7 @@ struct DiscoveredVolume final {
 void print_dmc3_l1_closure_help() {
     std::cout
         << "  verify-dmc3-l1-authoring <exe-dir> <game-request> <slot-index> <replacement-file> <workspace-dir>\n"
-        << "                            Run protected-executable preflight, direct-retail acquisition, PAC/PNST slot rebuild, next-volume authoring, resolver win and exact rematerialization receipt\n";
+        << "                            Run protected-executable preflight, direct-retail acquisition, PAC/PNST slot rebuild, next-volume authoring, explicit product successful-mount topology, resolver win and exact rematerialization receipt\n";
 }
 
 int try_run_dmc3_l1_closure_command(int argc, char** argv) {

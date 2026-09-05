@@ -80,7 +80,8 @@ int main() {
     const auto modified_bytes = bytes("MODIFIED-VOLUME-1");
 
     // Build a synthetic first numbered archive. With no existing numbered
-    // volumes, the product overlay writer emits DMC3-0.nbz.
+    // volumes, the product overlay writer emits DMC3-0.nbz. This authoring
+    // decision uses discovery only and does not claim runtime mount success.
     const std::array<std::uint32_t, 0> none{};
     const auto empty_bootstrap = dmc3::VolumeBootstrapPolicy::plan(none);
     assert(empty_bootstrap.valid());
@@ -96,8 +97,8 @@ int main() {
     assert(base_archive.receipt->volume_index == 0U);
     assert(base_archive.receipt->filename == "DMC3-0.nbz");
 
-    // Given contiguous volume 0, author the next volume containing the exact
-    // same logical resource identity with modified bytes.
+    // Given discovered contiguous volume 0, author the next volume containing
+    // the exact same logical resource identity with modified bytes.
     constexpr std::array<std::uint32_t, 1> present_zero{0U};
     const auto overlay_bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_zero);
     assert(overlay_bootstrap.valid());
@@ -131,14 +132,28 @@ int main() {
     assert(registry.mount(std::move(volume1)));
 
     constexpr std::array<std::uint32_t, 2> present_both{0U, 1U};
-    const auto runtime_bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_both);
-    assert(runtime_bootstrap.valid());
-    assert(runtime_bootstrap.registered_archives.size() == 2U);
-    assert(runtime_bootstrap.registered_archives[0U].index == 0U);
-    assert(runtime_bootstrap.registered_archives[1U].index == 1U);
-    assert(runtime_bootstrap.archive_resolution_order.size() == 2U);
-    assert(runtime_bootstrap.archive_resolution_order[0U] == 1U);
-    assert(runtime_bootstrap.archive_resolution_order[1U] == 0U);
+    const auto runtime_discovery = dmc3::VolumeBootstrapPolicy::plan(present_both);
+    assert(runtime_discovery.valid());
+    assert(runtime_discovery.first_missing_index == 2U);
+    assert(runtime_discovery.discovered_archives.size() == 2U);
+
+    // This synthetic integration fixture has directly constructed two valid NBZ
+    // sources and mounts both into the product registry, so the test explicitly
+    // records those two registration outcomes as success. Runtime precedence is
+    // then derived from the recovered prepend rule: 1 -> 0. Filename discovery
+    // alone is intentionally insufficient to construct this topology.
+    constexpr std::array<std::uint32_t, 2> successful_archives{0U, 1U};
+    const auto runtime_topology =
+        dmc3::VolumeBootstrapPolicy::successful_mount_topology(
+            runtime_discovery,
+            true,
+            successful_archives);
+    assert(runtime_topology.has_value());
+    assert(runtime_topology->valid_for(runtime_discovery));
+    assert(runtime_topology->mounted_archives.size() == 2U);
+    assert(runtime_topology->archive_resolution_order.size() == 2U);
+    assert(runtime_topology->archive_resolution_order[0U] == 1U);
+    assert(runtime_topology->archive_resolution_order[1U] == 0U);
 
     const dmc3::RuntimeSourceBindings bindings{
         .physical_source_id = "physical",
@@ -147,14 +162,14 @@ int main() {
             dmc3::ArchiveSourceBinding{0U, "archive-0"},
         },
     };
-    assert(bindings.valid_for(runtime_bootstrap));
+    assert(bindings.valid_for(*runtime_topology));
 
     // A directory-qualified game request is reduced to its basename before the
     // six recovered namespace prefixes are tried. The winning first archive
     // candidate is therefore GDataX360.afs/override-test.pac, not a path that
     // preserves the request's synthetic obj/ directory.
     const auto resolved = dmc3::RuntimeResourceResolver::resolve(
-        "obj\\override-test.pac", runtime_bootstrap, bindings, registry);
+        "obj\\override-test.pac", *runtime_topology, bindings, registry);
     assert(resolved.ok());
     assert(resolved.resolved.has_value());
     assert(resolved.resolved->id.source_id == "archive-1");
