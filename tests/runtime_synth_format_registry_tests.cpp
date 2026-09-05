@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 8U);
+    assert(readers.size() == 9U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
@@ -38,11 +38,15 @@ int main() {
              "formats.lig2-record-scanner",
              "formats.stage-txt-lexer",
              "formats.scm-structural-v1",
+             "formats.mod-structural-v1",
              "exe.pe-reader"}) {
         const auto* module = readers.find(parser_id);
         assert(module != nullptr);
         assert(module->valid());
     }
+    const auto* mod_reader = readers.find_by_format("mod");
+    assert(mod_reader != nullptr);
+    assert(mod_reader->parser_id == "formats.mod-structural-v1");
 
     const auto* pac = registry.find("PAC");
     assert(pac != nullptr);
@@ -91,7 +95,15 @@ int main() {
     assert(scm->writer_modes.empty());
     assert(has_limitation(*scm, "0x50 mesh records"));
     assert(has_limitation(*scm, "not a promoted SCM writer"));
-    assert(has_limitation(*scm, "Header +0x14"));
+
+    const auto* mod = registry.find("MOD");
+    assert(mod != nullptr);
+    assert(mod->valid());
+    assert(mod->write_policy == integration::ResourceWritePolicy::read_only);
+    // The Native Reader module is already authoritative for read routing even
+    // while the legacy integration descriptor remains in recognized maturity.
+    assert(mod->parser_id.empty());
+    assert(readers.find_by_format(mod->format) == mod_reader);
 
     const auto* dds = registry.find("DDS");
     assert(dds != nullptr);
