@@ -1,7 +1,8 @@
 # DMC Rengine Roadmap
 
 **Snapshot:** 2026-09-05  
-**Canonical base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
+**Canonical base entering current slice:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
+**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
 **Completion model:** evidence-gated, not percentage-gated.
 
 This roadmap distinguishes four different things that must never be conflated:
@@ -59,7 +60,7 @@ Detailed proof matrix: [GDSpaces proof roadmap — 2026-09-05](gdspaces/proof-ro
 - ✅ Archive `0x0E` normalization algorithm is reverse-backed.
 - ✅ Retail `dmc3-0.nbz` normalized-key census: 4,333 file keys / 4,333 unique / 0 collisions; scope is this archive only.
 - ✅ Type-0 physical-provider final-open/miss behavior in the recovered direct-call scope.
-- ⚠️ Discovery != successful mount topology — reverse proof is closed and the product correction is implemented on PR #287; it remains non-canonical until final CI/review and promotion to `main`.
+- ✅ Discovery != successful mount topology — reverse proof plus current product correction were promoted by PR #287. Discovery is discovery-only; only explicitly successful linked providers enter resolver topology.
 - ❌ Per-volume + cross-volume collision census for any resolver scope wider than the bound `dmc3-0.nbz` artifact.
 - ❌ Real protected-distribution R2B multi-anchor mapping receipt.
 - ❌ Trusted original-process R3 selected-provider identity trace.
@@ -98,7 +99,7 @@ Still open:
 
 ## 5. Native Reader / format coverage
 
-Current canonical modular Native Reader modules on `main`:
+Canonical modular Native Reader modules on `main@76841d6...` before the current slice:
 
 - ✅ DDS structural reader.
 - ✅ PTX structural reader.
@@ -110,26 +111,35 @@ Current canonical modular Native Reader modules on `main`:
 - ✅ MOD structural reader.
 - ✅ PE/EXE reader.
 
-Evidence boundaries:
+Current SHW slice:
+
+- ⚠️ SHW structural/read-only reader is implemented on PR #288 as `formats.shw-structural-v1`; exact-head Windows + Ubuntu CI, final diff review and canonical promotion remain.
+- ✅ The SHW schema used by this reader is backed by the canonical EXE plus hash-bound real payload `slot_0008.shw` (9,488 bytes, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`).
+- ✅ The bound layout proves self-contained shadow-hull geometry: triangle topology, exact adjacency, `float4` positions and a per-vertex selector stream.
+- ✅ The selector is EXE-confirmed as indexing 0x40-byte transform matrices.
+- ❌ SHW matrix-palette ownership/construction remains open.
+- ❌ SHW writer authority and universal revision coverage remain open.
+
+Other evidence boundaries:
 
 - ✅ SCM structural reader is backed by dedicated EXE/corpus reverse packets for layout, hierarchy/world transform and runtime flags.
 - ✅ MOD structural reader is backed by EXE-family evidence and a hash-bound real payload structural binding.
 - ⚠️ DDS/PTX reader behavior is evidence-backed for the promoted DMC3 profiles, but authoring is not promoted by read support.
-- ❌ EFM is not yet a canonical Native Reader module on current `main`.
-- ❌ MOT is not yet a canonical Native Reader module on current `main`.
-- ❌ SHW is not yet a canonical Native Reader module on current `main`.
+- ❌ EFM is not yet a canonical Native Reader module.
+- ❌ MOT is not yet a canonical Native Reader module.
 - ❌ MRP/MCV/CAM/CLT/TSC and other recognized families require evidence-gated structural promotion before reader claims.
 
 Writers:
 
 - ❌ SCM canonical production writer authority.
 - ❌ MOD writer authority.
+- ❌ SHW writer authority.
 - ❌ DDS/PTX texel/production authoring authority through Native Reader.
-- ❌ Edited model/texture original-game acceptance receipts.
+- ❌ Edited model/texture/shadow original-game acceptance receipts.
 
 ## 6. Current P0 proof track
 
-The highest-value next proof is one same-lineage vertical chain:
+The highest-value cross-layer proof remains one same-lineage vertical chain:
 
 ```text
 OpenGameResource(request)
@@ -148,14 +158,17 @@ For authoring acceptance the same chain must then be repeated with an exact DMC 
 Execution order:
 
 1. ✅ preserve existing static reverse authority for bootstrap, mount-list construction, resolver masks and normalization;
-2. ⚠️ mount-topology product correction implemented on PR #287; final CI/review and promotion remain;
-3. ❌ obtain/process a real protected-process R2B mapping packet;
-4. ❌ capture trusted selected-provider/member identity without synthesizing probes;
-5. ❌ bind selected member to independently materialized SHA/provenance;
-6. ❌ bind materialization success to LoadedResource lifecycle observation;
-7. ❌ repeat with authored next-volume overlay;
-8. ❌ observe deterministic original-game effect and rollback;
-9. ❌ run final L1/L2/L3 contradiction audits independently.
+2. ✅ successful-mount topology product correction promoted by PR #287;
+3. ⚠️ finish SHW Native Reader PR #288 with exact-head cross-platform CI/review and canonical promotion;
+4. ❌ obtain/process a real protected-process R2B mapping packet;
+5. ❌ capture trusted selected-provider/member identity without synthesizing probes;
+6. ❌ bind selected member to independently materialized SHA/provenance;
+7. ❌ bind materialization success to LoadedResource lifecycle observation;
+8. ❌ repeat with authored next-volume overlay;
+9. ❌ observe deterministic original-game effect and rollback;
+10. ❌ run final L1/L2/L3 contradiction audits independently.
+
+The still-open raw scheduler dependency remains a separate L3 proof task. It must not be silently inferred from older labels when the exact canonical executable bytes are unavailable for a fresh pass.
 
 ## 7. Long-term milestones
 
