@@ -3,9 +3,9 @@
   "snapshot_date": "2026-09-05",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "ee08b388cbc5448a0e1a5d02231d9aaf7e01587d",
-  "working_proof_branch": "ada/roadmap-proof-audit-20260905",
-  "working_proof_pr": 287,
+  "snapshot_main_sha": "76841d6f1387b08df40bb65e0083513f9dc7c5bb",
+  "working_proof_branch": "integrate/shw-native-reader-evidence-v1",
+  "working_proof_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
   "proof_marks": {
@@ -38,7 +38,7 @@
   },
   "native_reader": {
     "architecture": "NativeReaderModuleRegistry",
-    "canonical_modules": [
+    "canonical_modules_on_snapshot_main": [
       "dds",
       "ptx",
       "hits",
@@ -49,20 +49,38 @@
       "mod",
       "pe"
     ],
+    "active_pr_additions": [
+      "shw"
+    ],
+    "shw_slice": {
+      "parser_id": "formats.shw-structural-v1",
+      "implementation_status": "implemented-on-pr-288-pending-exact-head-ci-review-and-promotion",
+      "write_policy": "read-only",
+      "real_payload_sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "real_payload_size": 9488,
+      "schema_authority": "one-hash-bound-real-payload-plus-canonical-exe-corroboration",
+      "selector_semantics": "exe-confirmed-per-vertex-transform-matrix-selector",
+      "open_boundaries": [
+        "matrix-palette-ownership-and-construction",
+        "universal-revision-coverage",
+        "writer-authority",
+        "original-game-authored-shw-acceptance"
+      ]
+    },
     "proven_structural_reader_highlights": [
       "scm",
       "mod",
       "dds",
       "ptx"
     ],
-    "next_reader_frontier": [
+    "next_reader_frontier_after_active_slice": [
       "efm",
-      "mot",
-      "shw"
+      "mot"
     ],
     "writer_authority_open": [
       "scm",
       "mod",
+      "shw",
       "dds-ptx-production-authoring"
     ]
   },
@@ -111,7 +129,7 @@
     },
     "L2": {
       "complete": false,
-      "status": "advanced-static-authority-retail-census-one-volume-product-topology-correction-in-pr-original-process-receipts-open",
+      "status": "advanced-static-authority-retail-census-one-volume-successful-mount-topology-product-correction-canonical-original-process-receipts-open",
       "reverse_backed_closed": [
         "bootstrap-data-dmc3-root-0x14002E930",
         "numbered-discovery-starts-at-zero",
@@ -122,7 +140,8 @@
         "archive-normalization-0x0e",
         "physical-normalization-0x0c",
         "archive-hit-wrapper-open-success-required",
-        "type0-physical-final-open-miss-bounded-contract"
+        "type0-physical-final-open-miss-bounded-contract",
+        "discovery-is-not-successful-linked-mount-topology"
       ],
       "retail_collision_receipts": [
         {
@@ -138,8 +157,8 @@
       "product_topology_correction": {
         "reverse_claim": "filename-discovery-or-registration-attempt-is-not-successful-linked-mount-topology",
         "reverse_status": "proven",
-        "implementation_status": "implemented-on-pr-287-pending-green-ci-and-promotion",
-        "canonical_main_status": "not-yet-promoted"
+        "implementation_status": "promoted-by-pr-287",
+        "canonical_main_status": "canonical"
       },
       "mandatory_open_gates": [
         "per-volume-collision-census-for-any-wider-scope",
