@@ -10,14 +10,13 @@ namespace {
 
 void analyze_mod(
     ProjectWorkspace& project,
-    ResourceAnalysisReport& report,
-    const gdspaces::ResourceId& resource,
-    const ResourceWorkspaceSession& session) {
+    const ResourceWorkspaceSession& session,
+    ResourceAnalysisReport& report) {
     const auto bytes = std::span<const std::byte>{session.source_payload().bytes};
     const auto parsed = formats::mod::Parser::parse(bytes);
     report.recognized = parsed.recognized;
     native_reader_support::append_parser_diagnostics(
-        project, report, resource, parsed.diagnostics);
+        project, report, session.resource().id, parsed.diagnostics);
 }
 
 } // namespace
@@ -25,6 +24,7 @@ void analyze_mod(
 NativeReaderModule mod() {
     return NativeReaderModule{
         .parser_id = "formats.mod-structural-v1",
+        .format = "mod",
         .consumer = gdspaces::ToolTarget::modviz_scene,
         .link_format_evidence = true,
         .analyze = &analyze_mod,
