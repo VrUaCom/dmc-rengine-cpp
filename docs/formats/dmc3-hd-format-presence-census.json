@@ -1,0 +1,75 @@
+{
+  "schema": "dmc-rengine.dmc3-hd-format-presence-census.v1",
+  "snapshot": "2026-09-05",
+  "mainBase": "fb5623b14ff56b3eed95fbe08dba79a6687af8f1",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "scope": {
+    "retailCentralDirectory": "dmc3-0.nbz only",
+    "retailArchiveSha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
+    "retailCentralDirectorySha256": "0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af",
+    "rule": "EXE recognition/reference is not physical payload presence; absence from one bound surface is not global game absence"
+  },
+  "statuses": {
+    "RETAIL_VOLUME_CONFIRMED": "bound retail archive/volume artifact",
+    "RETAIL_MEMBER_CONFIRMED": "direct member present in bound retail central-directory surface",
+    "CORPUS_PAYLOAD_CONFIRMED": "real supplied/extracted payload bytes bound to semantic family",
+    "WORKING_NAME_OVER_OTHER_EXTENSION": "semantic project name whose observed physical/extracted suffix differs",
+    "EXE_ONLY_NOT_BOUND": "original EXE identity/reference exists but no current canonical real-payload receipt",
+    "CAPABILITY_ONLY": "runtime/media capability without shipped-asset presence claim",
+    "SYNTHETIC_ONLY": "project test format only",
+    "REJECTED": "superseded identity"
+  },
+  "retailMembers": [
+    {"id":"pac","extension":"pac","count":3725,"status":"RETAIL_MEMBER_CONFIRMED"},
+    {"id":"txt-top-level","extension":"txt","count":565,"status":"RETAIL_MEMBER_CONFIRMED","note":"localization message tables; distinct from stage TXT corpus"},
+    {"id":"bin-generic","extension":"bin","count":24,"status":"RETAIL_MEMBER_CONFIRMED","note":"generic suffix; not semantic authority"},
+    {"id":"tm2","extension":"tm2","count":6,"status":"RETAIL_MEMBER_CONFIRMED"},
+    {"id":"mod","extension":"mod","count":4,"status":"RETAIL_MEMBER_CONFIRMED"},
+    {"id":"fon","extension":"fon","count":4,"status":"RETAIL_MEMBER_CONFIRMED"},
+    {"id":"ptx","extension":"ptx","count":2,"status":"RETAIL_MEMBER_CONFIRMED"},
+    {"id":"audio-bank-trio","extensions":["bd","phd","tsb"],"countTotal":3,"status":"RETAIL_MEMBER_CONFIRMED"}
+  ],
+  "volume": {"id":"nbz","status":"RETAIL_VOLUME_CONFIRMED"},
+  "corpusPayloads": [
+    {"id":"pnst","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"scm","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"hits","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"dds","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"dca","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"lig","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"lig2","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"eve","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"pos","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"itm","status":"CORPUS_PAYLOAD_CONFIRMED","observedNaming":"may be extracted as .ukn"},
+    {"id":"ste","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"est","status":"CORPUS_PAYLOAD_CONFIRMED","semanticBoundary":"candidate"},
+    {"id":"cam","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"mot","status":"CORPUS_PAYLOAD_CONFIRMED","variants":"MOT/MOT2..MOT6 corpus labels"},
+    {"id":"shw","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"stage-txt","status":"CORPUS_PAYLOAD_CONFIRMED"},
+    {"id":"eventtbl","status":"CORPUS_PAYLOAD_CONFIRMED","observedNaming":"EventTblNN.bin"}
+  ],
+  "workingNames": [
+    {
+      "id":"so",
+      "status":"WORKING_NAME_OVER_OTHER_EXTENSION",
+      "semanticPayloadPresence":"CORPUS_PAYLOAD_CONFIRMED",
+      "physicalExtensionAuthority":false,
+      "observedCarrier":".bin/contextual slot identity",
+      "note":"SO is a project working name; no original .so extension authority is claimed"
+    }
+  ],
+  "exeOnlyNotBound": [
+    "efm","mrp","mcv","clt","c1d","hid","tsc","ptz","efe","efw","vagp","spumapdt","options-sav","ico","icon-sys"
+  ],
+  "capabilityOnly": ["pss","thp","pam","xmv","pmf","avi","mpg","bik","mp4"],
+  "logicalRepresentationPairs": [
+    {"logical":"adx","physical":"ogg","boundary":"HD translation/representation relationship; do not equate names"},
+    {"logical":"sfd","physical":"wmv","boundary":"HD translation/representation relationship; do not equate names"}
+  ],
+  "syntheticOnly": ["sltc"],
+  "rejected": ["sch","hits-dollar"],
+  "notPromoted": [
+    {"name":"PNX","reason":"no current repository evidence record establishes a canonical DMC3 PNX identity at this snapshot"}
+  ]
+}
