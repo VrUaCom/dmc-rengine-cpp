@@ -10,6 +10,8 @@
 #include "dmc_rengine/formats/hits_binary.hpp"
 #include "dmc_rengine/formats/lig2.hpp"
 #include "dmc_rengine/formats/lig2_binary.hpp"
+#include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/formats/ptx_binary.hpp"
 #include "dmc_rengine/formats/stage_txt.hpp"
 #include "dmc_rengine/formats/stage_txt_binary.hpp"
 #include "dmc_rengine/profiles/dmc3/known_targets.hpp"
@@ -178,6 +180,31 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
                 formats::dds::build_binary_document(
                     session->resource(), bytes, scan),
                 "DDS"));
+        }
+        static_cast<void>(project.link_format_evidence(resource));
+        return report;
+    }
+
+    if (descriptor->parser_id == "formats.ptx-dmc3-reader") {
+        report.parser_available = true;
+        const auto scan = formats::ptx::Reader::scan(bytes);
+        report.recognized = scan.recognized;
+        static_cast<void>(project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            scan.recognized,
+            gdspaces::ToolTarget::binary_inspector));
+        append_parser_diagnostics(
+            project, report, resource, scan.diagnostics);
+
+        if (scan.ok()) {
+            static_cast<void>(attach_binary_document(
+                project,
+                report,
+                resource,
+                formats::ptx::build_binary_document(
+                    session->resource(), bytes, scan),
+                "PTX"));
         }
         static_cast<void>(project.link_format_evidence(resource));
         return report;
