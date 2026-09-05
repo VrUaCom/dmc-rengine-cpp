@@ -16,11 +16,6 @@ using NativeReaderAnalyzeFn = void (*)(
 
 struct NativeReaderModule final {
     std::string parser_id;
-    // Optional canonical format identity. Existing parser-authority-driven
-    // modules may leave this empty. It is used as an evidence-safe migration
-    // bridge for formats whose structural reader lands before the legacy
-    // FormatIntegrationRegistry descriptor is promoted.
-    std::string format;
     gdspaces::ToolTarget consumer{gdspaces::ToolTarget::binary_inspector};
     bool link_format_evidence{true};
     NativeReaderAnalyzeFn analyze{nullptr};
