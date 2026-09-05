@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <tuple>
 #include <vector>
 
 namespace dmc::rengine::formats::shw {
