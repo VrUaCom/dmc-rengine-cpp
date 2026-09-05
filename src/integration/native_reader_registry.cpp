@@ -23,6 +23,9 @@ bool NativeReaderModuleRegistry::register_module(NativeReaderModule module) {
     if (!module.valid() || find(module.parser_id) != nullptr) {
         return false;
     }
+    if (!module.format.empty() && find_by_format(module.format) != nullptr) {
+        return false;
+    }
     modules_.push_back(std::move(module));
     return true;
 }
@@ -33,6 +36,16 @@ const NativeReaderModule* NativeReaderModuleRegistry::find(
         modules_.begin(), modules_.end(),
         [parser_id](const NativeReaderModule& module) {
             return module.parser_id == parser_id;
+        });
+    return iterator == modules_.end() ? nullptr : &*iterator;
+}
+
+const NativeReaderModule* NativeReaderModuleRegistry::find_by_format(
+    std::string_view format) const noexcept {
+    const auto iterator = std::find_if(
+        modules_.begin(), modules_.end(),
+        [format](const NativeReaderModule& module) {
+            return !module.format.empty() && module.format == format;
         });
     return iterator == modules_.end() ? nullptr : &*iterator;
 }
