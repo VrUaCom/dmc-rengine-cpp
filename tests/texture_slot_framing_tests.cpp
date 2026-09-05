@@ -1,3 +1,5 @@
+#include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/formats/ptx_binary.hpp"
 #include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
@@ -166,6 +168,7 @@ void append_at(
 int main() {
     namespace gdspaces = dmc::rengine::gdspaces;
     namespace dmc3 = dmc::rengine::profiles::dmc3;
+    namespace ptx = dmc::rengine::formats::ptx;
 
     const auto wrapped = wrapped_dds_fixture();
     const auto wrapped_result = dmc3::TextureSlotFramingParser::parse(
@@ -188,6 +191,13 @@ int main() {
         wrapped_result.document.textures[0].compression ==
         dmc3::TextureCompressionKind::dxt5);
 
+    // The PTX module is deliberately narrower than the shared framing parser:
+    // descriptor+single-DDS framing is valid texture data but not a PTX bundle.
+    const auto wrapped_ptx = ptx::Reader::scan(
+        std::span<const std::byte>{wrapped.data(), wrapped.size()});
+    assert(!wrapped_ptx.recognized);
+    assert(!wrapped_ptx.ok());
+
     const auto bundle = bundle_fixture();
     const auto bundle_result = dmc3::TextureSlotFramingParser::parse(
         std::span<const std::byte>{bundle.data(), bundle.size()});
@@ -205,10 +215,6 @@ int main() {
     assert(bundle_result.document.textures[1].secondary_width == 8U);
     assert(bundle_result.document.textures[1].sector_span == 1U);
 
-    // Real NBZ paths such as GData.afs/obj/em000.pac do not carry a "dmc3"
-    // token, so generic path classification can legitimately leave the
-    // physical profile unknown. The explicit DMC3 structural resolver must
-    // still identify the payload from bytes rather than silently doing nothing.
     const gdspaces::ResourcePayload unknown_profile_texture{
         .resource = gdspaces::ResourceRef{
             .id = gdspaces::ResourceId{
@@ -231,11 +237,54 @@ int main() {
         .enclosing_container_name_evidence = {},
         .semantic_evidence = {},
     };
+
+    // Real NBZ paths such as GData.afs/obj/em000.pac do not carry a "dmc3"
+    // token, so generic path classification can legitimately leave the
+    // physical profile unknown. The explicit DMC3 structural resolver must
+    // still identify the payload from bytes rather than silently doing nothing.
     const auto unknown_profile_semantic =
         dmc3::resolve_materialized_display_semantic(unknown_profile_texture);
     assert(unknown_profile_semantic.has_value());
     assert(unknown_profile_semantic->semantic_format == "texture-bundle");
     assert(unknown_profile_semantic->canonical_extension == "ptx");
+
+    // Modular Native Reader PTX path: scan -> Binary Inspector document ->
+    // stable DDS child materialization.
+    const auto ptx_scan = ptx::Reader::scan(
+        std::span<const std::byte>{bundle.data(), bundle.size()});
+    assert(ptx_scan.recognized);
+    assert(ptx_scan.ok());
+    assert(ptx_scan.framing.document.textures.size() == 2U);
+
+    auto ptx_resource = unknown_profile_texture.resource;
+    ptx_resource.format = "ptx";
+    ptx_resource.display_name = "st001.ptx";
+    ptx_resource.container = true;
+    const auto ptx_document = ptx::build_binary_document(
+        ptx_resource,
+        std::span<const std::byte>{bundle.data(), bundle.size()},
+        ptx_scan);
+    assert(ptx_document.has_value());
+    assert(ptx_document->find_region("ptx-header") != nullptr);
+    assert(ptx_document->find_region("ptx-texture-0-descriptor") != nullptr);
+    assert(ptx_document->find_region("ptx-texture-0-dds") != nullptr);
+    assert(ptx_document->find_region("ptx-texture-1-dds") != nullptr);
+    assert(ptx_document->find_field("ptx-texture-count") != nullptr);
+    assert(ptx_document->find_field("ptx-texture-1-compression") != nullptr);
+    assert(ptx_document->coverage_bytes() == bundle.size());
+    assert(ptx_document->unknown_ranges().empty());
+
+    auto ptx_parent = unknown_profile_texture;
+    ptx_parent.resource = ptx_resource;
+    const auto ptx_expansion = ptx::Reader::expand_dds_children(ptx_parent);
+    assert(ptx_expansion.usable());
+    assert(ptx_expansion.parser_format == "PTX");
+    assert(ptx_expansion.children.size() == 2U);
+    assert(ptx_expansion.children[0].payload.resource.format == "dds");
+    assert(ptx_expansion.children[1].payload.resource.format == "dds");
+    assert(ptx_expansion.children[0].payload.bytes[0] == std::byte{'D'});
+    assert(ptx_expansion.children[0].payload.bytes[1] == std::byte{'D'});
+    assert(ptx_expansion.children[0].payload.bytes[2] == std::byte{'S'});
 
     const auto final_zero = zero_final_span_bundle_fixture();
     const auto final_zero_result = dmc3::TextureSlotFramingParser::parse(
@@ -243,6 +292,9 @@ int main() {
     assert(final_zero_result.ok());
     assert(final_zero_result.document.textures.size() == 1U);
     assert(final_zero_result.document.textures[0].sector_span == 0U);
+    const auto final_zero_ptx = ptx::Reader::scan(
+        std::span<const std::byte>{final_zero.data(), final_zero.size()});
+    assert(final_zero_ptx.ok());
 
     auto bad_descriptor = wrapped;
     put_u32(bad_descriptor, 0x64U, 0x80U);
@@ -291,6 +343,10 @@ int main() {
         dmc3::TextureSlotFramingParser::parse(
             std::span<const std::byte>{bad_padding.data(), bad_padding.size()}).status ==
         dmc3::TextureSlotFramingStatus::nonzero_alignment_padding);
+    const auto bad_ptx = ptx::Reader::scan(
+        std::span<const std::byte>{bad_padding.data(), bad_padding.size()});
+    assert(!bad_ptx.ok());
+    assert(!bad_ptx.diagnostics.empty());
 
     auto bad_sector = bundle;
     put_u32(bad_sector, 4U, 0U);
@@ -304,6 +360,10 @@ int main() {
         dmc3::TextureSlotFramingParser::parse(
             std::span<const std::byte>{arbitrary.data(), arbitrary.size()}).status ==
         dmc3::TextureSlotFramingStatus::not_recognized);
+    const auto arbitrary_ptx = ptx::Reader::scan(
+        std::span<const std::byte>{arbitrary.data(), arbitrary.size()});
+    assert(!arbitrary_ptx.recognized);
+    assert(!arbitrary_ptx.ok());
 
     return 0;
 }
