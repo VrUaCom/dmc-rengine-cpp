@@ -41,25 +41,44 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
 
     report.format = session->resource().format;
     const auto* descriptor = session->format();
-    if (descriptor == nullptr || descriptor->parser_id.empty()) {
+    if (descriptor == nullptr) {
         native_reader_support::add_report_diagnostic(
             report,
             gdspaces::DiagnosticSeverity::warning,
-            "analysis.parser-unavailable",
-            "No implemented parser is registered for this resource format.");
+            "analysis.format-unavailable",
+            "No integration descriptor is registered for this resource format.");
         return report;
     }
-    report.parser_id = descriptor->parser_id;
 
     static const NativeReaderModuleRegistry modules;
-    const auto* module = modules.find(descriptor->parser_id);
-    if (module == nullptr) {
-        native_reader_support::add_report_diagnostic(
-            report,
-            gdspaces::DiagnosticSeverity::warning,
-            "analysis.module-unavailable",
-            "The format declares a parser ID, but no Native Reader module is registered for it.");
-        return report;
+    const NativeReaderModule* module = nullptr;
+    if (!descriptor->parser_id.empty()) {
+        module = modules.find(descriptor->parser_id);
+        report.parser_id = descriptor->parser_id;
+        if (module == nullptr) {
+            native_reader_support::add_report_diagnostic(
+                report,
+                gdspaces::DiagnosticSeverity::warning,
+                "analysis.module-unavailable",
+                "The format declares a parser ID, but no Native Reader module is registered for it.");
+            return report;
+        }
+    } else {
+        // Migration bridge: a format-specific module may land before the
+        // legacy FormatIntegrationRegistry descriptor is promoted. This keeps
+        // routing modular and explicit without reintroducing a central
+        // format-specific dispatcher. Only modules that declare a canonical
+        // format identity participate in this fallback.
+        module = modules.find_by_format(report.format);
+        if (module == nullptr) {
+            native_reader_support::add_report_diagnostic(
+                report,
+                gdspaces::DiagnosticSeverity::warning,
+                "analysis.parser-unavailable",
+                "No implemented parser is registered for this resource format.");
+            return report;
+        }
+        report.parser_id = module->parser_id;
     }
 
     report.parser_available = true;
@@ -67,7 +86,7 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
 
     static_cast<void>(project.record_parser_completed(
         resource,
-        descriptor->parser_id,
+        report.parser_id,
         report.recognized,
         module->consumer));
     if (module->link_format_evidence) {
