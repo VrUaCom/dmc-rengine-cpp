@@ -15,8 +15,6 @@ public:
     [[nodiscard]] bool register_module(NativeReaderModule module);
     [[nodiscard]] const NativeReaderModule* find(
         std::string_view parser_id) const noexcept;
-    [[nodiscard]] const NativeReaderModule* find_by_format(
-        std::string_view format) const noexcept;
     [[nodiscard]] const std::vector<NativeReaderModule>& modules() const noexcept;
     [[nodiscard]] std::size_t size() const noexcept;
 
