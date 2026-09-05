@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/formats/scm_layout.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -40,7 +41,17 @@ void validate_serialized_document(std::span<const std::byte> bytes,
     if (scene.parent_rel != expected.scene.parent_rel || scene.order_rel != expected.scene.order_rel ||
         scene.object_binding_rel != expected.scene.object_binding_rel || scene.transform_rel != expected.scene.transform_rel)
         diag(out, ParseSeverity::error, "scm.scene-array-layout-mismatch", "Scene arrays violate canonical align4/align16 layout.", scene.offset);
-    if (!r.zero(scene.offset + 0x10U, 0x10U))
+
+    if (r.has(scene.offset + 0x10U, scene.reserved10_1f.size())) {
+        std::copy_n(
+            bytes.begin() + static_cast<std::ptrdiff_t>(scene.offset + 0x10U),
+            static_cast<std::ptrdiff_t>(scene.reserved10_1f.size()),
+            scene.reserved10_1f.begin());
+    }
+    if (!std::all_of(
+            scene.reserved10_1f.begin(),
+            scene.reserved10_1f.end(),
+            [](std::byte value) { return value == std::byte{0}; }))
         diag(out, ParseSeverity::warning, "scm.scene-header-reserved-nonzero", "Scene block +0x10..+0x1F differs from zero-filled corpus.", scene.offset + 0x10U);
 
     const auto n = static_cast<std::size_t>(h.scene_node_count);

@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 8U);
+    assert(readers.size() == 9U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
@@ -38,6 +38,7 @@ int main() {
              "formats.lig2-record-scanner",
              "formats.stage-txt-lexer",
              "formats.scm-structural-v1",
+             "formats.mod-structural-v1",
              "exe.pe-reader"}) {
         const auto* module = readers.find(parser_id);
         assert(module != nullptr);
@@ -90,8 +91,21 @@ int main() {
     assert(!scm->allows_guarded_export());
     assert(scm->writer_modes.empty());
     assert(has_limitation(*scm, "0x50 mesh records"));
-    assert(has_limitation(*scm, "not a promoted SCM writer"));
-    assert(has_limitation(*scm, "Header +0x14"));
+    assert(has_limitation(*scm, "read-only"));
+
+    const auto* mod = registry.find("MOD");
+    assert(mod != nullptr);
+    assert(mod->valid());
+    assert(mod->maturity == integration::IntegrationMaturity::structural);
+    assert(mod->parser_id == "formats.mod-structural-v1");
+    assert(mod->parser_validation_required);
+    assert(mod->write_policy == integration::ResourceWritePolicy::read_only);
+    assert(readers.find(mod->parser_id) != nullptr);
+    assert(!mod->allows_working_copy());
+    assert(!mod->allows_guarded_export());
+    assert(mod->writer_modes.empty());
+    assert(has_limitation(*mod, "three serialized influences"));
+    assert(has_limitation(*mod, "not authorized"));
 
     const auto* dds = registry.find("DDS");
     assert(dds != nullptr);

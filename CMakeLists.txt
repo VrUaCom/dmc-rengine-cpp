@@ -126,6 +126,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_binary
         dca
         lig2
+        model_family
+        mod
+        mod_skin
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats

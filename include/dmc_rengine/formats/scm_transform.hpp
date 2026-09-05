@@ -33,8 +33,18 @@ struct Matrix4f final {
     const Matrix4f& left,
     const Matrix4f& right) noexcept;
 
-// Reconstruct the exact rotation matrix sequence used by the canonical DMC3
-// scene-transform consumer 0x1402FA080 -> 0x140330450.
+// Reconstruct the rigid-transform inverse helper 0x140030DC0. A 2026-09-05
+// provenance correction established that the direct initialization use of
+// this helper belongs to the MOD/EFM transform path (0x1402FA080), not the
+// SCM-specific initializer. The arithmetic utility remains valid, but this
+// declaration no longer claims an SCM runtime inverse-cache owner.
+[[nodiscard]] Matrix4f invert_dmc3_rigid_transform(
+    const Matrix4f& matrix) noexcept;
+
+// Reconstruct the exact rotation matrix sequence used by the canonical SCM
+// transform initializer 0x1402FA360 -> 0x140330450. The homologous MOD/EFM
+// initializer 0x1402FA080 calls the same rotation helper on the same +0x10
+// transform lane, which is now recorded in Model Family evidence.
 //
 // Serialized angles are X/Y/Z Euler radians. The original code applies the
 // axis rotations in X -> Y -> Z order through its matrix multiplier, which
@@ -42,10 +52,10 @@ struct Matrix4f final {
 [[nodiscard]] Matrix4f build_rotation_xyz_radians(
     const Vec3f& rotation_xyz_radians) noexcept;
 
-// Reconstruct the local scene-node matrix produced by 0x1402FA080 using
+// Reconstruct the local SCM scene-node matrix produced by 0x1402FA360 using
 // 0x140330450 followed by 0x140031200. Translation occupies row 3 XYZ.
-// The serialized translation-magnitude lane (+0x0C) is deliberately masked
-// out by the original helper; homogeneous W remains 1.
+// The serialized translation-magnitude lane (+0x0C) is deliberately excluded
+// from homogeneous W by the original helper; homogeneous W remains 1.
 [[nodiscard]] Matrix4f build_local_transform(
     const SceneTransform& transform) noexcept;
 
