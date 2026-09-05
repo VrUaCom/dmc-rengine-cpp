@@ -5,8 +5,8 @@
 namespace dmc::rengine::formats::scm::runtime {
 
 // Source object +0x10 masks recovered from the canonical DMC3 executable.
-// Names are intentionally operational rather than semantic: the EXE behavior
-// is proven, but gameplay/rendering meanings of these bits are not yet closed.
+// Names are intentionally operational unless a downstream semantic has been
+// independently closed.
 inline constexpr std::uint32_t source_low_mode_mask = 0x0000000FU;
 inline constexpr std::uint32_t source_mask_00000020 = 0x00000020U;
 inline constexpr std::uint32_t source_mask_00010000 = 0x00010000U;
@@ -14,9 +14,17 @@ inline constexpr std::uint32_t source_mask_00020000 = 0x00020000U;
 inline constexpr std::uint32_t source_mask_00040000 = 0x00040000U;
 inline constexpr std::uint32_t source_mask_00080000 = 0x00080000U;
 inline constexpr std::uint32_t source_mask_00100000 = 0x00100000U;
+
+// Observed on 19 current-corpus objects. The canonical SCM object pipeline
+// copies this bit into both baseline (+0x10) and mutable effective (+0x14)
+// runtime flags and preserves it across low-mode mutations. The bounded
+// consumers recovered so far (0x140302640 and 0x1402F9890) do not decode it.
+// This is therefore preserved/undecoded evidence, NOT a global-unused claim.
+inline constexpr std::uint32_t source_mask_00200000 = 0x00200000U;
+
 inline constexpr std::uint32_t source_high_mode_mask = 0x0F000000U;
 
-// Union of source flag bits observed across the current 68-file SCM corpus.
+// Union of source flag bits observed across the current structural SCM corpus.
 // EXE-supported masks are broader; absence from this corpus is not rejection.
 inline constexpr std::uint32_t observed_corpus_source_mask = 0x003A0003U;
 
@@ -44,6 +52,11 @@ struct Projection final {
     // Source high nibble causes runtime flag bit 15 and stores nibble-1 at +0x0D.
     bool high_mode_present{};
     std::uint8_t high_mode_minus_one{};
+
+    // Bits that the bounded recovered projection intentionally does not
+    // interpret. They remain part of source/effective flags and must survive
+    // round-trip authoring unchanged.
+    std::uint32_t preserved_undecoded_source_bits{};
 };
 
 [[nodiscard]] constexpr Projection project(std::uint32_t source_flags) noexcept {
@@ -95,6 +108,8 @@ struct Projection final {
         }
     }
 
+    out.preserved_undecoded_source_bits =
+        source_flags & source_mask_00200000;
     return out;
 }
 

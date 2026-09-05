@@ -19,6 +19,29 @@ Matrix4f multiply_dmc3_matrices(
     return result;
 }
 
+Matrix4f invert_dmc3_rigid_transform(const Matrix4f& matrix) noexcept {
+    Matrix4f result = identity_matrix();
+
+    for (std::size_t row = 0U; row < 3U; ++row) {
+        for (std::size_t column = 0U; column < 3U; ++column)
+            result.values[row * 4U + column] = matrix(column, row);
+    }
+
+    const auto tx = matrix(3U, 0U);
+    const auto ty = matrix(3U, 1U);
+    const auto tz = matrix(3U, 2U);
+    result.values[12] = -(tx * matrix(0U, 0U) +
+                          ty * matrix(0U, 1U) +
+                          tz * matrix(0U, 2U));
+    result.values[13] = -(tx * matrix(1U, 0U) +
+                          ty * matrix(1U, 1U) +
+                          tz * matrix(1U, 2U));
+    result.values[14] = -(tx * matrix(2U, 0U) +
+                          ty * matrix(2U, 1U) +
+                          tz * matrix(2U, 2U));
+    return result;
+}
+
 Matrix4f build_rotation_xyz_radians(
     const Vec3f& rotation_xyz_radians) noexcept {
     const auto cx = std::cos(rotation_xyz_radians.x);
