@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/formats/diagnostic.hpp"
+#include "dmc_rengine/formats/model_mesh_core.hpp"
 #include "dmc_rengine/formats/scm_render.hpp"
 #include "dmc_rengine/formats/scm_resource_code.hpp"
 
@@ -16,7 +17,8 @@ inline constexpr std::array<std::byte, 4> magic{
     std::byte{'S'}, std::byte{'C'}, std::byte{'M'}, std::byte{' '}};
 inline constexpr std::size_t header_size = 0x40U;
 inline constexpr std::size_t object_record_size = 0x40U;
-inline constexpr std::size_t mesh_record_size = 0x50U;
+inline constexpr std::size_t mesh_record_size =
+    model_family::MeshCoreAbi::record_size;
 inline constexpr std::size_t scene_block_header_size = 0x20U;
 inline constexpr std::size_t scene_transform_size = 0x20U;
 inline constexpr std::uint16_t index_workspace_sentinel = 0x1212U;
