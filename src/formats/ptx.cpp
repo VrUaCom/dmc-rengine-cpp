@@ -28,6 +28,19 @@ void add_diagnostic(
     return "ptx." + std::string(profiles::dmc3::to_string(status));
 }
 
+[[nodiscard]] gdspaces::DiagnosticSeverity map_severity(
+    ParseSeverity severity) noexcept {
+    switch (severity) {
+    case ParseSeverity::info:
+        return gdspaces::DiagnosticSeverity::info;
+    case ParseSeverity::warning:
+        return gdspaces::DiagnosticSeverity::warning;
+    case ParseSeverity::error:
+        return gdspaces::DiagnosticSeverity::error;
+    }
+    return gdspaces::DiagnosticSeverity::error;
+}
+
 } // namespace
 
 bool ScanResult::ok() const noexcept {
@@ -89,17 +102,45 @@ ScanResult Reader::scan(
 gdspaces::ContainerExpansion Reader::expand_dds_children(
     const gdspaces::ResourcePayload& parent,
     profiles::dmc3::TextureSlotFramingSafety safety) {
-    auto expansion = profiles::dmc3::TextureSlotExpander::expand(
-        parent, safety);
-
-    // The canonical backend also supports a single wrapped DDS slot. The PTX
-    // module is intentionally narrower: PTX means the validated bundle framing.
     const auto scan = Reader::scan(
         std::span<const std::byte>{parent.bytes.data(), parent.bytes.size()},
         safety);
     if (!scan.ok()) {
-        expansion.children.clear();
+        gdspaces::ContainerExpansion expansion{
+            .parent = parent.resource,
+            .parser_format = "PTX",
+            .children = {},
+            .diagnostics = {},
+        };
+        expansion.diagnostics.reserve(scan.diagnostics.size() + 1U);
+        for (const auto& diagnostic : scan.diagnostics) {
+            expansion.diagnostics.push_back(gdspaces::Diagnostic{
+                .severity = map_severity(diagnostic.severity),
+                .code = diagnostic.code,
+                .message = diagnostic.message,
+                .resource = parent.resource.id,
+            });
+        }
+        // A warning-only non-recognition must still make expansion unusable.
+        if (std::none_of(
+                expansion.diagnostics.begin(), expansion.diagnostics.end(),
+                [](const gdspaces::Diagnostic& diagnostic) {
+                    return diagnostic.severity ==
+                        gdspaces::DiagnosticSeverity::error;
+                })) {
+            expansion.diagnostics.push_back(gdspaces::Diagnostic{
+                .severity = gdspaces::DiagnosticSeverity::error,
+                .code = "ptx.expand.invalid-bundle",
+                .message = "DDS child expansion requires a structurally validated PTX texture bundle.",
+                .resource = parent.resource.id,
+            });
+        }
+        return expansion;
     }
+
+    // The canonical backend owns stable DDS child identity and provenance.
+    auto expansion = profiles::dmc3::TextureSlotExpander::expand(
+        parent, safety);
     expansion.parser_format = "PTX";
     return expansion;
 }
