@@ -183,5 +183,33 @@ int main() {
     assert(invalid_session->events().by_type(
         WorkspaceEventType::parser_completed).size() == 1U);
 
+    // PTX must be routed through the modular Native Reader even when the
+    // supplied bytes fail structural bundle validation. This regression locks
+    // parser registration/adaptation separately from the positive bundle tests.
+    const std::vector<std::byte> invalid_ptx(0x200U, std::byte{0});
+    const auto ptx = resource(
+        "texture/st001.ptx", "ptx", 0x5000U, invalid_ptx.size());
+    assert(project.create_session(ResourcePayload{
+        .resource = ptx,
+        .bytes = invalid_ptx,
+        .diagnostics = {},
+    }, stage_context));
+    const auto ptx_report = ResourceAnalyzer::analyze(project, ptx.id);
+    assert(!ptx_report.ok());
+    assert(ptx_report.parser_available);
+    assert(!ptx_report.recognized);
+    assert(ptx_report.parser_id == "formats.ptx-dmc3-reader");
+    assert(!ptx_report.binary_document_attached);
+    assert(!ptx_report.diagnostics.empty());
+    const auto* ptx_session = project.find_session(ptx.id);
+    assert(ptx_session != nullptr);
+    assert(ptx_session->format() != nullptr);
+    assert(ptx_session->format()->maturity == IntegrationMaturity::structural);
+    assert(ptx_session->format()->stage_category ==
+        StageResourceCategory::textures);
+    assert(ptx_session->binary_document() == nullptr);
+    assert(ptx_session->events().by_type(
+        WorkspaceEventType::parser_completed).size() == 1U);
+
     return 0;
 }
