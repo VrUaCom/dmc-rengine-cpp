@@ -92,8 +92,24 @@ int main() {
 
     const auto* dds = registry.find("dds");
     assert(dds != nullptr);
+    assert(dds->valid());
+    assert(dds->maturity == integration::IntegrationMaturity::structural);
+    assert(dds->parser_id == "formats.dds-dmc3-reader");
+    assert(dds->binary_adapter);
     assert(has_limitation(*dds, "0x140049A8E"));
     assert(has_limitation(*dds, "0x14004AD9D"));
+
+    const auto* ptx = registry.find("ptx");
+    assert(ptx != nullptr);
+    assert(ptx->valid());
+    assert(ptx->maturity == integration::IntegrationMaturity::structural);
+    assert(ptx->write_policy == integration::ResourceWritePolicy::read_only);
+    assert(ptx->parser_id == "formats.ptx-dmc3-reader");
+    assert(ptx->binary_adapter);
+    assert(ptx->stage_category == gdspaces::StageResourceCategory::textures);
+    assert(has_limitation(*ptx, "0x800-byte bundle header"));
+    assert(has_limitation(*ptx, "0x70-byte texture descriptors"));
+    assert(has_limitation(*ptx, "TextureSlotExpander"));
 
     const auto* tm2 = registry.find("tm2");
     assert(tm2 != nullptr);
