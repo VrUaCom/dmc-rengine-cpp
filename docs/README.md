@@ -9,6 +9,8 @@
 - [GDSpaces contract](gdspaces-contract.md)
 - [DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
 - [DMC3 HD machine-readable format-purpose registry](formats/dmc3-hd-format-purpose-registry.json)
+- [DMC3 HD format presence census](formats/dmc3-hd-format-presence-census.md)
+- [DMC3 HD machine-readable format presence census](formats/dmc3-hd-format-presence-census.json)
 - [DMC3 HD format-purpose closure pass — 2026-08-27](research/dmc3-format-purpose-closure-pass-2026-08-27.md)
 - [Format documentation index](formats/README.md)
 - [Status system](status/README.md)
@@ -65,13 +67,15 @@ Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver p
 - [Format documentation index](formats/README.md)
 - [Canonical DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
 - [Machine-readable DMC3 HD format-purpose registry](formats/dmc3-hd-format-purpose-registry.json)
+- [DMC3 HD format presence census](formats/dmc3-hd-format-presence-census.md)
+- [Machine-readable DMC3 HD format presence census](formats/dmc3-hd-format-presence-census.json)
 - [Direct format-purpose closure pass — 2026-08-27](research/dmc3-format-purpose-closure-pass-2026-08-27.md)
 - [HITS collision resource](formats/hits.md)
 - [PAC structural parser](formats/pac-readonly-parser.md)
 - [PNST structural parser](formats/pnst-readonly-parser.md)
 - [Residual DMC3 format census — 2026-08-26](gdspaces/l3-residual-format-pass-2026-08-26.md)
 
-The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. The JSON registry is its machine-readable companion and currently enumerates 66 evidence-tracked families, including rejected and synthetic-only entries needed to prevent historical claims from resurfacing as game truth. Both separate resource identity, subsystem purpose, binary-schema maturity, original-runtime evidence and current clean-product support. Unknown semantics stay explicitly bounded; extensions and short ASCII hits are never promoted as semantic truth by themselves.
+The format catalog is the canonical human-readable inventory of currently observed/named DMC3-HD resource families. The JSON purpose registry is its machine-readable semantic companion. The separate presence census records a different axis: whether real payload bytes are bound to a retail/corpus source, whether a family is currently known only from the EXE, whether a semantic working name rides over `.bin`/`.ukn`, or whether an identifier is capability-only. These axes must not be collapsed. Unknown semantics stay explicitly bounded; extensions and short ASCII hits are never promoted as semantic truth by themselves.
 
 ### Stage and downstream tools
 
