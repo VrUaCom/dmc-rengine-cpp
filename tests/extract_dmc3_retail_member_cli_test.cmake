@@ -44,14 +44,14 @@ if(NOT OVERLAY_RESULT EQUAL 0)
 endif()
 file(COPY_FILE "${OVERLAY_OUT}/DMC3-1.nbz" "${DATA_DIR}/DMC3-1.nbz" ONLY_IF_DIFFERENT)
 
-# Recovered runtime registration stops at the first missing volume. A later
-# in-domain file is diagnostic-only for reads and must not block or become a
-# mount. DMC3-2 is intentionally absent; DMC3-3 is deliberately malformed so
-# the test also proves it is never opened as a runtime archive.
+# Recovered filename discovery stops at the first missing volume. A later
+# in-domain file is diagnostic-only for discovery and must not be considered
+# for a successful mount topology. DMC3-2 is intentionally absent; DMC3-3 is
+# deliberately malformed so the test also proves it is never opened.
 file(WRITE "${DATA_DIR}/DMC3-3.nbz" "IGNORED-AFTER-FIRST-GAP")
 
 # A product-discovered suffix outside signed %d runtime domain is likewise
-# diagnostic-only and must not enter the mounted namespace.
+# diagnostic-only and must not enter discovery or the successful topology.
 file(WRITE "${DATA_DIR}/DMC3-2147483648.nbz" "IGNORED-OUTSIDE-RUNTIME-DOMAIN")
 
 # Acquisition may never publish evidence back into the retail tree.
@@ -94,9 +94,9 @@ if(NOT EXISTS "${RECEIPT}")
     message(FATAL_ERROR "acquisition receipt was not produced")
 endif()
 file(READ "${RECEIPT}" RECEIPT_TEXT)
-string(FIND "${RECEIPT_TEXT}" "\"schema_version\": 2" SCHEMA_POS)
+string(FIND "${RECEIPT_TEXT}" "\"schema_version\": 3" SCHEMA_POS)
 if(SCHEMA_POS EQUAL -1)
-    message(FATAL_ERROR "receipt schema version is not the artifact-bound contract")
+    message(FATAL_ERROR "receipt schema version is not the discovery/topology-separated artifact-bound contract")
 endif()
 string(FIND "${RECEIPT_TEXT}" "\"selected_volume_index\": 1" VOLUME_POS)
 if(VOLUME_POS EQUAL -1)
@@ -104,11 +104,19 @@ if(VOLUME_POS EQUAL -1)
 endif()
 string(FIND "${RECEIPT_TEXT}" "GDataX360.afs/retail-test.pac" MEMBER_POS)
 if(MEMBER_POS EQUAL -1)
-    message(FATAL_ERROR "receipt does not preserve resolved runtime archive member identity")
+    message(FATAL_ERROR "receipt does not preserve resolved product archive member identity")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"bootstrap_discovery\"" DISCOVERY_POS)
+if(DISCOVERY_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not separate filename discovery from mount topology")
 endif()
 string(FIND "${RECEIPT_TEXT}" "\"first_missing_index\": 2" GAP_POS)
 if(GAP_POS EQUAL -1)
-    message(FATAL_ERROR "receipt does not preserve first-gap runtime mount boundary")
+    message(FATAL_ERROR "receipt does not preserve first-gap discovery boundary")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"discovered_archive_count\": 2" DISCOVERED_COUNT_POS)
+if(DISCOVERED_COUNT_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not preserve discovered archive count")
 endif()
 string(FIND "${RECEIPT_TEXT}" "\"ignored_after_first_gap_count\": 1" AFTER_GAP_POS)
 if(AFTER_GAP_POS EQUAL -1)
@@ -117,6 +125,18 @@ endif()
 string(FIND "${RECEIPT_TEXT}" "\"ignored_outside_runtime_domain_count\": 1" OUTSIDE_DOMAIN_POS)
 if(OUTSIDE_DOMAIN_POS EQUAL -1)
     message(FATAL_ERROR "receipt does not preserve out-of-domain diagnostic evidence")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"product_mount_topology\"" TOPOLOGY_POS)
+if(TOPOLOGY_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not include explicit product successful-mount topology")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"successful_archive_count\": 2" SUCCESS_COUNT_POS)
+if(SUCCESS_COUNT_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not preserve successful product archive count")
+endif()
+string(FIND "${RECEIPT_TEXT}" "\"original_process_mount_topology_proven\": false" ORIGINAL_TOPOLOGY_POS)
+if(ORIGINAL_TOPOLOGY_POS EQUAL -1)
+    message(FATAL_ERROR "receipt does not fail closed on original-process mount-topology authority")
 endif()
 string(FIND "${RECEIPT_TEXT}" "\"evidence_class\": \"artifact-bound-retail-member-acquisition\"" CLASS_POS)
 if(CLASS_POS EQUAL -1)

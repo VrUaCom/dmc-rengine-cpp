@@ -1,101 +1,181 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-08-24  
-**Canonical base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`
+**Snapshot:** 2026-09-05  
+**Canonical base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
+**Completion model:** evidence-gated, not percentage-gated.
 
-The project roadmap is dependency-driven rather than a linear feature checklist. The current primary execution program is **GDSpaces Layer 1 — Resource Materialization**. Its detailed acceptance gates live in [GDSpaces L1 Roadmap](gdspaces/l1-roadmap.md).
+This roadmap distinguishes four different things that must never be conflated:
 
-## Current critical path — GDSpaces L1
+- ✅ **PROVEN / CLOSED** — the claim is supported at the required authority level. Original-DMC3 behavior requires a bounded reverse pass against the canonical executable and, where the claim is corpus/runtime-specific, matching corpus or original-process evidence.
+- ⚠️ **IMPLEMENTED / PROOF OPEN** — DMC Rengine code exists and may have green tests/CI, but the original-game or real-retail proof required by the claim is still open, or the implementation is still awaiting canonical promotion.
+- ❌ **OPEN** — mandatory implementation, reverse, corpus, runtime or acceptance evidence is still missing.
+- ➖ **PRODUCT POLICY / REVERSE N/A** — deliberate DMC Rengine safety/product policy. It is validated by code/tests/CI and is not claimed to reproduce Capcom behavior.
+
+Synthetic tests and public CI prove DMC Rengine behavior only. They do not by themselves prove original-game equivalence.
+
+Detailed proof matrix: [GDSpaces proof roadmap — 2026-09-05](gdspaces/proof-roadmap-2026-09-05.md).
+
+## 1. Canonical executable and reverse authority
+
+- ✅ Canonical `dmc3.exe` identity: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432, PE32+ x86-64, ImageBase `0x140000000`.
+- ✅ Numbered DMC3 volume bootstrap / `DMC3-%d.nbz` / first-gap discovery is instruction-backed.
+- ✅ `OpenGameResource` bounded direct-call surface, six-prefix candidate policy and archive-then-physical phases are instruction-backed.
+- ✅ Archive `0x0E` and physical `0x0C` normalization semantics are instruction-backed.
+- ✅ Type-0 physical final-open bounded contract is reverse-backed.
+- ✅ LoadedResource central state spine and typed-post-load ordering are reverse-backed in the bounded canonical scope.
+- ❌ Full original-runtime behavioral equivalence is not claimed.
+
+## 2. GDSpaces L1 — Resource Materialization
+
+### Product invariants
+
+- ➖ Atomic/no-replace publication — DMC Rengine safety invariant; closed by implementation/tests/CI.
+- ➖ Artifact-bound SHA / ByteProvenance — DMC Rengine evidence invariant; closed by implementation/tests/CI.
+
+### Original/runtime-backed materialization facts
+
+- ✅ NBZ numbered-volume/first-gap behavior — reverse-backed.
+- ✅ PAC/PNST runtime recognition and recursive materialized-child traversal — reverse-backed in the recovered dispatcher scope.
+- ✅ PAC physical slot 0 is traversed; it is not a privileged runtime manifest slot.
+- ⚠️ NBZ normal-read implementation (STORE/raw-DEFLATE, indexing/materialization) — product path is implemented and heavily tested, but complete original ZIP stream lifetime/seek/reset/error equivalence remains bounded-open.
+- ⚠️ PAC/PNST size-changing and nested writer pipeline — DMC Rengine authoring is implemented; original-game acceptance of authored output is still open. Capcom offline writer equivalence is not required.
+
+### L1 acceptance gates
+
+- ❌ Direct-retail resolver-selected provenance receipt from a protected installation.
+- ❌ Exact retail representation classification for the selected bytes.
+- ❌ Representative real edit + bottom-up rebuild + rematerialization receipt.
+- ❌ Proof that the authored higher-numbered NBZ is selected by the original runtime.
+- ❌ Original DMC3 consumer-visible effect attributable to the authored bytes.
+- ❌ Rollback receipt proving original retail artifacts remain unchanged.
+- ❌ Final L1 cross-stack audit.
+
+**L1 COMPLETE:** ❌ NO.
+
+## 3. GDSpaces L2 — Resource Resolution
+
+- ✅ `OpenGameResource` direct caller census and bounded `flags=1` policy.
+- ✅ Mount-list construction and clean higher-numbered precedence are reverse-backed.
+- ✅ Archive `0x0E` normalization algorithm is reverse-backed.
+- ✅ Retail `dmc3-0.nbz` normalized-key census: 4,333 file keys / 4,333 unique / 0 collisions; scope is this archive only.
+- ✅ Type-0 physical-provider final-open/miss behavior in the recovered direct-call scope.
+- ⚠️ Discovery != successful mount topology — reverse proof is closed and the product correction is implemented on PR #287; it remains non-canonical until final CI/review and promotion to `main`.
+- ❌ Per-volume + cross-volume collision census for any resolver scope wider than the bound `dmc3-0.nbz` artifact.
+- ❌ Real protected-distribution R2B multi-anchor mapping receipt.
+- ❌ Trusted original-process R3 selected-provider identity trace.
+- ❌ Direct-retail original resolver winner receipt.
+- ❌ Final L2 audit.
+
+**L2 COMPLETE:** ❌ NO.
+
+## 4. GDSpaces L3 — Original Runtime / Lifecycle
+
+Reverse-backed bounded core:
+
+- ✅ LoadedResource acquisition publishes state 1 only after the materialization dispatcher succeeds.
+- ✅ Normal completion publishes state `1 -> 2` through `0x1401B8DC0`.
+- ✅ State2 finalizer order: typed post-load -> optional callback -> state3.
+- ✅ Canonical cancellation writer source domain `1|2 -> 4`.
+- ✅ Quiescence requires every record to be in `{0,3}`.
+- ✅ Ordinary release, cancellation cleanup and forced reset have distinct state-zero/backing-release ordering.
+- ✅ Central typed dispatcher recognizes recovered MOD/EFM/SCM/SHW paths and recursively walks PNST in the bounded path.
+
+Still open:
+
+- ❌ Canonical promotion of the final L3-R1 contradiction-gated closure onto current `main`.
+- ❌ L3-R2 family/backing ownership closure for `+0x08/+0x10/+0x18/+0x20/+0x28` and stable adjacent fields.
+- ❌ Exact terminal materialization scheduler condition that prevents normal state2 publication on failed/incomplete transport.
+- ❌ V1 initial-load original-process receipt.
+- ❌ V2 room/stage transition receipt.
+- ❌ V3 restart/reload receipt.
+- ❌ V4 return-to-menu/full-reset receipt.
+- ❌ V5 in-flight cancellation receipt.
+- ❌ V6 shutdown receipt.
+- ❌ V7 family/build breadth.
+- ❌ Final L3 audit.
+
+**L3 COMPLETE:** ❌ NO.
+
+## 5. Native Reader / format coverage
+
+Current canonical modular Native Reader modules on `main`:
+
+- ✅ DDS structural reader.
+- ✅ PTX structural reader.
+- ✅ HITS reader.
+- ✅ DCA reader.
+- ✅ LIG2/LIG reader.
+- ✅ Stage TXT reader.
+- ✅ SCM structural reader.
+- ✅ MOD structural reader.
+- ✅ PE/EXE reader.
+
+Evidence boundaries:
+
+- ✅ SCM structural reader is backed by dedicated EXE/corpus reverse packets for layout, hierarchy/world transform and runtime flags.
+- ✅ MOD structural reader is backed by EXE-family evidence and a hash-bound real payload structural binding.
+- ⚠️ DDS/PTX reader behavior is evidence-backed for the promoted DMC3 profiles, but authoring is not promoted by read support.
+- ❌ EFM is not yet a canonical Native Reader module on current `main`.
+- ❌ MOT is not yet a canonical Native Reader module on current `main`.
+- ❌ SHW is not yet a canonical Native Reader module on current `main`.
+- ❌ MRP/MCV/CAM/CLT/TSC and other recognized families require evidence-gated structural promotion before reader claims.
+
+Writers:
+
+- ❌ SCM canonical production writer authority.
+- ❌ MOD writer authority.
+- ❌ DDS/PTX texel/production authoring authority through Native Reader.
+- ❌ Edited model/texture original-game acceptance receipts.
+
+## 6. Current P0 proof track
+
+The highest-value next proof is one same-lineage vertical chain:
 
 ```text
-publication integrity
- -> artifact-stable retail member acquisition
- -> direct-retail provenance receipt
- -> retail representation classification
- -> bounded real edit
- -> PAC/PNST bottom-up rebuild
- -> next-volume NBZ publication
- -> canonical resolver/reopen/rematerialization
- -> original DMC3 consumption receipt
- -> final L1 acceptance audit
+OpenGameResource(request)
+ -> discovered archives
+ -> successful mount topology
+ -> actual selected DMC3-N/provider/member
+ -> exact materialized bytes
+ -> PAC/PNST expansion when applicable
+ -> typed resource post-load
+ -> LoadedResource state3
+ -> deterministic consumer-visible effect
 ```
 
-Current immediate work order:
+For authoring acceptance the same chain must then be repeated with an exact DMC Rengine-authored higher-numbered NBZ and rollback.
 
-1. unify atomic/no-replace publication across NBZ repack, overlay and acquisition outputs;
-2. bind NBZ index/member bytes/archive SHA to one stable artifact observation;
-3. correct and promote the retail-member acquisition seam (#191);
-4. acquire an exact retail receipt using game request `obj\\em000.pac` and record the actual resolver-selected member;
-5. classify the direct-retail texture/container representation;
-6. use only an evidenced writer domain for the real edit/rebuild;
-7. publish as the next contiguous `DMC3-N.nbz`, reopen through canonical GDSpaces and verify exact edited bytes;
-8. obtain an original-game consumption receipt on the protected distribution execution authority;
-9. perform final cross-stack review before any L1 completion claim.
+Execution order:
 
-## Maintained foundations
+1. ✅ preserve existing static reverse authority for bootstrap, mount-list construction, resolver masks and normalization;
+2. ⚠️ mount-topology product correction implemented on PR #287; final CI/review and promotion remain;
+3. ❌ obtain/process a real protected-process R2B mapping packet;
+4. ❌ capture trusted selected-provider/member identity without synthesizing probes;
+5. ❌ bind selected member to independently materialized SHA/provenance;
+6. ❌ bind materialization success to LoadedResource lifecycle observation;
+7. ❌ repeat with authored next-volume overlay;
+8. ❌ observe deterministic original-game effect and rollback;
+9. ❌ run final L1/L2/L3 contradiction audits independently.
 
-The following are established infrastructure and remain continuously maintained rather than treated as future phases:
+## 7. Long-term milestones
 
-- C++20/CMake and Windows + Ubuntu CI;
-- evidence/artifact identity and hash-gated EXE analysis;
-- GDSpaces ResourceId/ResourceRef/ByteProvenance/SourceRegistry;
-- canonical PAC/PNST/NBZ read/materialization paths;
-- WorkingCopy and bounded authoring contracts;
-- Binary Inspector byte/structure authority;
-- Reverse Core and Recovered Game Source Tree boundaries;
-- guarded patch/export and validation infrastructure.
+1. ❌ GDSpaces L1 accepted with real retail provenance, authored rebuild/reopen and original-game consumption receipt.
+2. ❌ Narrow L2 closure with trusted selected-provider identity.
+3. ❌ Representative L3 lifecycle validation across load/reload/transition/cancellation/release.
+4. ❌ Stage Ops game-backed assembly over representative catalog selections.
+5. ❌ Stable Stage Semantic Graph and ModViz editing verticals.
+6. ❌ First bounded recovered-subsystem behavioral-equivalence receipt.
+7. ❌ Progressive recompilation with controlled replacement modules.
+8. ❌ Working rebuilt executable milestones without weakening evidence gates.
 
-## GDSpaces L2 — Resource Resolution
+## 8. Completion rule
 
-L2 is structurally advanced. Candidate construction, numbered-volume bootstrap/precedence, archive normalization/index lookup and resolver ownership are strong. Remaining work is narrow evidence closure, especially exact type-0 physical-provider final-open semantics and representative real receipts.
+A checkbox becomes ✅ only at the authority required by its claim:
 
-L2 work may proceed when it supports L1, but it must not displace L1 closure.
+- DMC Rengine product policy: implementation + regression tests + exact-head CI;
+- original DMC3 static behavior: canonical-EXE reverse with exact addresses/ranges and contradiction review;
+- retail corpus claim: hash-bound real corpus receipt using the recovered algorithm;
+- protected/original-process claim: trusted runtime receipt bound to the exact process/build/artifacts;
+- authoring acceptance: generated artifact identity + original-game selection/consumption + rollback.
 
-## Original runtime / lifecycle
-
-Recovered DMC3 resource runtime contains a substantial static spine: FileSlot/AsyncIO, ZIP read/inflate, LoadedResource state progression, typed post-load, loader claims and reset/release behavior. Remaining work includes exact open/error boundaries, selected ZIP helper bodies, broader dynamic lifecycle traces and Level-E validation.
-
-Original runtime code remains in the Recovered Game Source Tree; GDSpaces consumes only confirmed contracts.
-
-## Stage Ops and Stage Semantic Graph
-
-After L1 has a real retail edit/rebuild/game-consumption receipt, Stage Ops becomes the primary product-side integration frontier:
-
-```text
-GDSpaces resolved/materialized resources
- -> Stage Ops assembly/orchestration
- -> Stage Semantic Graph
- -> ModViz
-```
-
-Stage Ops must never create a second resource resolver/materializer. Stage descriptor identity, numeric Stage identity and semantic gameplay identity remain distinct.
-
-## EXE Editor / recovered source
-
-The EXE Editor continues to become the front end over the Recovered Game Source Tree, exact binary mappings and evidence identities. Progressive reconstruction goals are:
-
-- exact function/data identities;
-- source-equivalent bounded C++ units;
-- ABI/ownership/lifetime reconciliation;
-- isolated compilation;
-- controlled original-vs-reconstruction behavioral receipts;
-- progressive replacement/recompilation milestones.
-
-Readable pseudocode or compile success alone is not completion.
-
-## ModViz / editor verticals
-
-ModViz remains downstream of Stage Ops and shared resource authority. High-value editor verticals should be built only over canonical GDSpaces/Stage Ops state so resource parsing, scene assembly and edit ownership do not fork.
-
-## Long-term milestones
-
-1. **GDSpaces L1 accepted** with real retail provenance, rebuild/reopen and original-game consumption receipt.
-2. **Narrow L2 closure** including exact physical-provider behavior where required.
-3. **Representative L3 lifecycle validation** across load/reload/transition/release.
-4. **Stage Ops game-backed assembly** over representative catalog selections.
-5. **Stable Stage Semantic Graph and ModViz editing verticals.**
-6. **First bounded recovered subsystem behavioral equivalence receipt.**
-7. **Progressive recompilation** with controlled replacement modules.
-8. **Working rebuilt executable milestones** without weakening evidence gates.
-
-No milestone is promoted because of synthetic tests alone. See [completion policy](status/current.md), [blockers](status/blockers.md), and the [canonical L1 roadmap](gdspaces/l1-roadmap.md).
+Readable pseudocode, parser success, synthetic fixtures, CI green status or a crash-free launch alone cannot promote original-game equivalence.
