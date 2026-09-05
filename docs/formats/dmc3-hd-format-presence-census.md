@@ -19,6 +19,7 @@ Machine-readable companion: [dmc3-hd-format-presence-census.json](dmc3-hd-format
 | `RETAIL_VOLUME_CONFIRMED` | the container/volume itself is a bound retail artifact |
 | `RETAIL_MEMBER_CONFIRMED` | a file with this extension/name is present directly in a bound retail archive central-directory surface |
 | `CORPUS_PAYLOAD_CONFIRMED` | real payload bytes were supplied/extracted and structurally or semantically bound to this family; this does not necessarily establish the original retail filename/extension |
+| `CORPUS_LABEL_CONFIRMED` | the family/variant label occurs in retained corpus/naming evidence, but this status does not assert a canonical raw payload receipt |
 | `WORKING_NAME_OVER_OTHER_EXTENSION` | project semantic name for bytes whose observed physical/extracted filename uses another extension |
 | `EXE_ONLY_NOT_BOUND` | original EXE recognizes/references the family, but current canonical documentation has no bound real payload receipt for it |
 | `CAPABILITY_ONLY` | executable/media layer supports the format class; shipped DMC3 asset presence is not claimed |
@@ -75,6 +76,15 @@ The current project has real payload/corpus evidence for the following semantic 
 
 This table records **payload presence**, not completion of the reverse. Many of these formats still have partially unknown fields or no writer.
 
+### Corpus labels that are not yet promoted to raw-payload receipts
+
+Two families need an intermediate status so naming evidence is not confused with a byte receipt:
+
+| Family | Presence | Boundary |
+|---|---|---|
+| `HID` / `HID2` / `HID3` | `CORPUS_LABEL_CONFIRMED` | base `HID` is EXE-registered and `HID2/HID3` are retained corpus variants; this census does not claim a canonical raw HID payload receipt |
+| `SEF` | `CORPUS_LABEL_CONFIRMED` | corpus/data-led family evidence exists, but the exact direct original consumer and a canonical raw payload binding remain open |
+
 ## 4. Working semantic names that must not be mistaken for physical extensions
 
 ### `SO`
@@ -110,7 +120,6 @@ The following families are real original-runtime identities or references, but c
 | `MCV` | `EXE_ONLY_NOT_BOUND` | motion/control manager + family-mask identity confirmed |
 | `CLT` | `EXE_ONLY_NOT_BOUND` | cloth/deformation manager identity confirmed |
 | `C1D` | `EXE_ONLY_NOT_BOUND` | ClothSim1D identity/subsystem confirmed |
-| `HID` | `EXE_ONLY_NOT_BOUND` | hide/visibility-control manager identity confirmed; corpus variant labels do not by themselves bind a current raw payload receipt |
 | `TSC` | `EXE_ONLY_NOT_BOUND` | motion/control manager identity confirmed; semantic role/schema open |
 | `PTZ` | `EXE_ONLY_NOT_BOUND` | canonical asset-table/reference relationship to texture resources confirmed |
 | `EFE` | `EXE_ONLY_NOT_BOUND` | container-dispatch sentinel/prefix recognized; no normal handler/schema recovered |
@@ -119,8 +128,6 @@ The following families are real original-runtime identities or references, but c
 | `SPUMAPDT` / `SpuMap.bin` | `EXE_ONLY_NOT_BOUND` | parser/path identity confirmed; no current raw payload receipt is promoted here |
 | `options.sav` | `EXE_ONLY_NOT_BOUND` | persistence path/subsystem known; exact binary schema remains open |
 | `ICO` / `icon.sys` | `EXE_ONLY_NOT_BOUND` | executable asset catalog references exist; HD runtime use/payload interpretation remains open |
-
-`SEF` is deliberately not promoted to this table as EXE-only: current catalog evidence is corpus/data-led and its direct original consumer still needs reacquisition.
 
 ## 6. Capability-only media identifiers
 
@@ -138,11 +145,11 @@ Prefer these when the goal is fast structural closure or Native Reader coverage:
 
 `FON`, `PHD`, `TSB`, `BD`, `EventTbl`, `EVE`, `POS`, `STE`, `EST`, `MOT`, plus remaining unknown `.bin`/`.ukn` payloads.
 
-### Queue B — EXE-known but payload acquisition still required
+### Queue B — identity known, but raw payload acquisition/binding still required
 
-Do not start by inventing structures from dispatcher code alone. First locate/acquire a real payload for:
+Do not start by inventing structures from dispatcher code or corpus labels alone. First locate/acquire and bind a real payload for:
 
-`MRP`, `EFM`, `MCV`, `CLT`, `C1D`, `HID`, `TSC`, `PTZ`, `EFE`, `EFW`, and other EXE-only families.
+`MRP`, `EFM`, `MCV`, `CLT`, `C1D`, `HID`, `TSC`, `PTZ`, `EFE`, `EFW`, `SEF`, and other EXE-only/label-only families.
 
 For Queue B, a successful acquisition should record:
 
@@ -156,6 +163,7 @@ For Queue B, a successful acquisition should record:
 
 - This census does not prove that an `EXE_ONLY_NOT_BOUND` family is absent from DMC3.
 - The measured retail central-directory surface covers `dmc3-0.nbz` only.
+- A corpus label is not automatically a raw payload receipt.
 - A family present under `.bin`/`.ukn` must not be renamed physically merely because its semantic identity is known.
 - A real payload does not imply a complete parser, writer, or original-game authoring equivalence.
 - Media capability identifiers are not shipped-asset evidence.
