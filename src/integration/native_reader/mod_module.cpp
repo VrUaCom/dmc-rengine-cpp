@@ -24,7 +24,6 @@ void analyze_mod(
 NativeReaderModule mod() {
     return NativeReaderModule{
         .parser_id = "formats.mod-structural-v1",
-        .format = "mod",
         .consumer = gdspaces::ToolTarget::modviz_scene,
         .link_format_evidence = true,
         .analyze = &analyze_mod,
