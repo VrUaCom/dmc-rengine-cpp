@@ -79,6 +79,27 @@ bool add_vec3(
                binary::FieldKind::floating_point, "f32_le", float_text(value.z), structure_id);
 }
 
+bool add_cell_extent(
+    binary::Document& document,
+    std::uint64_t offset,
+    const CellExtent& value,
+    std::string_view parent) {
+    const auto structure_id = std::string("hits-cell-size");
+    if (!add_field(document, structure_id, "Cell extent", offset, 12U,
+            binary::FieldKind::structure, "u32_le[3]", {}, std::string(parent))) {
+        return false;
+    }
+    return add_field(document, structure_id + "-x", "X extent", offset, 4U,
+               binary::FieldKind::unsigned_integer, "u32_le",
+               number_text(value.x), structure_id) &&
+        add_field(document, structure_id + "-y", "Y extent", offset + 4U, 4U,
+               binary::FieldKind::unsigned_integer, "u32_le",
+               number_text(value.y), structure_id) &&
+        add_field(document, structure_id + "-z", "Z extent", offset + 8U, 4U,
+               binary::FieldKind::unsigned_integer, "u32_le",
+               number_text(value.z), structure_id);
+}
+
 } // namespace
 
 std::optional<binary::Document> build_binary_document(
@@ -114,7 +135,7 @@ std::optional<binary::Document> build_binary_document(
             scan.header.bounds_min, header_parent) ||
         !add_vec3(document, "hits-bounds-max", "Bounds maximum", 0x14U,
             scan.header.bounds_max, header_parent) ||
-        !add_vec3(document, "hits-cell-size", "Cell size", 0x20U,
+        !add_cell_extent(document, 0x20U,
             scan.header.cell_size, header_parent) ||
         !add_field(document, "hits-grid-x", "Grid count X", 0x2CU, 4U,
             binary::FieldKind::unsigned_integer, "u32_le",
@@ -140,7 +161,7 @@ std::optional<binary::Document> build_binary_document(
     static_cast<void>(document.add_ownership(binary::OwnershipClaim{
         .owner_id = "formats.hits.header",
         .range = {.offset = 0U, .size = header_size},
-        .rationale = "EXE-confirmed HITS header fields.",
+        .rationale = "EXE-confirmed HITS header fields, including integer cell extents at +0x20.",
     }));
 
     const auto spatial_offset = scan.header.spatial_offset();

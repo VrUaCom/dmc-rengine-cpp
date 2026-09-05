@@ -75,7 +75,9 @@ void write_triangle(
     write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
     write_vec3(bytes, 0x08U, -10.0F, -2.0F, -10.0F);
     write_vec3(bytes, 0x14U, 10.0F, 2.0F, 10.0F);
-    write_vec3(bytes, 0x20U, 10.0F, 4.0F, 20.0F);
+    write_u32(bytes, 0x20U, 10U);
+    write_u32(bytes, 0x24U, 4U);
+    write_u32(bytes, 0x28U, 20U);
     write_u32(bytes, 0x2CU, 2U);
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
@@ -132,6 +134,9 @@ int main() {
     const auto source_bytes = make_fixture();
     const auto source_scan = RecordScanner::scan(source_bytes);
     assert(source_scan.ok());
+    assert(source_scan.header.cell_size.x == 10U);
+    assert(source_scan.header.cell_size.y == 4U);
+    assert(source_scan.header.cell_size.z == 20U);
     assert(source_scan.header.spatial_offset() == 0x44U);
     assert(source_scan.header.triangle_offset() == 0x64U);
     assert(source_scan.cells[0].pointer_offset == 0x44U);
@@ -165,6 +170,9 @@ int main() {
     assert(rebuilt.header.spatial_offset() == 0x44U);
     assert(rebuilt.header.triangle_count == 2U);
     assert(rebuilt.locations.size() == 2U);
+    assert(read_i32(rebuilt.bytes, 0x20U) == 10);
+    assert(read_i32(rebuilt.bytes, 0x24U) == 4);
+    assert(read_i32(rebuilt.bytes, 0x28U) == 20);
     assert(rebuilt.locations[0].stable_id == 100U);
     assert(rebuilt.locations[0].triangle_index == 0U);
     assert(rebuilt.locations[0].triangle_byte_offset == 0U);
@@ -245,6 +253,33 @@ int main() {
         added_scan.cells[1].triangle_byte_offsets.begin(),
         added_scan.cells[1].triangle_byte_offsets.end(),
         0x70U) != added_scan.cells[1].triangle_byte_offsets.end());
+
+    // Regression for the stock-corpus boundary case: a triangle exactly on
+    // x=0 touches both closed cells [-10,0] and [0,10]. The old AABB range
+    // candidate selection dropped the preceding cell before SAT could test it.
+    auto boundary_surfaces = SpatialWriter::surfaces_from_scan(source_scan, 700U);
+    boundary_surfaces.push_back(Surface{
+        .stable_id = 702U,
+        .flags = 0x00000001U,
+        .point_a = Vec3{0.0F, 0.0F, 0.0F},
+        .point_b = Vec3{0.0F, 1.0F, 0.0F},
+        .point_c = Vec3{0.0F, 0.0F, 1.0F},
+    });
+    const auto boundary = SpatialWriter::rebuild(
+        source_scan,
+        source_bytes,
+        boundary_surfaces);
+    assert(boundary.ok());
+    const auto boundary_scan = RecordScanner::scan(boundary.bytes);
+    assert(boundary_scan.ok());
+    assert(std::find(
+        boundary_scan.cells[0].triangle_byte_offsets.begin(),
+        boundary_scan.cells[0].triangle_byte_offsets.end(),
+        0x70U) != boundary_scan.cells[0].triangle_byte_offsets.end());
+    assert(std::find(
+        boundary_scan.cells[1].triangle_byte_offsets.begin(),
+        boundary_scan.cells[1].triangle_byte_offsets.end(),
+        0x70U) != boundary_scan.cells[1].triangle_byte_offsets.end());
 
     auto one_surface = SpatialWriter::surfaces_from_scan(source_scan, 300U);
     one_surface.erase(one_surface.begin());
