@@ -1,0 +1,138 @@
+{
+  "schema": "dmc-rengine.dmc3-runtime-type-identification.v1",
+  "status": "exe-confirmed",
+  "artifact": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000",
+    "pe": "PE32+ x86-64"
+  },
+  "supersedes": [
+    "global claim that the runtime compares exactly five payload tags",
+    "global claim that DMC3 resource identification always ignores byte 3"
+  ],
+  "identification_paths": [
+    {
+      "id": "registry-content-probe",
+      "va": "0x1402DB1F0",
+      "file_offset": "0x2DA5F0",
+      "window_size": "0x72",
+      "window_sha256": "4e614cc2d0168d6049a449ed4a1c6a78e0ebdd6b5c4b9699fabd98a63c153d19",
+      "byte_width": 3,
+      "fourth_byte_significant": false,
+      "returns": {
+        "MOD": 0,
+        "EFM": 1,
+        "SCM": 2,
+        "MRP": 3,
+        "SHW": 7,
+        "other": -1
+      },
+      "direct_call_sites": [
+        "0x1402D9184",
+        "0x1402DB5A2"
+      ],
+      "notes": [
+        "This is a scoped registry/content probe, not the only runtime type classifier.",
+        "MODX still returns model because only bytes 0..2 are inspected at this site."
+      ]
+    },
+    {
+      "id": "register-and-classify",
+      "va": "0x1402DB3C0",
+      "file_offset": "0x2DA3C0",
+      "window_size": "0x2CC",
+      "window_sha256": "86c670d76a5a8618006ce76f64cc845b9c750081c8e425dd050604213bb7dbd3",
+      "precedence": [
+        "filename substring extension checks",
+        "registry-content-probe"
+      ],
+      "extension_match_import_slot": "0x14034F3D0",
+      "extension_match_function": "strstr",
+      "handlers": {
+        "0": "0x1402FE3B0",
+        "1": "0x1402F7A90",
+        "2": "0x1403051B0",
+        "3": null,
+        "7": "0x1403204C0"
+      }
+    },
+    {
+      "id": "container-dispatcher",
+      "va": "0x1401B9FA0",
+      "file_offset": "0x1B93A0",
+      "window_size": "0xF0",
+      "window_sha256": "7639949ae6c572589a975fb930b496c473d7fffd0caf3e5bdfafe5d1fb4e5671",
+      "handled_three_byte_tags": {
+        "MOD": "0x1402FE3B0",
+        "EFM": "0x1402F7A90",
+        "SCM": "0x1403051B0",
+        "SHW": "0x1403204C0"
+      },
+      "recognized_without_handler": [
+        "EFW",
+        "EFE"
+      ],
+      "container_recursion": {
+        "magic": "PNST",
+        "byte_width": 4,
+        "recursive_call_va": "0x1401BA073"
+      },
+      "notes": [
+        "MRP is absent from this handler dispatcher even though the registry probe returns type code 3 for MRP.",
+        "EFW and EFE are compared and then return through the no-handler path; their semantic purpose remains unknown."
+      ]
+    },
+    {
+      "id": "family-mask-probe",
+      "va": "0x1402FD650",
+      "file_offset": "0x2FCA50",
+      "window_size": "0x273",
+      "window_sha256": "a31a8c1e225bc62c07dea05921c42eeff85c28b2f4872713594262e579b91961",
+      "byte_width": 4,
+      "fourth_byte_significant": true,
+      "required_fourth_byte": "0x20",
+      "returns": {
+        "MOD ": "0x10000000",
+        "EFM ": "0x20000000",
+        "SCM ": "0x30000000",
+        "MRP ": "0x40000000",
+        "MCV ": "0x50000000",
+        "SHW ": "0x60000000",
+        "other": "0x00000000"
+      },
+      "direct_call_sites": [
+        "0x14024815C",
+        "0x140270735",
+        "0x1402F2A1F",
+        "0x1402F2B0D",
+        "0x1402F2D61",
+        "0x1402F2FE2",
+        "0x1402F313B",
+        "0x1402F39BE",
+        "0x1402F3A9C",
+        "0x1402F5310",
+        "0x1402F9628",
+        "0x1402FD8FD",
+        "0x1402FDB68",
+        "0x140307374"
+      ],
+      "direct_call_site_count": 14,
+      "notes": [
+        "MODX does not match this classifier; MOD<space> does.",
+        "MCV<space> is runtime-recognized here even though MCV is absent from the three-byte registry probe."
+      ]
+    }
+  ],
+  "direct_call_sweep_summary": {
+    "registry_content_probe_calls": 2,
+    "family_mask_probe_calls": 14,
+    "total_calls_to_both_probes": 16
+  },
+  "negative_and_boundary_facts": {
+    "HITS_ascii_occurrences_in_artifact": 0,
+    "HITS_runtime_tag_status": "not established by these runtime identification paths",
+    "LIG2_ascii_occurrences_in_artifact": 1,
+    "scope_rule": "Do not generalize one identification path's byte width, tag set, or return code namespace to another path."
+  }
+}

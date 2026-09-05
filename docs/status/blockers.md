@@ -1,189 +1,231 @@
 # Current Blockers
 
-**Snapshot date:** 2026-08-26  
-**Canonical base:** `main@eb701b9c523a3ec87f3c73bb8764038f1f2ef8dc`  
-**Active L2 evidence slice:** PR #221
+**Snapshot date:** 2026-09-05  
+**Canonical base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
+**Active proof/integration slice:** PR #287  
+**Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
 
-The canonical Layer-1 execution order is [GDSpaces L1 Roadmap](../gdspaces/l1-roadmap.md). The cross-layer dependency order is [GDSpaces Master Roadmap](../gdspaces/master-roadmap.md).
+The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [GDSpaces Proof Roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
 
 ## P0 — GDSpaces L1 completion blockers
 
-There is no known mandatory internal product-code blocker for the current representative DMC3-HD L1 acceptance scope.
-
-The remaining P0 gates are evidence executions.
-
 ### B-L1-01 — Direct-retail representative provenance
 
-**Status:** EXTERNAL REAL-RETAIL RECEIPT REQUIRED
+**Status:** ❌ TRUSTED ORIGINAL/PROTECTED-PROCESS RECEIPT REQUIRED
 
-Run the canonical direct-retail acquisition command against a protected DMC3 installation and preserve:
+Product acquisition tooling exists, but it does not prove what the original protected process selected. A valid receipt must preserve:
 
 - protected executable authority;
-- observed numbered-volume topology;
-- resolver-selected volume/archive/member identity;
+- observed successful mount topology;
+- resolver-selected provider/volume/archive/member identity;
 - archive SHA/size;
 - central-entry metadata;
 - materialized SHA/size;
-- compression transform and ByteProvenance.
+- transform and ByteProvenance;
+- trusted observer identity and zero-loss trace state where runtime observation is used.
 
-`obj\em000.pac` is a high-value request, not a predeclared archive member. Another representative request is acceptable if it gives a stronger deterministic authoring/consumer receipt.
+`obj\em000.pac` remains a high-value request, not a predeclared archive member.
 
 ### B-L1-02 — Exact retail representation classification
 
-**Status:** EXTERNAL EVIDENCE REQUIRED
+**Status:** ❌ DEPENDS ON B-L1-01
 
-Classify the exact bytes from B-L1-01. Do not infer retail writer authority from transformed DDS/TM2/runtime evidence alone.
-
-If the representation is outside current supported authoring domains, stop and create a new bounded evidence gate.
+Classify the exact selected bytes. Do not infer writer authority from transformed DDS/TM2/runtime evidence or a filename alone. Stop if the real representation lies outside an evidenced writer domain.
 
 ### B-L1-03 — Representative real edit/rebuild/rematerialization receipt
 
-**Status:** EXTERNAL VALIDATION REQUIRED
+**Status:** ❌ REAL PROTECTED-INSTALL RECEIPT REQUIRED
 
-Current product code supports top-level and nested PAC/PNST size-changing authoring, next-volume NBZ creation and canonical rematerialization.
-
-The remaining requirement is one real protected-install receipt:
+Current product code supports top-level/nested PAC/PNST authoring, next-volume NBZ creation and canonical product rematerialization. Acceptance still requires one same-lineage real receipt:
 
 ```text
-retail-selected member
+original-selected member
  -> supported bounded edit
- -> top-level or nested bottom-up rebuild
- -> byte-exact untouched sibling validation
- -> next-contiguous NBZ
- -> canonical resolver higher-volume winner
- -> exact rebuilt-member rematerialization
- -> exact authored-child verification
+ -> bottom-up rebuild
+ -> untouched sibling validation
+ -> next-contiguous authored NBZ
+ -> original resolver selects authored higher volume
+ -> exact rebuilt member bytes are materialized
+ -> exact authored child is reached
 ```
 
 ### B-L1-04 — Original DMC3 Level-E consumption + rollback
 
-**Status:** FINAL EXTERNAL ACCEPTANCE REQUIRED
+**Status:** ❌ FINAL EXTERNAL ACCEPTANCE REQUIRED
 
 Canonical tracking: issue #209.
 
-The generated exact overlay must be copied into the protected installation under controlled conditions, its SHA verified, consumed through a deterministic original-game path, then removed without changing original retail artifacts.
-
-A crash-free launch alone is insufficient.
+A generated overlay must be SHA-verified, selected by the original runtime through a deterministic path, produce an observable effect attributable to the authored bytes, and then be removed while original retail artifacts remain byte-identical. A crash-free launch is insufficient.
 
 ### B-L1-05 — Final L1 cross-stack audit
 
-**Status:** OPEN / DEPENDS ON B-L1-01..04
+**Status:** ❌ OPEN / DEPENDS ON B-L1-01..04
 
 Before `L1 COMPLETE / 100%`:
 
-- real acquisition provenance exists;
-- real representation classification exists;
+- trusted original selection provenance exists;
+- representation classification is explicit;
 - real edit/rebuild/rematerialization receipt exists;
 - original-game consumer observation exists;
-- rollback proves original retail immutability;
+- rollback proves retail immutability;
 - exact-head Windows + Ubuntu CI is green;
-- #100, #182, #209, code and current documentation agree;
-- no unresolved contradiction alters the declared supported L1 scope.
+- code/docs/issues/evidence agree;
+- no unresolved contradiction changes the claimed scope.
 
-## Layer 2 evidence blockers
+## Layer 2 blockers
 
-These are L2 closure gates. They are not substitutes for the L1 Level-E acceptance sequence.
+### B-L2-01 — Retail `0x0E` collision census
 
-### B-L2-01 — Real-retail `0x0E` collision census
+**Status:** ✅ CLOSED FOR EXACT `dmc3-0.nbz` / ❌ WIDER SCOPE OPEN
 
-**Status:** EXTERNAL ARTIFACT ACCESS REQUIRED
+Bound receipt:
 
-The exact `dmc3-0.nbz` artifact is approximately 960 MB and cannot currently be transferred through the connected Drive channel. No exact central-directory/member-list derivative is available in the connected corpus.
+- archive SHA-256 `2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df`;
+- central surface SHA-256 `0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af`;
+- files-only: 4,333 keys / 4,333 unique / 0 collisions;
+- all central entries: 4,334 / 4,334 unique / 0 collisions.
 
-Required evidence is an exact member-name/central-directory surface cryptographically bound to the retail archive, followed by the canonical `0x0E` normalized-key collision census.
+Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
 
-### B-L2-02 — Real protected-distribution runtime RVA mapping receipt
+Every additional volume in a wider resolver claim still requires its own census, plus cross-volume normalized-key analysis.
 
-**Status:** TOOLING INTEGRATED BY #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
+### B-L2-02 — Discovery vs successful mount topology product correction
+
+**Status:** ⚠️ REVERSE CLOSED / IMPLEMENTED ON PR #287 / PROMOTION PENDING
+
+Canonical reverse proves:
+
+```text
+filename discovery / registration attempt
+!=
+successful linked runtime mount
+```
+
+PR #287 semantically ports this onto current-main architecture:
+
+- discovery carries no success claim;
+- successful topology contains only explicitly successful linked providers;
+- sparse successful archive registration is representable;
+- resolver traverses only the successful topology;
+- discovered-but-failed archives are absent, not synthetic misses;
+- failed physical registration yields no physical provider probe;
+- product acquisition receipt explicitly says original-process topology is not proven.
+
+Promotion requires final exact-head Ubuntu + Windows CI and review.
+
+### B-L2-03 — Real protected-distribution runtime RVA mapping receipt
+
+**Status:** ❌ TOOLING INTEGRATED BY #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
 
 Authority split:
 
 - canonical analysis executable: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432;
 - protected distribution execution candidate: SHA-256 `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320.
 
-Canonical analysis VAs/RVAs must not be applied to the protected process without independent mapping evidence.
+Canonical analysis VAs/RVAs may not be applied to the protected process without independent mapping evidence. Required real packet: `OpenGameResource` plus at least two approved type-0 anchors from one exact process/module session.
 
-#219 is already integrated. It provides bounded live main-module acquisition by explicit PID + RVA, exact protected-image SHA/size gating, metadata-only receipts and a multi-anchor mapping validator. The blocker is now execution: produce a real protected-process packet containing `OpenGameResource` plus at least two approved type-0 physical anchors from one process/module session.
+### B-L2-04 — Trusted original-process selected-provider identity
 
-Synthetic/self-process CI proves tooling behavior only.
+**Status:** ❌ #221 TOOLING INTEGRATED / BLOCKED BY REAL B-L2-03 + TRUSTED PUBLISHER
 
-### B-L2-03 — Trusted original-process selected-provider identity
+The content-candidate/normalizer/artifact binder does not make editable JSON original evidence. A real R3 promotion requires:
 
-**Status:** CANDIDATE/BINDER TOOLING IN PR #221 / BLOCKED BY REAL B-L2-02 + TRUSTED PUBLISHER
+1. valid real protected-process mapping;
+2. observer/publisher attached to that exact process without changing selection semantics;
+3. `trace_complete=true` and `dropped_event_count=0`;
+4. exact observer artifact SHA;
+5. exact mounted NBZ artifact SHA/size binding;
+6. trusted capture origin that cannot be asserted by editable content.
 
-#221 defines a strict selected-identity **content candidate** and artifact-binding pipeline. It intentionally does not turn editable JSON into original-process evidence.
+Archive lookup hit followed by wrapper/open failure at `0x140328290` remains a terminal provider/backend failure, not a clean lower-volume miss.
 
-A real R3 promotion still requires:
+### B-L2-05 — Direct-retail original resolver identity receipt
 
-1. a valid real B-L2-02 mapping packet;
-2. a runtime publisher/observer attached to that exact protected process without altering resolver selection semantics;
-3. a zero-loss trace (`trace_complete=true`, `dropped_event_count=0`);
-4. exact observer artifact SHA binding;
-5. exact mounted `DMC3-0..N-1.nbz` artifact SHA/size binding;
-6. a trusted origin/capture binding that is not asserted by editable JSON fields.
+**Status:** ❌ MEMBER SURFACE UNBLOCKED FOR `dmc3-0.nbz` / ORIGINAL OBSERVATION REQUIRED
 
-Fresh canonical EXE review adds a mandatory failure distinction: archive normalized lookup can find an entry and still fail during wrapper/open creation at `0x140328290`. In that case `0x140327430` exits through null/cleanup and does **not** continue to a lower volume as a clean lookup miss. Clean-path R3 v1 therefore supports only `miss` and terminal `selected`; provider/backend failure must fail closed.
+The bound `dmc3-0.nbz` key surface is clean. What remains is the original resolver winner itself: selected provider/volume/member from a trusted protected-process observation.
 
-`preflight-dmc3-game-test` is not this receipt; it validates executable/archive presence and authority only.
+### B-L2-06 — Final L2 audit
 
-### B-L2-04 — Direct-retail resolver identity receipt
+**Status:** ❌ OPEN
 
-**Status:** BLOCKED BY B-L2-01
+Requires the claimed collision scope, promoted successful-mount topology product model, real protected-runtime mapping, trusted selected identity, exact-head CI and reconciled code/docs/evidence.
 
-A real-retail `ResourceRef`/member winner cannot be promoted until the exact retail member surface is bound and the `0x0E` collision state is known. DMCL/synthetic collision results do not close this gate.
+## Layer 3 blockers
 
-### B-L2-05 — Final L2 audit
+### B-L3-01 — Current-main R1 contradiction-gated closure
 
-**Status:** OPEN / DEPENDS ON B-L2-01..04
+**Status:** ⚠️ RESEARCH CONCLUSION EXISTS / CANONICAL PROMOTION OPEN
 
-Layer 2 remains incomplete until real-retail collision evidence, protected-runtime mapping, trusted original-process selected identity, exact-head CI and canonical code/docs agree.
+Historical/reconciliation research concluded the bounded LoadedResource state-writer census can be contradiction-gated closed. It must be rechecked against current main and promoted semantically before the canonical roadmap receives a green closure mark.
 
-## Closed former L1 blockers
+### B-L3-02 — R2 family/backing ownership
 
-Do not reopen these absent contradictory direct evidence:
+**Status:** ❌ OPEN
 
-- atomic/no-replace publication — closed by #194;
-- artifact-bound archive/member stability — closed by #195;
-- direct-retail acquisition implementation — closed by #196;
-- raw-DEFLATE artifact-bound regression — #197;
-- first-gap retail-read behavior — #198;
-- verified immutable NBZ copy rebuild — #199;
-- PAC/PNST user-facing size-changing rebuild — #201;
-- protected retail product closure orchestration — #208;
-- nested PAC/PNST root-to-leaf slot-path authoring — #213;
-- NBZ STORE/raw-DEFLATE product materialization;
-- PAC/PNST sparse/empty/alias-preserving parsing;
-- recursive PAC/PNST expansion;
-- ByteProvenance;
-- next-volume STORE overlay generation and resolver selection composition.
+Close family/group ownership and lifecycle ordering for `+0x08`, `+0x10` where applicable, `+0x18`, `+0x20`, `+0x28` and stable adjacent fields without conflating SCM mesh `+0x28` with LoadedResource fields.
 
-## Closed/integrated former L2 blockers/tooling gaps
+### B-L3-03 — Materialization scheduler terminal dependency
 
-Do not reopen absent contradictory direct evidence:
+**Status:** ❌ RAW CANONICAL PASS REQUIRED
 
-- exact type-0 physical-provider post-`0x0C` Win32 final path/open/miss semantics — static reverse closed by #215/#204;
-- product physical native-path model + controlled hit/miss/archive→physical fallback receipts — promoted by #215 with Windows + Ubuntu validation;
-- protected-runtime explicit-PID RVA acquisition + bounded multi-anchor mapping tooling — integrated by #219; only the real receipt remains open under B-L2-02.
+The bounded seam already proves materialization-dispatch success precedes state1 and normal callback `0x1401B8DC0` publishes state2. The still-open question is the exact lower scheduler/transport condition that allows or suppresses that normal completion after failed/incomplete transport.
 
-## Bounded reverse gaps — not automatic L1 blockers
+Fresh raw targets:
 
-These become P0 only if the chosen real acceptance path depends on them:
+- `0x1402EF4D0`;
+- `0x1402EF790`;
+- `0x1400333E0`;
+- `0x140033390`;
+- `0x1400335A0`;
+- `0x1402EF460`;
+- regression anchor `0x1401B8DC0`.
+
+Do not promote historical helper labels without fresh canonical bytes.
+
+### B-L3-04 — V1–V7 original-process receipts
+
+**Status:** ❌ OPEN
+
+Required dynamic breadth remains initial load, transition, reload, full reset/menu, in-flight cancellation, shutdown and family/build aggregation.
+
+### B-L3-05 — Final L3 audit
+
+**Status:** ❌ OPEN
+
+Depends on static promotion/ownership closure plus accepted original-process lifecycle receipts.
+
+## Closed product/reverse foundations — do not reopen absent contradiction
+
+- ➖ atomic/no-replace publication — product safety policy;
+- ➖ artifact-bound SHA / ByteProvenance — product evidence policy;
+- ✅ numbered-volume / first-gap bootstrap bounded behavior;
+- ✅ six-prefix `OpenGameResource` bounded direct-call policy;
+- ✅ archive `0x0E` / physical `0x0C` normalization;
+- ✅ type-0 physical final-open/miss bounded contract;
+- ✅ PAC/PNST typed traversal and PAC slot-0 traversal;
+- ✅ LoadedResource state1-after-materialization-success;
+- ✅ normal `1 -> 2`, typed post-load -> callback -> state3 bounded path;
+- ✅ cancellation `1|2 -> 4` and quiescence `{0,3}` bounded rules;
+- ✅ `dmc3-0.nbz` zero-collision receipt for that exact artifact;
+- ✅ `.index` rejected as recovered original resolver/materialization authority on the canonical path; packed/`.lst` selection is EXE-confirmed.
+
+## Bounded reverse gaps — activate only when the claim requires them
 
 - complete ZIP stream initializer `0x140328540` body/lifetime;
 - complete compressed seek/reset/reinflate `0x140328FE0` behavior;
 - exhaustive malformed/partial-read original error equivalence;
-- dynamic `.lst` allocation/free/error/cycle semantics;
-- real `.lst` corpus validation when claiming real loose-list consumption.
+- dynamic `.lst` allocation/free/error/cycle behavior and real `.lst` corpus breadth.
 
 ## Evidence-gated freezes / non-blockers
 
-- Binary AFS is not inferred from `.afs/` logical namespace strings.
+- Binary AFS is not inferred from `.afs/` namespace strings.
 - Historical PACK parsing does not establish original DMC3 PACK runtime authority.
-- Capcom offline writer equivalence is not required for DMC Rengine L1 product authoring acceptance.
-- Stage Ops, ModViz and unrelated HITS semantics do not count as L1 closure.
+- Capcom offline writer equivalence is not required for DMC Rengine authoring acceptance.
+- Stage Ops/ModViz and unrelated format progress do not substitute for L1/L2/L3 proof gates.
 
-## Environment blocker
+## Current access boundary
 
-The connected automation environment does not currently expose the exact raw protected installation artifacts required to execute the real L1 receipts, retail DMC3 collision census or protected-process R2B/R3 runs here.
+The connected environment currently lacks the trusted protected-process/install observations required for B-L1-01..04 and B-L2-03..05. During the 2026-09-05 proof pass the exact raw canonical `e454...` executable blob was also not located in the connected Library, so B-L3-03 is intentionally left open rather than filled from prior hypotheses.
 
-This is an external evidence/access limitation. It must not be hidden by synthetic CI or converted into a weaker completion criterion.
+The `dmc3-0.nbz` collision census is already closed for its exact bound artifact and must not be listed as an access blocker anymore.

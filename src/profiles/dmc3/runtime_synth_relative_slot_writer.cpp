@@ -103,6 +103,21 @@ void write_u32_le(
     return false;
 }
 
+[[nodiscard]] std::size_t placement_extent(
+    const ExactChildImage& child) noexcept {
+    switch (child.extent_kind()) {
+    case ExactChildExtentKind::intrinsic_resource:
+        return LooseContainerListPolicy::direct_transfer_extent(
+            child.bytes().size());
+    case ExactChildExtentKind::writer_defined_complete_image:
+        return LooseContainerListPolicy::aligned_size(child.bytes().size());
+    case ExactChildExtentKind::source_span_preserved:
+    case ExactChildExtentKind::container_inferred_span:
+        return std::numeric_limits<std::size_t>::max();
+    }
+    return std::numeric_limits<std::size_t>::max();
+}
+
 } // namespace
 
 ExactChildImage::ExactChildImage(
@@ -392,22 +407,26 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
             continue;
         }
         const auto* child = child_by_slot[entry.slot_index];
-        const auto aligned = LooseContainerListPolicy::aligned_size(
-            child->bytes().size());
-        if (aligned == std::numeric_limits<std::size_t>::max() ||
-            aligned > safety.max_output_bytes ||
-            total_size > safety.max_output_bytes - aligned ||
-            aligned > static_cast<std::size_t>(
+        const auto extent = placement_extent(*child);
+        if (extent == std::numeric_limits<std::size_t>::max() ||
+            extent < child->bytes().size() ||
+            extent > safety.max_output_bytes ||
+            total_size > safety.max_output_bytes - extent ||
+            extent > static_cast<std::size_t>(
                 std::numeric_limits<std::uint32_t>::max()) ||
             total_size > static_cast<std::size_t>(
-                std::numeric_limits<std::uint32_t>::max()) - aligned) {
+                std::numeric_limits<std::uint32_t>::max()) - extent) {
             return failure(
                 RuntimeSynthStatus::output_too_large,
                 "Runtime-synth child placement exceeds the product output or 32-bit relative-offset envelope.");
         }
-        total_size += aligned;
+        total_size += extent;
     }
 
+    // The recovered allocator zeroes the complete planned runtime image.
+    // Direct whole-file children consume 0x800 transfer extents while a typed
+    // recursively synthesized complete image consumes only its 0x40-aligned
+    // structural extent; unwritten slack therefore remains zero in both cases.
     std::vector<std::byte> output(total_size, std::byte{0});
     std::copy_n(source.bytes.begin(), 4U, output.begin());
     write_u32_le(output, 4U, source_topology.declared_slot_count);
@@ -447,7 +466,7 @@ RuntimeSynthResult RuntimeSynthRelativeSlotWriter::rebuild(
             emitted_offset,
         };
         child_receipts.push_back(std::move(child_receipt));
-        cursor += LooseContainerListPolicy::aligned_size(child->bytes().size());
+        cursor += placement_extent(*child);
     }
 
     const auto output_span = std::span<const std::byte>{

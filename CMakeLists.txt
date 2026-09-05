@@ -60,6 +60,8 @@ add_executable(dmc-rengine
     src/cli/dmc3_overlay_commands.cpp
     src/cli/dmc3_retail_acquisition_commands.cpp
     src/cli/nbz_copy_commands.cpp
+    src/cli/archive_key_census_commands.cpp
+    src/cli/container_inspect_commands.cpp
     src/cli/relative_slot_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
@@ -87,6 +89,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         source_lookup
         volume_bootstrap_policy
         runtime_resource_resolver
+        runtime_naming_bridge
         physical_provider_receipt
         loose_container_list
         relative_slot_writer
@@ -94,6 +97,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         relative_slot_path_reflow_writer
         gdspaces_l1_full_a2z_roundtrip
         dds_profile
+        native_reader_texture
         texture_slot_framing
         texture_slot_packed_reflow_writer
         texture_slot_runtime_materialization
@@ -122,6 +126,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         hits_binary
         dca
         lig2
+        model_family
+        mod
+        mod_skin
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats
@@ -158,16 +165,27 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         index_name_authority
         index_name_evidence_persistence
         embedded_name_evidence
+        effect_stored_name_evidence
         resource_naming_identity
         companion_index_locator
         legacy_index_replay
         dmc3_naming_pipeline
+        dmc3_runtime_content_tag_provenance
         pac
         pnst
         dmc3_container_parsers
         container_tree_expander
         container_expander_identity
         classifier
+        scm
+        so
+        so_graph
+        so_link_table
+        so_volume_table
+        so_companion_correlation
+        so_mod_binding
+        mod_transform_domain
+        format_registry_contract_coverage
         known_target
         executable_authority
         stage_table_descriptor
@@ -191,6 +209,32 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(
         NAME dmc_rengine_relative_slot_cli_tests
         COMMAND dmc_rengine_relative_slot_cli_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_archive_key_census_cli_tests
+        tests/archive_key_census_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE src/cli/archive_key_census_commands.cpp)
+    target_include_directories(
+        dmc_rengine_archive_key_census_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_archive_key_census_cli_tests
+        COMMAND dmc_rengine_archive_key_census_cli_tests)
+
+    dmc_rengine_configure_test(
+        dmc_rengine_container_inspect_cli_tests
+        tests/container_inspect_cli_tests.cpp)
+    target_sources(
+        dmc_rengine_container_inspect_cli_tests
+        PRIVATE src/cli/container_inspect_commands.cpp)
+    target_include_directories(
+        dmc_rengine_container_inspect_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_container_inspect_cli_tests
+        COMMAND dmc_rengine_container_inspect_cli_tests)
 
     dmc_rengine_configure_test(
         dmc_rengine_public_evidence_project_tests

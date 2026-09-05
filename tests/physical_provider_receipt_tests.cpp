@@ -1,14 +1,17 @@
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/profiles/dmc3/runtime_resource_resolver.hpp"
+#include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -50,14 +53,29 @@ void write_file(const std::filesystem::path& path) {
     assert(stream.good());
 }
 
-[[nodiscard]] dmc::rengine::profiles::dmc3::VolumeBootstrapPlan no_volumes() {
+[[nodiscard]] dmc::rengine::profiles::dmc3::RuntimeMountTopology physical_only_topology() {
+    using dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy;
     constexpr std::array<std::uint32_t, 0> present{};
-    return dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy::plan(present);
+    const auto discovery = VolumeBootstrapPolicy::plan(present);
+    const auto topology = VolumeBootstrapPolicy::successful_mount_topology(
+        discovery,
+        true,
+        std::span<const std::uint32_t>{});
+    assert(topology.has_value());
+    return *topology;
 }
 
-[[nodiscard]] dmc::rengine::profiles::dmc3::VolumeBootstrapPlan one_volume() {
+[[nodiscard]] dmc::rengine::profiles::dmc3::RuntimeMountTopology archive_then_physical_topology() {
+    using dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy;
     constexpr std::array<std::uint32_t, 1> present{0U};
-    return dmc::rengine::profiles::dmc3::VolumeBootstrapPolicy::plan(present);
+    constexpr std::array<std::uint32_t, 1> successful{0U};
+    const auto discovery = VolumeBootstrapPolicy::plan(present);
+    const auto topology = VolumeBootstrapPolicy::successful_mount_topology(
+        discovery,
+        true,
+        successful);
+    assert(topology.has_value());
+    return *topology;
 }
 
 } // namespace
@@ -76,9 +94,12 @@ int main() {
     std::filesystem::remove_all(root, cleanup_error);
     write_file(root / "GDataX360.afs" / "physical-hit.pac");
 
-    // Controlled physical hit: no archive volumes, first physical candidate hits
-    // through IDirectPathSource and preserves the enumerated ResourceRef identity.
+    // Controlled physical hit. The canonical bootstrap's physical-registration
+    // attempt alone is not enough to create this provider. The fixture therefore
+    // explicitly declares that the type-0 registration succeeded before testing
+    // the recovered physical resolver edge.
     {
+        const auto topology = physical_only_topology();
         SourceRegistry registry;
         assert(registry.mount(std::make_unique<LocalDirectorySource>(
             "physical", root, true)));
@@ -86,8 +107,9 @@ int main() {
             .physical_source_id = "physical",
             .archives = {},
         };
+        assert(bindings.valid_for(topology));
         const auto report = RuntimeResourceResolver::resolve(
-            "physical-hit.pac", no_volumes(), bindings, registry);
+            "physical-hit.pac", topology, bindings, registry);
         assert(report.ok());
         assert(report.resolved->id.logical_path ==
             "GDataX360.afs/physical-hit.pac");
@@ -98,9 +120,10 @@ int main() {
         assert(report.probes[0].direct_lookup->resolved());
     }
 
-    // Controlled complete miss: all six physical candidates are tested natively
-    // and the resolver returns not-found without manufacturing an index match.
+    // Controlled complete miss from one explicitly successful type-0 node: all
+    // six physical candidates are tested natively and no archive provider exists.
     {
+        const auto topology = physical_only_topology();
         SourceRegistry registry;
         assert(registry.mount(std::make_unique<LocalDirectorySource>(
             "physical", root, true)));
@@ -108,8 +131,9 @@ int main() {
             .physical_source_id = "physical",
             .archives = {},
         };
+        assert(bindings.valid_for(topology));
         const auto report = RuntimeResourceResolver::resolve(
-            "missing.pac", no_volumes(), bindings, registry);
+            "missing.pac", topology, bindings, registry);
         assert(report.status == RuntimeResolutionStatus::not_found);
         assert(report.probes.size() == 6U);
         for (const auto& probe : report.probes) {
@@ -120,9 +144,12 @@ int main() {
         }
     }
 
-    // Controlled archive->physical fallback: one mounted archive misses all six
-    // archive candidates, then the first physical candidate resolves natively.
+    // Controlled archive->physical fallback. Filename discovery of DMC3-0 is
+    // not resolver authority by itself; this fixture explicitly records both the
+    // archive type-1 and physical type-0 registrations as successful. The
+    // archive then misses six candidates before the first physical candidate hits.
     {
+        const auto topology = archive_then_physical_topology();
         SourceRegistry registry;
         assert(registry.mount(std::make_unique<LocalDirectorySource>(
             "physical", root, true)));
@@ -131,8 +158,9 @@ int main() {
             .physical_source_id = "physical",
             .archives = {ArchiveSourceBinding{0U, "archive-0"}},
         };
+        assert(bindings.valid_for(topology));
         const auto report = RuntimeResourceResolver::resolve(
-            "physical-hit.pac", one_volume(), bindings, registry);
+            "physical-hit.pac", topology, bindings, registry);
         assert(report.ok());
         assert(report.probes.size() == 7U);
         for (std::size_t index = 0U; index < 6U; ++index) {

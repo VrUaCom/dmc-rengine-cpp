@@ -1,3 +1,7 @@
+#include "dmc_rengine/formats/dds.hpp"
+#include "dmc_rengine/formats/dds_binary.hpp"
+#include "dmc_rengine/integration/project_workspace.hpp"
+#include "dmc_rengine/integration/resource_analyzer.hpp"
 #include "dmc_rengine/profiles/dmc3/dds_profile.hpp"
 
 #include <algorithm>
@@ -57,6 +61,24 @@ void put_u32(
     return bytes;
 }
 
+[[nodiscard]] dmc::rengine::gdspaces::ResourceRef resource(
+    std::uint64_t size) {
+    return dmc::rengine::gdspaces::ResourceRef{
+        .id = dmc::rengine::gdspaces::ResourceId{
+            .source_id = "dds-native-reader-test",
+            .logical_path = "texture/test.dds",
+            .container_chain = "NBZ[0]/PTX[0]",
+            .offset = 0U,
+            .size = size,
+        },
+        .display_name = "test.dds",
+        .format = "dds",
+        .profile = "dmc3-hd",
+        .synthetic_name = false,
+        .container = false,
+    };
+}
+
 } // namespace
 
 int main() {
@@ -92,6 +114,49 @@ int main() {
     assert(dxt1_reparse.ok());
     assert(dxt1_reparse.document.total_size == dxt1.bytes.size());
 
+    const auto native_scan = dmc::rengine::formats::dds::Reader::scan(
+        std::span<const std::byte>{dxt1.bytes.data(), dxt1.bytes.size()});
+    assert(native_scan.recognized);
+    assert(native_scan.ok());
+    assert(native_scan.profile.document.width == 256U);
+    assert(native_scan.profile.document.height == 128U);
+    assert(native_scan.profile.document.compression == dmc3::Dmc3DdsCompression::dxt1);
+    const auto native_document =
+        dmc::rengine::formats::dds::build_binary_document(
+            resource(dxt1.bytes.size()),
+            std::span<const std::byte>{dxt1.bytes.data(), dxt1.bytes.size()},
+            native_scan);
+    assert(native_document.has_value());
+    assert(native_document->find_region("dds-header") != nullptr);
+    assert(native_document->find_region("dds-payload") != nullptr);
+    assert(native_document->find_field("dds-width") != nullptr);
+    assert(native_document->find_field("dds-height") != nullptr);
+    assert(native_document->find_field("dds-fourcc") != nullptr);
+    assert(native_document->coverage_bytes() == dxt1.bytes.size());
+
+    // End-to-end product path: canonical workspace -> modular registry -> DDS
+    // module -> Binary Inspector document -> parser completion event.
+    dmc::rengine::integration::ProjectWorkspace project;
+    const auto dds_resource = resource(dxt1.bytes.size());
+    assert(project.create_session(dmc::rengine::gdspaces::ResourcePayload{
+        .resource = dds_resource,
+        .bytes = dxt1.bytes,
+        .diagnostics = {},
+    }));
+    const auto analysis = dmc::rengine::integration::ResourceAnalyzer::analyze(
+        project, dds_resource.id);
+    assert(analysis.ok());
+    assert(analysis.parser_available);
+    assert(analysis.parser_id == "formats.dds-dmc3-reader");
+    assert(analysis.binary_document_attached);
+    const auto* dds_session = project.find_session(dds_resource.id);
+    assert(dds_session != nullptr);
+    assert(dds_session->binary_document() != nullptr);
+    assert(dds_session->parser_validation() != nullptr);
+    assert(dds_session->parser_validation()->recognized);
+    assert(dds_session->events().by_type(
+        dmc::rengine::integration::WorkspaceEventType::parser_completed).size() == 1U);
+
     const auto dxt5_payload = payload(512U, 512U, true);
     const auto dxt5 = dmc3::Dmc3DdsProfile::build(
         512U, 512U, dmc3::Dmc3DdsCompression::dxt5,
@@ -107,6 +172,11 @@ int main() {
         dmc3::Dmc3DdsProfile::parse(
             std::span<const std::byte>{bad_flags.data(), bad_flags.size()}).status ==
         dmc3::Dmc3DdsStatus::invalid_header);
+    const auto bad_native = dmc::rengine::formats::dds::Reader::scan(
+        std::span<const std::byte>{bad_flags.data(), bad_flags.size()});
+    assert(bad_native.recognized);
+    assert(!bad_native.ok());
+    assert(!bad_native.diagnostics.empty());
 
     auto bad_linear = dxt5.bytes;
     put_u32(bad_linear, 20U, 0x10000U);
@@ -173,6 +243,13 @@ int main() {
             std::span<const std::byte>{
                 above_domain_payload.data(), above_domain_payload.size()}).status ==
         dmc3::Dmc3DdsStatus::unsupported_dimensions);
+
+    const std::vector<std::byte> wrong_magic{
+        std::byte{'N'}, std::byte{'O'}, std::byte{'P'}, std::byte{'E'}};
+    const auto wrong_scan = dmc::rengine::formats::dds::Reader::scan(
+        std::span<const std::byte>{wrong_magic.data(), wrong_magic.size()});
+    assert(!wrong_scan.recognized);
+    assert(!wrong_scan.ok());
 
     return 0;
 }

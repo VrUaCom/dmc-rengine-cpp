@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace dmc::rengine::gdspaces {
@@ -80,6 +81,11 @@ private:
     NbzZipLimits limits_{};
     std::uint64_t archive_size_{};
     std::vector<NbzZipEntry> entries_;
+    // Canonical resource key -> index into entries_. Built once during
+    // indexing so member reads do not rescan (and re-serialize) the whole
+    // central directory. Retail volumes carry thousands of members, which
+    // made the previous linear scan quadratic across a full archive walk.
+    std::unordered_map<std::string, std::size_t> entry_index_;
     std::vector<Diagnostic> diagnostics_;
     std::optional<NbzZipIndexReceipt> index_receipt_;
 };

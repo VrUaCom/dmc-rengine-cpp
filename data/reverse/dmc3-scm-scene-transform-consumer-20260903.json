@@ -1,0 +1,81 @@
+{
+  "schema": "dmc-rengine.reverse.scm-scene-transform-consumer.v1",
+  "snapshot": "2026-09-03",
+  "canonicalExe": {
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "sceneAttachment": {
+    "helper": "0x1402F1DB0",
+    "sceneBlockHeaderOffset": "resource+0x20",
+    "resolvedArrays": {
+      "parent": "manager+0x08",
+      "order": "manager+0x10",
+      "objectBinding": "manager+0x18",
+      "transforms": "manager+0x20"
+    }
+  },
+  "transformConsumer": {
+    "function": "0x1402FA080",
+    "serializedStride": "0x20",
+    "rotationVectorOffset": "0x10",
+    "translationVectorOffset": "0x00",
+    "rotationHelper": "0x140330450",
+    "translationHelper": "0x140031200"
+  },
+  "rotation": {
+    "status": "EXE_CONFIRMED",
+    "serializedFields": {
+      "+0x10": "Euler X radians",
+      "+0x14": "Euler Y radians",
+      "+0x18": "Euler Z radians"
+    },
+    "applicationOrder": ["X", "Y", "Z"],
+    "compositionFromIdentity": "Rz * Ry * Rx",
+    "axisHelpers": {
+      "X": "0x140030F10",
+      "Y": "0x140030FC0",
+      "Z": "0x140031080"
+    },
+    "matrixMultiplyHelper": "0x14002FFE0",
+    "trigImports": ["sinf", "cosf"],
+    "rowMajorFormula": [
+      ["cy*cz", "cx*sz + cz*sx*sy", "-cx*cz*sy + sx*sz", "0"],
+      ["-cy*sz", "cx*cz - sx*sy*sz", "cx*sy*sz + cz*sx", "0"],
+      ["sy", "-cy*sx", "cx*cy", "0"],
+      ["0", "0", "0", "1"]
+    ]
+  },
+  "translation": {
+    "serializedFields": {
+      "+0x00": "X",
+      "+0x04": "Y",
+      "+0x08": "Z",
+      "+0x0C": "translation magnitude"
+    },
+    "corpusMagnitudeInvariant": "328/328 nodes: +0x0C == length(X,Y,Z)",
+    "status": "XYZ runtime-consumed; fourth-component downstream semantics remain engine-specific"
+  },
+  "header14": {
+    "status": "EXE_CONFIRMED_RUNTIME_CARRIED_SEMANTICS_OPEN",
+    "copyFunction": "0x1402F9570",
+    "readSite": "0x1402F95BE",
+    "writeSite": "0x1402F95C5",
+    "source": "resource+0x14",
+    "destination": "manager+0xE4",
+    "safeMeaning": "runtime-carried u32 metadata; exact semantic name unresolved"
+  },
+  "implementation": {
+    "irField": "SceneTransform::rotation_xyz_radians",
+    "module": "scm_transform.hpp/.cpp",
+    "function": "build_rotation_xyz_radians",
+    "writerAuthority": false
+  },
+  "nonClaims": [
+    "No OpenGL/DirectX handedness label is inferred solely from recovered storage/multiplication layout.",
+    "No conventional homogeneous meaning is assigned to serialized translation +0x0C.",
+    "Header +0x14 semantic role remains unresolved despite confirmed runtime carry into manager +0xE4.",
+    "Complete hierarchy/world transform composition remains a separate reverse target."
+  ]
+}

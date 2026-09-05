@@ -28,10 +28,31 @@ struct ResourceNamingIdentity final {
     // not automatically promoted to an original on-disk filename.
     std::optional<std::string> embedded_alias;
 
-    // Semantic/presentation namespace.
+    // A distinct name stored by an enclosing physical container (for example
+    // the recovered DMC3 effect manifest). It is neither `.index` nor embedded
+    // alias authority. The sealed evidence is retained alongside the label.
+    std::optional<std::string> enclosing_container_stored_name;
+    std::optional<EnclosingContainerNameEvidence>
+        enclosing_container_stored_name_evidence;
+
+    // Semantic/presentation namespace. If a sealed structural observation was
+    // used, the exact evidence snapshot is retained rather than collapsing it
+    // into the semantic_format string.
     std::string semantic_format;
     std::string canonical_extension;
+    std::optional<ResourceSemanticEvidence> semantic_format_evidence;
     std::string canonical_display_name;
+
+    // Canonical terminology used by the L1 naming model. The retained member
+    // names above are compatibility storage only; these accessors state the
+    // semantic meaning unambiguously without introducing duplicate authority.
+    [[nodiscard]] const std::optional<std::string>&
+    external_index_normalized_name() const noexcept {
+        return external_index_name;
+    }
+    [[nodiscard]] bool external_index_folder_marker() const noexcept {
+        return external_index_folder;
+    }
 
     [[nodiscard]] bool valid() const noexcept;
 };

@@ -1,0 +1,135 @@
+{
+  "schema": "dmc-rengine.dmc3-scm-layout.v1",
+  "date": "2026-09-02",
+  "profile": "dmc3-hd",
+  "canonicalExecutable": {
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "runtimeAnchors": {
+    "registryContentProbe": "0x1402DB1F0",
+    "familyMaskClassifier": "0x1402FD650",
+    "scmNormalizer": "0x1403051B0",
+    "fixedStrideMeshConsumer": "0x1402FDD10"
+  },
+  "corpus": {
+    "historicalArchive": {
+      "name": "DMC 3 RENGINE (6).zip",
+      "size": 237658858,
+      "sha256": "7680a9ddb700b958ca1591be0629c2ff1da53efa1b723141bbee0ae4b4c7ff6f",
+      "scmEntries": 77,
+      "uniqueScmPayloads": 67
+    },
+    "additionalUniquePayloads": [
+      {
+        "name": "st114.scm",
+        "size": 1038816,
+        "sha256": "fd3ade343a5cac15a174fbdfc2ff3d848f33c0928bcef171eec0ca6e19c1cd7d"
+      }
+    ],
+    "controlPayloads": [
+      {
+        "name": "st001.scm",
+        "size": 887760,
+        "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5"
+      }
+    ],
+    "uniqueFiles": 68,
+    "objects": 254,
+    "meshes": 481,
+    "sceneNodes": 328,
+    "vertices": 182612,
+    "fileSizeMin": 464,
+    "fileSizeMax": 1038816,
+    "meshCountPerObjectMin": 1,
+    "meshCountPerObjectMax": 10,
+    "verticesPerMeshMin": 3,
+    "verticesPerMeshMax": 10196,
+    "versions": {"1.01": 68},
+    "textureSlotCounts": {"6": 4, "16": 55, "17": 9},
+    "nodeMinusObjectCount": {"1": 66, "2": 1, "6": 1},
+    "topologyFlagByteValues": [0, 2],
+    "objectByte01Values": [128, 192, 193, 194, 195, 196, 197],
+    "objectFlags": [0, 1, 131072, 524288, 524289, 524290, 1048577, 1572865, 2097152],
+    "parserSweep": {
+      "recognized": 68,
+      "ok": 68,
+      "withDiagnostics": 0,
+      "failed": 0
+    }
+  },
+  "serializedLayout": {
+    "headerSize": 64,
+    "objectRecordSize": 64,
+    "meshRecordSize": 80,
+    "sceneBlockHeaderSize": 32,
+    "sceneTransformSize": 32,
+    "perMeshStreamAlignment": 16,
+    "sceneArrayAlignment": 4,
+    "sceneTransformAlignment": 16,
+    "indexWorkspaceSentinel": "0x1212",
+    "indexWorkspaceCapacityFormula": "align16(6 * (vertexCount - 2))",
+    "physicalOrder": [
+      "header",
+      "object-table",
+      "for-each-object: mesh-records",
+      "for-each-object: all-position-streams",
+      "for-each-object: all-normal-streams",
+      "for-each-object: all-uv-streams",
+      "for-each-object: all-rgb-topology-streams",
+      "scene-node-block",
+      "all-generated-index-workspaces",
+      "eof"
+    ]
+  },
+  "claims": [
+    {"id": "scm.magic", "status": "EXE_CONFIRMED", "value": "SCM "},
+    {"id": "scm.header.object-count", "status": "EXE_CONFIRMED", "offset": "0x10", "type": "u8"},
+    {"id": "scm.header.scene-node-count", "status": "DATA_CONFIRMED", "offset": "0x11", "type": "u8"},
+    {"id": "scm.header.texture-slot-count", "status": "DATA_CONFIRMED", "offset": "0x12", "type": "u8"},
+    {"id": "scm.header.unresolved-14", "status": "RESEARCH_REQUIRED", "offset": "0x14", "type": "u32"},
+    {"id": "scm.header.scene-node-block", "status": "DATA_CONFIRMED", "offset": "0x20", "type": "u64-absolute-offset"},
+    {"id": "scm.object.mesh-count", "status": "EXE_CONFIRMED", "offset": "0x00", "type": "u8"},
+    {"id": "scm.object.unresolved-01", "status": "RESEARCH_REQUIRED", "offset": "0x01", "type": "u8"},
+    {"id": "scm.object.total-vertex-count", "status": "DATA_CONFIRMED", "offset": "0x02", "type": "u16"},
+    {"id": "scm.object.mesh-table", "status": "EXE_CONFIRMED", "offset": "0x08", "type": "u64-absolute-offset"},
+    {"id": "scm.object.flags", "status": "RESEARCH_REQUIRED", "offset": "0x10", "type": "u32"},
+    {"id": "scm.object.bounding-sphere", "status": "DATA_CONFIRMED", "offset": "0x30", "type": "vec3f+f32"},
+    {"id": "scm.mesh.fixed-record-size", "status": "EXE_CONFIRMED", "value": 80, "anchor": "0x1402FDD10"},
+    {"id": "scm.mesh.vertex-count", "status": "DATA_CONFIRMED", "offset": "0x00", "type": "u16"},
+    {"id": "scm.mesh.texture-index", "status": "DATA_CONFIRMED", "offset": "0x02", "type": "u16"},
+    {"id": "scm.mesh.positions", "status": "DATA_CONFIRMED", "offset": "0x10", "type": "u64-absolute-offset"},
+    {"id": "scm.mesh.normals", "status": "DATA_CONFIRMED", "offset": "0x18", "type": "u64-absolute-offset"},
+    {"id": "scm.mesh.uv", "status": "DATA_CONFIRMED", "offset": "0x20", "type": "u64-absolute-offset"},
+    {"id": "scm.mesh.continuation", "status": "EXE_CONFIRMED", "offset": "0x28", "type": "u64", "serialized": "0x50-or-0"},
+    {"id": "scm.mesh.rgb-topology", "status": "DATA_CONFIRMED", "offset": "0x38", "type": "u64-absolute-offset"},
+    {"id": "scm.mesh.index-workspace", "status": "EXE_CONFIRMED", "offset": "0x40", "type": "u64-mesh-relative-offset"},
+    {"id": "scm.mesh.generated-index-count", "status": "EXE_CONFIRMED", "offset": "0x48", "type": "u32", "serialized": 0},
+    {"id": "scm.topology.break-bit", "status": "EXE_CONFIRMED", "value": "0x02"},
+    {"id": "scm.scene.parent-array", "status": "DATA_CONFIRMED", "type": "i8[]"},
+    {"id": "scm.scene.order-array", "status": "DATA_CONFIRMED", "type": "u8[] permutation"},
+    {"id": "scm.scene.object-binding-array", "status": "DATA_CONFIRMED", "type": "i8[]"},
+    {"id": "scm.scene.translation-magnitude", "status": "DATA_CONFIRMED", "offset": "+0x0C within transform", "type": "f32 length(vec3)"},
+    {"id": "scm.scene.rotation-candidate", "status": "HIGH_CONFIDENCE", "offset": "+0x10 within transform", "type": "vec3f radians-like"}
+  ],
+  "product": {
+    "parserId": "formats.scm-serialized-v1",
+    "maturity": "structural",
+    "writePolicy": "read-only",
+    "writerPromoted": false,
+    "modules": [
+      "formats/scm",
+      "formats/scm_layout",
+      "formats/scm_topology"
+    ]
+  },
+  "openResearch": [
+    "header +0x14 exact semantic consumer",
+    "object +0x01 class/flag semantics",
+    "object +0x10 bit semantics",
+    "scene rotation order and coordinate convention",
+    "texture-slot/material ownership mapping",
+    "writer byte-identical and original-game consumption acceptance"
+  ]
+}

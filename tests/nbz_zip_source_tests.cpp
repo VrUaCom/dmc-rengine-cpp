@@ -314,6 +314,7 @@ int main() {
     assert(stored_plain_ref != nullptr);
     const auto stored_limited = stored_budget.read(stored_plain_ref->id);
     assert(stored_limited.has_value() && !stored_limited->readable());
+    assert(!stored_limited->byte_provenance.has_value());
     assert(has_code(
         stored_limited->diagnostics, "gdspaces.nbz.safe.stored-member-budget"));
 
@@ -332,6 +333,7 @@ int main() {
     assert(materialized_nested_ref != nullptr);
     const auto materialized_limited = materialized_budget.read(materialized_nested_ref->id);
     assert(materialized_limited.has_value() && !materialized_limited->readable());
+    assert(!materialized_limited->byte_provenance.has_value());
     assert(has_code(
         materialized_limited->diagnostics,
         "gdspaces.nbz.safe.materialized-member-budget"));
@@ -363,12 +365,12 @@ int main() {
     const auto crc_ref = wrong_crc.enumerate().front();
     const auto crc_payload = wrong_crc.read(crc_ref.id);
     assert(crc_payload.has_value() && !crc_payload->readable());
+    assert(!crc_payload->byte_provenance.has_value());
     assert(has_code(crc_payload->diagnostics, "gdspaces.nbz.safe.crc-mismatch"));
 
-    // SafeProductValidation: a source object must not materialize against an
-    // archive whose byte length changed after indexing. A zero-byte STORE
-    // member used to make this especially easy to miss because read_exact()
-    // legitimately has no payload bytes to fetch and CRC32(empty) is valid.
+    // SafeProductValidation: a successful zero-byte STORE member still has a
+    // valid materialized-byte lineage; emptiness alone is not a failure signal.
+    // The same source must drop provenance after its archive becomes stale.
     const std::vector<EntrySpec> stale_specs{
         EntrySpec{"empty.bin", 0U, {}, {}},
     };
@@ -378,6 +380,12 @@ int main() {
     assert(stale_source.valid());
     const auto stale_refs = stale_source.enumerate();
     assert(stale_refs.size() == 1U);
+    const auto empty_payload = stale_source.read(stale_refs.front().id);
+    assert(empty_payload.has_value() && empty_payload->readable());
+    assert(empty_payload->bytes.empty());
+    assert(empty_payload->byte_provenance.has_value());
+    assert(empty_payload->byte_provenance->kind == ByteOriginKind::direct_source_span);
+    assert(empty_payload->byte_provenance->transform == ByteTransform::zip_stored);
     {
         std::ofstream stream(stale_path, std::ios::binary | std::ios::app);
         const char marker = '\x7f';
@@ -388,6 +396,7 @@ int main() {
     const auto stale_payload = stale_source.read(stale_refs.front().id);
     assert(stale_payload.has_value() && !stale_payload->readable());
     assert(stale_payload->bytes.empty());
+    assert(!stale_payload->byte_provenance.has_value());
     assert(has_code(
         stale_payload->diagnostics,
         "gdspaces.nbz.safe.source-size-changed"));
@@ -421,10 +430,40 @@ int main() {
     const auto unknown_ref = unknown.enumerate().front();
     const auto unknown_payload = unknown.read(unknown_ref.id);
     assert(unknown_payload.has_value() && !unknown_payload->readable());
+    assert(!unknown_payload->byte_provenance.has_value());
     assert(has_code(
         unknown_payload->diagnostics,
         "gdspaces.nbz.safe.compression-method-unsupported"));
 
+    // Duplicate logical paths are legal in ZIP. The canonical resource key
+    // includes the central index, so the entry index must still resolve each
+    // one to its own member rather than collapsing them.
+    const std::vector<EntrySpec> duplicate_specs{
+        EntrySpec{"same.txt", 0U, ascii("FIRST"), ascii("FIRST")},
+        EntrySpec{"same.txt", 0U, ascii("SECOND"), ascii("SECOND")},
+    };
+    const auto duplicate_fixture = make_zip(duplicate_specs);
+    const auto duplicate_path =
+        write_fixture(duplicate_fixture.bytes, "nbz-duplicate-name");
+    NbzZipSource duplicate_source("nbz-test", duplicate_path);
+    assert(duplicate_source.valid());
+    const auto duplicate_refs = duplicate_source.enumerate();
+    assert(duplicate_refs.size() == 2U);
+    assert(duplicate_refs[0].id.canonical() != duplicate_refs[1].id.canonical());
+
+    const auto first = duplicate_source.read(duplicate_refs[0].id);
+    const auto second = duplicate_source.read(duplicate_refs[1].id);
+    assert(first.has_value() && first->readable());
+    assert(second.has_value() && second->readable());
+    assert(first->bytes == ascii("FIRST"));
+    assert(second->bytes == ascii("SECOND"));
+
+    // An identity that belongs to no member still resolves to nothing.
+    auto absent = duplicate_refs[0].id;
+    absent.logical_path = "not-a-member.txt";
+    assert(!duplicate_source.read(absent).has_value());
+
+    std::filesystem::remove(duplicate_path);
     std::filesystem::remove(normal_path);
     std::filesystem::remove(bad_offset_path);
     std::filesystem::remove(bad_count_path);

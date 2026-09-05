@@ -1,11 +1,10 @@
 #include "integration_commands.hpp"
 
-#include "dmc_rengine/formats/hits.hpp"
-#include "dmc_rengine/formats/hits_binary.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
-#include "dmc_rengine/integration/resource_workspace.hpp"
+#include "dmc_rengine/integration/project_workspace.hpp"
+#include "dmc_rengine/integration/resource_analyzer.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
 #include "dmc_rengine/integration/workspace_manifest.hpp"
 
@@ -14,7 +13,6 @@
 #include <limits>
 #include <memory>
 #include <optional>
-#include <span>
 #include <string>
 #include <utility>
 
@@ -149,9 +147,9 @@ int run_integration_status() {
         << "Working-copy-only policies: " << working_copy << '\n'
         << "Guarded-export policies: " << guarded_export << '\n'
         << "Invariant: GDSpaces owns all source access and canonical identity.\n"
-        << "Invariant: tool mutations require WorkingCopy events.\n"
-        << "Invariant: Stage Ops and ModViz consume shared stage state.\n"
-        << "Invariant: PAC/PNST/AFS/NBZ remain read-only until evidence-backed parsers exist.\n";
+        << "Invariant: resource readers dispatch through NativeReaderModuleRegistry.\n"
+        << "Invariant: PAC/PNST dispatch through ContainerParserRegistry.\n"
+        << "Invariant: NBZ remains a source/materialization adapter.\n";
     return 0;
 }
 
@@ -164,41 +162,39 @@ int run_inspect_workspace(
         return 2;
     }
 
-    const integration::ToolRegistry tools;
-    const integration::FormatIntegrationRegistry formats;
-    integration::ResourceWorkspaceSession workspace(
-        std::move(*payload),
-        tools,
-        formats,
-        integration::WorkspaceContext{
-            .stage_context = stage_context,
-            .menu_context = menu_context,
-            .evidence_context = true,
-        });
-    if (!workspace.valid()) {
+    integration::ProjectWorkspace project;
+    const auto resource_id = payload->resource.id;
+    if (!project.create_session(
+            std::move(*payload),
+            integration::WorkspaceContext{
+                .stage_context = stage_context,
+                .menu_context = menu_context,
+                .evidence_context = true,
+            })) {
         std::cerr << "inspect-workspace: workspace creation failed\n";
         return 3;
     }
 
-    if (workspace.resource().format == "hits") {
-        const auto bytes = std::span<const std::byte>{
-            workspace.source_payload().bytes};
-        const auto scan = formats::hits::RecordScanner::scan(bytes);
-        static_cast<void>(workspace.add_parser_diagnostics(scan.diagnostics));
-        if (scan.recognized) {
-            auto document = formats::hits::build_binary_document(
-                workspace.resource(), bytes, scan);
-            if (document.has_value()) {
-                static_cast<void>(workspace.attach_binary_document(
-                    std::move(*document)));
-            }
+    const auto analysis = integration::ResourceAnalyzer::analyze(project, resource_id);
+    if (analysis.parser_available && !analysis.ok()) {
+        for (const auto& diagnostic : analysis.diagnostics) {
+            std::cerr << "  ["
+                      << gdspaces::to_string(diagnostic.severity)
+                      << "] " << diagnostic.code << ": "
+                      << diagnostic.message << '\n';
         }
     }
 
-    const auto manifest = integration::workspace_manifest_json(workspace);
+    const auto* workspace = project.find_session(resource_id);
+    if (workspace == nullptr) {
+        std::cerr << "inspect-workspace: canonical session disappeared after analysis\n";
+        return 4;
+    }
+
+    const auto manifest = integration::workspace_manifest_json(*workspace);
     if (manifest.empty()) {
         std::cerr << "inspect-workspace: manifest generation failed\n";
-        return 4;
+        return 5;
     }
     std::cout << manifest;
     return 0;

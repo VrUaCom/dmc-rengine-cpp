@@ -17,19 +17,21 @@ struct ResourceClassification final {
     bool container{false};
     bool magic_confirmed{false};
     bool structural_confirmed{false};
+    // Sealed evidence from the recovered three-byte DMC3 registry/content
+    // probe (0x1402DB1F0).
+    bool runtime_content_tag_confirmed{false};
+    // Sealed evidence from the separate recovered four-byte family-mask probe
+    // (0x1402FD650). Kept separate because byte 3 is significant there and MCV
+    // is recognized only by that path.
+    bool runtime_family_mask_confirmed{false};
 };
 
 class ResourceClassifier final {
 public:
-    // Raw probe API. Magic/structural byte signatures outrank path extension.
     [[nodiscard]] static ResourceClassification classify(
         std::string_view logical_path,
         std::span<const std::byte> bytes = {});
 
-    // Materialized-resource API. Valid sealed semantic evidence outranks any
-    // presentation/name hint. If semantic evidence exists but no longer matches
-    // current bytes, the hint is deliberately ignored so a display suffix
-    // cannot launder stale evidence into semantic authority.
     [[nodiscard]] static ResourceClassification classify(
         const ResourcePayload& payload,
         std::string_view naming_hint = {});

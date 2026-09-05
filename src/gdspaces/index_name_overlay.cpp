@@ -238,7 +238,7 @@ IndexNameOverlayBuildResult IndexNameOverlayBuilder::build(
                 !profile_semantic->semantic_format.empty()) {
                 display_extension = profile_semantic->canonical_extension;
                 semantic_format = profile_semantic->semantic_format;
-                evidence_kind = IndexDisplayEvidenceKind::profile_structural_format;
+                evidence_kind = profile_semantic->evidence_kind;
             }
         }
         if (display_extension.empty() && authority.source_extension().has_value()) {

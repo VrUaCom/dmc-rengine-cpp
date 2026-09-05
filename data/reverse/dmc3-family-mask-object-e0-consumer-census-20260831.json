@@ -1,0 +1,138 @@
+{
+  "schema": "dmc-rengine.dmc3-family-mask-object-e0-consumer-census.v1",
+  "status": "exe-confirmed-bounded-negative",
+  "snapshot": "2026-08-31",
+  "artifact": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000",
+    "text": {
+      "va_start": "0x140001000",
+      "file_offset": "0x400",
+      "size": "0x34DD4E",
+      "sha256": "9348fcf8e3ec2c9189eb930cde752f8a7fbb8c4701fbd1197da2b06d692d5522"
+    }
+  },
+  "subject": {
+    "producer": "family-mask-probe@0x1402FD650",
+    "storage_site": "object+0xE0",
+    "storage_write_va": "0x1402F9631",
+    "storage_note": "The classifier result is ORed with low-bit runtime flags after being stored. Consumers isolate the family with 0xF0000000."
+  },
+  "method": {
+    "disassembler": "GNU objdump -d -M intel",
+    "scope": "entire canonical .text section",
+    "selection_rule": "direct DWORD load from base+0xE0 followed by a high-family discriminator: AND 0xF0000000, SHR 0x1C, high-bit test, or direct 0x10000000..0x60000000 comparison",
+    "window_rule": "each receipt hashes 0x30 bytes beginning at the direct object+0xE0 load",
+    "result_unit": "direct load site; two sites may belong to one function"
+  },
+  "summary": {
+    "direct_load_sites": 10,
+    "containing_functions": 9,
+    "families_compared": [
+      "MOD",
+      "EFM",
+      "SCM"
+    ],
+    "mrp_direct_branch_found": false,
+    "mcv_direct_branch_found": false,
+    "shw_direct_branch_found": false
+  },
+  "consumers": [
+    {
+      "function_va": "0x1402F9DA0",
+      "load_va": "0x1402F9E47",
+      "mask_va": "0x1402F9E4D",
+      "compares": ["MOD", "EFM"],
+      "window_file_offset": "0x2F9247",
+      "window_size": "0x30",
+      "window_sha256": "4e468c2364137670fe983c8d54ab6360b04e6d4893f461946cbd2028634eac2b"
+    },
+    {
+      "function_va": "0x140302370",
+      "load_va": "0x14030238C",
+      "mask_va": "0x140302392",
+      "compares": ["SCM"],
+      "window_file_offset": "0x30178C",
+      "window_size": "0x30",
+      "window_sha256": "bb5b0701ac27a5efdd6d89258d9e49563b1217ab1dd0c21cda729fcaed2c519c"
+    },
+    {
+      "function_va": "0x140302540",
+      "load_va": "0x14030255C",
+      "mask_va": "0x140302562",
+      "compares": ["MOD", "EFM"],
+      "window_file_offset": "0x30195C",
+      "window_size": "0x30",
+      "window_sha256": "ae4aa41ad212f1ae426f4d4c86bfc3a5376fa66cb9c20a97969b6e1ba582379f"
+    },
+    {
+      "function_va": "0x140302540",
+      "load_va": "0x140302572",
+      "mask_va": "0x140302578",
+      "compares": ["EFM"],
+      "window_file_offset": "0x301972",
+      "window_size": "0x30",
+      "window_sha256": "09e6338094cc14ecae86ac1fdb8a105e57bb4e124e8dd53500f7dcbe807b48b2"
+    },
+    {
+      "function_va": "0x1403029E0",
+      "load_va": "0x140302E21",
+      "mask_va": "0x140302E27",
+      "compares": ["MOD", "EFM"],
+      "window_file_offset": "0x302221",
+      "window_size": "0x30",
+      "window_sha256": "035d4ab28ee8b055cb088690d56f950442418e62725611a9e79b4a131e07d29a"
+    },
+    {
+      "function_va": "0x1403039C0",
+      "load_va": "0x140303A60",
+      "mask_va": "0x140303A66",
+      "compares": ["MOD", "EFM"],
+      "window_file_offset": "0x302E60",
+      "window_size": "0x30",
+      "window_sha256": "068a45ac8183d719522a3b6203ec7f794ae4700e225d62c5c267f1eed22ecbcf"
+    },
+    {
+      "function_va": "0x140303AE0",
+      "load_va": "0x140303B89",
+      "mask_va": "0x140303B8F",
+      "compares": ["MOD", "EFM"],
+      "window_file_offset": "0x302F89",
+      "window_size": "0x30",
+      "window_sha256": "5ee2cdcffac178e4f125a625d4a124e948ed908384e55722085df13f71c80932"
+    },
+    {
+      "function_va": "0x14030BDD0",
+      "load_va": "0x14030BF58",
+      "mask_va": "0x14030BF5E",
+      "compares": ["MOD", "EFM", "SCM"],
+      "window_file_offset": "0x30B358",
+      "window_size": "0x30",
+      "window_sha256": "5634932953fa546c5837d181ce46db0c43e6c917edb631b077fd32933a955bf0"
+    },
+    {
+      "function_va": "0x14030D9B0",
+      "load_va": "0x14030D9CA",
+      "mask_va": "0x14030D9D0",
+      "compares": ["EFM"],
+      "window_file_offset": "0x30CDCA",
+      "window_size": "0x30",
+      "window_sha256": "225ebe053db9700f14267b3d8e66912245bd4c6dcf95844be390211826decd8f"
+    },
+    {
+      "function_va": "0x14030DA80",
+      "load_va": "0x14030DA9A",
+      "mask_va": "0x14030DAA0",
+      "compares": ["SCM"],
+      "window_file_offset": "0x30CE9A",
+      "window_size": "0x30",
+      "window_sha256": "767a038c29c5b37ab5b45a55b98eebc1166747b559582873099f16dc224a8e0b"
+    }
+  ],
+  "conclusion": {
+    "proven": "Every direct family discriminator over the classifier-backed object+0xE0 field in canonical .text specializes only MOD, EFM, or SCM.",
+    "mrp_boundary": "No direct object+0xE0 MRP branch was found. MRP remains a recognized family identity without a proven model-object specialization or standalone mesh consumer.",
+    "not_proven": "This bounded census does not exclude consumers reached through copied masks, a different object layout, indirect dispatch, or data-driven tables. It also does not define MRP, MCV, or SHW on-disk schemas."
+  }
+}

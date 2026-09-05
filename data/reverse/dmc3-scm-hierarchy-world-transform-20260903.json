@@ -1,0 +1,82 @@
+{
+  "schema": "dmc-rengine.scm-hierarchy-world-transform.v1",
+  "date": "2026-09-03",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "sceneBlock": {
+    "parentByOrderPosition": "+0x00 relative array",
+    "nodeAtOrderPosition": "+0x04 relative array",
+    "objectBindingByNodeIndex": "+0x08 relative array",
+    "transformByNodeIndex": "+0x0C relative array"
+  },
+  "runtimePointers": {
+    "binder": "0x1402F1DB0",
+    "manager+0x08": "parentByOrderPosition",
+    "manager+0x10": "nodeAtOrderPosition",
+    "manager+0x18": "objectBindingByNodeIndex",
+    "manager+0x20": "transformByNodeIndex",
+    "manager+0x188": "worldMatrices",
+    "manager+0x1B0": "rootBaseMatrix"
+  },
+  "functions": {
+    "sceneInitialize": "0x1402FA080",
+    "worldUpdate": "0x1402F9700",
+    "matrixCopy": "0x140030D00",
+    "matrixComposeWrapper": "0x140030E40",
+    "matrixMultiply": "0x1400312B0",
+    "translationApply": "0x140031200",
+    "rotationBuild": "0x140330450",
+    "derivedMatrixCache": "0x140030DC0"
+  },
+  "matrixContract": {
+    "storage": "row-major recovered DMC3 layout",
+    "vectorConvention": "row-vector",
+    "multiply": "result = left * right",
+    "wrapper": "0x140030E40(dest, second, third) => dest = third * second",
+    "rootWorld": "world[root] = local[root] * rootBase",
+    "childWorld": "world[current] = local[current] * world[parentByOrderPosition[i]]"
+  },
+  "localTransform": {
+    "rotation": "XYZ Euler radians; X then Y then Z; Rz * Ry * Rx",
+    "translationPlacement": "matrix row 3 XYZ",
+    "homogeneousW": 1.0,
+    "translationMagnitudeUsedAsW": false,
+    "maskRuntimeAddress": "0x1405D9F30",
+    "maskInitializer": "0x140001920",
+    "maskStaticSource": "0x14035D340",
+    "maskU32Lanes": [0, 0, 0, 4294967295]
+  },
+  "corpus": {
+    "uniqueScm": 68,
+    "orderPermutationPass": 68,
+    "singleRootAtOrderPosition0Pass": 68,
+    "parentReferencesPriorEvaluatedNodePass": 68,
+    "eachGeometryObjectBoundExactlyOncePass": 68,
+    "extraHelperNodesUseMinusOneBinding": true
+  },
+  "objectControlByte": {
+    "serialized": "object+0x01",
+    "runtimeControlByte": "+0x07",
+    "runtimeNormalizedSource": "+0x17C",
+    "runtimeOverrideCode": "+0x178",
+    "normalizationConstantAddress": "0x14035D558",
+    "normalizationConstant": 0.003921568859368563,
+    "operation": "if +0x178 > 0 use 1.0 else +0x17C / 255.0",
+    "semanticName": "UNRESOLVED"
+  },
+  "implementation": {
+    "sceneIr": "SceneNodeBlock indexing names corrected",
+    "localTransform": "scm::build_local_transform",
+    "multiply": "scm::multiply_dmc3_matrices",
+    "worldBuilder": "scm::build_world_matrices",
+    "policy": "fail-closed"
+  },
+  "open": [
+    "translationMagnitude semantic purpose outside local matrix construction",
+    "exact higher-level semantic name of 0x140030DC0 derived matrix cache",
+    "external coordinate-system/handedness naming",
+    "final semantic name of object+0x01"
+  ]
+}

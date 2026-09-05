@@ -26,13 +26,13 @@ int main(int argc, char** argv) {
     assert(project.import_evidence_packet(*imported.packet));
     assert(project.packets().size() == 1U);
     assert(project.artifacts().size() == 1U);
-    assert(project.evidence().size() == 6U);
+    assert(project.evidence().size() == 7U);
 
     const auto* packet = project.packets().find(
         "dmc3-hdc-phase12-canonical-target");
     assert(packet != nullptr);
     assert(packet->artifact_ids.size() == 1U);
-    assert(packet->record_ids.size() == 6U);
+    assert(packet->record_ids.size() == 7U);
 
     const auto* artifact = project.artifacts().find(
         "dmc3-hdc-exe-e454272e");
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         "artifact:dmc3-hdc-exe-e454272e") != nullptr);
     assert(project.graph().nodes(ProjectNodeKind::evidence_packet).size() == 1U);
     assert(project.graph().nodes(ProjectNodeKind::artifact).size() == 1U);
-    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 6U);
+    assert(project.graph().nodes(ProjectNodeKind::evidence_record).size() == 7U);
 
     std::size_t declared_records = 0U;
     std::size_t artifact_references = 0U;
@@ -71,8 +71,8 @@ int main(int argc, char** argv) {
             ++artifact_references;
         }
     }
-    assert(declared_records == 6U);
-    assert(artifact_references == 6U);
+    assert(declared_records == 7U);
+    assert(artifact_references == 7U);
 
     assert(!project.import_evidence_packet(*imported.packet));
     return 0;
