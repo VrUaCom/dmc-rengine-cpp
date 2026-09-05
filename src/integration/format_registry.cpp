@@ -269,15 +269,17 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
         },
         FormatIntegrationDescriptor{
             .format = "ptx",
-            .parser_id = {},
-            .maturity = IntegrationMaturity::recognized,
+            .parser_id = "formats.ptx-dmc3-reader",
+            .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::textures,
             .evidence_claim_ids = {},
             .limitations = {
                 "PTX identity is EXE-confirmed by the primary extension classifier.",
-                "Bundle schema/editor migration remains incomplete.",
+                "Native structural reading is bounded to the evidence-backed 0x800-byte bundle header, 0x70-byte texture descriptors, sector spans, DXT1/DXT5 DDS children and zero-alignment rules.",
+                "Validated DDS children are materialized through the canonical TextureSlotExpander with stable byte provenance.",
+                "PTX authoring/editing remains outside the modular Native Reader boundary; existing packed-reflow authoring remains a separate profile capability.",
             },
         },
         recognized_read_only(
