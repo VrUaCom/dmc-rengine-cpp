@@ -44,9 +44,6 @@ int main() {
         assert(module != nullptr);
         assert(module->valid());
     }
-    const auto* mod_reader = readers.find_by_format("mod");
-    assert(mod_reader != nullptr);
-    assert(mod_reader->parser_id == "formats.mod-structural-v1");
 
     const auto* pac = registry.find("PAC");
     assert(pac != nullptr);
@@ -94,16 +91,21 @@ int main() {
     assert(!scm->allows_guarded_export());
     assert(scm->writer_modes.empty());
     assert(has_limitation(*scm, "0x50 mesh records"));
-    assert(has_limitation(*scm, "not a promoted SCM writer"));
+    assert(has_limitation(*scm, "read-only"));
 
     const auto* mod = registry.find("MOD");
     assert(mod != nullptr);
     assert(mod->valid());
+    assert(mod->maturity == integration::IntegrationMaturity::structural);
+    assert(mod->parser_id == "formats.mod-structural-v1");
+    assert(mod->parser_validation_required);
     assert(mod->write_policy == integration::ResourceWritePolicy::read_only);
-    // The Native Reader module is already authoritative for read routing even
-    // while the legacy integration descriptor remains in recognized maturity.
-    assert(mod->parser_id.empty());
-    assert(readers.find_by_format(mod->format) == mod_reader);
+    assert(readers.find(mod->parser_id) != nullptr);
+    assert(!mod->allows_working_copy());
+    assert(!mod->allows_guarded_export());
+    assert(mod->writer_modes.empty());
+    assert(has_limitation(*mod, "three serialized influences"));
+    assert(has_limitation(*mod, "not authorized"));
 
     const auto* dds = registry.find("DDS");
     assert(dds != nullptr);
