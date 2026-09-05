@@ -7,6 +7,7 @@
 
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace dmc::rengine::integration::native_reader_modules {
