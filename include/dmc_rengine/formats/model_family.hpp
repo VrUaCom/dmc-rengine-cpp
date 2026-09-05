@@ -6,7 +6,8 @@
 namespace dmc::rengine::formats::model_family {
 
 // High-level semantic family shared by the DMC3-HD SCM and MOD adapters.
-// This deliberately does not assert binary-layout identity between the formats.
+// Shared capabilities are promoted only where serialized/runtime evidence is
+// common; binary layouts remain format-specific outside the extracted cores.
 enum class SourceFormat : std::uint8_t {
     scm,
     mod,
@@ -72,6 +73,9 @@ struct Profile final {
             bit(Capability::topology) |
             bit(Capability::node_hierarchy) |
             bit(Capability::transforms) |
+            bit(Capability::texture_binding) |
+            bit(Capability::alpha_control) |
+            bit(Capability::legacy_gs_sampler) |
             bit(Capability::skeletal_skinning),
         3U,
         false,

@@ -1,6 +1,7 @@
 {
-  "schema": "dmc-rengine.scm-hierarchy-world-transform.v1",
-  "date": "2026-09-03",
+  "schema": "dmc-rengine.scm-hierarchy-world-transform.v2",
+  "originalDate": "2026-09-03",
+  "provenanceCorrection": "2026-09-05",
   "target": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
@@ -15,20 +16,33 @@
     "binder": "0x1402F1DB0",
     "manager+0x08": "parentByOrderPosition",
     "manager+0x10": "nodeAtOrderPosition",
-    "manager+0x18": "objectBindingByNodeIndex",
+    "manager+0x18": "SCM objectBindingByNodeIndex",
     "manager+0x20": "transformByNodeIndex",
-    "manager+0x188": "worldMatrices",
-    "manager+0x1B0": "rootBaseMatrix"
+    "manager+0x188": "world matrix pool",
+    "manager+0x1B0": "root/base matrix"
   },
   "functions": {
-    "sceneInitialize": "0x1402FA080",
+    "scmLocalTransformInit": "0x1402FA360",
+    "modEfmLocalTransformInit": "0x1402FA080",
     "worldUpdate": "0x1402F9700",
     "matrixCopy": "0x140030D00",
     "matrixComposeWrapper": "0x140030E40",
     "matrixMultiply": "0x1400312B0",
     "translationApply": "0x140031200",
     "rotationBuild": "0x140330450",
-    "inverseWorldCache": "0x140030DC0"
+    "rigidInverseArithmetic": "0x140030DC0"
+  },
+  "correction": {
+    "retracted": [
+      "0x1402FA080 is the SCM transform initializer",
+      "the direct 0x140030DC0 initialization sequence is an SCM inverse-world cache"
+    ],
+    "corrected": [
+      "SCM uses 0x1402FA360",
+      "MOD/EFM use 0x1402FA080",
+      "both transform initializers call the same rotation and translation helpers",
+      "the direct 0x140030DC0 initialization use belongs to MOD/EFM"
+    ]
   },
   "matrixContract": {
     "storage": "row-major recovered DMC3 layout",
@@ -36,18 +50,22 @@
     "multiply": "result = left * right",
     "wrapper": "0x140030E40(dest, second, third) => dest = third * second",
     "rootWorld": "world[root] = local[root] * rootBase",
-    "childWorld": "world[current] = local[current] * world[parentByOrderPosition[i]]",
-    "inverseWorld": "rotation = transpose(world.rotation); translation = -world.translation * transpose(world.rotation); W = 1"
+    "childWorld": "world[current] = local[current] * world[parentByOrderPosition[i]]"
   },
   "localTransform": {
     "rotation": "XYZ Euler radians; X then Y then Z; Rz * Ry * Rx",
     "translationPlacement": "matrix row 3 XYZ",
     "homogeneousW": 1.0,
     "translationMagnitudeUsedAsW": false,
-    "maskRuntimeAddress": "0x1405D9F30",
-    "maskInitializer": "0x140001920",
-    "maskStaticSource": "0x14035D340",
-    "maskU32Lanes": [0, 0, 0, 4294967295]
+    "scmInitializer": "0x1402FA360",
+    "sharedRotationHelper": "0x140330450",
+    "sharedTranslationHelper": "0x140031200"
+  },
+  "rigidInverse": {
+    "helper": "0x140030DC0",
+    "arithmetic": "rotation transpose; translation = -T * R^T; W=1",
+    "directInitializationOwner": "MOD/EFM 0x1402FA080",
+    "scmDirectCacheOwnership": false
   },
   "corpus": {
     "uniqueScm": 68,
@@ -57,34 +75,12 @@
     "eachGeometryObjectBoundExactlyOncePass": 68,
     "extraHelperNodesUseMinusOneBinding": true
   },
-  "objectControlByte": {
-    "serialized": "object+0x01",
-    "runtimeControlByte": "+0x07",
-    "runtimeNormalizedSource": "+0x17C",
-    "runtimeOverrideCode": "+0x178",
-    "normalizationConstantAddress": "0x14035D558",
-    "normalizationConstant": 0.003921568859368563,
-    "operation": "if +0x178 > 0 use 1.0 else +0x17C / 255.0",
-    "semanticName": "UNRESOLVED"
-  },
-  "sourceObjectFlags": {
-    "serialized": "object+0x10",
-    "runtimeCopies": ["runtimeObject+0x10", "runtimeObject+0x14"],
-    "observedUnresolvedBit": "0x00200000",
-    "provenanceCorrection": "0x140303F2F tests manager+0xE0, not runtimeObject+0x10/+0x14; it is not evidence for serialized object bit 0x00200000"
-  },
   "implementation": {
-    "sceneIr": "SceneNodeBlock indexing names corrected",
+    "sceneIr": "SceneNodeBlock indexing names remain valid",
     "localTransform": "scm::build_local_transform",
     "multiply": "scm::multiply_dmc3_matrices",
     "worldBuilder": "scm::build_world_matrices",
-    "inverseWorld": "scm::invert_dmc3_rigid_transform",
+    "rigidInverseUtility": "scm::invert_dmc3_rigid_transform retained as arithmetic utility; SCM runtime ownership claim removed",
     "policy": "fail-closed"
-  },
-  "open": [
-    "translationMagnitude semantic purpose outside local matrix construction",
-    "external coordinate-system/handedness naming",
-    "final semantic name of object+0x01",
-    "direct lineage/meaning of serialized object flag 0x00200000"
-  ]
+  }
 }

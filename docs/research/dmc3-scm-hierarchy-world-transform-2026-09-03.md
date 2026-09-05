@@ -1,12 +1,12 @@
-# DMC3 HD SCM hierarchy/world-transform reverse — 2026-09-03
+# DMC3 HD SCM hierarchy/world-transform reverse — corrected provenance record
 
-**Status:** EXE_CONFIRMED hierarchy indexing, local/world propagation and rigid inverse-world cache; corpus-confirmed on 68 unique SCM resources.  
-**Canonical target:** `dmc3.exe`  
-**SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
+**Original pass:** 2026-09-03  
+**Correction:** 2026-09-05  
+**Canonical target:** `dmc3.exe` SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
-## Result
+## Stable result
 
-The SCM scene block is no longer modeled as four generic parallel arrays. The canonical executable proves that the first two arrays form an **evaluation-order pair**, while object bindings and transforms are indexed by the actual scene-node index.
+The SCM scene block indexing contract remains confirmed:
 
 ```text
 scene block +0x00 -> parentByOrderPosition[]
@@ -15,169 +15,47 @@ scene block +0x08 -> objectBindingByNodeIndex[]
 scene block +0x0C -> transformByNodeIndex[]
 ```
 
-This distinction is required for correct world-matrix reconstruction.
+`0x1402F1DB0` resolves the four arrays into common manager pointers `+0x08/+0x10/+0x18/+0x20`.
 
-## 1. Runtime pointer binding — 0x1402F1DB0
+The 68-file SCM corpus still validates:
 
-`0x1402F1DB0` resolves the four relative offsets from the serialized scene block and stores the resulting pointers in the SCM runtime manager:
+- `nodeAtOrderPosition` is a permutation;
+- exactly one root at evaluation position 0;
+- every non-root parent is already evaluated;
+- each geometry object is bound exactly once;
+- helper nodes use binding `-1`.
 
-```text
-serialized scene +0x00 -> manager +0x08
-serialized scene +0x04 -> manager +0x10
-serialized scene +0x08 -> manager +0x18
-serialized scene +0x0C -> manager +0x20
-```
+## Local SCM transform — corrected owner
 
-The later consumers establish the semantics below.
+The SCM-specific local transform initializer is **`0x1402FA360`**, reached by SCM setup `0x140303C10`.
 
-## 2. Evaluation order and parent indexing
-
-`0x1402FA080` and `0x1402F9700` iterate an order-position `i` and obtain the actual scene-node index from:
+The previously cited `0x1402FA080` belongs to the MOD/EFM setup chain (`0x1403039C0`). Both call the same lower helpers, so the recovered local transform semantics remain valid:
 
 ```text
-currentNode = manager+0x10[i]
+rotation +0x10 XYZ -> 0x140330450 -> X, Y, Z -> Rz * Ry * Rx
+translation +0x00 XYZ -> 0x140031200
+translation +0x0C -> precomputed length, excluded from homogeneous W
 ```
 
-For non-root positions, the parent is read independently from:
+## Parent/root pointer setup
+
+SCM initializer `0x1402FA360` uses the common order/parent arrays to assign each runtime node's parent/root matrix pointer. Root nodes reference manager root/base state; non-root nodes point at the already allocated matrix for their parent node.
+
+The format-specific third array is also read here for SCM object/node attachment state. Its SCM meaning must not be generalized to MOD.
+
+## Generic world update — 0x1402F9700
+
+`0x1402F9700` is a family-level world update helper rather than evidence of an SCM-only implementation.
+
+For each node in evaluation order it obtains the local matrix and selected parent/root matrix and calls `0x140030E40`.
+
+`0x140030E40` reaches the recovered 4x4 multiplier `0x1400312B0`, yielding the established row-vector relation:
 
 ```text
-parentNode = manager+0x08[i]
+world[current] = local[current] * parentOrRootWorld
 ```
 
-Therefore `manager+0x08` is **not** `parent[nodeIndex]`. It is `parentByOrderPosition[i]`, paired with `nodeAtOrderPosition[i]` from `manager+0x10`.
-
-The relation is:
-
-```text
-position i
-  node   = nodeAtOrderPosition[i]
-  parent = parentByOrderPosition[i]
-```
-
-This also reconciles the historical Blender prior-art assignment:
-
-```text
-bone[hierarchyOrder[i]].parent = hierarchy[i]
-```
-
-without making that importer canonical authority.
-
-## 3. Corpus invariants
-
-A combined sweep of the 67 unique SCM resources in the preserved stage-drop ZIP plus the independently supplied `st001.scm` / `st114.scm` identities yields **68 unique SCM files**.
-
-On 68/68:
-
-1. `nodeAtOrderPosition` is an exact permutation of `0..nodeCount-1`;
-2. `parentByOrderPosition[0] == -1`;
-3. there is exactly one `-1` parent and it occurs at evaluation position 0;
-4. every non-root parent references a scene node that has already appeared at an earlier evaluation position;
-5. `objectBindingByNodeIndex` contains each geometry object index `0..objectCount-1` exactly once;
-6. additional scene/helper nodes use object binding `-1`.
-
-This is now enforced by the clean C++ structural validator.
-
-## 4. Object binding is node-indexed
-
-The object initializer at `0x140302F10` scans `manager+0x18` directly by scene-node index and looks for the entry equal to the geometry object index. The matching node index is stored in the runtime object at `+0x0E`.
-
-This is consistent with the corpus. For example, in `st001.scm` the order permutation is highly non-linear, while `objectBindingByNodeIndex` remains aligned to node identity and marks helper nodes with `-1`.
-
-Safe interpretation:
-
-```text
-objectBindingByNodeIndex[node] = geometry object index or -1
-```
-
-Do not reorder this array into evaluation order.
-
-## 5. Local transform construction
-
-The serialized transform record remains:
-
-```text
-+0x00 f32 translationX
-+0x04 f32 translationY
-+0x08 f32 translationZ
-+0x0C f32 translationMagnitude
-+0x10 f32 rotationX radians
-+0x14 f32 rotationY radians
-+0x18 f32 rotationZ radians
-+0x1C f32 reserved = 0
-```
-
-The rotation path was previously closed through `0x140330450`: X, then Y, then Z, producing the DMC3 matrix product `Rz * Ry * Rx` from identity.
-
-The translation helper `0x140031200` closes the remaining local-matrix part:
-
-- rows 0..2 are copied from the rotation matrix;
-- serialized translation XYZ is added to matrix row 3 XYZ;
-- homogeneous W is preserved from the pre-existing matrix;
-- serialized `translationMagnitude` is **not** added to W.
-
-The mask used by `0x140031200` lives at runtime address `0x1405D9F30` and is initialized by `0x140001920` from static constant `0x14035D340`:
-
-```text
-u32 lanes = {0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF}
-```
-
-This makes the helper preserve the original W lane while accepting only translation XYZ from the serialized vec4. Starting from the identity-backed rotation matrix, local W remains `1.0`.
-
-Clean implementation:
-
-```text
-scm::build_local_transform()
-```
-
-## 6. Matrix multiplication contract
-
-`0x1400312B0` is the canonical 4x4 multiply. Its assembly computes every output row as the weighted sum of rows from the right operand using one row of the left operand.
-
-Safe recovered contract:
-
-```text
-result = left * right
-```
-
-with DMC3's recovered row-major / row-vector convention.
-
-`0x140030E40(dest, second, third)` calls the multiplier as:
-
-```text
-0x1400312B0(temp, third, second)
-```
-
-then copies `temp` to `dest`.
-
-Therefore:
-
-```text
-0x140030E40(dest, parentWorld, local)
-    => dest = local * parentWorld
-```
-
-Clean implementation:
-
-```text
-scm::multiply_dmc3_matrices()
-```
-
-## 7. Canonical world propagation — 0x1402F9700
-
-`0x1402F9700` first copies its external/root base matrix to manager `+0x1B0`, then walks all scene nodes in evaluation order.
-
-For each order position:
-
-```text
-currentNode = nodeAtOrderPosition[i]
-local       = runtimeNode[currentNode] +0x40
-parentWorld = runtimeNode[currentNode] +0x80
-worldOut    = worldMatrices[currentNode]
-
-0x140030E40(worldOut, parentWorld, local)
-```
-
-Thus the exact update relation is:
+For SCM this gives:
 
 ```text
 root:
@@ -187,102 +65,54 @@ non-root:
   world[current] = local[current] * world[parentByOrderPosition[i]]
 ```
 
-`0x1402FA080` establishes the parent-world pointers:
+The clean `scm::build_world_matrices()` remains consistent with this contract.
 
-- the root runtime node points to manager `+0x1B0`;
-- every non-root runtime node points to the already allocated world matrix of `parentByOrderPosition[i]`.
+## Rigid inverse provenance correction
 
-The clean C++20 reconstruction is:
-
-```text
-scm::build_world_matrices()
-```
-
-and rejects malformed/non-topological hierarchy data rather than guessing a fallback.
-
-## 8. Inverse-world cache — 0x140030DC0
-
-`0x1402FA080` calls `0x140030DC0` with each current world matrix and stores the returned 0x40-byte matrix in the first 0x40 bytes of the corresponding runtime-node record.
-
-The helper is now structurally closed. It is a rigid-transform inverse for the SCM transform family:
-
-1. transpose the upper-left 3x3 rotation basis;
-2. zero the fourth element of the first three rows;
-3. compute inverse translation as `-T * R^T` in the recovered row-vector convention;
-4. set homogeneous W to `1.0`.
-
-Equivalent relation:
+The arithmetic helper `0x140030DC0` is indeed a rigid transform inverse:
 
 ```text
-inverseWorld.rotation    = transpose(world.rotation)
-inverseWorld.translation = -world.translation * inverseWorld.rotation
-inverseWorld.W           = 1
+inverse.rotation = transpose(rotation)
+inverse.translation = -translation * transpose(rotation)
+W = 1
 ```
 
-No scale inversion is performed, which is correct for the recovered SCM node matrices because serialized transforms contain translation + Euler rotation and no scale channel.
+However, the **direct initialization path previously attributed to SCM is not SCM-owned**. It occurs in `0x1402FA080`, which the corrected setup-chain evidence identifies as the MOD/EFM transform initializer.
 
-Clean implementation:
+SCM `0x1402FA360` does not execute that same direct inverse-cache initialization sequence.
+
+Therefore:
+
+- the mathematical reconstruction `invert_dmc3_rigid_transform()` remains valid as a DMC matrix utility;
+- direct SCM inverse-world-cache ownership is **retracted**;
+- the MOD/EFM inverse path becomes evidence for the active skeleton/palette reverse track.
+
+## Object core cross-family correction
+
+A parallel comparison of SCM `0x140302F10` and MOD/EFM `0x1403029E0` proves that several fields formerly treated as SCM-only are common Model Family object state:
 
 ```text
-scm::invert_dmc3_rigid_transform()
+serialized +0x01 -> runtime alpha/control byte
+serialized +0x10 -> runtime baseline/effective source flags
+serialized +0x30 -> bounding sphere
 ```
 
-Regression verifies both:
+SCM retains additional stage-specific alpha compatibility corrections, so the core behavior and the compatibility layer remain separate.
 
-```text
-world * inverseWorld == identity
-inverseWorld * world == identity
-```
+## Current boundary
 
-within float tolerance for translation-only and combined XYZ-rotation/translation cases.
+SCM hierarchy/world behavior that remains confirmed:
 
-## 9. Object +0x01 additional narrowing
+- parent/order indexing;
+- SCM object binding array semantics;
+- local XYZ Euler transform;
+- translation-magnitude exclusion from W;
+- root/parent matrix-pointer setup;
+- generic local * parent world propagation.
 
-The serialized `object+0x01` byte is copied to runtime object `+0x07`, then duplicated to runtime `+0x17C`. Runtime setup paths at `0x140304140` and `0x140304509` convert `+0x17C` to float and multiply by the exact constant at `0x14035D558`:
+Retracted:
 
-```text
-0.003921568859... ~= 1 / 255
-```
+- `0x1402FA080` as the SCM local-transform initializer;
+- direct SCM ownership of the `0x140030DC0` inverse-cache initialization path.
 
-Operationally:
-
-```text
-if runtime +0x178 > 0:
-    downstream float = 1.0
-else:
-    downstream float = runtime +0x17C / 255.0
-```
-
-`+0x178` is populated when the corrected control/classification byte is greater than `0x80`.
-
-This proves the byte participates in a normalized 8-bit render-facing parameter/control path, but does **not** by itself prove a final name such as opacity/alpha/material class. The clean IR therefore remains semantically neutral.
-
-## 10. Source-object flag lineage correction
-
-Serialized `object+0x10` is copied verbatim into runtime object `+0x10` and `+0x14` by `0x140302F10` before the known operational bit projection runs.
-
-A same-value `0x00200000` test exists at `0x140303F2F`, but provenance review shows that site reads **manager `+0xE0`**, not runtime object `+0x10/+0x14`. Manager `+0xE0` is independently initialized from family classifier `0x1402FD650` plus constructor flags in `0x1402F9570`.
-
-Therefore that site is **not evidence** for the observed serialized object flag `0x00200000`. The object-bit lineage remains open until a direct runtime-object consumer or a proven propagation path is recovered.
-
-## 11. Remaining hierarchy boundary
-
-The following are now closed for the canonical target:
-
-- exact scene-array indexing contract;
-- topological evaluation order;
-- root and parent relation;
-- object-binding node indexing;
-- local rotation matrix;
-- local translation placement;
-- translation-magnitude exclusion from homogeneous W;
-- matrix multiply order;
-- root/non-root world propagation;
-- rigid inverse-world cache form.
-
-Still separate/open:
-
-- exact semantic purpose of `translationMagnitude` outside matrix construction;
-- external engine coordinate-system naming/handedness conversion for third-party tools;
-- final semantic name of object `+0x01`;
-- direct lineage/meaning of serialized object flag `0x00200000`.
+This corrected record supersedes those address/ownership claims from the 2026-09-03 version without changing the validated SCM serialized hierarchy or world-composition formulas.
