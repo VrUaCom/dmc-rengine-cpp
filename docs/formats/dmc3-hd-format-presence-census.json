@@ -13,6 +13,7 @@
     "RETAIL_VOLUME_CONFIRMED": "bound retail archive/volume artifact",
     "RETAIL_MEMBER_CONFIRMED": "direct member present in bound retail central-directory surface",
     "CORPUS_PAYLOAD_CONFIRMED": "real supplied/extracted payload bytes bound to semantic family",
+    "CORPUS_LABEL_CONFIRMED": "family/variant label is present in retained corpus/naming evidence but no canonical raw payload receipt is asserted",
     "WORKING_NAME_OVER_OTHER_EXTENSION": "semantic project name whose observed physical/extracted suffix differs",
     "EXE_ONLY_NOT_BOUND": "original EXE identity/reference exists but no current canonical real-payload receipt",
     "CAPABILITY_ONLY": "runtime/media capability without shipped-asset presence claim",
@@ -49,6 +50,10 @@
     {"id":"stage-txt","status":"CORPUS_PAYLOAD_CONFIRMED"},
     {"id":"eventtbl","status":"CORPUS_PAYLOAD_CONFIRMED","observedNaming":"EventTblNN.bin"}
   ],
+  "corpusLabelsWithoutPromotedPayloadReceipt": [
+    {"id":"hid","names":"HID/HID2/HID3","status":"CORPUS_LABEL_CONFIRMED","note":"base HID is EXE-registered; HID2/HID3 are retained corpus variants, but this census does not promote a raw payload receipt"},
+    {"id":"sef","status":"CORPUS_LABEL_CONFIRMED","note":"data/corpus-led family evidence exists; exact direct original consumer and raw payload binding remain open"}
+  ],
   "workingNames": [
     {
       "id":"so",
@@ -60,7 +65,7 @@
     }
   ],
   "exeOnlyNotBound": [
-    "efm","mrp","mcv","clt","c1d","hid","tsc","ptz","efe","efw","vagp","spumapdt","options-sav","ico","icon-sys"
+    "efm","mrp","mcv","clt","c1d","tsc","ptz","efe","efw","vagp","spumapdt","options-sav","ico","icon-sys"
   ],
   "capabilityOnly": ["pss","thp","pam","xmv","pmf","avi","mpg","bik","mp4"],
   "logicalRepresentationPairs": [
