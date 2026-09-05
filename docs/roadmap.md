@@ -7,7 +7,7 @@
 This roadmap distinguishes four different things that must never be conflated:
 
 - ✅ **PROVEN / CLOSED** — the claim is supported at the required authority level. Original-DMC3 behavior requires a bounded reverse pass against the canonical executable and, where the claim is corpus/runtime-specific, matching corpus or original-process evidence.
-- ⚠️ **IMPLEMENTED / PROOF OPEN** — DMC Rengine code exists and may have green tests/CI, but the original-game or real-retail proof required by the claim is still open.
+- ⚠️ **IMPLEMENTED / PROOF OPEN** — DMC Rengine code exists and may have green tests/CI, but the original-game or real-retail proof required by the claim is still open, or the implementation is still awaiting canonical promotion.
 - ❌ **OPEN** — mandatory implementation, reverse, corpus, runtime or acceptance evidence is still missing.
 - ➖ **PRODUCT POLICY / REVERSE N/A** — deliberate DMC Rengine safety/product policy. It is validated by code/tests/CI and is not claimed to reproduce Capcom behavior.
 
@@ -59,7 +59,7 @@ Detailed proof matrix: [GDSpaces proof roadmap — 2026-09-05](gdspaces/proof-ro
 - ✅ Archive `0x0E` normalization algorithm is reverse-backed.
 - ✅ Retail `dmc3-0.nbz` normalized-key census: 4,333 file keys / 4,333 unique / 0 collisions; scope is this archive only.
 - ✅ Type-0 physical-provider final-open/miss behavior in the recovered direct-call scope.
-- ⚠️ Discovery != successful mount topology — reverse proof exists, but the current product correction is not yet canonical on `main`; semantic port from the historical #246 work remains required.
+- ⚠️ Discovery != successful mount topology — reverse proof is closed and the product correction is implemented on PR #287; it remains non-canonical until final CI/review and promotion to `main`.
 - ❌ Per-volume + cross-volume collision census for any resolver scope wider than the bound `dmc3-0.nbz` artifact.
 - ❌ Real protected-distribution R2B multi-anchor mapping receipt.
 - ❌ Trusted original-process R3 selected-provider identity trace.
@@ -148,7 +148,7 @@ For authoring acceptance the same chain must then be repeated with an exact DMC 
 Execution order:
 
 1. ✅ preserve existing static reverse authority for bootstrap, mount-list construction, resolver masks and normalization;
-2. ⚠️ semantically port the discovery-vs-successful-mount topology correction onto current `main`;
+2. ⚠️ mount-topology product correction implemented on PR #287; final CI/review and promotion remain;
 3. ❌ obtain/process a real protected-process R2B mapping packet;
 4. ❌ capture trusted selected-provider/member identity without synthesizing probes;
 5. ❌ bind selected member to independently materialized SHA/provenance;
