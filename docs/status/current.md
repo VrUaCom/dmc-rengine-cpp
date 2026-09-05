@@ -2,6 +2,7 @@
 
 **Snapshot date:** 2026-09-05  
 **Canonical implementation base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
+**Active proof/integration PR:** #287 — proof roadmap + successful-mount topology correction  
 **Latest canonical Native Reader promotion:** PR #285 — SCM/MOD Model Family  
 **Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
@@ -119,9 +120,31 @@ Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
 
 This closes collision freedom only for that exact archive. Wider resolver scope still requires per-volume and cross-volume census.
 
+### Active L2 product correction
+
+Static reverse proves:
+
+```text
+filename discovery / registration attempt
+!=
+successful linked runtime mount topology
+```
+
+PR #287 now implements that distinction on current-main architecture:
+
+- discovery plan is discovery-only;
+- successful mount topology contains only explicitly successful linked providers;
+- sparse archive success is representable;
+- resolver traverses only successful topology;
+- discovered-but-failed archive is absent, not manufactured as a lookup miss;
+- failed physical registration produces no physical probe;
+- acquisition receipts explicitly distinguish product successful-mount topology from unproven original-process mount topology.
+
+The correction remains **non-canonical until PR #287 passes final exact-head CI/review and is promoted to `main`**.
+
 ### Remaining L2 frontier
 
-- discovery range vs successful mounted set is reverse-proven, but the product API correction from historical #246 still needs semantic port to current main;
+- per-volume + cross-volume collision census for any wider resolver scope;
 - real protected-process R2B multi-anchor mapping receipt;
 - trusted R3 selected-provider/member identity;
 - direct-retail original resolver winner receipt;
@@ -170,16 +193,16 @@ Then repeat the same lineage with an authored next-volume NBZ and rollback.
 
 Immediate order:
 
-1. reconcile roadmap/status to proof-level truth;
-2. semantically port discovery-vs-successful-mount topology semantics to current main;
-3. close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
-4. execute protected-process R2B mapping;
-5. capture trusted R3 selected identity;
-6. bind selected identity to exact independently materialized bytes;
-7. observe typed post-load/state3 for the same resource;
-8. repeat using authored higher-volume overlay;
-9. record deterministic consumer effect + rollback;
-10. run independent final L1/L2/L3 audits.
+1. ✅ roadmap/status reconciled to proof-level truth;
+2. ⚠️ mount-topology correction implemented on PR #287; final CI/review + promotion remain;
+3. ❌ close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
+4. ❌ execute protected-process R2B mapping;
+5. ❌ capture trusted R3 selected identity;
+6. ❌ bind selected identity to exact independently materialized bytes;
+7. ❌ observe typed post-load/state3 for the same resource;
+8. ❌ repeat using authored higher-volume overlay;
+9. ❌ record deterministic consumer effect + rollback;
+10. ❌ run independent final L1/L2/L3 audits.
 
 ## Current evidence-access boundary
 
