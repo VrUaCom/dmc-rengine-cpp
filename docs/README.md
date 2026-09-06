@@ -20,20 +20,9 @@
 
 ## Current execution authority
 
-The primary execution program is **GDSpaces L1 — Resource Materialization**. Its completion authority is gate-based:
+The live execution program, canonical implementation base and current proof gates are recorded in [Current project status](status/current.md). This documentation index intentionally does not duplicate a frozen status snapshot.
 
-```text
-publication integrity
- -> artifact-stable retail acquisition
- -> direct-retail provenance
- -> representation classification
- -> real bounded edit/rebuild
- -> next-volume reopen/rematerialization
- -> original-game consumption
- -> final L1 acceptance audit
-```
-
-Do not derive L1 completion from percentages, synthetic A-to-Z tests, resolver progress, or structural parsing alone.
+Completion remains **gate-based**, not percentage-based. Synthetic tests, structural parsing, resolver progress or individual format readers never override the applicable canonical acceptance gates.
 
 ## Architecture and contracts
 
