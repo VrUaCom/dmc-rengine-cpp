@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "unintegrated-work-reconciliation-20260906",
+  "date": "2026-09-06",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "audit_base": "3a3db646c6bf3faf1871efbed31c4e9f4fb32cbe",
+  "policy": {
+    "main_is_implementation_authority": true,
+    "whole_stale_branch_merges_forbidden": true,
+    "semantic_ports_require_current_main_base": true,
+    "evidence_status_must_not_be_strengthened_by_port": true
+  },
+  "reviewed_surfaces": [
+    {"pr":291,"classification":"active-current-main-fix","priority":"P0","action":"land-after-final-diff-review","topics":["afs-namespace","afs-binary-candidate","pack-binary-candidate"],"ci":{"ubuntu":"success","windows":"success"}},
+    {"pr":280,"classification":"salvage-only","priority":"P0","action":"extract-efm-mot-and-reviewed-helpers","topics":["efm","mot","relative-slot-walk","naming-helpers"],"reject_wholesale":["old-shw","old-ptx","old-mod","old-classifier-registry"]},
+    {"pr":254,"classification":"evidence-salvage","priority":"P0","action":"pair-with-mot-and-animation-contract","topics":["mot-corpus","animation-type-dispatch","script-animation-names","c1d","effect-names","index-probe"]},
+    {"pr":282,"classification":"active-hits-integration","priority":"P0-P1","action":"decompose-onto-current-main","topics":["hits-runtime","hits-query-evidence","contact-normal","primitive-evidence","stage-cfg","descriptor-census"]},
+    {"pr":284,"classification":"mostly-subsumed-verification","priority":"P2","action":"exact-diff-transform-domain-then-close-or-port-small-delta","topics":["mod-hardening","transform-domain"]},
+    {"pr":223,"classification":"missing-architecture","priority":"P1","action":"port-validation-run-first","topics":["validation-run","v-lv","evidence-classes","cross-layer-binding"]},
+    {"pr":218,"classification":"missing-validation-implementation","priority":"P1","action":"rebuild-as-v-owned-l3-adapter","topics":["l3-lifecycle-trace","v1-v6","state-sequencing"]},
+    {"pr":236,"classification":"partially-subsumed","priority":"P1-P2","action":"reuse-main-process-instance-capture-port-only-missing-r3-chain","topics":["process-instance","r2b","r3-selection"]},
+    {"pr":232,"classification":"evidence-reconciliation","priority":"P2","action":"port-only-missing-structural-selection-evidence","topics":["central-entry-identity","archive-transition","r3-observer-sites"]},
+    {"pr":91,"classification":"missing-product-architecture","priority":"P1","action":"reconstruct-stage-ops-from-current-main","topics":["stage-assembly","stage-operations","semantic-graph","modviz-projection","runtime-links"]},
+    {"pr":89,"classification":"recovered-game-salvage","priority":"P1-P2","action":"port-bounded-runtime-slices-after-format-reconciliation","topics":["stage-descriptor","numeric-stage-resolver","shw-postload","mod-efm-postload","media-translation","scene-transition"]},
+    {"pr":190,"classification":"missing-editor-projection","priority":"P2","action":"rebuild-source-tree-as-projection-over-current-evidence","topics":["recovered-source-symbol","exe-editor-source-tree"]},
+    {"pr":210,"classification":"subsumed","priority":"closeout","action":"verify-lineage-and-close","topics":["relative-slot-path-reflow"]},
+    {"pr":181,"classification":"hold-contradiction-review","priority":"hold","action":"do-not-use-as-global-executable-authority","topics":["protected-canonical-identity"]},
+    {"pr":226,"classification":"architecture-research","priority":"P3","action":"revisit-after-stageops-and-v-lv","topics":["resource-control-plane"]},
+    {"pr":50,"classification":"bounded-recovered-game-candidate","priority":"P3","action":"audit-later","topics":["mission-result-policy-abi"]}
+  ],
+  "current_main_confirmed_capabilities": [
+    "pac-pnst-relative-slot",
+    "relative-slot-path-reflow",
+    "nbz-source-and-overlay",
+    "dds-native-reader",
+    "ptx-native-reader",
+    "texture-slot-framing",
+    "texture-slot-packed-reflow-writer",
+    "texture-slot-runtime-materialization-inspector",
+    "hits-structural-reader",
+    "dca-reader",
+    "lig-lig2-reader",
+    "stage-txt-reader",
+    "scm-reader",
+    "mod-reader",
+    "shw-reader",
+    "process-memory-window-process-creation-filetime",
+    "original-resolution-observation"
+  ],
+  "confirmed_missing_or_unrepresented_symbols": [
+    "EfmParser",
+    "MotParser",
+    "hits_query_evidence",
+    "hits_contact_normal_evidence",
+    "hits_stage_cfg_collision_tables",
+    "referenced_descriptor_census",
+    "StageOperationsSession",
+    "ValidationRun",
+    "L3LifecycleTrace",
+    "StageNumericResolver",
+    "RecoveredSourceSymbol"
+  ],
+  "implementation_waves": [
+    {"id":"W0","title":"stabilize-current-main","depends_on":[],"deliverables":["PR-291-final-review-and-landing","post-merge-cross-platform-ci"]},
+    {"id":"W1","title":"efm-native-reader","depends_on":["W0"],"source_prs":[280,89]},
+    {"id":"W2","title":"mot-animation-contract","depends_on":["W0"],"source_prs":[280,254]},
+    {"id":"W3","title":"hits-profile-runtime-decomposition","depends_on":["W0"],"source_prs":[282]},
+    {"id":"W4","title":"stage-ops-reconstruction","depends_on":["W1","W2","W3"],"source_prs":[91,89]},
+    {"id":"W5","title":"validation-v-lv-and-l3","depends_on":["W0"],"source_prs":[223,218,236,232]},
+    {"id":"W6","title":"recovered-game-source-tree","depends_on":["W1","W3","W5"],"source_prs":[89,190]},
+    {"id":"W7","title":"residual-salvage-closeout","depends_on":["W1","W2","W3","W4","W5","W6"],"source_prs":[284,210,181,226,50]}
+  ],
+  "non_claims": [
+    "This audit does not claim every historical open PR contains unique current-main code.",
+    "Absence of an old class name is not by itself proof of missing capability when a newer main abstraction exists.",
+    "No branch reviewed here is promoted to canonical implementation authority by documentation alone.",
+    "No original-game equivalence or layer completion claim is made."
+  ]
+}
