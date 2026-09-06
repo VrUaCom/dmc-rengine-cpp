@@ -3,7 +3,10 @@
 ## Start here
 
 - [Current project status](status/current.md)
+- [Public DMC3 FAQ](discovery/faq.md)
+- [Public DMC3 HD file-format and archive index](formats/public-index.md)
 - [Public discovery strategy](discovery/README.md)
+- [Public release readiness](releases/readiness.md)
 - [GDSpaces Layer 1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
@@ -54,6 +57,7 @@ Completion remains **gate-based**, not percentage-based. Synthetic tests, struct
 
 ### Formats and resource semantics
 
+- [Public DMC3 HD file-format and archive index](formats/public-index.md)
 - [Format documentation index](formats/README.md)
 - [Canonical DMC3 HD format and resource-purpose catalog](formats/dmc3-hd-format-catalog.md)
 - [Machine-readable DMC3 HD format-purpose registry](formats/dmc3-hd-format-purpose-registry.json)
@@ -92,10 +96,19 @@ Recovered original-game functions/types/lifetime code belong to the Recovered Ga
 - [Binary document model](binary/document-model.md)
 - [Web-to-C++20 cross-port plan](binary/web-crossport.md)
 
+## Public discovery and releases
+
+- [Public discovery strategy](discovery/README.md)
+- [Public DMC3 FAQ](discovery/faq.md)
+- [Public release readiness](releases/readiness.md)
+
+These documents improve onboarding and discoverability without changing technical truth. Release notes and public summaries must stay subordinate to current `main`, status and evidence authority.
+
 ## Current status and planning
 
 - [Current status](status/current.md)
 - [Public discovery strategy](discovery/README.md)
+- [Public release readiness](releases/readiness.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Phase map](status/phase-map.md)
