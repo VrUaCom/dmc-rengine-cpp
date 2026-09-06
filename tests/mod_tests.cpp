@@ -87,8 +87,14 @@ std::vector<std::byte> make_valid_mod() {
     put_u64(bytes, 0x20U, 0x200U);
 
     put_u8(bytes, 0x40U, 1U); // one inner mesh
+    put_u8(bytes, 0x41U, 0x90U); // raw MOD alpha/control
     put_u16(bytes, 0x42U, 1U); // aggregate elements
     put_u64(bytes, 0x48U, 0x80U);
+    put_u32(bytes, 0x50U, 0x00004000U); // nearest-filter source flag
+    put_f32(bytes, 0x70U, 10.0F);  // bounding center x
+    put_f32(bytes, 0x74U, -20.0F); // bounding center y
+    put_f32(bytes, 0x78U, 30.0F);  // bounding center z
+    put_f32(bytes, 0x7CU, 42.5F);  // bounding radius
 
     put_u16(bytes, 0x80U, 1U);
     put_u16(bytes, 0x82U, 7U); // texture slot
@@ -178,6 +184,12 @@ int main() {
         assert(parsed.document.outer_models.size() == 1U);
         const auto& outer = parsed.document.outer_models.front();
         assert(outer.aggregate_element_count == 1U);
+        assert(outer.alpha_control == 0x90U);
+        assert(outer.source_flags == 0x00004000U);
+        assert(outer.bounding_center.x == 10.0F);
+        assert(outer.bounding_center.y == -20.0F);
+        assert(outer.bounding_center.z == 30.0F);
+        assert(outer.bounding_radius == 42.5F);
         assert(outer.meshes.size() == 1U);
         const auto& mesh = outer.meshes.front();
         assert(mesh.element_count == 1U);

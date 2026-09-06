@@ -143,12 +143,35 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
             static_cast<std::uint64_t>(outer_index) * outer_record_size;
 
         const auto inner_count = reader.u8(
-            static_cast<std::size_t>(outer.record_offset + 0x00U));
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::child_mesh_count_field));
+        const auto alpha_control = reader.u8(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::alpha_control_field));
         const auto aggregate = reader.u16_le(
-            static_cast<std::size_t>(outer.record_offset + 0x02U));
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::aggregate_element_count_field));
         const auto inner_table = reader.u64_le(
-            static_cast<std::size_t>(outer.record_offset + 0x08U));
-        if (!inner_count || !aggregate || !inner_table) {
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::child_mesh_table_field));
+        const auto source_flags = reader.u32_le(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::source_flags_field));
+        const auto bound_x = reader.f32_le(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::bounding_center_field + 0U));
+        const auto bound_y = reader.f32_le(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::bounding_center_field + 4U));
+        const auto bound_z = reader.f32_le(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::bounding_center_field + 8U));
+        const auto bound_radius = reader.f32_le(
+            static_cast<std::size_t>(outer.record_offset +
+                model_family::ObjectCoreAbi::bounding_radius_field));
+        if (!inner_count || !alpha_control || !aggregate || !inner_table ||
+            !source_flags || !bound_x || !bound_y || !bound_z ||
+            !bound_radius) {
             diag(out, ParseSeverity::error,
                  "mod.outer-record-truncated",
                  "MOD outer record is truncated.", outer.record_offset);
@@ -156,8 +179,12 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
         }
 
         outer.inner_record_count = *inner_count;
+        outer.alpha_control = *alpha_control;
         outer.aggregate_element_count = *aggregate;
         outer.inner_table_offset = *inner_table;
+        outer.source_flags = *source_flags;
+        outer.bounding_center = Vec3f{*bound_x, *bound_y, *bound_z};
+        outer.bounding_radius = *bound_radius;
 
         const auto inner_bytes =
             static_cast<std::uint64_t>(outer.inner_record_count) *
@@ -409,7 +436,8 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
             diag(out, ParseSeverity::error,
                  "mod.aggregate-element-count-mismatch",
                  "MOD outer +0x02 does not equal the sum of child inner element counts.",
-                 outer.record_offset + 0x02U);
+                 outer.record_offset +
+                     model_family::ObjectCoreAbi::aggregate_element_count_field);
         }
         out.document.outer_models.push_back(std::move(outer));
     }
