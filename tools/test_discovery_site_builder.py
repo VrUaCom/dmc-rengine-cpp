@@ -60,6 +60,8 @@ def main() -> None:
     manifest = site.load_manifest()
     assert len(manifest["pages"]) == 12
     assert len({site.normalized_primary_text(page) for page in manifest["pages"]}) == 12
+    assert len({site.normalized_section_text(page) for page in manifest["pages"]}) == 12
+    assert len({site.normalized_text(page["summary"]) for page in manifest["pages"]}) == 12
     for page in manifest["pages"]:
         assert len(page["sections"]) >= 2
         assert len(page["related_links"]) >= 2
@@ -88,12 +90,34 @@ def main() -> None:
         "thin page content must be rejected",
     )
 
-    duplicate = copy.deepcopy(manifest)
-    duplicate["pages"][1]["summary"] = duplicate["pages"][0]["summary"]
-    duplicate["pages"][1]["sections"] = copy.deepcopy(duplicate["pages"][0]["sections"])
+    duplicate_summary = copy.deepcopy(manifest)
+    duplicate_summary["pages"][1]["summary"] = duplicate_summary["pages"][0]["summary"]
     expect_exit(
-        lambda: site.validate_manifest(duplicate),
-        "duplicate primary page content must be rejected",
+        lambda: site.validate_manifest(duplicate_summary),
+        "duplicate page summaries must be rejected",
+    )
+
+    duplicate_sections = copy.deepcopy(manifest)
+    duplicate_sections["pages"][1]["sections"] = copy.deepcopy(
+        duplicate_sections["pages"][0]["sections"]
+    )
+    expect_exit(
+        lambda: site.validate_manifest(duplicate_sections),
+        "duplicate substantive section bodies must be rejected",
+    )
+
+    malformed_section = copy.deepcopy(manifest)
+    malformed_section["pages"][0]["sections"][0] = "not-an-object"
+    expect_exit(
+        lambda: site.validate_manifest(malformed_section),
+        "malformed section definitions must fail cleanly",
+    )
+
+    malformed_link = copy.deepcopy(manifest)
+    malformed_link["pages"][0]["related_links"][0] = "not-an-object"
+    expect_exit(
+        lambda: site.validate_manifest(malformed_link),
+        "malformed related-link definitions must fail cleanly",
     )
 
     temp_dir = Path(tempfile.mkdtemp(prefix="_site-test-", dir=ROOT))
