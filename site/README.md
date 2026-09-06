@@ -12,6 +12,23 @@ The site is not a second technical source of truth. Every generated page points 
 
 Current implementation/status/evidence in `main` always overrides generated public summaries.
 
+## Public content-quality contract
+
+`site/manifest.json` is intentionally more than a title/meta registry. Every indexable page must provide a useful, distinct entry point while remaining weaker than its canonical technical source.
+
+Each page therefore requires:
+
+- a unique `summary`;
+- at least two page-specific `sections`, each with substantive explanatory items;
+- at least two descriptive `related_links` to other manifest routes;
+- one valid canonical repository `source_path`.
+
+The builder fails closed when primary content is too thin, two pages have identical primary-content signatures, a related route does not exist, a page links to itself, a related route is duplicated, or a canonical source path is invalid.
+
+Durable public explanations may describe what a research area covers, what questions it helps answer, architecture relationships and where canonical evidence lives. Do **not** duplicate volatile support matrices, exact offsets/addresses, unpromoted reverse findings or completion claims into the manifest. Current capability and maturity remain governed by `docs/status/current.md` and the canonical format/evidence documents.
+
+Internal-link labels should be descriptive enough to make sense outside surrounding prose. Do not add links or repeated terms solely to manufacture search signals.
+
 ## Build locally
 
 ```bash
@@ -30,7 +47,7 @@ The builder is aware that this is a GitHub **project Pages** site under `/dmc-re
 
 ## Continuous validation
 
-`.github/workflows/discovery-site.yml` builds the site on relevant pull requests and `main` changes, validates the expected public surfaces, project-base URLs, canonical tags, generated crawl-policy artifact and sitemap, and uploads the generated `_site` as a preview artifact.
+`.github/workflows/discovery-site.yml` builds the site on relevant pull requests and `main` changes, runs the builder regression tests, validates the expected public surfaces, project-base URLs, canonical tags, generated crawl-policy artifact and sitemap, and uploads the generated `_site` as a preview artifact.
 
 ## robots.txt scope
 
