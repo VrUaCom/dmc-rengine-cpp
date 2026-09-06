@@ -1,8 +1,8 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-09-05  
-**Canonical base entering current slice:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
-**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
+**Snapshot:** 2026-09-06  
+**Canonical base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
+**Latest integration promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Completion model:** evidence-gated, not percentage-gated.
 
 This roadmap distinguishes four different things that must never be conflated:
@@ -99,7 +99,7 @@ Still open:
 
 ## 5. Native Reader / format coverage
 
-Canonical modular Native Reader modules on `main@76841d6...` before the current slice:
+Canonical modular Native Reader modules on current `main`:
 
 - ✅ DDS structural reader.
 - ✅ PTX structural reader.
@@ -109,14 +109,18 @@ Canonical modular Native Reader modules on `main@76841d6...` before the current 
 - ✅ Stage TXT reader.
 - ✅ SCM structural reader.
 - ✅ MOD structural reader.
+- ✅ SHW structural/read-only reader.
 - ✅ PE/EXE reader.
 
-Current SHW slice:
+SHW canonical state after PR #288:
 
-- ⚠️ SHW structural/read-only reader is implemented on PR #288 as `formats.shw-structural-v1`; exact-head Windows + Ubuntu CI, final diff review and canonical promotion remain.
-- ✅ The SHW schema used by this reader is backed by the canonical EXE plus hash-bound real payload `slot_0008.shw` (9,488 bytes, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`).
+- ✅ `formats.shw-structural-v1` is promoted to `main` as a structural/read-only Native Reader.
+- ✅ The schema is backed by the canonical EXE plus hash-bound real payload `slot_0008.shw` (9,488 bytes, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`).
 - ✅ The bound layout proves self-contained shadow-hull geometry: triangle topology, exact adjacency, `float4` positions and a per-vertex selector stream.
 - ✅ The selector is EXE-confirmed as indexing 0x40-byte transform matrices.
+- ✅ Format Registry, Native Reader Registry, OpenRouter, ToolRegistry and workspace parser-validation routing are mechanically cross-checked by regressions.
+- ✅ `ResourceAnalyzer` fails closed if the parser runs but its canonical completion receipt cannot be published.
+- ✅ Exact PR-head tree passed Ubuntu + Windows build/test CI before squash promotion; the promoted commit contains the same tree.
 - ❌ SHW matrix-palette ownership/construction remains open.
 - ❌ SHW writer authority and universal revision coverage remain open.
 
@@ -159,7 +163,7 @@ Execution order:
 
 1. ✅ preserve existing static reverse authority for bootstrap, mount-list construction, resolver masks and normalization;
 2. ✅ successful-mount topology product correction promoted by PR #287;
-3. ⚠️ finish SHW Native Reader PR #288 with exact-head cross-platform CI/review and canonical promotion;
+3. ✅ SHW Native Reader + registry/routing/parser-validation integration hardening promoted by PR #288;
 4. ❌ obtain/process a real protected-process R2B mapping packet;
 5. ❌ capture trusted selected-provider/member identity without synthesizing probes;
 6. ❌ bind selected member to independently materialized SHA/provenance;
