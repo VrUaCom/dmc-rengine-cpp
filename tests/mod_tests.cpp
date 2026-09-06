@@ -1,10 +1,13 @@
 #include "dmc_rengine/formats/mod.hpp"
+#include "dmc_rengine/formats/mod/runtime_postload.hpp"
 
+#include <array>
 #include <bit>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -43,6 +46,38 @@ void put_ascii(std::vector<std::byte>& bytes, std::size_t offset, std::string_vi
     }
 }
 
+[[nodiscard]] std::uint16_t get_u16(
+    const std::span<const std::byte> bytes,
+    std::size_t offset) {
+    return static_cast<std::uint16_t>(
+        std::to_integer<std::uint8_t>(bytes[offset])) |
+        static_cast<std::uint16_t>(
+            static_cast<std::uint16_t>(
+                std::to_integer<std::uint8_t>(bytes[offset + 1U])) << 8U);
+}
+
+[[nodiscard]] std::uint32_t get_u32(
+    const std::span<const std::byte> bytes,
+    std::size_t offset) {
+    std::uint32_t value{};
+    for (std::size_t i = 0U; i < 4U; ++i) {
+        value |= static_cast<std::uint32_t>(
+            std::to_integer<std::uint8_t>(bytes[offset + i])) << (i * 8U);
+    }
+    return value;
+}
+
+[[nodiscard]] std::uint64_t get_u64(
+    const std::span<const std::byte> bytes,
+    std::size_t offset) {
+    std::uint64_t value{};
+    for (std::size_t i = 0U; i < 8U; ++i) {
+        value |= static_cast<std::uint64_t>(
+            std::to_integer<std::uint8_t>(bytes[offset + i])) << (i * 8U);
+    }
+    return value;
+}
+
 std::vector<std::byte> make_valid_mod() {
     std::vector<std::byte> bytes(0x260U, std::byte{0});
     put_ascii(bytes, 0x00U, "MOD ");
@@ -65,7 +100,7 @@ std::vector<std::byte> make_valid_mod() {
     put_u64(bytes, 0x98U, 0xE0U);  // normals
     put_u64(bytes, 0xA0U, 0xF0U);  // UV
     put_u64(bytes, 0xA8U, 0x100U); // blend indices
-    put_u64(bytes, 0xB0U, 0x110U); // packed weights/control
+    put_u64(bytes, 0xB0U, 0x110U); // packed weights/topology
     put_u64(bytes, 0xB8U, 0U);
     put_u64(bytes, 0xC0U, 0xA0U);  // record-relative -> 0x120
     put_u32(bytes, 0xC8U, 0U);
@@ -92,6 +127,34 @@ std::vector<std::byte> make_valid_mod() {
     put_u8(bytes, 0x224U, 0U);    // complete permutation
     put_u8(bytes, 0x228U, 0U);    // adapter byte preserved/undecoded
     // 0x230..0x24F remains zero: finite identity-rotation / zero-translation.
+    return bytes;
+}
+
+std::vector<std::byte> make_runtime_postload_fixture() {
+    std::vector<std::byte> bytes(0x400U, std::byte{0});
+    put_u8(bytes, 0x10U, 1U);
+    put_u64(bytes, 0x20U, 0x300U);
+
+    put_u8(bytes, 0x40U, 1U);
+    put_u64(bytes, 0x48U, 0x100U);
+
+    put_u16(bytes, 0x100U, 6U);
+    put_u64(bytes, 0x110U, 0x310U);
+    put_u64(bytes, 0x118U, 0x320U);
+    put_u64(bytes, 0x120U, 0x330U);
+    put_u64(bytes, 0x128U, 0x340U);
+    put_u64(bytes, 0x130U, 0x200U);
+    put_u64(bytes, 0x138U, 0x350U); // MOD +0x38 remains untouched
+    put_u64(bytes, 0x140U, 0x80U);  // mesh-relative -> 0x180
+
+    constexpr std::array<std::uint16_t, 6> packed{
+        0U, 1U, 2U, 3U,
+        static_cast<std::uint16_t>(0x8000U | 4U),
+        5U,
+    };
+    for (std::size_t index = 0U; index < packed.size(); ++index) {
+        put_u16(bytes, 0x200U + index * 2U, packed[index]);
+    }
     return bytes;
 }
 
@@ -198,6 +261,52 @@ int main() {
             }
         }
         assert(saw_range_error);
+    }
+
+    {
+        auto bytes = make_runtime_postload_fixture();
+        const auto base = static_cast<std::uint64_t>(
+            reinterpret_cast<std::uintptr_t>(bytes.data()));
+        const auto result = mod::runtime_postload::apply_in_place(bytes);
+        assert(result.ok());
+        assert(result.object_count == 1U);
+        assert(result.mesh_count == 1U);
+        assert(result.generated_word_count == 9U);
+
+        assert(get_u64(bytes, 0x20U) == base + 0x300U);
+        assert(get_u64(bytes, 0x48U) == base + 0x100U);
+        assert(get_u64(bytes, 0x110U) == base + 0x310U);
+        assert(get_u64(bytes, 0x118U) == base + 0x320U);
+        assert(get_u64(bytes, 0x120U) == base + 0x330U);
+        assert(get_u64(bytes, 0x128U) == base + 0x340U);
+        assert(get_u64(bytes, 0x130U) == base + 0x200U);
+        assert(get_u64(bytes, 0x138U) == 0x350U);
+        assert(get_u64(bytes, 0x140U) == base + 0x180U);
+
+        for (std::uint16_t index = 0U; index < 6U; ++index) {
+            assert(get_u16(bytes, 0x200U + index * 2U) == index);
+        }
+        constexpr std::array<std::uint16_t, 9> expected{
+            0U, 1U, 2U, 3U, 3U, 3U, 3U, 4U, 5U,
+        };
+        for (std::size_t index = 0U; index < expected.size(); ++index) {
+            assert(get_u16(bytes, 0x180U + index * 2U) == expected[index]);
+        }
+        assert(get_u32(bytes, 0x148U) == expected.size());
+    }
+
+    {
+        auto bytes = make_runtime_postload_fixture();
+        put_u64(bytes, 0x140U, 0x1000U);
+        const auto header_before = get_u64(bytes, 0x20U);
+        const auto mesh_table_before = get_u64(bytes, 0x48U);
+        const auto result = mod::runtime_postload::apply_in_place(bytes);
+        assert(!result.ok());
+        assert(result.status ==
+               mod::runtime_postload::Status::generated_workspace_out_of_bounds);
+        // Safe reconstruction validates the whole pass before pointer mutation.
+        assert(get_u64(bytes, 0x20U) == header_before);
+        assert(get_u64(bytes, 0x48U) == mesh_table_before);
     }
 
     return 0;
