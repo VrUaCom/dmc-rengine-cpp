@@ -1,0 +1,52 @@
+{
+  "schema": "dmc-rengine.dmc3-mod-local-transform-promotion.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-09-06",
+  "branch": "mod-skin-reverse",
+  "canonical_exe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "mod_efm_local_transform_builder_va": "0x1402FA080",
+    "rotation_xyz_helper_va": "0x140330450",
+    "translation_xyz_helper_va": "0x140031200"
+  },
+  "promotion": {
+    "scope": "serialized MOD node-domain local transforms only",
+    "node_domain_block": {
+      "header_size": "0x20",
+      "parent_rel": "u32le@+0x00",
+      "order_rel": "u32le@+0x04",
+      "adapter_rel": "u32le@+0x08",
+      "transform_rel": "u32le@+0x0C",
+      "layout": "parent/order/adapter arrays are count bytes with align4 placement; transform records start at align16(0x20 + 3*align4(count))"
+    },
+    "local_transform_record": {
+      "stride": "0x20",
+      "translation_xyz": "f32le[3]@+0x00",
+      "translation_magnitude": "f32le@+0x0C",
+      "rotation_xyz_radians": "f32le[3]@+0x10",
+      "reserved1c": "f32le@+0x1C"
+    },
+    "evidence": {
+      "serialized_shell": "CORPUS_CONFIRMED across three bound MOD payloads through Model Family TransformCoreAbi",
+      "translation_xyz_runtime_consumer": "EXE_CONFIRMED via 0x1402FA080 -> 0x140031200",
+      "rotation_xyz_runtime_consumer": "EXE_CONFIRMED via 0x1402FA080 -> 0x140330450",
+      "adapter_array_semantics": "PRESERVED_UNDECODED"
+    }
+  },
+  "explicit_boundary": {
+    "world_matrix_propagation": "NOT_PROMOTED",
+    "world_bone_positions": "NOT_PROMOTED",
+    "reason": "no MOD-specific runtime proof for local-to-parent/world composition has been bound in this pass",
+    "vertex_positions_must_not_be_used_as_bone_positions": true,
+    "mod_3d_bone_overlay_authorized": false,
+    "local_transform_records_authorized": true,
+    "writer_authorized": false
+  },
+  "implementation": {
+    "parser": "formats::mod::transform_domain",
+    "mode": "read-only",
+    "fail_closed_on_truncated_transform_span": true,
+    "preserve_adapter_array": true,
+    "world_matrix_builder_added": false
+  }
+}
