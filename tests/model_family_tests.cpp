@@ -3,8 +3,25 @@
 #include "dmc_rengine/formats/model_mesh_core.hpp"
 #include "dmc_rengine/formats/model_node_domain_core.hpp"
 #include "dmc_rengine/formats/model_object_core.hpp"
+#include "dmc_rengine/formats/model_texture_companion.hpp"
 
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+
+namespace {
+
+void put_u32(std::vector<std::byte>& bytes,
+             std::size_t offset,
+             std::uint32_t value) {
+    for (std::size_t index = 0U; index < 4U; ++index) {
+        bytes[offset + index] = static_cast<std::byte>(
+            (value >> (index * 8U)) & 0xFFU);
+    }
+}
+
+} // namespace
 
 int main() {
     namespace family = dmc::rengine::formats::model_family;
@@ -89,6 +106,47 @@ int main() {
     static_assert(family::TransformCoreAbi::translation_magnitude_field == 0x0CU);
     static_assert(family::TransformCoreAbi::rotation_xyz_radians_field == 0x10U);
     static_assert(family::TransformCoreAbi::reserved1c_field == 0x1CU);
+
+    static_assert(family::ModelTextureCompanionAbi::texture_count_field == 0x000U);
+    static_assert(family::ModelTextureCompanionAbi::block_count_table == 0x004U);
+    static_assert(family::ModelTextureCompanionAbi::payload_base == 0x800U);
+    static_assert(family::ModelTextureCompanionAbi::payload_block_size == 0x800U);
+    static_assert(family::ModelTextureCompanionAbi::tm2_magic_le == 0x00324D54U);
+
+    {
+        std::vector<std::byte> bytes(0x2000U, std::byte{0});
+        put_u32(bytes, 0x000U, 2U);
+        put_u32(bytes, 0x004U, 1U);
+        put_u32(bytes, 0x008U, 2U);
+        put_u32(bytes, 0x800U, family::ModelTextureCompanionAbi::tm2_magic_le);
+        put_u32(bytes, 0x1000U, family::ModelTextureCompanionAbi::tm2_magic_le);
+
+        const auto parsed = family::parse_texture_companion(bytes);
+        assert(parsed.ok());
+        assert(parsed.texture_count == 2U);
+        assert(parsed.entries.size() == 2U);
+        assert(parsed.entries[0].index == 0U);
+        assert(parsed.entries[0].block_count == 1U);
+        assert(parsed.entries[0].payload_offset == 0x800U);
+        assert(parsed.entries[0].allocated_size == 0x800U);
+        assert(parsed.entries[1].index == 1U);
+        assert(parsed.entries[1].block_count == 2U);
+        assert(parsed.entries[1].payload_offset == 0x1000U);
+        assert(parsed.entries[1].allocated_size == 0x1000U);
+
+        put_u32(bytes, 0x1000U, 0U);
+        const auto bad_magic = family::parse_texture_companion(bytes);
+        assert(!bad_magic.ok());
+        assert(bad_magic.status ==
+               family::TextureCompanionStatus::tm2_magic_mismatch);
+
+        bytes.resize(0x1800U);
+        put_u32(bytes, 0x1000U, family::ModelTextureCompanionAbi::tm2_magic_le);
+        const auto truncated = family::parse_texture_companion(bytes);
+        assert(!truncated.ok());
+        assert(truncated.status ==
+               family::TextureCompanionStatus::payload_out_of_bounds);
+    }
 
     assert(family::to_string(scm.source_format) == "scm");
     assert(family::to_string(mod.source_format) == "mod");
