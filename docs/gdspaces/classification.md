@@ -35,10 +35,15 @@ The current classifier directly recognizes these generic/format signatures:
 - `MZ` -> `pe`;
 - `PAC\0` -> `pac`;
 - structurally valid `PNST` relative-slot container -> `pnst`;
+- `AFS\0` -> `afs-binary-candidate`;
+- `PACK` -> `pack-binary-candidate`;
 - `SCM` -> `scm`;
 - `DCA\0` -> `dca`;
 - four-byte `HITS` -> `hits`;
-- `DDS ` -> `dds`.
+- `DDS ` -> `dds`;
+- ZIP local header `PK\x03\x04` -> `nbz`.
+
+`AFS\0` and `PACK` are deliberately **candidate identities**, not parser or container authority. Their signatures remain visible for acquisition/research while expansion stays disabled until a profile-specific backend is independently evidenced.
 
 ### PNST validation rule
 
@@ -66,7 +71,10 @@ See [`docs/formats/hits.md`](../formats/hits.md) for the current grid/triangle c
 
 ## Extension fallback
 
-When no supported byte signature is recognized, the normalized lowercase extension is used as a **classification label**.
+When no supported byte signature or recovered family-mask identity is recognized, the normalized lowercase extension is used as a **classification label** with one DMC3 AFS exception:
+
+- exact leaf `GData.afs` or `GDataX360.afs`, with or without a trailing slash -> `afs-namespace`;
+- another generic `.afs` path -> `afs-binary-candidate`.
 
 This fallback does not promote the extension to semantic truth.
 
@@ -76,23 +84,34 @@ Examples:
 *.ukn + validated ITM bytes  -> ITM at a higher semantic/format layer
 *.ukn + validated HITS bytes -> HITS
 *.pac + validated PNST bytes -> PNST
+DMC3/GData.afs/              -> afs-namespace
+mods/custom.afs              -> afs-binary-candidate
 ```
 
 Unknown extensions remain visible rather than being hidden or force-mapped.
 
 ## Container classification
 
-Current internal container/source labels include:
+Current expandable source/container labels are:
 
 - `nbz`;
-- `afs`;
 - `pac`;
 - `pnst`.
+
+AFS is intentionally split from this list:
+
+- `afs-namespace` — logical DMC3-HD namespace identity;
+- `afs-binary-candidate` — non-expandable binary acquisition candidate;
+- legacy `afs` — compatibility label only, also non-expandable;
+- `pack-binary-candidate` — non-expandable acquisition candidate.
 
 Important DMC3-HD boundary:
 
 - `GData.afs/` / `GDataX360.afs/` are established logical namespace prefixes;
-- that fact is not proof of an opaque binary AFS archive backend in the current HD runtime path.
+- that fact is not proof of an opaque binary AFS archive backend in the current HD runtime path;
+- historical product-side PACK parsing is not original-runtime PACK authority.
+
+This prevents a path suffix or four-byte candidate signature from silently manufacturing a second container backend.
 
 A container flag does not imply the container is already parsed, semantically understood or writable.
 
@@ -136,10 +155,11 @@ Use the canonical [DMC3 HD format and resource-purpose catalog](../formats/dmc3-
 3. A path-derived profile is a hint, not evidence.
 4. Magic confirmation applies only to the recognized signature/validated envelope, not the complete schema.
 5. Extension fallback is a label, not semantic authority.
-6. Unsupported formats remain unknown or extension-labelled and route to neutral inspection until stronger evidence exists.
+6. Unsupported formats remain unknown, candidate-labelled or extension-labelled and route to neutral inspection until stronger evidence exists.
 7. Tool-specific classification logic is prohibited when the responsibility belongs here or in the shared format/integration registry.
 8. `.ukn`, `.bin`, `.pac` and other source suffixes may be misleading; preserve them as metadata even when semantic classification changes.
-9. A middleware capability string or short ASCII hit does not become a format signature without contextual validation.
+9. A middleware capability string or short ASCII hit does not become a structural parser authority without contextual validation.
+10. Logical namespace evidence must never be converted into binary-container expansion authority by naming alone.
 
 ## Planned work
 
