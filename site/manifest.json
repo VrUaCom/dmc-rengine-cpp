@@ -10,84 +10,369 @@
       "title": "DMC Rengine — DMC3 HD Reverse Engineering",
       "description": "Evidence-backed C++20 reverse engineering, decompilation research, DMC3 HD file-format documentation and safe modding infrastructure.",
       "summary": "DMC Rengine researches Devil May Cry 3: Special Edition from the HD Collection through executable evidence, binary formats, resource materialization, guarded authoring and long-term recompilation work.",
-      "source_path": "README.md"
+      "source_path": "README.md",
+      "sections": [
+        {
+          "heading": "Research surface",
+          "items": [
+            "Executable and runtime research ties reverse-engineering claims to concrete artifacts and evidence instead of treating decompiler output or naming guesses as final truth.",
+            "File-format work covers scene, model, structural, texture and archive families, with unknown or unresolved fields kept distinct from promoted semantics.",
+            "GDSpaces connects numbered archives, containers, slots and resources into a provenance-aware materialization path used by the wider project."
+          ]
+        },
+        {
+          "heading": "How to use this site",
+          "items": [
+            "Start with the format index when you know a file extension or archive family and need the relevant DMC3 HD research entry point.",
+            "Use Current Status before relying on a reader, writer, reintegration path or runtime claim; maturity belongs to the live canonical status rather than these landing pages.",
+            "Follow the Canonical source link on every page for exact schemas, evidence records, implementation details and unsupported boundaries."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Browse DMC3 HD file-format research"},
+        {"path": "/gdspaces/", "label": "Understand the GDSpaces resource architecture"},
+        {"path": "/reverse-engineering/", "label": "Read the evidence-first reverse-engineering approach"},
+        {"path": "/faq/", "label": "Read the DMC Rengine project FAQ"}
+      ]
     },
     {
       "path": "/formats/",
       "title": "DMC3 HD File Formats — DMC Rengine",
       "description": "DMC3 HD format and archive research for SCM, MOD, SHW, HITS, PAC, PNST, NBZ, DDS and PTX.",
       "summary": "Browse public entry points for DMC3 HD resource families. Exact schemas, evidence status and current product support remain in canonical GitHub documentation.",
-      "source_path": "docs/formats/public-index.md"
+      "source_path": "docs/formats/public-index.md",
+      "sections": [
+        {
+          "heading": "Resource families",
+          "items": [
+            "Scene and model research includes SCM, MOD and SHW entry points, separating structural parsing from higher-level runtime or authoring semantics.",
+            "Container research includes PAC, PNST and numbered NBZ archives, with slot identity, nesting and materialization treated separately from game-side selection behavior.",
+            "The wider canonical format corpus also covers texture and runtime-oriented families such as DDS, PTX and HITS even when a dedicated public landing page is not yet warranted."
+          ]
+        },
+        {
+          "heading": "Evidence model",
+          "items": [
+            "A recognizable header or successful parse is not treated as proof that every field has a known semantic meaning.",
+            "Unknown bytes and unresolved relationships are preserved or explicitly bounded instead of being assigned convenient names for presentation.",
+            "Reader, writer and reintegration maturity changes over time, so this index routes support questions back to Current Status and the canonical format documents."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/scm/", "label": "Explore the DMC3 SCM scene format"},
+        {"path": "/formats/mod/", "label": "Explore the DMC3 MOD model format"},
+        {"path": "/formats/shw/", "label": "Explore the DMC3 SHW structural format"},
+        {"path": "/archives/nbz/", "label": "Explore numbered DMC3 NBZ archives"},
+        {"path": "/status/", "label": "Check current format support and proof gates"}
+      ]
     },
     {
       "path": "/formats/scm/",
       "title": "DMC3 SCM Format — DMC Rengine",
       "description": "DMC3 SCM structural and runtime reverse-engineering entry point.",
       "summary": "Entry point for SCM scene, object, mesh, stream, transform and runtime research. Use the canonical specification and current status for exact maturity and authoring boundaries.",
-      "source_path": "docs/formats/scm.md"
+      "source_path": "docs/formats/scm.md",
+      "sections": [
+        {
+          "heading": "What SCM research covers",
+          "items": [
+            "SCM is studied as a scene-oriented binary format containing relationships between scene nodes, objects, meshes, vertex streams, transforms and texture-facing state.",
+            "Topology reconstruction and runtime-facing fields are kept tied to corpus or executable evidence rather than inferred only from visual output.",
+            "Authoring and rebuild work is intentionally bounded: a structurally writable file does not by itself prove equivalence with Capcom tooling or acceptance by every game path."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "How do SCM nodes, object bindings and mesh data relate without flattening the original hierarchy into an editor-only representation?",
+            "Which stream and transform relationships have evidence strong enough to expose as typed data, and which values still need preservation rather than interpretation?",
+            "Where is the boundary between parser evidence, guarded writer behavior, texture-companion coherence and original-game acceptance testing?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Compare SCM with other DMC3 HD formats"},
+        {"path": "/reverse-engineering/", "label": "See how executable evidence is promoted"},
+        {"path": "/status/", "label": "Check current SCM implementation maturity"}
+      ]
     },
     {
       "path": "/formats/mod/",
       "title": "DMC3 MOD Format — DMC Rengine",
       "description": "DMC3 MOD model-format reverse-engineering entry point.",
       "summary": "Entry point for DMC3 MOD format research. Current reader, writer and conversion scope is deliberately delegated to the canonical project status and format documentation.",
-      "source_path": "docs/formats/public-index.md"
+      "source_path": "docs/formats/public-index.md",
+      "sections": [
+        {
+          "heading": "What MOD research covers",
+          "items": [
+            "MOD is treated as a model-format research surface spanning structural records, mesh and vertex data, hierarchy or skinning information where canonical evidence supports those interpretations.",
+            "The project keeps structural relationships separate from spatial, animation or rendering meanings that have not yet earned the same evidence level.",
+            "Native Reader visibility is not used as shorthand for universal conversion or authoring support; those capabilities require their own proof and promotion gates."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "Which parts of a DMC3 MOD can be identified and represented without inventing semantics for unknown records?",
+            "How are model hierarchy, mesh data and skinning-related structures separated in the canonical research model?",
+            "Where should a tool or contributor check before claiming that a MOD field, transform or writer path is currently supported?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Browse the wider DMC3 HD format index"},
+        {"path": "/reverse-engineering/", "label": "Review DMC Rengine evidence rules"},
+        {"path": "/status/", "label": "Check current MOD support boundaries"}
+      ]
     },
     {
       "path": "/formats/shw/",
       "title": "DMC3 SHW Format — DMC Rengine",
       "description": "DMC3 SHW structural reverse-engineering entry point.",
       "summary": "Entry point for SHW structural research. Current payload coverage, reader scope and unresolved semantics remain bounded by the canonical status and evidence records.",
-      "source_path": "docs/status/current.md"
+      "source_path": "docs/status/current.md",
+      "sections": [
+        {
+          "heading": "What SHW research covers",
+          "items": [
+            "SHW is approached first as a binary structure: record boundaries, payload organization and preserved unknown data are established before stronger semantic labels are promoted.",
+            "The filename or surrounding game context is not considered enough evidence to assign every record a shadow or rendering meaning without corroborating runtime or corpus proof.",
+            "Structural reader coverage and semantic completeness are deliberately separate concepts so downstream tools can expose known data without hiding unresolved regions."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "What can the project safely say about SHW structure today without turning filename-based expectations into format facts?",
+            "Which boundaries matter when exposing SHW records in a native reader while some payload semantics remain unresolved?",
+            "Where are current SHW promotion status and unresolved evidence recorded for contributors or tool authors?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Compare SHW with other DMC3 resource formats"},
+        {"path": "/reverse-engineering/", "label": "Read the evidence-first semantic promotion rules"},
+        {"path": "/status/", "label": "Check current SHW reader and evidence status"}
+      ]
     },
     {
       "path": "/formats/pac/",
       "title": "DMC3 PAC Format — DMC Rengine",
       "description": "DMC3 PAC relative-slot container parsing and reintegration research.",
       "summary": "Entry point for PAC container structure, slot identity and authoring research. Exact parser and reintegration boundaries remain in canonical GDSpaces documentation.",
-      "source_path": "docs/formats/pac-readonly-parser.md"
+      "source_path": "docs/formats/pac-readonly-parser.md",
+      "sections": [
+        {
+          "heading": "What PAC research covers",
+          "items": [
+            "PAC is treated as a slot-bearing container where physical ordering, sparse or empty entries and payload identity must survive inspection rather than being normalized away for convenience.",
+            "Relative offsets and slot relationships are part of the container contract, while resource semantics belong to the nested payload and its own evidence-aware parser.",
+            "Reintegration work is guarded so preserving container identity is not confused with proving that every modified nested resource is behaviorally valid in the original game."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "How does DMC Rengine preserve PAC slot identity when empty, sparse or shared payload relationships matter?",
+            "Where does PAC parsing stop and nested-resource classification or materialization begin inside GDSpaces?",
+            "What additional evidence is required before a PAC rebuild can be described as a supported original-game reintegration path?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/pnst/", "label": "Compare PAC and PNST slot containers"},
+        {"path": "/archives/nbz/", "label": "See how containers appear inside NBZ materialization"},
+        {"path": "/gdspaces/", "label": "Understand PAC in the GDSpaces pipeline"},
+        {"path": "/status/", "label": "Check current container authoring gates"}
+      ]
     },
     {
       "path": "/formats/pnst/",
       "title": "DMC3 PNST Format — DMC Rengine",
       "description": "DMC3 PNST relative-slot container and nested-resource research.",
       "summary": "Entry point for PNST container structure and nested-resource research. Current semantic and authoring scope remains in canonical documentation.",
-      "source_path": "docs/formats/pnst-readonly-parser.md"
+      "source_path": "docs/formats/pnst-readonly-parser.md",
+      "sections": [
+        {
+          "heading": "What PNST research covers",
+          "items": [
+            "PNST is studied as a relative-slot container that can participate in deeper resource nesting, so slot structure and nested payload interpretation remain separate layers.",
+            "Shared container infrastructure does not imply one global semantic slot schema: individual PNST instances still require evidence from their payloads and context.",
+            "Extraction or reconstruction must preserve container-level identity before higher-level tooling can safely reason about the resources materialized from those slots."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "How is PNST structural parsing shared with PAC without assuming the two formats mean the same thing at every slot?",
+            "How does nested-resource materialization remain traceable back to the physical PNST container and slot that produced it?",
+            "Which claims belong to container structure and which require separate evidence from a nested format or original-game runtime path?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/pac/", "label": "Compare PNST with PAC container structure"},
+        {"path": "/archives/nbz/", "label": "Follow PNST through NBZ resource materialization"},
+        {"path": "/gdspaces/", "label": "See how nested containers fit GDSpaces"},
+        {"path": "/status/", "label": "Check current PNST and reintegration status"}
+      ]
     },
     {
       "path": "/archives/nbz/",
       "title": "DMC3 NBZ Archives — DMC Rengine",
       "description": "DMC3 numbered NBZ archive materialization, overlay and resolver research.",
       "summary": "Entry point for numbered NBZ archive, resolver, materialization and overlay research. Original-game selection/consumption proof remains a separate canonical gate.",
-      "source_path": "docs/gdspaces/dmc3-nbz-store-overlay-writer.md"
+      "source_path": "docs/gdspaces/dmc3-nbz-store-overlay-writer.md",
+      "sections": [
+        {
+          "heading": "What NBZ research covers",
+          "items": [
+            "DMC3 numbered NBZ files are treated as archive sources feeding a materialization pipeline rather than as a single flat folder of already-named game resources.",
+            "Physical archive membership, extracted or materialized coordinate spaces, overlay behavior and runtime resolver decisions are modeled as related but distinct concerns.",
+            "A synthetic archive rebuild can prove structural properties without proving which archive or member the original executable will select in every runtime context."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "How do numbered NBZ archives feed GDSpaces while preserving the provenance of members and nested containers?",
+            "Why are materialization success, overlay policy and original-game runtime selection kept as separate evidence gates?",
+            "Where do PAC or PNST containers enter the path from archive bytes to a typed resource exposed by tooling?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/gdspaces/", "label": "Follow NBZ archives through the GDSpaces architecture"},
+        {"path": "/formats/pac/", "label": "Inspect PAC containers materialized from archives"},
+        {"path": "/formats/pnst/", "label": "Inspect PNST and nested container research"},
+        {"path": "/status/", "label": "Check current NBZ proof and writer gates"}
+      ]
     },
     {
       "path": "/gdspaces/",
       "title": "GDSpaces — DMC Rengine Resource Architecture",
       "description": "DMC Rengine GDSpaces resource resolution, materialization and provenance architecture.",
       "summary": "Entry point into the canonical GDSpaces resource resolver/materializer/provenance architecture. The site does not recreate its contracts or state.",
-      "source_path": "docs/gdspaces-contract.md"
+      "source_path": "docs/gdspaces-contract.md",
+      "sections": [
+        {
+          "heading": "What GDSpaces connects",
+          "items": [
+            "GDSpaces is the resource architecture that carries provenance from archive source through member, container and slot layers toward a classified resource instead of flattening those steps into one extraction operation.",
+            "Resolver, classifier, container expansion and resource-graph responsibilities are separated so a guessed filename or extension cannot silently override stronger structural evidence.",
+            "The architecture lets Stage Ops, readers and future authoring workflows reuse one canonical materialization path instead of embedding format-specific extraction logic in each UI."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "How can a resource remain traceable back to the NBZ member, PAC or PNST slot and evidence that produced it?",
+            "Where is the boundary between physical storage, materialized bytes, format classification and runtime resource resolution?",
+            "Why does DMC Rengine centralize these contracts before adding higher-level browsing, editing or export workflows?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/archives/nbz/", "label": "Start with numbered NBZ archive materialization"},
+        {"path": "/formats/", "label": "Browse typed resources reached through GDSpaces"},
+        {"path": "/reverse-engineering/", "label": "See how runtime resolver claims gain evidence"},
+        {"path": "/status/", "label": "Check current GDSpaces and layer completion gates"}
+      ]
     },
     {
       "path": "/reverse-engineering/",
       "title": "DMC3 Reverse Engineering — DMC Rengine",
       "description": "Evidence-first DMC3 executable, runtime and binary-format reverse-engineering research.",
       "summary": "Entry point into evidence-first DMC3 reverse engineering. Exact artifact, address, range and confidence boundaries remain in canonical evidence sources.",
-      "source_path": "docs/reverse-engineering-rules.md"
+      "source_path": "docs/reverse-engineering-rules.md",
+      "sections": [
+        {
+          "heading": "Evidence-first reverse engineering",
+          "items": [
+            "DMC Rengine binds strong runtime claims to a canonical executable artifact, machine-code locations or reproducible corpus evidence instead of promoting decompiler names as facts.",
+            "Executable confirmation, corpus confirmation, structural confirmation and unresolved candidates are kept distinguishable so later findings can strengthen or reject earlier hypotheses without rewriting history.",
+            "Format parsers and runtime analysis cross-check one another: a field that exists in bytes and a field that affects game behavior are related questions, not automatically the same proof."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "What evidence is required before a guessed format field or runtime relationship becomes a canonical public claim?",
+            "How are artifact identity, addresses, byte ranges, corpus samples and evidence status recorded so another researcher can reproduce the result?",
+            "How does the project handle contradictory findings, preserved unknowns and hypotheses that fail later executable or corpus checks?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Apply the evidence model to DMC3 file formats"},
+        {"path": "/gdspaces/", "label": "See runtime evidence in the resource architecture"},
+        {"path": "/status/", "label": "Check which findings are currently promoted"}
+      ]
     },
     {
       "path": "/faq/",
       "title": "DMC Rengine FAQ — DMC3 HD Modding and Reverse Engineering",
       "description": "Answers to common questions about DMC Rengine, DMC3 HD formats, modding, archives and current project scope.",
       "summary": "Public answers for common DMC3 questions, with completion and support claims delegated to current canonical status.",
-      "source_path": "docs/discovery/faq.md"
+      "source_path": "docs/discovery/faq.md",
+      "sections": [
+        {
+          "heading": "What the FAQ is for",
+          "items": [
+            "The FAQ explains DMC Rengine's scope in plain language: reverse engineering and tooling infrastructure for DMC3 HD rather than a claim that the whole game has already been decompiled or rebuilt.",
+            "It routes common format, archive, extraction and modding questions to the relevant public entry point while avoiding support promises that are stronger than the current implementation.",
+            "Questions about what works now are deliberately answered together with Current Status so discovery copy cannot freeze an obsolete capability snapshot."
+          ]
+        },
+        {
+          "heading": "Good starting questions",
+          "items": [
+            "Which DMC3 HD formats and archives does the project research, and where is the canonical evidence for each family?",
+            "What is the difference between reading a format, rebuilding it, reintegrating it into an archive and proving that the original game consumes the result?",
+            "Where should a modder, reverse engineer or contributor start if they need resource extraction, format research or live project maturity rather than a gameplay mod?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Find a DMC3 HD format or archive entry point"},
+        {"path": "/gdspaces/", "label": "Learn how resource materialization works"},
+        {"path": "/status/", "label": "Check what DMC Rengine currently supports"},
+        {"path": "/", "label": "Return to the DMC Rengine project overview"}
+      ]
     },
     {
       "path": "/status/",
       "title": "DMC Rengine Current Status",
       "description": "Current canonical implementation and proof status for DMC Rengine.",
       "summary": "Direct entry point to the live project-status authority for promoted capabilities, proof gates and explicit incomplete boundaries.",
-      "source_path": "docs/status/current.md"
+      "source_path": "docs/status/current.md",
+      "sections": [
+        {
+          "heading": "Why Current Status is authoritative",
+          "items": [
+            "DMC Rengine changes quickly, so support and completion claims are centralized in one live status document instead of being copied into every format landing page or README section.",
+            "Promotion separates implemented code from stronger claims such as validated authoring, original-game runtime acceptance or whole-layer completion.",
+            "Open blockers and explicit incomplete boundaries remain visible so public discovery pages cannot make experimental work appear production-ready through omission."
+          ]
+        },
+        {
+          "heading": "Use this page before citing capabilities",
+          "items": [
+            "Check whether a format is currently promoted for structural reading, writing, reintegration or another narrower capability rather than assuming support from its presence in the repository.",
+            "Check the active L1, L2 and L3 proof gates when a claim depends on resource materialization, runtime resolution or higher-level tooling behavior.",
+            "Use linked canonical evidence and implementation records for exact proof; this discovery page only explains why the live status document is the authority."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Browse the formats governed by current status"},
+        {"path": "/reverse-engineering/", "label": "Understand the evidence levels behind promotion"},
+        {"path": "/gdspaces/", "label": "Review the resource architecture behind layer gates"},
+        {"path": "/", "label": "Return to the DMC Rengine project overview"}
+      ]
     }
   ]
 }
