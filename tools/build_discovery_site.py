@@ -52,23 +52,39 @@ def normalize_base_url(base_url: str | None) -> str | None:
     return f"https://{parsed.netloc}{path}"
 
 
-def normalized_primary_text(page: dict) -> str:
-    parts = [page["summary"]]
+def normalized_text(value: str) -> str:
+    return " ".join(value.lower().split())
+
+
+def normalized_section_text(page: dict) -> str:
+    parts: list[str] = []
     for section in page["sections"]:
         parts.append(section["heading"])
         parts.extend(section["items"])
-    return " ".join(" ".join(parts).lower().split())
+    return normalized_text(" ".join(parts))
+
+
+def normalized_primary_text(page: dict) -> str:
+    return normalized_text(f"{page['summary']} {normalized_section_text(page)}")
 
 
 def validate_manifest(data: dict) -> dict:
+    if not isinstance(data, dict):
+        raise SystemExit("site manifest root must be an object")
     pages = data.get("pages", [])
-    if not pages:
+    if not isinstance(pages, list) or not pages:
         raise SystemExit("site manifest contains no pages")
 
     seen_paths: set[str] = set()
+    seen_titles: dict[str, str] = {}
+    seen_descriptions: dict[str, str] = {}
+    seen_summaries: dict[str, str] = {}
+    section_signatures: dict[str, str] = {}
     primary_signatures: dict[str, str] = {}
 
     for page in pages:
+        if not isinstance(page, dict):
+            raise SystemExit("every page definition must be an object")
         for field in ("path", "title", "description", "summary", "source_path"):
             if not isinstance(page.get(field), str) or not page[field].strip():
                 raise SystemExit(f"page is missing non-empty {field}: {page!r}")
@@ -82,6 +98,16 @@ def validate_manifest(data: dict) -> dict:
             raise SystemExit(f"duplicate public path: {path}")
         seen_paths.add(path)
 
+        for field, registry in (
+            ("title", seen_titles),
+            ("description", seen_descriptions),
+            ("summary", seen_summaries),
+        ):
+            signature = normalized_text(page[field])
+            if signature in registry:
+                raise SystemExit(f"duplicate {field}: {path} and {registry[signature]}")
+            registry[signature] = path
+
         source = require_within_repo(ROOT / page["source_path"], "canonical source")
         if not source.is_file():
             raise SystemExit(f"canonical source does not exist: {page['source_path']}")
@@ -92,11 +118,13 @@ def validate_manifest(data: dict) -> dict:
         seen_headings: set[str] = set()
         content_chars = len(page["summary"])
         for section in sections:
+            if not isinstance(section, dict):
+                raise SystemExit(f"section definition must be an object: {path}")
             heading = section.get("heading")
             items = section.get("items")
             if not isinstance(heading, str) or not heading.strip():
                 raise SystemExit(f"section heading must be non-empty: {path}")
-            normalized_heading = heading.strip().lower()
+            normalized_heading = normalized_text(heading)
             if normalized_heading in seen_headings:
                 raise SystemExit(f"duplicate section heading on {path}: {heading}")
             seen_headings.add(normalized_heading)
@@ -112,12 +140,19 @@ def validate_manifest(data: dict) -> dict:
                 f"primary page content is too thin ({content_chars} chars): {path}"
             )
 
-        signature = normalized_primary_text(page)
-        if signature in primary_signatures:
+        section_signature = normalized_section_text(page)
+        if section_signature in section_signatures:
             raise SystemExit(
-                f"duplicate primary page content: {path} and {primary_signatures[signature]}"
+                f"duplicate substantive page sections: {path} and {section_signatures[section_signature]}"
             )
-        primary_signatures[signature] = path
+        section_signatures[section_signature] = path
+
+        primary_signature = normalized_primary_text(page)
+        if primary_signature in primary_signatures:
+            raise SystemExit(
+                f"duplicate primary page content: {path} and {primary_signatures[primary_signature]}"
+            )
+        primary_signatures[primary_signature] = path
 
         related = page.get("related_links")
         if not isinstance(related, list) or len(related) < 2:
@@ -126,6 +161,8 @@ def validate_manifest(data: dict) -> dict:
     for page in pages:
         related_paths: set[str] = set()
         for link in page["related_links"]:
+            if not isinstance(link, dict):
+                raise SystemExit(f"related link definition must be an object: {page['path']}")
             target = link.get("path")
             label = link.get("label")
             if not isinstance(target, str) or target not in seen_paths:
