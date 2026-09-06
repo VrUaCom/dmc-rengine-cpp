@@ -33,9 +33,21 @@ struct BlendIndices final {
     std::array<std::uint8_t, 4> lanes{};
 };
 
+struct LegacyGsClampRegionRepeat final {
+    std::uint16_t min_u{};
+    std::uint16_t max_u{};
+    std::uint16_t min_v{};
+    std::uint16_t max_v{};
+};
+
 struct InnerMesh final {
     std::uint64_t record_offset{};
     std::uint16_t element_count{};
+
+    // EXE-confirmed common MOD/EFM/SCM material payload consumed by
+    // 0x1402F9890 after the format-specific mesh builders.
+    std::uint16_t texture_slot{};
+    LegacyGsClampRegionRepeat gs_clamp_region_repeat{};
 
     std::uint64_t positions_offset{};
     std::uint64_t normals_offset{};
