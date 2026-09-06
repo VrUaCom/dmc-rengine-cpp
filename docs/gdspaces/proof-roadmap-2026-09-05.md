@@ -1,7 +1,7 @@
 # GDSpaces Proof Roadmap — 2026-09-05
 
-**Reviewed canonical base:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
-**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
+**Reviewed canonical base:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
+**Latest integration promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Canonical analysis EXE:** `dmc3.exe`, SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Rule:** implementation and proof are separate gates.
 
@@ -93,16 +93,19 @@ Primary static authority: `docs/gdspaces/l3-raw-exe-pass-2026-08-26.md`, `docs/g
 | ✅ | DDS structural read | evidence-backed DMC3 profile; canonical module | texel authoring not implied |
 | ✅ | PTX structural read | evidence-backed bundle/descriptor/DDS-child framing; canonical module | production authoring not implied |
 | ✅ | HITS/DCA/LIG2/Stage TXT/PE readers | canonical modules at their declared evidence maturity | semantics/writer gates remain per format |
-| ⚠️ | SHW structural Native Reader | implemented on PR #288 from canonical EXE + hash-bound real payload; typed hull/topology/adjacency/float4/selector parsing plus workspace routing and tests | exact-head Windows/Ubuntu CI + final diff review + promotion; writer/matrix-palette/variant breadth remain separate |
+| ✅ | SHW structural Native Reader | promoted by PR #288 from canonical EXE + hash-bound real payload; typed hull/topology/adjacency/float4/selector parser plus cross-registry routing/validation regressions; exact tree passed Ubuntu + Windows CI | writer/matrix-palette/variant breadth and original-game authored acceptance remain separate |
 | ❌ | EFM canonical Native Reader module | reverse evidence exists but current `main` registry has no EFM reader module | fresh semantic integration onto modular registry + tests + CI |
 | ❌ | MOT canonical Native Reader module | research/parser exists outside current canonical reader set | evidence audit + integration + tests + CI |
 | ❌ | MRP/MCV/CAM/CLT/TSC structural readers | recognition/runtime references do not prove a common grammar | samples + consumer reverse + bounded parser evidence |
 
-SHW proof boundary for PR #288:
+SHW proof boundary after PR #288:
 
 - real payload SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`, size 9,488;
 - self-contained shadow-hull topology is data-confirmed and canonical-EXE corroborated;
 - selector semantics are EXE-confirmed as per-vertex transform-matrix selection;
+- `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry` and parser-validation publication are cross-checked by regression;
+- parser execution now fails the analysis report if its canonical completion receipt cannot be published;
+- exact PR-head SHA `dc69a7375674981987abe54ca0dc50f245b5c9e3` passed Ubuntu + Windows workflow run `34019712762`; squash commit `78e360c9f1d154409d83ffcc146cc2920e8548a4` has the same tree;
 - matrix-palette ownership/construction, universal revision coverage, writer authority and original-game authored SHW acceptance remain open;
 - synthetic tetrahedron fixtures validate product behavior only and do not replace the bound real-payload evidence.
 
@@ -122,7 +125,7 @@ These are not claims about Capcom behavior.
 
 1. ✅ Reconcile the project roadmap to proof-level statuses.
 2. ✅ Promote discovery-vs-successful-mount topology correction via PR #287.
-3. ⚠️ Finish SHW Native Reader PR #288 with exact-head cross-platform CI/review and canonical promotion.
+3. ✅ Promote SHW Native Reader plus cross-registry routing/parser-validation hardening via PR #288.
 4. ❌ Close the materialization scheduler terminal dependency with a fresh raw canonical-EXE pass when the exact executable bytes are available.
 5. ❌ Produce real R2B protected-process multi-anchor mapping.
 6. ❌ Produce trusted R3 selected-provider/member identity.

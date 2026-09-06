@@ -1,11 +1,12 @@
 {
   "schema_version": 4,
-  "snapshot_date": "2026-09-05",
+  "snapshot_date": "2026-09-06",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "76841d6f1387b08df40bb65e0083513f9dc7c5bb",
-  "working_proof_branch": "integrate/shw-native-reader-evidence-v1",
-  "working_proof_pr": 288,
+  "snapshot_main_sha": "78e360c9f1d154409d83ffcc146cc2920e8548a4",
+  "working_proof_branch": "none",
+  "working_proof_pr": 0,
+  "latest_promoted_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
   "proof_marks": {
@@ -47,19 +48,33 @@
       "stage-txt",
       "scm",
       "mod",
+      "shw",
       "pe"
     ],
-    "active_pr_additions": [
-      "shw"
-    ],
+    "active_pr_additions": [],
     "shw_slice": {
       "parser_id": "formats.shw-structural-v1",
-      "implementation_status": "implemented-on-pr-288-pending-exact-head-ci-review-and-promotion",
+      "implementation_status": "promoted-by-pr-288-canonical",
       "write_policy": "read-only",
       "real_payload_sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
       "real_payload_size": 9488,
       "schema_authority": "one-hash-bound-real-payload-plus-canonical-exe-corroboration",
       "selector_semantics": "exe-confirmed-per-vertex-transform-matrix-selector",
+      "exact_tree_ci": {
+        "head_sha": "dc69a7375674981987abe54ca0dc50f245b5c9e3",
+        "promoted_tree_sha": "5b4a5fce10c887e9bf5314cd1d6f04a70137afb2",
+        "ubuntu": "success",
+        "windows": "success",
+        "workflow_run": 34019712762
+      },
+      "integration_contracts": [
+        "format-registry-parser-id-resolves-to-native-reader-module",
+        "native-reader-consumer-resolves-to-tool-registry-target",
+        "native-reader-consumer-is-present-in-resource-tool-routes",
+        "modviz-scene-native-reader-has-default-primary-modviz-route",
+        "tool-route-targets-are-valid-and-deduplicated",
+        "resource-analysis-fails-closed-if-parser-completion-receipt-publication-fails"
+      ],
       "open_boundaries": [
         "matrix-palette-ownership-and-construction",
         "universal-revision-coverage",
@@ -70,6 +85,7 @@
     "proven_structural_reader_highlights": [
       "scm",
       "mod",
+      "shw",
       "dds",
       "ptx"
     ],

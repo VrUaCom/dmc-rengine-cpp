@@ -1,10 +1,9 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-05  
-**Canonical implementation base entering this slice:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
-**Current integration slice:** PR #288 — evidence-backed SHW Native Reader promotion  
+**Snapshot date:** 2026-09-06  
+**Canonical implementation base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
+**Latest canonical Native Reader promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
 **Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
-**Latest canonical Native Reader promotion before this slice:** PR #285 — SCM/MOD Model Family  
 **Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
 **Overall status:** L1/L2/L3 remain incomplete; canonical implementation is advanced, but real protected-process/original-game receipts remain mandatory.
@@ -37,7 +36,7 @@ Protected distribution/original execution candidate remains separately identifie
 
 The resource-level Native Reader is modular (`NativeReaderModuleRegistry`). PAC/PNST remain container parsers; NBZ remains a source/materialization adapter.
 
-Canonical built-in reader modules on `main@76841d6...` before PR #288:
+Canonical built-in reader modules on current `main`:
 
 - DDS;
 - PTX;
@@ -47,15 +46,14 @@ Canonical built-in reader modules on `main@76841d6...` before PR #288:
 - Stage TXT;
 - SCM;
 - MOD;
+- SHW;
 - PE/EXE.
 
-PR #288 adds one evidence-backed structural/read-only module:
+SHW is canonical as `formats.shw-structural-v1`, structural/read-only. The promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
 
-- SHW — `formats.shw-structural-v1`.
+PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry`, parser-validation publication and `ResourceAnalyzer` now share explicit regression contracts. Parser execution is fail-closed if its canonical workspace completion receipt cannot be published. The exact PR head tree passed Ubuntu + Windows build/test CI before squash promotion; the promoted `main` commit has the same tree.
 
-The SHW promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
-
-Current reader frontier after this slice:
+Current reader frontier:
 
 - EFM — reverse evidence exists, but no canonical Native Reader module;
 - MOT — research/parser work exists outside the canonical reader set;
@@ -135,7 +133,7 @@ filename discovery / registration attempt
 successful linked runtime mount topology
 ```
 
-Canonical product behavior now keeps discovery evidence separate from explicitly successful providers; sparse successful archive registration is representable; the resolver traverses only successful topology; discovered-but-failed archives are absent rather than manufactured as misses; failed physical registration produces no physical probe. Product receipts still do not claim original-process mount topology.
+Canonical product behavior keeps discovery evidence separate from explicitly successful providers; sparse successful archive registration is representable; the resolver traverses only successful topology; discovered-but-failed archives are absent rather than manufactured as misses; failed physical registration produces no physical probe. Product receipts still do not claim original-process mount topology.
 
 ### Remaining L2 frontier
 
@@ -190,7 +188,7 @@ Immediate order:
 
 1. ✅ roadmap/status reconciled to proof-level truth;
 2. ✅ successful-mount topology correction promoted by PR #287;
-3. ⚠️ SHW structural Native Reader implemented on PR #288; exact-head cross-platform CI/review and canonical promotion are the remaining product gates for this slice;
+3. ✅ SHW structural Native Reader and cross-registry routing/validation hardening promoted by PR #288;
 4. ❌ close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
 5. ❌ execute protected-process R2B mapping;
 6. ❌ capture trusted R3 selected identity;
@@ -202,7 +200,7 @@ Immediate order:
 
 ## Current evidence-access boundary
 
-The connected file/library surface contains substantial derived reverse documentation and evidence packets, but a raw canonical `e454...` executable blob was not located during the 2026-09-05 reconciliation pass. Therefore no new raw-byte claim is promoted for the still-open materialization scheduler dependency. This does not weaken the already canonical, hash-bound SHW reverse packet used by PR #288.
+The connected file/library surface contains substantial derived reverse documentation and evidence packets, but a raw canonical `e454...` executable blob was not located during the 2026-09-05 reconciliation pass. Therefore no new raw-byte claim is promoted for the still-open materialization scheduler dependency. This does not weaken the already canonical, hash-bound SHW reverse packet promoted by PR #288.
 
 ## Navigation
 
