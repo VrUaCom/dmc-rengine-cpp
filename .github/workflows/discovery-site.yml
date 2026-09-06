@@ -5,6 +5,7 @@ on:
     paths:
       - 'site/**'
       - 'tools/build_discovery_site.py'
+      - 'tools/test_discovery_site_builder.py'
       - '.github/workflows/discovery-site.yml'
       - 'docs/discovery/**'
       - 'docs/formats/**'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'site/**'
       - 'tools/build_discovery_site.py'
+      - 'tools/test_discovery_site_builder.py'
       - '.github/workflows/discovery-site.yml'
       - 'docs/discovery/**'
       - 'docs/formats/**'
@@ -30,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Test discovery-site builder
+        run: python tools/test_discovery_site_builder.py
       - name: Build discovery site
         run: >-
           python tools/build_discovery_site.py
