@@ -1,0 +1,86 @@
+{
+  "schema": "dmc-rengine.dmc3-mod-local-transform-promotion.v3",
+  "status": "canonical-research",
+  "snapshot": "2026-09-06",
+  "branch": "mod-skin-reverse",
+  "canonical_exe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "mod_efm_local_transform_builder_va": "0x1402FA080",
+    "scm_local_transform_builder_va": "0x1402FA360",
+    "rotation_xyz_helper_va": "0x140330450",
+    "translation_xyz_helper_va": "0x140031200",
+    "world_update_va": "0x1402F9700"
+  },
+  "provenance_reconciliation": {
+    "correction_date": "2026-09-05",
+    "finding": "0x1402FA080 is the MOD/EFM transform initializer, not the SCM-specific initializer",
+    "stale_source": "dmc3-scm-hierarchy-world-transform-2026-09-03 attributed 0x1402FA080 to SCM before the correction",
+    "safe_reassignment": [
+      "the 0x1402FA080 evaluation loop establishes MOD/EFM parentByOrderPosition and nodeAtOrderPosition indexing",
+      "the 0x1402FA080 local-transform path establishes node-indexed 0x20-byte records and shared XYZ rotation/translation helpers",
+      "the 0x1402FA080 runtime-node parent-world pointer setup plus 0x1402F9700 establish MOD/EFM world propagation"
+    ],
+    "world_proof_packet": "data/reverse/dmc3-mod-world-transform-promotion-20260906.json"
+  },
+  "promotion": {
+    "scope": "serialized MOD node-domain hierarchy, local transforms and model-space world propagation",
+    "node_domain_block": {
+      "header_size": "0x20",
+      "parent_rel": "u32le@+0x00",
+      "order_rel": "u32le@+0x04",
+      "adapter_rel": "u32le@+0x08",
+      "transform_rel": "u32le@+0x0C",
+      "layout": "parent/order/adapter arrays are count bytes with align4 placement; transform records start at align16(0x20 + 3*align4(count))"
+    },
+    "hierarchy": {
+      "parent_by_order_position": "i8/count at parent_rel; 0xFF means root -1",
+      "node_at_order_position": "u8/count permutation at order_rel",
+      "contract": "position i evaluates nodeAtOrderPosition[i] with parentByOrderPosition[i] naming an already evaluated node",
+      "rejected_heuristic": "do not inverse-permute parent values; parent bytes already name node indices"
+    },
+    "local_transform_record": {
+      "indexing": "node index",
+      "stride": "0x20",
+      "translation_xyz": "f32le[3]@+0x00",
+      "translation_magnitude": "f32le@+0x0C",
+      "rotation_xyz_radians": "f32le[3]@+0x10",
+      "reserved1c": "f32le@+0x1C"
+    },
+    "world_transform": {
+      "runtime_update": "0x1402F9700",
+      "root": "world[root] = local[root] * rootBase",
+      "child": "world[node] = local[node] * world[parentByOrderPosition[i]]",
+      "model_space": "rootBase = identity",
+      "world_position": "world matrix row 3 XYZ"
+    },
+    "evidence": {
+      "serialized_shell": "CORPUS_CONFIRMED across three bound MOD payloads through Model Family TransformCoreAbi",
+      "parent_order_runtime_indexing": "EXE_CONFIRMED in 0x1402FA080 after provenance correction",
+      "translation_xyz_runtime_consumer": "EXE_CONFIRMED via 0x1402FA080 -> 0x140031200",
+      "rotation_xyz_runtime_consumer": "EXE_CONFIRMED via 0x1402FA080 -> 0x140330450",
+      "world_propagation": "EXE_CONFIRMED via 0x1402FA080 parent-pointer setup + 0x1402F9700 -> 0x140030E40",
+      "adapter_array_semantics": "PRESERVED_UNDECODED"
+    }
+  },
+  "explicit_boundary": {
+    "world_matrix_propagation": "EXE_CONFIRMED",
+    "model_space_world_bone_positions": "AUTHORIZED",
+    "game_world_placement_without_trusted_root": "NOT_AUTHORIZED",
+    "vertex_positions_must_not_be_used_as_bone_positions": true,
+    "mod_3d_bone_overlay_authorized": true,
+    "overlay_scope": "model-space spatial hierarchy when the concrete document passes supports_spatial_hierarchy()",
+    "local_transform_records_authorized": true,
+    "canonical_hierarchy_arrays_authorized": true,
+    "writer_authorized": false
+  },
+  "implementation": {
+    "parser": "formats::mod::transform_domain",
+    "world_module": "formats::mod::world_transform",
+    "mode": "read-only",
+    "fail_closed_on_truncated_transform_span": true,
+    "preserve_adapter_array": true,
+    "reject_inverse_parent_permutation": true,
+    "world_matrix_builder_added": true,
+    "instance_capability_gate": "supports_spatial_hierarchy"
+  }
+}

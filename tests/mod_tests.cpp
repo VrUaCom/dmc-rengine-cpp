@@ -44,7 +44,7 @@ void put_ascii(std::vector<std::byte>& bytes, std::size_t offset, std::string_vi
 }
 
 std::vector<std::byte> make_valid_mod() {
-    std::vector<std::byte> bytes(0x240U, std::byte{0});
+    std::vector<std::byte> bytes(0x260U, std::byte{0});
     put_ascii(bytes, 0x00U, "MOD ");
     put_f32(bytes, 0x04U, 1.01F);
     put_u8(bytes, 0x10U, 1U); // outer records
@@ -76,13 +76,17 @@ std::vector<std::byte> make_valid_mod() {
     put_u16(bytes, 0xF2U, 2048U);
     put_u16(bytes, 0x110U, 0x001FU); // one influence, weight 31/31
 
-    // Transform-domain document. Offsets are relative to 0x200.
-    put_u32(bytes, 0x200U, 0x10U);
-    put_u32(bytes, 0x204U, 0x20U);
-    put_u32(bytes, 0x208U, 0x30U);
-    put_u8(bytes, 0x210U, 0xFFU); // root reference
-    put_u8(bytes, 0x220U, 0U);    // complete permutation
-    put_u8(bytes, 0x230U, 0U);    // third table preserved/unknown here
+    // Canonical one-node transform-domain document at 0x200.
+    // Arrays are count bytes with align4 placement; the 0x20-byte local
+    // transform record begins at align16(0x20 + 3*align4(1)) == 0x30.
+    put_u32(bytes, 0x200U, 0x20U); // parentByOrderPosition
+    put_u32(bytes, 0x204U, 0x24U); // nodeAtOrderPosition
+    put_u32(bytes, 0x208U, 0x28U); // adapter domain
+    put_u32(bytes, 0x20CU, 0x30U); // localTransformByNodeIndex
+    put_u8(bytes, 0x220U, 0xFFU); // root parent
+    put_u8(bytes, 0x224U, 0U);    // complete permutation
+    put_u8(bytes, 0x228U, 0U);    // adapter byte preserved/undecoded
+    // 0x230..0x24F remains zero: finite identity-rotation / zero-translation.
     return bytes;
 }
 
@@ -119,7 +123,10 @@ int main() {
         assert(mesh.skin[0].skin.influence_count == 1U);
         assert(mesh.skin[0].skin.influences[0].bone_index == 0U);
         assert(parsed.document.transform_domain.permutation_is_complete);
+        assert(parsed.document.transform_domain.hierarchy_is_topological);
         assert(parsed.document.transform_domain.hierarchy_candidate_is_acyclic);
+        assert(parsed.document.transform_domain.transform_records_complete);
+        assert(parsed.document.transform_domain.transform_records_finite);
     }
 
     {
@@ -141,7 +148,7 @@ int main() {
 
     {
         auto bytes = make_valid_mod();
-        put_u64(bytes, 0x90U, 0x238U);
+        put_u64(bytes, 0x90U, 0x258U);
         const auto parsed = mod::Parser::parse(bytes);
         assert(!parsed.ok());
         assert(has_diagnostic(parsed, "mod.mesh-stream-out-of-bounds"));
@@ -158,8 +165,8 @@ int main() {
 
     {
         auto bytes = make_valid_mod();
-        // table2 relative pointer escapes the payload. This previously slipped
-        // through transform_domain because only table0/table1 were read.
+        // Adapter relative pointer escapes the payload. All four canonical
+        // relative pointers are range-checked before any table is consumed.
         put_u32(bytes, 0x208U, 0x1000U);
         const auto transform = mod::transform_domain::parse(bytes);
         assert(transform.recognized);

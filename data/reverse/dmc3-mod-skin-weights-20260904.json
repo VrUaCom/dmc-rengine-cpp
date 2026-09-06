@@ -1,0 +1,97 @@
+{
+  "schema": "dmc3-mod-skin-weights/v1",
+  "date": "2026-09-04",
+  "canonical_executable": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "status": {
+    "stream_shape": "DATA_CONFIRMED",
+    "weight_packing": "DATA_CONFIRMED",
+    "blend_index_factor4": "DATA_CONFIRMED_SHADER_CORRELATED",
+    "skeleton_node_domain": "STRUCTURAL_HIGH_CONFIDENCE",
+    "writer": "NOT_AUTHORIZED"
+  },
+  "decoder": {
+    "topology_mask": "0x8000",
+    "weight_payload_mask": "0x7FFF",
+    "quantized_components": [
+      "(payload >> 0) & 0x1F",
+      "(payload >> 5) & 0x1F",
+      "(payload >> 10) & 0x1F"
+    ],
+    "quantized_sum": 31,
+    "normalization_divisor": 31.0,
+    "blend_index_lane0_constant": 0,
+    "active_index_lanes": [1, 2, 3],
+    "bone_index_formula": "blend_index_lane / 4",
+    "max_nonzero_influences": 3
+  },
+  "combined_corpus": {
+    "files": 3,
+    "vertices": 8785,
+    "one_influence_vertices": 6594,
+    "two_influence_vertices": 1823,
+    "three_influence_vertices": 368,
+    "weight_sum_failures": 0,
+    "active_index_alignment_failures": 0,
+    "active_index_range_failures": 0,
+    "active_duplicate_bone_failures": 0,
+    "weight_order_failures": 0
+  },
+  "artifacts": [
+    {
+      "name": "slot_0001 (2).mod",
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "size": 216544,
+      "outer_count": 17,
+      "inner_count": 18,
+      "node_count": 24,
+      "vertices": 5316,
+      "one_influence": 4364,
+      "two_influence": 870,
+      "three_influence": 82,
+      "topology_highbit_vertices": 1636,
+      "max_used_bone_index": 22,
+      "skeleton_relative_offsets": [32, 56, 80, 112]
+    },
+    {
+      "name": "slot_0001 (3).mod",
+      "sha256": "34f2c03795b007eac67abdb3a5808f675f1b1fd419ea6f39d4b77b8142c9e7ce",
+      "size": 110096,
+      "outer_count": 19,
+      "inner_count": 22,
+      "node_count": 23,
+      "vertices": 2641,
+      "one_influence": 2049,
+      "two_influence": 474,
+      "three_influence": 118,
+      "topology_highbit_vertices": 867,
+      "max_used_bone_index": 22,
+      "skeleton_relative_offsets": [32, 56, 80, 112]
+    },
+    {
+      "name": "slot_0012.mod",
+      "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740",
+      "size": 35696,
+      "outer_count": 6,
+      "inner_count": 8,
+      "node_count": 33,
+      "vertices": 828,
+      "one_influence": 181,
+      "two_influence": 479,
+      "three_influence": 168,
+      "topology_highbit_vertices": 204,
+      "max_used_bone_index": 32,
+      "skeleton_relative_offsets": [32, 68, 104, 144]
+    }
+  ],
+  "open_questions": [
+    "exact DXBC instruction mapping for BLENDINDICES and packed scalar",
+    "runtime skin matrix palette ownership and construction",
+    "bind pose and inverse-bind matrix relationship",
+    "third node array semantics",
+    "revision stability across broader MOD corpus",
+    "byte-identical MOD writer",
+    "original-game edited skin acceptance"
+  ]
+}
