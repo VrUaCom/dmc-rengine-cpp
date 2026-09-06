@@ -51,14 +51,18 @@ def page_output(output: Path, public_path: str) -> Path:
     return output / public_path.lstrip("/") / "index.html"
 
 
-def canonical_url(base_url: str | None, public_path: str) -> str | None:
+def public_url(base_url: str | None, public_path: str) -> str:
     if not base_url:
-        return None
+        return public_path
     base = base_url.rstrip("/") + "/"
     return urljoin(base, public_path.lstrip("/"))
 
 
-def nav_html(pages: list[dict]) -> str:
+def canonical_url(base_url: str | None, public_path: str) -> str | None:
+    return public_url(base_url, public_path) if base_url else None
+
+
+def nav_html(pages: list[dict], base_url: str | None) -> str:
     primary = [
         ("/", "Home"),
         ("/formats/", "Formats"),
@@ -70,7 +74,9 @@ def nav_html(pages: list[dict]) -> str:
     ]
     valid = {p["path"] for p in pages}
     return "".join(
-        f'<a href="{path}">{html.escape(label)}</a>' for path, label in primary if path in valid
+        f'<a href="{html.escape(public_url(base_url, path), quote=True)}">{html.escape(label)}</a>'
+        for path, label in primary
+        if path in valid
     )
 
 
@@ -83,6 +89,14 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
         if canonical
         else ""
     )
+    og_url = (
+        f'\n    <meta property="og:url" content="{html.escape(canonical, quote=True)}">'
+        if canonical
+        else ""
+    )
+    css_url = public_url(base_url, "/assets/style.css")
+    home_url = public_url(base_url, "/")
+    status_url = public_url(base_url, "/status/")
 
     return f"""<!doctype html>
 <html lang="en">
@@ -94,13 +108,13 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <meta name="robots" content="index,follow">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{html.escape(page['title'], quote=True)}">
-    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">
-    <link rel="stylesheet" href="/assets/style.css">
+    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}
+    <link rel="stylesheet" href="{html.escape(css_url, quote=True)}">
 </head>
 <body>
 <header class="site-header">
-    <a class="brand" href="/">DMC Rengine</a>
-    <nav>{nav_html(site['pages'])}</nav>
+    <a class="brand" href="{html.escape(home_url, quote=True)}">DMC Rengine</a>
+    <nav>{nav_html(site['pages'], base_url)}</nav>
 </header>
 <main>
     <p class="eyebrow">Devil May Cry 3 HD Collection · Evidence-first C++20 research</p>
@@ -116,7 +130,7 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <section>
         <h2>Evidence boundary</h2>
         <p>A parser is not automatically a writer. A successful writer is not automatically equivalent to Capcom's offline tools. Synthetic validation does not establish original-game behavioral equivalence.</p>
-        <p>Use the <a href="/status/">current status</a> for promoted capabilities and open proof gates.</p>
+        <p>Use the <a href="{html.escape(status_url, quote=True)}">current status</a> for promoted capabilities and open proof gates.</p>
     </section>
 </main>
 <footer>
@@ -143,9 +157,15 @@ def build(output: Path, base_url: str | None) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(render_page(site, page, base_url), encoding="utf-8")
 
-    robots = ["User-agent: *", "Allow: /"]
+    robots = [
+        "User-agent: *",
+        "Allow: /",
+        "",
+        "User-agent: OAI-SearchBot",
+        "Allow: /",
+    ]
     if base_url:
-        robots.append(f"Sitemap: {base_url.rstrip('/')}/sitemap.xml")
+        robots.extend(["", f"Sitemap: {base_url.rstrip('/')}/sitemap.xml"])
     (output / "robots.txt").write_text("\n".join(robots) + "\n", encoding="utf-8")
 
     if base_url:
@@ -161,7 +181,6 @@ def build(output: Path, base_url: str | None) -> None:
         )
         (output / "sitemap.xml").write_text(sitemap, encoding="utf-8")
 
-    # Fail closed if the key public surfaces were not generated.
     required = [
         output / "index.html",
         output / "formats" / "index.html",
