@@ -4,6 +4,7 @@
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
 #include "dmc_rengine/formats/mod_skin.hpp"
 #include "dmc_rengine/formats/model_mesh_core.hpp"
+#include "dmc_rengine/formats/model_object_core.hpp"
 
 #include <array>
 #include <cstddef>
@@ -14,7 +15,8 @@
 namespace dmc::rengine::formats::mod {
 
 inline constexpr std::size_t header_size = 0x40U;
-inline constexpr std::size_t outer_record_size = 0x40U;
+inline constexpr std::size_t outer_record_size =
+    model_family::ObjectCoreAbi::record_size;
 inline constexpr std::size_t inner_record_size =
     model_family::MeshCoreAbi::record_size;
 
@@ -74,8 +76,25 @@ struct InnerMesh final {
 struct OuterModel final {
     std::uint64_t record_offset{};
     std::uint8_t inner_record_count{};
+
+    // Raw object state copied by canonical MOD/EFM initializer 0x1403029E0.
+    // Keep this value format-local: SCM has additional narrow compatibility
+    // corrections that are not promoted into the MOD parser by this contract.
+    std::uint8_t alpha_control{};
+
     std::uint16_t aggregate_element_count{};
     std::uint64_t inner_table_offset{};
+
+    // Serialized source flags are copied verbatim into the MOD runtime object's
+    // baseline and mutable effective flag fields. Per-bit semantics remain
+    // independently evidence-gated.
+    std::uint32_t source_flags{};
+
+    // Shared serialized object bounding sphere consumed by the runtime object
+    // initializer as vec3 center + f32 radius.
+    Vec3f bounding_center{};
+    float bounding_radius{};
+
     std::vector<InnerMesh> meshes;
 };
 
