@@ -1,0 +1,57 @@
+name: Discovery Site
+
+on:
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'tools/build_discovery_site.py'
+      - '.github/workflows/discovery-site.yml'
+      - 'docs/discovery/**'
+      - 'docs/formats/**'
+      - 'docs/status/current.md'
+      - 'docs/gdspaces-contract.md'
+  push:
+    branches: [ main ]
+    paths:
+      - 'site/**'
+      - 'tools/build_discovery_site.py'
+      - '.github/workflows/discovery-site.yml'
+      - 'docs/discovery/**'
+      - 'docs/formats/**'
+      - 'docs/status/current.md'
+      - 'docs/gdspaces-contract.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build discovery site
+        run: >-
+          python tools/build_discovery_site.py
+          --output _site
+          --base-url https://vruacom.github.io/dmc-rengine-cpp
+      - name: Validate generated public surface
+        shell: bash
+        run: |
+          test -f _site/index.html
+          test -f _site/formats/index.html
+          test -f _site/formats/scm/index.html
+          test -f _site/archives/nbz/index.html
+          test -f _site/faq/index.html
+          test -f _site/status/index.html
+          test -f _site/robots.txt
+          test -f _site/sitemap.xml
+          grep -q 'DMC Rengine' _site/index.html
+          grep -q 'canonical' _site/index.html
+          grep -q 'OAI-SearchBot' site/README.md
+      - name: Upload site preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmc-rengine-discovery-site
+          path: _site
+          if-no-files-found: error
