@@ -1,0 +1,47 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-model-texture-companion",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "companion_materializer_va": "0x140304B30",
+    "runtime_table_builder_va": "0x14030D040",
+    "tm2_signature_consumer_va": "0x1403365B0",
+    "material_consumer_va": "0x1402F9890",
+    "status": "EXE_CONFIRMED"
+  },
+  "serialized_envelope": {
+    "texture_count": {"offset": "0x000", "type": "u32"},
+    "block_count_table": {"offset": "0x004", "entry_type": "u32"},
+    "payload_base": "0x800",
+    "allocation_block_size": "0x800",
+    "payload_layout": "consecutive_by_block_count",
+    "payload_magic": {"little_endian_u32": "0x00324D54", "bytes": "TM2\\0"}
+  },
+  "runtime_chain": {
+    "manager_source_companion": "+0x110",
+    "manager_runtime_descriptor_table": "+0x118",
+    "manager_intermediate_materialization_state": "+0x120",
+    "runtime_descriptor_stride": "0x40",
+    "mesh_texture_slot_field": "+0x02",
+    "descriptor_selection": "texture_slot * 0x40",
+    "known_descriptor_consumed_field": "+0x20"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/formats/model_texture_companion.hpp",
+    "test": "tests/model_family_tests.cpp",
+    "scope": "read-only serialized envelope parser"
+  },
+  "non_claims": [
+    "companion writer authority",
+    "complete TIM2 internal schema",
+    "complete runtime descriptor semantics",
+    "universal companion filename or extension rule",
+    "manager +0x120 is a standalone serialized format",
+    "production texture replacement authority"
+  ]
+}
