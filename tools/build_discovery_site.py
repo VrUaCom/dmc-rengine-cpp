@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROOT_RESOLVED = ROOT.resolve()
 MANIFEST = ROOT / "site" / "manifest.json"
 CSS_SOURCE = ROOT / "site" / "assets" / "style.css"
+MIN_PRIMARY_CONTENT_CHARS = 500
 
 
 def require_within_repo(path: Path, label: str) -> Path:
@@ -51,28 +52,98 @@ def normalize_base_url(base_url: str | None) -> str | None:
     return f"https://{parsed.netloc}{path}"
 
 
-def load_manifest() -> dict:
-    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+def normalized_primary_text(page: dict) -> str:
+    parts = [page["summary"]]
+    for section in page["sections"]:
+        parts.append(section["heading"])
+        parts.extend(section["items"])
+    return " ".join(" ".join(parts).lower().split())
+
+
+def validate_manifest(data: dict) -> dict:
     pages = data.get("pages", [])
     if not pages:
         raise SystemExit("site manifest contains no pages")
 
-    seen = set()
+    seen_paths: set[str] = set()
+    primary_signatures: dict[str, str] = {}
+
     for page in pages:
+        for field in ("path", "title", "description", "summary", "source_path"):
+            if not isinstance(page.get(field), str) or not page[field].strip():
+                raise SystemExit(f"page is missing non-empty {field}: {page!r}")
+
         path = page["path"]
         if not path.startswith("/") or (path != "/" and not path.endswith("/")):
             raise SystemExit(f"invalid public path: {path}")
         if ".." in Path(path).parts:
             raise SystemExit(f"public path contains traversal: {path}")
-        if path in seen:
+        if path in seen_paths:
             raise SystemExit(f"duplicate public path: {path}")
-        seen.add(path)
+        seen_paths.add(path)
 
         source = require_within_repo(ROOT / page["source_path"], "canonical source")
         if not source.is_file():
             raise SystemExit(f"canonical source does not exist: {page['source_path']}")
 
+        sections = page.get("sections")
+        if not isinstance(sections, list) or len(sections) < 2:
+            raise SystemExit(f"page must define at least two substantive sections: {path}")
+        seen_headings: set[str] = set()
+        content_chars = len(page["summary"])
+        for section in sections:
+            heading = section.get("heading")
+            items = section.get("items")
+            if not isinstance(heading, str) or not heading.strip():
+                raise SystemExit(f"section heading must be non-empty: {path}")
+            normalized_heading = heading.strip().lower()
+            if normalized_heading in seen_headings:
+                raise SystemExit(f"duplicate section heading on {path}: {heading}")
+            seen_headings.add(normalized_heading)
+            if not isinstance(items, list) or len(items) < 2:
+                raise SystemExit(f"section must contain at least two items: {path} / {heading}")
+            for item in items:
+                if not isinstance(item, str) or len(item.strip()) < 40:
+                    raise SystemExit(f"section item is too thin on {path} / {heading}")
+                content_chars += len(item.strip())
+
+        if content_chars < MIN_PRIMARY_CONTENT_CHARS:
+            raise SystemExit(
+                f"primary page content is too thin ({content_chars} chars): {path}"
+            )
+
+        signature = normalized_primary_text(page)
+        if signature in primary_signatures:
+            raise SystemExit(
+                f"duplicate primary page content: {path} and {primary_signatures[signature]}"
+            )
+        primary_signatures[signature] = path
+
+        related = page.get("related_links")
+        if not isinstance(related, list) or len(related) < 2:
+            raise SystemExit(f"page must define at least two related links: {path}")
+
+    for page in pages:
+        related_paths: set[str] = set()
+        for link in page["related_links"]:
+            target = link.get("path")
+            label = link.get("label")
+            if not isinstance(target, str) or target not in seen_paths:
+                raise SystemExit(f"related link target does not resolve from {page['path']}: {target}")
+            if target == page["path"]:
+                raise SystemExit(f"related link must not point to itself: {page['path']}")
+            if target in related_paths:
+                raise SystemExit(f"duplicate related link on {page['path']}: {target}")
+            related_paths.add(target)
+            if not isinstance(label, str) or len(label.strip()) < 8:
+                raise SystemExit(f"related link label is not descriptive on {page['path']}: {label}")
+
     return data
+
+
+def load_manifest() -> dict:
+    data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    return validate_manifest(data)
 
 
 def page_output(output: Path, public_path: str) -> Path:
@@ -110,6 +181,28 @@ def nav_html(pages: list[dict], base_url: str | None) -> str:
     )
 
 
+def content_sections_html(page: dict) -> str:
+    rendered: list[str] = []
+    for section in page["sections"]:
+        items = "".join(f"<li>{html.escape(item)}</li>" for item in section["items"])
+        rendered.append(
+            f'<section class="content-block"><h2>{html.escape(section["heading"])}</h2>'
+            f'<ul>{items}</ul></section>'
+        )
+    return "\n".join(rendered)
+
+
+def related_links_html(page: dict, base_url: str | None) -> str:
+    items = "".join(
+        "<li>"
+        f'<a href="{html.escape(public_url(base_url, link["path"]), quote=True)}">'
+        f'{html.escape(link["label"])}</a>'
+        "</li>"
+        for link in page["related_links"]
+    )
+    return f'<section class="related"><h2>Related research</h2><ul>{items}</ul></section>'
+
+
 def render_page(site: dict, page: dict, base_url: str | None) -> str:
     repo = site["repository_url"].rstrip("/")
     source_url = f"{repo}/blob/main/{page['source_path']}"
@@ -127,6 +220,8 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     css_url = public_url(base_url, "/assets/style.css")
     home_url = public_url(base_url, "/")
     status_url = public_url(base_url, "/status/")
+    sections = content_sections_html(page)
+    related = related_links_html(page, base_url)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -150,6 +245,10 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <p class="eyebrow">Devil May Cry 3 HD Collection · Evidence-first C++20 research</p>
     <h1>{html.escape(page['title'])}</h1>
     <p class="lead">{html.escape(page['summary'])}</p>
+
+    {sections}
+
+    {related}
 
     <section class="authority">
         <h2>Canonical source</h2>
