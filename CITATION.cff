@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use DMC Rengine in research, tooling, or documentation, please cite it using these metadata."
+title: "DMC Rengine"
+type: software
+authors:
+  - name: "DMC Rengine contributors"
+abstract: "DMC Rengine is an open-source C++20 framework for evidence-first reverse engineering, decompilation research, binary and file-format analysis, resource materialization, and safe modding tooling for Devil May Cry 3: Special Edition from the HD Collection."
+keywords:
+  - "Devil May Cry 3"
+  - "DMC3"
+  - "Devil May Cry HD Collection"
+  - "reverse engineering"
+  - "decompilation"
+  - "binary analysis"
+  - "file formats"
+  - "C++20"
+  - "game modding"
+license: MIT
+repository-code: "https://github.com/VrUaCom/dmc-rengine-cpp"
+url: "https://github.com/VrUaCom/dmc-rengine-cpp"
