@@ -21,6 +21,8 @@ using dmc::rengine::gdspaces::ResourceRef;
 using dmc::rengine::integration::FormatIntegrationRegistry;
 using dmc::rengine::integration::NativeReaderModuleRegistry;
 using dmc::rengine::integration::ToolRegistry;
+using dmc::rengine::integration::ToolRoute;
+using dmc::rengine::integration::ToolRouteRole;
 using dmc::rengine::profiles::dmc3::ResourceTypeContract;
 
 [[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text) {
@@ -42,12 +44,22 @@ using dmc::rengine::profiles::dmc3::ResourceTypeContract;
 }
 
 [[nodiscard]] bool has_tool_route(
-    const std::vector<dmc::rengine::integration::ToolRoute>& routes,
+    const std::vector<ToolRoute>& routes,
     dmc::rengine::gdspaces::ToolTarget target) {
     return std::any_of(
         routes.begin(), routes.end(),
-        [target](const dmc::rengine::integration::ToolRoute& route) {
+        [target](const ToolRoute& route) {
             return route.target == target;
+        });
+}
+
+[[nodiscard]] bool has_primary_tool_route(
+    const std::vector<ToolRoute>& routes,
+    dmc::rengine::gdspaces::ToolTarget target) {
+    return std::any_of(
+        routes.begin(), routes.end(),
+        [target](const ToolRoute& route) {
+            return route.target == target && route.role == ToolRouteRole::primary;
         });
 }
 
@@ -119,6 +131,21 @@ void test_native_reader_registry_and_tool_routes_are_coherent() {
     const ToolRegistry tools;
 
     for (const auto& descriptor : formats.formats()) {
+        const auto resource = contract_resource(descriptor.format);
+        const auto default_routes = tools.routes_for(resource, false, false, true);
+        assert(!default_routes.empty());
+
+        for (std::size_t index = 0U; index < default_routes.size(); ++index) {
+            const auto& route = default_routes[index];
+            assert(route.valid());
+            assert(tools.find(route.target) != nullptr);
+            for (std::size_t other = index + 1U;
+                 other < default_routes.size();
+                 ++other) {
+                assert(default_routes[other].target != route.target);
+            }
+        }
+
         if (descriptor.parser_id.empty()) {
             continue;
         }
@@ -133,13 +160,19 @@ void test_native_reader_registry_and_tool_routes_are_coherent() {
         assert(module->valid());
         assert(tools.find(module->consumer) != nullptr);
 
-        const auto resource = contract_resource(descriptor.format);
-        const auto routes = tools.routes_for(
+        const auto contextual_routes = tools.routes_for(
             resource,
             descriptor.stage_category.has_value(),
             false,
             true);
-        assert(has_tool_route(routes, module->consumer));
+        assert(has_tool_route(contextual_routes, module->consumer));
+
+        // Scene-native parsers publish their completion to ModViz. In the
+        // default non-stage context ModViz must therefore be the primary owner,
+        // not merely a companion bolted on later by ToolRegistry.
+        if (module->consumer == dmc::rengine::gdspaces::ToolTarget::modviz_scene) {
+            assert(has_primary_tool_route(default_routes, module->consumer));
+        }
     }
 
     for (const auto& module : modules.modules()) {
