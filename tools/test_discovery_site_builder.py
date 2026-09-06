@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Regression tests for the dependency-free discovery-site builder."""
+
+from __future__ import annotations
+
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+
+import build_discovery_site as site  # noqa: E402
+
+
+def expect_exit(fn, message: str) -> None:
+    try:
+        fn()
+    except SystemExit:
+        return
+    raise AssertionError(message)
+
+
+def main() -> None:
+    assert site.normalize_base_url("https://vruacom.github.io/dmc-rengine-cpp/") == (
+        "https://vruacom.github.io/dmc-rengine-cpp"
+    )
+    assert site.public_url(
+        "https://vruacom.github.io/dmc-rengine-cpp",
+        "/formats/",
+    ) == "https://vruacom.github.io/dmc-rengine-cpp/formats/"
+
+    expect_exit(
+        lambda: site.normalize_base_url("http://vruacom.github.io/dmc-rengine-cpp"),
+        "HTTP base URL must be rejected",
+    )
+    expect_exit(
+        lambda: site.normalize_base_url("https://vruacom.github.io/dmc-rengine-cpp?q=1"),
+        "query-bearing base URL must be rejected",
+    )
+    expect_exit(
+        lambda: site.normalize_base_url("https://vruacom.github.io/dmc-rengine-cpp#frag"),
+        "fragment-bearing base URL must be rejected",
+    )
+    expect_exit(
+        lambda: site.require_within_repo(ROOT.parent / "outside-site", "test path"),
+        "outside-repository path must be rejected",
+    )
+    expect_exit(
+        lambda: site.require_safe_output(ROOT / "docs"),
+        "non-_site repository directory must be rejected as destructive output",
+    )
+    expect_exit(
+        lambda: site.require_safe_output(ROOT),
+        "repository root must be rejected as destructive output",
+    )
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="_site-test-", dir=ROOT))
+    try:
+        output = temp_dir / "generated"
+        base = "https://vruacom.github.io/dmc-rengine-cpp"
+        site.build(output, base)
+
+        index = (output / "index.html").read_text(encoding="utf-8")
+        robots = (output / "robots.txt").read_text(encoding="utf-8")
+        sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
+
+        assert 'rel="canonical" href="https://vruacom.github.io/dmc-rengine-cpp/"' in index
+        assert "https://vruacom.github.io/dmc-rengine-cpp/assets/style.css" in index
+        assert "https://vruacom.github.io/dmc-rengine-cpp/formats/" in index
+        assert "User-agent: OAI-SearchBot" in robots
+        assert "https://vruacom.github.io/dmc-rengine-cpp/sitemap.xml" in robots
+        assert "https://vruacom.github.io/dmc-rengine-cpp/formats/scm/" in sitemap
+        assert "https://github.com/VrUaCom/dmc-rengine-cpp/blob/main/README.md" in index
+
+        no_base = temp_dir / "generated-no-base"
+        site.build(no_base, None)
+        no_base_index = (no_base / "index.html").read_text(encoding="utf-8")
+        assert 'rel="canonical"' not in no_base_index
+        assert not (no_base / "sitemap.xml").exists()
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    print("discovery-site builder tests: OK")
+
+
+if __name__ == "__main__":
+    main()

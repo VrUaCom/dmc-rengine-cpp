@@ -1,0 +1,93 @@
+{
+  "site_name": "DMC Rengine",
+  "tagline": "DMC3 HD reverse engineering, file-format research and recompilation tooling",
+  "planned_base_url": "https://vruacom.github.io/dmc-rengine-cpp",
+  "repository_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
+  "deployment_state": "scaffolded_not_enabled",
+  "pages": [
+    {
+      "path": "/",
+      "title": "DMC Rengine — DMC3 HD Reverse Engineering",
+      "description": "Evidence-backed C++20 reverse engineering, decompilation research, DMC3 HD file-format documentation and safe modding infrastructure.",
+      "summary": "DMC Rengine researches Devil May Cry 3: Special Edition from the HD Collection through executable evidence, binary formats, resource materialization, guarded authoring and long-term recompilation work.",
+      "source_path": "README.md"
+    },
+    {
+      "path": "/formats/",
+      "title": "DMC3 HD File Formats — DMC Rengine",
+      "description": "DMC3 HD format and archive research for SCM, MOD, SHW, HITS, PAC, PNST, NBZ, DDS and PTX.",
+      "summary": "Browse public entry points for DMC3 HD resource families. Exact schemas, evidence status and current product support remain in canonical GitHub documentation.",
+      "source_path": "docs/formats/public-index.md"
+    },
+    {
+      "path": "/formats/scm/",
+      "title": "DMC3 SCM Format — DMC Rengine",
+      "description": "DMC3 SCM structural and runtime reverse-engineering entry point.",
+      "summary": "Entry point for SCM scene, object, mesh, stream, transform and runtime research. Use the canonical specification and current status for exact maturity and authoring boundaries.",
+      "source_path": "docs/formats/scm.md"
+    },
+    {
+      "path": "/formats/mod/",
+      "title": "DMC3 MOD Format — DMC Rengine",
+      "description": "DMC3 MOD model-format reverse-engineering entry point.",
+      "summary": "Entry point for DMC3 MOD format research. Current reader, writer and conversion scope is deliberately delegated to the canonical project status and format documentation.",
+      "source_path": "docs/formats/public-index.md"
+    },
+    {
+      "path": "/formats/shw/",
+      "title": "DMC3 SHW Format — DMC Rengine",
+      "description": "DMC3 SHW structural reverse-engineering entry point.",
+      "summary": "Entry point for SHW structural research. Current payload coverage, reader scope and unresolved semantics remain bounded by the canonical status and evidence records.",
+      "source_path": "docs/status/current.md"
+    },
+    {
+      "path": "/formats/pac/",
+      "title": "DMC3 PAC Format — DMC Rengine",
+      "description": "DMC3 PAC relative-slot container parsing and reintegration research.",
+      "summary": "Entry point for PAC container structure, slot identity and authoring research. Exact parser and reintegration boundaries remain in canonical GDSpaces documentation.",
+      "source_path": "docs/formats/pac-readonly-parser.md"
+    },
+    {
+      "path": "/formats/pnst/",
+      "title": "DMC3 PNST Format — DMC Rengine",
+      "description": "DMC3 PNST relative-slot container and nested-resource research.",
+      "summary": "Entry point for PNST container structure and nested-resource research. Current semantic and authoring scope remains in canonical documentation.",
+      "source_path": "docs/formats/pnst-readonly-parser.md"
+    },
+    {
+      "path": "/archives/nbz/",
+      "title": "DMC3 NBZ Archives — DMC Rengine",
+      "description": "DMC3 numbered NBZ archive materialization, overlay and resolver research.",
+      "summary": "Entry point for numbered NBZ archive, resolver, materialization and overlay research. Original-game selection/consumption proof remains a separate canonical gate.",
+      "source_path": "docs/gdspaces/dmc3-nbz-store-overlay-writer.md"
+    },
+    {
+      "path": "/gdspaces/",
+      "title": "GDSpaces — DMC Rengine Resource Architecture",
+      "description": "DMC Rengine GDSpaces resource resolution, materialization and provenance architecture.",
+      "summary": "Entry point into the canonical GDSpaces resource resolver/materializer/provenance architecture. The site does not recreate its contracts or state.",
+      "source_path": "docs/gdspaces-contract.md"
+    },
+    {
+      "path": "/reverse-engineering/",
+      "title": "DMC3 Reverse Engineering — DMC Rengine",
+      "description": "Evidence-first DMC3 executable, runtime and binary-format reverse-engineering research.",
+      "summary": "Entry point into evidence-first DMC3 reverse engineering. Exact artifact, address, range and confidence boundaries remain in canonical evidence sources.",
+      "source_path": "docs/reverse-engineering-rules.md"
+    },
+    {
+      "path": "/faq/",
+      "title": "DMC Rengine FAQ — DMC3 HD Modding and Reverse Engineering",
+      "description": "Answers to common questions about DMC Rengine, DMC3 HD formats, modding, archives and current project scope.",
+      "summary": "Public answers for common DMC3 questions, with completion and support claims delegated to current canonical status.",
+      "source_path": "docs/discovery/faq.md"
+    },
+    {
+      "path": "/status/",
+      "title": "DMC Rengine Current Status",
+      "description": "Current canonical implementation and proof status for DMC Rengine.",
+      "summary": "Direct entry point to the live project-status authority for promoted capabilities, proof gates and explicit incomplete boundaries.",
+      "source_path": "docs/status/current.md"
+    }
+  ]
+}
