@@ -1,4 +1,5 @@
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
+#include "dmc_rengine/formats/mod/world_transform.hpp"
 
 #include <bit>
 #include <cassert>
@@ -8,6 +9,7 @@
 #include <vector>
 
 namespace domain = dmc::rengine::formats::mod::transform_domain;
+namespace world = dmc::rengine::formats::mod::world_transform;
 
 namespace {
 void put_u32(std::vector<std::byte>& bytes, const std::size_t offset, const std::uint32_t value) {
@@ -43,6 +45,10 @@ void put_transform(std::vector<std::byte>& bytes,
     put_f32(bytes, offset + 0x14U, ry);
     put_f32(bytes, offset + 0x18U, rz);
     put_f32(bytes, offset + 0x1CU, reserved);
+}
+
+[[nodiscard]] bool near(const float a, const float b) {
+    return std::fabs(a - b) < 0.000001F;
 }
 } // namespace
 
@@ -122,12 +128,62 @@ int main() {
     assert(result.local_transform_records_by_node_index[0].translation_magnitude == 3.0F);
     assert(std::fabs(result.local_transform_records_by_node_index[0].rotation_xyz_radians.z - 0.3F) < 0.000001F);
     assert(result.local_transform_records_by_node_index[2].translation.x == -1.0F);
+    assert(world::supports_spatial_hierarchy(result));
+    assert(world::build_model_space_world_matrices(result).has_value());
+
+    // A translation-only hierarchy makes the world-space expectations
+    // independent of the rotation implementation. The non-linear evaluation
+    // order also proves that parents are node indices, not order positions.
+    domain::ParseResult spatial{};
+    spatial.recognized = true;
+    spatial.raw_domain_count = 3U;
+    spatial.permutation_is_complete = true;
+    spatial.hierarchy_is_topological = true;
+    spatial.transform_records_complete = true;
+    spatial.transform_records_finite = true;
+    spatial.node_at_order_position = {0U, 2U, 1U};
+    spatial.parent_by_order_position = {-1, 0, 2};
+    spatial.local_transform_records_by_node_index.resize(3U);
+    spatial.local_transform_records_by_node_index[0].translation =
+        domain::Vec3f{10.0F, 0.0F, 0.0F};
+    spatial.local_transform_records_by_node_index[1].translation =
+        domain::Vec3f{0.0F, 0.0F, 2.0F};
+    spatial.local_transform_records_by_node_index[2].translation =
+        domain::Vec3f{0.0F, 5.0F, 0.0F};
+
+    assert(world::supports_spatial_hierarchy(spatial));
+    const auto model_world = world::build_model_space_world_matrices(spatial);
+    assert(model_world.has_value());
+    const auto root_position = world::world_position((*model_world)[0]);
+    const auto mid_position = world::world_position((*model_world)[2]);
+    const auto tip_position = world::world_position((*model_world)[1]);
+    assert(near(root_position.x, 10.0F));
+    assert(near(root_position.y, 0.0F));
+    assert(near(root_position.z, 0.0F));
+    assert(near(mid_position.x, 10.0F));
+    assert(near(mid_position.y, 5.0F));
+    assert(near(mid_position.z, 0.0F));
+    assert(near(tip_position.x, 10.0F));
+    assert(near(tip_position.y, 5.0F));
+    assert(near(tip_position.z, 2.0F));
+
+    auto root_base = world::identity_matrix();
+    root_base.values[12] = 100.0F;
+    const auto rooted_world = world::build_world_matrices(spatial, root_base);
+    assert(rooted_world.has_value());
+    const auto rooted_tip = world::world_position((*rooted_world)[1]);
+    assert(near(rooted_tip.x, 110.0F));
+    assert(near(rooted_tip.y, 5.0F));
+    assert(near(rooted_tip.z, 2.0F));
 
     auto malformed_hierarchy = bytes;
     malformed_hierarchy[0x62U] = std::byte{1U};
     const auto malformed_hierarchy_result = domain::parse(malformed_hierarchy);
     assert(malformed_hierarchy_result.ok());
     assert(!malformed_hierarchy_result.hierarchy_is_topological);
+    assert(!world::supports_spatial_hierarchy(malformed_hierarchy_result));
+    assert(!world::build_model_space_world_matrices(
+        malformed_hierarchy_result).has_value());
 
     auto truncated = bytes;
     truncated.resize(0xCFU);
@@ -135,6 +191,7 @@ int main() {
     assert(truncated_result.recognized);
     assert(!truncated_result.ok());
     assert(!truncated_result.transform_records_complete);
+    assert(!world::supports_spatial_hierarchy(truncated_result));
 
     return 0;
 }
