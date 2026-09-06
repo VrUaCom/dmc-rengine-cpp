@@ -181,79 +181,90 @@ ParseResult parse(const std::span<const std::byte> bytes) {
     result.reference_table.reserve(count);
     result.permutation_table.reserve(count);
     result.adapter_table.reserve(count);
+    result.parent_by_order_position.reserve(count);
+    result.node_at_order_position.reserve(count);
     for (std::size_t index = 0U; index < count; ++index) {
-        const auto reference = reader.u8(parent_table + index);
-        const auto permutation = reader.u8(order_table + index);
+        const auto parent_raw = reader.u8(parent_table + index);
+        const auto node = reader.u8(order_table + index);
         const auto adapter = reader.u8(adapter_table + index);
-        if (!reference || !permutation || !adapter) {
+        if (!parent_raw || !node || !adapter) {
             add_error(result.diagnostics,
                       "mod.transform_domain.table_truncated",
                       "MOD transform-domain array entry is truncated",
                       parent_table + index);
             return result;
         }
-        result.reference_table.push_back(*reference);
-        result.permutation_table.push_back(*permutation);
+
+        result.reference_table.push_back(*parent_raw);
+        result.permutation_table.push_back(*node);
         result.adapter_table.push_back(*adapter);
+        result.parent_by_order_position.push_back(
+            *parent_raw == 0xFFU
+                ? static_cast<std::int16_t>(-1)
+                : static_cast<std::int16_t>(*parent_raw));
+        result.node_at_order_position.push_back(*node);
     }
 
-    std::vector<std::int16_t> inverse(count, static_cast<std::int16_t>(-1));
+    std::vector<bool> node_seen(count, false);
     result.permutation_is_complete = true;
-    for (std::size_t logical_index = 0U; logical_index < count; ++logical_index) {
-        const auto physical_index = static_cast<std::size_t>(
-            result.permutation_table[logical_index]);
-        if (physical_index >= count ||
-            inverse[physical_index] != static_cast<std::int16_t>(-1)) {
+    for (const auto raw_node : result.node_at_order_position) {
+        const auto node = static_cast<std::size_t>(raw_node);
+        if (node >= count || node_seen[node]) {
             result.permutation_is_complete = false;
             break;
         }
-        inverse[physical_index] = static_cast<std::int16_t>(logical_index);
+        node_seen[node] = true;
     }
     if (!result.permutation_is_complete) {
         add_warning(result.diagnostics,
                     "mod.transform_domain.permutation_incomplete",
-                    "MOD transform-domain permutation is incomplete or contains duplicates",
+                    "MOD node-at-order array is incomplete or contains duplicates",
                     order_table);
-    } else {
-        result.derived_hierarchy_candidate.reserve(count);
-        result.hierarchy_candidate_is_acyclic = true;
-        for (std::size_t logical_index = 0U; logical_index < count; ++logical_index) {
-            const auto raw_reference = result.reference_table[logical_index];
-            if (raw_reference == 0xFFU) {
-                result.derived_hierarchy_candidate.push_back(
-                    static_cast<std::int16_t>(-1));
-                continue;
-            }
-
-            const auto reference_index = static_cast<std::size_t>(raw_reference);
-            if (reference_index >= count || inverse[reference_index] < 0) {
-                result.derived_hierarchy_candidate.push_back(
-                    static_cast<std::int16_t>(-2));
-                result.hierarchy_candidate_is_acyclic = false;
-                continue;
-            }
-
-            const auto derived = inverse[reference_index];
-            result.derived_hierarchy_candidate.push_back(derived);
-            if (derived >= static_cast<std::int16_t>(logical_index)) {
-                result.hierarchy_candidate_is_acyclic = false;
-            }
-        }
-
-        if (!result.hierarchy_candidate_is_acyclic) {
-            add_warning(result.diagnostics,
-                        "mod.transform_domain.hierarchy_candidate_invalid",
-                        "MOD derived transform hierarchy candidate is not acyclic",
-                        parent_table);
-        }
     }
 
-    result.local_transform_records.reserve(count);
+    result.derived_hierarchy_candidate = result.parent_by_order_position;
+    result.hierarchy_is_topological = result.permutation_is_complete;
+    if (result.hierarchy_is_topological) {
+        std::vector<bool> node_evaluated(count, false);
+        for (std::size_t order_position = 0U;
+             order_position < count;
+             ++order_position) {
+            const auto node = static_cast<std::size_t>(
+                result.node_at_order_position[order_position]);
+            const auto parent =
+                result.parent_by_order_position[order_position];
+
+            if (order_position == 0U) {
+                if (parent != -1) {
+                    result.hierarchy_is_topological = false;
+                    break;
+                }
+            } else {
+                if (parent < 0 ||
+                    static_cast<std::size_t>(parent) >= count ||
+                    !node_evaluated[static_cast<std::size_t>(parent)]) {
+                    result.hierarchy_is_topological = false;
+                    break;
+                }
+            }
+
+            node_evaluated[node] = true;
+        }
+    }
+    result.hierarchy_candidate_is_acyclic = result.hierarchy_is_topological;
+    if (!result.hierarchy_is_topological) {
+        add_warning(result.diagnostics,
+                    "mod.transform_domain.hierarchy_not_topological",
+                    "MOD parent/order arrays do not form the proven topological evaluation contract",
+                    parent_table);
+    }
+
+    result.local_transform_records_by_node_index.reserve(count);
     result.transform_records_finite = true;
-    for (std::size_t index = 0U; index < count; ++index) {
+    for (std::size_t node_index = 0U; node_index < count; ++node_index) {
         LocalTransformRecord transform;
         const auto offset = transform_table +
-            index * model_family::TransformCoreAbi::record_size;
+            node_index * model_family::TransformCoreAbi::record_size;
         transform.record_offset = static_cast<std::uint64_t>(offset);
 
         const auto tx = reader.f32_le(
@@ -287,10 +298,10 @@ ParseResult parse(const std::span<const std::byte> bytes) {
         if (!finite(transform)) {
             result.transform_records_finite = false;
         }
-        result.local_transform_records.push_back(transform);
+        result.local_transform_records_by_node_index.push_back(transform);
     }
     result.transform_records_complete =
-        result.local_transform_records.size() == count;
+        result.local_transform_records_by_node_index.size() == count;
 
     if (!result.transform_records_finite) {
         add_warning(result.diagnostics,

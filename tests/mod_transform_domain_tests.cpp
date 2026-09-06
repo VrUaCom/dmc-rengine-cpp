@@ -62,12 +62,15 @@ int main() {
     put_u32(bytes, 0x48U, 0x28U);
     put_u32(bytes, 0x4CU, 0x30U);
 
+    // Non-identity topological order is intentional. The third parent is node
+    // 2, not inverse(order)[2] == 1. This guards the provenance-corrected
+    // parentByOrderPosition semantics against the old inverse heuristic.
     bytes[0x60U] = std::byte{0xFFU};
     bytes[0x61U] = std::byte{0U};
-    bytes[0x62U] = std::byte{1U};
+    bytes[0x62U] = std::byte{2U};
     bytes[0x64U] = std::byte{0U};
-    bytes[0x65U] = std::byte{1U};
-    bytes[0x66U] = std::byte{2U};
+    bytes[0x65U] = std::byte{2U};
+    bytes[0x66U] = std::byte{1U};
     bytes[0x68U] = std::byte{7U};
     bytes[0x69U] = std::byte{8U};
     bytes[0x6AU] = std::byte{9U};
@@ -92,11 +95,17 @@ int main() {
     assert(result.serialized_layout_matches_core);
 
     assert(result.permutation_is_complete);
+    assert(result.hierarchy_is_topological);
     assert(result.hierarchy_candidate_is_acyclic);
-    assert(result.derived_hierarchy_candidate.size() == 3U);
-    assert(result.derived_hierarchy_candidate[0] == -1);
-    assert(result.derived_hierarchy_candidate[1] == 0);
-    assert(result.derived_hierarchy_candidate[2] == 1);
+    assert(result.node_at_order_position.size() == 3U);
+    assert(result.node_at_order_position[0] == 0U);
+    assert(result.node_at_order_position[1] == 2U);
+    assert(result.node_at_order_position[2] == 1U);
+    assert(result.parent_by_order_position.size() == 3U);
+    assert(result.parent_by_order_position[0] == -1);
+    assert(result.parent_by_order_position[1] == 0);
+    assert(result.parent_by_order_position[2] == 2);
+    assert(result.derived_hierarchy_candidate == result.parent_by_order_position);
 
     assert(result.adapter_table.size() == 3U);
     assert(result.adapter_table[0] == 7U);
@@ -105,14 +114,20 @@ int main() {
 
     assert(result.transform_records_complete);
     assert(result.transform_records_finite);
-    assert(result.local_transform_records.size() == 3U);
-    assert(result.local_transform_records[0].record_offset == 0x70U);
-    assert(result.local_transform_records[0].translation.x == 1.0F);
-    assert(result.local_transform_records[0].translation.y == 2.0F);
-    assert(result.local_transform_records[0].translation.z == 2.0F);
-    assert(result.local_transform_records[0].translation_magnitude == 3.0F);
-    assert(std::fabs(result.local_transform_records[0].rotation_xyz_radians.z - 0.3F) < 0.000001F);
-    assert(result.local_transform_records[2].translation.x == -1.0F);
+    assert(result.local_transform_records_by_node_index.size() == 3U);
+    assert(result.local_transform_records_by_node_index[0].record_offset == 0x70U);
+    assert(result.local_transform_records_by_node_index[0].translation.x == 1.0F);
+    assert(result.local_transform_records_by_node_index[0].translation.y == 2.0F);
+    assert(result.local_transform_records_by_node_index[0].translation.z == 2.0F);
+    assert(result.local_transform_records_by_node_index[0].translation_magnitude == 3.0F);
+    assert(std::fabs(result.local_transform_records_by_node_index[0].rotation_xyz_radians.z - 0.3F) < 0.000001F);
+    assert(result.local_transform_records_by_node_index[2].translation.x == -1.0F);
+
+    auto malformed_hierarchy = bytes;
+    malformed_hierarchy[0x62U] = std::byte{1U};
+    const auto malformed_hierarchy_result = domain::parse(malformed_hierarchy);
+    assert(malformed_hierarchy_result.ok());
+    assert(!malformed_hierarchy_result.hierarchy_is_topological);
 
     auto truncated = bytes;
     truncated.resize(0xCFU);
