@@ -1,8 +1,8 @@
 # Current Blockers
 
-**Snapshot date:** 2026-09-05  
-**Canonical base reviewed:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
-**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
+**Snapshot date:** 2026-09-06  
+**Canonical base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
+**Latest integration promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
 
 The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [GDSpaces Proof Roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
@@ -101,7 +101,7 @@ filename discovery / registration attempt
 successful linked runtime mount
 ```
 
-The product model on current `main` now reflects that distinction:
+The product model on current `main` reflects that distinction:
 
 - discovery carries no success claim;
 - successful topology contains only explicitly successful linked providers;
@@ -155,15 +155,17 @@ Requires the claimed collision scope, real protected-runtime mapping, trusted se
 
 ### B-NR-SHW-01 — SHW structural reader promotion
 
-**Status:** ⚠️ IMPLEMENTED ON PR #288 / EXACT-HEAD CI + FINAL REVIEW REQUIRED
+**Status:** ✅ CLOSED / PROMOTED BY PR #288
 
-The implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The matrix palette owner and universal revision coverage remain open. No SHW writer is authorized.
+The canonical implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The exact PR-head tree passed Ubuntu + Windows build/test CI before squash promotion, and `main@78e360c9...` contains that same tree.
 
-An earlier #288 CI run exposed a real integration defect: SHW was registered with `modviz_scene` as its Native Reader consumer but `ToolRegistry` did not route SHW into the scene domain, preventing parser-validation receipt publication. The routing contract is fixed on the current branch and covered end-to-end through `ResourceAnalyzer`.
+PR #288 also closed two integration defects found during review rather than weakening tests: SHW is now consistently routed through `ToolRegistry` and `OpenRouter` to the `modviz_scene` consumer, and `ResourceAnalyzer` fails closed when parser completion cannot publish its canonical workspace validation receipt. Cross-registry tests now verify parser IDs, Native Reader modules, consumer targets, primary scene routing, valid/deduplicated tool routes and module-to-format reachability.
+
+This closes the **structural reader product promotion only**. Matrix-palette ownership, universal revision coverage and writer/original-game authoring acceptance remain open.
 
 ### B-NR-SHW-02 — SHW mutation authority
 
-**Status:** ❌ OPEN / NOT PART OF #288
+**Status:** ❌ OPEN / NOT CLOSED BY #288
 
 Writer work requires broader variant coverage, matrix-palette ownership, rebuild/reopen validation and original-game authored-resource acceptance. Structural read support must not be treated as mutation authority.
 
@@ -220,6 +222,7 @@ Depends on static promotion/ownership closure plus accepted original-process lif
 - ✅ archive `0x0E` / physical `0x0C` normalization;
 - ✅ type-0 physical final-open/miss bounded contract;
 - ✅ discovery separated from explicitly successful mount topology in canonical product code (#287);
+- ✅ SHW structural/read-only Native Reader and its cross-registry integration contract (#288);
 - ✅ PAC/PNST typed traversal and PAC slot-0 traversal;
 - ✅ LoadedResource state1-after-materialization-success;
 - ✅ normal `1 -> 2`, typed post-load -> callback -> state3 bounded path;
