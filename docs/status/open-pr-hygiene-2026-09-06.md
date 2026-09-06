@@ -46,11 +46,23 @@ They must not be merged back into `main`.
 
 #92 was closed. Current `main` already binds canonical SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082` to size `6,356,432` in the active Evidence Packet and preserves an explicit correction record. The old PR is no longer a promotion surface.
 
+### HITS historical review stack — CONSOLIDATED / CLOSED
+
+Closed after checking the active `hits` consolidation surface:
+
+- #82 — Pass 8 wide runtime integration review;
+- #83 — Pass 9 ABI/ownership saturation;
+- #85 — Pass 10 evidence reacquisition / ABI work;
+- #96 — Pass 10 Slice 15 referenced Stage-CFG descriptor census;
+- #97 — Pass 10 Slice 16 transform-source provenance plan.
+
+The `hits` branch / #282 now preserves the Pass 8–10 evidence architecture under `evidence/hits/`, provides a canonical reverse synthesis through Pass 10, and retains Slice 15/16 machine-readable packets. Closing the stacked PRs removes parallel integration surfaces; it does not delete their branches or relax unresolved evidence gates.
+
 ## Current high-value integration surfaces
 
 ### #282 — HITS canonical integration branch — CANONICAL / ACTIVE REVIEW
 
-Keep open as the current HITS consolidation surface. It intentionally combines the shared HITS format/parser, game-agnostic runtime/writer helpers and DMC3 Pass 8–10 evidence modules.
+Keep open as the single current HITS consolidation surface. It intentionally combines the shared HITS format/parser, game-agnostic runtime/writer helpers and DMC3 Pass 8–10 evidence modules.
 
 Before promotion:
 
@@ -60,7 +72,7 @@ Before promotion:
 4. require exact-head Ubuntu + Windows CI;
 5. only then promote a bounded slice.
 
-Older HITS PRs remain historical evidence sources until their complete coverage by #282 is explicitly checked.
+Historical Pass 8–10 PR branches remain available as evidence provenance, but are no longer independent merge/review authorities.
 
 ## Salvage-only branches — do not merge wholesale
 
@@ -135,7 +147,7 @@ Therefore #181 is **HOLD** until its bounded PE-section observations are separat
 
 Priority order:
 
-1. reconcile #282 HITS as the single active HITS surface and retire covered historical HITS PRs;
+1. synchronize and review #282 as the single active HITS surface against current `main`;
 2. split #280 into EFM, MOT and helper salvage candidates while rejecting its stale SHW path;
 3. extract the L3-R1 current-main promotion candidate from #277;
 4. audit #269/#264/#236/#232 for unique evidence already absent or present on `main`;
