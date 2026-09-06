@@ -58,6 +58,8 @@ DMC Rengine maintains a growing evidence-backed knowledge base for Devil May Cry
 
 Start with:
 
+- [Public DMC3 HD file-format and archive index](docs/formats/public-index.md)
+- [DMC Rengine / DMC3 public FAQ](docs/discovery/faq.md)
 - [DMC3 HD format documentation](docs/formats/README.md)
 - [DMC3 HD format and resource-purpose catalog](docs/formats/dmc3-hd-format-catalog.md)
 - [DMC3 HD format presence census](docs/formats/dmc3-hd-format-presence-census.md)
@@ -127,8 +129,11 @@ ctest --preset vs2022-release
 
 - [Documentation index](docs/README.md)
 - [Current project status](docs/status/current.md)
+- [DMC3 public FAQ](docs/discovery/faq.md)
+- [Public DMC3 HD format and archive index](docs/formats/public-index.md)
 - [DMC3 HD format documentation](docs/formats/README.md)
 - [Public discovery strategy](docs/discovery/README.md)
+- [Public release readiness](docs/releases/readiness.md)
 - [Canonical GDSpaces L1 roadmap](docs/gdspaces/l1-roadmap.md)
 - [Project roadmap](docs/roadmap.md)
 - [Machine-readable status](docs/status/canonical-status.json)

@@ -4,8 +4,9 @@ This directory contains format-specific structural documentation and the canonic
 
 ## Start here
 
+- [Public DMC3 HD file-format and archive index](public-index.md) — query-driven entry point for SCM, MOD, SHW, HITS, PAC, PNST, NBZ, DDS/PTX and the canonical evidence/status sources behind each family.
 - [DMC3 HD format and resource-purpose catalog](dmc3-hd-format-catalog.md) — canonical human-readable inventory of all currently observed or named DMC3-HD resource families, their purpose, evidence status, product support and remaining reverse boundary. For `MOD/EFM/SCM/MRP/SHW`, later direct reverse records supersede older broad 3D/render wording where more precise evidence exists.
-- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized registry separating identity, subsystem purpose, schema maturity and current clean-product support; SCM is structural/read-only on the dedicated `scm` branch.
+- [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized registry separating identity, subsystem purpose, schema maturity and current clean-product support; use [Current Project Status](../status/current.md) for live promoted reader/integration state.
 - [DMC3 HD format presence census](dmc3-hd-format-presence-census.md) — separates formats with real bound payload bytes from EXE-only identities/references, top-level retail members, nested/corpus payloads, generic `.bin`/`.ukn` carriers and project working names such as `SO`.
 - [DMC3 HD machine-readable format presence census](dmc3-hd-format-presence-census.json) — machine-readable companion for physical/corpus presence status; presence is intentionally independent from purpose and schema maturity.
 - [SCM structural specification](scm.md) — current C++20/parser-facing SCM layout: header, objects, fixed 0x50 mesh ABI, vertex streams, scene-node hierarchy, transforms, runtime object-flag projection and index-workspace envelope.
