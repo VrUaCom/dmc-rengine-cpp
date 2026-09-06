@@ -1,66 +1,70 @@
-# DMC Rengine
+# DMC Rengine — DMC3 HD Reverse Engineering & Recompilation Research Framework
 
 > **Reverse the engine. Rebuild the possibilities.**  
 > *Descend to the bytes. Return with the source.*  
 > **Built by the Sect of Neuroslop and the Monks of Binary Code.**
 
-DMC Rengine is an open-source C++20 framework for reverse engineering, decompiling, editing and progressively recompiling Devil May Cry 3: Special Edition from the HD Collection.
+**DMC Rengine** is an open-source C++20 framework for reverse engineering, decompiling, editing and progressively recompiling **Devil May Cry 3: Special Edition from the Devil May Cry HD Collection (DMC3 HD)**.
 
-The project connects exact artifact identity, executable research, resource materialization, binary inspection, stage reconstruction, guarded authoring, recovered source, validation and long-term recompilation under one evidence-first architecture.
+The project combines executable research, DMC3 binary/file-format documentation, resource materialization, archive inspection, guarded authoring, recovered-source work and validation under one evidence-first architecture. It is intended to support long-term DMC3 reconstruction and safe modding tooling without presenting unverified behavior as fact.
 
-## Current state
+## What DMC Rengine can do today
 
-**Status snapshot:** 2026-08-24  
-**Version:** 0.2.0  
-**Canonical implementation base:** `main@c4920c8602dd7492b6c89e9fc8ecf8a6d8397ee0`  
-**Primary execution program:** **GDSpaces Layer 1 — Resource Materialization**  
-
-The repository already contains substantial reviewed implementation:
+The canonical repository already contains substantial reviewed implementation and research infrastructure, including:
 
 - C++20/CMake core and CLI with Windows + Ubuntu validation;
-- SHA-256 artifact/evidence infrastructure;
-- GDSpaces ResourceId/ResourceRef/SourceRegistry/ByteProvenance/WorkingCopy;
-- canonical NBZ ZIP indexing and STORE/raw-DEFLATE materialization;
-- PAC/PNST relative-slot parsing with sparse/empty/alias identity preservation;
-- recursive PAC/PNST expansion;
-- bounded same-size and size-changing PAC/PNST authoring/reintegration;
-- synthetic full nested A-to-Z NBZ rebuild/reopen composition;
-- transformed DDS-bearing texture framing and bounded size-changing writer for the evidenced safe subset;
-- original DMC3 non-TM2 serialized `gfxTexture` relocation compatibility checks for writer output;
-- numbered `DMC3-N.nbz` bootstrap/precedence reconstruction;
-- next-contiguous STORE NBZ overlay generation and canonical resolver selection validation;
-- protected-distribution vs unpacked-analysis executable authority roles;
-- Binary Inspector, EXE evidence, Stage/Item/HITS/save and guarded-modification foundations.
+- SHA-256 artifact/evidence infrastructure and explicit provenance handling;
+- GDSpaces resource resolution/materialization foundations;
+- NBZ ZIP indexing/materialization and next-volume overlay work;
+- PAC/PNST sparse/empty/alias-preserving parsing, recursive expansion and bounded reintegration;
+- Binary Inspector and executable-analysis infrastructure;
+- evidence-backed DMC3 format documentation and machine-readable registries;
+- guarded modification/reintegration paths for explicitly supported subsets.
 
-The project does **not** claim full DMC3 decompilation, whole-game behavioral equivalence, Capcom offline-writer equivalence, a complete desktop editor, or a behaviorally equivalent rebuilt executable.
-
-## GDSpaces L1 — current critical path
-
-The canonical execution roadmap is [docs/gdspaces/l1-roadmap.md](docs/gdspaces/l1-roadmap.md).
-
-Completion is **gate-based**, not percentage-based. The immediate path is:
+Canonical built-in Native Reader modules are currently documented for:
 
 ```text
-shared atomic/no-replace publication
- -> artifact-stable retail member acquisition
- -> direct-retail provenance receipt
- -> retail representation classification
- -> bounded real edit + PAC/PNST bottom-up rebuild
- -> next-volume NBZ publication
- -> canonical resolver/reopen/rematerialization
- -> original DMC3 consumption receipt
- -> final L1 cross-stack audit
+DDS
+PTX
+HITS
+DCA
+LIG / LIG2
+Stage TXT
+SCM
+MOD
+SHW
+PE / EXE
 ```
 
-### Active acquisition boundary
+PAC and PNST remain container parsers, while NBZ is handled as a source/materialization layer. EFM and MOT have active research/history but are **not** presented as canonical Native Reader modules until promotion closes their evidence and integration gates.
 
-PR #191 has the correct high-level retail acquisition composition — canonical volume bootstrap, `NbzZipSource`, `RuntimeResourceResolver`, `SourceRegistry::read` and member provenance — but is **not promotion-ready** until three review blockers close:
+For the live implementation/reverse status, use **[Current Project Status](docs/status/current.md)**. That document, together with `main` and the evidence records, is authoritative over summaries in this README.
 
-- CLI output uses true atomic/no-replace publication rather than `exists() -> ofstream`;
-- archive index, member bytes and archive SHA are bound to one stable artifact observation;
-- acquisition output cannot be published inside the measured retail game tree.
+## What the project does not claim
 
-After correction, the first high-value direct-retail request is `obj\\em000.pac`. The runtime resolver determines the actual winning archive member; documentation/tooling must not predeclare a `GData*.afs/...` member path.
+DMC Rengine does **not** currently claim:
+
+- full DMC3 decompilation;
+- whole-game behavioral equivalence;
+- Capcom offline-writer equivalence;
+- a complete desktop editor;
+- a behaviorally equivalent rebuilt executable.
+
+Completion is gate-based. A parser, green synthetic test, structural match or successful bounded writer does not by itself promote a subsystem to complete.
+
+## DMC3 HD formats and archives
+
+DMC Rengine maintains a growing evidence-backed knowledge base for Devil May Cry 3 HD resources and runtime behavior.
+
+Start with:
+
+- [DMC3 HD format documentation](docs/formats/README.md)
+- [DMC3 HD format and resource-purpose catalog](docs/formats/dmc3-hd-format-catalog.md)
+- [DMC3 HD format presence census](docs/formats/dmc3-hd-format-presence-census.md)
+- [GDSpaces contract](docs/gdspaces-contract.md)
+- [Canonical status](docs/status/current.md)
+
+Documented/researched families include SCM, MOD, SHW, HITS, PAC, PNST, DDS/PTX, archive/resource infrastructure and executable/runtime evidence. Filename extensions or short ASCII tags alone are never treated as sufficient semantic proof.
 
 ## Canonical architecture
 
@@ -92,20 +96,8 @@ After correction, the first high-value direct-retail request is `obj\\em000.pac`
 - Historical GDSpaces PACK parsing does not prove original DMC3 PACK runtime authority.
 - A product writer that creates game-accepted output is not automatically equivalent to Capcom's external/offline authoring tool.
 - Product materialization and StageBundle/Stage Ops state are not automatically original game-ready state 3.
-- Synthetic CI proves bounded composition only; direct-retail/game-backed receipts are required for L1 closure.
+- Synthetic CI proves bounded product/tool composition only; original-game equivalence requires the applicable direct evidence/receipt gates.
 - `st001` is a regression/compatibility fixture, not the complete Stage identity model.
-
-## Supporting EXE reverse frontier for GDS
-
-Major bootstrap/candidate/archive-index/ZIP-read/inflate/LoadedResource/post-load boundaries are already strongly recovered and should not be restarted without contradictory direct evidence.
-
-The remaining GDS-relevant exact reverse frontier includes:
-
-- final type-0 physical-provider Win32 filename/case/open/failure semantics after `0x0C` normalization;
-- complete ZIP stream initializer `0x140328540` body/lifetime;
-- complete compressed seek/reset/reinflate `0x140328FE0` behavior;
-- malformed/partial-read error equivalence where required by a promoted claim;
-- dynamic `.lst` lifetime/error/cycle behavior only if real loose-container acceptance depends on it.
 
 ## Build
 
@@ -134,9 +126,11 @@ ctest --preset vs2022-release
 ## Project navigation
 
 - [Documentation index](docs/README.md)
+- [Current project status](docs/status/current.md)
+- [DMC3 HD format documentation](docs/formats/README.md)
+- [Public discovery strategy](docs/discovery/README.md)
 - [Canonical GDSpaces L1 roadmap](docs/gdspaces/l1-roadmap.md)
 - [Project roadmap](docs/roadmap.md)
-- [Current status](docs/status/current.md)
 - [Machine-readable status](docs/status/canonical-status.json)
 - [Blockers](docs/status/blockers.md)
 - [Risk register](docs/status/risks.md)
@@ -149,6 +143,12 @@ ctest --preset vs2022-release
 - [Guarded Patching](docs/patch/guarded-patching.md)
 - [Specifications](specs/README.md)
 - [Constitution](.specify/memory/constitution.md)
+
+## Public discovery policy
+
+DMC Rengine uses search/discovery metadata to expose real project capabilities, not to inflate claims. The project identity should consistently bind **DMC Rengine**, **DMC3**, **Devil May Cry 3**, **HD Collection**, **reverse engineering**, **file formats**, **decompilation** and long-term **recompilation** research where semantically accurate.
+
+See [Public Discovery Strategy](docs/discovery/README.md) for the metadata, README, documentation-site and external-discovery plan.
 
 ## Public lore
 
