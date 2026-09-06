@@ -1,4 +1,4 @@
-# DMC Rengine — DMC3 HD Reverse Engineering & Recompilation Framework
+# DMC Rengine — DMC3 HD Reverse Engineering & Recompilation Research Framework
 
 > **Reverse the engine. Rebuild the possibilities.**  
 > *Descend to the bytes. Return with the source.*  
