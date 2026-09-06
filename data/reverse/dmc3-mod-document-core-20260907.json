@@ -1,0 +1,56 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-document-core",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "shared_manager_initializer_va": "0x1402F9570",
+    "abi": "include/dmc_rengine/formats/model_document_core.hpp",
+    "status": "EXE_CONFIRMED"
+  },
+  "contract": {
+    "header_size": "0x40",
+    "texture_slot_count_mirror": {
+      "offset": "0x12",
+      "type": "u8",
+      "authority": "serialized_mirror_not_live_runtime_authority"
+    },
+    "runtime_mode_byte": {
+      "offset": "0x13",
+      "type": "u8",
+      "semantic_status": "PRESERVED_UNDECODED"
+    },
+    "runtime_metadata_u32": {
+      "offset": "0x14",
+      "type": "u32",
+      "semantic_status": "PRESERVED_UNDECODED"
+    },
+    "node_domain_block": {
+      "offset": "0x20",
+      "type": "u64"
+    }
+  },
+  "texture_authority": {
+    "header_mirror_field": "+0x12",
+    "live_authority": "external_texture_companion",
+    "manager_initializer_va": "0x1402F9570",
+    "future_validation_policy": "companion_count_authoritative; header mismatch reported separately"
+  },
+  "implementation": {
+    "typed_ir": "include/dmc_rengine/formats/mod.hpp",
+    "parser": "src/formats/mod.cpp",
+    "test": "tests/mod_tests.cpp"
+  },
+  "non_claims": [
+    "MOD writer authority",
+    "header +0x12 is live runtime texture authority",
+    "semantic decoding of +0x13",
+    "semantic decoding of +0x14",
+    "universal header/companion count equality invariant",
+    "production texture replacement authority"
+  ]
+}

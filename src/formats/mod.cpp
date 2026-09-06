@@ -88,20 +88,35 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
     out.document.source_bytes.assign(bytes.begin(), bytes.end());
     auto& header = out.document.header;
 
-    const auto version = reader.f32_le(0x04U);
-    const auto outer_count = reader.u8(0x10U);
-    const auto transform_count = reader.u8(0x11U);
-    const auto document_offset = reader.u64_le(0x20U);
-    if (!version || !outer_count || !transform_count || !document_offset) {
+    const auto version = reader.f32_le(
+        model_family::DocumentCoreAbi::version_field);
+    const auto outer_count = reader.u8(
+        model_family::DocumentCoreAbi::outer_count_field);
+    const auto transform_count = reader.u8(
+        model_family::DocumentCoreAbi::node_domain_count_field);
+    const auto texture_slot_count = reader.u8(
+        model_family::DocumentCoreAbi::texture_slot_count_field);
+    const auto runtime_mode_byte = reader.u8(
+        model_family::DocumentCoreAbi::runtime_mode_byte_field);
+    const auto runtime_metadata_u32 = reader.u32_le(
+        model_family::DocumentCoreAbi::runtime_metadata_u32_field);
+    const auto document_offset = reader.u64_le(
+        model_family::DocumentCoreAbi::node_domain_block_field);
+    if (!version || !outer_count || !transform_count || !texture_slot_count ||
+        !runtime_mode_byte || !runtime_metadata_u32 || !document_offset) {
         diag(out, ParseSeverity::error,
              "mod.header-fields",
-             "MOD header fields are truncated.", 0x04U);
+             "MOD header fields are truncated.",
+             model_family::DocumentCoreAbi::version_field);
         return out;
     }
 
     header.version = *version;
     header.outer_record_count = *outer_count;
     header.transform_domain_count = *transform_count;
+    header.texture_slot_count = *texture_slot_count;
+    header.runtime_mode_byte = *runtime_mode_byte;
+    header.runtime_metadata_u32 = *runtime_metadata_u32;
     header.document_offset = *document_offset;
 
     if (!std::isfinite(header.version) ||
@@ -109,18 +124,19 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
         diag(out, ParseSeverity::warning,
              "mod.unconfirmed-version",
              "Recovered DMC3-HD MOD corpus uses version 1.01; raw version is preserved.",
-             0x04U);
+             model_family::DocumentCoreAbi::version_field);
     }
     if (header.transform_domain_count == 0U) {
         diag(out, ParseSeverity::warning,
              "mod.zero-transform-domain",
              "MOD transform-domain count is zero; skin-to-node validation is unavailable.",
-             0x11U);
+             model_family::DocumentCoreAbi::node_domain_count_field);
     }
     if (header.document_offset > bytes.size()) {
         diag(out, ParseSeverity::error,
              "mod.document-out-of-bounds",
-             "MOD document pointer lies outside the payload.", 0x20U);
+             "MOD document pointer lies outside the payload.",
+             model_family::DocumentCoreAbi::node_domain_block_field);
     }
 
     const auto outer_bytes =
