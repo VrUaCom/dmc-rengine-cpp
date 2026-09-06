@@ -182,7 +182,23 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
                 static_cast<std::uint64_t>(inner_index) * inner_record_size;
 
             const auto count = reader.u16_le(
-                static_cast<std::size_t>(mesh.record_offset + 0x00U));
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::element_count_field));
+            const auto texture_slot = reader.u16_le(
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::texture_slot_field));
+            const auto clamp_min_u = reader.u16_le(
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::gs_clamp_min_u_field));
+            const auto clamp_max_u = reader.u16_le(
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::gs_clamp_max_u_field));
+            const auto clamp_min_v = reader.u16_le(
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::gs_clamp_min_v_field));
+            const auto clamp_max_v = reader.u16_le(
+                static_cast<std::size_t>(mesh.record_offset +
+                    model_family::MeshCoreAbi::gs_clamp_max_v_field));
             const auto positions = reader.u64_le(
                 static_cast<std::size_t>(mesh.record_offset + 0x10U));
             const auto normals = reader.u64_le(
@@ -201,8 +217,9 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
                 static_cast<std::size_t>(mesh.record_offset + 0x48U));
             const auto reserved4c = reader.u32_le(
                 static_cast<std::size_t>(mesh.record_offset + 0x4CU));
-            if (!count || !positions || !normals || !uv || !blend ||
-                !control || !reserved38 || !generated_rel ||
+            if (!count || !texture_slot || !clamp_min_u || !clamp_max_u ||
+                !clamp_min_v || !clamp_max_v || !positions || !normals ||
+                !uv || !blend || !control || !reserved38 || !generated_rel ||
                 !generated_count || !reserved4c) {
                 diag(out, ParseSeverity::error,
                      "mod.inner-record-truncated",
@@ -212,6 +229,13 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
             }
 
             mesh.element_count = *count;
+            mesh.texture_slot = *texture_slot;
+            mesh.gs_clamp_region_repeat = LegacyGsClampRegionRepeat{
+                *clamp_min_u,
+                *clamp_max_u,
+                *clamp_min_v,
+                *clamp_max_v,
+            };
             mesh.positions_offset = *positions;
             mesh.normals_offset = *normals;
             mesh.uv_offset = *uv;
@@ -222,6 +246,17 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
             mesh.generated_topology_count = *generated_count;
             mesh.reserved4c = *reserved4c;
             aggregate_sum += mesh.element_count;
+
+            if (mesh.gs_clamp_region_repeat.min_u > 0x03FFU ||
+                mesh.gs_clamp_region_repeat.max_u > 0x03FFU ||
+                mesh.gs_clamp_region_repeat.min_v > 0x03FFU ||
+                mesh.gs_clamp_region_repeat.max_v > 0x03FFU) {
+                diag(out, ParseSeverity::warning,
+                     "mod.gs-clamp-field-out-of-range",
+                     "MOD legacy GS CLAMP field exceeds the 10-bit register domain; raw u16 values are preserved without masking.",
+                     mesh.record_offset +
+                         model_family::MeshCoreAbi::gs_clamp_min_u_field);
+            }
 
             if (!add_offset(mesh.record_offset,
                             mesh.generated_workspace_relative_offset,

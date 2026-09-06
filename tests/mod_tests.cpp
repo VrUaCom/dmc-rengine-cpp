@@ -56,6 +56,11 @@ std::vector<std::byte> make_valid_mod() {
     put_u64(bytes, 0x48U, 0x80U);
 
     put_u16(bytes, 0x80U, 1U);
+    put_u16(bytes, 0x82U, 7U); // texture slot
+    put_u16(bytes, 0x84U, 1U); // GS CLAMP MINU
+    put_u16(bytes, 0x86U, 2U); // GS CLAMP MAXU
+    put_u16(bytes, 0x88U, 3U); // GS CLAMP MINV
+    put_u16(bytes, 0x8AU, 4U); // GS CLAMP MAXV
     put_u64(bytes, 0x90U, 0xD0U);  // positions
     put_u64(bytes, 0x98U, 0xE0U);  // normals
     put_u64(bytes, 0xA0U, 0xF0U);  // UV
@@ -113,6 +118,11 @@ int main() {
         assert(outer.meshes.size() == 1U);
         const auto& mesh = outer.meshes.front();
         assert(mesh.element_count == 1U);
+        assert(mesh.texture_slot == 7U);
+        assert(mesh.gs_clamp_region_repeat.min_u == 1U);
+        assert(mesh.gs_clamp_region_repeat.max_u == 2U);
+        assert(mesh.gs_clamp_region_repeat.min_v == 3U);
+        assert(mesh.gs_clamp_region_repeat.max_v == 4U);
         assert(mesh.positions.size() == 1U);
         assert(mesh.positions[0].x == 1.0F);
         assert(mesh.positions[0].y == 2.0F);
@@ -127,6 +137,16 @@ int main() {
         assert(parsed.document.transform_domain.hierarchy_candidate_is_acyclic);
         assert(parsed.document.transform_domain.transform_records_complete);
         assert(parsed.document.transform_domain.transform_records_finite);
+    }
+
+    {
+        auto bytes = make_valid_mod();
+        put_u16(bytes, 0x84U, 0x0400U);
+        const auto parsed = mod::Parser::parse(bytes);
+        assert(parsed.ok());
+        assert(has_diagnostic(parsed, "mod.gs-clamp-field-out-of-range"));
+        assert(parsed.document.outer_models[0].meshes[0]
+                   .gs_clamp_region_repeat.min_u == 0x0400U);
     }
 
     {
