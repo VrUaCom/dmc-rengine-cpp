@@ -3,6 +3,7 @@
 ## Start here
 
 - [Current project status](status/current.md)
+- [Public discovery strategy](discovery/README.md)
 - [GDSpaces Layer 1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Architecture](architecture.md)
@@ -105,6 +106,7 @@ Recovered original-game functions/types/lifetime code belong to the Recovered Ga
 ## Current status and planning
 
 - [Current status](status/current.md)
+- [Public discovery strategy](discovery/README.md)
 - [Canonical L1 roadmap](gdspaces/l1-roadmap.md)
 - [Project roadmap](roadmap.md)
 - [Phase map](status/phase-map.md)
