@@ -1,8 +1,8 @@
 # Current Blockers
 
 **Snapshot date:** 2026-09-05  
-**Canonical base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
-**Active proof/integration slice:** PR #287  
+**Canonical base reviewed:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
+**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
 **Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
 
 The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [GDSpaces Proof Roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
@@ -91,7 +91,7 @@ Every additional volume in a wider resolver claim still requires its own census,
 
 ### B-L2-02 — Discovery vs successful mount topology product correction
 
-**Status:** ⚠️ REVERSE CLOSED / IMPLEMENTED ON PR #287 / PROMOTION PENDING
+**Status:** ✅ PRODUCT CORRECTION PROMOTED BY PR #287
 
 Canonical reverse proves:
 
@@ -101,7 +101,7 @@ filename discovery / registration attempt
 successful linked runtime mount
 ```
 
-PR #287 semantically ports this onto current-main architecture:
+The product model on current `main` now reflects that distinction:
 
 - discovery carries no success claim;
 - successful topology contains only explicitly successful linked providers;
@@ -109,9 +109,9 @@ PR #287 semantically ports this onto current-main architecture:
 - resolver traverses only the successful topology;
 - discovered-but-failed archives are absent, not synthetic misses;
 - failed physical registration yields no physical provider probe;
-- product acquisition receipt explicitly says original-process topology is not proven.
+- product acquisition receipts explicitly avoid claiming original-process topology.
 
-Promotion requires final exact-head Ubuntu + Windows CI and review.
+This closes the product topology correction. It does **not** close the protected-process selected-provider evidence gates below.
 
 ### B-L2-03 — Real protected-distribution runtime RVA mapping receipt
 
@@ -149,7 +149,23 @@ The bound `dmc3-0.nbz` key surface is clean. What remains is the original resolv
 
 **Status:** ❌ OPEN
 
-Requires the claimed collision scope, promoted successful-mount topology product model, real protected-runtime mapping, trusted selected identity, exact-head CI and reconciled code/docs/evidence.
+Requires the claimed collision scope, real protected-runtime mapping, trusted selected identity, exact-head CI and reconciled code/docs/evidence. The successful-mount topology product correction itself is already canonical.
+
+## Native Reader integration gates
+
+### B-NR-SHW-01 — SHW structural reader promotion
+
+**Status:** ⚠️ IMPLEMENTED ON PR #288 / EXACT-HEAD CI + FINAL REVIEW REQUIRED
+
+The implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The matrix palette owner and universal revision coverage remain open. No SHW writer is authorized.
+
+An earlier #288 CI run exposed a real integration defect: SHW was registered with `modviz_scene` as its Native Reader consumer but `ToolRegistry` did not route SHW into the scene domain, preventing parser-validation receipt publication. The routing contract is fixed on the current branch and covered end-to-end through `ResourceAnalyzer`.
+
+### B-NR-SHW-02 — SHW mutation authority
+
+**Status:** ❌ OPEN / NOT PART OF #288
+
+Writer work requires broader variant coverage, matrix-palette ownership, rebuild/reopen validation and original-game authored-resource acceptance. Structural read support must not be treated as mutation authority.
 
 ## Layer 3 blockers
 
@@ -203,6 +219,7 @@ Depends on static promotion/ownership closure plus accepted original-process lif
 - ✅ six-prefix `OpenGameResource` bounded direct-call policy;
 - ✅ archive `0x0E` / physical `0x0C` normalization;
 - ✅ type-0 physical final-open/miss bounded contract;
+- ✅ discovery separated from explicitly successful mount topology in canonical product code (#287);
 - ✅ PAC/PNST typed traversal and PAC slot-0 traversal;
 - ✅ LoadedResource state1-after-materialization-success;
 - ✅ normal `1 -> 2`, typed post-load -> callback -> state3 bounded path;

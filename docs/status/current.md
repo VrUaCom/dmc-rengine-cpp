@@ -1,9 +1,10 @@
 # Current Project Status
 
 **Snapshot date:** 2026-09-05  
-**Canonical implementation base reviewed:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
-**Active proof/integration PR:** #287 — proof roadmap + successful-mount topology correction  
-**Latest canonical Native Reader promotion:** PR #285 — SCM/MOD Model Family  
+**Canonical implementation base entering this slice:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
+**Current integration slice:** PR #288 — evidence-backed SHW Native Reader promotion  
+**Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
+**Latest canonical Native Reader promotion before this slice:** PR #285 — SCM/MOD Model Family  
 **Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
 **Overall status:** L1/L2/L3 remain incomplete; canonical implementation is advanced, but real protected-process/original-game receipts remain mandatory.
@@ -11,6 +12,7 @@
 ## Authority split
 
 - GitHub `main` is canonical implementation truth.
+- A pull-request branch is branch truth until promoted.
 - Reverse claims are bounded to exact artifact/address/range/scope.
 - Synthetic/public CI proves product/tool behavior only.
 - Original-game equivalence requires canonical-EXE reverse plus original-process evidence where runtime identity/consumption is claimed.
@@ -33,9 +35,9 @@ Protected distribution/original execution candidate remains separately identifie
 
 ## Native Reader current state
 
-The canonical resource-level Native Reader is modular (`NativeReaderModuleRegistry`). PAC/PNST remain container parsers; NBZ remains a source/materialization adapter.
+The resource-level Native Reader is modular (`NativeReaderModuleRegistry`). PAC/PNST remain container parsers; NBZ remains a source/materialization adapter.
 
-Canonical built-in reader modules on current `main`:
+Canonical built-in reader modules on `main@76841d6...` before PR #288:
 
 - DDS;
 - PTX;
@@ -47,13 +49,16 @@ Canonical built-in reader modules on current `main`:
 - MOD;
 - PE/EXE.
 
-SCM and MOD are structural/read-only. Their reader promotion does not imply writer authority.
+PR #288 adds one evidence-backed structural/read-only module:
 
-Current reader frontier:
+- SHW — `formats.shw-structural-v1`.
 
-- EFM — reverse evidence exists, but no canonical Native Reader module on current `main`;
+The SHW promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
+
+Current reader frontier after this slice:
+
+- EFM — reverse evidence exists, but no canonical Native Reader module;
 - MOT — research/parser work exists outside the canonical reader set;
-- SHW — strong EXE + real-payload evidence exists, but no canonical Native Reader module on current `main`;
 - MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
 
 ## L1 — Resource Materialization
@@ -120,9 +125,9 @@ Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
 
 This closes collision freedom only for that exact archive. Wider resolver scope still requires per-volume and cross-volume census.
 
-### Active L2 product correction
+### Successful-mount topology correction
 
-Static reverse proves:
+PR #287 is promoted to `main`. The product model now reflects the reverse-backed distinction:
 
 ```text
 filename discovery / registration attempt
@@ -130,17 +135,7 @@ filename discovery / registration attempt
 successful linked runtime mount topology
 ```
 
-PR #287 now implements that distinction on current-main architecture:
-
-- discovery plan is discovery-only;
-- successful mount topology contains only explicitly successful linked providers;
-- sparse archive success is representable;
-- resolver traverses only successful topology;
-- discovered-but-failed archive is absent, not manufactured as a lookup miss;
-- failed physical registration produces no physical probe;
-- acquisition receipts explicitly distinguish product successful-mount topology from unproven original-process mount topology.
-
-The correction remains **non-canonical until PR #287 passes final exact-head CI/review and is promoted to `main`**.
+Canonical product behavior now keeps discovery evidence separate from explicitly successful providers; sparse successful archive registration is representable; the resolver traverses only successful topology; discovered-but-failed archives are absent rather than manufactured as misses; failed physical registration produces no physical probe. Product receipts still do not claim original-process mount topology.
 
 ### Remaining L2 frontier
 
@@ -194,19 +189,20 @@ Then repeat the same lineage with an authored next-volume NBZ and rollback.
 Immediate order:
 
 1. ✅ roadmap/status reconciled to proof-level truth;
-2. ⚠️ mount-topology correction implemented on PR #287; final CI/review + promotion remain;
-3. ❌ close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
-4. ❌ execute protected-process R2B mapping;
-5. ❌ capture trusted R3 selected identity;
-6. ❌ bind selected identity to exact independently materialized bytes;
-7. ❌ observe typed post-load/state3 for the same resource;
-8. ❌ repeat using authored higher-volume overlay;
-9. ❌ record deterministic consumer effect + rollback;
-10. ❌ run independent final L1/L2/L3 audits.
+2. ✅ successful-mount topology correction promoted by PR #287;
+3. ⚠️ SHW structural Native Reader implemented on PR #288; exact-head cross-platform CI/review and canonical promotion are the remaining product gates for this slice;
+4. ❌ close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
+5. ❌ execute protected-process R2B mapping;
+6. ❌ capture trusted R3 selected identity;
+7. ❌ bind selected identity to exact independently materialized bytes;
+8. ❌ observe typed post-load/state3 for the same resource;
+9. ❌ repeat using authored higher-volume overlay;
+10. ❌ record deterministic consumer effect + rollback;
+11. ❌ run independent final L1/L2/L3 audits.
 
 ## Current evidence-access boundary
 
-The current connected file/library surface contains substantial derived reverse documentation and evidence packets, but a raw canonical `e454...` executable blob was not located during this reconciliation pass. Therefore no new raw-byte claim is promoted here for the still-open materialization scheduler dependency. Existing canonical reverse authority is preserved; the exact unresolved raw targets remain explicit.
+The connected file/library surface contains substantial derived reverse documentation and evidence packets, but a raw canonical `e454...` executable blob was not located during the 2026-09-05 reconciliation pass. Therefore no new raw-byte claim is promoted for the still-open materialization scheduler dependency. This does not weaken the already canonical, hash-bound SHW reverse packet used by PR #288.
 
 ## Navigation
 

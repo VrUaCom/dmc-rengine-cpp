@@ -65,11 +65,23 @@ ResourceAnalysisReport ResourceAnalyzer::analyze(
     report.parser_available = true;
     module->analyze(project, *session, report);
 
-    static_cast<void>(project.record_parser_completed(
-        resource,
-        descriptor->parser_id,
-        report.recognized,
-        module->consumer));
+    // Parser execution and parser-validation publication are one integration
+    // transaction from the caller's point of view. Do not report success when
+    // the parser ran but the workspace rejected its consumer route, parser
+    // authority, event publication, or graph synchronization.
+    if (!project.record_parser_completed(
+            resource,
+            descriptor->parser_id,
+            report.recognized,
+            module->consumer)) {
+        native_reader_support::add_report_diagnostic(
+            report,
+            gdspaces::DiagnosticSeverity::error,
+            "analysis.parser-completion-not-published",
+            "The parser completed, but its canonical workspace validation receipt could not be published.");
+        return report;
+    }
+
     if (module->link_format_evidence) {
         static_cast<void>(project.link_format_evidence(resource));
     }

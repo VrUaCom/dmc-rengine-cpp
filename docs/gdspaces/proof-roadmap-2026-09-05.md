@@ -1,6 +1,7 @@
 # GDSpaces Proof Roadmap — 2026-09-05
 
-**Reviewed base:** `main@ee08b388cbc5448a0e1a5d02231d9aaf7e01587d`  
+**Reviewed canonical base:** `main@76841d6f1387b08df40bb65e0083513f9dc7c5bb`  
+**Current integration slice:** PR #288 — evidence-backed SHW Native Reader  
 **Canonical analysis EXE:** `dmc3.exe`, SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432  
 **Rule:** implementation and proof are separate gates.
 
@@ -28,7 +29,7 @@ For original-DMC3 claims, the default proof is a bounded canonical-EXE reverse p
 | ✅ | direct-call policy is six archive candidates then six physical candidates | `OpenGameResource 0x14002FCA0`, three direct callers with `EDX=1` | none for bounded direct-call claim |
 | ✅ | archive normalizer is `0x0E`; physical is `0x0C` | `0x140327160` instruction-backed bit semantics | none absent contradiction |
 | ✅ | archive hit requires wrapper/open success | `0x140328160 -> 0x140328290`; wrapper failure is terminal for that resolve attempt | none absent contradiction |
-| ⚠️ | discovery and successful mount topology are distinct in product API | static reverse is closed; semantic correction is implemented on PR #287 with sparse-mount/no-physical regressions | final CI/review + promotion to `main` |
+| ✅ | discovery and successful mount topology are distinct in product API | static reverse is closed; product correction promoted by PR #287 with sparse-mount/no-physical regressions | none for product-model claim absent contradiction; original topology still needs runtime receipt |
 | ❌ | trusted original selected volume/provider/member | static reverse cannot establish a real protected-process winner | R2B mapped observer + trusted R3 receipt |
 
 Primary static authority: `docs/gdspaces/l2-exe-reverse-pass-2026-08-26-pass2.md` and `data/reverse/dmc3-gdspaces-l2-resolver-static-census-2026-08-26.v1.json`.
@@ -59,7 +60,7 @@ Primary receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
 | ❌ | original game consumes authored bytes | no Level-E receipt | deterministic original consumer observation |
 | ❌ | rollback proves retail immutability | no Level-E rollback receipt | remove test overlay + hash-check original artifacts |
 
-Fresh `.index` authority is now preserved in `docs/reverse/dmc3-index-exe-reverse-2026-09-03.md`; repository documentation must not regress to treating `.index` as original runtime manifest authority.
+Fresh `.index` authority is preserved in `docs/reverse/dmc3-index-exe-reverse-2026-09-03.md`; repository documentation must not regress to treating `.index` as original runtime manifest authority.
 
 ## D. L3 lifecycle
 
@@ -92,10 +93,18 @@ Primary static authority: `docs/gdspaces/l3-raw-exe-pass-2026-08-26.md`, `docs/g
 | ✅ | DDS structural read | evidence-backed DMC3 profile; canonical module | texel authoring not implied |
 | ✅ | PTX structural read | evidence-backed bundle/descriptor/DDS-child framing; canonical module | production authoring not implied |
 | ✅ | HITS/DCA/LIG2/Stage TXT/PE readers | canonical modules at their declared evidence maturity | semantics/writer gates remain per format |
+| ⚠️ | SHW structural Native Reader | implemented on PR #288 from canonical EXE + hash-bound real payload; typed hull/topology/adjacency/float4/selector parsing plus workspace routing and tests | exact-head Windows/Ubuntu CI + final diff review + promotion; writer/matrix-palette/variant breadth remain separate |
 | ❌ | EFM canonical Native Reader module | reverse evidence exists but current `main` registry has no EFM reader module | fresh semantic integration onto modular registry + tests + CI |
 | ❌ | MOT canonical Native Reader module | research/parser exists outside current canonical reader set | evidence audit + integration + tests + CI |
-| ❌ | SHW canonical Native Reader module | strong real-payload/EXE evidence exists, but no current canonical reader module | semantic integration using real-payload contract; do not regress to old low-confidence synthetic-only SHW parser |
 | ❌ | MRP/MCV/CAM/CLT/TSC structural readers | recognition/runtime references do not prove a common grammar | samples + consumer reverse + bounded parser evidence |
+
+SHW proof boundary for PR #288:
+
+- real payload SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`, size 9,488;
+- self-contained shadow-hull topology is data-confirmed and canonical-EXE corroborated;
+- selector semantics are EXE-confirmed as per-vertex transform-matrix selection;
+- matrix-palette ownership/construction, universal revision coverage, writer authority and original-game authored SHW acceptance remain open;
+- synthetic tetrahedron fixtures validate product behavior only and do not replace the bound real-payload evidence.
 
 ## F. Product-only safety invariants
 
@@ -112,15 +121,16 @@ These are not claims about Capcom behavior.
 ## G. Current execution queue
 
 1. ✅ Reconcile the project roadmap to proof-level statuses.
-2. ⚠️ Discovery-vs-successful-mount correction implemented on PR #287; final CI/review and promotion remain.
-3. ❌ Close the materialization scheduler terminal dependency with a fresh raw canonical-EXE pass when the exact executable bytes are available.
-4. ❌ Produce real R2B protected-process multi-anchor mapping.
-5. ❌ Produce trusted R3 selected-provider/member identity.
-6. ❌ Bind selected original member to independent SHA/materialization provenance.
-7. ❌ Observe the same resource through typed post-load/state3.
-8. ❌ Repeat the chain using an authored higher-numbered NBZ.
-9. ❌ Record deterministic consumer effect + rollback.
-10. ❌ Run final independent L1, L2 and L3 audits.
+2. ✅ Promote discovery-vs-successful-mount topology correction via PR #287.
+3. ⚠️ Finish SHW Native Reader PR #288 with exact-head cross-platform CI/review and canonical promotion.
+4. ❌ Close the materialization scheduler terminal dependency with a fresh raw canonical-EXE pass when the exact executable bytes are available.
+5. ❌ Produce real R2B protected-process multi-anchor mapping.
+6. ❌ Produce trusted R3 selected-provider/member identity.
+7. ❌ Bind selected original member to independent SHA/materialization provenance.
+8. ❌ Observe the same resource through typed post-load/state3.
+9. ❌ Repeat the chain using an authored higher-numbered NBZ.
+10. ❌ Record deterministic consumer effect + rollback.
+11. ❌ Run final independent L1, L2 and L3 audits.
 
 ## Proof discipline
 

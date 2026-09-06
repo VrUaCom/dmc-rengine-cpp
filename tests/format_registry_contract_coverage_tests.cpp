@@ -1,7 +1,10 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/integration/format_registry.hpp"
+#include "dmc_rengine/integration/native_reader_registry.hpp"
+#include "dmc_rengine/integration/tool_registry.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -13,7 +16,13 @@
 namespace {
 
 using dmc::rengine::gdspaces::ResourceClassifier;
+using dmc::rengine::gdspaces::ResourceId;
+using dmc::rengine::gdspaces::ResourceRef;
 using dmc::rengine::integration::FormatIntegrationRegistry;
+using dmc::rengine::integration::NativeReaderModuleRegistry;
+using dmc::rengine::integration::ToolRegistry;
+using dmc::rengine::integration::ToolRoute;
+using dmc::rengine::integration::ToolRouteRole;
 using dmc::rengine::profiles::dmc3::ResourceTypeContract;
 
 [[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text) {
@@ -24,6 +33,51 @@ using dmc::rengine::profiles::dmc3::ResourceTypeContract;
             static_cast<unsigned char>(character)));
     }
     return out;
+}
+
+[[nodiscard]] bool uses_non_native_reader_parser(
+    std::string_view format) noexcept {
+    // PAC/PNST parser validation is owned by the relative-slot container
+    // workspace path. SLTC is its synthetic-only regression format. They are
+    // intentionally not NativeReaderModule entries.
+    return format == "pac" || format == "pnst" || format == "sltc";
+}
+
+[[nodiscard]] bool has_tool_route(
+    const std::vector<ToolRoute>& routes,
+    dmc::rengine::gdspaces::ToolTarget target) {
+    return std::any_of(
+        routes.begin(), routes.end(),
+        [target](const ToolRoute& route) {
+            return route.target == target;
+        });
+}
+
+[[nodiscard]] bool has_primary_tool_route(
+    const std::vector<ToolRoute>& routes,
+    dmc::rengine::gdspaces::ToolTarget target) {
+    return std::any_of(
+        routes.begin(), routes.end(),
+        [target](const ToolRoute& route) {
+            return route.target == target && route.role == ToolRouteRole::primary;
+        });
+}
+
+[[nodiscard]] ResourceRef contract_resource(std::string_view format) {
+    return ResourceRef{
+        .id = ResourceId{
+            .source_id = "registry-contract",
+            .logical_path = std::string{"contract."} + std::string{format},
+            .container_chain = {},
+            .offset = 0U,
+            .size = 1U,
+        },
+        .display_name = std::string{"contract."} + std::string{format},
+        .format = std::string{format},
+        .profile = "dmc3-hd",
+        .synthetic_name = true,
+        .container = false,
+    };
 }
 
 // The recovered runtime contract is the census authority. Any type it declares
@@ -53,6 +107,91 @@ void test_every_contract_extension_type_is_registered() {
         const auto format = ResourceTypeContract::canonical_extension(entry.code);
         assert(!format.empty());
         assert(registry.find(format) != nullptr);
+    }
+}
+
+// Every registry row must be internally valid and uniquely addressable. This
+// catches duplicate format keys and impossible capability combinations before
+// they can become workspace/routing ambiguity.
+void test_format_registry_is_internally_consistent() {
+    const FormatIntegrationRegistry registry;
+    for (const auto& descriptor : registry.formats()) {
+        assert(descriptor.valid());
+        assert(registry.find(descriptor.format) == &descriptor);
+    }
+}
+
+// Native Reader, Format Registry and Tool Registry are three independent
+// integration surfaces. They must agree on parser authority and on the tool
+// that receives parser-completion evidence. A drift here previously allowed a
+// parser to run successfully while parser-validation publication failed.
+void test_native_reader_registry_and_tool_routes_are_coherent() {
+    const FormatIntegrationRegistry formats;
+    const NativeReaderModuleRegistry modules;
+    const ToolRegistry tools;
+
+    for (const auto& descriptor : formats.formats()) {
+        const auto resource = contract_resource(descriptor.format);
+        const auto default_routes = tools.routes_for(resource, false, false, true);
+        assert(!default_routes.empty());
+
+        for (std::size_t index = 0U; index < default_routes.size(); ++index) {
+            const auto& route = default_routes[index];
+            assert(route.valid());
+            assert(tools.find(route.target) != nullptr);
+            for (std::size_t other = index + 1U;
+                 other < default_routes.size();
+                 ++other) {
+                assert(default_routes[other].target != route.target);
+            }
+        }
+
+        if (descriptor.parser_id.empty()) {
+            continue;
+        }
+
+        const auto* module = modules.find(descriptor.parser_id);
+        if (uses_non_native_reader_parser(descriptor.format)) {
+            assert(module == nullptr);
+            continue;
+        }
+
+        assert(module != nullptr);
+        assert(module->valid());
+        assert(tools.find(module->consumer) != nullptr);
+
+        const auto contextual_routes = tools.routes_for(
+            resource,
+            descriptor.stage_category.has_value(),
+            false,
+            true);
+        assert(has_tool_route(contextual_routes, module->consumer));
+
+        // Scene-native parsers publish their completion to ModViz. In the
+        // default non-stage context ModViz must therefore be the primary owner,
+        // not merely a companion bolted on later by ToolRegistry.
+        if (module->consumer == dmc::rengine::gdspaces::ToolTarget::modviz_scene) {
+            assert(has_primary_tool_route(default_routes, module->consumer));
+        }
+    }
+
+    for (const auto& module : modules.modules()) {
+        assert(module.valid());
+        assert(tools.find(module.consumer) != nullptr);
+
+        bool referenced_by_format = false;
+        for (const auto& descriptor : formats.formats()) {
+            if (descriptor.parser_id == module.parser_id) {
+                referenced_by_format = true;
+                const auto routes = tools.routes_for(
+                    contract_resource(descriptor.format),
+                    descriptor.stage_category.has_value(),
+                    false,
+                    true);
+                assert(has_tool_route(routes, module.consumer));
+            }
+        }
+        assert(referenced_by_format);
     }
 }
 
@@ -127,6 +266,8 @@ int main() {
     test_every_contract_family_type_is_registered();
     test_every_contract_registry_type_is_registered();
     test_every_contract_extension_type_is_registered();
+    test_format_registry_is_internally_consistent();
+    test_native_reader_registry_and_tool_routes_are_coherent();
     test_observed_retail_extensions_are_registered();
     test_classifier_recognizes_family_mask_tags();
     test_family_tag_without_trailing_space_is_not_confirmed();

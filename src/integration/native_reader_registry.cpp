@@ -16,6 +16,7 @@ NativeReaderModuleRegistry::NativeReaderModuleRegistry() {
     static_cast<void>(register_module(native_reader_modules::stage_txt()));
     static_cast<void>(register_module(native_reader_modules::scm()));
     static_cast<void>(register_module(native_reader_modules::mod()));
+    static_cast<void>(register_module(native_reader_modules::shw()));
     static_cast<void>(register_module(native_reader_modules::pe()));
 }
 
