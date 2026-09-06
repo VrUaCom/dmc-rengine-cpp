@@ -29,6 +29,16 @@ def require_within_repo(path: Path, label: str) -> Path:
     return resolved
 
 
+def require_safe_output(path: Path) -> Path:
+    resolved = require_within_repo(path, "site output")
+    if resolved == ROOT_RESOLVED:
+        raise SystemExit("site output must not be the repository root")
+    relative = resolved.relative_to(ROOT_RESOLVED)
+    if not relative.parts or not relative.parts[0].startswith("_site"):
+        raise SystemExit("site output must live in a reserved _site* workspace")
+    return resolved
+
+
 def normalize_base_url(base_url: str | None) -> str | None:
     if not base_url:
         return None
@@ -165,9 +175,7 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
 def build(output: Path, base_url: str | None) -> None:
     site = load_manifest()
     base_url = normalize_base_url(base_url)
-    output = require_within_repo(output, "site output")
-    if output == ROOT_RESOLVED:
-        raise SystemExit("site output must not be the repository root")
+    output = require_safe_output(output)
 
     if output.exists():
         shutil.rmtree(output)
