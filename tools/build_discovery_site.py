@@ -12,11 +12,33 @@ import html
 import json
 import shutil
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
+ROOT_RESOLVED = ROOT.resolve()
 MANIFEST = ROOT / "site" / "manifest.json"
 CSS_SOURCE = ROOT / "site" / "assets" / "style.css"
+
+
+def require_within_repo(path: Path, label: str) -> Path:
+    resolved = path.resolve()
+    try:
+        resolved.relative_to(ROOT_RESOLVED)
+    except ValueError as exc:
+        raise SystemExit(f"{label} escapes repository: {path}") from exc
+    return resolved
+
+
+def normalize_base_url(base_url: str | None) -> str | None:
+    if not base_url:
+        return None
+    parsed = urlparse(base_url)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise SystemExit("site base URL must be an absolute HTTPS URL")
+    if parsed.username or parsed.password or parsed.params or parsed.query or parsed.fragment:
+        raise SystemExit("site base URL must not contain credentials, params, query, or fragment")
+    path = parsed.path.rstrip("/")
+    return f"https://{parsed.netloc}{path}"
 
 
 def load_manifest() -> dict:
@@ -30,15 +52,13 @@ def load_manifest() -> dict:
         path = page["path"]
         if not path.startswith("/") or (path != "/" and not path.endswith("/")):
             raise SystemExit(f"invalid public path: {path}")
+        if ".." in Path(path).parts:
+            raise SystemExit(f"public path contains traversal: {path}")
         if path in seen:
             raise SystemExit(f"duplicate public path: {path}")
         seen.add(path)
 
-        source = ROOT / page["source_path"]
-        try:
-            source.relative_to(ROOT)
-        except ValueError as exc:
-            raise SystemExit(f"source escapes repository: {page['source_path']}") from exc
+        source = require_within_repo(ROOT / page["source_path"], "canonical source")
         if not source.is_file():
             raise SystemExit(f"canonical source does not exist: {page['source_path']}")
 
@@ -144,6 +164,11 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
 
 def build(output: Path, base_url: str | None) -> None:
     site = load_manifest()
+    base_url = normalize_base_url(base_url)
+    output = require_within_repo(output, "site output")
+    if output == ROOT_RESOLVED:
+        raise SystemExit("site output must not be the repository root")
+
     if output.exists():
         shutil.rmtree(output)
     output.mkdir(parents=True)
