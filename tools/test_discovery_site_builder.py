@@ -47,8 +47,16 @@ def main() -> None:
         lambda: site.require_within_repo(ROOT.parent / "outside-site", "test path"),
         "outside-repository path must be rejected",
     )
+    expect_exit(
+        lambda: site.require_safe_output(ROOT / "docs"),
+        "non-_site repository directory must be rejected as destructive output",
+    )
+    expect_exit(
+        lambda: site.require_safe_output(ROOT),
+        "repository root must be rejected as destructive output",
+    )
 
-    temp_dir = Path(tempfile.mkdtemp(prefix="discovery-site-test-", dir=ROOT))
+    temp_dir = Path(tempfile.mkdtemp(prefix="_site-test-", dir=ROOT))
     try:
         output = temp_dir / "generated"
         base = "https://vruacom.github.io/dmc-rengine-cpp"
