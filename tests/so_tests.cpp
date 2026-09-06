@@ -56,7 +56,11 @@ int main() {
     assert(volume_result.ok());
     assert(analysis::correlate_companions(link_result, volume_result).one_header_plus_one_link_per_volume);
 
-    std::vector<std::byte> mod_bytes(0x90U);
+    // Keep the aggregate SO/MOD binding fixture aligned with the promoted MOD
+    // node-domain ABI: four relative pointers plus three complete 0x20 local
+    // transform records. Zero-filled transforms are finite identity-rotation /
+    // zero-translation records and are sufficient for this cardinality test.
+    std::vector<std::byte> mod_bytes(0xD0U);
     mod_bytes[0U] = std::byte{'M'};
     mod_bytes[1U] = std::byte{'O'};
     mod_bytes[2U] = std::byte{'D'};
@@ -66,6 +70,7 @@ int main() {
     put_u32(mod_bytes, 0x40U, 0x20U);
     put_u32(mod_bytes, 0x44U, 0x24U);
     put_u32(mod_bytes, 0x48U, 0x28U);
+    put_u32(mod_bytes, 0x4CU, 0x30U);
     mod_bytes[0x60U] = std::byte{0xFFU};
     mod_bytes[0x61U] = std::byte{0U};
     mod_bytes[0x62U] = std::byte{1U};
@@ -75,6 +80,7 @@ int main() {
 
     const auto mod_result = domain::parse(mod_bytes);
     assert(mod_result.ok());
+    assert(mod_result.transform_records_complete);
     assert(analysis::analyze_mod_binding(mod_result, link_result, volume_result).complete_cardinality_alignment);
     return 0;
 }

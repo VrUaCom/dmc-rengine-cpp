@@ -1,0 +1,154 @@
+{
+  "schema": "dmc-rengine.dmc3-mod-world-transform-promotion.v1",
+  "status": "canonical-research",
+  "snapshot": "2026-09-06",
+  "branch": "mod-skin-reverse",
+  "canonical_exe": {
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "family_identity": {
+    "classifier": {
+      "va": "0x1402FD650",
+      "file_offset": "0x2FCA50",
+      "size": "0x273",
+      "sha256": "a31a8c1e225bc62c07dea05921c42eeff85c28b2f4872713594262e579b91961",
+      "mapping": {
+        "MOD ": "0x10000000",
+        "EFM ": "0x20000000",
+        "SCM ": "0x30000000"
+      }
+    },
+    "mod_efm_constructor": {
+      "va": "0x1403039C0",
+      "file_offset": "0x302DC0",
+      "size": "0x11D",
+      "sha256": "31f6b1074d387aea377ef166506b472135380cd288859f803be6d938049cc427",
+      "calls": ["0x1402F1DB0", "0x1402FA080"],
+      "post_init_family_checks": ["0x10000000", "0x20000000"]
+    },
+    "scm_constructor_control": {
+      "va": "0x140303C10",
+      "size": "0xDB",
+      "sha256": "0fc48cd414b3b1c11323a4652f19e12eff4e999d302d2bc31555fedc571b8838",
+      "initializer": "0x1402FA360"
+    },
+    "conclusion": "0x1402FA080 is bound to the MOD/EFM manager path; SCM uses the distinct 0x1402FA360 initializer"
+  },
+  "node_domain_binding": {
+    "function": {
+      "va": "0x1402F1DB0",
+      "file_offset": "0x2F11B0",
+      "size": "0xF1",
+      "sha256": "48f4603ce59f443d74eed4266e5e43788e338121bd285918d236dc17d453e175"
+    },
+    "serialized_to_manager": {
+      "+0x00": "manager+0x08 parentByOrderPosition",
+      "+0x04": "manager+0x10 nodeAtOrderPosition",
+      "+0x08": "manager+0x18 adapter domain; semantics unresolved",
+      "+0x0C": "manager+0x20 localTransformByNodeIndex"
+    },
+    "runtime_allocations": {
+      "manager+0x188": "nodeCount * 0x40 world-matrix array",
+      "manager+0x00": "nodeCount * 0xA0 runtime-node array"
+    }
+  },
+  "mod_efm_initializer": {
+    "va": "0x1402FA080",
+    "file_offset": "0x2F9480",
+    "size": "0x2DE",
+    "sha256": "7eff4f2f947fff6d152a714d1a14d6ee72162186304a9d0169df12ccfe5a9e32",
+    "local_transform": {
+      "serialized_stride": "0x20",
+      "runtime_node_stride": "0xA0",
+      "runtime_local_matrix": "+0x40",
+      "rotation_helper": "0x140330450",
+      "translation_helper": "0x140031200"
+    },
+    "hierarchy_setup": {
+      "root_node": "nodeAtOrderPosition[0]",
+      "root_parent_world_pointer": "manager+0x1B0",
+      "child_parent_world_pointer": "world[parentByOrderPosition[i]]",
+      "world_array": "manager+0x188",
+      "compose_helper": "0x140030E40"
+    }
+  },
+  "world_update": {
+    "function": {
+      "va": "0x1402F9700",
+      "file_offset": "0x2F8B00",
+      "size": "0xBA",
+      "sha256": "314ee245ca08ce03c4d566af9cadb487532a020c3be4829a51a433328c5fd9d8"
+    },
+    "root_base_storage": "manager+0x1B0",
+    "evaluation_node_source": "manager+0x10[i]",
+    "world_output": "manager+0x188 + node*0x40",
+    "local_source": "runtimeNode[node]+0x40",
+    "parent_world_source": "runtimeNode[node]+0x80",
+    "formula": {
+      "root": "world[root] = local[root] * rootBase",
+      "child": "world[node] = local[node] * world[parentByOrderPosition[i]]"
+    }
+  },
+  "matrix_helpers": {
+    "copy": {
+      "va": "0x140030D00",
+      "size": "0x23",
+      "sha256": "f0d1aefc30b98239cf61c3401b93a59a48da903d9e113d4e7824323fe56da43c"
+    },
+    "compose_wrapper": {
+      "va": "0x140030E40",
+      "size": "0x40",
+      "sha256": "c18b8371c729ed8704135accd9a3ebdcc8b29d2a1159b919266fb84ea6c4b189"
+    },
+    "multiply": {
+      "va": "0x1400312B0",
+      "size": "0x13A",
+      "sha256": "8173912ec4d56de74d60c0573ba6408c27c99a57d2d9696b2b08d17d54cfef3c",
+      "contract": "result = left * right"
+    },
+    "translation": {
+      "va": "0x140031200",
+      "size": "0x34",
+      "sha256": "5d34ed9f5d4659c17c26079cf5786b188d0572ebd83e0e701ab1b9ac428ea557",
+      "contract": "apply translation XYZ to row 3 while preserving homogeneous W"
+    },
+    "rotation_xyz": {
+      "va": "0x140330450",
+      "size": "0x44",
+      "sha256": "f11c66a7b9910dea4feb1072dd84efbafd0ff605c8c144ac30b9469cff07ac65"
+    }
+  },
+  "promotion": {
+    "parent_order_indexing": "EXE_CONFIRMED",
+    "serialized_local_transforms": "EXE_AND_CORPUS_CONFIRMED",
+    "world_matrix_propagation": "EXE_CONFIRMED",
+    "model_space_world_matrices": "AUTHORIZED_WITH_IDENTITY_ROOT",
+    "world_positions": "AUTHORIZED_AS_WORLD_MATRIX_ROW3_XYZ",
+    "spatial_hierarchy_overlay": "AUTHORIZED_WHEN_INSTANCE_GATE_PASSES",
+    "vertex_position_inference": "REJECTED",
+    "writer_authorized": false
+  },
+  "instance_gate": [
+    "parser result recognized and error-free",
+    "nodeAtOrderPosition is a complete permutation",
+    "parentByOrderPosition is topological",
+    "local transform array is complete",
+    "all transform components are finite",
+    "node/order/parent/transform vector sizes equal node count"
+  ],
+  "remaining_boundaries": [
+    "adapter-domain +0x08 semantics remain PRESERVED_UNDECODED",
+    "MOD transform writer and mutation safety remain unpromoted",
+    "game/world placement requires a trusted external root matrix when non-identity placement is desired"
+  ],
+  "implementation": {
+    "module": "formats::mod::world_transform",
+    "capability_gate": "supports_spatial_hierarchy",
+    "local_builder": "build_local_matrix",
+    "world_builder": "build_world_matrices",
+    "model_space_builder": "build_model_space_world_matrices",
+    "position_projection": "world_position"
+  }
+}
