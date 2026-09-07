@@ -33,6 +33,43 @@ Matrix4f multiply_dmc3_matrices(
     return result;
 }
 
+Matrix4f rigid_inverse_dmc3_matrix(const Matrix4f& matrix) noexcept {
+    Matrix4f result = identity_matrix();
+
+    // 0x140030DC0 transposes the rigid 3x3 rotation basis.
+    result.values[0] = matrix.values[0];
+    result.values[1] = matrix.values[4];
+    result.values[2] = matrix.values[8];
+
+    result.values[4] = matrix.values[1];
+    result.values[5] = matrix.values[5];
+    result.values[6] = matrix.values[9];
+
+    result.values[8] = matrix.values[2];
+    result.values[9] = matrix.values[6];
+    result.values[10] = matrix.values[10];
+
+    // Row-vector rigid inverse: inverse translation is -T * R^T. Written in
+    // expanded form, each component is the negative dot product of T with the
+    // corresponding source rotation row.
+    const auto tx = matrix.values[12];
+    const auto ty = matrix.values[13];
+    const auto tz = matrix.values[14];
+    result.values[12] = -(
+        tx * matrix.values[0] +
+        ty * matrix.values[1] +
+        tz * matrix.values[2]);
+    result.values[13] = -(
+        tx * matrix.values[4] +
+        ty * matrix.values[5] +
+        tz * matrix.values[6]);
+    result.values[14] = -(
+        tx * matrix.values[8] +
+        ty * matrix.values[9] +
+        tz * matrix.values[10]);
+    return result;
+}
+
 Matrix4f build_local_matrix(
     const transform_domain::LocalTransformRecord& transform) noexcept {
     const auto cx = std::cos(transform.rotation_xyz_radians.x);
@@ -121,6 +158,36 @@ std::optional<std::vector<Matrix4f>> build_world_matrices(
 std::optional<std::vector<Matrix4f>> build_model_space_world_matrices(
     const transform_domain::ParseResult& domain) noexcept {
     return build_world_matrices(domain, identity_matrix());
+}
+
+std::optional<std::vector<Matrix4f>> build_model_space_inverse_rest_matrices(
+    const transform_domain::ParseResult& domain) noexcept {
+    const auto rest_world = build_model_space_world_matrices(domain);
+    if (!rest_world.has_value())
+        return std::nullopt;
+
+    std::vector<Matrix4f> inverse_rest;
+    inverse_rest.reserve(rest_world->size());
+    for (const auto& world : *rest_world)
+        inverse_rest.push_back(rigid_inverse_dmc3_matrix(world));
+    return inverse_rest;
+}
+
+std::optional<std::vector<Matrix4f>> build_skin_palette(
+    const transform_domain::ParseResult& domain,
+    const std::span<const Matrix4f> current_world_by_node) noexcept {
+    const auto inverse_rest = build_model_space_inverse_rest_matrices(domain);
+    if (!inverse_rest.has_value() ||
+        inverse_rest->size() != current_world_by_node.size()) {
+        return std::nullopt;
+    }
+
+    std::vector<Matrix4f> palette(inverse_rest->size());
+    for (std::size_t node = 0U; node < inverse_rest->size(); ++node) {
+        palette[node] = multiply_dmc3_matrices(
+            (*inverse_rest)[node], current_world_by_node[node]);
+    }
+    return palette;
 }
 
 } // namespace dmc::rengine::formats::mod::world_transform

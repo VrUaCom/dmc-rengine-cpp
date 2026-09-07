@@ -1,0 +1,79 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-skin-palette",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "transform_initializer_va": "0x1402FA080",
+    "current_world_updater_va": "0x1402F9700",
+    "palette_loop_va": "0x140300580",
+    "palette_compose_call_va": "0x1403006BE",
+    "rigid_inverse_va": "0x140030DC0",
+    "compose_wrapper_va": "0x140030E40",
+    "matrix_multiply_va": "0x1400312B0",
+    "status": "EXE_CONFIRMED"
+  },
+  "runtime_node": {
+    "stride": "0xA0",
+    "inverse_rest_world": "+0x00",
+    "local_matrix": "+0x40",
+    "parent_current_world_pointer": "+0x80",
+    "node_index_byte": "+0x89"
+  },
+  "manager": {
+    "parent_by_order_position": "+0x08",
+    "node_at_order_position": "+0x10",
+    "current_world_array": {
+      "field": "+0x188",
+      "matrix_stride": "0x40"
+    },
+    "external_root_matrix": "+0x1B0"
+  },
+  "math": {
+    "storage": "row-major",
+    "vector_convention": "row-vector",
+    "raw_multiply": "0x1400312B0(dest,left,right) => left * right",
+    "compose_wrapper": "0x140030E40(dest,A,B) => B * A",
+    "hierarchy_relation": "world = local * parentWorld",
+    "rigid_inverse": "R^-1 = transpose(R); T^-1 = -T * transpose(R)",
+    "skin_palette": "skinMatrix[node] = inverseRestWorld[node] * currentWorld[node]"
+  },
+  "rest_invariant": {
+    "relation": "inverseRestWorld * restWorld = identity",
+    "validated_by_regression": true
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/formats/mod/world_transform.hpp",
+    "source": "src/formats/mod/world_transform.cpp",
+    "test": "tests/mod_transform_domain_tests.cpp",
+    "functions": [
+      "rigid_inverse_dmc3_matrix",
+      "build_model_space_inverse_rest_matrices",
+      "build_skin_palette"
+    ]
+  },
+  "capability": {
+    "spatial_hierarchy": "read_only_exe_confirmed",
+    "skin_weights": "read_only_decoded",
+    "inverse_rest": "read_only_exe_confirmed",
+    "skin_palette_math": "read_only_exe_confirmed",
+    "skin_weight_visualization": "allowed",
+    "skin_weight_editing": "blocked",
+    "production_mod_writer": "blocked"
+  },
+  "remaining_writer_boundaries": [
+    "preserve/classify MOD mesh +0x0C..+0x0F",
+    "preserve/classify MOD mesh +0x38",
+    "preserve/classify MOD mesh +0x4C",
+    "close node adapter/type array influence on pose/palette",
+    "canonicalize current animation/pose input ownership",
+    "broaden MOD revision corpus",
+    "no-edit byte-identical rebuild",
+    "edited PAC/NBZ reintegration",
+    "canonical executable mutation acceptance and rollback"
+  ]
+}
