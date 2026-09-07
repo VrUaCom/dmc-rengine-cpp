@@ -4,7 +4,7 @@ This directory contains the manifest and assets for the controlled DMC Rengine d
 
 ## Status
 
-The site is **scaffolded but not enabled for public deployment**. Repository Pages/settings remain a separate gate because the current authenticated connector cannot safely modify those settings.
+The site is **scaffolded but not enabled for public deployment**. Repository Pages enablement remains a separate gate because the current authenticated connector cannot safely mutate that repository setting.
 
 ## Authority rule
 
@@ -59,23 +59,27 @@ If crawler policy needs to be controlled directly, use a root-controlled origin/
 
 ## Deployment gate
 
-`.github/workflows/pages-deploy.yml` is fail-closed. The build/deploy jobs are skipped unless repository settings explicitly provide:
+`.github/workflows/pages-deploy.yml` remains fail-closed without repository variables.
 
-```text
-DMC_RENGINE_ENABLE_PAGES=true
-DMC_RENGINE_SITE_BASE_URL=https://vruacom.github.io/dmc-rengine-cpp
-```
+On every eligible run it first reads the repository's real Pages state through the GitHub Pages API using the workflow token:
 
-If a custom domain is selected later, `DMC_RENGINE_SITE_BASE_URL` must be changed before deployment so canonical tags and sitemap URLs do not point at the old Pages URL.
+- HTTP `404` means Pages is not enabled; the workflow records that state and performs no configure/build/upload/deploy steps;
+- HTTP `200` means Pages is enabled; `actions/configure-pages@v5` becomes the canonical source of the actual Pages `base_url`;
+- any unexpected API status fails the workflow instead of guessing whether publication is safe.
+
+When Pages is enabled, the builder receives `steps.pages.outputs.base_url` directly. Canonical URLs, navigation, asset paths and `sitemap.xml` therefore follow the repository's actual GitHub Pages/custom-domain configuration rather than a duplicated repository variable.
+
+No `DMC_RENGINE_ENABLE_PAGES` or `DMC_RENGINE_SITE_BASE_URL` repository variables are required.
 
 Before enabling Pages:
 
 1. P1 discovery docs must be in `main`.
 2. Repository metadata issue #294 should be applied or remain explicitly tracked.
-3. Pages must be enabled in repository Settings → Pages with GitHub Actions as the publishing source.
-4. `DMC_RENGINE_ENABLE_PAGES` and `DMC_RENGINE_SITE_BASE_URL` must be set deliberately.
-5. The final public base URL must be confirmed before indexing is encouraged.
-6. Search Console is configured only for a property that can be verified/controlled.
-7. For project Pages, verify the actual origin-root crawler policy before making any claim about bot access. For a controlled custom domain, ensure its root `/robots.txt` does not block `OAI-SearchBot` when ChatGPT Search discovery is desired.
+3. Pages must be enabled in repository **Settings → Pages** with **GitHub Actions** as the publishing source.
+4. The first deployment must confirm the actual `base_url` reported by `actions/configure-pages` before indexing is encouraged.
+5. Search Console is configured only for a property that can be verified/controlled.
+6. For project Pages, verify the actual origin-root crawler policy before making any claim about bot access. For a controlled custom domain, ensure its root `/robots.txt` does not block `OAI-SearchBot` when ChatGPT Search discovery is desired.
+
+If a custom domain is configured later in GitHub Pages, the deploy workflow consumes the new Pages `base_url` automatically on the next run. The public site still requires a fresh acceptance check after an origin change.
 
 The generated site intentionally contains no proprietary game assets or binaries and does not require JavaScript or third-party analytics.
