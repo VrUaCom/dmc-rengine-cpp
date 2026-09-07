@@ -1,0 +1,65 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-default-joint-index",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "serialized_field": {
+    "offset": "0x13",
+    "type": "u8",
+    "mod_semantic": "default_joint_index",
+    "status": "EXE_CONFIRMED"
+  },
+  "manager_flow": {
+    "read_site": "0x1402F960E",
+    "write_site": "0x1402F9616",
+    "destination": "manager+0xFA",
+    "storage_note": "serialized u8 is zero-extended into manager slot"
+  },
+  "jntno_fallback": {
+    "literal_va": "0x140507884",
+    "literal": "JntNo",
+    "parser_branch_va": "0x14030AFBC",
+    "value_parse_call_site": "0x14030AFEA",
+    "record_write_site": "0x14030AFF3",
+    "domain_bound_read_site": "0x14030B005",
+    "compare_site": "0x14030B00C",
+    "fallback_read_site": "0x14030B01B",
+    "fallback_write_site": "0x14030B022",
+    "status": "EXE_CONFIRMED"
+  },
+  "world_consumer": {
+    "function": "0x1402FD040",
+    "selector_read_site": "0x1402FD0A3",
+    "matrix_stride_site": "0x1402FD0AA",
+    "current_world_base_site": "0x1402FD0B5",
+    "translation_row_offset": "0x30",
+    "formula": "currentWorld[default_joint_index]",
+    "matrix_stride": "0x40",
+    "status": "EXE_CONFIRMED"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/formats/mod.hpp",
+    "api": "Header::default_joint_index()",
+    "compile_regression": "src/analysis/mod/default_joint_index.cpp",
+    "compatibility_storage": "Header::runtime_mode_byte"
+  },
+  "adjacent_header_0x14": {
+    "serialized_offset": "0x14",
+    "runtime_destination": "manager+0xE4",
+    "flow_status": "EXE_CONFIRMED",
+    "semantic_status": "PRESERVED_UNDECODED",
+    "note": "SCM resource-code semantics are not transferred to MOD"
+  },
+  "non_claims": [
+    "default joint is necessarily hierarchy root",
+    "cross-family EFM/SCM equivalence",
+    "safe mutation ranges",
+    "MOD writer authority",
+    "edited-game acceptance",
+    "complete current-animation pose ownership"
+  ]
+}
