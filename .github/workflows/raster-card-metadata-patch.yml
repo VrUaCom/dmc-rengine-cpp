@@ -1,0 +1,146 @@
+name: Patch image-backed share-card metadata
+
+on:
+  push:
+    branches:
+      - docs/discovery-approved-raster-delivery
+    paths:
+      - '.github/workflows/raster-card-metadata-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Apply fail-closed metadata and test patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str, label: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match in {path}, found {count}')
+              target.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          builder = 'tools/build_discovery_site.py'
+          tests = 'tools/test_discovery_site_builder.py'
+          readme = 'site/README.md'
+
+          replace_once(
+              builder,
+              'SOCIAL_PREVIEW_DIMENSIONS = (1280, 640)\nPNG_SIGNATURE = b"\\x89PNG\\r\\n\\x1a\\n"',
+              'SOCIAL_PREVIEW_DIMENSIONS = (1280, 640)\nSOCIAL_PREVIEW_ALT = "DMC Rengine — DMC3 HD Reverse Engineering"\nPNG_SIGNATURE = b"\\x89PNG\\r\\n\\x1a\\n"',
+              'social-preview alt constant',
+          )
+
+          replace_once(
+              builder,
+              '''    og_url = (\n        f'\\n    <meta property="og:url" content="{html.escape(canonical, quote=True)}">'\n        if canonical\n        else ""\n    )\n    breadcrumb_structured = breadcrumb_json_ld(site["pages"], page, base_url)\n''',
+              '''    og_url = (\n        f'\\n    <meta property="og:url" content="{html.escape(canonical, quote=True)}">'\n        if canonical\n        else ""\n    )\n    social_preview_url = canonical_url(base_url, "/assets/social-preview.png")\n    social_preview_meta = ""\n    twitter_card = "summary"\n    if social_preview_url:\n        escaped_preview_url = html.escape(social_preview_url, quote=True)\n        escaped_preview_alt = html.escape(SOCIAL_PREVIEW_ALT, quote=True)\n        social_preview_meta = (\n            f'\\n    <meta property="og:image" content="{escaped_preview_url}">'\n            f'\\n    <meta property="og:image:secure_url" content="{escaped_preview_url}">'\n            '\\n    <meta property="og:image:type" content="image/png">'\n            '\\n    <meta property="og:image:width" content="1280">'\n            '\\n    <meta property="og:image:height" content="640">'\n            f'\\n    <meta property="og:image:alt" content="{escaped_preview_alt}">'\n            f'\\n    <meta name="twitter:image" content="{escaped_preview_url}">'\n            f'\\n    <meta name="twitter:image:alt" content="{escaped_preview_alt}">'\n        )\n        twitter_card = "summary_large_image"\n    breadcrumb_structured = breadcrumb_json_ld(site["pages"], page, base_url)\n''',
+              'share-image metadata construction',
+          )
+
+          replace_once(
+              builder,
+              '''    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}\n    <meta name="twitter:card" content="summary">\n''',
+              '''    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}{social_preview_meta}\n    <meta name="twitter:card" content="{twitter_card}">\n''',
+              'share-image metadata emission',
+          )
+
+          replace_once(
+              tests,
+              '''        site.build(output, base)\n\n        index = (output / "index.html").read_text(encoding="utf-8")\n''',
+              '''        site.build(output, base)\n        preview_url = f"{base}/assets/social-preview.png"\n        preview_tags = (\n            f'<meta property="og:image" content="{preview_url}">',\n            f'<meta property="og:image:secure_url" content="{preview_url}">',\n            '<meta property="og:image:type" content="image/png">',\n            '<meta property="og:image:width" content="1280">',\n            '<meta property="og:image:height" content="640">',\n            f'<meta property="og:image:alt" content="{site.SOCIAL_PREVIEW_ALT}">',\n            f'<meta name="twitter:image" content="{preview_url}">',\n            f'<meta name="twitter:image:alt" content="{site.SOCIAL_PREVIEW_ALT}">',\n        )\n\n        index = (output / "index.html").read_text(encoding="utf-8")\n''',
+              'preview tag fixture',
+          )
+
+          replace_once(
+              tests,
+              '''        assert '<meta name="twitter:card" content="summary">' in index\n        assert "og:image" not in index\n        assert "twitter:image" not in index\n''',
+              '''        assert '<meta name="twitter:card" content="summary_large_image">' in index\n        for tag in preview_tags:\n            assert index.count(tag) == 1\n        assert "drive.google.com" not in index\n        assert "sandbox:" not in index\n        assert "repository-images.githubusercontent.com" not in index\n''',
+              'root image-backed metadata assertions',
+          )
+
+          replace_once(
+              tests,
+              '''            assert '<meta name="twitter:card" content="summary">' in generated\n            assert f'<meta name="twitter:title" content="{escaped_title}">' in generated\n            assert f'<meta name="twitter:description" content="{escaped_description}">' in generated\n            assert "og:image" not in generated\n            assert "twitter:image" not in generated\n''',
+              '''            assert '<meta name="twitter:card" content="summary_large_image">' in generated\n            assert f'<meta name="twitter:title" content="{escaped_title}">' in generated\n            assert f'<meta name="twitter:description" content="{escaped_description}">' in generated\n            for tag in preview_tags:\n                assert generated.count(tag) == 1\n            assert "drive.google.com" not in generated\n            assert "sandbox:" not in generated\n            assert "repository-images.githubusercontent.com" not in generated\n''',
+              'all-page image-backed metadata assertions',
+          )
+
+          replace_once(
+              tests,
+              '''        assert 'rel="canonical"' not in no_base_index\n        assert '<meta name="twitter:card" content="summary">' in no_base_index\n        assert 'aria-label="Breadcrumb"' in no_base_scm\n''',
+              '''        assert 'rel="canonical"' not in no_base_index\n        assert '<meta name="twitter:card" content="summary">' in no_base_index\n        assert "og:image" not in no_base_index\n        assert "twitter:image" not in no_base_index\n        assert 'aria-label="Breadcrumb"' in no_base_scm\n''',
+              'no-base fail-closed image metadata assertions',
+          )
+
+          replace_once(
+              readme,
+              '''GitHub Pages is now enabled for the repository with **GitHub Actions** as the publishing source. The first public deployment is the remaining activation step; `.github/workflows/pages-deploy.yml` stays fail-closed and derives the canonical public `base_url` from GitHub Pages itself.\n''',
+              '''GitHub Pages is enabled for the repository with **GitHub Actions** as the publishing source. The first production deployment completed successfully on 2026-09-07. `.github/workflows/pages-deploy.yml` remains fail-closed and derives the canonical public `base_url` from GitHub Pages itself.\n''',
+              'Pages production status',
+          )
+
+          replace_once(
+              readme,
+              '''## Build locally\n''',
+              '''## Approved social-preview delivery\n\n`site/assets/social-preview.png` is the exact project-approved 1280×640 RGB PNG used for image-backed share metadata. The builder validates its SHA-256 (`a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f`) and dimensions before publishing it.\n\nWhen an authoritative HTTPS `base_url` is available, every generated page points `og:image`, `og:image:secure_url` and `twitter:image` to `<base_url>/assets/social-preview.png`, emits the matching PNG type/dimensions/alt metadata, and uses `summary_large_image`. Builds without a `base_url` intentionally omit image URLs and retain the non-image `summary` card so no unstable or guessed public origin is published.\n\nDrive, sandbox, temporary artifact and expiring URLs are not valid share-card image sources. The public raster is served from the same controlled Pages origin as the generated site.\n\n## Build locally\n''',
+              'approved social-preview delivery contract',
+          )
+          PY
+
+      - name: Validate discovery site and exact raster contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/test_discovery_site_builder.py
+          python tools/build_discovery_site.py \
+            --output _site-p2-4 \
+            --base-url https://vruacom.github.io/dmc-rengine-cpp
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          root = Path('_site-p2-4')
+          preview = root / 'assets' / 'social-preview.png'
+          data = preview.read_bytes()
+          expected = 'a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f'
+          assert len(data) == 793850
+          assert hashlib.sha256(data).hexdigest() == expected
+          html_pages = list(root.rglob('index.html'))
+          assert len(html_pages) == 12
+          expected_url = 'https://vruacom.github.io/dmc-rengine-cpp/assets/social-preview.png'
+          for page in html_pages:
+              text = page.read_text(encoding='utf-8')
+              assert text.count(f'<meta property="og:image" content="{expected_url}">') == 1
+              assert text.count(f'<meta name="twitter:image" content="{expected_url}">') == 1
+              assert '<meta name="twitter:card" content="summary_large_image">' in text
+              assert 'drive.google.com' not in text
+              assert 'sandbox:' not in text
+          print(f'P2.4 metadata validation: {len(html_pages)} pages, raster sha256={expected}')
+          PY
+          git diff --check
+
+      - name: Commit validated patch and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/raster-card-metadata-patch.yml
+          git add tools/build_discovery_site.py tools/test_discovery_site_builder.py site/README.md
+          git diff --cached --check
+          git commit -m 'site: add image-backed social share metadata'
+          git push origin HEAD:${GITHUB_REF_NAME}
