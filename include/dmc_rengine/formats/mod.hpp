@@ -2,6 +2,7 @@
 
 #include "dmc_rengine/formats/diagnostic.hpp"
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
+#include "dmc_rengine/formats/mod/version.hpp"
 #include "dmc_rengine/formats/mod_skin.hpp"
 #include "dmc_rengine/formats/model_document_core.hpp"
 #include "dmc_rengine/formats/model_mesh_core.hpp"
@@ -101,6 +102,9 @@ struct OuterModel final {
 };
 
 struct Header final {
+    // Retail em000 confirms the recovered structural grammar at versions
+    // 0.82, 0.84, 1.00 and 1.01. See formats/mod/version.hpp. Other versions
+    // remain readable when structurally valid, but are reported as unconfirmed.
     float version{};
     std::uint8_t outer_record_count{};
     std::uint8_t transform_domain_count{};
@@ -117,8 +121,10 @@ struct Header final {
     // compatibility while exposing the proven MOD-specific semantic accessor.
     std::uint8_t runtime_mode_byte{};
 
-    // +0x14 is runtime-carried to manager +0xE4, but no MOD-specific semantic
-    // consumer is confirmed yet. Do not transfer SCM resource-code semantics.
+    // +0x14 is runtime-carried to manager +0xE4. The recursive em000 corpus
+    // additionally shows a stable decimal decomposition pattern, but no
+    // MOD-specific downstream executable consumer has yet promoted a higher-
+    // level semantic name. Do not transfer SCM resource-code semantics.
     std::uint32_t runtime_metadata_u32{};
 
     [[nodiscard]] constexpr std::uint8_t default_joint_index() const noexcept {

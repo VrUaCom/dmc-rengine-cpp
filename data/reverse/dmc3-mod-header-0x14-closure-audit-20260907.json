@@ -1,0 +1,53 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-header-0x14-closure-audit",
+  "date": "2026-09-07",
+  "branch": "reverse/mod-completion-20260907",
+  "base": "1a029daace6790e1c832e13ba4841ae45004a147",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "serialized_field": {
+    "format": "MOD",
+    "offset": "0x14",
+    "width": "u32",
+    "current_cpp_name": "runtime_metadata_u32"
+  },
+  "confirmed_flow": {
+    "initializer": "0x1402F9570",
+    "read": "0x1402F95BE resource+0x14",
+    "write": "0x1402F95C5 manager+0xE4",
+    "status": "EXE_CONFIRMED"
+  },
+  "semantic_result": {
+    "status": "PRESERVED_UNDECODED",
+    "promoted_name": null,
+    "reason": "No MOD-specific downstream consumer of manager+0xE4 is established by current canonical evidence. SCM homologous-field semantics are not transferable by offset/layout analogy."
+  },
+  "negative_evidence": [
+    "previous bounded MOD model-subsystem census did not establish a MOD-specific manager+0xE4 downstream read",
+    "current MOD API intentionally has no semantic accessor for +0x14",
+    "current repository evidence supports shared transport only, not a common high-level meaning"
+  ],
+  "acquisition_boundary": {
+    "fresh_full_raw_canonical_executable_available_to_this_pass": false,
+    "effect": "No new manager+0xE4 xref addresses are fabricated or promoted."
+  },
+  "required_next_proof": {
+    "exe": [
+      "enumerate reads of model-manager displacement +0xE4 from canonical raw executable",
+      "prove manager pointer lineage for each candidate",
+      "separate MOD/EFM/SCM/common dispatch paths",
+      "follow value to a stable downstream behavior",
+      "hash-bind promoted byte windows"
+    ],
+    "corpus": [
+      "collect MOD header +0x14 values across broader retail corpus",
+      "correlate against resource identity, node count, object count, default joint, motion groups, flags, texture companion and slot lineage",
+      "treat correlation alone as SEMANTIC_CANDIDATE, not EXE_CONFIRMED"
+    ]
+  },
+  "writer_policy": "PRESERVE_BYTE_EXACT; DO_NOT_SYNTHESIZE_FROM_SCM_RESOURCE_CODE",
+  "writer_authority": false
+}
