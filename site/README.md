@@ -4,7 +4,7 @@ This directory contains the manifest and assets for the controlled DMC Rengine d
 
 ## Status
 
-The site is **scaffolded but not enabled for public deployment**. Repository Pages enablement remains a separate gate because the current authenticated connector cannot safely mutate that repository setting.
+GitHub Pages is now enabled for the repository with **GitHub Actions** as the publishing source. The first public deployment is the remaining activation step; `.github/workflows/pages-deploy.yml` stays fail-closed and derives the canonical public `base_url` from GitHub Pages itself.
 
 ## Authority rule
 
