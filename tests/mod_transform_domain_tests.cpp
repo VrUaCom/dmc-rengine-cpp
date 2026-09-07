@@ -50,6 +50,15 @@ void put_transform(std::vector<std::byte>& bytes,
 [[nodiscard]] bool near(const float a, const float b) {
     return std::fabs(a - b) < 0.000001F;
 }
+
+[[nodiscard]] bool near_identity(const world::Matrix4f& matrix) {
+    const auto identity = world::identity_matrix();
+    for (std::size_t index = 0U; index < matrix.values.size(); ++index) {
+        if (!near(matrix.values[index], identity.values[index]))
+            return false;
+    }
+    return true;
+}
 } // namespace
 
 int main() {
@@ -131,6 +140,17 @@ int main() {
     assert(world::supports_spatial_hierarchy(result));
     assert(world::build_model_space_world_matrices(result).has_value());
 
+    // Rigid inverse uses the exact row-vector convention recovered from
+    // 0x140030DC0. A local transform containing both rotation and translation
+    // must round-trip to identity.
+    const auto rotated_local = world::build_local_matrix(
+        result.local_transform_records_by_node_index[0]);
+    const auto rotated_inverse = world::rigid_inverse_dmc3_matrix(rotated_local);
+    assert(near_identity(world::multiply_dmc3_matrices(
+        rotated_inverse, rotated_local)));
+    assert(near_identity(world::multiply_dmc3_matrices(
+        rotated_local, rotated_inverse)));
+
     // A translation-only hierarchy makes the world-space expectations
     // independent of the rotation implementation. The non-linear evaluation
     // order also proves that parents are node indices, not order positions.
@@ -176,6 +196,34 @@ int main() {
     assert(near(rooted_tip.y, 5.0F));
     assert(near(rooted_tip.z, 2.0F));
 
+    // 0x1402FA080 stores inverse rest/world-at-load matrices per node. The
+    // palette loop at 0x140300580 then computes inverseRest * currentWorld.
+    // At the rest pose every palette matrix therefore resolves to identity.
+    const auto inverse_rest =
+        world::build_model_space_inverse_rest_matrices(spatial);
+    assert(inverse_rest.has_value());
+    assert(inverse_rest->size() == model_world->size());
+    const auto rest_palette = world::build_skin_palette(spatial, *model_world);
+    assert(rest_palette.has_value());
+    for (const auto& matrix : *rest_palette)
+        assert(near_identity(matrix));
+
+    // Perturb one current world matrix by +3 on row-vector translation X.
+    // The recovered multiplication order must produce exactly +3 in the skin
+    // matrix rather than -3 or a parent-space artifact.
+    auto posed_world = *model_world;
+    posed_world[1].values[12] += 3.0F;
+    const auto posed_palette = world::build_skin_palette(spatial, posed_world);
+    assert(posed_palette.has_value());
+    assert(near((*posed_palette)[1].values[12], 3.0F));
+    assert(near((*posed_palette)[1].values[13], 0.0F));
+    assert(near((*posed_palette)[1].values[14], 0.0F));
+    assert(near_identity((*posed_palette)[0]));
+    assert(near_identity((*posed_palette)[2]));
+
+    const std::vector<world::Matrix4f> wrong_size(2U);
+    assert(!world::build_skin_palette(spatial, wrong_size).has_value());
+
     auto malformed_hierarchy = bytes;
     malformed_hierarchy[0x62U] = std::byte{1U};
     const auto malformed_hierarchy_result = domain::parse(malformed_hierarchy);
@@ -183,6 +231,8 @@ int main() {
     assert(!malformed_hierarchy_result.hierarchy_is_topological);
     assert(!world::supports_spatial_hierarchy(malformed_hierarchy_result));
     assert(!world::build_model_space_world_matrices(
+        malformed_hierarchy_result).has_value());
+    assert(!world::build_model_space_inverse_rest_matrices(
         malformed_hierarchy_result).has_value());
 
     auto truncated = bytes;

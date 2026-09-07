@@ -5,6 +5,7 @@
 #include <array>
 #include <cstddef>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace dmc::rengine::formats::mod::world_transform {
@@ -41,6 +42,13 @@ struct Matrix4f final {
     const Matrix4f& left,
     const Matrix4f& right) noexcept;
 
+// Reconstruct the rigid inverse helper 0x140030DC0. The canonical MOD/EFM
+// initializer stores this inverse in runtime node +0x00 after each rest/world
+// matrix has been built. The source matrix is assumed to be a rigid affine
+// transform in the recovered row-vector convention.
+[[nodiscard]] Matrix4f rigid_inverse_dmc3_matrix(
+    const Matrix4f& matrix) noexcept;
+
 // Reconstruct the MOD/EFM local matrix built by 0x1402FA080 through
 // 0x140330450 and 0x140031200. Serialized +0x0C is not homogeneous W.
 [[nodiscard]] Matrix4f build_local_matrix(
@@ -58,6 +66,24 @@ struct Matrix4f final {
 [[nodiscard]] std::optional<std::vector<Matrix4f>>
 build_model_space_world_matrices(
     const transform_domain::ParseResult& domain) noexcept;
+
+// Reconstruct the inverse rest/world-at-load matrices written into the first
+// 0x40 bytes of each runtime node by 0x1402FA080 -> 0x140030DC0. The rest world
+// matrices are model-space worlds, before the later external/root pose update.
+[[nodiscard]] std::optional<std::vector<Matrix4f>>
+build_model_space_inverse_rest_matrices(
+    const transform_domain::ParseResult& domain) noexcept;
+
+// Reconstruct the palette-generation loop at 0x140300580..0x1403006C3.
+// 0x140030E40 reverses its public operands before calling 0x1400312B0, so in
+// the engine's row-vector convention each output is exactly:
+//
+//     skin[node] = inverseRestWorld[node] * currentWorld[node]
+//
+// `current_world_by_node` corresponds to manager+0x188 after 0x1402F9700.
+[[nodiscard]] std::optional<std::vector<Matrix4f>> build_skin_palette(
+    const transform_domain::ParseResult& domain,
+    std::span<const Matrix4f> current_world_by_node) noexcept;
 
 // With DMC3's recovered row-vector affine convention, transforming the origin
 // yields row 3 XYZ. These are therefore the canonical node positions for the
