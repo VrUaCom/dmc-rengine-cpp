@@ -19,6 +19,7 @@ ROOT_RESOLVED = ROOT.resolve()
 MANIFEST = ROOT / "site" / "manifest.json"
 CSS_SOURCE = ROOT / "site" / "assets" / "style.css"
 MIN_PRIMARY_CONTENT_CHARS = 500
+SITE_NAME = "DMC Rengine"
 
 
 def require_within_repo(path: Path, label: str) -> Path:
@@ -269,8 +270,12 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <meta name="description" content="{html.escape(page['description'], quote=True)}">{canonical_tag}
     <meta name="robots" content="index,follow">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{html.escape(SITE_NAME, quote=True)}">
     <meta property="og:title" content="{html.escape(page['title'], quote=True)}">
     <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{html.escape(page['title'], quote=True)}">
+    <meta name="twitter:description" content="{html.escape(page['description'], quote=True)}">
     <link rel="stylesheet" href="{html.escape(css_url, quote=True)}">
 </head>
 <body>
