@@ -1,0 +1,71 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-object-runtime-projection",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "object_initializer_va": "0x1403029E0",
+    "render_state_helper_va": "0x140302640",
+    "shared_material_helper_va": "0x1402F9890",
+    "family_magic_dispatch_va": "0x1402FD650",
+    "mod_specific_post_initializer_va": "0x1402FF570",
+    "status": "EXE_CONFIRMED"
+  },
+  "family_masks": {
+    "MOD ": "0x10000000",
+    "EFM ": "0x20000000",
+    "SCM ": "0x30000000",
+    "MRP ": "0x40000000"
+  },
+  "serialized_object": {
+    "source_flags": "+0x10",
+    "raw_parameter18_f32": "+0x18",
+    "raw_parameter1c_u32": "+0x1C"
+  },
+  "runtime_projection": {
+    "baseline_runtime_flags": "0x00000003",
+    "source_conditions": {
+      "low_nibble_nonzero": ["runtime bit8", "low-mode helper argument", "control=0x80"],
+      "0x00000020": ["runtime bit10"],
+      "0x00020000": ["runtime bit9", "runtime xyz preset 128.0f", "runtime w preset 0"],
+      "0x00010000": ["runtime bit7"],
+      "0x00000200": ["runtime bit12", "manager bit21", "copy +0x18/+0x1C"],
+      "0x00000400": ["runtime bit13", "manager bit21", "copy +0x18/+0x1C"],
+      "0x00000010": ["runtime bit11"],
+      "0x00040000": ["runtime bit4"],
+      "0x0F000000_nonzero": ["runtime bit15", "encoded high-mode byte = nibble - 1"]
+    }
+  },
+  "independent_effects": {
+    "source_0x00004000": "shared material helper selects nearest GS TEX1 filtering",
+    "mod_source_0x00001000_or_0x00002000": "MOD-specific runtime bytes +0x05/+0x06 become 0x0C instead of 0x04"
+  },
+  "conditional_render_parameters": {
+    "condition": "source flags 0x00000200 or 0x00000400",
+    "copy": {
+      "serialized +0x18 f32": "runtime +0x16C",
+      "serialized +0x1C u32": "runtime +0x170"
+    },
+    "downstream": "runtime float quartet and scalar are carried into per-pass/material packet state",
+    "artistic_semantics": "PRESERVED_UNDECODED"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/analysis/mod/object_runtime.hpp",
+    "compile_regression": "src/analysis/mod/object_runtime.cpp",
+    "source_byte_authority": "formats::mod::Document::source_bytes",
+    "record_origin": "formats::mod::OuterModel::record_offset"
+  },
+  "non_claims": [
+    "MOD object flag writer authority",
+    "safe editing semantics for +0x18/+0x1C",
+    "artistic names for projected runtime bits",
+    "complete source 0x00100000 behavior",
+    "cross-family equivalence with EFM or SCM",
+    "game acceptance of edited values",
+    "byte-identical MOD writer"
+  ]
+}
