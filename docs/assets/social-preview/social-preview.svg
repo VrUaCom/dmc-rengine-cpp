@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">DMC Rengine — DMC3 HD Reverse Engineering</title>
+  <desc id="desc">Canonical DMC Rengine social preview: dark technical grid, crimson accents, triangle with an eye and tear, surrounded by a single coin-like inscription ring.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#14191e" stroke-width="1"/>
+    </pattern>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <path id="ringTL" d="M835 322 A190 190 0 0 1 1025 132"/>
+    <path id="ringTR" d="M1025 132 A190 190 0 0 1 1215 322"/>
+    <path id="ringBL" d="M835 322 A190 190 0 0 0 1025 512"/>
+    <path id="ringBR" d="M1025 512 A190 190 0 0 0 1215 322"/>
+  </defs>
+
+  <rect width="1280" height="640" fill="#090c0f"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <rect x="78" y="86" width="8" height="468" rx="4" fill="#ef2b2d"/>
+
+  <text x="120" y="166" fill="#f5f7f8" font-family="DejaVu Sans, Arial, sans-serif" font-size="76" font-weight="700">DMC Rengine</text>
+  <text x="122" y="248" fill="#d7dee3" font-family="DejaVu Sans, Arial, sans-serif" font-size="36" font-weight="700">DMC3 HD Reverse Engineering</text>
+  <text x="122" y="315" fill="#b6c0c7" font-family="DejaVu Sans, Arial, sans-serif" font-size="27">C++20 · File Formats · Evidence-First Tooling</text>
+  <rect x="122" y="392" width="385" height="48" rx="8" fill="none" stroke="#ef2b2d" stroke-width="2"/>
+  <text x="139" y="424" fill="#eef2f4" font-family="DejaVu Sans Mono, monospace" font-size="23">NO CLAIM WITHOUT EVIDENCE</text>
+  <text x="122" y="536" fill="#87949d" font-family="DejaVu Sans Mono, monospace" font-size="23">github.com/VrUaCom/dmc-rengine-cpp</text>
+
+  <g fill="#5a1719" opacity="0.48" font-family="DejaVu Sans Mono, monospace" font-size="20">
+    <text x="755" y="92">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="132">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="755" y="172">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="212">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="755" y="252">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="292">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="755" y="332">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="372">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="755" y="412">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="452">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="755" y="492">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+    <text x="772" y="532">01 3A FF 7C 20 D3 C0 DE 52 45 56 45 52 53 45</text>
+  </g>
+
+  <g transform="translate(0,-2)" fill="none" stroke="#ef2b2d" filter="url(#softGlow)">
+    <circle cx="1025" cy="322" r="205" stroke-width="4"/>
+    <circle cx="1025" cy="322" r="182" stroke-width="2"/>
+  </g>
+  <g fill="#ef2b2d" font-family="Georgia, 'Times New Roman', serif" font-weight="700" letter-spacing="1.1">
+    <text font-size="16"><textPath href="#ringTL" xlink:href="#ringTL" startOffset="52%" text-anchor="middle">DEVIL MAY CRY</textPath></text>
+    <text font-size="16"><textPath href="#ringTR" xlink:href="#ringTR" startOffset="48%" text-anchor="middle">DMC RENGINE</textPath></text>
+    <text font-size="12.5"><textPath href="#ringBL" xlink:href="#ringBL" startOffset="50%" text-anchor="middle">MONKS OF BINARY CODE</textPath></text>
+    <text font-size="13"><textPath href="#ringBR" xlink:href="#ringBR" startOffset="50%" text-anchor="middle">SECT OF NEUROSLOP</textPath></text>
+  </g>
+  <g fill="#ef2b2d">
+    <circle cx="1025" cy="122" r="5"/><circle cx="1225" cy="322" r="5"/><circle cx="1025" cy="522" r="5"/><circle cx="825" cy="322" r="5"/>
+  </g>
+
+  <g fill="none" stroke="#ef2b2d" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <path d="M1025 164 L861 474 L1189 474 Z" stroke-width="5"/>
+    <path d="M1025 184 L883 459 L1167 459 Z" stroke-width="1.6" opacity="0.8"/>
+    <circle cx="1025" cy="189" r="9" stroke-width="3"/>
+    <circle cx="882" cy="452" r="9" stroke-width="3"/>
+    <circle cx="1168" cy="452" r="9" stroke-width="3"/>
+    <path d="M936 336 Q1025 278 1114 336 Q1025 394 936 336 Z" stroke-width="3"/>
+    <circle cx="1025" cy="336" r="29" stroke-width="3"/>
+    <circle cx="1025" cy="336" r="13" stroke-width="3"/>
+    <line x1="1025" y1="306" x2="1025" y2="366" stroke-width="1.5"/>
+    <line x1="995" y1="336" x2="1055" y2="336" stroke-width="1.5"/>
+    <path d="M1025 366 C1038 393 1038 416 1025 431 C1012 416 1012 393 1025 366 Z" fill="#ef2b2d" stroke-width="2"/>
+  </g>
+  <g stroke="#ef2b2d" opacity="0.75">
+    <line x1="1025" y1="216" x2="1025" y2="284"/>
+    <line x1="917" y1="430" x2="965" y2="381"/>
+    <line x1="1133" y1="430" x2="1085" y2="381"/>
+  </g>
+</svg>
