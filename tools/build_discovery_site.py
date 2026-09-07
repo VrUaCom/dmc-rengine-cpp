@@ -22,6 +22,7 @@ CSS_SOURCE = ROOT / "site" / "assets" / "style.css"
 SOCIAL_PREVIEW_SOURCE = ROOT / "site" / "assets" / "social-preview.png"
 SOCIAL_PREVIEW_SHA256 = "a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f"
 SOCIAL_PREVIEW_DIMENSIONS = (1280, 640)
+SOCIAL_PREVIEW_ALT = "DMC Rengine — DMC3 HD Reverse Engineering"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MIN_PRIMARY_CONTENT_CHARS = 500
 SITE_NAME = "DMC Rengine"
@@ -354,6 +355,23 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
         if canonical
         else ""
     )
+    social_preview_url = canonical_url(base_url, "/assets/social-preview.png")
+    social_preview_meta = ""
+    twitter_card = "summary"
+    if social_preview_url:
+        escaped_preview_url = html.escape(social_preview_url, quote=True)
+        escaped_preview_alt = html.escape(SOCIAL_PREVIEW_ALT, quote=True)
+        social_preview_meta = (
+            f'\n    <meta property="og:image" content="{escaped_preview_url}">'
+            f'\n    <meta property="og:image:secure_url" content="{escaped_preview_url}">'
+            '\n    <meta property="og:image:type" content="image/png">'
+            '\n    <meta property="og:image:width" content="1280">'
+            '\n    <meta property="og:image:height" content="640">'
+            f'\n    <meta property="og:image:alt" content="{escaped_preview_alt}">'
+            f'\n    <meta name="twitter:image" content="{escaped_preview_url}">'
+            f'\n    <meta name="twitter:image:alt" content="{escaped_preview_alt}">'
+        )
+        twitter_card = "summary_large_image"
     breadcrumb_structured = breadcrumb_json_ld(site["pages"], page, base_url)
     css_url = public_url(base_url, "/assets/style.css")
     home_url = public_url(base_url, "/")
@@ -373,8 +391,8 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{html.escape(SITE_NAME, quote=True)}">
     <meta property="og:title" content="{html.escape(page['title'], quote=True)}">
-    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}
-    <meta name="twitter:card" content="summary">
+    <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}{social_preview_meta}
+    <meta name="twitter:card" content="{twitter_card}">
     <meta name="twitter:title" content="{html.escape(page['title'], quote=True)}">
     <meta name="twitter:description" content="{html.escape(page['description'], quote=True)}">{breadcrumb_structured}
     <link rel="stylesheet" href="{html.escape(css_url, quote=True)}">

@@ -4,7 +4,7 @@ This directory contains the manifest and assets for the controlled DMC Rengine d
 
 ## Status
 
-GitHub Pages is now enabled for the repository with **GitHub Actions** as the publishing source. The first public deployment is the remaining activation step; `.github/workflows/pages-deploy.yml` stays fail-closed and derives the canonical public `base_url` from GitHub Pages itself.
+GitHub Pages is enabled for the repository with **GitHub Actions** as the publishing source. The first production deployment completed successfully on 2026-09-07. `.github/workflows/pages-deploy.yml` remains fail-closed and derives the canonical public `base_url` from GitHub Pages itself.
 
 ## Authority rule
 
@@ -28,6 +28,14 @@ The builder fails closed when primary content is too thin, two pages have identi
 Durable public explanations may describe what a research area covers, what questions it helps answer, architecture relationships and where canonical evidence lives. Do **not** duplicate volatile support matrices, exact offsets/addresses, unpromoted reverse findings or completion claims into the manifest. Current capability and maturity remain governed by `docs/status/current.md` and the canonical format/evidence documents.
 
 Internal-link labels should be descriptive enough to make sense outside surrounding prose. Do not add links or repeated terms solely to manufacture search signals.
+
+## Approved social-preview delivery
+
+`site/assets/social-preview.png` is the exact project-approved 1280×640 RGB PNG used for image-backed share metadata. The builder validates its SHA-256 (`a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f`) and dimensions before publishing it.
+
+When an authoritative HTTPS `base_url` is available, every generated page points `og:image`, `og:image:secure_url` and `twitter:image` to `<base_url>/assets/social-preview.png`, emits the matching PNG type/dimensions/alt metadata, and uses `summary_large_image`. Builds without a `base_url` intentionally omit image URLs and retain the non-image `summary` card so no unstable or guessed public origin is published.
+
+Drive, sandbox, temporary artifact and expiring URLs are not valid share-card image sources. The public raster is served from the same controlled Pages origin as the generated site.
 
 ## Build locally
 

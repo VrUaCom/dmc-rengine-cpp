@@ -169,6 +169,17 @@ def main() -> None:
         output = temp_dir / "generated"
         base = "https://vruacom.github.io/dmc-rengine-cpp"
         site.build(output, base)
+        preview_url = f"{base}/assets/social-preview.png"
+        preview_tags = (
+            f'<meta property="og:image" content="{preview_url}">',
+            f'<meta property="og:image:secure_url" content="{preview_url}">',
+            '<meta property="og:image:type" content="image/png">',
+            '<meta property="og:image:width" content="1280">',
+            '<meta property="og:image:height" content="640">',
+            f'<meta property="og:image:alt" content="{site.SOCIAL_PREVIEW_ALT}">',
+            f'<meta name="twitter:image" content="{preview_url}">',
+            f'<meta name="twitter:image:alt" content="{site.SOCIAL_PREVIEW_ALT}">',
+        )
 
         index = (output / "index.html").read_text(encoding="utf-8")
         scm = (output / "formats" / "scm" / "index.html").read_text(encoding="utf-8")
@@ -183,9 +194,12 @@ def main() -> None:
 
         assert 'rel="canonical" href="https://vruacom.github.io/dmc-rengine-cpp/"' in index
         assert '<meta property="og:site_name" content="DMC Rengine">' in index
-        assert '<meta name="twitter:card" content="summary">' in index
-        assert "og:image" not in index
-        assert "twitter:image" not in index
+        assert '<meta name="twitter:card" content="summary_large_image">' in index
+        for tag in preview_tags:
+            assert index.count(tag) == 1
+        assert "drive.google.com" not in index
+        assert "sandbox:" not in index
+        assert "repository-images.githubusercontent.com" not in index
         assert 'aria-label="Breadcrumb"' not in index
         assert '"@type":"BreadcrumbList"' not in index
         assert "https://vruacom.github.io/dmc-rengine-cpp/assets/style.css" in index
@@ -220,11 +234,14 @@ def main() -> None:
             assert f'<meta property="og:title" content="{escaped_title}">' in generated
             assert f'<meta property="og:description" content="{escaped_description}">' in generated
             assert '<meta property="og:site_name" content="DMC Rengine">' in generated
-            assert '<meta name="twitter:card" content="summary">' in generated
+            assert '<meta name="twitter:card" content="summary_large_image">' in generated
             assert f'<meta name="twitter:title" content="{escaped_title}">' in generated
             assert f'<meta name="twitter:description" content="{escaped_description}">' in generated
-            assert "og:image" not in generated
-            assert "twitter:image" not in generated
+            for tag in preview_tags:
+                assert generated.count(tag) == 1
+            assert "drive.google.com" not in generated
+            assert "sandbox:" not in generated
+            assert "repository-images.githubusercontent.com" not in generated
             if page["path"] == "/":
                 assert 'aria-label="Breadcrumb"' not in generated
                 assert '"@type":"BreadcrumbList"' not in generated
@@ -242,6 +259,8 @@ def main() -> None:
         no_base_scm = (no_base / "formats" / "scm" / "index.html").read_text(encoding="utf-8")
         assert 'rel="canonical"' not in no_base_index
         assert '<meta name="twitter:card" content="summary">' in no_base_index
+        assert "og:image" not in no_base_index
+        assert "twitter:image" not in no_base_index
         assert 'aria-label="Breadcrumb"' in no_base_scm
         assert '<a href="/formats/">DMC3 HD File Formats</a>' in no_base_scm
         assert '"@type":"BreadcrumbList"' not in no_base_scm
