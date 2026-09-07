@@ -1,12 +1,14 @@
 {
-  "schema_version": 4,
-  "snapshot_date": "2026-09-06",
+  "schema_version": 5,
+  "snapshot_date": "2026-09-07",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "78e360c9f1d154409d83ffcc146cc2920e8548a4",
+  "snapshot_main_sha": "109b63009949be526aa691809d39a27db076e4ff",
   "working_proof_branch": "none",
   "working_proof_pr": 0,
-  "latest_promoted_pr": 288,
+  "latest_promoted_pr": 325,
+  "latest_reverse_model_family_pr": 323,
+  "latest_native_reader_module_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
   "proof_marks": {
@@ -22,14 +24,16 @@
     "retail_corpus": "hash-bound-artifact-measurement-required",
     "synthetic_ci": "bounded-product-validation-not-original-game-equivalence",
     "protected_process": "trusted-runtime-receipt-required",
-    "authoring_acceptance": "generated-artifact-identity-plus-original-selection-consumption-and-rollback"
+    "authoring_acceptance": "generated-artifact-identity-plus-original-selection-consumption-and-rollback",
+    "discovery_surface": "navigation-readability-only-not-technical-authority"
   },
   "canonical_analysis_executable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "size": 6356432,
     "format": "PE32+-x86-64",
     "image_base": "0x140000000",
-    "role": "instruction-reverse-authority"
+    "role": "instruction-reverse-authority",
+    "current_access": "available-to-recent-promoted-mod-model-family-reverse-passes"
   },
   "protected_distribution_execution_candidate": {
     "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
@@ -80,6 +84,34 @@
         "universal-revision-coverage",
         "writer-authority",
         "original-game-authored-shw-acceptance"
+      ]
+    },
+    "mod_model_family": {
+      "write_policy": "read-only",
+      "promoted_prs": [305, 307, 310, 312, 313, 314, 315, 316, 317, 318, 323],
+      "promoted_capabilities": [
+        "hierarchy-local-transform-world-propagation",
+        "typed-mesh-texture-slot-and-legacy-gs-clamp-state",
+        "exe-backed-post-load-relocation-and-topology-generation",
+        "typed-object-alpha-source-flags-and-bounds",
+        "model-texture-companion-envelope",
+        "typed-document-header-runtime-state",
+        "companion-authoritative-texture-binding-validation",
+        "inverse-rest-and-skin-palette-composition",
+        "runtime-texture-descriptor-abi-and-gs-register-decode",
+        "object-runtime-flag-and-render-parameter-projection",
+        "serialized-mesh-preserved-undecoded-fields",
+        "blend-index-div4-and-packed-5bit-weight-runtime-abi"
+      ],
+      "open_boundaries": [
+        "mod-writer-authority",
+        "byte-identical-no-edit-mod-rebuild",
+        "safe-mutation-ranges-for-unresolved-fields",
+        "complete-tim2-semantics",
+        "production-texture-replacement-authority",
+        "complete-current-animation-pose-ownership",
+        "original-game-edited-mod-acceptance",
+        "capcom-offline-tool-equivalence"
       ]
     },
     "proven_structural_reader_highlights": [
@@ -187,7 +219,7 @@
     },
     "L3": {
       "complete": false,
-      "status": "strong-bounded-static-spine-r1-promotion-r2-ownership-scheduler-terminal-and-v1-v7-open",
+      "status": "strong-bounded-static-spine-family-specific-mod-evidence-advanced-global-lifecycle-proof-open",
       "reverse_backed_closed": [
         "loadedresource-state1-after-materialization-success",
         "normal-completion-state1-to-state2-0x1401B8DC0",
@@ -210,7 +242,7 @@
         "v7-family-build-breadth",
         "final-l3-audit"
       ],
-      "next_raw_reverse_targets_when_exact_exe-bytes-available": [
+      "next_raw_reverse_targets_requiring_independent_bounded_pass": [
         "0x1402EF4D0",
         "0x1402EF790",
         "0x1400333E0",
@@ -234,10 +266,23 @@
     "rollback"
   ],
   "current_external_evidence_boundaries": [
-    "raw-canonical-e454-executable-blob-not-located-in-connected-library-during-2026-09-05-proof-pass",
+    "canonical-e454-executable-bytes-available-to-recent-promoted-mod-model-family-static-reverse",
+    "unrelated-gdspaces-and-l3-raw-targets-still-require-independent-address-range-scope-bounded-passes",
     "real-protected-process-required-for-r2b-r3",
     "protected-install-original-consumption-required-for-level-e"
   ],
+  "discovery": {
+    "latest_reviewed_promotion_pr": 325,
+    "site_builder": "promoted",
+    "public_pages": 12,
+    "citation_metadata": "promoted",
+    "share_metadata_without_image": "promoted",
+    "manifest_backed_breadcrumbs": "promoted",
+    "pages_enabled": false,
+    "repository_topics_applied": false,
+    "social_preview_applied": false,
+    "technical_completion_effect": "none"
+  },
   "navigation": {
     "project_roadmap": "../roadmap.md",
     "proof_roadmap": "../gdspaces/proof-roadmap-2026-09-05.md",

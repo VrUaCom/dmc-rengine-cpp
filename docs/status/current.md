@@ -1,12 +1,14 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-06  
-**Canonical implementation base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
-**Latest canonical Native Reader promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
+**Snapshot date:** 2026-09-07  
+**Canonical implementation base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
+**Latest repository promotion in this reviewed snapshot:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
+**Latest canonical reverse/model-family promotion:** PR #323 — EXE-backed MOD mesh preservation + skin ABI closure  
+**Latest canonical Native Reader module promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
 **Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
 **Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete; canonical implementation is advanced, but real protected-process/original-game receipts remain mandatory.
+**Overall status:** L1/L2/L3 remain incomplete; canonical implementation and MOD/model-family evidence have advanced materially, but real protected-process/original-game receipts remain mandatory.
 
 ## Authority split
 
@@ -18,6 +20,7 @@
 - Retail corpus claims require hash-bound corpus receipts.
 - DMC Rengine product-safety policies such as atomic/no-replace publication are not presented as Capcom behavior.
 - Canonical analysis executable and protected distribution execution authority are separate builds; canonical VAs/RVAs require independent mapping before protected-process use.
+- Discovery/SEO pages are navigation/readability surfaces, never a second technical authority.
 
 See [project roadmap](../roadmap.md) and [proof roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
 
@@ -49,9 +52,27 @@ Canonical built-in reader modules on current `main`:
 - SHW;
 - PE/EXE.
 
-SHW is canonical as `formats.shw-structural-v1`, structural/read-only. The promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
+SHW is canonical as `formats.shw-structural-v1`, structural/read-only. The promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; SHW matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
 
-PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry`, parser-validation publication and `ResourceAnalyzer` now share explicit regression contracts. Parser execution is fail-closed if its canonical workspace completion receipt cannot be published. The exact PR head tree passed Ubuntu + Windows build/test CI before squash promotion; the promoted `main` commit has the same tree.
+PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry`, parser-validation publication and `ResourceAnalyzer` share explicit regression contracts. Parser execution is fail-closed if its canonical workspace completion receipt cannot be published. The exact PR head tree passed Ubuntu + Windows build/test CI before promotion.
+
+### MOD / model-family promotion stack
+
+The MOD reader remains read-only, but canonical structural/runtime evidence has advanced substantially since the previous status snapshot. Promoted slices include:
+
+- PR #305 — canonical hierarchy/local transforms/world propagation consolidation;
+- PR #307 — typed mesh texture slot + legacy GS CLAMP state;
+- PR #310 — EXE-backed post-load relocation/topology generation reconstruction;
+- PR #312 — typed object alpha/control, source flags and bounds;
+- PR #313 — EXE-confirmed model texture companion envelope with TM2-backed payload allocation;
+- PR #314 — typed document/header texture-domain mirror and raw runtime header state;
+- PR #315 — mesh texture binding validation against companion-authoritative runtime domain;
+- PR #316 — inverse-rest ownership and `skinMatrix = inverseRestWorld * currentWorld` palette composition;
+- PR #317 — runtime model-texture descriptor ABI with GS TEX0/MIPTBP1 decode;
+- PR #318 — EXE-backed object runtime flag/render-parameter projection;
+- PR #323 — serialized mesh `+0x0C/+0x38/+0x4C` preservation classification plus direct `/4` blend-index and 5+5+5-bit `/31` weight ABI evidence.
+
+These promotions strengthen truthful read-only MOD inspection, skeleton/weight visualization and pose-aware analysis. They do **not** establish MOD writer authority, byte-identical no-edit rebuild, safe mutation ranges for unresolved fields, complete TIM2 semantics, production texture replacement authority, complete current animation/pose ownership, original-game edited-MOD acceptance or Capcom offline-tool equivalence.
 
 Current reader frontier:
 
@@ -125,7 +146,7 @@ This closes collision freedom only for that exact archive. Wider resolver scope 
 
 ### Successful-mount topology correction
 
-PR #287 is promoted to `main`. The product model now reflects the reverse-backed distinction:
+PR #287 is promoted to `main`. The product model reflects the reverse-backed distinction:
 
 ```text
 filename discovery / registration attempt
@@ -158,6 +179,8 @@ Reverse-backed bounded core includes:
 - distinct ordinary release, cancellation cleanup and forced reset policies;
 - central typed dispatcher paths for MOD/EFM/SCM/SHW plus PNST recursion.
 
+The promoted MOD post-load/runtime evidence strengthens one family-specific part of this spine but does not close global lifecycle proof.
+
 Remaining L3 work:
 
 - promote/reconcile final R1 contradiction-gated writer census onto current main;
@@ -189,7 +212,7 @@ Immediate order:
 1. ✅ roadmap/status reconciled to proof-level truth;
 2. ✅ successful-mount topology correction promoted by PR #287;
 3. ✅ SHW structural Native Reader and cross-registry routing/validation hardening promoted by PR #288;
-4. ❌ close the remaining materialization scheduler terminal dependency when exact canonical EXE bytes are available for a fresh raw pass;
+4. ⚠️ exact canonical EXE bytes are now available to recent reverse work, but the still-open materialization-scheduler terminal dependency requires its own fresh raw pass and must not be inferred from MOD evidence;
 5. ❌ execute protected-process R2B mapping;
 6. ❌ capture trusted R3 selected identity;
 7. ❌ bind selected identity to exact independently materialized bytes;
@@ -200,7 +223,13 @@ Immediate order:
 
 ## Current evidence-access boundary
 
-The connected file/library surface contains substantial derived reverse documentation and evidence packets, but a raw canonical `e454...` executable blob was not located during the 2026-09-05 reconciliation pass. Therefore no new raw-byte claim is promoted for the still-open materialization scheduler dependency. This does not weaken the already canonical, hash-bound SHW reverse packet promoted by PR #288.
+The old 2026-09-05 statement that raw canonical `e454...` executable bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for the promoted 2026-09-06/07 MOD/model-family reverse slices listed above.
+
+That availability is **not** a blanket proof upgrade. Each unrelated GDSpaces/L3 raw target still requires its own fresh address/range/scope-bounded analysis before any claim changes, and protected-process/original-consumption gates remain mandatory where runtime identity or acceptance is claimed.
+
+## Discovery/publication state
+
+The repository contains the controlled discovery-site builder, distinct public entry pages, canonical/Open Graph metadata, share metadata, root `CITATION.cff` and manifest-backed crawlable breadcrumbs/`BreadcrumbList`. GitHub Pages deployment remains fail-closed and is still a repository-settings gate. Discovery work does not alter L1/L2/L3 completion.
 
 ## Navigation
 
@@ -211,4 +240,4 @@ The connected file/library surface contains substantial derived reverse document
 - [Blockers](blockers.md)
 - [Machine-readable status](canonical-status.json)
 
-No percentage, green synthetic suite, parser success or crash-free launch overrides the gate-based completion rule.
+No percentage, green synthetic suite, parser success, discovery metadata or crash-free launch overrides the gate-based completion rule.
