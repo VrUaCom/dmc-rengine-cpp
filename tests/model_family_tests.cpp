@@ -1,3 +1,4 @@
+#include "dmc_rengine/analysis/mod/texture_binding.hpp"
 #include "dmc_rengine/formats/model_document_core.hpp"
 #include "dmc_rengine/formats/model_family.hpp"
 #include "dmc_rengine/formats/model_mesh_core.hpp"
@@ -25,6 +26,8 @@ void put_u32(std::vector<std::byte>& bytes,
 
 int main() {
     namespace family = dmc::rengine::formats::model_family;
+    namespace mod_format = dmc::rengine::formats::mod;
+    namespace mod_analysis = dmc::rengine::analysis::mod;
 
     constexpr auto scm = family::scm_profile();
     static_assert(scm.source_format == family::SourceFormat::scm);
@@ -146,6 +149,56 @@ int main() {
         assert(!truncated.ok());
         assert(truncated.status ==
                family::TextureCompanionStatus::payload_out_of_bounds);
+    }
+
+    {
+        mod_format::Document document;
+        document.header.texture_slot_count = 3U; // serialized mirror only
+
+        mod_format::OuterModel outer;
+        mod_format::InnerMesh mesh0;
+        mesh0.texture_slot = 0U;
+        mod_format::InnerMesh mesh1;
+        mesh1.texture_slot = 1U;
+        outer.meshes.push_back(mesh0);
+        outer.meshes.push_back(mesh1);
+        document.outer_models.push_back(outer);
+
+        family::TextureCompanionParseResult companion;
+        companion.status = family::TextureCompanionStatus::ok;
+        companion.texture_count = 2U;
+
+        const auto mirror_mismatch =
+            mod_analysis::analyze_texture_binding(document, companion);
+        assert(mirror_mismatch.companion_valid);
+        assert(mirror_mismatch.header_texture_slot_count == 3U);
+        assert(mirror_mismatch.companion_texture_count == 2U);
+        assert(!mirror_mismatch.header_mirror_matches_companion);
+        assert(mirror_mismatch.mesh_count == 2U);
+        assert(mirror_mismatch.out_of_range_meshes.empty());
+        assert(mirror_mismatch.runtime_bindings_valid());
+
+        document.header.texture_slot_count = 2U;
+        const auto exact_mirror =
+            mod_analysis::analyze_texture_binding(document, companion);
+        assert(exact_mirror.header_mirror_matches_companion);
+        assert(exact_mirror.runtime_bindings_valid());
+
+        document.outer_models[0].meshes[1].texture_slot = 2U;
+        const auto out_of_range =
+            mod_analysis::analyze_texture_binding(document, companion);
+        assert(!out_of_range.runtime_bindings_valid());
+        assert(out_of_range.out_of_range_meshes.size() == 1U);
+        assert(out_of_range.out_of_range_meshes[0].outer_index == 0U);
+        assert(out_of_range.out_of_range_meshes[0].mesh_index == 1U);
+        assert(out_of_range.out_of_range_meshes[0].texture_slot == 2U);
+
+        companion.status = family::TextureCompanionStatus::tm2_magic_mismatch;
+        const auto invalid_companion =
+            mod_analysis::analyze_texture_binding(document, companion);
+        assert(!invalid_companion.companion_valid);
+        assert(!invalid_companion.runtime_bindings_valid());
+        assert(invalid_companion.out_of_range_meshes.empty());
     }
 
     assert(family::to_string(scm.source_format) == "scm");
