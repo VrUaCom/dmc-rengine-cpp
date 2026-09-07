@@ -120,10 +120,10 @@ ParseResult Parser::parse(const std::span<const std::byte> bytes) {
     header.document_offset = *document_offset;
 
     if (!std::isfinite(header.version) ||
-        std::fabs(header.version - 1.01F) > 0.0001F) {
+        !is_corpus_confirmed_structural_version(header.version)) {
         diag(out, ParseSeverity::warning,
              "mod.unconfirmed-version",
-             "Recovered DMC3-HD MOD corpus uses version 1.01; raw version is preserved.",
+             "Recursive retail em000 MOD corpus confirms the recovered structural grammar for versions 0.82, 0.84, 1.00, and 1.01; raw version is preserved.",
              model_family::DocumentCoreAbi::version_field);
     }
     if (header.transform_domain_count == 0U) {
