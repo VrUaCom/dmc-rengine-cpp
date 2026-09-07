@@ -5,7 +5,6 @@ on:
     branches:
       - docs/discovery-approved-raster-delivery
     paths:
-      - '.github/raster-bootstrap/**'
       - '.github/workflows/raster-bootstrap.yml'
 
 permissions:
@@ -15,48 +14,105 @@ jobs:
   bootstrap-raster:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Reconstruct approved raster when all chunks are present
+
+      - name: Import exact approved raster from repository social preview
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob
-          chunks=(.github/raster-bootstrap/chunk-*.b64)
-          if [ "${#chunks[@]}" -ne 16 ]; then
-            echo "Waiting for 16 raster chunks; currently ${#chunks[@]}."
-            exit 0
-          fi
           python - <<'PY'
           from pathlib import Path
-          import base64, hashlib
+          import hashlib
+          import json
+          import os
+          import urllib.request
+          from urllib.parse import urlparse
 
-          chunk_dir = Path('.github/raster-bootstrap')
-          encoded = ''.join(path.read_text(encoding='ascii') for path in sorted(chunk_dir.glob('chunk-*.b64')))
-          data = base64.b64decode(encoded, validate=True)
+          owner, name = os.environ['GITHUB_REPOSITORY'].split('/', 1)
+          query = '''
+          query($owner: String!, $name: String!) {
+            repository(owner: $owner, name: $name) {
+              usesCustomOpenGraphImage
+              openGraphImageUrl
+            }
+          }
+          '''
+          payload = json.dumps({
+              'query': query,
+              'variables': {'owner': owner, 'name': name},
+          }).encode('utf-8')
+          request = urllib.request.Request(
+              'https://api.github.com/graphql',
+              data=payload,
+              headers={
+                  'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
+                  'Accept': 'application/vnd.github+json',
+                  'Content-Type': 'application/json',
+                  'User-Agent': 'dmc-rengine-raster-bootstrap',
+              },
+              method='POST',
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              result = json.load(response)
+
+          if result.get('errors'):
+              raise SystemExit(f"GitHub GraphQL errors: {result['errors']}")
+          repository = result.get('data', {}).get('repository')
+          if not repository:
+              raise SystemExit('GitHub GraphQL did not return the repository')
+          if repository.get('usesCustomOpenGraphImage') is not True:
+              raise SystemExit('repository is not using a custom Open Graph image')
+
+          image_url = repository.get('openGraphImageUrl')
+          parsed = urlparse(image_url or '')
+          if parsed.scheme != 'https' or not parsed.netloc:
+              raise SystemExit(f'invalid Open Graph image URL: {image_url!r}')
+
+          image_request = urllib.request.Request(
+              image_url,
+              headers={'User-Agent': 'dmc-rengine-raster-bootstrap'},
+          )
+          with urllib.request.urlopen(image_request, timeout=60) as response:
+              data = response.read()
+              final_url = response.geturl()
+              content_type = response.headers.get_content_type()
+
           expected = 'a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f'
           digest = hashlib.sha256(data).hexdigest()
           if digest != expected:
-              raise SystemExit(f'approved raster SHA mismatch: {digest}')
-          if len(data) < 24 or data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+              raise SystemExit(
+                  'GitHub social preview bytes do not match the approved raster contract: '
+                  f'sha256={digest} size={len(data)} content_type={content_type} final_url={final_url}'
+              )
+          if len(data) < 26 or data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
               raise SystemExit('approved raster is not a valid PNG/IHDR payload')
           width = int.from_bytes(data[16:20], 'big')
           height = int.from_bytes(data[20:24], 'big')
-          if (width, height) != (1280, 640):
-              raise SystemExit(f'approved raster dimensions mismatch: {width}x{height}')
+          bit_depth = data[24]
+          color_type = data[25]
+          if (width, height, bit_depth, color_type) != (1280, 640, 8, 2):
+              raise SystemExit(
+                  'approved raster PNG contract mismatch: '
+                  f'{width}x{height} bit_depth={bit_depth} color_type={color_type}'
+              )
+
           target = Path('site/assets/social-preview.png')
           target.parent.mkdir(parents=True, exist_ok=True)
           target.write_bytes(data)
-          print(f'approved raster reconstructed: {len(data)} bytes sha256={digest}')
+          print(
+              'approved raster imported from GitHub social preview: '
+              f'{len(data)} bytes sha256={digest} source_host={urlparse(final_url).netloc}'
+          )
           PY
+
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add site/assets/social-preview.png
-          git rm -r .github/raster-bootstrap
-          if git diff --cached --quiet; then
-            echo 'No raster bootstrap changes to commit.'
-            exit 0
-          fi
+          git rm --ignore-unmatch .github/workflows/raster-bootstrap.yml
+          git rm -r --ignore-unmatch .github/raster-bootstrap || true
           git commit -m 'site: add approved social-preview raster'
           git push origin HEAD:${GITHUB_REF_NAME}
