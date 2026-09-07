@@ -20,27 +20,64 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ vars.DMC_RENGINE_ENABLE_PAGES == 'true' }}
     runs-on: ubuntu-latest
+    outputs:
+      pages_enabled: ${{ steps.pages_state.outputs.enabled }}
     steps:
       - uses: actions/checkout@v6
-      - name: Require explicit site base URL
+
+      - name: Detect repository Pages state
+        id: pages_state
+        shell: bash
         env:
-          SITE_BASE_URL: ${{ vars.DMC_RENGINE_SITE_BASE_URL }}
-        run: test -n "$SITE_BASE_URL"
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          http_code="$(curl --silent --show-error --location \
+            --output /tmp/pages-state.json \
+            --write-out '%{http_code}' \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")"
+          case "$http_code" in
+            200)
+              echo 'enabled=true' >> "$GITHUB_OUTPUT"
+              echo 'GitHub Pages is enabled; continuing with deployment build.'
+              ;;
+            404)
+              echo 'enabled=false' >> "$GITHUB_OUTPUT"
+              echo 'GitHub Pages is not enabled; deployment remains fail-closed.'
+              ;;
+            *)
+              echo "Unexpected GitHub Pages API response: HTTP ${http_code}" >&2
+              cat /tmp/pages-state.json >&2 || true
+              exit 1
+              ;;
+          esac
+
       - name: Configure GitHub Pages
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
+        id: pages
         uses: actions/configure-pages@v5
+
       - name: Build static discovery site
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         env:
-          SITE_BASE_URL: ${{ vars.DMC_RENGINE_SITE_BASE_URL }}
-        run: python tools/build_discovery_site.py --output _site --base-url "$SITE_BASE_URL"
+          SITE_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -euo pipefail
+          test -n "$SITE_BASE_URL"
+          python tools/build_discovery_site.py --output _site --base-url "$SITE_BASE_URL"
+
       - name: Upload GitHub Pages artifact
+        if: ${{ steps.pages_state.outputs.enabled == 'true' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
   deploy:
-    if: ${{ vars.DMC_RENGINE_ENABLE_PAGES == 'true' }}
+    if: ${{ needs.build.outputs.pages_enabled == 'true' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
