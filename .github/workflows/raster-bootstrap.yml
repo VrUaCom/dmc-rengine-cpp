@@ -1,0 +1,62 @@
+name: Bootstrap approved social-preview raster
+
+on:
+  push:
+    branches:
+      - docs/discovery-approved-raster-delivery
+    paths:
+      - '.github/raster-bootstrap/**'
+      - '.github/workflows/raster-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap-raster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct approved raster when all chunks are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          chunks=(.github/raster-bootstrap/chunk-*.b64)
+          if [ "${#chunks[@]}" -ne 16 ]; then
+            echo "Waiting for 16 raster chunks; currently ${#chunks[@]}."
+            exit 0
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          import base64, hashlib
+
+          chunk_dir = Path('.github/raster-bootstrap')
+          encoded = ''.join(path.read_text(encoding='ascii') for path in sorted(chunk_dir.glob('chunk-*.b64')))
+          data = base64.b64decode(encoded, validate=True)
+          expected = 'a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f'
+          digest = hashlib.sha256(data).hexdigest()
+          if digest != expected:
+              raise SystemExit(f'approved raster SHA mismatch: {digest}')
+          if len(data) < 24 or data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+              raise SystemExit('approved raster is not a valid PNG/IHDR payload')
+          width = int.from_bytes(data[16:20], 'big')
+          height = int.from_bytes(data[20:24], 'big')
+          if (width, height) != (1280, 640):
+              raise SystemExit(f'approved raster dimensions mismatch: {width}x{height}')
+          target = Path('site/assets/social-preview.png')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          target.write_bytes(data)
+          print(f'approved raster reconstructed: {len(data)} bytes sha256={digest}')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/assets/social-preview.png
+          git rm -r .github/raster-bootstrap
+          if git diff --cached --quiet; then
+            echo 'No raster bootstrap changes to commit.'
+            exit 0
+          fi
+          git commit -m 'site: add approved social-preview raster'
+          git push origin HEAD:${GITHUB_REF_NAME}

@@ -8,6 +8,7 @@ truth remains in repository documentation referenced by each page's source_path.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import shutil
@@ -18,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ROOT_RESOLVED = ROOT.resolve()
 MANIFEST = ROOT / "site" / "manifest.json"
 CSS_SOURCE = ROOT / "site" / "assets" / "style.css"
+SOCIAL_PREVIEW_SOURCE = ROOT / "site" / "assets" / "social-preview.png"
+SOCIAL_PREVIEW_SHA256 = "a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f"
+SOCIAL_PREVIEW_DIMENSIONS = (1280, 640)
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 MIN_PRIMARY_CONTENT_CHARS = 500
 SITE_NAME = "DMC Rengine"
 
@@ -51,6 +56,35 @@ def normalize_base_url(base_url: str | None) -> str | None:
         raise SystemExit("site base URL must not contain credentials, params, query, or fragment")
     path = parsed.path.rstrip("/")
     return f"https://{parsed.netloc}{path}"
+
+
+def png_dimensions(data: bytes) -> tuple[int, int]:
+    if len(data) < 24 or data[:8] != PNG_SIGNATURE or data[12:16] != b"IHDR":
+        raise SystemExit("social preview must be a valid PNG with an IHDR header")
+    return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+
+
+def validate_social_preview(path: Path = SOCIAL_PREVIEW_SOURCE) -> bytes:
+    source = require_within_repo(path, "social preview source")
+    try:
+        data = source.read_bytes()
+    except OSError as exc:
+        raise SystemExit(f"social preview source cannot be read: {source}") from exc
+
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != SOCIAL_PREVIEW_SHA256:
+        raise SystemExit(
+            "social preview SHA-256 does not match the approved raster contract: "
+            f"{digest}"
+        )
+
+    dimensions = png_dimensions(data)
+    if dimensions != SOCIAL_PREVIEW_DIMENSIONS:
+        raise SystemExit(
+            "social preview dimensions do not match the approved raster contract: "
+            f"{dimensions[0]}x{dimensions[1]}"
+        )
+    return data
 
 
 def normalized_text(value: str) -> str:
@@ -384,6 +418,7 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
 def build(output: Path, base_url: str | None) -> None:
     site = load_manifest()
     base_url = normalize_base_url(base_url)
+    preview_bytes = validate_social_preview()
     output = require_safe_output(output)
 
     if output.exists():
@@ -393,6 +428,7 @@ def build(output: Path, base_url: str | None) -> None:
     assets = output / "assets"
     assets.mkdir(parents=True)
     shutil.copy2(CSS_SOURCE, assets / "style.css")
+    (assets / "social-preview.png").write_bytes(preview_bytes)
 
     for page in site["pages"]:
         target = page_output(output, page["path"])
@@ -428,6 +464,7 @@ def build(output: Path, base_url: str | None) -> None:
         output / "formats" / "index.html",
         output / "faq" / "index.html",
         output / "status" / "index.html",
+        output / "assets" / "social-preview.png",
         output / "robots.txt",
     ]
     if base_url:

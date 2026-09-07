@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import html
 import shutil
 import sys
@@ -56,6 +57,14 @@ def main() -> None:
     expect_exit(
         lambda: site.require_safe_output(ROOT),
         "repository root must be rejected as destructive output",
+    )
+
+    preview_bytes = site.validate_social_preview()
+    assert hashlib.sha256(preview_bytes).hexdigest() == site.SOCIAL_PREVIEW_SHA256
+    assert site.png_dimensions(preview_bytes) == site.SOCIAL_PREVIEW_DIMENSIONS
+    expect_exit(
+        lambda: site.png_dimensions(b"not-a-png"),
+        "malformed PNG metadata must fail closed",
     )
 
     manifest = site.load_manifest()
@@ -148,6 +157,15 @@ def main() -> None:
 
     temp_dir = Path(tempfile.mkdtemp(prefix="_site-test-", dir=ROOT))
     try:
+        mutated_preview = temp_dir / "mutated-preview.png"
+        mutated = bytearray(preview_bytes)
+        mutated[-1] ^= 0x01
+        mutated_preview.write_bytes(mutated)
+        expect_exit(
+            lambda: site.validate_social_preview(mutated_preview),
+            "mutated social preview must fail the approved SHA-256 gate",
+        )
+
         output = temp_dir / "generated"
         base = "https://vruacom.github.io/dmc-rengine-cpp"
         site.build(output, base)
@@ -157,6 +175,11 @@ def main() -> None:
         nbz = (output / "archives" / "nbz" / "index.html").read_text(encoding="utf-8")
         robots = (output / "robots.txt").read_text(encoding="utf-8")
         sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
+        published_preview = output / "assets" / "social-preview.png"
+
+        assert published_preview.is_file()
+        assert published_preview.read_bytes() == preview_bytes
+        assert hashlib.sha256(published_preview.read_bytes()).hexdigest() == site.SOCIAL_PREVIEW_SHA256
 
         assert 'rel="canonical" href="https://vruacom.github.io/dmc-rengine-cpp/"' in index
         assert '<meta property="og:site_name" content="DMC Rengine">' in index
@@ -222,6 +245,7 @@ def main() -> None:
         assert 'aria-label="Breadcrumb"' in no_base_scm
         assert '<a href="/formats/">DMC3 HD File Formats</a>' in no_base_scm
         assert '"@type":"BreadcrumbList"' not in no_base_scm
+        assert (no_base / "assets" / "social-preview.png").read_bytes() == preview_bytes
         assert not (no_base / "sitemap.xml").exists()
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
