@@ -1,8 +1,10 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-09-06  
-**Canonical base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
-**Latest integration promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
+**Snapshot:** 2026-09-07  
+**Canonical base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
+**Latest reviewed repository promotion:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
+**Latest reverse/model-family promotion:** PR #323 — MOD mesh preservation + skin ABI closure  
+**Latest Native Reader module promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Completion model:** evidence-gated, not percentage-gated.
 
 This roadmap distinguishes four different things that must never be conflated:
@@ -24,6 +26,7 @@ Detailed proof matrix: [GDSpaces proof roadmap — 2026-09-05](gdspaces/proof-ro
 - ✅ Archive `0x0E` and physical `0x0C` normalization semantics are instruction-backed.
 - ✅ Type-0 physical final-open bounded contract is reverse-backed.
 - ✅ LoadedResource central state spine and typed-post-load ordering are reverse-backed in the bounded canonical scope.
+- ✅ Exact canonical `e454...` executable bytes are available to recent promoted MOD/model-family static reverse work; this does not automatically close unrelated GDSpaces/L3 raw targets.
 - ❌ Full original-runtime behavioral equivalence is not claimed.
 
 ## 2. GDSpaces L1 — Resource Materialization
@@ -80,6 +83,7 @@ Reverse-backed bounded core:
 - ✅ Quiescence requires every record to be in `{0,3}`.
 - ✅ Ordinary release, cancellation cleanup and forced reset have distinct state-zero/backing-release ordering.
 - ✅ Central typed dispatcher recognizes recovered MOD/EFM/SCM/SHW paths and recursively walks PNST in the bounded path.
+- ✅ MOD family-specific post-load/runtime evidence advanced through PRs #310/#318/#323, but this does not close the global LoadedResource lifecycle.
 
 Still open:
 
@@ -120,9 +124,20 @@ SHW canonical state after PR #288:
 - ✅ The selector is EXE-confirmed as indexing 0x40-byte transform matrices.
 - ✅ Format Registry, Native Reader Registry, OpenRouter, ToolRegistry and workspace parser-validation routing are mechanically cross-checked by regressions.
 - ✅ `ResourceAnalyzer` fails closed if the parser runs but its canonical completion receipt cannot be published.
-- ✅ Exact PR-head tree passed Ubuntu + Windows build/test CI before squash promotion; the promoted commit contains the same tree.
+- ✅ Exact PR-head tree passed Ubuntu + Windows build/test CI before promotion; the promoted commit contains the same tree.
 - ❌ SHW matrix-palette ownership/construction remains open.
 - ❌ SHW writer authority and universal revision coverage remain open.
+
+MOD canonical read/reverse state after the 2026-09-07 promotion stack:
+
+- ✅ hierarchy, serialized local transforms and world propagation are canonical (#305);
+- ✅ typed texture slot / legacy GS CLAMP state is canonical (#307);
+- ✅ EXE-backed post-load relocation and topology generation is reconstructed read/runtime analysis (#310);
+- ✅ object core/header/texture companion and companion-authoritative binding contracts are promoted (#312-#315);
+- ✅ inverse-rest ownership and skin-palette composition are promoted (#316);
+- ✅ runtime texture descriptor and object-runtime projections are promoted (#317/#318);
+- ✅ mesh `+0x0C/+0x38/+0x4C` are explicitly preserved-undecoded and blend-index `/4` plus packed 5-bit `/31` skin-weight ABI are EXE-backed (#323);
+- ❌ none of the above grants MOD writer authority, safe unresolved-field mutation, byte-identical rebuild or original-game edited-MOD acceptance.
 
 Other evidence boundaries:
 
@@ -164,15 +179,14 @@ Execution order:
 1. ✅ preserve existing static reverse authority for bootstrap, mount-list construction, resolver masks and normalization;
 2. ✅ successful-mount topology product correction promoted by PR #287;
 3. ✅ SHW Native Reader + registry/routing/parser-validation integration hardening promoted by PR #288;
-4. ❌ obtain/process a real protected-process R2B mapping packet;
-5. ❌ capture trusted selected-provider/member identity without synthesizing probes;
-6. ❌ bind selected member to independently materialized SHA/provenance;
-7. ❌ bind materialization success to LoadedResource lifecycle observation;
-8. ❌ repeat with authored next-volume overlay;
-9. ❌ observe deterministic original-game effect and rollback;
-10. ❌ run final L1/L2/L3 contradiction audits independently.
-
-The still-open raw scheduler dependency remains a separate L3 proof task. It must not be silently inferred from older labels when the exact canonical executable bytes are unavailable for a fresh pass.
+4. ⚠️ perform the still-open scheduler raw pass against the exact canonical executable; current byte availability removes the old access excuse but does not itself close the scheduler claim;
+5. ❌ obtain/process a real protected-process R2B mapping packet;
+6. ❌ capture trusted selected-provider/member identity without synthesizing probes;
+7. ❌ bind selected member to independently materialized SHA/provenance;
+8. ❌ bind materialization success to LoadedResource lifecycle observation;
+9. ❌ repeat with authored next-volume overlay;
+10. ❌ observe deterministic original-game effect and rollback;
+11. ❌ run final L1/L2/L3 contradiction audits independently.
 
 ## 7. Long-term milestones
 
