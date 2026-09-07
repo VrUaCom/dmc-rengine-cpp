@@ -1,3 +1,4 @@
+#include "dmc_rengine/analysis/mod/animation_binding.hpp"
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
 #include "dmc_rengine/formats/mod/world_transform.hpp"
 
@@ -8,6 +9,7 @@
 #include <cstdint>
 #include <vector>
 
+namespace animation = dmc::rengine::analysis::mod;
 namespace domain = dmc::rengine::formats::mod::transform_domain;
 namespace world = dmc::rengine::formats::mod::world_transform;
 
@@ -163,6 +165,7 @@ int main() {
     spatial.transform_records_finite = true;
     spatial.node_at_order_position = {0U, 2U, 1U};
     spatial.parent_by_order_position = {-1, 0, 2};
+    spatial.adapter_table = {0U, 2U, 1U};
     spatial.local_transform_records_by_node_index.resize(3U);
     spatial.local_transform_records_by_node_index[0].translation =
         domain::Vec3f{10.0F, 0.0F, 0.0F};
@@ -170,6 +173,21 @@ int main() {
         domain::Vec3f{0.0F, 0.0F, 2.0F};
     spatial.local_transform_records_by_node_index[2].translation =
         domain::Vec3f{0.0F, 5.0F, 0.0F};
+
+    const auto animation_binding = animation::project_animation_binding(spatial);
+    assert(animation_binding.has_value());
+    assert(animation_binding->by_node_index.size() == 3U);
+    assert(animation_binding->node_at_order_position ==
+           spatial.node_at_order_position);
+    assert(animation_binding->by_node_index[0].parent_node_index == -1);
+    assert(animation_binding->by_node_index[0].motion_group == 0U);
+    assert(animation_binding->by_node_index[0].order_position == 0U);
+    assert(animation_binding->by_node_index[2].parent_node_index == 0);
+    assert(animation_binding->by_node_index[2].motion_group == 2U);
+    assert(animation_binding->by_node_index[2].order_position == 1U);
+    assert(animation_binding->by_node_index[1].parent_node_index == 2);
+    assert(animation_binding->by_node_index[1].motion_group == 1U);
+    assert(animation_binding->by_node_index[1].order_position == 2U);
 
     assert(world::supports_spatial_hierarchy(spatial));
     const auto model_world = world::build_model_space_world_matrices(spatial);
@@ -186,6 +204,53 @@ int main() {
     assert(near(tip_position.x, 10.0F));
     assert(near(tip_position.y, 5.0F));
     assert(near(tip_position.z, 2.0F));
+
+    std::vector<world::Matrix4f> animated_local_by_node(3U);
+    for (std::size_t node = 0U; node < animated_local_by_node.size(); ++node) {
+        animated_local_by_node[node] = world::build_local_matrix(
+            spatial.local_transform_records_by_node_index[node]);
+    }
+
+    const auto animated_rest_world = animation::build_animated_world_matrices(
+        spatial,
+        animated_local_by_node,
+        world::identity_matrix());
+    assert(animated_rest_world.has_value());
+    assert(near(world::world_position((*animated_rest_world)[0]).x, 10.0F));
+    assert(near(world::world_position((*animated_rest_world)[2]).y, 5.0F));
+    assert(near(world::world_position((*animated_rest_world)[1]).z, 2.0F));
+
+    const auto animated_rest_palette = animation::build_animated_skin_palette(
+        spatial,
+        animated_local_by_node,
+        world::identity_matrix());
+    assert(animated_rest_palette.has_value());
+    for (const auto& matrix : *animated_rest_palette)
+        assert(near_identity(matrix));
+
+    auto animated_pose = animated_local_by_node;
+    animated_pose[1].values[12] += 3.0F;
+    const auto animated_pose_palette = animation::build_animated_skin_palette(
+        spatial,
+        animated_pose,
+        world::identity_matrix());
+    assert(animated_pose_palette.has_value());
+    assert(near((*animated_pose_palette)[1].values[12], 3.0F));
+    assert(near((*animated_pose_palette)[1].values[13], 0.0F));
+    assert(near((*animated_pose_palette)[1].values[14], 0.0F));
+    assert(near_identity((*animated_pose_palette)[0]));
+    assert(near_identity((*animated_pose_palette)[2]));
+
+    const std::vector<world::Matrix4f> wrong_animated_size(2U);
+    assert(!animation::build_animated_world_matrices(
+        spatial,
+        wrong_animated_size,
+        world::identity_matrix()).has_value());
+
+    auto missing_motion_groups = spatial;
+    missing_motion_groups.adapter_table.pop_back();
+    assert(!animation::project_animation_binding(
+        missing_motion_groups).has_value());
 
     auto root_base = world::identity_matrix();
     root_base.values[12] = 100.0F;
