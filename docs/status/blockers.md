@@ -1,8 +1,10 @@
 # Current Blockers
 
-**Snapshot date:** 2026-09-06  
-**Canonical base reviewed:** `main@78e360c9f1d154409d83ffcc146cc2920e8548a4`  
-**Latest integration promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
+**Snapshot date:** 2026-09-07  
+**Canonical base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
+**Latest reviewed repository promotion:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
+**Latest reverse/model-family promotion:** PR #323 — MOD mesh preservation + skin ABI closure  
+**Latest Native Reader module promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
 
 The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [GDSpaces Proof Roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
@@ -157,17 +159,35 @@ Requires the claimed collision scope, real protected-runtime mapping, trusted se
 
 **Status:** ✅ CLOSED / PROMOTED BY PR #288
 
-The canonical implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The exact PR-head tree passed Ubuntu + Windows build/test CI before squash promotion, and `main@78e360c9...` contains that same tree.
+The canonical implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The exact PR-head tree passed Ubuntu + Windows build/test CI before promotion, and the promoted SHW tree remains contained in current `main`.
 
-PR #288 also closed two integration defects found during review rather than weakening tests: SHW is now consistently routed through `ToolRegistry` and `OpenRouter` to the `modviz_scene` consumer, and `ResourceAnalyzer` fails closed when parser completion cannot publish its canonical workspace validation receipt. Cross-registry tests now verify parser IDs, Native Reader modules, consumer targets, primary scene routing, valid/deduplicated tool routes and module-to-format reachability.
+PR #288 also closed two integration defects found during review rather than weakening tests: SHW is consistently routed through `ToolRegistry` and `OpenRouter` to the `modviz_scene` consumer, and `ResourceAnalyzer` fails closed when parser completion cannot publish its canonical workspace validation receipt. Cross-registry tests verify parser IDs, Native Reader modules, consumer targets, primary scene routing, valid/deduplicated tool routes and module-to-format reachability.
 
-This closes the **structural reader product promotion only**. Matrix-palette ownership, universal revision coverage and writer/original-game authoring acceptance remain open.
+This closes the **structural reader product promotion only**. SHW matrix-palette ownership, universal revision coverage and writer/original-game authoring acceptance remain open.
 
 ### B-NR-SHW-02 — SHW mutation authority
 
 **Status:** ❌ OPEN / NOT CLOSED BY #288
 
-Writer work requires broader variant coverage, matrix-palette ownership, rebuild/reopen validation and original-game authored-resource acceptance. Structural read support must not be treated as mutation authority.
+Writer work requires broader variant coverage, SHW matrix-palette ownership, rebuild/reopen validation and original-game authored-resource acceptance. Structural read support must not be treated as mutation authority.
+
+## MOD/model-family evidence boundary
+
+**Status:** ✅ READ/REVERSE EVIDENCE ADVANCED / ❌ WRITER + ORIGINAL-GAME MUTATION ACCEPTANCE OPEN
+
+PRs #305/#307/#310/#312-#318/#323 materially strengthened the canonical MOD/model-family contract: hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, texture companion/binding, inverse-rest skin palette, runtime texture descriptor, runtime object-state projection, preserved serialized mesh fields and direct skin ABI evidence are now promoted.
+
+This progress does **not** close:
+
+- MOD writer authority;
+- byte-identical no-edit MOD rebuild;
+- safe mutation ranges for preserved-undecoded mesh fields;
+- complete TIM2 semantics or production texture replacement authority;
+- complete current animation/pose ownership;
+- original-game edited-MOD acceptance;
+- Capcom offline-tool equivalence.
+
+These are format/authoring boundaries, not substitutes for the GDSpaces L1/L2/L3 proof chain.
 
 ## Layer 3 blockers
 
@@ -185,9 +205,9 @@ Close family/group ownership and lifecycle ordering for `+0x08`, `+0x10` where a
 
 ### B-L3-03 — Materialization scheduler terminal dependency
 
-**Status:** ❌ RAW CANONICAL PASS REQUIRED
+**Status:** ❌ FRESH BOUNDED CANONICAL PASS REQUIRED
 
-The bounded seam already proves materialization-dispatch success precedes state1 and normal callback `0x1401B8DC0` publishes state2. The still-open question is the exact lower scheduler/transport condition that allows or suppresses that normal completion after failed/incomplete transport.
+The bounded seam already proves materialization-dispatch success precedes state1 and normal callback `0x1401B8DC0` publishes state2. The still-open question is the exact lower scheduler/transport condition that allows or suppresses normal completion after failed/incomplete transport.
 
 Fresh raw targets:
 
@@ -199,7 +219,7 @@ Fresh raw targets:
 - `0x1402EF460`;
 - regression anchor `0x1401B8DC0`.
 
-Do not promote historical helper labels without fresh canonical bytes.
+The exact canonical executable bytes are now available to recent reverse work. That removes the old access excuse but **does not close this blocker**: these scheduler targets still require their own address/range/scope-bounded pass and contradiction review.
 
 ### B-L3-04 — V1–V7 original-process receipts
 
@@ -246,6 +266,8 @@ Depends on static promotion/ownership closure plus accepted original-process lif
 
 ## Current access boundary
 
-The connected environment currently lacks the trusted protected-process/install observations required for B-L1-01..04 and B-L2-03..05. During the 2026-09-05 proof pass the exact raw canonical `e454...` executable blob was also not located in the connected Library, so B-L3-03 is intentionally left open rather than filled from prior hypotheses.
+The connected environment still lacks the trusted protected-process/install observations required for B-L1-01..04 and B-L2-03..05.
 
-The `dmc3-0.nbz` collision census is already closed for its exact bound artifact and must not be listed as an access blocker anymore.
+The old 2026-09-05 statement that the exact raw canonical `e454...` executable was unavailable is no longer current: it has been supplied and used in recent promoted MOD/model-family static reverse passes. Static byte availability does not substitute for protected-process evidence and does not automatically close unrelated scheduler/transport targets such as B-L3-03.
+
+The `dmc3-0.nbz` collision census remains closed for its exact bound artifact and is not an access blocker.
