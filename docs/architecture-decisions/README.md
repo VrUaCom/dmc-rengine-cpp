@@ -6,6 +6,7 @@ ADRs record decisions that materially affect long-term architecture, governance,
 
 - [ADR-0001 — Defer GUI Technology Selection](ADR-0001-ui-deferred.md)
 - [ADR-0002 — Initial MIT License](ADR-0002-mit-license.md)
+- [ADR-0003 — Modular Format Architecture](ADR-0003-modular-format-architecture.md)
 
 ## Process
 
