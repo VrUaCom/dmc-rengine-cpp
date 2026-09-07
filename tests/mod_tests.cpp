@@ -84,6 +84,9 @@ std::vector<std::byte> make_valid_mod() {
     put_f32(bytes, 0x04U, 1.01F);
     put_u8(bytes, 0x10U, 1U); // outer records
     put_u8(bytes, 0x11U, 1U); // transform-domain nodes
+    put_u8(bytes, 0x12U, 8U); // serialized texture-slot-domain mirror
+    put_u8(bytes, 0x13U, 0x5AU); // raw runtime-carried mode byte
+    put_u32(bytes, 0x14U, 0x12345678U); // raw runtime-carried metadata
     put_u64(bytes, 0x20U, 0x200U);
 
     put_u8(bytes, 0x40U, 1U); // one inner mesh
@@ -181,6 +184,9 @@ int main() {
         const auto parsed = mod::Parser::parse(make_valid_mod());
         assert(parsed.recognized);
         assert(parsed.ok());
+        assert(parsed.document.header.texture_slot_count == 8U);
+        assert(parsed.document.header.runtime_mode_byte == 0x5AU);
+        assert(parsed.document.header.runtime_metadata_u32 == 0x12345678U);
         assert(parsed.document.outer_models.size() == 1U);
         const auto& outer = parsed.document.outer_models.front();
         assert(outer.aggregate_element_count == 1U);

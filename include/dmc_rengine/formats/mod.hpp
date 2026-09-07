@@ -3,6 +3,7 @@
 #include "dmc_rengine/formats/diagnostic.hpp"
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
 #include "dmc_rengine/formats/mod_skin.hpp"
+#include "dmc_rengine/formats/model_document_core.hpp"
 #include "dmc_rengine/formats/model_mesh_core.hpp"
 #include "dmc_rengine/formats/model_object_core.hpp"
 
@@ -14,7 +15,8 @@
 
 namespace dmc::rengine::formats::mod {
 
-inline constexpr std::size_t header_size = 0x40U;
+inline constexpr std::size_t header_size =
+    model_family::DocumentCoreAbi::header_size;
 inline constexpr std::size_t outer_record_size =
     model_family::ObjectCoreAbi::record_size;
 inline constexpr std::size_t inner_record_size =
@@ -102,6 +104,17 @@ struct Header final {
     float version{};
     std::uint8_t outer_record_count{};
     std::uint8_t transform_domain_count{};
+
+    // Serialized texture-slot-domain count/mirror. The canonical manager takes
+    // live texture-table authority from the external companion, so this value
+    // is retained for comparison rather than treated as runtime truth.
+    std::uint8_t texture_slot_count{};
+
+    // EXE-confirmed header bytes carried through the common model manager path;
+    // semantic names remain unresolved for MOD and are intentionally raw.
+    std::uint8_t runtime_mode_byte{};
+    std::uint32_t runtime_metadata_u32{};
+
     std::uint64_t document_offset{};
 };
 
