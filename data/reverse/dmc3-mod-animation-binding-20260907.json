@@ -1,0 +1,45 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "canonical_base": "6630f8cafa3f69d2eee8084da9e8feb479d38fd4",
+  "scope": "MOD-side animation binding composition",
+  "promotion_kind": "composition_of_existing_exe_confirmed_contracts",
+  "claims": [
+    {
+      "range": "0x14030F850-0x14030F9AE",
+      "claim": "MOD node-domain tables are bound into CMotion; the third table is read by hierarchy order position, mapped through nodeAtOrderPosition and stored as the CMotion joint motion-group selector at +0xF8",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "range": "0x14030E658-0x140311411",
+      "claim": "multiple CMotion evaluator/control sites filter joints by the +0xF8 motion-group selector",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "range": "0x1402F9700",
+      "claim": "MOD currentWorld hierarchy uses row-vector composition root=local*rootBase and child=local*parentWorld",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "range": "0x140300580-0x1403006C3",
+      "claim": "MOD skin palette composition is inverseRestWorld[node] * currentWorld[node]",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "implementation": {
+    "header": "include/dmc_rengine/analysis/mod/animation_binding.hpp",
+    "source": "src/analysis/mod/animation_binding.cpp",
+    "regression_test": "tests/mod_transform_domain_tests.cpp"
+  },
+  "boundaries": {
+    "mot_payload_decode": "out_of_scope",
+    "mot_track_channel_semantics": "preserved_undecoded",
+    "serialized_mod_rest_local_mutation": "rejected_by_design_for_this_analysis_module",
+    "writer_authority": "not_promoted",
+    "additional_cmotion_joint_offsets": "not re-promoted by this slice; exact-byte revalidation is required before extending the ABI"
+  }
+}
