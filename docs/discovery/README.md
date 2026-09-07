@@ -96,10 +96,12 @@ cmake
 game-modding
 modding-tools
 resource-extraction
-game-engine-research
+game-reversing
 windows
 x86-64
 ```
+
+2026-09-07 topic-budget review: `game-engine-research` was removed after a live GitHub topic-surface check returned no repositories for that topic. `game-reversing` has an active, semantically aligned game reverse-engineering surface and replaces that slot without increasing the 20-topic budget.
 
 Do not add a topic that is semantically false merely because it has higher search volume.
 
