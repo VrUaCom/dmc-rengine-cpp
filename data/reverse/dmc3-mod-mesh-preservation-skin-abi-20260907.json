@@ -1,0 +1,126 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-mesh-preservation-skin-abi",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "mod_postload_va": "0x1402FE3B0",
+    "runtime_mesh_builder_va": "0x1402FE6A0",
+    "blend_index_read_va": "0x1402F3D0A",
+    "blend_index_div4_va": "0x1402F3D0F",
+    "runtime_node_stride_use_va": "0x1402F3E59",
+    "current_world_stride_use_va": "0x1402F3E76",
+    "vertex_shader_table_initializer_va": "0x140045D00",
+    "vertex_shader_lookup_va": "0x1400461B0",
+    "mod_renderer_shader_select_va": "0x140047409",
+    "mod_renderer_shader_lookup_call_va": "0x140047424",
+    "status": "EXE_CONFIRMED"
+  },
+  "serialized_mesh": {
+    "record_size": "0x50",
+    "preservation_only_fields": {
+      "+0x0C": {
+        "type": "u32",
+        "status": "PRESERVED_UNDECODED",
+        "confirmed_runtime_load_treatment": "not relocated or copied by confirmed postload/runtime-mesh path"
+      },
+      "+0x38": {
+        "type": "u64",
+        "status": "PRESERVED_UNDECODED",
+        "confirmed_runtime_load_treatment": "not relocated or copied by confirmed postload/runtime-mesh path"
+      },
+      "+0x4C": {
+        "type": "u32",
+        "status": "PRESERVED_UNDECODED",
+        "confirmed_runtime_load_treatment": "not relocated or copied by confirmed postload/runtime-mesh path"
+      }
+    },
+    "runtime_live_streams": {
+      "+0x10": "positions",
+      "+0x18": "normals",
+      "+0x20": "uv",
+      "+0x28": "blend_indices",
+      "+0x30": "packed_weights_and_topology",
+      "+0x40": "generated_topology_workspace",
+      "+0x48": "generated_topology_count"
+    }
+  },
+  "skin_index_abi": {
+    "serialized_stream": "mesh +0x28",
+    "runtime_stream": "runtime mesh +0x140",
+    "active_lanes": [1, 2, 3],
+    "cpu_direct_proof_lane": 1,
+    "matrix_row_stride": 4,
+    "formula": "node_or_bone_index = raw_blend_index / 4",
+    "status": "EXE_CONFIRMED"
+  },
+  "skin_weight_abi": {
+    "serialized_stream": "mesh +0x30 u16 per vertex",
+    "topology_break_mask": "0x8000",
+    "weight_payload_mask": "0x7FFF",
+    "quantized_fields": [
+      "bits 0..4",
+      "bits 5..9",
+      "bits 10..14"
+    ],
+    "quantized_sum": 31,
+    "weight_formula": [
+      "w0 = ((packed >> 0) & 0x1F) / 31",
+      "w1 = ((packed >> 5) & 0x1F) / 31",
+      "w2 = ((packed >> 10) & 0x1F) / 31"
+    ],
+    "weight_to_index_lanes": [
+      "w0 -> BLENDINDICES.y",
+      "w1 -> BLENDINDICES.z",
+      "w2 -> BLENDINDICES.w"
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "runtime_shader_registry": {
+    "table_va": "0x1405612D0",
+    "entry_count": 29,
+    "entry_stride": "0x20",
+    "mod_entry": {
+      "tag": 5,
+      "descriptor_va": "0x140561370",
+      "dxbc_va": "0x14048A8B0",
+      "dxbc_raw_offset": "0x489AB0",
+      "dxbc_size": "0x8D84",
+      "input_element_count": 5,
+      "source_path": "C:\\dev\\dmc\\dmc3\\code\\dmc3\\source\\dmc3nb\\shaders\\hlsl\\vs\\DMC3_MOD.hlsl",
+      "dxbc_chunks": ["RDEF", "ISGN", "OSGN", "SHEX", "STAT", "SPDB"],
+      "input_signature": ["POSITION", "NORMAL", "TEXCOORD", "BLENDINDICES", "PSIZE"]
+    },
+    "adjacent_mod_variants": [
+      {
+        "tag": 6,
+        "dxbc_va": "0x140493640",
+        "source_path": "DMC3_MOD_SP.hlsl"
+      },
+      {
+        "tag": 7,
+        "source_path": "DMC3_MOD_STX.hlsl"
+      }
+    ]
+  },
+  "implementation": {
+    "preservation_header": "include/dmc_rengine/analysis/mod/mesh_serialized.hpp",
+    "compile_regression": "src/analysis/mod/mesh_serialized.cpp",
+    "skin_decoder": "include/dmc_rengine/formats/mod_skin.hpp",
+    "source_byte_authority": "formats::mod::Document::source_bytes"
+  },
+  "non_claims": [
+    "semantic names for mesh +0x0C/+0x38/+0x4C",
+    "global unused status for mesh +0x0C/+0x38/+0x4C",
+    "semantic purpose of BLENDINDICES.x",
+    "MOD writer authority",
+    "safe mutation of preserved mesh fields",
+    "edited skin-data acceptance by the original game",
+    "complete current-animation pose ownership",
+    "byte-identical no-edit MOD rebuild"
+  ]
+}

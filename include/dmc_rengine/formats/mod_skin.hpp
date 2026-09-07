@@ -56,10 +56,15 @@ inline constexpr std::uint16_t packed_weight_mask = 0x7FFFU;
 inline constexpr std::uint8_t quantized_weight_sum = 31U;
 inline constexpr std::uint8_t matrix_row_stride = 4U;
 
-// Evidence-backed read-only decoder for the recovered DMC3-HD MOD revision.
-// blend_indices[0] is a reserved/constant lane in the current corpus.
-// Active quantized weights map to blend_indices[1..3], whose values are
-// float4-row offsets; divide by four to obtain the skin matrix/bone index.
+// EXE-confirmed read-only decoder for the recovered DMC3-HD MOD revision.
+// CPU consumer 0x1402F3D0A..0x1402F3D0F reads BLENDINDICES lane[1] as a
+// float4-row offset and divides by four before indexing node/world matrices.
+// Runtime-selected vertex shader descriptor tag 5 resolves to DMC3_MOD.hlsl;
+// its DXBC/SPDB source decodes three 5-bit PSIZE weights with denominator 31
+// and binds them to matIndex.y/z/w four-row matrix starts in extraMatrices[].
+// The high 0x8000 source bit is independent topology state consumed/cleared by
+// canonical MOD post-load before the packed 15-bit weight payload is retained.
+// blend_indices[0] remains reserved/constant in the currently bound corpus.
 [[nodiscard]] SkinDecodeResult decode_vertex_skin(
     const std::array<std::uint8_t, 4>& blend_indices,
     std::uint16_t packed_weights_and_topology,
