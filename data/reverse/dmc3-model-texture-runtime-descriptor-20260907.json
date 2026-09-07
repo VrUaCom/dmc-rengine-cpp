@@ -1,0 +1,79 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-model-texture-runtime-descriptor",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "companion_materializer_va": "0x140304B30",
+    "runtime_descriptor_builder_va": "0x14030D040",
+    "shared_material_consumer_va": "0x1402F9890",
+    "dimension_exponent_helper_va": "0x140331070",
+    "status": "EXE_CONFIRMED"
+  },
+  "runtime_descriptor": {
+    "record_size": "0x40",
+    "mip_source_pointer_fields": ["+0x00", "+0x08", "+0x10", "+0x18"],
+    "gs_tex0_field": "+0x20",
+    "gs_miptbp1_field": "+0x28",
+    "mip_count_minus_one_field": "+0x30",
+    "base_width_field": "+0x34",
+    "unpromoted_tail": "+0x38..+0x3F"
+  },
+  "tex0": {
+    "layout": {
+      "TBP0": "bits 0..13",
+      "TBW": "bits 14..19",
+      "PSM": "bits 20..25",
+      "TW": "bits 26..29",
+      "TH": "bits 30..33",
+      "TCC": "bit 34",
+      "TFX": "bits 35..36",
+      "CBP": "bits 37..50",
+      "CPSM": "bits 51..54",
+      "CSM": "bit 55",
+      "CSA": "bits 56..60",
+      "CLD": "bits 61..63"
+    },
+    "consumer": "0x1402F9890 copies descriptor +0x20 into model material packet",
+    "status": "EXE_CONFIRMED"
+  },
+  "miptbp1": {
+    "layout": {
+      "TBP1": "bits 0..13",
+      "TBW1": "bits 14..19",
+      "TBP2": "bits 20..33",
+      "TBW2": "bits 34..39",
+      "TBP3": "bits 40..53",
+      "TBW3": "bits 54..59"
+    },
+    "builder_status": "EXE_CONFIRMED",
+    "downstream_consumer_status": "OPEN"
+  },
+  "source_record_inputs": {
+    "record_size": "0x50",
+    "psm": "+0x04",
+    "gs_base_pointer_units": "+0x06",
+    "tbw": "+0x08",
+    "width": "+0x0A",
+    "height": "+0x0C",
+    "allocation_span_units": "+0x0E"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/formats/model_texture_runtime.hpp",
+    "compile_regression": "src/formats/model_texture_runtime.cpp",
+    "scope": "read-only runtime ABI and GS register decode"
+  },
+  "non_claims": [
+    "serialized runtime-descriptor file format",
+    "runtime descriptor writer",
+    "complete TIM2 internal schema",
+    "complete intermediate 0x50 source-record semantics",
+    "MIPTBP1 consumption by shared material helper 0x1402F9890",
+    "descriptor +0x38..+0x3F semantics",
+    "production texture replacement authority"
+  ]
+}
