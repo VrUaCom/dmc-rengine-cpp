@@ -1,0 +1,52 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-texture-binding",
+  "date": "2026-09-07",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "authority": {
+    "manager_initializer_va": "0x1402F9570",
+    "companion_materializer_va": "0x140304B30",
+    "runtime_table_builder_va": "0x14030D040",
+    "material_consumer_va": "0x1402F9890",
+    "status": "EXE_CONFIRMED"
+  },
+  "binding_contract": {
+    "header_texture_domain_mirror": {
+      "field": "+0x12",
+      "type": "u8",
+      "authority": "consistency_mirror"
+    },
+    "mesh_texture_slot": {
+      "field": "+0x02",
+      "type": "u16"
+    },
+    "companion_texture_count": {
+      "field": "+0x000",
+      "type": "u32",
+      "authority": "live_runtime_texture_domain"
+    },
+    "runtime_descriptor_stride": "0x40",
+    "selection": "mesh.texture_slot * 0x40"
+  },
+  "validation_policy": {
+    "runtime_valid_when": "companion valid and every mesh texture_slot < companion texture_count",
+    "header_mirror_mismatch": "reported but not runtime-fatal by itself",
+    "invalid_companion": "fail closed without per-mesh range conclusions"
+  },
+  "implementation": {
+    "analysis": "include/dmc_rengine/analysis/mod/texture_binding.hpp",
+    "test": "tests/model_family_tests.cpp"
+  },
+  "non_claims": [
+    "original game emits header/companion mismatch diagnostics",
+    "universal header/companion equality invariant",
+    "MOD writer authority",
+    "companion writer authority",
+    "complete runtime descriptor semantics",
+    "complete TIM2 internal schema"
+  ]
+}
