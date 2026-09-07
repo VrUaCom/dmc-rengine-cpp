@@ -2,22 +2,25 @@
 
 **Snapshot date:** 2026-09-07  
 **Canonical implementation base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
-**Latest repository promotion in this snapshot:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
+**Latest repository promotion in this reviewed snapshot:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
 **Latest canonical reverse/model-family promotion:** PR #323 — EXE-backed MOD mesh preservation + skin ABI closure  
 **Latest canonical Native Reader module promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
+**Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
+**Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete. Canonical implementation and MOD/model-family reverse evidence advanced materially on 2026-09-07, but no product, parser, writer, synthetic CI result or discovery feature overrides the mandatory original-runtime/evidence gates.
+**Overall status:** L1/L2/L3 remain incomplete; canonical implementation and MOD/model-family evidence have advanced materially, but real protected-process/original-game receipts remain mandatory.
 
 ## Authority split
 
 - GitHub `main` is canonical implementation truth.
 - A pull-request branch is branch truth until promoted.
 - Reverse claims are bounded to exact artifact/address/range/scope.
-- Synthetic/public CI proves bounded product/tool behavior only.
+- Synthetic/public CI proves product/tool behavior only.
 - Original-game equivalence requires canonical-EXE reverse plus original-process evidence where runtime identity/consumption is claimed.
 - Retail corpus claims require hash-bound corpus receipts.
 - DMC Rengine product-safety policies such as atomic/no-replace publication are not presented as Capcom behavior.
-- Discovery/SEO pages are readability/navigation surfaces, never a second technical authority.
+- Canonical analysis executable and protected distribution execution authority are separate builds; canonical VAs/RVAs require independent mapping before protected-process use.
+- Discovery/SEO pages are navigation/readability surfaces, never a second technical authority.
 
 See [project roadmap](../roadmap.md) and [proof roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
 
@@ -49,19 +52,13 @@ Canonical built-in reader modules on current `main`:
 - SHW;
 - PE/EXE.
 
-Current reader frontier:
+SHW is canonical as `formats.shw-structural-v1`, structural/read-only. The promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; SHW matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
 
-- EFM — reverse evidence exists, but no canonical Native Reader module;
-- MOT — research/parser work exists outside the canonical reader set;
-- MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
-
-### SHW boundary
-
-SHW remains canonical as `formats.shw-structural-v1`, structural/read-only, promoted by PR #288. The slice is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). No SHW writer, universal revision coverage or original-game authored-SHW acceptance is claimed.
+PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry`, parser-validation publication and `ResourceAnalyzer` share explicit regression contracts. Parser execution is fail-closed if its canonical workspace completion receipt cannot be published. The exact PR head tree passed Ubuntu + Windows build/test CI before promotion.
 
 ### MOD / model-family promotion stack
 
-The MOD reader remains read-only, but its canonical structural/runtime evidence is substantially stronger than the 2026-09-06 status snapshot. Promoted slices now include:
+The MOD reader remains read-only, but canonical structural/runtime evidence has advanced substantially since the previous status snapshot. Promoted slices include:
 
 - PR #305 — canonical hierarchy/local transforms/world propagation consolidation;
 - PR #307 — typed mesh texture slot + legacy GS CLAMP state;
@@ -75,15 +72,13 @@ The MOD reader remains read-only, but its canonical structural/runtime evidence 
 - PR #318 — EXE-backed object runtime flag/render-parameter projection;
 - PR #323 — serialized mesh `+0x0C/+0x38/+0x4C` preservation classification plus direct `/4` blend-index and 5+5+5-bit `/31` weight ABI evidence.
 
-These promotions authorize stronger truthful read-only MOD inspection, skeleton/weight visualization and pose-aware analysis. They do **not** establish:
+These promotions strengthen truthful read-only MOD inspection, skeleton/weight visualization and pose-aware analysis. They do **not** establish MOD writer authority, byte-identical no-edit rebuild, safe mutation ranges for unresolved fields, complete TIM2 semantics, production texture replacement authority, complete current animation/pose ownership, original-game edited-MOD acceptance or Capcom offline-tool equivalence.
 
-- MOD writer authority;
-- byte-identical no-edit MOD rebuild;
-- safe mutation ranges for unresolved serialized fields;
-- complete TIM2 semantics or production texture replacement authority;
-- complete current animation/pose ownership;
-- edited MOD acceptance by the original game;
-- Capcom offline-tool equivalence.
+Current reader frontier:
+
+- EFM — reverse evidence exists, but no canonical Native Reader module;
+- MOT — research/parser work exists outside the canonical reader set;
+- MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
 
 ## L1 — Resource Materialization
 
@@ -102,6 +97,14 @@ These promotions authorize stronger truthful read-only MOD inspection, skeleton/
 - canonical reopen/rematerialization checks;
 - direct-retail acquisition tooling and protected-build preflight.
 
+### Reverse-backed bounded facts
+
+- `DMC3-%d.nbz` bootstrap and first-gap discovery;
+- PAC/PNST typed traversal in the recovered post-load path;
+- PAC physical slot 0 is traversed;
+- materialization-dispatch success gates LoadedResource state1;
+- packed-vs-`.lst` representation selection is original-runtime authority; external `.index` is not recovered as runtime materialization authority on this path.
+
 ### Mandatory remaining L1 receipts
 
 1. real protected-install resolver-selected provenance;
@@ -116,16 +119,44 @@ These promotions authorize stronger truthful read-only MOD inspection, skeleton/
 
 ## L2 — Resource Resolution
 
-Reverse-backed/canonical work includes the six-prefix bounded direct-call policy, numbered-volume bootstrap/first-gap discovery, successful-registration prepend ordering, clean higher-volume precedence, archive/physical normalization, type-0 physical final-open behavior, and the PR #287 correction that discovery/registration attempts are not the same thing as successful linked mount topology.
+### Closed/reverse-backed
 
-Bound retail `dmc3-0.nbz` still has the exact one-volume collision receipt:
+- `OpenGameResource` bounded direct caller census;
+- six-prefix archive-then-physical request policy for the recovered direct-call surface;
+- executable-relative `data\\dmc3\\` root and numbered first-gap discovery;
+- successful archive registrations prepend to the mount list;
+- clean higher-numbered archive precedence;
+- archive `0x0E` / physical `0x0C` normalization;
+- terminal archive-wrapper failure distinction;
+- type-0 physical final-open/miss bounded contract;
+- protected-runtime mapping tooling (#219).
+
+### Retail collision evidence
+
+Bound retail `dmc3-0.nbz`:
 
 ```text
 files-only          : 4333 keys / 4333 unique / 0 collisions
 all central entries : 4334 keys / 4334 unique / 0 collisions
 ```
 
-Remaining L2 frontier:
+Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
+
+This closes collision freedom only for that exact archive. Wider resolver scope still requires per-volume and cross-volume census.
+
+### Successful-mount topology correction
+
+PR #287 is promoted to `main`. The product model reflects the reverse-backed distinction:
+
+```text
+filename discovery / registration attempt
+!=
+successful linked runtime mount topology
+```
+
+Canonical product behavior keeps discovery evidence separate from explicitly successful providers; sparse successful archive registration is representable; the resolver traverses only successful topology; discovered-but-failed archives are absent rather than manufactured as misses; failed physical registration produces no physical probe. Product receipts still do not claim original-process mount topology.
+
+### Remaining L2 frontier
 
 - per-volume + cross-volume collision census for any wider resolver scope;
 - real protected-process R2B multi-anchor mapping receipt;
@@ -137,7 +168,7 @@ Remaining L2 frontier:
 
 ## L3 — Original Runtime / Lifecycle
 
-Reverse-backed bounded core still includes:
+Reverse-backed bounded core includes:
 
 - 363-record LoadedResource registry topology;
 - acquisition/materialization success -> state1;
@@ -148,7 +179,7 @@ Reverse-backed bounded core still includes:
 - distinct ordinary release, cancellation cleanup and forced reset policies;
 - central typed dispatcher paths for MOD/EFM/SCM/SHW plus PNST recursion.
 
-The new MOD post-load/runtime evidence strengthens one family-specific part of this spine but does not close global lifecycle proof.
+The promoted MOD post-load/runtime evidence strengthens one family-specific part of this spine but does not close global lifecycle proof.
 
 Remaining L3 work:
 
@@ -176,12 +207,12 @@ OpenGameResource(request)
 
 Then repeat the same lineage with an authored next-volume NBZ and rollback.
 
-Immediate proof order remains:
+Immediate order:
 
 1. ✅ roadmap/status reconciled to proof-level truth;
 2. ✅ successful-mount topology correction promoted by PR #287;
 3. ✅ SHW structural Native Reader and cross-registry routing/validation hardening promoted by PR #288;
-4. ⚠️ canonical EXE bytes are now available to recent reverse work, but the still-open materialization-scheduler terminal dependency requires its own fresh bounded raw pass and must not be inferred from MOD evidence;
+4. ⚠️ exact canonical EXE bytes are now available to recent reverse work, but the still-open materialization-scheduler terminal dependency requires its own fresh raw pass and must not be inferred from MOD evidence;
 5. ❌ execute protected-process R2B mapping;
 6. ❌ capture trusted R3 selected identity;
 7. ❌ bind selected identity to exact independently materialized bytes;
@@ -192,13 +223,13 @@ Immediate proof order remains:
 
 ## Current evidence-access boundary
 
-The old 2026-09-05 statement that raw canonical `e454...` bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for the promoted 2026-09-06/07 MOD/model-family reverse slices listed above.
+The old 2026-09-05 statement that raw canonical `e454...` executable bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for the promoted 2026-09-06/07 MOD/model-family reverse slices listed above.
 
-That availability is **not** a blanket proof upgrade. Each unrelated GDSpaces/L3 raw target must still receive its own fresh address/range/scope-bounded analysis before any claim changes, and protected-process/original-consumption gates remain mandatory where runtime identity or acceptance is claimed.
+That availability is **not** a blanket proof upgrade. Each unrelated GDSpaces/L3 raw target still requires its own fresh address/range/scope-bounded analysis before any claim changes, and protected-process/original-consumption gates remain mandatory where runtime identity or acceptance is claimed.
 
 ## Discovery/publication state
 
-The repository now contains the controlled discovery-site builder, unique public entry pages, canonical/OG metadata, share metadata, citation metadata and manifest-backed breadcrumbs. GitHub Pages deployment remains fail-closed and is still a repository-settings gate; discovery work does not change technical completion state.
+The repository contains the controlled discovery-site builder, distinct public entry pages, canonical/Open Graph metadata, share metadata, root `CITATION.cff` and manifest-backed crawlable breadcrumbs/`BreadcrumbList`. GitHub Pages deployment remains fail-closed and is still a repository-settings gate. Discovery work does not alter L1/L2/L3 completion.
 
 ## Navigation
 
