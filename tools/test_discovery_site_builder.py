@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import html
 import shutil
 import sys
 import tempfile
@@ -132,6 +133,10 @@ def main() -> None:
         sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
 
         assert 'rel="canonical" href="https://vruacom.github.io/dmc-rengine-cpp/"' in index
+        assert '<meta property="og:site_name" content="DMC Rengine">' in index
+        assert '<meta name="twitter:card" content="summary">' in index
+        assert "og:image" not in index
+        assert "twitter:image" not in index
         assert "https://vruacom.github.io/dmc-rengine-cpp/assets/style.css" in index
         assert "https://vruacom.github.io/dmc-rengine-cpp/formats/" in index
         assert "Research surface" in index
@@ -148,6 +153,16 @@ def main() -> None:
 
         for page in manifest["pages"]:
             generated = site.page_output(output, page["path"]).read_text(encoding="utf-8")
+            escaped_title = html.escape(page["title"], quote=True)
+            escaped_description = html.escape(page["description"], quote=True)
+            assert f'<meta property="og:title" content="{escaped_title}">' in generated
+            assert f'<meta property="og:description" content="{escaped_description}">' in generated
+            assert '<meta property="og:site_name" content="DMC Rengine">' in generated
+            assert '<meta name="twitter:card" content="summary">' in generated
+            assert f'<meta name="twitter:title" content="{escaped_title}">' in generated
+            assert f'<meta name="twitter:description" content="{escaped_description}">' in generated
+            assert "og:image" not in generated
+            assert "twitter:image" not in generated
             for link in page["related_links"]:
                 assert site.public_url(base, link["path"]) in generated
                 assert link["label"] in generated
@@ -156,6 +171,7 @@ def main() -> None:
         site.build(no_base, None)
         no_base_index = (no_base / "index.html").read_text(encoding="utf-8")
         assert 'rel="canonical"' not in no_base_index
+        assert '<meta name="twitter:card" content="summary">' in no_base_index
         assert not (no_base / "sitemap.xml").exists()
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
