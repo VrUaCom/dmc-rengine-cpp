@@ -1,20 +1,14 @@
 {
-  "schema_version": 4,
-  "snapshot_date": "2026-09-06",
+  "schema_version": 5,
+  "snapshot_date": "2026-09-07",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "78e360c9f1d154409d83ffcc146cc2920e8548a4",
-  "working_proof_branch": "none",
-  "working_proof_pr": 0,
-  "latest_promoted_pr": 288,
+  "snapshot_main_sha": "109b63009949be526aa691809d39a27db076e4ff",
+  "latest_promoted_pr": 325,
+  "latest_reverse_model_family_pr": 323,
+  "latest_native_reader_module_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
-  "proof_marks": {
-    "proven_closed": "claim-closed-at-required-authority",
-    "implemented_proof_open": "implementation-or-research-exists-but-required-proof-or-canonical-promotion-is-open",
-    "open": "mandatory-work-or-evidence-missing",
-    "product_policy_reverse_na": "deliberate-dmc-rengine-policy-not-claimed-as-capcom-behavior"
-  },
   "truth_layers": {
     "github_main": "reviewed-implemented-canonical-truth",
     "active_pr": "branch-truth-until-merged",
@@ -22,14 +16,16 @@
     "retail_corpus": "hash-bound-artifact-measurement-required",
     "synthetic_ci": "bounded-product-validation-not-original-game-equivalence",
     "protected_process": "trusted-runtime-receipt-required",
-    "authoring_acceptance": "generated-artifact-identity-plus-original-selection-consumption-and-rollback"
+    "authoring_acceptance": "generated-artifact-identity-plus-original-selection-consumption-and-rollback",
+    "discovery_surface": "navigation-readability-only-not-technical-authority"
   },
   "canonical_analysis_executable": {
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "size": 6356432,
     "format": "PE32+-x86-64",
     "image_base": "0x140000000",
-    "role": "instruction-reverse-authority"
+    "role": "instruction-reverse-authority",
+    "current_access": "available-to-recent-promoted-mod-model-family-reverse-passes"
   },
   "protected_distribution_execution_candidate": {
     "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
@@ -51,44 +47,6 @@
       "shw",
       "pe"
     ],
-    "active_pr_additions": [],
-    "shw_slice": {
-      "parser_id": "formats.shw-structural-v1",
-      "implementation_status": "promoted-by-pr-288-canonical",
-      "write_policy": "read-only",
-      "real_payload_sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
-      "real_payload_size": 9488,
-      "schema_authority": "one-hash-bound-real-payload-plus-canonical-exe-corroboration",
-      "selector_semantics": "exe-confirmed-per-vertex-transform-matrix-selector",
-      "exact_tree_ci": {
-        "head_sha": "dc69a7375674981987abe54ca0dc50f245b5c9e3",
-        "promoted_tree_sha": "5b4a5fce10c887e9bf5314cd1d6f04a70137afb2",
-        "ubuntu": "success",
-        "windows": "success",
-        "workflow_run": 34019712762
-      },
-      "integration_contracts": [
-        "format-registry-parser-id-resolves-to-native-reader-module",
-        "native-reader-consumer-resolves-to-tool-registry-target",
-        "native-reader-consumer-is-present-in-resource-tool-routes",
-        "modviz-scene-native-reader-has-default-primary-modviz-route",
-        "tool-route-targets-are-valid-and-deduplicated",
-        "resource-analysis-fails-closed-if-parser-completion-receipt-publication-fails"
-      ],
-      "open_boundaries": [
-        "matrix-palette-ownership-and-construction",
-        "universal-revision-coverage",
-        "writer-authority",
-        "original-game-authored-shw-acceptance"
-      ]
-    },
-    "proven_structural_reader_highlights": [
-      "scm",
-      "mod",
-      "shw",
-      "dds",
-      "ptx"
-    ],
     "next_reader_frontier": [
       "efm",
       "mot"
@@ -98,36 +56,53 @@
       "mod",
       "shw",
       "dds-ptx-production-authoring"
-    ]
+    ],
+    "shw": {
+      "parser_id": "formats.shw-structural-v1",
+      "promotion_pr": 288,
+      "write_policy": "read-only",
+      "real_payload_sha256": "cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e",
+      "open_boundaries": [
+        "matrix-palette-ownership-and-construction",
+        "universal-revision-coverage",
+        "writer-authority",
+        "original-game-authored-shw-acceptance"
+      ]
+    },
+    "mod_model_family": {
+      "write_policy": "read-only",
+      "promoted_prs": [305, 307, 310, 312, 313, 314, 315, 316, 317, 318, 323],
+      "promoted_capabilities": [
+        "hierarchy-local-transform-world-propagation",
+        "typed-mesh-texture-slot-and-legacy-gs-clamp-state",
+        "exe-backed-post-load-relocation-and-topology-generation",
+        "typed-object-alpha-source-flags-and-bounds",
+        "model-texture-companion-envelope",
+        "typed-document-header-runtime-state",
+        "companion-authoritative-texture-binding-validation",
+        "inverse-rest-and-skin-palette-composition",
+        "runtime-texture-descriptor-abi-and-gs-register-decode",
+        "object-runtime-flag-and-render-parameter-projection",
+        "serialized-mesh-preserved-undecoded-fields",
+        "blend-index-div4-and-packed-5bit-weight-runtime-abi"
+      ],
+      "open_boundaries": [
+        "mod-writer-authority",
+        "byte-identical-no-edit-mod-rebuild",
+        "safe-mutation-ranges-for-unresolved-fields",
+        "complete-tim2-semantics",
+        "production-texture-replacement-authority",
+        "complete-current-animation-pose-ownership",
+        "original-game-edited-mod-acceptance",
+        "capcom-offline-tool-equivalence"
+      ]
+    }
   },
   "gdspaces": {
     "primary_execution_program": "same-lineage-l2-to-l1-to-l3-proof",
-    "proof_roadmap": "../gdspaces/proof-roadmap-2026-09-05.md",
-    "master_roadmap": "../gdspaces/master-roadmap.md",
     "L1": {
       "complete": false,
       "status": "advanced-product-capability-real-retail-and-level-e-receipts-open",
-      "product_policies": [
-        "atomic-no-replace-publication",
-        "artifact-bound-sha-observation",
-        "byte-provenance",
-        "fail-closed-unsupported-writer-policy"
-      ],
-      "reverse_backed_bounded_facts": [
-        "dmc3-numbered-volume-first-gap-bootstrap",
-        "pac-pnst-post-load-traversal",
-        "pac-slot-zero-is-traversed",
-        "materialization-dispatch-success-precedes-loadedresource-state1",
-        "packed-vs-lst-runtime-representation-selection",
-        "external-index-is-not-recovered-runtime-materialization-authority"
-      ],
-      "implemented_proof_open": [
-        "nbz-store-raw-deflate-normal-read-product-path",
-        "pac-pnst-size-changing-authoring",
-        "nested-relative-slot-authoring",
-        "next-volume-overlay-authoring",
-        "direct-retail-acquisition-tooling"
-      ],
       "mandatory_open_gates": [
         "direct-retail-original-resolver-selected-provenance",
         "exact-selected-retail-representation-classification",
@@ -136,45 +111,18 @@
         "deterministic-original-consumer-visible-effect",
         "rollback-retail-immutability",
         "final-l1-audit"
-      ],
-      "bounded_reverse_gaps": [
-        "zip-stream-initializer-0x140328540-complete-body-lifetime",
-        "compressed-seek-reset-0x140328FE0-complete-behavior",
-        "malformed-partial-read-original-error-equivalence"
       ]
     },
     "L2": {
       "complete": false,
-      "status": "advanced-static-authority-retail-census-one-volume-successful-mount-topology-product-correction-canonical-original-process-receipts-open",
-      "reverse_backed_closed": [
-        "bootstrap-data-dmc3-root-0x14002E930",
-        "numbered-discovery-starts-at-zero",
-        "first-gap-discovery",
-        "successful-registration-prepend-mount-list",
-        "clean-higher-numbered-archive-precedence",
-        "open-game-resource-six-prefix-archive-then-physical-bounded-direct-call-policy",
-        "archive-normalization-0x0e",
-        "physical-normalization-0x0c",
-        "archive-hit-wrapper-open-success-required",
-        "type0-physical-final-open-miss-bounded-contract",
-        "discovery-is-not-successful-linked-mount-topology"
-      ],
-      "retail_collision_receipts": [
-        {
-          "archive": "dmc3-0.nbz",
-          "archive_sha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
-          "surface_sha256": "0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af",
-          "file_key_count": 4333,
-          "unique_file_key_count": 4333,
-          "collision_count": 0,
-          "scope": "this-exact-archive-only"
-        }
-      ],
-      "product_topology_correction": {
-        "reverse_claim": "filename-discovery-or-registration-attempt-is-not-successful-linked-mount-topology",
-        "reverse_status": "proven",
-        "implementation_status": "promoted-by-pr-287",
-        "canonical_main_status": "canonical"
+      "status": "advanced-static-authority-successful-mount-topology-canonical-original-process-receipts-open",
+      "retail_collision_receipt": {
+        "archive": "dmc3-0.nbz",
+        "archive_sha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
+        "file_key_count": 4333,
+        "unique_file_key_count": 4333,
+        "collision_count": 0,
+        "scope": "this-exact-archive-only"
       },
       "mandatory_open_gates": [
         "per-volume-collision-census-for-any-wider-scope",
@@ -187,16 +135,7 @@
     },
     "L3": {
       "complete": false,
-      "status": "strong-bounded-static-spine-r1-promotion-r2-ownership-scheduler-terminal-and-v1-v7-open",
-      "reverse_backed_closed": [
-        "loadedresource-state1-after-materialization-success",
-        "normal-completion-state1-to-state2-0x1401B8DC0",
-        "typed-post-load-optional-callback-state3",
-        "cancellation-source-domain-state1-or-state2-to-state4",
-        "quiescence-only-state0-or-state3",
-        "distinct-ordinary-release-cancellation-cleanup-forced-reset-ordering",
-        "central-mod-efm-scm-shw-and-pnst-dispatch-bounded-path"
-      ],
+      "status": "strong-bounded-static-spine-family-specific-mod-evidence-advanced-global-lifecycle-proof-open",
       "mandatory_open_gates": [
         "current-main-promotion-of-l3-r1-contradiction-gated-closure",
         "l3-r2-family-backing-ownership",
@@ -210,7 +149,7 @@
         "v7-family-build-breadth",
         "final-l3-audit"
       ],
-      "next_raw_reverse_targets_when_exact_exe-bytes-available": [
+      "raw_reverse_targets_still_require_independent_bounded_pass": [
         "0x1402EF4D0",
         "0x1402EF790",
         "0x1400333E0",
@@ -233,19 +172,34 @@
     "repeat-with-authored-higher-numbered-nbz",
     "rollback"
   ],
-  "current_external_evidence_boundaries": [
-    "raw-canonical-e454-executable-blob-not-located-in-connected-library-during-2026-09-05-proof-pass",
-    "real-protected-process-required-for-r2b-r3",
-    "protected-install-original-consumption-required-for-level-e"
-  ],
+  "evidence_access_boundary": {
+    "canonical_executable_available": true,
+    "scope": "recent-promoted-mod-model-family-static-reverse",
+    "does_not_imply": [
+      "automatic-closure-of-unrelated-gdspaces-raw-targets",
+      "protected-process-address-equivalence",
+      "original-runtime-selected-provider-proof",
+      "original-game-authored-resource-acceptance"
+    ]
+  },
+  "discovery": {
+    "latest_promotion_pr": 325,
+    "site_builder": "promoted",
+    "public_pages": 12,
+    "citation_metadata": "promoted",
+    "share_metadata_without_image": "promoted",
+    "manifest_backed_breadcrumbs": "promoted",
+    "pages_enabled": false,
+    "repository_topics_applied": false,
+    "social_preview_applied": false,
+    "technical_completion_effect": "none"
+  },
   "navigation": {
     "project_roadmap": "../roadmap.md",
     "proof_roadmap": "../gdspaces/proof-roadmap-2026-09-05.md",
     "current_status": "current.md",
     "blockers": "blockers.md",
     "master_roadmap": "../gdspaces/master-roadmap.md",
-    "l1_roadmap": "../gdspaces/l1-roadmap.md",
-    "vertical_reconciliation": "../reverse/dmc3-resource-vertical-proof-reconciliation-2026-09-05.md",
-    "index_reverse": "../reverse/dmc3-index-exe-reverse-2026-09-03.md"
+    "l1_roadmap": "../gdspaces/l1-roadmap.md"
   }
 }
