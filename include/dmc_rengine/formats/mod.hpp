@@ -110,10 +110,20 @@ struct Header final {
     // is retained for comparison rather than treated as runtime truth.
     std::uint8_t texture_slot_count{};
 
-    // EXE-confirmed header bytes carried through the common model manager path;
-    // semantic names remain unresolved for MOD and are intentionally raw.
+    // Serialized +0x13 is copied to manager +0xFA by 0x1402F9570. The MOD
+    // motion/control parser uses that value as the fallback for the `JntNo`
+    // field when a parsed joint selector is out of range; 0x1402FD040 also
+    // indexes currentWorld[] with it. Keep the raw storage name for source/API
+    // compatibility while exposing the proven MOD-specific semantic accessor.
     std::uint8_t runtime_mode_byte{};
+
+    // +0x14 is runtime-carried to manager +0xE4, but no MOD-specific semantic
+    // consumer is confirmed yet. Do not transfer SCM resource-code semantics.
     std::uint32_t runtime_metadata_u32{};
+
+    [[nodiscard]] constexpr std::uint8_t default_joint_index() const noexcept {
+        return runtime_mode_byte;
+    }
 
     std::uint64_t document_offset{};
 };
