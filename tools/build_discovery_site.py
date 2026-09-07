@@ -159,6 +159,9 @@ def validate_manifest(data: dict) -> dict:
         if not isinstance(related, list) or len(related) < 2:
             raise SystemExit(f"page must define at least two related links: {path}")
 
+    if "/" not in seen_paths:
+        raise SystemExit("site manifest must define the root page")
+
     for page in pages:
         related_paths: set[str] = set()
         for link in page["related_links"]:
@@ -199,6 +202,68 @@ def public_url(base_url: str | None, public_path: str) -> str:
 
 def canonical_url(base_url: str | None, public_path: str) -> str | None:
     return public_url(base_url, public_path) if base_url else None
+
+
+def breadcrumb_label(page: dict) -> str:
+    if page["path"] == "/":
+        return SITE_NAME
+    return page["title"].split(" — ", 1)[0].strip()
+
+
+def breadcrumb_chain(pages: list[dict], page: dict) -> list[dict]:
+    if page["path"] == "/":
+        return []
+    by_path = {candidate["path"]: candidate for candidate in pages}
+    root = by_path.get("/")
+    if root is None:
+        raise SystemExit("site manifest must define the root page")
+    ancestors = [
+        candidate
+        for candidate in pages
+        if candidate["path"] not in ("/", page["path"])
+        and page["path"].startswith(candidate["path"])
+    ]
+    ancestors.sort(key=lambda candidate: len(candidate["path"]))
+    return [root, *ancestors, page]
+
+
+def breadcrumbs_html(pages: list[dict], page: dict, base_url: str | None) -> str:
+    chain = breadcrumb_chain(pages, page)
+    if not chain:
+        return ""
+    parts: list[str] = []
+    for position, crumb in enumerate(chain):
+        label = html.escape(breadcrumb_label(crumb))
+        if position == len(chain) - 1:
+            parts.append(f'<span aria-current="page">{label}</span>')
+        else:
+            href = html.escape(public_url(base_url, crumb["path"]), quote=True)
+            parts.append(f'<a href="{href}">{label}</a>')
+            parts.append('<span aria-hidden="true">›</span>')
+    return '<nav class="breadcrumb" aria-label="Breadcrumb">' + "".join(parts) + "</nav>"
+
+
+def breadcrumb_json_ld(pages: list[dict], page: dict, base_url: str | None) -> str:
+    if not base_url:
+        return ""
+    chain = breadcrumb_chain(pages, page)
+    if not chain:
+        return ""
+    data = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": position,
+                "name": breadcrumb_label(crumb),
+                "item": public_url(base_url, crumb["path"]),
+            }
+            for position, crumb in enumerate(chain, start=1)
+        ],
+    }
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    return f'\n    <script type="application/ld+json">{payload}</script>'
 
 
 def nav_html(pages: list[dict], base_url: str | None) -> str:
@@ -255,9 +320,11 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
         if canonical
         else ""
     )
+    breadcrumb_structured = breadcrumb_json_ld(site["pages"], page, base_url)
     css_url = public_url(base_url, "/assets/style.css")
     home_url = public_url(base_url, "/")
     status_url = public_url(base_url, "/status/")
+    breadcrumbs = breadcrumbs_html(site["pages"], page, base_url)
     sections = content_sections_html(page)
     related = related_links_html(page, base_url)
 
@@ -275,7 +342,7 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <meta property="og:description" content="{html.escape(page['description'], quote=True)}">{og_url}
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="{html.escape(page['title'], quote=True)}">
-    <meta name="twitter:description" content="{html.escape(page['description'], quote=True)}">
+    <meta name="twitter:description" content="{html.escape(page['description'], quote=True)}">{breadcrumb_structured}
     <link rel="stylesheet" href="{html.escape(css_url, quote=True)}">
 </head>
 <body>
@@ -284,6 +351,7 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
     <nav>{nav_html(site['pages'], base_url)}</nav>
 </header>
 <main>
+    {breadcrumbs}
     <p class="eyebrow">Devil May Cry 3 HD Collection · Evidence-first C++20 research</p>
     <h1>{html.escape(page['title'])}</h1>
     <p class="lead">{html.escape(page['summary'])}</p>
