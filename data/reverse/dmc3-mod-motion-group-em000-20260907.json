@@ -1,0 +1,77 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "DMC3 MOD motion-group node-domain",
+  "date": "2026-09-07",
+  "canonical_executable": {
+    "file": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "file": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "mod_count": 35,
+    "mesh_count": 147,
+    "vertex_count": 14804,
+    "node_order_position_count": 226,
+    "motion_group_histogram": {
+      "0": 132,
+      "1": 91,
+      "2": 3
+    },
+    "nonzero_group_models": {
+      "em000_001.mod": {"0": 9, "1": 13, "2": 1},
+      "em000_004.mod": {"0": 9, "1": 13, "2": 1},
+      "em000_005.mod": {"0": 9, "1": 13, "2": 1},
+      "em000_008.mod": {"0": 9, "1": 13},
+      "em000_013.mod": {"0": 9, "1": 13},
+      "em000_018.mod": {"0": 9, "1": 13},
+      "em000_019.mod": {"0": 9, "1": 13}
+    },
+    "observed_zero": {
+      "transform_record_0x1c_nonzero": 0,
+      "mesh_0x0c_nonzero": 0,
+      "mesh_0x38_nonzero": 0,
+      "mesh_0x48_generated_count_nonzero": 0,
+      "mesh_0x4c_nonzero": 0,
+      "blendindices_x_nonzero_vertices": 0
+    }
+  },
+  "exe_evidence": [
+    {
+      "range": "0x1402F1E12-0x1402F1E23",
+      "claim": "serialized node-domain +0x08 is materialized as model manager +0x18"
+    },
+    {
+      "range": "0x14030F886-0x14030F88A",
+      "claim": "manager +0x18 is copied into CMotion third-domain pointer"
+    },
+    {
+      "range": "0x14030F99A-0x14030F9AE",
+      "claim": "third-domain byte is read by hierarchy order position, mapped through nodeAtOrderPosition, and stored at CMotionJoint +0xF8"
+    },
+    {
+      "range": "0x14030E658-0x14030E662",
+      "claim": "CMotion evaluator compares joint +0xF8 with a requested group id"
+    },
+    {
+      "range": "0x14030ED98-0x14030ED9F",
+      "claim": "CMotion evaluation path filters joints by joint +0xF8 group id"
+    },
+    {
+      "range": "0x1403101B8-0x1403101C2",
+      "claim": "CMotion channel update filters joints by joint +0xF8 group id"
+    },
+    {
+      "range": "0x1403112B8-0x1403112C1",
+      "claim": "CMotion pose/world path filters joints by joint +0xF8 group id"
+    }
+  ],
+  "promotions": {
+    "serialized_table_location": "EXE_CONFIRMED",
+    "order_position_indexing": "EXE_CONFIRMED",
+    "cmotion_joint_field_0xf8": "EXE_CONFIRMED",
+    "motion_group_selector_behavior": "EXE_CONFIRMED",
+    "group_value_meanings": "PRESERVED_UNDECODED",
+    "writer_authority": "NOT_PROMOTED"
+  }
+}
