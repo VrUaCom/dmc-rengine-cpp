@@ -1,0 +1,167 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "scope": "full recursive em000 MOD corpus sweep",
+  "corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "mod_count": 35,
+    "top_level_mod_count": 22,
+    "nested_mod_count": 13,
+    "object_count": 136,
+    "mesh_count": 147,
+    "vertex_count": 14804,
+    "node_position_count": 226,
+    "total_mod_bytes": 628192,
+    "all_mod_sha256_unique": true
+  },
+  "section_coverage": {
+    "known_ranges_marked": [
+      "0x40 document header",
+      "0x40 object records",
+      "0x50 mesh records",
+      "positions",
+      "normals",
+      "fixed-point UV",
+      "BLENDINDICES",
+      "packed weights/topology control",
+      "node-domain header and arrays",
+      "local transforms",
+      "generated topology workspaces"
+    ],
+    "uncovered_bytes": 5106,
+    "uncovered_nonzero_bytes": 0,
+    "status": "CORPUS_CONFIRMED",
+    "claim": "no additional non-zero serialized section exists in the recursive em000 MOD corpus outside the current known section map"
+  },
+  "versions": {
+    "0.82": 1,
+    "0.84": 4,
+    "1.00": 6,
+    "1.01": 24,
+    "shared_structural_grammar_across_all_observed_versions": true,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "runtime_metadata_0x14": {
+    "runtime_flow": "serialized +0x14 -> manager +0xE4",
+    "runtime_flow_status": "EXE_CONFIRMED",
+    "observed_decimal_projection": "raw = high*100000 + middle*100 + low",
+    "examples": {
+      "100407": [1, 4, 7],
+      "202900": [2, 29, 0],
+      "601715": [6, 17, 15],
+      "700601": [7, 6, 1]
+    },
+    "projection_status": "CORPUS_CONFIRMED",
+    "high_level_semantics": "SEMANTIC_CANDIDATE/PRESERVED_UNDECODED",
+    "non_claim": "not promoted to SCM LegacyResourceCode semantics"
+  },
+  "object_runtime_parameters": {
+    "retail_nonzero_file": "em000_033.mod",
+    "records": [
+      {
+        "object_index": 1,
+        "source_flags": "0x00100201",
+        "field_0x18_f32": 1.25,
+        "field_0x1c_u32": 2
+      },
+      {
+        "object_index": 2,
+        "source_flags": "0x00100201",
+        "field_0x18_f32": 1.25,
+        "field_0x1c_u32": 2
+      }
+    ],
+    "zero_in_other_objects": 134,
+    "runtime_copy_condition_includes_source_flag_0x200": true,
+    "status": "EXE_AND_CORPUS_CONFIRMED_AS_LIVE_INPUTS",
+    "artistic_semantics": "PRESERVED_UNDECODED"
+  },
+  "generated_workspace": {
+    "formula": "align16(6 * (vertex_count - 2)) for vertex_count > 2, else 0",
+    "exact_matches": 147,
+    "mesh_count": 147,
+    "serialized_generated_count_0x48_zero": 147,
+    "sentinel_byte_pattern": "0x12",
+    "status": "CORPUS_CONFIRMED",
+    "writer_authority": "NOT_PROMOTED"
+  },
+  "observed_zero_fields": {
+    "header_0x08_0x0f": "35/35",
+    "header_0x18_0x1f": "35/35",
+    "header_0x28_0x3f": "35/35",
+    "object_0x04_0x07": "136/136",
+    "object_0x14_0x17": "136/136",
+    "object_0x20_0x2f": "136/136",
+    "mesh_0x0c": "147/147",
+    "mesh_0x38": "147/147",
+    "mesh_0x48_serialized": "147/147",
+    "mesh_0x4c": "147/147",
+    "node_domain_header_0x10_0x1f": "35/35",
+    "transform_0x1c": "226/226",
+    "blendindices_x": "14804/14804",
+    "classification": "RESERVED_OBSERVED_ZERO_FOR_THIS_CORPUS_ONLY"
+  },
+  "structural_validation": {
+    "all_35_magic_valid": true,
+    "all_object_tables_in_bounds": true,
+    "all_mesh_tables_in_bounds": true,
+    "all_aggregate_counts_match": true,
+    "all_streams_in_bounds": true,
+    "all_stream_starts_0x10_aligned": true,
+    "all_node_domain_offsets_match_core": true,
+    "all_node_orders_complete_permutations": true,
+    "all_hierarchies_topological": true,
+    "all_local_transforms_finite": true,
+    "all_translation_magnitudes_match_xyz_length": true,
+    "all_active_blend_indices_divisible_by_4": true,
+    "all_active_bones_in_range": true,
+    "all_quantized_weight_sums_equal_31": true,
+    "all_quantized_weights_nonincreasing": true,
+    "all_active_bones_unique_per_vertex": true,
+    "all_position_normal_floats_finite": true
+  },
+  "skin": {
+    "one_influence_vertices": 11995,
+    "two_influence_vertices": 2353,
+    "three_influence_vertices": 456,
+    "topology_break_vertices": 4693,
+    "blendindices_x_nonzero": 0
+  },
+  "material_state_coverage": {
+    "alpha_control_0x80_objects": 136,
+    "objects_total": 136,
+    "all_gs_clamp_zero": true,
+    "texture_slots_observed_min": 0,
+    "texture_slots_observed_max": 3,
+    "header_texture_mirror_can_reserve_unused_slots": true,
+    "files_with_unused_reserved_texture_slots": 10
+  },
+  "source_flag_population": {
+    "0x00000001": 38,
+    "0x00000002": 2,
+    "0x00000200": 2,
+    "0x00004000": 1,
+    "0x00020000": 17,
+    "0x00100000": 36,
+    "0x00200000": 7
+  },
+  "motion_groups": {
+    "0": 132,
+    "1": 91,
+    "2": 3,
+    "values_above_2": 0
+  },
+  "implementation": {
+    "format_version_contract": "include/dmc_rengine/formats/mod/version.hpp",
+    "corpus_observations": "include/dmc_rengine/analysis/mod/corpus_observations.hpp",
+    "compile_time_regressions": "src/analysis/mod/corpus_observations.cpp",
+    "research_note": "docs/research/dmc3-mod-em000-full-corpus-sweep-2026-09-07.md"
+  },
+  "non_claims": [
+    "global MOD writer authority",
+    "global padding/zero requirements outside em000",
+    "SCM semantic equivalence for MOD header +0x14",
+    "high-level artistic meaning of object +0x18/+0x1C",
+    "coverage of nonzero GS CLAMP or alpha/control variants"
+  ]
+}

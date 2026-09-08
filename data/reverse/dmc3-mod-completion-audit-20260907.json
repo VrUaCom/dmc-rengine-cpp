@@ -1,0 +1,103 @@
+{
+  "schema": "dmc-rengine.mod-completion-audit.v1",
+  "date": "2026-09-07",
+  "branch": "reverse/mod-completion-20260907",
+  "base": "1a029daace6790e1c832e13ba4841ae45004a147",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "subject": "dmc3-hd-mod-full-research-completion",
+  "current_state": "STRONG_READ_REVERSE_INCOMPLETE_AUTHORING",
+  "closed_domains": [
+    "structural-document-object-mesh-reader",
+    "hierarchy-parent-order-semantics",
+    "local-world-transform-composition",
+    "texture-slot-and-gs-clamp-read-semantics",
+    "runtime-postload-relocation-and-topology-generation",
+    "model-texture-companion-envelope",
+    "companion-authoritative-texture-binding-validation",
+    "runtime-texture-descriptor-core",
+    "inverse-rest-and-skin-palette-composition",
+    "blend-index-yzw-div4-runtime-contract",
+    "packed-5bit-skin-weights-div31",
+    "topology-bit-0x8000-separation",
+    "default-joint-index",
+    "motion-group-selector",
+    "mod-side-evaluated-pose-to-skin-palette-binding"
+  ],
+  "open_domains": [
+    {
+      "id": "header-0x14",
+      "status": "PRESERVED_UNDECODED",
+      "next_proof": "canonical manager+0xE4 downstream xref plus MOD corpus correlation"
+    },
+    {
+      "id": "transform-0x1c",
+      "status": "RESERVED_OBSERVED_ZERO",
+      "corpus": "0/226 nonzero in em000",
+      "next_proof": "direct consumer/producer census or nonzero retail variant"
+    },
+    {
+      "id": "mesh-0x0c-0x38-0x4c",
+      "status": "PRESERVED_UNDECODED",
+      "corpus": "0/147 nonzero in em000 for each field",
+      "next_proof": "global xref census plus wider corpus"
+    },
+    {
+      "id": "blendindices-x",
+      "status": "PRESERVED_UNDECODED",
+      "corpus": "0/14804 nonzero in em000",
+      "next_proof": "CPU/GPU producer-consumer census or nonzero variant"
+    },
+    {
+      "id": "object-source-0x100000",
+      "status": "PARTIAL_EXE_CONFIRMED",
+      "next_proof": "complete downstream render-state behavior"
+    },
+    {
+      "id": "motion-group-value-semantics",
+      "status": "PRESERVED_UNDECODED_VALUES",
+      "observed_values": [0, 1, 2],
+      "next_proof": "behavioral/corpus correlation with direct runtime branches"
+    },
+    {
+      "id": "mot-animation-serialization-evaluation",
+      "status": "OPEN_SEPARATE_FORMAT",
+      "next_proof": "current-main MOT salvage then channel/evaluator closure"
+    },
+    {
+      "id": "shw-matrix-palette-ownership",
+      "status": "OPEN_CROSS_RESOURCE",
+      "next_proof": "runtime palette producer and model/node mapping"
+    },
+    {
+      "id": "mod-writer-no-edit-parity",
+      "status": "NOT_PROMOTED",
+      "next_proof": "canonical layout planner and broad corpus byte/preservation parity"
+    },
+    {
+      "id": "edited-mod-game-acceptance",
+      "status": "NOT_PROMOTED",
+      "next_proof": "bounded edit, parent-container reintegration, canonical game visible-effect acceptance and rollback"
+    }
+  ],
+  "waves": {
+    "A": ["header-0x14", "transform-0x1c", "mesh-unknowns", "blendindices-x", "object-source-0x100000"],
+    "B": ["mot-parser", "mot-evaluator", "motion-group-value-semantics", "animated-pose-binding"],
+    "C": ["shw-palette-ownership", "texture-tim2-authoring", "cross-actor-family-census"],
+    "D": ["no-edit-writer", "bounded-edits", "pac-pnst-reintegration", "nbz-rematerialization", "original-game-acceptance", "rollback"]
+  },
+  "completion_definition": [
+    "every serialized byte has typed meaning or proven preservation rule",
+    "every live field has bounded producer-consumer-runtime contract",
+    "runtime-derived state is separated from serialized authority",
+    "variant coverage rejects one-corpus assumptions",
+    "cross-resource dependencies are directly proven",
+    "no-edit rebuild is deterministic and preservation-correct",
+    "supported edits reopen through parent containers",
+    "canonical game accepts supported edits with deterministic visible effect and rollback"
+  ],
+  "writer_authority": false,
+  "original_game_mutation_acceptance": false
+}

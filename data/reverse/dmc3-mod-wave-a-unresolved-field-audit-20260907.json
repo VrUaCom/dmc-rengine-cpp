@@ -1,0 +1,76 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "subject": "dmc3-hd-mod-wave-a-unresolved-field-audit",
+  "date": "2026-09-07",
+  "branch": "reverse/mod-completion-20260907",
+  "base": "1a029daace6790e1c832e13ba4841ae45004a147",
+  "target": {
+    "artifact": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "fields": [
+    {
+      "id": "transform+0x1c",
+      "serialized": "f32 per node-indexed 0x20 transform record",
+      "corpus": "zero in 226/226 em000 records",
+      "runtime_semantics": "PRESERVED_UNDECODED",
+      "status": ["STRUCTURAL_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "next": "fresh canonical transform/runtime consumer census plus nonzero-variant search"
+    },
+    {
+      "id": "mesh+0x0c",
+      "serialized": "u32 per 0x50 mesh record",
+      "corpus": "zero in 147/147 em000 meshes",
+      "runtime_semantics": "unconsumed in confirmed post-load/runtime-mesh construction path",
+      "status": "PRESERVED_UNDECODED",
+      "next": "global raw-mesh xref census plus wider corpus"
+    },
+    {
+      "id": "mesh+0x38",
+      "serialized": "u64 per 0x50 mesh record",
+      "corpus": "zero in 147/147 em000 meshes",
+      "runtime_semantics": "not relocated by confirmed MOD post-load and unconsumed in confirmed runtime-mesh construction path",
+      "status": "PRESERVED_UNDECODED",
+      "next": "global raw-mesh xref census plus wider corpus"
+    },
+    {
+      "id": "mesh+0x4c",
+      "serialized": "u32 per 0x50 mesh record",
+      "corpus": "zero in 147/147 em000 meshes",
+      "runtime_semantics": "unconsumed in confirmed post-load/runtime-mesh construction path",
+      "status": "PRESERVED_UNDECODED",
+      "next": "global raw-mesh xref census plus wider corpus"
+    },
+    {
+      "id": "blendindices.x",
+      "serialized": "u8 lane 0 of per-vertex u8x4 blend stream",
+      "corpus": "zero in 14804/14804 em000 vertices",
+      "known_other_lanes": "y/z/w are EXE-confirmed three influence matrix starts",
+      "status": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "next": "MOD/MOD_SP/MOD_STX shader lane-0 census, CPU 4-byte blend-stream read census, wider corpus"
+    },
+    {
+      "id": "object-source-flag-0x00100000",
+      "serialized": "bit in object u32 source_flags@+0x10",
+      "runtime_semantics": "live input consumed by common render-state helper 0x140302640; complete effect open",
+      "status": "PARTIAL_EXE_CONFIRMED",
+      "next": "follow branch into final material/render packet consumer and correlate with MOD corpus"
+    }
+  ],
+  "corpus_authority": {
+    "file": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "mods": 35,
+    "meshes": 147,
+    "vertices": 14804,
+    "node_positions": 226,
+    "boundary": "observed zero in this corpus does not authorize global zeroing"
+  },
+  "result": "NO_NEW_SEMANTIC_PROMOTION",
+  "recommended_next_acquisition": [
+    "fresh canonical executable byte windows/xrefs for unresolved fields",
+    "multi-family retail MOD corpus beyond em000"
+  ],
+  "writer_policy": "PRESERVE_UNRESOLVED_BYTES_EXACTLY",
+  "writer_authority": false
+}
