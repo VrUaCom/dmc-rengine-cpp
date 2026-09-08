@@ -8,6 +8,8 @@
 
 The project combines executable research, DMC3 binary/file-format documentation, resource materialization, archive inspection, guarded authoring, recovered-source work and validation under one evidence-first architecture. It is intended to support long-term DMC3 reconstruction and safe modding tooling without presenting unverified behavior as fact.
 
+**Public documentation / discovery site:** [DMC Rengine on GitHub Pages](https://vruacom.github.io/dmc-rengine-cpp/). The Pages site is a readable discovery layer; `main`, canonical documentation and evidence records remain the technical authority.
+
 ## What DMC Rengine can do today
 
 The canonical repository already contains substantial reviewed implementation and research infrastructure, including:

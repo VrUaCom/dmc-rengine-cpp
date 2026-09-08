@@ -1,10 +1,12 @@
-# DMC Rengine public site scaffold
+# DMC Rengine public discovery site
 
 This directory contains the manifest and assets for the controlled DMC Rengine discovery/documentation site.
 
 ## Status
 
-GitHub Pages is enabled for the repository with **GitHub Actions** as the publishing source. The first production deployment completed successfully on 2026-09-07. `.github/workflows/pages-deploy.yml` remains fail-closed and derives the canonical public `base_url` from GitHub Pages itself.
+GitHub Pages is enabled for the repository with **GitHub Actions** as the publishing source. Production is live at `https://vruacom.github.io/dmc-rengine-cpp/`. `.github/workflows/pages-deploy.yml` remains fail-closed, derives the canonical public `base_url` from GitHub Pages itself, deploys the generated artifact, and then performs independent live-origin HTTP acceptance.
+
+The current manifest defines 14 evidence-bounded public HTML routes. The expansion from the original 12-route surface adds dedicated HITS collision and DDS/PTX texture research entry points without changing repository technical authority or claiming Google indexing/ranking.
 
 ## Authority rule
 
@@ -27,7 +29,7 @@ The builder fails closed when primary content is too thin, two pages have identi
 
 Durable public explanations may describe what a research area covers, what questions it helps answer, architecture relationships and where canonical evidence lives. Do **not** duplicate volatile support matrices, exact offsets/addresses, unpromoted reverse findings or completion claims into the manifest. Current capability and maturity remain governed by `docs/status/current.md` and the canonical format/evidence documents.
 
-Internal-link labels should be descriptive enough to make sense outside surrounding prose. Do not add links or repeated terms solely to manufacture search signals.
+Internal-link labels should be descriptive enough to make sense outside surrounding prose. Do not add links, pages or repeated terms solely to manufacture search signals. A dedicated landing page is justified only when a canonical evidence source supports a useful standalone search intent.
 
 ## Approved social-preview delivery
 
@@ -43,7 +45,7 @@ Drive, sandbox, temporary artifact and expiring URLs are not valid share-card im
 python tools/build_discovery_site.py --output _site
 ```
 
-To generate canonical tags and a sitemap for the planned default GitHub Pages URL:
+To generate the production-style canonical tags and sitemap for the GitHub Pages URL:
 
 ```bash
 python tools/build_discovery_site.py \
@@ -57,19 +59,23 @@ The builder is aware that this is a GitHub **project Pages** site under `/dmc-re
 
 `.github/workflows/discovery-site.yml` builds the site on relevant pull requests and `main` changes, runs the builder regression tests, validates the expected public surfaces, project-base URLs, canonical tags, generated crawl-policy artifact and sitemap, and uploads the generated `_site` as a preview artifact.
 
+The builder tests require unique titles, descriptions, summaries and substantive primary-content signatures across the manifest. They also validate breadcrumb hierarchy, descriptive internal links, canonical source links, image-backed social metadata, project-base handling and the exact sitemap route set.
+
 ## robots.txt scope
 
-The builder emits a `robots.txt` alongside the generated site so the intended crawl policy is explicit and can be used directly if the site is later served at a controlled origin root.
+The builder emits a `robots.txt` alongside the generated site so the intended project crawl policy is explicit.
 
-For the planned **project Pages** URL `https://vruacom.github.io/dmc-rengine-cpp/`, that generated file would live at `/dmc-rengine-cpp/robots.txt`. Standard robots exclusion rules are fetched from the origin root (`https://vruacom.github.io/robots.txt`), not from a project subdirectory. Therefore the generated project-path `robots.txt` must **not** be treated as effective host-level crawler control or as proof that `OAI-SearchBot` is allowed by the origin.
+For the production **project Pages** URL `https://vruacom.github.io/dmc-rengine-cpp/`, that generated file lives at `/dmc-rengine-cpp/robots.txt`. Standard robots exclusion rules are fetched from the origin root (`https://vruacom.github.io/robots.txt`), not from a project subdirectory. Therefore the generated project-path `robots.txt` must **not** be treated as effective host-level crawler control or as proof that `OAI-SearchBot` is allowed by the origin.
 
-If crawler policy needs to be controlled directly, use a root-controlled origin/custom domain and verify its actual `/robots.txt` response. The generated sitemap remains a normal site artifact and can be submitted directly through a verified Search Console property.
+Production run #8 independently observed the origin-root response as HTTP 404 and successfully fetched the project root as Googlebot and OAI-SearchBot. That observation is external state, not a permanent configuration guarantee, so the production acceptance job rechecks the actual host-level response and crawler fetchability after eligible deployments.
+
+If crawler policy needs to be controlled directly, use a root-controlled origin/custom domain and verify its actual `/robots.txt` response. The generated sitemap remains a normal site artifact and can be submitted directly through a verified Search Console URL-prefix property.
 
 ## Deployment gate
 
-`.github/workflows/pages-deploy.yml` remains fail-closed without repository variables.
+`.github/workflows/pages-deploy.yml` remains fail-closed and uses GitHub's real Pages state rather than repository variables.
 
-On every eligible run it first reads the repository's real Pages state through the GitHub Pages API using the workflow token:
+On every eligible run it first reads the repository's Pages state through the GitHub Pages API using the workflow token:
 
 - HTTP `404` means Pages is not enabled; the workflow records that state and performs no configure/build/upload/deploy steps;
 - HTTP `200` means Pages is enabled; `actions/configure-pages@v5` becomes the canonical source of the actual Pages `base_url`;
@@ -79,14 +85,9 @@ When Pages is enabled, the builder receives `steps.pages.outputs.base_url` direc
 
 No `DMC_RENGINE_ENABLE_PAGES` or `DMC_RENGINE_SITE_BASE_URL` repository variables are required.
 
-Before enabling Pages:
+After deployment, `production-http-acceptance` verifies the live representative routes, exact approved social raster, OG/Twitter image contract, expected sitemap URL count, actual origin-root robots response, Googlebot/OAI-SearchBot root fetches and Twitterbot image-backed metadata. Expansion of the manifest must update this acceptance contract in the same change so CI cannot silently validate an obsolete public surface.
 
-1. P1 discovery docs must be in `main`.
-2. Repository metadata issue #294 should be applied or remain explicitly tracked.
-3. Pages must be enabled in repository **Settings → Pages** with **GitHub Actions** as the publishing source.
-4. The first deployment must confirm the actual `base_url` reported by `actions/configure-pages` before indexing is encouraged.
-5. Search Console is configured only for a property that can be verified/controlled.
-6. For project Pages, verify the actual origin-root crawler policy before making any claim about bot access. For a controlled custom domain, ensure its root `/robots.txt` does not block `OAI-SearchBot` when ChatGPT Search discovery is desired.
+Repository metadata issue #294 may remain separately open while Topics are owner-deferred. Search Console property verification/indexing work is tracked separately in #338; successful HTTP acceptance must not be translated into an indexing or ranking claim.
 
 If a custom domain is configured later in GitHub Pages, the deploy workflow consumes the new Pages `base_url` automatically on the next run. The public site still requires a fresh acceptance check after an origin change.
 

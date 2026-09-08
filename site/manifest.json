@@ -3,7 +3,6 @@
   "tagline": "DMC3 HD reverse engineering, file-format research and recompilation tooling",
   "planned_base_url": "https://vruacom.github.io/dmc-rengine-cpp",
   "repository_url": "https://github.com/VrUaCom/dmc-rengine-cpp",
-  "deployment_state": "scaffolded_not_enabled",
   "pages": [
     {
       "path": "/",
@@ -48,7 +47,7 @@
           "items": [
             "Scene and model research includes SCM, MOD and SHW entry points, separating structural parsing from higher-level runtime or authoring semantics.",
             "Container research includes PAC, PNST and numbered NBZ archives, with slot identity, nesting and materialization treated separately from game-side selection behavior.",
-            "The wider canonical format corpus also covers texture and runtime-oriented families such as DDS, PTX and HITS even when a dedicated public landing page is not yet warranted."
+            "Dedicated public entry points now also cover the HITS collision structure and the bounded DDS/PTX texture research surface without flattening those families into one universal format model."
           ]
         },
         {
@@ -64,6 +63,8 @@
         {"path": "/formats/scm/", "label": "Explore the DMC3 SCM scene format"},
         {"path": "/formats/mod/", "label": "Explore the DMC3 MOD model format"},
         {"path": "/formats/shw/", "label": "Explore the DMC3 SHW structural format"},
+        {"path": "/formats/hits/", "label": "Explore the DMC3 HITS collision format"},
+        {"path": "/formats/textures/", "label": "Explore DMC3 DDS and PTX texture research"},
         {"path": "/archives/nbz/", "label": "Explore numbered DMC3 NBZ archives"},
         {"path": "/status/", "label": "Check current format support and proof gates"}
       ]
@@ -124,6 +125,7 @@
       ],
       "related_links": [
         {"path": "/formats/", "label": "Browse the wider DMC3 HD format index"},
+        {"path": "/formats/textures/", "label": "Compare MOD texture references with DDS and PTX resources"},
         {"path": "/reverse-engineering/", "label": "Review DMC Rengine evidence rules"},
         {"path": "/status/", "label": "Check current MOD support boundaries"}
       ]
@@ -156,6 +158,68 @@
         {"path": "/formats/", "label": "Compare SHW with other DMC3 resource formats"},
         {"path": "/reverse-engineering/", "label": "Read the evidence-first semantic promotion rules"},
         {"path": "/status/", "label": "Check current SHW reader and evidence status"}
+      ]
+    },
+    {
+      "path": "/formats/hits/",
+      "title": "DMC3 HITS Collision Format — DMC Rengine",
+      "description": "DMC3 HITS collision-format structure, spatial-grid and triangle-plane reverse-engineering entry point.",
+      "summary": "Entry point for the DMC3 HITS collision resource: header-driven spatial grids, cell references and fixed triangle-plane records, with raw flag semantics and original-game authoring acceptance kept evidence-gated.",
+      "source_path": "docs/formats/hits.md",
+      "sections": [
+        {
+          "heading": "What HITS research covers",
+          "items": [
+            "Canonical HITS recognition uses the four-byte HITS magic and a bounded header describing collision-space bounds, cell dimensions, grid counts, the spatial table and the triangle array.",
+            "The spatial structure is a three-dimensional acceleration grid whose cells reference lists of triangle byte offsets, so the resource is not modeled as a flat scan of anonymous fixed-size records.",
+            "Each structural triangle record preserves raw flags together with three points, a normal and plane value; exact flag meanings remain separate evidence questions rather than presentation-time guesses."
+          ]
+        },
+        {
+          "heading": "Evidence and compatibility boundaries",
+          "items": [
+            "The obsolete HITS$ interpretation and the idea that 0x18060001 is a universal record marker are explicitly rejected by the current canonical format authority.",
+            "Collision purpose and structural parsing are stronger claims than material classes, gameplay responses or traversal semantics, which require direct evidence from the relevant runtime consumers.",
+            "A DMC Rengine writer or spatial reconstruction test does not by itself prove that topology-changing output is accepted by every original-game path or equivalent to an external Capcom builder."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Compare HITS with other DMC3 HD formats"},
+        {"path": "/gdspaces/", "label": "See how collision resources enter GDSpaces"},
+        {"path": "/reverse-engineering/", "label": "Review evidence rules behind HITS semantics"},
+        {"path": "/status/", "label": "Check current HITS implementation and proof gates"}
+      ]
+    },
+    {
+      "path": "/formats/textures/",
+      "title": "DMC3 DDS and PTX Textures — DMC Rengine",
+      "description": "DMC3 DDS and PTX texture-format recognition, framing and resource-representation research.",
+      "summary": "Entry point for DMC3 texture research across DDS and PTX representations. It keeps bundle framing, wrapped or extracted DDS bytes and runtime texture identity distinct while delegating exact operation maturity to canonical status.",
+      "source_path": "docs/formats/public-index.md",
+      "sections": [
+        {
+          "heading": "What DDS and PTX research covers",
+          "items": [
+            "DDS is treated as a recognizable HD texture representation with its own compression and layout variants, while PTX is a separate texture bundle or container-like resource surface that can expose texture children.",
+            "DMC Rengine keeps runtime-original PTX or TIM2 representations, DDS-bearing container representations, extracted DDS bytes and runtime GPU textures as distinct identities instead of collapsing them into one generic texture object.",
+            "Format recognition and Native Reader visibility answer narrower questions than texel editing, conversion, production authoring or reintegration, each of which requires its own validated contract."
+          ]
+        },
+        {
+          "heading": "Questions this entry point helps answer",
+          "items": [
+            "When is a payload structurally a PTX texture bundle, a descriptor-plus-DDS texture slot or a directly recognizable DDS resource, and which evidence establishes that distinction?",
+            "How do texture resources relate to model-facing texture references without assuming that a MOD texture slot, companion entry, internal image and extracted DDS are interchangeable identifiers?",
+            "Where should a contributor verify current reader, conversion or authoring maturity before describing DDS or PTX support beyond the evidence already promoted in the canonical repository status?"
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/", "label": "Browse the wider DMC3 HD format index"},
+        {"path": "/formats/mod/", "label": "Relate DDS and PTX resources to MOD texture references"},
+        {"path": "/gdspaces/", "label": "Follow texture resource materialization through GDSpaces"},
+        {"path": "/status/", "label": "Check current DDS and PTX support boundaries"}
       ]
     },
     {

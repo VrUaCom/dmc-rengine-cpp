@@ -68,10 +68,11 @@ def main() -> None:
     )
 
     manifest = site.load_manifest()
-    assert len(manifest["pages"]) == 12
-    assert len({site.normalized_primary_text(page) for page in manifest["pages"]}) == 12
-    assert len({site.normalized_section_text(page) for page in manifest["pages"]}) == 12
-    assert len({site.normalized_text(page["summary"]) for page in manifest["pages"]}) == 12
+    assert "deployment_state" not in manifest
+    assert len(manifest["pages"]) == 14
+    assert len({site.normalized_primary_text(page) for page in manifest["pages"]}) == 14
+    assert len({site.normalized_section_text(page) for page in manifest["pages"]}) == 14
+    assert len({site.normalized_text(page["summary"]) for page in manifest["pages"]}) == 14
     for page in manifest["pages"]:
         assert len(page["sections"]) >= 2
         assert len(page["related_links"]) >= 2
@@ -81,6 +82,12 @@ def main() -> None:
     assert [page["path"] for page in site.breadcrumb_chain(
         manifest["pages"], pages_by_path["/formats/scm/"]
     )] == ["/", "/formats/", "/formats/scm/"]
+    assert [page["path"] for page in site.breadcrumb_chain(
+        manifest["pages"], pages_by_path["/formats/hits/"]
+    )] == ["/", "/formats/", "/formats/hits/"]
+    assert [page["path"] for page in site.breadcrumb_chain(
+        manifest["pages"], pages_by_path["/formats/textures/"]
+    )] == ["/", "/formats/", "/formats/textures/"]
     assert [page["path"] for page in site.breadcrumb_chain(
         manifest["pages"], pages_by_path["/archives/nbz/"]
     )] == ["/", "/archives/nbz/"]
@@ -183,6 +190,8 @@ def main() -> None:
 
         index = (output / "index.html").read_text(encoding="utf-8")
         scm = (output / "formats" / "scm" / "index.html").read_text(encoding="utf-8")
+        hits = (output / "formats" / "hits" / "index.html").read_text(encoding="utf-8")
+        textures = (output / "formats" / "textures" / "index.html").read_text(encoding="utf-8")
         nbz = (output / "archives" / "nbz" / "index.html").read_text(encoding="utf-8")
         robots = (output / "robots.txt").read_text(encoding="utf-8")
         sitemap = (output / "sitemap.xml").read_text(encoding="utf-8")
@@ -220,12 +229,24 @@ def main() -> None:
         assert "What SCM research covers" in scm
         assert "Questions this entry point helps answer" in scm
         assert "Compare SCM with other DMC3 HD formats" in scm
+        assert "What HITS research covers" in hits
+        assert "Evidence and compatibility boundaries" in hits
+        assert "DMC3 HITS Collision Format" in hits
+        assert "What DDS and PTX research covers" in textures
+        assert "Questions this entry point helps answer" in textures
+        assert "DMC3 DDS and PTX Textures" in textures
         assert index != scm
+        assert hits != textures
         assert "User-agent: OAI-SearchBot" in robots
         assert "https://vruacom.github.io/dmc-rengine-cpp/sitemap.xml" in robots
         assert "https://vruacom.github.io/dmc-rengine-cpp/formats/scm/" in sitemap
+        assert "https://vruacom.github.io/dmc-rengine-cpp/formats/hits/" in sitemap
+        assert "https://vruacom.github.io/dmc-rengine-cpp/formats/textures/" in sitemap
+        assert sitemap.count("<url><loc>") == 14
         assert "https://github.com/VrUaCom/dmc-rengine-cpp/blob/main/README.md" in index
         assert "https://github.com/VrUaCom/dmc-rengine-cpp/blob/main/docs/formats/scm.md" in scm
+        assert "https://github.com/VrUaCom/dmc-rengine-cpp/blob/main/docs/formats/hits.md" in hits
+        assert "https://github.com/VrUaCom/dmc-rengine-cpp/blob/main/docs/formats/public-index.md" in textures
 
         for page in manifest["pages"]:
             generated = site.page_output(output, page["path"]).read_text(encoding="utf-8")
@@ -257,6 +278,7 @@ def main() -> None:
         site.build(no_base, None)
         no_base_index = (no_base / "index.html").read_text(encoding="utf-8")
         no_base_scm = (no_base / "formats" / "scm" / "index.html").read_text(encoding="utf-8")
+        no_base_hits = (no_base / "formats" / "hits" / "index.html").read_text(encoding="utf-8")
         assert 'rel="canonical"' not in no_base_index
         assert '<meta name="twitter:card" content="summary">' in no_base_index
         assert "og:image" not in no_base_index
@@ -264,6 +286,8 @@ def main() -> None:
         assert 'aria-label="Breadcrumb"' in no_base_scm
         assert '<a href="/formats/">DMC3 HD File Formats</a>' in no_base_scm
         assert '"@type":"BreadcrumbList"' not in no_base_scm
+        assert '<a href="/formats/">DMC3 HD File Formats</a>' in no_base_hits
+        assert '"@type":"BreadcrumbList"' not in no_base_hits
         assert (no_base / "assets" / "social-preview.png").read_bytes() == preview_bytes
         assert not (no_base / "sitemap.xml").exists()
     finally:
