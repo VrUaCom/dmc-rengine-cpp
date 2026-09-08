@@ -1,0 +1,50 @@
+{
+  "schema": "dmc-rengine.tsc-efm-ptx-binding.v1",
+  "date": "2026-09-08",
+  "corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b"
+  },
+  "resources": {
+    "ptx": {
+      "source_member": "em000_000.bin",
+      "semantic_format": "PTX",
+      "texture_count": 4,
+      "textures": [
+        {"slot":0,"dds_offset":"0x870","width":256,"height":512,"fourcc":"DXT1","mip_count":10},
+        {"slot":1,"dds_offset":"0x16070","width":256,"height":512,"fourcc":"DXT5","mip_count":10},
+        {"slot":2,"dds_offset":"0x41070","width":256,"height":512,"fourcc":"DXT5","mip_count":10},
+        {"slot":3,"dds_offset":"0x6C070","width":256,"height":128,"fourcc":"DXT5","mip_count":9}
+      ]
+    },
+    "efm": {
+      "source_member": "em000_023.efm",
+      "object_count": 2,
+      "mesh_texture_slots": [2,2],
+      "header_texture_slot_domain": 3
+    },
+    "tsc": {
+      "source_member": "em000_024.txt",
+      "embedded_format_marker": ".TSC",
+      "ScrlNo": 0,
+      "ScrlType": 3,
+      "TexNo": 2,
+      "DirUV": ["stay","down"],
+      "TimeUV_raw": [450,90],
+      "MinimumUV_raw": [0.004,0.003]
+    }
+  },
+  "binding": {
+    "tsc_texno": 2,
+    "efm_mesh_texture_slot_agreement": "2/2",
+    "ptx_slot_exists": true,
+    "status": "CORPUS_CONFIRMED",
+    "conclusion": "For the bound em000 cluster, TSC TexNo selects the same texture-slot domain used by associated model material binding."
+  },
+  "non_claims": [
+    "ScrlType 3 enum meaning is not known.",
+    "TimeUV units are not known.",
+    "MinimumUV units or update equation are not known.",
+    "RELATIVE/ABSOLUTE runtime semantics are not yet EXE-confirmed."
+  ]
+}
