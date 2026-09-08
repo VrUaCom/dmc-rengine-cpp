@@ -1,0 +1,79 @@
+{
+  "schema": "dmc-rengine.mod-direct-exe-unknown-byte-closure.v1",
+  "date": "2026-09-08",
+  "branch": "reverse/mod-completion-20260907",
+  "executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "architecture": "PE32+ x86-64"
+  },
+  "transform_1c": {
+    "serialized_offset": "0x1C",
+    "record_stride": "0x20",
+    "initializer": "0x1402FA080",
+    "rotation_helper": "0x140330450",
+    "rotation_helper_reads_relative_to_rotation_block": ["0x00", "0x04", "0x08"],
+    "rotation_helper_reads_0x0c": false,
+    "runtime_node_transfer_observed": false,
+    "current_corpus": {"zero": 285, "total": 285},
+    "status": "EXE_CONFIRMED_IGNORED_IN_CANONICAL_INITIALIZER",
+    "writer_rule": "preserve-source"
+  },
+  "mesh_preserved_fields": {
+    "post_load": "0x1402FE3B0",
+    "runtime_mesh_builder": "0x1402FE6A0",
+    "active_serialized_offsets": ["0x10", "0x18", "0x20", "0x28", "0x30", "0x40", "0x48"],
+    "unconsumed_offsets": ["0x0C", "0x38", "0x4C"],
+    "current_corpus": {"zero_each": 180, "total_meshes": 180},
+    "status": "EXE_CONFIRMED_UNCONSUMED_IN_CANONICAL_MOD_LOAD_PATH",
+    "cross_format_control": {
+      "format": "EFM",
+      "loader": "0x1402F7A90",
+      "offset_0x38_relocated": true,
+      "role": "COLOR0 stream",
+      "conclusion": "0x38 is format-family variant space, not universal padding"
+    },
+    "writer_rule": "preserve-source"
+  },
+  "blendindices_x": {
+    "current_corpus": {"zero": 20976, "total": 20976},
+    "embedded_shader_sources": ["DMC3_MOD.hlsl", "DMC3_MOD_SP.hlsl", "DMC3_MOD_STX.hlsl"],
+    "source_path_occurrences_each": 2,
+    "ascii_reference_census": {
+      "matIndex.x": 0,
+      "matIndex.y": 112,
+      "matIndex.z": 16,
+      "matIndex.w": 16
+    },
+    "cpu_reference": {
+      "address": "0x1402F3D0A",
+      "lane_byte_offset": 1,
+      "operation": "rawLane >> 2",
+      "active_lane": "y"
+    },
+    "status": "EXE_CONFIRMED_NOT_USED_BY_EMBEDDED_MOD_SHADER_SKIN_CONTRACT",
+    "writer_rule": "preserve-source"
+  },
+  "object_flag_0x00100000": {
+    "helper": "0x140302640",
+    "packet_08": {
+      "clear": "0x000000000005000D",
+      "set": "0x000000000005010D",
+      "delta": "0x100"
+    },
+    "packet_00": {
+      "clear_path_or_mask": "0x0000000100000000",
+      "set_path_omits_mask": true
+    },
+    "status": "EXE_CONFIRMED_LOW_LEVEL_PACKET_BEHAVIOR",
+    "artistic_semantic": "OPEN"
+  },
+  "remaining_open": [
+    "header +0x14 -> manager +0xE4 downstream semantic",
+    "global noncanonical/revision consumers for MOD mesh +0x0C/+0x4C",
+    "CPU-only uses of BLENDINDICES.x outside the skin path",
+    "user-facing semantic of source flag 0x00100000",
+    "downstream behavior of source flag 0x00200000",
+    "writer authority and original-game edited acceptance"
+  ]
+}
