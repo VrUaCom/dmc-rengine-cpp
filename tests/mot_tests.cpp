@@ -59,26 +59,6 @@ void append_compression3_track(
     append_u16(bytes, 0U);
 }
 
-[[nodiscard]] std::vector<std::byte> make_small_motion() {
-    constexpr std::uint16_t domain_count = 3U;
-    constexpr std::uint32_t header_size = 0x30U;
-    std::vector<std::byte> bytes(header_size, std::byte{0});
-    put_u32(bytes, 0x00U, header_size);
-    bytes[0x04U] = std::byte{'M'};
-    bytes[0x05U] = std::byte{'O'};
-    bytes[0x06U] = std::byte{'T'};
-    bytes[0x07U] = std::byte{0};
-    put_f32(bytes, 0x0CU, 140.0F);
-    put_f32(bytes, 0x14U, 140.0F);
-    put_u16(bytes, 0x1CU, domain_count);
-    put_u16(bytes, 0x1EU, 0U);
-    put_u16(bytes, 0x20U, mot::ChannelMaskAbi::high_triplet);
-    put_u16(bytes, 0x22U, 0U);
-
-    put_u32(bytes, bytes.size(), 0U); // never executed: keeps helper warning-free
-    return bytes;
-}
-
 [[nodiscard]] std::vector<std::byte> make_valid_motion() {
     constexpr std::uint32_t header_size = 0x30U;
     std::vector<std::byte> bytes(header_size + 4U, std::byte{0});
