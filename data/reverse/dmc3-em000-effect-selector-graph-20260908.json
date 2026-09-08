@@ -78,13 +78,27 @@
     "observed_active_entry_counts": [2, 4, 10, 16],
     "atlas_uv_interpretation": "SEMANTIC_CANDIDATE"
   },
+  "E_to_A_texture_consistency": {
+    "e_records_with_A_selector": 10,
+    "same_E_T_and_A_owned_T": 9,
+    "different": [
+      {
+        "E_id": 203,
+        "E_T": 32,
+        "A_id": 20,
+        "A_owned_T": 25
+      }
+    ],
+    "conclusion": "A owns an independent T selector; it is not merely inherited from E"
+  },
   "P_primary_variants": [
     {
       "bytes_0_1": "02 03",
       "count": 30,
       "t_selector_low16_offset": "0xE0",
       "a_selector_u16_offset": "0x106",
-      "selector_validation": "30/30"
+      "selector_validation": "30/30",
+      "selected_A_owned_T_matches_P_selected_T": "30/30"
     },
     {
       "bytes_0_1": "01 01",
