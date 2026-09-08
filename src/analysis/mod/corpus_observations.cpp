@@ -16,6 +16,24 @@ static_assert(Em000CorpusSummary::motion_group_0_count +
               Em000CorpusSummary::motion_group_2_count ==
               Em000CorpusSummary::node_position_count);
 
+static_assert(MultiCorpusModSummary::em000_mod_count +
+              MultiCorpusModSummary::pl000_mod_count +
+              MultiCorpusModSummary::id100_mod_count ==
+              MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::unique_mod_count == 38U);
+static_assert(MultiCorpusModSummary::object_count == 166U);
+static_assert(MultiCorpusModSummary::mesh_count == 180U);
+static_assert(MultiCorpusModSummary::vertex_count == 20976U);
+static_assert(MultiCorpusModSummary::transform_record_count == 285U);
+static_assert(MultiCorpusModSummary::mesh_0c_all_zero);
+static_assert(MultiCorpusModSummary::mesh_38_all_zero);
+static_assert(MultiCorpusModSummary::mesh_48_serialized_all_zero);
+static_assert(MultiCorpusModSummary::mesh_4c_all_zero);
+static_assert(MultiCorpusModSummary::transform_1c_all_zero);
+static_assert(MultiCorpusModSummary::blendindices_x_all_zero);
+static_assert(MultiCorpusModSummary::pl000_runtime_metadata_u32 == 217U);
+static_assert(MultiCorpusModSummary::id100_runtime_metadata_u32 == 1000000U);
+
 static_assert(dmc::rengine::formats::mod::is_corpus_confirmed_structural_version(0.82F));
 static_assert(dmc::rengine::formats::mod::is_corpus_confirmed_structural_version(0.84F));
 static_assert(dmc::rengine::formats::mod::is_corpus_confirmed_structural_version(1.00F));
@@ -39,6 +57,15 @@ static_assert(metadata_700601.high_component == 7U);
 static_assert(metadata_700601.middle_component == 6U);
 static_assert(metadata_700601.low_component == 1U);
 static_assert(recompose_runtime_metadata_decimal(metadata_700601) == 700601U);
+
+// The same arithmetic operation remains lossless for the broader corpus, but
+// the resulting components are deliberately NOT treated as universal MOD ABI.
+constexpr auto metadata_pl000 = project_runtime_metadata_decimal(
+    MultiCorpusModSummary::pl000_runtime_metadata_u32);
+static_assert(recompose_runtime_metadata_decimal(metadata_pl000) == 217U);
+constexpr auto metadata_id100 = project_runtime_metadata_decimal(
+    MultiCorpusModSummary::id100_runtime_metadata_u32);
+static_assert(recompose_runtime_metadata_decimal(metadata_id100) == 1000000U);
 
 static_assert(em000_generated_workspace_capacity(0U) == 0U);
 static_assert(em000_generated_workspace_capacity(1U) == 0U);
