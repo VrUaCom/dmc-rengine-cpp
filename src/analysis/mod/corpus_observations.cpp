@@ -20,17 +20,63 @@ static_assert(MultiCorpusModSummary::em000_mod_count +
               MultiCorpusModSummary::pl000_mod_count +
               MultiCorpusModSummary::id100_mod_count ==
               MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::version_082_count +
+              MultiCorpusModSummary::version_084_count +
+              MultiCorpusModSummary::version_100_count +
+              MultiCorpusModSummary::version_101_count ==
+              MultiCorpusModSummary::unique_mod_count);
 static_assert(MultiCorpusModSummary::unique_mod_count == 38U);
 static_assert(MultiCorpusModSummary::object_count == 166U);
 static_assert(MultiCorpusModSummary::mesh_count == 180U);
 static_assert(MultiCorpusModSummary::vertex_count == 20976U);
 static_assert(MultiCorpusModSummary::transform_record_count == 285U);
+
+static_assert(MultiCorpusModSummary::header_08_0f_all_zero);
+static_assert(MultiCorpusModSummary::header_18_1f_all_zero);
+static_assert(MultiCorpusModSummary::header_28_3f_all_zero);
+static_assert(MultiCorpusModSummary::object_04_07_all_zero);
+static_assert(MultiCorpusModSummary::object_14_17_all_zero);
+static_assert(MultiCorpusModSummary::object_20_2f_all_zero);
 static_assert(MultiCorpusModSummary::mesh_0c_all_zero);
 static_assert(MultiCorpusModSummary::mesh_38_all_zero);
 static_assert(MultiCorpusModSummary::mesh_48_serialized_all_zero);
 static_assert(MultiCorpusModSummary::mesh_4c_all_zero);
+static_assert(MultiCorpusModSummary::node_domain_10_1f_all_zero);
 static_assert(MultiCorpusModSummary::transform_1c_all_zero);
 static_assert(MultiCorpusModSummary::blendindices_x_all_zero);
+
+static_assert(MultiCorpusModSummary::node_domain_exact_layout_count ==
+              MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::topological_hierarchy_count ==
+              MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::translation_magnitude_match_count ==
+              MultiCorpusModSummary::transform_record_count);
+static_assert(MultiCorpusModSummary::motion_group_0_count +
+              MultiCorpusModSummary::motion_group_1_count +
+              MultiCorpusModSummary::motion_group_2_count ==
+              MultiCorpusModSummary::transform_record_count);
+
+static_assert(MultiCorpusModSummary::workspace_capacity_match_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(MultiCorpusModSummary::workspace_aligned_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(MultiCorpusModSummary::workspace_start_1212_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(MultiCorpusModSummary::workspace_all_12_count +
+              MultiCorpusModSummary::workspace_final_12_then_0000_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(MultiCorpusModSummary::workspace_final_12_then_0000_count ==
+              MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::file_tail_1212_0000_count ==
+              MultiCorpusModSummary::unique_mod_count);
+static_assert(MultiCorpusModSummary::workspace_observed_fill_word == 0x1212U);
+static_assert(MultiCorpusModSummary::file_observed_terminal_word == 0x0000U);
+
+static_assert(MultiCorpusModSummary::alpha_control_80_count ==
+              MultiCorpusModSummary::object_count);
+static_assert(MultiCorpusModSummary::source_flag_00100000_count == 45U);
+static_assert(MultiCorpusModSummary::source_flag_00200000_count == 7U);
+static_assert(MultiCorpusModSummary::populated_parameter18_1c_object_count == 2U);
 static_assert(MultiCorpusModSummary::pl000_runtime_metadata_u32 == 217U);
 static_assert(MultiCorpusModSummary::id100_runtime_metadata_u32 == 1000000U);
 
@@ -67,12 +113,18 @@ constexpr auto metadata_id100 = project_runtime_metadata_decimal(
     MultiCorpusModSummary::id100_runtime_metadata_u32);
 static_assert(recompose_runtime_metadata_decimal(metadata_id100) == 1000000U);
 
-static_assert(em000_generated_workspace_capacity(0U) == 0U);
-static_assert(em000_generated_workspace_capacity(1U) == 0U);
-static_assert(em000_generated_workspace_capacity(2U) == 0U);
-static_assert(em000_generated_workspace_capacity(3U) == 0x10U);
-static_assert(em000_generated_workspace_capacity(34U) == 0xC0U);
-static_assert(em000_generated_workspace_capacity(376U) == 0x8D0U);
+static_assert(mod_generated_workspace_capacity(0U) == 0U);
+static_assert(mod_generated_workspace_capacity(1U) == 0U);
+static_assert(mod_generated_workspace_capacity(2U) == 0U);
+static_assert(mod_generated_workspace_capacity(3U) == 0x10U);
+static_assert(mod_generated_workspace_capacity(34U) == 0xC0U);
+static_assert(mod_generated_workspace_capacity(376U) == 0x8D0U);
+static_assert(mod_generated_workspace_capacity(773U) == 0x1220U);
+
+static_assert(em000_generated_workspace_capacity(34U) ==
+              mod_generated_workspace_capacity(34U));
+static_assert(em000_generated_workspace_capacity(376U) ==
+              mod_generated_workspace_capacity(376U));
 
 } // namespace
 } // namespace dmc::rengine::analysis::mod
