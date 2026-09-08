@@ -1,0 +1,50 @@
+{
+  "schema": "dmc-rengine.clt-em000-binding.v1",
+  "date": "2026-09-08",
+  "corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b"
+  },
+  "clt_identity": {
+    "resource_count": 8,
+    "physical_encoding": "ASCII/CRLF text followed by NUL zero padding",
+    "embedded_name_pattern": ";*.clt",
+    "status": "EXE_AND_CORPUS_CONFIRMED"
+  },
+  "pairs": [
+    {"clt_slot":2,"embedded_name":"em000_01.clt","model_slot":3,"model_format":"MOD","node_count":5,"bone_indices":[2,3,4],"axis":"Y","wind_parent":0},
+    {"clt_slot":6,"embedded_name":"em001_01.clt","model_slot":7,"model_format":"MOD","node_count":5,"bone_indices":[2,3,4],"axis":"Y","wind_parent":0},
+    {"clt_slot":9,"embedded_name":"em002_01.clt","model_slot":10,"model_format":"MOD","node_count":6,"bone_indices":[2,3,4,5],"axis":"NY","wind_parent":9},
+    {"clt_slot":11,"embedded_name":"em002_02.clt","model_slot":12,"model_format":"MOD","node_count":6,"bone_indices":[2,3,4,5],"axis":"NY","wind_parent":13},
+    {"clt_slot":14,"embedded_name":"em003_01.clt","model_slot":15,"model_format":"MOD","node_count":5,"bone_indices":[2,3,4],"axis":"Y","wind_parent":0},
+    {"clt_slot":16,"embedded_name":"em003_02.clt","model_slot":17,"model_format":"MOD","node_count":5,"bone_indices":[2,3,4],"axis":"Y","wind_parent":0},
+    {"clt_slot":20,"embedded_name":"em005_01.clt","model_slot":21,"model_format":"MOD","node_count":5,"bone_indices":[2,3,4],"axis":"Y","wind_parent":0},
+    {"clt_slot":22,"embedded_name":"em005_02.clt","model_slot":23,"model_format":"EFM","node_count":5,"bone_indices":[2,3,4],"axis":"Z","wind_parent":0,"limit_length":0}
+  ],
+  "model_binding": {
+    "physical_adjacency_holds": "8/8",
+    "all_bone_indices_fit_local_model": true,
+    "all_target_hierarchies_are_linear_chains": true,
+    "five_node_targets": 6,
+    "six_node_targets": 2,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "two_domain_evidence": {
+    "samples": [
+      {"embedded_name":"em002_01.clt","local_node_domain":"0..5","wind_parent":9,"owning_actor_node_domain":"0..21"},
+      {"embedded_name":"em002_02.clt","local_node_domain":"0..5","wind_parent":13,"owning_actor_node_domain":"0..21"}
+    ],
+    "conclusion": "Bone and WindParent cannot universally address the same local cloth-model node domain.",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "axis_token_histogram": {
+    "Y": 5,
+    "NY": 2,
+    "Z": 1
+  },
+  "non_claims": [
+    "Axis tokens are not assigned solver-axis semantics without executable consumer evidence.",
+    "WindParent is not yet promoted to an exact runtime joint/transform selector type.",
+    "Physical adjacency is corpus binding evidence, not a generic container rule for every CLT in DMC3."
+  ]
+}
