@@ -122,7 +122,11 @@ void verify_repository_plan(
     assert(compiled.program->summary.probe_count == expected_windows);
     assert(compiled.program->summary.known_body_count == 0U);
     assert(!compiled.program->summary.semantic_claim);
-    assert(compiled.program->execution.size() == expected_windows * 3U + 1U);
+
+    // Spider emits validate-plan + acquire/validate per window + publish.
+    assert(compiled.program->execution.size() == expected_windows * 2U + 2U);
+    assert(compiled.program->execution.instructions.front().op == OpCode::validate_plan);
+    assert(compiled.program->execution.instructions.back().op == OpCode::publish_packet);
 }
 
 } // namespace
