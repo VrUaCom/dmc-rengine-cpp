@@ -19,14 +19,39 @@ DMC Rengine
  -> evidence-backed modding and authoring tools
 ```
 
+## Current production discovery state
+
+As of 2026-09-08, the controlled GitHub Pages discovery site is live at:
+
+```text
+https://vruacom.github.io/dmc-rengine-cpp/
+```
+
+Canonical production evidence:
+
+- GitHub repository `main` remains the technical/evidence authority;
+- GitHub Pages is the public discovery/readability layer;
+- the repository About website points to the Pages origin;
+- the site exposes 12 controlled HTML routes plus `sitemap.xml`;
+- canonical URLs resolve under the Pages project path;
+- the approved image-backed OG/Twitter card asset is served from the same controlled HTTPS origin;
+- `Deploy Discovery Site` run #8 on merge `22cfb1073f73d8290a04968dbf0f038048f01990` passed build, deployment, and independent post-deploy HTTP acceptance;
+- the actual host-level `https://vruacom.github.io/robots.txt` returned HTTP 404 during that acceptance run;
+- Googlebot and OAI-SearchBot both successfully fetched the live project root;
+- no analytics or external scripts are present in the production discovery site.
+
+Crawlability is therefore evidenced independently from indexing. Public web-search checks on 2026-09-08 did not yet surface the Pages site; Search Console/indexing work is tracked separately in issue #338 and must not be represented as already indexed.
+
+Repository Topics are only partially owner-applied and remain intentionally deferred in issue #294. Do not treat partial Topic state as the reviewed final metadata set.
+
 ## Research-backed findings
 
-- GitHub Topics are an official repository-discovery surface and the repository currently has no topics configured.
+- GitHub Topics are an official repository-discovery surface; the reviewed final set is tracked in #294 and must be applied deliberately rather than replaced with generic high-volume tags.
 - `DMC3` must be treated as an explicit identity alias alongside `Devil May Cry 3` and `Devil May Cry HD Collection`.
-- The README already contains strong technical material; the discovery problem is primarily its information hierarchy and stale public status snapshot, not lack of substance.
+- The README already contains strong technical material; the discovery problem is primarily information hierarchy, stable public entry points, metadata consistency, and external indexing rather than lack of substance.
 - The format corpus is a major long-tail discovery asset: SCM, MOD, SHW, HITS, PAC, PNST, NBZ/GDSpaces, DDS/PTX and executable/runtime evidence.
 - Stars and forks are useful social signals, but this project does not treat them as a proven primary GitHub ranking formula.
-- A future crawlable documentation site can become a controlled discovery surface for Google and AI search while GitHub remains canonical source/evidence authority.
+- The controlled GitHub Pages site provides a crawlable discovery surface while GitHub remains canonical source/evidence authority.
 
 ## Search-intent map
 
@@ -76,7 +101,7 @@ Recommended stable description:
 
 ### Topics
 
-Recommended topic set, subject to GitHub's maximum topic count and final metadata review:
+Reviewed 20-topic set:
 
 ```text
 devil-may-cry
@@ -103,7 +128,7 @@ x86-64
 
 2026-09-07 topic-budget review: `game-engine-research` was removed after a live GitHub topic-surface check returned no repositories for that topic. `game-reversing` has an active, semantically aligned game reverse-engineering surface and replaces that slot without increasing the 20-topic budget.
 
-Do not add a topic that is semantically false merely because it has higher search volume.
+Do not add a topic that is semantically false merely because it has higher search volume. The repository settings state may lag this specification while #294 remains open; this list is the reviewed target, not a claim that all 20 are already persisted.
 
 ## README information hierarchy
 
@@ -143,9 +168,9 @@ Research that exists outside the canonical Native Reader set, including EFM/MOT 
 
 ## Public knowledge site
 
-A future GitHub Pages or custom-domain site should act as a discovery/readability layer, not a second technical authority.
+The production GitHub Pages site acts as a discovery/readability layer, not a second technical authority.
 
-Suggested information architecture:
+Current information architecture:
 
 ```text
 /
@@ -162,17 +187,41 @@ Suggested information architecture:
 /status/
 ```
 
-The site should link back to exact GitHub source/evidence documents for canonical details.
+The site links back to exact GitHub source/evidence documents for canonical details. Its generated canonical URLs, sitemap, breadcrumb metadata, image-backed social cards, and source links are validation surfaces; they do not promote technical maturity beyond repository evidence.
+
+The project-path `robots.txt` artifact documents intended project policy but is **not** host-level crawler authority. Production acceptance must always inspect the actual origin-root `https://vruacom.github.io/robots.txt` before making a host-level crawler-policy statement.
+
+## Search Console and indexing boundary
+
+Search Console activation is tracked in #338.
+
+Use a URL-prefix property for exactly:
+
+```text
+https://vruacom.github.io/dmc-rengine-cpp/
+```
+
+Do not claim ownership of `github.com`, `github.io`, or the entire `vruacom.github.io` host without actual authority.
+
+After real property verification:
+
+- submit `https://vruacom.github.io/dmc-rengine-cpp/sitemap.xml`;
+- inspect representative public URLs;
+- record Google crawl/index state as external evidence;
+- keep crawlability, indexing, ranking, and attribution as separate claims.
+
+Do not commit a placeholder verification token or claim Search Console ownership before Google confirms it.
 
 ## AI search boundary
 
-For any future controlled documentation site:
+For the controlled documentation site:
 
 - keep public technical pages crawlable unless there is a deliberate reason not to;
 - do not block `OAI-SearchBot` if ChatGPT Search discovery is desired;
 - treat `GPTBot`/training policy as separate from search discovery;
 - expose stable page titles, headings, descriptions and canonical links;
-- preserve evidence labels and unsupported boundaries in public summaries.
+- preserve evidence labels and unsupported boundaries in public summaries;
+- distinguish successful OAI-SearchBot fetch from actual search indexing/discovery.
 
 ## External discovery priorities
 
@@ -201,34 +250,40 @@ Releases are a trust and distribution surface, not a ranking claim.
 
 ### P0 — repository discovery layer
 
-- add this canonical discovery specification;
-- bind `DMC3` directly in README identity/intro text;
-- replace stale README snapshot data with live status authority;
-- add a bounded current capability summary;
-- link this specification from the documentation index;
-- prepare the exact About/Topics metadata payload;
-- validate via pull request and Windows + Ubuntu CI.
+- [x] add this canonical discovery specification;
+- [x] bind `DMC3` directly in README identity/intro text;
+- [x] replace stale README snapshot data with live status authority;
+- [x] add a bounded current capability summary;
+- [x] link this specification from the documentation index;
+- [x] apply the approved About description;
+- [ ] finish the reviewed Topics payload in #294;
+- [x] validate promoted discovery code/docs through the normal CI path.
 
 ### P1 — public documentation surface
 
-- add FAQ/search-intent documentation;
-- improve the public format landing/index;
-- create release-readiness guidance;
-- create a repository social preview asset.
+- [x] add FAQ/search-intent documentation;
+- [x] improve the public format landing/index;
+- [x] create release-readiness guidance;
+- [x] create and owner-apply the repository social preview asset;
+- [ ] finish independent repository shared-link render acceptance in #301.
 
 ### P2 — controlled web surface
 
-- publish GitHub Pages or a custom-domain documentation site;
-- add canonical URLs, sitemap and robots policy;
-- connect the controlled domain to Search Console;
-- validate OAI-SearchBot accessibility where desired;
-- add analytics.
+- [x] publish GitHub Pages;
+- [x] add canonical URLs, sitemap and reviewed project-path robots policy;
+- [x] validate live public routes after deployment;
+- [x] validate actual host-level robots response;
+- [x] validate Googlebot and OAI-SearchBot live fetchability;
+- [x] serve the approved image-backed OG/Twitter card from the controlled origin;
+- [ ] connect the exact URL-prefix property to Search Console and submit the sitemap in #338;
+- [ ] analytics remain deliberately deferred pending privacy/hosting review; analytics are not required for discovery acceptance.
 
-### P3 — external authority
+### P3 — external authority and measurement
 
-- contribute to relevant reverse-engineering indexes;
-- publish technical research posts in DMC communities;
-- distribute user-facing releases through appropriate modding channels.
+- [ ] complete Search Console/indexing measurement in #338;
+- [ ] contribute to relevant reverse-engineering indexes (#300);
+- [ ] publish technical research posts in DMC communities when a reproducible finding warrants one;
+- [ ] distribute user-facing releases through appropriate modding channels when release gates are satisfied.
 
 ## Acceptance criteria
 
@@ -237,15 +292,17 @@ Releases are a trust and distribution surface, not a ranking claim.
 - Capability claims remain aligned with `docs/status/current.md`.
 - Topics contain no semantically false classifications.
 - Format documentation has stable, readable entry points.
+- Production Pages remains a discovery layer over canonical GitHub evidence.
+- Crawlability claims require real live-origin evidence.
+- Indexing/ranking claims require separate external evidence.
 - No keyword stuffing is introduced.
 - No `complete` claim bypasses the applicable completion gate.
-- Discovery changes pass the normal Windows + Ubuntu CI path.
-- Any future website remains a discovery layer over canonical GitHub evidence, not a competing source of truth.
+- Discovery code changes pass the normal Windows + Ubuntu CI path before promotion.
 
 ## External research basis
 
 - GitHub Docs: repository Topics are explicitly intended to help people find and contribute to projects; GitHub allows up to 20 topics.
-- Google Search Central: clear page titles/headings and useful page content help search systems understand and present pages.
-- OpenAI publisher guidance: public sites can appear in ChatGPT Search; `OAI-SearchBot` access controls whether page content can be included in summaries/snippets.
+- Google Search Central: clear page titles/headings and useful page content help search systems understand and present pages; URL-prefix Search Console properties can be scoped to a path the owner can actually verify.
+- OpenAI publisher guidance: public sites can appear in ChatGPT Search; `OAI-SearchBot` access controls whether page content can be included in search summaries/snippets.
 
-Public-source URLs should be revalidated before a major website launch because search/crawler documentation can change over time.
+Public-source URLs and crawler behavior should be revalidated before major discovery-policy changes because search/crawler documentation can change over time.
