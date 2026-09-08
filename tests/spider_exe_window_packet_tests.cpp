@@ -147,8 +147,7 @@ int main() {
     const auto failed = execute_exe_window_packet(
         *compiled.program, k_sha, acquire, &fixture);
     assert(failed.error == ExeWindowPacketError::acquisition_failed);
-    assert(failed.failed_window.has_value());
-    assert(*failed.failed_window == 0U);
+    assert(failed.failed_window == 0U);
     fixture.fail = false;
 
     fixture.wrong_schema_equivalent = true;
