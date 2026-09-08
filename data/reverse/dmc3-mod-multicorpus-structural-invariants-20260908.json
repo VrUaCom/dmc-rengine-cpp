@@ -1,0 +1,216 @@
+{
+  "schema": "dmc-rengine.mod.multicorpus-structural-invariants.v1",
+  "date": "2026-09-08",
+  "format": "MOD",
+  "profile": "dmc3-hd",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "primary_corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "unique_mod_count": 35
+  },
+  "additional_samples": [
+    {
+      "provenance": "pl000-main-associated",
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "size": 216544,
+      "version": "1.01",
+      "objects": 17,
+      "meshes": 18,
+      "vertices": 5316,
+      "nodes": 24,
+      "texture_slot_mirror": 3,
+      "default_joint_index": 1,
+      "runtime_metadata_u32": 217
+    },
+    {
+      "provenance": "pl000-clt-associated",
+      "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740",
+      "size": 35696,
+      "version": "1.01",
+      "objects": 6,
+      "meshes": 8,
+      "vertices": 828,
+      "nodes": 33,
+      "texture_slot_mirror": 3,
+      "default_joint_index": 0,
+      "runtime_metadata_u32": 217,
+      "correlation_note": "adjacent supplied text begins with ;pl000_02.clt; correlation is not universal ownership proof"
+    },
+    {
+      "provenance": "id100-red-orb-counter",
+      "sha256": "9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90",
+      "size": 2304,
+      "version": "1.01",
+      "objects": 7,
+      "meshes": 7,
+      "vertices": 28,
+      "nodes": 2,
+      "texture_slot_mirror": 1,
+      "default_joint_index": 0,
+      "runtime_metadata_u32": 1000000
+    }
+  ],
+  "deduplication": {
+    "duplicate_sample_sha256": "34f2c03795b007eac67abdb3a5808f675f1b1fd419ea6f39d4b77b8142c9e7ce",
+    "duplicate_of": "em000_001.mod",
+    "double_counted": false
+  },
+  "aggregate": {
+    "unique_mods": 38,
+    "objects": 166,
+    "meshes": 180,
+    "vertices": 20976,
+    "transform_records": 285,
+    "versions": {
+      "0.82": 1,
+      "0.84": 4,
+      "1.00": 6,
+      "1.01": 27
+    }
+  },
+  "observed_zero": {
+    "status": "MULTI_CORPUS_OBSERVED_ZERO",
+    "writer_rule": "preserve source bytes; do not synthesize zero globally",
+    "fields": {
+      "header_08_0f": {"nonzero": 0, "total": 38},
+      "header_18_1f": {"nonzero": 0, "total": 38},
+      "header_28_3f": {"nonzero": 0, "total": 38},
+      "object_04_07": {"nonzero": 0, "total": 166},
+      "object_14_17": {"nonzero": 0, "total": 166},
+      "object_20_2f": {"nonzero": 0, "total": 166},
+      "mesh_0c": {"nonzero": 0, "total": 180},
+      "mesh_38": {"nonzero": 0, "total": 180},
+      "mesh_48_serialized": {"nonzero": 0, "total": 180},
+      "mesh_4c": {"nonzero": 0, "total": 180},
+      "node_domain_10_1f": {"nonzero": 0, "total": 38},
+      "transform_1c": {"nonzero": 0, "total": 285},
+      "blendindices_x": {"nonzero": 0, "total": 20976}
+    }
+  },
+  "node_domain": {
+    "status": "CORPUS_CONFIRMED",
+    "exact_layout_files": 38,
+    "total_files": 38,
+    "relative_offset_formula": {
+      "parent": "0x20",
+      "order": "0x20 + align4(node_count)",
+      "motion_group": "0x20 + 2*align4(node_count)",
+      "transform": "align16(0x20 + 3*align4(node_count))"
+    },
+    "topological_hierarchy_files": 38,
+    "translation_magnitude": {
+      "matches": 285,
+      "total": 285,
+      "absolute_tolerance": 0.00001,
+      "largest_observed_absolute_difference_lt": 0.000005
+    },
+    "motion_group_histogram": {
+      "0": 178,
+      "1": 104,
+      "2": 3
+    },
+    "motion_group_value_meanings": "UNPROMOTED"
+  },
+  "generated_topology_workspace": {
+    "field": "mesh+0x40",
+    "address_space": "mesh-record-relative serialized offset",
+    "status": "CORPUS_CONFIRMED_STRUCTURAL",
+    "mesh_count": 180,
+    "absolute_alignment": 16,
+    "aligned_meshes": 180,
+    "capacity_formula": "align16(6*(vertex_count-2))",
+    "capacity_formula_matches": 180,
+    "vertex_count_min": 3,
+    "vertex_count_max": 773,
+    "trailing_block": {
+      "gapless_workspace_tiling_files": 38,
+      "total_files": 38,
+      "final_workspace_end_equals_eof_files": 38
+    },
+    "serialized_fill": {
+      "workspace_start_u16": "0x1212",
+      "workspace_start_matches": 180,
+      "all_0x12_workspaces": 142,
+      "final_0x12_then_u16_zero_workspaces": 38,
+      "expected_final_workspaces_per_file": 1,
+      "file_tail_hex": "12 12 00 00",
+      "file_tail_matches": 38
+    },
+    "semantic_limits": [
+      "0x1212 high-level meaning not promoted",
+      "final u16 zero is a structural pattern, not yet named a runtime terminator",
+      "workspace layout evidence is not standalone writer authority"
+    ]
+  },
+  "object_corpus": {
+    "alpha_control_0x80": {"count": 166, "total": 166},
+    "exact_source_flag_values": {
+      "0x00000000": 92,
+      "0x00100001": 41,
+      "0x00020001": 11,
+      "0x00020000": 10,
+      "0x00200000": 7,
+      "0x00120002": 2,
+      "0x00100201": 2,
+      "0x00024000": 1
+    },
+    "bit_presence": {
+      "0x00000001": 54,
+      "0x00000002": 2,
+      "0x00000200": 2,
+      "0x00004000": 1,
+      "0x00020000": 24,
+      "0x00100000": 45,
+      "0x00200000": 7
+    },
+    "parameter18_1c_populated_objects": 2,
+    "parameter18_1c_observed_value": {"parameter18_f32": 1.25, "parameter1c_u32": 2},
+    "semantic_notes": [
+      "0x00100000 is present outside em000 and is not enemy-only",
+      "0x00200000 is not a universal cloth flag because the pl000 CLT-associated MOD does not require it",
+      "no new artistic source-flag names promoted"
+    ]
+  },
+  "header_0x14": {
+    "serialized_type": "u32",
+    "confirmed_runtime_flow": "serialized +0x14 -> common model manager -> manager +0xE4",
+    "current_cpp_name": "runtime_metadata_u32",
+    "universal_decimal_semantic_partition": "REJECTED",
+    "reason": "pl000 samples carry 217 while id100 carries 1000000; arithmetic decomposition remains lossless but is not semantic proof"
+  },
+  "external_tool_observation": {
+    "status": "EXTERNAL_TOOL_OBSERVATION_SALVAGE_ONLY",
+    "repository": "igrbn/DMC1-3_Blender_Tools",
+    "files_reviewed": ["DMC3/model.py", "common/MeshUtils.py"],
+    "observations": [
+      "historical importer leaves current unresolved header/mesh/transform areas unnamed or skipped",
+      "historical mesh reader discards blend-index byte 0 and uses bytes 1/2/3 divided by four as bone indices"
+    ],
+    "promotion_authority": false
+  },
+  "code": {
+    "updated": [
+      "include/dmc_rengine/analysis/mod/corpus_observations.hpp",
+      "src/analysis/mod/corpus_observations.cpp"
+    ],
+    "new_helper": "mod_generated_workspace_capacity",
+    "compatibility_helper": "em000_generated_workspace_capacity"
+  },
+  "open": [
+    "header +0x14 / manager +0xE4 downstream consumer census",
+    "transform +0x1C direct EXE read/write census",
+    "mesh +0x0C/+0x38/+0x4C global raw-MOD xrefs",
+    "BLENDINDICES.x CPU and MOD/MOD_SP/MOD_STX shader census",
+    "object source 0x00100000 final packet/user-facing behavior",
+    "object source 0x00200000 final behavior",
+    "runtime meaning, if any, of final workspace zero word",
+    "broader retail player/enemy/item/weapon/special MOD corpus",
+    "writer round-trip and canonical-game acceptance"
+  ],
+  "writer_authority": "NOT_AUTHORIZED"
+}
