@@ -1,4 +1,5 @@
 #include "dmc_rengine/spider/exe_window_packet.hpp"
+#include "spider_l2_runtime_mapping_test_cases.hpp"
 
 #include <cassert>
 #include <cstddef>
@@ -227,6 +228,8 @@ int main() {
         source_root / "data/reverse/dmc3-materialization-completion-boundary-plan.v1.json",
         14U,
         k_materialization_plan_sha);
+
+    dmc::rengine::tests::run_spider_l2_runtime_mapping_tests();
 
     return 0;
 }
