@@ -118,6 +118,7 @@ jobs:
             curl --silent --show-error --location --fail \
               --retry 8 --retry-all-errors --retry-delay 5 \
               --connect-timeout 10 --max-time 45 \
+              --dump-header "${output}.headers" \
               --output "$output" \
               "$url"
           }
@@ -166,6 +167,7 @@ jobs:
 
           image_url = os.environ["IMAGE_URL"]
           expected_alt = os.environ["APPROVED_RASTER_ALT"]
+          blocked_index_tokens = ("noindex", "none", "unavailable_after")
 
           class MetaParser(HTMLParser):
               def __init__(self) -> None:
@@ -200,6 +202,44 @@ jobs:
                       if tag.get(selector, "").lower() == key
                   ]
                   assert values == [expected_value], (page, selector, key, values)
+
+              robots_values = [
+                  tag.get("content", "")
+                  for tag in parser.meta
+                  if tag.get("name", "").lower() == "robots"
+              ]
+              normalized_robots = [value.lower().replace(" ", "") for value in robots_values]
+              assert normalized_robots == ["index,follow"], (page, "robots", robots_values)
+
+              googlebot_values = [
+                  tag.get("content", "").lower()
+                  for tag in parser.meta
+                  if tag.get("name", "").lower() == "googlebot"
+              ]
+              for value in googlebot_values:
+                  assert not any(token in value for token in blocked_index_tokens), (
+                      page,
+                      "googlebot",
+                      value,
+                  )
+
+              headers = Path(page + ".headers").read_text(
+                  encoding="utf-8",
+                  errors="replace",
+              )
+              x_robots_values = [
+                  line.split(":", 1)[1].strip().lower()
+                  for line in headers.splitlines()
+                  if line.lower().startswith("x-robots-tag:") and ":" in line
+              ]
+              for value in x_robots_values:
+                  assert not any(token in value for token in blocked_index_tokens), (
+                      page,
+                      "x-robots-tag",
+                      value,
+                  )
+
+          print(f"Indexability directives accepted for {len(pages)} representative routes.")
 
           png = Path("/tmp/social-preview.png").read_bytes()
           assert png[:8] == b"\x89PNG\r\n\x1a\n"
