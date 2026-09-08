@@ -2,7 +2,11 @@
 
 #include <cassert>
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <string>
+#include <string_view>
 
 namespace {
 
@@ -10,6 +14,10 @@ constexpr const char* k_sha =
     "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
 constexpr const char* k_window_sha =
     "e61d6a793b42951d4e466a18683567c9011cd840b03559c0cc9e94c761995098";
+constexpr const char* k_blocked_plan_sha =
+    "3ad52cacd0b4a4c9b295e34f11f96827e986b8775328db50a771d01e5d0a27c9";
+constexpr const char* k_materialization_plan_sha =
+    "9f5196478f2773b8dc969cbacbc064a591efe9bace9d96d64cb3c3e06de5e736";
 
 struct Fixture final {
     bool fail{};
@@ -80,6 +88,30 @@ void replace_once(std::string& text, std::string_view from, std::string_view to)
     text.replace(position, from.size(), to);
 }
 
+std::string read_text(const std::filesystem::path& path) {
+    std::ifstream stream(path, std::ios::binary);
+    assert(stream.is_open());
+    return std::string(
+        std::istreambuf_iterator<char>(stream),
+        std::istreambuf_iterator<char>());
+}
+
+void verify_repository_plan(
+    const std::filesystem::path& path,
+    std::size_t expected_windows,
+    std::string_view expected_sha) {
+    using namespace dmc::rengine::spider;
+
+    const auto compiled = compile_exe_window_packet(read_text(path));
+    assert(compiled.ok());
+    assert(compiled.program->summary.plan_sha256 == expected_sha);
+    assert(compiled.program->summary.window_count == expected_windows);
+    assert(compiled.program->summary.probe_count == expected_windows);
+    assert(compiled.program->summary.known_body_count == 0U);
+    assert(!compiled.program->summary.semantic_claim);
+    assert(compiled.program->execution.size() == expected_windows * 3U + 1U);
+}
+
 } // namespace
 
 int main() {
@@ -96,15 +128,15 @@ int main() {
     assert(compiled.program->execution.instructions[1].op == OpCode::acquire_window);
     assert(compiled.program->execution.instructions[2].op == OpCode::validate_window);
 
-    // Python hashes the exact plan bytes. Spider must preserve that behavior,
-    // including otherwise insignificant trailing whitespace.
+    // The legacy validator hashes the exact plan bytes. Spider preserves that
+    // behavior, including otherwise insignificant trailing whitespace.
     const auto changed_bytes = compile_exe_window_packet(source_plan + " \n");
     assert(changed_bytes.ok());
     assert(
         compiled.program->summary.plan_sha256 !=
         changed_bytes.program->summary.plan_sha256);
 
-    // Python uses str.strip() for semantic text fields. Whitespace-only values
+    // Legacy validation trims semantic text fields. Whitespace-only values
     // therefore remain invalid in the native migration too.
     auto blank_plan_id = source_plan;
     replace_once(blank_plan_id, "test-l3-writer-plan", "   ");
@@ -173,6 +205,19 @@ int main() {
     auto unsafe = source_plan;
     replace_once(unsafe, "writer-probe", "../unsafe");
     assert(!compile_exe_window_packet(unsafe).ok());
+
+#ifndef DMC_RENGINE_SOURCE_DIR
+#error "DMC_RENGINE_SOURCE_DIR is required for repository-plan parity coverage"
+#endif
+    const std::filesystem::path source_root{DMC_RENGINE_SOURCE_DIR};
+    verify_repository_plan(
+        source_root / "data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json",
+        37U,
+        k_blocked_plan_sha);
+    verify_repository_plan(
+        source_root / "data/reverse/dmc3-materialization-completion-boundary-plan.v1.json",
+        14U,
+        k_materialization_plan_sha);
 
     return 0;
 }
