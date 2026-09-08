@@ -21,8 +21,26 @@ struct Vec3f final {
 struct LocalTransformRecord final {
     std::uint64_t record_offset{};
     Vec3f translation{};
+
+    // +0x0C is data-confirmed as length(translation.xyz) on all 285 records in
+    // the current em000+pl000+id100 corpus. Canonical MOD/EFM initializer
+    // 0x1402FA080 passes the enclosing float4 to 0x140031200, whose lane mask
+    // preserves the matrix W component instead of applying this fourth source
+    // scalar. CMotion binding 0x14030F850 likewise copies +0x00/+04/+08 and
+    // skips +0x0C. It is therefore an auxiliary/cached magnitude, not a
+    // homogeneous translation-W input.
     float translation_magnitude{};
+
     Vec3f rotation_xyz_radians{};
+
+    // +0x1C remains byte-preserved. It is zero on all 285 current MOD transform
+    // records. More importantly, canonical rotation helper 0x140330450 reads
+    // only +0x10/+0x14/+0x18, and CMotion binding 0x14030F850 also skips this
+    // fourth scalar while advancing the source record by 0x20. The SCM sibling
+    // initializer explicitly clears its local fourth rotation lane before
+    // calling the same helper. This strongly supports a reserved/alignment
+    // role, but does not authorize a global writer-zero rule until every
+    // relevant consumer/family is closed.
     float reserved1c{};
 };
 
