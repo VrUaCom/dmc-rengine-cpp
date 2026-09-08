@@ -52,6 +52,11 @@ struct MultiCorpusModSummary final {
     static constexpr std::size_t id100_mod_count = 1U;
     static constexpr std::size_t unique_mod_count = 38U;
 
+    static constexpr std::size_t version_082_count = 1U;
+    static constexpr std::size_t version_084_count = 4U;
+    static constexpr std::size_t version_100_count = 6U;
+    static constexpr std::size_t version_101_count = 27U;
+
     static constexpr std::size_t object_count = 166U;
     static constexpr std::size_t mesh_count = 180U;
     static constexpr std::size_t vertex_count = 20976U;
@@ -59,14 +64,63 @@ struct MultiCorpusModSummary final {
 
     // All values below remained zero across every counted MOD in the expanded
     // corpus. This upgrades the evidence from one enemy corpus to multiple
-    // independent resource families, but deliberately does NOT turn any field
-    // into a global writer-zero/padding rule.
+    // independently supplied resource families, but deliberately does NOT turn
+    // any field into a global writer-zero/padding rule.
+    static constexpr bool header_08_0f_all_zero = true;
+    static constexpr bool header_18_1f_all_zero = true;
+    static constexpr bool header_28_3f_all_zero = true;
+    static constexpr bool object_04_07_all_zero = true;
+    static constexpr bool object_14_17_all_zero = true;
+    static constexpr bool object_20_2f_all_zero = true;
     static constexpr bool mesh_0c_all_zero = true;
     static constexpr bool mesh_38_all_zero = true;
     static constexpr bool mesh_48_serialized_all_zero = true;
     static constexpr bool mesh_4c_all_zero = true;
+    static constexpr bool node_domain_10_1f_all_zero = true;
     static constexpr bool transform_1c_all_zero = true;
     static constexpr bool blendindices_x_all_zero = true;
+
+    // The shared physical node-domain layout is exact in all 38 current MODs.
+    // parent/order/motion-group/transform relative offsets follow
+    // NodeDomainCoreAbi::expected_* and the parent/order arrays satisfy the
+    // proven topological evaluation contract in every file.
+    static constexpr std::size_t node_domain_exact_layout_count = 38U;
+    static constexpr std::size_t topological_hierarchy_count = 38U;
+
+    // Serialized translation_magnitude agrees with length(translation.xyz) for
+    // all 285 transform records to an absolute tolerance of 1e-5. The largest
+    // observed absolute difference in the scan was below 5e-6.
+    static constexpr std::size_t translation_magnitude_match_count = 285U;
+
+    // motion_group values remain restricted to the already EXE-confirmed byte
+    // domain observed in em000. These counts are corpus evidence only: do not
+    // name groups 0/1/2 as body/weapon/etc. without executable proof.
+    static constexpr std::size_t motion_group_0_count = 178U;
+    static constexpr std::size_t motion_group_1_count = 104U;
+    static constexpr std::size_t motion_group_2_count = 3U;
+
+    // Serialized generated-topology workspace physical invariants. In every
+    // current mesh, mesh+0x40 resolves to a 16-byte-aligned trailing workspace
+    // whose exact physical span is align16(6*(vertex_count-2)). Workspaces tile
+    // the file trailer without gaps. All begin with 0x1212. Every non-final
+    // workspace is byte-filled with 0x12; exactly one final workspace per MOD
+    // ends with a final u16 zero while all preceding bytes remain 0x12.
+    static constexpr std::size_t workspace_capacity_match_count = 180U;
+    static constexpr std::size_t workspace_aligned_count = 180U;
+    static constexpr std::size_t workspace_start_1212_count = 180U;
+    static constexpr std::size_t workspace_all_12_count = 142U;
+    static constexpr std::size_t workspace_final_12_then_0000_count = 38U;
+    static constexpr std::size_t file_tail_1212_0000_count = 38U;
+    static constexpr std::uint16_t workspace_observed_fill_word = 0x1212U;
+    static constexpr std::uint16_t file_observed_terminal_word = 0x0000U;
+
+    // Current source-flag/value census across 166 objects. These are frequency
+    // observations, not new semantic names. alpha_control is 0x80 for every
+    // object in this bounded corpus.
+    static constexpr std::size_t alpha_control_80_count = 166U;
+    static constexpr std::size_t source_flag_00100000_count = 45U;
+    static constexpr std::size_t source_flag_00200000_count = 7U;
+    static constexpr std::size_t populated_parameter18_1c_object_count = 2U;
 
     // Header +0x14 is not a globally fixed-width decimal semantic partition.
     // em000 has clustered six-digit values, while the pl000 MODs both carry
@@ -110,14 +164,23 @@ recompose_runtime_metadata_decimal(
            parts.low_component;
 }
 
-// Physical generated-topology workspace capacity observed for every one of the
-// 147 retail em000 meshes. The formula is evidence for future layout planning,
-// not standalone writer authority.
+// Multi-corpus physical generated-topology workspace capacity. This exact
+// formula holds for all 180 meshes in the current em000 + pl000 + id100 corpus.
+// It is structural evidence useful for future layout planning; it is not, by
+// itself, writer authority.
 [[nodiscard]] constexpr std::size_t
-em000_generated_workspace_capacity(std::size_t vertex_count) noexcept {
+mod_generated_workspace_capacity(std::size_t vertex_count) noexcept {
     if (vertex_count <= 2U) return 0U;
     const std::size_t raw = 6U * (vertex_count - 2U);
     return (raw + 0x0FU) & ~static_cast<std::size_t>(0x0FU);
+}
+
+// Compatibility name retained for existing code/tests. The formula was first
+// observed on 147 em000 meshes and is now independently extended to the current
+// multi-corpus MOD set above.
+[[nodiscard]] constexpr std::size_t
+em000_generated_workspace_capacity(std::size_t vertex_count) noexcept {
+    return mod_generated_workspace_capacity(vertex_count);
 }
 
 // Corpus-wide zero observations. Keep these as named evidence predicates so
