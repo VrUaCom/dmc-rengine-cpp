@@ -96,6 +96,18 @@ std::string read_text(const std::filesystem::path& path) {
         std::istreambuf_iterator<char>());
 }
 
+std::filesystem::path repository_root() {
+    const std::filesystem::path compiled_file{__FILE__};
+    if (compiled_file.is_absolute()) {
+        return compiled_file.parent_path().parent_path();
+    }
+
+    // CTest executes from the build tree in the supported CMake workflow.
+    const auto build_parent = std::filesystem::current_path().parent_path();
+    assert(std::filesystem::exists(build_parent / "data/reverse"));
+    return build_parent;
+}
+
 void verify_repository_plan(
     const std::filesystem::path& path,
     std::size_t expected_windows,
@@ -206,10 +218,7 @@ int main() {
     replace_once(unsafe, "writer-probe", "../unsafe");
     assert(!compile_exe_window_packet(unsafe).ok());
 
-#ifndef DMC_RENGINE_SOURCE_DIR
-#error "DMC_RENGINE_SOURCE_DIR is required for repository-plan parity coverage"
-#endif
-    const std::filesystem::path source_root{DMC_RENGINE_SOURCE_DIR};
+    const auto source_root = repository_root();
     verify_repository_plan(
         source_root / "data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json",
         37U,
