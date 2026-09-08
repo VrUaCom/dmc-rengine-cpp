@@ -126,6 +126,8 @@ jobs:
             "/"
             "/formats/"
             "/formats/scm/"
+            "/formats/hits/"
+            "/formats/textures/"
             "/reverse-engineering/"
             "/faq/"
           )
@@ -187,7 +189,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 5, pages
+          assert len(pages) == 7, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -227,7 +229,7 @@ jobs:
           site = os.environ["SITE_ORIGIN"].rstrip("/") + "/"
           root = ET.fromstring(Path("/tmp/sitemap.xml").read_bytes())
           locs = [node.text or "" for node in root.findall(".//{*}loc")]
-          assert len(locs) == 12, locs
+          assert len(locs) == 14, locs
           assert all(loc.startswith(site) for loc in locs), locs
           print(f"Live sitemap contains {len(locs)} controlled URLs.")
           PY
