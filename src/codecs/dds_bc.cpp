@@ -209,13 +209,24 @@ ParseResult parse(std::span<const std::byte> bytes) noexcept {
         return failure(Status::invalid_header, "DDS header structure is not a FourCC image");
     }
 
+    const auto flags = read_u32_le(bytes.data() + 8U);
     const auto height = read_u32_le(bytes.data() + 12U);
     const auto width = read_u32_le(bytes.data() + 16U);
+    const auto depth = read_u32_le(bytes.data() + 24U);
+    const auto caps2 = read_u32_le(bytes.data() + 112U);
     if (width == 0U || height == 0U) {
         return failure(Status::invalid_dimensions, "DDS dimensions are zero");
     }
+    if (depth > 1U || caps2 != 0U) {
+        return failure(Status::invalid_header,
+                       "Only bounded 2D DDS images are supported by the portable reader codec");
+    }
 
-    const auto mip_count = read_u32_le(bytes.data() + 28U);
+    constexpr std::uint32_t ddsd_mipmapcount = 0x00020000U;
+    const auto raw_mip_count = read_u32_le(bytes.data() + 28U);
+    const auto mip_count = (flags & ddsd_mipmapcount) != 0U
+        ? raw_mip_count
+        : 1U;
     const auto max_mips = maximum_mip_count(width, height);
     if (mip_count == 0U || mip_count > max_mips) {
         return failure(Status::invalid_mip_count, "DDS mip count exceeds the bounded image pyramid");
@@ -230,16 +241,19 @@ ParseResult parse(std::span<const std::byte> bytes) noexcept {
                code[2] == std::byte{'T'} && code[3] == std::byte{'5'}) {
         compression = Compression::dxt5;
     } else {
-        return failure(Status::unsupported_compression, "Only DXT1 and DXT5 are supported by the portable reader codec");
+        return failure(Status::unsupported_compression,
+                       "Only DXT1 and DXT5 are supported by the portable reader codec");
     }
 
     std::uint32_t payload = 0U;
     if (!payload_size(width, height, mip_count, compression, &payload)) {
-        return failure(Status::payload_overflow, "DDS compressed mip payload size overflows");
+        return failure(Status::payload_overflow,
+                       "DDS compressed mip payload size overflows");
     }
     const auto total = static_cast<std::uint64_t>(header_size) + payload;
     if (total > bytes.size() || total > std::numeric_limits<std::uint32_t>::max()) {
-        return failure(Status::payload_out_of_bounds, "DDS compressed mip payload leaves the bounded input span");
+        return failure(Status::payload_out_of_bounds,
+                       "DDS compressed mip payload leaves the bounded input span");
     }
 
     return ParseResult{
