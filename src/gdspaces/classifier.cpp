@@ -9,6 +9,7 @@
 #include "dmc_rengine/formats/ptx.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/gdspaces/text_record.hpp"
+#include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 #include "dmc_rengine/profiles/dmc3/relative_slot_walk_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
@@ -206,6 +207,14 @@ ResourceClassification ResourceClassifier::classify(
         // whose extension says more than "text" does, and saying less than the
         // name already says is a loss.
         result.format = extension;
+    } else if (const auto dialect =
+                   profiles::dmc3::TextResourceDialects::identify(bytes);
+               TextRecord::inspect(bytes).recognized && dialect.recognized()) {
+        // Text is an encoding, not an identity. A cloth definition and a
+        // scroll table are both readable ASCII and are not the same resource,
+        // and both announce which they are in their own opening bytes.
+        result.format = std::string{profiles::dmc3::to_string(dialect.dialect)};
+        result.byte_derived = true;
     } else if (TextRecord::inspect(bytes).recognized) {
         // Stage containers carry authoring text next to their binary records:
         // the name manifest, the `# GAME` scene block, the `# DOOR` table, the
