@@ -16,6 +16,10 @@ get_filename_component(
 set(DMC_RENGINE_READER_CORE_SOURCES
     "${DMC_RENGINE_READER_ROOT}/src/binary/reader.cpp"
 
+    # Generic Spider execution only. Algorithms stay in their canonical modules;
+    # product shells select plans and bind operations without duplicating parsers.
+    "${DMC_RENGINE_READER_ROOT}/src/spider/native_executor.cpp"
+
     # Portable texture reader primitives. DMC-specific descriptor/PTX framing
     # stays in Rengine; platform shells never parse +0x38/+0x64/0x70 offsets.
     "${DMC_RENGINE_READER_ROOT}/src/codecs/dds_bc.cpp"
