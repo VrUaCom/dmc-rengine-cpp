@@ -7,6 +7,7 @@
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/gdspaces/text_record.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
@@ -153,6 +154,23 @@ ResourceClassification ResourceClassifier::classify(
         // closing on the stored length and by every block it declares opening
         // with a DDS image — a check no other record in the corpus passes.
         result.format = "ptx";
+        result.byte_derived = true;
+    } else if (const auto framed =
+                   profiles::dmc3::TextureSlotFramingParser::parse(bytes);
+               framed.ok() &&
+               framed.document.kind ==
+                   profiles::dmc3::TextureSlotFramingKind::wrapped_dds) {
+        // A single texture behind the 0x70 descriptor, which is what an effect
+        // pack's kind-T record holds. The descriptor is the same one a texture
+        // pack uses for each of its members, so the parser that reads a pack
+        // already read this — it was simply never asked, and eight of these in
+        // the em000 corpus were reported as `unknown` while the reader that
+        // recognizes them sat one call away.
+        //
+        // Named apart from `ptx` on purpose: this is one wrapped image, not a
+        // bundle, and it does not begin with `DDS ` either. Calling it `dds`
+        // would tell a reader to open it at byte 0 and find a descriptor.
+        result.format = "wrapped-dds";
         result.byte_derived = true;
     } else if (const auto recovered = recovered_content_tag_format(bytes);
                !recovered.empty()) {

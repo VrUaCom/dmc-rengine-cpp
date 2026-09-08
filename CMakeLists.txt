@@ -197,6 +197,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         container_expander_identity
         classifier
         text_resource_dialect
+        extraction_naming
         known_target
         executable_authority
         stage_table_descriptor
