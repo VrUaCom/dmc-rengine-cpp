@@ -51,7 +51,7 @@ namespace {
 [[nodiscard]] bool monotonic_key_times(const TrackRecord& track) noexcept {
     std::uint16_t previous = 0U;
     bool first = true;
-    if (track.compression == TrackAbi::compression_linear_int16) {
+    if (track.compression == TrackAbi::compression_2) {
         for (const auto& key : track.keys2) {
             const auto current = key_time_index(key.time_control);
             if (!first && current < previous) {
@@ -60,7 +60,7 @@ namespace {
             previous = current;
             first = false;
         }
-    } else if (track.compression == TrackAbi::compression_hermite_int16) {
+    } else if (track.compression == TrackAbi::compression_3) {
         for (const auto& key : track.keys3) {
             const auto current = key_time_index(key.time_control);
             if (!first && current < previous) {
@@ -193,21 +193,21 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
             bytes.begin() + static_cast<std::ptrdiff_t>(cursor),
             bytes.begin() + static_cast<std::ptrdiff_t>(cursor + extent));
 
-        if (track.compression == TrackAbi::compression_linear_int16) {
+        if (track.compression == TrackAbi::compression_2) {
             track.quantization_float_count = 2U;
             track.quantization_raw[0U] = read_f32(bytes, cursor + 0x08U);
             track.quantization_raw[1U] = read_f32(bytes, cursor + 0x0CU);
             track.keys2.reserve(track.key_count);
-            std::size_t key_cursor = cursor + TrackAbi::linear_int16_prefix_size;
+            std::size_t key_cursor = cursor + TrackAbi::compression_2_prefix_size;
             for (std::uint16_t key_index = 0U; key_index < track.key_count; ++key_index) {
                 static_cast<void>(key_index);
                 track.keys2.push_back(QuantizedKey2{
                     .time_control = read_u16(bytes, key_cursor + 0U),
                     .value = read_u16(bytes, key_cursor + 2U),
                 });
-                key_cursor += TrackAbi::linear_int16_key_size;
+                key_cursor += TrackAbi::compression_2_key_size;
             }
-        } else if (track.compression == TrackAbi::compression_hermite_int16) {
+        } else if (track.compression == TrackAbi::compression_3) {
             track.quantization_float_count = 6U;
             for (std::size_t float_index = 0U; float_index < 6U; ++float_index) {
                 track.quantization_raw[float_index] = read_f32(
@@ -215,7 +215,7 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
                     cursor + TrackAbi::quantization_field + float_index * sizeof(float));
             }
             track.keys3.reserve(track.key_count);
-            std::size_t key_cursor = cursor + TrackAbi::hermite_int16_prefix_size;
+            std::size_t key_cursor = cursor + TrackAbi::compression_3_prefix_size;
             for (std::uint16_t key_index = 0U; key_index < track.key_count; ++key_index) {
                 static_cast<void>(key_index);
                 track.keys3.push_back(QuantizedKey3{
@@ -224,7 +224,7 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
                     .auxiliary_a = read_u16(bytes, key_cursor + 4U),
                     .auxiliary_b = read_u16(bytes, key_cursor + 6U),
                 });
-                key_cursor += TrackAbi::hermite_int16_key_size;
+                key_cursor += TrackAbi::compression_3_key_size;
             }
         }
 
