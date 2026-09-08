@@ -66,6 +66,11 @@ struct EffectPackEm000Contract final {
             unknown = 0xFFU,
         };
 
+        struct ModifierCount final {
+            std::uint8_t value{};
+            std::size_t count{};
+        };
+
         static constexpr std::size_t v_packed_selector_offset = 0x04U;
         static constexpr std::size_t v_target_id_offset = 0x06U;
         static constexpr std::size_t g_packed_selector_offset = 0x24U;
@@ -85,6 +90,33 @@ struct EffectPackEm000Contract final {
         static constexpr std::size_t bound_terminal_p_chain_count = 41U;
         static constexpr std::size_t bound_terminal_e_chain_count = 21U;
         static constexpr std::size_t bound_max_chain_edges = 2U;
+
+        static constexpr std::size_t unique_p_records_reached = 18U;
+        static constexpr std::size_t unique_e_records_reached = 15U;
+        static constexpr std::size_t total_p_records = 34U;
+        static constexpr std::size_t total_e_records = 45U;
+
+        // Complete high-byte census for the bound em000 graph. These values
+        // are deliberately not interpreted as runtime modes/flags yet.
+        static constexpr std::array<ModifierCount, 6> g_modifier_histogram{
+            ModifierCount{0U, 2U},
+            ModifierCount{48U, 3U},
+            ModifierCount{76U, 1U},
+            ModifierCount{202U, 2U},
+            ModifierCount{252U, 2U},
+            ModifierCount{255U, 2U},
+        };
+
+        static constexpr std::array<ModifierCount, 8> v_modifier_histogram{
+            ModifierCount{0U, 17U},
+            ModifierCount{1U, 3U},
+            ModifierCount{17U, 1U},
+            ModifierCount{82U, 1U},
+            ModifierCount{206U, 14U},
+            ModifierCount{208U, 1U},
+            ModifierCount{238U, 4U},
+            ModifierCount{255U, 9U},
+        };
 
         [[nodiscard]] static constexpr TargetKind target_kind(
             std::uint16_t packed_selector) noexcept {
@@ -131,6 +163,29 @@ struct EffectPackEm000Contract final {
         }
     };
 
+    // T is an 0x70-byte DMC wrapper followed by an embedded DDS. The fields
+    // below are corpus-bound metric relations; runtime names remain open.
+    struct TRecord final {
+        static constexpr std::size_t observed_record_count = 8U;
+        static constexpr std::size_t wrapper_extent = 0x70U;
+        static constexpr std::size_t embedded_dds_magic_offset = 0x70U;
+
+        static constexpr std::size_t packed_dimension_offset = 0x10U;
+        static constexpr std::size_t width_times_four_offset = 0x18U;
+        static constexpr std::size_t dds_data_extent_offset = 0x38U;
+        static constexpr std::size_t duplicate_packed_dimension_offset = 0x44U;
+        static constexpr std::size_t reciprocal_dimension_a_offset = 0x48U;
+        static constexpr std::size_t reciprocal_dimension_b_offset = 0x4CU;
+        static constexpr std::size_t complete_dds_extent_offset = 0x64U;
+
+        static constexpr std::size_t observed_256_square_count = 1U;
+        static constexpr std::size_t observed_128_square_count = 7U;
+        static constexpr std::size_t observed_dxt5_count = 8U;
+
+        static constexpr std::uint32_t packed_128_square = 0x00800080U;
+        static constexpr std::uint32_t packed_256_square = 0x01000100U;
+    };
+
     // A is a fixed 0x150-byte T-linked record in em000. The 33x0x0A entries
     // have rectangle-like 0..256 grid arithmetic, but the historical meaning
     // of A and the entry flags remains unpromoted until the EXE consumer is
@@ -156,9 +211,19 @@ struct EffectPackEm000Contract final {
         static constexpr std::uint16_t observed_grid_quantum = 32U;
 
         static constexpr std::size_t observed_record_count = 11U;
+        static constexpr std::size_t observed_nonzero_entry_count = 54U;
         static constexpr std::array<std::size_t, 4> observed_active_entry_counts{
             2U, 4U, 10U, 16U,
         };
+
+        // 54/54 active entries map to exact integer physical pixel rectangles
+        // through grid * selected_texture_dimension / 256. This is a corpus
+        // relation, not yet an EXE-confirmed UV semantic.
+        static constexpr std::size_t exact_scaled_pixel_entry_count = 54U;
+
+        static constexpr std::size_t first_entry_flag_one_records = 9U;
+        static constexpr std::size_t all_active_flags_zero_records = 2U;
+        static constexpr std::uint8_t all_zero_flags_header_selector_b = 2U;
     };
 
     // P is explicitly variable-size in em000. These are observations, not an
@@ -257,6 +322,31 @@ static_assert(
     EffectPackEm000Contract::DirectedSelector::bound_terminal_e_chain_count ==
     EffectPackEm000Contract::DirectedSelector::observed_v_edge_count +
     EffectPackEm000Contract::DirectedSelector::observed_g_edge_count);
+static_assert(
+    EffectPackEm000Contract::DirectedSelector::unique_p_records_reached <=
+    EffectPackEm000Contract::DirectedSelector::total_p_records);
+static_assert(
+    EffectPackEm000Contract::DirectedSelector::unique_e_records_reached <=
+    EffectPackEm000Contract::DirectedSelector::total_e_records);
+
+static_assert(
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[0].count +
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[1].count +
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[2].count +
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[3].count +
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[4].count +
+    EffectPackEm000Contract::DirectedSelector::g_modifier_histogram[5].count ==
+    EffectPackEm000Contract::DirectedSelector::observed_g_edge_count);
+static_assert(
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[0].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[1].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[2].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[3].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[4].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[5].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[6].count +
+    EffectPackEm000Contract::DirectedSelector::v_modifier_histogram[7].count ==
+    EffectPackEm000Contract::DirectedSelector::observed_v_edge_count);
 
 static_assert(
     EffectPackEm000Contract::ERecord::subtype_1_modifier_0000_count +
@@ -266,11 +356,26 @@ static_assert(
     EffectPackEm000Contract::ERecord::subtype_5_modifier_0000_count == 45U);
 
 static_assert(
+    EffectPackEm000Contract::TRecord::observed_256_square_count +
+    EffectPackEm000Contract::TRecord::observed_128_square_count ==
+    EffectPackEm000Contract::TRecord::observed_record_count);
+static_assert(
+    EffectPackEm000Contract::TRecord::observed_dxt5_count ==
+    EffectPackEm000Contract::TRecord::observed_record_count);
+
+static_assert(
     0x04U +
     EffectPackEm000Contract::ARecord::entry_capacity *
         EffectPackEm000Contract::ARecord::entry_size +
     EffectPackEm000Contract::ARecord::final_zero_tail_size ==
     EffectPackEm000Contract::a_extent);
+static_assert(
+    EffectPackEm000Contract::ARecord::exact_scaled_pixel_entry_count ==
+    EffectPackEm000Contract::ARecord::observed_nonzero_entry_count);
+static_assert(
+    EffectPackEm000Contract::ARecord::first_entry_flag_one_records +
+    EffectPackEm000Contract::ARecord::all_active_flags_zero_records ==
+    EffectPackEm000Contract::ARecord::observed_record_count);
 
 static_assert(EffectPackEm000Contract::PRecord::expected_extent(0U) == 336U);
 static_assert(EffectPackEm000Contract::PRecord::expected_extent(1U) == 528U);
