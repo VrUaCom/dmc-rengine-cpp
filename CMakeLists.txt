@@ -136,6 +136,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         evidence_address_resolver
         exe_byte_window
         exe_byte_window_receipt
+        spider_exe_window_packet
         process_memory_window
         process_memory_window_receipt
         integration_workspace
