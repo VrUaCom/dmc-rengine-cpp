@@ -6,199 +6,327 @@
 **Corpus SHA-256:** `306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b`  
 **Canonical EXE:** `dmc3.exe` SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
-## Primary conclusion
+## Primary identity result
 
-Every populated child inspected under the three top-level em000 motion PACs is a member of the **MOT binary resource family**, including children that the extraction layer named `.bin`.
+All 82 populated children under `em000_035.pac`, `em000_036.pac` and `em000_037.pac` are MOT-family payloads. Ten were extracted with `.mot`; seventy-two were extracted with `.bin`; all 82 have `MOT\0` at `+0x04`.
 
-Corpus:
+The canonical executable independently registers `.mot` in the motion/control extension dispatcher at `0x1402E01A0`, so MOT family identity is **EXE_AND_CORPUS_CONFIRMED**.
 
-```text
-em000_035.pac -> 71 populated children
-em000_036.pac ->  1 populated child
-em000_037.pac -> 10 populated children
-                         --
-                         82 total
-```
+## Header ABI — now structurally closed for em000
 
-For all `82 / 82` payloads:
+Observed common header:
 
 ```text
-bytes +0x04..+0x07 == "MOT\0"
++0x00 u32 header_size
++0x04 char[4] "MOT\0"
++0x08 u32 zero                    # 82/82
++0x0C f32 raw_time_a
++0x10 f32 raw_time_b
++0x14 f32 raw_time_c
++0x18 u16 raw_header_flag
++0x1A u16 raw_header_selector
++0x1C u16 channel_domain_count
++0x1E u16 channel_mask[channel_domain_count]
+... zero/preserved header tail until header_size
 ```
 
-Only ten children were emitted with a `.mot` suffix; seventy-two were emitted as `.bin`. Therefore **the extractor suffix is not semantic format authority** for this family.
-
-Correct identity rule for this corpus:
+Observed domain counts:
 
 ```text
-MOT\0 structural payload + motion-container context -> MOT candidate/confirmed format
-.bin suffix alone                                  -> no format claim
+22 -> 77 files
+ 3 ->  4 files
+ 4 ->  1 file
 ```
 
-The canonical executable independently registers `.mot` in the motion/control dispatcher at `0x1402E01A0`, so MOT identity is **EXE_AND_CORPUS_CONFIRMED**.
+The physical header-size formula is exact for **82/82** files:
 
-## Two observed header envelope sizes
+```text
+header_size = align16(0x1E + 2 * channel_domain_count)
+```
 
-The first u32 is a header-size field in every one of the 82 samples:
+Therefore the observed `0x50` and `0x30` headers are not unrelated revisions: they are the aligned envelope produced by different channel-domain counts.
+
+Observed header-size census:
 
 ```text
 0x50 -> 77 files
 0x30 ->  5 files
 ```
 
-Observed common prefix:
+`raw_time_a == raw_time_c` in 82/82 files. `raw_time_b` is zero in 76/82 and non-zero in six. High-level timing names remain unpromoted until the canonical executable consumer is rebound.
 
-```text
-+0x00 u32 header_size       # 0x30 or 0x50 in this corpus
-+0x04 char[4] "MOT\0"
-+0x08 u32 zero              # 82/82 in current corpus
-+0x0C f32 raw_time_a
-+0x10 f32 raw_time_b
-+0x14 f32 raw_time_c
-... raw header bytes until header_size
-```
+`raw_header_flag` is 0 or 1 in em000. `raw_header_selector` is either 0 or equal to the channel-domain count in this corpus. Their meanings remain raw.
 
-Across `82 / 82` samples:
+## Channel masks and exact record-count invariant
 
-```text
-raw_time_a == raw_time_c
-```
-
-These values are finite and integer-like in the bound corpus, with examples such as `10`, `19`, `41`, `48`, `53`, `60`, `99`, `109`, `114`, `120`, `124`, `127`, `141` and higher values.
-
-`raw_time_b` is zero in most samples but is non-zero in six files. Examples include:
-
-```text
-raw_time_b = 36   while raw_time_a/raw_time_c = 53
-raw_time_b = 24   while raw_time_a/raw_time_c = 26
-raw_time_b = 125  while raw_time_a/raw_time_c = 237
-raw_time_b = 78   while raw_time_a/raw_time_c = 141
-raw_time_b = 297  while raw_time_a/raw_time_c = 298
-raw_time_b = 349  while raw_time_a/raw_time_c = 350
-```
-
-A loop/segment-start interpretation is plausible but **not promoted**. The canonical field names remain raw until the CMotion consumer is bound.
-
-## Record stream grammar
-
-At file offset `header_size`:
+At `header_size`:
 
 ```text
 u32 record_count
 ```
 
-Immediately after it, records are serialized sequentially. Each record begins with:
+For **82/82** payloads:
 
 ```text
-u16 record_span
+record_count == sum(popcount(channel_mask[i]))
 ```
 
-Advancing exactly by `record_span` for `record_count` records reaches the physical tail correctly in **82 / 82** samples.
-
-Observed properties:
-
-- record sizes are variable;
-- many spans are multiples of 8;
-- observed spans include `0x28`, `0x30`, `0x38`, `0x40`, `0x48` and larger values;
-- after the final record the only remaining bytes are zero padding;
-- observed tail padding is `0`, `4`, `8`, or `12` bytes;
-- every inspected resource size is 16-byte aligned.
-
-This establishes a useful read-only envelope without claiming record opcodes or channel semantics.
-
-## Representative samples
-
-### 0x50-header variant
-
-A representative child from `em000_035.pac`:
+Observed masks:
 
 ```text
-physical size       2608
-+0x00 header_size   0x50
-+0x04 magic         MOT\0
-+0x0C raw_time_a    10.0
-+0x14 raw_time_c    10.0
-+0x50 record_count  63
-+0x54 first span    0x28
+0x000
+0x007
+0x038
+0x03F
+0x1C0
+0x1F8
 ```
 
-All 63 variable-length records fit the file envelope and terminate before zero alignment padding.
-
-### 0x30-header variant
-
-The sole child under `em000_036.pac` is an extractor-labeled `.bin`, but structurally:
+The masks are nine-bit channel selectors grouped into three 3-bit triplets:
 
 ```text
-physical size       688
-+0x00 header_size   0x30
-+0x04 magic         MOT\0
-+0x0C raw_time_a    49.0
-+0x14 raw_time_c    49.0
-+0x30 record_count  9
-+0x34 first record
+bits 0..2 -> low triplet
+bits 3..5 -> middle triplet
+bits 6..8 -> high triplet
 ```
 
-It therefore belongs to the same MOT family despite the `.bin` presentation label.
-
-## Required C++20 module boundary
-
-MOT must be a dedicated binary module:
+Independent public DMC3 animation-importer source corroborates the longstanding community mapping:
 
 ```text
-include/dmc_rengine/formats/mot.hpp
-src/formats/mot.cpp
-analysis/mot/...              # semantic CMotion binding later
-tests/mot_tests.cpp
+bit 8 translation X
+bit 7 translation Y
+bit 6 translation Z
+bit 5 rotation X
+bit 4 rotation Y
+bit 3 rotation Z
+bit 2 scale X
+bit 1 scale Y
+bit 0 scale Z
 ```
 
-Initial `formats.mot-structural-v1` requirements:
+This mapping is also strongly supported by the em000 numeric distributions: middle-triplet tracks are radian-scale, high-triplet tracks include large positional ranges, and low-triplet tracks cluster around scale-like values near 1.0. However, because this checkpoint does not yet contain the canonical dmc3.exe track-evaluation consumer, the high-level channel names are recorded as **SEMANTIC_CANDIDATE with independent external corroboration**, not `EXE_CONFIRMED`.
 
-1. identify by evidenced binary structure, not suffix alone;
-2. validate `header_size` before any record access;
-3. retain the complete raw header bytes;
-4. expose the three raw f32 fields without semantic renaming;
-5. read `record_count` at `header_size`;
-6. bounds-check every `u16 record_span` and preserve each raw record payload;
-7. preserve/report the zero alignment tail;
-8. accept both observed `0x30` and `0x50` envelopes;
-9. fail closed on zero spans, overflow, truncation or records that cross EOF;
-10. remain read-only.
+## Track ordering
 
-## Relationship to MOD
+Tracks are serialized in channel-domain order and then in descending semantic mask order used by the known mapping above: translation X/Y/Z, rotation X/Y/Z, scale X/Y/Z for every set bit.
 
-MOT is not a subtype of MOD. The architectural relationship is runtime/dataflow:
+The sum-popcount invariant reconstructs the complete record stream with no orphan records in 82/82 files.
+
+## Track record ABI
+
+Every record starts with the same 8-byte prefix:
 
 ```text
-MOT / CMotion evaluation
-        -> pose / transform channels
-        -> MOD/EFM node-domain runtime transforms
-        -> world matrices
-        -> skinned geometry
++0x00 u16 span
++0x02 u16 key_count
++0x04 u16 compression_type
++0x06 u16 start_time_raw
 ```
 
-The exact record-to-node/channel binding is still a reverse target. Do not map record indices to bones by assumption.
+`start_time_raw == 0` in all **5,118** em000 tracks.
 
-## Open reverse gates
+Observed compression types:
 
-- trace extension-dispatch index `0` to concrete MOT acquisition/parse code;
-- recover the runtime meaning of the three f32 header fields;
-- decode record headers beyond `record_span`;
-- identify channel IDs, interpolation encodings, key counts and key payloads;
-- bind MOT records to MOD motion groups and node indices in machine code;
-- distinguish MOT/MOT2/... revision or logical-family naming from physical header variants;
-- compare em000 against player, weapon, boss and stage animation corpora;
-- prove replay and only then design authoring/writer stages.
+```text
+2 -> 156 tracks
+3 -> 4,962 tracks
+```
+
+No type 0/1 track appears in this corpus.
+
+Independent public DMC3 importer source labels these values:
+
+```text
+0 LINEAR_FLOAT32
+1 HERMITE_FLOAT32
+2 LINEAR_INT16
+3 HERMITE_INT16
+```
+
+The current corpus independently proves the structural layouts for 2 and 3.
+
+### Compression 2 — linear int16 envelope
+
+Exact for **156/156** type-2 tracks:
+
+```text
+span = 0x10 + 4 * key_count
+```
+
+Layout:
+
+```text
++0x08 f32 value_min_or_bias
++0x0C f32 value_range_or_scale
++0x10 key[key_count]
+```
+
+Each key is 4 bytes:
+
+```text
+u16 time_control
+u16 quantized_value
+```
+
+All type-2 key times are monotonic and bit15 of `time_control` is clear in all 459 observed keys.
+
+### Compression 3 — Hermite int16 envelope
+
+Exact for **4,962/4,962** type-3 tracks:
+
+```text
+span = 0x20 + 8 * key_count
+```
+
+Layout:
+
+```text
++0x08 f32 value_min_or_bias
++0x0C f32 value_range_or_scale
++0x10 f32 in_tangent_min_or_bias
++0x14 f32 in_tangent_range_or_scale
++0x18 f32 out_tangent_min_or_bias
++0x1C f32 out_tangent_range_or_scale
++0x20 key[key_count]
+```
+
+Each key is 8 bytes:
+
+```text
+u16 time_control
+u16 quantized_value
+u16 quantized_in_tangent
+u16 quantized_out_tangent
+```
+
+Masking time as:
+
+```text
+time_index = time_control & 0x7FFF
+flag       = time_control >> 15
+```
+
+produces monotonic key times for **4,962/4,962** tracks.
+
+Across 94,416 type-3 keys:
+
+```text
+flag = 1 -> 94,410
+flag = 0 ->      6
+```
+
+The meaning of that high bit remains unresolved.
+
+## Quantization
+
+Independent public importer code uses the transform:
+
+```text
+value = quantized * range * (1 / 65535) + min
+```
+
+and the same form for incoming/outgoing Hermite tangents.
+
+The em000 corpus strongly corroborates unsigned 16-bit normalized quantization: frequently observed quantized values include `0x0000`, `0x3FFF`, `0x7FFF`, `0xBFFF`, `0xFFFE`, and `0xFFFF`.
+
+Until the canonical executable evaluator is directly rebound, the decode formula is treated as **externally corroborated + corpus-consistent**, not yet executable-promoted.
+
+## Complete corpus record census
+
+```text
+files                  82
+tracks               5,118
+compression 2          156
+compression 3        4,962
+```
+
+Record-count values:
+
+```text
+66 -> 64 files
+69 ->  9 files
+63 ->  4 files
+ 3 ->  4 files
+ 9 ->  1 file
+```
+
+These values are fully explained by channel-mask popcounts rather than by a hardcoded `three records per bone` rule. That distinction matters for masks such as `0x1F8`, `0x03F`, zero masks, and the small-domain MOT variants.
+
+## External corroboration boundary
+
+A public Blender importer for DMC3 HD independently contains the same:
+
+- MOT header fields;
+- channel-mask table;
+- nine channel bits;
+- compression enum 0..3;
+- int16 linear/Hermite layouts;
+- `time & 0x7FFF` plus high-bit flag;
+- `/65535` quantization;
+- Hermite interpolation.
+
+This source is valuable corroboration and gave names to structures already recovered from em000 bytes. It is **not substituted for canonical EXE authority**. Final semantic promotion still requires direct `dmc3.exe` consumer evidence.
+
+## ADR-0003 implementation target
+
+MOT must follow modular architecture:
+
+```text
+include/dmc_rengine/formats/mot/
+    abi.hpp
+    ir.hpp
+    parser.hpp
+src/formats/mot/
+    parser.cpp
+include/dmc_rengine/analysis/mot/
+    channel_semantics.hpp      # only after executable promotion
+    evaluation.hpp             # only after evaluator recovery
+    binding.hpp                # MOD/EFM/CMotion binding
+```
+
+A `formats/mot.hpp` facade may aggregate headers but must not own parser/runtime logic.
+
+## Relationship to MOD/EFM
+
+```text
+MOT serialized tracks
+    -> channel mask / compressed curves
+    -> CMotion evaluation
+    -> per-node animated local transforms
+    -> MOD/EFM currentWorld
+    -> inverseRest * currentWorld
+    -> skin palette
+```
+
+The channel table now gives a concrete route to bind animation records to model-node indices without guessing from record ordinal alone.
+
+## Next executable gates
+
+1. trace extension-dispatch index `0` to the MOT loader and parser;
+2. find the consumer of the 9-bit channel mask table;
+3. prove channel-bit semantics in canonical machine code;
+4. find the compression switch for values `0/1/2/3`;
+5. prove the `/65535` decode and Hermite evaluator;
+6. resolve `raw_time_a/raw_time_b/raw_time_c`;
+7. resolve `raw_header_flag`, `raw_header_selector`, `start_time_raw`, and key high-bit semantics;
+8. bind decoded tracks to `CMotionJoint`, `motion_group`, MOD node indices and currentWorld;
+9. compare with player/weapon/boss MOT corpora before writer work.
 
 ## Evidence status
 
 | Claim | Status |
 |---|---|
-| `.mot` runtime family exists | `EXE_CONFIRMED` |
-| all 82 bound motion-container children expose `MOT\0` | `CORPUS_CONFIRMED` |
-| `.bin` extractor suffix can contain MOT | `CORPUS_CONFIRMED` |
-| header-size values 0x30/0x50 | `CORPUS_CONFIRMED` |
-| record count at `header_size` | `CORPUS_CONFIRMED` |
-| variable records begin with u16 span | `CORPUS_CONFIRMED` |
-| f32 high-level timing semantics | `PRESERVED_UNDECODED` |
-| record/channel semantics | `PRESERVED_UNDECODED` |
+| MOT family identity | `EXE_AND_CORPUS_CONFIRMED` |
+| header-size formula | `CORPUS_CONFIRMED 82/82` |
+| channel-domain count + mask table | `CORPUS_CONFIRMED 82/82` |
+| `record_count == sum(popcount(mask))` | `CORPUS_CONFIRMED 82/82` |
+| channel bit names translation/rotation/scale | `SEMANTIC_CANDIDATE`, externally corroborated |
+| record prefix span/key_count/compression/start_time | `CORPUS_CONFIRMED` |
+| compression 2 size/layout | `CORPUS_CONFIRMED 156/156` |
+| compression 3 size/layout | `CORPUS_CONFIRMED 4962/4962` |
+| compression 2/3 names linear/Hermite int16 | `SEMANTIC_CANDIDATE`, externally corroborated |
+| key time lower-15-bit rule | `CORPUS_CONFIRMED` |
+| key high-bit meaning | `PRESERVED_UNDECODED` |
+| `/65535` quantization decode | `SEMANTIC_CANDIDATE`, externally corroborated/corpus-consistent |
+| exact timing-header semantics | `PRESERVED_UNDECODED` |
 | writer authority | `NOT AUTHORIZED` |
