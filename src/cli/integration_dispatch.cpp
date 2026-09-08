@@ -6,6 +6,7 @@
 #include "dmc3_retail_acquisition_commands.hpp"
 #include "nbz_copy_commands.hpp"
 #include "relative_slot_commands.hpp"
+#include "spider_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -27,6 +28,7 @@ void print_integration_help() {
     print_nbz_copy_help();
     print_relative_slot_help();
     print_hits_help();
+    print_spider_help();
 }
 
 int try_run_integration_command(int argc, char** argv) {
@@ -66,6 +68,12 @@ int try_run_integration_command(int argc, char** argv) {
     if (hits_result != -1) {
         return hits_result;
     }
+
+    const auto spider_result = try_run_spider_command(argc, argv);
+    if (spider_result != -1) {
+        return spider_result;
+    }
+
     if (argc <= 1) {
         return -1;
     }
