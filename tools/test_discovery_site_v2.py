@@ -119,7 +119,7 @@ def main() -> None:
 
         assert "Урок 1 — Що таке" in lesson_html
         assert "Не «просто 3D-модель»" in lesson_html
-        assert "NBZ / PAC / PNST" in lesson_html
+        assert "DMC3-*.nbz" in lesson_html
         assert "serialized MOD" in lesson_html
         assert '<pre><code class="language-text">' in lesson_html
         assert "Next lesson →" in lesson_html
