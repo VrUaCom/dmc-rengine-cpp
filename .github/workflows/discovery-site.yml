@@ -5,25 +5,33 @@ on:
     paths:
       - 'site/**'
       - 'tools/build_discovery_site.py'
+      - 'tools/build_discovery_site_v2.py'
+      - 'tools/discovery_format_catalog.py'
       - 'tools/test_discovery_site_builder.py'
+      - 'tools/test_discovery_site_v2.py'
       - '.github/workflows/discovery-site.yml'
       - '.github/workflows/pages-deploy.yml'
       - 'docs/discovery/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
       - 'docs/gdspaces-contract.md'
+      - 'learning/**'
   push:
     branches: [ main ]
     paths:
       - 'site/**'
       - 'tools/build_discovery_site.py'
+      - 'tools/build_discovery_site_v2.py'
+      - 'tools/discovery_format_catalog.py'
       - 'tools/test_discovery_site_builder.py'
+      - 'tools/test_discovery_site_v2.py'
       - '.github/workflows/discovery-site.yml'
       - '.github/workflows/pages-deploy.yml'
       - 'docs/discovery/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
       - 'docs/gdspaces-contract.md'
+      - 'learning/**'
   workflow_dispatch:
 
 permissions:
@@ -34,11 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Test discovery-site builder
+      - name: Test legacy discovery-site builder
         run: python tools/test_discovery_site_builder.py
+      - name: Test format encyclopedia builder
+        run: python tools/test_discovery_site_v2.py
       - name: Build discovery site
         run: >-
-          python tools/build_discovery_site.py
+          python tools/build_discovery_site_v2.py
           --output _site
           --base-url https://vruacom.github.io/dmc-rengine-cpp
       - name: Validate generated public surface
@@ -47,13 +57,21 @@ jobs:
           test -f _site/index.html
           test -f _site/formats/index.html
           test -f _site/formats/scm/index.html
+          test -f _site/formats/mod/index.html
+          test -f _site/formats/mot/index.html
+          test -f _site/formats/dds/index.html
+          test -f _site/formats/ptx/index.html
           test -f _site/archives/nbz/index.html
           test -f _site/faq/index.html
           test -f _site/status/index.html
           test -f _site/robots.txt
           test -f _site/sitemap.xml
+          test -f _site/site-index.json
           grep -q 'DMC Rengine' _site/index.html
           grep -q 'rel="canonical"' _site/index.html
+          grep -q 'Complete canonical format and resource-family catalog' _site/formats/index.html
+          grep -q 'MOD learning path' _site/formats/mod/index.html
+          grep -q 'Practical tutorial path' _site/formats/mot/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/assets/style.css' _site/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/formats/' _site/index.html
           grep -q 'User-agent: OAI-SearchBot' _site/robots.txt
