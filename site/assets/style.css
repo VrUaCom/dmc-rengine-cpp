@@ -41,7 +41,61 @@ h2 { margin-top: 0; }
 section { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); }
 .authority { border-color: #1f6feb; }
 .button { display: inline-block; padding: 0.7rem 1rem; border: 1px solid #1f6feb; border-radius: 8px; text-decoration: none; font-weight: 700; }
+
+.format-catalog-intro { border-color: #1f6feb; }
+.catalog-count { margin-bottom: 0; color: var(--muted); font-weight: 700; }
+.format-domain { background: transparent; border: 0; padding: 0; }
+.format-domain > h2 { padding-top: 0.5rem; border-bottom: 1px solid var(--border); }
+.format-grid, .lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.format-card {
+  display: flex;
+  min-height: 185px;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+.format-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.format-card-name { font-size: 1.25rem; font-weight: 800; }
+.format-card-purpose { flex: 1; color: #c9d1d9; font-size: 0.94rem; }
+.format-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #0d1117;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.badge-exe-confirmed, .badge-data-confirmed, .badge-standard, .badge-structural { color: #7ee787; border-color: #238636; }
+.badge-high-confidence, .badge-partial, .badge-recognized { color: #d2a8ff; border-color: #8957e5; }
+.badge-open, .badge-research-required, .badge-research-only, .badge-runtime-only { color: #e3b341; border-color: #9e6a03; }
+.badge-capability-only, .badge-external, .badge-fallback-only, .badge-logical { color: #79c0ff; border-color: #1f6feb; }
+.format-status { border-color: #30363d; }
+.format-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin: 0 0 1rem; }
+.format-facts div { padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; background: #0d1117; }
+.format-facts dt { color: var(--muted); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.format-facts dd { margin: 0.2rem 0 0; font-weight: 700; }
+.learning-path { border-color: #8957e5; }
+.lesson-card { padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: #0d1117; }
+.lesson-card h3 { margin: 0 0 0.5rem; }
+.lesson-card p:last-child { margin-bottom: 0; }
+
 @media (max-width: 760px) {
   .site-header { align-items: flex-start; flex-direction: column; }
   main { padding-top: 2.5rem; }
+  .format-grid, .lesson-grid { grid-template-columns: 1fr; }
 }
