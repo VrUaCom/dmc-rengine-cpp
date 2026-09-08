@@ -1,0 +1,190 @@
+{
+  "schema": "dmc-rengine.enemy-architecture.v1",
+  "date": "2026-09-08",
+  "branch": "research/enemy-architecture-em000-20260908",
+  "base_main": "22cfb1073f73d8290a04968dbf0f038048f01990",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "leaf_count": 302,
+    "mod_count_recursive": 35,
+    "mot_count": 82,
+    "clt_count": 8,
+    "tsc_count": 1,
+    "efm_count": 1,
+    "effect_manifest_entries": 173
+  },
+  "enemy_definition_model": {
+    "resource_package": true,
+    "runtime_object": true,
+    "spawn_dependency_control": true,
+    "authoring_authority_required": true,
+    "single_flat_struct_rejected": true
+  },
+  "resource_domains": [
+    {
+      "format": "MOD",
+      "role": "skinned actor/model resources, skeleton/rest pose/skin binding",
+      "branch": "reverse/mod-completion-20260907",
+      "status": "strong_read_reverse_writer_open"
+    },
+    {
+      "format": "PTX",
+      "role": "actor texture bundle",
+      "branch": "reverse/ptx-em000-binding-20260908",
+      "status": "canonical_reader_plus_em000_binding"
+    },
+    {
+      "format": "MOT",
+      "role": "serialized animation channel/key resources",
+      "branch": "reverse/mot-em000-20260908",
+      "status": "deep_structural_corpus_reverse_evaluator_open"
+    },
+    {
+      "format": "CLT",
+      "role": "text-serialized cloth/deformation control and node references",
+      "branch": "reverse/clt-em000-20260908",
+      "status": "structural_parser_and_cross_resource_binding_research"
+    },
+    {
+      "format": "TSC",
+      "role": "text-serialized motion/control texture-slot state",
+      "branch": "reverse/tsc-em000-20260908",
+      "status": "structural_parser_semantics_open"
+    },
+    {
+      "format": "EFM",
+      "role": "related effect-model resource family",
+      "branch": "reverse/efm-em000-20260908",
+      "status": "real_payload_structural_adapter_research"
+    },
+    {
+      "format": "EFFECT_PACK",
+      "role": "logical effect graph over PNST record storage",
+      "branch": "reverse/effect-pack-em000-20260908",
+      "status": "grouping_and_partial_reference_graph_recovered"
+    },
+    {
+      "format": "SO_WORKING_FAMILY",
+      "role": "graph/link/spatial-volume related resources",
+      "branch": "reverse/so-em000-identity-20260908",
+      "status": "working_identity_original_extension_open"
+    }
+  ],
+  "cross_resource_edges": [
+    {
+      "from": "CLT.Bone",
+      "to": "associated_local_MOD_or_EFM_node_domain",
+      "status": "CORPUS_CONFIRMED",
+      "evidence": "8/8 CLT resources pair with following 5/6-node model chain and all Bone indices fit/select chain tail"
+    },
+    {
+      "from": "CLT.WindParent",
+      "to": "external_actor_skeleton_domain",
+      "status": "SEMANTIC_CANDIDATE_STRONG_CORPUS",
+      "evidence": "em002 values 9/13 exceed local 6-node chain but fit surrounding 22-node actor skeleton"
+    },
+    {
+      "from": "TSC.TexNo",
+      "to": "model_texture_slot_and_PTX_entry",
+      "status": "CORPUS_CONFIRMED_BOUND_CLUSTER",
+      "evidence": "TexNo 2; bound EFM uses texture_slot 2; PTX slot 2 exists"
+    },
+    {
+      "from": "MOT.channel_domain",
+      "to": "MOD_common_animated_node_domain",
+      "status": "SEMANTIC_CANDIDATE_STRONG_CORPUS",
+      "evidence": "22-entry MOT domains correlate with shared MOD node core 0..21; some MOD variants add node 22 outside MOT domain"
+    },
+    {
+      "from": "effect.E.subtype1_2",
+      "to": "effect.T",
+      "status": "CORPUS_CONFIRMED"
+    },
+    {
+      "from": "effect.E.subtype1_2",
+      "to": "effect.A_or_none",
+      "status": "CORPUS_CONFIRMED"
+    },
+    {
+      "from": "effect.E.subtype5",
+      "to": "effect.M",
+      "status": "CORPUS_CONFIRMED"
+    },
+    {
+      "from": "effect.M",
+      "to": "MOD_plus_optional_16_byte_companion",
+      "status": "CORPUS_CONFIRMED"
+    },
+    {
+      "from": "SO_working_volume_domain",
+      "to": "MOD_transform_selector_domain",
+      "status": "CORPUS_STRONG_CORRELATION",
+      "evidence": "23 links, 23 volume records, 23 MOD transform selectors"
+    }
+  ],
+  "runtime_system": {
+    "enemy_class_family": "CEm*",
+    "enemy_class_family_status": "RTTI_CONFIRMED",
+    "event_dynamic_spawn_subsystem": "EXE_BACKED_HIGH_CONFIDENCE",
+    "stagecfg_dependency_scan": {
+      "consumer_va": "0x1401A9BC0",
+      "status": "EXE_CONFIRMED_BOUNDED",
+      "claim": "dependency/control scan contributes enemy-resource demand"
+    },
+    "open": [
+      "concrete CEm layouts",
+      "enemy manager",
+      "enemy id to resource path mapping",
+      "enemy id to factory/class mapping",
+      "spawn/despawn grammar",
+      "AI/action state dispatch",
+      "damage/death lifecycle",
+      "projectile lifecycle",
+      "dynamic collision/contact ownership",
+      "resource lifetime/release"
+    ]
+  },
+  "authoring_levels": {
+    "A_resource_variant_existing_runtime_class": {
+      "description": "change resources while reusing original gameplay class",
+      "current_status": "not_production_authorized",
+      "main_blockers": ["writers", "container reintegration", "game acceptance"]
+    },
+    "B_new_resource_identity_existing_runtime_class": {
+      "description": "new emNNN-like package mapped to an existing CEm class",
+      "current_status": "research_required",
+      "main_blockers": ["enemy id/resource mapping", "factory mapping", "dependency scan", "spawn selector"]
+    },
+    "C_new_runtime_behavior_class": {
+      "description": "new AI/actions/damage/death runtime implementation",
+      "current_status": "research_required",
+      "main_blockers": ["CEm ABI", "factory registration", "lifecycle", "gameplay systems", "recompilation or controlled extension"]
+    }
+  },
+  "new_enemy_acceptance_gates": [
+    "resource identity mapping",
+    "factory mapping",
+    "spawn mapping",
+    "child format parsers",
+    "child writers",
+    "container rebuild",
+    "cross-resource graph validation",
+    "skeleton/MOT/cloth/effect coherence",
+    "dependency request",
+    "runtime instantiation",
+    "render",
+    "animation",
+    "collision/contact",
+    "AI/actions",
+    "damage/death/despawn",
+    "resource cleanup",
+    "rollback",
+    "original dmc3.exe acceptance"
+  ],
+  "writer_authority": "NOT_AUTHORIZED"
+}
