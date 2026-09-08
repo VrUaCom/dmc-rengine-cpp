@@ -1,4 +1,5 @@
 #include "dmc_rengine/analysis/mod/corpus_observations.hpp"
+#include "dmc_rengine/analysis/mod/unresolved_field_evidence.hpp"
 
 namespace dmc::rengine::analysis::mod {
 namespace {
@@ -125,6 +126,23 @@ static_assert(em000_generated_workspace_capacity(34U) ==
               mod_generated_workspace_capacity(34U));
 static_assert(em000_generated_workspace_capacity(376U) ==
               mod_generated_workspace_capacity(376U));
+
+// Cross-check newly recovered executable behavior against the bounded corpus
+// constants so evidence drift fails compilation rather than silently diverging.
+static_assert(CanonicalExeUnknownFieldEvidence::mod_transform_1c_zero_count ==
+              MultiCorpusModSummary::transform_record_count);
+static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_38_zero_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_0c_zero_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_4c_zero_count ==
+              MultiCorpusModSummary::mesh_count);
+static_assert(CanonicalExeUnknownFieldEvidence::mod_blendindices_x_zero_count ==
+              MultiCorpusModSummary::vertex_count);
+static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_used_by_local_matrix_builder);
+static_assert(CanonicalExeUnknownFieldEvidence::efm_mesh_38_is_runtime_active);
+static_assert(!CanonicalExeUnknownFieldEvidence::mod_mesh_38_is_runtime_active);
+static_assert(CanonicalExeUnknownFieldEvidence::header_14_is_runtime_carried);
 
 } // namespace
 } // namespace dmc::rengine::analysis::mod
