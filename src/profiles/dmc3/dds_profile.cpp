@@ -1,8 +1,9 @@
 #include "dmc_rengine/profiles/dmc3/dds_profile.hpp"
 
+#include "dmc_rengine/codecs/dds_bc.hpp"
+
 #include <algorithm>
 #include <array>
-#include <limits>
 
 namespace dmc::rengine::profiles::dmc3 {
 namespace {
@@ -14,22 +15,6 @@ constexpr std::uint32_t kPixelFormatFlags = 4U;
 constexpr std::uint32_t kCaps = 0x00401008U;
 constexpr std::uint32_t kDxt1LinearSize = 0x00010000U;
 constexpr std::uint32_t kDxt5LinearSize = 0x00020000U;
-
-[[nodiscard]] bool contains(
-    std::span<const std::byte> bytes,
-    std::size_t offset,
-    std::size_t size) noexcept {
-    return offset <= bytes.size() && size <= bytes.size() - offset;
-}
-
-[[nodiscard]] std::uint32_t read_u32_le(
-    std::span<const std::byte> bytes,
-    std::size_t offset) noexcept {
-    return std::to_integer<std::uint32_t>(bytes[offset + 0U]) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 1U]) << 8U) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 2U]) << 16U) |
-        (std::to_integer<std::uint32_t>(bytes[offset + 3U]) << 24U);
-}
 
 void write_u32_le(
     std::vector<std::byte>& bytes,
@@ -57,22 +42,6 @@ void write_u32_le(
         width <= safety.max_dimension && height <= safety.max_dimension;
 }
 
-[[nodiscard]] std::uint32_t full_mip_count(
-    std::uint32_t width,
-    std::uint32_t height) noexcept {
-    auto dimension = std::max(width, height);
-    std::uint32_t count = 1U;
-    while (dimension > 1U) {
-        dimension /= 2U;
-        ++count;
-    }
-    return count;
-}
-
-[[nodiscard]] std::uint32_t block_bytes(Dmc3DdsCompression compression) noexcept {
-    return compression == Dmc3DdsCompression::dxt1 ? 8U : 16U;
-}
-
 [[nodiscard]] std::uint32_t linear_size(Dmc3DdsCompression compression) noexcept {
     return compression == Dmc3DdsCompression::dxt1
         ? kDxt1LinearSize
@@ -88,28 +57,18 @@ void write_u32_le(
               std::byte{'D'}, std::byte{'X'}, std::byte{'T'}, std::byte{'5'}};
 }
 
-[[nodiscard]] bool expected_payload_size(
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t mip_count,
-    Dmc3DdsCompression compression,
-    std::uint32_t& output) noexcept {
-    std::uint64_t total = 0U;
-    const auto bytes_per_block = block_bytes(compression);
-    for (std::uint32_t level = 0U; level < mip_count; ++level) {
-        const auto blocks_w = std::max(1U, (width + 3U) / 4U);
-        const auto blocks_h = std::max(1U, (height + 3U) / 4U);
-        const auto level_bytes =
-            static_cast<std::uint64_t>(blocks_w) * blocks_h * bytes_per_block;
-        if (total > std::numeric_limits<std::uint32_t>::max() - level_bytes) {
-            return false;
-        }
-        total += level_bytes;
-        width = std::max(1U, width / 2U);
-        height = std::max(1U, height / 2U);
-    }
-    output = static_cast<std::uint32_t>(total);
-    return true;
+[[nodiscard]] codecs::dds_bc::Compression to_codec(
+    Dmc3DdsCompression compression) noexcept {
+    return compression == Dmc3DdsCompression::dxt1
+        ? codecs::dds_bc::Compression::dxt1
+        : codecs::dds_bc::Compression::dxt5;
+}
+
+[[nodiscard]] Dmc3DdsCompression from_codec(
+    codecs::dds_bc::Compression compression) noexcept {
+    return compression == codecs::dds_bc::Compression::dxt1
+        ? Dmc3DdsCompression::dxt1
+        : Dmc3DdsCompression::dxt5;
 }
 
 [[nodiscard]] std::vector<std::byte> canonical_header(
@@ -127,7 +86,10 @@ void write_u32_le(
     write_u32_le(header, 16U, width);
     write_u32_le(header, 20U, linear_size(compression));
     write_u32_le(header, 24U, 0U);
-    write_u32_le(header, 28U, full_mip_count(width, height));
+    write_u32_le(
+        header,
+        28U,
+        codecs::dds_bc::maximum_mip_count(width, height));
     write_u32_le(header, 76U, kPixelFormatSize);
     write_u32_le(header, 80U, kPixelFormatFlags);
     const auto code = fourcc(compression);
@@ -157,6 +119,27 @@ void write_u32_le(
     };
 }
 
+[[nodiscard]] Dmc3DdsStatus map_codec_status(
+    codecs::dds_bc::Status status) noexcept {
+    switch (status) {
+    case codecs::dds_bc::Status::ok: return Dmc3DdsStatus::ok;
+    case codecs::dds_bc::Status::truncated: return Dmc3DdsStatus::truncated;
+    case codecs::dds_bc::Status::invalid_magic: return Dmc3DdsStatus::invalid_magic;
+    case codecs::dds_bc::Status::unsupported_compression:
+        return Dmc3DdsStatus::unsupported_compression;
+    case codecs::dds_bc::Status::invalid_dimensions:
+        return Dmc3DdsStatus::unsupported_dimensions;
+    case codecs::dds_bc::Status::invalid_mip_count:
+        return Dmc3DdsStatus::invalid_mip_chain;
+    case codecs::dds_bc::Status::payload_overflow:
+    case codecs::dds_bc::Status::payload_out_of_bounds:
+        return Dmc3DdsStatus::invalid_payload_size;
+    case codecs::dds_bc::Status::invalid_header:
+        return Dmc3DdsStatus::invalid_header;
+    }
+    return Dmc3DdsStatus::invalid_header;
+}
+
 } // namespace
 
 bool Dmc3DdsDocument::valid() const noexcept {
@@ -176,56 +159,33 @@ bool Dmc3DdsBuildResult::ok() const noexcept {
 Dmc3DdsParseResult Dmc3DdsProfile::parse(
     std::span<const std::byte> bytes,
     Dmc3DdsSafety safety) {
-    if (bytes.size() < k_header_size) {
-        return parse_failure(Dmc3DdsStatus::truncated, "DDS is shorter than the 128-byte header");
-    }
-    if (bytes[0U] != std::byte{'D'} || bytes[1U] != std::byte{'D'} ||
-        bytes[2U] != std::byte{'S'} || bytes[3U] != std::byte{' '}) {
-        return parse_failure(Dmc3DdsStatus::invalid_magic, "DDS magic is not present");
+    const auto portable = codecs::dds_bc::parse(bytes);
+    if (!portable.ok()) {
+        return parse_failure(map_codec_status(portable.status), portable.detail);
     }
 
-    const auto width = read_u32_le(bytes, 16U);
-    const auto height = read_u32_le(bytes, 12U);
-    if (!dimensions_supported(width, height, safety)) {
+    const auto& image = portable.document;
+    if (!dimensions_supported(image.width, image.height, safety)) {
         return parse_failure(
             Dmc3DdsStatus::unsupported_dimensions,
             "DDS dimensions lie outside the Pass 81 product authoring envelope");
     }
-
-    Dmc3DdsCompression compression{};
-    const std::array<std::byte, 4> code{
-        bytes[84U], bytes[85U], bytes[86U], bytes[87U]};
-    if (code == fourcc(Dmc3DdsCompression::dxt1)) {
-        compression = Dmc3DdsCompression::dxt1;
-    } else if (code == fourcc(Dmc3DdsCompression::dxt5)) {
-        compression = Dmc3DdsCompression::dxt5;
-    } else {
-        return parse_failure(
-            Dmc3DdsStatus::unsupported_compression,
-            "Only DXT1 and DXT5 are confirmed by the descriptor-backed corpus");
-    }
-
-    const auto mip_count = read_u32_le(bytes, 28U);
-    if (mip_count != full_mip_count(width, height)) {
+    if (image.mip_count != codecs::dds_bc::maximum_mip_count(
+            image.width, image.height)) {
         return parse_failure(
             Dmc3DdsStatus::invalid_mip_chain,
             "DDS mip count is not the corpus-confirmed complete mip chain");
     }
 
-    const auto expected_header = canonical_header(width, height, compression);
+    const auto compression = from_codec(image.compression);
+    const auto expected_header = canonical_header(
+        image.width, image.height, compression);
     if (!std::equal(expected_header.begin(), expected_header.end(), bytes.begin())) {
         return parse_failure(
             Dmc3DdsStatus::invalid_header,
             "DDS header differs from the exact Pass 81 DMC3 canonical profile");
     }
-
-    std::uint32_t payload_size = 0U;
-    if (!expected_payload_size(width, height, mip_count, compression, payload_size)) {
-        return parse_failure(
-            Dmc3DdsStatus::invalid_payload_size,
-            "DDS full mip chain exceeds the supported size domain");
-    }
-    if (bytes.size() != k_header_size + static_cast<std::size_t>(payload_size)) {
+    if (image.total_size != bytes.size()) {
         return parse_failure(
             Dmc3DdsStatus::invalid_payload_size,
             "DDS byte size does not equal the exact full DXT mip-chain size");
@@ -234,12 +194,12 @@ Dmc3DdsParseResult Dmc3DdsProfile::parse(
     return Dmc3DdsParseResult{
         .status = Dmc3DdsStatus::ok,
         .document = Dmc3DdsDocument{
-            .width = width,
-            .height = height,
-            .mip_map_count = mip_count,
+            .width = image.width,
+            .height = image.height,
+            .mip_map_count = image.mip_count,
             .compression = compression,
-            .payload_size = payload_size,
-            .total_size = static_cast<std::uint32_t>(bytes.size()),
+            .payload_size = image.payload_size,
+            .total_size = image.total_size,
         },
         .detail = {},
     };
@@ -257,10 +217,11 @@ Dmc3DdsBuildResult Dmc3DdsProfile::build(
             "Requested dimensions lie outside the Pass 81 product authoring envelope");
     }
 
-    const auto mip_count = full_mip_count(width, height);
-    std::uint32_t payload_size = 0U;
-    if (!expected_payload_size(width, height, mip_count, compression, payload_size) ||
-        payload.size() != payload_size) {
+    const auto mip_count = codecs::dds_bc::maximum_mip_count(width, height);
+    std::uint32_t expected_payload = 0U;
+    if (!codecs::dds_bc::payload_size(
+            width, height, mip_count, to_codec(compression), &expected_payload) ||
+        payload.size() != expected_payload) {
         return build_failure(
             Dmc3DdsStatus::invalid_payload_size,
             "Authored payload does not contain the exact full DXT mip chain");
