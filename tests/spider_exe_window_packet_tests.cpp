@@ -74,12 +74,19 @@ std::string make_plan(std::string mode, std::string body = {}) {
     return json;
 }
 
+void replace_once(std::string& text, std::string_view from, std::string_view to) {
+    const auto position = text.find(from);
+    assert(position != std::string::npos);
+    text.replace(position, from.size(), to);
+}
+
 } // namespace
 
 int main() {
     using namespace dmc::rengine::spider;
 
-    const auto compiled = compile_exe_window_packet(make_plan("probe"));
+    const auto source_plan = make_plan("probe");
+    const auto compiled = compile_exe_window_packet(source_plan);
     assert(compiled.ok());
     assert(compiled.program->summary.window_count == 1U);
     assert(compiled.program->summary.probe_count == 1U);
@@ -89,6 +96,35 @@ int main() {
     assert(compiled.program->execution.instructions[1].op == OpCode::acquire_window);
     assert(compiled.program->execution.instructions[2].op == OpCode::validate_window);
 
+    // Python hashes the exact plan bytes. Spider must preserve that behavior,
+    // including otherwise insignificant trailing whitespace.
+    const auto changed_bytes = compile_exe_window_packet(source_plan + " \n");
+    assert(changed_bytes.ok());
+    assert(
+        compiled.program->summary.plan_sha256 !=
+        changed_bytes.program->summary.plan_sha256);
+
+    // Python uses str.strip() for semantic text fields. Whitespace-only values
+    // therefore remain invalid in the native migration too.
+    auto blank_plan_id = source_plan;
+    replace_once(blank_plan_id, "test-l3-writer-plan", "   ");
+    assert(!compile_exe_window_packet(blank_plan_id).ok());
+
+    auto blank_authority = source_plan;
+    replace_once(blank_authority, "analysis-reverse", "   ");
+    assert(!compile_exe_window_packet(blank_authority).ok());
+
+    auto blank_policy = source_plan;
+    replace_once(
+        blank_policy,
+        "Probe coverage only; not a body-boundary assertion.",
+        "   ");
+    assert(!compile_exe_window_packet(blank_policy).ok());
+
+    auto blank_purpose = source_plan;
+    replace_once(blank_purpose, "Synthetic guardrail coverage only.", "   ");
+    assert(!compile_exe_window_packet(blank_purpose).ok());
+
     Fixture fixture;
     const auto executed = execute_exe_window_packet(
         *compiled.program, k_sha, acquire, &fixture);
@@ -96,10 +132,23 @@ int main() {
     assert(executed.receipts.size() == 1U);
     assert(executed.receipts.front().section_name == ".text");
 
+    const auto bad_expected_sha = execute_exe_window_packet(
+        *compiled.program,
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        acquire,
+        &fixture);
+    assert(bad_expected_sha.error == ExeWindowPacketError::expected_sha_mismatch);
+
+    const auto unbound = execute_exe_window_packet(
+        *compiled.program, k_sha, nullptr, &fixture);
+    assert(unbound.error == ExeWindowPacketError::acquisition_failed);
+
     fixture.fail = true;
     const auto failed = execute_exe_window_packet(
         *compiled.program, k_sha, acquire, &fixture);
     assert(failed.error == ExeWindowPacketError::acquisition_failed);
+    assert(failed.failed_window.has_value());
+    assert(*failed.failed_window == 0U);
     fixture.fail = false;
 
     fixture.wrong_schema_equivalent = true;
@@ -122,10 +171,8 @@ int main() {
         *wrong_body.program, k_sha, acquire, &fixture);
     assert(body_mismatch.error == ExeWindowPacketError::known_body_mismatch);
 
-    auto unsafe = make_plan("probe");
-    const auto position = unsafe.find("writer-probe");
-    assert(position != std::string::npos);
-    unsafe.replace(position, std::string{"writer-probe"}.size(), "../unsafe");
+    auto unsafe = source_plan;
+    replace_once(unsafe, "writer-probe", "../unsafe");
     assert(!compile_exe_window_packet(unsafe).ok());
 
     return 0;
