@@ -4,9 +4,11 @@
 #include "dmc_rengine/spider/exe_window_packet.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::spider {
