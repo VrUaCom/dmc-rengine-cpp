@@ -9,13 +9,12 @@ namespace dmc::rengine::formats::mot {
 struct HeaderAbi final {
     static constexpr std::size_t header_size_field = 0x00U;
     static constexpr std::size_t magic_field = 0x04U;
-    static constexpr std::size_t raw_id_field = 0x04U; // overlaps MOT\0 bytes as signed/raw id in legacy tooling
-    static constexpr std::size_t raw_start_frame_field = 0x08U;
-    static constexpr std::size_t raw_end_frame_field = 0x0CU;
-    static constexpr std::size_t raw_start_frame_2_field = 0x10U;
-    static constexpr std::size_t raw_end_frame_2_field = 0x14U;
-    static constexpr std::size_t raw_flag_field = 0x18U;
-    static constexpr std::size_t raw_selector_field = 0x1AU;
+    static constexpr std::size_t raw_u32_08_field = 0x08U;
+    static constexpr std::size_t raw_f32_0c_field = 0x0CU;
+    static constexpr std::size_t raw_f32_10_field = 0x10U;
+    static constexpr std::size_t raw_f32_14_field = 0x14U;
+    static constexpr std::size_t raw_u16_18_field = 0x18U;
+    static constexpr std::size_t raw_u16_1a_field = 0x1AU;
     static constexpr std::size_t channel_domain_count_field = 0x1CU;
     static constexpr std::size_t channel_mask_table = 0x1EU;
     static constexpr std::size_t alignment = 0x10U;
@@ -28,19 +27,21 @@ struct TrackAbi final {
     static constexpr std::size_t start_time_field = 0x06U;
     static constexpr std::size_t quantization_field = 0x08U;
 
-    static constexpr std::uint16_t compression_linear_int16 = 2U;
-    static constexpr std::uint16_t compression_hermite_int16 = 3U;
+    // Numeric values 2 and 3 and their exact physical layouts are corpus
+    // confirmed. Linear/Hermite names are externally corroborated semantics,
+    // not raw ABI authority.
+    static constexpr std::uint16_t compression_2 = 2U;
+    static constexpr std::uint16_t compression_3 = 3U;
 
-    static constexpr std::size_t linear_int16_prefix_size = 0x10U;
-    static constexpr std::size_t linear_int16_key_size = 0x04U;
-    static constexpr std::size_t hermite_int16_prefix_size = 0x20U;
-    static constexpr std::size_t hermite_int16_key_size = 0x08U;
+    static constexpr std::size_t compression_2_prefix_size = 0x10U;
+    static constexpr std::size_t compression_2_key_size = 0x04U;
+    static constexpr std::size_t compression_3_prefix_size = 0x20U;
+    static constexpr std::size_t compression_3_key_size = 0x08U;
 };
 
 struct ChannelMaskAbi final {
-    // The nine bits are structurally confirmed as three 3-bit groups by em000.
-    // High-level translation/rotation/scale names are not made ABI authority
-    // until canonical dmc3.exe evaluation code is directly rebound.
+    // em000 proves a nine-bit domain partitioned into three 3-bit groups.
+    // Translation/rotation/scale meanings remain analysis-layer semantics.
     static constexpr std::uint16_t low_triplet = 0x007U;
     static constexpr std::uint16_t middle_triplet = 0x038U;
     static constexpr std::uint16_t high_triplet = 0x1C0U;
@@ -53,19 +54,21 @@ struct ChannelMaskAbi final {
 
 [[nodiscard]] constexpr std::size_t header_size_for_channel_domain(
     std::size_t channel_domain_count) noexcept {
-    return align16(HeaderAbi::channel_mask_table + channel_domain_count * sizeof(std::uint16_t));
+    return align16(
+        HeaderAbi::channel_mask_table +
+        channel_domain_count * sizeof(std::uint16_t));
 }
 
 [[nodiscard]] constexpr std::size_t expected_track_span(
     std::uint16_t compression,
     std::uint16_t key_count) noexcept {
-    if (compression == TrackAbi::compression_linear_int16) {
-        return TrackAbi::linear_int16_prefix_size +
-            static_cast<std::size_t>(key_count) * TrackAbi::linear_int16_key_size;
+    if (compression == TrackAbi::compression_2) {
+        return TrackAbi::compression_2_prefix_size +
+            static_cast<std::size_t>(key_count) * TrackAbi::compression_2_key_size;
     }
-    if (compression == TrackAbi::compression_hermite_int16) {
-        return TrackAbi::hermite_int16_prefix_size +
-            static_cast<std::size_t>(key_count) * TrackAbi::hermite_int16_key_size;
+    if (compression == TrackAbi::compression_3) {
+        return TrackAbi::compression_3_prefix_size +
+            static_cast<std::size_t>(key_count) * TrackAbi::compression_3_key_size;
     }
     return 0U;
 }
@@ -79,7 +82,8 @@ struct ChannelMaskAbi final {
 }
 
 [[nodiscard]] constexpr std::size_t selected_track_count(std::uint16_t mask) noexcept {
-    return static_cast<std::size_t>(std::popcount(static_cast<unsigned int>(mask)));
+    return static_cast<std::size_t>(
+        std::popcount(static_cast<unsigned int>(mask)));
 }
 
 static_assert(header_size_for_channel_domain(22U) == 0x50U);
