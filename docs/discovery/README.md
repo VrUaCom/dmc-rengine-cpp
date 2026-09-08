@@ -32,12 +32,12 @@ Canonical production evidence:
 - GitHub repository `main` remains the technical/evidence authority;
 - GitHub Pages is the public discovery/readability layer;
 - the repository About website points to the Pages origin;
-- the site exposes 12 controlled HTML routes plus `sitemap.xml`;
+- the public route set is manifest-driven and published with `sitemap.xml` rather than maintained as a separate hand-written URL inventory;
 - canonical URLs resolve under the Pages project path;
 - the approved image-backed OG/Twitter card asset is served from the same controlled HTTPS origin;
-- `Deploy Discovery Site` run #8 on merge `22cfb1073f73d8290a04968dbf0f038048f01990` passed build, deployment, and independent post-deploy HTTP acceptance;
-- the actual host-level `https://vruacom.github.io/robots.txt` returned HTTP 404 during that acceptance run;
-- Googlebot and OAI-SearchBot both successfully fetched the live project root;
+- `Deploy Discovery Site` run #8 on merge `22cfb1073f73d8290a04968dbf0f038048f01990` established the first reproducible build, deployment, and independent post-deploy HTTP acceptance baseline;
+- that run observed the actual host-level `https://vruacom.github.io/robots.txt` as HTTP 404;
+- Googlebot and OAI-SearchBot both successfully fetched the live project root in that acceptance run;
 - no analytics or external scripts are present in the production discovery site.
 
 Crawlability is therefore evidenced independently from indexing. Public web-search checks on 2026-09-08 did not yet surface the Pages site; Search Console/indexing work is tracked separately in issue #338 and must not be represented as already indexed.
@@ -50,6 +50,7 @@ Repository Topics are only partially owner-applied and remain intentionally defe
 - `DMC3` must be treated as an explicit identity alias alongside `Devil May Cry 3` and `Devil May Cry HD Collection`.
 - The README already contains strong technical material; the discovery problem is primarily information hierarchy, stable public entry points, metadata consistency, and external indexing rather than lack of substance.
 - The format corpus is a major long-tail discovery asset: SCM, MOD, SHW, HITS, PAC, PNST, NBZ/GDSpaces, DDS/PTX and executable/runtime evidence.
+- Dedicated long-tail routes are justified only where canonical evidence supports a useful standalone page; the strategy explicitly rejects creating one thin page per extension for search volume.
 - Stars and forks are useful social signals, but this project does not treat them as a proven primary GitHub ranking formula.
 - The controlled GitHub Pages site provides a crawlable discovery surface while GitHub remains canonical source/evidence authority.
 
@@ -77,9 +78,12 @@ Repository Topics are only partially owner-applied and remain intentionally defe
 - DMC3 SCM format
 - DMC3 MOD format
 - DMC3 SHW format
+- DMC3 HITS collision format
 - DMC3 PAC format
 - DMC3 PNST
 - DMC3 NBZ archive
+- DMC3 DDS textures
+- DMC3 PTX textures
 - DMC3 texture formats
 
 ### Tooling
@@ -178,6 +182,8 @@ Current information architecture:
 /formats/scm/
 /formats/mod/
 /formats/shw/
+/formats/hits/
+/formats/textures/
 /formats/pac/
 /formats/pnst/
 /archives/nbz/
@@ -188,6 +194,10 @@ Current information architecture:
 ```
 
 The site links back to exact GitHub source/evidence documents for canonical details. Its generated canonical URLs, sitemap, breadcrumb metadata, image-backed social cards, and source links are validation surfaces; they do not promote technical maturity beyond repository evidence.
+
+The HITS landing page is anchored to `docs/formats/hits.md` and can describe the canonical four-byte magic, spatial grid and triangle-plane structural model while keeping raw flag semantics and original-game authoring acceptance evidence-gated.
+
+The texture landing page deliberately groups **search/navigation intent**, not binary identity: DDS and PTX remain distinct resource representations, and the public page must not imply that PTX bundle framing, wrapped or extracted DDS data and runtime GPU texture identity are interchangeable.
 
 The project-path `robots.txt` artifact documents intended project policy but is **not** host-level crawler authority. Production acceptance must always inspect the actual origin-root `https://vruacom.github.io/robots.txt` before making a host-level crawler-policy statement.
 
@@ -275,6 +285,7 @@ Releases are a trust and distribution surface, not a ranking claim.
 - [x] validate actual host-level robots response;
 - [x] validate Googlebot and OAI-SearchBot live fetchability;
 - [x] serve the approved image-backed OG/Twitter card from the controlled origin;
+- [x] keep dedicated long-tail format pages evidence-bounded rather than generating thin extension pages;
 - [ ] connect the exact URL-prefix property to Search Console and submit the sitemap in #338;
 - [ ] analytics remain deliberately deferred pending privacy/hosting review; analytics are not required for discovery acceptance.
 
@@ -292,6 +303,7 @@ Releases are a trust and distribution surface, not a ranking claim.
 - Capability claims remain aligned with `docs/status/current.md`.
 - Topics contain no semantically false classifications.
 - Format documentation has stable, readable entry points.
+- Dedicated long-tail pages require enough canonical evidence to answer a distinct technical search intent.
 - Production Pages remains a discovery layer over canonical GitHub evidence.
 - Crawlability claims require real live-origin evidence.
 - Indexing/ranking claims require separate external evidence.
