@@ -15,6 +15,21 @@ namespace dmc::rengine::analysis::mod {
 // mesh construction 0x1402FE6A0 do not relocate or copy these fields in the
 // confirmed MOD load path. That negative runtime evidence does NOT authorize a
 // writer to clear them; they remain byte-preservation obligations.
+//
+// Cross-family evidence sharpens the physical classification:
+// - MOD +0x0C is a zero dword between the 12-byte material/CLAMP prefix and the
+//   first aligned u64 stream pointer; it remains inactive in the confirmed MOD
+//   path and is best treated as a reserved/alignment candidate.
+// - +0x38 is NOT generic padding. EFM post-load 0x1402F7A90 relocates it as a
+//   live stream pointer and the bound EFM payload maps that stream to COLOR0;
+//   SCM post-load 0x1403051B0 also relocates +0x38 for its RGB/topology stream.
+//   MOD deliberately leaves the homologous slot zero and unconsumed. Therefore
+//   the safe shared description is a format-specific auxiliary-stream slot,
+//   dormant in the currently confirmed MOD layouts. Do not call MOD +0x38
+//   COLOR0 merely because EFM uses the homologous offset that way.
+// - MOD +0x4C is the trailing dword after runtime-generated count +0x48. It is
+//   zero in all 180 current MOD meshes and remains unconsumed by the confirmed
+//   MOD path; SCM independently observes the homologous trailing dword as zero.
 struct MeshSerializedPreservationAbi final {
     static constexpr std::size_t record_size = 0x50U;
     static constexpr std::size_t preserved0c_u32_field = 0x0CU;
@@ -91,9 +106,16 @@ read_mesh_serialized_preservation(
 // Their evidence is now independently closed by the canonical executable:
 // - CPU consumer 0x1402F3D0A..0x1402F3D0F reads BLENDINDICES lane[1] and
 //   divides the matrix-row offset by four to obtain a node/bone index.
-// - runtime-selected vertex shader DMC3_MOD.hlsl (descriptor tag 5) decodes
-//   three 5-bit PSIZE weights with denominator 31 and uses matIndex.y/z/w as
-//   the corresponding four-row matrix starts in extraMatrices[].
+// - canonical MOD post-load 0x1402FE3B0 has a special-path read of blend bytes
+//   +1/+2 but no lane-0 interpretation;
+// - embedded DMC3_MOD / DMC3_MOD_SP / DMC3_MOD_STX shader sources declare
+//   uint4 matIndex : BLENDINDICES yet use only matIndex.y/z/w. A raw canonical
+//   executable scan contains no `matIndex.x` source reference. Together with
+//   20,976/20,976 zero lane-0 bytes this makes X a strong reserved/compatibility
+//   lane candidate, still preserved until a full CPU-consumer census closes it.
+// - the shader family decodes three 5-bit PSIZE weights with denominator 31 and
+//   uses matIndex.y/z/w as the corresponding four-row matrix starts in
+//   extraMatrices[].
 static_assert(dmc::rengine::formats::mod::matrix_row_stride == 4U);
 static_assert(dmc::rengine::formats::mod::quantized_weight_sum == 31U);
 static_assert(dmc::rengine::formats::mod::topology_break_mask == 0x8000U);
