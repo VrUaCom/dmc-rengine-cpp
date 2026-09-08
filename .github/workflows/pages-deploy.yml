@@ -83,7 +83,262 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  production-http-acceptance:
+    if: ${{ needs.build.outputs.pages_enabled == 'true' }}
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    env:
+      SITE_URL: ${{ needs.deploy.outputs.page_url }}
+      APPROVED_RASTER_SHA256: a81a726bcff355cad5a6b25ecc7d35570d178ffdc3f1dddce8750e45f17bf21f
+      APPROVED_RASTER_SIZE: '793850'
+      APPROVED_RASTER_WIDTH: '1280'
+      APPROVED_RASTER_HEIGHT: '640'
+      APPROVED_RASTER_ALT: DMC Rengine — DMC3 HD Reverse Engineering
+    steps:
+      - name: Verify live Pages routes, metadata, raster and crawler surface
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -n "$SITE_URL"
+          site="${SITE_URL%/}"
+          image_url="${site}/assets/social-preview.png"
+          mkdir -p /tmp/live-pages
+
+          fetch_live() {
+            local url="$1"
+            local output="$2"
+            curl --silent --show-error --location --fail \
+              --retry 8 --retry-all-errors --retry-delay 5 \
+              --connect-timeout 10 --max-time 45 \
+              --output "$output" \
+              "$url"
+          }
+
+          routes=(
+            "/"
+            "/formats/"
+            "/formats/scm/"
+            "/reverse-engineering/"
+            "/faq/"
+          )
+
+          index=0
+          for route in "${routes[@]}"; do
+            url="${site}${route}"
+            echo "Fetching ${url}"
+            fetch_live "$url" "/tmp/live-pages/page-${index}.html"
+            index=$((index + 1))
+          done
+
+          echo "Fetching ${image_url}"
+          curl --silent --show-error --location --fail \
+            --retry 8 --retry-all-errors --retry-delay 5 \
+            --connect-timeout 10 --max-time 45 \
+            --dump-header /tmp/social-preview.headers \
+            --output /tmp/social-preview.png \
+            "$image_url"
+
+          actual_sha="$(sha256sum /tmp/social-preview.png | awk '{print $1}')"
+          actual_size="$(stat -c '%s' /tmp/social-preview.png)"
+          test "$actual_sha" = "$APPROVED_RASTER_SHA256"
+          test "$actual_size" = "$APPROVED_RASTER_SIZE"
+          grep -qiE '^content-type:[[:space:]]*image/png([[:space:]]*;.*)?[[:space:]]*$' /tmp/social-preview.headers
+
+          export IMAGE_URL="$image_url"
+          python - <<'PY'
+          from __future__ import annotations
+
+          import glob
+          import os
+          import struct
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          image_url = os.environ["IMAGE_URL"]
+          expected_alt = os.environ["APPROVED_RASTER_ALT"]
+
+          class MetaParser(HTMLParser):
+              def __init__(self) -> None:
+                  super().__init__()
+                  self.meta: list[dict[str, str]] = []
+
+              def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+                  if tag.lower() == "meta":
+                      self.meta.append({k.lower(): (v or "") for k, v in attrs})
+
+          expected = {
+              ("property", "og:image"): image_url,
+              ("property", "og:image:secure_url"): image_url,
+              ("property", "og:image:type"): "image/png",
+              ("property", "og:image:width"): os.environ["APPROVED_RASTER_WIDTH"],
+              ("property", "og:image:height"): os.environ["APPROVED_RASTER_HEIGHT"],
+              ("property", "og:image:alt"): expected_alt,
+              ("name", "twitter:card"): "summary_large_image",
+              ("name", "twitter:image"): image_url,
+              ("name", "twitter:image:alt"): expected_alt,
+          }
+
+          pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
+          assert len(pages) == 5, pages
+          for page in pages:
+              parser = MetaParser()
+              parser.feed(Path(page).read_text(encoding="utf-8"))
+              for (selector, key), expected_value in expected.items():
+                  values = [
+                      tag.get("content", "")
+                      for tag in parser.meta
+                      if tag.get(selector, "").lower() == key
+                  ]
+                  assert values == [expected_value], (page, selector, key, values)
+
+          png = Path("/tmp/social-preview.png").read_bytes()
+          assert png[:8] == b"\x89PNG\r\n\x1a\n"
+          assert png[12:16] == b"IHDR"
+          width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+              ">IIBBBBB", png[16:29]
+          )
+          assert width == int(os.environ["APPROVED_RASTER_WIDTH"]), width
+          assert height == int(os.environ["APPROVED_RASTER_HEIGHT"]), height
+          assert color_type == 2, color_type
+          assert compression == 0 and filtering == 0
+          print(
+              f"Approved live raster: {width}x{height}, bit_depth={bit_depth}, "
+              f"color_type={color_type}, interlace={interlace}"
+          )
+          PY
+
+          fetch_live "${site}/sitemap.xml" /tmp/sitemap.xml
+          export SITE_ORIGIN="$site"
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          site = os.environ["SITE_ORIGIN"].rstrip("/") + "/"
+          root = ET.fromstring(Path("/tmp/sitemap.xml").read_bytes())
+          locs = [node.text or "" for node in root.findall(".//{*}loc")]
+          assert len(locs) == 12, locs
+          assert all(loc.startswith(site) for loc in locs), locs
+          print(f"Live sitemap contains {len(locs)} controlled URLs.")
+          PY
+
+          origin="$(python - <<'PY'
+          import os
+          from urllib.parse import urlsplit
+
+          parsed = urlsplit(os.environ["SITE_URL"])
+          print(f"{parsed.scheme}://{parsed.netloc}")
+          PY
+          )"
+
+          robots_url="${origin}/robots.txt"
+          echo "Checking origin-level crawler authority: ${robots_url}"
+          robots_code="$(curl --silent --show-error --location \
+            --retry 8 --retry-all-errors --retry-delay 5 \
+            --connect-timeout 10 --max-time 45 \
+            --output /tmp/origin-robots.txt \
+            --write-out '%{http_code}' \
+            "$robots_url")"
+
+          echo "Origin robots final HTTP status: ${robots_code}"
+          robots_present=false
+          case "$robots_code" in
+            2??)
+              robots_present=true
+              echo 'Origin robots.txt exists; body follows for evidence review:'
+              cat /tmp/origin-robots.txt
+              ;;
+            3??)
+              echo 'Unexpected unresolved redirect after --location.' >&2
+              exit 1
+              ;;
+            4??)
+              if [ "$robots_code" = "429" ]; then
+                echo 'Origin robots.txt returned HTTP 429; crawler policy cannot be accepted.' >&2
+                exit 1
+              fi
+              echo 'Origin robots.txt returned a non-429 4xx response.'
+              ;;
+            *)
+              echo "Origin robots.txt returned unacceptable HTTP ${robots_code}." >&2
+              exit 1
+              ;;
+          esac
+
+          if [ "$robots_present" = true ]; then
+            export ROBOTS_URL="$robots_url"
+            python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          from pathlib import Path
+          from urllib.robotparser import RobotFileParser
+
+          robots = Path("/tmp/origin-robots.txt").read_text(encoding="utf-8", errors="replace")
+          parser = RobotFileParser()
+          parser.set_url(os.environ["ROBOTS_URL"])
+          parser.parse(robots.splitlines())
+          target = os.environ["SITE_URL"]
+          for agent in ("Googlebot", "OAI-SearchBot"):
+              allowed = parser.can_fetch(agent, target)
+              print(f"{agent} robots policy for {target}: allowed={allowed}")
+              assert allowed, f"{agent} is blocked by origin robots.txt for {target}"
+          PY
+          fi
+
+          echo 'Fetching root HTML as representative crawlers.'
+          curl --silent --show-error --location --fail \
+            --retry 8 --retry-all-errors --retry-delay 5 \
+            --connect-timeout 10 --max-time 45 \
+            --user-agent 'Twitterbot/1.0' \
+            --output /tmp/twitterbot-root.html \
+            "${site}/"
+
+          for agent in 'Googlebot' 'OAI-SearchBot'; do
+            curl --silent --show-error --location --fail \
+              --retry 8 --retry-all-errors --retry-delay 5 \
+              --connect-timeout 10 --max-time 45 \
+              --user-agent "$agent" \
+              --output /dev/null \
+              "${site}/"
+            echo "${agent} live root fetch succeeded."
+          done
+
+          export TWITTERBOT_HTML=/tmp/twitterbot-root.html
+          python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class MetaParser(HTMLParser):
+              def __init__(self) -> None:
+                  super().__init__()
+                  self.meta: list[dict[str, str]] = []
+
+              def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+                  if tag.lower() == "meta":
+                      self.meta.append({k.lower(): (v or "") for k, v in attrs})
+
+          parser = MetaParser()
+          parser.feed(Path(os.environ["TWITTERBOT_HTML"]).read_text(encoding="utf-8"))
+          image_url = os.environ["IMAGE_URL"]
+          values = [
+              tag.get("content", "")
+              for tag in parser.meta
+              if tag.get("name", "").lower() == "twitter:image"
+          ]
+          assert values == [image_url], values
+          print("Twitterbot received the production image-backed card metadata.")
+          PY
