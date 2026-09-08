@@ -193,6 +193,38 @@ int main() {
         std::span<const std::byte>{reader_dds.data(), reader_dds.size()}).status ==
         dmc3::Dmc3DdsStatus::invalid_mip_chain);
 
+    // DDSD_MIPMAPCOUNT absent means dwMipMapCount is unused; a zero value still
+    // represents a valid single-level 2D DDS for the generic reader.
+    auto zero_mip_count = make_reader_single_mip_dds();
+    put_u32(zero_mip_count, 28U, 0U);
+    const auto zero_mip_parse = codecs::dds_bc::parse(
+        std::span<const std::byte>{zero_mip_count.data(), zero_mip_count.size()});
+    assert(zero_mip_parse.ok());
+    assert(zero_mip_parse.document.mip_count == 1U);
+
+    // If DDSD_MIPMAPCOUNT is explicitly present, zero is invalid rather than
+    // silently normalized.
+    auto flagged_zero_mips = make_reader_single_mip_dds();
+    put_u32(flagged_zero_mips, 8U, 0x000A1007U);
+    put_u32(flagged_zero_mips, 28U, 0U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{flagged_zero_mips.data(), flagged_zero_mips.size()}).status ==
+        codecs::dds_bc::Status::invalid_mip_count);
+
+    // The portable preview codec is intentionally 2D-only. Cubemaps and volume
+    // textures must fail closed rather than report the extent of a single face.
+    auto cubemap = make_reader_single_mip_dds();
+    put_u32(cubemap, 112U, 0x00000200U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{cubemap.data(), cubemap.size()}).status ==
+        codecs::dds_bc::Status::invalid_header);
+
+    auto volume = make_reader_single_mip_dds();
+    put_u32(volume, 24U, 2U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{volume.data(), volume.size()}).status ==
+        codecs::dds_bc::Status::invalid_header);
+
     const auto decoded = codecs::dds_bc::decode_base_mip_rgba8(
         std::span<const std::byte>{reader_dds.data(), reader_dds.size()},
         reader_parse.document);
