@@ -33,12 +33,60 @@ struct Em000CorpusSummary final {
     static constexpr std::size_t motion_group_2_count = 3U;
 };
 
+// Independent corpus expansion performed on 2026-09-08. The two pl000
+// resources and the id100 HUD model are separate from the em000 archive and
+// expose distinct SHA-256 identities:
+//
+// pl000 slot 1 MOD (main actor/model extraction):
+//   e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89
+// pl000 slot 12 MOD, followed by source line ";pl000_02.clt" in slot 13:
+//   7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740
+// id100 Red Orb counter MOD:
+//   9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90
+//
+// A separately supplied 110096-byte MOD was byte-identical to em000_001.mod
+// and is intentionally not double-counted.
+struct MultiCorpusModSummary final {
+    static constexpr std::size_t em000_mod_count = 35U;
+    static constexpr std::size_t pl000_mod_count = 2U;
+    static constexpr std::size_t id100_mod_count = 1U;
+    static constexpr std::size_t unique_mod_count = 38U;
+
+    static constexpr std::size_t object_count = 166U;
+    static constexpr std::size_t mesh_count = 180U;
+    static constexpr std::size_t vertex_count = 20976U;
+    static constexpr std::size_t transform_record_count = 285U;
+
+    // All values below remained zero across every counted MOD in the expanded
+    // corpus. This upgrades the evidence from one enemy corpus to multiple
+    // independent resource families, but deliberately does NOT turn any field
+    // into a global writer-zero/padding rule.
+    static constexpr bool mesh_0c_all_zero = true;
+    static constexpr bool mesh_38_all_zero = true;
+    static constexpr bool mesh_48_serialized_all_zero = true;
+    static constexpr bool mesh_4c_all_zero = true;
+    static constexpr bool transform_1c_all_zero = true;
+    static constexpr bool blendindices_x_all_zero = true;
+
+    // Header +0x14 is not a globally fixed-width decimal semantic partition.
+    // em000 has clustered six-digit values, while the pl000 MODs both carry
+    // raw 217 and id100 carries raw 1000000. The raw manager-carried u32
+    // remains canonical until manager+0xE4 consumers are closed.
+    static constexpr std::uint32_t pl000_runtime_metadata_u32 = 217U;
+    static constexpr std::uint32_t id100_runtime_metadata_u32 = 1000000U;
+};
+
 // Lossless arithmetic projection of serialized MOD header +0x14.
 // The recursive em000 corpus shows strongly structured values such as
 // 100407, 202900, 601715 and 700601. Every observed value can be represented
-// as high*100000 + middle*100 + low. The high-level meanings of the three
-// components remain semantic candidates until a MOD-specific executable
-// consumer of manager+0xE4 is closed.
+// as high*100000 + middle*100 + low.
+//
+// IMPORTANT multi-corpus correction (2026-09-08): this is an arithmetic/em000
+// clustering utility only, NOT a universal MOD semantic field split. pl000
+// carries raw value 217 in both independently observed MODs and id100 carries
+// 1000000. The high-level meanings of these arithmetic components remain
+// unpromoted until a MOD-specific executable consumer of manager+0xE4 is
+// closed.
 struct RuntimeMetadataDecimalProjection final {
     std::uint32_t high_component{};
     std::uint32_t middle_component{};
