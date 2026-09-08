@@ -1,0 +1,106 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "target": "em000_041.pnst effect-pack logical records",
+  "corpus": {
+    "archive": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b"
+  },
+  "claims": [
+    {
+      "family": "V",
+      "extent": "0x170",
+      "packed_selector_offset": "0x04",
+      "target_id_offset": "0x06",
+      "count": 50,
+      "status": "CORPUS_CONFIRMED"
+    },
+    {
+      "family": "G",
+      "extent": "0x60",
+      "packed_selector_offset": "0x24",
+      "target_id_offset": "0x26",
+      "count": 12,
+      "status": "CORPUS_CONFIRMED"
+    }
+  ],
+  "selector_low_byte_map": {
+    "0": "P",
+    "1": "E",
+    "2": "G",
+    "3": "V"
+  },
+  "selector_high_byte": {
+    "status": "PRESERVED_UNDECODED",
+    "observed_values": [0, 1, 17, 82, 206, 238, 255]
+  },
+  "edge_counts": {
+    "V->P": 27,
+    "V->E": 11,
+    "V->G": 8,
+    "V->V": 4,
+    "G->P": 6,
+    "G->E": 4,
+    "G->V": 2
+  },
+  "graph_properties": {
+    "edge_count": 62,
+    "all_edges_validate_against_selected_manifest_domain": true,
+    "acyclic_within_G_V_bound_corpus": true,
+    "max_chain_edges": 2,
+    "terminal_P_chains": 41,
+    "terminal_E_chains": 21
+  },
+  "A_record": {
+    "extent": "0x150",
+    "record_count": 11,
+    "header": {
+      "+0x00": "constant 1 in 11/11",
+      "+0x01": "T manifest id in 11/11",
+      "+0x02": "raw selector",
+      "+0x03": "raw selector"
+    },
+    "entry_base": "0x04",
+    "entry_size": "0x0A",
+    "entry_capacity": 33,
+    "tail_size": 2,
+    "tail_observed_zero_count": 11,
+    "entry_structural_fields": [
+      "raw_flags_u16",
+      "grid_x_u16",
+      "grid_y_u16",
+      "grid_w_u16",
+      "grid_h_u16"
+    ],
+    "grid_quantum": 32,
+    "grid_domain": 256,
+    "rectangle_bounds_hold_for_all_nonzero_entries": true,
+    "nonzero_entries_form_contiguous_prefix": true,
+    "observed_active_entry_counts": [2, 4, 10, 16],
+    "atlas_uv_interpretation": "SEMANTIC_CANDIDATE"
+  },
+  "P_primary_variants": [
+    {
+      "bytes_0_1": "02 03",
+      "count": 30,
+      "t_selector_low16_offset": "0xE0",
+      "a_selector_u16_offset": "0x106",
+      "selector_validation": "30/30"
+    },
+    {
+      "bytes_0_1": "01 01",
+      "count": 3,
+      "uses_02_03_texture_layout": false
+    },
+    {
+      "bytes_0_1": "00 04",
+      "count": 1,
+      "uses_02_03_texture_layout": false
+    }
+  ],
+  "hard_non_claims": [
+    "No historical expansion of G/V/E/P/T/A/M letters is assigned",
+    "Selector high-byte semantics are unknown",
+    "A atlas/UV meaning is not EXE-confirmed",
+    "The em000 graph being acyclic is not generalized to all DMC3 effect packs"
+  ]
+}
