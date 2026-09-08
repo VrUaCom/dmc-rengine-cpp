@@ -93,9 +93,53 @@ section { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); bo
 .lesson-card { padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: #0d1117; }
 .lesson-card h3 { margin: 0 0 0.5rem; }
 .lesson-card p:last-child { margin-bottom: 0; }
+.lesson-card span[aria-hidden="true"] { color: var(--muted); padding: 0 0.25rem; }
+
+.lesson-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 2rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid #8957e5;
+  border-radius: 10px;
+  background: #11151c;
+}
+.lesson-navigation a { font-weight: 700; text-decoration: none; }
+.lesson-body {
+  margin-top: 2rem;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.lesson-body h2 { margin-top: 2.2rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); }
+.lesson-body h2:first-child { margin-top: 0; }
+.lesson-body h3 { margin-top: 1.7rem; }
+.lesson-body p, .lesson-body li { color: #c9d1d9; }
+.lesson-body code {
+  padding: 0.12rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #0d1117;
+  color: #f0f6fc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+.lesson-body pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #090c10;
+}
+.lesson-body pre code { padding: 0; border: 0; background: transparent; }
+.lesson-body blockquote { margin: 1.25rem 0; padding: 0.1rem 1rem; border-left: 3px solid #8957e5; color: var(--muted); }
+.lesson-body hr { border: 0; border-top: 1px solid var(--border); margin: 2rem 0; }
 
 @media (max-width: 760px) {
   .site-header { align-items: flex-start; flex-direction: column; }
   main { padding-top: 2.5rem; }
   .format-grid, .lesson-grid { grid-template-columns: 1fr; }
+  .lesson-navigation { align-items: flex-start; flex-direction: column; }
 }
