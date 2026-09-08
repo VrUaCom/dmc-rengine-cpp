@@ -32,12 +32,12 @@
     "fields": {
       "0x00": "u32 header_size",
       "0x04": "char[4] MOT\\0",
-      "0x08": "u32 raw; zero 82/82",
-      "0x0C": "f32 raw",
-      "0x10": "f32 raw",
-      "0x14": "f32 raw",
-      "0x18": "u16 raw",
-      "0x1A": "u16 raw",
+      "0x08": "u32/f32 raw; zero 82/82",
+      "0x0C": "f32 raw time-domain scalar",
+      "0x10": "f32 raw secondary time-domain scalar",
+      "0x14": "f32 mirror of +0x0C in em000",
+      "0x18": "u16 raw control; observed 0/1",
+      "0x1A": "u16 raw; zero or channel-domain-count mirror",
       "0x1C": "u16 channel_domain_count",
       "0x1E": "u16 channel_mask[channel_domain_count]"
     },
@@ -52,8 +52,34 @@
       "4": 1,
       "22": 77
     },
+    "raw_08_zero": "82/82",
     "raw_f32_0c_equals_raw_f32_14": "82/82",
-    "raw_f32_10_nonzero": 6
+    "raw_f32_0c_14_distinct_values": 69,
+    "raw_f32_0c_14_observed_min": 1,
+    "raw_f32_0c_14_observed_max": 471,
+    "raw_f32_10_histogram": {
+      "0": 76,
+      "24": 1,
+      "36": 1,
+      "78": 1,
+      "125": 1,
+      "297": 1,
+      "349": 1
+    },
+    "raw_f32_10_le_raw_f32_14": "82/82",
+    "raw_u16_18_histogram": {
+      "0": 63,
+      "1": 19
+    },
+    "raw_u16_1a_histogram": {
+      "0": 51,
+      "3": 3,
+      "4": 1,
+      "22": 27
+    },
+    "raw_u16_1a_nonzero_equals_channel_domain_count": "31/31",
+    "header_0c_equals_max_masked_key_time": "77/82",
+    "header_time_semantics": "SEMANTIC_CANDIDATE; direct CMotion consumer not yet rebound"
   },
   "channel_masks": {
     "known_domain_mask": "0x01FF",
@@ -79,6 +105,7 @@
       "0x06": "u16 start_time_raw"
     },
     "start_time_raw_zero": "5118/5118",
+    "start_time_semantics": "PRESERVED_UNDECODED globally; observed zero in em000",
     "compression_histogram": {
       "2": 156,
       "3": 4962
@@ -90,7 +117,8 @@
       "key_stride": 4,
       "key_layout": ["u16 time_control", "u16 quantized_value"],
       "observed_key_count_total": 459,
-      "time_high_bit_set_count": 0
+      "time_high_bit_set_count": 0,
+      "time_high_bit_clear_count": 459
     },
     "compression_3": {
       "span_formula": "0x20 + 8 * key_count",
@@ -105,11 +133,17 @@
       ],
       "observed_key_count_total": 94416,
       "time_high_bit_set_count": 94410,
-      "time_high_bit_clear_count": 6
+      "time_high_bit_clear_count": 6,
+      "clear_bit_exception_time_indices": [7, 20, 43]
     },
+    "known_compression_key_total": 94875,
     "time_index_rule": "time_control & 0x7FFF",
     "monotonic_known_compression_tracks": "5118/5118",
-    "time_high_bit_semantics": "PRESERVED_UNDECODED"
+    "time_high_bit_semantics": "PRESERVED_UNDECODED",
+    "rejected_time_high_bit_claims": [
+      "signed s16 time",
+      "bit15 always equivalent to compression 3"
+    ]
   },
   "mod_domain_correlation": {
     "mot_domain_counts": [3, 4, 22],
@@ -158,7 +192,8 @@
       "compression 2/3 int16 layouts",
       "time_control lower-15-bit index",
       "uint16 / 65535 quantization",
-      "Hermite interpolation"
+      "Hermite interpolation",
+      "four frame/time-like header fields"
     ]
   },
   "writer_authority": "NOT_AUTHORIZED",
@@ -168,7 +203,8 @@
     "quantization decoder",
     "Hermite evaluator",
     "CMotionJoint node-index binding",
-    "header raw field semantics",
+    "header +0x08/+0x0C/+0x10/+0x14 semantics",
+    "header +0x18/+0x1A semantics",
     "time_control bit15 semantics"
   ]
 }
