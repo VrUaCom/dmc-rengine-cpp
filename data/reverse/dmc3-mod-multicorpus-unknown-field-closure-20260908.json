@@ -1,0 +1,138 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "date": "2026-09-08",
+  "format": "MOD",
+  "scope": "multi-corpus closure pass for unresolved serialized fields",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpora": [
+    {
+      "name": "em000 recursive corpus",
+      "container": "em000-extract.zip",
+      "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+      "mod_count": 35,
+      "objects": 136,
+      "meshes": 147,
+      "vertices": 14804,
+      "transforms": 226
+    },
+    {
+      "name": "pl000 slot 1 model",
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "size": 216544,
+      "objects": 17,
+      "meshes": 18,
+      "vertices": 5316,
+      "transforms": 24,
+      "header_0x14": 217
+    },
+    {
+      "name": "pl000 slot 12 cloth-associated model",
+      "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740",
+      "size": 35696,
+      "objects": 6,
+      "meshes": 8,
+      "vertices": 828,
+      "transforms": 33,
+      "header_0x14": 217,
+      "adjacent_clt_sha256": "e722f24cddb34c45bbfcbdae722b8a1905aa62400a8267dcb281a591919b68aa",
+      "adjacent_clt_name_evidence": ";pl000_02.clt"
+    },
+    {
+      "name": "id100 Red Orb counter model",
+      "sha256": "9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90",
+      "size": 2304,
+      "objects": 7,
+      "meshes": 7,
+      "vertices": 28,
+      "transforms": 2,
+      "header_0x14": 1000000
+    }
+  ],
+  "deduplication": {
+    "excluded_sha256": "34f2c03795b007eac67abdb3a5808f675f1b1fd419ea6f39d4b77b8142c9e7ce",
+    "reason": "byte-identical to em000_001.mod"
+  },
+  "combined_unique_counts": {
+    "mods": 38,
+    "objects": 166,
+    "meshes": 180,
+    "vertices": 20976,
+    "transforms": 285
+  },
+  "claims": [
+    {
+      "field": "transform +0x1C",
+      "observation": "0.0f in 285/285 records across em000, pl000 and id100",
+      "status": "MULTI_CORPUS_OBSERVED_ZERO",
+      "non_claim": "not globally required zero; preserve source bytes"
+    },
+    {
+      "field": "mesh +0x0C",
+      "observation": "zero in 180/180 meshes; canonical MOD post-load/runtime builder do not consume it in the confirmed path",
+      "status": "PRESERVED_UNDECODED_AND_MULTI_CORPUS_OBSERVED_ZERO"
+    },
+    {
+      "field": "mesh +0x38",
+      "observation": "zero in 180/180 MOD meshes and unconsumed in canonical MOD load path; homologous EFM slot is live COLOR0 stream",
+      "status": "PRESERVED_UNCONSUMED_MOD_SLOT_AND_MULTI_CORPUS_OBSERVED_ZERO",
+      "non_claim": "do not copy EFM COLOR0 semantics into MOD"
+    },
+    {
+      "field": "mesh +0x48 serialized",
+      "observation": "zero in 180/180 serialized meshes; runtime post-load writes generated topology count here",
+      "status": "SERIALIZED_ZERO_OBSERVED_RUNTIME_WORKSPACE_OUTPUT"
+    },
+    {
+      "field": "mesh +0x4C",
+      "observation": "zero in 180/180 meshes; canonical MOD post-load/runtime builder do not consume it in the confirmed path",
+      "status": "PRESERVED_UNDECODED_AND_MULTI_CORPUS_OBSERVED_ZERO"
+    },
+    {
+      "field": "BLENDINDICES.x",
+      "observation": "zero in 20976/20976 vertices; y/z/w remain EXE-confirmed influence lanes",
+      "status": "MULTI_CORPUS_OBSERVED_ZERO_AND_PRESERVED_UNDECODED",
+      "next_gate": "CPU read census plus MOD/MOD_SP/MOD_STX shader lane-0 census"
+    },
+    {
+      "field": "header +0x14",
+      "observation": "em000 has clustered six-digit values; both pl000 MODs use raw 217; id100 uses raw 1000000",
+      "status": "RUNTIME_CARRIED_OPAQUE_U32",
+      "confirmed_flow": "serialized +0x14 -> manager +0xE4",
+      "rejected_global_interpretation": "family_class*100000 + model_set*100 + sub_index as a universal semantic field split",
+      "next_gate": "MOD-specific manager+0xE4 consumer census"
+    },
+    {
+      "field": "source flag 0x00100000",
+      "observation": "live render-path input; additionally present in 8/17 pl000 slot-1 objects and 1/6 pl000 slot-12 objects",
+      "status": "PARTIAL_EXE_CONFIRMED",
+      "next_gate": "downstream render packet consumer and stable artistic semantics"
+    },
+    {
+      "field": "source flag 0x00200000",
+      "observation": "7 em000 retail objects, all within raw +0x14 value 100407 cluster; absent from current pl000/id100 samples",
+      "status": "CORPUS_CONFIRMED_LIVE_BIT_SEMANTIC_OPEN",
+      "next_gate": "direct executable downstream consumer"
+    }
+  ],
+  "other_zero_shell_regions_reobserved": [
+    "header +0x08..+0x0F",
+    "header +0x18..+0x1F",
+    "header +0x28..+0x3F",
+    "object +0x04..+0x07",
+    "object +0x14..+0x17",
+    "object +0x20..+0x2F",
+    "node-domain +0x10..+0x1F"
+  ],
+  "writer_authority": "NOT_PROMOTED",
+  "next_executable_gates": [
+    "manager +0xE4 consumer census",
+    "transform +0x1C runtime-node/local-state consumer census",
+    "raw MOD mesh +0x0C/+0x38/+0x4C global xrefs",
+    "MOD/MOD_SP/MOD_STX BLENDINDICES.x shader census",
+    "CPU blend-stream lane-0 census",
+    "0x00100000/0x00200000 downstream render packet tracing"
+  ]
+}
