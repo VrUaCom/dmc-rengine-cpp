@@ -31,7 +31,25 @@
   },
   "selector_high_byte": {
     "status": "PRESERVED_UNDECODED",
-    "observed_values": [0, 1, 17, 82, 206, 238, 255]
+    "G_histogram": {
+      "0": 2,
+      "48": 3,
+      "76": 1,
+      "202": 2,
+      "252": 2,
+      "255": 2
+    },
+    "V_histogram": {
+      "0": 17,
+      "1": 3,
+      "17": 1,
+      "82": 1,
+      "206": 14,
+      "208": 1,
+      "238": 4,
+      "255": 9
+    },
+    "combined_observed_values": [0, 1, 17, 48, 76, 82, 202, 206, 208, 238, 252, 255]
   },
   "edge_counts": {
     "V->P": 27,
@@ -48,7 +66,35 @@
     "acyclic_within_G_V_bound_corpus": true,
     "max_chain_edges": 2,
     "terminal_P_chains": 41,
-    "terminal_E_chains": 21
+    "terminal_E_chains": 21,
+    "unique_P_records_reached": 18,
+    "total_P_records": 34,
+    "unique_E_records_reached": 15,
+    "total_E_records": 45,
+    "unreached_P_records": 16,
+    "unreached_E_records": 30,
+    "conclusion": "G/V is an evidenced routing layer but is not proven to be the universal root layer for all P/E records"
+  },
+  "T_record": {
+    "record_count": 8,
+    "wrapper_extent": "0x70",
+    "embedded_dds_magic_offset": "0x70",
+    "embedded_dds_formats": {
+      "DXT5": 8
+    },
+    "embedded_dds_dimensions": {
+      "256x256": 1,
+      "128x128": 7
+    },
+    "wrapper_relations": {
+      "+0x10": "packed dimension word matching embedded DDS dimensions in 8/8 square samples",
+      "+0x44": "duplicate packed dimension word matching +0x10 in 8/8",
+      "+0x48": "f32 reciprocal dimension in 8/8 square samples",
+      "+0x4C": "f32 reciprocal dimension in 8/8 square samples",
+      "+0x18": "physical DDS width * 4 in 8/8; high-level meaning unpromoted",
+      "+0x38": "embedded DDS extent minus 0x80-byte DDS header in 8/8",
+      "+0x64": "complete embedded DDS extent from DDS magic to end of T member in 8/8"
+    }
   },
   "A_record": {
     "extent": "0x150",
@@ -76,6 +122,19 @@
     "rectangle_bounds_hold_for_all_nonzero_entries": true,
     "nonzero_entries_form_contiguous_prefix": true,
     "observed_active_entry_counts": [2, 4, 10, 16],
+    "nonzero_entry_count": 54,
+    "normalized_grid_to_selected_T_pixels": {
+      "formula": "pixel = grid * physical_dimension / 256",
+      "exact_integral_mapping": "54/54 entries",
+      "status": "CORPUS_CONFIRMED"
+    },
+    "entry_flag_correlation": {
+      "first_entry_flag_1_then_zero_records": 9,
+      "all_active_flags_zero_records": 2,
+      "all_zero_flag_records_have_header_plus_0x03_equal_2": "2/2",
+      "other_observed_plus_0x03_values_have_first_entry_flag_1": "9/9",
+      "semantics": "PRESERVED_UNDECODED"
+    },
     "atlas_uv_interpretation": "SEMANTIC_CANDIDATE"
   },
   "E_to_A_texture_consistency": {
@@ -115,6 +174,8 @@
     "No historical expansion of G/V/E/P/T/A/M letters is assigned",
     "Selector high-byte semantics are unknown",
     "A atlas/UV meaning is not EXE-confirmed",
-    "The em000 graph being acyclic is not generalized to all DMC3 effect packs"
+    "The em000 graph being acyclic is not generalized to all DMC3 effect packs",
+    "G/V is not assumed to be the universal root for all P/E records",
+    "T +0x18 high-level runtime meaning is not assigned"
   ]
 }
