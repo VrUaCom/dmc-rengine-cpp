@@ -12,6 +12,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace dmc::rengine::cli {
@@ -23,9 +24,9 @@ namespace spider_cli_detail {
     if (!stream.is_open()) {
         return std::nullopt;
     }
-    std::string text(
-        std::istreambuf_iterator<char>(stream),
-        std::istreambuf_iterator<char>());
+    std::string text{
+        std::istreambuf_iterator<char>{stream},
+        std::istreambuf_iterator<char>{}};
     if (!stream.good() && !stream.eof()) {
         return std::nullopt;
     }
