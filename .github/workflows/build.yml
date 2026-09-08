@@ -21,8 +21,6 @@ jobs:
         run: python scripts/reverse/extract_exe_window_packet.py --plan data/reverse/dmc3-materialization-completion-boundary-plan.v1.json --validate-plan-only
       - name: Test reverse acquisition packet guardrails
         run: python scripts/reverse/test_extract_exe_window_packet.py
-      - name: Test L2 runtime mapping packet guardrails
-        run: python scripts/reverse/test_verify_l2_runtime_mapping_packet.py
       - name: Test L2 process-instance mapping v2 guardrails
         run: python scripts/reverse/test_verify_l2_runtime_mapping_packet_v2.py
       - name: Test L2 legacy selection candidate normalization
