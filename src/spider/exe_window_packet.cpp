@@ -122,7 +122,15 @@ using core::json::Value;
         return nullptr;
     }
     const auto* text = value->as_string();
-    return text != nullptr && !text->empty() ? text : nullptr;
+    if (text == nullptr || text->empty()) {
+        return nullptr;
+    }
+    for (const auto character : *text) {
+        if (std::isspace(static_cast<unsigned char>(character)) == 0) {
+            return text;
+        }
+    }
+    return nullptr;
 }
 
 [[nodiscard]] bool safe_window_id(std::string_view value) noexcept {
