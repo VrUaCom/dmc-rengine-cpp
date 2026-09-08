@@ -1,0 +1,39 @@
+{
+  "schema": "dmc-rengine.mod.manager-bit21-runtime-vector.v1",
+  "date": "2026-09-09",
+  "executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "manager_bit": {
+    "field": "+0xE0",
+    "mask": "0x00200000",
+    "consumer_test": "0x140303F29..0x140303F36",
+    "helper": "0x140306560",
+    "status": "EXE_CONFIRMED"
+  },
+  "helper_behavior": {
+    "global_state_pointer": "0x140CF2330 -> +0x240, fallback 0x1405CEB10",
+    "source_float4_a": "+0x70",
+    "source_float4_b": "+0x80",
+    "operation": "subtract -> normalize -> add current indexed runtime vector -> normalize",
+    "semantic_name": "OPEN"
+  },
+  "runtime_distribution": {
+    "runtime_object_table": "manager +0x100",
+    "runtime_object_stride": "0x380",
+    "qualifying_runtime_bits": ["0x1000", "0x2000"],
+    "destination": {
+      "x": "+0x160",
+      "y": "+0x164",
+      "z": "+0x168"
+    },
+    "status": "EXE_CONFIRMED"
+  },
+  "serialized_projection_prior_evidence": {
+    "source_flag_0x00000200": "raises manager bit21 and uses object +0x18/+0x1C path",
+    "source_flag_0x00000400": "raises manager bit21 and uses object +0x18/+0x1C path"
+  },
+  "next_gate": "trace runtime object +0x160/+0x164/+0x168 to final render/shader consumer",
+  "writer_authority": false
+}
