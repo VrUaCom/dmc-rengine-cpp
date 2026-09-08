@@ -34,7 +34,12 @@ using Code = Animation::TypeCode;
 // two keys, and a chain that lands exactly on the terminator.
 [[nodiscard]] std::vector<std::byte> one_track_motion() {
     constexpr std::size_t track_bytes = 32U + 8U * 2U;
-    std::vector<std::byte> bytes(0x54U + track_bytes + 4U, std::byte{0});
+    // Padded to 16 like every real payload. The four bytes this used to append
+    // were that padding, read as a terminator back when one motion was all the
+    // corpus held.
+    constexpr std::size_t used = 0x54U + track_bytes;
+    constexpr std::size_t total = used + ((16U - (used % 16U)) % 16U);
+    std::vector<std::byte> bytes(total, std::byte{0});
     const auto put_u32 = [&bytes](std::size_t at, std::uint32_t value) {
         for (std::size_t index = 0U; index < 4U; ++index) {
             bytes[at + index] =

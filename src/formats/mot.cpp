@@ -61,7 +61,7 @@ bool MotDocument::valid() const noexcept {
     for (const auto& track : tracks) {
         if (track.key_count == 0U ||
             track.key_offset + static_cast<std::uint64_t>(track.key_count) *
-                Contract::key_bytes > document_size) {
+                Contract::key_bytes_for_kind(track.kind) > document_size) {
             return false;
         }
     }
@@ -109,7 +109,10 @@ MotParseResult MotParser::parse(std::span<const std::byte> bytes) {
     bool spans_match = true;
 
     for (std::uint32_t index = 0U; index < document.track_count; ++index) {
-        if (!fits(cursor, Contract::track_header_bytes, total)) {
+        // Against the smallest header any kind uses: the kind is not known
+        // until it has been read, and demanding the largest header first
+        // refuses a legitimately short compact track at the end of a payload.
+        if (!fits(cursor, Contract::minimum_track_header_bytes, total)) {
             return fail(
                 MotParseError::truncated_track,
                 "a track header extends past the end of the motion payload");
@@ -117,11 +120,22 @@ MotParseResult MotParser::parse(std::span<const std::byte> bytes) {
         const auto at = static_cast<std::size_t>(cursor);
         const auto size = read_u16_le(bytes, at + Contract::track_size_offset);
         const auto keys = read_u16_le(bytes, at + Contract::track_key_count_offset);
+        const auto kind = read_u32_le(bytes, at + Contract::track_kind_offset);
+
+        // The kind is read before the size is judged, because the arithmetic
+        // belongs to the kind. Reading it afterwards is what made this parser
+        // apply kind 3's geometry to a kind-2 track and refuse 72 of 82 real
+        // motions.
+        if (!Contract::track_kind_is_known(kind)) {
+            return fail(
+                MotParseError::track_size_mismatch,
+                "a track declares a kind whose geometry this reader does not know");
+        }
 
         // The identity the whole format rests on. A track that declares a size
         // its key count cannot account for is not a track this reader knows,
         // and reading it anyway would be reading something else.
-        if (size != Contract::track_bytes(keys)) {
+        if (size != Contract::track_bytes(keys, kind)) {
             return fail(
                 MotParseError::track_size_mismatch,
                 "a track's declared size does not equal its key count's");
@@ -136,22 +150,31 @@ MotParseResult MotParser::parse(std::span<const std::byte> bytes) {
             .track_index = index,
             .track_offset = cursor,
             .key_count = keys,
-            .kind = read_u32_le(bytes, at + Contract::track_kind_offset),
-            .key_offset = cursor + Contract::track_header_bytes,
+            .kind = kind,
+            .key_offset = cursor + Contract::header_bytes_for_kind(kind),
             .first_stamp = 0,
             .last_stamp = 0,
+            .flagged_key_count = 0U,
         };
 
-        auto previous = std::int32_t{0};
+        if (!fits(cursor, Contract::header_bytes_for_kind(kind), total)) {
+            return fail(
+                MotParseError::truncated_track,
+                "a track header extends past the end of the motion payload");
+        }
+
+        auto previous = std::int32_t{-1};
         for (std::uint32_t key = 0U; key < keys; ++key) {
-            const auto stamp = read_i16_le(
+            const auto raw = read_u16_le(
                 bytes,
                 static_cast<std::size_t>(
                     track.key_offset + static_cast<std::uint64_t>(key) *
-                        Contract::key_bytes));
+                        Contract::key_bytes_for_kind(kind)));
+            const auto stamp = Contract::key_stamp(raw);
+            track.flagged_key_count += Contract::key_flag(raw) ? 1U : 0U;
             if (key == 0U) {
                 track.first_stamp = stamp;
-            } else if (stamp <= previous) {
+            } else if (static_cast<std::int32_t>(stamp) <= previous) {
                 // A stamp that does not advance means the run is not a
                 // timeline, which is the one thing these four values are known
                 // to be about.
@@ -170,12 +193,28 @@ MotParseResult MotParser::parse(std::span<const std::byte> bytes) {
         cursor += size;
     }
 
-    // The chain must land exactly on the terminator. Landing early or late
-    // means the sizes describe a different file than the one supplied.
-    if (cursor + Contract::terminator_bytes != total) {
+    // The chain must reach the end of the payload, give or take the padding
+    // the document is aligned with.
+    //
+    // This used to demand that the chain end exactly one dword short of the
+    // total, and called that dword a terminator. Across 82 payloads the tail
+    // is 0, 4, 8 or 12 zero bytes and every document size is a multiple of 16:
+    // it is alignment padding, and the single payload the rule was first
+    // recovered from happened to need four bytes of it. Landing early by more
+    // than the alignment, or past the end, still means the sizes describe a
+    // different file than the one supplied.
+    if (cursor > total || total - cursor >= Contract::document_alignment ||
+        total % Contract::document_alignment != 0U) {
         return fail(
             MotParseError::chain_does_not_close,
-            "the track chain does not end exactly at the payload terminator");
+            "the track chain does not reach the end of the motion payload");
+    }
+    for (auto tail = static_cast<std::size_t>(cursor); tail < total; ++tail) {
+        if (bytes[tail] != std::byte{0}) {
+            return fail(
+                MotParseError::chain_does_not_close,
+                "the bytes after the last track are not alignment padding");
+        }
     }
     document.duration_matches_stamps = spans_match;
 

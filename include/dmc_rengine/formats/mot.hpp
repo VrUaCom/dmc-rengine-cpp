@@ -29,8 +29,13 @@ struct MotTrack final {
     std::uint32_t key_count{};
     std::uint32_t kind{};
     std::uint64_t key_offset{};
-    std::int16_t first_stamp{};
-    std::int16_t last_stamp{};
+    // The timeline positions, with the flag bit taken off. Unsigned because
+    // that is what the field is: reading it signed turned a set flag into a
+    // stamp of -32768 and made a rising timeline look like it fell.
+    std::uint16_t first_stamp{};
+    std::uint16_t last_stamp{};
+    /// How many of this track's keys carry the flag the stamp's top bit holds.
+    std::uint32_t flagged_key_count{};
 
     [[nodiscard]] std::int32_t span() const noexcept {
         return static_cast<std::int32_t>(last_stamp) -

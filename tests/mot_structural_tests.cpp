@@ -41,12 +41,21 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t at, std::uint32_t value)
 // is what makes the header and the keys agree.
 [[nodiscard]] std::vector<std::byte> make_motion(
     const std::vector<std::uint16_t>& key_counts,
-    std::int16_t span = 650) {
+    std::int16_t span = 650,
+    std::uint32_t kind = Contract::observed_track_kind) {
     std::size_t total = Contract::observed_data_offset + Contract::track_count_bytes;
     for (const auto keys : key_counts) {
-        total += Contract::track_bytes(keys);
+        total += Contract::track_bytes(keys, kind);
     }
-    total += Contract::terminator_bytes;
+    // Real payloads are padded to a 16-byte boundary and every byte of that
+    // padding is zero; the four bytes this fixture used to append were one
+    // instance of that, read as a terminator when only one payload was known.
+    // The fixture pads like the corpus does, so the tests exercise the shape
+    // the parser actually meets.
+    if (total % Contract::document_alignment != 0U) {
+        total += Contract::document_alignment -
+            (total % Contract::document_alignment);
+    }
 
     std::vector<std::byte> bytes(total, std::byte{0});
     put_u32(bytes, Contract::data_offset_field,
@@ -63,21 +72,24 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t at, std::uint32_t value)
     auto cursor = Contract::observed_data_offset + Contract::track_count_bytes;
     for (const auto keys : key_counts) {
         put_u16(bytes, cursor + Contract::track_size_offset,
-            static_cast<std::uint16_t>(Contract::track_bytes(keys)));
+            static_cast<std::uint16_t>(Contract::track_bytes(keys, kind)));
         put_u16(bytes, cursor + Contract::track_key_count_offset, keys);
-        put_u32(bytes, cursor + Contract::track_kind_offset,
-            Contract::observed_track_kind);
+        put_u32(bytes, cursor + Contract::track_kind_offset, kind);
         for (std::uint16_t key = 0U; key < keys; ++key) {
             // First and last land on the declared span; the rest are spread
             // between them, strictly increasing as the format requires.
-            const auto stamp = static_cast<std::int16_t>(
+            // Written with the flag bit set, which is how every real key
+            // carries a stamp: the low 15 bits are the position.
+            const auto stamp = static_cast<std::uint16_t>(
                 Contract::observed_first_stamp +
                 (keys == 1U ? 0 : span * key / (keys - 1U)));
             put_u16(
-                bytes, cursor + Contract::track_header_bytes + key * Contract::key_bytes,
-                static_cast<std::uint16_t>(stamp));
+                bytes,
+                cursor + Contract::header_bytes_for_kind(kind) +
+                    key * Contract::key_bytes_for_kind(kind),
+                static_cast<std::uint16_t>(stamp | Contract::key_flag_mask));
         }
-        cursor += Contract::track_bytes(keys);
+        cursor += Contract::track_bytes(keys, kind);
     }
     return bytes;
 }
@@ -132,6 +144,82 @@ void stamps_that_do_not_advance_are_refused() {
     const auto refused = formats::MotParser::parse(bytes);
     assert(!refused.ok());
     assert(refused.error == formats::MotParseError::stamp_not_increasing);
+}
+
+void the_track_arithmetic_matches_the_measured_corpus() {
+    // Literal (size, key_count) pairs counted off the em000 extraction, so
+    // this pins the geometry against reality rather than against the fixture
+    // that shares the contract's own arithmetic.
+    //
+    // Kind 2, the six distinct shapes observed across its 156 tracks:
+    static_assert(Contract::track_bytes(1U, Contract::compact_track_kind) == 20U);
+    static_assert(Contract::track_bytes(2U, Contract::compact_track_kind) == 24U);
+    static_assert(Contract::track_bytes(3U, Contract::compact_track_kind) == 28U);
+    static_assert(Contract::track_bytes(4U, Contract::compact_track_kind) == 32U);
+    static_assert(Contract::track_bytes(5U, Contract::compact_track_kind) == 36U);
+    static_assert(Contract::track_bytes(10U, Contract::compact_track_kind) == 56U);
+
+    // Kind 3, from its 4,962:
+    static_assert(Contract::track_bytes(1U, Contract::observed_track_kind) == 40U);
+    static_assert(Contract::track_bytes(2U, Contract::observed_track_kind) == 48U);
+    static_assert(Contract::track_bytes(3U, Contract::observed_track_kind) == 56U);
+    static_assert(Contract::track_bytes(5U, Contract::observed_track_kind) == 72U);
+    static_assert(Contract::track_bytes(9U, Contract::observed_track_kind) == 104U);
+
+    // And the two kinds genuinely differ, which is the whole point.
+    static_assert(
+        Contract::track_bytes(4U, Contract::compact_track_kind) !=
+        Contract::track_bytes(4U, Contract::observed_track_kind));
+}
+
+void a_compact_track_is_read_by_its_own_geometry() {
+    // The second track kind, recovered from a complete em000 extraction.
+    //
+    // Kind 2 carries a 16-byte header and 4-byte keys where kind 3 carries 32
+    // and 8. This reader applied kind 3's arithmetic to every track, so any
+    // motion containing one compact track was refused outright: 72 of the 82
+    // real motions in that corpus, and the ten it accepted were simply the ten
+    // with no compact track in them.
+    const auto bytes = make_motion({4U, 2U}, 650, Contract::compact_track_kind);
+    const auto parsed = formats::MotParser::parse(bytes);
+    assert(parsed.ok());
+    assert(parsed.document->track_count == 2U);
+    assert(parsed.document->total_key_count == 6U);
+
+    const auto& track = parsed.document->tracks.front();
+    assert(track.kind == Contract::compact_track_kind);
+    // Keys start straight after a 16-byte header, not a 32-byte one.
+    assert(
+        track.key_offset ==
+        Contract::observed_data_offset + Contract::track_count_bytes +
+            Contract::compact_track_header_bytes);
+
+    // Kind 3 in the same reader still reads by its own geometry.
+    const auto wide = formats::MotParser::parse(make_motion({4U, 2U}));
+    assert(wide.ok());
+    assert(wide.document->tracks.front().kind == Contract::observed_track_kind);
+    assert(
+        wide.document->tracks.front().key_offset ==
+        Contract::observed_data_offset + Contract::track_count_bytes +
+            Contract::track_header_bytes);
+}
+
+void a_stamp_is_fifteen_bits_under_a_flag() {
+    // Every key's leading value carries the flag in its top bit. Read as a
+    // signed 16-bit stamp, a set flag reads as -32768 and a timeline that
+    // rises past 0x8000 looks like it falls — which is what made three real
+    // motions look corrupt.
+    const auto bytes = make_motion({5U});
+    const auto parsed = formats::MotParser::parse(bytes);
+    assert(parsed.ok());
+
+    const auto& track = parsed.document->tracks.front();
+    assert(track.first_stamp == 0U);
+    assert(track.last_stamp == 650U);
+    assert(track.span() == 650);
+    // The fixture sets the flag on every key, as the corpus does on all but
+    // 465 of its 94,875.
+    assert(track.flagged_key_count == 5U);
 }
 
 void a_chain_that_misses_the_terminator_is_refused() {
@@ -191,6 +279,9 @@ int main() {
     a_motion_reads_as_a_chain_of_tracks();
     a_size_that_does_not_match_its_keys_is_refused();
     stamps_that_do_not_advance_are_refused();
+    the_track_arithmetic_matches_the_measured_corpus();
+    a_compact_track_is_read_by_its_own_geometry();
+    a_stamp_is_fifteen_bits_under_a_flag();
     a_chain_that_misses_the_terminator_is_refused();
     an_unrelated_payload_is_not_a_motion();
     the_classifier_names_it_from_the_structure();
