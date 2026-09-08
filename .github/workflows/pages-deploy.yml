@@ -251,28 +251,12 @@ jobs:
             "$robots_url")"
 
           echo "Origin robots final HTTP status: ${robots_code}"
+          robots_present=false
           case "$robots_code" in
             2??)
+              robots_present=true
               echo 'Origin robots.txt exists; body follows for evidence review:'
               cat /tmp/origin-robots.txt
-              export ROBOTS_URL="$robots_url"
-              python - <<'PY'
-              from __future__ import annotations
-
-              import os
-              from pathlib import Path
-              from urllib.robotparser import RobotFileParser
-
-              robots = Path("/tmp/origin-robots.txt").read_text(encoding="utf-8", errors="replace")
-              parser = RobotFileParser()
-              parser.set_url(os.environ["ROBOTS_URL"])
-              parser.parse(robots.splitlines())
-              target = os.environ["SITE_URL"]
-              for agent in ("Googlebot", "OAI-SearchBot"):
-                  allowed = parser.can_fetch(agent, target)
-                  print(f"{agent} robots policy for {target}: allowed={allowed}")
-                  assert allowed, f"{agent} is blocked by origin robots.txt for {target}"
-              PY
               ;;
             3??)
               echo 'Unexpected unresolved redirect after --location.' >&2
@@ -290,6 +274,27 @@ jobs:
               exit 1
               ;;
           esac
+
+          if [ "$robots_present" = true ]; then
+            export ROBOTS_URL="$robots_url"
+            python - <<'PY'
+          from __future__ import annotations
+
+          import os
+          from pathlib import Path
+          from urllib.robotparser import RobotFileParser
+
+          robots = Path("/tmp/origin-robots.txt").read_text(encoding="utf-8", errors="replace")
+          parser = RobotFileParser()
+          parser.set_url(os.environ["ROBOTS_URL"])
+          parser.parse(robots.splitlines())
+          target = os.environ["SITE_URL"]
+          for agent in ("Googlebot", "OAI-SearchBot"):
+              allowed = parser.can_fetch(agent, target)
+              print(f"{agent} robots policy for {target}: allowed={allowed}")
+              assert allowed, f"{agent} is blocked by origin robots.txt for {target}"
+          PY
+          fi
 
           echo 'Fetching root HTML as representative crawlers.'
           curl --silent --show-error --location --fail \
