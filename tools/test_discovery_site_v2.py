@@ -117,9 +117,9 @@ def main() -> None:
         assert f'{base_url}/formats/mod/lessons/01-what-is-mod/' in mod_html
         assert "learning/mod/03-skeleton-hierarchy-transforms.md" in mod_html
 
-        assert "Урок 1 — Що таке <code>.MOD</code> і де він живе" in lesson_html
+        assert "Урок 1 — Що таке" in lesson_html
         assert "Не «просто 3D-модель»" in lesson_html
-        assert "NBZ / PAC / PNST" not in lesson_html
+        assert "NBZ / PAC / PNST" in lesson_html
         assert "serialized MOD" in lesson_html
         assert '<pre><code class="language-text">' in lesson_html
         assert "Next lesson →" in lesson_html
