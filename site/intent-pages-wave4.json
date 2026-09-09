@@ -1,0 +1,96 @@
+{
+  "schema": "dmc-rengine.site-intent-pages-wave4.v1",
+  "pages": [
+    {
+      "path": "/guides/vergil-model-textures/",
+      "title": "How to Find Vergil Models and Textures in DMC3 HD — DMC Rengine",
+      "description": "Find DMC3 Vergil model and texture resources through provenance-aware archive navigation, MOD verification and DDS/PTX inspection.",
+      "summary": "Find Vergil-related DMC3 HD resources by preserving NBZ, PAC and PNST provenance, verifying candidate model payloads with the canonical MOD reader and following texture relationships into PTX or DDS resources. The workflow answers character-level search intent without inventing one universal filename, slot or archive path.",
+      "source_path": "docs/guides/find-vergil-model-textures.md",
+      "sections": [
+        {
+          "heading": "Search for Vergil by resource evidence",
+          "items": [
+            "Start from the DMC3 HD archive hierarchy, preserve member and slot provenance and materialize candidate resources before assigning character semantics. A plausible filename alone is weaker evidence than a payload that verifies through the canonical typed reader.",
+            "When a candidate is a real MOD resource, use the promoted read-side structure — hierarchy, transforms, meshes, texture-facing state and skinning-related data — to confirm that it is a structured model rather than an arbitrary neighboring payload.",
+            "This keeps the guide useful across builds and archive layouts because the workflow depends on resource identity and parser evidence instead of one hard-coded universal Vergil path."
+          ]
+        },
+        {
+          "heading": "Follow Vergil textures into the texture layer",
+          "items": [
+            "Texture-facing model state should lead into the separate texture resource layer, where PTX bundles, descriptor-plus-DDS slots and directly recognizable DDS resources remain distinct physical representations.",
+            "The guide therefore connects a common Vergil model or texture search to canonical MOD and DDS/PTX research without claiming that every image is embedded inside the model or that every texture bundle has the same layout.",
+            "Finding and inspecting the resources does not imply unrestricted character editing, universal conversion or original-game acceptance of rebuilt Vergil assets; those remain separate authoring and runtime evidence gates."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/character-models/", "label": "Use the general DMC3 character model discovery workflow"},
+        {"path": "/guides/inspect-mod/", "label": "Inspect the canonical structure of a DMC3 MOD model"},
+        {"path": "/textures/", "label": "Explore DMC3 texture extraction and inspection"}
+      ]
+    },
+    {
+      "path": "/guides/weapon-models/",
+      "title": "How to Find DMC3 Weapon Models — Yamato, Rebellion, Beowulf & More — DMC Rengine",
+      "description": "Find DMC3 weapon model resources such as Yamato, Rebellion, Beowulf and Force Edge through archive provenance and typed model verification.",
+      "summary": "Use named weapon searches such as Yamato, Rebellion, Beowulf or Force Edge as practical entry points into the DMC3 resource graph, then preserve archive provenance and verify the actual leaf format before inspection. DMC Rengine avoids assuming that every weapon always maps to one standalone MOD file or one universal slot.",
+      "source_path": "docs/guides/find-weapon-models.md",
+      "sections": [
+        {
+          "heading": "Weapon names are search intent, not binary schemas",
+          "items": [
+            "Users often know a weapon name before they know DMC3 file formats, so the guide accepts searches such as Yamato model, Rebellion model, Beowulf model or Force Edge model and routes them into the same provenance-aware resource pipeline.",
+            "Navigate NBZ members and PAC or PNST slots without discarding physical identity, materialize the candidate payload and classify it before treating it as a model. If the bytes verify as MOD, the canonical model reader becomes the structural authority.",
+            "Do not publish guessed filenames, offsets or slot numbers as universal merely because they work in one sample; build- and corpus-specific evidence must remain attached to any stronger location claim."
+          ]
+        },
+        {
+          "heading": "Inspect models and textures under separate capability gates",
+          "items": [
+            "A verified weapon MOD can expose mesh, hierarchy, transform, texture-facing and related structural state for read-side inspection, while associated images should be followed into PTX or DDS resources instead of being assumed to live inside the model payload.",
+            "The same workflow remains valid if a named weapon uses another confirmed resource family: classification should follow the bytes and canonical parser evidence rather than forcing every asset into a generic weapon-model type.",
+            "Extraction and inspection do not authorize universal Blender export, arbitrary replacement, complete writer support or original-game acceptance of rebuilt weapon resources. Those stronger operations require their own proof."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/models/", "label": "Explore the DMC3 model extraction and inspection hub"},
+        {"path": "/guides/inspect-mod/", "label": "Inspect DMC3 MOD model structure before authoring"},
+        {"path": "/guides/blender-import/", "label": "Continue from extracted resources into Blender community workflows"}
+      ]
+    },
+    {
+      "path": "/guides/blender-import/",
+      "title": "DMC3 Blender Import & DMC3HDC Import Tools — DMC Rengine Guide",
+      "description": "Understand DMC3 Blender import workflows, DMC3HDC Import Tools and community addons without confusing them with DMC Rengine extraction and parser capabilities.",
+      "summary": "A discovery bridge for users searching DMC3 Blender import, DMC3 MOD Blender, DMC3 SCM Blender, DMC3 MOT Blender or DMC3HDC Import Tools. DMC Rengine provides evidence-aware extraction, provenance and canonical format inspection, while independent community Blender projects own their own DCC import behavior and support claims.",
+      "source_path": "docs/guides/dmc3-blender-import.md",
+      "sections": [
+        {
+          "heading": "Separate DMC3 extraction from Blender import",
+          "items": [
+            "Begin with the DMC3 HD resource hierarchy: preserve NBZ, PAC and PNST provenance, identify the real leaf format and inspect MOD, SCM, MOT or texture data through the appropriate canonical DMC Rengine research surface before handing a compatible resource to another tool.",
+            "DMC Rengine is the C++20 parser, reverse-evidence and resource-architecture authority for its promoted formats; it does not become a Blender importer or exporter merely because another project can consume related DMC3 files.",
+            "Keeping those responsibilities separate lets users understand whether a problem belongs to archive extraction, binary interpretation, DCC import compatibility, Blender version support or later authoring and reintegration."
+          ]
+        },
+        {
+          "heading": "Use community Blender tools under their own contracts",
+          "items": [
+            "Public community projects relevant to this intent include deshayu's DMC3HDC Import Tools and HansLichtner's DMC3 Blender Import Addon. They are independent projects whose supported Blender versions, format coverage and import behavior are governed by their own repositories.",
+            "DMC Rengine can still provide useful upstream context by preserving where a resource came from, verifying whether it is actually MOD, SCM, MOT, DDS or PTX-related data and exposing unresolved semantics instead of silently normalizing them away.",
+            "A community tool accepting a DMC3 resource does not prove DMC Rengine Blender export, complete animation authoring, universal conversion, repacking or original-game acceptance. Each capability remains an independent evidence gate."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/extract-models/", "label": "Extract and identify DMC3 model resources before DCC import"},
+        {"path": "/guides/animations/", "label": "Review DMC3 MOT and animation research boundaries"},
+        {"path": "/formats/mod/", "label": "Read canonical DMC3 MOD format research"},
+        {"path": "/formats/scm/", "label": "Read canonical DMC3 SCM scene format research"}
+      ]
+    }
+  ]
+}
