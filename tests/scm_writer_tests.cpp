@@ -248,6 +248,57 @@ int main() {
         LegacyGsClampRegionRepeat{0x400U, 0U, 0U, 0U});
     assert(!invalid_clamp.ok());
 
+    // Source-bound callers cannot bypass the evidence-aware edit API by
+    // mutating reserved/undecoded public IR fields directly.
+    auto reserved_header_document = parsed.document;
+    reserved_header_document.header.reserved13 = 1U;
+    const auto rejected_reserved_header = Writer::write(
+        reserved_header_document, WriteMode::preserve_layout);
+    assert(!rejected_reserved_header.ok());
+    const auto reserved_header_diag = std::find_if(
+        rejected_reserved_header.diagnostics.begin(),
+        rejected_reserved_header.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-undecoded-field-mutated";
+        });
+    assert(reserved_header_diag != rejected_reserved_header.diagnostics.end());
+    assert(reserved_header_diag->offset == 0x13U);
+
+    auto unknown_flag_document = parsed.document;
+    unknown_flag_document.objects[0].flags ^= 0x00200000U;
+    const auto rejected_unknown_flag = Writer::write(
+        unknown_flag_document, WriteMode::preserve_layout);
+    assert(!rejected_unknown_flag.ok());
+    const auto unknown_flag_diag = std::find_if(
+        rejected_unknown_flag.diagnostics.begin(),
+        rejected_unknown_flag.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-undecoded-field-mutated";
+        });
+    assert(unknown_flag_diag != rejected_unknown_flag.diagnostics.end());
+    assert(
+        unknown_flag_diag->offset ==
+        parsed.document.objects[0].record_offset + 0x10U);
+
+    auto direct_radius_document = parsed.document;
+    direct_radius_document.objects[0].bounding_radius += 1.0F;
+    const auto rejected_radius = Writer::write(
+        direct_radius_document, WriteMode::preserve_layout);
+    assert(!rejected_radius.ok());
+    const auto radius_diag = std::find_if(
+        rejected_radius.diagnostics.begin(),
+        rejected_radius.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-derived-field-mutated";
+        });
+    assert(radius_diag != rejected_radius.diagnostics.end());
+    assert(
+        radius_diag->offset ==
+        parsed.document.objects[0].record_offset + 0x3CU);
+
     auto resized_document = parsed.document;
     auto& mesh = resized_document.objects[0].meshes[0];
     mesh.positions.push_back(Vec3f{1.0F, 1.0F, 1.0F});
