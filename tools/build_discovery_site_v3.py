@@ -10,15 +10,18 @@ from pathlib import Path
 import build_discovery_site as base
 import build_discovery_site_v2 as v2
 
-WAVE2 = base.ROOT / "site" / "intent-pages-wave2.json"
+INTENT_WAVES = (
+    base.ROOT / "site" / "intent-pages-wave2.json",
+    base.ROOT / "site" / "intent-pages-wave3.json",
+)
 _V2_LOAD_MANIFEST = v2.load_manifest
 
 
-def _merge_wave2(site: dict) -> dict:
-    raw = json.loads(WAVE2.read_text(encoding="utf-8"))
+def _merge_intent_wave(site: dict, manifest_path: Path) -> dict:
+    raw = json.loads(manifest_path.read_text(encoding="utf-8"))
     extra = raw.get("pages", [])
     if not isinstance(extra, list) or not extra:
-        raise SystemExit("second-wave intent manifest contains no pages")
+        raise SystemExit(f"intent manifest contains no pages: {manifest_path}")
 
     pages = site.get("pages")
     if not isinstance(pages, list):
@@ -27,10 +30,10 @@ def _merge_wave2(site: dict) -> dict:
     seen = {page.get("path") for page in pages if isinstance(page, dict)}
     for page in extra:
         if not isinstance(page, dict):
-            raise SystemExit("second-wave intent page must be an object")
+            raise SystemExit(f"intent page must be an object: {manifest_path}")
         path = page.get("path")
         if path in seen:
-            raise SystemExit(f"duplicate second-wave intent route: {path}")
+            raise SystemExit(f"duplicate intent route in {manifest_path.name}: {path}")
         pages.append(page)
         seen.add(path)
     return site
@@ -38,7 +41,8 @@ def _merge_wave2(site: dict) -> dict:
 
 def load_manifest() -> dict:
     site = _V2_LOAD_MANIFEST()
-    site = _merge_wave2(site)
+    for manifest_path in INTENT_WAVES:
+        site = _merge_intent_wave(site, manifest_path)
     return base.validate_manifest(site)
 
 
