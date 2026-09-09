@@ -16,46 +16,40 @@
     "em000_header_0x14_cluster": 100407,
     "status": "CORPUS_CONFIRMED"
   },
-  "exe_addresses": [
-    "0x1403029E0",
-    "0x140302AB2",
-    "0x140302ABF",
-    "0x140302AC9",
-    "0x1402F4C21",
-    "0x140303F2F"
-  ],
-  "read_xrefs": [
-    {
-      "address": "0x140302AB2",
-      "meaning": "reads the complete serialized object +0x10 source flag word",
-      "status": "EXE_CONFIRMED"
-    }
-  ],
-  "write_xrefs": [
-    {
-      "address": "0x140302ABF",
-      "meaning": "copies complete source flag word to runtime object +0x14",
-      "status": "EXE_CONFIRMED"
-    },
-    {
-      "address": "0x140302AC9",
-      "meaning": "copies complete source flag word to runtime object +0x10",
-      "status": "EXE_CONFIRMED"
-    }
-  ],
-  "runtime_destination": [
-    "runtime object +0x10",
-    "runtime object +0x14"
-  ],
+  "runtime_flag_model": {
+    "initializer_read": "0x140302AB2",
+    "baseline_write": "0x140302AC9 -> runtime object +0x10",
+    "effective_write": "0x140302ABF -> runtime object +0x14",
+    "baseline_role": "source/baseline flag word",
+    "effective_role": "mutable/effective flag word",
+    "status": "EXE_CONFIRMED"
+  },
+  "state_machine_evidence": {
+    "selective_reset_helper": "0x1403058F0",
+    "selective_reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
+    "bit21_effect_on_selective_reset": "bit21 is not refreshed from baseline by this path; its current effective state is retained",
+    "override_helper": "0x140305B90",
+    "zero_override_branch": "when the incoming override mask is zero, the helper ORs the complete baseline +0x10 word into effective +0x14",
+    "nonzero_override_branch": "otherwise it ORs the supplied override mask",
+    "status": "EXE_CONFIRMED"
+  },
+  "literal_mask_census": {
+    "model_subsystem_direct_bit21_tests": [
+      "0x1402F4C21",
+      "0x140303F2F"
+    ],
+    "direct_tests_of_runtime_plus_10_or_plus_14": 0,
+    "status": "EXE_CONFIRMED"
+  },
   "candidate_rejections": [
     {
       "address": "0x1402F4C21",
-      "reason": "tests mask 0x00200000 in runtime object +0x304, not in the source-carried +0x10/+0x14 flag words",
+      "reason": "tests mask 0x00200000 in runtime word +0x304, not source-carried +0x10/+0x14",
       "status": "REJECTED"
     },
     {
       "address": "0x140303F2F",
-      "reason": "tests manager +0xE0 mask 0x00200000, a separate runtime domain raised by source flags 0x00000200/0x00000400",
+      "reason": "tests manager +0xE0 bit 0x00200000, a separate runtime domain raised by source flags 0x00000200/0x00000400",
       "status": "REJECTED"
     }
   ],
@@ -71,7 +65,7 @@
     "manager +0xE0 bit 0x00200000 is the same field as serialized object source flag 0x00200000",
     "runtime +0x304 bit 0x00200000 is automatically derived from serialized source flag 0x00200000"
   ],
-  "cpp_contract": "analysis/mod/object_flags.hpp models exact whole-word carry into runtime +0x10/+0x14 and retains the bit without assigning high-level semantics",
+  "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective carry and the selective reset formula without assigning high-level semantics",
   "writer_policy": "preserve",
-  "closure_boundary": "The source bit is EXE_CONFIRMED as runtime-carried state. No distinct downstream consumer of this bit in runtime +0x10/+0x14 has yet been proven, so the high-level semantic remains PRESERVED_UNDECODED."
+  "closure_boundary": "Bit 21 is EXE_CONFIRMED as baseline/effective runtime state and participates in effective-state mutation/restoration rules, but no distinct semantic interpreter of this bit has been proven."
 }
