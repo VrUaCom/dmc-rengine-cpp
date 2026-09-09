@@ -1,0 +1,155 @@
+{
+  "schema": "dmc-rengine.site-intent-pages-wave2.v1",
+  "pages": [
+    {
+      "path": "/guides/extract-pac/",
+      "title": "How to Extract DMC3 PAC Files — DMC Rengine",
+      "description": "DMC3 PAC extraction guide covering slot-preserving parsing, nested resources and evidence-bounded reintegration.",
+      "summary": "Extract DMC3 PAC resources without flattening away the slot structure that gives each payload its physical identity. DMC Rengine preserves sparse and empty entries, nested resource relationships and provenance so PAC extraction remains useful for later Native Reader inspection and guarded authoring workflows.",
+      "source_path": "docs/guides/extract-pac.md",
+      "sections": [
+        {
+          "heading": "PAC extraction follows slots, not just filenames",
+          "items": [
+            "The canonical PAC path preserves physical slot identity, sparse and empty entries and nested payload relationships instead of presenting the container as a normal directory with anonymous extracted files.",
+            "A PAC child can itself be another container or a typed resource, so extraction continues through the resource graph until the useful leaf payload is reached and routed to the appropriate reader.",
+            "Size-changing relative-slot reflow exists for the supported authoring path, but that narrower capability is kept distinct from unrestricted edited-resource acceptance by the original runtime."
+          ]
+        },
+        {
+          "heading": "From PAC to the rest of the ecosystem",
+          "items": [
+            "Materialized PAC children can be handed to canonical Native Reader modules such as MOD, SCM, DDS, PTX, HITS, SHW, DCA, LIG/LIG2 or Stage TXT when their format identity is established.",
+            "GDSpaces keeps the parent container and slot provenance attached to the child so downstream viewers and future reintegration tooling can trace where the resource came from instead of relying on a guessed output name.",
+            "Use PAC extraction as one layer in the DMC3 unpacking funnel, then continue to model, texture or format-specific inspection according to the actual child resource."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/pac/", "label": "Read canonical DMC3 PAC format research"},
+        {"path": "/guides/browse-pnst/", "label": "Compare PAC extraction with PNST browsing"},
+        {"path": "/unpacker/", "label": "Return to the DMC3 unpacker and extractor hub"}
+      ]
+    },
+    {
+      "path": "/guides/browse-pnst/",
+      "title": "How to Browse DMC3 PNST Containers — DMC Rengine",
+      "description": "DMC3 PNST browsing guide for slot identity, nested resources and typed Native Reader handoff.",
+      "summary": "Browse PNST containers as structured DMC3 resource graphs rather than flat folders. DMC Rengine preserves slot identity, aliases, empty entries and provenance, then routes materialized children to typed readers when a canonical parser exists.",
+      "source_path": "docs/guides/browse-pnst.md",
+      "sections": [
+        {
+          "heading": "PNST browsing preserves container meaning",
+          "items": [
+            "PNST slots are kept as part of resource identity, including sparse, empty and alias relationships that would be lost if every payload were simply dumped into one normalized directory.",
+            "Recursive expansion lets a PNST child lead to another container or to a typed resource, with each transition recorded through the GDSpaces provenance-oriented resource graph.",
+            "The browsing layer therefore answers both what bytes were found and where those bytes originated inside the physical container hierarchy."
+          ]
+        },
+        {
+          "heading": "Typed inspection after PNST",
+          "items": [
+            "When a leaf resource belongs to a canonical reader family, the user can move from raw container browsing into structured model, scene, texture, collision, configuration or executable inspection.",
+            "Recognition and inspection remain weaker claims than editing or writer authority, so opening a PNST child does not automatically advertise modification or original-game reintegration support for that child format.",
+            "This separation lets DMC Native Reader and PocketGDS provide user-facing navigation while the C++20 core remains the parser and evidence authority."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/formats/pnst/", "label": "Read canonical DMC3 PNST format research"},
+        {"path": "/guides/extract-pac/", "label": "Compare PNST browsing with PAC extraction"},
+        {"path": "/guides/extract-nbz/", "label": "See how PNST resources are reached through NBZ"}
+      ]
+    },
+    {
+      "path": "/guides/dante-model-textures/",
+      "title": "How to Find Dante Models and Textures in DMC3 HD — DMC Rengine",
+      "description": "Find Dante-related DMC3 model and texture resources through provenance-aware archive, MOD and DDS/PTX inspection.",
+      "summary": "A character-focused entry point for users searching for Dante models or textures rather than binary format names. The workflow starts from the DMC3 resource hierarchy, verifies candidate MOD resources with the canonical model reader and follows texture relationships into PTX or DDS-bearing resources without relying on one guessed universal filename.",
+      "source_path": "docs/guides/find-dante-model-textures.md",
+      "sections": [
+        {
+          "heading": "Search by character, verify by resource structure",
+          "items": [
+            "Start with the archive and container hierarchy, preserve the member and slot provenance and then verify candidate model data through the canonical MOD reader instead of treating a plausible filename as sufficient evidence.",
+            "The current MOD reader exposes hierarchy, transforms, meshes, texture-slot state and skinning-related data strongly enough to distinguish a real structured model resource from an arbitrary binary payload.",
+            "For texture work, follow model-facing relationships into the texture layer and distinguish PTX bundles, descriptor-plus-DDS slots and directly recognizable DDS resources rather than collapsing them into one texture identity."
+          ]
+        },
+        {
+          "heading": "Why there is no hard-coded universal Dante path",
+          "items": [
+            "DMC Rengine treats archive member identity, slot provenance and build-specific evidence as first-class data, so one static filename or slot number is not promoted as universal without corpus proof across the intended scope.",
+            "This approach is more useful for future tooling because the same guide remains valid when the resource graph discovers the relevant character assets through another archive or container path.",
+            "The page therefore serves the common Dante model and texture search intent while still routing users into canonical MOD and DDS/PTX research for technical authority."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/models/", "label": "Explore the DMC3 model tools and viewer hub"},
+        {"path": "/textures/", "label": "Explore the DMC3 texture extractor and viewer hub"},
+        {"path": "/guides/inspect-mod/", "label": "Inspect the structure of a DMC3 MOD model"}
+      ]
+    },
+    {
+      "path": "/guides/stage-models/",
+      "title": "How to Extract DMC3 Stage Models and Scene Resources — DMC Rengine",
+      "description": "DMC3 stage extraction guide connecting NBZ/PAC/PNST materialization to SCM, MOD and related stage resources.",
+      "summary": "Extract DMC3 stage-related resources while keeping scene geometry, models, collision and configuration families distinct. The workflow preserves NBZ and container provenance, then routes SCM, MOD, HITS, Stage TXT, LIG/LIG2 and other children to their proper canonical readers instead of labeling every stage payload as one model format.",
+      "source_path": "docs/guides/extract-stage-models.md",
+      "sections": [
+        {
+          "heading": "Stage extraction is a resource-family problem",
+          "items": [
+            "The outer archive path can lead through PAC or PNST before reaching a stage-related child, so preserving the physical resource path is necessary before any geometry or configuration semantics are assigned.",
+            "SCM is the primary scene-oriented geometry research surface, while MOD remains a separate model family and HITS, Stage TXT, LIG/LIG2 or DCA each carry their own structural responsibilities.",
+            "Classifying the leaf resource before inspection prevents a viewer from forcing collision, configuration and scene data into one misleading generic stage-model representation."
+          ]
+        },
+        {
+          "heading": "Inspect first, author only under proven contracts",
+          "items": [
+            "The SCM reader supports scene-node, object, mesh, stream and transform analysis, which is enough for strong read-side stage inspection without claiming universal scene editing.",
+            "Texture references should be followed into the separate texture resource layer rather than treated as embedded image identity, preserving the same evidence discipline used for character models.",
+            "Any stage rebuild or original-game acceptance claim remains tied to the relevant writer and runtime proof gates instead of inheriting authority merely because extraction and structural reading work."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/inspect-scm/", "label": "Inspect DMC3 SCM scene structure in detail"},
+        {"path": "/models/", "label": "Return to the DMC3 model and scene tools hub"},
+        {"path": "/formats/hits/", "label": "Explore DMC3 HITS collision research"}
+      ]
+    },
+    {
+      "path": "/guides/animations/",
+      "title": "How to Inspect DMC3 Animations and MOT Research — DMC Rengine",
+      "description": "DMC3 animation inspection guide connecting MOD hierarchy and pose data to the evidence-gated MOT research frontier.",
+      "summary": "Inspect DMC3 animation relationships without pretending MOD owns every motion semantic or that MOT is already a canonical Native Reader module. The workflow starts from promoted MOD hierarchy and transform evidence, then follows motion-group and MOT research into evaluated poses while keeping animation authoring and runtime acceptance explicitly open.",
+      "source_path": "docs/guides/inspect-animations.md",
+      "sections": [
+        {
+          "heading": "Begin from the promoted model node domain",
+          "items": [
+            "The canonical MOD path already exposes hierarchy, local and world transforms, motion-group values and skin-palette relationships strongly enough to provide the model-side context required for pose-aware animation research.",
+            "Animation data should be related to that node domain instead of assigning bone or motion meaning from filenames alone, because hierarchy nodes and higher-level animation semantics are not automatically identical concepts.",
+            "The resulting workflow can support debugging of animation binding and evaluated poses while keeping the source evidence and unresolved ownership boundaries visible."
+          ]
+        },
+        {
+          "heading": "MOT remains an active research frontier",
+          "items": [
+            "MOT reverse and parser work exists outside the canonical built-in Native Reader set, so the public page describes animation research rather than advertising completed cross-platform MOT reader support.",
+            "Complete animation authoring, universal MOT revision coverage and edited-motion original-game acceptance require their own proof gates and are not implied by pose-aware MOD inspection.",
+            "As MOT is promoted in the future, this route can evolve from research-oriented inspection toward stronger tooling without rewriting the evidence history or overstating the current state."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/inspect-mod/", "label": "Inspect the MOD hierarchy used by animation research"},
+        {"path": "/formats/mod/", "label": "Read canonical DMC3 MOD format research"},
+        {"path": "/status/", "label": "Check current MOT and Native Reader promotion status"}
+      ]
+    }
+  ]
+}
