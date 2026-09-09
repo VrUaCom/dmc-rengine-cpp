@@ -1,0 +1,62 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "BLENDINDICES.x",
+  "serialized_offset": "BLENDINDICES stream lane +0x00",
+  "width": "u8",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "mod_unique_files": 38,
+    "mod_vertices": 20976,
+    "zero_values": 20976,
+    "nonzero_values": 0,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402FE3B0",
+    "0x1402FE6A0",
+    "0x1402F3D0A"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1402F3D0A",
+      "lane": 1,
+      "meaning": "positive control: CPU reads BLENDINDICES.y and divides the matrix-row offset by four",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [],
+  "runtime_destination": "whole 4-byte-per-vertex BLENDINDICES stream is forwarded by the MOD runtime builder; no lane-X renderer consumer was found in the audited canonical shader families",
+  "shader_census": {
+    "families": [
+      "DMC3_MOD.hlsl",
+      "DMC3_MOD_SP.hlsl",
+      "DMC3_MOD_STX.hlsl",
+      "DMC3_EFM.hlsl",
+      "DMC3_EFM_SP.hlsl",
+      "DMC3_EFM_STX.hlsl",
+      "DMC3_EFM_VA.hlsl",
+      "DMC3_EFM_VA_SP.hlsl"
+    ],
+    "matIndex.x_occurrences": 0,
+    "matIndxX_occurrences": 0,
+    "matIndex.y_occurrences": 128,
+    "matIndex.z_occurrences": 16,
+    "matIndex.w_occurrences": 16,
+    "status": "EXE_CONFIRMED"
+  },
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "BLENDINDICES.x is reserved because an external importer ignores it",
+    "BLENDINDICES.x may be normalized to zero because the bounded corpus is zero"
+  ],
+  "writer_policy": "preserve",
+  "closure_boundary": "Canonical MOD/EFM render-skin shader use of lane X is negatively closed. A whole-EXE CPU lane-0 dataflow census is still required before any global reserved/unused promotion."
+}
