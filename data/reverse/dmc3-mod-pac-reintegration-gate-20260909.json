@@ -1,8 +1,8 @@
 {
-  "schema": "dmc-rengine.mod-pac-reintegration-gate.v2",
+  "schema": "dmc-rengine.mod-pac-reintegration-gate.v3",
   "date": "2026-09-09",
   "branch": "reverse/mod-completion-20260907",
-  "evidence_class": "CONTAINER_REINTEGRATION_GATE_2",
+  "evidence_class": "CONTAINER_REINTEGRATION_GATE_3",
   "prerequisites": {
     "preserve_layout_writer_gate": true,
     "provenance_bound_38_file_retail_no_edit_parity": true,
@@ -14,13 +14,16 @@
     "trust_bridge_header": "include/dmc_rengine/profiles/dmc3/mod_authored_child_bridge.hpp",
     "trust_bridge_source": "src/profiles/dmc3/mod_authored_child_bridge.cpp",
     "generic_reintegrator": "include/dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp",
+    "nbz_overlay_writer": "include/dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp",
+    "nbz_zip_source": "include/dmc_rengine/gdspaces/nbz_zip_source.hpp",
     "regression": "tests/mod_authored_child_bridge_tests.cpp",
     "controlled_edit_cli": "src/cli/mod_writer_corpus_commands.cpp",
     "existing_container_cli": [
       "list-container",
       "extract-slot",
       "rebuild-relative-slot"
-    ]
+    ],
+    "existing_nbz_cli": "build-dmc3-overlay"
   },
   "bridge_requirements": {
     "readable_non_container_source": true,
@@ -87,6 +90,26 @@
     "slot_table_unchanged": true,
     "independent_raw_byte_diff_verified": true
   },
+  "synthetic_nbz_overlay_reopen": {
+    "evidence": "data/reverse/dmc3-mod-nbz-overlay-reopen-gate-20260909.json",
+    "research_note": "docs/research/dmc3-mod-nbz-overlay-reopen-gate-2026-09-09.md",
+    "source_commit": "38c79902609c642e38d3472fbf5aa4fc59b8e1aa",
+    "workflow_run_id": 34347990654,
+    "ubuntu_build_and_tests": "success",
+    "windows_build_and_tests": "success",
+    "source_radius": 42.5,
+    "authored_radius": 50.0,
+    "generated_volume_index": 2,
+    "generated_volume_filename": "DMC3-2.nbz",
+    "root_logical_path": "GData.afs/em000.pac",
+    "nbz_zip_source_reopen": true,
+    "root_member_exact_reintegrated_bytes": true,
+    "root_container_reparse": true,
+    "root_container_reexpand": true,
+    "mod_child_exact_writer_bytes_after_nbz_reopen": true,
+    "mod_child_canonical_reparse_after_nbz_reopen": true,
+    "mod_child_authored_radius_after_nbz_reopen": 50.0
+  },
   "claims": {
     "syntheticPacReintegration": true,
     "modWriteReceiptTrustBridge": true,
@@ -96,6 +119,9 @@
     "retailPacPnstReintegration": true,
     "retailPnstReintegration": true,
     "retailPac0Reintegration": false,
+    "syntheticNbzOverlayReopen": true,
+    "syntheticNbzOverlayAcceptanceForEditedMod": true,
+    "provenanceBoundRetailNbzOverlayAcceptanceForEditedMod": false,
     "textureCompanionWriterAuthority": false,
     "nbzOverlayAcceptanceForEditedMod": false,
     "originalGameAcceptance": false,
@@ -104,8 +130,8 @@
     "fullModWriterAuthority": false
   },
   "next_frontier": [
-    "retail PAC0 MOD-child reintegration when a provenance-bound PAC0 parent/child pair is needed for family coverage",
-    "existing NbzStoreOverlayWriter emission plus canonical NBZ reopen",
-    "original dmc3.exe acceptance"
+    "retail PAC0 MOD-child reintegration only when a provenance-bound PAC0 parent/child pair is needed for family coverage",
+    "provenance-bound external build-dmc3-overlay run using the already-rebuilt retail PNST parent, followed by exact NBZ root and MOD-child reopen verification",
+    "original dmc3.exe no-edit and tightly controlled edited-resource acceptance"
   ]
 }
