@@ -17,37 +17,34 @@
   "exe_addresses": [
     "0x140302640",
     "0x1403026D1",
-    "0x1403026DE",
-    "0x1403026EC",
-    "0x140302747",
     "0x14030274A",
-    "0x140302766",
-    "0x14030277A",
-    "0x140302787",
-    "0x140302E0C",
-    "0x140303405",
+    "0x140302AB2",
+    "0x140302ABF",
+    "0x140302AC9",
+    "0x1403058F0",
+    "0x140305911",
+    "0x140305924",
+    "0x14030593B",
     "0x140305949",
     "0x1403059B5",
     "0x140305C06"
   ],
-  "read_xrefs": [
-    {
-      "address": "0x1403026D1",
-      "meaning": "helper masks incoming source/runtime flag word with 0x00100000",
-      "status": "EXE_CONFIRMED"
-    },
-    {
-      "address": "0x14030274A",
-      "meaning": "same bit controls packet +0x00 high-state branch when a low mode is active",
-      "status": "EXE_CONFIRMED"
-    }
-  ],
-  "runtime_destination": {
+  "runtime_flag_model": {
+    "baseline_word": "runtime object +0x10",
+    "effective_word": "runtime object +0x14",
+    "initializer": "serialized +0x10 is copied to both words",
+    "reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
+    "meaning": "bit 20 and low nibble are explicitly refreshed from baseline by 0x1403058F0",
+    "status": "EXE_CONFIRMED"
+  },
+  "packet_projection": {
+    "helper": "0x140302640",
     "packet_base": "runtime object +0x80",
     "packet_plus_08_when_set": "0x000000000005010D",
     "packet_plus_08_when_clear": "0x000000000005000D",
     "packet_plus_00_clear_bit_extra_mask": "0x0000000100000000",
-    "special_low_mode_4_packet_plus_08": "0x0000000000050007"
+    "special_low_mode_4_packet_plus_08": "0x0000000000050007",
+    "status": "EXE_CONFIRMED"
   },
   "semantic_status": "PRESERVED_UNDECODED",
   "evidence_status": [
@@ -59,7 +56,7 @@
     "0x00100000 may be assigned a visual/material name from corpus appearance alone",
     "packet-state projection is equivalent to final shader/material semantic closure"
   ],
-  "cpp_contract": "analysis/mod/object_flags.hpp reproduces the exact packet-state branch and has compile-time regression guards",
+  "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective refresh and exact packet-state projection with compile-time guards",
   "writer_policy": "preserve",
-  "closure_boundary": "Source bit -> packet/state projection is EXE_CONFIRMED. Final renderer/material/shader interpretation of the changed packet bits is not yet closed, so the user-facing semantic remains PRESERVED_UNDECODED."
+  "closure_boundary": "Bit 20 is EXE_CONFIRMED as a persistent baseline-controlled effective render-state input and as a packet-state selector. Terminal renderer/material interpretation remains unresolved."
 }
