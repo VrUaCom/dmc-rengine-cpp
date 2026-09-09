@@ -128,6 +128,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         lig2
         model_family
         mod
+        mod_writer
         mod_skin
         stage_txt
         resource_analyzer
