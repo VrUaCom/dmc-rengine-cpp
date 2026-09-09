@@ -247,6 +247,191 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
     return std::nullopt;
 }
 
+[[nodiscard]] bool validate_source_bound_authority(
+    const Document& document,
+    const Document& source_document,
+    WriteResult& out) {
+    const auto reject_unknown = [&](std::uint64_t offset, const char* field) {
+        add_diag(
+            out,
+            ParseSeverity::error,
+            "scm.writer-source-bound-undecoded-field-mutated",
+            std::string{"Source-bound SCM authoring cannot mutate undecoded "}
+                + field +
+                ". Preserve the source value until a dedicated evidence-backed "
+                "authoring contract exists.",
+            offset);
+        return false;
+    };
+    const auto reject_derived = [&](std::uint64_t offset, const char* field) {
+        add_diag(
+            out,
+            ParseSeverity::error,
+            "scm.writer-source-bound-derived-field-mutated",
+            std::string{"Source-bound SCM authoring cannot directly mutate "}
+                + field +
+                ". Change its authoritative typed inputs so the writer can "
+                "derive the serialized value.",
+            offset);
+        return false;
+    };
+
+    const auto& header = document.header;
+    const auto& source_header = source_document.header;
+    if (header.reserved08 != source_header.reserved08) {
+        return reject_unknown(0x08U, "header +0x08");
+    }
+    if (header.reserved13 != source_header.reserved13) {
+        return reject_unknown(0x13U, "header +0x13");
+    }
+    if (header.reserved18 != source_header.reserved18) {
+        return reject_unknown(0x18U, "header +0x18");
+    }
+    if (header.reserved28 != source_header.reserved28) {
+        return reject_unknown(0x28U, "header +0x28");
+    }
+    if (header.reserved30 != source_header.reserved30) {
+        return reject_unknown(0x30U, "header +0x30");
+    }
+    if (header.reserved38 != source_header.reserved38) {
+        return reject_unknown(0x38U, "header +0x38");
+    }
+
+    constexpr std::uint32_t mutable_object_flags =
+        object_flag_nearest_texture_filter;
+
+    for (std::size_t object_index = 0U;
+         object_index < document.objects.size();
+         ++object_index) {
+        const auto& object = document.objects[object_index];
+        if (object_index < source_document.objects.size()) {
+            const auto& source_object = source_document.objects[object_index];
+            if (object.reserved04 != source_object.reserved04) {
+                return reject_unknown(
+                    source_object.record_offset + 0x04U,
+                    "object +0x04");
+            }
+            if (((object.flags ^ source_object.flags) &
+                 ~mutable_object_flags) != 0U) {
+                return reject_unknown(
+                    source_object.record_offset + 0x10U,
+                    "object flag bits outside confirmed mutable mask 0x00004000");
+            }
+            if (object.reserved14_2f != source_object.reserved14_2f) {
+                return reject_unknown(
+                    source_object.record_offset + 0x14U,
+                    "object +0x14..+0x2F");
+            }
+            if (!geometry_or_center_changed(document, object) &&
+                !same_float_bits(
+                    object.bounding_radius,
+                    source_object.bounding_radius)) {
+                return reject_derived(
+                    source_object.record_offset + 0x3CU,
+                    "object bounding radius");
+            }
+        } else {
+            if (object.reserved04 != 0U) {
+                return reject_unknown(0U, "new object +0x04");
+            }
+            if ((object.flags & ~mutable_object_flags) != 0U) {
+                return reject_unknown(
+                    0U,
+                    "new object flag bits outside confirmed mutable mask 0x00004000");
+            }
+            if (!std::all_of(
+                    object.reserved14_2f.begin(),
+                    object.reserved14_2f.end(),
+                    [](std::byte value) { return value == std::byte{0}; })) {
+                return reject_unknown(0U, "new object +0x14..+0x2F");
+            }
+        }
+
+        for (std::size_t mesh_index = 0U;
+             mesh_index < object.meshes.size();
+             ++mesh_index) {
+            const auto& mesh = object.meshes[mesh_index];
+            const Mesh* source_mesh = nullptr;
+            if (object_index < source_document.objects.size()) {
+                const auto& source_object =
+                    source_document.objects[object_index];
+                if (mesh_index < source_object.meshes.size()) {
+                    source_mesh = &source_object.meshes[mesh_index];
+                }
+            }
+
+            if (source_mesh != nullptr) {
+                if (mesh.reserved0c != source_mesh->reserved0c) {
+                    return reject_unknown(
+                        source_mesh->record_offset + 0x0CU,
+                        "mesh +0x0C");
+                }
+                if (mesh.reserved30 != source_mesh->reserved30) {
+                    return reject_unknown(
+                        source_mesh->record_offset + 0x30U,
+                        "mesh +0x30");
+                }
+                if (mesh.generated_index_count !=
+                    source_mesh->generated_index_count) {
+                    return reject_unknown(
+                        source_mesh->record_offset + 0x48U,
+                        "runtime-generated mesh index count +0x48");
+                }
+                if (mesh.reserved4c != source_mesh->reserved4c) {
+                    return reject_unknown(
+                        source_mesh->record_offset + 0x4CU,
+                        "mesh +0x4C");
+                }
+            } else if (mesh.reserved0c != 0U ||
+                       mesh.reserved30 != 0U ||
+                       mesh.generated_index_count != 0U ||
+                       mesh.reserved4c != 0U) {
+                return reject_unknown(
+                    0U,
+                    "reserved/runtime fields of a source-bound newly added mesh");
+            }
+        }
+    }
+
+    const auto& scene = document.scene_nodes;
+    const auto& source_scene = source_document.scene_nodes;
+    if (scene.reserved10_1f != source_scene.reserved10_1f) {
+        return reject_unknown(
+            source_scene.offset + 0x10U,
+            "scene header +0x10..+0x1F");
+    }
+
+    for (std::size_t index = 0U;
+         index < scene.transform_by_node_index.size();
+         ++index) {
+        const auto& transform = scene.transform_by_node_index[index];
+        if (index < source_scene.transform_by_node_index.size()) {
+            const auto& source_transform =
+                source_scene.transform_by_node_index[index];
+            const auto offset =
+                source_scene.offset + source_scene.transform_rel +
+                static_cast<std::uint64_t>(index) * scene_transform_size;
+            if (!same_float_bits(
+                    transform.reserved1c,
+                    source_transform.reserved1c)) {
+                return reject_unknown(offset + 0x1CU, "transform +0x1C");
+            }
+            if (!translation_changed(document, index, transform) &&
+                !same_float_bits(
+                    transform.translation_magnitude,
+                    source_transform.translation_magnitude)) {
+                return reject_derived(
+                    offset + 0x0CU,
+                    "translation magnitude");
+            }
+        } else if (!same_float_bits(transform.reserved1c, 0.0F)) {
+            return reject_unknown(0U, "new transform +0x1C");
+        }
+    }
+
+    return true;
+}
+
 [[nodiscard]] bool validate_stream_shapes(
     const Document& document,
     WriteMode mode,
@@ -794,6 +979,27 @@ WriteResult Writer::write(
     std::uint8_t node_count{};
     if (!validate_scene_shape(document, mode, out, node_count)) {
         return out;
+    }
+
+    if (!document.source_bytes.empty()) {
+        const auto source_reparsed = Parser::parse(
+            std::span<const std::byte>{document.source_bytes});
+        if (!source_reparsed.ok()) {
+            add_diag(
+                out,
+                ParseSeverity::error,
+                "scm.writer-source-bound-source-reparse-failed",
+                "Source-bound SCM authoring requires the retained source image "
+                "to pass the canonical parser before preserved-field authority "
+                "can be checked.");
+            return out;
+        }
+        if (!validate_source_bound_authority(
+                document,
+                source_reparsed.document,
+                out)) {
+            return out;
+        }
     }
 
     SerializedLayout layout;
