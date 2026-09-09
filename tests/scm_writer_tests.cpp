@@ -2,6 +2,7 @@
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/formats/scm_edit.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
+#include "dmc_rengine/formats/scm_topology.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/scm_resource_bundle.hpp"
 
@@ -298,6 +299,86 @@ int main() {
     assert(
         radius_diag->offset ==
         parsed.document.objects[0].record_offset + 0x3CU);
+
+    auto structural_offset_document = parsed.document;
+    structural_offset_document.objects[0].record_offset += 0x10U;
+    const auto rejected_structural_offset = Writer::write(
+        structural_offset_document, WriteMode::preserve_layout);
+    assert(!rejected_structural_offset.ok());
+    const auto structural_diag = std::find_if(
+        rejected_structural_offset.diagnostics.begin(),
+        rejected_structural_offset.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-structural-field-mutated";
+        });
+    assert(structural_diag != rejected_structural_offset.diagnostics.end());
+    assert(
+        structural_diag->offset ==
+        parsed.document.objects[0].record_offset);
+
+    auto unknown_topology_document = parsed.document;
+    unknown_topology_document.objects[0].meshes[0]
+        .colors_topology[0].topology_flags |= 0x04U;
+    const auto rejected_unknown_topology = Writer::write(
+        unknown_topology_document, WriteMode::preserve_layout);
+    assert(!rejected_unknown_topology.ok());
+    const auto unknown_topology_diag = std::find_if(
+        rejected_unknown_topology.diagnostics.begin(),
+        rejected_unknown_topology.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-undecoded-field-mutated";
+        });
+    assert(
+        unknown_topology_diag !=
+        rejected_unknown_topology.diagnostics.end());
+    assert(
+        unknown_topology_diag->offset ==
+        parsed.document.objects[0].meshes[0].color_flags_offset + 3U);
+
+    auto break_topology_document = parsed.document;
+    break_topology_document.objects[0].meshes[0]
+        .colors_topology[0].topology_flags ^= triangle_break_bit;
+    const auto accepted_break_topology = Writer::write(
+        break_topology_document, WriteMode::preserve_layout);
+    assert(accepted_break_topology.ok());
+    const auto break_topology_parse = Parser::parse(
+        std::span<const std::byte>{accepted_break_topology.bytes});
+    assert(break_topology_parse.ok());
+    assert(
+        (break_topology_parse.document.objects[0].meshes[0]
+             .colors_topology[0].topology_flags & triangle_break_bit) != 0U);
+
+    auto invalid_direct_clamp_document = parsed.document;
+    invalid_direct_clamp_document.objects[0].meshes[0]
+        .gs_clamp_region_repeat.min_u = 0x400U;
+    const auto rejected_direct_clamp = Writer::write(
+        invalid_direct_clamp_document, WriteMode::preserve_layout);
+    assert(!rejected_direct_clamp.ok());
+    const auto invalid_clamp_diag = std::find_if(
+        rejected_direct_clamp.diagnostics.begin(),
+        rejected_direct_clamp.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-invalid-authored-value";
+        });
+    assert(invalid_clamp_diag != rejected_direct_clamp.diagnostics.end());
+
+    auto invalid_normal_document = parsed.document;
+    invalid_normal_document.objects[0].meshes[0].normals[0].x =
+        std::bit_cast<float>(0x7FC00000U);
+    const auto rejected_invalid_normal = Writer::write(
+        invalid_normal_document, WriteMode::preserve_layout);
+    assert(!rejected_invalid_normal.ok());
+    const auto invalid_normal_diag = std::find_if(
+        rejected_invalid_normal.diagnostics.begin(),
+        rejected_invalid_normal.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-source-bound-invalid-authored-value";
+        });
+    assert(invalid_normal_diag != rejected_invalid_normal.diagnostics.end());
 
     auto resized_document = parsed.document;
     auto& mesh = resized_document.objects[0].meshes[0];
