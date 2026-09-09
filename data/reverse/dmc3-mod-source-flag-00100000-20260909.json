@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-object-flag-receipt.v2",
+  "schema": "dmc-rengine.mod-object-flag-receipt.v3",
   "field": "object source flag 0x00100000",
   "serialized_offset": "object +0x10 bit 20",
   "width": "u32 mask",
@@ -20,7 +20,6 @@
     "initializer_addresses": ["0x140302AB2", "0x140302ABF", "0x140302AC9"],
     "reset_addresses": ["0x140305911", "0x140305924", "0x14030593B"],
     "reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
-    "meaning": "bit 20 and low nibble are explicitly refreshed from baseline",
     "status": "EXE_CONFIRMED"
   },
   "packet_projection": {
@@ -32,31 +31,72 @@
     "special_low_mode_4_packet_plus_08": "0x0000000000050007",
     "status": "EXE_CONFIRMED"
   },
+  "gs_packet_identity": {
+    "initializer": "0x1403027E0",
+    "gif_tag": "0x4000000000008001",
+    "register_descriptor": "0x10EEEE",
+    "registers": [
+      {"descriptor_value_offset": "+0x10", "register_id": "0x4E", "register": "GS ZBUF_1"},
+      {"descriptor_value_offset": "+0x20", "register_id": "0x47", "register": "GS TEST_1"},
+      {"descriptor_value_offset": "+0x30", "register_id": "0x42", "register": "GS ALPHA_1"},
+      {"descriptor_value_offset": "+0x40", "register_id": "0x00", "register": "GS PRIM"}
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "technical_semantic": {
+    "condition": "active low-nibble mode, except special mode 4",
+    "when_source_bit_clear": {
+      "TEST_1": "0x5000D",
+      "alpha_test_enable": 1,
+      "alpha_test_method": 6,
+      "alpha_test_method_name": "GREATER",
+      "alpha_reference": 0,
+      "alpha_fail_method": 0,
+      "z_test_enable": 1,
+      "z_test_method": 2,
+      "z_test_method_name": "GEQUAL",
+      "ZBUF_1_ZMSK": 1,
+      "depth_write": "masked/disabled"
+    },
+    "when_source_bit_set": {
+      "TEST_1": "0x5010D",
+      "alpha_test_enable": 1,
+      "alpha_test_method": 6,
+      "alpha_test_method_name": "GREATER",
+      "alpha_reference": 16,
+      "alpha_fail_method": 0,
+      "z_test_enable": 1,
+      "z_test_method": 2,
+      "z_test_method_name": "GEQUAL",
+      "ZBUF_1_ZMSK": 0,
+      "depth_write": "enabled by this selector"
+    },
+    "delta": "source bit 20 raises GS alpha-test reference from 0 to 16 and clears ZBUF_1.ZMSK, enabling depth-buffer writes relative to the clear-bit branch",
+    "status": "EXE_CONFIRMED"
+  },
   "mesh_descriptor_projection": {
     "helper": "0x1403028F0",
     "descriptor": "runtime object +0xB0 + mesh_index*0x50",
-    "copies": [
-      {"source": "packet +0x00", "destination": "descriptor +0x10", "addresses": "0x14030296B..0x14030296E"},
-      {"source": "packet +0x08", "destination": "descriptor +0x20", "addresses": "0x140302937..0x14030293B"},
-      {"source": "packet +0x10", "destination": "descriptor +0x30", "addresses": "0x140302951..0x140302955"},
-      {"source": "packet +0x18", "destination": "descriptor +0x40", "addresses": "0x140302984..0x140302988"}
-    ],
-    "packet_mask_byte": "packet +0x20 is also tested/updated against the mesh bit in 0x140302991..0x1403029CD",
     "status": "EXE_CONFIRMED"
   },
   "command_handoff": {
-    "addresses": ["0x1402F8498", "0x1402F84A0", "0x1402FEDC8", "0x1402FEDD0"],
-    "meaning": "render-command construction computes the same object +0xB0 + mesh_index*0x50 descriptor address and encodes/references that descriptor in generated command data",
+    "command_tag": "0x30000005",
+    "decoder": "0x140029880",
+    "type3_case": "0x140029958",
+    "backend_helper": "0x140032CD0",
+    "arena_base": "0x1405D9EA8",
+    "meaning": "command high dword is decoded as an arena-relative descriptor pointer and handed to the generic GS/GIF backend parser",
     "status": "EXE_CONFIRMED"
   },
-  "semantic_status": "PRESERVED_UNDECODED",
+  "technical_semantic_status": "EXE_CONFIRMED",
+  "artistic_semantic_status": "PRESERVED_UNDECODED",
   "evidence_status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
   "rejected_hypotheses": [
-    "0x00100000 may be assigned a visual/material name from corpus appearance alone",
-    "packet-state projection is equivalent to final shader/material semantic closure",
-    "descriptor forwarding alone identifies the final artistic render-state name"
+    "0x00100000 may be named cloth from corpus appearance alone",
+    "0x00100000 is a generic alpha/blend flag without a register-level trace",
+    "technical GS state closure automatically proves an artistic/material category"
   ],
-  "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective refresh and exact packet-state projection with compile-time guards",
-  "writer_policy": "preserve",
-  "closure_boundary": "Bit 20 is EXE_CONFIRMED as a persistent baseline-controlled effective render-state input. Its packet differences are copied into per-mesh runtime render descriptors and those descriptors are referenced by render-command construction. The final backend interpretation of descriptor +0x10/+0x20 state remains unresolved, so no artistic/material semantic name is promoted."
+  "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective refresh, exact TEST_1/ZBUF_1 projection, GS TEST bit decoding and ZMSK decoding with compile-time guards",
+  "writer_policy": "preserve source bit exactly",
+  "closure_boundary": "The hardware-state semantic is closed: in active low modes except mode 4, source bit 0x00100000 selects TEST_1 AREF 16 vs 0 and ZBUF_1 depth-write unmasked vs masked. The artistic reason a model uses that state remains intentionally unnamed."
 }
