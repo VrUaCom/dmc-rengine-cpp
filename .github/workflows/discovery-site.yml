@@ -71,8 +71,11 @@ jobs:
           test -f _site/guides/extract-pac/index.html
           test -f _site/guides/browse-pnst/index.html
           test -f _site/guides/dante-model-textures/index.html
+          test -f _site/guides/character-models/index.html
+          test -f _site/guides/enemy-models/index.html
           test -f _site/guides/stage-models/index.html
           test -f _site/guides/animations/index.html
+          test -f _site/native-reader/android/index.html
           test -f _site/models/index.html
           test -f _site/textures/index.html
           test -f _site/modding/index.html
@@ -88,7 +91,11 @@ jobs:
           grep -q 'Practical tutorial path' _site/formats/mot/index.html
           grep -q 'How to Extract DMC3 PAC Files' _site/guides/extract-pac/index.html
           grep -q 'How to Find Dante Models and Textures' _site/guides/dante-model-textures/index.html
+          grep -q 'How to Find DMC3 Character Models' _site/guides/character-models/index.html
+          grep -q 'How to Find and Inspect DMC3 Enemy Models' _site/guides/enemy-models/index.html
           grep -q 'How to Inspect DMC3 Animations' _site/guides/animations/index.html
+          grep -q 'DMC Native Reader for Android' _site/native-reader/android/index.html
+          grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/assets/style.css' _site/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/formats/' _site/index.html
           grep -q 'User-agent: OAI-SearchBot' _site/robots.txt
