@@ -4,9 +4,9 @@
 **Canonical implementation base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
 **Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT model-format consolidation and container gates (merged after PR #375)  
 **Latest public/status reconciliation:** PR #375 — MOD Writer Gate 1 roadmap/learning reconciliation  
-**Latest canonical Native Reader module promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
+**Latest canonical Native Reader integration review:** current `NativeReaderModuleRegistry` verified directly at `main@d8534bad…`  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete. Model-format authoring advanced materially: MOD now has real retail PNST reintegration, SCM has a canonical bounded writer/rebuild stack with a 68-unique no-edit corpus, and MOT has one canonical parser/IR plus bounded key-evaluation recovery. Retail NBZ/original-game acceptance and protected-process proof remain open.
+**Overall status:** L1/L2/L3 remain incomplete. Model-format authoring advanced materially: MOD now has real retail PNST reintegration, SCM has a canonical bounded writer/rebuild stack with a 68-unique no-edit corpus, and MOT has canonical Native Reader registry presence plus the consolidated parser/IR and bounded key-evaluation recovery. Retail NBZ/original-game acceptance and protected-process proof remain open.
 
 ## Authority split
 
@@ -31,7 +31,26 @@ The protected distribution execution candidate remains a separate build and requ
 
 ## Native Reader current state
 
-Canonical built-in modules remain DDS, PTX, HITS, DCA, LIG2/LIG, Stage TXT, SCM, MOD, SHW and PE/EXE. EFM is still not a canonical module. MOT now has canonical parser/IR and analysis support after PR #372, but that alone does not add MOT to the built-in Native Reader module list.
+The directly verified `NativeReaderModuleRegistry` on current `main` registers:
+
+- DDS;
+- PTX;
+- HITS;
+- DCA;
+- LIG2/LIG;
+- Stage TXT;
+- SCM;
+- MOD;
+- MOT;
+- SO graph;
+- SO volume;
+- SO link;
+- SHW;
+- PE/EXE.
+
+This corrects older status pages that omitted MOT and the SO module family. Registry membership is a product-integration fact; it does not by itself grant complete semantic or writer authority.
+
+EFM is still not a canonical Native Reader module. MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
 
 SHW remains structural/read-only. Matrix-palette ownership, universal revision coverage and writer/original-game acceptance remain open.
 
@@ -79,7 +98,9 @@ This closes the no-edit corpus gate for that explicit population. It does not pr
 
 ## MOT state
 
-PR #372 consolidates MOT onto one modular parser/IR. Current canonical evidence includes:
+MOT is already present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery.
+
+Current canonical evidence includes:
 
 - `MOT\0` marker and aligned header/channel-mask contract;
 - nine-bit channel mask and record-count/popcount relationship;
@@ -88,6 +109,10 @@ PR #372 consolidates MOT onto one modular parser/IR. Current canonical evidence 
 - canonical-EXE recovery of binding-bit traversal, signed track start-time offsets, quantization and compression-3 linear/Hermite segment evaluation with slope orientation.
 
 The interpolation helper is an algebraic semantic recovery, not a bit-identical SSE or complete player claim. Exact segment lookup/cache, duplicate-time behavior, flag `0x2` binding, other compression modes, looping/blending/full transform composition and original-game output parity remain open.
+
+## SO module state
+
+`NativeReaderModuleRegistry` also contains `so_graph`, `so_volume` and `so_link`. Their registry presence is canonical product integration. It must not be inflated into universal SO semantic/writer authority; cross-resource MOD/SO semantics remain evidence-gated by their dedicated analysis modules and receipts.
 
 ## L1 — Resource Materialization
 
