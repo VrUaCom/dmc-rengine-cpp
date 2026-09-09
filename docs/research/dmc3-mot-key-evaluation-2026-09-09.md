@@ -48,8 +48,42 @@ For `d=t1-t0`, `u=(t-t0)/d`, the algebraic result is:
 The analysis helper implements this formula for an already selected,
 positive-length compression-3 segment. It rejects out-of-segment and nonfinite
 query times. It is not a bit-identical reproduction of SSE operation order.
-Segment lookup/cache, repeated times, looping and endpoint selection remain
-unrecovered here; no whole-animation evaluator is claimed.
+The helper does not implement segment lookup/cache, looping or blending;
+no whole-animation evaluator is claimed. Static segment-search behaviour
+is recorded below for subsequent implementation and differential validation.
+
+## Compression-3 cached segment search
+
+`0x1402E8C80..0x1402E8E10` uses the key array at channel+0x10 and a signed
+cached index at channel+0x18. It masks every key time with 0x7FFF. For finite
+local query time, nonempty sorted keys and an initially valid cached index:
+
+```
+i = cached_index
+if t >= time[i]:
+    while i < count-1:
+        if time[i+1] > t: return segment(i, i+1), cache=i
+        if time[i] == t: return single(i), cache=i
+        i += 1
+    return single(i), cache=count-1
+else:
+    while i >= 1:
+        previous = i-1
+        if t > time[previous]: return segment(previous, i), cache=previous
+        if t == time[previous]: return single(previous), cache=previous
+        i = previous
+    return single(0), cache=0
+```
+
+Forward segment return is `0x1402E8D52`, backward segment return is
+`0x1402E8DF2`. Before-first/after-last queries return the first/last key
+without a second key. Equal-time runs can select different duplicate keys
+depending on the incoming cache; a stateless binary search is not proven
+equivalent. The count is sign-extended from track+2 at `0x1402E8CCA`, whereas
+the raw parser stores u16. Runtime eligibility above 32767 keys therefore
+cannot be inferred from parse success. Invalid cache and nonfinite queries
+are outside the finite, well-formed reconstruction above. These branches
+need execution-based comparison before adding a complete player.
 
 ## Normal binding to MOD nodes
 
@@ -70,9 +104,20 @@ that arbitrary mismatched MOT/model domain counts are safe.
 | 0x008 | +0x180 | Rotation X |
 | 0x010 | +0x1A0 | Rotation Y |
 | 0x020 | +0x1C0 | Rotation Z |
-| 0x001 | +0x1E0 | Unit default; scale interpretation pending downstream proof |
-| 0x002 | +0x200 | Unit default; scale interpretation pending downstream proof |
-| 0x004 | +0x220 | Unit default; scale interpretation pending downstream proof |
+| 0x001 | +0x1E0 | Scale X |
+| 0x002 | +0x200 | Scale Y |
+| 0x004 | +0x220 | Scale Z |
+
+The downstream proof is the normal matrix path `0x14030E9B0` called at
+`0x14030E7CB`. Instructions `0x14030EA09`, `0x14030EA28` and `0x14030EA1B`
+multiply external axis factors by joint+0x1E0/+0x200/+0x220 respectively.
+The resulting XYZ factors feed `0x14032ED30` at `0x14030EB7D` on an
+identity-initialized matrix. That helper broadcasts each scalar and multiplies
+the matrix vectors at +0/+0x10/+0x20, leaving +0x30 unchanged
+(`0x14032ED30..0x14032ED5B`). The scale matrix is then composed into joint+0x110
+via calls at `0x14030EC06` and `0x14030EC1A`. This establishes scale semantics,
+not merely neutral defaults. Exceptional tiny/near-unit factors, external
+factors and full hierarchy composition remain outside the helper API.
 
 Track traversal follows table order, **not ascending numeric mask bits**.
 Group-excluded nodes still consume the corresponding track ordinals.

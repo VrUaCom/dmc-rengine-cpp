@@ -39,6 +39,10 @@ Receipt: `data/reverse/dmc3-scm-consolidated-corpus-20260909.json`.
 This is unchanged-payload parity, not arbitrary scene-edit or in-game parity.
 Full CMake/Windows CI remains separate from this local compilation.
 
+The complete CLI also compiles and links locally (15 translation units).
+The normal low mask triplet is now proven as scale XYZ through the matrix
+consumer at `0x14030E9B0` and basis-scaling helper `0x14032ED30`.
+
 Fresh MOT static recovery is documented in
 [the key-evaluation report](dmc3-mot-key-evaluation-2026-09-09.md).
 Three real MOT payloads also pass the modular structural parser; they do not
@@ -48,9 +52,8 @@ provide whole-animation playback parity.
 
 | Boundary | Evidence needed |
 |---|---|
-| MOT segment lookup | Cache updates, duplicate-time and endpoint behaviour at `0x1402E8C80` and companion routines |
+| MOT segment lookup | Compression-3 static search now recorded; implement and compare cache-dependent duplicate-time behaviour and companion routines |
 | MOT header semantics | Consumers of raw +0x08/+0x0C/+0x10/+0x14/+0x18/+0x1A, including flag 0x2 alternate binding |
-| MOT low mask triplet | Downstream matrix consumer proving scale XYZ, beyond unit defaults |
 | Other MOT compression modes | Executable decoder/evaluator agreement plus real payloads |
 | Animation runtime | Looping, blending, group selection, transform composition and comparisons with game output |
 | SCM remaining fields | Reconcile unpublished census against canonical pointer lineage; preserve unknown bytes meanwhile |
