@@ -1,100 +1,38 @@
-# DMC3 HD MOD — manager bit 0x00200000 runtime-vector chain (2026-09-09)
+# DMC3 HD MOD — historical 0x00200000 domain-collision note
 
-**Branch:** `reverse/mod-completion-20260907`  
-**Canonical executable:** `dmc3.exe`  
-**SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
+**Status:** `REJECTED` as a serialized source-flag document name.  
+**Branch:** `reverse/mod-completion-20260907`
 
-## Why this pass exists
+This historical filename is misleading. The evidence originally documented here concerns **manager `+0xE0` bit `0x00200000`**, not serialized MOD object source flag `0x00200000` at object `+0x10`.
 
-The MOD object-runtime reverse had already established that serialized object flags `0x00000200` and `0x00000400` can promote a manager-global runtime bit `0x00200000` (bit 21), while object-local parameters `+0x18/+0x1C` are live on that path. The downstream use of the manager-global bit was still open.
+The two domains must not be merged merely because the numeric mask is equal.
 
-This pass follows the original executable instead of relying on external importers.
+## Canonical replacements
 
-## 1. Direct manager-bit consumer
-
-Canonical function range around `0x140303F22` reads manager/runtime flags at `manager +0xE0` and tests bit `0x00200000`:
+Manager/runtime bit-21 chain:
 
 ```text
-140303F22  mov  rax, [rbp + manager]
-140303F29  mov  eax, [rax + 0xE0]
-140303F2F  and  eax, 0x00200000
-140303F34  test eax, eax
-140303F36  je   0x140303F48
-140303F38  lea  rdx, [local_float4]
-140303F3C  mov  rcx, manager
-140303F43  call 0x140306560
+data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json
 ```
 
-Therefore manager bit 21 is not passive bookkeeping. It gates construction of a runtime float4/vector by helper `0x140306560`.
-
-Status: **EXE_CONFIRMED**.
-
-## 2. What helper 0x140306560 does
-
-The helper does not return a fixed preset. It derives a vector from live global/runtime state:
-
-1. obtains the active global/environment object through `0x140CF2330 -> +0x240`, with fallback `0x1405CEB10`;
-2. loads two float4 values from that state at `+0x70` and `+0x80`;
-3. subtracts them;
-4. normalizes the resulting vector through `0x140330390`;
-5. reads three values from the current per-index runtime matrix/state table (`manager-derived table + 0x40` across three 0x10-spaced rows);
-6. builds a second vector with W forced to zero;
-7. adds it to the normalized environment vector;
-8. normalizes again into the caller-provided output.
-
-The exact artistic name of this vector is not promoted here. The machine-code behavior proves it is a normalized runtime direction/vector derived from environment/global state plus current indexed runtime state.
-
-Status: **EXE_CONFIRMED_BEHAVIOR / SEMANTIC_NAME_OPEN**.
-
-## 3. Distribution into runtime objects
-
-After the helper returns, the caller iterates manager runtime-object records (`manager +0x100`, stride `0x380`). For active records it checks object runtime bits `0x1000` / `0x2000`. On that path the generated vector components are copied into:
+Serialized object source flag `0x00200000`:
 
 ```text
-runtime object +0x160 = vector.x
-runtime object +0x164 = vector.y
-runtime object +0x168 = vector.z
+docs/research/dmc3-mod-source-flag-00200000-reverse-2026-09-09.md
+data/reverse/dmc3-mod-source-flag-00200000-20260909.json
 ```
 
-This closes the downstream role of manager bit `0x00200000`: it enables generation and distribution of a shared runtime direction/vector to qualifying render objects.
+## Domain boundary
 
-## 4. Relationship to serialized MOD object flags
+The manager bit is raised on the separately recovered source-flag `0x00000200/0x00000400` path and gates runtime vector generation through `0x140306560`, followed by distribution to qualifying runtime objects at `+0x160/+0x164/+0x168`.
 
-Earlier MOD object-runtime projection already proved:
+The serialized object source bit `0x00200000`, by contrast, is copied intact by `0x140302AB2/0x140302ABF/0x140302AC9` into runtime object `+0x10/+0x14`. Its distinct downstream semantic remains `PRESERVED_UNDECODED`.
+
+Therefore:
 
 ```text
-serialized source flag 0x00000200
-    -> runtime object bit12
-    -> manager global bit21
-    -> live object +0x18/+0x1C parameters
-
-serialized source flag 0x00000400
-    -> runtime object bit13
-    -> manager global bit21
-    -> live object +0x18/+0x1C parameters
+manager +0xE0 mask 0x00200000          != serialized object source flag 0x00200000
+runtime object +0x304 mask 0x00200000  != proven derivative of serialized source flag 0x00200000
 ```
 
-This pass closes the next edge:
-
-```text
-manager global bit21 (0x00200000)
-    -> 0x140306560 runtime vector generation
-    -> runtime object +0x160/+0x164/+0x168 for qualifying objects
-```
-
-So `0x00000200/0x00000400` are part of a real special render/runtime-vector feature. It is still unsafe to assign an artistic label such as light-vector, environment-vector, reflection-vector, wind-vector, etc. until the final consumer of runtime object `+0x160..+0x168` is recovered.
-
-## 5. Evidence status
-
-| Claim | Status |
-|---|---|
-| manager `+0xE0 & 0x00200000` gates helper | `EXE_CONFIRMED` |
-| helper `0x140306560` computes normalized live vector | `EXE_CONFIRMED` |
-| vector copied to runtime object `+0x160/+0x164/+0x168` | `EXE_CONFIRMED` |
-| serialized `0x200/0x400` can raise manager bit21 | `EXE_CONFIRMED` from prior MOD projection |
-| final artistic/render semantic | `OPEN` |
-| writer mutation authority | `NOT_PROMOTED` |
-
-## 6. Next closure target
-
-Trace reads of runtime object `+0x160/+0x164/+0x168` into the final render/shader packet. That will determine whether this vector is lighting, environment/reflection, special-effect orientation, or another legacy render input without guessing from shape alone.
+Any earlier interpretation that treated these equal masks as one evidence chain is `REJECTED`.
