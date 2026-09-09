@@ -65,4 +65,23 @@ project_source_flag_00200000_carry(std::uint32_t source_flags) noexcept {
     };
 }
 
+// Compile-time regression guards for the exact recovered packet/carry rules.
+// These protect proven byte/state projection only, not a guessed visual label.
+static_assert(project_source_flag_00100000(0x00100001U, 1U, 0U).active);
+static_assert(project_source_flag_00100000(0x00100001U, 1U, 0U).packet08 ==
+              0x000000000005010DULL);
+static_assert(project_source_flag_00100000(0x00000001U, 1U, 0U).packet08 ==
+              0x000000000005000DULL);
+static_assert((project_source_flag_00100000(0x00000001U, 1U, 0U)
+                   .packet00_without_dynamic_low_fields &
+               0x0000000100000000ULL) != 0ULL);
+static_assert(project_source_flag_00100000(0x00100004U, 4U, 0U).packet08 ==
+              0x0000000000050007ULL);
+
+constexpr auto source_00200000_synthetic =
+    project_source_flag_00200000_carry(0xA5200000U);
+static_assert(source_00200000_synthetic.active);
+static_assert(source_00200000_synthetic.runtime_flags10 == 0xA5200000U);
+static_assert(source_00200000_synthetic.runtime_flags14 == 0xA5200000U);
+
 } // namespace dmc::rengine::analysis::mod
