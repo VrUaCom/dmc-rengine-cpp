@@ -130,8 +130,8 @@ jobs:
           grep -q 'How to Inspect DMC3 Animations' _site/guides/animations/index.html
           grep -q 'DMC Native Reader for Android' _site/native-reader/android/index.html
           grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
-          grep -q 'retail PNST' _site/status/index.html
-          grep -q 'SO graph' _site/status/index.html
+          grep -q 'retail PNST' docs/status/current.md
+          grep -q 'SO graph' docs/status/current.md
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/assets/style.css' _site/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/formats/' _site/index.html
           grep -q 'User-agent: OAI-SearchBot' _site/robots.txt
