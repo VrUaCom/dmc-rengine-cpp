@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-branch-consolidation.v1",
+  "schema": "dmc-rengine.mod-branch-consolidation.v2",
   "date": "2026-09-09",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "canonicalExecutable": {
@@ -11,6 +11,11 @@
     "mainAndCanonicalBranchIdentical": true,
     "commit": "913bfc0c06816e1d8b909ebda62f5f13d7855f39",
     "sourcePr": 360
+  },
+  "auditCoverage": {
+    "nameMatchedModBranches": 33,
+    "additionalMixedHistoricalBranches": 3,
+    "totalReviewedRefs": 36
   },
   "policy": {
     "newModBranchesByDefault": false,
@@ -51,7 +56,10 @@
     {"name":"architecture/modular-format-architecture-20260907","class":"RELATED_POLICY_ONLY"},
     {"name":"site/mod-native-lessons","class":"RELATED_PRESENTATION_ONLY"},
     {"name":"site/mod-lesson-live-acceptance","class":"RELATED_PRESENTATION_ONLY"},
-    {"name":"refactor/native-reader-modular-main","class":"RELATED_INFRASTRUCTURE_ONLY"}
+    {"name":"refactor/native-reader-modular-main","class":"RELATED_INFRASTRUCTURE_ONLY"},
+    {"name":"claude/rengine-cpp-analysis-review-541wxb","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":280,"note":"early EFM/MOD/MOT/PTX/SHW parser package; reconcile non-MOD slices separately"},
+    {"name":"claude/android-gds-app-msiuu8","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":254,"note":"animation/naming/content-tag reverse; current MOD receipts override overlapping MOD claims"},
+    {"name":"agent/wave3-runtime-execution-v2","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":89,"note":"early recovered MOD/EFM post-load; later canonical MOD runtime-postload promotion supersedes MOD slice"}
   ],
   "closedBaselineDomains": [
     "0x40 document header / 0x40 object / 0x50 mesh structural shell",
