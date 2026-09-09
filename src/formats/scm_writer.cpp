@@ -86,6 +86,14 @@ template <class T>
            std::bit_cast<std::uint32_t>(rhs);
 }
 
+[[nodiscard]] bool same_vec3_bits(
+    const Vec3f& lhs,
+    const Vec3f& rhs) noexcept {
+    return same_float_bits(lhs.x, rhs.x) &&
+           same_float_bits(lhs.y, rhs.y) &&
+           same_float_bits(lhs.z, rhs.z);
+}
+
 [[nodiscard]] bool source_float_equals(
     const Reader& source,
     std::uint64_t offset,
@@ -275,6 +283,28 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
             offset);
         return false;
     };
+    const auto reject_structural = [&](std::uint64_t offset, const char* field) {
+        add_diag(
+            out,
+            ParseSeverity::error,
+            "scm.writer-source-bound-structural-field-mutated",
+            std::string{"Source-bound SCM authoring cannot mutate physical "}
+                + field +
+                ". Source offsets are immutable provenance metadata; canonical "
+                "reflow offsets are owned by the layout planner.",
+            offset);
+        return false;
+    };
+    const auto reject_invalid = [&](std::uint64_t offset, const char* field) {
+        add_diag(
+            out,
+            ParseSeverity::error,
+            "scm.writer-source-bound-invalid-authored-value",
+            std::string{"Source-bound SCM authoring rejected invalid changed "}
+                + field + ".",
+            offset);
+        return false;
+    };
 
     const auto& header = document.header;
     const auto& source_header = source_document.header;
@@ -296,6 +326,16 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
     if (header.reserved38 != source_header.reserved38) {
         return reject_unknown(0x38U, "header +0x38");
     }
+    if (header.scene_node_block_offset !=
+        source_header.scene_node_block_offset) {
+        return reject_structural(0x20U, "scene-node block offset");
+    }
+    if (header.object_count != source_header.object_count) {
+        return reject_derived(0x10U, "header object count");
+    }
+    if (header.scene_node_count != source_header.scene_node_count) {
+        return reject_derived(0x11U, "header scene-node count");
+    }
 
     constexpr std::uint32_t mutable_object_flags =
         object_flag_nearest_texture_filter;
@@ -306,6 +346,27 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
         const auto& object = document.objects[object_index];
         if (object_index < source_document.objects.size()) {
             const auto& source_object = source_document.objects[object_index];
+            if (object.record_offset != source_object.record_offset) {
+                return reject_structural(
+                    source_object.record_offset,
+                    "object record offset");
+            }
+            if (object.mesh_table_offset != source_object.mesh_table_offset) {
+                return reject_structural(
+                    source_object.record_offset + 0x08U,
+                    "object mesh-table offset");
+            }
+            if (object.mesh_count != source_object.mesh_count) {
+                return reject_derived(
+                    source_object.record_offset + 0x00U,
+                    "object mesh count");
+            }
+            if (object.total_vertex_count !=
+                source_object.total_vertex_count) {
+                return reject_derived(
+                    source_object.record_offset + 0x02U,
+                    "object total vertex count");
+            }
             if (object.reserved04 != source_object.reserved04) {
                 return reject_unknown(
                     source_object.record_offset + 0x04U,
@@ -361,6 +422,53 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
             }
 
             if (source_mesh != nullptr) {
+                if (mesh.record_offset != source_mesh->record_offset) {
+                    return reject_structural(
+                        source_mesh->record_offset,
+                        "mesh record offset");
+                }
+                if (mesh.positions_offset != source_mesh->positions_offset) {
+                    return reject_structural(
+                        source_mesh->record_offset + 0x10U,
+                        "mesh position-stream offset");
+                }
+                if (mesh.normals_offset != source_mesh->normals_offset) {
+                    return reject_structural(
+                        source_mesh->record_offset + 0x18U,
+                        "mesh normal-stream offset");
+                }
+                if (mesh.uv_offset != source_mesh->uv_offset) {
+                    return reject_structural(
+                        source_mesh->record_offset + 0x20U,
+                        "mesh UV-stream offset");
+                }
+                if (mesh.color_flags_offset !=
+                    source_mesh->color_flags_offset) {
+                    return reject_structural(
+                        source_mesh->record_offset + 0x38U,
+                        "mesh color/topology-stream offset");
+                }
+                if (mesh.index_workspace_relative_offset !=
+                    source_mesh->index_workspace_relative_offset ||
+                    mesh.index_workspace_offset !=
+                    source_mesh->index_workspace_offset ||
+                    mesh.index_workspace_capacity !=
+                    source_mesh->index_workspace_capacity) {
+                    return reject_structural(
+                        source_mesh->record_offset + 0x40U,
+                        "mesh index-workspace location/capacity");
+                }
+                if (mesh.vertex_count != source_mesh->vertex_count) {
+                    return reject_derived(
+                        source_mesh->record_offset + 0x00U,
+                        "mesh vertex count");
+                }
+                if (mesh.continuation_span !=
+                    source_mesh->continuation_span) {
+                    return reject_derived(
+                        source_mesh->record_offset + 0x28U,
+                        "mesh continuation span");
+                }
                 if (mesh.reserved0c != source_mesh->reserved0c) {
                     return reject_unknown(
                         source_mesh->record_offset + 0x0CU,
@@ -382,19 +490,137 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
                         source_mesh->record_offset + 0x4CU,
                         "mesh +0x4C");
                 }
-            } else if (mesh.reserved0c != 0U ||
-                       mesh.reserved30 != 0U ||
-                       mesh.generated_index_count != 0U ||
-                       mesh.reserved4c != 0U) {
-                return reject_unknown(
-                    0U,
-                    "reserved/runtime fields of a source-bound newly added mesh");
+
+                const bool clamp_changed =
+                    mesh.gs_clamp_region_repeat.min_u !=
+                        source_mesh->gs_clamp_region_repeat.min_u ||
+                    mesh.gs_clamp_region_repeat.max_u !=
+                        source_mesh->gs_clamp_region_repeat.max_u ||
+                    mesh.gs_clamp_region_repeat.min_v !=
+                        source_mesh->gs_clamp_region_repeat.min_v ||
+                    mesh.gs_clamp_region_repeat.max_v !=
+                        source_mesh->gs_clamp_region_repeat.max_v;
+                if (clamp_changed &&
+                    !legacy_gs_clamp_fields_fit_register(
+                        mesh.gs_clamp_region_repeat)) {
+                    return reject_invalid(
+                        source_mesh->record_offset + 0x04U,
+                        "GS CLAMP REGION_REPEAT value");
+                }
+
+                const auto common_vertices = std::min(
+                    mesh.colors_topology.size(),
+                    source_mesh->colors_topology.size());
+                for (std::size_t vertex_index = 0U;
+                     vertex_index < common_vertices;
+                     ++vertex_index) {
+                    const auto before =
+                        source_mesh->colors_topology[vertex_index]
+                            .topology_flags;
+                    const auto after =
+                        mesh.colors_topology[vertex_index].topology_flags;
+                    if (((before ^ after) & ~triangle_break_bit) != 0U) {
+                        return reject_unknown(
+                            source_mesh->color_flags_offset +
+                                static_cast<std::uint64_t>(vertex_index) * 4U +
+                                3U,
+                            "topology bits outside confirmed 0x02 break bit");
+                    }
+                }
+                for (std::size_t vertex_index = common_vertices;
+                     vertex_index < mesh.colors_topology.size();
+                     ++vertex_index) {
+                    if ((mesh.colors_topology[vertex_index].topology_flags &
+                         ~triangle_break_bit) != 0U) {
+                        return reject_unknown(
+                            source_mesh->color_flags_offset +
+                                static_cast<std::uint64_t>(vertex_index) * 4U +
+                                3U,
+                            "new topology bits outside confirmed 0x02 break bit");
+                    }
+                }
+
+                const auto common_normals = std::min(
+                    mesh.normals.size(), source_mesh->normals.size());
+                for (std::size_t vertex_index = 0U;
+                     vertex_index < common_normals;
+                     ++vertex_index) {
+                    if (!same_vec3_bits(
+                            mesh.normals[vertex_index],
+                            source_mesh->normals[vertex_index]) &&
+                        !finite_vec3(mesh.normals[vertex_index])) {
+                        return reject_invalid(
+                            source_mesh->normals_offset +
+                                static_cast<std::uint64_t>(vertex_index) * 12U,
+                            "normal vector");
+                    }
+                }
+                for (std::size_t vertex_index = common_normals;
+                     vertex_index < mesh.normals.size();
+                     ++vertex_index) {
+                    if (!finite_vec3(mesh.normals[vertex_index])) {
+                        return reject_invalid(
+                            source_mesh->normals_offset +
+                                static_cast<std::uint64_t>(vertex_index) * 12U,
+                            "new normal vector");
+                    }
+                }
+            } else {
+                if (mesh.reserved0c != 0U ||
+                    mesh.reserved30 != 0U ||
+                    mesh.generated_index_count != 0U ||
+                    mesh.reserved4c != 0U) {
+                    return reject_unknown(
+                        0U,
+                        "reserved/runtime fields of a source-bound newly added mesh");
+                }
+                if (!legacy_gs_clamp_fields_fit_register(
+                        mesh.gs_clamp_region_repeat)) {
+                    return reject_invalid(
+                        0U,
+                        "new GS CLAMP REGION_REPEAT value");
+                }
+                for (const auto& value : mesh.colors_topology) {
+                    if ((value.topology_flags & ~triangle_break_bit) != 0U) {
+                        return reject_unknown(
+                            0U,
+                            "new topology bits outside confirmed 0x02 break bit");
+                    }
+                }
+                for (const auto& normal : mesh.normals) {
+                    if (!finite_vec3(normal)) {
+                        return reject_invalid(0U, "new normal vector");
+                    }
+                }
             }
         }
     }
 
     const auto& scene = document.scene_nodes;
     const auto& source_scene = source_document.scene_nodes;
+    if (scene.offset != source_scene.offset) {
+        return reject_structural(source_scene.offset, "scene-block offset");
+    }
+    if (scene.parent_rel != source_scene.parent_rel) {
+        return reject_structural(
+            source_scene.offset + 0x00U,
+            "scene parent-array relative offset");
+    }
+    if (scene.order_rel != source_scene.order_rel) {
+        return reject_structural(
+            source_scene.offset + 0x04U,
+            "scene order-array relative offset");
+    }
+    if (scene.object_binding_rel != source_scene.object_binding_rel) {
+        return reject_structural(
+            source_scene.offset + 0x08U,
+            "scene object-binding relative offset");
+    }
+    if (scene.transform_rel != source_scene.transform_rel) {
+        return reject_structural(
+            source_scene.offset + 0x0CU,
+            "scene transform-array relative offset");
+    }
     if (scene.reserved10_1f != source_scene.reserved10_1f) {
         return reject_unknown(
             source_scene.offset + 0x10U,
@@ -416,7 +642,23 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
                     source_transform.reserved1c)) {
                 return reject_unknown(offset + 0x1CU, "transform +0x1C");
             }
-            if (!translation_changed(document, index, transform) &&
+            const bool translation_authored =
+                !same_vec3_bits(
+                    transform.translation,
+                    source_transform.translation);
+            const bool rotation_authored =
+                !same_vec3_bits(
+                    transform.rotation_xyz_radians,
+                    source_transform.rotation_xyz_radians);
+            if (translation_authored &&
+                !finite_vec3(transform.translation)) {
+                return reject_invalid(offset + 0x00U, "translation vector");
+            }
+            if (rotation_authored &&
+                !finite_vec3(transform.rotation_xyz_radians)) {
+                return reject_invalid(offset + 0x10U, "rotation vector");
+            }
+            if (!translation_authored &&
                 !same_float_bits(
                     transform.translation_magnitude,
                     source_transform.translation_magnitude)) {
@@ -424,8 +666,16 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
                     offset + 0x0CU,
                     "translation magnitude");
             }
-        } else if (!same_float_bits(transform.reserved1c, 0.0F)) {
-            return reject_unknown(0U, "new transform +0x1C");
+        } else {
+            if (!same_float_bits(transform.reserved1c, 0.0F)) {
+                return reject_unknown(0U, "new transform +0x1C");
+            }
+            if (!finite_vec3(transform.translation)) {
+                return reject_invalid(0U, "new translation vector");
+            }
+            if (!finite_vec3(transform.rotation_xyz_radians)) {
+                return reject_invalid(0U, "new rotation vector");
+            }
         }
     }
 
