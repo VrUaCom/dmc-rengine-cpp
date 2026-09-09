@@ -1,9 +1,9 @@
 # Current Blockers
 
-**Snapshot date:** 2026-09-07  
-**Canonical base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
-**Latest reviewed repository promotion:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
-**Latest reverse/model-family promotion:** PR #323 — MOD mesh preservation + skin ABI closure  
+**Snapshot date:** 2026-09-09  
+**Canonical base reviewed:** `main@5b2a541c99442627128ef4d877c99e5ecff16933`  
+**Latest reviewed repository promotion:** PR #374 — canonical status reconciliation + machine-status JSON CI guard  
+**Latest reverse/model-family promotion:** PR #369 — controlled retail MOD writer receipt + MOD-to-PAC reintegration trust bridge  
 **Latest Native Reader module promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
 **Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
 
@@ -36,12 +36,15 @@ Classify the exact selected bytes. Do not infer writer authority from transforme
 
 ### B-L1-03 — Representative real edit/rebuild/rematerialization receipt
 
-**Status:** ❌ REAL PROTECTED-INSTALL RECEIPT REQUIRED
+**Status:** ❌ REAL PROTECTED-INSTALL SAME-LINEAGE RECEIPT REQUIRED
 
-Current product code supports top-level/nested PAC/PNST authoring, next-volume NBZ creation and canonical product rematerialization. Acceptance still requires one same-lineage real receipt:
+Current product code supports top-level/nested PAC/PNST authoring, next-volume NBZ creation and canonical product rematerialization. MOD additionally has a bounded preserve-layout writer, a provenance-bound retail controlled edit and a writer-receipt trust bridge into the generic authored-child reintegration envelope.
+
+Those gates narrow the available edit producer but do **not** replace one same-lineage real receipt:
 
 ```text
 original-selected member
+ -> exact representation classification
  -> supported bounded edit
  -> bottom-up rebuild
  -> untouched sibling validation
@@ -50,6 +53,8 @@ original-selected member
  -> exact rebuilt member bytes are materialized
  -> exact authored child is reached
 ```
+
+For a MOD representative, PRs #365/#368/#369 can supply the bounded resource-level writer evidence only after B-L1-01/02 prove that the selected retail bytes are in that evidenced MOD domain.
 
 ### B-L1-04 — Original DMC3 Level-E consumption + rollback
 
@@ -173,19 +178,34 @@ Writer work requires broader variant coverage, SHW matrix-palette ownership, reb
 
 ## MOD/model-family evidence boundary
 
-**Status:** ✅ READ/REVERSE EVIDENCE ADVANCED / ❌ WRITER + ORIGINAL-GAME MUTATION ACCEPTANCE OPEN
+**Status:** ✅ BOUNDED PRESERVE-LAYOUT WRITER + RETAIL NO-OP PARITY PROVEN / ❌ FULL WRITER + ORIGINAL-GAME ACCEPTANCE OPEN
 
-PRs #305/#307/#310/#312-#318/#323 materially strengthened the canonical MOD/model-family contract: hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, texture companion/binding, inverse-rest skin palette, runtime texture descriptor, runtime object-state projection, preserved serialized mesh fields and direct skin ABI evidence are now promoted.
+PRs #305/#307/#310/#312-#318/#323/#356/#359/#360/#363 materially strengthened the canonical MOD/model-family read/reverse contract: hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, texture companion/binding, inverse-rest skin palette, runtime texture descriptor, runtime object-state projection, preserved serialized fields, direct skin ABI evidence and explicit preservation/no-repeat boundaries are promoted.
 
-This progress does **not** close:
+The authoring frontier has also advanced and must no longer be described as wholly read-only:
 
-- MOD writer authority;
-- byte-identical no-edit MOD rebuild;
-- safe mutation ranges for preserved-undecoded mesh fields;
-- complete TIM2 semantics or production texture replacement authority;
+- ✅ PR #365 — Preserve-Layout Writer Gate 1 with immutable-source binding, canonical source/output reparse and unauthorized-byte rejection;
+- ✅ PR #367 — deterministic multi-file writer corpus harness;
+- ✅ PR #368 — provenance-bound 38-file retail no-op parity: 38/38 parse/write/exact-byte-equality/reopen over 882,736 bytes, zero modified bytes, zero failures;
+- ✅ PR #369 — one provenance-bound real retail bounding-radius edit with exactly three changed bytes inside `[124,128)`, plus disk hash/reread/reopen and independent raw-diff verification;
+- ✅ PR #369 — writer receipt -> `AuthoredChildImage` trust bridge plus synthetic PAC reintegration/reopen regression.
+
+Still open before a **full production MOD writer** claim:
+
+- layout synthesis/reflow or rebuild from typed IR alone;
+- transform authoring;
+- skin/blend-index authoring;
+- source-flag/material/texture-binding authoring;
+- texture-companion rewriting/coherence;
+- broader mutation authority for preserved-undecoded fields;
+- provenance-bound retail PAC/PNST reintegration of writer output;
+- NBZ overlay acceptance for the same MOD authoring lineage;
+- original `dmc3.exe` no-op rebuilt-MOD acceptance;
+- original `dmc3.exe` edited-MOD acceptance;
 - complete current animation/pose ownership;
-- original-game edited-MOD acceptance;
-- Capcom offline-tool equivalence.
+- a `100% MOD writer` claim.
+
+Capcom offline-tool equivalence remains unnecessary for DMC Rengine authoring acceptance unless explicitly claimed.
 
 These are format/authoring boundaries, not substitutes for the GDSpaces L1/L2/L3 proof chain.
 
@@ -248,7 +268,8 @@ Depends on static promotion/ownership closure plus accepted original-process lif
 - ✅ normal `1 -> 2`, typed post-load -> callback -> state3 bounded path;
 - ✅ cancellation `1|2 -> 4` and quiescence `{0,3}` bounded rules;
 - ✅ `dmc3-0.nbz` zero-collision receipt for that exact artifact;
-- ✅ `.index` rejected as recovered original resolver/materialization authority on the canonical path; packed/`.lst` selection is EXE-confirmed.
+- ✅ `.index` rejected as recovered original resolver/materialization authority on the canonical path; packed/`.lst` selection is EXE-confirmed;
+- ✅ MOD Preserve-Layout Writer Gate 1 (#365), 38-file provenance-bound no-op byte parity (#368), and one bounded provenance-bound retail fixed-layout edit plus synthetic PAC reintegration bridge (#369) — within their exact scopes only.
 
 ## Bounded reverse gaps — activate only when the claim requires them
 
