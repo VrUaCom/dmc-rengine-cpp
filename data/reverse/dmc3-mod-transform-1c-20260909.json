@@ -1,0 +1,63 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "transform+0x1C",
+  "serialized_offset": "transform +0x1C",
+  "width": "f32",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "mod_transforms": 285,
+    "mod_zero_values": 285,
+    "efm_transforms": 5,
+    "efm_zero_values": 5,
+    "scm": "not promoted by this receipt; sibling-family offset similarity is not semantic evidence",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402FA080",
+    "0x140330450",
+    "0x14033045A",
+    "0x14033046A",
+    "0x14033047A",
+    "0x14030F850"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1402FA080",
+      "meaning": "MOD/EFM initializer copies serialized +0x10..+0x1F as one 16-byte rotation scratch block",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033045A",
+      "meaning": "rotation helper reads scratch +0x00 / serialized +0x10",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033046A",
+      "meaning": "rotation helper reads scratch +0x04 / serialized +0x14",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033047A",
+      "meaning": "rotation helper reads scratch +0x08 / serialized +0x18",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [],
+  "runtime_destination": "no runtime-node/local-matrix destination established for serialized +0x1C in the audited MOD/EFM transform path",
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "transform +0x1C is generic padding because the bounded corpus is zero",
+    "transform +0x1C has SCM semantics solely because a homologous offset exists",
+    "transform +0x1C may be zero-normalized by a future writer"
+  ],
+  "writer_policy": "preserve",
+  "closure_boundary": "Direct EXE evidence proves +0x1C does not participate in canonical MOD/EFM local rotation-matrix construction: the helper reads XYZ only and not scratch +0x0C. Global semantics remain unresolved until a complete consumer census is available."
+}
