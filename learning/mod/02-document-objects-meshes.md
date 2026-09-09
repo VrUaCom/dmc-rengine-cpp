@@ -213,4 +213,4 @@ preserve exact
 never synthesize zero from corpus frequency alone
 ```
 
-Повний byte-coverage sweep 35 `em000` MOD залишив 5,106 uncovered bytes після маркування всіх відомих sections; усі 5,106 були zero alignment/padding у тому corpus. Це сильний corpus result, не глобальна гарантія інших actor families або revisions.
+Повний byte-coverage sweep 35 `em000` MOD залишив 5,106 uncovered bytes після маркування всіх відомих sections; усі 5,106 були нульовими в цьому bounded corpus. Це сильний corpus result про observed bytes, але **не** доказ padding/alignment semantics, не вимога `zero`, і не глобальна гарантія інших actor families або revisions.
