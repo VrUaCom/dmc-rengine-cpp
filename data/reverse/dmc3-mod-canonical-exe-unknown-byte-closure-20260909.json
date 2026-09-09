@@ -1,13 +1,24 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v1",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v2",
   "date": "2026-09-09",
   "branch": "reverse/mod-completion-20260907",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
     "architecture": "PE32+ x86-64",
     "direct_disassembly_available": true
   },
+  "evidence_policy": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED",
+    "STRUCTURAL_CONFIRMED",
+    "SEMANTIC_CANDIDATE",
+    "PRESERVED_UNDECODED",
+    "RESERVED_OBSERVED_ZERO",
+    "REJECTED"
+  ],
   "corpus": {
     "unique_mods": 38,
     "objects": 166,
@@ -17,179 +28,68 @@
     "known_efm_meshes": 2,
     "known_efm_transforms": 5
   },
-  "functions": {
-    "mod_post_load": "0x1402FE3B0",
-    "mod_runtime_mesh_builder": "0x1402FE6A0",
-    "efm_post_load": "0x1402F7A90",
-    "efm_runtime_mesh_builder": "0x1402F7D60",
-    "common_material_helper": "0x1402F9890",
-    "mod_efm_transform_initializer": "0x1402FA080",
-    "rotation_xyz_helper": "0x140330450",
-    "translation_helper": "0x140031200",
-    "mod_manager_initializer": "0x1402F9570",
-    "cpu_blend_lane1_consumer": "0x1402F3D0A"
-  },
   "fields": {
     "transform_1c": {
-      "serialized": "f32@transform+0x1C",
-      "corpus": {
-        "mod_zero": "285/285",
-        "efm_zero": "5/5"
-      },
-      "exe_evidence": {
-        "initializer": "0x1402FA080 copies serialized +0x10..+0x1F as a 16-byte scratch block",
-        "consumer": "0x140330450 reads scratch +0x00/+0x04/+0x08 only",
-        "scratch_0c_read": false,
-        "local_matrix_effect": false
-      },
-      "status": [
-        "EXE_CONFIRMED_UNCONSUMED_IN_LOCAL_MATRIX_BUILD",
-        "MULTI_CORPUS_OBSERVED_ZERO",
-        "PRESERVED_UNDECODED"
-      ],
-      "writer": "preserve source value; do not force zero globally"
-    },
-    "mesh_38": {
-      "serialized": "qword@mesh+0x38",
-      "runtime_auxiliary_stream_slot": "runtime mesh +0x160",
-      "corpus": {
-        "mod_zero": "180/180",
-        "efm_bound_values": ["0x06F0", "0x2350"]
-      },
-      "mod_exe_evidence": {
-        "post_load_relocates_38": false,
-        "builder_copies_38": false,
-        "builder_explicitly_zeros_runtime_160": true,
-        "zero_sites": ["0x1402FE8C4", "0x1402FE8DD"]
-      },
-      "efm_exe_evidence": {
-        "post_load_relocates_38": true,
-        "relocation_read": "0x1402F7BBD",
-        "relocation_write": "0x1402F7BCC",
-        "builder_forwards_to_runtime_160": true,
-        "builder_read": "0x1402F7F88",
-        "builder_write": "0x1402F7F8C"
-      },
-      "semantic": {
-        "shared_role": "format-specific auxiliary vertex-stream slot",
-        "efm_role": "per-vertex COLOR0 stream",
-        "mod_role": "runtime-disabled in canonical audited path"
-      },
-      "status": [
-        "EXE_AND_CORPUS_CONFIRMED_FORMAT_SPECIFIC_STREAM_SLOT",
-        "EFM_COLOR0_EXE_AND_CORPUS_CONFIRMED",
-        "MOD_EXE_CONFIRMED_INACTIVE",
-        "MOD_MULTI_CORPUS_OBSERVED_ZERO"
-      ],
-      "rejected": ["generic padding", "blindly reuse EFM COLOR0 semantics in MOD"],
-      "writer": "preserve source value"
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "0x140330450 consumes rotation XYZ only; 0x14030F850 transfers +0x00/+04/+08/+10/+14/+18 then advances source by 0x20, skipping +0x1C; MOD 285/285 and EFM 5/5 are zero",
+      "receipt": "data/reverse/dmc3-mod-transform-1c-20260909.json",
+      "writer_policy": "preserve"
     },
     "mesh_0c": {
-      "serialized": "u32@mesh+0x0C",
-      "position": "between GS CLAMP MAXV at +0x0A and first qword stream pointer at +0x10",
-      "corpus": {
-        "mod_zero": "180/180",
-        "efm_zero": "2/2"
-      },
-      "audited_consumers": {
-        "mod_post_load_0x1402FE3B0": false,
-        "efm_post_load_0x1402F7A90": false,
-        "common_material_helper_0x1402F9890": false
-      },
-      "status": [
-        "ALIGNMENT_OR_RESERVED_CANDIDATE",
-        "MULTI_CORPUS_OBSERVED_ZERO",
-        "PRESERVED_UNDECODED"
-      ],
-      "writer": "preserve source value; no global padding declaration"
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "raw u32; MOD 180/180 and bound EFM 2/2 zero; no positive semantic consumer in audited load/build/material paths",
+      "receipt": "data/reverse/dmc3-mod-mesh-0c-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "mesh_38": {
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "EXE_AND_CORPUS_CONFIRMED"],
+      "summary": "family-specific auxiliary stream slot: EFM uses homologous +0x38 as COLOR0 while canonical MOD disables corresponding runtime auxiliary stream; MOD 180/180 zero",
+      "receipt": "data/reverse/dmc3-mod-mesh-38-20260909.json",
+      "writer_policy": "preserve"
     },
     "mesh_4c": {
-      "serialized": "u32@mesh+0x4C",
-      "position": "after generated count +0x48, before 0x50 record boundary",
-      "corpus": {
-        "mod_zero": "180/180",
-        "efm_zero": "2/2"
-      },
-      "audited_consumers": {
-        "mod_post_load_0x1402FE3B0": false,
-        "mod_runtime_builder_0x1402FE6A0": false,
-        "efm_post_load_0x1402F7A90": false,
-        "efm_runtime_builder_0x1402F7D60": false
-      },
-      "status": [
-        "ALIGNMENT_OR_RESERVED_CANDIDATE",
-        "MULTI_CORPUS_OBSERVED_ZERO",
-        "PRESERVED_UNDECODED"
-      ],
-      "writer": "preserve source value; no global reserved declaration yet"
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "raw trailing u32; +0x48 is generated topology-count positive control; no +0x4C companion transfer in audited path; MOD 180/180 and bound EFM 2/2 zero",
+      "receipt": "data/reverse/dmc3-mod-mesh-4c-20260909.json",
+      "writer_policy": "preserve"
     },
     "blendindices_x": {
-      "serialized": "u8 lane[0] of 4-byte BLENDINDICES vertex stream",
-      "corpus": {
-        "mod_zero": "20976/20976"
-      },
-      "embedded_shader_families": [
-        "DMC3_MOD.hlsl",
-        "DMC3_MOD_SP.hlsl",
-        "DMC3_MOD_STX.hlsl",
-        "DMC3_EFM.hlsl",
-        "DMC3_EFM_SP.hlsl",
-        "DMC3_EFM_STX.hlsl",
-        "DMC3_EFM_VA.hlsl",
-        "DMC3_EFM_VA_SP.hlsl"
-      ],
-      "whole_exe_source_string_census": {
-        "matIndex.x": 0,
-        "matIndxX": 0,
-        "matIndex.y": 128,
-        "matIndex.z": 16,
-        "matIndex.w": 16
-      },
-      "cpu_positive_control": {
-        "address": "0x1402F3D0A",
-        "operation": "reads lane[1] at +1 from 4-byte stream then >> 2",
-        "semantic": "active node/bone matrix-row selector"
-      },
-      "status": [
-        "EXE_CONFIRMED_RENDER_SKIN_UNUSED",
-        "MULTI_CORPUS_OBSERVED_ZERO",
-        "GLOBAL_CPU_ROLE_OPEN",
-        "PRESERVED_UNDECODED"
-      ],
-      "writer": "preserve lane[0]; do not normalize globally"
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "audited MOD/EFM render-skin shaders do not consume X; lane Y positive control at 0x1402F3D0A; two whole-EXE lane-0 false positives rejected by provenance; MOD 20976/20976 zero",
+      "receipt": "data/reverse/dmc3-mod-blendindices-x-20260909.json",
+      "writer_policy": "preserve"
     },
     "header_14": {
-      "serialized": "u32@header+0x14",
-      "manager_destination": "u32@manager+0xE4",
-      "transfer": {
-        "read": "0x1402F95C2",
-        "write": "0x1402F95C5"
-      },
-      "core_model_direct_scan": {
-        "begin": "0x1402F9000",
-        "end": "0x14030D000",
-        "direct_manager_e4_writes": 1,
-        "direct_manager_e4_reads": 0
-      },
-      "corpus_counterexamples_to_universal_decimal_semantics": {
-        "pl000_main": 217,
-        "pl000_cloth_associated": 217,
-        "id100": 1000000
-      },
-      "status": [
-        "EXE_CONFIRMED_RUNTIME_CARRIED",
-        "CORE_MODEL_DIRECT_READ_NOT_FOUND",
-        "PRESERVED_UNDECODED"
-      ],
-      "rejected": ["universal MOD LegacyResourceCode decomposition from em000 clustering alone"],
-      "next_gate": "type-aware whole-EXE tracing from manager instances to external +0xE4 consumers"
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; no type-aware downstream manager consumer proven",
+      "receipt": "data/reverse/dmc3-mod-header-14-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "source_flag_00100000": {
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "0x140302640 changes runtime object +0x80 packet +0x08 between 0x5000D and 0x5010D and changes packet +0x00 high-state branch; terminal renderer/material meaning remains open",
+      "receipt": "data/reverse/dmc3-mod-source-flag-00100000-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "source_flag_00200000": {
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 at 0x140302AB2/ABF/AC9; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains and rejected as direct consumers",
+      "receipt": "data/reverse/dmc3-mod-source-flag-00200000-20260909.json",
+      "writer_policy": "preserve"
     }
   },
-  "next_work": [
-    "type-aware manager+0xE4 whole-EXE consumer trace",
-    "whole-EXE CPU dataflow census for BLENDINDICES lane 0",
-    "global raw-MOD access census for mesh +0x0C/+0x4C outside known load paths",
-    "broader model-family/version corpus to test candidate reserved fields",
-    "writer promotion only after these evidence gates"
+  "known_mislabeled_artifact": {
+    "path": "data/reverse/dmc3-mod-source-flag-00200000-chain-20260909.json",
+    "status": "REJECTED",
+    "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
+  },
+  "writer_authority": "PRESERVED_UNDECODED fields must be source-preserved; this closure receipt does not authorize zero-normalization",
+  "remaining_gates": [
+    "terminal renderer/material consumer for source flag 0x00100000 packet changes",
+    "downstream consumer of source-carried runtime +0x10/+0x14 bit 0x00200000",
+    "runtime-stream escape closure for BLENDINDICES.x",
+    "type-aware manager +0xE4 downstream consumer census",
+    "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
+    "secondary header/object/node zero-region raw-read and runtime-transfer census"
   ]
 }
