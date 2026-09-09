@@ -53,9 +53,14 @@
       "stage-txt",
       "scm",
       "mod",
+      "mot",
+      "so-graph",
+      "so-volume",
+      "so-link",
       "shw",
       "pe"
     ],
+    "registry_source_verified_at_main": "d8534badbbe52cae1610d624822874431f581fa9",
     "active_pr_additions": [],
     "shw_slice": {
       "parser_id": "formats.shw-structural-v1",
@@ -90,28 +95,7 @@
     "mod_model_family": {
       "write_policy": "preserve-layout-gate-1-fixed-size-only",
       "implementation_status": "reader-plus-bounded-writer-plus-retail-pnst-reintegration-canonical",
-      "promoted_prs": [
-        305,
-        307,
-        310,
-        312,
-        313,
-        314,
-        315,
-        316,
-        317,
-        318,
-        323,
-        356,
-        359,
-        360,
-        363,
-        365,
-        367,
-        368,
-        369,
-        372
-      ],
+      "promoted_prs": [305,307,310,312,313,314,315,316,317,318,323,356,359,360,363,365,367,368,369,372],
       "promoted_capabilities": [
         "hierarchy-local-transform-world-propagation",
         "typed-mesh-texture-slot-and-legacy-gs-clamp-state",
@@ -138,13 +122,7 @@
       "writer_gate_1": {
         "status": "canonical",
         "serialization_policy": "original-source-layout-authoritative",
-        "allowed_fixed_size_edits": [
-          "object-bounding-center",
-          "object-bounding-radius",
-          "existing-mesh-positions",
-          "existing-mesh-normals",
-          "existing-mesh-uvs"
-        ],
+        "allowed_fixed_size_edits": ["object-bounding-center","object-bounding-radius","existing-mesh-positions","existing-mesh-normals","existing-mesh-uvs"],
         "retail_noop_corpus": {
           "file_count": 38,
           "source_bytes": 882736,
@@ -160,7 +138,7 @@
           "field": "object[0].bounding_radius",
           "serialized_span_start": 124,
           "serialized_span_end": 128,
-          "changed_byte_offsets": [124, 125, 126],
+          "changed_byte_offsets": [124,125,126],
           "modified_byte_count": 3,
           "unauthorized_byte_preservation": true,
           "disk_reread_hash_reopen": true,
@@ -203,21 +181,8 @@
     "scm_model_family": {
       "implementation_status": "canonical-bounded-writer-and-rebuild-stack",
       "promoted_pr": 372,
-      "writer_modes": [
-        "preserve_layout",
-        "canonical_rebuild"
-      ],
-      "typed_edit_domains": [
-        "position",
-        "normal",
-        "uv",
-        "texture-slot",
-        "alpha-control",
-        "nearest-filter-bit",
-        "gs-clamp-region-repeat",
-        "node-translation",
-        "node-rotation"
-      ],
+      "writer_modes": ["preserve_layout","canonical_rebuild"],
+      "typed_edit_domains": ["position","normal","uv","texture-slot","alpha-control","nearest-filter-bit","gs-clamp-region-repeat","node-translation","node-rotation"],
       "safety_contracts": [
         "mandatory-canonical-output-reparse",
         "source-bound-mutation-authority-guards",
@@ -242,9 +207,11 @@
       ]
     },
     "mot_model_family": {
-      "implementation_status": "canonical-parser-ir-plus-bounded-key-evaluation",
-      "native_reader_module": false,
-      "promoted_pr": 372,
+      "implementation_status": "canonical-native-reader-module-plus-parser-ir-plus-bounded-key-evaluation",
+      "native_reader_module": true,
+      "registry_function": "native_reader_modules::mot",
+      "parser_id": "formats.mot-structural-v1",
+      "parser_ir_promoted_pr": 372,
       "real_payload_count": 3,
       "promoted_capabilities": [
         "mot-marker-and-aligned-header-channel-mask-contract",
@@ -263,32 +230,18 @@
         "other-compression-modes",
         "looping-blending-motion-selection-full-transform-composition",
         "bit-identical-sse-parity-where-required",
-        "original-game-output-comparison",
-        "native-reader-module-promotion"
+        "original-game-output-comparison"
       ]
     },
-    "proven_structural_reader_highlights": [
-      "scm",
-      "mod",
-      "shw",
-      "dds",
-      "ptx",
-      "mot-parser-ir"
-    ],
-    "next_reader_frontier": [
-      "efm",
-      "mot-native-reader-module"
-    ],
-    "writer_authority_partial": [
-      "mod-preserve-layout-gate-1-fixed-size-only",
-      "scm-preserve-layout-and-canonical-rebuild-bounded"
-    ],
-    "writer_authority_open": [
-      "mod-full-authoring",
-      "scm-production-original-game-authoring",
-      "shw",
-      "dds-ptx-production-authoring"
-    ]
+    "so_modules": {
+      "registry_membership": "canonical",
+      "modules": ["so-graph","so-volume","so-link"],
+      "scope_note": "registry-membership-is-product-integration-fact-not-universal-format-semantic-or-writer-authority"
+    },
+    "proven_structural_reader_highlights": ["scm","mod","mot","shw","dds","ptx","so-graph","so-volume","so-link"],
+    "next_reader_frontier": ["efm","mrp","mcv","cam","clt","tsc"],
+    "writer_authority_partial": ["mod-preserve-layout-gate-1-fixed-size-only","scm-preserve-layout-and-canonical-rebuild-bounded"],
+    "writer_authority_open": ["mod-full-authoring","scm-production-original-game-authoring","shw","dds-ptx-production-authoring"]
   },
   "gdspaces": {
     "primary_execution_program": "same-lineage-l2-to-l1-to-l3-proof",
@@ -297,12 +250,7 @@
     "L1": {
       "complete": false,
       "status": "advanced-product-capability-retail-pnst-reintegration-proven-original-selection-and-level-e-open",
-      "product_policies": [
-        "atomic-no-replace-publication",
-        "artifact-bound-sha-observation",
-        "byte-provenance",
-        "fail-closed-unsupported-writer-policy"
-      ],
+      "product_policies": ["atomic-no-replace-publication","artifact-bound-sha-observation","byte-provenance","fail-closed-unsupported-writer-policy"],
       "reverse_backed_bounded_facts": [
         "dmc3-numbered-volume-first-gap-bootstrap",
         "pac-pnst-post-load-traversal",
@@ -331,11 +279,7 @@
         "rollback-retail-immutability",
         "final-l1-audit"
       ],
-      "bounded_reverse_gaps": [
-        "zip-stream-initializer-0x140328540-complete-body-lifetime",
-        "compressed-seek-reset-0x140328FE0-complete-behavior",
-        "malformed-partial-read-original-error-equivalence"
-      ]
+      "bounded_reverse_gaps": ["zip-stream-initializer-0x140328540-complete-body-lifetime","compressed-seek-reset-0x140328FE0-complete-behavior","malformed-partial-read-original-error-equivalence"]
     },
     "L2": {
       "complete": false,
@@ -353,81 +297,32 @@
         "type0-physical-final-open-miss-bounded-contract",
         "discovery-is-not-successful-linked-mount-topology"
       ],
-      "retail_collision_receipts": [
-        {
-          "archive": "dmc3-0.nbz",
-          "archive_sha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
-          "surface_sha256": "0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af",
-          "file_key_count": 4333,
-          "unique_file_key_count": 4333,
-          "collision_count": 0,
-          "scope": "this-exact-archive-only"
-        }
-      ],
+      "retail_collision_receipts": [{
+        "archive": "dmc3-0.nbz",
+        "archive_sha256": "2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df",
+        "surface_sha256": "0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af",
+        "file_key_count": 4333,
+        "unique_file_key_count": 4333,
+        "collision_count": 0,
+        "scope": "this-exact-archive-only"
+      }],
       "product_topology_correction": {
         "reverse_claim": "filename-discovery-or-registration-attempt-is-not-successful-linked-mount-topology",
         "reverse_status": "proven",
         "implementation_status": "promoted-by-pr-287",
         "canonical_main_status": "canonical"
       },
-      "mandatory_open_gates": [
-        "per-volume-collision-census-for-any-wider-scope",
-        "cross-volume-normalized-key-census",
-        "real-protected-process-r2b-multi-anchor-mapping",
-        "trusted-r3-selected-provider-member-identity",
-        "direct-retail-original-resolver-winner",
-        "final-l2-audit"
-      ]
+      "mandatory_open_gates": ["per-volume-collision-census-for-any-wider-scope","cross-volume-normalized-key-census","real-protected-process-r2b-multi-anchor-mapping","trusted-r3-selected-provider-member-identity","direct-retail-original-resolver-winner","final-l2-audit"]
     },
     "L3": {
       "complete": false,
       "status": "strong-bounded-static-spine-family-specific-model-evidence-advanced-global-lifecycle-proof-open",
-      "reverse_backed_closed": [
-        "loadedresource-state1-after-materialization-success",
-        "normal-completion-state1-to-state2-0x1401B8DC0",
-        "typed-post-load-optional-callback-state3",
-        "cancellation-source-domain-state1-or-state2-to-state4",
-        "quiescence-only-state0-or-state3",
-        "distinct-ordinary-release-cancellation-cleanup-forced-reset-ordering",
-        "central-mod-efm-scm-shw-and-pnst-dispatch-bounded-path"
-      ],
-      "mandatory_open_gates": [
-        "current-main-promotion-of-l3-r1-contradiction-gated-closure",
-        "l3-r2-family-backing-ownership",
-        "materialization-scheduler-terminal-condition",
-        "v1-initial-load",
-        "v2-transition",
-        "v3-reload",
-        "v4-reset-menu",
-        "v5-inflight-cancellation",
-        "v6-shutdown",
-        "v7-family-build-breadth",
-        "original-dmc3-exe-authored-model-resource-selection-and-consumption",
-        "final-l3-audit"
-      ],
-      "next_raw_reverse_targets_requiring_independent_bounded_pass": [
-        "0x1402EF4D0",
-        "0x1402EF790",
-        "0x1400333E0",
-        "0x140033390",
-        "0x1400335A0",
-        "0x1402EF460",
-        "0x1401B8DC0"
-      ]
+      "reverse_backed_closed": ["loadedresource-state1-after-materialization-success","normal-completion-state1-to-state2-0x1401B8DC0","typed-post-load-optional-callback-state3","cancellation-source-domain-state1-or-state2-to-state4","quiescence-only-state0-or-state3","distinct-ordinary-release-cancellation-cleanup-forced-reset-ordering","central-mod-efm-scm-shw-and-pnst-dispatch-bounded-path"],
+      "mandatory_open_gates": ["current-main-promotion-of-l3-r1-contradiction-gated-closure","l3-r2-family-backing-ownership","materialization-scheduler-terminal-condition","v1-initial-load","v2-transition","v3-reload","v4-reset-menu","v5-inflight-cancellation","v6-shutdown","v7-family-build-breadth","original-dmc3-exe-authored-model-resource-selection-and-consumption","final-l3-audit"],
+      "next_raw_reverse_targets_requiring_independent_bounded_pass": ["0x1402EF4D0","0x1402EF790","0x1400333E0","0x140033390","0x1400335A0","0x1402EF460","0x1401B8DC0"]
     }
   },
-  "current_vertical_proof_target": [
-    "OpenGameResource-request",
-    "successful-mount-topology",
-    "selected-provider-volume-member",
-    "exact-materialized-bytes",
-    "pac-pnst-expansion-if-applicable",
-    "typed-post-load",
-    "loadedresource-state3",
-    "deterministic-consumer-visible-effect",
-    "repeat-with-authored-higher-numbered-nbz",
-    "rollback"
-  ],
+  "current_vertical_proof_target": ["OpenGameResource-request","successful-mount-topology","selected-provider-volume-member","exact-materialized-bytes","pac-pnst-expansion-if-applicable","typed-post-load","loadedresource-state3","deterministic-consumer-visible-effect","repeat-with-authored-higher-numbered-nbz","rollback"],
   "current_external_evidence_boundaries": [
     "canonical-e454-executable-bytes-available-to-recent-promoted-model-family-static-reverse",
     "38-file-provenance-bound-retail-mod-noop-parity-is-canonical",
@@ -435,7 +330,8 @@
     "provenance-bound-retail-pnst-reintegration-for-authored-mod-child-is-canonical",
     "synthetic-mod-container-nbz-reopen-does-not-equal-retail-nbz-or-original-game-acceptance",
     "scm-68-unique-78-path-noedit-writer-corpus-is-canonical",
-    "mot-parser-ir-and-bounded-key-evaluation-are-canonical",
+    "mot-native-reader-module-parser-ir-and-bounded-key-evaluation-are-canonical",
+    "native-reader-registry-includes-so-graph-so-volume-so-link",
     "unrelated-gdspaces-and-l3-raw-targets-still-require-independent-address-range-scope-bounded-passes",
     "real-protected-process-required-for-r2b-r3",
     "protected-install-original-consumption-required-for-level-e"
@@ -452,13 +348,7 @@
     "production_http_acceptance": "success",
     "repository_topics_applied": false,
     "social_preview_applied": true,
-    "indexnow": {
-      "enabled": true,
-      "trigger": "after-successful-pages-deploy-workflow",
-      "controlled_url_count": 104,
-      "latest_protocol_receipt": "http-200-accepted",
-      "indexing_or_ranking_proven": false
-    },
+    "indexnow": {"enabled":true,"trigger":"after-successful-pages-deploy-workflow","controlled_url_count":104,"latest_protocol_receipt":"http-200-accepted","indexing_or_ranking_proven":false},
     "google_search_console_required": false,
     "specialist_external_reference_applied": false,
     "first_independently_observed_indexed_pages_url": false,
