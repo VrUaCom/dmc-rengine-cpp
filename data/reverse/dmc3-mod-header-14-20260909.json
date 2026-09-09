@@ -1,0 +1,64 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "header+0x14",
+  "serialized_offset": "header +0x14",
+  "width": "u32",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "observed_examples": {
+      "pl000": 217,
+      "pl000_cloth": 217,
+      "id100": 1000000
+    },
+    "old_decimal_family_model_subindex_rule": "REJECTED",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402F9570",
+    "0x1402F95C2",
+    "0x1402F95C5",
+    "0x1403039E8",
+    "0x140303B0D",
+    "0x140303C38",
+    "0x140303D1D"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1402F95C2",
+      "meaning": "read serialized header +0x14 from the source document",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [
+    {
+      "address": "0x1402F95C5",
+      "meaning": "copy serialized +0x14 verbatim to manager +0xE4",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": "manager +0xE4",
+  "xref_census": {
+    "core_model_range": "0x1402F9000..0x14030D000",
+    "provenance_confirmed_manager_e4_writes": 1,
+    "provenance_confirmed_manager_e4_reads": 0,
+    "whole_exe_raw_plus_e4_displacement_candidates": 83,
+    "warning": "raw +0xE4 displacement equality is not a type-aware manager xref; candidates include unrelated float, word, byte and dword object layouts"
+  },
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED",
+    "REJECTED"
+  ],
+  "rejected_hypotheses": [
+    "universal LegacyResourceCode = family*100000 + model_set*100 + sub_index",
+    "every executable access at object displacement +0xE4 consumes this manager field",
+    "header +0x14 may be renamed resource identity before a type-aware downstream consumer is proven"
+  ],
+  "writer_policy": "preserve",
+  "closure_boundary": "The serialized-to-runtime transfer is EXE_CONFIRMED. No downstream high-level semantic is promoted because no type-aware manager+0xE4 consumer has yet been proven outside the audited core path."
+}
