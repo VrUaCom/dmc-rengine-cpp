@@ -33,6 +33,8 @@ PR #305 already established this rule for the first large consolidation: salvage
 
 ## Full MOD-related branch audit
 
+The branch-name audit found 33 refs whose names directly matched the MOD workstream. A second PR/history audit found three additional mixed branches whose names do not contain `mod` but which contain historical MOD implementation/evidence. Both sets are classified below.
+
 ### A. Canonical active branch
 
 | Branch | Status | Action |
@@ -82,6 +84,18 @@ These refs reported `ahead=0` against the audited current main, or are exact int
 | `site/mod-native-lessons` | site/build presentation delta only | `RELATED_PRESENTATION_ONLY` |
 | `site/mod-lesson-live-acceptance` | Pages/site CI presentation delta only | `RELATED_PRESENTATION_ONLY` |
 | `refactor/native-reader-modular-main` | current branch delta is Native Reader/DDS/PTX infrastructure, not MOD ABI/reverse | `RELATED_INFRASTRUCTURE_ONLY` |
+
+### D. Mixed historical branches found through PR/history audit
+
+These branches did not match the MOD branch-name search but contain older MOD code or runtime evidence mixed with other work. Their MOD portion is not an independent salvage source.
+
+| Branch / PR | Historical MOD content | Current action |
+|---|---|---|
+| `claude/rengine-cpp-analysis-review-541wxb` / PR #280 | early structural EFM/MOD/MOT/PTX/SHW parser package | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; non-MOD slices require their own reconciliation |
+| `claude/android-gds-app-msiuu8` / PR #254 | broad animation/naming/content-tag reverse with MOD references | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; prefer current MOD receipts where claims overlap |
+| `agent/wave3-runtime-execution-v2` / PR #89 | early recovered MOD/EFM post-load implementation and runtime lifecycle context | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; later canonical MOD runtime-postload work supersedes the MOD slice |
+
+Do not close or rewrite these mixed PRs merely for MOD consolidation because they also contain unrelated EFM/MOT/PTX/SHW/animation/runtime work. The rule is narrower: **their MOD material cannot override or restart the canonical MOD workstream.**
 
 ## Canonical MOD knowledge already consolidated
 
@@ -202,6 +216,7 @@ DO NOT START FROM:
   model-family*
   old integrate/mod-* branches
   site/mod-* branches
+  mixed historical PR branches for MOD claims
 ```
 
 Before opening any new MOD branch, first prove why the existing canonical branch cannot safely contain the work. The default is **no new branch**.
