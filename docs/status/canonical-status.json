@@ -1,13 +1,14 @@
 {
-  "schema_version": 5,
+  "schema_version": 6,
   "snapshot_date": "2026-09-09",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "cf7bd4d2a57c40e8127aed353ebefe2b4763398a",
+  "snapshot_main_sha": "d8534badbbe52cae1610d624822874431f581fa9",
   "working_proof_branch": "none",
   "working_proof_pr": 0,
-  "latest_promoted_pr": 373,
-  "latest_reverse_model_family_pr": 369,
+  "latest_promoted_pr": 372,
+  "latest_public_status_pr": 375,
+  "latest_reverse_model_family_pr": 372,
   "latest_native_reader_module_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
@@ -88,7 +89,7 @@
     },
     "mod_model_family": {
       "write_policy": "preserve-layout-gate-1-fixed-size-only",
-      "implementation_status": "reader-plus-bounded-writer-canonical",
+      "implementation_status": "reader-plus-bounded-writer-plus-retail-pnst-reintegration-canonical",
       "promoted_prs": [
         305,
         307,
@@ -108,7 +109,8 @@
         365,
         367,
         368,
-        369
+        369,
+        372
       ],
       "promoted_capabilities": [
         "hierarchy-local-transform-world-propagation",
@@ -129,7 +131,9 @@
         "38-file-provenance-bound-retail-noop-byte-parity",
         "one-provenance-bound-retail-bounding-radius-edit",
         "mod-writer-receipt-to-authored-child-trust-bridge",
-        "synthetic-pac-reintegration-and-reopen"
+        "synthetic-pac-reintegration-and-reopen",
+        "provenance-bound-retail-pnst-reintegration-and-reopen",
+        "synthetic-mod-container-nbz-overlay-reopen"
       ],
       "writer_gate_1": {
         "status": "canonical",
@@ -165,8 +169,17 @@
         "container_bridge": {
           "mod_write_receipt_trust_bridge": true,
           "synthetic_pac_reintegration": true,
-          "provenance_bound_retail_pac_pnst_reintegration": false,
-          "nbz_acceptance": false,
+          "provenance_bound_retail_pnst_reintegration": true,
+          "retail_parent": "m20_s00_012.pac",
+          "retail_parent_representation": "PNST",
+          "retail_target_physical_slot": 23,
+          "retail_target_offset": 129280,
+          "retail_target_size": 1888,
+          "retail_parent_size": 346272,
+          "retail_parent_only_expected_child_bytes_changed": true,
+          "retail_parent_reopen_exact_authored_mod": true,
+          "synthetic_mod_to_nbz_overlay_reopen": true,
+          "provenance_bound_retail_nbz_acceptance": false,
           "original_game_acceptance": false
         }
       },
@@ -181,11 +194,77 @@
         "complete-tim2-semantics",
         "production-texture-replacement-authority",
         "complete-current-animation-pose-ownership",
-        "provenance-bound-retail-pac-pnst-reintegration",
-        "nbz-acceptance-for-mod-writer-output",
+        "provenance-bound-retail-nbz-overlay-acceptance",
         "original-game-noop-rebuilt-mod-acceptance",
         "original-game-edited-mod-acceptance",
         "capcom-offline-tool-equivalence"
+      ]
+    },
+    "scm_model_family": {
+      "implementation_status": "canonical-bounded-writer-and-rebuild-stack",
+      "promoted_pr": 372,
+      "writer_modes": [
+        "preserve_layout",
+        "canonical_rebuild"
+      ],
+      "typed_edit_domains": [
+        "position",
+        "normal",
+        "uv",
+        "texture-slot",
+        "alpha-control",
+        "nearest-filter-bit",
+        "gs-clamp-region-repeat",
+        "node-translation",
+        "node-rotation"
+      ],
+      "safety_contracts": [
+        "mandatory-canonical-output-reparse",
+        "source-bound-mutation-authority-guards",
+        "canonical-reflow-rejects-nonzero-unmodeled-source-bytes",
+        "bounded-texture-companion-coherence-via-scm-resource-bundle-writer"
+      ],
+      "retail_noop_corpus": {
+        "paths": 78,
+        "unique_sha256_inputs": 68,
+        "parse_pass": 78,
+        "preserve_layout_exact_parity": 78,
+        "canonical_rebuild_reparse": 78,
+        "canonical_noedit_exact_parity": 78
+      },
+      "open_boundaries": [
+        "provenance-bound-representative-semantic-edits",
+        "provenance-bound-retail-texture-rewrite",
+        "real-retail-size-changing-canonical-rebuild",
+        "scm-pac-pnst-nbz-reintegration",
+        "original-game-scm-acceptance",
+        "production-100-percent-scm-authoring"
+      ]
+    },
+    "mot_model_family": {
+      "implementation_status": "canonical-parser-ir-plus-bounded-key-evaluation",
+      "native_reader_module": false,
+      "promoted_pr": 372,
+      "real_payload_count": 3,
+      "promoted_capabilities": [
+        "mot-marker-and-aligned-header-channel-mask-contract",
+        "nine-bit-channel-mask",
+        "record-count-popcount-relationship",
+        "typed-compression-2-and-3-key-payloads",
+        "signed-track-start-time-offset",
+        "quantization-decode",
+        "compression-3-linear-hermite-segment-algebra",
+        "incoming-outgoing-slope-orientation",
+        "nine-channel-binding-bit-traversal"
+      ],
+      "open_boundaries": [
+        "exact-segment-lookup-cache-and-duplicate-time-behavior",
+        "flag-0x2-alternate-binding-path",
+        "other-compression-modes",
+        "looping-blending-motion-selection-full-transform-composition",
+        "bit-identical-sse-parity-where-required",
+        "original-game-output-comparison",
+        "native-reader-module-promotion"
       ]
     },
     "proven_structural_reader_highlights": [
@@ -193,18 +272,20 @@
       "mod",
       "shw",
       "dds",
-      "ptx"
+      "ptx",
+      "mot-parser-ir"
     ],
     "next_reader_frontier": [
       "efm",
-      "mot"
+      "mot-native-reader-module"
     ],
     "writer_authority_partial": [
-      "mod-preserve-layout-gate-1-fixed-size-only"
+      "mod-preserve-layout-gate-1-fixed-size-only",
+      "scm-preserve-layout-and-canonical-rebuild-bounded"
     ],
     "writer_authority_open": [
-      "scm",
       "mod-full-authoring",
+      "scm-production-original-game-authoring",
       "shw",
       "dds-ptx-production-authoring"
     ]
@@ -215,7 +296,7 @@
     "master_roadmap": "../gdspaces/master-roadmap.md",
     "L1": {
       "complete": false,
-      "status": "advanced-product-capability-real-retail-and-level-e-receipts-open",
+      "status": "advanced-product-capability-retail-pnst-reintegration-proven-original-selection-and-level-e-open",
       "product_policies": [
         "atomic-no-replace-publication",
         "artifact-bound-sha-observation",
@@ -228,7 +309,8 @@
         "pac-slot-zero-is-traversed",
         "materialization-dispatch-success-precedes-loadedresource-state1",
         "packed-vs-lst-runtime-representation-selection",
-        "external-index-is-not-recovered-runtime-materialization-authority"
+        "external-index-is-not-recovered-runtime-materialization-authority",
+        "provenance-bound-retail-pnst-reintegration-for-authored-mod-child"
       ],
       "implemented_proof_open": [
         "nbz-store-raw-deflate-normal-read-product-path",
@@ -237,12 +319,13 @@
         "next-volume-overlay-authoring",
         "direct-retail-acquisition-tooling",
         "mod-writer-to-authored-child-trust-bridge",
-        "synthetic-mod-in-pac-reintegration"
+        "synthetic-mod-in-pac-reintegration",
+        "synthetic-mod-container-nbz-overlay-reopen"
       ],
       "mandatory_open_gates": [
         "direct-retail-original-resolver-selected-provenance",
         "exact-selected-retail-representation-classification",
-        "provenance-bound-retail-container-reintegration-and-reopen",
+        "same-lineage-original-selected-authored-overlay-rematerialization",
         "original-runtime-authored-higher-volume-selection",
         "deterministic-original-consumer-visible-effect",
         "rollback-retail-immutability",
@@ -298,7 +381,7 @@
     },
     "L3": {
       "complete": false,
-      "status": "strong-bounded-static-spine-family-specific-mod-evidence-advanced-global-lifecycle-proof-open",
+      "status": "strong-bounded-static-spine-family-specific-model-evidence-advanced-global-lifecycle-proof-open",
       "reverse_backed_closed": [
         "loadedresource-state1-after-materialization-success",
         "normal-completion-state1-to-state2-0x1401B8DC0",
@@ -319,7 +402,7 @@
         "v5-inflight-cancellation",
         "v6-shutdown",
         "v7-family-build-breadth",
-        "original-dmc3-exe-authored-mod-selection-and-consumption",
+        "original-dmc3-exe-authored-model-resource-selection-and-consumption",
         "final-l3-audit"
       ],
       "next_raw_reverse_targets_requiring_independent_bounded_pass": [
@@ -346,16 +429,19 @@
     "rollback"
   ],
   "current_external_evidence_boundaries": [
-    "canonical-e454-executable-bytes-available-to-recent-promoted-mod-model-family-static-reverse",
+    "canonical-e454-executable-bytes-available-to-recent-promoted-model-family-static-reverse",
     "38-file-provenance-bound-retail-mod-noop-parity-is-canonical",
     "one-provenance-bound-retail-mod-fixed-layout-edit-is-canonical",
-    "synthetic-pac-reintegration-does-not-equal-retail-or-original-game-acceptance",
+    "provenance-bound-retail-pnst-reintegration-for-authored-mod-child-is-canonical",
+    "synthetic-mod-container-nbz-reopen-does-not-equal-retail-nbz-or-original-game-acceptance",
+    "scm-68-unique-78-path-noedit-writer-corpus-is-canonical",
+    "mot-parser-ir-and-bounded-key-evaluation-are-canonical",
     "unrelated-gdspaces-and-l3-raw-targets-still-require-independent-address-range-scope-bounded-passes",
     "real-protected-process-required-for-r2b-r3",
     "protected-install-original-consumption-required-for-level-e"
   ],
   "discovery": {
-    "latest_reviewed_promotion_pr": 373,
+    "latest_reviewed_promotion_pr": 375,
     "site_builder": "promoted-production-active",
     "public_pages": 104,
     "format_families": 63,
