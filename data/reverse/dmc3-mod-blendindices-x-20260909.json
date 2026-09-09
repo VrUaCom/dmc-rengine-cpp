@@ -5,7 +5,8 @@
   "width": "u8",
   "canonical_executable": {
     "name": "dmc3.exe",
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
   },
   "corpus": {
     "mod_unique_files": 38,
@@ -17,13 +18,15 @@
   "exe_addresses": [
     "0x1402FE3B0",
     "0x1402FE6A0",
-    "0x1402F3D0A"
+    "0x1402F3D0A",
+    "0x140316726",
+    "0x140325970"
   ],
   "read_xrefs": [
     {
       "address": "0x1402F3D0A",
       "lane": 1,
-      "meaning": "positive control: CPU reads BLENDINDICES.y and divides the matrix-row offset by four",
+      "meaning": "positive control: CPU reads BLENDINDICES.y from the provenance-confirmed MOD runtime stream and divides the matrix-row offset by four",
       "status": "EXE_CONFIRMED"
     }
   ],
@@ -47,6 +50,21 @@
     "matIndex.w_occurrences": 16,
     "status": "EXE_CONFIRMED"
   },
+  "whole_exe_candidate_census": {
+    "method": "disassemble canonical PE32+ and inspect byte loads with four-byte stride; reconstruct base-pointer provenance before classifying a candidate",
+    "rejected_candidates": [
+      {
+        "address": "0x140316726",
+        "reason": "base pointer belongs to an interpolated 4-byte color/control table; surrounding code reads components and performs 7-bit fixed-point interpolation",
+        "status": "REJECTED"
+      },
+      {
+        "address": "0x140325970",
+        "reason": "base pointer is the static global table at 0x1405D10F0, not a MOD runtime mesh/BLENDINDICES pointer",
+        "status": "REJECTED"
+      }
+    ]
+  },
   "semantic_status": "PRESERVED_UNDECODED",
   "evidence_status": [
     "EXE_CONFIRMED",
@@ -55,8 +73,9 @@
   ],
   "rejected_hypotheses": [
     "BLENDINDICES.x is reserved because an external importer ignores it",
-    "BLENDINDICES.x may be normalized to zero because the bounded corpus is zero"
+    "BLENDINDICES.x may be normalized to zero because the bounded corpus is zero",
+    "every four-byte-stride lane-0 read in the executable is a BLENDINDICES consumer"
   ],
   "writer_policy": "preserve",
-  "closure_boundary": "Canonical MOD/EFM render-skin shader use of lane X is negatively closed. A whole-EXE CPU lane-0 dataflow census is still required before any global reserved/unused promotion."
+  "closure_boundary": "Canonical MOD/EFM render-skin shader use of lane X is negatively closed and two whole-EXE lane-0 candidates were rejected by pointer provenance. Runtime stream escape/dataflow is not yet exhaustively closed, so global lane-X semantics remain PRESERVED_UNDECODED."
 }
