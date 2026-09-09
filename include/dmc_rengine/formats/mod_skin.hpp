@@ -64,7 +64,9 @@ inline constexpr std::uint8_t matrix_row_stride = 4U;
 // and binds them to matIndex.y/z/w four-row matrix starts in extraMatrices[].
 // The high 0x8000 source bit is independent topology state consumed/cleared by
 // canonical MOD post-load before the packed 15-bit weight payload is retained.
-// blend_indices[0] remains reserved/constant in the currently bound corpus.
+// blend_indices[0] is zero in the bounded corpus and unused by the audited
+// render-skin shaders, but its whole-EXE CPU role is not closed. It therefore
+// remains PRESERVED_UNDECODED and must not be normalized to zero by a writer.
 [[nodiscard]] SkinDecodeResult decode_vertex_skin(
     const std::array<std::uint8_t, 4>& blend_indices,
     std::uint16_t packed_weights_and_topology,
