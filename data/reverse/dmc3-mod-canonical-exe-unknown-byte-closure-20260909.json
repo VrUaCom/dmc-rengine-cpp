@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v2",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v3",
   "date": "2026-09-09",
   "branch": "reverse/mod-completion-20260907",
   "canonical_executable": {
@@ -54,26 +54,28 @@
       "writer_policy": "preserve"
     },
     "blendindices_x": {
-      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "audited MOD/EFM render-skin shaders do not consume X; lane Y positive control at 0x1402F3D0A; two whole-EXE lane-0 false positives rejected by provenance; MOD 20976/20976 zero",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "serialized mesh +0x28 -> runtime stream +0x140 is proven; provenance-confirmed direct CPU consumers contain one lane-Y read and no lane-X read; render-command builders forward the whole pointer; audited MOD/EFM shaders contain no matIndex.x use; MOD 20976/20976 zero",
       "receipt": "data/reverse/dmc3-mod-blendindices-x-20260909.json",
       "writer_policy": "preserve"
     },
     "header_14": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; no type-aware downstream manager consumer proven",
+      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; 83 whole-EXE raw +0xE4 candidates type-filtered with no provenance-confirmed downstream manager read",
       "receipt": "data/reverse/dmc3-mod-header-14-20260909.json",
       "writer_policy": "preserve"
     },
     "source_flag_00100000": {
-      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "0x140302640 changes runtime object +0x80 packet +0x08 between 0x5000D and 0x5010D and changes packet +0x00 high-state branch; terminal renderer/material meaning remains open",
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED"],
+      "summary": "technical renderer semantic closed: source bit20 is baseline-restored into effective flags, selects GS TEST_1 AREF 0 vs 16 and ZBUF_1.ZMSK 1 vs 0 in active low modes except mode 4, then propagates through per-mesh A+D GIF descriptors and command tag 0x30000005 into generic backend 0x140032CD0",
+      "technical_semantic": "legacy GS alpha-test-reference/depth-write-state selector",
+      "artistic_category": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-source-flag-00100000-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve source bit exactly"
     },
     "source_flag_00200000": {
       "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 at 0x140302AB2/ABF/AC9; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains and rejected as direct consumers",
+      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 at 0x140302AB2/ABF/AC9 and participates in baseline/effective restoration paths; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains and rejected as direct consumers",
       "receipt": "data/reverse/dmc3-mod-source-flag-00200000-20260909.json",
       "writer_policy": "preserve"
     }
@@ -85,10 +87,8 @@
   },
   "writer_authority": "PRESERVED_UNDECODED fields must be source-preserved; this closure receipt does not authorize zero-normalization",
   "remaining_gates": [
-    "terminal renderer/material consumer for source flag 0x00100000 packet changes",
-    "downstream consumer of source-carried runtime +0x10/+0x14 bit 0x00200000",
-    "runtime-stream escape closure for BLENDINDICES.x",
-    "type-aware manager +0xE4 downstream consumer census",
+    "downstream terminal consumer of source-carried runtime +0x10/+0x14 bit 0x00200000",
+    "final indirect command/shader escape closure for BLENDINDICES.x",
     "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
     "secondary header/object/node zero-region raw-read and runtime-transfer census"
   ]
