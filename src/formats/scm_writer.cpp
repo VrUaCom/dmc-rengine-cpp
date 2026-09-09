@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <optional>
 #include <type_traits>
 
 namespace dmc::rengine::formats::scm {
@@ -172,6 +173,78 @@ template <class T>
     const Reader source{
         std::span<const std::byte>{document.source_bytes}};
     return !source_vec3_equals(source, offset, transform.translation);
+}
+
+[[nodiscard]] bool mark_source_span(
+    std::vector<std::uint8_t>& handled,
+    std::uint64_t offset,
+    std::uint64_t size) noexcept {
+    if (offset > handled.size() ||
+        size > handled.size() - static_cast<std::size_t>(offset)) {
+        return false;
+    }
+    std::fill(
+        handled.begin() + static_cast<std::ptrdiff_t>(offset),
+        handled.begin() + static_cast<std::ptrdiff_t>(offset + size),
+        std::uint8_t{1});
+    return true;
+}
+
+[[nodiscard]] std::optional<std::uint64_t>
+first_nonzero_unmodeled_source_byte(const Document& source_document) {
+    const auto& source = source_document.source_bytes;
+    std::vector<std::uint8_t> handled(source.size(), std::uint8_t{0});
+
+    const auto mark = [&](std::uint64_t offset, std::uint64_t size) {
+        return mark_source_span(handled, offset, size);
+    };
+
+    if (!mark(0U, header_size)) {
+        return 0U;
+    }
+
+    for (const auto& object : source_document.objects) {
+        if (!mark(object.record_offset, object_record_size)) {
+            return object.record_offset;
+        }
+        for (const auto& mesh : object.meshes) {
+            const auto vertex_count =
+                static_cast<std::uint64_t>(mesh.vertex_count);
+            if (!mark(mesh.record_offset, mesh_record_size) ||
+                !mark(mesh.positions_offset, vertex_count * 12U) ||
+                !mark(mesh.normals_offset, vertex_count * 12U) ||
+                !mark(mesh.uv_offset, vertex_count * 4U) ||
+                !mark(mesh.color_flags_offset, vertex_count * 4U) ||
+                // Index workspace is an explicitly regenerated domain in
+                // canonical rebuild mode. Its source bytes are therefore not
+                // unknown evidence that must be transplanted across reflow.
+                !mark(
+                    mesh.index_workspace_offset,
+                    mesh.index_workspace_capacity)) {
+                return mesh.record_offset;
+            }
+        }
+    }
+
+    const auto& scene = source_document.scene_nodes;
+    const auto node_count = static_cast<std::uint64_t>(
+        scene.transform_by_node_index.size());
+    if (!mark(scene.offset, scene_block_header_size) ||
+        !mark(scene.offset + scene.parent_rel, node_count) ||
+        !mark(scene.offset + scene.order_rel, node_count) ||
+        !mark(scene.offset + scene.object_binding_rel, node_count) ||
+        !mark(
+            scene.offset + scene.transform_rel,
+            node_count * scene_transform_size)) {
+        return scene.offset;
+    }
+
+    for (std::size_t index = 0U; index < source.size(); ++index) {
+        if (handled[index] == 0U && source[index] != std::byte{0}) {
+            return static_cast<std::uint64_t>(index);
+        }
+    }
+    return std::nullopt;
 }
 
 [[nodiscard]] bool validate_stream_shapes(
@@ -561,12 +634,9 @@ template <class T>
                     bytes,
                     mesh_offset + 0x18U,
                     mesh_layout.normals_offset) ||
-                !write_value(
-                    bytes, mesh_offset + 0x20U, mesh_layout.uv_offset) ||
-                !write_value(
-                    bytes, mesh_offset + 0x28U, continuation) ||
-                !write_value(
-                    bytes, mesh_offset + 0x30U, mesh.reserved30) ||
+                !write_value(bytes, mesh_offset + 0x20U, mesh_layout.uv_offset) ||
+                !write_value(bytes, mesh_offset + 0x28U, continuation) ||
+                !write_value(bytes, mesh_offset + 0x30U, mesh.reserved30) ||
                 !write_value(
                     bytes,
                     mesh_offset + 0x38U,
@@ -579,8 +649,7 @@ template <class T>
                     bytes,
                     mesh_offset + 0x48U,
                     generated_index_count) ||
-                !write_value(
-                    bytes, mesh_offset + 0x4CU, mesh.reserved4c) ||
+                !write_value(bytes, mesh_offset + 0x4CU, mesh.reserved4c) ||
                 !write_mesh_streams(bytes, mesh, mesh_layout)) {
                 add_diag(
                     out, ParseSeverity::error,
@@ -766,6 +835,36 @@ WriteResult Writer::write(
             // layout is exactly the same shape and offsets.
             out.bytes = document.source_bytes;
         } else {
+            if (!document.source_bytes.empty()) {
+                const auto source_reparsed = Parser::parse(
+                    std::span<const std::byte>{document.source_bytes});
+                if (!source_reparsed.ok()) {
+                    add_diag(
+                        out,
+                        ParseSeverity::error,
+                        "scm.writer-canonical-reflow-source-reparse-failed",
+                        "Canonical reflow requires the retained SCM source "
+                        "image to pass the canonical parser before source-bound "
+                        "unknown-byte loss can be assessed.");
+                    return out;
+                }
+                const auto first_unknown =
+                    first_nonzero_unmodeled_source_byte(
+                        source_reparsed.document);
+                if (first_unknown.has_value()) {
+                    add_diag(
+                        out,
+                        ParseSeverity::error,
+                        "scm.writer-canonical-reflow-unmodeled-nonzero-source",
+                        "Canonical reflow would discard a non-zero source byte "
+                        "outside typed/raw-preserved fields and the explicitly "
+                        "regeneratable index workspace. Preserve-layout mode "
+                        "must be used until this byte region has a mapped "
+                        "reflow policy.",
+                        *first_unknown);
+                    return out;
+                }
+            }
             out.bytes.assign(
                 static_cast<std::size_t>(layout.file_size),
                 std::byte{0});
