@@ -100,25 +100,81 @@ For an authorized fixed-layout edit, the output hash may change, but every chang
 
 The test is registered as `dmc_rengine_mod_writer_tests` in the normal Ubuntu/Windows CTest matrix.
 
+## Provenance-bound retail corpus gate
+
+The merged corpus runner adds recursive, deterministic multi-file validation through:
+
+```text
+dmc-rengine mod-writer-corpus <directory> [receipt.json]
+```
+
+A canonical Linux runner was built by GitHub Actions from source commit:
+
+```text
+b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348
+```
+
+Runner SHA-256:
+
+```text
+d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae
+```
+
+The externally held, provenance-bound corpus contains 38 unique retail MOD files:
+
+- 35 recursively discovered from `em000-extract.zip`, archive SHA-256 `306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b`;
+- `pl000` slot 0001, 216544 bytes, SHA-256 `e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89`;
+- `pl000` slot 0012, 35696 bytes, SHA-256 `7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740`;
+- `id100_001_red_orb_counter`, 2304 bytes, SHA-256 `9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90`.
+
+Canonical corpus result:
+
+```text
+MOD files          : 38
+passed             : 38
+failed             : 0
+total source bytes : 882736
+modified bytes     : 0
+byte-identical     : 38/38
+canonical reopen   : 38/38
+result             : PASS
+```
+
+The raw generated receipt SHA-256 is:
+
+```text
+f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8
+```
+
+The receipt was independently checked against the externally held source files: all 38 source hashes matched, every output hash equalled its source hash, and no receipt entry disagreed with its file bytes.
+
+Repository evidence deliberately contains hashes and receipts only, not copyrighted retail payload bytes:
+
+- `data/reverse/dmc3-mod-writer-retail-38-attestation-20260909.json`;
+- `data/reverse/dmc3-mod-writer-retail-38-source-hashes-20260909.txt`.
+
 ## Evidence status
 
-What this gate establishes:
+This gate now establishes:
 
-- `parse -> write(no-op) -> reparse` can be made byte-identical for the bounded synthetic canonical fixture;
-- source-preservation is enforced independently of the mutable typed document;
-- a small set of fixed-size promoted fields can be written without changing unrelated bytes in the fixture;
-- writer output must pass the canonical parser reopen gate.
+- `parse -> write(no-op) -> reparse` exact byte parity across the complete provenance-bound 38-file MOD corpus;
+- `38/38` canonical parser acceptance before writing;
+- `38/38` preserve-layout writer success;
+- `38/38` exact source/output SHA equality;
+- `38/38` canonical output reopen;
+- zero modified bytes across 882736 source bytes;
+- source-preservation enforced independently of the mutable typed document;
+- bounded fixed-size promoted fields writable under the synthetic controlled-edit regression gate.
 
-What this gate does **not** establish:
+This gate still does **not** establish:
 
-- byte parity across the full 38-MOD retail corpus;
 - canonical layout planning from typed IR alone;
 - arbitrary model editing;
 - transform authoring;
 - skin authoring;
 - material/texture binding authoring;
 - texture companion rewriting/coherence;
-- PAC/PNST/NBZ reintegration;
+- PAC/PNST/NBZ reintegration of MOD writer output;
 - original `dmc3.exe` acceptance of a no-op rebuilt MOD;
 - original `dmc3.exe` acceptance of an edited MOD;
 - Capcom authoring-tool equivalence;
@@ -128,9 +184,9 @@ What this gate does **not** establish:
 
 The next useful MOD work must remain inside the no-repeat frontier and advance one of these gates:
 
-1. run the no-edit writer over representative real MOD corpus members and record exact parity/reopen receipts;
+1. produce a controlled **real retail MOD** fixed-layout edit receipt, proving the exact changed spans while preserving every unauthorized byte and passing canonical reopen;
 2. place writer output back into its canonical texture-companion/container context without changing resource identity or slot topology;
 3. validate no-op rebuilt MOD acceptance in the original `dmc3.exe`;
-4. only after those gates, expand controlled mutation authority field-by-field.
+4. validate a controlled edited MOD in the original `dmc3.exe` before broadening authoring authority.
 
 Do not return to previously consolidated hierarchy, skin-packing, header `+0x14`, bit21 or zero-field reverse passes unless a genuinely new consumer, producer, corpus contradiction or game experiment appears.
