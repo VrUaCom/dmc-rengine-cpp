@@ -22,10 +22,10 @@ Use the physical slot index and provenance as part of the extracted resource ide
 
 PAC offsets, sparse entries and nested payload relationships matter. DMC Rengine keeps those relationships available to downstream tools instead of flattening the archive into anonymous output files.
 
-That matters when a resource is later inspected with the Native Reader or when a guarded reintegration workflow needs to reconstruct the same slot path.
+A materialized child can then be routed through the broader DMC Rengine C++ Native Reader integration registry when its format identity is established. The current DMC Native Reader Android application has a narrower promoted `main` surface — MOD, SCM, DDS and PTX — so C++ registry coverage must not be advertised as identical Android product coverage.
 
 ## What this guide does not claim
 
 PAC parsing and materialization do not prove that every arbitrary modified payload can be safely rebuilt and accepted by the original DMC3 runtime. Reintegration, nested-resource validity and original-game acceptance are separate evidence gates.
 
-For technical structure see the PAC format page and GDSpaces documentation; for current maturity see `docs/status/current.md`.
+For technical structure see the PAC format page and GDSpaces documentation; for current maturity see `docs/status/current.md`. For application-facing inspection claims, use the current DMC Native Reader app baseline rather than the wider C++ integration registry.
