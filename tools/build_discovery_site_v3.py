@@ -39,10 +39,72 @@ def _merge_intent_wave(site: dict, manifest_path: Path) -> dict:
     return site
 
 
+def _append_related(page: dict, path: str, label: str) -> None:
+    links = page.setdefault("related_links", [])
+    if not any(isinstance(link, dict) and link.get("path") == path for link in links):
+        links.append({"path": path, "label": label})
+
+
+def _augment_intent_graph(site: dict) -> dict:
+    pages = site.get("pages")
+    if not isinstance(pages, list):
+        raise SystemExit("intent graph requires page list")
+    by_path = {
+        page.get("path"): page
+        for page in pages
+        if isinstance(page, dict) and isinstance(page.get("path"), str)
+    }
+
+    required = (
+        "/guides/",
+        "/models/",
+        "/textures/",
+        "/guides/character-models/",
+        "/guides/enemy-models/",
+        "/native-reader/android/",
+    )
+    missing = [path for path in required if path not in by_path]
+    if missing:
+        raise SystemExit(f"third-wave intent graph missing required routes: {missing}")
+
+    guides = by_path["/guides/"]
+    sections = guides.setdefault("sections", [])
+    if not any(
+        isinstance(section, dict)
+        and section.get("heading") == "Character and Android viewer entry points"
+        for section in sections
+    ):
+        sections.append(
+            {
+                "heading": "Character and Android viewer entry points",
+                "items": [
+                    "Find DMC3 character models through provenance-aware archive navigation and canonical MOD verification instead of relying on one guessed universal filename.",
+                    "Use the enemy-model guide for the same typed resource pipeline across enemy assets and variants while keeping inspection distinct from authoring proof.",
+                    "Use the DMC Native Reader Android page for the current app-facing MOD, SCM, DDS and PTX boundary; Windows, Web and iOS are not advertised as shipped platforms without implementation evidence.",
+                ],
+            }
+        )
+    _append_related(guides, "/guides/character-models/", "Find DMC3 character models")
+    _append_related(guides, "/guides/enemy-models/", "Find and inspect DMC3 enemy models")
+    _append_related(guides, "/native-reader/android/", "Open the DMC Native Reader Android capability page")
+
+    models = by_path["/models/"]
+    _append_related(models, "/guides/character-models/", "Find character models through the archive-to-MOD pipeline")
+    _append_related(models, "/guides/enemy-models/", "Find and inspect enemy models")
+    _append_related(models, "/native-reader/android/", "See current Android MOD and SCM viewing support")
+
+    textures = by_path["/textures/"]
+    _append_related(textures, "/native-reader/android/", "See current Android DDS and PTX viewing support")
+    _append_related(textures, "/guides/dante-model-textures/", "Find Dante-related model and texture resources")
+
+    return site
+
+
 def load_manifest() -> dict:
     site = _V2_LOAD_MANIFEST()
     for manifest_path in INTENT_WAVES:
         site = _merge_intent_wave(site, manifest_path)
+    site = _augment_intent_graph(site)
     return base.validate_manifest(site)
 
 
