@@ -1,0 +1,41 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "mesh+0x0C",
+  "serialized_offset": "mesh +0x0C",
+  "width": "u32",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "mod_meshes": 180,
+    "mod_zero_values": 180,
+    "efm_meshes": 2,
+    "efm_zero_values": 2,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402F9890",
+    "0x1402FE3B0",
+    "0x1402FE6A0",
+    "0x1402F7A90",
+    "0x1402F7D60",
+    "0x1403051B0"
+  ],
+  "read_xrefs": [],
+  "write_xrefs": [],
+  "runtime_destination": "No positive mesh+0x0C consumer or transfer is established in the audited MOD post-load/runtime-builder/material paths. The common material helper consumes texture slot and GS CLAMP through +0x0A only.",
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "mesh +0x0C is padding because it fills the gap before an aligned u64",
+    "mesh +0x0C is reserved because the bounded corpus is zero",
+    "mesh +0x0C may be zero-normalized by a writer"
+  ],
+  "cpp_contract": "analysis/mod/mesh_serialized.hpp preserves raw u32; synthetic DEADBEEF regression is registered through mod_skin_tests",
+  "writer_policy": "preserve",
+  "closure_boundary": "Bounded load/build/material negative evidence plus multi-family zero corpus is insufficient for a global dormant/reserved promotion. Preserve raw u32 until a provenance-complete whole-EXE census closes it."
+}
