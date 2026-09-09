@@ -1,0 +1,106 @@
+{
+  "schema": "dmc-rengine.site-intent-pages-wave3.v1",
+  "pages": [
+    {
+      "path": "/guides/character-models/",
+      "title": "How to Find DMC3 Character Models — DMC Rengine",
+      "description": "Find DMC3 character models through provenance-aware NBZ, PAC/PNST and MOD inspection instead of guessed filenames.",
+      "summary": "Find Dante, Vergil, Lady and other DMC3 character-related model resources by preserving archive/member/slot provenance and verifying candidate payloads with the canonical MOD reader. This route targets character-model search intent while keeping model identification separate from unrestricted editing or rebuild claims.",
+      "source_path": "docs/guides/character-models.md",
+      "sections": [
+        {
+          "heading": "Start from the resource graph, not a guessed filename",
+          "items": [
+            "Enter through the DMC3 archive hierarchy, preserve NBZ member and PAC/PNST slot provenance, and classify the materialized leaf resource before calling it a character model.",
+            "When the payload is MOD, the canonical reader exposes hierarchy, transforms, meshes, texture-facing state and skinning-related data strongly enough for evidence-bounded structural and visual inspection.",
+            "Character names can guide discovery, but a plausible filename or neighboring slot is not promoted as universal identity without corpus evidence."
+          ]
+        },
+        {
+          "heading": "Viewer and authoring boundaries remain separate",
+          "items": [
+            "DMC Native Reader can inspect promoted MOD resources on the current Android application surface, while DMC Rengine remains the canonical parser and evidence authority.",
+            "Finding and viewing a character model does not prove unrestricted geometry editing, universal conversion, animation rebinding or original-game acceptance of rebuilt files.",
+            "Keep model provenance attached so future extraction, comparison and reintegration workflows can trace the exact archive and container position from which the resource came."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/dante-model-textures/", "label": "Find Dante-specific model and texture resources"},
+        {"path": "/guides/inspect-mod/", "label": "Inspect the structure of a DMC3 MOD model"},
+        {"path": "/native-reader/android/", "label": "See the current DMC Native Reader Android capability boundary"},
+        {"path": "/models/", "label": "Return to the DMC3 model tools and viewer hub"}
+      ]
+    },
+    {
+      "path": "/guides/enemy-models/",
+      "title": "How to Find and Inspect DMC3 Enemy Models — DMC Rengine",
+      "description": "Find DMC3 enemy models through archive provenance and canonical MOD inspection without hard-coded universal paths.",
+      "summary": "Use the same evidence-aware archive-to-model pipeline for DMC3 enemy assets: locate the relevant NBZ member, preserve PAC/PNST slot provenance, classify the leaf payload and inspect MOD resources through the canonical reader. This gives enemy-model search intent a practical entry point without inventing one universal asset path.",
+      "source_path": "docs/guides/enemy-models.md",
+      "sections": [
+        {
+          "heading": "Enemy discovery uses the same typed resource pipeline",
+          "items": [
+            "Use GDSpaces to locate the archive member, preserve container and physical-slot identity, then classify the materialized payload before assigning model semantics.",
+            "For enemy resources that actually match MOD, the canonical reader exposes document, object and mesh structure, hierarchy, transforms, texture-slot relationships and skinning-related data.",
+            "Variants can reuse neighboring container layouts or related resources, so publishing one guessed slot or filename as universal identity would be weaker than preserving the observed provenance."
+          ]
+        },
+        {
+          "heading": "Inspection is stronger than guessing but weaker than authoring proof",
+          "items": [
+            "Current read-side evidence supports structural and visual enemy-model inspection and can feed the Android Native Reader when the resource belongs to a promoted app module.",
+            "That does not authorize unrestricted model editing, universal animation binding or original-runtime acceptance of modified resources.",
+            "The technical MOD page remains the authority for format semantics; this guide exists to meet the practical user intent of finding and viewing enemy assets."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/guides/character-models/", "label": "Compare with the general DMC3 character model workflow"},
+        {"path": "/guides/inspect-mod/", "label": "Inspect canonical DMC3 MOD structure"},
+        {"path": "/native-reader/android/", "label": "See Android model-viewing capability boundaries"},
+        {"path": "/models/", "label": "Return to the model tools and viewer hub"}
+      ]
+    },
+    {
+      "path": "/native-reader/android/",
+      "title": "DMC Native Reader for Android — DMC3 Model & Texture Inspection",
+      "description": "Current DMC Native Reader Android baseline for DMC3 MOD, SCM, DDS and PTX inspection, with explicit platform and capability boundaries.",
+      "summary": "DMC Native Reader is the Android-facing inspection application in the DMC Rengine ecosystem. Its current main branch intentionally promotes MOD, SCM, DDS and PTX only, using canonical DMC Rengine readers and a capability-driven UI. This page targets DMC3 Android viewer searches without claiming an all-platform release or unsupported editor capabilities.",
+      "source_path": "docs/guides/native-reader-android.md",
+      "sections": [
+        {
+          "heading": "Current Android application surface",
+          "items": [
+            "MOD uses the canonical DMC Rengine structural reader and Architecture v2 adapter for model/inspection output; SCM follows the corresponding canonical scene reader path.",
+            "DDS provides bounded DMC3 texture validation and image preview, while PTX provides bounded texture-bundle reading with DDS child resources and parent navigation.",
+            "Unknown or unpromoted formats fail closed in the Android application's main module registry instead of being exposed through a wildcard parser."
+          ]
+        },
+        {
+          "heading": "DMC Native Reader app is not the same as the wider C++ integration registry",
+          "items": [
+            "DMC Rengine contains a broader Native Reader integration registry for canonical C++20 parser modules, but registry presence does not automatically mean the Android application has promoted the same user-facing capability.",
+            "Archive traversal and provenance remain GDSpaces/PocketGDS responsibilities; the Android reader receives typed materialized resources when its current app module set supports them.",
+            "This separation keeps product claims tied to the application build while allowing the C++ core to evolve independently as reverse evidence is promoted."
+          ]
+        },
+        {
+          "heading": "Platform and authoring boundary",
+          "items": [
+            "The current product evidence supports Android. Windows, Web and iOS are not advertised here as shipped Native Reader platforms until their own implementation and build evidence are promoted.",
+            "MOD/SCM reading does not imply unrestricted model or scene editing, and DDS/PTX inspection does not imply arbitrary production texture replacement or original-game acceptance.",
+            "Use the format and status pages for the canonical technical maturity of each underlying reader or writer capability."
+          ]
+        }
+      ],
+      "related_links": [
+        {"path": "/models/", "label": "Explore DMC3 model and scene inspection"},
+        {"path": "/textures/", "label": "Explore DDS and PTX texture inspection"},
+        {"path": "/guides/character-models/", "label": "Find DMC3 character models for inspection"},
+        {"path": "/status/", "label": "Check current DMC Rengine technical maturity"}
+      ]
+    }
+  ]
+}
