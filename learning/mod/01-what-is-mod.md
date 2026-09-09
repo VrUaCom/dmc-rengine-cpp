@@ -36,7 +36,7 @@ DMC3-*.nbz
 - **MOD** — resource payload.
 - **`.index`** — extraction/naming metadata, не runtime MOD manifest.
 
-Це важливо для майбутнього writer: правильний authoring не закінчується на записі `.mod`; треба reintegrate його назад у parent container і потім у NBZ/overlay chain.
+Це важливо для writer: правильний authoring не закінчується на записі `.mod`; треба reintegrate його назад у parent container і потім у NBZ/overlay chain. Канонічний writer уже має вузький preserve-layout gate, але retail PAC/PNST/NBZ/original-game acceptance цього ланцюга ще не закриті.
 
 ## 3. Що MOD дає runtime
 
@@ -66,13 +66,13 @@ MOD дає hierarchy, rest transforms і motion-group selector. MOT/CMotion да
 SCM і MOD мають частину спільного model-family shell, але SCM — static/stage scene geometry, MOD — skinned model pipeline.
 
 ### EFM
-MOD та EFM ділять частину runtime model-family infrastructure, зокрема MOD/EFM transform initializer, але повний schema не можна переносити між ними автоматично. Новий `mesh+0x38` closure прямо показує чому: homologous EFM slot live як COLOR0-facing state, тоді як audited MOD path його не forward-ить.
+MOD та EFM ділять частину runtime model-family infrastructure, зокрема MOD/EFM transform initializer, але повний schema не можна переносити між ними автоматично. `mesh+0x38` closure прямо показує чому: homologous EFM slot live як COLOR0-facing state, тоді як audited MOD path його не forward-ить.
 
 ### SHW
 SHW має власну shadow-hull geometry і per-vertex matrix selectors. Точна ownership matrix palette щодо MOD skeleton ще відкрита.
 
 ### SO
-SO лишається окремою resource family, але cross-resource link тепер сильніший за просту cardinality correlation. SO link-table third byte незалежно ідентифікований як node selector, а `analysis::so::mod_binding` зв’язує його з MOD transform-domain node identity. Це доказ relationship, не semantic identity physical formats.
+SO лишається окремою resource family, але cross-resource link сильніший за просту cardinality correlation. SO link-table third byte незалежно ідентифікований як node selector, а `analysis::so::mod_binding` зв’язує його з MOD transform-domain node identity. Це доказ relationship, не semantic identity physical formats.
 
 ## 5. Поточний evidence baseline
 
@@ -115,8 +115,33 @@ SO лишається окремою resource family, але cross-resource link
 - mesh `+0x38`: audited MOD path inactive, homologous EFM slot live як COLOR0 positive control;
 - mesh `+0x0C/+0x4C` і transform `+0x1C`: source-preserved, не padding лише тому, що bound corpus zero.
 
-## 7. Що ще не доведено як writer
+## 7. Що вже доведено як writer
 
-Не закриті production writer authority, broad no-edit byte parity, safe mutation rules для unresolved fields, complete MOT semantics, complete TIM2 authoring і original-game acceptance edited MOD.
+Після PRs #365/#367/#368/#369 MOD більше не треба називати повністю read-only:
+
+- **Preserve-Layout Writer Gate 1** працює від immutable source image і відмовляється від structural count/offset/reflow змін;
+- writer дозволяє лише promoted fixed-size authoring для object bounds та існуючих position/normal/UV streams і перевіряє exact authorized byte spans;
+- provenance-bound retail no-op corpus: **38/38** MOD файлів проходять parse -> write -> exact byte equality -> canonical reopen; 882,736 source bytes, 0 modified bytes, 0 failures;
+- provenance-bound `em000_021.mod` має один контрольований `bounding_radius` edit: serialized span `[124,128)`, рівно три змінені байти, усі інші байти unchanged, disk SHA/reopen і independent raw diff PASS;
+- `ModAuthoredChildBridge` перевіряє writer receipt перед переходом у generic `AuthoredChildImage`; synthetic PAC reintegration/reopen уже regression-proven.
+
+Це bounded preserve-layout writer authority, а не універсальний serializer.
+
+## 8. Що ще не доведено як writer
+
+Не закриті:
+
+- full production MOD writer authority;
+- layout synthesis/reflow або rebuild from typed IR alone;
+- transform authoring;
+- skin/blend-index authoring;
+- source-flag/material/texture-binding authoring;
+- texture-companion rewriting/coherence;
+- broader safe mutation rules для preserved-undecoded fields;
+- provenance-bound retail PAC/PNST reintegration writer output;
+- NBZ overlay acceptance для того самого MOD authoring chain;
+- original `dmc3.exe` acceptance no-op rebuilt MOD;
+- original `dmc3.exe` acceptance edited MOD;
+- complete MOT/animation ownership і complete TIM2 authoring.
 
 Це не недолік parser. Це правильна evidence boundary.

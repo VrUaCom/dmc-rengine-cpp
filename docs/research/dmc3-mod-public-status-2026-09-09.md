@@ -4,7 +4,7 @@
 **Canonical executable:** `dmc3.exe`  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
-This document is the public-facing synthesis for the current MOD reverse. It does not replace the machine receipts or the individual reverse notes; it exists to stop older intermediate hypotheses from leaking into the discovery site and learning material after later evidence has narrowed or rejected them.
+This document is the public-facing synthesis for the current MOD reverse and bounded authoring state. It does not replace the machine receipts or the individual reverse notes; it exists to stop older intermediate hypotheses from leaking into the discovery site and learning material after later evidence has narrowed, rejected or promoted them.
 
 ## Current bounded corpus
 
@@ -125,6 +125,83 @@ Current status: `PRESERVED_UNDECODED`; writer preserves the source float exactly
 
 Authority: `dmc3-mod-transform-1c-reverse-2026-09-09.md`.
 
+## 2026-09-09 bounded writer promotions
+
+MOD is no longer accurately described as wholly read-only. The promoted writer authority is deliberately narrow and preservation-first.
+
+### Preserve-Layout Writer Gate 1 — PR #365
+
+The canonical writer:
+
+- requires a caller-owned immutable source image;
+- requires retained `Document::source_bytes` to match that immutable image;
+- reparses the immutable source before writing;
+- starts serialization from the original source bytes rather than constructing unknown regions from scratch;
+- refuses structural count/offset/reflow edits;
+- refuses transform-domain, skin, source-flag/material and preserved-undecoded-field authoring in Gate 1;
+- permits fixed-size authoring only for promoted object bounds and existing position/normal/UV streams;
+- tracks exact authorized byte spans and rejects any output change outside them;
+- reparses the produced MOD before returning success;
+- emits a source/output SHA and preservation/reopen receipt.
+
+This is **real bounded writer authority**, not canonical layout synthesis or unrestricted MOD authoring.
+
+### Retail no-op parity — PR #368
+
+A provenance-bound 38-file retail corpus was executed through the canonical preserve-layout writer:
+
+```text
+files                   38 / 38
+source bytes             882,736
+parse                    38 / 38
+preserve-layout write    38 / 38
+exact byte equality      38 / 38
+canonical reopen         38 / 38
+modified bytes           0
+failures                 0
+```
+
+This closes no-edit source-image preserve-layout byte parity for that explicit corpus. It does **not** prove rebuild-from-typed-IR, layout reflow or every possible retail MOD variant.
+
+### Controlled real-retail edit — PR #369
+
+A provenance-bound real retail `em000_021.mod` was edited through the canonical bounded command:
+
+```text
+field                    object[0].bounding_radius
+old                      0.6208532452583313
+new                      0.625
+serialized span          [124,128)
+changed offsets          [124,125,126]
+modified bytes           3
+```
+
+Unauthorized-byte preservation, output disk reread/SHA, canonical reopen and independent raw byte diff all pass. This proves one tightly bounded real-retail mutation class; it does not authorize arbitrary fields.
+
+### MOD writer receipt -> container trust bridge — PR #369
+
+`ModAuthoredChildBridge` independently checks the MOD writer result before emitting the existing generic `AuthoredChildImage` envelope. A synthetic PAC regression then:
+
+```text
+valid MOD child
+ -> controlled bounding-radius edit
+ -> writer receipt validation
+ -> AuthoredChildImage
+ -> existing NestedRelativeSlotReintegrator
+ -> PAC reparse/re-expand
+ -> MOD reopen with requested value and exact writer bytes
+```
+
+This proves the trust bridge and synthetic PAC reintegration. It is **not** a provenance-bound retail PAC/PNST reintegration receipt and is not NBZ/original-game acceptance.
+
+Authorities:
+
+- `dmc3-mod-preserve-layout-writer-gate-2026-09-09.md`;
+- `dmc3-mod-pac-reintegration-gate-2026-09-09.md`;
+- `data/reverse/dmc3-mod-preserve-layout-writer-gate-20260909.json`;
+- `data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json`;
+- `data/reverse/dmc3-mod-pac-reintegration-gate-20260909.json`.
+
 ## Evidence discipline
 
 The current MOD pass deliberately distinguishes:
@@ -147,15 +224,29 @@ Important rules:
 - the same serialized offset in MOD/EFM/SCM is not semantic equivalence;
 - a reversible arithmetic decomposition is not automatically a semantic field partition;
 - a rendered model is not writer acceptance;
+- a bounded preserve-layout writer is not a rebuild-from-scratch serializer;
 - unknown bytes remain an asset to preserve, not noise to normalize.
 
 ## Current authoring boundary
 
-The reverse is substantially stronger than the earlier single-corpus state, but production MOD writing is still a separate promotion gate.
+The project now has a proven bounded preserve-layout authoring surface, explicit 38-file retail no-op byte parity, one controlled provenance-bound real-retail edit and a synthetic PAC reintegration trust bridge.
 
-Before unrestricted edited MOD output can be advertised, the project still needs evidence for the full authoring chain, including field dependencies, layout planning, mutation constraints, reopen/reparse, container reintegration, original-game acceptance and rollback integrity.
+Still open before a **full production MOD writer** or “arbitrary safe editing” claim:
 
-No public page should claim “full MOD writer”, “100% MOD reverse” or original-game-safe arbitrary editing from the reader/reverse evidence alone.
+- canonical layout synthesis/reflow and rebuild from typed IR alone;
+- transform authoring;
+- skin/blend-index authoring;
+- source-flag/material/texture-binding authoring;
+- texture-companion rewriting/coherence;
+- broader mutation authority for preserved-undecoded fields;
+- provenance-bound retail PAC/PNST reintegration of writer output;
+- NBZ overlay acceptance for the same authored MOD lineage;
+- original `dmc3.exe` acceptance of a no-op rebuilt MOD;
+- original `dmc3.exe` acceptance of an edited MOD;
+- complete animation/current-pose ownership and complete TIM2 authoring where those claims are required;
+- rollback-backed original-game authoring acceptance.
+
+No public page should claim “full MOD writer”, “100% MOD reverse” or original-game-safe arbitrary editing from Gate 1 evidence alone.
 
 ## Primary detailed notes
 
@@ -169,4 +260,6 @@ docs/research/dmc3-mod-mesh-4c-reverse-2026-09-09.md
 docs/research/dmc3-mod-transform-1c-reverse-2026-09-09.md
 docs/research/dmc3-mod-source-flag-00100000-reverse-2026-09-09.md
 docs/research/dmc3-mod-source-flag-00200000-reverse-2026-09-09.md
+docs/research/dmc3-mod-preserve-layout-writer-gate-2026-09-09.md
+docs/research/dmc3-mod-pac-reintegration-gate-2026-09-09.md
 ```
