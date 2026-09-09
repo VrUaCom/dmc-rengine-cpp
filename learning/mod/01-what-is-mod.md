@@ -2,7 +2,7 @@
 
 ## 1. Не «просто 3D-модель»
 
-У DMC3 HD `.MOD` — serialized ресурс скінованої 3D-моделі. Він поєднує геометрію, object/mesh state, skeleton node domain, rest transforms, skin indices/weights, texture-slot selectors і legacy material state.
+У DMC3 HD `.MOD` — serialized MOD ресурс скінованої 3D-моделі. Він поєднує геометрію, object/mesh state, skeleton node domain, rest transforms, skin indices/weights, texture-slot selectors і legacy material state.
 
 ```text
 MOD = model document
