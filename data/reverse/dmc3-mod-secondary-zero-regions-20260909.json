@@ -1,9 +1,11 @@
 {
-  "schema": "dmc-rengine.mod-secondary-zero-regions.v2",
+  "schema": "dmc-rengine.mod-secondary-zero-regions.v3",
   "date": "2026-09-09",
   "canonical_executable": {
     "name": "dmc3.exe",
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "direct_disassembly_available": true
   },
   "corpus": {
     "unique_mods": 38,
@@ -76,10 +78,49 @@
     "meaning": "the complete serialized object-record pointer is retained in runtime; 0x140302AAA is NOT a read of serialized object +0x18/+0x1C",
     "status": "EXE_CONFIRMED"
   },
+  "retained_pointer_consumer_census": {
+    "mod_runtime_mesh_builder": {
+      "function": "0x1402FE6A0..0x1402FE921",
+      "runtime_object_stride": "0x380",
+      "retained_pointer_load": "0x1402FE6F4: runtime object +0x18",
+      "serialized_object_dereference": "0x1402FE700: serialized object +0x08 mesh-table pointer",
+      "secondary_object_region_reads_before_mesh_domain": 0,
+      "meaning": "positive control: retained serialized-object pointer is live, but this MOD path consumes object +0x08 and then changes provenance into the 0x50-byte serialized mesh domain",
+      "status": "EXE_CONFIRMED"
+    },
+    "mod_render_command_builder": {
+      "function": "0x1402FE930..0x1402FF563",
+      "runtime_object_stride": "0x380",
+      "retained_pointer_load": "0x1402FED8E",
+      "saved_local_store": "0x1402FED92 -> rbp+0x30",
+      "saved_local_reads_after_store": 0,
+      "meaning": "the retained pointer is loaded and saved, but the exact bounded function contains no later read of that saved local before return",
+      "status": "EXE_CONFIRMED"
+    },
+    "efm_render_command_positive_control": {
+      "function": "0x1402F8000..0x1402F8C4A",
+      "retained_pointer_load": "0x1402F845E",
+      "saved_local_store": "0x1402F8462 -> rbp+0x30",
+      "saved_local_reads_after_store": 0,
+      "meaning": "homologous family control shows the same dead-after-load pattern; it is not semantic authority for MOD fields",
+      "status": "EXE_CONFIRMED"
+    }
+  },
+  "cross_format_false_positive_rejection": {
+    "function": "0x140302F10..0x14030345A",
+    "runtime_object_stride": "0x3C0",
+    "serialized_record_stride": "0x40",
+    "retained_pointer_offset": "+0x18",
+    "independent_owner_evidence": "SCM object initializer; direct code contains the SCM narrow compatibility rewrites for runtime object +0x07, including source-control cases EA->C5 and C4->80",
+    "mod_efm_runtime_object_stride": "0x380",
+    "reason": "same +0x18 pointer offset and 0x40 serialized stride do not establish MOD provenance when runtime owner/stride and SCM-specific behavior differ",
+    "status": "REJECTED_AS_MOD_CONSUMER"
+  },
   "positive_controls": {
     "header_loader_direct_reads": ["+0x10", "+0x11", "+0x13", "+0x14", "magic +0x00..+0x03 via 0x1402FD650"],
     "object_initializer_direct_reads": ["+0x00", "+0x01", "+0x10", "+0x30..+0x3F"],
-    "object_initializer_retained_pointer": "entire serialized object record -> runtime +0x18"
+    "object_initializer_retained_pointer": "entire serialized object record -> runtime +0x18",
+    "mod_retained_pointer_real_consumer": "0x1402FE6F4 -> serialized object +0x08 at 0x1402FE700"
   },
   "rejected_false_positives": [
     {
@@ -93,14 +134,21 @@
       "candidate": "manager +0x108 source pointer",
       "reason": "rbp+0x108 is a local stack slot holding a runtime object pointer derived from manager +0x100 + object_index*0x380; it is not the manager source pointer field",
       "status": "REJECTED"
+    },
+    {
+      "address": "0x140302F10..0x14030345A",
+      "candidate": "retained +0x18 serialized pointer with 0x40 source-record stride",
+      "reason": "SCM-specific runtime owner uses 0x3C0 stride and contains independently documented SCM C4/EA compatibility rewrites; it is not the canonical MOD/EFM 0x380 object path",
+      "status": "REJECTED_AS_MOD_CONSUMER"
     }
   ],
-  "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes and byte-preservation snapshots",
-  "closure_boundary": "Initializer-local no-read evidence is retained, but the complete serialized object record is kept reachable through runtime object +0x18. Therefore object secondary regions are not globally unused until downstream retained-pointer consumers are fully classified. Zero corpus data never authorizes normalization.",
+  "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes, byte-preservation snapshots, retained-pointer consumer addresses, bounded no-dereference results and the SCM cross-format rejection",
+  "closure_boundary": "The retained serialized-object pointer is proven live, and the audited canonical MOD runtime-mesh path uses it for object +0x08 while the audited MOD render-command path loads it without later dereference. This materially narrows the escape surface but does not establish whole-program non-use of object +0x04..07/+0x14..17/+0x20..2F. Continue provenance-directed consumer classification; preserve every unresolved byte.",
   "rejected_hypotheses": [
     "zero shell region equals padding",
     "absence from the initializer proves no later consumer",
     "0x140302AAA reads serialized object +0x18/+0x1C",
+    "every retained +0x18 pointer on a 0x40 serialized record belongs to MOD",
     "writer may zero-normalize secondary regions"
   ]
 }
