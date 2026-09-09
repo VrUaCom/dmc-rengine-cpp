@@ -17,7 +17,8 @@
     "corpusHeader": "include/dmc_rengine/formats/mod_writer_corpus.hpp",
     "corpusSource": "src/formats/mod_writer_corpus.cpp",
     "corpusTest": "tests/mod_writer_corpus_tests.cpp",
-    "corpusCli": "dmc-rengine mod-writer-corpus <directory> [receipt.json]"
+    "corpusCli": "dmc-rengine mod-writer-corpus <directory> [receipt.json]",
+    "controlledRetailCli": "dmc-rengine mod-writer-set-bounding-radius <input.mod> <object-index> <radius> <output.mod> [receipt.json]"
   },
   "sourceAuthority": {
     "callerOwnedImmutableSourceRequired": true,
@@ -93,25 +94,49 @@
     "reopenAll": true,
     "rawReceiptSha256": "f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8"
   },
+  "controlledRetailValidation": {
+    "attestation": "data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json",
+    "scope": "one provenance-bound retail MOD, one object, one fixed-size bounding-radius field",
+    "sourceLabel": "em000_021.mod",
+    "sourceSize": 592,
+    "sourceSha256": "03c18bd75452b0419b398b48d7ef436bb4b2c4c797dae865c6823f8225205f74",
+    "runnerSourceCommit": "8ddd5c2acd455b12ed1f67b9af30571d5e9634be",
+    "runnerSha256": "a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8",
+    "field": "object.bounding_radius",
+    "objectIndex": 0,
+    "oldValue": 0.6208532452583313,
+    "newValue": 0.625,
+    "serializedOffset": 124,
+    "serializedSize": 4,
+    "changedByteOffsetsZeroBased": [124, 125, 126],
+    "modifiedByteCount": 3,
+    "outputSha256": "d074416967a163bbfb2707310141357b88b315c4359fbef69d7c63d2ce3c7f86",
+    "changedBytesWithinExpectedSpan": true,
+    "allOtherBytesIdentical": true,
+    "diskOutputReopenOk": true,
+    "rawReceiptSha256": "896def2d5f6fc21fb8a0653542dae8e4dea536f138ec6f567c2c81345f3ef761"
+  },
   "claims": {
     "syntheticFixtureNoEditByteParity": true,
     "syntheticFixtureControlledFixedLayoutEdit": true,
     "fullRetailCorpusByteParity": true,
     "fullRetailCorpusScope": "provenance-bound 38 unique MOD files: 35 em000 + 2 pl000 + 1 id100",
     "fullRetailCorpusCanonicalReopen": true,
+    "controlledRetailFixedLayoutEdit": true,
+    "controlledRetailFixedLayoutScope": "em000_021.mod object[0].bounding_radius only",
     "canonicalRebuildFromScratch": false,
     "transformAuthoring": false,
     "skinAuthoring": false,
     "materialAuthoring": false,
     "textureCompanionCoherence": false,
-    "containerReintegration": false,
+    "retailContainerReintegration": false,
     "originalGameNoEditAcceptance": false,
     "originalGameEditedAcceptance": false,
     "fullModWriterAuthority": false
   },
   "nextFrontier": [
-    "controlled_retail_fixed_layout_edit_receipt",
-    "texture_companion_and_container_reintegration",
+    "provenance_bound_retail_pac_or_pnst_reintegration",
+    "nbz_overlay_reintegration_and_reopen",
     "original_dmc3_exe_no_edit_acceptance",
     "original_dmc3_exe_controlled_edit_acceptance"
   ]

@@ -153,6 +153,66 @@ Repository evidence deliberately contains hashes and receipts only, not copyrigh
 - `data/reverse/dmc3-mod-writer-retail-38-attestation-20260909.json`;
 - `data/reverse/dmc3-mod-writer-retail-38-source-hashes-20260909.txt`.
 
+## Controlled retail fixed-layout edit gate
+
+The bounded CLI command:
+
+```text
+dmc-rengine mod-writer-set-bounding-radius <input.mod> <object-index> <radius> <output.mod> [receipt.json]
+```
+
+was run against provenance-bound retail `em000_021.mod` using a Linux `dmc-rengine` artifact built from source commit:
+
+```text
+8ddd5c2acd455b12ed1f67b9af30571d5e9634be
+```
+
+Runner SHA-256:
+
+```text
+a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8
+```
+
+The experiment edited only `object[0].bounding_radius`:
+
+```text
+source file         : em000_021.mod
+source size         : 592 bytes
+source SHA-256      : 03c18bd75452b0419b398b48d7ef436bb4b2c4c797dae865c6823f8225205f74
+old radius          : 0.6208532452583313
+new radius          : 0.625
+serialized span     : [124, 128)
+changed byte offsets: [124, 125, 126]
+modified byte count : 3
+output SHA-256      : d074416967a163bbfb2707310141357b88b315c4359fbef69d7c63d2ce3c7f86
+result              : PASS
+```
+
+The command itself proved that all changed bytes were inside the exact four-byte serialized radius span, writer unauthorized bytes were unchanged, writer output reparsed, disk bytes matched the writer output, the disk SHA matched the writer receipt, and the disk output reopened with the requested radius.
+
+An independent post-run check then recomputed the source/output hashes and the raw byte diff without using the writer code. It found exactly zero-based offsets `124, 125, 126`, confirmed every other byte was unchanged, decoded the source radius as `0.6208532452583313`, decoded the output radius as `0.625`, and matched the command receipt hashes and offsets exactly.
+
+Raw controlled-edit receipt SHA-256:
+
+```text
+896def2d5f6fc21fb8a0653542dae8e4dea536f138ec6f567c2c81345f3ef761
+```
+
+Machine-readable attestation:
+
+- `data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json`.
+
+This promotes only a tightly scoped real-retail fixed-layout edit result. It does not grant arbitrary retail mutation authority.
+
+## Container reintegration relation
+
+The separate `CONTAINER_REINTEGRATION_GATE_1` pass adds a fail-closed `ModAuthoredChildBridge` and a synthetic PAC round-trip regression using the existing generic `NestedRelativeSlotReintegrator`. See:
+
+- `docs/research/dmc3-mod-pac-reintegration-gate-2026-09-09.md`;
+- `data/reverse/dmc3-mod-pac-reintegration-gate-20260909.json`.
+
+That gate proves the architecture for writer-receipt-to-container reintegration on a synthetic PAC. It does not yet promote retail PAC/PNST reintegration.
+
 ## Evidence status
 
 This gate now establishes:
@@ -164,7 +224,9 @@ This gate now establishes:
 - `38/38` canonical output reopen;
 - zero modified bytes across 882736 source bytes;
 - source-preservation enforced independently of the mutable typed document;
-- bounded fixed-size promoted fields writable under the synthetic controlled-edit regression gate.
+- bounded fixed-size promoted fields writable under the synthetic controlled-edit regression gate;
+- one provenance-bound real retail MOD bounding-radius edit with an independently verified exact changed-byte span and canonical disk reopen;
+- a separate synthetic PAC reintegration path through the existing generic authored-child/container architecture.
 
 This gate still does **not** establish:
 
@@ -174,7 +236,8 @@ This gate still does **not** establish:
 - skin authoring;
 - material/texture binding authoring;
 - texture companion rewriting/coherence;
-- PAC/PNST/NBZ reintegration of MOD writer output;
+- provenance-bound retail PAC/PNST reintegration of MOD writer output;
+- NBZ reintegration/reopen of the edited resource chain;
 - original `dmc3.exe` acceptance of a no-op rebuilt MOD;
 - original `dmc3.exe` acceptance of an edited MOD;
 - Capcom authoring-tool equivalence;
@@ -184,9 +247,9 @@ This gate still does **not** establish:
 
 The next useful MOD work must remain inside the no-repeat frontier and advance one of these gates:
 
-1. produce a controlled **real retail MOD** fixed-layout edit receipt, proving the exact changed spans while preserving every unauthorized byte and passing canonical reopen;
-2. place writer output back into its canonical texture-companion/container context without changing resource identity or slot topology;
-3. validate no-op rebuilt MOD acceptance in the original `dmc3.exe`;
-4. validate a controlled edited MOD in the original `dmc3.exe` before broadening authoring authority.
+1. provenance-bound retail PAC/PNST reintegration of a writer-validated same-size MOD child;
+2. root-resource emission through the existing NBZ overlay path followed by canonical NBZ reopen;
+3. original `dmc3.exe` acceptance of a no-edit resource chain;
+4. original `dmc3.exe` acceptance of the tightly controlled edited resource chain.
 
 Do not return to previously consolidated hierarchy, skin-packing, header `+0x14`, bit21 or zero-field reverse passes unless a genuinely new consumer, producer, corpus contradiction or game experiment appears.

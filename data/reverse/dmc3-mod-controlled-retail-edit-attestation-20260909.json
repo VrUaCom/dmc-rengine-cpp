@@ -1,0 +1,68 @@
+{
+  "schema": "dmc-rengine.mod-writer-controlled-retail-edit-attestation.v1",
+  "date": "2026-09-09",
+  "project": "DMC Rengine",
+  "format": "MOD ",
+  "evidenceClass": "WRITER_GATE",
+  "gate": "WRITER_GATE_2_CONTROLLED_RETAIL_FIXED_LAYOUT_EDIT",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "runner": {
+    "sourceCommit": "8ddd5c2acd455b12ed1f67b9af30571d5e9634be",
+    "sha256": "a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8",
+    "workflowRunId": 34343646429,
+    "command": "dmc-rengine mod-writer-set-bounding-radius <input.mod> 0 0.625 <output.mod> <receipt.json>"
+  },
+  "source": {
+    "label": "em000_021.mod",
+    "size": 592,
+    "sha256": "03c18bd75452b0419b398b48d7ef436bb4b2c4c797dae865c6823f8225205f74",
+    "provenance": "member of the provenance-bound 35-file em000 corpus already attested by WRITER_GATE_1 retail validation"
+  },
+  "edit": {
+    "field": "object.bounding_radius",
+    "objectIndex": 0,
+    "oldValue": 0.6208532452583313,
+    "newValue": 0.625,
+    "serializedOffset": 124,
+    "serializedSize": 4,
+    "changedByteOffsetsZeroBased": [124, 125, 126]
+  },
+  "output": {
+    "size": 592,
+    "sha256": "d074416967a163bbfb2707310141357b88b315c4359fbef69d7c63d2ce3c7f86",
+    "modifiedByteCount": 3,
+    "changedBytesWithinExpectedSpan": true,
+    "writerUnauthorizedBytesUnchanged": true,
+    "writerOutputReparseOk": true,
+    "diskBytesMatchWriter": true,
+    "diskHashMatchesWriter": true,
+    "diskOutputReopenOk": true
+  },
+  "receipt": {
+    "schema": "dmc-rengine.mod-writer-controlled-edit-receipt.v1",
+    "sha256": "896def2d5f6fc21fb8a0653542dae8e4dea536f138ec6f567c2c81345f3ef761",
+    "commandExitCode": 0,
+    "success": true
+  },
+  "independentVerification": {
+    "sourceHashRecomputed": true,
+    "outputHashRecomputed": true,
+    "sourceAndOutputSizesEqual": true,
+    "changedOffsetsRecomputed": [124, 125, 126],
+    "allOtherBytesIdentical": true,
+    "sourceRadiusDecoded": 0.6208532452583313,
+    "outputRadiusDecoded": 0.625,
+    "receiptHashesMatchFiles": true,
+    "receiptOffsetsMatchIndependentDiff": true
+  },
+  "claims": {
+    "controlledRetailFixedLayoutEdit": true,
+    "controlledRetailBoundingRadiusEdit": true,
+    "arbitraryRetailMutationAuthority": false,
+    "retailPacOrPnstReintegration": false,
+    "nbzReintegration": false,
+    "originalGameEditedAcceptance": false,
+    "fullModWriterAuthority": false
+  },
+  "evidenceBoundary": "No copyrighted retail payload bytes are committed. This record contains hashes, offsets, scalar values and receipt facts only."
+}
