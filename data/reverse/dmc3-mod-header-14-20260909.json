@@ -16,15 +16,6 @@
     "old_decimal_family_model_subindex_rule": "REJECTED",
     "status": "CORPUS_CONFIRMED"
   },
-  "exe_addresses": [
-    "0x1402F9570",
-    "0x1402F95C2",
-    "0x1402F95C5",
-    "0x1403039E8",
-    "0x140303B0D",
-    "0x140303C38",
-    "0x140303D1D"
-  ],
   "read_xrefs": [
     {
       "address": "0x1402F95C2",
@@ -45,8 +36,22 @@
     "provenance_confirmed_manager_e4_writes": 1,
     "provenance_confirmed_manager_e4_reads": 0,
     "whole_exe_raw_plus_e4_displacement_candidates": 83,
-    "warning": "raw +0xE4 displacement equality is not a type-aware manager xref; candidates include unrelated float, word, byte and dword object layouts"
+    "whole_exe_method": "classify candidates by access width plus neighboring manager fingerprint fields +0xE0/+0xE8/+0x100 and pointer provenance",
+    "result": "no additional provenance-confirmed read of the model-manager u32 +0xE4 field found",
+    "status": "EXE_CONFIRMED"
   },
+  "rejected_candidates": [
+    {
+      "address": "0x1401832DE",
+      "reason": "u32 +0xE4 is used as a relative offset inside an unrelated resource blob; surrounding control flow treats +0xE0/+0xE4 as blob-relative offsets, not model-manager state",
+      "status": "REJECTED"
+    },
+    {
+      "address": "0x1401B6778",
+      "reason": "+0xE0/+0xE4/+0xE8 are read as float scalars, which is incompatible with the model-manager u32/u32/u16 fingerprint",
+      "status": "REJECTED"
+    }
+  ],
   "semantic_status": "PRESERVED_UNDECODED",
   "evidence_status": [
     "EXE_CONFIRMED",
@@ -60,5 +65,5 @@
     "header +0x14 may be renamed resource identity before a type-aware downstream consumer is proven"
   ],
   "writer_policy": "preserve",
-  "closure_boundary": "The serialized-to-runtime transfer is EXE_CONFIRMED. No downstream high-level semantic is promoted because no type-aware manager+0xE4 consumer has yet been proven outside the audited core path."
+  "closure_boundary": "Serialized +0x14 -> manager +0xE4 is EXE_CONFIRMED. A width- and fingerprint-aware whole-EXE census found no additional provenance-confirmed consumer, so high-level semantics remain PRESERVED_UNDECODED rather than guessed."
 }
