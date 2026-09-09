@@ -302,7 +302,7 @@ int main() {
     const auto unmodeled_diag = std::find_if(
         rejected_unmodeled.diagnostics.begin(),
         rejected_unmodeled.diagnostics.end(),
-        [](const ParseDiagnostic& diagnostic) {
+        [](const auto& diagnostic) {
             return diagnostic.code ==
                 "scm.writer-canonical-reflow-unmodeled-nonzero-source";
         });
