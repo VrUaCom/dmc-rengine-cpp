@@ -138,15 +138,25 @@ int main() {
     namespace mod = dmc::rengine::formats::mod;
 
     const auto source = make_valid_mod();
-    const auto parsed = mod::Parser::parse(source);
+    const auto source_span = std::span<const std::byte>{
+        source.data(), source.size()};
+    const auto parsed = mod::Parser::parse(source_span);
     assert(parsed.ok());
 
     {
-        const auto written = mod::Writer::write(parsed.document);
+        const auto written = mod::Writer::write(source_span, parsed.document);
         assert(written.ok());
         assert(written.bytes == source);
         assert(written.reparsed.document.outer_models[0].bounding_radius ==
                42.5F);
+        assert(written.receipt.valid());
+        assert(written.receipt.source_sha256 == written.receipt.output_sha256);
+        assert(written.receipt.byte_count == source.size());
+        assert(written.receipt.modified_byte_count == 0U);
+        assert(written.receipt.source_image_matches_document);
+        assert(written.receipt.unauthorized_bytes_unchanged);
+        assert(written.receipt.output_reparse_ok);
+        assert(written.receipt.no_edit_byte_identical);
     }
 
     {
@@ -157,7 +167,7 @@ int main() {
         mesh.positions[0].x = 9.0F;
         mesh.uvs[0].u = -1024;
 
-        const auto written = mod::Writer::write(edited);
+        const auto written = mod::Writer::write(source_span, edited);
         assert(written.ok());
         assert(written.bytes.size() == source.size());
         assert(written.reparsed.document.outer_models[0].bounding_radius ==
@@ -166,6 +176,10 @@ int main() {
                    .meshes[0].positions[0].x == 9.0F);
         assert(written.reparsed.document.outer_models[0]
                    .meshes[0].uvs[0].u == -1024);
+        assert(written.receipt.modified_byte_count > 0U);
+        assert(written.receipt.source_sha256 != written.receipt.output_sha256);
+        assert(written.receipt.unauthorized_bytes_unchanged);
+        assert(!written.receipt.no_edit_byte_identical);
 
         for (std::size_t offset = 0U; offset < source.size(); ++offset) {
             if (!allowed_edit_byte(offset)) {
@@ -177,7 +191,7 @@ int main() {
     {
         auto edited = parsed.document;
         edited.outer_models[0].source_flags ^= 0x00004000U;
-        const auto written = mod::Writer::write(edited);
+        const auto written = mod::Writer::write(source_span, edited);
         assert(!written.ok());
         assert(has_diagnostic(written,
                               "mod.writer.unsupported-object-edit"));
@@ -185,9 +199,18 @@ int main() {
 
     {
         auto edited = parsed.document;
+        edited.outer_models[0].meshes[0].reserved4c = 1U;
+        const auto written = mod::Writer::write(source_span, edited);
+        assert(!written.ok());
+        assert(has_diagnostic(written,
+                              "mod.writer.unsupported-mesh-edit"));
+    }
+
+    {
+        auto edited = parsed.document;
         edited.outer_models[0].meshes[0].positions.push_back(
             mod::Vec3f{1.0F, 2.0F, 3.0F});
-        const auto written = mod::Writer::write(edited);
+        const auto written = mod::Writer::write(source_span, edited);
         assert(!written.ok());
         assert(has_diagnostic(written,
                               "mod.writer.stream-size-change"));
@@ -197,10 +220,19 @@ int main() {
         auto edited = parsed.document;
         edited.transform_domain.local_transform_records_by_node_index[0]
             .translation.x = 1.0F;
-        const auto written = mod::Writer::write(edited);
+        const auto written = mod::Writer::write(source_span, edited);
         assert(!written.ok());
         assert(has_diagnostic(written,
                               "mod.writer.unsupported-transform-edit"));
+    }
+
+    {
+        auto edited = parsed.document;
+        edited.source_bytes[0x14U] ^= std::byte{0x01};
+        const auto written = mod::Writer::write(source_span, edited);
+        assert(!written.ok());
+        assert(has_diagnostic(written,
+                              "mod.writer.source-image-mismatch"));
     }
 
     return 0;
