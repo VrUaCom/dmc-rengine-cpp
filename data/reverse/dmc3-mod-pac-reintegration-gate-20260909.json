@@ -1,8 +1,8 @@
 {
-  "schema": "dmc-rengine.mod-pac-reintegration-gate.v1",
+  "schema": "dmc-rengine.mod-pac-reintegration-gate.v2",
   "date": "2026-09-09",
   "branch": "reverse/mod-completion-20260907",
-  "evidence_class": "CONTAINER_REINTEGRATION_GATE_1",
+  "evidence_class": "CONTAINER_REINTEGRATION_GATE_2",
   "prerequisites": {
     "preserve_layout_writer_gate": true,
     "provenance_bound_38_file_retail_no_edit_parity": true,
@@ -15,7 +15,12 @@
     "trust_bridge_source": "src/profiles/dmc3/mod_authored_child_bridge.cpp",
     "generic_reintegrator": "include/dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp",
     "regression": "tests/mod_authored_child_bridge_tests.cpp",
-    "controlled_edit_cli": "src/cli/mod_writer_corpus_commands.cpp"
+    "controlled_edit_cli": "src/cli/mod_writer_corpus_commands.cpp",
+    "existing_container_cli": [
+      "list-container",
+      "extract-slot",
+      "rebuild-relative-slot"
+    ]
   },
   "bridge_requirements": {
     "readable_non_container_source": true,
@@ -55,13 +60,42 @@
     "tampered_writer_output_rejected": true,
     "container_source_rejected_by_mod_bridge": true
   },
+  "retail_pnst_reintegration": {
+    "attestation": "data/reverse/dmc3-mod-retail-pnst-reintegration-attestation-20260909.json",
+    "source_package_sha256": "400954e637342f8036879120d1a3845f3d74077a9844fcfad643421180602d57",
+    "parent_label": "m20_s00_012.pac",
+    "parent_detected_format": "pnst",
+    "parent_source_sha256": "a09898bbf73d944f9f52a1de13a3bce0eebb90726947248bf35085f52df15be8",
+    "parent_source_size": 346272,
+    "slot_count": 33,
+    "physical_slot_index": 23,
+    "slot_offset": 129280,
+    "slot_size": 1888,
+    "source_child_sha256": "096f2e8b81dd55a450b15defeb52345626156010c8fb70f3ab5f540d52b447ce",
+    "authored_child_sha256": "94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33",
+    "rebuilt_parent_sha256": "78c002cc62dd235a7f95f16b3e53fd1588d8f4e8b917400e8f4471eff48d9e8e",
+    "rebuilt_parent_size": 346272,
+    "local_changed_offsets_zero_based": [124, 125, 126],
+    "parent_changed_offsets_zero_based": [129404, 129405, 129406],
+    "reopened_child_sha256": "94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33",
+    "reopened_child_equals_authored_child": true,
+    "reopened_child_bounding_radius": 4.5,
+    "canonical_parent_reopen": true,
+    "canonical_parent_reexpand": true,
+    "physical_slot_identity_preserved": true,
+    "parent_bytes_outside_controlled_child_edit_identical": true,
+    "slot_table_unchanged": true,
+    "independent_raw_byte_diff_verified": true
+  },
   "claims": {
     "syntheticPacReintegration": true,
     "modWriteReceiptTrustBridge": true,
     "boundedBoundingRadiusEditProducer": true,
     "controlledRetailBoundingRadiusEdit": true,
     "fullRetailCorpusByteParity": true,
-    "retailPacPnstReintegration": false,
+    "retailPacPnstReintegration": true,
+    "retailPnstReintegration": true,
+    "retailPac0Reintegration": false,
     "textureCompanionWriterAuthority": false,
     "nbzOverlayAcceptanceForEditedMod": false,
     "originalGameAcceptance": false,
@@ -70,7 +104,7 @@
     "fullModWriterAuthority": false
   },
   "next_frontier": [
-    "provenance-bound retail PAC/PNST reintegration",
+    "retail PAC0 MOD-child reintegration when a provenance-bound PAC0 parent/child pair is needed for family coverage",
     "existing NbzStoreOverlayWriter emission plus canonical NBZ reopen",
     "original dmc3.exe acceptance"
   ]
