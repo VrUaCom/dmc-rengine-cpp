@@ -1,11 +1,16 @@
 #include "dmc_rengine/formats/mod_writer.hpp"
 
+#include "dmc_rengine/core/sha256.hpp"
+
+#include <algorithm>
 #include <bit>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace dmc::rengine::formats::mod {
 namespace {
@@ -77,18 +82,6 @@ void diag(WriteResult& out,
         }
     }
     return true;
-}
-
-[[nodiscard]] bool same_blend_indices(
-    const BlendIndices& lhs,
-    const BlendIndices& rhs) noexcept {
-    return lhs.lanes == rhs.lanes;
-}
-
-[[nodiscard]] bool same_uv(
-    const SerializedUv& lhs,
-    const SerializedUv& rhs) noexcept {
-    return lhs.u == rhs.u && lhs.v == rhs.v;
 }
 
 [[nodiscard]] bool same_transform_domain(
@@ -168,6 +161,20 @@ void diag(WriteResult& out,
     return put_u32(bytes, offset, std::bit_cast<std::uint32_t>(value));
 }
 
+void authorize_span(
+    std::vector<bool>& authorized,
+    const std::uint64_t offset,
+    const std::size_t size) {
+    if (offset > static_cast<std::uint64_t>(authorized.size()) ||
+        size > authorized.size() - static_cast<std::size_t>(offset)) {
+        return;
+    }
+    const auto start = static_cast<std::size_t>(offset);
+    for (std::size_t index = 0U; index < size; ++index) {
+        authorized[start + index] = true;
+    }
+}
+
 [[nodiscard]] bool validate_header_immutable(
     const Header& edited,
     const Header& baseline) noexcept {
@@ -217,8 +224,8 @@ void diag(WriteResult& out,
     for (std::size_t index = 0U;
          index < edited.blend_indices.size();
          ++index) {
-        if (!same_blend_indices(edited.blend_indices[index],
-                                baseline.blend_indices[index])) {
+        if (edited.blend_indices[index].lanes !=
+            baseline.blend_indices[index].lanes) {
             return false;
         }
     }
@@ -230,13 +237,27 @@ void diag(WriteResult& out,
     return true;
 }
 
-} // namespace
-
-bool WriteResult::ok() const noexcept {
-    return success && reparsed.ok();
+[[nodiscard]] std::string sha256_of(std::span<const std::byte> bytes) {
+    return core::Sha256::compute(bytes).hex();
 }
 
-WriteResult Writer::write(const Document& document, const WriteMode mode) {
+} // namespace
+
+bool WriteReceipt::valid() const noexcept {
+    return source_sha256.size() == 64U && output_sha256.size() == 64U &&
+        byte_count != 0U && source_image_matches_document &&
+        unauthorized_bytes_unchanged && output_reparse_ok &&
+        no_edit_byte_identical == (modified_byte_count == 0U);
+}
+
+bool WriteResult::ok() const noexcept {
+    return success && reparsed.ok() && receipt.valid();
+}
+
+WriteResult Writer::write(
+    const std::span<const std::byte> immutable_source,
+    const Document& document,
+    const WriteMode mode) {
     WriteResult out;
     if (mode != WriteMode::preserve_layout) {
         diag(out,
@@ -245,20 +266,28 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
              0U);
         return out;
     }
-    if (document.source_bytes.empty()) {
+    if (immutable_source.empty() || document.source_bytes.empty()) {
         diag(out,
              "mod.writer.no-source-bytes",
-             "Preserve-layout MOD writing requires the original source image.",
+             "Preserve-layout MOD writing requires an immutable source image and the parser-retained source bytes.",
+             0U);
+        return out;
+    }
+    if (immutable_source.size() != document.source_bytes.size() ||
+        !std::equal(immutable_source.begin(), immutable_source.end(),
+                    document.source_bytes.begin())) {
+        diag(out,
+             "mod.writer.source-image-mismatch",
+             "Document::source_bytes does not match the caller-owned immutable MOD source image.",
              0U);
         return out;
     }
 
-    const auto baseline = Parser::parse(std::span<const std::byte>(
-        document.source_bytes.data(), document.source_bytes.size()));
+    const auto baseline = Parser::parse(immutable_source);
     if (!baseline.ok()) {
         diag(out,
              "mod.writer.source-parse-failed",
-             "The retained MOD source image no longer reparses cleanly.",
+             "The immutable MOD source image does not pass the canonical parser.",
              0U);
         return out;
     }
@@ -288,7 +317,8 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
         return out;
     }
 
-    out.bytes = document.source_bytes;
+    out.bytes.assign(immutable_source.begin(), immutable_source.end());
+    std::vector<bool> authorized(out.bytes.size(), false);
 
     for (std::size_t outer_index = 0U;
          outer_index < document.outer_models.size();
@@ -324,6 +354,12 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
         const auto bound_offset =
             edited_outer.record_offset +
             model_family::ObjectCoreAbi::bounding_center_field;
+        authorize_span(authorized, bound_offset, 12U);
+        authorize_span(
+            authorized,
+            edited_outer.record_offset +
+                model_family::ObjectCoreAbi::bounding_radius_field,
+            4U);
         if (!put_f32(out.bytes, bound_offset + 0U,
                      edited_outer.bounding_center.x) ||
             !put_f32(out.bytes, bound_offset + 4U,
@@ -336,7 +372,7 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
                      edited_outer.bounding_radius)) {
             diag(out,
                  "mod.writer.range",
-                 "MOD bounding sphere write exceeds the retained source image.",
+                 "MOD bounding sphere write exceeds the immutable source image.",
                  edited_outer.record_offset);
             return out;
         }
@@ -389,6 +425,16 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
                     static_cast<std::uint64_t>(element) *
                         model_family::MeshCoreAbi::uv_stride;
 
+                authorize_span(
+                    authorized, position_offset,
+                    model_family::MeshCoreAbi::position_stride);
+                authorize_span(
+                    authorized, normal_offset,
+                    model_family::MeshCoreAbi::normal_stride);
+                authorize_span(
+                    authorized, uv_offset,
+                    model_family::MeshCoreAbi::uv_stride);
+
                 if (!put_f32(out.bytes, position_offset + 0U, position.x) ||
                     !put_f32(out.bytes, position_offset + 4U, position.y) ||
                     !put_f32(out.bytes, position_offset + 8U, position.z) ||
@@ -403,12 +449,30 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
                                  edited_mesh.uvs[element].v))) {
                     diag(out,
                          "mod.writer.range",
-                         "MOD vertex stream write exceeds the retained source image.",
+                         "MOD vertex stream write exceeds the immutable source image.",
                          edited_mesh.record_offset);
                     return out;
                 }
             }
         }
+    }
+
+    std::uint64_t modified_byte_count{};
+    bool unauthorized_bytes_unchanged = true;
+    for (std::size_t index = 0U; index < out.bytes.size(); ++index) {
+        if (out.bytes[index] == immutable_source[index]) continue;
+        ++modified_byte_count;
+        if (!authorized[index]) {
+            unauthorized_bytes_unchanged = false;
+            break;
+        }
+    }
+    if (!unauthorized_bytes_unchanged) {
+        diag(out,
+             "mod.writer.unauthorized-byte-change",
+             "Preserve-layout output changed bytes outside the explicitly authorized bounding/position/normal/UV spans.",
+             0U);
+        return out;
     }
 
     out.reparsed = Parser::parse(std::span<const std::byte>(
@@ -417,6 +481,27 @@ WriteResult Writer::write(const Document& document, const WriteMode mode) {
         diag(out,
              "mod.writer.reparse-failed",
              "Serialized MOD failed the canonical parser reopen gate.",
+             0U);
+        return out;
+    }
+
+    const auto output_span = std::span<const std::byte>(
+        out.bytes.data(), out.bytes.size());
+    out.receipt = WriteReceipt{
+        .source_sha256 = sha256_of(immutable_source),
+        .output_sha256 = sha256_of(output_span),
+        .byte_count = static_cast<std::uint64_t>(out.bytes.size()),
+        .modified_byte_count = modified_byte_count,
+        .source_image_matches_document = true,
+        .unauthorized_bytes_unchanged = true,
+        .output_reparse_ok = true,
+        .no_edit_byte_identical = modified_byte_count == 0U &&
+            std::equal(out.bytes.begin(), out.bytes.end(), immutable_source.begin()),
+    };
+    if (!out.receipt.valid()) {
+        diag(out,
+             "mod.writer.receipt-invalid",
+             "Preserve-layout MOD write receipt failed internal validation.",
              0U);
         return out;
     }
