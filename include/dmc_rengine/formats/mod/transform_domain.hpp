@@ -34,13 +34,14 @@ struct LocalTransformRecord final {
     Vec3f rotation_xyz_radians{};
 
     // +0x1C remains byte-preserved. It is zero on all 285 current MOD transform
-    // records. More importantly, canonical rotation helper 0x140330450 reads
-    // only +0x10/+0x14/+0x18, and CMotion binding 0x14030F850 also skips this
-    // fourth scalar while advancing the source record by 0x20. The SCM sibling
-    // initializer explicitly clears its local fourth rotation lane before
-    // calling the same helper. This strongly supports a reserved/alignment
-    // role, but does not authorize a global writer-zero rule until every
-    // relevant consumer/family is closed.
+    // records and all 5 currently bound EFM transform records. Canonical
+    // rotation helper 0x140330450 reads only scratch +0x00/+0x04/+0x08
+    // (serialized +0x10/+0x14/+0x18), and CMotion binding 0x14030F850 skips the
+    // fourth scalar while advancing the serialized source record by 0x20. This
+    // is EXE_CONFIRMED negative evidence for the audited local-matrix path and
+    // CORPUS_CONFIRMED zero evidence only. Its global semantic remains
+    // PRESERVED_UNDECODED; neither a reserved name nor writer-zero policy is
+    // authorized without a complete consumer/family census.
     float reserved1c{};
 };
 
