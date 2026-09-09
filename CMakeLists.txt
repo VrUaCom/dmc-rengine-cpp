@@ -186,6 +186,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         so_link_table
         so_volume_table
         so_companion_correlation
+        so_identity
         so_mod_binding
         mod_transform_domain
         format_registry_contract_coverage

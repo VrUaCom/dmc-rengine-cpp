@@ -17,6 +17,9 @@ NativeReaderModuleRegistry::NativeReaderModuleRegistry() {
     static_cast<void>(register_module(native_reader_modules::scm()));
     static_cast<void>(register_module(native_reader_modules::mod()));
     static_cast<void>(register_module(native_reader_modules::mot()));
+    static_cast<void>(register_module(native_reader_modules::so_graph()));
+    static_cast<void>(register_module(native_reader_modules::so_volume()));
+    static_cast<void>(register_module(native_reader_modules::so_link()));
     static_cast<void>(register_module(native_reader_modules::shw()));
     static_cast<void>(register_module(native_reader_modules::pe()));
 }

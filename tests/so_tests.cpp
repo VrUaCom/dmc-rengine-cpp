@@ -1,5 +1,7 @@
 #include "dmc_rengine/so.hpp"
 
+#include "so_test_fixture.hpp"
+
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -50,8 +52,7 @@ int main() {
     const auto link_result = links::parse(link_bytes);
     assert(link_result.ok());
 
-    std::vector<std::byte> volume_bytes(3U * volumes::record_size);
-    put_u32(volume_bytes, 0U, 2U);
+    const auto volume_bytes = so_test_fixture::volume_records(3U);
     const auto volume_result = volumes::parse(volume_bytes);
     assert(volume_result.ok());
     assert(analysis::correlate_companions(link_result, volume_result).one_header_plus_one_link_per_volume);

@@ -13,6 +13,9 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule scm();
 [[nodiscard]] NativeReaderModule mod();
 [[nodiscard]] NativeReaderModule mot();
+[[nodiscard]] NativeReaderModule so_graph();
+[[nodiscard]] NativeReaderModule so_volume();
+[[nodiscard]] NativeReaderModule so_link();
 [[nodiscard]] NativeReaderModule shw();
 [[nodiscard]] NativeReaderModule pe();
 

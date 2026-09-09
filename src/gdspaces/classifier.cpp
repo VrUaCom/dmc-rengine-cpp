@@ -3,6 +3,8 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
+#include "dmc_rengine/formats/so.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
@@ -101,6 +103,42 @@ ResourceClassification ResourceClassifier::classify(
         // other name stopped the container walk.
         result.format = "nbz";
         result.magic_confirmed = true;
+    } else if (const auto framing =
+                   profiles::dmc3::TextureSlotFramingParser::parse(bytes);
+               framing.ok()) {
+        // Neither texture framing carries a magic. A bundle opens with a
+        // count and a sector-span table, and a wrapped DDS opens with its
+        // descriptor — so the identity is that the framing's own arithmetic
+        // closes: spans that sum to the slot, descriptors whose declared
+        // dimensions, row bytes and reciprocals agree with the DDS behind
+        // them. Both readers existed and neither was reachable from here,
+        // which is why an enemy's first slot — its texture pack — was `bin`.
+        result.format =
+            framing.document.kind ==
+                profiles::dmc3::TextureSlotFramingKind::texture_bundle
+            ? "ptx"
+            : "wrapped-dds";
+        result.structural_confirmed = true;
+    } else if (formats::so::graph::recognizes(bytes)) {
+        // The SO family has no magic and no name inside a container, and the
+        // three payloads sit in adjacent slots of the same enemy archive. Each
+        // is identified by its own arithmetic closing: the graph by a type-6
+        // block whose offset table lands exactly on its first entry and whose
+        // boundary word points at a type-8 companion, the volume table by
+        // every record carrying a known kind, a reserved run of zeros and a
+        // position whose w is one, the link table by its leading word and its
+        // reserved fourth byte. Against the em000 extraction each accepts one
+        // payload of 306, and it is the right one.
+        result.format = "so-graph";
+        result.structural_confirmed = true;
+    } else if (formats::so::volume_table::recognizes(bytes)) {
+        result.format = "so-volume";
+        result.structural_confirmed = true;
+    } else if (formats::so::link_table::recognizes(bytes)) {
+        // Last of the three: its record is four bytes and its gate is the
+        // weakest, so anything the others can claim should be claimed there.
+        result.format = "so-link";
+        result.structural_confirmed = true;
     } else if (formats::MotParser::structurally_valid(bytes)) {
         // A motion carries `MOT` at +4, but that tag is compared nowhere in
         // the executable: the runtime types a motion by its name, through the

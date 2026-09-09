@@ -246,6 +246,7 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .evidence_claim_ids = {},
             .limitations = {
                 "Native reading validates the evidence-backed 0x800 bundle header, 0x70 descriptors, sector spans, DXT1/DXT5 DDS children and alignment padding.",
+                "The descriptor auxiliary pair is bounded by mode 0-2 and by mode and value being zero or non-zero together. It is not bound to the compression: the retail em000 texture bundle opens with a DXT1 descriptor whose mode is 2, and requiring DXT5 there refused the whole pack.",
                 "Validated DDS children are materialized through the canonical TextureSlotExpander with stable byte provenance.",
                 "Packed-reflow authoring remains a separate profile capability and is not implicitly promoted by the reader.",
             },
@@ -353,6 +354,48 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .limitations = {
                 "Declared by the recovered runtime type contract (profiles::dmc3::ResourceTypeContract); no structural parser exists yet.",
                 "Recognized only by the four-byte family-mask probe 0x1402FD650, not by the three-byte registry probe.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "so-graph",
+            .parser_id = "formats.so-graph-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Structural reader only: a type-6 indexed block whose offset table closes exactly on its first entry, and a boundary word pointing at a type-8 companion block with the same property.",
+                "Entry payload semantics are unrecovered; the reader reports block geometry, not what the graph connects.",
+                "Bound by the complete em000 extraction (source archive SHA-256 3061301250...66d07b), where it accepts 1 payload of 306.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "so-volume",
+            .parser_id = "formats.so-volume-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Structural reader only: 0x50 records, each carrying a known kind (2 sphere, 4 segment), twelve reserved zero bytes, and a first vector whose w is 1 — a position in homogeneous coordinates.",
+                "Kind 2 places a centre in vector0 and a radius in vector1.x; kind 4 places two points in vector0/vector1 and a radius in vector2.x. Both readings come from a single 23-record corpus payload and are not confirmed against a second.",
+                "Bound by the complete em000 extraction (source archive SHA-256 3061301250...66d07b), where it accepts 1 payload of 306; any one of the three record invariants cuts a size-only match from 28 to that one.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "so-link",
+            .parser_id = "formats.so-link-structural-v1",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Structural reader only: a leading word and one four-byte record per volume record, each with a reserved zero fourth byte.",
+                "The weakest of the three SO gates. Neither invariant is sufficient alone against the bound corpus — the leading word leaves one effect record, the reserved byte leaves ten effect-M companions — and only one link payload exists to generalize from.",
+                "The record's third byte is the node a volume hangs off, not the record's own ordinal: it repeats for volumes sharing a node and is zero for those bound to the root. analysis::so binds it to the MOD transform domain.",
             },
         },
         FormatIntegrationDescriptor{

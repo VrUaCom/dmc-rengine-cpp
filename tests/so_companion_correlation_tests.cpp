@@ -1,5 +1,7 @@
 #include "dmc_rengine/analysis/so/companion_correlation.hpp"
 
+#include "so_test_fixture.hpp"
+
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -14,7 +16,7 @@ int main() {
         std::byte{0x06}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
         std::byte{0x01}, std::byte{0x00}, std::byte{0x01}, std::byte{0x00},
     };
-    std::vector<std::byte> volume_bytes(volumes::record_size);
+    const auto volume_bytes = so_test_fixture::volume_records(1U);
 
     const auto link_result = links::parse(link_bytes);
     const auto volume_result = volumes::parse(volume_bytes);
