@@ -274,6 +274,41 @@ int main() {
     assert(resized_parse.document.objects[0].meshes[0].positions.back().y == 1.0F);
     assert(resized_parse.document.objects[0].meshes[0].positions.back().z == 1.0F);
 
+    // Layout-changing canonical rebuild must not silently normalize an
+    // unmodeled non-zero source byte. 0xF4 is align16 padding immediately
+    // after the 3-vertex position stream in this fixture.
+    auto padded_source = source;
+    padded_source[0xF4U] = std::byte{0xA5U};
+    const auto padded_parse = Parser::parse(
+        std::span<const std::byte>{padded_source});
+    assert(padded_parse.ok());
+
+    const auto padded_preserve = Writer::write(
+        padded_parse.document, WriteMode::preserve_layout);
+    assert(padded_preserve.ok());
+    assert(padded_preserve.bytes == padded_source);
+
+    auto padded_resized_document = padded_parse.document;
+    auto& padded_mesh = padded_resized_document.objects[0].meshes[0];
+    padded_mesh.positions.push_back(Vec3f{1.0F, 1.0F, 1.0F});
+    padded_mesh.normals.push_back(Vec3f{0.0F, 1.0F, 0.0F});
+    padded_mesh.uvs.push_back(SerializedUv{0, 0});
+    padded_mesh.colors_topology.push_back(
+        ColorTopology{255U, 255U, 255U, 0U});
+
+    const auto rejected_unmodeled = Writer::write(
+        padded_resized_document, WriteMode::canonical_rebuild);
+    assert(!rejected_unmodeled.ok());
+    const auto unmodeled_diag = std::find_if(
+        rejected_unmodeled.diagnostics.begin(),
+        rejected_unmodeled.diagnostics.end(),
+        [](const ParseDiagnostic& diagnostic) {
+            return diagnostic.code ==
+                "scm.writer-canonical-reflow-unmodeled-nonzero-source";
+        });
+    assert(unmodeled_diag != rejected_unmodeled.diagnostics.end());
+    assert(unmodeled_diag->offset == 0xF4U);
+
     const auto texture_source = wrapped_texture_fixture();
     const auto texture_parse = dmc3::TextureSlotFramingParser::parse(
         std::span<const std::byte>{texture_source});
