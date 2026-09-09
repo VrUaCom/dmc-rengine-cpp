@@ -27,16 +27,25 @@ Canonical technical truth remains in the format/evidence documentation and `docs
 - [How to Extract DMC3 Stage Models](extract-stage-models.md)
 - [How to Inspect DMC3 Animations and MOT Research](inspect-animations.md)
 
+## Third wave
+
+- [How to Find DMC3 Character Models](character-models.md)
+- [How to Find and Inspect DMC3 Enemy Models](enemy-models.md)
+- [DMC Native Reader for Android — DMC3 Resource Inspection](native-reader-android.md)
+
+The Android guide is intentionally product-state aware: current `DMC-Native-Reader/main` promotes MOD, SCM, DDS and PTX. It does not advertise Windows, Web or iOS as shipped Native Reader platforms without implementation/build evidence.
+
 ## Search problems covered
 
-The guide system deliberately targets practical language people use before they know DMC Rengine or the underlying binary format names: `DMC3 unpacker`, `Devil May Cry 3 extractor`, `DMC3 NBZ extractor`, `DMC3 PAC extractor`, `DMC3 PNST`, `DMC3 model viewer`, `DMC3 texture extractor`, `Dante model`, `Dante textures`, `DMC3 stage models`, `DMC3 animations`, `open DMC3 MOD`, and `open DMC3 SCM`.
+The guide system deliberately targets practical language people use before they know DMC Rengine or the underlying binary format names: `DMC3 unpacker`, `Devil May Cry 3 extractor`, `DMC3 NBZ extractor`, `DMC3 PAC extractor`, `DMC3 PNST`, `DMC3 model viewer`, `DMC3 texture extractor`, `Dante model`, `Dante textures`, `DMC3 character models`, `DMC3 enemy models`, `DMC3 stage models`, `DMC3 animations`, `DMC3 Android viewer`, `DMC3 model viewer Android`, `DMC3 texture viewer Android`, `open DMC3 MOD`, and `open DMC3 SCM`.
 
 Each problem page links deeper into the canonical technical layer instead of creating several near-duplicate pages for spelling variants of the same search intent.
 
 ## Ecosystem routing
 
 - **DMC Rengine** — canonical C++20 parsers, reverse evidence, resource architecture and guarded authoring/rebuild research.
-- **DMC Native Reader** — user-facing reader/viewer product direction; platform and feature claims must follow the current build state rather than roadmap intent.
+- **DMC Native Reader** — current Android-facing reader/viewer application. Product/platform claims follow the app's promoted `main` surface rather than roadmap intent.
+- **DMC Rengine Native Reader integration registry** — a broader C++ integration surface than the current Android app; registry presence must not be misrepresented as an already-promoted application feature.
 - **GDSpaces / PocketGDS** — archive/resource navigation, nested materialization and provenance-oriented browsing.
 
 The projects are presented as one ecosystem with distinct roles, not as duplicate all-in-one tools.
