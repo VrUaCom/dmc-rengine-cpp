@@ -13,7 +13,11 @@
     "header": "include/dmc_rengine/formats/mod_writer.hpp",
     "source": "src/formats/mod_writer.cpp",
     "test": "tests/mod_writer_tests.cpp",
-    "testTarget": "dmc_rengine_mod_writer_tests"
+    "testTarget": "dmc_rengine_mod_writer_tests",
+    "corpusHeader": "include/dmc_rengine/formats/mod_writer_corpus.hpp",
+    "corpusSource": "src/formats/mod_writer_corpus.cpp",
+    "corpusTest": "tests/mod_writer_corpus_tests.cpp",
+    "corpusCli": "dmc-rengine mod-writer-corpus <directory> [receipt.json]"
   },
   "sourceAuthority": {
     "callerOwnedImmutableSourceRequired": true,
@@ -74,10 +78,27 @@
     "transform_edit_rejected",
     "document_source_bytes_tamper_rejected"
   ],
+  "retailCorpusValidation": {
+    "scope": "provenance-bound 38 unique retail MOD files: 35 em000 + 2 pl000 + 1 id100",
+    "runnerSourceCommit": "b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348",
+    "runnerSha256": "d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae",
+    "attestation": "data/reverse/dmc3-mod-writer-retail-38-attestation-20260909.json",
+    "sourceHashManifest": "data/reverse/dmc3-mod-writer-retail-38-source-hashes-20260909.txt",
+    "uniqueModFiles": 38,
+    "totalSourceBytes": 882736,
+    "passed": 38,
+    "failed": 0,
+    "modifiedByteCountTotal": 0,
+    "byteIdenticalAll": true,
+    "reopenAll": true,
+    "rawReceiptSha256": "f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8"
+  },
   "claims": {
     "syntheticFixtureNoEditByteParity": true,
     "syntheticFixtureControlledFixedLayoutEdit": true,
-    "fullRetailCorpusByteParity": false,
+    "fullRetailCorpusByteParity": true,
+    "fullRetailCorpusScope": "provenance-bound 38 unique MOD files: 35 em000 + 2 pl000 + 1 id100",
+    "fullRetailCorpusCanonicalReopen": true,
     "canonicalRebuildFromScratch": false,
     "transformAuthoring": false,
     "skinAuthoring": false,
@@ -89,9 +110,9 @@
     "fullModWriterAuthority": false
   },
   "nextFrontier": [
-    "real_mod_corpus_no_edit_parity_receipts",
+    "controlled_retail_fixed_layout_edit_receipt",
     "texture_companion_and_container_reintegration",
     "original_dmc3_exe_no_edit_acceptance",
-    "controlled_field_mutation_after_acceptance"
+    "original_dmc3_exe_controlled_edit_acceptance"
   ]
 }
