@@ -5,7 +5,7 @@
       "path": "/guides/extract-pac/",
       "title": "How to Extract DMC3 PAC Files — DMC Rengine",
       "description": "DMC3 PAC extraction guide covering slot-preserving parsing, nested resources and evidence-bounded reintegration.",
-      "summary": "Extract DMC3 PAC resources without flattening away the slot structure that gives each payload its physical identity. DMC Rengine preserves sparse and empty entries, nested resource relationships and provenance so PAC extraction remains useful for later Native Reader inspection and guarded authoring workflows.",
+      "summary": "Extract DMC3 PAC resources without flattening away the slot structure that gives each payload its physical identity. DMC Rengine preserves sparse and empty entries, nested resource relationships and provenance so PAC extraction remains useful for later typed inspection and guarded authoring workflows.",
       "source_path": "docs/guides/extract-pac.md",
       "sections": [
         {
@@ -19,9 +19,9 @@
         {
           "heading": "From PAC to the rest of the ecosystem",
           "items": [
-            "Materialized PAC children can be handed to canonical Native Reader modules such as MOD, SCM, DDS, PTX, HITS, SHW, DCA, LIG/LIG2 or Stage TXT when their format identity is established.",
-            "GDSpaces keeps the parent container and slot provenance attached to the child so downstream viewers and future reintegration tooling can trace where the resource came from instead of relying on a guessed output name.",
-            "Use PAC extraction as one layer in the DMC3 unpacking funnel, then continue to model, texture or format-specific inspection according to the actual child resource."
+            "Materialized PAC children can be handed to DMC Rengine Native Reader integration modules such as MOD, SCM, DDS, PTX, HITS, SHW, DCA, LIG2 or Stage TXT when their format identity is established; this broader C++ registry must not be confused with the narrower Android app module set.",
+            "The current DMC Native Reader Android application promotes MOD, SCM, DDS and PTX, while GDSpaces keeps the parent container and slot provenance attached so downstream inspection can trace where each resource came from.",
+            "Use PAC extraction as one layer in the DMC3 unpacking funnel, then continue to model, texture or format-specific inspection according to the actual child resource and the capability promoted by the consuming application."
           ]
         }
       ],
@@ -34,7 +34,7 @@
     {
       "path": "/guides/browse-pnst/",
       "title": "How to Browse DMC3 PNST Containers — DMC Rengine",
-      "description": "DMC3 PNST browsing guide for slot identity, nested resources and typed Native Reader handoff.",
+      "description": "DMC3 PNST browsing guide for slot identity, nested resources and typed reader handoff.",
       "summary": "Browse PNST containers as structured DMC3 resource graphs rather than flat folders. DMC Rengine preserves slot identity, aliases, empty entries and provenance, then routes materialized children to typed readers when a canonical parser exists.",
       "source_path": "docs/guides/browse-pnst.md",
       "sections": [
@@ -49,9 +49,9 @@
         {
           "heading": "Typed inspection after PNST",
           "items": [
-            "When a leaf resource belongs to a canonical reader family, the user can move from raw container browsing into structured model, scene, texture, collision, configuration or executable inspection.",
+            "When a leaf resource belongs to a canonical DMC Rengine reader family, the user can move from raw container browsing into structured model, scene, texture, collision, configuration or executable inspection according to the consuming tool's promoted capabilities.",
             "Recognition and inspection remain weaker claims than editing or writer authority, so opening a PNST child does not automatically advertise modification or original-game reintegration support for that child format.",
-            "This separation lets DMC Native Reader and PocketGDS provide user-facing navigation while the C++20 core remains the parser and evidence authority."
+            "GDSpaces/PocketGDS provide archive and resource navigation; the current DMC Native Reader Android app provides promoted MOD, SCM, DDS and PTX leaf inspection; DMC Rengine remains the broader C++20 parser, integration and evidence authority."
           ]
         }
       ],
@@ -125,7 +125,7 @@
       "path": "/guides/animations/",
       "title": "How to Inspect DMC3 Animations and MOT Research — DMC Rengine",
       "description": "DMC3 animation inspection guide connecting MOD hierarchy and pose data to the evidence-gated MOT research frontier.",
-      "summary": "Inspect DMC3 animation relationships without pretending MOD owns every motion semantic or that MOT is already a canonical Native Reader module. The workflow starts from promoted MOD hierarchy and transform evidence, then follows motion-group and MOT research into evaluated poses while keeping animation authoring and runtime acceptance explicitly open.",
+      "summary": "Inspect DMC3 animation relationships without pretending MOD owns every motion semantic. MOT is present in the broader DMC Rengine C++ Native Reader integration registry, while the current DMC Native Reader Android app does not promote MOT in its main module set. Animation authoring and original-runtime acceptance remain separate proof gates.",
       "source_path": "docs/guides/inspect-animations.md",
       "sections": [
         {
@@ -137,17 +137,18 @@
           ]
         },
         {
-          "heading": "MOT remains an active research frontier",
+          "heading": "MOT registry presence and Android app promotion are different claims",
           "items": [
-            "MOT reverse and parser work exists outside the canonical built-in Native Reader set, so the public page describes animation research rather than advertising completed cross-platform MOT reader support.",
-            "Complete animation authoring, universal MOT revision coverage and edited-motion original-game acceptance require their own proof gates and are not implied by pose-aware MOD inspection.",
-            "As MOT is promoted in the future, this route can evolve from research-oriented inspection toward stronger tooling without rewriting the evidence history or overstating the current state."
+            "The canonical DMC Rengine Native Reader integration registry includes a MOT module, so C++ integration presence is real and should not be described as absent.",
+            "The current DMC Native Reader Android application main remains intentionally narrower and promotes MOD, SCM, DDS and PTX rather than MOT, so this page does not advertise completed Android MOT viewing.",
+            "Complete animation authoring, universal MOT revision coverage and edited-motion original-game acceptance require their own proof gates and are not implied by registry presence or pose-aware MOD inspection."
           ]
         }
       ],
       "related_links": [
         {"path": "/guides/inspect-mod/", "label": "Inspect the MOD hierarchy used by animation research"},
         {"path": "/formats/mod/", "label": "Read canonical DMC3 MOD format research"},
+        {"path": "/native-reader/android/", "label": "See the current Android reader module boundary"},
         {"path": "/status/", "label": "Check current MOT and Native Reader promotion status"}
       ]
     }
