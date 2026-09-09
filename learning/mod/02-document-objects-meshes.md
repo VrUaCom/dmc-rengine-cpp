@@ -86,6 +86,8 @@ high-level meaning               PRESERVED_UNDECODED
 writer policy                    preserve exact source u32
 ```
 
+У canonical C++ contract це поле навмисно представлено нейтральною projection-назвою `runtime_metadata_u32`: назва фіксує width і підтверджений runtime carry, але не вигадує high-level semantic.
+
 Не переносити сюди SCM `LegacyResourceCode` semantics і не відновлювати `+0x14` із filename/resource name.
 
 ## Outer object: `0x40`
