@@ -69,10 +69,14 @@ struct NativeExecutionReport final {
     }
 };
 
-// Executes a topologically ordered native Spider plan serially. ExecutionDomain
-// is preserved as scheduling metadata but this first generic kernel deliberately
-// does not create threads, GPU queues, scripting runtimes, or format logic.
-// Native operation bindings remain thin calls into authoritative C++20 modules.
+// Low-level generic native Spider execution kernel. The product-facing Spider
+// family name for this role is Crusader; `spider/crusader.hpp` exposes a
+// zero-overhead facade over these exact types and this exact function.
+//
+// Executes a topologically ordered native plan serially. ExecutionDomain is
+// preserved as scheduling metadata but this kernel deliberately does not create
+// threads, GPU queues, scripting runtimes, UI policy, or format logic. Native
+// operation bindings remain thin calls into authoritative C++20 modules.
 [[nodiscard]] NativeExecutionReport execute_native_plan(
     const NativePlan& plan,
     std::span<const NativeOperationBinding> bindings,
