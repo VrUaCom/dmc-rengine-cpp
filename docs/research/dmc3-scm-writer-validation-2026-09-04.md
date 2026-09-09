@@ -108,7 +108,28 @@ reported offending offset           -> 0xF4
 
 The index workspace is intentionally classified as regeneratable under canonical rebuild and therefore is not treated as an unknown transplant domain.
 
-## 5. Dependent-field policy
+## 5. Source-bound authoring authority
+
+A parsed `Document` exposes both semantic and preservation-only fields. That public IR must not let a caller bypass evidence-aware authoring simply by directly assigning an undecoded or derived field and then asking the writer to serialize it.
+
+The source-bound writer therefore fails closed when retained-source comparison finds unauthorized direct mutation of preservation-only or derived state.
+
+Regression coverage now explicitly proves rejection of:
+
+- header `reserved13` direct mutation;
+- object flag bit `0x00200000`, which remains preserved/undecoded;
+- direct `bounding_radius` mutation when it is a derived writer-controlled field rather than an authorized semantic edit.
+
+Stable diagnostics:
+
+```text
+scm.writer-source-bound-undecoded-field-mutated
+scm.writer-source-bound-derived-field-mutated
+```
+
+This is an authority boundary, not merely an input-validation convenience: unknown and derived fields remain protected even though their storage is visible in the IR.
+
+## 6. Dependent-field policy
 
 ### Object vertex totals
 
@@ -143,7 +164,7 @@ radius = max(distance(center, vertex))
 
 It does not invent an unrecovered center-generation algorithm.
 
-## 6. Safe editing API
+## 7. Safe editing API
 
 `scm_edit.hpp` currently exposes:
 
@@ -170,7 +191,7 @@ Safety properties include:
 
 Unknown source flag `0x00200000` has no semantic setter and remains preservation-only.
 
-## 7. Provenance-bound consolidated retail corpus gate
+## 8. Provenance-bound consolidated retail corpus gate
 
 The current corpus verifier is:
 
@@ -201,7 +222,7 @@ This supersedes the earlier two-file-only baseline (`st001.scm` and `st114.scm`)
 
 The result proves the current writer reproduces all 68 unique hash-bound inputs byte-for-byte in both no-edit modes. It does **not** prove every possible SCM layout or edited layout accepted by the original game.
 
-## 8. Size-changing synthetic acceptance
+## 9. Size-changing synthetic acceptance
 
 Regression expands one synthetic mesh from three to four vertices while extending all four parallel streams.
 
@@ -218,7 +239,7 @@ edited payload    -> survives reopen
 
 This proves the deterministic reflow implementation mechanically for the covered synthetic topology. Real-retail size-changing authoring remains a separate gate.
 
-## 9. Texture companion coherence gate
+## 10. Texture companion coherence gate
 
 `ScmResourceBundleWriter` reuses the canonical texture framing and packed-reflow infrastructure rather than introducing another texture writer.
 
@@ -240,7 +261,7 @@ Synthetic regression currently proves:
 
 The texture reflow implementation exists behind this bundle gate, but a provenance-bound retail SCM texture rewrite has **not** yet been promoted by this record.
 
-## 10. Current maturity
+## 11. Current maturity
 
 Current evidence supports:
 
@@ -253,6 +274,7 @@ retail no-edit corpus                 78 paths / 68 unique PASS
 preserve-layout retail byte parity    68 / 68 unique PASS
 canonical no-edit retail byte parity  68 / 68 unique PASS
 canonical output reparse              68 / 68 unique PASS
+source-bound mutation authority       fail-closed regression PASS
 size-changing rebuild                 synthetic PASS only
 unknown-byte reflow protection        fail-closed regression PASS
 texture companion coherence           synthetic bounded PASS
@@ -264,7 +286,7 @@ full SCM writer authority             false
 
 Registry maturity must therefore remain below game-validated/production authoring authority.
 
-## 11. Next evidence frontier
+## 12. Next evidence frontier
 
 Do not repeat the already-closed 68-unique no-edit corpus pass. The next useful SCM evidence is:
 
