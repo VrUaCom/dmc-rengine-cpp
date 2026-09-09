@@ -1,7 +1,8 @@
 {
-  "schema": "dmc-rengine.scm-writer-validation.v1",
-  "date": "2026-09-04",
-  "branch": "scm",
+  "schema": "dmc-rengine.scm-writer-validation.v2",
+  "date": "2026-09-09",
+  "branch": "reverse/mod-completion-20260907",
+  "historicalSourceBranch": "scm",
   "canonicalExecutable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -26,6 +27,8 @@
       "canonical_rebuild"
     ],
     "postWriteGate": "canonical-parser-reparse-required",
+    "canonicalReflowUnknownBytePolicy": "fail-closed-on-nonzero-unmodeled-source-byte",
+    "canonicalReflowUnknownByteDiagnostic": "scm.writer-canonical-reflow-unmodeled-nonzero-source",
     "safeEditApi": [
       "set_vertex_position",
       "set_vertex_normal",
@@ -38,6 +41,7 @@
       "set_node_translation",
       "set_node_rotation"
     ],
+    "textureCompanionCoherenceGate": "ScmResourceBundleWriter",
     "corpusVerifierCommand": "dmc-rengine verify-scm-corpus <directory> [--json <report.json>]",
     "corpusReportSchema": "dmc-rengine.scm-corpus-report.v1"
   },
@@ -63,6 +67,19 @@
       "canonicalByteIdentical": true
     }
   ],
+  "consolidatedCorpusValidation": {
+    "receipt": "data/reverse/dmc3-scm-consolidated-corpus-20260909.json",
+    "scope": "external hash-bound retail corpus; payload bytes not distributed",
+    "paths": 78,
+    "uniqueSha256": 68,
+    "duplicatePaths": 10,
+    "parseOk": 78,
+    "preserveLayoutWriteOk": 78,
+    "preserveLayoutByteIdentical": 78,
+    "canonicalWriteAndReparseOk": 78,
+    "canonicalByteIdentical": 78,
+    "canonicalByteIdenticalPercent": 100.0
+  },
   "syntheticSizeChangingAcceptance": {
     "initialVertexCount": 3,
     "editedVertexCount": 4,
@@ -72,14 +89,31 @@
     "derivedMeshVertexCount": 4,
     "derivedObjectTotalVertexCount": 4
   },
+  "syntheticUnknownBytePreservationGate": {
+    "nonzeroPaddingOffset": 244,
+    "nonzeroPaddingByte": 165,
+    "preserveLayoutByteIdentical": true,
+    "layoutChangingCanonicalRebuild": "rejected-as-required",
+    "diagnostic": "scm.writer-canonical-reflow-unmodeled-nonzero-source"
+  },
+  "syntheticTextureCompanionCoherenceGate": {
+    "sourceFramingReparse": true,
+    "scmTextureCountMirrorRequired": true,
+    "meshTextureIndexBoundsRequired": true,
+    "unchangedCompanionBytesPreserved": true,
+    "textureSlotCountChangeRejected": true,
+    "retailTextureRewriteValidated": false
+  },
   "maturity": {
     "reader": "strong",
     "writer": "experimental",
-    "fullCorpusRoundtrip": "pending",
-    "textureCompanionAuthoring": "pending",
-    "pacNbzReintegration": "pending",
+    "fullCorpusNoEditRoundtrip": "pass-78-paths-68-unique",
+    "canonicalRebuildNoEditCorpusParity": "pass-78-paths-68-unique",
+    "sizeChangingCanonicalRebuild": "synthetic-only",
+    "textureCompanionAuthoring": "bounded-coherence-implementation-retail-rewrite-pending",
+    "pacNbzReintegration": "pending-for-scm",
     "originalGameAcceptance": "pending",
-    "registryPromotion": "blocked"
+    "registryPromotion": "blocked-on-runtime-acceptance-and-authoring-breadth"
   },
-  "claimBoundary": "Two preserved real SCM specimens and synthetic writer regressions are positive evidence only. No full-corpus, original-game, or production-ready claim is made."
+  "claimBoundary": "The consolidated hash-bound corpus proves 78/78 paths (68 unique SHA-256 SCM inputs) parse, preserve-layout no-op roundtrip and canonical no-op rebuild with exact byte identity and canonical reparse. Size-changing rebuild, texture-companion authoring breadth, PAC/NBZ reintegration and original dmc3.exe acceptance remain separate gates; no production-ready or 100% SCM claim is made."
 }
