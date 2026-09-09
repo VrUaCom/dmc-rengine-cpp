@@ -16,6 +16,10 @@ INTENT_WAVES = (
     base.ROOT / "site" / "intent-pages-wave4.json",
 )
 _V2_LOAD_MANIFEST = v2.load_manifest
+INDEXNOW_KEY_SOURCE = base.ROOT / "site" / "6ef2bc73288e1e2b580119a4b1bfc2fa.txt"
+INDEXNOW_ALLOWED_CHARS = set(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
+)
 
 
 def _merge_intent_wave(site: dict, manifest_path: Path) -> dict:
@@ -133,6 +137,25 @@ def _augment_intent_graph(site: dict) -> dict:
     return site
 
 
+def _publish_indexnow_key(output: Path) -> None:
+    try:
+        key = INDEXNOW_KEY_SOURCE.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise SystemExit(f"IndexNow key source cannot be read: {INDEXNOW_KEY_SOURCE}") from exc
+
+    if not 8 <= len(key) <= 128:
+        raise SystemExit("IndexNow key length must be between 8 and 128 characters")
+    if any(char not in INDEXNOW_ALLOWED_CHARS for char in key):
+        raise SystemExit("IndexNow key contains characters outside the protocol allow-list")
+    if INDEXNOW_KEY_SOURCE.stem != key:
+        raise SystemExit("IndexNow key filename must match the key value")
+
+    target = output / INDEXNOW_KEY_SOURCE.name
+    target.write_text(key + "\n", encoding="utf-8")
+    if target.read_text(encoding="utf-8").strip() != key:
+        raise SystemExit("generated IndexNow key file failed round-trip validation")
+
+
 def load_manifest() -> dict:
     site = _V2_LOAD_MANIFEST()
     for manifest_path in INTENT_WAVES:
@@ -148,6 +171,7 @@ def build(output: Path, base_url: str | None) -> None:
         v2.build(output, base_url)
     finally:
         v2.load_manifest = original_load_manifest
+    _publish_indexnow_key(output)
 
 
 if __name__ == "__main__":
