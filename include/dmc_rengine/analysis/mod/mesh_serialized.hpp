@@ -105,12 +105,13 @@ read_mesh_serialized_preservation(
         static_cast<std::size_t>(offset64));
 }
 
-// These constants drive the canonical read-only MOD skin decoder. CPU consumer
-// 0x1402F3D0A reads BLENDINDICES lane[1] and divides the matrix-row offset by
-// four. Canonical MOD shader families use matIndex.y/z/w and no matIndex.x use
-// was found. Lane X is nevertheless not called reserved: its global CPU role
-// is not exhaustively closed and the serialized byte remains
-// PRESERVED_UNDECODED.
+// These constants drive the canonical read-only MOD skin decoder. The direct
+// CPU path has a provenance-confirmed lane-Y read at 0x1402F3D0A and no lane-X
+// dereference. The former indirect GPU escape is also closed for the canonical
+// executable: every BLENDINDICES DXBC input signature uses ReadWriteMask=0xE,
+// so compiled shaders consume Y/Z/W and not X. Lane X is still part of the
+// serialized u8x4 ABI and remains source-preserved rather than being renamed
+// padding/reserved or force-normalized to zero.
 static_assert(dmc::rengine::formats::mod::matrix_row_stride == 4U);
 static_assert(dmc::rengine::formats::mod::quantized_weight_sum == 31U);
 static_assert(dmc::rengine::formats::mod::topology_break_mask == 0x8000U);
