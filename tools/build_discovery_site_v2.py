@@ -15,6 +15,26 @@ import build_discovery_site as base
 from discovery_format_catalog import expand_manifest, inject_page_extras, write_site_index
 
 _ORIGINAL_RENDER_PAGE = base.render_page
+INTENT_MANIFEST = base.ROOT / "site" / "intent-pages.json"
+
+
+def _merge_intent_pages(site: dict) -> dict:
+    if not INTENT_MANIFEST.is_file():
+        return site
+    document = json.loads(INTENT_MANIFEST.read_text(encoding="utf-8"))
+    pages = document.get("pages")
+    if not isinstance(pages, list) or not pages:
+        raise SystemExit("site intent manifest contains no pages")
+    existing = {page.get("path") for page in site.get("pages", []) if isinstance(page, dict)}
+    for page in pages:
+        if not isinstance(page, dict):
+            raise SystemExit("every intent page definition must be an object")
+        path = page.get("path")
+        if path in existing:
+            raise SystemExit(f"duplicate intent public path: {path}")
+        existing.add(path)
+        site.setdefault("pages", []).append(page)
+    return site
 
 
 def _refine_presence_boundaries(site: dict) -> dict:
@@ -292,9 +312,29 @@ def _rewrite_learning_cards(document: str, site: dict, page: dict, base_url: str
     return document
 
 
+def nav_html(pages: list[dict], base_url: str | None) -> str:
+    primary = [
+        ("/", "Home"),
+        ("/guides/", "Guides"),
+        ("/unpacker/", "Unpacker"),
+        ("/models/", "Models"),
+        ("/textures/", "Textures"),
+        ("/formats/", "Formats"),
+        ("/modding/", "Modding"),
+        ("/status/", "Status"),
+    ]
+    valid = {page["path"] for page in pages}
+    return "".join(
+        f'<a href="{html.escape(base.public_url(base_url, path), quote=True)}">{html.escape(label)}</a>'
+        for path, label in primary
+        if path in valid
+    )
+
+
 def load_manifest() -> dict:
     raw = json.loads(base.MANIFEST.read_text(encoding="utf-8"))
     expanded = expand_manifest(raw, base.ROOT)
+    expanded = _merge_intent_pages(expanded)
     expanded = _refine_presence_boundaries(expanded)
     expanded = _expand_native_lessons(expanded)
     return base.validate_manifest(expanded)
@@ -310,14 +350,17 @@ def render_page(site: dict, page: dict, base_url: str | None) -> str:
 def build(output: Path, base_url: str | None) -> None:
     original_load_manifest = base.load_manifest
     original_render_page = base.render_page
+    original_nav_html = base.nav_html
     base.load_manifest = load_manifest
     base.render_page = render_page
+    base.nav_html = nav_html
     try:
         base.build(output, base_url)
         write_site_index(output, load_manifest())
     finally:
         base.load_manifest = original_load_manifest
         base.render_page = original_render_page
+        base.nav_html = original_nav_html
 
 
 if __name__ == "__main__":
