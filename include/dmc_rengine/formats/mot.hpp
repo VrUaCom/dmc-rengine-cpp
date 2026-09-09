@@ -1,5 +1,8 @@
 #pragma once
 
+#include "dmc_rengine/formats/mot/abi.hpp"
+#include "dmc_rengine/formats/mot/parser.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -68,14 +71,8 @@ struct MotParseResult final {
     }
 };
 
-// Structural reader for the DMC3 motion payload.
-//
-// The format carries no usable magic — the `MOT` tag at `+4` is compared
-// nowhere in the executable — so what identifies a motion is that its own
-// arithmetic closes: every track's declared size must equal its key count's,
-// the chain of sizes must land exactly on the terminator, and every track's
-// stamps must increase. A file that fails any of those is refused rather than
-// read part-way.
+// Compatibility summary over the canonical modular MOT parser.
+// No independent byte decoding; legacy product bounds remain explicit.
 class MotParser final {
 public:
     // Product-side bound. The one real payload declares 69 tracks.
