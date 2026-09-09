@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-writer-validation.v2",
+  "schema": "dmc-rengine.scm-writer-validation.v3",
   "date": "2026-09-09",
   "branch": "reverse/mod-completion-20260907",
   "historicalSourceBranch": "scm",
@@ -27,6 +27,9 @@
       "canonical_rebuild"
     ],
     "postWriteGate": "canonical-parser-reparse-required",
+    "sourceBoundAuthorityPolicy": "fail-closed-on-direct-mutation-of-undecoded-or-derived-source-bound-fields",
+    "sourceBoundUndecodedDiagnostic": "scm.writer-source-bound-undecoded-field-mutated",
+    "sourceBoundDerivedDiagnostic": "scm.writer-source-bound-derived-field-mutated",
     "canonicalReflowUnknownBytePolicy": "fail-closed-on-nonzero-unmodeled-source-byte",
     "canonicalReflowUnknownByteDiagnostic": "scm.writer-canonical-reflow-unmodeled-nonzero-source",
     "safeEditApi": [
@@ -80,6 +83,15 @@
     "canonicalByteIdentical": 78,
     "canonicalByteIdenticalPercent": 100.0
   },
+  "syntheticSourceBoundAuthorityGate": {
+    "reservedHeaderMutationRejected": true,
+    "reservedHeaderOffset": 19,
+    "undecodedObjectFlagMutationRejected": true,
+    "undecodedObjectFlagMask": "0x00200000",
+    "directDerivedBoundingRadiusMutationRejected": true,
+    "undecodedDiagnostic": "scm.writer-source-bound-undecoded-field-mutated",
+    "derivedDiagnostic": "scm.writer-source-bound-derived-field-mutated"
+  },
   "syntheticSizeChangingAcceptance": {
     "initialVertexCount": 3,
     "editedVertexCount": 4,
@@ -109,11 +121,12 @@
     "writer": "experimental",
     "fullCorpusNoEditRoundtrip": "pass-78-paths-68-unique",
     "canonicalRebuildNoEditCorpusParity": "pass-78-paths-68-unique",
+    "sourceBoundMutationAuthority": "fail-closed-regression-covered",
     "sizeChangingCanonicalRebuild": "synthetic-only",
     "textureCompanionAuthoring": "bounded-coherence-implementation-retail-rewrite-pending",
     "pacNbzReintegration": "pending-for-scm",
     "originalGameAcceptance": "pending",
     "registryPromotion": "blocked-on-runtime-acceptance-and-authoring-breadth"
   },
-  "claimBoundary": "The consolidated hash-bound corpus proves 78/78 paths (68 unique SHA-256 SCM inputs) parse, preserve-layout no-op roundtrip and canonical no-op rebuild with exact byte identity and canonical reparse. Size-changing rebuild, texture-companion authoring breadth, PAC/NBZ reintegration and original dmc3.exe acceptance remain separate gates; no production-ready or 100% SCM claim is made."
+  "claimBoundary": "The consolidated hash-bound corpus proves 78/78 paths (68 unique SHA-256 SCM inputs) parse, preserve-layout no-op roundtrip and canonical no-op rebuild with exact byte identity and canonical reparse. Source-bound direct mutation of undecoded/derived fields and non-zero unmodeled reflow bytes fails closed in regression. Size-changing rebuild, texture-companion authoring breadth, PAC/NBZ reintegration and original dmc3.exe acceptance remain separate gates; no production-ready or 100% SCM claim is made."
 }
