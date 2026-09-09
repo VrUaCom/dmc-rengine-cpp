@@ -73,6 +73,9 @@ jobs:
           test -f _site/guides/dante-model-textures/index.html
           test -f _site/guides/character-models/index.html
           test -f _site/guides/enemy-models/index.html
+          test -f _site/guides/vergil-model-textures/index.html
+          test -f _site/guides/weapon-models/index.html
+          test -f _site/guides/blender-import/index.html
           test -f _site/guides/stage-models/index.html
           test -f _site/guides/animations/index.html
           test -f _site/native-reader/android/index.html
@@ -93,6 +96,10 @@ jobs:
           grep -q 'How to Find Dante Models and Textures' _site/guides/dante-model-textures/index.html
           grep -q 'How to Find DMC3 Character Models' _site/guides/character-models/index.html
           grep -q 'How to Find and Inspect DMC3 Enemy Models' _site/guides/enemy-models/index.html
+          grep -q 'How to Find Vergil Models and Textures' _site/guides/vergil-model-textures/index.html
+          grep -q 'Yamato, Rebellion, Beowulf' _site/guides/weapon-models/index.html
+          grep -q 'DMC3 Blender Import' _site/guides/blender-import/index.html
+          grep -q 'independent community Blender projects' _site/guides/blender-import/index.html
           grep -q 'How to Inspect DMC3 Animations' _site/guides/animations/index.html
           grep -q 'DMC Native Reader for Android' _site/native-reader/android/index.html
           grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
