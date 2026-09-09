@@ -1,12 +1,45 @@
 #include "dmc_rengine/formats/mod_skin.hpp"
+#include "dmc_rengine/formats/mod/transform_domain.hpp"
+#include "dmc_rengine/formats/mod/world_transform.hpp"
 
 #include <array>
+#include <bit>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <vector>
+
+namespace {
+void put_u32(std::vector<std::byte>& bytes,
+             const std::size_t offset,
+             const std::uint32_t value) {
+    for (std::size_t i = 0U; i < 4U; ++i) {
+        bytes[offset + i] =
+            static_cast<std::byte>((value >> (8U * i)) & 0xFFU);
+    }
+}
+
+void put_u64(std::vector<std::byte>& bytes,
+             const std::size_t offset,
+             const std::uint64_t value) {
+    put_u32(bytes, offset, static_cast<std::uint32_t>(value));
+    put_u32(bytes,
+            offset + 4U,
+            static_cast<std::uint32_t>(value >> 32U));
+}
+
+void put_f32(std::vector<std::byte>& bytes,
+             const std::size_t offset,
+             const float value) {
+    put_u32(bytes, offset, std::bit_cast<std::uint32_t>(value));
+}
+} // namespace
 
 int main() {
     namespace mod = dmc::rengine::formats::mod;
+    namespace domain = dmc::rengine::formats::mod::transform_domain;
+    namespace world = dmc::rengine::formats::mod::world_transform;
 
     {
         const auto decoded = mod::decode_vertex_skin(
@@ -116,6 +149,51 @@ int main() {
         assert(
             duplicate.status ==
             mod::SkinDecodeStatus::duplicate_active_bone);
+    }
+
+    {
+        // transform +0x1C is also PRESERVED_UNDECODED. A synthetic non-zero
+        // scalar must survive parsing while remaining outside the currently
+        // proven XYZ local-matrix semantic.
+        std::vector<std::byte> bytes(0x90U);
+        bytes[0U] = std::byte{'M'};
+        bytes[1U] = std::byte{'O'};
+        bytes[2U] = std::byte{'D'};
+        bytes[3U] = std::byte{' '};
+        bytes[0x11U] = std::byte{1U};
+        put_u64(bytes, 0x20U, 0x40U);
+
+        put_u32(bytes, 0x40U, 0x20U);
+        put_u32(bytes, 0x44U, 0x24U);
+        put_u32(bytes, 0x48U, 0x28U);
+        put_u32(bytes, 0x4CU, 0x30U);
+        bytes[0x60U] = std::byte{0xFFU};
+        bytes[0x64U] = std::byte{0U};
+        bytes[0x68U] = std::byte{0U};
+
+        put_f32(bytes, 0x70U + 0x00U, 0.0F);
+        put_f32(bytes, 0x70U + 0x04U, 0.0F);
+        put_f32(bytes, 0x70U + 0x08U, 0.0F);
+        put_f32(bytes, 0x70U + 0x0CU, 0.0F);
+        put_f32(bytes, 0x70U + 0x10U, 0.1F);
+        put_f32(bytes, 0x70U + 0x14U, 0.2F);
+        put_f32(bytes, 0x70U + 0x18U, 0.3F);
+        put_f32(bytes, 0x70U + 0x1CU, 123.25F);
+
+        const auto parsed = domain::parse(bytes);
+        assert(parsed.ok());
+        assert(parsed.local_transform_records_by_node_index.size() == 1U);
+        const auto& record = parsed.local_transform_records_by_node_index[0];
+        assert(record.reserved1c == 123.25F);
+
+        auto changed_unknown = record;
+        changed_unknown.reserved1c = -99.5F;
+        const auto original_matrix = world::build_local_matrix(record);
+        const auto changed_matrix = world::build_local_matrix(changed_unknown);
+        for (std::size_t i = 0U; i < original_matrix.values.size(); ++i) {
+            assert(std::fabs(original_matrix.values[i] -
+                             changed_matrix.values[i]) < 0.000001F);
+        }
     }
 
     return 0;
