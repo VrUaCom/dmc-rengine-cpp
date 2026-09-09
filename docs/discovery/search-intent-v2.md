@@ -20,8 +20,11 @@ Primary practical intents include:
 - DMC3 model extractor / model viewer;
 - DMC3 texture extractor / texture viewer;
 - Dante model / Dante textures;
+- DMC3 character models;
+- DMC3 enemy models;
 - DMC3 stage models / stage resources;
 - DMC3 animations / MOT inspection;
+- DMC3 Android viewer / model viewer Android / texture viewer Android;
 - open or inspect DMC3 MOD;
 - open or inspect DMC3 SCM;
 - DMC3 modding tools;
@@ -40,10 +43,13 @@ Guides translate real project capability into workflows ordinary users can follo
 - extracting models;
 - extracting textures;
 - finding Dante-related models and textures;
+- finding character models;
+- finding and inspecting enemy models;
 - extracting stage-related models and scene resources;
 - opening and inspecting MOD;
 - opening and inspecting SCM;
-- inspecting animation relationships and MOT research.
+- inspecting animation relationships and MOT research;
+- using the current DMC Native Reader Android application surface for promoted MOD, SCM, DDS and PTX inspection.
 
 Guide wording is evidence-bounded. `extract`, `browse`, `open`, `view`, `inspect`, `edit`, `replace`, `repack` and `rebuild` are different operations and must not be used as synonyms.
 
@@ -51,11 +57,20 @@ Guide wording is evidence-bounded. `extract`, `browse`, `open`, `view`, `inspect
 
 ### DMC Rengine
 
-Canonical C++20 parser, reverse-evidence and reconstruction authority. Public claims should point back to `main`, format specifications, current status and evidence records.
+Canonical C++20 parser, reverse-evidence, integration and reconstruction authority. Public claims should point back to `main`, format specifications, current status and evidence records.
+
+The DMC Rengine Native Reader integration registry is a C++ integration surface and is broader than any one user-facing application. Registry presence is evidence that a module is integrated in the core, not proof that every consuming product exposes that module.
 
 ### DMC Native Reader
 
-User-facing reader/viewer product direction that consumes canonical native parser contracts. Platform and format claims must follow actual current build state, not roadmap intent.
+Current Android-facing reader/viewer application. Its promoted `main` surface is intentionally narrower than the DMC Rengine integration registry and currently includes:
+
+- MOD;
+- SCM;
+- DDS;
+- PTX.
+
+Platform and format claims must follow the actual application build state, not roadmap intent. Windows, Web and iOS are not advertised as shipped Native Reader platforms until their own implementation and build evidence are promoted.
 
 ### GDSpaces / PocketGDS
 
@@ -78,7 +93,7 @@ Technical pages cover the underlying resource families and architecture:
 - LIG/LIG2;
 - DCA;
 - executable/runtime evidence;
-- MOT and other active research frontiers where promotion state is explicit.
+- MOT and other active research frontiers where parser, registry and application-promotion states are kept distinct.
 
 The technical layer must remain stronger than the SEO wording: search pages summarize evidence, they do not replace it.
 
@@ -97,6 +112,16 @@ DMC Rengine
 ```
 
 The ecosystem can mention DMC Native Reader and GDSpaces/PocketGDS when the route genuinely benefits from them, but each project keeps a distinct product role.
+
+The public wording must also distinguish:
+
+```text
+DMC Rengine Native Reader integration registry
+    !=
+DMC Native Reader Android application module set
+```
+
+This prevents a canonical C++ integration module from being misreported as an already-shipped Android feature.
 
 ## Capability boundaries
 
@@ -118,10 +143,13 @@ Current user-intent routes include:
 /guides/extract-models/
 /guides/extract-textures/
 /guides/dante-model-textures/
+/guides/character-models/
+/guides/enemy-models/
 /guides/stage-models/
 /guides/inspect-mod/
 /guides/inspect-scm/
 /guides/animations/
+/native-reader/android/
 /models/
 /textures/
 /modding/
@@ -149,6 +177,7 @@ Track transitions such as `not found -> indexed -> top 20 -> top 10 -> top 3` in
 - Every practical route answers a distinct user problem.
 - Every page has a canonical technical source.
 - Search wording never upgrades reader support into authoring support.
+- Core registry coverage and application feature coverage are reported separately.
 - Near-duplicate keyword pages are rejected.
 - DMC Native Reader and GDSpaces/PocketGDS are mentioned only for real ecosystem roles.
 - New guide waves must be added to the same manifest-driven Pages build and sitemap.
