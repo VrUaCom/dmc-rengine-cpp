@@ -152,6 +152,62 @@ writer policy                       preserve
 
 Вони EXE-consumed для source flags `0x200/0x400`, а retail `em000_033.mod` має real non-zero values. Факт live runtime input — `EXE_AND_CORPUS_CONFIRMED`; artistic names відкриті.
 
+## Retained serialized-object pointer: як не переплутати escape з consumer
+
+MOD/EFM initializer зберігає pointer на весь serialized object record у runtime object `+0x18`. Це означає, що initializer-local “no read” не закриває unknown object bytes автоматично.
+
+Новий direct-EXE pass дав три різні класи результатів.
+
+### Реальний MOD consumer
+
+Canonical MOD runtime mesh builder:
+
+```text
+0x1402FE6A0..0x1402FE921
+runtime object stride = 0x380
+0x1402FE6F4 -> load runtime +0x18 retained pointer
+0x1402FE700 -> read serialized object +0x08 mesh table
+```
+
+Тобто retained pointer справді живий. Але в цьому path він бере `object+0x08`, після чого provenance переходить у 0x50-byte mesh records. Secondary regions `+0x04..07`, `+0x14..17`, `+0x20..2F` тут не читаються.
+
+### Load без downstream dereference
+
+Canonical MOD render-command builder:
+
+```text
+0x1402FE930..0x1402FF563
+0x1402FED8E -> load runtime +0x18
+0x1402FED92 -> save to local rbp+0x30
+later reads of rbp+0x30 = 0
+```
+
+Це `EXE_CONFIRMED` bounded non-consumption, але не whole-program proof.
+
+### Cross-format false positive
+
+Функція `0x140302F10..0x14030345A` теж має serialized `0x40` stride і retained `+0x18` pointer, але runtime object stride там `0x3C0`, а direct code містить відомі SCM compatibility rewrites `EA -> C5` і `C4 -> 80`.
+
+Отже:
+
+```text
+same +0x18 offset      != same owner
+same 0x40 record stride != same format
+SCM 0x3C0 runtime path != MOD/EFM 0x380 runtime path
+```
+
+Це `REJECTED` як MOD consumer. Саме тому provenance важливіший за схожість offsets.
+
+Secondary object regions поки залишаються:
+
+```text
+CORPUS_CONFIRMED zero
+initializer direct read = none
+several downstream paths classified
+whole-program non-use = not yet proven
+writer policy = preserve
+```
+
 ## Negative evidence
 
 «Цей path не читає поле» — сильний факт, але це не те саме, що «поле ніде не використовується».
@@ -177,7 +233,8 @@ unused padding
 
 - MOD `+0x14` не отримує SCM `LegacyResourceCode` semantics;
 - EFM `mesh+0x38 -> COLOR0` не дає права назвати MOD `mesh+0x38` COLOR0;
-- transform `+0x1C` у MOD не успадковує meaning із homologous field іншої family.
+- transform `+0x1C` у MOD не успадковує meaning із homologous field іншої family;
+- SCM retained-pointer path із runtime stride `0x3C0` не є MOD consumer лише через shared `+0x18`/`0x40` physical pattern.
 
 ## Evidence ladder
 
