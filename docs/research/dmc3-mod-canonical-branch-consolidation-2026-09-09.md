@@ -33,7 +33,7 @@ PR #305 already established this rule for the first large consolidation: salvage
 
 ## Full MOD-related branch audit
 
-The branch-name audit found 33 refs whose names directly matched the MOD workstream. A second PR/history audit found three additional mixed branches whose names do not contain `mod` but which contain historical MOD implementation/evidence. Both sets are classified below.
+The branch-name audit found 33 refs whose names directly matched the MOD workstream. A second PR/history audit found five additional mixed/runtime branches whose names do not contain `mod` but which contain historical MOD implementation/evidence or typed post-load context. Both sets are classified below: **38 reviewed refs total**.
 
 ### A. Canonical active branch
 
@@ -87,15 +87,17 @@ These refs reported `ahead=0` against the audited current main, or are exact int
 
 ### D. Mixed historical branches found through PR/history audit
 
-These branches did not match the MOD branch-name search but contain older MOD code or runtime evidence mixed with other work. Their MOD portion is not an independent salvage source.
+These branches did not match the MOD branch-name search but contain older MOD code, runtime evidence, or typed post-load context mixed with other work. Their MOD portion is not an independent salvage source.
 
 | Branch / PR | Historical MOD content | Current action |
 |---|---|---|
 | `claude/rengine-cpp-analysis-review-541wxb` / PR #280 | early structural EFM/MOD/MOT/PTX/SHW parser package | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; non-MOD slices require their own reconciliation |
 | `claude/android-gds-app-msiuu8` / PR #254 | broad animation/naming/content-tag reverse with MOD references | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; prefer current MOD receipts where claims overlap |
 | `agent/wave3-runtime-execution-v2` / PR #89 | early recovered MOD/EFM post-load implementation and runtime lifecycle context | `MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD`; later canonical MOD runtime-postload work supersedes the MOD slice |
+| `agent/vanilla-runtime-wave3-integration` / PR #79 | broad Wave-3 runtime model containing typed MOD/EFM/SCM/SHW/PNST post-load dispatch context | `HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD`; PR itself marks mixed observations provisional, later MOD-specific promotions are authoritative |
+| `agent/issue55-stage-row-runtime-resolution` / PR #74 | Stage/resource runtime stack containing lifecycle and confirmed typed MOD/EFM/SCM/SHW post-load helper identities | `HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD`; use only for cross-runtime context, not to restart format reverse |
 
-Do not close or rewrite these mixed PRs merely for MOD consolidation because they also contain unrelated EFM/MOT/PTX/SHW/animation/runtime work. The rule is narrower: **their MOD material cannot override or restart the canonical MOD workstream.**
+Do not close or rewrite these mixed PRs merely for MOD consolidation because they also contain unrelated Stage/EFM/MOT/PTX/SHW/animation/runtime work. The rule is narrower: **their MOD material cannot override or restart the canonical MOD workstream.**
 
 ## Canonical MOD knowledge already consolidated
 
