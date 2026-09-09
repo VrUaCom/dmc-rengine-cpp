@@ -5,7 +5,9 @@
   "evidence_class": "CONTAINER_REINTEGRATION_GATE_1",
   "prerequisites": {
     "preserve_layout_writer_gate": true,
-    "provenance_bound_38_file_retail_no_edit_parity": true
+    "provenance_bound_38_file_retail_no_edit_parity": true,
+    "controlled_retail_fixed_layout_edit": true,
+    "controlled_retail_edit_attestation": "data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json"
   },
   "implementation": {
     "mod_writer": "include/dmc_rengine/formats/mod_writer.hpp",
@@ -28,6 +30,17 @@
     "output_sha256_recomputed": true,
     "canonical_output_reopen": true
   },
+  "retail_controlled_edit": {
+    "source_label": "em000_021.mod",
+    "source_sha256": "03c18bd75452b0419b398b48d7ef436bb4b2c4c797dae865c6823f8225205f74",
+    "field": "object.bounding_radius",
+    "old_value": 0.6208532452583313,
+    "new_value": 0.625,
+    "changed_byte_offsets_zero_based": [124, 125, 126],
+    "output_sha256": "d074416967a163bbfb2707310141357b88b315c4359fbef69d7c63d2ce3c7f86",
+    "disk_output_reopen": true,
+    "independent_byte_diff_verified": true
+  },
   "synthetic_regression": {
     "controlled_field": "object.bounding_radius",
     "serialized_field_size": 4,
@@ -46,6 +59,7 @@
     "syntheticPacReintegration": true,
     "modWriteReceiptTrustBridge": true,
     "boundedBoundingRadiusEditProducer": true,
+    "controlledRetailBoundingRadiusEdit": true,
     "fullRetailCorpusByteParity": true,
     "retailPacPnstReintegration": false,
     "textureCompanionWriterAuthority": false,
