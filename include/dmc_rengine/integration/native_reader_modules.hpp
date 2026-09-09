@@ -12,6 +12,7 @@ namespace dmc::rengine::integration::native_reader_modules {
 [[nodiscard]] NativeReaderModule stage_txt();
 [[nodiscard]] NativeReaderModule scm();
 [[nodiscard]] NativeReaderModule mod();
+[[nodiscard]] NativeReaderModule mot();
 [[nodiscard]] NativeReaderModule shw();
 [[nodiscard]] NativeReaderModule pe();
 

@@ -1,9 +1,11 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
+#include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -99,6 +101,15 @@ ResourceClassification ResourceClassifier::classify(
         // other name stopped the container walk.
         result.format = "nbz";
         result.magic_confirmed = true;
+    } else if (formats::MotParser::structurally_valid(bytes)) {
+        // A motion carries `MOT` at +4, but that tag is compared nowhere in
+        // the executable: the runtime types a motion by its name, through the
+        // second resource registry (AnimationTypeContract), and never looks at
+        // the bytes. So a motion that arrives without a name — every motion in
+        // an unpacked stage folder does — can only be recognized structurally,
+        // by walking its own track chain to the end of the payload.
+        result.format = "mot";
+        result.structural_confirmed = true;
     } else {
         // Remaining recognition is driven by the recovered runtime contract
         // rather than a parallel literal list here, so a type census added to
@@ -110,6 +121,15 @@ ResourceClassification ResourceClassifier::classify(
                 std::string{ResourceTypeContract::canonical_extension(family)};
             result.magic_confirmed = true;
             result.runtime_family_mask_confirmed = true;
+        } else if (const auto dialect =
+                       profiles::dmc3::TextResourceDialects::identify(bytes);
+                   dialect.recognized()) {
+            // Text is an encoding, not an identity. A cloth definition and a
+            // scroll table are both readable ASCII, and a nameless slot
+            // holding either one has no extension to fall back on. Each
+            // states its dialect in its own opening line, so read it there.
+            result.format = std::string{profiles::dmc3::to_string(dialect.dialect)};
+            result.structural_confirmed = true;
         } else {
             const auto extension = extension_from_path(logical_path);
             result.format = extension.empty() ? "unknown" : extension;
