@@ -204,10 +204,10 @@ int main() {
         assert(parsed.ok());
         assert(parsed.local_transform_records_by_node_index.size() == 1U);
         const auto& record = parsed.local_transform_records_by_node_index[0];
-        assert(record.reserved1c == 123.25F);
+        assert(record.raw_1c == 123.25F);
 
         auto changed_unknown = record;
-        changed_unknown.reserved1c = -99.5F;
+        changed_unknown.raw_1c = -99.5F;
         const auto original_matrix = world::build_local_matrix(record);
         const auto changed_matrix = world::build_local_matrix(changed_unknown);
         for (std::size_t i = 0U; i < original_matrix.values.size(); ++i) {
