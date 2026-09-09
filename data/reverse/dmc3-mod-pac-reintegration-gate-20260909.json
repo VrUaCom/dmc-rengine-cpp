@@ -1,0 +1,63 @@
+{
+  "schema": "dmc-rengine.mod-pac-reintegration-gate.v1",
+  "date": "2026-09-09",
+  "branch": "reverse/mod-completion-20260907",
+  "evidence_class": "CONTAINER_REINTEGRATION_GATE_1",
+  "prerequisites": {
+    "preserve_layout_writer_gate": true,
+    "provenance_bound_38_file_retail_no_edit_parity": true
+  },
+  "implementation": {
+    "mod_writer": "include/dmc_rengine/formats/mod_writer.hpp",
+    "trust_bridge_header": "include/dmc_rengine/profiles/dmc3/mod_authored_child_bridge.hpp",
+    "trust_bridge_source": "src/profiles/dmc3/mod_authored_child_bridge.cpp",
+    "generic_reintegrator": "include/dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp",
+    "regression": "tests/mod_authored_child_bridge_tests.cpp",
+    "controlled_edit_cli": "src/cli/mod_writer_corpus_commands.cpp"
+  },
+  "bridge_requirements": {
+    "readable_non_container_source": true,
+    "resource_id_size_binding": true,
+    "canonical_source_mod_parse": true,
+    "canonical_writer_success": true,
+    "writer_receipt_valid": true,
+    "source_image_matches_document": true,
+    "unauthorized_bytes_unchanged": true,
+    "same_size_output": true,
+    "source_sha256_recomputed": true,
+    "output_sha256_recomputed": true,
+    "canonical_output_reopen": true
+  },
+  "synthetic_regression": {
+    "controlled_field": "object.bounding_radius",
+    "serialized_field_size": 4,
+    "writer_to_authored_child_bridge": true,
+    "pac_child_identity_preserved": true,
+    "nested_relative_slot_reintegration": true,
+    "parent_byte_count_preserved": true,
+    "pac_reparse": true,
+    "pac_reexpand": true,
+    "mod_child_exact_writer_bytes_after_reopen": true,
+    "mod_child_reparse_after_reopen": true,
+    "tampered_writer_output_rejected": true,
+    "container_source_rejected_by_mod_bridge": true
+  },
+  "claims": {
+    "syntheticPacReintegration": true,
+    "modWriteReceiptTrustBridge": true,
+    "boundedBoundingRadiusEditProducer": true,
+    "fullRetailCorpusByteParity": true,
+    "retailPacPnstReintegration": false,
+    "textureCompanionWriterAuthority": false,
+    "nbzOverlayAcceptanceForEditedMod": false,
+    "originalGameAcceptance": false,
+    "canonicalRebuildFromScratch": false,
+    "arbitraryModMutationAuthority": false,
+    "fullModWriterAuthority": false
+  },
+  "next_frontier": [
+    "provenance-bound retail PAC/PNST reintegration",
+    "existing NbzStoreOverlayWriter emission plus canonical NBZ reopen",
+    "original dmc3.exe acceptance"
+  ]
+}
