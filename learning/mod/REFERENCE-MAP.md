@@ -12,6 +12,17 @@ Runtime texture descriptor 0x40 (in-memory, not serialized MOD)
 Runtime node     0xA0 (in-memory)
 ```
 
+## Current bound corpus
+
+```text
+38 unique MOD
+166 objects
+180 meshes
+20,976 vertices
+285 transforms
+families/contexts: em000 + pl000 main + pl000 cloth + id100
+```
+
 ## Header
 
 ```text
@@ -21,9 +32,18 @@ Runtime node     0xA0 (in-memory)
 11 u8 node_count
 12 u8 texture mirror
 13 u8 default_joint_index
-14 u32 preserved runtime metadata
+14 u32 runtime_metadata_u32
 20 u64 node-domain offset
 40 object table
+```
+
+`+0x14`:
+
+```text
+serialized -> manager +0xE4       EXE_CONFIRMED
+universal decimal identity formula REJECTED
+high-level semantic                PRESERVED_UNDECODED
+writer                              preserve exact source u32
 ```
 
 ## Object
@@ -40,23 +60,51 @@ Runtime node     0xA0 (in-memory)
 3C f32 bounds radius
 ```
 
+### Important source flags
+
+```text
+0x00100000:
+  active low-mode GS selector
+  TEST_1 AREF 0 <-> 16
+  ZBUF_1.ZMSK 1 <-> 0
+  technical semantic EXE_CONFIRMED
+  artistic/material category open
+
+0x00200000:
+  baseline/effective runtime carriage EXE_CONFIRMED
+  restoration participation EXE_CONFIRMED
+  local GS packet consumer: none
+  high-level semantic PRESERVED_UNDECODED
+```
+
 ## Mesh
 
 ```text
 00 u16 count
 02 u16 texture_slot
 04/06/08/0A GS CLAMP
-0C u32 preserved
+0C u32 preserved undecoded
 10 u64 positions
 18 u64 normals
 20 u64 UV
-28 u64 blend
+28 u64 BLENDINDICES
 30 u64 weights/topology
-38 u64 preserved
+38 u64 family-sensitive auxiliary slot
 40 u64 generated workspace rel (mesh-relative)
 48 u32 generated count
-4C u32 preserved
+4C u32 preserved undecoded
 ```
+
+Bound zero histograms:
+
+```text
++0C 180/180
++38 180/180 MOD; canonical MOD path inactive, EFM homologous slot -> COLOR0
++48 180/180 serialized before runtime generation
++4C 180/180
+```
+
+Zero histogram does not authorize writer normalization.
 
 ## Streams
 
@@ -74,7 +122,19 @@ control  u16
 bone = raw_blend / 4
 weights = 5+5+5 bits / 31
 topology break = 0x8000
-influences use blend y/z/w
+influences use blend Y/Z/W
+```
+
+`BLENDINDICES.x` closure:
+
+```text
+compiled DXBC signatures = 8
+Mask                      = 0xF
+ReadWriteMask             = 0xE
+canonical shader reads    = Y/Z/W, not X
+direct proven CPU X use   = none
+corpus X                  = 0 in 20,976/20,976
+writer                     = preserve raw X
 ```
 
 ## Node domain
@@ -96,7 +156,18 @@ influences use blend y/z/w
 10 rx
 14 ry
 18 rz
-1C unresolved
+1C preserved undecoded
+```
+
+`+0x1C`:
+
+```text
+MOD corpus 285/285 = 0.0f
+bound EFM 5/5 = 0.0f
+canonical local rotation helper reads XYZ only
+local-matrix non-consumption EXE_CONFIRMED
+global semantic PRESERVED_UNDECODED
+writer preserve
 ```
 
 ## Matrix rules
@@ -120,31 +191,44 @@ descriptor stride       = 0x40
 ## High-value EXE VAs
 
 ```text
+1402F9570 model manager init / header +14 -> manager +E4
 1402FA080 MOD/EFM transform init
+140330450 XYZ rotation helper; does not consume transform +1C
 1402F9700 world update
 140030DC0 rigid inverse
 140300580 palette loop
 1402FE3B0 MOD post-load
 1402FE6A0 runtime mesh builder
 1403029E0 MOD/EFM object init
+140302640 legacy GS object-state packet builder
 1402F9890 material helper
 140304B30 companion materializer
 14030D040 texture descriptor builder
 14030F850..14030F9AE CMotion binding
-1402F3D0A blend-index CPU consumer
+1402F3D0A BLENDINDICES Y CPU consumer
 1400461B0 shader lookup
 140561370 MOD tag-5 shader descriptor
 14048A8B0 DMC3_MOD.hlsl DXBC
 ```
 
-## Open
+## Closed / narrowed in 2026-09-09 pass
 
 ```text
-header +14
-transform +1C
-mesh +0C/+38/+4C semantics
-BLENDINDICES.x
-full object flag semantics
+BLENDINDICES.x canonical consumption -> not read by compiled shader; no direct proven CPU consumer
+source flag 0x00100000 -> GS TEST_1 AREF + ZBUF_1 ZMSK selector
+mesh +38 -> inactive in canonical MOD path; EFM positive-control COLOR0
+transform +1C -> not consumed by canonical local rotation helper
+header +14 -> old universal decimal semantic rejected
+```
+
+## Still open
+
+```text
+header +14 high-level manager semantic
+transform +1C global semantic outside audited path
+mesh +0C/+4C global semantics
+mesh +38 semantics outside audited canonical MOD path / alternate variants
+source flag 0x00200000 terminal semantic consumer
 complete MOT decode/current pose source
 SHW matrix-palette ownership
 production writer
