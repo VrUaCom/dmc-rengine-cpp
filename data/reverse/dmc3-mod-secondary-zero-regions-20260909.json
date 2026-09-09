@@ -1,0 +1,81 @@
+{
+  "schema": "dmc-rengine.mod-secondary-zero-regions.v1",
+  "date": "2026-09-09",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "unique_mods": 38,
+    "objects": 166,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "regions": [
+    {
+      "region": "header +0x08..+0x0F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "header +0x18..+0x1F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "header +0x28..+0x3F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "object +0x04..+0x07",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "object +0x14..+0x17",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "object +0x20..+0x2F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "node-domain +0x10..+0x1F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_transform_initializer": "0x1402FA080",
+      "note": "0x1402FA080 consumes domain-provided pointers/arrays through manager fields +0x08/+0x10/+0x20; no direct serialized semantic is promoted for the zero shell itself",
+      "status": ["CORPUS_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    }
+  ],
+  "positive_controls": {
+    "header_loader_reads": ["+0x10", "+0x11", "+0x13", "+0x14"],
+    "object_initializer_reads": ["+0x00", "+0x01", "+0x10", "+0x18", "+0x1C", "+0x30..+0x3F"]
+  },
+  "closure_boundary": "EXE_CONFIRMED negative evidence is scoped to the named canonical loader/initializer. It is not a whole-executable proof of padding or global dormancy. RESERVED_OBSERVED_ZERO remains a bounded observation and never authorizes zero-normalization.",
+  "rejected_hypotheses": [
+    "zero shell region equals padding",
+    "absence from one canonical initializer proves no other executable consumer",
+    "writer may zero-normalize secondary regions"
+  ]
+}
