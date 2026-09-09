@@ -1,0 +1,85 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "mesh+0x38",
+  "serialized_offset": "mesh +0x38",
+  "width": "u64",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "mod_meshes": 180,
+    "mod_zero_values": 180,
+    "efm_bound_meshes": 2,
+    "efm_nonzero_values": 2,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402FE3B0",
+    "0x1402FE6A0",
+    "0x1402FE8C4",
+    "0x1402FE8DD",
+    "0x1402F7A90",
+    "0x1402F7BBD",
+    "0x1402F7BCC",
+    "0x1402F7D60",
+    "0x1402F7F88",
+    "0x1402F7F8C"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1402F7BBD",
+      "family": "EFM",
+      "meaning": "reads serialized EFM +0x38 for relocation",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F7F88",
+      "family": "EFM",
+      "meaning": "reads relocated EFM +0x38 for runtime auxiliary stream",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [
+    {
+      "address": "0x1402FE8C4",
+      "family": "MOD",
+      "meaning": "explicitly zeros corresponding runtime auxiliary-stream slot",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402FE8DD",
+      "family": "MOD",
+      "meaning": "explicitly zeros paired runtime auxiliary-stream slot",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F7BCC",
+      "family": "EFM",
+      "meaning": "writes relocated EFM +0x38 pointer",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F7F8C",
+      "family": "EFM",
+      "meaning": "forwards EFM +0x38 into runtime +0x160 auxiliary stream",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": "The physical +0x38 slot is family-specific. EFM forwards it as the extra COLOR0 stream; canonical MOD does not relocate/copy serialized +0x38 and explicitly disables the corresponding runtime auxiliary stream.",
+  "semantic_status": "EXE_AND_CORPUS_CONFIRMED",
+  "evidence_status": [
+    "STRUCTURAL_CONFIRMED",
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED"
+  ],
+  "rejected_hypotheses": [
+    "mesh +0x38 is generic padding",
+    "MOD +0x38 is COLOR0 because EFM uses the homologous offset",
+    "same offset in MOD EFM SCM implies identical semantic meaning"
+  ],
+  "cpp_contract": "analysis/mod/mesh_serialized.hpp names the shared physical role as family-specific auxiliary stream and preserves the raw u64; synthetic non-zero regression is registered through mod_skin_tests",
+  "writer_policy": "preserve",
+  "closure_boundary": "MOD-specific runtime role is closed as inactive in the canonical audited path. Source value is still preserved because runtime inactivity does not authorize source normalization or prohibit another revision from serializing a value."
+}
