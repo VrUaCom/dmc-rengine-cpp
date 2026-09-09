@@ -22,6 +22,32 @@ int main() {
     }
 
     {
+        // BLENDINDICES.x is PRESERVED_UNDECODED, not a required zero. The
+        // audited skin semantic consumes y/z/w only, so a synthetic non-zero X
+        // must not change decoded influences or trigger validation failure.
+        const auto zero_x = mod::decode_vertex_skin(
+            std::array<std::uint8_t, 4>{0U, 20U, 8U, 12U},
+            0x0136U,
+            24U);
+        const auto nonzero_x = mod::decode_vertex_skin(
+            std::array<std::uint8_t, 4>{0xA5U, 20U, 8U, 12U},
+            0x0136U,
+            24U);
+        assert(zero_x.ok());
+        assert(nonzero_x.ok());
+        assert(zero_x.skin.influence_count == nonzero_x.skin.influence_count);
+        assert(zero_x.skin.topology_break == nonzero_x.skin.topology_break);
+        for (std::size_t i = 0U; i < zero_x.skin.influence_count; ++i) {
+            assert(zero_x.skin.influences[i].bone_index ==
+                   nonzero_x.skin.influences[i].bone_index);
+            assert(zero_x.skin.influences[i].quantized_weight ==
+                   nonzero_x.skin.influences[i].quantized_weight);
+            assert(std::fabs(zero_x.skin.influences[i].weight -
+                             nonzero_x.skin.influences[i].weight) < 0.000001F);
+        }
+    }
+
+    {
         // q0=22, q1=9, q2=0. The high bit is independent topology state.
         const auto decoded = mod::decode_vertex_skin(
             std::array<std::uint8_t, 4>{0U, 20U, 8U, 12U},
