@@ -17,6 +17,7 @@ on:
       - 'docs/guides/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
+      - 'docs/status/canonical-status.json'
       - 'docs/gdspaces-contract.md'
       - 'learning/**'
   push:
@@ -36,6 +37,7 @@ on:
       - 'docs/guides/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
+      - 'docs/status/canonical-status.json'
       - 'docs/gdspaces-contract.md'
       - 'learning/**'
   workflow_dispatch:
@@ -48,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Validate canonical machine status JSON
+        run: python -m json.tool docs/status/canonical-status.json > /dev/null
       - name: Test legacy discovery-site builder
         run: python tools/test_discovery_site_builder.py
       - name: Test format encyclopedia builder

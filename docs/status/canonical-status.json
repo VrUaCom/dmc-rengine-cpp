@@ -1,13 +1,13 @@
 {
   "schema_version": 5,
-  "snapshot_date": "2026-09-07",
+  "snapshot_date": "2026-09-09",
   "project": "DMC Rengine",
   "repository": "VrUaCom/dmc-rengine-cpp",
-  "snapshot_main_sha": "109b63009949be526aa691809d39a27db076e4ff",
+  "snapshot_main_sha": "cf7bd4d2a57c40e8127aed353ebefe2b4763398a",
   "working_proof_branch": "none",
   "working_proof_pr": 0,
-  "latest_promoted_pr": 325,
-  "latest_reverse_model_family_pr": 323,
+  "latest_promoted_pr": 373,
+  "latest_reverse_model_family_pr": 369,
   "latest_native_reader_module_pr": 288,
   "overall_status": "l1-l2-l3-incomplete-proof-gated-vertical-acceptance-active",
   "completion_model": "authority-specific-mandatory-gates",
@@ -87,8 +87,29 @@
       ]
     },
     "mod_model_family": {
-      "write_policy": "read-only",
-      "promoted_prs": [305, 307, 310, 312, 313, 314, 315, 316, 317, 318, 323],
+      "write_policy": "preserve-layout-gate-1-fixed-size-only",
+      "implementation_status": "reader-plus-bounded-writer-canonical",
+      "promoted_prs": [
+        305,
+        307,
+        310,
+        312,
+        313,
+        314,
+        315,
+        316,
+        317,
+        318,
+        323,
+        356,
+        359,
+        360,
+        363,
+        365,
+        367,
+        368,
+        369
+      ],
       "promoted_capabilities": [
         "hierarchy-local-transform-world-propagation",
         "typed-mesh-texture-slot-and-legacy-gs-clamp-state",
@@ -101,15 +122,68 @@
         "runtime-texture-descriptor-abi-and-gs-register-decode",
         "object-runtime-flag-and-render-parameter-projection",
         "serialized-mesh-preserved-undecoded-fields",
-        "blend-index-div4-and-packed-5bit-weight-runtime-abi"
+        "blend-index-div4-and-packed-5bit-weight-runtime-abi",
+        "multi-corpus-unknown-field-preservation-contracts",
+        "preserve-layout-writer-gate-1",
+        "immutable-source-binding-and-authorized-byte-span-enforcement",
+        "38-file-provenance-bound-retail-noop-byte-parity",
+        "one-provenance-bound-retail-bounding-radius-edit",
+        "mod-writer-receipt-to-authored-child-trust-bridge",
+        "synthetic-pac-reintegration-and-reopen"
       ],
+      "writer_gate_1": {
+        "status": "canonical",
+        "serialization_policy": "original-source-layout-authoritative",
+        "allowed_fixed_size_edits": [
+          "object-bounding-center",
+          "object-bounding-radius",
+          "existing-mesh-positions",
+          "existing-mesh-normals",
+          "existing-mesh-uvs"
+        ],
+        "retail_noop_corpus": {
+          "file_count": 38,
+          "source_bytes": 882736,
+          "parse_pass": 38,
+          "write_pass": 38,
+          "exact_byte_parity": 38,
+          "canonical_reopen": 38,
+          "modified_bytes": 0,
+          "failures": 0
+        },
+        "controlled_retail_edit": {
+          "source_resource": "em000_021.mod",
+          "field": "object[0].bounding_radius",
+          "serialized_span_start": 124,
+          "serialized_span_end": 128,
+          "changed_byte_offsets": [124, 125, 126],
+          "modified_byte_count": 3,
+          "unauthorized_byte_preservation": true,
+          "disk_reread_hash_reopen": true,
+          "independent_raw_diff_verification": true
+        },
+        "container_bridge": {
+          "mod_write_receipt_trust_bridge": true,
+          "synthetic_pac_reintegration": true,
+          "provenance_bound_retail_pac_pnst_reintegration": false,
+          "nbz_acceptance": false,
+          "original_game_acceptance": false
+        }
+      },
       "open_boundaries": [
-        "mod-writer-authority",
-        "byte-identical-no-edit-mod-rebuild",
+        "full-mod-writer-authority",
+        "layout-synthesis-and-reflow",
+        "transform-authoring",
+        "skin-and-blend-index-authoring",
+        "source-flag-material-texture-binding-authoring",
+        "texture-companion-rewriting-and-coherence",
         "safe-mutation-ranges-for-unresolved-fields",
         "complete-tim2-semantics",
         "production-texture-replacement-authority",
         "complete-current-animation-pose-ownership",
+        "provenance-bound-retail-pac-pnst-reintegration",
+        "nbz-acceptance-for-mod-writer-output",
+        "original-game-noop-rebuilt-mod-acceptance",
         "original-game-edited-mod-acceptance",
         "capcom-offline-tool-equivalence"
       ]
@@ -125,9 +199,12 @@
       "efm",
       "mot"
     ],
+    "writer_authority_partial": [
+      "mod-preserve-layout-gate-1-fixed-size-only"
+    ],
     "writer_authority_open": [
       "scm",
-      "mod",
+      "mod-full-authoring",
       "shw",
       "dds-ptx-production-authoring"
     ]
@@ -158,12 +235,14 @@
         "pac-pnst-size-changing-authoring",
         "nested-relative-slot-authoring",
         "next-volume-overlay-authoring",
-        "direct-retail-acquisition-tooling"
+        "direct-retail-acquisition-tooling",
+        "mod-writer-to-authored-child-trust-bridge",
+        "synthetic-mod-in-pac-reintegration"
       ],
       "mandatory_open_gates": [
         "direct-retail-original-resolver-selected-provenance",
         "exact-selected-retail-representation-classification",
-        "representative-real-edit-rebuild-rematerialization-receipt",
+        "provenance-bound-retail-container-reintegration-and-reopen",
         "original-runtime-authored-higher-volume-selection",
         "deterministic-original-consumer-visible-effect",
         "rollback-retail-immutability",
@@ -240,6 +319,7 @@
         "v5-inflight-cancellation",
         "v6-shutdown",
         "v7-family-build-breadth",
+        "original-dmc3-exe-authored-mod-selection-and-consumption",
         "final-l3-audit"
       ],
       "next_raw_reverse_targets_requiring_independent_bounded_pass": [
@@ -267,20 +347,36 @@
   ],
   "current_external_evidence_boundaries": [
     "canonical-e454-executable-bytes-available-to-recent-promoted-mod-model-family-static-reverse",
+    "38-file-provenance-bound-retail-mod-noop-parity-is-canonical",
+    "one-provenance-bound-retail-mod-fixed-layout-edit-is-canonical",
+    "synthetic-pac-reintegration-does-not-equal-retail-or-original-game-acceptance",
     "unrelated-gdspaces-and-l3-raw-targets-still-require-independent-address-range-scope-bounded-passes",
     "real-protected-process-required-for-r2b-r3",
     "protected-install-original-consumption-required-for-level-e"
   ],
   "discovery": {
-    "latest_reviewed_promotion_pr": 325,
-    "site_builder": "promoted",
-    "public_pages": 12,
+    "latest_reviewed_promotion_pr": 373,
+    "site_builder": "promoted-production-active",
+    "public_pages": 104,
+    "format_families": 63,
     "citation_metadata": "promoted",
-    "share_metadata_without_image": "promoted",
+    "share_metadata": "promoted-image-backed",
     "manifest_backed_breadcrumbs": "promoted",
-    "pages_enabled": false,
+    "pages_enabled": true,
+    "production_http_acceptance": "success",
     "repository_topics_applied": false,
-    "social_preview_applied": false,
+    "social_preview_applied": true,
+    "indexnow": {
+      "enabled": true,
+      "trigger": "after-successful-pages-deploy-workflow",
+      "controlled_url_count": 104,
+      "latest_protocol_receipt": "http-200-accepted",
+      "indexing_or_ranking_proven": false
+    },
+    "google_search_console_required": false,
+    "specialist_external_reference_applied": false,
+    "first_independently_observed_indexed_pages_url": false,
+    "latest_public_search_observation": "no-dmc-rengine-pages-result-observed-2026-09-09",
     "technical_completion_effect": "none"
   },
   "navigation": {
