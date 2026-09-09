@@ -8,6 +8,8 @@ Evidence class: `WRITER_GATE / CONTAINER_REINTEGRATION_GATE_1`
 
 The preserve-layout MOD writer is already promoted, and the provenance-bound 38-file retail corpus has independently passed no-edit parse/write/byte-parity/reopen. This pass does not repeat those gates. It addresses the next missing boundary: moving a writer-validated, same-size MOD child back into an existing PAC/PNST materialized parent without inventing another container writer.
 
+The controlled mutation producer is also now backed by one real provenance-bound retail run: `em000_021.mod`, `object[0].bounding_radius`, `0.6208532452583313 -> 0.625`, with zero-based changed offsets `[124, 125, 126]`, every other byte unchanged, disk SHA verification and canonical output reopen. The detailed receipt is recorded in `data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json`.
+
 ## New trust boundary
 
 `ModAuthoredChildBridge` converts a canonical MOD `WriteResult` into the existing generic `AuthoredChildImage` only after independently checking:
@@ -30,7 +32,7 @@ The bridge deliberately does not infer PAC slot identity from a filename or from
 
 The existing bounded `mod-writer-set-bounding-radius` command is retained as the mutation producer for this pass. It edits only one promoted `object.bounding_radius` field in place, requires all changed bytes to remain inside the exact four-byte serialized radius span, rereads the emitted file, verifies the writer output SHA-256 and canonical reopen, forbids source overwrite, and fails closed on output/receipt path collisions.
 
-This does not grant arbitrary MOD mutation authority.
+The real retail controlled-edit evidence confirms this producer against `em000_021.mod`, but does not grant arbitrary MOD mutation authority.
 
 ## End-to-end regression
 
@@ -76,6 +78,7 @@ No new PAC writer, PNST writer, NBZ packer or alternate MOD serialization path i
 
 Promoted only when exact-head CI succeeds:
 
+- one provenance-bound real retail `object.bounding_radius` edit has exact changed-span + disk reopen evidence;
 - a canonical MOD writer result can be converted into the generic authored-child envelope through a format-specific fail-closed bridge;
 - a controlled same-size MOD edit can be reintegrated into a synthetic PAC through the existing Layer-1 container writer path;
 - the rebuilt synthetic PAC can be reparsed/re-expanded and the authored MOD can be reopened with exact emitted child bytes.
@@ -84,7 +87,7 @@ Promoted only when exact-head CI succeeds:
 
 This pass does **not** establish:
 
-- retail PAC/PNST corpus reintegration acceptance;
+- provenance-bound retail PAC/PNST reintegration acceptance;
 - texture-companion rewriting or coherence after texture-domain edits;
 - arbitrary MOD field editing;
 - transform, skin, material or source-flag writer authority;
