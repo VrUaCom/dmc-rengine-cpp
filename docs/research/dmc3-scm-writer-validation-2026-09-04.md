@@ -1,8 +1,10 @@
-# DMC3 HD SCM writer / authoring validation — 2026-09-04
+# DMC3 HD SCM writer / authoring validation — consolidated 2026-09-09
 
 ## Scope
 
-This record documents the first evidence-bounded C++20 SCM writer/authoring implementation on branch `scm`.
+This record began as the first evidence-bounded C++20 SCM writer/authoring pass on historical branch `scm`. The implementation and evidence are now consolidated on the existing canonical model-format branch:
+
+`reverse/mod-completion-20260907`
 
 Canonical runtime authority remains:
 
@@ -10,25 +12,27 @@ Canonical runtime authority remains:
 - SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`;
 - ImageBase: `0x140000000`.
 
-This pass does **not** promote SCM registry maturity to `editable` or `game_validated`. Original-game consumption and full-corpus roundtrip are still required.
+This record does **not** promote SCM to `game_validated`, production-ready or `100%`. Original-game acceptance, real size-changing authoring breadth and SCM container reintegration remain separate evidence gates.
 
 ## 1. Writer foundation
 
-The parser now materializes authoring payloads rather than keeping only offsets:
+The parser materializes the authoring payloads required by the current writer:
 
 - positions: `float32 x/y/z`;
 - normals: `float32 x/y/z`;
 - UV: exact signed `int16 u/v` serialized representation;
 - color/topology: `u8 r/g/b/topologyFlags`.
 
-Unresolved serialized state is explicitly preserved:
+Serialized state that is not semantically decoded is represented or preserved rather than silently discarded:
 
 - object bytes `+0x14..+0x2F`;
 - scene header bytes `+0x10..+0x1F`;
-- existing header/mesh reserved fields;
-- the recognized original byte image for same-layout preservation.
+- header reserved fields;
+- mesh reserved fields;
+- scene transform `+0x1C`;
+- the original recognized byte image for same-layout preservation.
 
-The implementation intentionally avoids a `memset-and-reconstruct-known-fields` model for parsed resources.
+The implementation deliberately avoids treating zero-filled reconstruction as authority for unknown source bytes.
 
 ## 2. Writer modes
 
@@ -36,38 +40,36 @@ The implementation intentionally avoids a `memset-and-reconstruct-known-fields` 
 
 Purpose:
 
-- same-size edits;
-- source offsets remain authoritative;
+- same-layout editing;
+- source offsets remain physical authority;
 - unknown padding/workspace bytes remain byte-preserved;
 - object/mesh/node counts and mesh vertex counts may not change.
 
-Expected use:
+Current typed edits include:
 
-- vertex position / normal changes;
-- UV changes;
-- texture index changes;
-- alpha-control changes;
-- object flag changes such as confirmed TEX1 nearest/linear override;
-- GS CLAMP REGION_REPEAT changes;
-- node translation/rotation changes.
+- vertex position and normal;
+- UV;
+- texture index;
+- alpha-control;
+- confirmed nearest/linear texture-filter flag;
+- GS CLAMP REGION_REPEAT;
+- node translation and XYZ rotation.
 
 ### `WriteMode::canonical_rebuild`
 
 Purpose:
 
 - deterministic layout derived from typed IR;
-- supports changed mesh vertex counts and resulting file-size changes;
-- derives object totals, continuation spans, offsets and index workspace positions;
-- writes `0x1212` as the recovered index-workspace regeneration sentinel for newly planned workspace regions;
-- resets runtime-generated index count in rebuilt mesh records.
+- changed mesh vertex counts and resulting layout changes;
+- derived object totals, continuation spans, offsets and index-workspace locations;
+- `0x1212` regenerated index-workspace sentinel;
+- reset of runtime-generated index count in rebuilt mesh records.
 
-This is currently a **DMC Rengine canonical rebuild policy**, not a claim that Capcom's original offline tool emitted exactly the same bytes for every theoretical resource.
+This is a **DMC Rengine canonical rebuild policy**, not a claim that Capcom's offline authoring tools would emit identical bytes for every hypothetical edited resource.
 
 ## 3. Mandatory post-write gate
 
-Every writer output is immediately reparsed by the canonical SCM parser/validator.
-
-Writer success requires:
+Every successful writer output must reopen through the canonical SCM parser/validator:
 
 ```text
 serialize
@@ -77,25 +79,44 @@ serialize
   -> stream/workspace validation
 ```
 
-Failure emits stable diagnostic:
+Writer output is not accepted merely because serialization completed.
+
+## 4. Unknown-byte policy for canonical reflow
+
+A layout-changing rebuild can move typed regions, so source-bound bytes that have no modeled reflow policy cannot simply be normalized away.
+
+When retained source bytes exist, `canonical_rebuild` now:
+
+1. reparses the retained source through the canonical parser;
+2. marks every source span whose bytes are typed, explicitly raw-preserved, or intentionally regeneratable;
+3. scans all remaining source bytes;
+4. rejects reflow if any unmodeled remaining byte is non-zero.
+
+Stable diagnostic:
 
 ```text
-scm.writer-reparse-failed
+scm.writer-canonical-reflow-unmodeled-nonzero-source
 ```
 
-## 4. Dependent-field policy
+Synthetic regression places `0xA5` at source offset `0xF4`, an alignment-padding byte outside the modeled regions. Observed contract:
+
+```text
+preserve_layout                     -> PASS, exact source bytes
+layout-changing canonical_rebuild   -> REJECT
+reported offending offset           -> 0xF4
+```
+
+The index workspace is intentionally classified as regeneratable under canonical rebuild and therefore is not treated as an unknown transplant domain.
+
+## 5. Dependent-field policy
 
 ### Object vertex totals
-
-Writer derives:
 
 ```text
 object.totalVertexCount = sum(mesh vertex counts)
 ```
 
 ### Mesh continuation
-
-Writer derives:
 
 ```text
 non-final mesh +0x28 = 0x50
@@ -104,27 +125,27 @@ final mesh     +0x28 = 0
 
 ### Translation magnitude
 
-If serialized translation XYZ is edited, writer emits:
+If translation XYZ changes:
 
 ```text
 translationMagnitude = sqrt(x*x + y*y + z*z)
 ```
 
-No-edit preserves the original float bits.
+No-edit preserve-layout retains original bits.
 
 ### Bounding radius
 
-If mesh positions or the preserved bounding center are edited, writer recomputes a conservative radius from the existing confirmed center:
+When geometry or the existing bounding center changes, the current writer derives a conservative radius from that center:
 
 ```text
 radius = max(distance(center, vertex))
 ```
 
-The writer does **not** invent a new center algorithm because the exact original center-generation policy has not been independently recovered.
+It does not invent an unrecovered center-generation algorithm.
 
-## 5. Safe editing API
+## 6. Safe editing API
 
-`scm_edit.hpp` provides bounded edit operations:
+`scm_edit.hpp` currently exposes:
 
 ```text
 set_vertex_position
@@ -138,130 +159,120 @@ set_node_translation
 set_node_rotation
 ```
 
-Safety properties:
+Safety properties include:
 
-- object/mesh/vertex/node indices are range checked;
-- non-finite position/normal/transform values are rejected;
-- float UV authoring is quantized to signed int16 at the confirmed `1/4096` scale and rejected if not representable;
-- texture index is checked against the SCM mirror count when non-zero;
-- safe GS CLAMP editing rejects values above the 10-bit hardware width;
-- nearest/linear filtering changes only confirmed source bit `0x00004000` and preserves all other object flags.
+- range checks for object/mesh/vertex/node indices;
+- rejection of non-finite position, normal and transform values;
+- UV quantization to signed int16 at the confirmed `1/4096` scale, failing if not representable;
+- texture-index bounds against the SCM texture-count mirror when non-zero;
+- 10-bit GS CLAMP field bounds;
+- nearest-filter editing limited to confirmed source bit `0x00004000` while preserving all other object flags.
 
-Unknown source flag `0x00200000` has no semantic setter and remains preserved raw state.
+Unknown source flag `0x00200000` has no semantic setter and remains preservation-only.
 
-## 6. Real-file baseline currently executable from preserved Library specimens
+## 7. Provenance-bound consolidated retail corpus gate
 
-Two preserved DMC3 HD SCM specimens are directly available to the current validation environment:
-
-| file | size |
-|---|---:|
-| `st001.scm` | 887,760 |
-| `st114.scm` | 1,038,816 |
-
-Observed result from the writer foundation validation pass:
-
-```text
-st001.scm
-  parse                    PASS
-  preserve-layout write    PASS
-  preserve byte identity   PASS
-  canonical rebuild        PASS
-  canonical reparse        PASS
-  canonical byte identity  PASS
-
-st114.scm
-  parse                    PASS
-  preserve-layout write    PASS
-  preserve byte identity   PASS
-  canonical rebuild        PASS
-  canonical reparse        PASS
-  canonical byte identity  PASS
-```
-
-This is strong positive evidence for the implementation but is **not** a substitute for the required 68+ resource corpus gate.
-
-## 7. Size-changing synthetic acceptance
-
-Regression fixture exercises:
-
-```text
-3 vertices
- -> add fourth position
- -> add fourth normal
- -> add fourth UV
- -> add fourth color/topology entry
-```
-
-Expected/observed contract:
-
-```text
-preserve_layout   -> rejected
-canonical_rebuild -> accepted
-reparse           -> accepted
-mesh vertexCount  -> 4
-object total      -> 4
-file size         -> changed
-```
-
-## 8. Corpus verifier
-
-The normal `dmc-rengine` CLI now exposes:
+The current corpus verifier is:
 
 ```text
 dmc-rengine verify-scm-corpus <directory> [--json <report.json>]
 ```
 
-Input bytes are acquired through `LocalDirectorySource` / `SourceRegistry`, preserving the GDSpaces-only resource-access architecture.
+Retail payload bytes are externally held and are not committed. The machine receipt is:
 
-For every `.scm`, the verifier records:
+`data/reverse/dmc3-scm-consolidated-corpus-20260909.json`
 
-- source size;
-- objects;
-- meshes;
-- scene nodes;
-- vertices;
-- parse status;
-- preserve-layout write and byte-identity status;
-- canonical write status;
-- canonical reparse status;
-- canonical byte-identity status;
-- first mismatch offset;
-- diagnostic count.
-
-JSON schema identifier:
+Observed result:
 
 ```text
-dmc-rengine.scm-corpus-report.v1
+paths scanned                         78
+unique SHA-256 inputs                 68
+duplicate paths                       10
+parse                                 78 / 78 PASS
+preserve-layout write                 78 / 78 PASS
+preserve-layout exact byte identity   78 / 78 PASS
+canonical rebuild                     78 / 78 PASS
+canonical output reparse              78 / 78 PASS
+canonical exact byte identity         78 / 78 PASS
+canonical no-edit parity              100%
 ```
 
-A non-empty corpus returns success only when every file parses and both no-edit writer paths satisfy their current acceptance contract.
+This supersedes the earlier two-file-only baseline (`st001.scm` and `st114.scm`) as the strongest current no-edit writer evidence.
 
-## 9. Current maturity decision
+The result proves the current writer reproduces all 68 unique hash-bound inputs byte-for-byte in both no-edit modes. It does **not** prove every possible SCM layout or edited layout accepted by the original game.
+
+## 8. Size-changing synthetic acceptance
+
+Regression expands one synthetic mesh from three to four vertices while extending all four parallel streams.
+
+Observed contract:
+
+```text
+preserve_layout   -> rejected as required
+canonical_rebuild -> accepted
+canonical reparse -> accepted
+mesh vertexCount  -> 4
+object total      -> 4
+edited payload    -> survives reopen
+```
+
+This proves the deterministic reflow implementation mechanically for the covered synthetic topology. Real-retail size-changing authoring remains a separate gate.
+
+## 9. Texture companion coherence gate
+
+`ScmResourceBundleWriter` reuses the canonical texture framing and packed-reflow infrastructure rather than introducing another texture writer.
+
+Before SCM output is accepted it requires:
+
+- texture companion framing parse success;
+- `SCM header +0x12 == external texture count`;
+- every `mesh.texture_index < external texture count`;
+- output texture companion framing reparse success;
+- no texture-slot count addition/removal in the current safe contract;
+- SCM writer/reparse success.
+
+Synthetic regression currently proves:
+
+- coherent SCM + one wrapped texture companion is accepted;
+- unchanged companion bytes remain exact;
+- mismatched SCM texture-count mirror is rejected;
+- out-of-range mesh texture index is rejected.
+
+The texture reflow implementation exists behind this bundle gate, but a provenance-bound retail SCM texture rewrite has **not** yet been promoted by this record.
+
+## 10. Current maturity
 
 Current evidence supports:
 
 ```text
-reader              strong
-semantic IR         strong
-safe same-size edit implemented
-writer              experimental
-2-file no-edit      bit-identical confirmed
-size-changing IR    synthetic reparse confirmed
-full corpus         pending
-game acceptance     pending
-PAC/NBZ reintegration pending
-texture companion authoring pending
+reader                                strong
+semantic IR                           strong
+safe same-layout edit API             implemented
+writer                                experimental
+retail no-edit corpus                 78 paths / 68 unique PASS
+preserve-layout retail byte parity    68 / 68 unique PASS
+canonical no-edit retail byte parity  68 / 68 unique PASS
+canonical output reparse              68 / 68 unique PASS
+size-changing rebuild                 synthetic PASS only
+unknown-byte reflow protection        fail-closed regression PASS
+texture companion coherence           synthetic bounded PASS
+retail texture rewrite                pending
+SCM PAC/PNST/NBZ reintegration        pending
+original dmc3.exe acceptance          pending
+full SCM writer authority             false
 ```
 
-Therefore registry maturity must remain below `editable/game_validated`.
+Registry maturity must therefore remain below game-validated/production authoring authority.
 
-## 10. Next gates
+## 11. Next evidence frontier
 
-1. Run `verify-scm-corpus` against the complete preserved 68+ unique SCM corpus.
-2. Classify every non-identical result as structural error, writer defect, or explained canonical difference.
-3. Add texture-companion bundle validation/writer contract.
-4. Perform controlled real-resource edits for position, UV, alpha, TEX1 filter, GS CLAMP and transform.
-5. Reintegrate through canonical PAC/NBZ Layer-1 authoring.
-6. Produce original `dmc3.exe` load/visual/rollback acceptance receipts.
+Do not repeat the already-closed 68-unique no-edit corpus pass. The next useful SCM evidence is:
 
-No 100% SCM or production-ready claim is made by this record.
+1. provenance-bound real SCM same-layout edits across representative domains: geometry, UV, alpha/filter, GS CLAMP and transforms;
+2. provenance-bound retail texture-companion authoring where texture state actually changes;
+3. real size-changing SCM canonical rebuild with exact preservation accounting;
+4. PAC/PNST reintegration through the existing Layer-1 authored-child/container path;
+5. NBZ overlay emission/reopen through the existing NBZ writer path;
+6. original `dmc3.exe` load/visual/rollback acceptance.
+
+No `100% SCM`, Capcom-tool equivalence, arbitrary authoring or production-ready claim is made.
