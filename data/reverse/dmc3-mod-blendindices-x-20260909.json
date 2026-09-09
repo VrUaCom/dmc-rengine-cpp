@@ -1,0 +1,99 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v3",
+  "field": "BLENDINDICES.x",
+  "serialized_offset": "BLENDINDICES stream lane +0x00",
+  "mesh_stream_pointer_offset": "serialized mesh +0x28",
+  "runtime_stream_slot": "runtime mesh +0x140[platform]",
+  "draw_descriptor_slot": "draw/input descriptor +0x30",
+  "width": "u8 within 4-byte-per-vertex stream",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "dxbc_blob_count": 69
+  },
+  "corpus": {
+    "mod_unique_files": 38,
+    "mod_vertices": 20976,
+    "zero_values": 20976,
+    "nonzero_values": 0,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "runtime_builder": {
+    "addresses": ["0x1402FE83A", "0x1402FE83E", "0x1402FE860", "0x1402FE868"],
+    "meaning": "serialized mesh +0x28 pointer is installed into runtime stream slot +0x140 and mirrored for the second platform/runtime slot",
+    "status": "EXE_CONFIRMED"
+  },
+  "draw_descriptor_projection": {
+    "builder_addresses": ["0x1402F8841", "0x1402F89F2", "0x1402F89F6", "0x1402FF171", "0x1402FF30B", "0x1402FF30F"],
+    "meaning": "runtime +0x140 is copied as a whole pointer into draw/input descriptor +0x30; neighboring stream pointers occupy +0x18/+0x20/+0x28/+0x38/+0x40",
+    "status": "EXE_CONFIRMED"
+  },
+  "provenance_confirmed_cpu_consumers": [
+    {
+      "address": "0x1402F3D0A",
+      "lane": 1,
+      "meaning": "positive control: CPU reads BLENDINDICES.y and divides the matrix-row offset by four",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F55E8",
+      "lane_x_read": false,
+      "meaning": "secondary path loads the stream pointer but bounded dataflow does not dereference lane X",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "compiled_dxbc_census": {
+    "whole_exe_dxbc_blobs": 69,
+    "input_signatures_with_BLENDINDICES": 8,
+    "all_BLENDINDICES_register": 3,
+    "all_component_type": "uint32",
+    "all_Mask": "0xF",
+    "all_ReadWriteMask": "0xE",
+    "interpretation": "the compiled shader interface carries XYZW but the input signature read mask proves only Y/Z/W are read; X is not read",
+    "status": "EXE_CONFIRMED"
+  },
+  "embedded_hlsl_census": {
+    "families": [
+      "DMC3_MOD.hlsl",
+      "DMC3_MOD_SP.hlsl",
+      "DMC3_MOD_STX.hlsl",
+      "DMC3_EFM.hlsl",
+      "DMC3_EFM_SP.hlsl",
+      "DMC3_EFM_STX.hlsl",
+      "DMC3_EFM_VA.hlsl",
+      "DMC3_EFM_VA_SP.hlsl"
+    ],
+    "matIndex.x_occurrences": 0,
+    "matIndxX_occurrences": 0,
+    "matIndex.y_occurrences": 128,
+    "matIndex.z_occurrences": 16,
+    "matIndex.w_occurrences": 16,
+    "status": "EXE_CONFIRMED"
+  },
+  "whole_exe_candidate_census": {
+    "rejected_candidates": [
+      {
+        "address": "0x140316726",
+        "reason": "base pointer belongs to an interpolated 4-byte color/control table",
+        "status": "REJECTED"
+      },
+      {
+        "address": "0x140325970",
+        "reason": "base pointer is a static global table near 0x1405D10F0, not a MOD BLENDINDICES pointer",
+        "status": "REJECTED"
+      }
+    ]
+  },
+  "canonical_runtime_use": "EXE_CONFIRMED_NO_LANE_X_CONSUMER",
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+  "rejected_hypotheses": [
+    "BLENDINDICES.x is padding/reserved solely because the corpus is zero",
+    "BLENDINDICES.x may be normalized to zero by the writer",
+    "forwarding a uint4 input means all four lanes are consumed",
+    "every four-byte-stride lane-0 load in the executable belongs to this stream"
+  ],
+  "writer_policy": "preserve raw lane exactly",
+  "closure_boundary": "The former indirect GPU escape is closed for the canonical executable: all compiled DXBC BLENDINDICES input signatures have ReadWriteMask=0xE and embedded HLSL has no X reference, while provenance-confirmed CPU consumers also do not read X. Therefore canonical runtime non-use of lane X is EXE_CONFIRMED. The serialized byte is still preserved and intentionally not renamed padding/reserved because ABI compatibility with non-canonical data is a separate question."
+}

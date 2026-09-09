@@ -1,0 +1,106 @@
+{
+  "schema": "dmc-rengine.mod-secondary-zero-regions.v2",
+  "date": "2026-09-09",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "unique_mods": 38,
+    "objects": 166,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "header_regions": [
+    {
+      "region": "header +0x08..+0x0F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "header +0x18..+0x1F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "header +0x28..+0x3F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_loader": "0x1402F9570",
+      "loader_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    }
+  ],
+  "object_regions": [
+    {
+      "region": "object +0x04..+0x07",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "object +0x14..+0x17",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    },
+    {
+      "region": "object +0x20..+0x2F",
+      "corpus_status": "RESERVED_OBSERVED_ZERO",
+      "canonical_initializer": "0x1403029E0",
+      "initializer_raw_read": false,
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "writer_policy": "preserve"
+    }
+  ],
+  "node_region": {
+    "region": "node-domain +0x10..+0x1F",
+    "corpus_status": "RESERVED_OBSERVED_ZERO",
+    "canonical_transform_initializer": "0x1402FA080",
+    "status": ["CORPUS_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+    "writer_policy": "preserve"
+  },
+  "object_pointer_retention": {
+    "serialized_object_derivation": "0x140302A70..0x140302A81: source_header + 0x40 + object_index*0x40",
+    "runtime_destination": "runtime object +0x18",
+    "write_address": "0x140302AAA",
+    "meaning": "the complete serialized object-record pointer is retained in runtime; 0x140302AAA is NOT a read of serialized object +0x18/+0x1C",
+    "status": "EXE_CONFIRMED"
+  },
+  "positive_controls": {
+    "header_loader_direct_reads": ["+0x10", "+0x11", "+0x13", "+0x14", "magic +0x00..+0x03 via 0x1402FD650"],
+    "object_initializer_direct_reads": ["+0x00", "+0x01", "+0x10", "+0x30..+0x3F"],
+    "object_initializer_retained_pointer": "entire serialized object record -> runtime +0x18"
+  },
+  "rejected_false_positives": [
+    {
+      "address": "0x14030B568 / 0x14030B57F / 0x14030B5ED",
+      "candidate": "raw +0x18 read after an object +0x108 pointer",
+      "reason": "different resource owner reached from 0x14008BE50; manager layout uses +0x78/+0x80/+0x88 and byte +0x18 as a count for count*0x80 storage, not the MOD manager +0xE4/+0xE8/+0xEA domain",
+      "status": "REJECTED"
+    },
+    {
+      "address": "0x1402F556C and nearby rbp+0x108 uses",
+      "candidate": "manager +0x108 source pointer",
+      "reason": "rbp+0x108 is a local stack slot holding a runtime object pointer derived from manager +0x100 + object_index*0x380; it is not the manager source pointer field",
+      "status": "REJECTED"
+    }
+  ],
+  "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes and byte-preservation snapshots",
+  "closure_boundary": "Initializer-local no-read evidence is retained, but the complete serialized object record is kept reachable through runtime object +0x18. Therefore object secondary regions are not globally unused until downstream retained-pointer consumers are fully classified. Zero corpus data never authorizes normalization.",
+  "rejected_hypotheses": [
+    "zero shell region equals padding",
+    "absence from the initializer proves no later consumer",
+    "0x140302AAA reads serialized object +0x18/+0x1C",
+    "writer may zero-normalize secondary regions"
+  ]
+}

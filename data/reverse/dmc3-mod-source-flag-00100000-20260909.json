@@ -1,0 +1,102 @@
+{
+  "schema": "dmc-rengine.mod-object-flag-receipt.v3",
+  "field": "object source flag 0x00100000",
+  "serialized_offset": "object +0x10 bit 20",
+  "width": "u32 mask",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "em000_objects_with_bit": 36,
+    "pl000_slot1_objects_with_bit": 8,
+    "pl000_slot12_objects_with_bit": 1,
+    "combined_known_objects_with_bit": 45,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "runtime_flag_model": {
+    "baseline_word": "runtime object +0x10",
+    "effective_word": "runtime object +0x14",
+    "initializer_addresses": ["0x140302AB2", "0x140302ABF", "0x140302AC9"],
+    "reset_addresses": ["0x140305911", "0x140305924", "0x14030593B"],
+    "reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
+    "status": "EXE_CONFIRMED"
+  },
+  "packet_projection": {
+    "helper": "0x140302640",
+    "packet_base": "runtime object +0x80",
+    "packet_plus_08_when_set": "0x000000000005010D",
+    "packet_plus_08_when_clear": "0x000000000005000D",
+    "packet_plus_00_clear_bit_extra_mask": "0x0000000100000000",
+    "special_low_mode_4_packet_plus_08": "0x0000000000050007",
+    "status": "EXE_CONFIRMED"
+  },
+  "gs_packet_identity": {
+    "initializer": "0x1403027E0",
+    "gif_tag": "0x4000000000008001",
+    "register_descriptor": "0x10EEEE",
+    "registers": [
+      {"descriptor_value_offset": "+0x10", "register_id": "0x4E", "register": "GS ZBUF_1"},
+      {"descriptor_value_offset": "+0x20", "register_id": "0x47", "register": "GS TEST_1"},
+      {"descriptor_value_offset": "+0x30", "register_id": "0x42", "register": "GS ALPHA_1"},
+      {"descriptor_value_offset": "+0x40", "register_id": "0x00", "register": "GS PRIM"}
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "technical_semantic": {
+    "condition": "active low-nibble mode, except special mode 4",
+    "when_source_bit_clear": {
+      "TEST_1": "0x5000D",
+      "alpha_test_enable": 1,
+      "alpha_test_method": 6,
+      "alpha_test_method_name": "GREATER",
+      "alpha_reference": 0,
+      "alpha_fail_method": 0,
+      "z_test_enable": 1,
+      "z_test_method": 2,
+      "z_test_method_name": "GEQUAL",
+      "ZBUF_1_ZMSK": 1,
+      "depth_write": "masked/disabled"
+    },
+    "when_source_bit_set": {
+      "TEST_1": "0x5010D",
+      "alpha_test_enable": 1,
+      "alpha_test_method": 6,
+      "alpha_test_method_name": "GREATER",
+      "alpha_reference": 16,
+      "alpha_fail_method": 0,
+      "z_test_enable": 1,
+      "z_test_method": 2,
+      "z_test_method_name": "GEQUAL",
+      "ZBUF_1_ZMSK": 0,
+      "depth_write": "enabled by this selector"
+    },
+    "delta": "source bit 20 raises GS alpha-test reference from 0 to 16 and clears ZBUF_1.ZMSK, enabling depth-buffer writes relative to the clear-bit branch",
+    "status": "EXE_CONFIRMED"
+  },
+  "mesh_descriptor_projection": {
+    "helper": "0x1403028F0",
+    "descriptor": "runtime object +0xB0 + mesh_index*0x50",
+    "status": "EXE_CONFIRMED"
+  },
+  "command_handoff": {
+    "command_tag": "0x30000005",
+    "decoder": "0x140029880",
+    "type3_case": "0x140029958",
+    "backend_helper": "0x140032CD0",
+    "arena_base": "0x1405D9EA8",
+    "meaning": "command high dword is decoded as an arena-relative descriptor pointer and handed to the generic GS/GIF backend parser",
+    "status": "EXE_CONFIRMED"
+  },
+  "technical_semantic_status": "EXE_CONFIRMED",
+  "artistic_semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+  "rejected_hypotheses": [
+    "0x00100000 may be named cloth from corpus appearance alone",
+    "0x00100000 is a generic alpha/blend flag without a register-level trace",
+    "technical GS state closure automatically proves an artistic/material category"
+  ],
+  "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective refresh, exact TEST_1/ZBUF_1 projection, GS TEST bit decoding and ZMSK decoding with compile-time guards",
+  "writer_policy": "preserve source bit exactly",
+  "closure_boundary": "The hardware-state semantic is closed: in active low modes except mode 4, source bit 0x00100000 selects TEST_1 AREF 16 vs 0 and ZBUF_1 depth-write unmasked vs masked. The artistic reason a model uses that state remains intentionally unnamed."
+}

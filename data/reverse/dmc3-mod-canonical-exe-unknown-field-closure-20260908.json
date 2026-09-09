@@ -1,0 +1,85 @@
+{
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-field-closure.v2",
+  "date": "2026-09-08",
+  "branch": "reverse/mod-completion-20260907",
+  "superseded_by": "data/reverse/dmc3-mod-canonical-exe-unknown-byte-closure-20260909.json",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "architecture": "PE32+ x86-64"
+  },
+  "status_vocabulary": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED",
+    "STRUCTURAL_CONFIRMED",
+    "SEMANTIC_CANDIDATE",
+    "PRESERVED_UNDECODED",
+    "RESERVED_OBSERVED_ZERO",
+    "REJECTED"
+  ],
+  "fields": {
+    "transform_1c": {
+      "serialized": "f32@transform+0x1C",
+      "initializer": "0x1402FA080",
+      "rotation_helper": "0x140330450",
+      "evidence": "initializer copies +0x10..+0x1F as 16 bytes; helper reads only +0x00/+0x04/+0x08 of that block and ignores +0x0C; later CMotion transfer evidence also skips serialized +0x1C",
+      "corpus_zero": "285/285",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "classification": "source-preserved fourth lane; canonical XYZ transform construction does not consume it"
+    },
+    "mesh_0c": {
+      "serialized": "u32@mesh+0x0C",
+      "material_helper": "0x1402F9890",
+      "post_load_handlers": ["0x1402FE3B0", "0x1402F7A90", "0x1403051B0"],
+      "evidence": "material helper consumes +0x02/+0x04/+0x06/+0x08/+0x0A then skips +0x0C; primary handlers do not consume it; bounded negative evidence does not prove global non-use",
+      "corpus_zero": "180/180 MOD meshes",
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "classification": "raw source-preserved u32 before the aligned pointer block"
+    },
+    "mesh_38": {
+      "serialized": "u64@mesh+0x38",
+      "mod_handler": "0x1402FE3B0 does not relocate",
+      "efm_handler": "0x1402F7A90 relocates +0x38",
+      "scm_handler": "0x1403051B0 relocates +0x38",
+      "corpus_zero": "180/180 MOD meshes",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "EXE_AND_CORPUS_CONFIRMED"],
+      "classification": "format-specific auxiliary vertex-stream slot; inactive in the canonical MOD path and source-preserved"
+    },
+    "mesh_4c": {
+      "serialized": "u32@mesh+0x4C",
+      "mod_handler": "0x1402FE3B0 leaves untouched",
+      "runtime_builder": "0x1402FE6A0 transfers +0x40/+0x48 but not +0x4C",
+      "corpus_zero": "180/180 MOD meshes",
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "classification": "raw trailing source-preserved u32; bounded load/build paths do not establish a consumer"
+    },
+    "blendindices_x": {
+      "serialized": "u8 lane0 of uint8x4 BLENDINDICES stream",
+      "shader_sources": ["DMC3_MOD.hlsl", "DMC3_MOD_SP.hlsl", "DMC3_MOD_STX.hlsl"],
+      "shader_x_references": 0,
+      "active_shader_lanes": ["y", "z", "w"],
+      "cpu_lane1_site": "0x1402F3D0A..0x1402F3D0F",
+      "corpus_zero": "20976/20976 vertices",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "classification": "canonical runtime non-use of lane X is confirmed; serialized lane remains source-preserved and is not renamed padding/reserved"
+    }
+  },
+  "historical_open_at_capture": [
+    "global CPU blend-stream census for lane0",
+    "global raw mesh xref census for +0x4C",
+    "header +0x14 / manager +0xE4 consumer",
+    "object source flag 0x00100000 downstream render effect",
+    "object source flag 0x00200000 downstream render effect",
+    "broader retail MOD corpus nonzero counterexample search"
+  ],
+  "current_resolution": {
+    "blendindices_x": "closed for canonical runtime non-use by the 2026-09-09 DXBC/HLSL/CPU census; preserve source lane",
+    "header_14": "universal decimal identity rejected; preserve runtime_metadata_u32",
+    "source_flag_00100000": "technical GS TEST_1 AREF / ZBUF_1 ZMSK renderer semantic closed",
+    "source_flag_00200000": "runtime carry/restoration confirmed; distinct terminal semantic remains open",
+    "mesh_0c_4c": "bounded negative evidence strengthened; global semantic remains preserved-undecoded",
+    "corpus": "expanded to 38 unique MOD / 166 objects / 180 meshes / 20,976 vertices / 285 transforms"
+  },
+  "authority_rule": "Canonical executable and retail corpus are primary. External Blender/importer tools are corroboration only. Later 2026-09-09 receipts supersede any narrower interpretation recorded by this early pass."
+}

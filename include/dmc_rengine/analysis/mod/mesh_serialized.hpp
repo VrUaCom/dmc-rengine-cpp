@@ -10,11 +10,29 @@
 
 namespace dmc::rengine::analysis::mod {
 
-// Serialized MOD inner-mesh bytes that are intentionally kept separate from
-// runtime-live stream/state fields. Canonical post-load 0x1402FE3B0 and runtime
-// mesh construction 0x1402FE6A0 do not relocate or copy these fields in the
-// confirmed MOD load path. That negative runtime evidence does NOT authorize a
-// writer to clear them; they remain byte-preservation obligations.
+// Serialized MOD inner-mesh bytes intentionally kept separate from runtime-live
+// stream/state fields. Canonical post-load 0x1402FE3B0 and runtime mesh
+// construction 0x1402FE6A0 provide bounded negative evidence for these source
+// fields. Negative runtime evidence never authorizes a writer to clear them;
+// they remain byte-preservation obligations.
+//
+// Evidence boundaries:
+// - MOD +0x0C is a u32 between the 12-byte material/CLAMP prefix and the first
+//   u64 stream pointer. It is zero in the current bounded corpus, but neither
+//   the zero histogram nor its physical position proves padding/alignment.
+//   Status remains PRESERVED_UNDECODED until a complete consumer census closes
+//   it.
+// - +0x38 is not generic padding. EFM post-load 0x1402F7A90 relocates the
+//   homologous slot and EFM runtime builder 0x1402F7D60 forwards it as the
+//   extra COLOR0 stream. Canonical MOD builder 0x1402FE6A0 instead explicitly
+//   zeroes the corresponding runtime auxiliary-stream slots and does not copy
+//   serialized MOD +0x38. The shared physical description is therefore a
+//   family-specific auxiliary-stream slot; MOD does not inherit EFM COLOR0
+//   semantics by offset similarity. Source bytes are still preserved.
+// - MOD +0x4C is the trailing u32 after runtime-generated count +0x48. It is
+//   zero in the bounded MOD corpus and has no positive consumer in the audited
+//   load/build paths. That is not sufficient to call it reserved or padding;
+//   its global semantic remains PRESERVED_UNDECODED.
 struct MeshSerializedPreservationAbi final {
     static constexpr std::size_t record_size = 0x50U;
     static constexpr std::size_t preserved0c_u32_field = 0x0CU;
@@ -87,13 +105,13 @@ read_mesh_serialized_preservation(
         static_cast<std::size_t>(offset64));
 }
 
-// These constants already drive the canonical read-only MOD skin decoder.
-// Their evidence is now independently closed by the canonical executable:
-// - CPU consumer 0x1402F3D0A..0x1402F3D0F reads BLENDINDICES lane[1] and
-//   divides the matrix-row offset by four to obtain a node/bone index.
-// - runtime-selected vertex shader DMC3_MOD.hlsl (descriptor tag 5) decodes
-//   three 5-bit PSIZE weights with denominator 31 and uses matIndex.y/z/w as
-//   the corresponding four-row matrix starts in extraMatrices[].
+// These constants drive the canonical read-only MOD skin decoder. The direct
+// CPU path has a provenance-confirmed lane-Y read at 0x1402F3D0A and no lane-X
+// dereference. The former indirect GPU escape is also closed for the canonical
+// executable: every BLENDINDICES DXBC input signature uses ReadWriteMask=0xE,
+// so compiled shaders consume Y/Z/W and not X. Lane X is still part of the
+// serialized u8x4 ABI and remains source-preserved rather than being renamed
+// padding/reserved or force-normalized to zero.
 static_assert(dmc::rengine::formats::mod::matrix_row_stride == 4U);
 static_assert(dmc::rengine::formats::mod::quantized_weight_sum == 31U);
 static_assert(dmc::rengine::formats::mod::topology_break_mask == 0x8000U);

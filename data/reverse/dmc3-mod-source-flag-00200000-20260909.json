@@ -1,0 +1,102 @@
+{
+  "schema": "dmc-rengine.mod-object-flag-receipt.v2",
+  "field": "object source flag 0x00200000",
+  "serialized_offset": "object +0x10 bit 21",
+  "width": "u32 mask",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "em000_objects_with_bit": 7,
+    "pl000_slot1_objects_with_bit": 0,
+    "pl000_slot12_objects_with_bit": 0,
+    "id100_objects_with_bit": 0,
+    "combined_known_objects_with_bit": 7,
+    "em000_header_0x14_cluster": 100407,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "runtime_flag_model": {
+    "initializer_read": "0x140302AB2",
+    "baseline_write": "0x140302AC9 -> runtime object +0x10",
+    "effective_write": "0x140302ABF -> runtime object +0x14",
+    "baseline_role": "source/baseline flag word",
+    "effective_role": "mutable/effective flag word",
+    "status": "EXE_CONFIRMED"
+  },
+  "object_state_consumer_census": {
+    "bounded_range": "canonical MOD object-state helpers 0x140302640..0x140305C37 with runtime-object provenance",
+    "effective_word_read_sites": [
+      "0x140305911",
+      "0x140305930",
+      "0x140305942",
+      "0x14030599D",
+      "0x1403059AE",
+      "0x140305BBC",
+      "0x140305BDA",
+      "0x140305BEF",
+      "0x140305BFF"
+    ],
+    "baseline_word_read_sites": [
+      "0x140305903",
+      "0x140305924",
+      "0x140305BD7"
+    ],
+    "terminal_local_state_builder": "0x140302640",
+    "state_builder_masks": [
+      "0x0000000F low mode nibble",
+      "0x00010000",
+      "0x00100000"
+    ],
+    "state_builder_bit21_test": false,
+    "meaning": "every provenance-confirmed object-state path that forwards effective flags into the local GS state builder preserves/carries bit21, but 0x140302640 does not interpret it",
+    "status": "EXE_CONFIRMED"
+  },
+  "state_machine_evidence": {
+    "selective_reset_helper": "0x1403058F0",
+    "selective_reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
+    "bit21_effect_on_selective_reset": "bit21 is not refreshed from baseline by this path; its current effective state is retained",
+    "override_helper": "0x140305B90",
+    "zero_override_branch": "when incoming override mask is zero, the complete baseline +0x10 word is ORed into effective +0x14, reintroducing source bit21 if present",
+    "nonzero_override_branch": "otherwise the supplied override mask is ORed into effective +0x14",
+    "downstream": "both paths pass effective +0x14 to 0x140302640, which ignores bit21",
+    "status": "EXE_CONFIRMED"
+  },
+  "literal_mask_census": {
+    "model_subsystem_equal_mask_candidates": [
+      "0x1402F4C21 runtime object +0x304",
+      "0x140303F2F manager +0xE0"
+    ],
+    "direct_tests_of_runtime_plus_10_or_plus_14": 0,
+    "status": "EXE_CONFIRMED"
+  },
+  "candidate_rejections": [
+    {
+      "address": "0x1402F4C21",
+      "reason": "tests mask 0x00200000 in runtime word +0x304, not source-carried +0x10/+0x14; no derivation edge is proven",
+      "status": "REJECTED"
+    },
+    {
+      "address": "0x140303F2F",
+      "reason": "tests manager +0xE0 bit 0x00200000, a separate runtime domain raised by source flags 0x00000200/0x00000400",
+      "status": "REJECTED"
+    }
+  ],
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED",
+    "REJECTED"
+  ],
+  "rejected_hypotheses": [
+    "source flag 0x00200000 equals cloth",
+    "manager +0xE0 bit 0x00200000 is the same field as serialized object source flag 0x00200000",
+    "runtime +0x304 bit 0x00200000 is automatically derived from serialized source flag 0x00200000",
+    "presence in baseline/effective words implies a GS packet semantic",
+    "0x140302640 consumes every high bit present in effective flags"
+  ],
+  "cpp_contract": "analysis/mod/object_flags.hpp models exact baseline/effective carry and state restoration without assigning a terminal semantic to bit21",
+  "writer_policy": "preserve",
+  "closure_boundary": "Within the canonical MOD object-state pipeline, bit21 is EXE_CONFIRMED as carried and mutation-preserved state, including reintroduction from baseline by the zero-override path. The only proven local GS state builder reached from these paths, 0x140302640, explicitly interprets low mode, 0x00010000 and 0x00100000 but not 0x00200000. Therefore no GS/render semantic is promoted. A semantic claim now requires a separately proven consumer outside this bounded object-state pipeline or a provenance edge to another runtime domain."
+}

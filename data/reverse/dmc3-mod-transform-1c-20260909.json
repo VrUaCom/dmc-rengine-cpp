@@ -1,0 +1,122 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "transform+0x1C",
+  "serialized_offset": "transform +0x1C",
+  "width": "f32",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432
+  },
+  "corpus": {
+    "mod_transforms": 285,
+    "mod_zero_values": 285,
+    "efm_transforms": 5,
+    "efm_zero_values": 5,
+    "scm": "not promoted by this receipt; sibling-family offset similarity is not semantic evidence",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402FA080",
+    "0x1402FA12B",
+    "0x1402FA12E",
+    "0x140330450",
+    "0x14033045A",
+    "0x14033046A",
+    "0x14033047A",
+    "0x14030F850",
+    "0x14030F9CC",
+    "0x14030F9DE",
+    "0x14030F9F1",
+    "0x14030FA04",
+    "0x14030FA17",
+    "0x14030FA2A",
+    "0x14030FA2F",
+    "0x14030FA33"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1402FA12B",
+      "meaning": "MOD/EFM initializer loads serialized +0x10..+0x1F as one 16-byte rotation scratch block",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402FA12E",
+      "meaning": "the 16-byte rotation block, including serialized +0x1C, is copied to scratch before the rotation helper",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033045A",
+      "meaning": "rotation helper reads scratch +0x00 / serialized +0x10",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033046A",
+      "meaning": "rotation helper reads scratch +0x04 / serialized +0x14",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14033047A",
+      "meaning": "rotation helper reads scratch +0x08 / serialized +0x18; no scratch +0x0C read occurs",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030F9CC",
+      "meaning": "CMotion binding copies serialized +0x00",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030F9DE",
+      "meaning": "CMotion binding copies serialized +0x04",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030F9F1",
+      "meaning": "CMotion binding copies serialized +0x08 and skips +0x0C",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030FA04",
+      "meaning": "CMotion binding copies serialized +0x10",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030FA17",
+      "meaning": "CMotion binding copies serialized +0x14",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030FA2A",
+      "meaning": "CMotion binding copies serialized +0x18",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030FA2F",
+      "meaning": "source pointer advances by the full 0x20-byte transform stride immediately after +0x18; serialized +0x1C is not read by this per-record transfer",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [
+    {
+      "address": "0x14030FA33",
+      "runtime_destination": "+0x1C4",
+      "source": "serialized +0x18",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": "No runtime-node destination exists for serialized +0x1C in the audited CMotion transfer: the final copied source scalar is +0x18 -> runtime +0x1C4, followed immediately by source += 0x20. The canonical rotation helper likewise ignores the fourth scratch scalar.",
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "transform +0x1C is generic padding because the bounded corpus is zero",
+    "transform +0x1C has SCM semantics solely because a homologous offset exists",
+    "transform +0x1C may be zero-normalized by a future writer",
+    "the 16-byte initializer block copy alone proves +0x1C is semantically consumed"
+  ],
+  "writer_policy": "preserve",
+  "closure_boundary": "Two independent canonical EXE paths negatively close +0x1C for local transform semantics: 0x140330450 consumes only rotation XYZ from the copied scratch block, and 0x14030F850 copies source +0x00/+04/+08/+10/+14/+18 then advances by 0x20 without reading +0x1C. Global semantics outside these provenance-confirmed transform consumers remain PRESERVED_UNDECODED."
+}

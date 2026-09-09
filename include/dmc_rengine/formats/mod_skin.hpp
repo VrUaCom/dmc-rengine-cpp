@@ -60,11 +60,20 @@ inline constexpr std::uint8_t matrix_row_stride = 4U;
 // CPU consumer 0x1402F3D0A..0x1402F3D0F reads BLENDINDICES lane[1] as a
 // float4-row offset and divides by four before indexing node/world matrices.
 // Runtime-selected vertex shader descriptor tag 5 resolves to DMC3_MOD.hlsl;
-// its DXBC/SPDB source decodes three 5-bit PSIZE weights with denominator 31
-// and binds them to matIndex.y/z/w four-row matrix starts in extraMatrices[].
-// The high 0x8000 source bit is independent topology state consumed/cleared by
-// canonical MOD post-load before the packed 15-bit weight payload is retained.
-// blend_indices[0] remains reserved/constant in the currently bound corpus.
+// its shader logic decodes three 5-bit PSIZE weights with denominator 31 and
+// binds them to matIndex.y/z/w four-row matrix starts in extraMatrices[].
+//
+// Whole-image compiled-DXBC signature census closes the former GPU escape:
+// 69 DXBC blobs exist in the canonical executable; 8 input signatures expose
+// BLENDINDICES, and all 8 describe register 3 as uint4 with Mask=0xF and
+// ReadWriteMask=0xE. For an input signature this means Y/Z/W are read while X
+// is not read by the compiled shader. The embedded HLSL census independently
+// has zero matIndex.x / matIndxX references. Provenance-confirmed direct CPU
+// consumers likewise contain no lane-X dereference.
+//
+// This is strong negative canonical-runtime evidence, but not permission to
+// reinterpret the serialized byte as padding or normalize it. blend_indices[0]
+// remains an ABI-preserved raw lane for round-trip/non-canonical compatibility.
 [[nodiscard]] SkinDecodeResult decode_vertex_skin(
     const std::array<std::uint8_t, 4>& blend_indices,
     std::uint16_t packed_weights_and_topology,

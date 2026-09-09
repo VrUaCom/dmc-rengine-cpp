@@ -121,10 +121,13 @@ struct Header final {
     // compatibility while exposing the proven MOD-specific semantic accessor.
     std::uint8_t runtime_mode_byte{};
 
-    // +0x14 is runtime-carried to manager +0xE4. The recursive em000 corpus
-    // additionally shows a stable decimal decomposition pattern, but no
-    // MOD-specific downstream executable consumer has yet promoted a higher-
-    // level semantic name. Do not transfer SCM resource-code semantics.
+    // +0x14 is a raw runtime-carried u32 copied to manager +0xE4. Expanded
+    // em000/pl000/id100 corpus evidence rejects the earlier universal decimal
+    // component interpretation: values such as 217 and 1000000 do not support
+    // a stable MOD-wide family/model/sub-index semantic partition. No typed
+    // downstream manager consumer currently promotes a higher-level name.
+    // Preserve the source value exactly; do not derive it from resource names
+    // and do not transfer SCM LegacyResourceCode semantics into MOD.
     std::uint32_t runtime_metadata_u32{};
 
     [[nodiscard]] constexpr std::uint8_t default_joint_index() const noexcept {

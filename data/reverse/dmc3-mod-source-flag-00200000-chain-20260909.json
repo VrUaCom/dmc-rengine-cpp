@@ -1,0 +1,9 @@
+{
+  "schema": "dmc-rengine.reverse-receipt-alias.v1",
+  "date": "2026-09-09",
+  "status": "REJECTED",
+  "reason": "Historical filename is misleading: this artifact described manager +0xE0 mask 0x00200000 raised by serialized source flags 0x00000200/0x00000400, not serialized object source flag 0x00200000.",
+  "canonical_replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json",
+  "domain_boundary": "Do not merge equal numeric mask 0x00200000 across serialized object flags and manager runtime flags. Serialized source flag 0x00200000 requires its own provenance chain.",
+  "writer_policy": "preserve"
+}
