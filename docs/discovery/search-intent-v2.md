@@ -1,159 +1,155 @@
 # DMC Rengine Search Intent v2
 
-Status: implementation specification for the public discovery layer.
-
-This document extends the evidence-bounded discovery strategy from brand/technical discovery into user-problem discovery. It does not authorize capability claims beyond `docs/status/current.md`.
-
-## Funnel
+## Canonical funnel
 
 ```text
-Problem -> Guide -> Tool / capability -> Technical research -> Brand / ecosystem
+Problem -> Guide -> Tool / Capability -> Technical Research -> Brand / Ecosystem
 ```
 
-A user does not need to know the names DMC Rengine, GDSpaces, MOD, SCM, PAC, PNST, NBZ, DDS or PTX before finding the project. Public pages should also answer the language people use when they are trying to solve a task.
+The discovery layer should answer the practical question a user types first, then route toward the exact DMC Rengine capability and finally into canonical technical evidence.
 
-## Intent families
+## Problem language
 
-### Unpack and extract
+Primary practical intents include:
 
-Primary phrases include:
+- DMC3 unpacker / Devil May Cry 3 unpacker;
+- DMC3 extractor / archive extractor;
+- DMC3 NBZ extractor;
+- DMC3 PAC extractor;
+- DMC3 PNST browser;
+- DMC3 model extractor / model viewer;
+- DMC3 texture extractor / texture viewer;
+- Dante model / Dante textures;
+- DMC3 stage models / stage resources;
+- DMC3 animations / MOT inspection;
+- open or inspect DMC3 MOD;
+- open or inspect DMC3 SCM;
+- DMC3 modding tools;
+- DMC3 reverse engineering.
 
-- Devil May Cry 3 unpacker
-- DMC3 unpacker
-- DMC3 HD unpacker
-- Devil May Cry 3 extractor
-- DMC3 file extractor
-- DMC3 archive extractor
-- how to unpack DMC3 files
-- how to extract Devil May Cry 3 HD files
-- DMC3 PAC extractor / unpacker
-- DMC3 NBZ extractor / unpacker
+One strong page should cover close spelling or phrasing variants of the same intent. Do not create thin near-duplicate pages for every keyword permutation.
 
-These phrases describe search intent. Public copy must distinguish a verified extraction/materialization path from unsupported universal repacking or editing claims.
+## Guide layer
 
-### Models
+Guides translate real project capability into workflows ordinary users can follow. The current guide families are:
 
-- DMC3 model extractor
-- DMC3 model viewer
-- how to extract DMC3 models
-- how to open DMC3 MOD files
-- how to open DMC3 SCM files
-- DMC3 Dante model
-- DMC3 enemy models
-- DMC3 stage models
+- unpacking DMC3 HD resources;
+- extracting NBZ members;
+- extracting PAC children;
+- browsing PNST containers;
+- extracting models;
+- extracting textures;
+- finding Dante-related models and textures;
+- extracting stage-related models and scene resources;
+- opening and inspecting MOD;
+- opening and inspecting SCM;
+- inspecting animation relationships and MOT research.
 
-### Textures
+Guide wording is evidence-bounded. `extract`, `browse`, `open`, `view`, `inspect`, `edit`, `replace`, `repack` and `rebuild` are different operations and must not be used as synonyms.
 
-- DMC3 texture extractor
-- DMC3 texture viewer
-- how to extract DMC3 textures
-- DMC3 DDS textures
-- DMC3 PTX textures
-- how to open DMC3 textures
+## Tool / capability layer
 
-### Browse and inspect
+### DMC Rengine
 
-- DMC3 file viewer
-- DMC3 resource browser
-- DMC3 archive browser
-- DMC3 binary inspector
-- Devil May Cry 3 modding tools
+Canonical C++20 parser, reverse-evidence and reconstruction authority. Public claims should point back to `main`, format specifications, current status and evidence records.
 
-### Authoring lifecycle
+### DMC Native Reader
 
-Search vocabulary also includes `convert`, `edit`, `replace`, `repack` and `rebuild`. Those words may be targeted only on pages where the corresponding operation has a current evidence-backed implementation. A reader or parser is not advertised as an editor/repacker merely for SEO.
+User-facing reader/viewer product direction that consumes canonical native parser contracts. Platform and format claims must follow actual current build state, not roadmap intent.
 
-## Guide architecture
+### GDSpaces / PocketGDS
 
-First-wave guides:
+Archive and resource navigation, provenance-aware materialization and nested container browsing. They provide the path from NBZ/PAC/PNST resources into typed model, texture, scene and other readers.
 
-1. **How to Unpack Devil May Cry 3 HD Collection Files** — cornerstone task guide; routes into NBZ, PAC, PNST and resource-specific paths.
-2. **How to Extract Files from DMC3 NBZ Archives** — numbered archive/materialization path.
-3. **How to Extract Models from Devil May Cry 3 HD** — routes model discovery into MOD/SCM evidence and reader capabilities.
-4. **How to Extract Textures from Devil May Cry 3 HD** — routes texture discovery into PTX/DDS evidence and reader capabilities.
-5. **How to Open and Inspect DMC3 MOD Files** — model inspection with explicit maturity boundaries.
-6. **How to Open and Inspect DMC3 SCM Files** — scene/model inspection with explicit maturity boundaries.
+## Technical research layer
 
-Second-wave guides are justified after the first wave has useful canonical support and indexable public routes:
+Technical pages cover the underlying resource families and architecture:
 
-- How to Extract DMC3 PAC Files
-- How to Open DMC3 PNST Containers
-- How to Find DMC3 Character Models
-- How to Find Dante's Model and Textures in DMC3 HD
-- How to Extract Enemy Models from DMC3
-- How to Extract Stage Models from DMC3
-- How to Extract DMC3 DDS Textures
-- How to Inspect DMC3 Animations
-- How DMC3 HD Stores Game Resources
+- NBZ;
+- PAC;
+- PNST;
+- MOD;
+- SCM;
+- DDS;
+- PTX;
+- HITS;
+- SHW;
+- Stage TXT;
+- LIG/LIG2;
+- DCA;
+- executable/runtime evidence;
+- MOT and other active research frontiers where promotion state is explicit.
 
-Do not create near-duplicate pages for `unpacker`, `extractor`, `DMC3 unpacker`, and `Devil May Cry 3 unpacker`. One strong page should satisfy closely related intent variants and link to narrower guides.
+The technical layer must remain stronger than the SEO wording: search pages summarize evidence, they do not replace it.
 
-## Public hub targets
+## Brand / ecosystem layer
 
-The discovery site should grow toward these intent hubs without replacing canonical technical documentation:
+The public entity should consistently bind:
+
+```text
+DMC Rengine
+ -> Devil May Cry 3 / DMC3 HD
+ -> C++20
+ -> reverse engineering
+ -> file-format research
+ -> resource extraction and inspection
+ -> evidence-backed modding and reconstruction work
+```
+
+The ecosystem can mention DMC Native Reader and GDSpaces/PocketGDS when the route genuinely benefits from them, but each project keeps a distinct product role.
+
+## Capability boundaries
+
+Current public wording may describe canonical NBZ materialization, recursive PAC/PNST expansion, supported typed readers and read-side model/texture/scene inspection where those capabilities are promoted.
+
+Do not infer unrestricted writer authority, universal conversion, original-game acceptance or whole-game recompilation from those capabilities. Stronger operations require their own writer, rebuild and original-runtime proof gates.
+
+## Content architecture
+
+Current user-intent routes include:
 
 ```text
 /unpacker/
 /guides/
+/guides/unpack-dmc3-hd/
+/guides/extract-nbz/
+/guides/extract-pac/
+/guides/browse-pnst/
+/guides/extract-models/
+/guides/extract-textures/
+/guides/dante-model-textures/
+/guides/stage-models/
+/guides/inspect-mod/
+/guides/inspect-scm/
+/guides/animations/
 /models/
 /textures/
 /modding/
-/formats/
 ```
 
-Existing `/formats/*`, `/archives/nbz/`, `/gdspaces/`, `/reverse-engineering/`, `/status/` and `/faq/` routes remain technical/evidence entry points.
+These routes should cross-link with canonical `/formats/*`, `/archives/nbz/`, `/gdspaces/`, `/reverse-engineering/` and `/status/` pages so the site forms one semantic graph rather than separate SEO and research silos.
 
-## Ecosystem discovery
+## Indexing and measurement
 
-DMC Rengine is the canonical C++20 reverse-engineering/reconstruction core, but public discovery may route users to other project products when they solve the requested task.
+Crawlability, indexing and ranking remain separate evidence states. Search Console activation and sitemap submission must be recorded only after the exact URL-prefix property is verified.
 
-### DMC Native Reader
+Measure the funnel with a stable keyword set grouped by intent:
 
-DMC Native Reader should be presented as a user-facing reader/inspector product only to the extent supported by its own canonical repository/status. Useful intent families include:
+- Brand;
+- Problem;
+- Guide;
+- Tool / capability;
+- Technical format;
+- Ecosystem / platform.
 
-- DMC3 file viewer
-- DMC3 model viewer
-- DMC3 texture viewer
-- open DMC3 files on Android
-- DMC3 viewer on Windows
-- DMC3 viewer on Web
-- DMC3 viewer on iOS
+Track transitions such as `not found -> indexed -> top 20 -> top 10 -> top 3` instead of treating page publication as ranking proof.
 
-Platform names must not be advertised as released/supported merely because they are roadmap targets. Cross-platform wording must be tied to actual build/product evidence.
+## Acceptance rules
 
-### GDSpaces / PocketGDS
-
-Where current product evidence supports it, archive browsing, resource navigation and extraction intents may route to GDSpaces/PocketGDS rather than pretending every user workflow belongs to the C++ core repository UI.
-
-## Internal-link contract
-
-A guide should normally link in both directions:
-
-```text
-user problem
-  -> guide
-  -> capability/product
-  -> format or architecture research
-  -> current status / evidence
-  -> DMC Rengine ecosystem
-```
-
-Technical format pages should link back to relevant practical guides so the graph works for both modders and reverse engineers.
-
-## Measurement
-
-Track a stable query set by intent rather than only branded queries:
-
-- Brand: `DMC Rengine`, `dmc-rengine-cpp`
-- Problem: `how to unpack DMC3`, `how to extract DMC3 textures`, `how to extract DMC3 models`
-- Tool: `DMC3 unpacker`, `DMC3 extractor`, `DMC3 model viewer`, `DMC3 texture viewer`
-- Technical: `DMC3 MOD format`, `DMC3 SCM format`, `DMC3 NBZ`, `DMC3 PAC format`
-- Ecosystem: `DMC Native Reader`, plus platform-qualified viewer queries only when platform claims are current
-
-Record separately: not surfaced, surfaced, top 20, top 10, top 3. Crawlability, indexing and ranking remain different evidence states.
-
-## External-search observation — 2026-09-09
-
-Current public search results show that `DMC3 unpacker` / `PAC extractor` intent is real and already contested by legacy/community tools. Results include a Nexus Mods DMC3 HDC PAC unpacker and a GitHub DMC3 PAC extractor/repacker. This strengthens the case for task-oriented pages, but DMC Rengine must compete on accurate modern capabilities and evidence rather than keyword duplication.
-
-The controlled Pages site is still early in external discovery. Do not infer indexing from successful crawler fetches.
+- Every practical route answers a distinct user problem.
+- Every page has a canonical technical source.
+- Search wording never upgrades reader support into authoring support.
+- Near-duplicate keyword pages are rejected.
+- DMC Native Reader and GDSpaces/PocketGDS are mentioned only for real ecosystem roles.
+- New guide waves must be added to the same manifest-driven Pages build and sitemap.
+- Public routes must pass the discovery-site builder and exact-head CI before promotion.
