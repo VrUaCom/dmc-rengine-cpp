@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-branch-consolidation.v2",
+  "schema": "dmc-rengine.mod-branch-consolidation.v3",
   "date": "2026-09-09",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "canonicalExecutable": {
@@ -14,8 +14,8 @@
   },
   "auditCoverage": {
     "nameMatchedModBranches": 33,
-    "additionalMixedHistoricalBranches": 3,
-    "totalReviewedRefs": 36
+    "additionalMixedHistoricalBranches": 5,
+    "totalReviewedRefs": 38
   },
   "policy": {
     "newModBranchesByDefault": false,
@@ -59,7 +59,9 @@
     {"name":"refactor/native-reader-modular-main","class":"RELATED_INFRASTRUCTURE_ONLY"},
     {"name":"claude/rengine-cpp-analysis-review-541wxb","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":280,"note":"early EFM/MOD/MOT/PTX/SHW parser package; reconcile non-MOD slices separately"},
     {"name":"claude/android-gds-app-msiuu8","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":254,"note":"animation/naming/content-tag reverse; current MOD receipts override overlapping MOD claims"},
-    {"name":"agent/wave3-runtime-execution-v2","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":89,"note":"early recovered MOD/EFM post-load; later canonical MOD runtime-postload promotion supersedes MOD slice"}
+    {"name":"agent/wave3-runtime-execution-v2","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":89,"note":"early recovered MOD/EFM post-load; later canonical MOD runtime-postload promotion supersedes MOD slice"},
+    {"name":"agent/vanilla-runtime-wave3-integration","class":"HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD","pr":79,"note":"broad Wave-3 runtime model with typed MOD/EFM/SCM/SHW/PNST post-load context; mixed observations are provisional"},
+    {"name":"agent/issue55-stage-row-runtime-resolution","class":"HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD","pr":74,"note":"Stage/resource runtime stack with typed MOD/EFM/SCM/SHW helper identities; not a MOD format source"}
   ],
   "closedBaselineDomains": [
     "0x40 document header / 0x40 object / 0x50 mesh structural shell",
