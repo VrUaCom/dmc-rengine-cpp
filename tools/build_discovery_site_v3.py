@@ -185,7 +185,6 @@ def _promote_post_372_model_format_truth(by_path: dict[str, dict]) -> None:
         "68-unique no-edit corpus is closed at that scope; retail reintegration and original-game "
         "acceptance remain explicit open gates."
     )
-    scm_format["sections"] = inspect_scm["sections"]
 
     animations = by_path["/guides/animations/"]
     animations["description"] = (
@@ -223,7 +222,6 @@ def _promote_post_372_model_format_truth(by_path: dict[str, dict]) -> None:
         "real-payload structural validation and bounded compression-3 key evaluation are promoted; "
         "complete player and original-game parity remain open."
     )
-    mot_format["sections"] = animations["sections"]
 
     status = by_path["/status/"]
     status_sections = status.setdefault("sections", [])
