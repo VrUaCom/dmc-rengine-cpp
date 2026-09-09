@@ -86,6 +86,50 @@ Mesh `+0x04/+0x06/+0x08/+0x0A` — `MINU/MAXU/MINV/MAXV`.
 
 Це legacy PS2 GS `CLAMP REGION_REPEAT` state. Register fields мають 10-bit domain. Якщо serialized raw u16 > `0x03FF`, parser зберігає raw value і warning; не mask.
 
+## Object flag `0x00100000`: exact GS state selector
+
+Цей source bit більше не є просто “render flag with unknown effect”. Canonical object-state path доводить exact legacy GS projection для активного low-nibble mode (окрім special mode 4).
+
+`0x140302640` формує packet, який потім ідентифікований як GS A+D descriptor із register targets:
+
+```text
+ZBUF_1  register 0x4E
+TEST_1  register 0x47
+ALPHA_1 register 0x42
+PRIM    register 0x00
+```
+
+Для `0x00100000`:
+
+```text
+source bit clear:
+  TEST_1 = 0x5000D
+  AREF   = 0
+  ZBUF_1.ZMSK = 1   // depth writes masked
+
+source bit set:
+  TEST_1 = 0x5010D
+  AREF   = 16
+  ZBUF_1.ZMSK = 0   // depth writes enabled by this selector
+```
+
+В обох випадках:
+
+```text
+ATE  = 1
+ATST = GREATER
+ZTE  = 1
+ZTST = GEQUAL
+```
+
+Тому технічний semantic — **legacy GS alpha-test-reference/depth-write-state selector**. Не називай його `cloth`, `transparent`, `alpha material` або іншою artistic категорією без окремого evidence.
+
+## Object flag `0x00200000`: carried, але не GS-interpreted у цьому path
+
+Source bit21 переноситься в baseline/effective runtime flags і може бути відновлений із baseline state. Але confirmed GS packet builder `0x140302640` його не тестує і не витягує арифметично.
+
+Equal mask `0x00200000` в manager `+0xE0` або runtime object `+0x304` не означає спільну semantic provenance. Поки не доведений copy/derivation edge, high-level meaning source bit21 лишається `PRESERVED_UNDECODED`.
+
 ## Не плутай representation layers
 
 ```text
@@ -101,4 +145,4 @@ DMC Rengine може мати читачі/перетворення для DDS/P
 
 ## Writer boundary
 
-Production texture replacement authority ще не закрита, бо для неї потрібні complete-enough TIM2 semantics, companion writer, MOD/companion coherence, reopen, reintegration і original-game acceptance.
+Production texture/material replacement authority ще не закрита. Навіть для EXE-confirmed GS selector треба знати повну serialization/reintegration policy, а для texture replacement додатково потрібні complete-enough TIM2 semantics, companion writer, MOD/companion coherence, reopen, reintegration і original-game acceptance.
