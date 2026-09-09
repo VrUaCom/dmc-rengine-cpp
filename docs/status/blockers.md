@@ -1,11 +1,10 @@
 # Current Blockers
 
 **Snapshot date:** 2026-09-09  
-**Canonical base reviewed:** `main@5b2a541c99442627128ef4d877c99e5ecff16933`  
-**Latest reviewed repository promotion:** PR #374 — canonical status reconciliation + machine-status JSON CI guard  
-**Latest reverse/model-family promotion:** PR #369 — controlled retail MOD writer receipt + MOD-to-PAC reintegration trust bridge  
+**Canonical base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
+**Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT consolidation and container gates (merged after PR #375)  
 **Latest Native Reader module promotion:** PR #288 — evidence-backed SHW Native Reader + cross-registry integration hardening  
-**Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI alone is never original-game equivalence.
+**Completion rule:** original-DMC3 claims require the authority appropriate to the claim; synthetic CI never equals original-game equivalence.
 
 The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [GDSpaces Proof Roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
 
@@ -15,199 +14,168 @@ The current proof execution order is [DMC Rengine Roadmap](../roadmap.md) plus [
 
 **Status:** ❌ TRUSTED ORIGINAL/PROTECTED-PROCESS RECEIPT REQUIRED
 
-Product acquisition tooling exists, but it does not prove what the original protected process selected. A valid receipt must preserve:
+Product acquisition tooling and independent retail corpus evidence exist, but they do not prove what the original protected process selected. A valid receipt must bind the protected executable, successful mount topology, resolver-selected provider/volume/member, archive identity, materialized bytes and trusted observer state.
 
-- protected executable authority;
-- observed successful mount topology;
-- resolver-selected provider/volume/archive/member identity;
-- archive SHA/size;
-- central-entry metadata;
-- materialized SHA/size;
-- transform and ByteProvenance;
-- trusted observer identity and zero-loss trace state where runtime observation is used.
-
-`obj\em000.pac` remains a high-value request, not a predeclared archive member.
-
-### B-L1-02 — Exact retail representation classification
+### B-L1-02 — Exact selected representation classification
 
 **Status:** ❌ DEPENDS ON B-L1-01
 
-Classify the exact selected bytes. Do not infer writer authority from transformed DDS/TM2/runtime evidence or a filename alone. Stop if the real representation lies outside an evidenced writer domain.
+Classify the exact original-selected bytes before applying any writer authority. Filename, transformed texture data or an unrelated retail corpus is insufficient.
 
-### B-L1-03 — Representative real edit/rebuild/rematerialization receipt
+### B-L1-03 — Same-lineage authored rebuild/rematerialization
 
-**Status:** ❌ REAL PROTECTED-INSTALL SAME-LINEAGE RECEIPT REQUIRED
+**Status:** ⚠️ RESOURCE/CONTAINER GATES ADVANCED / ORIGINAL-SELECTED LINEAGE OPEN
 
-Current product code supports top-level/nested PAC/PNST authoring, next-volume NBZ creation and canonical product rematerialization. MOD additionally has a bounded preserve-layout writer, a provenance-bound retail controlled edit and a writer-receipt trust bridge into the generic authored-child reintegration envelope.
+PR #372 closes a previously missing **provenance-bound real retail PNST reintegration** gate for a same-size authored MOD child:
 
-Those gates narrow the available edit producer but do **not** replace one same-lineage real receipt:
+- retail parent `m20_s00_012.pac` is byte-classified as PNST with 33 physical slots;
+- target MOD is physical slot 23 at offset 129280, size 1888;
+- controlled radius edit changes exactly three child bytes;
+- parent size remains 346272 bytes;
+- slot table and every unrelated parent byte remain unchanged;
+- canonical reparse/re-expand returns the exact authored MOD bytes.
+
+PR #372 also proves a **synthetic** MOD -> container -> NBZ overlay -> reopen chain using the existing NBZ writer/source implementation.
+
+What remains for L1 is stronger and same-lineage:
 
 ```text
-original-selected member
+original resolver-selected member
  -> exact representation classification
- -> supported bounded edit
- -> bottom-up rebuild
- -> untouched sibling validation
- -> next-contiguous authored NBZ
- -> original resolver selects authored higher volume
- -> exact rebuilt member bytes are materialized
- -> exact authored child is reached
+ -> evidenced bounded edit
+ -> bottom-up parent rebuild
+ -> authored higher-numbered NBZ
+ -> original resolver selects that overlay
+ -> exact rebuilt member rematerializes
+ -> authored child reaches the original consumer
 ```
 
-For a MOD representative, PRs #365/#368/#369 can supply the bounded resource-level writer evidence only after B-L1-01/02 prove that the selected retail bytes are in that evidenced MOD domain.
+The retail PNST receipt is real evidence, but it is not a trusted original-process resolver-selection receipt and the synthetic NBZ gate is not retail/original-runtime acceptance.
 
-### B-L1-04 — Original DMC3 Level-E consumption + rollback
+### B-L1-04 — Original DMC3 consumption + rollback
 
 **Status:** ❌ FINAL EXTERNAL ACCEPTANCE REQUIRED
 
-Canonical tracking: issue #209.
+A generated overlay must be SHA-bound, selected by the original runtime, produce an observable effect attributable to authored bytes, and then be removed while original retail artifacts remain byte-identical. A crash-free launch is insufficient.
 
-A generated overlay must be SHA-verified, selected by the original runtime through a deterministic path, produce an observable effect attributable to the authored bytes, and then be removed while original retail artifacts remain byte-identical. A crash-free launch is insufficient.
-
-### B-L1-05 — Final L1 cross-stack audit
+### B-L1-05 — Final L1 audit
 
 **Status:** ❌ OPEN / DEPENDS ON B-L1-01..04
 
-Before `L1 COMPLETE / 100%`:
-
-- trusted original selection provenance exists;
-- representation classification is explicit;
-- real edit/rebuild/rematerialization receipt exists;
-- original-game consumer observation exists;
-- rollback proves retail immutability;
-- exact-head Windows + Ubuntu CI is green;
-- code/docs/issues/evidence agree;
-- no unresolved contradiction changes the claimed scope.
+Requires trusted original selection provenance, exact representation classification, same-lineage authored overlay selection/rematerialization, consumer observation, rollback, exact-head CI and contradiction review.
 
 ## Layer 2 blockers
 
-### B-L2-01 — Retail `0x0E` collision census
+### B-L2-01 — Retail normalized-key collision scope
 
 **Status:** ✅ CLOSED FOR EXACT `dmc3-0.nbz` / ❌ WIDER SCOPE OPEN
 
-Bound receipt:
+Bound receipt remains 4,333 file keys / 4,333 unique / 0 collisions for the exact archived artifact. Additional volumes and cross-volume normalized-key behavior remain open for wider claims.
 
-- archive SHA-256 `2c2302cef5251d9a2499be728d81427e9689d0b9c3ceaeef10d9786260fd13df`;
-- central surface SHA-256 `0616683ed1280e80421b5680725d258fe78e41f939ba994a433eadc0f99650af`;
-- files-only: 4,333 keys / 4,333 unique / 0 collisions;
-- all central entries: 4,334 / 4,334 unique / 0 collisions.
+### B-L2-02 — Discovery vs successful mount topology
 
-Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
+**Status:** ✅ CLOSED / PRODUCT CORRECTION PROMOTED BY PR #287
 
-Every additional volume in a wider resolver claim still requires its own census, plus cross-volume normalized-key analysis.
+Discovery/registration attempt is not successful linked runtime mount topology. Current product code preserves that distinction.
 
-### B-L2-02 — Discovery vs successful mount topology product correction
+### B-L2-03 — Real protected-distribution RVA mapping
 
-**Status:** ✅ PRODUCT CORRECTION PROMOTED BY PR #287
+**Status:** ❌ TOOLING EXISTS / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
 
-Canonical reverse proves:
+Canonical analysis executable and protected distribution execution candidate remain separate authorities. Canonical VAs/RVAs require independent mapping into the exact protected process.
 
-```text
-filename discovery / registration attempt
-!=
-successful linked runtime mount
-```
+### B-L2-04 — Trusted selected-provider identity
 
-The product model on current `main` reflects that distinction:
+**Status:** ❌ BLOCKED BY REAL R2B + TRUSTED PUBLISHER
 
-- discovery carries no success claim;
-- successful topology contains only explicitly successful linked providers;
-- sparse successful archive registration is representable;
-- resolver traverses only the successful topology;
-- discovered-but-failed archives are absent, not synthetic misses;
-- failed physical registration yields no physical provider probe;
-- product acquisition receipts explicitly avoid claiming original-process topology.
+A valid R3 promotion requires a trusted, lossless observer bound to the exact process and mounted artifacts. Editable content cannot self-assert original evidence.
 
-This closes the product topology correction. It does **not** close the protected-process selected-provider evidence gates below.
+### B-L2-05 — Direct-retail original resolver winner
 
-### B-L2-03 — Real protected-distribution runtime RVA mapping receipt
+**Status:** ❌ ORIGINAL OBSERVATION REQUIRED
 
-**Status:** ❌ TOOLING INTEGRATED BY #219 / REAL ORIGINAL-PROCESS RECEIPT REQUIRED
-
-Authority split:
-
-- canonical analysis executable: SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`, size 6,356,432;
-- protected distribution execution candidate: SHA-256 `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320.
-
-Canonical analysis VAs/RVAs may not be applied to the protected process without independent mapping evidence. Required real packet: `OpenGameResource` plus at least two approved type-0 anchors from one exact process/module session.
-
-### B-L2-04 — Trusted original-process selected-provider identity
-
-**Status:** ❌ #221 TOOLING INTEGRATED / BLOCKED BY REAL B-L2-03 + TRUSTED PUBLISHER
-
-The content-candidate/normalizer/artifact binder does not make editable JSON original evidence. A real R3 promotion requires:
-
-1. valid real protected-process mapping;
-2. observer/publisher attached to that exact process without changing selection semantics;
-3. `trace_complete=true` and `dropped_event_count=0`;
-4. exact observer artifact SHA;
-5. exact mounted NBZ artifact SHA/size binding;
-6. trusted capture origin that cannot be asserted by editable content.
-
-Archive lookup hit followed by wrapper/open failure at `0x140328290` remains a terminal provider/backend failure, not a clean lower-volume miss.
-
-### B-L2-05 — Direct-retail original resolver identity receipt
-
-**Status:** ❌ MEMBER SURFACE UNBLOCKED FOR `dmc3-0.nbz` / ORIGINAL OBSERVATION REQUIRED
-
-The bound `dmc3-0.nbz` key surface is clean. What remains is the original resolver winner itself: selected provider/volume/member from a trusted protected-process observation.
+The bound `dmc3-0.nbz` key surface is clean; the actual original resolver winner still needs trusted process evidence.
 
 ### B-L2-06 — Final L2 audit
 
 **Status:** ❌ OPEN
 
-Requires the claimed collision scope, real protected-runtime mapping, trusted selected identity, exact-head CI and reconciled code/docs/evidence. The successful-mount topology product correction itself is already canonical.
+## Native Reader / model-format boundaries
 
-## Native Reader integration gates
+### SHW
 
-### B-NR-SHW-01 — SHW structural reader promotion
+**Status:** ✅ STRUCTURAL READER CANONICAL / ❌ WRITER OPEN
 
-**Status:** ✅ CLOSED / PROMOTED BY PR #288
+PR #288 remains the canonical structural/read-only SHW promotion. Matrix-palette ownership, universal revision coverage and writer/original-game authoring acceptance remain open.
 
-The canonical implementation is bounded to one hash-bound real SHW payload plus canonical-EXE corroboration. It validates the confirmed `0x20` header, `0x40` hull records, triangle/adjacency/position/selector streams and preserves unknown bytes. The exact PR-head tree passed Ubuntu + Windows build/test CI before promotion, and the promoted SHW tree remains contained in current `main`.
+### MOD
 
-PR #288 also closed two integration defects found during review rather than weakening tests: SHW is consistently routed through `ToolRegistry` and `OpenRouter` to the `modviz_scene` consumer, and `ResourceAnalyzer` fails closed when parser completion cannot publish its canonical workspace validation receipt. Cross-registry tests verify parser IDs, Native Reader modules, consumer targets, primary scene routing, valid/deduplicated tool routes and module-to-format reachability.
+**Status:** ✅ BOUNDED WRITER + REAL RETAIL PNST REINTEGRATION / ❌ FULL WRITER + RETAIL NBZ + ORIGINAL-GAME ACCEPTANCE OPEN
 
-This closes the **structural reader product promotion only**. SHW matrix-palette ownership, universal revision coverage and writer/original-game authoring acceptance remain open.
+Canonical milestones now include:
 
-### B-NR-SHW-02 — SHW mutation authority
-
-**Status:** ❌ OPEN / NOT CLOSED BY #288
-
-Writer work requires broader variant coverage, SHW matrix-palette ownership, rebuild/reopen validation and original-game authored-resource acceptance. Structural read support must not be treated as mutation authority.
-
-## MOD/model-family evidence boundary
-
-**Status:** ✅ BOUNDED PRESERVE-LAYOUT WRITER + RETAIL NO-OP PARITY PROVEN / ❌ FULL WRITER + ORIGINAL-GAME ACCEPTANCE OPEN
-
-PRs #305/#307/#310/#312-#318/#323/#356/#359/#360/#363 materially strengthened the canonical MOD/model-family read/reverse contract: hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, texture companion/binding, inverse-rest skin palette, runtime texture descriptor, runtime object-state projection, preserved serialized fields, direct skin ABI evidence and explicit preservation/no-repeat boundaries are promoted.
-
-The authoring frontier has also advanced and must no longer be described as wholly read-only:
-
-- ✅ PR #365 — Preserve-Layout Writer Gate 1 with immutable-source binding, canonical source/output reparse and unauthorized-byte rejection;
-- ✅ PR #367 — deterministic multi-file writer corpus harness;
-- ✅ PR #368 — provenance-bound 38-file retail no-op parity: 38/38 parse/write/exact-byte-equality/reopen over 882,736 bytes, zero modified bytes, zero failures;
-- ✅ PR #369 — one provenance-bound real retail bounding-radius edit with exactly three changed bytes inside `[124,128)`, plus disk hash/reread/reopen and independent raw-diff verification;
-- ✅ PR #369 — writer receipt -> `AuthoredChildImage` trust bridge plus synthetic PAC reintegration/reopen regression.
+- ✅ reader/reverse promotion stack #305–#323 plus #356/#359/#360/#363;
+- ✅ Preserve-Layout Writer Gate 1 (#365);
+- ✅ deterministic writer corpus harness (#367);
+- ✅ 38/38 provenance-bound retail no-op exact byte parity (#368);
+- ✅ one provenance-bound controlled retail bounding-radius edit (#369);
+- ✅ writer receipt -> `AuthoredChildImage` trust bridge + synthetic PAC reintegration (#369);
+- ✅ provenance-bound real retail PNST reintegration/reopen (#372);
+- ✅ synthetic MOD -> container -> NBZ overlay -> reopen (#372).
 
 Still open before a **full production MOD writer** claim:
 
-- layout synthesis/reflow or rebuild from typed IR alone;
+- layout synthesis/reflow or typed-IR-only rebuild;
 - transform authoring;
 - skin/blend-index authoring;
 - source-flag/material/texture-binding authoring;
 - texture-companion rewriting/coherence;
 - broader mutation authority for preserved-undecoded fields;
-- provenance-bound retail PAC/PNST reintegration of writer output;
-- NBZ overlay acceptance for the same MOD authoring lineage;
-- original `dmc3.exe` no-op rebuilt-MOD acceptance;
-- original `dmc3.exe` edited-MOD acceptance;
+- provenance-bound **retail NBZ** overlay acceptance for the authored MOD lineage;
+- original `dmc3.exe` no-op/edited MOD acceptance;
 - complete current animation/pose ownership;
 - a `100% MOD writer` claim.
 
-Capcom offline-tool equivalence remains unnecessary for DMC Rengine authoring acceptance unless explicitly claimed.
+### SCM
 
-These are format/authoring boundaries, not substitutes for the GDSpaces L1/L2/L3 proof chain.
+**Status:** ✅ CANONICAL BOUNDED WRITER/REBUILD STACK / ❌ PRODUCTION + ORIGINAL-GAME ACCEPTANCE OPEN
+
+PR #372 promotes the selected canonical SCM authoring stack:
+
+- `preserve_layout` source-bound same-layout authoring;
+- deterministic `canonical_rebuild` typed-IR layout planning;
+- typed geometry/normal/UV/texture-slot/alpha/filter/GS-CLAMP/node-transform editing;
+- dependent metadata derivation and mandatory canonical output reparse;
+- source-bound mutation guards;
+- fail-closed canonical reflow on non-zero unmodeled source bytes;
+- bounded SCM/texture-companion coherence via `ScmResourceBundleWriter`.
+
+Consolidated no-edit corpus is closed at its explicit scope: 78 paths / 68 unique SHA-256 inputs; 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical exact no-edit parity.
+
+Still open:
+
+- provenance-bound representative semantic edits across SCM domains;
+- provenance-bound retail texture rewrite;
+- real-retail size-changing canonical rebuild;
+- SCM PAC/PNST/NBZ reintegration;
+- original `dmc3.exe` acceptance;
+- any `100%` or universal-production claim.
+
+### MOT
+
+**Status:** ✅ CANONICAL PARSER/IR + BOUNDED KEY EVALUATION / ❌ COMPLETE PLAYER PARITY OPEN
+
+PR #372 consolidates MOT onto one modular parser/IR and promotes canonical-EXE-backed recovery for nine-channel binding traversal, signed track start-time offsets, quantization and compression-3 linear/Hermite segment algebra. Three hash-bound real MOT payloads parse through the canonical structural path.
+
+Still open:
+
+- exact segment lookup/cache and duplicate-time behavior;
+- flag `0x2` alternate binding path;
+- additional compression modes;
+- looping/blending/motion selection/full transform composition;
+- bit-identical SSE parity where required;
+- original-game output comparison;
+- built-in Native Reader module promotion if/when that product surface is added.
 
 ## Layer 3 blockers
 
@@ -215,80 +183,43 @@ These are format/authoring boundaries, not substitutes for the GDSpaces L1/L2/L3
 
 **Status:** ⚠️ RESEARCH CONCLUSION EXISTS / CANONICAL PROMOTION OPEN
 
-Historical/reconciliation research concluded the bounded LoadedResource state-writer census can be contradiction-gated closed. It must be rechecked against current main and promoted semantically before the canonical roadmap receives a green closure mark.
-
 ### B-L3-02 — R2 family/backing ownership
 
 **Status:** ❌ OPEN
-
-Close family/group ownership and lifecycle ordering for `+0x08`, `+0x10` where applicable, `+0x18`, `+0x20`, `+0x28` and stable adjacent fields without conflating SCM mesh `+0x28` with LoadedResource fields.
 
 ### B-L3-03 — Materialization scheduler terminal dependency
 
 **Status:** ❌ FRESH BOUNDED CANONICAL PASS REQUIRED
 
-The bounded seam already proves materialization-dispatch success precedes state1 and normal callback `0x1401B8DC0` publishes state2. The still-open question is the exact lower scheduler/transport condition that allows or suppresses normal completion after failed/incomplete transport.
-
-Fresh raw targets:
-
-- `0x1402EF4D0`;
-- `0x1402EF790`;
-- `0x1400333E0`;
-- `0x140033390`;
-- `0x1400335A0`;
-- `0x1402EF460`;
-- regression anchor `0x1401B8DC0`.
-
-The exact canonical executable bytes are now available to recent reverse work. That removes the old access excuse but **does not close this blocker**: these scheduler targets still require their own address/range/scope-bounded pass and contradiction review.
+Fresh raw targets remain `0x1402EF4D0`, `0x1402EF790`, `0x1400333E0`, `0x140033390`, `0x1400335A0`, `0x1402EF460`, with `0x1401B8DC0` as regression anchor. Availability of the canonical executable does not close these address/range/scope-specific targets.
 
 ### B-L3-04 — V1–V7 original-process receipts
 
 **Status:** ❌ OPEN
 
-Required dynamic breadth remains initial load, transition, reload, full reset/menu, in-flight cancellation, shutdown and family/build aggregation.
-
 ### B-L3-05 — Final L3 audit
 
 **Status:** ❌ OPEN
 
-Depends on static promotion/ownership closure plus accepted original-process lifecycle receipts.
+## Closed foundations — do not reopen absent contradiction
 
-## Closed product/reverse foundations — do not reopen absent contradiction
-
-- ➖ atomic/no-replace publication — product safety policy;
-- ➖ artifact-bound SHA / ByteProvenance — product evidence policy;
-- ✅ numbered-volume / first-gap bootstrap bounded behavior;
+- ➖ atomic/no-replace publication and artifact-bound SHA/ByteProvenance;
+- ✅ numbered-volume / first-gap bootstrap;
 - ✅ six-prefix `OpenGameResource` bounded direct-call policy;
 - ✅ archive `0x0E` / physical `0x0C` normalization;
 - ✅ type-0 physical final-open/miss bounded contract;
-- ✅ discovery separated from explicitly successful mount topology in canonical product code (#287);
-- ✅ SHW structural/read-only Native Reader and its cross-registry integration contract (#288);
-- ✅ PAC/PNST typed traversal and PAC slot-0 traversal;
-- ✅ LoadedResource state1-after-materialization-success;
-- ✅ normal `1 -> 2`, typed post-load -> callback -> state3 bounded path;
-- ✅ cancellation `1|2 -> 4` and quiescence `{0,3}` bounded rules;
-- ✅ `dmc3-0.nbz` zero-collision receipt for that exact artifact;
-- ✅ `.index` rejected as recovered original resolver/materialization authority on the canonical path; packed/`.lst` selection is EXE-confirmed;
-- ✅ MOD Preserve-Layout Writer Gate 1 (#365), 38-file provenance-bound no-op byte parity (#368), and one bounded provenance-bound retail fixed-layout edit plus synthetic PAC reintegration bridge (#369) — within their exact scopes only.
-
-## Bounded reverse gaps — activate only when the claim requires them
-
-- complete ZIP stream initializer `0x140328540` body/lifetime;
-- complete compressed seek/reset/reinflate `0x140328FE0` behavior;
-- exhaustive malformed/partial-read original error equivalence;
-- dynamic `.lst` allocation/free/error/cycle behavior and real `.lst` corpus breadth.
-
-## Evidence-gated freezes / non-blockers
-
-- Binary AFS is not inferred from `.afs/` namespace strings.
-- Historical PACK parsing does not establish original DMC3 PACK runtime authority.
-- Capcom offline writer equivalence is not required for DMC Rengine authoring acceptance.
-- Stage Ops/ModViz and unrelated format progress do not substitute for L1/L2/L3 proof gates.
+- ✅ successful-mount topology correction (#287);
+- ✅ SHW structural Native Reader integration (#288);
+- ✅ PAC/PNST traversal and PAC slot-0 traversal;
+- ✅ LoadedResource state1 -> state2 -> typed post-load/callback -> state3 bounded spine;
+- ✅ cancellation/quiescence bounded rules;
+- ✅ exact `dmc3-0.nbz` zero-collision receipt;
+- ✅ `.index` rejected as recovered runtime materialization authority on the canonical path;
+- ✅ MOD Gate 1/no-op/controlled edit (#365/#368/#369);
+- ✅ MOD real retail PNST reintegration and synthetic NBZ reopen (#372);
+- ✅ SCM 68-unique/78-path no-edit writer corpus and canonical selected writer stack (#372);
+- ✅ MOT canonical parser/IR structural consolidation and bounded key-evaluation recovery (#372).
 
 ## Current access boundary
 
-The connected environment still lacks the trusted protected-process/install observations required for B-L1-01..04 and B-L2-03..05.
-
-The old 2026-09-05 statement that the exact raw canonical `e454...` executable was unavailable is no longer current: it has been supplied and used in recent promoted MOD/model-family static reverse passes. Static byte availability does not substitute for protected-process evidence and does not automatically close unrelated scheduler/transport targets such as B-L3-03.
-
-The `dmc3-0.nbz` collision census remains closed for its exact bound artifact and is not an access blocker.
+Trusted protected-process/install observations required for the remaining L1/L2/L3 original-process gates are still unavailable through the connected development evidence. Static/corpus progress must not be upgraded into original-runtime acceptance.
