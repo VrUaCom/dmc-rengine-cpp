@@ -1,0 +1,32 @@
+name: MOD Writer Runner Artifact
+
+on:
+  push:
+    branches:
+      - reverse/mod-completion-20260907
+  workflow_dispatch:
+
+jobs:
+  linux-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure release runner
+        run: cmake -S . -B build -DDMC_RENGINE_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+      - name: Build dmc-rengine
+        run: cmake --build build --target dmc-rengine --parallel 2
+      - name: Record runner provenance
+        shell: bash
+        run: |
+          mkdir -p artifact
+          cp build/dmc-rengine artifact/dmc-rengine
+          chmod +x artifact/dmc-rengine
+          printf '%s\n' "${GITHUB_SHA}" > artifact/source-commit.txt
+          sha256sum artifact/dmc-rengine > artifact/dmc-rengine.sha256
+      - name: Upload canonical Linux runner
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmc-rengine-linux-${{ github.sha }}
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 3

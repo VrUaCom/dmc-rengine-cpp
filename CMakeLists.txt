@@ -62,6 +62,7 @@ add_executable(dmc-rengine
     src/cli/nbz_copy_commands.cpp
     src/cli/archive_key_census_commands.cpp
     src/cli/container_inspect_commands.cpp
+    src/cli/mod_writer_corpus_commands.cpp
     src/cli/relative_slot_commands.cpp
     src/cli/hits_commands.cpp
     src/cli/stage_commands.cpp
@@ -128,6 +129,8 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         lig2
         model_family
         mod
+        mod_writer
+        mod_writer_corpus
         mod_skin
         stage_txt
         resource_analyzer
@@ -303,6 +306,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_mod_writer_corpus_usage
+        COMMAND dmc-rengine mod-writer-corpus)
+    set_tests_properties(
+        dmc_rengine_cli_mod_writer_corpus_usage
+        PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_preflight_dmc3_game_test_usage
         COMMAND dmc-rengine preflight-dmc3-game-test)

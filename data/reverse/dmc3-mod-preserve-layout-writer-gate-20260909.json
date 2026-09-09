@@ -1,0 +1,118 @@
+{
+  "schema": "dmc-rengine.mod-writer-gate.v1",
+  "date": "2026-09-09",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "evidenceClass": "WRITER_GATE",
+  "gate": "WRITER_GATE_1_PRESERVE_LAYOUT",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/formats/mod_writer.hpp",
+    "source": "src/formats/mod_writer.cpp",
+    "test": "tests/mod_writer_tests.cpp",
+    "testTarget": "dmc_rengine_mod_writer_tests",
+    "corpusHeader": "include/dmc_rengine/formats/mod_writer_corpus.hpp",
+    "corpusSource": "src/formats/mod_writer_corpus.cpp",
+    "corpusTest": "tests/mod_writer_corpus_tests.cpp",
+    "corpusCli": "dmc-rengine mod-writer-corpus <directory> [receipt.json]"
+  },
+  "sourceAuthority": {
+    "callerOwnedImmutableSourceRequired": true,
+    "documentSourceBytesMustMatchImmutableSource": true,
+    "sourceCanonicalReparseRequired": true,
+    "outputCanonicalReparseRequired": true
+  },
+  "allowedFixedLayoutEdits": [
+    "object.bounding_center",
+    "object.bounding_radius",
+    "mesh.positions",
+    "mesh.normals",
+    "mesh.uvs"
+  ],
+  "blockedEdits": [
+    "header",
+    "object_cardinality",
+    "mesh_cardinality",
+    "record_or_stream_offsets",
+    "layout_reflow",
+    "stream_cardinality",
+    "transform_domain",
+    "skin_weights",
+    "blend_indices",
+    "packed_control_topology",
+    "texture_slot",
+    "gs_clamp_material_state",
+    "object_source_flags",
+    "object_alpha_control",
+    "generated_workspace_state",
+    "preserved_undecoded_fields"
+  ],
+  "preservationEnforcement": {
+    "outputStartsFromImmutableSource": true,
+    "authorizedChangedSpansTracked": true,
+    "fullByteDiffChecked": true,
+    "unauthorizedByteChangeFailsClosed": true,
+    "diagnostic": "mod.writer.unauthorized-byte-change"
+  },
+  "writeReceipt": [
+    "source_sha256",
+    "output_sha256",
+    "byte_count",
+    "modified_byte_count",
+    "source_image_matches_document",
+    "unauthorized_bytes_unchanged",
+    "output_reparse_ok",
+    "no_edit_byte_identical"
+  ],
+  "regressionGates": [
+    "no_edit_byte_parity",
+    "no_edit_source_output_sha_equality",
+    "controlled_bounding_position_uv_edit_reopens",
+    "bytes_outside_edited_spans_unchanged",
+    "source_flag_edit_rejected",
+    "undecoded_mesh_field_edit_rejected",
+    "stream_cardinality_change_rejected",
+    "transform_edit_rejected",
+    "document_source_bytes_tamper_rejected"
+  ],
+  "retailCorpusValidation": {
+    "scope": "provenance-bound 38 unique retail MOD files: 35 em000 + 2 pl000 + 1 id100",
+    "runnerSourceCommit": "b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348",
+    "runnerSha256": "d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae",
+    "attestation": "data/reverse/dmc3-mod-writer-retail-38-attestation-20260909.json",
+    "sourceHashManifest": "data/reverse/dmc3-mod-writer-retail-38-source-hashes-20260909.txt",
+    "uniqueModFiles": 38,
+    "totalSourceBytes": 882736,
+    "passed": 38,
+    "failed": 0,
+    "modifiedByteCountTotal": 0,
+    "byteIdenticalAll": true,
+    "reopenAll": true,
+    "rawReceiptSha256": "f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8"
+  },
+  "claims": {
+    "syntheticFixtureNoEditByteParity": true,
+    "syntheticFixtureControlledFixedLayoutEdit": true,
+    "fullRetailCorpusByteParity": true,
+    "fullRetailCorpusScope": "provenance-bound 38 unique MOD files: 35 em000 + 2 pl000 + 1 id100",
+    "fullRetailCorpusCanonicalReopen": true,
+    "canonicalRebuildFromScratch": false,
+    "transformAuthoring": false,
+    "skinAuthoring": false,
+    "materialAuthoring": false,
+    "textureCompanionCoherence": false,
+    "containerReintegration": false,
+    "originalGameNoEditAcceptance": false,
+    "originalGameEditedAcceptance": false,
+    "fullModWriterAuthority": false
+  },
+  "nextFrontier": [
+    "controlled_retail_fixed_layout_edit_receipt",
+    "texture_companion_and_container_reintegration",
+    "original_dmc3_exe_no_edit_acceptance",
+    "original_dmc3_exe_controlled_edit_acceptance"
+  ]
+}

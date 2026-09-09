@@ -1,0 +1,47 @@
+{
+  "schema": "dmc-rengine.mod-writer-retail-attestation.v1",
+  "project": "DMC Rengine",
+  "format": "MOD ",
+  "writer_mode": "preserve_layout",
+  "canonical_source_commit": "b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348",
+  "base_main_commit": "8fa7f05c24833d41f9c961af8b56ee438f83c51d",
+  "runner_sha256": "d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae",
+  "source_archive": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "unique_mod_files": 35
+  },
+  "additional_corpus": [
+    {
+      "label": "pl000_slot_0001",
+      "size": 216544,
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89"
+    },
+    {
+      "label": "pl000_slot_0012",
+      "size": 35696,
+      "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740"
+    },
+    {
+      "label": "id100_001_red_orb_counter",
+      "size": 2304,
+      "sha256": "9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90"
+    }
+  ],
+  "corpus": {
+    "unique_mod_files": 38,
+    "total_bytes": 882736,
+    "source_hash_manifest_sha256": "b45d385ab110d2e88d5d10348f000daaca2d45256a7fffd737fed4305f6c3ae8"
+  },
+  "result": {
+    "scan_completed": true,
+    "passed": 38,
+    "failed": 0,
+    "all_passed": true,
+    "modified_byte_count_total": 0,
+    "byte_identical_all": true,
+    "reopen_all": true
+  },
+  "raw_receipt_sha256": "f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8",
+  "evidence_boundary": "No retail game payload bytes are embedded in this attestation. File hashes and receipt facts identify the externally held corpus only."
+}

@@ -2,6 +2,7 @@
 #include "container_inspect_commands.hpp"
 #include "exe_acquisition_commands.hpp"
 #include "integration_commands.hpp"
+#include "mod_writer_corpus_commands.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
@@ -49,6 +50,7 @@ void print_help() {
     dmc::rengine::cli::print_integration_help();
     dmc::rengine::cli::print_archive_key_census_help();
     dmc::rengine::cli::print_container_inspect_help();
+    dmc::rengine::cli::print_mod_writer_corpus_help();
     std::cout << "  help | --help             Show this help\n";
 }
 
@@ -320,6 +322,12 @@ int main(int argc, char** argv) {
         dmc::rengine::cli::try_run_container_inspect_command(argc, argv);
     if (container_result != -1) {
         return container_result;
+    }
+
+    const auto mod_writer_corpus_result =
+        dmc::rengine::cli::try_run_mod_writer_corpus_command(argc, argv);
+    if (mod_writer_corpus_result != -1) {
+        return mod_writer_corpus_result;
     }
 
     const std::string_view command{argv[1]};
