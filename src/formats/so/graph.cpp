@@ -111,6 +111,15 @@ bool ParseResult::ok() const noexcept {
     return recognized && !has_error(diagnostics);
 }
 
+// The graph already refused everything but a graph — across the em000
+// extraction it accepted 1 of 306 payloads — so identity here is the parse
+// succeeding. It is exposed under the same name as its siblings so a caller
+// asking the identity question does not have to know which of the three
+// happens to be cheap.
+bool recognizes(const std::span<const std::byte> bytes) noexcept {
+    return parse(bytes).ok();
+}
+
 ParseResult parse(const std::span<const std::byte> bytes) {
     ParseResult result;
     const binary::Reader reader(bytes);

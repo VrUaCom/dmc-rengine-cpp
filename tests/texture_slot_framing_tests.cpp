@@ -1,4 +1,5 @@
 #include "dmc_rengine/profiles/dmc3/index_display_semantics.hpp"
+#include "dmc_rengine/gdspaces/classifier.hpp"
 #include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
 
 #include <algorithm>
@@ -10,6 +11,9 @@
 #include <vector>
 
 namespace {
+
+namespace dmc3 = dmc::rengine::profiles::dmc3;
+namespace gdspaces = dmc::rengine::gdspaces;
 
 void put_u32(
     std::vector<std::byte>& bytes,
@@ -70,7 +74,9 @@ void put_u32(
     std::uint32_t height,
     std::uint32_t mip_count,
     bool dxt5,
-    bool secondary_half = false) {
+    bool secondary_half = false,
+    std::uint32_t auxiliary_mode = 0U,
+    std::uint32_t auxiliary_value = 0U) {
     std::vector<std::byte> descriptor(0x70U, std::byte{0});
     const auto encoding_low = dxt5 ? 0x88U : 0x86U;
     const auto secondary_width = secondary_half ? width / 2U : width;
@@ -99,6 +105,8 @@ void put_u32(
             1.0F / static_cast<float>(secondary_height)));
     put_u32(descriptor, 0x60U, dxt5 ? 4U : 0U);
     put_u32(descriptor, 0x64U, static_cast<std::uint32_t>(dds.size()));
+    put_u32(descriptor, 0x3CU, auxiliary_mode);
+    put_u32(descriptor, 0x40U, auxiliary_value);
     put_u32(descriptor, 0x68U, 8U);
     return descriptor;
 }
@@ -163,9 +171,69 @@ void append_at(
 
 } // namespace
 
+// The auxiliary pair, against the retail pack rather than against the corpus
+// that first bounded it.
+//
+// `em000.pac` slot 0 is the enemy's texture bundle: four descriptors, three
+// of them DXT5 and the first DXT1. That first one carries auxiliary mode 2.
+// The reader required a non-zero mode to come with DXT5 — true of every
+// descriptor it had seen, and not true of the format — so it refused the
+// descriptor, refused the bundle, and the model's textures read as `bin`.
+void an_auxiliary_mode_is_not_a_promise_of_dxt5() {
+    constexpr std::uint32_t mip_count = 5U;
+    // 0x1D308000 is the value all three non-zero descriptors of the retail
+    // pack carry, with the top bit set on the one whose mode is 1.
+    constexpr std::uint32_t retail_auxiliary_value = 0x1D308000U;
+
+    const auto dds = make_dds(16U, 16U, mip_count, false);
+    const auto descriptor = make_descriptor(
+        dds, 16U, 16U, mip_count, false, false, 2U, retail_auxiliary_value);
+    std::vector<std::byte> wrapped;
+    wrapped.insert(wrapped.end(), descriptor.begin(), descriptor.end());
+    wrapped.insert(wrapped.end(), dds.begin(), dds.end());
+    assert(dmc3::TextureSlotFramingParser::parse(wrapped).ok());
+
+    // What the pack does show is kept: a mode and a value are zero together
+    // or non-zero together.
+    const auto unpaired = make_descriptor(
+        dds, 16U, 16U, mip_count, false, false, 2U, 0U);
+    std::vector<std::byte> broken;
+    broken.insert(broken.end(), unpaired.begin(), unpaired.end());
+    broken.insert(broken.end(), dds.begin(), dds.end());
+    assert(!dmc3::TextureSlotFramingParser::parse(broken).ok());
+
+    // And the mode's own domain is unchanged.
+    const auto out_of_range = make_descriptor(
+        dds, 16U, 16U, mip_count, false, false, 3U, retail_auxiliary_value);
+    std::vector<std::byte> refused;
+    refused.insert(refused.end(), out_of_range.begin(), out_of_range.end());
+    refused.insert(refused.end(), dds.begin(), dds.end());
+    assert(!dmc3::TextureSlotFramingParser::parse(refused).ok());
+}
+
+// Neither framing carries a magic, so neither could be reached by the
+// signature chain — and neither was reached by anything else either. A
+// texture bundle is the first slot of an enemy archive, so this is the row
+// the browser shows first.
+void the_classifier_reaches_both_framings() {
+    const auto bundle = bundle_fixture();
+    const auto as_bundle = gdspaces::ResourceClassifier::classify(
+        "slot_0000.bin", std::span<const std::byte>{bundle});
+    assert(as_bundle.format == "ptx");
+    assert(as_bundle.structural_confirmed);
+    assert(!as_bundle.magic_confirmed);
+
+    const auto wrapped = wrapped_dds_fixture();
+    assert(
+        gdspaces::ResourceClassifier::classify(
+            "slot_0142.bin", std::span<const std::byte>{wrapped}).format ==
+        "wrapped-dds");
+}
+
 int main() {
-    namespace gdspaces = dmc::rengine::gdspaces;
-    namespace dmc3 = dmc::rengine::profiles::dmc3;
+    an_auxiliary_mode_is_not_a_promise_of_dxt5();
+    the_classifier_reaches_both_framings();
+
 
     const auto wrapped = wrapped_dds_fixture();
     const auto wrapped_result = dmc3::TextureSlotFramingParser::parse(
