@@ -42,7 +42,14 @@ struct LocalTransformRecord final {
     // CORPUS_CONFIRMED zero evidence only. Its global semantic remains
     // PRESERVED_UNDECODED; neither a reserved name nor writer-zero policy is
     // authorized without a complete consumer/family census.
-    float reserved1c{};
+    //
+    // raw_1c is the canonical evidence-safe name. reserved1c is retained only
+    // as a source-compatibility alias for older callers and carries no semantic
+    // claim that the field is actually reserved.
+    union {
+        float raw_1c{};
+        float reserved1c;
+    };
 };
 
 struct ParseResult final {
