@@ -190,6 +190,20 @@ int main() {
     assert(read_file(output_path) == before_repeat);
     assert(dmc::rengine::cli::run_rebuild_relative_slot(parent_path, 9U, replacement_path, root / "invalid.pac") != 0);
 
+    // Regression: a basename-only output is a valid no-replace destination in
+    // the current directory. This is the path form used by ordinary CLI calls.
+    const auto original_cwd = std::filesystem::current_path();
+    std::filesystem::current_path(root);
+    const std::filesystem::path relative_output{"relative-rebuilt.pac"};
+    assert(dmc::rengine::cli::run_rebuild_relative_slot(
+        std::filesystem::path{"parent.pac"},
+        0U,
+        std::filesystem::path{"replacement.bin"},
+        relative_output) == 0);
+    assert(std::filesystem::is_regular_file(relative_output));
+    assert(read_file(relative_output) == rebuilt);
+    std::filesystem::current_path(original_cwd);
+
     const auto nested_source_path = root / "nested.pac";
     const auto nested_replacement_path = root / "nested-replacement.bin";
     const auto nested_output_path = root / "nested-rebuilt.pac";

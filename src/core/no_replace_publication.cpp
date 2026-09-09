@@ -103,9 +103,18 @@ NoReplacePublicationResult publish_bytes_no_replace(
             "Destination/staging input is invalid or payload exceeds stream limits.");
     }
 
-    const auto parent = destination.parent_path();
+    auto parent = destination.parent_path();
     std::error_code error;
-    if (parent.empty() || !std::filesystem::is_directory(parent, error) || error) {
+    if (parent.empty()) {
+        parent = std::filesystem::current_path(error);
+        if (error) {
+            return failure(
+                NoReplacePublicationStatus::invalid_input,
+                "Unable to resolve the current directory for relative destination publication.");
+        }
+    }
+    error.clear();
+    if (!std::filesystem::is_directory(parent, error) || error) {
         return failure(
             NoReplacePublicationStatus::invalid_input,
             "Destination parent directory must already exist.");
