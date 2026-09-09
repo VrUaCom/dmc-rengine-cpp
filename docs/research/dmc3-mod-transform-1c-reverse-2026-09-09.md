@@ -51,7 +51,9 @@ The global field status therefore remains `PRESERVED_UNDECODED`.
 
 ## C++ contract correction
 
-`include/dmc_rengine/formats/mod/transform_domain.hpp` continues to retain the serialized float as `reserved1c` for compatibility, but its documentation no longer claims a reserved/alignment semantic. The contract now states only the evidence that exists: `EXE_CONFIRMED` non-consumption in the audited matrix path, `CORPUS_CONFIRMED` bounded zeros, and `PRESERVED_UNDECODED` global semantics.
+`include/dmc_rengine/formats/mod/transform_domain.hpp` now exposes `raw_1c` as the canonical evidence-safe API name. The historical `reserved1c` spelling is retained only as a source-compatibility alias over the same storage; it is **not** semantic authority that the field is actually reserved.
+
+The contract states only the evidence that exists: `EXE_CONFIRMED` non-consumption in the audited matrix path, `CORPUS_CONFIRMED` bounded zeros, and `PRESERVED_UNDECODED` global semantics.
 
 The field must remain source-preserved by any future writer. A writer may not synthesize 0.0f solely from the current corpus.
 
