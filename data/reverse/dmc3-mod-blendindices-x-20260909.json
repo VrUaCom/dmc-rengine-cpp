@@ -1,8 +1,10 @@
 {
-  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v2",
   "field": "BLENDINDICES.x",
   "serialized_offset": "BLENDINDICES stream lane +0x00",
-  "width": "u8",
+  "mesh_stream_pointer_offset": "serialized mesh +0x28",
+  "runtime_stream_slot": "runtime mesh +0x140[platform]",
+  "width": "u8 within 4-byte-per-vertex stream",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
@@ -15,12 +17,45 @@
     "nonzero_values": 0,
     "status": "CORPUS_CONFIRMED"
   },
-  "exe_addresses": [
-    "0x1402FE3B0",
-    "0x1402FE6A0",
-    "0x1402F3D0A",
-    "0x140316726",
-    "0x140325970"
+  "runtime_builder": {
+    "addresses": [
+      "0x1402FE83A",
+      "0x1402FE83E",
+      "0x1402FE860",
+      "0x1402FE868"
+    ],
+    "meaning": "serialized mesh +0x28 pointer is installed into runtime stream slot +0x140 and mirrored for the second platform/runtime slot",
+    "status": "EXE_CONFIRMED"
+  },
+  "provenance_confirmed_runtime_slot_reads": [
+    {
+      "address": "0x1402F3CE6",
+      "consumer": "CPU skin/matrix path",
+      "followup": "0x1402F3D0A reads stream byte lane +1 and shifts the encoded matrix-row offset right by two",
+      "lane_x_read": false,
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F55E8",
+      "consumer": "secondary model path",
+      "followup": "pointer is stored to local rbp+0x120; bounded function dataflow contains no subsequent read of that local",
+      "lane_x_read": false,
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402F8841",
+      "consumer": "render-command construction path",
+      "followup": "whole stream pointer is copied into the generated command record at +0x30; CPU does not dereference a lane in this path",
+      "lane_x_read": false,
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402FF171",
+      "consumer": "render-command construction path",
+      "followup": "whole stream pointer is copied into the generated command record at +0x30 (0x1402FF30B..0x1402FF30F); CPU does not dereference a lane in this path",
+      "lane_x_read": false,
+      "status": "EXE_CONFIRMED"
+    }
   ],
   "read_xrefs": [
     {
@@ -30,8 +65,6 @@
       "status": "EXE_CONFIRMED"
     }
   ],
-  "write_xrefs": [],
-  "runtime_destination": "whole 4-byte-per-vertex BLENDINDICES stream is forwarded by the MOD runtime builder; no lane-X renderer consumer was found in the audited canonical shader families",
   "shader_census": {
     "families": [
       "DMC3_MOD.hlsl",
@@ -51,16 +84,16 @@
     "status": "EXE_CONFIRMED"
   },
   "whole_exe_candidate_census": {
-    "method": "disassemble canonical PE32+ and inspect byte loads with four-byte stride; reconstruct base-pointer provenance before classifying a candidate",
+    "method": "disassemble canonical PE32+ and classify four-byte-stride byte reads only after reconstructing stream-pointer provenance",
     "rejected_candidates": [
       {
         "address": "0x140316726",
-        "reason": "base pointer belongs to an interpolated 4-byte color/control table; surrounding code reads components and performs 7-bit fixed-point interpolation",
+        "reason": "base pointer belongs to an interpolated 4-byte color/control table; surrounding code performs 7-bit fixed-point interpolation",
         "status": "REJECTED"
       },
       {
         "address": "0x140325970",
-        "reason": "base pointer is the static global table at 0x1405D10F0, not a MOD runtime mesh/BLENDINDICES pointer",
+        "reason": "base pointer is a static global table near 0x1405D10F0, not a MOD runtime BLENDINDICES pointer",
         "status": "REJECTED"
       }
     ]
@@ -69,13 +102,15 @@
   "evidence_status": [
     "EXE_CONFIRMED",
     "CORPUS_CONFIRMED",
-    "PRESERVED_UNDECODED"
+    "PRESERVED_UNDECODED",
+    "REJECTED"
   ],
   "rejected_hypotheses": [
     "BLENDINDICES.x is reserved because an external importer ignores it",
     "BLENDINDICES.x may be normalized to zero because the bounded corpus is zero",
-    "every four-byte-stride lane-0 read in the executable is a BLENDINDICES consumer"
+    "every four-byte-stride lane-0 read in the executable is a BLENDINDICES consumer",
+    "forwarding the whole stream pointer to a render command is itself proof that lane X is consumed"
   ],
   "writer_policy": "preserve",
-  "closure_boundary": "Canonical MOD/EFM render-skin shader use of lane X is negatively closed and two whole-EXE lane-0 candidates were rejected by pointer provenance. Runtime stream escape/dataflow is not yet exhaustively closed, so global lane-X semantics remain PRESERVED_UNDECODED."
+  "closure_boundary": "The canonical serialized +0x28 -> runtime +0x140 pointer chain is EXE_CONFIRMED. Provenance-confirmed direct CPU consumers contain one active lane-Y dereference and no lane-X dereference; two render-command paths forward the whole pointer without CPU lane access, and the audited embedded MOD/EFM shader families do not reference matIndex.x. Remaining work is to close any indirect command/shader escape not represented by the audited shader families. Until that is complete, lane X remains PRESERVED_UNDECODED rather than reserved/padding."
 }
