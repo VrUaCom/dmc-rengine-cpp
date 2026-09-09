@@ -1,0 +1,77 @@
+{
+  "schema": "dmc-rengine.mod-object-flag-receipt.v1",
+  "field": "object source flag 0x00200000",
+  "serialized_offset": "object +0x10 bit 21",
+  "width": "u32 mask",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "em000_objects_with_bit": 7,
+    "pl000_slot1_objects_with_bit": 0,
+    "pl000_slot12_objects_with_bit": 0,
+    "id100_objects_with_bit": 0,
+    "combined_known_objects_with_bit": 7,
+    "em000_header_0x14_cluster": 100407,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1403029E0",
+    "0x140302AB2",
+    "0x140302ABF",
+    "0x140302AC9",
+    "0x1402F4C21",
+    "0x140303F2F"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x140302AB2",
+      "meaning": "reads the complete serialized object +0x10 source flag word",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "write_xrefs": [
+    {
+      "address": "0x140302ABF",
+      "meaning": "copies complete source flag word to runtime object +0x14",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x140302AC9",
+      "meaning": "copies complete source flag word to runtime object +0x10",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": [
+    "runtime object +0x10",
+    "runtime object +0x14"
+  ],
+  "candidate_rejections": [
+    {
+      "address": "0x1402F4C21",
+      "reason": "tests mask 0x00200000 in runtime object +0x304, not in the source-carried +0x10/+0x14 flag words",
+      "status": "REJECTED"
+    },
+    {
+      "address": "0x140303F2F",
+      "reason": "tests manager +0xE0 mask 0x00200000, a separate runtime domain raised by source flags 0x00000200/0x00000400",
+      "status": "REJECTED"
+    }
+  ],
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED",
+    "REJECTED"
+  ],
+  "rejected_hypotheses": [
+    "source flag 0x00200000 equals cloth",
+    "manager +0xE0 bit 0x00200000 is the same field as serialized object source flag 0x00200000",
+    "runtime +0x304 bit 0x00200000 is automatically derived from serialized source flag 0x00200000"
+  ],
+  "cpp_contract": "analysis/mod/object_flags.hpp models exact whole-word carry into runtime +0x10/+0x14 and retains the bit without assigning high-level semantics",
+  "writer_policy": "preserve",
+  "closure_boundary": "The source bit is EXE_CONFIRMED as runtime-carried state. No distinct downstream consumer of this bit in runtime +0x10/+0x14 has yet been proven, so the high-level semantic remains PRESERVED_UNDECODED."
+}
