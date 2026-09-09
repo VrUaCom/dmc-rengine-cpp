@@ -47,6 +47,12 @@ def _markdown_heading(markdown: str, fallback: str) -> str:
     return fallback
 
 
+def _plain_heading_text(text: str) -> str:
+    text = re.sub(r"`([^`]+)`", r"\1", text)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+    return text
+
+
 def _expand_native_lessons(site: dict) -> dict:
     pages = site.get("pages", [])
     by_path = {page.get("path"): page for page in pages if isinstance(page, dict)}
@@ -64,7 +70,7 @@ def _expand_native_lessons(site: dict) -> dict:
     for index, lesson in enumerate(lessons):
         source_path = lesson["path"]
         markdown = (base.ROOT / source_path).read_text(encoding="utf-8")
-        heading = _markdown_heading(markdown, lesson["title"])
+        heading = _plain_heading_text(_markdown_heading(markdown, lesson["title"]))
         route = lesson["route"]
         previous_route = lessons[index - 1]["route"] if index > 0 else None
         next_route = lessons[index + 1]["route"] if index + 1 < total else None

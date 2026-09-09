@@ -57,6 +57,8 @@ def main() -> None:
     assert last_lesson_route in by_path
     assert glossary_route in by_path
     assert by_path[first_lesson_route]["source_path"] == "learning/mod/01-what-is-mod.md"
+    assert by_path[first_lesson_route]["title"].startswith("Урок 1 — Що таке .MOD")
+    assert "`.MOD`" not in by_path[first_lesson_route]["title"]
     assert by_path[first_lesson_route]["lesson_next"] == "/formats/mod/lessons/02-document-objects-meshes/"
     assert by_path[first_lesson_route]["lesson_previous"] is None
 
@@ -117,7 +119,8 @@ def main() -> None:
         assert f'{base_url}/formats/mod/lessons/01-what-is-mod/' in mod_html
         assert "learning/mod/03-skeleton-hierarchy-transforms.md" in mod_html
 
-        assert "Урок 1 — Що таке" in lesson_html
+        assert "Урок 1 — Що таке .MOD" in lesson_html
+        assert "Урок 1 — Що таке `.MOD`" not in lesson_html
         assert "Не «просто 3D-модель»" in lesson_html
         assert "DMC3-*.nbz" in lesson_html
         assert "serialized MOD" in lesson_html
