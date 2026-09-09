@@ -1,0 +1,65 @@
+{
+  "schema": "dmc-rengine.mod-object-flag-receipt.v1",
+  "field": "object source flag 0x00100000",
+  "serialized_offset": "object +0x10 bit 20",
+  "width": "u32 mask",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "em000_objects_with_bit": 36,
+    "pl000_slot1_objects_with_bit": 8,
+    "pl000_slot12_objects_with_bit": 1,
+    "combined_known_objects_with_bit": 45,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x140302640",
+    "0x1403026D1",
+    "0x1403026DE",
+    "0x1403026EC",
+    "0x140302747",
+    "0x14030274A",
+    "0x140302766",
+    "0x14030277A",
+    "0x140302787",
+    "0x140302E0C",
+    "0x140303405",
+    "0x140305949",
+    "0x1403059B5",
+    "0x140305C06"
+  ],
+  "read_xrefs": [
+    {
+      "address": "0x1403026D1",
+      "meaning": "helper masks incoming source/runtime flag word with 0x00100000",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x14030274A",
+      "meaning": "same bit controls packet +0x00 high-state branch when a low mode is active",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": {
+    "packet_base": "runtime object +0x80",
+    "packet_plus_08_when_set": "0x000000000005010D",
+    "packet_plus_08_when_clear": "0x000000000005000D",
+    "packet_plus_00_clear_bit_extra_mask": "0x0000000100000000",
+    "special_low_mode_4_packet_plus_08": "0x0000000000050007"
+  },
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "0x00100000 may be assigned a visual/material name from corpus appearance alone",
+    "packet-state projection is equivalent to final shader/material semantic closure"
+  ],
+  "cpp_contract": "analysis/mod/object_flags.hpp reproduces the exact packet-state branch and has compile-time regression guards",
+  "writer_policy": "preserve",
+  "closure_boundary": "Source bit -> packet/state projection is EXE_CONFIRMED. Final renderer/material/shader interpretation of the changed packet bits is not yet closed, so the user-facing semantic remains PRESERVED_UNDECODED."
+}
