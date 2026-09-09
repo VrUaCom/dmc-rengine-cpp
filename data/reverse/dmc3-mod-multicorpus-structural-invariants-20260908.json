@@ -1,13 +1,24 @@
 {
-  "schema": "dmc-rengine.mod.multicorpus-structural-invariants.v1",
+  "schema": "dmc-rengine.mod.multicorpus-structural-invariants.v2",
   "date": "2026-09-08",
   "format": "MOD",
   "profile": "dmc3-hd",
   "branch": "reverse/mod-completion-20260907",
+  "superseded_by": "data/reverse/dmc3-mod-canonical-exe-unknown-byte-closure-20260909.json",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
   },
+  "status_vocabulary": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED",
+    "STRUCTURAL_CONFIRMED",
+    "SEMANTIC_CANDIDATE",
+    "PRESERVED_UNDECODED",
+    "RESERVED_OBSERVED_ZERO",
+    "REJECTED"
+  ],
   "primary_corpus": {
     "name": "em000-extract.zip",
     "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
@@ -74,7 +85,8 @@
     }
   },
   "observed_zero": {
-    "status": "MULTI_CORPUS_OBSERVED_ZERO",
+    "status": "CORPUS_CONFIRMED",
+    "semantic_status": "PRESERVED_UNDECODED",
     "writer_rule": "preserve source bytes; do not synthesize zero globally",
     "fields": {
       "header_08_0f": {"nonzero": 0, "total": 38},
@@ -90,10 +102,11 @@
       "node_domain_10_1f": {"nonzero": 0, "total": 38},
       "transform_1c": {"nonzero": 0, "total": 285},
       "blendindices_x": {"nonzero": 0, "total": 20976}
-    }
+    },
+    "boundary": "Corpus-confirmed zero values are observations only. They do not promote these ranges to padding/reserved or authorize zero-normalizing writers."
   },
   "node_domain": {
-    "status": "CORPUS_CONFIRMED",
+    "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED"],
     "exact_layout_files": 38,
     "total_files": 38,
     "relative_offset_formula": {
@@ -114,12 +127,12 @@
       "1": 104,
       "2": 3
     },
-    "motion_group_value_meanings": "UNPROMOTED"
+    "motion_group_high_level_semantics": "PRESERVED_UNDECODED"
   },
   "generated_topology_workspace": {
     "field": "mesh+0x40",
     "address_space": "mesh-record-relative serialized offset",
-    "status": "CORPUS_CONFIRMED_STRUCTURAL",
+    "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED"],
     "mesh_count": 180,
     "absolute_alignment": 16,
     "aligned_meshes": 180,
@@ -142,12 +155,13 @@
       "file_tail_matches": 38
     },
     "semantic_limits": [
-      "0x1212 high-level meaning not promoted",
+      "0x1212 high-level meaning remains PRESERVED_UNDECODED",
       "final u16 zero is a structural pattern, not yet named a runtime terminator",
       "workspace layout evidence is not standalone writer authority"
     ]
   },
   "object_corpus": {
+    "status": "CORPUS_CONFIRMED",
     "alpha_control_0x80": {"count": 166, "total": 166},
     "exact_source_flag_values": {
       "0x00000000": 92,
@@ -173,18 +187,19 @@
     "semantic_notes": [
       "0x00100000 is present outside em000 and is not enemy-only",
       "0x00200000 is not a universal cloth flag because the pl000 CLT-associated MOD does not require it",
-      "no new artistic source-flag names promoted"
+      "no artistic source-flag names are promoted without downstream proof"
     ]
   },
   "header_0x14": {
     "serialized_type": "u32",
     "confirmed_runtime_flow": "serialized +0x14 -> common model manager -> manager +0xE4",
     "current_cpp_name": "runtime_metadata_u32",
+    "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
     "universal_decimal_semantic_partition": "REJECTED",
     "reason": "pl000 samples carry 217 while id100 carries 1000000; arithmetic decomposition remains lossless but is not semantic proof"
   },
   "external_tool_observation": {
-    "status": "EXTERNAL_TOOL_OBSERVATION_SALVAGE_ONLY",
+    "role": "corroboration_only",
     "repository": "igrbn/DMC1-3_Blender_Tools",
     "files_reviewed": ["DMC3/model.py", "common/MeshUtils.py"],
     "observations": [
@@ -201,7 +216,7 @@
     "new_helper": "mod_generated_workspace_capacity",
     "compatibility_helper": "em000_generated_workspace_capacity"
   },
-  "open": [
+  "historical_open_at_capture": [
     "header +0x14 / manager +0xE4 downstream consumer census",
     "transform +0x1C direct EXE read/write census",
     "mesh +0x0C/+0x38/+0x4C global raw-MOD xrefs",
@@ -212,5 +227,16 @@
     "broader retail player/enemy/item/weapon/special MOD corpus",
     "writer round-trip and canonical-game acceptance"
   ],
-  "writer_authority": "NOT_AUTHORIZED"
+  "current_resolution": {
+    "blendindices_x": "canonical runtime non-use closed; raw source lane remains preserved",
+    "header_0x14": "universal decimal semantic rejected; raw runtime_metadata_u32 preserved",
+    "source_flag_00100000": "technical GS TEST_1 AREF / ZBUF_1 ZMSK semantic closed",
+    "source_flag_00200000": "runtime carry/restoration confirmed; distinct terminal semantic remains open",
+    "mesh_0c_4c": "bounded negative evidence strengthened; semantic remains PRESERVED_UNDECODED",
+    "writer": "not authorized until byte-preserving round-trip and original-game acceptance gates close"
+  },
+  "writer_authority": {
+    "authorized": false,
+    "reason": "structural/corpus closure is not sufficient writer authority; unresolved serialized bytes remain source-preserved"
+  }
 }
