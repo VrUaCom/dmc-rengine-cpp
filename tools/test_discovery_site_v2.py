@@ -43,11 +43,12 @@ def main() -> None:
             assert by_path[route].get("format_entry", {}).get("id") == entry["id"]
 
     mod = by_path["/formats/mod/"]
-    assert mod["source_path"] == "docs/research/dmc3-mod-completion-audit-2026-09-07.md"
+    assert mod["source_path"] == "docs/research/dmc3-mod-public-status-2026-09-09.md"
     assert len(mod["learning_links"]) == 12
     assert all(lesson.get("route", "").startswith("/formats/mod/lessons/") for lesson in mod["learning_links"])
     assert len({lesson["route"] for lesson in mod["learning_links"]}) == 12
-    assert any(section["heading"] == "Known MOD structure in the current canonical reverse" for section in mod["sections"])
+    assert any(section["heading"] == "Current MOD evidence baseline" for section in mod["sections"])
+    assert any(section["heading"] == "Important 2026-09-09 closures and corrections" for section in mod["sections"])
     assert any(section["heading"] == "What MOD still does not authorize" for section in mod["sections"])
 
     first_lesson_route = "/formats/mod/lessons/01-what-is-mod/"
@@ -108,16 +109,25 @@ def main() -> None:
         assert f'{base_url}/archives/nbz/' in formats_html
 
         assert "MOD at a glance" in mod_html
+        assert "Current MOD evidence baseline" in mod_html
+        assert "Important 2026-09-09 closures and corrections" in mod_html
+        assert "38 unique MOD resources" in mod_html
+        assert "20,976 vertices" in mod_html
+        assert "BLENDINDICES.x" in mod_html
+        assert "ReadWriteMask 0xE" in mod_html
+        assert "TEST_1 AREF" in mod_html
+        assert "universal decimal interpretation" in mod_html
+        assert "PRESERVED_UNDECODED" in mod_html
+        assert "100% reverse" in mod_html
         assert "MOD learning path" in mod_html
         assert "01 — What is MOD?" in mod_html
         assert "10 — Exercises and debugging" in mod_html
         assert "MOD glossary" in mod_html
         assert "MOD reference map" in mod_html
-        assert "0x40 outer and 0x50 inner mesh grammar" in mod_html
-        assert "MOD writing" in mod_html
         assert "Read lesson on site" in mod_html
         assert f'{base_url}/formats/mod/lessons/01-what-is-mod/' in mod_html
         assert "learning/mod/03-skeleton-hierarchy-transforms.md" in mod_html
+        assert "dmc3-mod-public-status-2026-09-09.md" in mod_html
 
         assert "Урок 1 — Що таке .MOD" in lesson_html
         assert "Урок 1 — Що таке `.MOD`" not in lesson_html
@@ -131,6 +141,10 @@ def main() -> None:
         assert "learning/mod/01-what-is-mod.md" in lesson_html
         assert "← Previous lesson" in lesson_two_html
         assert f'{base_url}/formats/mod/lessons/01-what-is-mod/' in lesson_two_html
+        assert "38 unique MOD" in lesson_two_html
+        assert "runtime_metadata_u32" in lesson_two_html
+        assert "REJECTED" in lesson_two_html
+        assert "0x00100000" in lesson_two_html
 
         assert "MOT at a glance" in mot_html
         assert "Practical tutorial path" in mot_html

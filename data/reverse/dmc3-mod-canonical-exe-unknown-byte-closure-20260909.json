@@ -1,0 +1,108 @@
+{
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v4",
+  "date": "2026-09-09",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "architecture": "PE32+ x86-64",
+    "direct_disassembly_available": true
+  },
+  "evidence_policy": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED",
+    "STRUCTURAL_CONFIRMED",
+    "SEMANTIC_CANDIDATE",
+    "PRESERVED_UNDECODED",
+    "RESERVED_OBSERVED_ZERO",
+    "REJECTED"
+  ],
+  "corpus": {
+    "unique_mods": 38,
+    "objects": 166,
+    "meshes": 180,
+    "vertices": 20976,
+    "transforms": 285,
+    "known_efm_meshes": 2,
+    "known_efm_transforms": 5
+  },
+  "fields": {
+    "transform_1c": {
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "0x140330450 consumes rotation XYZ only; 0x14030F850 transfers +0x00/+04/+08/+10/+14/+18 then advances source by 0x20, skipping +0x1C; MOD 285/285 and EFM 5/5 are zero",
+      "receipt": "data/reverse/dmc3-mod-transform-1c-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "object_18_1c": {
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "MOD-specific live fields: object +0x18 f32 and +0x1C u32 are read from the provenance-confirmed serialized object when source flags 0x00000200 or 0x00000400 are active; copied to runtime +0x16C/+0x170 and propagated into per-mesh/pass state; artistic meaning remains unnamed",
+      "serialized_contract": "include/dmc_rengine/formats/mod/object_serialized.hpp",
+      "legacy_receipt": "data/reverse/dmc3-mod-object-runtime-projection-20260907.json",
+      "writer_policy": "preserve exact values"
+    },
+    "mesh_0c": {
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "raw u32; MOD 180/180 and bound EFM 2/2 zero; no positive semantic consumer in audited load/build/material paths",
+      "receipt": "data/reverse/dmc3-mod-mesh-0c-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "mesh_38": {
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "EXE_AND_CORPUS_CONFIRMED"],
+      "summary": "family-specific auxiliary stream slot: EFM uses homologous +0x38 as COLOR0 while canonical MOD disables corresponding runtime auxiliary stream; MOD 180/180 zero",
+      "receipt": "data/reverse/dmc3-mod-mesh-38-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "mesh_4c": {
+      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "raw trailing u32; +0x48 is generated topology-count positive control; no +0x4C companion transfer in audited path; MOD 180/180 and bound EFM 2/2 zero",
+      "receipt": "data/reverse/dmc3-mod-mesh-4c-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "blendindices_x": {
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
+      "summary": "canonical runtime non-use is closed: serialized +0x28 -> runtime +0x140 -> draw descriptor +0x30 is proven; provenance-confirmed CPU consumers do not read X; all 8 compiled DXBC input signatures carrying BLENDINDICES have Mask=0xF and ReadWriteMask=0xE, proving compiled shaders read Y/Z/W but not X; MOD 20976/20976 zero",
+      "receipt": "data/reverse/dmc3-mod-blendindices-x-20260909.json",
+      "writer_policy": "preserve raw X lane exactly; do not rename padding/reserved"
+    },
+    "header_14": {
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; 83 whole-EXE raw +0xE4 candidates type-filtered with no provenance-confirmed downstream manager read",
+      "receipt": "data/reverse/dmc3-mod-header-14-20260909.json",
+      "writer_policy": "preserve"
+    },
+    "source_flag_00100000": {
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED"],
+      "summary": "technical renderer semantic closed: source bit20 is baseline-restored into effective flags, selects GS TEST_1 AREF 0 vs 16 and ZBUF_1.ZMSK 1 vs 0 in active low modes except mode 4, then propagates through per-mesh A+D GIF descriptors into generic backend",
+      "technical_semantic": "legacy GS alpha-test-reference/depth-write-state selector",
+      "artistic_category": "PRESERVED_UNDECODED",
+      "receipt": "data/reverse/dmc3-mod-source-flag-00100000-20260909.json",
+      "writer_policy": "preserve source bit exactly"
+    },
+    "source_flag_00200000": {
+      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 and participates in baseline/effective restoration; canonical GS-state helper does not interpret bit21; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains",
+      "receipt": "data/reverse/dmc3-mod-source-flag-00200000-20260909.json",
+      "writer_policy": "preserve"
+    }
+  },
+  "secondary_region_correction": {
+    "receipt": "data/reverse/dmc3-mod-secondary-zero-regions-20260909.json",
+    "runtime_serialized_object_pointer": "0x140302AAA stores complete serialized object pointer into runtime object +0x18",
+    "impact": "initializer-local no-read does not prove later non-use; object secondary ranges remain preservation-gated until retained-pointer consumers are classified"
+  },
+  "known_mislabeled_artifact": {
+    "path": "data/reverse/dmc3-mod-source-flag-00200000-chain-20260909.json",
+    "status": "REJECTED",
+    "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
+  },
+  "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes or shell regions.",
+  "remaining_gates": [
+    "downstream terminal semantic consumer of source-carried runtime bit 0x00200000, if one exists outside the bounded MOD GS-state path",
+    "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
+    "retained-pointer consumer census for secondary object regions +0x04..07/+0x14..17/+0x20..2F",
+    "secondary header and node-domain whole-program closure",
+    "promote byte-preserving MOD writer and prove exact no-edit round-trip before edited writer authority"
+  ]
+}

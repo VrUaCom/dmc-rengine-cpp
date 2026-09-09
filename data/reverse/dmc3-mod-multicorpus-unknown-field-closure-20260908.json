@@ -1,0 +1,80 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v2",
+  "date": "2026-09-08",
+  "normalized_on": "2026-09-09",
+  "format": "MOD",
+  "scope": "multi-corpus observations only; direct-EXE semantic authority lives in the 2026-09-09 per-field receipts",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpora": [
+    {
+      "name": "em000 recursive corpus",
+      "container": "em000-extract.zip",
+      "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+      "mod_count": 35,
+      "objects": 136,
+      "meshes": 147,
+      "vertices": 14804,
+      "transforms": 226
+    },
+    {
+      "name": "pl000 slot 1 model",
+      "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+      "objects": 17,
+      "meshes": 18,
+      "vertices": 5316,
+      "transforms": 24,
+      "header_0x14": 217
+    },
+    {
+      "name": "pl000 slot 12 cloth-associated model",
+      "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740",
+      "objects": 6,
+      "meshes": 8,
+      "vertices": 828,
+      "transforms": 33,
+      "header_0x14": 217
+    },
+    {
+      "name": "id100 Red Orb counter model",
+      "sha256": "9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90",
+      "objects": 7,
+      "meshes": 7,
+      "vertices": 28,
+      "transforms": 2,
+      "header_0x14": 1000000
+    }
+  ],
+  "combined_unique_counts": {
+    "mods": 38,
+    "objects": 166,
+    "meshes": 180,
+    "vertices": 20976,
+    "transforms": 285
+  },
+  "observations": [
+    {"field":"transform +0x1C","observation":"0.0f in 285/285 MOD records","status":"CORPUS_CONFIRMED","writer_policy":"preserve"},
+    {"field":"mesh +0x0C","observation":"zero in 180/180 MOD meshes","status":"CORPUS_CONFIRMED","writer_policy":"preserve"},
+    {"field":"mesh +0x38","observation":"zero in 180/180 MOD meshes","status":"CORPUS_CONFIRMED","writer_policy":"preserve"},
+    {"field":"mesh +0x48 serialized","observation":"zero in 180/180 serialized meshes; runtime post-load later generates topology count","status":"CORPUS_CONFIRMED","writer_policy":"preserve serialized source unless writer policy for generated field explicitly supersedes it"},
+    {"field":"mesh +0x4C","observation":"zero in 180/180 MOD meshes","status":"CORPUS_CONFIRMED","writer_policy":"preserve"},
+    {"field":"BLENDINDICES.x","observation":"zero in 20976/20976 MOD vertices","status":"CORPUS_CONFIRMED","writer_policy":"preserve"},
+    {"field":"header +0x14","observation":"pl000 samples use 217 and id100 uses 1000000; old universal decimal decomposition is falsified","status":"CORPUS_CONFIRMED","rejected_hypothesis":"family_class*100000 + model_set*100 + sub_index as universal semantics"},
+    {"field":"source flag 0x00100000","observation":"36 em000 + 8 pl000 slot1 + 1 pl000 slot12 known objects carry the bit","status":"CORPUS_CONFIRMED"},
+    {"field":"source flag 0x00200000","observation":"7 em000 objects carry the bit; absent in current pl000/id100 samples","status":"CORPUS_CONFIRMED"}
+  ],
+  "secondary_zero_regions": [
+    "header +0x08..+0x0F",
+    "header +0x18..+0x1F",
+    "header +0x28..+0x3F",
+    "object +0x04..+0x07",
+    "object +0x14..+0x17",
+    "object +0x20..+0x2F",
+    "node-domain +0x10..+0x1F"
+  ],
+  "secondary_zero_region_status": "RESERVED_OBSERVED_ZERO",
+  "secondary_zero_region_warning": "RESERVED_OBSERVED_ZERO is a bounded corpus label only; it does not authorize padding semantics or writer zero-normalization without EXE/runtime-transfer closure.",
+  "writer_authority": "not promoted; consult 2026-09-09 per-field receipts"
+}

@@ -59,7 +59,7 @@ Model-space hierarchy можна вважати валідною тільки я
 +0x10 f32 rx radians
 +0x14 f32 ry radians
 +0x18 f32 rz radians
-+0x1C f32 unresolved
++0x1C f32 preserved undecoded
 ```
 
 MOD/EFM initializer: `0x1402FA080`.
@@ -69,6 +69,31 @@ Shared helpers:
 - XYZ rotation: `0x140330450`.
 
 Recovered rotation application: X → Y → Z, equivalent to `Rz * Ry * Rx` in recovered matrix convention.
+
+### Transform `+0x1C`: що тепер доведено
+
+Bound multi-corpus evidence:
+
+```text
+MOD transforms  285 / 285 -> +0x1C == 0.0f
+bound EFM          5 / 5 -> +0x1C == 0.0f
+```
+
+Canonical initializer копіює serialized `+0x10..+0x1F` у 16-byte scratch vector, але downstream rotation helper `0x140330450` читає лише scratch `+0x00/+0x04/+0x08`, тобто serialized X/Y/Z. Scratch `+0x0C`, який відповідає serialized `+0x1C`, у цьому path не читається.
+
+CMotion binding path `0x14030F850` незалежно пропускає fourth scalar, зберігаючи 0x20 record stride.
+
+Отже:
+
+```text
+serialized ABI                         STRUCTURAL_CONFIRMED
+bounded +0x1C zero                     CORPUS_CONFIRMED
+local rotation-matrix non-consumption  EXE_CONFIRMED
+global semantic                        PRESERVED_UNDECODED
+writer policy                          preserve source float exactly
+```
+
+Це **не** означає, що `+0x1C` можна назвати padding/reserved або завжди записувати `0.0f`. Негативний результат закриває лише canonical local rotation-matrix path, не кожен можливий subsystem.
 
 ## World matrices
 
@@ -121,6 +146,11 @@ skinMatrix[node] = inverseRestWorld[node] * currentWorld[node]
 
 У rest pose результат для кожного node має бути identity. Це сильний regression oracle.
 
-## `+0x1C`
+## Evidence boundary
 
-У bound em000 corpus transform `+0x1C` спостерігався zero, але direct global semantic proof відсутній. Тому це не «free padding», а preservation boundary.
+Transform record тепер має дві різні категорії доказу:
+
+- XYZ translation/rotation і world propagation — positive runtime semantics;
+- `+0x1C` — physical transfer + bounded non-consumption, але без global semantic name.
+
+Не перетворюй другу категорію на `reserved = 0` лише тому, що поточний corpus весь нульовий.

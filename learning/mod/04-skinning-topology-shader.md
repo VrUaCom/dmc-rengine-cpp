@@ -9,7 +9,16 @@
 
 ## Blend indices
 
-CPU consumer `0x1402F3D0A..0x1402F3D0F` читає `BLENDINDICES.y` і ділить на 4:
+Serialized stream — це повний `u8x4` ABI:
+
+```text
+lane X
+lane Y
+lane Z
+lane W
+```
+
+Canonical CPU consumer `0x1402F3D0A..0x1402F3D0F` читає `BLENDINDICES.y` і ділить на 4:
 
 ```text
 bone_index = raw_blend_index / 4
@@ -17,9 +26,53 @@ bone_index = raw_blend_index / 4
 
 Причина: raw index адресує початок 4-row matrix у matrix array.
 
-Shader використовує `matIndex.y/z/w` для трьох influences.
+Shader skin path використовує `matIndex.y/z/w` для трьох influences.
 
-`BLENDINDICES.x` у bound corpus constant/reserved-looking, але exact semantic purpose не закрите. Не називати globally unused.
+### BLENDINDICES.x — новий closure
+
+Multi-corpus census:
+
+```text
+20,976 / 20,976 vertices -> lane X == 0
+```
+
+Але головний доказ тепер не corpus zero, а canonical executable + compiled shader ABI.
+
+Serialized mesh `+0x28` переходить:
+
+```text
+serialized +0x28
+ -> runtime mesh +0x140
+ -> draw/input descriptor +0x30
+ -> BLENDINDICES uint4 input
+```
+
+Whole-image DXBC census знайшов 8 input signatures із `BLENDINDICES`:
+
+```text
+register        3
+Mask            0xF
+ReadWriteMask   0xE
+component type  uint32
+```
+
+`ReadWriteMask = 0xE` означає, що compiled shaders читають Y/Z/W і **не читають X**. Це узгоджується з embedded HLSL source census для `DMC3_MOD`, `DMC3_MOD_SP`, `DMC3_MOD_STX` family.
+
+Provenance-confirmed CPU census також не знайшов direct lane-X consumer; unrelated scaled-four lane-0 candidates були відхилені після pointer-provenance reconstruction.
+
+Отже canonical status:
+
+```text
+serialized u8x4 ABI                    STRUCTURAL_CONFIRMED
+serialized -> runtime/input chain      EXE_CONFIRMED
+compiled shader X consumption          EXE_CONFIRMED: not read
+proven direct CPU X consumption        EXE_CONFIRMED: none found
+bounded corpus X == 0                  CORPUS_CONFIRMED
+semantic label                         PRESERVED_UNDECODED
+writer policy                          preserve raw X exactly
+```
+
+Критично: **“runtime does not read X” ≠ “X is padding”**. Reader має зберігати byte; semantic skin decoder ігнорує X; writer не має права force-zero non-zero source data.
 
 ## Packed weights
 

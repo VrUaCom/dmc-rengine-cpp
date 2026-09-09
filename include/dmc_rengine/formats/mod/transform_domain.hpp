@@ -21,9 +21,35 @@ struct Vec3f final {
 struct LocalTransformRecord final {
     std::uint64_t record_offset{};
     Vec3f translation{};
+
+    // +0x0C is data-confirmed as length(translation.xyz) on all 285 records in
+    // the current em000+pl000+id100 corpus. Canonical MOD/EFM initializer
+    // 0x1402FA080 passes the enclosing float4 to 0x140031200, whose lane mask
+    // preserves the matrix W component instead of applying this fourth source
+    // scalar. CMotion binding 0x14030F850 likewise copies +0x00/+04/+08 and
+    // skips +0x0C. It is therefore an auxiliary/cached magnitude, not a
+    // homogeneous translation-W input.
     float translation_magnitude{};
+
     Vec3f rotation_xyz_radians{};
-    float reserved1c{};
+
+    // +0x1C remains byte-preserved. It is zero on all 285 current MOD transform
+    // records and all 5 currently bound EFM transform records. Canonical
+    // rotation helper 0x140330450 reads only scratch +0x00/+0x04/+0x08
+    // (serialized +0x10/+0x14/+0x18), and CMotion binding 0x14030F850 skips the
+    // fourth scalar while advancing the serialized source record by 0x20. This
+    // is EXE_CONFIRMED negative evidence for the audited local-matrix path and
+    // CORPUS_CONFIRMED zero evidence only. Its global semantic remains
+    // PRESERVED_UNDECODED; neither a reserved name nor writer-zero policy is
+    // authorized without a complete consumer/family census.
+    //
+    // raw_1c is the canonical evidence-safe name. reserved1c is retained only
+    // as a source-compatibility alias for older callers and carries no semantic
+    // claim that the field is actually reserved.
+    union {
+        float raw_1c{};
+        float reserved1c;
+    };
 };
 
 struct ParseResult final {
