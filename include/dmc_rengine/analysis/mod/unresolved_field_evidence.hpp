@@ -5,20 +5,27 @@
 
 namespace dmc::rengine::analysis::mod {
 
-// Evidence-only contract for MOD fields that were historically left unnamed.
-//
-// IMPORTANT:
-// - this does not rename serialized ABI fields;
-// - "unconsumed" always means unconsumed by the specifically audited canonical
-//   runtime path, not proof that no code anywhere can ever inspect the bytes;
-// - preservation remains mandatory until writer authority is independently
-//   established.
+// Canonical evidence vocabulary for MOD reverse work. Do not add ad-hoc status
+// names here: receipts/docs and C++ evidence must use this exact closed set.
+enum class EvidenceStatus : std::uint8_t {
+    EXE_CONFIRMED,
+    CORPUS_CONFIRMED,
+    EXE_AND_CORPUS_CONFIRMED,
+    STRUCTURAL_CONFIRMED,
+    SEMANTIC_CANDIDATE,
+    PRESERVED_UNDECODED,
+    RESERVED_OBSERVED_ZERO,
+    REJECTED,
+};
+
+// Runtime-role classification is intentionally separate from evidence status.
+// It describes only the specifically audited path and must never be treated as
+// permission to discard serialized bytes.
 enum class UnknownFieldDisposition : std::uint8_t {
     active,
     inactive_in_audited_mod_runtime,
     unused_by_canonical_render_shaders,
     format_specific_auxiliary_stream_slot,
-    alignment_or_reserved_candidate,
     preserved_undecoded,
 };
 
@@ -34,29 +41,28 @@ struct CanonicalExeUnknownFieldEvidence final {
     static constexpr std::uintptr_t mod_manager_initializer = 0x1402F9570ULL;
     static constexpr std::uintptr_t cpu_blend_lane1_consumer = 0x1402F3D0AULL;
 
-    // Serialized transform record +0x1C is copied as the fourth float of the
-    // 16-byte rotation scratch block by 0x1402FA080. The called rotation
-    // helper 0x140330450 reads only scratch +0x00/+0x04/+0x08 (serialized
-    // rotation X/Y/Z) and never reads scratch +0x0C. Therefore +0x1C has no
-    // effect on canonical MOD/EFM local-matrix construction.
+    // Serialized transform +0x1C is physically copied into the fourth float of
+    // the initializer scratch block. Rotation helper 0x140330450 reads only
+    // scratch +0x00/+0x04/+0x08. Independently, CMotion transfer 0x14030F850
+    // copies source +0x00/+04/+08/+10/+14/+18 and advances the source pointer
+    // by 0x20 at 0x14030FA2F, skipping +0x1C. This closes non-consumption in
+    // the two audited local-transform paths, but not every possible subsystem.
     static constexpr std::size_t transform_reserved1c_offset = 0x1CU;
     static constexpr bool transform_1c_used_by_local_matrix_builder = false;
+    static constexpr bool transform_1c_transferred_by_cmotion_binding = false;
     static constexpr std::size_t mod_transform_1c_zero_count = 285U;
     static constexpr std::size_t known_efm_transform_1c_zero_count = 5U;
     static constexpr UnknownFieldDisposition transform_1c_disposition =
         UnknownFieldDisposition::inactive_in_audited_mod_runtime;
+    static constexpr EvidenceStatus transform_1c_status =
+        EvidenceStatus::PRESERVED_UNDECODED;
 
-    // Contrast/control: serialized transform +0x0C is the fourth float of the
-    // translation vector passed to 0x140031200. That helper loads the complete
-    // 16-byte vector and adds it to matrix row 3, so +0x0C is live while the
-    // homologous rotation-tail +0x1C is not consumed by 0x140330450.
-    static constexpr bool translation_magnitude_fourth_lane_is_consumed = true;
-
-    // Mesh +0x38 is NOT generic padding. EFM post-load 0x1402F7A90 relocates
+    // Mesh +0x38 is not generic padding. EFM post-load 0x1402F7A90 relocates
     // it and EFM runtime builder 0x1402F7D60 forwards it to runtime auxiliary
-    // stream slot +0x160. Existing EFM/HLSL evidence binds this stream to
-    // per-vertex COLOR0. MOD post-load does not relocate +0x38 and MOD runtime
-    // builder explicitly zeros both +0x160 auxiliary-stream pointers.
+    // stream +0x160; existing EFM/HLSL evidence binds that stream to COLOR0.
+    // MOD post-load does not relocate +0x38 and MOD builder explicitly zeros
+    // the corresponding auxiliary runtime stream slots. This closes the
+    // MOD-specific canonical runtime role without importing EFM semantics.
     static constexpr std::size_t mesh_auxiliary_stream_offset = 0x38U;
     static constexpr std::size_t runtime_auxiliary_stream_offset = 0x160U;
     static constexpr bool efm_mesh_38_is_runtime_active = true;
@@ -65,35 +71,39 @@ struct CanonicalExeUnknownFieldEvidence final {
     static constexpr std::size_t mod_mesh_38_zero_count = 180U;
     static constexpr UnknownFieldDisposition mesh_38_disposition =
         UnknownFieldDisposition::format_specific_auxiliary_stream_slot;
+    static constexpr EvidenceStatus mesh_38_status =
+        EvidenceStatus::EXE_AND_CORPUS_CONFIRMED;
 
-    // +0x0C lies between four GS CLAMP u16 fields (+0x04..+0x0A) and the first
-    // 8-byte stream pointer at +0x10. It is zero in all 180 current MOD meshes
-    // and the two bound EFM meshes, and is not consumed by the audited MOD/EFM
-    // post-load paths nor common material helper 0x1402F9890. This is strong
-    // alignment/reserved evidence but is deliberately not a global padding
-    // declaration.
+    // +0x0C lies between the four GS CLAMP u16 fields and the first u64 stream
+    // pointer. It is zero in all 180 current MOD meshes and two bound EFM
+    // meshes, and no positive consumer was established in the audited
+    // load/build/material paths. Physical placement plus zeros is not proof of
+    // padding, alignment, or reservation.
     static constexpr std::size_t mesh_0c_offset = 0x0CU;
     static constexpr std::size_t mod_mesh_0c_zero_count = 180U;
     static constexpr std::size_t known_efm_mesh_0c_zero_count = 2U;
     static constexpr UnknownFieldDisposition mesh_0c_disposition =
-        UnknownFieldDisposition::alignment_or_reserved_candidate;
+        UnknownFieldDisposition::preserved_undecoded;
+    static constexpr EvidenceStatus mesh_0c_status =
+        EvidenceStatus::PRESERVED_UNDECODED;
 
-    // +0x4C is the final dword after generated topology count +0x48 and before
-    // the 0x50 record boundary. It is zero in the same bounded MOD/EFM corpus
-    // and is not consumed by the audited MOD/EFM load/build paths. Preserve it
-    // until a global ABI/version census authorizes a stronger claim.
+    // +0x4C is the trailing dword after generated topology count +0x48. +0x48
+    // is the positive control: canonical MOD post-load generates it and runtime
+    // builder forwards it, while no +0x4C companion use is established. Zero
+    // corpus values still do not authorize a padding/reserved promotion.
     static constexpr std::size_t mesh_4c_offset = 0x4CU;
     static constexpr std::size_t mod_mesh_4c_zero_count = 180U;
     static constexpr std::size_t known_efm_mesh_4c_zero_count = 2U;
     static constexpr UnknownFieldDisposition mesh_4c_disposition =
-        UnknownFieldDisposition::alignment_or_reserved_candidate;
+        UnknownFieldDisposition::preserved_undecoded;
+    static constexpr EvidenceStatus mesh_4c_status =
+        EvidenceStatus::PRESERVED_UNDECODED;
 
     // Canonical embedded MOD shader families DMC3_MOD, DMC3_MOD_SP and
     // DMC3_MOD_STX contain no matIndex.x/matIndxX use. Their skin code uses
-    // y/z/w. The EFM shader variants show the same lane selection. CPU code at
-    // 0x1402F3D0A independently reads lane[1] and shifts right by two.
-    // lane[0] is therefore render-skin-unused, but remains preserved until a
-    // complete non-render CPU census rules out another purpose.
+    // y/z/w. CPU code at 0x1402F3D0A independently reads lane[1] and shifts
+    // right by two. Two whole-EXE lane-0 candidates were rejected by pointer
+    // provenance, but the entire runtime-stream escape graph is not yet closed.
     static constexpr std::size_t blendindices_x_lane = 0U;
     static constexpr std::size_t blendindices_first_active_skin_lane = 1U;
     static constexpr bool blendindices_x_used_by_canonical_mod_efm_skin_shaders = false;
@@ -101,12 +111,15 @@ struct CanonicalExeUnknownFieldEvidence final {
     static constexpr std::size_t mod_blendindices_x_zero_count = 20976U;
     static constexpr UnknownFieldDisposition blendindices_x_disposition =
         UnknownFieldDisposition::unused_by_canonical_render_shaders;
+    static constexpr EvidenceStatus blendindices_x_status =
+        EvidenceStatus::PRESERVED_UNDECODED;
 
-    // Header +0x14 is copied verbatim by 0x1402F9570 to manager +0xE4. A
-    // targeted direct-displacement census of the core model subsystem
-    // 0x1402F9000..0x14030D000 found the write but no direct read of that
-    // manager field. This is negative evidence only; external manager users
-    // still need type-aware whole-EXE tracing.
+    // Header +0x14 is copied verbatim by 0x1402F9570 to manager +0xE4:
+    // 0x1402F95C2 -> 0x1402F95C5. A targeted model-core scan finds the single
+    // provenance-confirmed write and no direct read. A whole-EXE raw +0xE4
+    // displacement census contains 83 candidates, but offset equality across
+    // unrelated object layouts is not a type-aware xref. No identity/resource
+    // semantic is promoted from the old decimal hypothesis.
     static constexpr std::size_t header_runtime_metadata_offset = 0x14U;
     static constexpr std::size_t manager_runtime_metadata_offset = 0xE4U;
     static constexpr std::uintptr_t core_model_scan_begin = 0x1402F9000ULL;
@@ -114,12 +127,16 @@ struct CanonicalExeUnknownFieldEvidence final {
     static constexpr bool header_14_is_runtime_carried = true;
     static constexpr std::size_t core_model_direct_manager_e4_writes = 1U;
     static constexpr std::size_t core_model_direct_manager_e4_reads = 0U;
+    static constexpr std::size_t whole_exe_raw_e4_displacement_candidates = 83U;
     static constexpr UnknownFieldDisposition header_14_disposition =
         UnknownFieldDisposition::preserved_undecoded;
+    static constexpr EvidenceStatus header_14_status =
+        EvidenceStatus::PRESERVED_UNDECODED;
 };
 
 static_assert(CanonicalExeUnknownFieldEvidence::transform_reserved1c_offset == 0x1CU);
 static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_used_by_local_matrix_builder);
+static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_transferred_by_cmotion_binding);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_transform_1c_zero_count == 285U);
 static_assert(CanonicalExeUnknownFieldEvidence::mesh_auxiliary_stream_offset == 0x38U);
 static_assert(CanonicalExeUnknownFieldEvidence::runtime_auxiliary_stream_offset == 0x160U);
