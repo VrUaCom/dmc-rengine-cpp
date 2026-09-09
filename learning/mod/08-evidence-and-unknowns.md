@@ -116,16 +116,37 @@ ATST лишається `GREATER`, ZTST — `GEQUAL`.
 
 ### `0x00200000`
 
-Bit21 переноситься у runtime baseline/effective flags і бере участь у restoration state machine. Але confirmed GS packet helper його не інтерпретує. Equal-mask candidates у manager/object інших domains відхилені без provenance edge.
+Bit21 переноситься у runtime baseline/effective flags і бере участь у restoration state machine. Bounded local GS packet helper його не інтерпретує.
 
-Поточний статус:
+Follow-up whole-model pass перевірив ще два класи external consumers effective `runtime +0x14`:
 
 ```text
-runtime carriage/restoration  EXE_CONFIRMED
-local GS consumer             EXE_CONFIRMED: none
-high-level semantic           PRESERVED_UNDECODED
-writer policy                 preserve
+0x1402F28E0 / read @ 0x1402F2901
+  -> ставить bit17 (0x00020000)
+  -> existing bit21 зберігається
+  -> bit21 не тестується
+
+0x1402F9ED9 -> 0x1402F9890
+0x1402FA042 -> 0x1402F9890
+  -> whole effective dword передається в common material helper
+  -> helper interprets only 0x00004000
+  -> bit21 не тестується / не extract-иться
 ```
+
+Equal-mask candidates у manager `+0xE0` і runtime object `+0x304` відхилені без provenance edge.
+
+Поточний bounded статус:
+
+```text
+runtime carriage/restoration       EXE_CONFIRMED
+external effective-word mutation   EXE_CONFIRMED: preserves bit21
+local GS consumer                   EXE_CONFIRMED: none
+common material consumer            EXE_CONFIRMED: none
+high-level semantic                 PRESERVED_UNDECODED
+writer policy                       preserve
+```
+
+Це хороший приклад правильної negative-evidence дисципліни: ми розширили кількість audited consumers, але не перетворюємо “не прочитано тут” у “unused globally”. Semantic promotion все ще потребує terminal consumer або provenance-confirmed derivation у інший runtime domain.
 
 ### Object `+0x18/+0x1C`
 

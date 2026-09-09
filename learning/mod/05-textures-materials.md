@@ -124,11 +124,44 @@ ZTST = GEQUAL
 
 Тому технічний semantic — **legacy GS alpha-test-reference/depth-write-state selector**. Не називай його `cloth`, `transparent`, `alpha material` або іншою artistic категорією без окремого evidence.
 
-## Object flag `0x00200000`: carried, але не GS-interpreted у цьому path
+## Object flag `0x00200000`: carried, але не interpreted у двох audited renderer paths
 
-Source bit21 переноситься в baseline/effective runtime flags і може бути відновлений із baseline state. Але confirmed GS packet builder `0x140302640` його не тестує і не витягує арифметично.
+Source bit21 переноситься в baseline/effective runtime flags і може бути відновлений із baseline state. Confirmed GS packet builder `0x140302640` його не тестує і не витягує арифметично.
+
+Follow-up whole-model census додав незалежний material path:
+
+```text
+runtime object +0x14 effective flags
+ -> read @ 0x1402F9ED9
+ -> call 0x1402F9890
+
+runtime object +0x14 effective flags
+ -> read @ 0x1402FA042
+ -> call 0x1402F9890
+```
+
+Обидва paths передають **цілий dword** effective flags у common material helper. Але direct disassembly `0x1402F9890` показує тільки один interpreted flag mask:
+
+```text
+0x00004000 -> legacy GS TEX1 filtering selector
+```
+
+`0x00200000` там не тестується, не shift-иться і не проектується. Окремо `0x1402F28E0` читає effective `+0x14` і ставить bit17 (`0x00020000`), зберігаючи існуючий bit21 без його semantic interpretation.
+
+Отже bounded evidence тепер сильніший:
+
+```text
+baseline/effective carriage         EXE_CONFIRMED
+state restoration participation     EXE_CONFIRMED
+local GS helper bit21 use           EXE_CONFIRMED: none
+common material helper bit21 use    EXE_CONFIRMED: none
+external effective-word mutator     preserves bit21, does not interpret it
+high-level semantic                 PRESERVED_UNDECODED
+```
 
 Equal mask `0x00200000` в manager `+0xE0` або runtime object `+0x304` не означає спільну semantic provenance. Поки не доведений copy/derivation edge, high-level meaning source bit21 лишається `PRESERVED_UNDECODED`.
+
+Критично: “два renderer paths не читають bit21” не означає “bit21 globally unused”. Для semantic promotion усе ще потрібен provenance-confirmed terminal consumer або доведений derivation edge в інший runtime domain.
 
 ## Не плутай representation layers
 

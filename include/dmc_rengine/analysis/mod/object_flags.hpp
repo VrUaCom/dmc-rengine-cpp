@@ -101,6 +101,27 @@ project_source_flag_00200000_carry(std::uint32_t source_flags) noexcept {
     };
 }
 
+// Whole-model follow-up census outside the local 0x140302640 state builder.
+// 0x1402F28E0 reads effective +0x14 and sets bit17 (0x00020000), preserving all
+// pre-existing high bits including source-carried bit21. This is a mutation of
+// the effective container, not a semantic interpretation of bit21.
+inline constexpr std::uintptr_t effective_flag_mutator_0x1402f28e0 =
+    0x1402F28E0ULL;
+inline constexpr std::uint32_t effective_flag_mutator_set_mask = 0x00020000U;
+
+// The MOD/EFM material construction paths at 0x1402F9ED9 and 0x1402FA042 read
+// runtime effective +0x14 and pass the whole dword as R8D to 0x1402F9890.
+// Direct disassembly of that helper shows its only flag mask is 0x00004000,
+// selecting the legacy GS TEX1 filtering state. Therefore source bit21 reaches
+// a common material consumer but is not interpreted there either.
+inline constexpr std::uintptr_t common_material_flag_helper = 0x1402F9890ULL;
+inline constexpr std::uintptr_t material_effective_flags_read_mod_path =
+    0x1402F9ED9ULL;
+inline constexpr std::uintptr_t material_effective_flags_read_parallel_path =
+    0x1402FA042ULL;
+inline constexpr std::uint32_t common_material_interpreted_flag_mask =
+    0x00004000U;
+
 static_assert(runtime_baseline_flags_offset == 0x10U);
 static_assert(runtime_effective_flags_offset == 0x14U);
 static_assert(restore_low_mode_effective_flags(0x00100005U, 0x0020000AU) ==
@@ -127,5 +148,7 @@ constexpr auto source_00200000_synthetic =
 static_assert(source_00200000_synthetic.active);
 static_assert(source_00200000_synthetic.runtime_flags10 == 0xA5200000U);
 static_assert(source_00200000_synthetic.runtime_flags14 == 0xA5200000U);
+static_assert((effective_flag_mutator_set_mask & source_flag_00200000) == 0U);
+static_assert((common_material_interpreted_flag_mask & source_flag_00200000) == 0U);
 
 } // namespace dmc::rengine::analysis::mod

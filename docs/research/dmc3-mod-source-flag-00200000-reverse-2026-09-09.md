@@ -88,7 +88,57 @@ Direct disassembly of `0x140302640` shows its flag-word interpretation is bounde
 
 There is no `0x00200000` test in this helper and no arithmetic extraction that reaches bit21. The helper therefore does **not** interpret source bit21 into the GS packet.
 
-This is an important negative result: bit21 can survive/re-enter effective state while still being semantically inert in the proven local GS state builder.
+## External effective-word mutation
+
+Whole-model follow-up found a separate runtime-object consumer at `0x1402F28E0`.
+
+```text
+0x1402F2901  read effective +0x14
+0x1402F2904  BTS bit 17
+0x1402F290C  write complete dword back to +0x14
+```
+
+This sets `0x00020000`. It preserves every pre-existing unrelated bit in the effective dword, including bit21, but never tests or interprets `0x00200000`.
+
+This is another live consumer of the **container**, not a semantic bit21 consumer.
+
+## Common material path
+
+Two independent construction paths read runtime effective `+0x14` and pass the complete dword as the third argument (`R8D`) to common material helper `0x1402F9890`:
+
+```text
+MOD path:
+  0x1402F9ED9  mov r8d,[runtime_object+0x14]
+  0x1402F9EEF  call 0x1402F9890
+
+parallel model path:
+  0x1402FA042  mov r8d,[runtime_object+0x14]
+  0x1402FA058  call 0x1402F9890
+```
+
+The MOD provenance is explicit in the containing construction function: manager `+0x100 + object_index*0x380` selects the runtime object, and manager `+0xE0` high nibble `0x10000000` selects the canonical MOD runtime mesh builder before the material loop.
+
+Direct disassembly of `0x1402F9890` then gives the decisive mask:
+
+```text
+0x1402F98E0  load incoming effective/source flag dword
+0x1402F98E6  AND 0x00004000
+0x1402F98EB  TEST result
+```
+
+That helper uses only source/effective flag `0x00004000` to select the legacy GS TEX1 filtering state. It does not test, shift, compare or otherwise extract bit21.
+
+Therefore source bit21 now has an additional EXE-confirmed propagation edge:
+
+```text
+serialized source bit21
+ -> baseline/effective +0x10/+0x14
+ -> runtime object construction
+ -> common material helper 0x1402F9890
+ -> no bit21 interpretation
+```
+
+Passing a whole dword into a helper is not proof that every bit in that dword is semantically consumed.
 
 ## Rejected equal-mask false positives
 
@@ -108,12 +158,14 @@ The following is `EXE_CONFIRMED`:
 - it exists in baseline `+0x10` and effective `+0x14`;
 - selective reset preserves its current effective state;
 - zero-override restoration can reintroduce it from baseline;
-- the proven object-state-to-GS helper `0x140302640` does not interpret it;
+- external helper `0x1402F28E0` mutates another effective bit while preserving bit21;
+- the proven object-state-to-GS helper `0x140302640` does not interpret bit21;
+- the common material helper `0x1402F9890` receives the complete effective word but interprets only `0x00004000`, not bit21;
 - equal-mask hits in manager `+0xE0` and runtime `+0x304` are separate domains unless a future provenance edge proves otherwise.
 
 ## What remains open
 
-A semantic consumer outside the bounded object-state pipeline could still exist, or a future proof could connect source bit21 to another runtime domain. Neither has been demonstrated.
+A semantic consumer outside the audited model object-state/material paths could still exist, or a future proof could connect source bit21 to another runtime domain. Neither has been demonstrated.
 
 Therefore the correct status remains:
 
@@ -122,6 +174,7 @@ corpus presence                       CORPUS_CONFIRMED
 serialized -> baseline/effective      EXE_CONFIRMED
 mutation/restoration participation    EXE_CONFIRMED
 local GS packet interpretation        EXE_CONFIRMED: no bit21 consumer
+common material interpretation        EXE_CONFIRMED: no bit21 consumer
 manager +0xE0 equal-mask candidate    REJECTED
 runtime +0x304 equal-mask candidate   REJECTED
 high-level semantic                   PRESERVED_UNDECODED
@@ -130,13 +183,13 @@ writer policy                         preserve
 
 ## C++ contract
 
-`include/dmc_rengine/analysis/mod/object_flags.hpp` models exact whole-word carry and the proven baseline/effective restoration rules. It intentionally provides no semantic projection for source bit `0x00200000`.
+`include/dmc_rengine/analysis/mod/object_flags.hpp` models exact whole-word carry, baseline/effective restoration, the external bit17 mutator and the common material interpreted mask. Compile-time guards explicitly verify that neither the mutator set-mask nor the material interpreted mask includes `0x00200000`.
 
 ## Next gate
 
 A future promotion requires one of two things:
 
-1. a provenance-confirmed consumer of bit21 outside this object-state/GS path; or
+1. a provenance-confirmed semantic consumer of bit21 outside the audited object-state/material paths; or
 2. a proven copy/derivation from source-carried `+0x10/+0x14` to another runtime word whose bit21 semantic is independently known.
 
 Until one of those exists, byte preservation is mandatory and semantic naming is prohibited.

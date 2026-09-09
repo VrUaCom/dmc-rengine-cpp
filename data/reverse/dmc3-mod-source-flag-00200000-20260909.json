@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-object-flag-receipt.v2",
+  "schema": "dmc-rengine.mod-object-flag-receipt.v3",
   "field": "object source flag 0x00200000",
   "serialized_offset": "object +0x10 bit 21",
   "width": "u32 mask",
@@ -49,7 +49,33 @@
       "0x00100000"
     ],
     "state_builder_bit21_test": false,
-    "meaning": "every provenance-confirmed object-state path that forwards effective flags into the local GS state builder preserves/carries bit21, but 0x140302640 does not interpret it",
+    "meaning": "provenance-confirmed object-state paths preserve/carry bit21, but the local GS state builder does not interpret it",
+    "status": "EXE_CONFIRMED"
+  },
+  "external_effective_word_census": {
+    "effective_mutator": {
+      "helper": "0x1402F28E0",
+      "read": "0x1402F2901 reads runtime object +0x14",
+      "operation": "BTS bit17 / OR-equivalent set mask 0x00020000, then writes complete word back to +0x14",
+      "bit21_effect": "pre-existing bit21 is preserved but not tested/interpreted",
+      "status": "EXE_CONFIRMED"
+    },
+    "material_paths": [
+      {
+        "effective_read": "0x1402F9ED9",
+        "call": "0x1402F9EEF -> 0x1402F9890",
+        "provenance": "manager +0x100 + object_index*0x380; MOD family path selected by manager +0xE0 high nibble 0x10000000"
+      },
+      {
+        "effective_read": "0x1402FA042",
+        "call": "0x1402FA058 -> 0x1402F9890",
+        "provenance": "parallel object/material construction path using runtime object +0x14"
+      }
+    ],
+    "material_helper": "0x1402F9890",
+    "material_helper_flag_mask": "0x00004000 only",
+    "material_helper_effect": "selects legacy GS TEX1 filtering state; does not test/extract 0x00200000",
+    "bit21_effect": "whole effective dword reaches common material helper, but bit21 remains uninterpreted",
     "status": "EXE_CONFIRMED"
   },
   "state_machine_evidence": {
@@ -94,9 +120,10 @@
     "manager +0xE0 bit 0x00200000 is the same field as serialized object source flag 0x00200000",
     "runtime +0x304 bit 0x00200000 is automatically derived from serialized source flag 0x00200000",
     "presence in baseline/effective words implies a GS packet semantic",
-    "0x140302640 consumes every high bit present in effective flags"
+    "0x140302640 consumes every high bit present in effective flags",
+    "passing the complete effective flag word to 0x1402F9890 means every bit is a material input"
   ],
-  "cpp_contract": "analysis/mod/object_flags.hpp models exact baseline/effective carry and state restoration without assigning a terminal semantic to bit21",
+  "cpp_contract": "analysis/mod/object_flags.hpp models exact baseline/effective carry, restoration, the external bit17 mutator and the common-material interpreted mask without assigning a terminal semantic to bit21",
   "writer_policy": "preserve",
-  "closure_boundary": "Within the canonical MOD object-state pipeline, bit21 is EXE_CONFIRMED as carried and mutation-preserved state, including reintroduction from baseline by the zero-override path. The only proven local GS state builder reached from these paths, 0x140302640, explicitly interprets low mode, 0x00010000 and 0x00100000 but not 0x00200000. Therefore no GS/render semantic is promoted. A semantic claim now requires a separately proven consumer outside this bounded object-state pipeline or a provenance edge to another runtime domain."
+  "closure_boundary": "Bit21 is EXE_CONFIRMED as carried and mutation-preserved state across local object-state, an external effective-word mutator and the common material construction path. The two proven semantic interpreters reached from these flows are 0x140302640 and 0x1402F9890; neither interprets 0x00200000. A high-level semantic claim therefore requires a separately proven consumer outside these audited model render/material/state paths or a provenance edge to another runtime domain."
 }

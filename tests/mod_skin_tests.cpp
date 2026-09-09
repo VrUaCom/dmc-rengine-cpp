@@ -1,4 +1,5 @@
 #include "dmc_rengine/analysis/mod/mesh_serialized.hpp"
+#include "dmc_rengine/analysis/mod/object_flags.hpp"
 #include "dmc_rengine/formats/mod_skin.hpp"
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
 #include "dmc_rengine/formats/mod/world_transform.hpp"
@@ -42,6 +43,34 @@ int main() {
     namespace mod = dmc::rengine::formats::mod;
     namespace domain = dmc::rengine::formats::mod::transform_domain;
     namespace world = dmc::rengine::formats::mod::world_transform;
+
+    {
+        // Source bit21 is carried in the complete baseline/effective word. The
+        // separately proven external mutator sets bit17 only, while the common
+        // material helper interprets only bit14 (0x4000). Neither mask aliases
+        // source bit21, so these audited paths preserve but do not consume it.
+        constexpr std::uint32_t source =
+            analysis::source_flag_00200000 | 0x00004000U | 0x00000001U;
+        constexpr auto carried =
+            analysis::project_source_flag_00200000_carry(source);
+        static_assert(carried.active);
+        static_assert((carried.runtime_flags14 &
+                       analysis::source_flag_00200000) != 0U);
+        static_assert((analysis::effective_flag_mutator_set_mask &
+                       analysis::source_flag_00200000) == 0U);
+        static_assert((analysis::common_material_interpreted_flag_mask &
+                       analysis::source_flag_00200000) == 0U);
+        static_assert((carried.runtime_flags14 &
+                       analysis::common_material_interpreted_flag_mask) ==
+                      0x00004000U);
+
+        const auto mutated =
+            carried.runtime_flags14 | analysis::effective_flag_mutator_set_mask;
+        assert((mutated & analysis::source_flag_00200000) != 0U);
+        assert((mutated & analysis::effective_flag_mutator_set_mask) != 0U);
+        assert((mutated & analysis::common_material_interpreted_flag_mask) ==
+               0x00004000U);
+    }
 
     {
         const auto decoded = mod::decode_vertex_skin(
