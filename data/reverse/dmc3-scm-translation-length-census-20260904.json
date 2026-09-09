@@ -1,0 +1,52 @@
+{
+  "schema": "dmc-rengine.scm-translation-length-census.v1",
+  "date": "2026-09-04",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "imageBase": "0x140000000"
+  },
+  "serializedField": {
+    "record": "sceneTransform",
+    "offset": "0x0C",
+    "type": "f32",
+    "structuralName": "translationMagnitude"
+  },
+  "corpusEvidence": {
+    "invariant": "translationMagnitude ~= sqrt(x*x + y*y + z*z)",
+    "priorCorpusNodesPassing": 328,
+    "priorCorpusNodesTotal": 328,
+    "currentDirectSpecimens": [
+      {"name": "st001.scm", "violations": 0},
+      {"name": "st114.scm", "violations": 0}
+    ]
+  },
+  "transformLoader": {
+    "function": "0x1402FA080",
+    "callSites": ["0x140303A02", "0x140303B27"],
+    "translationVec4Load": "0x1402FA110..0x1402FA117",
+    "rotationVec4Load": "0x1402FA127..0x1402FA12E",
+    "translationHelperCall": "0x1402FA171 -> 0x140031200"
+  },
+  "translationHelper": {
+    "function": "0x140031200",
+    "maskRuntimeAddress": "0x1405D9F30",
+    "maskInitializer": "0x140001920..0x140001928",
+    "maskSourceAddress": "0x14035D340",
+    "maskSourceBytesHex": "000000000000000000000000ffffffff",
+    "maskLanesU32": ["0x00000000", "0x00000000", "0x00000000", "0xFFFFFFFF"],
+    "effect": {
+      "x": "original.x + translation.x",
+      "y": "original.y + translation.y",
+      "z": "original.z + translation.z",
+      "w": "original.w"
+    }
+  },
+  "conclusion": {
+    "classification": "DATA_CONFIRMED_PRECOMPUTED_LENGTH_NO_ACTIVE_EFFECT_IN_RECOVERED_TRANSFORM_APPLICATION_PATH",
+    "globalUnusedClaim": false,
+    "writerNoEditPolicy": "preserve-original-float-bits",
+    "writerEditedTranslationPolicy": "recompute-length-xyz"
+  }
+}

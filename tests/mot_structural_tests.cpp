@@ -69,6 +69,13 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t at, std::uint32_t value)
     put_u32(bytes, Contract::observed_data_offset,
         static_cast<std::uint32_t>(key_counts.size()));
 
+    // 24 channel domains imply the historical 0x50 header; one selected
+    // channel per synthetic track supplies an independent count contract.
+    put_u16(bytes, 0x1CU, 24U);
+    for (std::size_t i = 0; i < key_counts.size(); ++i) {
+        put_u16(bytes, 0x1EU + 2U * i, 1U);
+    }
+
     auto cursor = Contract::observed_data_offset + Contract::track_count_bytes;
     for (const auto keys : key_counts) {
         put_u16(bytes, cursor + Contract::track_size_offset,
@@ -240,7 +247,7 @@ void a_chain_that_misses_the_terminator_is_refused() {
 void an_unrelated_payload_is_not_a_motion() {
     // The tag alone must not be enough: a payload carrying `MOT` at the right
     // offset and nothing else is refused, because the runtime never reads that
-    // tag and neither does this.
+    // tag. Product validation also checks the marker and channel grammar.
     std::vector<std::byte> impostor(0x200U, std::byte{0});
     impostor[Contract::magic_offset + 0U] = static_cast<std::byte>('M');
     impostor[Contract::magic_offset + 1U] = static_cast<std::byte>('O');

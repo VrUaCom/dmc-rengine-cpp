@@ -1,0 +1,68 @@
+{
+  "schema": "dmc-rengine.scm-source-bit21-census.v1",
+  "date": "2026-09-04",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "imageBase": "0x140000000"
+  },
+  "sourceField": {
+    "format": "SCM",
+    "record": "object",
+    "offset": "0x10",
+    "mask": "0x00200000",
+    "corpusObjectCount": 19
+  },
+  "exactImmediateHits": [
+    "0x1400304CC",
+    "0x1401E2D5E",
+    "0x1401E3C2C",
+    "0x14020364D",
+    "0x140203F83",
+    "0x1402043B1",
+    "0x14020484C",
+    "0x1402F4C21",
+    "0x140303F2F",
+    "0x140339D10",
+    "0x140339E20"
+  ],
+  "provenanceChecks": [
+    {
+      "site": "0x1402F4C21",
+      "testedField": "runtimeRecord+0x304",
+      "producer": "0x1402F395C..0x1402F396B",
+      "producerRule": "runtimeRecord+0x304 = constructorInput & 0xF0000000",
+      "classification": "rejected-as-scm-object-flag-consumer"
+    },
+    {
+      "site": "0x140303F2F",
+      "testedField": "manager+0xE0",
+      "producer": "0x1402F9621..0x1402F9661",
+      "producerRule": "manager+0xE0 = helperReturn | 1 | externalManagerFlags",
+      "classification": "rejected-as-scm-object-flag-consumer"
+    }
+  ],
+  "bit21OperationsInLocalScmRegion": [
+    {
+      "site": "0x140302CF9",
+      "operation": "BTS bit21",
+      "target": "manager+0xE0",
+      "classification": "manager-bitfield-not-object-flags"
+    },
+    {
+      "site": "0x140302D59",
+      "operation": "BTS bit21",
+      "target": "manager+0xE0",
+      "classification": "manager-bitfield-not-object-flags"
+    }
+  ],
+  "conclusion": {
+    "dataConfirmed": true,
+    "runtimePreserved": true,
+    "semanticRole": "unresolved",
+    "status": "PRESERVED_UNDECODED_WITH_BOUNDED_NEGATIVE_EVIDENCE",
+    "writerPolicy": "preserve-exactly",
+    "editorPolicy": "no-semantic-toggle"
+  }
+}

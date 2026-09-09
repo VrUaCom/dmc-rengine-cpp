@@ -133,6 +133,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod_writer_corpus
         mod_authored_child_bridge
         mod_skin
+        scm_writer
+        scm_transform_inverse
+        mot
+        mot_key_decode
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats

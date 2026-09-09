@@ -1,0 +1,49 @@
+{
+  "schema": "dmc-rengine.reverse.mot-real-corpus.v1",
+  "canonicalExeSha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "source": "local hash-bound corpus snapshot; payloads not committed",
+  "files": [
+    {
+      "path": "st001/st001_007/st001_007_000.mot",
+      "size": 63440,
+      "sha256": "d16448634c99d421e36dedc4dcfab9139839e999e82e3b63192f5b480639fa83",
+      "header_size": 80,
+      "channel_domain_count": 24,
+      "channel_mask_popcount": 69,
+      "track_count": 69,
+      "compression_counts": {
+        "3": 69
+      },
+      "tail_size": 4,
+      "duration": 650.0
+    },
+    {
+      "path": "st600/st600_007/st600_007_000.mot",
+      "size": 9248,
+      "sha256": "74cfba5e3edfce1e81b96ff6ba293df9a17e6071befdd4b94eb540576b8cc031",
+      "header_size": 80,
+      "channel_domain_count": 24,
+      "channel_mask_popcount": 69,
+      "track_count": 69,
+      "compression_counts": {
+        "3": 69
+      },
+      "tail_size": 12,
+      "duration": 120.0
+    },
+    {
+      "path": "st600/st600_005/st600_005_011/st600_005_011_000.mot",
+      "size": 12768,
+      "sha256": "074c4897e26ab8f9bca301083f7b9c0efa1a7490fb2dc785b184b0f4b64d9c31",
+      "header_size": 80,
+      "channel_domain_count": 18,
+      "channel_mask_popcount": 48,
+      "track_count": 48,
+      "compression_counts": {
+        "3": 48
+      },
+      "tail_size": 12,
+      "duration": 100.0
+    }
+  ]
+}
