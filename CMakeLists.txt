@@ -136,6 +136,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         evidence_address_resolver
         exe_byte_window
         exe_byte_window_receipt
+        spider_exe_window_packet
+        spider_l2_runtime_mapping_v2
+        spider_native_executor
         process_memory_window
         process_memory_window_receipt
         integration_workspace

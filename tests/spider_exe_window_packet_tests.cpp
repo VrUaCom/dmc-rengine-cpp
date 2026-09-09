@@ -1,0 +1,239 @@
+#include "dmc_rengine/spider/exe_window_packet.hpp"
+#include "spider_l2_runtime_mapping_test_cases.hpp"
+
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <string_view>
+
+namespace {
+
+constexpr const char* k_sha =
+    "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082";
+constexpr const char* k_window_sha =
+    "e61d6a793b42951d4e466a18683567c9011cd840b03559c0cc9e94c761995098";
+constexpr const char* k_blocked_plan_sha =
+    "3ad52cacd0b4a4c9b295e34f11f96827e986b8775328db50a771d01e5d0a27c9";
+constexpr const char* k_materialization_plan_sha =
+    "9f5196478f2773b8dc969cbacbc064a591efe9bace9d96d64cb3c3e06de5e736";
+
+struct Fixture final {
+    bool fail{};
+    bool wrong_schema_equivalent{};
+};
+
+dmc::rengine::spider::ExeWindowAcquisition acquire(
+    void* context,
+    const dmc::rengine::spider::ExeWindowRequest& request) {
+    auto* fixture = static_cast<Fixture*>(context);
+    if (fixture != nullptr && fixture->fail) {
+        return {.receipt = std::nullopt, .error = "fixture failure"};
+    }
+
+    dmc::rengine::exe::ExeByteWindowReceipt receipt{
+        .artifact_sha256 = k_sha,
+        .artifact_size = 4096U,
+        .image_base = 0x140000000ULL,
+        .va = request.va,
+        .rva = 0x1000U,
+        .file_offset = 0x200U,
+        .size = static_cast<std::uint64_t>(request.size),
+        .section_name = ".text",
+        .window_sha256 = k_window_sha,
+    };
+    if (fixture != nullptr && fixture->wrong_schema_equivalent) {
+        // The native path eliminates JSON schema spoofing. Model the same
+        // guardrail as a typed receipt mismatch instead.
+        receipt.artifact_size = 4095U;
+    }
+    return {.receipt = receipt, .error = {}};
+}
+
+std::string make_plan(std::string mode, std::string body = {}) {
+    std::string json = R"({
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "test-l3-writer-plan",
+  "artifact_sha256": ")";
+    json += k_sha;
+    json += R"(",
+  "artifact_size": 4096,
+  "authority_role": "analysis-reverse",
+  "window_size_policy": "Probe coverage only; not a body-boundary assertion.",
+  "windows": [
+    {
+      "id": "writer-probe",
+      "va": "0x140001000",
+      "size": "0x4",
+      "mode": ")";
+    json += mode;
+    json += "\",";
+    if (!body.empty()) {
+        json += "\n      \"body_sha256\": \"" + body + "\",";
+    }
+    json += R"(
+      "issues": [88],
+      "purpose": "Synthetic guardrail coverage only."
+    }
+  ]
+}
+)";
+    return json;
+}
+
+void replace_once(std::string& text, std::string_view from, std::string_view to) {
+    const auto position = text.find(from);
+    assert(position != std::string::npos);
+    text.replace(position, from.size(), to);
+}
+
+std::string read_text(const std::filesystem::path& path) {
+    std::ifstream stream(path, std::ios::binary);
+    assert(stream.is_open());
+    return std::string(
+        std::istreambuf_iterator<char>(stream),
+        std::istreambuf_iterator<char>());
+}
+
+std::filesystem::path repository_root() {
+    const std::filesystem::path compiled_file{__FILE__};
+    if (compiled_file.is_absolute()) {
+        return compiled_file.parent_path().parent_path();
+    }
+
+    // CTest executes from the build tree in the supported CMake workflow.
+    const auto build_parent = std::filesystem::current_path().parent_path();
+    assert(std::filesystem::exists(build_parent / "data/reverse"));
+    return build_parent;
+}
+
+void verify_repository_plan(
+    const std::filesystem::path& path,
+    std::size_t expected_windows,
+    std::string_view expected_sha) {
+    using namespace dmc::rengine::spider;
+
+    const auto compiled = compile_exe_window_packet(read_text(path));
+    assert(compiled.ok());
+    assert(compiled.program->summary.plan_sha256 == expected_sha);
+    assert(compiled.program->summary.window_count == expected_windows);
+    assert(compiled.program->summary.probe_count == expected_windows);
+    assert(compiled.program->summary.known_body_count == 0U);
+    assert(!compiled.program->summary.semantic_claim);
+
+    // Spider emits validate-plan + acquire/validate per window + publish.
+    assert(compiled.program->execution.size() == expected_windows * 2U + 2U);
+    assert(compiled.program->execution.instructions.front().op == OpCode::validate_plan);
+    assert(compiled.program->execution.instructions.back().op == OpCode::publish_packet);
+}
+
+} // namespace
+
+int main() {
+    using namespace dmc::rengine::spider;
+
+    const auto source_plan = make_plan("probe");
+    const auto compiled = compile_exe_window_packet(source_plan);
+    assert(compiled.ok());
+    assert(compiled.program->summary.window_count == 1U);
+    assert(compiled.program->summary.probe_count == 1U);
+    assert(compiled.program->summary.known_body_count == 0U);
+    assert(!compiled.program->summary.semantic_claim);
+    assert(compiled.program->execution.size() == 4U);
+    assert(compiled.program->execution.instructions[1].op == OpCode::acquire_window);
+    assert(compiled.program->execution.instructions[2].op == OpCode::validate_window);
+
+    // The legacy validator hashes the exact plan bytes. Spider preserves that
+    // behavior, including otherwise insignificant trailing whitespace.
+    const auto changed_bytes = compile_exe_window_packet(source_plan + " \n");
+    assert(changed_bytes.ok());
+    assert(
+        compiled.program->summary.plan_sha256 !=
+        changed_bytes.program->summary.plan_sha256);
+
+    // Legacy validation trims semantic text fields. Whitespace-only values
+    // therefore remain invalid in the native migration too.
+    auto blank_plan_id = source_plan;
+    replace_once(blank_plan_id, "test-l3-writer-plan", "   ");
+    assert(!compile_exe_window_packet(blank_plan_id).ok());
+
+    auto blank_authority = source_plan;
+    replace_once(blank_authority, "analysis-reverse", "   ");
+    assert(!compile_exe_window_packet(blank_authority).ok());
+
+    auto blank_policy = source_plan;
+    replace_once(
+        blank_policy,
+        "Probe coverage only; not a body-boundary assertion.",
+        "   ");
+    assert(!compile_exe_window_packet(blank_policy).ok());
+
+    auto blank_purpose = source_plan;
+    replace_once(blank_purpose, "Synthetic guardrail coverage only.", "   ");
+    assert(!compile_exe_window_packet(blank_purpose).ok());
+
+    Fixture fixture;
+    const auto executed = execute_exe_window_packet(
+        *compiled.program, k_sha, acquire, &fixture);
+    assert(executed.ok());
+    assert(executed.receipts.size() == 1U);
+    assert(executed.receipts.front().section_name == ".text");
+
+    const auto bad_expected_sha = execute_exe_window_packet(
+        *compiled.program,
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        acquire,
+        &fixture);
+    assert(bad_expected_sha.error == ExeWindowPacketError::expected_sha_mismatch);
+
+    const auto unbound = execute_exe_window_packet(
+        *compiled.program, k_sha, nullptr, &fixture);
+    assert(unbound.error == ExeWindowPacketError::acquisition_failed);
+
+    fixture.fail = true;
+    const auto failed = execute_exe_window_packet(
+        *compiled.program, k_sha, acquire, &fixture);
+    assert(failed.error == ExeWindowPacketError::acquisition_failed);
+    assert(failed.failed_window == 0U);
+    fixture.fail = false;
+
+    fixture.wrong_schema_equivalent = true;
+    const auto mismatched = execute_exe_window_packet(
+        *compiled.program, k_sha, acquire, &fixture);
+    assert(mismatched.error == ExeWindowPacketError::invalid_receipt);
+    fixture.wrong_schema_equivalent = false;
+
+    const auto known = compile_exe_window_packet(make_plan("known-body", k_window_sha));
+    assert(known.ok());
+    const auto known_executed = execute_exe_window_packet(
+        *known.program, k_sha, acquire, &fixture);
+    assert(known_executed.ok());
+
+    const auto wrong_body = compile_exe_window_packet(make_plan(
+        "known-body",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+    assert(wrong_body.ok());
+    const auto body_mismatch = execute_exe_window_packet(
+        *wrong_body.program, k_sha, acquire, &fixture);
+    assert(body_mismatch.error == ExeWindowPacketError::known_body_mismatch);
+
+    auto unsafe = source_plan;
+    replace_once(unsafe, "writer-probe", "../unsafe");
+    assert(!compile_exe_window_packet(unsafe).ok());
+
+    const auto source_root = repository_root();
+    verify_repository_plan(
+        source_root / "data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json",
+        37U,
+        k_blocked_plan_sha);
+    verify_repository_plan(
+        source_root / "data/reverse/dmc3-materialization-completion-boundary-plan.v1.json",
+        14U,
+        k_materialization_plan_sha);
+
+    dmc::rengine::tests::run_spider_l2_runtime_mapping_tests();
+
+    return 0;
+}
