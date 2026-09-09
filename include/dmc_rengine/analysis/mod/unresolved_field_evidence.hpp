@@ -47,7 +47,7 @@ struct CanonicalExeUnknownFieldEvidence final {
     // copies source +0x00/+04/+08/+10/+14/+18 and advances the source pointer
     // by 0x20 at 0x14030FA2F, skipping +0x1C. This closes non-consumption in
     // the two audited local-transform paths, but not every possible subsystem.
-    static constexpr std::size_t transform_reserved1c_offset = 0x1CU;
+    static constexpr std::size_t transform_raw1c_offset = 0x1CU;
     static constexpr bool transform_1c_used_by_local_matrix_builder = false;
     static constexpr bool transform_1c_transferred_by_cmotion_binding = false;
     static constexpr std::size_t mod_transform_1c_zero_count = 285U;
@@ -99,13 +99,21 @@ struct CanonicalExeUnknownFieldEvidence final {
     static constexpr EvidenceStatus mesh_4c_status =
         EvidenceStatus::PRESERVED_UNDECODED;
 
-    // Canonical embedded MOD shader families DMC3_MOD, DMC3_MOD_SP and
-    // DMC3_MOD_STX contain no matIndex.x/matIndxX use. Their skin code uses
-    // y/z/w. CPU code at 0x1402F3D0A independently reads lane[1] and shifts
-    // right by two. Two whole-EXE lane-0 candidates were rejected by pointer
-    // provenance, but the entire runtime-stream escape graph is not yet closed.
+    // BLENDINDICES.x indirect GPU escape is now closed for the canonical
+    // executable. Whole-image census found 69 DXBC blobs; 8 input signatures
+    // expose BLENDINDICES as uint4 register 3 with Mask=0xF and
+    // ReadWriteMask=0xE, proving compiled shaders read Y/Z/W but not X.
+    // Embedded DMC3_MOD/DMC3_MOD_SP/DMC3_MOD_STX HLSL independently contains
+    // no matIndex.x/matIndxX use. Provenance-confirmed direct CPU consumers
+    // contain the lane-Y positive control at 0x1402F3D0A and no lane-X read.
+    // The raw serialized X byte remains part of the ABI and must be preserved.
     static constexpr std::size_t blendindices_x_lane = 0U;
     static constexpr std::size_t blendindices_first_active_skin_lane = 1U;
+    static constexpr std::size_t canonical_dxbc_blob_count = 69U;
+    static constexpr std::size_t blendindices_dxbc_signature_count = 8U;
+    static constexpr std::uint8_t blendindices_dxbc_mask = 0x0FU;
+    static constexpr std::uint8_t blendindices_dxbc_read_write_mask = 0x0EU;
+    static constexpr bool blendindices_x_gpu_escape_closed = true;
     static constexpr bool blendindices_x_used_by_canonical_mod_efm_skin_shaders = false;
     static constexpr bool blendindices_yzw_used_by_canonical_mod_efm_skin_shaders = true;
     static constexpr std::size_t mod_blendindices_x_zero_count = 20976U;
@@ -134,7 +142,7 @@ struct CanonicalExeUnknownFieldEvidence final {
         EvidenceStatus::PRESERVED_UNDECODED;
 };
 
-static_assert(CanonicalExeUnknownFieldEvidence::transform_reserved1c_offset == 0x1CU);
+static_assert(CanonicalExeUnknownFieldEvidence::transform_raw1c_offset == 0x1CU);
 static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_used_by_local_matrix_builder);
 static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_transferred_by_cmotion_binding);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_transform_1c_zero_count == 285U);
@@ -144,6 +152,11 @@ static_assert(CanonicalExeUnknownFieldEvidence::efm_mesh_38_is_runtime_active);
 static_assert(!CanonicalExeUnknownFieldEvidence::mod_mesh_38_is_runtime_active);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_0c_zero_count == 180U);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_4c_zero_count == 180U);
+static_assert(CanonicalExeUnknownFieldEvidence::blendindices_x_gpu_escape_closed);
+static_assert(CanonicalExeUnknownFieldEvidence::canonical_dxbc_blob_count == 69U);
+static_assert(CanonicalExeUnknownFieldEvidence::blendindices_dxbc_signature_count == 8U);
+static_assert(CanonicalExeUnknownFieldEvidence::blendindices_dxbc_mask == 0x0FU);
+static_assert(CanonicalExeUnknownFieldEvidence::blendindices_dxbc_read_write_mask == 0x0EU);
 static_assert(!CanonicalExeUnknownFieldEvidence::blendindices_x_used_by_canonical_mod_efm_skin_shaders);
 static_assert(CanonicalExeUnknownFieldEvidence::blendindices_yzw_used_by_canonical_mod_efm_skin_shaders);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_blendindices_x_zero_count == 20976U);
