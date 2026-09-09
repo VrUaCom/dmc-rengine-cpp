@@ -1,0 +1,136 @@
+{
+  "schema": "dmc-rengine.scm-real-alpha-pac-reintegration-attestation.v1",
+  "date": "2026-09-09",
+  "project": "DMC Rengine",
+  "evidenceClass": "REAL_CORPUS_BOUND_SCM_EDIT_AND_PARENT_PAC_REINTEGRATION",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "canonicalScmAuthority": {
+    "realPayloadLabel": "st001.scm",
+    "size": 887760,
+    "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "authority": "docs/research/dmc3-scm-deep-reverse-2026-09-02.md",
+    "status": "HASH_BOUND_REAL_SCM_PAYLOAD"
+  },
+  "runner": {
+    "pullRequest": 376,
+    "branchHeadSha": "64b400a5f13830a95a8ca9b8ff1666746c9a573a",
+    "workflowRunId": 34369178488,
+    "ubuntuJobPassed": true,
+    "windowsJobPassed": true,
+    "fullCTestPassedOnBothPlatforms": true,
+    "artifactId": 10111260325,
+    "artifactName": "dmc-rengine-linux-93030bdff0c57260d28f7ddd51c13a1e25ae7292",
+    "artifactDigest": "sha256:9702ab289203f15a0c7b7762b8120de0706ae6b203a5ac26fa70f30a7652352e",
+    "executableSha256": "9b789b44cb325be2c484354719baf05561625ff104d7f436a8ecffb3f8cb698a",
+    "note": "The artifact name uses the pull-request workflow github.sha label; branch-head authority is recorded independently from the workflow metadata."
+  },
+  "parent": {
+    "label": "st001.pac",
+    "detectedFormat": "PAC",
+    "sourceSize": 4632960,
+    "sourceSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "outputSize": 4632960,
+    "outputSha256": "f8afd23659035b2d4b81926b667f2e374d0550748a74d7a7ec521f792775a41b",
+    "slotCount": 8,
+    "slotOffsets": [48, 96, 3485792, 4373552, 4399712, 4399968, 4567856, 4569504],
+    "headerAndSlotTableIdentical": true,
+    "canonicalOutputExpansionCompleted": true,
+    "protectedInstallProvenanceBound": false
+  },
+  "childBinding": {
+    "physicalSlotIndex": 2,
+    "slotOffset": 3485792,
+    "slotOffsetHex": "0x353060",
+    "slotSize": 887760,
+    "detectedFormat": "SCM",
+    "sourceSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "bindingMethod": "physical PAC slot plus exact hash match to the canonical hash-bound real SCM payload"
+  },
+  "controlledEdit": {
+    "api": "set_alpha_control",
+    "writerMode": "preserve_layout",
+    "objectIndex": 0,
+    "objectRecordOffset": 64,
+    "field": "object.alpha_control",
+    "oldValue": 128,
+    "newValue": 64,
+    "localSerializedOffset": 65,
+    "localSerializedOffsetHex": "0x41",
+    "parentSerializedOffset": 3485857,
+    "parentSerializedOffsetHex": "0x3530A1",
+    "sourceScmSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "authoredScmSha256": "6bda31119b6f33520f56132779c7892ed7526255c3c565399e50fb573380612e",
+    "sourceSize": 887760,
+    "outputSize": 887760,
+    "canonicalWriterOk": true,
+    "canonicalWriterReparseOk": true,
+    "independentExactByteGuardPassed": true,
+    "changedByteCount": 1,
+    "changedBytes": [
+      {
+        "offset": 65,
+        "before": 128,
+        "after": 64
+      }
+    ]
+  },
+  "reintegration": {
+    "command": "rebuild-relative-slot",
+    "canonicalRelativeSlotWriterVerified": true,
+    "parentSizePreserved": true,
+    "slotIndexPreserved": true,
+    "slotOffsetPreserved": true,
+    "slotSizePreserved": true,
+    "parentChangedByteCount": 1,
+    "parentChangedBytes": [
+      {
+        "offset": 3485857,
+        "before": 128,
+        "after": 64
+      }
+    ],
+    "parentDiffEqualsSlotOffsetPlusLocalDiff": true,
+    "allParentBytesOutsideControlledEditIdentical": true,
+    "allNonTargetSlotBytesIdentical": true
+  },
+  "nonTargetSlotVerification": [
+    {"slot": 0, "size": 48, "sha256": "7efcf182f28135a3d694324ba06715ca6f6b075a028d035c89c69809df23faa5", "identical": true},
+    {"slot": 1, "size": 3485696, "sha256": "976e6a6961686572c66cb6935f7e44dd450990016071604d99ff831ed9d36d5a", "identical": true},
+    {"slot": 3, "size": 26160, "sha256": "80b4b64318d84748c34a9e4f08065e35998e2e14e3766affb653e0f26adab77a", "identical": true},
+    {"slot": 4, "size": 256, "sha256": "36d40827c90e7ce0750a56c0f267be6721dd2b2e4bf30f4100a0cd6ecdabc07e", "identical": true},
+    {"slot": 5, "size": 167888, "sha256": "500dadbc8e0db8d8d232fa04c49db437d41cbe6c50e555e24d91e758c6bcc4b0", "identical": true},
+    {"slot": 6, "size": 1648, "sha256": "0f3d9952b61e3d1346dc9910c9c401fc0214d0d6fb2593791e0c000cc4599f64", "identical": true},
+    {"slot": 7, "size": 63456, "sha256": "f0c0a2252f26d8e6f1538bc307b9c2ebf9a785e5d11b1fbe4ffc45672a3a5487", "identical": true}
+  ],
+  "reopen": {
+    "canonicalParentReopen": true,
+    "canonicalParentFullyExpanded": true,
+    "extractedPhysicalSlot": 2,
+    "extractedChildSha256": "6bda31119b6f33520f56132779c7892ed7526255c3c565399e50fb573380612e",
+    "extractedChildEqualsAuthoredChild": true,
+    "canonicalScmReparse": true,
+    "reopenedAlphaControl": 64
+  },
+  "reversibility": {
+    "reverseEdit": "object[0].alpha_control 64 -> 128",
+    "canonicalWriterOk": true,
+    "exactByteGuardPassed": true,
+    "restoredSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "restoredBytesEqualOriginalSource": true
+  },
+  "claims": {
+    "hashBoundRealScmSameLayoutSemanticEdit": true,
+    "parentPacReintegrationOfAuthoredScm": true,
+    "exactSingleByteParentDiff": true,
+    "canonicalReopenAndExtraction": true,
+    "boundedEditReversibility": true,
+    "protectedInstallParentPacProvenance": false,
+    "retailNbzOverlayAcceptance": false,
+    "originalDmc3ExeAcceptance": false,
+    "arbitraryScmMutationAuthority": false,
+    "sizeChangingScmRebuildAcceptance": false,
+    "textureCompanionRewriteAcceptance": false,
+    "fullScmWriterAuthority": false
+  },
+  "evidenceBoundary": "No proprietary SCM or PAC payload bytes are committed. This receipt records hashes, physical slot identity, the single authorized scalar edit, independent byte-diff/reopen results, and exact CI-built tool identity. The SCM child is bound to an existing hash-confirmed real payload; the supplied parent PAC is not promoted here to protected-install provenance."
+}
