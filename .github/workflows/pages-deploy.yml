@@ -137,6 +137,7 @@ jobs:
             "/formats/"
             "/formats/scm/"
             "/formats/mod/"
+            "/formats/mod/lessons/01-what-is-mod/"
             "/formats/mot/"
             "/reverse-engineering/"
             "/unpacker/"
@@ -210,7 +211,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 17, pages
+          assert len(pages) == 18, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -301,6 +302,7 @@ jobs:
           assert set(locs) == set(expected), (set(expected) - set(locs), set(locs) - set(expected))
           for required in (
               "/formats/mod/",
+              "/formats/mod/lessons/01-what-is-mod/",
               "/formats/mot/",
               "/formats/dds/",
               "/formats/ptx/",
