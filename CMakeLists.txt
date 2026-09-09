@@ -131,6 +131,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod
         mod_writer
         mod_writer_corpus
+        mod_authored_child_bridge
         mod_skin
         stage_txt
         resource_analyzer
