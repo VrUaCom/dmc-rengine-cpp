@@ -31,6 +31,10 @@ namespace {
 [[nodiscard]] bool write_receipt(
     const std::filesystem::path& path,
     const std::string& json) {
+    std::error_code error;
+    if (std::filesystem::exists(path, error) || error) {
+        return false;
+    }
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) {
         return false;
@@ -216,7 +220,7 @@ namespace {
 
     if (receipt_path.has_value()) {
         if (!write_receipt(*receipt_path, receipt.to_json())) {
-            std::cerr << "mod-writer-corpus: unable to write receipt: "
+            std::cerr << "mod-writer-corpus: unable to create receipt: "
                       << receipt_path->string() << '\n';
             return 4;
         }
@@ -254,6 +258,21 @@ namespace {
     if (absolute_input == absolute_output) {
         std::cerr << "mod-writer-set-bounding-radius: source overwrite is forbidden\n";
         return 2;
+    }
+
+    if (receipt_path.has_value()) {
+        const auto absolute_receipt =
+            std::filesystem::absolute(*receipt_path, error).lexically_normal();
+        if (error) {
+            std::cerr << "mod-writer-set-bounding-radius: receipt path error: "
+                      << error.message() << '\n';
+            return 2;
+        }
+        if (absolute_receipt == absolute_input ||
+            absolute_receipt == absolute_output) {
+            std::cerr << "mod-writer-set-bounding-radius: receipt path must differ from input and output\n";
+            return 2;
+        }
     }
 
     std::vector<std::byte> source;
@@ -392,7 +411,7 @@ namespace {
 
     if (receipt_path.has_value()) {
         if (!write_receipt(*receipt_path, json.str())) {
-            std::cerr << "mod-writer-set-bounding-radius: unable to write receipt\n";
+            std::cerr << "mod-writer-set-bounding-radius: unable to create receipt\n";
             return 8;
         }
     }
