@@ -28,6 +28,15 @@ struct ParseResult final {
     [[nodiscard]] bool ok() const noexcept;
 };
 
+/**
+ * Whether these bytes carry this payload, without building its records.
+ *
+ * Classification runs on every slot of every container a browser opens, so
+ * the identity question is separated from the reading: `parse` answers both
+ * and allocates, this answers only the first and does not.
+ */
+[[nodiscard]] bool recognizes(std::span<const std::byte> bytes) noexcept;
+
 [[nodiscard]] ParseResult parse(std::span<const std::byte> bytes);
 
 } // namespace dmc::rengine::formats::so::graph

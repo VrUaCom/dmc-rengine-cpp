@@ -29,7 +29,7 @@ int main() {
     const auto containers =
         dmc::rengine::profiles::dmc3::make_container_parser_registry();
 
-    assert(readers.size() == 10U);
+    assert(readers.size() == 14U);
     for (const std::string_view parser_id : {
              "formats.dds-dmc3-reader",
              "formats.ptx-dmc3-reader",
@@ -39,6 +39,10 @@ int main() {
              "formats.stage-txt-lexer",
              "formats.scm-structural-v1",
              "formats.mod-structural-v1",
+             "formats.mot-structural-v1",
+             "formats.so-graph-structural-v1",
+             "formats.so-volume-structural-v1",
+             "formats.so-link-structural-v1",
              "formats.shw-structural-v1",
              "exe.pe-reader"}) {
         const auto* module = readers.find(parser_id);

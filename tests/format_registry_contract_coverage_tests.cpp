@@ -2,11 +2,13 @@
 #include "dmc_rengine/integration/format_registry.hpp"
 #include "dmc_rengine/integration/native_reader_registry.hpp"
 #include "dmc_rengine/integration/tool_registry.hpp"
+#include "dmc_rengine/profiles/dmc3/animation_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cctype>
 #include <cstddef>
 #include <span>
 #include <string>
@@ -23,6 +25,7 @@ using dmc::rengine::integration::NativeReaderModuleRegistry;
 using dmc::rengine::integration::ToolRegistry;
 using dmc::rengine::integration::ToolRoute;
 using dmc::rengine::integration::ToolRouteRole;
+using dmc::rengine::profiles::dmc3::AnimationTypeContract;
 using dmc::rengine::profiles::dmc3::ResourceTypeContract;
 
 [[nodiscard]] std::vector<std::byte> bytes_of(std::string_view text) {
@@ -105,6 +108,27 @@ void test_every_contract_extension_type_is_registered() {
     const FormatIntegrationRegistry registry;
     for (const auto& entry : ResourceTypeContract::extension_types) {
         const auto format = ResourceTypeContract::canonical_extension(entry.code);
+        assert(!format.empty());
+        assert(registry.find(format) != nullptr);
+    }
+}
+
+// The second recovered registry (0x1402E01A0) is a separate census authority
+// from ResourceTypeContract, with its own table, its own capacity and its own
+// type codes. Holding only the first one to this standard is what let TSC and
+// HID sit in the evidence for weeks without a registry row: nothing compared
+// the second table against the product. `.clt` appears in both, so a format
+// covered here is not necessarily covered there.
+void test_every_animation_contract_extension_type_is_registered() {
+    const FormatIntegrationRegistry registry;
+    for (const auto& entry : AnimationTypeContract::extension_types) {
+        // The table enumerates case in pairs; the registry is keyed lowercase.
+        const auto extension = entry.extension.substr(1U);
+        std::string format;
+        for (const auto character : extension) {
+            format.push_back(static_cast<char>(
+                std::tolower(static_cast<unsigned char>(character))));
+        }
         assert(!format.empty());
         assert(registry.find(format) != nullptr);
     }
@@ -266,6 +290,7 @@ int main() {
     test_every_contract_family_type_is_registered();
     test_every_contract_registry_type_is_registered();
     test_every_contract_extension_type_is_registered();
+    test_every_animation_contract_extension_type_is_registered();
     test_format_registry_is_internally_consistent();
     test_native_reader_registry_and_tool_routes_are_coherent();
     test_observed_retail_extensions_are_registered();
