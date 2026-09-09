@@ -278,9 +278,20 @@ struct DescriptorParseResult final {
         bytes, descriptor_offset + kDescriptorAuxModeOffset);
     const auto auxiliary_value = read_u32_le(
         bytes, descriptor_offset + kDescriptorAuxValueOffset);
+    // The auxiliary pair was first bounded against a corpus in which every
+    // descriptor carrying a non-zero mode also carried DXT5, and that
+    // coincidence was written down as the format's rule. It is not one. The
+    // retail `em000.pac` texture pack opens with a DXT1 descriptor whose mode
+    // is 2, and refusing it refused the whole bundle — so a model's textures
+    // read as `bin`, which is what the enemy's own first slot looked like in
+    // the browser.
+    //
+    // What the four descriptors of that pack do agree on is the pairing: a
+    // zero mode carries a zero value and a non-zero mode carries a non-zero
+    // one. That is kept. The compression coupling is dropped, and the reader
+    // no longer claims a relation it cannot show.
     if (auxiliary_mode > 2U ||
-        ((auxiliary_mode == 0U) != (auxiliary_value == 0U)) ||
-        (auxiliary_mode != 0U && compression != TextureCompressionKind::dxt5)) {
+        ((auxiliary_mode == 0U) != (auxiliary_value == 0U))) {
         return {
             .status = TextureSlotFramingStatus::descriptor_mismatch,
             .entry = {},
@@ -497,7 +508,6 @@ bool TextureSlotEntry::valid(std::uint64_t slot_size) const noexcept {
         secondary_width != 0U && secondary_height != 0U &&
         (secondary_same || secondary_half) && auxiliary_mode <= 2U &&
         ((auxiliary_mode == 0U) == (auxiliary_value == 0U)) &&
-        (auxiliary_mode == 0U || compression == TextureCompressionKind::dxt5) &&
         descriptor_offset < dds_offset &&
         dds_offset - descriptor_offset == TextureSlotFramingParser::k_descriptor_size &&
         dds_offset <= slot_size && dds_size <= slot_size - dds_offset;

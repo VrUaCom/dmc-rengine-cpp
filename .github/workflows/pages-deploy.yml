@@ -6,6 +6,10 @@ on:
     paths:
       - 'site/**'
       - 'tools/build_discovery_site.py'
+      - 'tools/build_discovery_site_v2.py'
+      - 'tools/discovery_format_catalog.py'
+      - 'docs/formats/**'
+      - 'learning/**'
       - '.github/workflows/pages-deploy.yml'
   workflow_dispatch:
 
@@ -68,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SITE_BASE_URL"
-          python tools/build_discovery_site.py --output _site --base-url "$SITE_BASE_URL"
+          python tools/build_discovery_site_v2.py --output _site --base-url "$SITE_BASE_URL"
 
       - name: Upload GitHub Pages artifact
         if: ${{ steps.pages_state.outputs.enabled == 'true' }}
@@ -127,8 +131,13 @@ jobs:
             "/"
             "/formats/"
             "/formats/scm/"
+            "/formats/mod/"
+            "/formats/mod/lessons/01-what-is-mod/"
             "/formats/hits/"
             "/formats/textures/"
+            "/formats/mot/"
+            "/formats/dds/"
+            "/formats/ptx/"
             "/reverse-engineering/"
             "/faq/"
           )
@@ -191,7 +200,7 @@ jobs:
           }
 
           pages = sorted(glob.glob("/tmp/live-pages/page-*.html"))
-          assert len(pages) == 7, pages
+          assert len(pages) == 12, pages
           for page in pages:
               parser = MetaParser()
               parser.feed(Path(page).read_text(encoding="utf-8"))
@@ -258,20 +267,41 @@ jobs:
           PY
 
           fetch_live "${site}/sitemap.xml" /tmp/sitemap.xml
+          fetch_live "${site}/site-index.json" /tmp/site-index.json
           export SITE_ORIGIN="$site"
           python - <<'PY'
           from __future__ import annotations
 
+          import json
           import os
           import xml.etree.ElementTree as ET
           from pathlib import Path
 
-          site = os.environ["SITE_ORIGIN"].rstrip("/") + "/"
+          site = os.environ["SITE_ORIGIN"].rstrip("/")
           root = ET.fromstring(Path("/tmp/sitemap.xml").read_bytes())
           locs = [node.text or "" for node in root.findall(".//{*}loc")]
-          assert len(locs) == 14, locs
-          assert all(loc.startswith(site) for loc in locs), locs
-          print(f"Live sitemap contains {len(locs)} controlled URLs.")
+          index = json.loads(Path("/tmp/site-index.json").read_text(encoding="utf-8"))
+          paths = index["paths"]
+          expected = [site + path for path in paths]
+
+          assert index["page_count"] == len(paths), index
+          assert index["format_count"] >= 50, index
+          assert len(locs) == index["page_count"], (len(locs), index["page_count"])
+          assert len(set(locs)) == len(locs), locs
+          assert set(locs) == set(expected), (set(expected) - set(locs), set(locs) - set(expected))
+          for required in (
+              "/formats/mod/",
+              "/formats/mod/lessons/01-what-is-mod/",
+              "/formats/mot/",
+              "/formats/dds/",
+              "/formats/ptx/",
+              "/archives/nbz/",
+          ):
+              assert required in paths, required
+          print(
+              f"Live sitemap exactly matches site-index.json: "
+              f"{index['page_count']} pages / {index['format_count']} format families."
+          )
           PY
 
           origin="$(python - <<'PY'

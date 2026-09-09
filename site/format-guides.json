@@ -1,0 +1,40 @@
+{
+  "schema": "dmc-rengine.site-format-guides.v1",
+  "guides": {
+    "mod": {
+      "source_path": "docs/research/dmc3-mod-completion-audit-2026-09-07.md",
+      "sections": [
+        {
+          "heading": "Known MOD structure in the current canonical reverse",
+          "items": [
+            "The canonical MOD adapter validates the recovered 0x40 outer and 0x50 inner mesh grammar and materializes position, normal, fixed-point UV, BLENDINDICES-correlated and packed skin/control streams without treating unknown source bytes as disposable padding.",
+            "The recovered skin contract supports up to three serialized influences with 5-bit weights normalized by division by 31; the em000 corpus checks active bone references and preserves the raw source/control bytes as the authority for variants that are not yet fully decoded.",
+            "Hierarchy parent/order semantics, local-to-world transform composition and the inverse-rest skin-palette formula inverseRestWorld multiplied by currentWorld are promoted with executable-backed evidence, while motion-group values remain typed without inventing high-level names for every numeric value."
+          ]
+        },
+        {
+          "heading": "What MOD still does not authorize",
+          "items": [
+            "Read-only structural and transform recovery does not authorize unrestricted MOD writing: broader revision coverage, bind and inverse-bind ownership, mutation quantization rules and original-game acceptance still require their own closure receipts.",
+            "A visible skeleton, decoded skin weights or a rendered model is not by itself proof that every MOD node is an animation bone, that every companion relationship is understood, or that a rebuilt document will be consumed identically by the original DMC3 runtime.",
+            "MOD-side animation binding is connected to hierarchy, motion-group and evaluated-local transform domains, but complete animation authoring remains coupled to the separately evidenced MOT decode/evaluator frontier rather than being silently absorbed into the MOD format page."
+          ]
+        }
+      ],
+      "lessons": [
+        {"title": "01 — What is MOD?", "path": "learning/mod/01-what-is-mod.md", "description": "Start with the role of MOD in DMC3 HD, its evidence boundaries and the difference between a model document, its runtime objects and neighboring resource families."},
+        {"title": "02 — Document, objects and meshes", "path": "learning/mod/02-document-objects-meshes.md", "description": "Walk through the recovered document/object/mesh organization and learn which structural relationships are safe to treat as typed data."},
+        {"title": "03 — Skeleton, hierarchy and transforms", "path": "learning/mod/03-skeleton-hierarchy-transforms.md", "description": "Study parent/order topology, local transforms, world composition and the evidence boundary between hierarchy nodes and higher-level bone semantics."},
+        {"title": "04 — Skinning, topology and shader inputs", "path": "learning/mod/04-skinning-topology-shader.md", "description": "Follow packed skin influences, topology reconstruction and the shader-facing inputs recovered for the model family without flattening preserved control bytes."},
+        {"title": "05 — Textures and materials", "path": "learning/mod/05-textures-materials.md", "description": "Relate MOD texture references and material-facing state to PTX/DDS resource identities while keeping model slots, extracted images and runtime textures distinct."},
+        {"title": "06 — Animation and motion groups", "path": "learning/mod/06-animation-motion-groups.md", "description": "Understand the recovered motion-group table, node-domain animation relationships and the boundary where MOT evaluation becomes a separate authority."},
+        {"title": "07 — Related formats", "path": "learning/mod/07-related-formats.md", "description": "Compare MOD with SCM, SHW, EFM, MOT and texture companions so shared concepts are not mistaken for identical physical formats."},
+        {"title": "08 — Evidence and unknowns", "path": "learning/mod/08-evidence-and-unknowns.md", "description": "Learn how DMC Rengine labels EXE-confirmed, corpus-confirmed, structural, candidate and preserved-undecoded MOD claims."},
+        {"title": "09 — Reverse workflow", "path": "learning/mod/09-reverse-workflow.md", "description": "Use the project evidence workflow to move from raw bytes and corpus observations through hypotheses, implementation, tests and promotion gates."},
+        {"title": "10 — Exercises and debugging", "path": "learning/mod/10-exercises-debugging.md", "description": "Practice diagnosing offsets, counts, hierarchy relationships, transform mistakes and skin/topology problems using evidence rather than visual guesswork."},
+        {"title": "MOD glossary", "path": "learning/mod/GLOSSARY.md", "description": "Reference the project-specific terminology used by the MOD reverse, including document, node, mesh, skin, transform and evidence domains."},
+        {"title": "MOD reference map", "path": "learning/mod/REFERENCE-MAP.md", "description": "Jump from learning concepts to canonical code, tests, research notes and evidence packets that currently support each MOD claim."}
+      ]
+    }
+  }
+}

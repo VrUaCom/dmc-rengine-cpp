@@ -1,3 +1,4 @@
+#include "dmc_rengine/codecs/dds_bc.hpp"
 #include "dmc_rengine/formats/ptx.hpp"
 #include "dmc_rengine/formats/ptx_binary.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
@@ -13,6 +14,14 @@
 #include <vector>
 
 namespace {
+
+void put_u16(
+    std::vector<std::byte>& bytes,
+    std::size_t offset,
+    std::uint16_t value) {
+    bytes[offset + 0U] = static_cast<std::byte>(value & 0xFFU);
+    bytes[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
+}
 
 void put_u32(
     std::vector<std::byte>& bytes,
@@ -51,6 +60,37 @@ void put_u32(
         result[index] = static_cast<std::byte>((index * 29U + 7U) & 0xFFU);
     }
     return result;
+}
+
+[[nodiscard]] std::vector<std::byte> make_reader_single_mip_dds() {
+    constexpr std::uint32_t width = 64U;
+    constexpr std::uint32_t height = 64U;
+    constexpr std::uint32_t payload_size = 64U * 64U / 2U;
+    std::vector<std::byte> bytes(128U + payload_size, std::byte{0});
+    bytes[0U] = std::byte{'D'};
+    bytes[1U] = std::byte{'D'};
+    bytes[2U] = std::byte{'S'};
+    bytes[3U] = std::byte{' '};
+    put_u32(bytes, 4U, 124U);
+    put_u32(bytes, 8U, 0x00081007U);
+    put_u32(bytes, 12U, height);
+    put_u32(bytes, 16U, width);
+    put_u32(bytes, 20U, payload_size);
+    put_u32(bytes, 28U, 1U);
+    put_u32(bytes, 76U, 32U);
+    put_u32(bytes, 80U, 4U);
+    bytes[84U] = std::byte{'D'};
+    bytes[85U] = std::byte{'X'};
+    bytes[86U] = std::byte{'T'};
+    bytes[87U] = std::byte{'1'};
+    put_u32(bytes, 108U, 0x00001000U);
+
+    // First DXT1 block decodes to opaque red. Remaining blocks can stay zero;
+    // this fixture tests structural partial-mip acceptance and bounded decode.
+    put_u16(bytes, 128U, 0xF800U);
+    put_u16(bytes, 130U, 0x07E0U);
+    put_u32(bytes, 132U, 0U);
+    return bytes;
 }
 
 [[nodiscard]] std::vector<std::byte> make_descriptor(
@@ -133,8 +173,77 @@ void put_u32(
 } // namespace
 
 int main() {
+    namespace codecs = dmc::rengine::codecs;
+    namespace dmc3 = dmc::rengine::profiles::dmc3;
     namespace formats = dmc::rengine::formats;
     namespace integration = dmc::rengine::integration;
+
+    // Reader-side DDS support is intentionally broader than the strict DMC3
+    // authoring profile. This mirrors real standalone DXT DDS resources that
+    // carry only the base mip and standard one-mip caps/flags.
+    auto reader_dds = make_reader_single_mip_dds();
+    auto reader_parse = codecs::dds_bc::parse(
+        std::span<const std::byte>{reader_dds.data(), reader_dds.size()});
+    assert(reader_parse.ok());
+    assert(reader_parse.document.width == 64U);
+    assert(reader_parse.document.height == 64U);
+    assert(reader_parse.document.mip_count == 1U);
+    assert(reader_parse.document.total_size == reader_dds.size());
+    assert(dmc3::Dmc3DdsProfile::parse(
+        std::span<const std::byte>{reader_dds.data(), reader_dds.size()}).status ==
+        dmc3::Dmc3DdsStatus::invalid_mip_chain);
+
+    // DDSD_MIPMAPCOUNT absent means dwMipMapCount is unused; a zero value still
+    // represents a valid single-level 2D DDS for the generic reader.
+    auto zero_mip_count = make_reader_single_mip_dds();
+    put_u32(zero_mip_count, 28U, 0U);
+    const auto zero_mip_parse = codecs::dds_bc::parse(
+        std::span<const std::byte>{zero_mip_count.data(), zero_mip_count.size()});
+    assert(zero_mip_parse.ok());
+    assert(zero_mip_parse.document.mip_count == 1U);
+
+    // If DDSD_MIPMAPCOUNT is explicitly present, zero is invalid rather than
+    // silently normalized.
+    auto flagged_zero_mips = make_reader_single_mip_dds();
+    put_u32(flagged_zero_mips, 8U, 0x000A1007U);
+    put_u32(flagged_zero_mips, 28U, 0U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{flagged_zero_mips.data(), flagged_zero_mips.size()}).status ==
+        codecs::dds_bc::Status::invalid_mip_count);
+
+    // The portable preview codec is intentionally 2D-only. Cubemaps and volume
+    // textures must fail closed rather than report the extent of a single face.
+    auto cubemap = make_reader_single_mip_dds();
+    put_u32(cubemap, 112U, 0x00000200U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{cubemap.data(), cubemap.size()}).status ==
+        codecs::dds_bc::Status::invalid_header);
+
+    auto volume = make_reader_single_mip_dds();
+    put_u32(volume, 24U, 2U);
+    assert(codecs::dds_bc::parse(
+        std::span<const std::byte>{volume.data(), volume.size()}).status ==
+        codecs::dds_bc::Status::invalid_header);
+
+    const auto decoded = codecs::dds_bc::decode_base_mip_rgba8(
+        std::span<const std::byte>{reader_dds.data(), reader_dds.size()},
+        reader_parse.document);
+    assert(decoded.ok);
+    assert(decoded.image.available());
+    assert(decoded.image.width == 64U);
+    assert(decoded.image.height == 64U);
+    assert(decoded.image.rgba8[0U] == 255U);
+    assert(decoded.image.rgba8[1U] == 0U);
+    assert(decoded.image.rgba8[2U] == 0U);
+    assert(decoded.image.rgba8[3U] == 255U);
+
+    // The codec reports the exact bounded DDS extent and deliberately leaves
+    // any resource-level carrier/alignment bytes to the caller.
+    reader_dds.insert(reader_dds.end(), 32U, std::byte{0});
+    reader_parse = codecs::dds_bc::parse(
+        std::span<const std::byte>{reader_dds.data(), reader_dds.size()});
+    assert(reader_parse.ok());
+    assert(reader_parse.document.total_size + 32U == reader_dds.size());
 
     const auto bytes = make_ptx_bundle();
     const auto resource = ptx_resource(bytes.size());
