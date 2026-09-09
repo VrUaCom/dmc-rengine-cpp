@@ -17,6 +17,7 @@ on:
       - 'docs/guides/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
+      - 'docs/status/canonical-status.json'
       - 'docs/gdspaces-contract.md'
       - 'learning/**'
   push:
@@ -36,6 +37,7 @@ on:
       - 'docs/guides/**'
       - 'docs/formats/**'
       - 'docs/status/current.md'
+      - 'docs/status/canonical-status.json'
       - 'docs/gdspaces-contract.md'
       - 'learning/**'
   workflow_dispatch:
@@ -48,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Validate canonical machine status JSON
+        run: python -m json.tool docs/status/canonical-status.json > /dev/null
       - name: Test legacy discovery-site builder
         run: python tools/test_discovery_site_builder.py
       - name: Test format encyclopedia builder
@@ -72,6 +76,8 @@ jobs:
           test -f _site/guides/index.html
           test -f _site/guides/extract-pac/index.html
           test -f _site/guides/browse-pnst/index.html
+          test -f _site/guides/extract-models/index.html
+          test -f _site/guides/inspect-mod/index.html
           test -f _site/guides/dante-model-textures/index.html
           test -f _site/guides/character-models/index.html
           test -f _site/guides/enemy-models/index.html
@@ -97,6 +103,12 @@ jobs:
           grep -q 'MOD learning path' _site/formats/mod/index.html
           grep -q 'Practical tutorial path' _site/formats/mot/index.html
           grep -q 'How to Extract DMC3 PAC Files' _site/guides/extract-pac/index.html
+          grep -q 'Preserve-Layout Writer Gate 1' _site/guides/inspect-mod/index.html
+          grep -q '38/38' _site/guides/inspect-mod/index.html
+          grep -q 'Bounded MOD editing is now a separate proved capability' _site/guides/extract-models/index.html
+          grep -q 'Bounded MOD preserve-layout authoring' _site/models/index.html
+          ! grep -q 'canonical read-only research path' _site/guides/inspect-mod/index.html
+          ! grep -q 'MOD remains read-only' _site/guides/extract-models/index.html
           grep -q 'How to Find Dante Models and Textures' _site/guides/dante-model-textures/index.html
           grep -q 'How to Find DMC3 Character Models' _site/guides/character-models/index.html
           grep -q 'How to Find and Inspect DMC3 Enemy Models' _site/guides/enemy-models/index.html

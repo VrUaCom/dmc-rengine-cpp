@@ -50,6 +50,102 @@ def _append_related(page: dict, path: str, label: str) -> None:
         links.append({"path": path, "label": label})
 
 
+def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
+    inspect_mod = by_path["/guides/inspect-mod/"]
+    inspect_mod["description"] = (
+        "DMC3 MOD viewer and bounded preserve-layout writer guide for hierarchy, meshes, "
+        "skinning, fixed-layout edits and evidence boundaries."
+    )
+    inspect_mod["summary"] = (
+        "Open and inspect DMC3 MOD model files through the canonical reader, then use the "
+        "promoted Preserve-Layout Writer Gate 1 only for its proven fixed-size edit surface. "
+        "The writer preserves the original physical layout, protects unauthorized bytes and "
+        "passes a provenance-bound 38/38 no-edit retail corpus gate, while unrestricted model "
+        "authoring and original-game edited-MOD acceptance remain separate proof gates."
+    )
+    inspect_mod["sections"] = [
+        {
+            "heading": "Reader plus preserve-layout writer Gate 1",
+            "items": [
+                "The canonical MOD reader exposes document/object/mesh structure, hierarchy and transforms, texture-facing relationships, runtime topology evidence, inverse-rest ownership and packed skinning data for structural and pose-aware inspection.",
+                "Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and authorizes only fixed-size edits to already-typed spans: object bounding center/radius plus existing mesh positions, normals and UV values.",
+                "The writer does not synthesize offsets, tables or stream layout; it independently checks every changed byte against the authorized spans and reparses the output through the canonical MOD parser before reporting success."
+            ],
+        },
+        {
+            "heading": "What the writer gate proves and what it does not",
+            "items": [
+                "The provenance-bound no-edit corpus gate passes 38/38 retail MOD files with exact source/output SHA equality, zero modified bytes across 882,736 source bytes and 38/38 canonical reopen, which is real writer evidence rather than a read-only claim.",
+                "Gate 1 still blocks transform authoring, skin/blend-index edits, texture-slot or material-state authoring, stream/cardinality changes, layout synthesis and unresolved preservation-only fields.",
+                "DMC Rengine therefore does not claim a complete MOD editor, texture-companion rewriting, PAC/PNST/NBZ reintegration of MOD writer output, original dmc3.exe acceptance of rebuilt or edited MOD files, Capcom authoring-tool equivalence or a 100% MOD writer."
+            ],
+        },
+    ]
+    _append_related(
+        inspect_mod,
+        "/formats/mod/",
+        "Read the canonical DMC3 MOD format and writer evidence surface",
+    )
+    _append_related(
+        inspect_mod,
+        "/models/",
+        "Return to the DMC3 model extraction and authoring hub",
+    )
+
+    extract_models = by_path["/guides/extract-models/"]
+    extract_models["description"] = (
+        "DMC3 model extraction guide connecting NBZ/PAC/PNST resources to MOD and SCM "
+        "inspection plus the bounded MOD preserve-layout writer gate."
+    )
+    extract_models["summary"] = (
+        "Find and inspect DMC3 HD model-related resources while preserving the archive and "
+        "container path, then keep MOD and SCM as separate binary authorities. MOD now has a "
+        "bounded preserve-layout writer for proven fixed-size fields; this is stronger than "
+        "read-only inspection but deliberately narrower than unrestricted model editing."
+    )
+    extract_models["sections"] = [
+        {
+            "heading": "From archive slot to typed model resource",
+            "items": [
+                "Model discovery begins in the NBZ materialization path and may cross PAC or PNST before a leaf payload can be classified as MOD, SCM or another family; physical archive and slot provenance stay attached to the result.",
+                "MOD remains the primary character/enemy-style model-family research surface while SCM is scene-oriented, so extraction should route each payload through its real format authority instead of flattening every resource into a generic model representation.",
+                "The canonical MOD reader supports meaningful hierarchy, transform, texture-slot and skinning inspection, including skeleton/weight visualization and pose-aware analysis under the promoted evidence set."
+            ],
+        },
+        {
+            "heading": "Bounded MOD editing is now a separate proved capability",
+            "items": [
+                "Preserve-Layout Writer Gate 1 can apply fixed-size edits to object bounds, existing positions, existing normals and existing UVs while preserving the original physical layout and rejecting unauthorized byte changes.",
+                "Its no-edit retail corpus receipt passes 38/38 MOD files with exact byte/hash parity and canonical reopen, but that does not establish topology/cardinality changes, transform or skin authoring, material and texture-binding authoring, or texture-companion rewriting.",
+                "Archive reintegration and original dmc3.exe acceptance remain stronger gates, so search terms such as DMC3 MOD editor should lead to this bounded capability rather than to a false claim of a finished general-purpose model editor."
+            ],
+        },
+    ]
+
+    models = by_path["/models/"]
+    sections = models.setdefault("sections", [])
+    if not any(
+        isinstance(section, dict)
+        and section.get("heading") == "Bounded MOD preserve-layout authoring"
+        for section in sections
+    ):
+        sections.append(
+            {
+                "heading": "Bounded MOD preserve-layout authoring",
+                "items": [
+                    "DMC Rengine now has a promoted MOD Preserve-Layout Writer Gate 1 in addition to the canonical reader, so the model surface is no longer accurately described as purely read-only.",
+                    "The writer authorizes fixed-size changes only for currently proved spans and preserves all other bytes against the immutable source image; 38/38 provenance-bound retail MOD files pass the no-edit exact-parity and canonical-reopen gate.",
+                    "This is not a promise of arbitrary model editing, topology changes, transform/skin/material authoring, archive reintegration or original-game edited-file acceptance; each stronger operation keeps its own evidence gate."
+                ],
+            }
+        )
+    _append_related(
+        models,
+        "/guides/inspect-mod/",
+        "Inspect MOD files and review the bounded preserve-layout writer gate",
+    )
+
+
 def _augment_intent_graph(site: dict) -> dict:
     pages = site.get("pages")
     if not isinstance(pages, list):
@@ -67,6 +163,8 @@ def _augment_intent_graph(site: dict) -> dict:
         "/formats/mod/",
         "/formats/scm/",
         "/formats/mot/",
+        "/guides/extract-models/",
+        "/guides/inspect-mod/",
         "/guides/character-models/",
         "/guides/enemy-models/",
         "/native-reader/android/",
@@ -134,6 +232,7 @@ def _augment_intent_graph(site: dict) -> dict:
     _append_related(by_path["/formats/scm/"], "/guides/blender-import/", "Relate canonical SCM research to community Blender import workflows")
     _append_related(by_path["/formats/mot/"], "/guides/blender-import/", "Relate MOT research to evidence-bounded Blender import workflows")
 
+    _promote_mod_writer_gate(by_path)
     return site
 
 

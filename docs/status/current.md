@@ -1,14 +1,14 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-07  
-**Canonical implementation base reviewed:** `main@109b63009949be526aa691809d39a27db076e4ff`  
-**Latest repository promotion in this reviewed snapshot:** PR #325 — manifest-backed discovery breadcrumbs + `BreadcrumbList` metadata  
-**Latest canonical reverse/model-family promotion:** PR #323 — EXE-backed MOD mesh preservation + skin ABI closure  
+**Snapshot date:** 2026-09-09  
+**Canonical implementation base reviewed:** `main@cf7bd4d2a57c40e8127aed353ebefe2b4763398a`  
+**Latest repository promotion in this reviewed snapshot:** PR #373 — public MOD discovery aligned with Preserve-Layout Writer Gate 1  
+**Latest canonical reverse/model-family promotion:** PR #369 — controlled retail MOD writer receipt + MOD-to-PAC reintegration trust bridge  
 **Latest canonical Native Reader module promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
 **Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
-**Latest retail evidence promotion:** PR #279 — bound `dmc3-0.nbz` `0x0E` collision census + SCM/SO integration  
+**Latest provenance-bound retail MOD evidence:** PR #369 — one controlled retail fixed-layout edit; prerequisite PR #368 proves 38/38 no-op retail byte parity  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete; canonical implementation and MOD/model-family evidence have advanced materially, but real protected-process/original-game receipts remain mandatory.
+**Overall status:** L1/L2/L3 remain incomplete. MOD authoring has advanced from read-only inspection to a bounded preserve-layout writer with retail no-op parity and one controlled retail edit, but full writer authority, retail container reintegration, NBZ/original-game acceptance and the protected-process proof chain remain open.
 
 ## Authority split
 
@@ -58,7 +58,9 @@ PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegi
 
 ### MOD / model-family promotion stack
 
-The MOD reader remains read-only, but canonical structural/runtime evidence has advanced substantially since the previous status snapshot. Promoted slices include:
+The canonical MOD reader remains the structural/semantic inspection authority, and MOD now also has a deliberately bounded **Preserve-Layout Writer Gate 1**. The writer is not a canonical rebuild-from-scratch system: the immutable original serialized image remains physical-layout authority.
+
+Promoted reader/reverse slices include:
 
 - PR #305 — canonical hierarchy/local transforms/world propagation consolidation;
 - PR #307 — typed mesh texture slot + legacy GS CLAMP state;
@@ -70,9 +72,34 @@ The MOD reader remains read-only, but canonical structural/runtime evidence has 
 - PR #316 — inverse-rest ownership and `skinMatrix = inverseRestWorld * currentWorld` palette composition;
 - PR #317 — runtime model-texture descriptor ABI with GS TEX0/MIPTBP1 decode;
 - PR #318 — EXE-backed object runtime flag/render-parameter projection;
-- PR #323 — serialized mesh `+0x0C/+0x38/+0x4C` preservation classification plus direct `/4` blend-index and 5+5+5-bit `/31` weight ABI evidence.
+- PR #323 — serialized mesh `+0x0C/+0x38/+0x4C` preservation classification plus direct `/4` blend-index and 5+5+5-bit `/31` weight ABI evidence;
+- PR #356 — broader multi-corpus unknown-field closure and preservation contracts;
+- PR #359 — source-flag `0x00200000` negative evidence extended through effective-word/material paths without speculative semantic promotion;
+- PR #360 — retained serialized-object pointer consumers classified and false SCM provenance rejected;
+- PR #363 — MOD branch history consolidated with an explicit no-repeat evidence frontier.
 
-These promotions strengthen truthful read-only MOD inspection, skeleton/weight visualization and pose-aware analysis. They do **not** establish MOD writer authority, byte-identical no-edit rebuild, safe mutation ranges for unresolved fields, complete TIM2 semantics, production texture replacement authority, complete current animation/pose ownership, original-game edited-MOD acceptance or Capcom offline-tool equivalence.
+Promoted writer/authoring gates now include:
+
+- PR #365 — Preserve-Layout Writer Gate 1: immutable-source binding, canonical source reparse, explicit authorized-byte spans, output reparse and fixed-size edits only for object bounding center/radius plus existing mesh positions, normals and UVs;
+- PR #367 — deterministic multi-file writer corpus runner and machine-readable receipts;
+- PR #368 — provenance-bound retail no-op gate: 38/38 MOD files parse, write byte-identically and reopen canonically; 882,736 source bytes, zero modified bytes, zero failures;
+- PR #369 — one provenance-bound real retail `em000_021.mod` bounding-radius edit: serialized span `[124,128)`, exactly three changed bytes, unauthorized-byte preservation PASS, disk reread/hash/reopen PASS and independent raw-diff verification PASS;
+- PR #369 — `ModAuthoredChildBridge` validates a successful MOD writer receipt before emitting the generic `AuthoredChildImage`; a synthetic PAC regression then reintegrates and reopens the writer output through the existing `NestedRelativeSlotReintegrator`.
+
+This establishes real bounded MOD writer authority, not full MOD authoring authority. Still open are:
+
+- layout synthesis/reflow and rebuild from typed IR alone;
+- transform authoring;
+- skin/blend-index authoring;
+- source-flag/material/texture-binding authoring;
+- texture-companion rewriting/coherence;
+- provenance-bound retail PAC/PNST reintegration of writer output;
+- NBZ overlay acceptance for the MOD authoring chain;
+- original `dmc3.exe` acceptance of a no-op rebuilt MOD;
+- original `dmc3.exe` acceptance of an edited MOD;
+- complete current animation/pose ownership;
+- Capcom offline authoring-tool equivalence;
+- a `100% MOD writer` claim.
 
 Current reader frontier:
 
@@ -109,11 +136,13 @@ Current reader frontier:
 
 1. real protected-install resolver-selected provenance;
 2. exact selected retail representation classification;
-3. one real supported edit/rebuild/rematerialization receipt;
+3. one provenance-bound retail container reintegration/reopen receipt for a supported authored child chain;
 4. original runtime selects the authored higher-numbered overlay;
 5. deterministic consumer-visible effect attributable to authored bytes;
 6. rollback proving original retail immutability;
 7. final L1 audit.
+
+The synthetic MOD-in-PAC regression from PR #369 strengthens the product reintegration path but does not satisfy the provenance-bound retail or original-runtime gates above.
 
 **L1 COMPLETE = NO.**
 
@@ -179,7 +208,7 @@ Reverse-backed bounded core includes:
 - distinct ordinary release, cancellation cleanup and forced reset policies;
 - central typed dispatcher paths for MOD/EFM/SCM/SHW plus PNST recursion.
 
-The promoted MOD post-load/runtime evidence strengthens one family-specific part of this spine but does not close global lifecycle proof.
+The promoted MOD post-load/runtime and authoring evidence strengthens one family-specific part of this spine but does not establish original-runtime acceptance of authored MOD bytes and does not close global lifecycle proof.
 
 Remaining L3 work:
 
@@ -187,6 +216,7 @@ Remaining L3 work:
 - close R2 family/backing ownership;
 - close the exact materialization scheduler terminal condition preventing failed/incomplete transport from reaching normal state2 publication;
 - capture V1–V7 original-process lifecycle receipts;
+- validate original `dmc3.exe` selection/consumption of the bounded MOD authoring chain before promoting game-acceptance claims;
 - final L3 audit.
 
 **L3 COMPLETE = NO.**
@@ -209,27 +239,39 @@ Then repeat the same lineage with an authored next-volume NBZ and rollback.
 
 Immediate order:
 
-1. ✅ roadmap/status reconciled to proof-level truth;
-2. ✅ successful-mount topology correction promoted by PR #287;
-3. ✅ SHW structural Native Reader and cross-registry routing/validation hardening promoted by PR #288;
-4. ⚠️ exact canonical EXE bytes are now available to recent reverse work, but the still-open materialization-scheduler terminal dependency requires its own fresh raw pass and must not be inferred from MOD evidence;
+1. ✅ roadmap/status proof model and successful-mount topology are canonical;
+2. ✅ SHW structural Native Reader and cross-registry routing/validation hardening are canonical;
+3. ✅ MOD Preserve-Layout Writer Gate 1, 38/38 provenance-bound no-op retail parity, one controlled retail fixed-layout edit and a synthetic PAC reintegration trust bridge are canonical;
+4. ⚠️ exact canonical EXE bytes are available to recent reverse work, but unrelated GDSpaces/L3 raw targets still require their own fresh bounded passes;
 5. ❌ execute protected-process R2B mapping;
 6. ❌ capture trusted R3 selected identity;
 7. ❌ bind selected identity to exact independently materialized bytes;
-8. ❌ observe typed post-load/state3 for the same resource;
-9. ❌ repeat using authored higher-volume overlay;
-10. ❌ record deterministic consumer effect + rollback;
-11. ❌ run independent final L1/L2/L3 audits.
+8. ❌ obtain provenance-bound retail container reintegration for the bounded authored MOD child;
+9. ❌ observe typed post-load/state3 for the same lineage;
+10. ❌ repeat using authored higher-volume overlay;
+11. ❌ record deterministic consumer effect + rollback;
+12. ❌ run independent final L1/L2/L3 audits.
 
 ## Current evidence-access boundary
 
-The old 2026-09-05 statement that raw canonical `e454...` executable bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for the promoted 2026-09-06/07 MOD/model-family reverse slices listed above.
+The old 2026-09-05 statement that raw canonical `e454...` executable bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for promoted MOD/model-family reverse work.
 
 That availability is **not** a blanket proof upgrade. Each unrelated GDSpaces/L3 raw target still requires its own fresh address/range/scope-bounded analysis before any claim changes, and protected-process/original-consumption gates remain mandatory where runtime identity or acceptance is claimed.
 
 ## Discovery/publication state
 
-The repository contains the controlled discovery-site builder, distinct public entry pages, canonical/Open Graph metadata, share metadata, root `CITATION.cff` and manifest-backed crawlable breadcrumbs/`BreadcrumbList`. GitHub Pages deployment remains fail-closed and is still a repository-settings gate. Discovery work does not alter L1/L2/L3 completion.
+The discovery surface is production-active and remains separate from technical authority:
+
+- GitHub Pages is enabled and production HTTP acceptance is green;
+- the manifest-driven surface contains **104 controlled Pages URLs** across **63 format/resource families**;
+- canonical URLs, `index,follow`, sitemap ↔ `site-index.json` parity, breadcrumbs/`BreadcrumbList`, Open Graph/Twitter metadata and the approved 1280x640 social raster are production-validated;
+- automated IndexNow notification runs only after successful Pages deployment/acceptance; the 104-URL batch has a production **HTTP 200 accepted** receipt;
+- Google Search Console is intentionally not a project dependency;
+- the reviewed repository Topics payload remains unapplied because the connected GitHub path does not expose a Topics/settings write action (#294);
+- the specialist external reverse-engineering index contribution remains prepared but not submitted because the connected GitHub path does not expose fork creation (#300);
+- the latest independent public-search recheck still observed no DMC Rengine Pages result; IndexNow acceptance is not treated as proof of indexing or ranking.
+
+Discovery work does not alter L1/L2/L3 completion.
 
 ## Navigation
 
