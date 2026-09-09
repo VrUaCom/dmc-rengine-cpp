@@ -68,6 +68,7 @@ jobs:
           test -f _site/formats/index.html
           test -f _site/formats/scm/index.html
           test -f _site/formats/mod/index.html
+          test -f _site/formats/mod/lessons/01-what-is-mod/index.html
           test -f _site/formats/mot/index.html
           test -f _site/formats/dds/index.html
           test -f _site/formats/ptx/index.html
@@ -101,6 +102,9 @@ jobs:
           grep -q 'rel="canonical"' _site/index.html
           grep -q 'Complete canonical format and resource-family catalog' _site/formats/index.html
           grep -q 'MOD learning path' _site/formats/mod/index.html
+          grep -q '38/38' _site/formats/mod/lessons/01-what-is-mod/index.html
+          grep -q 'Preserve-Layout Writer Gate 1' _site/formats/mod/lessons/01-what-is-mod/index.html
+          ! grep -q 'broad no-edit byte parity' _site/formats/mod/lessons/01-what-is-mod/index.html
           grep -q 'Practical tutorial path' _site/formats/mot/index.html
           grep -q 'How to Extract DMC3 PAC Files' _site/guides/extract-pac/index.html
           grep -q 'Preserve-Layout Writer Gate 1' _site/guides/inspect-mod/index.html
