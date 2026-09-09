@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_topology.hpp"
 
 #include <cstddef>
 #include <vector>
