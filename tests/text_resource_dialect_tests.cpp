@@ -92,6 +92,23 @@ void the_classifier_reports_the_dialect_rather_than_txt() {
     assert(unplaced.format == "bin");
     assert(!unplaced.structural_confirmed);
 
+    // A payload does not arrive at its own length. A container slot is padded
+    // to the container's alignment, so a short text record reaches the
+    // classifier with trailing zeros on it — and refusing those refused every
+    // real slot while every fixture sized to its content passed.
+    auto padded = text(";em000_01.clt\r\n\r\nClothNum\t1\r\n");
+    padded.resize(64U, std::byte{0});
+    const auto padded_identity = dmc3::TextResourceDialects::identify(padded);
+    assert(padded_identity.dialect == dmc3::TextResourceDialect::clt);
+    assert(padded_identity.embedded_original_name.has_value());
+    assert(*padded_identity.embedded_original_name == "em000_01.clt");
+
+    auto padded_scroll = text("\r\n.TSC\t\r\n\t\t<Start\r\n");
+    padded_scroll.resize(64U, std::byte{0});
+    assert(
+        dmc3::TextResourceDialects::identify(padded_scroll).dialect ==
+        dmc3::TextResourceDialect::tsc);
+
     // A `.TSC` run inside a binary payload is not a scroll table. The marker
     // is searched rather than anchored, so the encoding is what keeps the
     // search from typing arbitrary bytes.

@@ -20,20 +20,32 @@ namespace {
 }
 
 /**
- * Whether the probe window reads as text at all.
+ * The leading run of text in the probe window, or empty if there is none.
  *
  * The `.TSC` marker is searched rather than anchored, and a four-byte literal
  * turns up in binary often enough that searching for it alone would type
  * arbitrary payloads as scroll tables. A dialect marker is only evidence when
- * the bytes around it are text, so the encoding is checked before the
- * identity is read out of it.
+ * the bytes around it are text, so the encoding is established first and the
+ * identity is read out of what that leaves.
+ *
+ * The run ends at the first NUL rather than requiring the whole window to be
+ * text, because a payload does not arrive at its own length: a container slot
+ * is padded to the container's alignment, so a short text record reaches this
+ * function with trailing zeros. Demanding text of every byte in the window
+ * refused exactly the real slots this is for, while a synthetic buffer sized
+ * to its content passed — which is the kind of guard that looks correct until
+ * it meets a file.
  */
-[[nodiscard]] bool reads_as_text(std::string_view text) noexcept {
-    return std::all_of(text.begin(), text.end(), [](char character) {
+[[nodiscard]] std::string_view text_run(std::string_view window) noexcept {
+    const auto end = window.find('\0');
+    const auto run = end == std::string_view::npos ? window : window.substr(0, end);
+    const auto printable = [](char character) noexcept {
         const auto value = static_cast<unsigned char>(character);
         return value == '\t' || value == '\r' || value == '\n' ||
             (value >= 0x20U && value < 0x7FU);
-    });
+    };
+    return std::all_of(run.begin(), run.end(), printable) ? run
+                                                          : std::string_view{};
 }
 
 [[nodiscard]] bool ends_with_ci(
@@ -52,8 +64,8 @@ namespace {
 TextResourceIdentity TextResourceDialects::identify(
     std::span<const std::byte> bytes) noexcept {
     TextResourceIdentity identity;
-    const auto text = head(bytes, k_probe_bytes);
-    if (text.empty() || !reads_as_text(text)) {
+    const auto text = text_run(head(bytes, k_probe_bytes));
+    if (text.empty()) {
         return identity;
     }
 
