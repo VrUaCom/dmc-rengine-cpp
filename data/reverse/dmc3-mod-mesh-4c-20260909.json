@@ -1,0 +1,57 @@
+{
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v1",
+  "field": "mesh+0x4C",
+  "serialized_offset": "mesh +0x4C",
+  "width": "u32",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "mod_meshes": 180,
+    "mod_zero_values": 180,
+    "efm_bound_meshes": 2,
+    "efm_zero_values": 2,
+    "status": "CORPUS_CONFIRMED"
+  },
+  "exe_addresses": [
+    "0x1402FE3B0",
+    "0x1402FE6A0",
+    "0x1402FE684",
+    "0x1402FE904",
+    "0x1402FE907",
+    "0x1402F7A90",
+    "0x1402F7D60",
+    "0x1402F7FD9",
+    "0x1402F7FDC"
+  ],
+  "read_xrefs": [],
+  "write_xrefs": [
+    {
+      "address": "0x1402FE684",
+      "field": "mesh+0x48",
+      "meaning": "positive control: MOD post-load writes generated topology count to +0x48; no companion +0x4C write follows",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "address": "0x1402FE907",
+      "field": "runtime+0x198",
+      "meaning": "MOD runtime builder forwards +0x48 generated topology count; no +0x4C companion transfer is established",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "runtime_destination": "No positive +0x4C runtime destination is established in the audited MOD/EFM post-load and runtime-builder paths. +0x48 is the nearby positive control and is explicitly generated/forwarded.",
+  "semantic_status": "PRESERVED_UNDECODED",
+  "evidence_status": [
+    "CORPUS_CONFIRMED",
+    "PRESERVED_UNDECODED"
+  ],
+  "rejected_hypotheses": [
+    "mesh +0x4C is the second half of a runtime topology-count pair",
+    "mesh +0x4C is padding because it ends the 0x50-byte record",
+    "mesh +0x4C may be zero-normalized because current corpus is zero"
+  ],
+  "cpp_contract": "analysis/mod/mesh_serialized.hpp preserves raw u32; synthetic A5A55A5A regression is registered through mod_skin_tests",
+  "writer_policy": "preserve",
+  "closure_boundary": "The audited load/build paths establish no positive +0x4C use and the bounded corpus is zero, but that does not prove global dormancy or padding. Preserve raw u32 pending provenance-complete whole-EXE closure."
+}
