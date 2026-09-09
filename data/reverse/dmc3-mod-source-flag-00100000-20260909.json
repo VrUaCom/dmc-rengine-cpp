@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-object-flag-receipt.v1",
+  "schema": "dmc-rengine.mod-object-flag-receipt.v2",
   "field": "object source flag 0x00100000",
   "serialized_offset": "object +0x10 bit 20",
   "width": "u32 mask",
@@ -14,27 +14,13 @@
     "combined_known_objects_with_bit": 45,
     "status": "CORPUS_CONFIRMED"
   },
-  "exe_addresses": [
-    "0x140302640",
-    "0x1403026D1",
-    "0x14030274A",
-    "0x140302AB2",
-    "0x140302ABF",
-    "0x140302AC9",
-    "0x1403058F0",
-    "0x140305911",
-    "0x140305924",
-    "0x14030593B",
-    "0x140305949",
-    "0x1403059B5",
-    "0x140305C06"
-  ],
   "runtime_flag_model": {
     "baseline_word": "runtime object +0x10",
     "effective_word": "runtime object +0x14",
-    "initializer": "serialized +0x10 is copied to both words",
+    "initializer_addresses": ["0x140302AB2", "0x140302ABF", "0x140302AC9"],
+    "reset_addresses": ["0x140305911", "0x140305924", "0x14030593B"],
     "reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
-    "meaning": "bit 20 and low nibble are explicitly refreshed from baseline by 0x1403058F0",
+    "meaning": "bit 20 and low nibble are explicitly refreshed from baseline",
     "status": "EXE_CONFIRMED"
   },
   "packet_projection": {
@@ -46,17 +32,31 @@
     "special_low_mode_4_packet_plus_08": "0x0000000000050007",
     "status": "EXE_CONFIRMED"
   },
+  "mesh_descriptor_projection": {
+    "helper": "0x1403028F0",
+    "descriptor": "runtime object +0xB0 + mesh_index*0x50",
+    "copies": [
+      {"source": "packet +0x00", "destination": "descriptor +0x10", "addresses": "0x14030296B..0x14030296E"},
+      {"source": "packet +0x08", "destination": "descriptor +0x20", "addresses": "0x140302937..0x14030293B"},
+      {"source": "packet +0x10", "destination": "descriptor +0x30", "addresses": "0x140302951..0x140302955"},
+      {"source": "packet +0x18", "destination": "descriptor +0x40", "addresses": "0x140302984..0x140302988"}
+    ],
+    "packet_mask_byte": "packet +0x20 is also tested/updated against the mesh bit in 0x140302991..0x1403029CD",
+    "status": "EXE_CONFIRMED"
+  },
+  "command_handoff": {
+    "addresses": ["0x1402F8498", "0x1402F84A0", "0x1402FEDC8", "0x1402FEDD0"],
+    "meaning": "render-command construction computes the same object +0xB0 + mesh_index*0x50 descriptor address and encodes/references that descriptor in generated command data",
+    "status": "EXE_CONFIRMED"
+  },
   "semantic_status": "PRESERVED_UNDECODED",
-  "evidence_status": [
-    "EXE_CONFIRMED",
-    "CORPUS_CONFIRMED",
-    "PRESERVED_UNDECODED"
-  ],
+  "evidence_status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
   "rejected_hypotheses": [
     "0x00100000 may be assigned a visual/material name from corpus appearance alone",
-    "packet-state projection is equivalent to final shader/material semantic closure"
+    "packet-state projection is equivalent to final shader/material semantic closure",
+    "descriptor forwarding alone identifies the final artistic render-state name"
   ],
   "cpp_contract": "analysis/mod/object_flags.hpp models baseline/effective refresh and exact packet-state projection with compile-time guards",
   "writer_policy": "preserve",
-  "closure_boundary": "Bit 20 is EXE_CONFIRMED as a persistent baseline-controlled effective render-state input and as a packet-state selector. Terminal renderer/material interpretation remains unresolved."
+  "closure_boundary": "Bit 20 is EXE_CONFIRMED as a persistent baseline-controlled effective render-state input. Its packet differences are copied into per-mesh runtime render descriptors and those descriptors are referenced by render-command construction. The final backend interpretation of descriptor +0x10/+0x20 state remains unresolved, so no artistic/material semantic name is promoted."
 }
