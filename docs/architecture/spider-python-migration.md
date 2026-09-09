@@ -145,7 +145,7 @@ benefit from migration.
 
 Reverse-orchestration candidates currently include:
 
-- `scripts/reverse/extract_exe_window_packet.py` — **in progress / first slice**;
+- `scripts/reverse/extract_exe_window_packet.py` — **native metadata publication + CLI implemented; raw-byte mode and production benchmark pending**;
 - `scripts/reverse/verify_l2_runtime_mapping_packet.py`;
 - `scripts/reverse/verify_l2_runtime_mapping_packet_v2.py`;
 - `scripts/reverse/normalize_l2_original_selection_candidate.py`;
@@ -163,7 +163,7 @@ one reusable module and use it from both.
 
 Never create a second DDS/PTX/MOD/SCM/PE reader solely for a Spider workflow.
 
-## Next gates
+## Gate status and remaining work
 
 ### Gate A — compile
 
@@ -172,12 +172,28 @@ collection therefore compiles them as part of `DMCRengine::Core`.
 
 ### Gate B — parity
 
-Wire `tests/spider_exe_window_packet_tests.cpp` into CTest and add exact plan
-fixtures shared with the existing Python tests.
+The packet, publication, L2 v2 and native executor tests are registered in CTest.
+When Python is available, CTest also runs
+`scripts/reverse/test_spider_exe_window_packet_parity.py` against the built CLI.
+The parity test runs the real Python and native commands on the same synthetic
+PE and plans, including a probe and a known-body window. It checks:
+
+- identical parsed validation summaries for both checked-in reverse plans;
+- exact preservation/hash of plan bytes, including CRLF and trailing whitespace;
+- equivalent packet metadata and child receipt content;
+- each child receipt digest against its own exact serialized bytes;
+- invalid plans, artifact identity/size, known-body and mapping failures;
+- preservation of existing output and explicit rejection of unsupported CLI options.
+
+Child JSON formatting is intentionally the canonical C++ serializer's formatting.
+Python sorts/reformats that JSON; therefore receipt-file hashes can differ across
+implementations even when metadata agrees. Neither hash is compared without first
+checking it against its own receipt bytes. This is semantic parity for the tested
+metadata slice, not a claim of complete Python input/exit-code compatibility.
 
 ### Gate C — publication
 
-Implement a Tarantula publication transaction matching Python behavior:
+`publish_exe_window_packet()` now implements the metadata-only transaction:
 
 - refuse replacement of an existing output directory;
 - write exact plan bytes;
@@ -185,16 +201,53 @@ Implement a Tarantula publication transaction matching Python behavior:
 - write packet receipt last;
 - remove a partial packet on failure.
 
+The workflow completes acquisition/receipt validation before reserving output.
+It uses the existing `core::publish_bytes_no_replace()` for each file; Spider does
+not implement another file-publication primitive. The final packet receipt is the
+completion marker. The directory is visible while files are written, so consumers
+must not treat directory existence as success. This is not an atomic directory
+rename or crash-recovery protocol: a killed process may leave an incomplete
+directory which subsequent invocations refuse to replace.
+
+The C++ publication test also forces a final receipt-name collision after earlier
+files have been written and verifies rollback without touching foreign output.
+Raw-byte (`--hex`) publication remains on the Python path.
+
 ### Gate D — CLI facade
 
-Expose the native workflow through `dmc-rengine` without exposing unnecessary
-Spider internals or creating a second EXE authority path.
+The native command is available:
+
+```sh
+dmc-rengine extract-exe-window-packet \
+  --plan data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json \
+  --validate-plan-only
+
+dmc-rengine extract-exe-window-packet \
+  --plan data/reverse/dmc3-gdspaces-blocked-window-plan.v1.json \
+  --exe /local/path/dmc3.exe \
+  --expected-sha256 e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082 \
+  --output /local/path/new-packet
+```
+
+The CLI lazily opens `NativeExeWindowSource` only after plan/expected-authority
+validation. All windows reuse that source's GDSpaces bytes, SHA gate and PE parse;
+no child processes are launched. The native CLI rejects `--hex` rather than
+silently dropping the requested raw bytes.
+
+Native exit codes: 2 = plan/argument error, 3 = expected SHA disagrees with plan,
+4 = output/publication failure, 5 = acquisition/receipt failure, 6 = known-body
+hash mismatch. Detailed acquisition failures are retained in stderr; unlike the
+Python wrapper, arbitrary child-process exit codes do not exist on this path.
 
 ### Gate E — A/B benchmark
 
 Compare Python orchestration vs Tarantula using the same executable and packet
 plan. Record correctness, wall time, process count, peak memory, and binary-size
 delta.
+
+Still open: canonical-game EXE acquisition comparison, raw-byte publication,
+full parser-edge compatibility review, and a measured production A/B benchmark.
+The synthetic parity tests do not establish a speedup or game acceptance.
 
 ## Non-goals for this branch
 

@@ -201,9 +201,10 @@ Dead-code elimination and LTO are preferred for release products.
 
 - **Crusader:** native executor exists; `crusader.hpp` exposes the family name
   without duplicating execution code.
-- **Tarantula:** first reverse-orchestration migration experiment already exists
-  in this branch; the older `spider-python-migration.md` documents that vertical
-  slice.
+- **Tarantula:** native metadata EXE packet acquisition/publication and CLI exist,
+  with synthetic Python/native parity tests. Raw-byte publication and the
+  production benchmark remain open; `spider-python-migration.md` documents the
+  implemented slice and its limits.
 - **Black Widow:** architecture is now canonical; product-specific typed state
   evaluators should be implemented only where a platform shell currently owns
   business decisions. Do not add an empty generic framework merely to claim the

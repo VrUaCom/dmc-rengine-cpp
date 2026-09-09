@@ -137,6 +137,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         exe_byte_window
         exe_byte_window_receipt
         spider_exe_window_packet
+        spider_exe_window_packet_publication
         spider_l2_runtime_mapping_v2
         spider_native_executor
         process_memory_window
@@ -200,6 +201,16 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     foreach(stem IN LISTS DMC_RENGINE_SIMPLE_TESTS)
         dmc_rengine_add_simple_test(${stem})
     endforeach()
+
+    # Python remains the migration oracle; it is not a native runtime dependency.
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if(Python3_Interpreter_FOUND)
+        add_test(
+            NAME dmc_rengine_spider_exe_window_packet_parity
+            COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reverse/test_spider_exe_window_packet_parity.py
+                --dmc-rengine $<TARGET_FILE:dmc-rengine>)
+    endif()
 
     dmc_rengine_configure_test(
         dmc_rengine_relative_slot_cli_tests
