@@ -1,0 +1,110 @@
+name: Notify IndexNow
+
+on:
+  workflow_run:
+    workflows: ["Deploy Discovery Site"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://vruacom.github.io/dmc-rengine-cpp
+      INDEXNOW_ENDPOINT: https://api.indexnow.org/indexnow
+      INDEXNOW_KEY: 6ef2bc73288e1e2b580119a4b1bfc2fa
+      INDEXNOW_KEY_FILE: 6ef2bc73288e1e2b580119a4b1bfc2fa.txt
+    steps:
+      - name: Verify live IndexNow ownership file and site index
+        shell: bash
+        run: |
+          set -euo pipefail
+          site="${SITE_URL%/}"
+          key_url="${site}/${INDEXNOW_KEY_FILE}"
+
+          curl --silent --show-error --location --fail \
+            --connect-timeout 10 --max-time 45 \
+            --output /tmp/indexnow-key.txt \
+            "$key_url"
+          test "$(tr -d '\r\n' < /tmp/indexnow-key.txt)" = "$INDEXNOW_KEY"
+
+          curl --silent --show-error --location --fail \
+            --connect-timeout 10 --max-time 45 \
+            --output /tmp/site-index.json \
+            "${site}/site-index.json"
+
+      - name: Build bounded IndexNow payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import os
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          site = os.environ["SITE_URL"].rstrip("/")
+          key = os.environ["INDEXNOW_KEY"]
+          key_file = os.environ["INDEXNOW_KEY_FILE"]
+          index = json.loads(Path("/tmp/site-index.json").read_text(encoding="utf-8"))
+          paths = index.get("paths")
+
+          assert isinstance(paths, list) and paths, index
+          assert index.get("page_count") == len(paths), index
+          assert len(paths) <= 10_000, len(paths)
+          assert len(set(paths)) == len(paths), "duplicate paths in site-index.json"
+
+          urls: list[str] = []
+          for path in paths:
+              assert isinstance(path, str) and path.startswith("/"), path
+              url = site + path
+              assert url.startswith(site + "/"), url
+              urls.append(url)
+
+          payload = {
+              "host": urlsplit(site).netloc,
+              "key": key,
+              "keyLocation": f"{site}/{key_file}",
+              "urlList": urls,
+          }
+          Path("/tmp/indexnow-payload.json").write_text(
+              json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+              encoding="utf-8",
+          )
+          print(f"Prepared IndexNow payload for {len(urls)} controlled Pages URLs.")
+          PY
+
+      - name: Notify IndexNow
+        shell: bash
+        run: |
+          set -euo pipefail
+          http_code="$(curl --silent --show-error \
+            --output /tmp/indexnow-response.txt \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @/tmp/indexnow-payload.json \
+            "$INDEXNOW_ENDPOINT")"
+
+          case "$http_code" in
+            200)
+              echo 'IndexNow accepted the URL batch (HTTP 200).'
+              ;;
+            202)
+              echo 'IndexNow received the URL batch; key validation is pending (HTTP 202).'
+              ;;
+            *)
+              echo "IndexNow returned HTTP ${http_code}." >&2
+              cat /tmp/indexnow-response.txt >&2 || true
+              exit 1
+              ;;
+          esac
