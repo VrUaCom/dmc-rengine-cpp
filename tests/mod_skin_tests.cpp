@@ -1,3 +1,4 @@
+#include "dmc_rengine/analysis/mod/mesh_serialized.hpp"
 #include "dmc_rengine/formats/mod_skin.hpp"
 #include "dmc_rengine/formats/mod/transform_domain.hpp"
 #include "dmc_rengine/formats/mod/world_transform.hpp"
@@ -37,6 +38,7 @@ void put_f32(std::vector<std::byte>& bytes,
 } // namespace
 
 int main() {
+    namespace analysis = dmc::rengine::analysis::mod;
     namespace mod = dmc::rengine::formats::mod;
     namespace domain = dmc::rengine::formats::mod::transform_domain;
     namespace world = dmc::rengine::formats::mod::world_transform;
@@ -149,6 +151,24 @@ int main() {
         assert(
             duplicate.status ==
             mod::SkinDecodeStatus::duplicate_active_bone);
+    }
+
+    {
+        // Writer-critical unknown mesh bytes must survive the preservation
+        // projection even when synthetic fixtures make them non-zero.
+        std::vector<std::byte> mesh_bytes(
+            analysis::MeshSerializedPreservationAbi::record_size,
+            std::byte{0});
+        put_u32(mesh_bytes, 0x0CU, 0xDEADBEEFU);
+        put_u64(mesh_bytes, 0x38U, 0x0123456789ABCDEFULL);
+        put_u32(mesh_bytes, 0x4CU, 0xA5A55A5AU);
+
+        const auto preserved =
+            analysis::decode_mesh_serialized_preservation(mesh_bytes, 0U);
+        assert(preserved.has_value());
+        assert(preserved->preserved0c_u32 == 0xDEADBEEFU);
+        assert(preserved->preserved38_u64 == 0x0123456789ABCDEFULL);
+        assert(preserved->preserved4c_u32 == 0xA5A55A5AU);
     }
 
     {
