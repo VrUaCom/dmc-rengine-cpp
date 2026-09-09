@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dmc_rengine/core/no_replace_publication.hpp"
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/formats/scm_edit.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
@@ -10,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <span>
 #include <string>
 #include <string_view>
@@ -44,21 +46,6 @@ namespace scm_authoring_detail {
             static_cast<std::streamsize>(bytes.size()));
     }
     return static_cast<bool>(stream) || bytes.empty();
-}
-
-[[nodiscard]] inline bool write_new_file(
-    const std::filesystem::path& path,
-    std::span<const std::byte> bytes) {
-    std::error_code error;
-    if (std::filesystem::exists(path, error) || error) return false;
-    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
-    if (!stream) return false;
-    if (!bytes.empty()) {
-        stream.write(
-            reinterpret_cast<const char*>(bytes.data()),
-            static_cast<std::streamsize>(bytes.size()));
-    }
-    return static_cast<bool>(stream);
 }
 
 [[nodiscard]] inline std::vector<std::size_t> changed_offsets(
@@ -105,6 +92,7 @@ inline int try_run_scm_authoring_command(int argc, char** argv) {
     std::uint64_t alpha_raw = 0U;
     if (!scm_authoring_detail::parse_u64(argv[3], object_index_raw) ||
         !scm_authoring_detail::parse_u64(argv[4], alpha_raw) ||
+        object_index_raw > std::numeric_limits<std::size_t>::max() ||
         alpha_raw > 0xFFU) {
         std::cerr << "scm-set-alpha-control: invalid object index or alpha value\n";
         return 2;
@@ -172,10 +160,32 @@ inline int try_run_scm_authoring_command(int argc, char** argv) {
         return 11;
     }
 
-    if (!scm_authoring_detail::write_new_file(
-            output, std::span<const std::byte>{written.bytes})) {
+    const auto validator = [&](const std::filesystem::path& staged_path) {
+        std::vector<std::byte> staged;
+        if (!scm_authoring_detail::read_file(staged_path, staged) ||
+            staged != written.bytes) {
+            return false;
+        }
+        const auto staged_parse = Parser::parse(
+            std::span<const std::byte>{staged});
+        return staged_parse.ok() &&
+               object_index < staged_parse.document.objects.size() &&
+               staged_parse.document.objects[object_index].alpha_control == new_alpha;
+    };
+
+    const auto publication = core::publish_bytes_no_replace(
+        output,
+        std::span<const std::byte>{written.bytes},
+        validator,
+        ".dmc-rengine-scm-alpha.staging");
+    if (!publication.ok()) {
         std::cerr
-            << "scm-set-alpha-control: cannot create output (existing files are never overwritten)\n";
+            << "scm-set-alpha-control: output publication failed ("
+            << core::to_string(publication.status) << ")";
+        if (!publication.detail.empty()) {
+            std::cerr << ": " << publication.detail;
+        }
+        std::cerr << '\n';
         return 12;
     }
 
@@ -189,7 +199,8 @@ inline int try_run_scm_authoring_command(int argc, char** argv) {
         << " sourceSize=" << source.size()
         << " outputSize=" << written.bytes.size()
         << " reparse=PASS"
-        << " exactByteGuard=PASS\n";
+        << " exactByteGuard=PASS"
+        << " publication=NO_REPLACE_PASS\n";
     return 0;
 }
 
