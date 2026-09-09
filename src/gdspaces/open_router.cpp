@@ -25,6 +25,7 @@ OpenRouter::OpenRouter() {
     set_route("itm", ToolTarget::item_editor);
     set_route("scm", ToolTarget::modviz_scene);
     set_route("mod", ToolTarget::modviz_scene);
+    set_route("mot", ToolTarget::modviz_scene);
     set_route("shw", ToolTarget::modviz_scene);
     set_route("dds", ToolTarget::modviz_scene);
     set_route("ptx", ToolTarget::modviz_scene);
