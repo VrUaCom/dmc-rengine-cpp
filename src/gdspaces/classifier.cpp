@@ -46,6 +46,21 @@ namespace {
     return lower_copy(extension);
 }
 
+[[nodiscard]] bool is_dmc3_afs_namespace_identity(
+    std::string_view logical_path) {
+    auto path = lower_copy(logical_path);
+    std::replace(path.begin(), path.end(), '\\', '/');
+    while (!path.empty() && path.back() == '/') {
+        path.pop_back();
+    }
+
+    const auto separator = path.find_last_of('/');
+    const auto leaf = separator == std::string::npos
+        ? std::string_view{path}
+        : std::string_view{path}.substr(separator + 1U);
+    return leaf == "gdata.afs" || leaf == "gdatax360.afs";
+}
+
 [[nodiscard]] bool structurally_valid_binary_pnst(
     std::span<const std::byte> bytes) {
     if (!starts_with(bytes, "PNST")) {
@@ -81,6 +96,18 @@ ResourceClassification ResourceClassifier::classify(
         // through to their path extension instead of becoming fake containers.
         result.format = "pnst";
         result.magic_confirmed = true;
+    } else if (starts_with(bytes, std::string_view{"AFS\0", 4U})) {
+        // Retain exact-signature input as an acquisition candidate only. The
+        // DMC3-HD evidence establishes .afs/ namespace strings, not an opaque
+        // binary AFS backend on the canonical path.
+        result.format = "afs-binary-candidate";
+        result.magic_confirmed = true;
+    } else if (starts_with(bytes, "PACK")) {
+        // Historical product-side PACK parsing is not original-runtime parser
+        // authority. Keep the byte identity visible without making it an
+        // expandable container.
+        result.format = "pack-binary-candidate";
+        result.magic_confirmed = true;
     } else if (starts_with(bytes, "SCM")) {
         result.format = "scm";
         result.magic_confirmed = true;
@@ -110,9 +137,16 @@ ResourceClassification ResourceClassifier::classify(
                 std::string{ResourceTypeContract::canonical_extension(family)};
             result.magic_confirmed = true;
             result.runtime_family_mask_confirmed = true;
+        } else if (is_dmc3_afs_namespace_identity(logical_path)) {
+            // `GData.afs/` and `GDataX360.afs/` are logical namespaces inside
+            // the recovered DMC3 resource lookup policy. They are not a second
+            // binary container layer.
+            result.format = "afs-namespace";
         } else {
             const auto extension = extension_from_path(logical_path);
-            result.format = extension.empty() ? "unknown" : extension;
+            result.format = extension == "afs"
+                ? "afs-binary-candidate"
+                : (extension.empty() ? "unknown" : extension);
         }
     }
 
@@ -199,8 +233,10 @@ GameProfile ResourceClassifier::profile_from_path(
 
 bool ResourceClassifier::is_container_format(
     std::string_view format) noexcept {
-    return format == "nbz" || format == "afs" || format == "pac" ||
-           format == "pnst";
+    // DMC3-HD `.afs/` tokens are logical namespace identities. Binary AFS and
+    // PACK candidates stay non-expandable until a profile-specific backend is
+    // independently evidenced and promoted.
+    return format == "nbz" || format == "pac" || format == "pnst";
 }
 
 } // namespace dmc::rengine::gdspaces
