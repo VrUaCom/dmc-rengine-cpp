@@ -1,0 +1,210 @@
+{
+  "schema": "dmc-rengine.reverse-receipt.v1",
+  "scope": "DMC3 HD MOT full em000 binary grammar and MOD-domain correlation",
+  "date": "2026-09-08",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "fresh_raw_executable_available_in_this_pass": false
+  },
+  "corpus": {
+    "name": "em000-extract.zip",
+    "sha256": "306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b",
+    "mot_payload_count": 82,
+    "container_distribution": {
+      "em000_035.pac": 71,
+      "em000_036.pac": 1,
+      "em000_037.pac": 10
+    },
+    "extractor_suffix_distribution": {
+      "mot": 10,
+      "bin": 72
+    }
+  },
+  "identity": {
+    "marker_offset": "0x04",
+    "marker": "MOT\\0",
+    "matching_payloads": "82/82",
+    "runtime_extension_dispatcher_va": "0x1402E01A0",
+    "status": "EXE_AND_CORPUS_CONFIRMED"
+  },
+  "header": {
+    "fields": {
+      "0x00": "u32 header_size",
+      "0x04": "char[4] MOT\\0",
+      "0x08": "u32/f32 raw; zero 82/82",
+      "0x0C": "f32 raw time-domain scalar",
+      "0x10": "f32 raw secondary time-domain scalar",
+      "0x14": "f32 mirror of +0x0C in em000",
+      "0x18": "u16 raw control; observed 0/1",
+      "0x1A": "u16 raw; zero or channel-domain-count mirror",
+      "0x1C": "u16 channel_domain_count",
+      "0x1E": "u16 channel_mask[channel_domain_count]"
+    },
+    "size_formula": "align16(0x1E + 2 * channel_domain_count)",
+    "size_formula_matches": "82/82",
+    "header_size_histogram": {
+      "0x30": 5,
+      "0x50": 77
+    },
+    "channel_domain_count_histogram": {
+      "3": 4,
+      "4": 1,
+      "22": 77
+    },
+    "raw_08_zero": "82/82",
+    "raw_f32_0c_equals_raw_f32_14": "82/82",
+    "raw_f32_0c_14_distinct_values": 69,
+    "raw_f32_0c_14_observed_min": 1,
+    "raw_f32_0c_14_observed_max": 471,
+    "raw_f32_10_histogram": {
+      "0": 76,
+      "24": 1,
+      "36": 1,
+      "78": 1,
+      "125": 1,
+      "297": 1,
+      "349": 1
+    },
+    "raw_f32_10_le_raw_f32_14": "82/82",
+    "raw_u16_18_histogram": {
+      "0": 63,
+      "1": 19
+    },
+    "raw_u16_1a_histogram": {
+      "0": 51,
+      "3": 3,
+      "4": 1,
+      "22": 27
+    },
+    "raw_u16_1a_nonzero_equals_channel_domain_count": "31/31",
+    "header_0c_equals_max_masked_key_time": "77/82",
+    "header_time_semantics": "SEMANTIC_CANDIDATE; direct CMotion consumer not yet rebound"
+  },
+  "channel_masks": {
+    "known_domain_mask": "0x01FF",
+    "observed_values": ["0x000", "0x007", "0x038", "0x03F", "0x1C0", "0x1F8"],
+    "histogram": {
+      "0x000": 14,
+      "0x007": 3,
+      "0x038": 1531,
+      "0x03F": 1,
+      "0x1C0": 152,
+      "0x1F8": 9
+    },
+    "record_count_identity": "record_count == sum(popcount(channel_mask[i]))",
+    "record_count_identity_matches": "82/82",
+    "semantic_mapping_status": "SEMANTIC_CANDIDATE_EXTERNALLY_CORROBORATED"
+  },
+  "tracks": {
+    "count": 5118,
+    "common_prefix": {
+      "0x00": "u16 span",
+      "0x02": "u16 key_count",
+      "0x04": "u16 compression",
+      "0x06": "u16 start_time_raw"
+    },
+    "start_time_raw_zero": "5118/5118",
+    "start_time_semantics": "PRESERVED_UNDECODED globally; observed zero in em000",
+    "compression_histogram": {
+      "2": 156,
+      "3": 4962
+    },
+    "compression_2": {
+      "span_formula": "0x10 + 4 * key_count",
+      "matches": "156/156",
+      "quantization_float_count": 2,
+      "key_stride": 4,
+      "key_layout": ["u16 time_control", "u16 quantized_value"],
+      "observed_key_count_total": 459,
+      "time_high_bit_set_count": 0,
+      "time_high_bit_clear_count": 459
+    },
+    "compression_3": {
+      "span_formula": "0x20 + 8 * key_count",
+      "matches": "4962/4962",
+      "quantization_float_count": 6,
+      "key_stride": 8,
+      "key_layout": [
+        "u16 time_control",
+        "u16 quantized_value",
+        "u16 quantized_auxiliary_a",
+        "u16 quantized_auxiliary_b"
+      ],
+      "observed_key_count_total": 94416,
+      "time_high_bit_set_count": 94410,
+      "time_high_bit_clear_count": 6,
+      "clear_bit_exception_time_indices": [7, 20, 43]
+    },
+    "known_compression_key_total": 94875,
+    "time_index_rule": "time_control & 0x7FFF",
+    "monotonic_known_compression_tracks": "5118/5118",
+    "time_high_bit_semantics": "PRESERVED_UNDECODED",
+    "rejected_time_high_bit_claims": [
+      "signed s16 time",
+      "bit15 always equivalent to compression 3"
+    ]
+  },
+  "mod_domain_correlation": {
+    "mot_domain_counts": [3, 4, 22],
+    "same_size_top_level_mods": {
+      "3": ["em000_033.mod"],
+      "4": ["em000_034.mod"],
+      "22": ["em000_008.mod", "em000_013.mod", "em000_018.mod", "em000_019.mod"]
+    },
+    "large_shared_core": {
+      "node_indices": "0..21",
+      "mod_22": ["em000_008.mod", "em000_013.mod", "em000_018.mod", "em000_019.mod"],
+      "mod_23": ["em000_001.mod", "em000_004.mod", "em000_005.mod"],
+      "parent_by_node_identical": "7/7 over core 0..21",
+      "motion_group_by_node_identical": "7/7 over core 0..21",
+      "core_motion_group_histogram": {"0": 9, "1": 13},
+      "extra_23_node_index": 22,
+      "extra_23_node_motion_group": 2,
+      "mot_22_domain_covers_extra_node": false,
+      "direct_node_index_binding_status": "CORPUS_STRONG_SEMANTIC_CANDIDATE"
+    }
+  },
+  "historical_st001_reconciliation": {
+    "source": "PR #254 historical evidence record; raw payload not reacquired in current workspace",
+    "payload_size": 63440,
+    "header_size": "0x50",
+    "channel_domain_count": 24,
+    "record_count": 69,
+    "mask_shape": ["node0=0x000", "node1=0x1C0", "node2..23=0x038"],
+    "record_count_recomputed_from_popcounts": 69,
+    "historical_duration": 650,
+    "historical_signed_stamp_range": "-32768..-32118",
+    "corrected_bit_pattern_range": "0x8000..0x828A",
+    "corrected_time_index_range": "0..650",
+    "old_universal_track_span_rule": "REJECTED",
+    "old_signed_s16_time_semantic": "REJECTED",
+    "old_exact_4_byte_semantic_terminator": "REJECTED"
+  },
+  "external_corroboration": {
+    "repository": "HansLichtner/DMC3-Blender-Import-Addon",
+    "path": "DMC3/motion.py",
+    "blob_sha": "50aa74859be9ada2f2131829eb08f5c5196a8d66",
+    "used_as_authority": false,
+    "corroborates": [
+      "nine channel bit names",
+      "compression enum 0..3",
+      "compression 2/3 int16 layouts",
+      "time_control lower-15-bit index",
+      "uint16 / 65535 quantization",
+      "Hermite interpolation",
+      "four frame/time-like header fields"
+    ]
+  },
+  "writer_authority": "NOT_AUTHORIZED",
+  "next_executable_gates": [
+    "MOT channel-mask consumer",
+    "compression switch",
+    "quantization decoder",
+    "Hermite evaluator",
+    "CMotionJoint node-index binding",
+    "header +0x08/+0x0C/+0x10/+0x14 semantics",
+    "header +0x18/+0x1A semantics",
+    "time_control bit15 semantics"
+  ]
+}

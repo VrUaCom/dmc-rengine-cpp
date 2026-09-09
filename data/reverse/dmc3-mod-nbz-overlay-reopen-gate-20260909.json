@@ -1,0 +1,78 @@
+{
+  "schema": "dmc-rengine.mod-nbz-overlay-reopen-gate.v1",
+  "date": "2026-09-09",
+  "project": "DMC Rengine",
+  "evidenceClass": "CONTAINER_REINTEGRATION_GATE_3",
+  "gate": "SYNTHETIC_MOD_TO_NBZ_OVERLAY_REOPEN",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "prerequisites": {
+    "modPreserveLayoutWriter": true,
+    "provenanceBound38FileRetailNoEditParity": true,
+    "controlledRetailFixedLayoutEdit": true,
+    "modWriteReceiptTrustBridge": true,
+    "syntheticPacReintegration": true,
+    "provenanceBoundRetailPnstReintegration": true,
+    "retailPnstAttestation": "data/reverse/dmc3-mod-retail-pnst-reintegration-attestation-20260909.json"
+  },
+  "implementation": {
+    "regression": "tests/mod_authored_child_bridge_tests.cpp",
+    "modWriter": "include/dmc_rengine/formats/mod_writer.hpp",
+    "modBridge": "include/dmc_rengine/profiles/dmc3/mod_authored_child_bridge.hpp",
+    "containerReintegrator": "include/dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp",
+    "nbzWriter": "include/dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp",
+    "nbzReader": "include/dmc_rengine/gdspaces/nbz_zip_source.hpp",
+    "containerRegistry": "include/dmc_rengine/profiles/dmc3/container_parsers.hpp",
+    "existingProductionCli": "build-dmc3-overlay"
+  },
+  "syntheticComposition": {
+    "controlledField": "object.bounding_radius",
+    "sourceRadius": 42.5,
+    "authoredRadius": 50.0,
+    "writerOutputValidated": true,
+    "writerReceiptBridgedToAuthoredChild": true,
+    "sameSizeContainerReintegration": true,
+    "containerReparseBeforeNbz": true,
+    "containerReexpandBeforeNbz": true,
+    "nbzBootstrapPresentVolumes": [0, 1],
+    "generatedVolumeIndex": 2,
+    "generatedVolumeFilename": "DMC3-2.nbz",
+    "rootLogicalPath": "GData.afs/em000.pac",
+    "nbzStoreWriterSucceeded": true,
+    "nbzZipSourceReopenSucceeded": true,
+    "nbzCentralOffsetMatches": true,
+    "nbzEntryCountMatches": true,
+    "rootMemberBytesEqualReintegratedContainer": true,
+    "reopenedRootContainerParse": true,
+    "reopenedRootContainerExpand": true,
+    "reopenedModBytesEqualWriterOutput": true,
+    "reopenedModCanonicalParse": true,
+    "reopenedModBoundingRadius": 50.0
+  },
+  "ci": {
+    "sourceCommit": "38c79902609c642e38d3472fbf5aa4fc59b8e1aa",
+    "workflow": "Build",
+    "workflowRunId": 34347990654,
+    "workflowRunNumber": 2099,
+    "ubuntuBuildAndTests": "success",
+    "windowsBuildAndTests": "success",
+    "discoverySiteRunId": 34347990668,
+    "discoverySite": "success"
+  },
+  "claims": {
+    "syntheticModToNbzOverlayReopen": true,
+    "syntheticNbzOverlayAcceptanceForEditedMod": true,
+    "modWriterValidatedChildToNbzComposition": true,
+    "provenanceBoundRetailPnstReintegration": true,
+    "provenanceBoundRetailNbzOverlayRun": false,
+    "retailNbzMountPrecedenceAcceptance": false,
+    "originalGameAcceptance": false,
+    "arbitraryModMutationAuthority": false,
+    "fullModWriterAuthority": false
+  },
+  "nextFrontier": [
+    "run build-dmc3-overlay against a provenance-bound external DMC3 executable/data directory using the already-rebuilt retail PNST parent as the authored root member",
+    "reopen the generated retail-context overlay and prove the root PNST and edited MOD child hashes/identity end to end",
+    "test original dmc3.exe acceptance of the no-edit and tightly controlled edited resource chains"
+  ],
+  "evidenceBoundary": "This gate is a synthetic composition proof executed by exact-head Ubuntu and Windows CI. It does not promote a provenance-bound retail NBZ overlay run or original-game acceptance, and no copyrighted retail payload bytes are committed."
+}

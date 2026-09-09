@@ -1,0 +1,201 @@
+{
+  "schema": "dmc-rengine.model-family.scm-mod-expanded-common-abi.v1",
+  "date": "2026-09-05",
+  "branch": "model-family",
+  "canonicalExecutable": {
+    "size": 6356432,
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "runtimeAnchors": {
+    "sharedManagerInit": "0x1402F9570",
+    "sharedNodeBlockBind": "0x1402F1DB0",
+    "modEfmSetup": "0x1403039C0",
+    "scmSetup": "0x140303C10",
+    "modEfmObjectInit": "0x1403029E0",
+    "scmObjectInit": "0x140302F10",
+    "modEfmTransformInit": "0x1402FA080",
+    "scmTransformInit": "0x1402FA360",
+    "rotationHelper": "0x140330450",
+    "translationHelper": "0x140031200",
+    "genericWorldUpdate": "0x1402F9700",
+    "rigidInverseHelper": "0x140030DC0",
+    "modRuntimeMeshBuild": "0x1402FE6A0",
+    "efmRuntimeMeshBuild": "0x1402F7D60",
+    "modEfmOuterMeshLoop": "0x1402F9DA0",
+    "genericMeshMaterial": "0x1402F9890",
+    "scmOuterMeshLoop": "0x1402F9F20",
+    "modNormalizer": "0x1402FE3B0",
+    "scmNormalizer": "0x1403051B0"
+  },
+  "modCorpus": {
+    "files": [
+      {
+        "name": "slot_0001 (2).mod",
+        "size": 216544,
+        "sha256": "e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89",
+        "outerCount": 17,
+        "nodeCount": 24,
+        "headerTextureDomain": 3,
+        "header13": 1,
+        "header14": 217,
+        "nodeRelativeOffsets": [32, 56, 80, 112],
+        "outerAlphaValues": [128],
+        "outerFlags": [0, 1048577],
+        "innerTextureSlots": [0, 1, 2],
+        "maxBoundingRadiusError": 0.0000034610321932859733,
+        "maxTranslationMagnitudeError": 0.0000013239431098099885
+      },
+      {
+        "name": "slot_0001 (3).mod",
+        "size": 110096,
+        "sha256": "34f2c03795b007eac67abdb3a5808f675f1b1fd419ea6f39d4b77b8142c9e7ce",
+        "outerCount": 19,
+        "nodeCount": 23,
+        "headerTextureDomain": 4,
+        "header13": 1,
+        "header14": 100407,
+        "nodeRelativeOffsets": [32, 56, 80, 112],
+        "outerAlphaValues": [128],
+        "outerFlags": [0, 1179650, 2097152],
+        "innerTextureSlots": [0, 1],
+        "maxBoundingRadiusError": 0.000003853170397860595,
+        "maxTranslationMagnitudeError": 0.0000015506394461795026
+      },
+      {
+        "name": "slot_0012.mod",
+        "size": 35696,
+        "sha256": "7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740",
+        "outerCount": 6,
+        "nodeCount": 33,
+        "headerTextureDomain": 3,
+        "header13": 0,
+        "header14": 217,
+        "nodeRelativeOffsets": [32, 68, 104, 144],
+        "outerAlphaValues": [128],
+        "outerFlags": [0, 1048577],
+        "innerTextureSlots": [0, 1],
+        "maxBoundingRadiusError": 0.0000036730219079572635,
+        "maxTranslationMagnitudeError": 3.678728095479755e-7
+      }
+    ],
+    "totals": {
+      "outerRecords": 42,
+      "innerRecords": 48,
+      "skinVertices": 8785,
+      "allOuterAggregateCountsMatchChildSums": true,
+      "allOuterAlphaControlBytesEqual128": true,
+      "allBoundingSpheresMatchGeometry": true,
+      "allInnerTextureSlotsBelowHeaderTextureDomain": true,
+      "allNodeOrderArraysArePermutations": true,
+      "allNodeDomainsHaveSingleRoot": true,
+      "allNodeRelativeLayoutsMatchCommonFormula": true,
+      "allTransformMagnitudesMatchTranslationLength": true,
+      "allCurrentModGsClampWordsZero": true
+    }
+  },
+  "sharedDocumentCore": {
+    "headerSize": 64,
+    "versionField": "0x04",
+    "outerCountField": "0x10",
+    "nodeDomainCountField": "0x11",
+    "serializedTextureDomainField": "0x12",
+    "runtimeModeByteField": "0x13",
+    "runtimeMetadataU32Field": "0x14",
+    "nodeDomainBlockField": "0x20",
+    "outerTableOffset": "0x40",
+    "runtimeTextureAuthority": "external companion manager+0x110 via 0x1402F9570"
+  },
+  "sharedObjectCore": {
+    "recordSize": 64,
+    "childCountField": "0x00",
+    "alphaControlField": "0x01",
+    "aggregateElementCountField": "0x02",
+    "childTableField": "0x08",
+    "sourceFlagsField": "0x10",
+    "boundingSphereField": "0x30 vec3 + 0x3C radius",
+    "alphaControlRuntimeProof": "0x1403029E0 and 0x140302F10 both copy raw +0x01 to runtime +0x07 and implement the same base control state",
+    "flagsRuntimeProof": "both initializers copy raw +0x10 to runtime +0x10/+0x14"
+  },
+  "sharedMeshCore": {
+    "recordSize": 80,
+    "elementCountField": "0x00",
+    "textureSlotField": "0x02",
+    "gsClampFields": ["0x04 MINU", "0x06 MAXU", "0x08 MINV", "0x0A MAXV"],
+    "positionsField": "0x10",
+    "normalsField": "0x18",
+    "uvField": "0x20",
+    "topologyWorkspaceField": "0x40",
+    "generatedTopologyCountField": "0x48",
+    "streamAlignment": 16,
+    "uvScale": 4096,
+    "textureRuntimeProof": "0x1402F9890 reads raw serialized +0x02 from runtimeMesh+0x10, multiplies by 0x40 and indexes external texture table",
+    "gsClampRuntimeProof": "0x1402F9890 reads raw +0x04/+0x06/+0x08/+0x0A and packs the recovered GS CLAMP REGION_REPEAT register",
+    "commonFilterFlag": "outer source flags bit 0x00004000 -> 0x1402F9890 TEX1 0x60 linear or 0 nearest"
+  },
+  "sharedNodeDomainCore": {
+    "blockHeaderSize": 32,
+    "relativeFields": {
+      "parent": "0x00",
+      "order": "0x04",
+      "adapterSpecificThirdArray": "0x08",
+      "transform": "0x0C"
+    },
+    "layoutFormula": {
+      "parentRel": "0x20",
+      "orderRel": "0x20 + align4(N)",
+      "thirdRel": "0x20 + 2*align4(N)",
+      "transformRel": "align16(0x20 + 3*align4(N))"
+    },
+    "commonBinder": "0x1402F1DB0",
+    "boundary": "third array semantics differ: SCM object binding; MOD node-side class/type domain still unresolved"
+  },
+  "sharedTransformCore": {
+    "recordSize": 32,
+    "translationField": "0x00 vec3",
+    "translationMagnitudeField": "0x0C f32 length(XYZ)",
+    "rotationField": "0x10 vec3 XYZ Euler radians",
+    "reservedField": "0x1C f32",
+    "rotationOrder": "X then Y then Z",
+    "matrixComposition": "Rz * Ry * Rx",
+    "translationMagnitudeUsedAsHomogeneousW": false,
+    "provenanceCorrection": {
+      "previousWrongScmInitializer": "0x1402FA080",
+      "correctScmInitializer": "0x1402FA360",
+      "modEfmInitializer": "0x1402FA080",
+      "reasonMathRemainsValid": "both call 0x140330450 for rotation and 0x140031200 for translation"
+    }
+  },
+  "runtimeConvergence": {
+    "normalizersRemainSeparate": true,
+    "modNormalizer": "0x1402FE3B0",
+    "scmNormalizer": "0x1403051B0",
+    "modEfmRuntimeObjectSizeFamily": "0x380 outer runtime record; 0x1A0 runtime inner record",
+    "scmRuntimeObjectSizeFamily": "0x3C0 outer runtime record; 0x1A0 runtime inner record",
+    "commonMaterialHelper": "0x1402F9890",
+    "commonNodeBinder": "0x1402F1DB0",
+    "commonManagerInit": "0x1402F9570",
+    "commonWorldUpdate": "0x1402F9700"
+  },
+  "capabilityPromotions": {
+    "mod.texture_binding": true,
+    "mod.alpha_control": true,
+    "mod.legacy_gs_sampler": true
+  },
+  "nonClaims": [
+    "SCM and MOD are not byte-interchangeable formats.",
+    "The node-domain third array does not have one shared semantic name.",
+    "Not every source-flag bit has identical semantics across formats.",
+    "SCM-specific alpha compatibility signatures are not promoted to MOD.",
+    "MOD writer authority remains blocked pending palette/bind/inverse-bind and game acceptance.",
+    "SCM header +0x14 LegacyResourceCode interpretation is not projected onto MOD."
+  ],
+  "next": [
+    "close MOD node-domain third-array semantics",
+    "trace MOD/EFM rigid inverse products into palette ownership",
+    "recover bind pose and inverse-bind relation",
+    "recover animated skin matrix construction",
+    "bind real MOD texture companion and verify header +0x12 against companion count",
+    "expand MOD corpus before writer promotion"
+  ]
+}

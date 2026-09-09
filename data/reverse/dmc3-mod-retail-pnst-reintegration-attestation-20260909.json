@@ -1,0 +1,96 @@
+{
+  "schema": "dmc-rengine.mod-retail-pnst-reintegration-attestation.v1",
+  "date": "2026-09-09",
+  "project": "DMC Rengine",
+  "evidenceClass": "CONTAINER_REINTEGRATION_GATE_2",
+  "gate": "RETAIL_PNST_CONTROLLED_MOD_REINTEGRATION",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "sourcePackage": {
+    "label": "DMC_Rengine_Item_Editor_Phase4_source.zip",
+    "sha256": "400954e637342f8036879120d1a3845f3d74077a9844fcfad643421180602d57",
+    "parentInternalPath": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_012.pac",
+    "childInternalPath": "DMC 3 RENGINE/analysis_inputs/stage_drops/m20_s00/m20_s00_012/m20_s00_012_023.mod"
+  },
+  "runner": {
+    "sourceCommit": "8ddd5c2acd455b12ed1f67b9af30571d5e9634be",
+    "sha256": "a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8",
+    "commands": [
+      "dmc-rengine list-container <parent>",
+      "dmc-rengine mod-writer-set-bounding-radius <child> 0 4.5 <authored-child> <receipt>",
+      "dmc-rengine rebuild-relative-slot <parent> 23 <authored-child> <rebuilt-parent>",
+      "dmc-rengine list-container <rebuilt-parent>",
+      "dmc-rengine extract-slot <rebuilt-parent> 23 <reopened-child>"
+    ]
+  },
+  "parent": {
+    "sourceLabel": "m20_s00_012.pac",
+    "detectedFormat": "pnst",
+    "extensionAuthorityUsed": false,
+    "slotCount": 33,
+    "sourceSize": 346272,
+    "sourceSha256": "a09898bbf73d944f9f52a1de13a3bce0eebb90726947248bf35085f52df15be8",
+    "rebuiltSize": 346272,
+    "rebuiltSha256": "78c002cc62dd235a7f95f16b3e53fd1588d8f4e8b917400e8f4471eff48d9e8e",
+    "canonicalSourceExpansionCompleted": true,
+    "canonicalRebuiltExpansionCompleted": true,
+    "headerAndSlotTableUnchanged": true,
+    "sourceFirstPayloadOffset": 144
+  },
+  "childBinding": {
+    "physicalSlotIndex": 23,
+    "slotOffset": 129280,
+    "slotSize": 1888,
+    "sourceChildSha256": "096f2e8b81dd55a450b15defeb52345626156010c8fb70f3ab5f540d52b447ce",
+    "canonicalDetectedFormat": "mod",
+    "bindingMethod": "canonical container expansion plus exact child SHA-256; filename suffix was not trusted as slot authority"
+  },
+  "controlledEdit": {
+    "field": "object.bounding_radius",
+    "objectIndex": 0,
+    "oldValue": 4.321839332580566,
+    "newValue": 4.5,
+    "localSerializedOffset": 124,
+    "localSerializedSize": 4,
+    "localChangedByteOffsetsZeroBased": [124, 125, 126],
+    "authoredChildSha256": "94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33",
+    "writerReceiptSha256": "9c0e33f3aabdc611c0b8c93b1aef6f531c0804db9d72ed28e3cb8989034ae07e",
+    "writerDiskReopen": true
+  },
+  "reintegration": {
+    "verifiedByExistingRelativeSlotWriter": true,
+    "parentSizePreserved": true,
+    "physicalSlotIndexPreserved": true,
+    "slotOffsetPreserved": true,
+    "slotSizePreserved": true,
+    "reopenedChildSha256": "94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33",
+    "reopenedChildEqualsAuthoredChild": true,
+    "reopenedChildBoundingRadius": 4.5,
+    "parentChangedByteOffsetsZeroBased": [129404, 129405, 129406],
+    "expectedParentChangedByteOffsetsZeroBased": [129404, 129405, 129406],
+    "allParentBytesOutsideExpectedChildEditIdentical": true,
+    "slotTableAndAllOtherSlotsPreservedByByteDiff": true
+  },
+  "independentVerification": {
+    "parentSourceHashRecomputed": true,
+    "parentOutputHashRecomputed": true,
+    "childSourceHashRecomputed": true,
+    "authoredChildHashRecomputed": true,
+    "reopenedChildHashRecomputed": true,
+    "parentRawByteDiffRecomputed": true,
+    "localChildRawByteDiffRecomputed": true,
+    "parentDiffEqualsSlotOffsetPlusLocalDiff": true,
+    "reopenedChildBytesEqualAuthoredChild": true
+  },
+  "claims": {
+    "provenanceBoundRetailPnstReintegration": true,
+    "sameSizeRetailModChildReplacement": true,
+    "physicalSlotIdentityPreserved": true,
+    "parentBytesOutsideControlledChildEditPreserved": true,
+    "retailPac0Reintegration": false,
+    "nbzOverlayAcceptanceForEditedMod": false,
+    "originalGameAcceptance": false,
+    "arbitraryModMutationAuthority": false,
+    "fullModWriterAuthority": false
+  },
+  "evidenceBoundary": "No copyrighted retail payload bytes are committed. This attestation records source-package provenance, hashes, physical slot identity, scalar edit facts and independent byte-diff/reopen results only."
+}

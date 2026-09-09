@@ -1,16 +1,22 @@
 #include "dmc_rengine/formats/mod.hpp"
 #include "dmc_rengine/formats/mod_writer.hpp"
 #include "dmc_rengine/gdspaces/container_expander.hpp"
+#include "dmc_rengine/gdspaces/nbz_zip_source.hpp"
 #include "dmc_rengine/profiles/dmc3/container_parsers.hpp"
 #include "dmc_rengine/profiles/dmc3/mod_authored_child_bridge.hpp"
+#include "dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp"
 #include "dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp"
+#include "dmc_rengine/profiles/dmc3/volume_bootstrap_policy.hpp"
 
 #include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -156,6 +162,27 @@ dmc::rengine::gdspaces::ResourcePayload make_parent_pac() {
     };
 }
 
+std::filesystem::path write_temp_nbz(
+    std::span<const std::byte> bytes) {
+    const auto path = std::filesystem::temp_directory_path() /
+        "dmc-rengine-mod-authored-child-overlay.nbz";
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    stream.write(
+        reinterpret_cast<const char*>(bytes.data()),
+        static_cast<std::streamsize>(bytes.size()));
+    assert(stream.good());
+    return path;
+}
+
+const dmc::rengine::gdspaces::ResourceRef* find_path(
+    const std::vector<dmc::rengine::gdspaces::ResourceRef>& refs,
+    std::string_view path) {
+    const auto found = std::find_if(
+        refs.begin(), refs.end(),
+        [path](const auto& ref) { return ref.id.logical_path == path; });
+    return found == refs.end() ? nullptr : &*found;
+}
+
 } // namespace
 
 int main() {
@@ -225,6 +252,73 @@ int main() {
             reopened_child.bytes.data(), reopened_child.bytes.size()});
     assert(reopened_mod.ok());
     assert(reopened_mod.document.outer_models[0].bounding_radius == 50.0F);
+
+    // Continue the same validated authored-resource chain through the existing
+    // next-volume NBZ overlay writer. This is a composition gate: no new MOD,
+    // PAC/PNST, or NBZ serialization authority is introduced here.
+    const std::vector<std::uint32_t> present_volumes{0U, 1U};
+    const auto bootstrap = dmc3::VolumeBootstrapPolicy::plan(present_volumes);
+    assert(bootstrap.valid());
+    assert(bootstrap.first_missing_index == 2U);
+    assert(bootstrap.present_after_first_gap.empty());
+
+    const std::vector<dmc3::NbzOverlayMember> members{
+        dmc3::NbzOverlayMember{
+            .logical_path = parent.resource.id.logical_path,
+            .bytes = reintegrated.bytes,
+        },
+    };
+    const auto overlay = dmc3::NbzStoreOverlayWriter::build(
+        bootstrap, members);
+    assert(overlay.ok());
+    assert(overlay.receipt->volume_index == 2U);
+    assert(overlay.receipt->filename == "DMC3-2.nbz");
+    assert(overlay.receipt->members.size() == 1U);
+    assert(overlay.receipt->members[0].logical_path ==
+           parent.resource.id.logical_path);
+
+    const auto overlay_path = write_temp_nbz(
+        std::span<const std::byte>{overlay.bytes.data(), overlay.bytes.size()});
+    gdspaces::NbzZipSource reopened_nbz(
+        "synthetic-mod-authored-overlay", overlay_path);
+    assert(reopened_nbz.valid());
+    assert(reopened_nbz.index_receipt().has_value());
+    assert(reopened_nbz.index_receipt()->central_offset_matches);
+    assert(reopened_nbz.index_receipt()->entry_count_matches);
+    assert(reopened_nbz.index_receipt()->walked_entry_count == 1U);
+
+    const auto overlay_refs = reopened_nbz.enumerate();
+    assert(overlay_refs.size() == 1U);
+    const auto* root_ref = find_path(
+        overlay_refs, parent.resource.id.logical_path);
+    assert(root_ref != nullptr);
+    assert(root_ref->id.source_id == "synthetic-mod-authored-overlay");
+
+    const auto overlay_parent = reopened_nbz.read(root_ref->id);
+    assert(overlay_parent.has_value());
+    assert(overlay_parent->readable());
+    assert(overlay_parent->bytes == reintegrated.bytes);
+
+    const auto overlay_parent_parse = registry.parse(
+        std::span<const std::byte>{
+            overlay_parent->bytes.data(), overlay_parent->bytes.size()},
+        overlay_parent->resource.id.logical_path);
+    assert(overlay_parent_parse.ok());
+    const auto overlay_expansion = gdspaces::ContainerExpander::expand(
+        *overlay_parent, overlay_parent_parse);
+    assert(overlay_expansion.usable());
+    assert(overlay_expansion.children.size() == 1U);
+    const auto& overlay_child = overlay_expansion.children[0].payload;
+    assert(overlay_child.bytes == written.bytes);
+
+    const auto overlay_mod = mod::Parser::parse(
+        std::span<const std::byte>{
+            overlay_child.bytes.data(), overlay_child.bytes.size()});
+    assert(overlay_mod.ok());
+    assert(overlay_mod.document.outer_models[0].bounding_radius == 50.0F);
+
+    std::error_code remove_error;
+    std::filesystem::remove(overlay_path, remove_error);
 
     auto tampered = written;
     tampered.bytes[0x7CU] ^= std::byte{0x01U};

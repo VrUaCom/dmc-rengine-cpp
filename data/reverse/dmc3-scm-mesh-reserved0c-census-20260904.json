@@ -1,0 +1,57 @@
+{
+  "schema": "dmc-rengine.scm-mesh-reserved0c-census.v1",
+  "date": "2026-09-04",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "serializedField": {
+    "record": "mesh",
+    "offset": "0x0C",
+    "type": "u32",
+    "currentCppName": "reserved0c"
+  },
+  "currentDirectSpecimens": [
+    {"name": "st001.scm", "meshCount": 77, "nonZeroCount": 0},
+    {"name": "st114.scm", "meshCount": 72, "nonZeroCount": 0}
+  ],
+  "primaryMaterializationPath": {
+    "function": "0x1402F9BB0",
+    "serializedPointerPath": "argument+0x18 -> +0x08",
+    "runtimeSerializedPointerCopy": "runtimeMesh+0x10 = serializedMesh",
+    "directSerializedReads": [
+      "0x00 vertexCount",
+      "0x02 textureIndex",
+      "0x10 positions",
+      "0x18 normals",
+      "0x20 uv",
+      "0x28 continuationSpan",
+      "0x38 colorTopology"
+    ],
+    "serialized0cRead": false,
+    "runtimeInitHelper": "0x140308C00",
+    "runtimeInitHelperSerialized0cRead": false
+  },
+  "rejectedFalsePositives": [
+    {
+      "site": "0x1402F9BEC",
+      "field": "argument/runtime-object+0x0C",
+      "role": "mesh/part count",
+      "reason": "different base pointer"
+    },
+    {
+      "site": "0x1402F81DF",
+      "field": "renderer-command+0x0C",
+      "value": "0x50000003",
+      "reason": "generated renderer command, not serialized mesh"
+    }
+  ],
+  "conclusion": {
+    "status": "RESERVED_OBSERVED_ZERO_NO_ACTIVE_CONSUMER_IN_RECOVERED_PRIMARY_SCM_MESH_MATERIALIZATION_PATH",
+    "globalUnusedClaim": false,
+    "parsedWriterPolicy": "preserve-raw",
+    "newResourceDefault": 0,
+    "semanticEditorControl": false
+  }
+}

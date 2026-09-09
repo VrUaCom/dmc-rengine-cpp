@@ -1,26 +1,44 @@
 {
-  "schema": "dmc-rengine.reverse.scm-scene-transform-consumer.v1",
-  "snapshot": "2026-09-03",
+  "schema": "dmc-rengine.reverse.scm-scene-transform-consumer.v2",
+  "originalSnapshot": "2026-09-03",
+  "provenanceCorrection": "2026-09-05",
   "canonicalExe": {
     "size": 6356432,
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "imageBase": "0x140000000"
   },
+  "setupChains": {
+    "modEfm": {
+      "setup": "0x1403039C0",
+      "transformInitializer": "0x1402FA080"
+    },
+    "scm": {
+      "setup": "0x140303C10",
+      "transformInitializer": "0x1402FA360"
+    }
+  },
+  "correction": {
+    "rejected": "SCM transform initializer is 0x1402FA080",
+    "correct": "SCM transform initializer is 0x1402FA360",
+    "whyMathRemainsValid": "both initializers call 0x140330450 for +0x10 XYZ rotation and 0x140031200 for +0x00 XYZ translation"
+  },
   "sceneAttachment": {
     "helper": "0x1402F1DB0",
+    "sharedAcrossScmModEfm": true,
     "sceneBlockHeaderOffset": "resource+0x20",
     "resolvedArrays": {
       "parent": "manager+0x08",
       "order": "manager+0x10",
-      "objectBinding": "manager+0x18",
+      "adapterSpecificThirdArray": "manager+0x18",
       "transforms": "manager+0x20"
     }
   },
-  "transformConsumer": {
-    "function": "0x1402FA080",
+  "transformCore": {
     "serializedStride": "0x20",
-    "rotationVectorOffset": "0x10",
     "translationVectorOffset": "0x00",
+    "translationMagnitudeOffset": "0x0C",
+    "rotationVectorOffset": "0x10",
+    "reservedOffset": "0x1C",
     "rotationHelper": "0x140330450",
     "translationHelper": "0x140031200"
   },
@@ -37,45 +55,43 @@
       "X": "0x140030F10",
       "Y": "0x140030FC0",
       "Z": "0x140031080"
-    },
-    "matrixMultiplyHelper": "0x14002FFE0",
-    "trigImports": ["sinf", "cosf"],
-    "rowMajorFormula": [
-      ["cy*cz", "cx*sz + cz*sx*sy", "-cx*cz*sy + sx*sz", "0"],
-      ["-cy*sz", "cx*cz - sx*sy*sz", "cx*sy*sz + cz*sx", "0"],
-      ["sy", "-cy*sx", "cx*cy", "0"],
-      ["0", "0", "0", "1"]
-    ]
+    }
   },
   "translation": {
     "serializedFields": {
       "+0x00": "X",
       "+0x04": "Y",
       "+0x08": "Z",
-      "+0x0C": "translation magnitude"
+      "+0x0C": "precomputed length(XYZ)"
     },
-    "corpusMagnitudeInvariant": "328/328 nodes: +0x0C == length(X,Y,Z)",
-    "status": "XYZ runtime-consumed; fourth-component downstream semantics remain engine-specific"
+    "scmCorpusMagnitudeInvariant": "328/328 nodes",
+    "homogeneousWUse": false,
+    "status": "EXE_CONFIRMED XYZ transform input; +0x0C excluded from homogeneous W"
   },
-  "header14": {
-    "status": "EXE_CONFIRMED_RUNTIME_CARRIED_SEMANTICS_OPEN",
-    "copyFunction": "0x1402F9570",
-    "readSite": "0x1402F95BE",
-    "writeSite": "0x1402F95C5",
-    "source": "resource+0x14",
-    "destination": "manager+0xE4",
-    "safeMeaning": "runtime-carried u32 metadata; exact semantic name unresolved"
+  "sharedFamilyPromotion": {
+    "transformCoreSharedByScmAndModEfm": true,
+    "modEfmInitializerHasAdditionalInversePaletteWork": true,
+    "scmInitializerUsesStaticStageSpecificParentPointerSetup": true
+  },
+  "headerInit": {
+    "helper": "0x1402F9570",
+    "sharedAcrossFamily": true,
+    "raw+0x14": "manager+0xE4",
+    "raw+0x10": "manager+0xE8",
+    "raw+0x11": "manager+0xEA",
+    "raw+0x13": "manager+0xFA",
+    "textureCountAuthority": "external companion manager+0x110 -> manager+0xEC"
   },
   "implementation": {
     "irField": "SceneTransform::rotation_xyz_radians",
     "module": "scm_transform.hpp/.cpp",
-    "function": "build_rotation_xyz_radians",
+    "rotationFunction": "build_rotation_xyz_radians",
+    "localTransformFunction": "build_local_transform",
     "writerAuthority": false
   },
   "nonClaims": [
-    "No OpenGL/DirectX handedness label is inferred solely from recovered storage/multiplication layout.",
-    "No conventional homogeneous meaning is assigned to serialized translation +0x0C.",
-    "Header +0x14 semantic role remains unresolved despite confirmed runtime carry into manager +0xE4.",
-    "Complete hierarchy/world transform composition remains a separate reverse target."
+    "The SCM-specific +0x08 node array semantic is not projected onto MOD.",
+    "The MOD/EFM direct rigid-inverse initialization is not claimed as an SCM inverse-cache path.",
+    "No external OpenGL/DirectX handedness name is inferred from matrix storage alone."
   ]
 }

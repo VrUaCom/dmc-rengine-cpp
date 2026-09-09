@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-writer-gate.v1",
+  "schema": "dmc-rengine.mod-writer-gate.v2",
   "date": "2026-09-09",
   "repository": "VrUaCom/dmc-rengine-cpp",
   "workingBranch": "reverse/mod-completion-20260907",
@@ -116,6 +116,22 @@
     "diskOutputReopenOk": true,
     "rawReceiptSha256": "896def2d5f6fc21fb8a0653542dae8e4dea536f138ec6f567c2c81345f3ef761"
   },
+  "retailContainerValidation": {
+    "attestation": "data/reverse/dmc3-mod-retail-pnst-reintegration-attestation-20260909.json",
+    "scope": "provenance-bound PNST parent m20_s00_012.pac, physical slot 23, same-size controlled MOD bounding-radius edit",
+    "parentSourceSha256": "a09898bbf73d944f9f52a1de13a3bce0eebb90726947248bf35085f52df15be8",
+    "parentOutputSha256": "78c002cc62dd235a7f95f16b3e53fd1588d8f4e8b917400e8f4471eff48d9e8e",
+    "parentByteCount": 346272,
+    "physicalSlotIndex": 23,
+    "slotOffset": 129280,
+    "slotSize": 1888,
+    "sourceChildSha256": "096f2e8b81dd55a450b15defeb52345626156010c8fb70f3ab5f540d52b447ce",
+    "authoredAndReopenedChildSha256": "94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33",
+    "parentChangedOffsetsZeroBased": [129404, 129405, 129406],
+    "allOtherParentBytesIdentical": true,
+    "canonicalParentReopen": true,
+    "canonicalChildReopen": true
+  },
   "claims": {
     "syntheticFixtureNoEditByteParity": true,
     "syntheticFixtureControlledFixedLayoutEdit": true,
@@ -124,20 +140,22 @@
     "fullRetailCorpusCanonicalReopen": true,
     "controlledRetailFixedLayoutEdit": true,
     "controlledRetailFixedLayoutScope": "em000_021.mod object[0].bounding_radius only",
+    "retailContainerReintegration": true,
+    "retailPnstReintegration": true,
+    "retailPac0Reintegration": false,
     "canonicalRebuildFromScratch": false,
     "transformAuthoring": false,
     "skinAuthoring": false,
     "materialAuthoring": false,
     "textureCompanionCoherence": false,
-    "retailContainerReintegration": false,
     "originalGameNoEditAcceptance": false,
     "originalGameEditedAcceptance": false,
     "fullModWriterAuthority": false
   },
   "nextFrontier": [
-    "provenance_bound_retail_pac_or_pnst_reintegration",
     "nbz_overlay_reintegration_and_reopen",
     "original_dmc3_exe_no_edit_acceptance",
-    "original_dmc3_exe_controlled_edit_acceptance"
+    "original_dmc3_exe_controlled_edit_acceptance",
+    "optional_retail_pac0_family_coverage"
   ]
 }

@@ -6,6 +6,7 @@
 #include "dmc3_retail_acquisition_commands.hpp"
 #include "nbz_copy_commands.hpp"
 #include "relative_slot_commands.hpp"
+#include "scm_corpus_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -27,6 +28,7 @@ void print_integration_help() {
     print_nbz_copy_help();
     print_relative_slot_help();
     print_hits_help();
+    print_scm_corpus_help();
 }
 
 int try_run_integration_command(int argc, char** argv) {
@@ -66,6 +68,12 @@ int try_run_integration_command(int argc, char** argv) {
     if (hits_result != -1) {
         return hits_result;
     }
+
+    const auto scm_corpus_result = try_run_scm_corpus_command(argc, argv);
+    if (scm_corpus_result != -1) {
+        return scm_corpus_result;
+    }
+
     if (argc <= 1) {
         return -1;
     }

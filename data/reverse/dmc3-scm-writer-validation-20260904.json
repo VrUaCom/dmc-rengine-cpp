@@ -1,0 +1,132 @@
+{
+  "schema": "dmc-rengine.scm-writer-validation.v3",
+  "date": "2026-09-09",
+  "branch": "reverse/mod-completion-20260907",
+  "historicalSourceBranch": "scm",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "imageBase": "0x140000000"
+  },
+  "implementation": {
+    "typedStreams": [
+      "positions-f32x3",
+      "normals-f32x3",
+      "uv-s16x2",
+      "rgb-topology-u8x4"
+    ],
+    "preservedUnknownRanges": [
+      "object+0x14..+0x2f",
+      "sceneHeader+0x10..+0x1f",
+      "header-reserved-fields",
+      "mesh-reserved-fields",
+      "source-image-for-preserve-layout"
+    ],
+    "writeModes": [
+      "preserve_layout",
+      "canonical_rebuild"
+    ],
+    "postWriteGate": "canonical-parser-reparse-required",
+    "sourceBoundAuthorityPolicy": "fail-closed-on-direct-mutation-of-undecoded-or-derived-source-bound-fields",
+    "sourceBoundUndecodedDiagnostic": "scm.writer-source-bound-undecoded-field-mutated",
+    "sourceBoundDerivedDiagnostic": "scm.writer-source-bound-derived-field-mutated",
+    "canonicalReflowUnknownBytePolicy": "fail-closed-on-nonzero-unmodeled-source-byte",
+    "canonicalReflowUnknownByteDiagnostic": "scm.writer-canonical-reflow-unmodeled-nonzero-source",
+    "safeEditApi": [
+      "set_vertex_position",
+      "set_vertex_normal",
+      "set_uv",
+      "set_uv_raw",
+      "set_texture_slot",
+      "set_alpha_control",
+      "set_texture_filter_nearest",
+      "set_region_repeat",
+      "set_node_translation",
+      "set_node_rotation"
+    ],
+    "textureCompanionCoherenceGate": "ScmResourceBundleWriter",
+    "corpusVerifierCommand": "dmc-rengine verify-scm-corpus <directory> [--json <report.json>]",
+    "corpusReportSchema": "dmc-rengine.scm-corpus-report.v1"
+  },
+  "realSpecimenBaseline": [
+    {
+      "name": "st001.scm",
+      "size": 887760,
+      "parse": "pass",
+      "preserveLayoutWrite": "pass",
+      "preserveLayoutByteIdentical": true,
+      "canonicalRebuild": "pass",
+      "canonicalReparse": "pass",
+      "canonicalByteIdentical": true
+    },
+    {
+      "name": "st114.scm",
+      "size": 1038816,
+      "parse": "pass",
+      "preserveLayoutWrite": "pass",
+      "preserveLayoutByteIdentical": true,
+      "canonicalRebuild": "pass",
+      "canonicalReparse": "pass",
+      "canonicalByteIdentical": true
+    }
+  ],
+  "consolidatedCorpusValidation": {
+    "receipt": "data/reverse/dmc3-scm-consolidated-corpus-20260909.json",
+    "scope": "external hash-bound retail corpus; payload bytes not distributed",
+    "paths": 78,
+    "uniqueSha256": 68,
+    "duplicatePaths": 10,
+    "parseOk": 78,
+    "preserveLayoutWriteOk": 78,
+    "preserveLayoutByteIdentical": 78,
+    "canonicalWriteAndReparseOk": 78,
+    "canonicalByteIdentical": 78,
+    "canonicalByteIdenticalPercent": 100.0
+  },
+  "syntheticSourceBoundAuthorityGate": {
+    "reservedHeaderMutationRejected": true,
+    "reservedHeaderOffset": 19,
+    "undecodedObjectFlagMutationRejected": true,
+    "undecodedObjectFlagMask": "0x00200000",
+    "directDerivedBoundingRadiusMutationRejected": true,
+    "undecodedDiagnostic": "scm.writer-source-bound-undecoded-field-mutated",
+    "derivedDiagnostic": "scm.writer-source-bound-derived-field-mutated"
+  },
+  "syntheticSizeChangingAcceptance": {
+    "initialVertexCount": 3,
+    "editedVertexCount": 4,
+    "preserveLayout": "rejected-as-required",
+    "canonicalRebuild": "pass",
+    "canonicalReparse": "pass",
+    "derivedMeshVertexCount": 4,
+    "derivedObjectTotalVertexCount": 4
+  },
+  "syntheticUnknownBytePreservationGate": {
+    "nonzeroPaddingOffset": 244,
+    "nonzeroPaddingByte": 165,
+    "preserveLayoutByteIdentical": true,
+    "layoutChangingCanonicalRebuild": "rejected-as-required",
+    "diagnostic": "scm.writer-canonical-reflow-unmodeled-nonzero-source"
+  },
+  "syntheticTextureCompanionCoherenceGate": {
+    "sourceFramingReparse": true,
+    "scmTextureCountMirrorRequired": true,
+    "meshTextureIndexBoundsRequired": true,
+    "unchangedCompanionBytesPreserved": true,
+    "textureSlotCountChangeRejected": true,
+    "retailTextureRewriteValidated": false
+  },
+  "maturity": {
+    "reader": "strong",
+    "writer": "experimental",
+    "fullCorpusNoEditRoundtrip": "pass-78-paths-68-unique",
+    "canonicalRebuildNoEditCorpusParity": "pass-78-paths-68-unique",
+    "sourceBoundMutationAuthority": "fail-closed-regression-covered",
+    "sizeChangingCanonicalRebuild": "synthetic-only",
+    "textureCompanionAuthoring": "bounded-coherence-implementation-retail-rewrite-pending",
+    "pacNbzReintegration": "pending-for-scm",
+    "originalGameAcceptance": "pending",
+    "registryPromotion": "blocked-on-runtime-acceptance-and-authoring-breadth"
+  },
+  "claimBoundary": "The consolidated hash-bound corpus proves 78/78 paths (68 unique SHA-256 SCM inputs) parse, preserve-layout no-op roundtrip and canonical no-op rebuild with exact byte identity and canonical reparse. Source-bound direct mutation of undecoded/derived fields and non-zero unmodeled reflow bytes fails closed in regression. Size-changing rebuild, texture-companion authoring breadth, PAC/NBZ reintegration and original dmc3.exe acceptance remain separate gates; no production-ready or 100% SCM claim is made."
+}

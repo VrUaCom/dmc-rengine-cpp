@@ -3,131 +3,76 @@
 **Date:** 2026-09-09  
 **Working branch:** `reverse/mod-completion-20260907`  
 **Evidence class:** `WRITER_GATE`  
-**Gate:** `WRITER_GATE_1_PRESERVE_LAYOUT`  
 **Canonical executable:** `dmc3.exe`  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
 
 ## Purpose
 
-This slice starts MOD authoring without reopening already-consolidated reverse work. It establishes a bounded, preservation-first writer over the existing canonical MOD parser and typed IR.
+MOD authoring now uses a bounded preservation-first writer over the canonical MOD parser and typed IR. This remains intentionally different from a rebuild-from-scratch serializer: the retained retail byte image is still physical layout authority, and unsupported structural or undecoded edits fail closed.
 
-It is intentionally **not** a canonical rebuild-from-scratch writer. The original serialized MOD image remains physical layout authority.
+The no-repeat frontier remains in force. New MOD work must advance writer/container/game evidence rather than reopen already-consolidated unknown-byte questions.
 
 ## Authority model
 
-The writer accepts two independent inputs:
+The writer requires both:
 
 1. a caller-owned immutable source byte image; and
-2. a parsed `formats::mod::Document` whose `source_bytes` were retained by the canonical parser.
+2. a parsed `formats::mod::Document` whose retained `source_bytes` match that image exactly.
 
-Before any output is produced, both byte images must match exactly. This prevents a caller from mutating `Document::source_bytes` together with typed fields and then treating the edited image as the preservation baseline.
+The source is reparsed before writing. Output is reparsed before success. A caller cannot mutate both `Document::source_bytes` and typed IR and then launder that edited image into the preserve-layout baseline.
 
-The immutable source is reparsed through the canonical MOD parser before writing. Output is reparsed through the same parser before success is returned.
+## Current writable fixed-layout fields
 
-## Current allowed fixed-layout edits
-
-The first gate permits only fields whose serialized spans are already typed and whose byte count does not change:
+The bounded writer permits only same-cardinality fields with already-promoted serialized spans:
 
 - object bounding center (`f32 x/y/z`);
 - object bounding radius (`f32`);
-- mesh positions (`float3`, existing element count only);
-- mesh normals (`float3`, existing element count only);
-- mesh UV values (`int16 u/v`, existing element count only).
+- mesh positions (`float3`);
+- mesh normals (`float3`);
+- mesh UV values (`int16 u/v`).
 
-These edits are in-place modifications of the retained physical layout. No offset/table/layout synthesis occurs.
-
-## Explicitly blocked in Gate 1
-
-The writer fails closed for:
-
-- header edits;
-- object/mesh cardinality changes;
-- record/table/stream offset changes;
-- stream size changes or reflow;
-- transform-domain edits;
-- skin-weight or blend-index edits;
-- packed control/topology edits;
-- texture-slot or GS CLAMP/material-state edits;
-- object source-flag / alpha-control edits;
-- generated workspace state edits;
-- unresolved/preservation-only fields including mesh `+0x0C`, `+0x38`, `+0x4C` and transform `+0x1C`;
-- any non-finite bounding, position or normal value.
+The writer still refuses header/cardinality/offset/reflow changes, transform-domain authoring, skin/blend/control authoring, texture/material/source-flag/alpha authoring, generated workspace changes and preservation-only fields such as mesh `+0x0C`, `+0x38`, `+0x4C` and transform `+0x1C`.
 
 ## Byte-preservation enforcement
 
-The writer starts from the immutable source image and constructs an explicit set of byte spans authorized to change for the requested Gate-1 edits.
+Output begins as a copy of the immutable source. The writer builds explicit authorized changed spans for requested typed edits and then compares the complete output against the source. Any changed byte outside an authorized span fails with `mod.writer.unauthorized-byte-change`.
 
-After serialization it compares every output byte against the immutable source. If any changed byte falls outside an authorized span, the write fails with `mod.writer.unauthorized-byte-change`.
-
-This is stronger than relying only on typed-field comparisons because it independently protects bytes that are not yet decoded by the MOD IR.
-
-## Write receipt
-
-Successful writes return a `WriteReceipt` containing:
-
-- source SHA-256;
-- output SHA-256;
-- byte count;
-- modified-byte count;
-- immutable-source / `Document::source_bytes` binding result;
-- unauthorized-byte preservation result;
-- output canonical reparse result;
-- no-edit byte-identical result.
-
-For a no-edit write:
-
-```text
-source SHA-256 == output SHA-256
-modified_byte_count == 0
-no_edit_byte_identical == true
-```
-
-For an authorized fixed-layout edit, the output hash may change, but every changed byte must belong to an explicitly authorized span and the output must reparse successfully.
+Successful `WriteReceipt` records source/output SHA-256, byte count, modified byte count, immutable-source binding, unauthorized-byte preservation, output reparse and no-edit byte identity.
 
 ## Regression gates
 
-`tests/mod_writer_tests.cpp` exercises:
+`tests/mod_writer_tests.cpp` covers:
 
-1. parse -> no-edit write -> exact byte parity;
-2. source/output SHA equality for no-edit output;
-3. controlled bounding-radius + position + UV edit and canonical reopen;
-4. unchanged bytes outside the exact edited spans;
-5. source-flag edit rejection;
-6. undecoded mesh-field edit rejection;
-7. stream-cardinality change rejection;
-8. transform edit rejection;
-9. retained `Document::source_bytes` tamper rejection against the external immutable source.
+1. exact no-edit parity;
+2. source/output SHA equality on no-edit;
+3. controlled bounding/position/UV edits;
+4. unchanged bytes outside exact edited spans;
+5. unsupported source-flag rejection;
+6. preservation-only mesh-field rejection;
+7. stream-cardinality rejection;
+8. transform-edit rejection;
+9. `Document::source_bytes` tamper rejection.
 
-The test is registered as `dmc_rengine_mod_writer_tests` in the normal Ubuntu/Windows CTest matrix.
+`tests/mod_writer_corpus_tests.cpp` and the CLI corpus runner separately cover deterministic recursive multi-file no-edit validation.
 
-## Provenance-bound retail corpus gate
+## Gate 1 — provenance-bound 38-file retail no-edit parity
 
-The merged corpus runner adds recursive, deterministic multi-file validation through:
+Canonical CLI:
 
 ```text
 dmc-rengine mod-writer-corpus <directory> [receipt.json]
 ```
 
-A canonical Linux runner was built by GitHub Actions from source commit:
+A GitHub-Actions-built Linux runner from source commit
+`b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348`
+(SHA-256 `d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae`)
+was run over 38 unique provenance-bound retail MODs:
 
-```text
-b9a3e91b1e7bd5ef23ff4f2a09f6c215b3936348
-```
+- 35 `em000`;
+- 2 `pl000`;
+- 1 `id100`.
 
-Runner SHA-256:
-
-```text
-d8f4c2afdd05f8238d4d8f4ae9593aa2aefa230a74b96a2d9ddb7387d004d5ae
-```
-
-The externally held, provenance-bound corpus contains 38 unique retail MOD files:
-
-- 35 recursively discovered from `em000-extract.zip`, archive SHA-256 `306130125f09824811289366324f4208c3c1aba880c5a7efa3953a88d566d07b`;
-- `pl000` slot 0001, 216544 bytes, SHA-256 `e219e89285604cb6d800b0afdd3bec6684a6b00cd1862d464a669d2861ff3c89`;
-- `pl000` slot 0012, 35696 bytes, SHA-256 `7a2be875b3702f59a607655f7a0a412801a6aea639dcb6e3b23d9b0a09c7e740`;
-- `id100_001_red_orb_counter`, 2304 bytes, SHA-256 `9cbbaba99fdd008e257258dfe87c5dfed7fae2a13c4b1c2b08d0e318f0213b90`.
-
-Canonical corpus result:
+Result:
 
 ```text
 MOD files          : 38
@@ -140,116 +85,167 @@ canonical reopen   : 38/38
 result             : PASS
 ```
 
-The raw generated receipt SHA-256 is:
+Raw receipt SHA-256:
 
 ```text
 f71ea812a1e2af7fbba1f0c16863618da10d50f9b459566e18b9c565822d9dc8
 ```
 
-The receipt was independently checked against the externally held source files: all 38 source hashes matched, every output hash equalled its source hash, and no receipt entry disagreed with its file bytes.
-
-Repository evidence deliberately contains hashes and receipts only, not copyrighted retail payload bytes:
+Independent source-file rehashing found zero receipt/hash mismatches. Repository evidence stores hashes and metadata only:
 
 - `data/reverse/dmc3-mod-writer-retail-38-attestation-20260909.json`;
 - `data/reverse/dmc3-mod-writer-retail-38-source-hashes-20260909.txt`.
 
-## Controlled retail fixed-layout edit gate
+## Gate 2 — controlled real-retail fixed-layout edit
 
-The bounded CLI command:
+The bounded command:
 
 ```text
 dmc-rengine mod-writer-set-bounding-radius <input.mod> <object-index> <radius> <output.mod> [receipt.json]
 ```
 
-was run against provenance-bound retail `em000_021.mod` using a Linux `dmc-rengine` artifact built from source commit:
+was executed against provenance-bound `em000_021.mod` with a Linux runner built from source commit
+`8ddd5c2acd455b12ed1f67b9af30571d5e9634be`
+(runner SHA-256 `a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8`).
+
+Result:
 
 ```text
-8ddd5c2acd455b12ed1f67b9af30571d5e9634be
-```
-
-Runner SHA-256:
-
-```text
-a308a428b0d4e6ac54080a6d58cf9e98f2f6e303b7849c22370c7671cd1d7eb8
-```
-
-The experiment edited only `object[0].bounding_radius`:
-
-```text
-source file         : em000_021.mod
-source size         : 592 bytes
+source size         : 592
 source SHA-256      : 03c18bd75452b0419b398b48d7ef436bb4b2c4c797dae865c6823f8225205f74
-old radius          : 0.6208532452583313
-new radius          : 0.625
-serialized span     : [124, 128)
-changed byte offsets: [124, 125, 126]
-modified byte count : 3
+field               : object[0].bounding_radius
+old value           : 0.6208532452583313
+new value           : 0.625
+serialized span     : [124,128)
+changed offsets     : [124,125,126]
+modified bytes      : 3
 output SHA-256      : d074416967a163bbfb2707310141357b88b315c4359fbef69d7c63d2ce3c7f86
-result              : PASS
+disk reopen         : PASS
 ```
 
-The command itself proved that all changed bytes were inside the exact four-byte serialized radius span, writer unauthorized bytes were unchanged, writer output reparsed, disk bytes matched the writer output, the disk SHA matched the writer receipt, and the disk output reopened with the requested radius.
-
-An independent post-run check then recomputed the source/output hashes and the raw byte diff without using the writer code. It found exactly zero-based offsets `124, 125, 126`, confirmed every other byte was unchanged, decoded the source radius as `0.6208532452583313`, decoded the output radius as `0.625`, and matched the command receipt hashes and offsets exactly.
-
-Raw controlled-edit receipt SHA-256:
+Independent raw-byte comparison found exactly the same three changed offsets and every other byte identical. Raw controlled-edit receipt SHA-256:
 
 ```text
 896def2d5f6fc21fb8a0653542dae8e4dea536f138ec6f567c2c81345f3ef761
 ```
 
-Machine-readable attestation:
+Machine attestation:
 
 - `data/reverse/dmc3-mod-controlled-retail-edit-attestation-20260909.json`.
 
-This promotes only a tightly scoped real-retail fixed-layout edit result. It does not grant arbitrary retail mutation authority.
+This proves one tightly scoped retail mutation, not arbitrary MOD authoring.
 
-## Container reintegration relation
+## Gate 3 — writer result to generic container architecture
 
-The separate `CONTAINER_REINTEGRATION_GATE_1` pass adds a fail-closed `ModAuthoredChildBridge` and a synthetic PAC round-trip regression using the existing generic `NestedRelativeSlotReintegrator`. See:
+PR #369 adds `ModAuthoredChildBridge`, a fail-closed format-specific trust boundary into the existing generic `AuthoredChildImage` / `NestedRelativeSlotReintegrator` path.
+
+The bridge independently validates source bytes, `ResourceId.size`, canonical source parse, `WriteResult`, receipt validity, source/output hashes, same-size output and canonical output reparse. It preserves the exact child `ResourceId` rather than inferring physical slot identity from naming.
+
+`tests/mod_authored_child_bridge_tests.cpp` proves a controlled same-size MOD edit can travel through this bridge into a synthetic PAC, then reparse/re-expand and recover exact authored child bytes. Tampered writer output and container-marked child laundering are rejected.
+
+This synthetic regression proves architecture and trust-boundary behavior; it is no longer the highest container evidence gate.
+
+## Gate 4 — provenance-bound real retail PNST reintegration
+
+A retained source package:
+
+```text
+DMC_Rengine_Item_Editor_Phase4_source.zip
+SHA-256: 400954e637342f8036879120d1a3845f3d74077a9844fcfad643421180602d57
+```
+
+contains the raw parent and extracted child pair:
+
+```text
+analysis_inputs/stage_drops/m20_s00/m20_s00_012.pac
+analysis_inputs/stage_drops/m20_s00/m20_s00_012/m20_s00_012_023.mod
+```
+
+Canonical `list-container` detected the raw `.pac` bytes as **PNST**, not PAC0:
+
+```text
+parent source bytes  : 346272
+parent source SHA    : a09898bbf73d944f9f52a1de13a3bce0eebb90726947248bf35085f52df15be8
+slots                : 33
+fully expanded       : yes
+```
+
+The source child SHA
+`096f2e8b81dd55a450b15defeb52345626156010c8fb70f3ab5f540d52b447ce`
+was located by canonical expansion at physical slot 23, offset 129280, size 1888. The suffix `_023` was not used as authority; exact expanded bytes + SHA bound the physical slot.
+
+A controlled edit changed only:
+
+```text
+object[0].bounding_radius: 4.321839332580566 -> 4.5
+local changed offsets: [124,125,126]
+authored child SHA-256: 94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33
+```
+
+The existing `rebuild-relative-slot` command replaced physical slot 23 and returned `VERIFIED`:
+
+```text
+rebuilt parent bytes : 346272
+rebuilt parent SHA   : 78c002cc62dd235a7f95f16b3e53fd1588d8f4e8b917400e8f4471eff48d9e8e
+slot 23 offset       : 129280
+slot 23 size         : 1888
+reopened child SHA   : 94bcb6189435ca283c58be698ba1f4caa68663af46f6dc42c96c89db5c003f33
+reopened radius      : 4.5
+```
+
+An independent full-parent raw byte diff found only:
+
+```text
+[129404,129405,129406]
+```
+
+which equals:
+
+```text
+physical slot offset 129280 + local child changes [124,125,126]
+```
+
+Therefore the PNST header/table, parent size, physical slot identity/offset/size and all other slot bytes remained unchanged. The reopened extracted child is byte-for-byte identical to the authored MOD.
+
+Machine attestation:
+
+- `data/reverse/dmc3-mod-retail-pnst-reintegration-attestation-20260909.json`.
+
+Detailed container evidence:
 
 - `docs/research/dmc3-mod-pac-reintegration-gate-2026-09-09.md`;
 - `data/reverse/dmc3-mod-pac-reintegration-gate-20260909.json`.
 
-That gate proves the architecture for writer-receipt-to-container reintegration on a synthetic PAC. It does not yet promote retail PAC/PNST reintegration.
+## Current evidence status
 
-## Evidence status
+Established:
 
-This gate now establishes:
+- 38/38 provenance-bound retail no-edit byte parity and canonical reopen;
+- source/output preservation enforced independently of mutable typed IR;
+- bounded synthetic fixed-layout authoring regressions;
+- one provenance-bound real-retail exact-span MOD edit;
+- fail-closed MOD writer-result -> generic authored-child trust bridge;
+- synthetic PAC reintegration through existing Layer-1 infrastructure;
+- **provenance-bound real retail PNST reintegration**, with physical slot identity preserved and full-parent bytes unchanged outside the controlled child edit.
 
-- `parse -> write(no-op) -> reparse` exact byte parity across the complete provenance-bound 38-file MOD corpus;
-- `38/38` canonical parser acceptance before writing;
-- `38/38` preserve-layout writer success;
-- `38/38` exact source/output SHA equality;
-- `38/38` canonical output reopen;
-- zero modified bytes across 882736 source bytes;
-- source-preservation enforced independently of the mutable typed document;
-- bounded fixed-size promoted fields writable under the synthetic controlled-edit regression gate;
-- one provenance-bound real retail MOD bounding-radius edit with an independently verified exact changed-byte span and canonical disk reopen;
-- a separate synthetic PAC reintegration path through the existing generic authored-child/container architecture.
+Still not established:
 
-This gate still does **not** establish:
-
-- canonical layout planning from typed IR alone;
-- arbitrary model editing;
-- transform authoring;
-- skin authoring;
-- material/texture binding authoring;
-- texture companion rewriting/coherence;
-- provenance-bound retail PAC/PNST reintegration of MOD writer output;
-- NBZ reintegration/reopen of the edited resource chain;
-- original `dmc3.exe` acceptance of a no-op rebuilt MOD;
-- original `dmc3.exe` acceptance of an edited MOD;
+- canonical layout planning/rebuild from typed IR alone;
+- arbitrary MOD editing;
+- transform, skin, material/source-flag or texture-domain authoring;
+- texture-companion writer/coherence authority;
+- PAC0-family retail MOD-child reintegration coverage;
+- NBZ overlay/reopen acceptance for the edited retail root resource;
+- original `dmc3.exe` no-edit or edited acceptance;
 - Capcom authoring-tool equivalence;
 - a `100% MOD writer` claim.
 
 ## Next evidence frontier
 
-The next useful MOD work must remain inside the no-repeat frontier and advance one of these gates:
+The next non-repeating MOD authoring gates are now:
 
-1. provenance-bound retail PAC/PNST reintegration of a writer-validated same-size MOD child;
-2. root-resource emission through the existing NBZ overlay path followed by canonical NBZ reopen;
-3. original `dmc3.exe` acceptance of a no-edit resource chain;
-4. original `dmc3.exe` acceptance of the tightly controlled edited resource chain.
+1. feed the verified rebuilt retail root resource into the existing NBZ overlay path and require canonical NBZ reopen/rematerialization;
+2. run original `dmc3.exe` acceptance first on an unchanged/no-edit chain and then on the tightly controlled edited chain;
+3. optionally add a provenance-bound PAC0-parent MOD-child experiment for container-family coverage if that coverage becomes necessary.
 
-Do not return to previously consolidated hierarchy, skin-packing, header `+0x14`, bit21 or zero-field reverse passes unless a genuinely new consumer, producer, corpus contradiction or game experiment appears.
+Do not return to hierarchy, skin packing, header `+0x14`, bit21 or zero-field reverse work unless a genuinely new consumer, producer, corpus contradiction or game experiment appears.
