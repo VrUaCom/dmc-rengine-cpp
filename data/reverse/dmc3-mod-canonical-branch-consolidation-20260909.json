@@ -1,0 +1,110 @@
+{
+  "schema": "dmc-rengine.mod-branch-consolidation.v3",
+  "date": "2026-09-09",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "canonicalExecutable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "canonicalWorkingBranch": "reverse/mod-completion-20260907",
+  "checkpointBeforeManifest": {
+    "mainAndCanonicalBranchIdentical": true,
+    "commit": "913bfc0c06816e1d8b909ebda62f5f13d7855f39",
+    "sourcePr": 360
+  },
+  "auditCoverage": {
+    "nameMatchedModBranches": 33,
+    "additionalMixedHistoricalBranches": 5,
+    "totalReviewedRefs": 38
+  },
+  "policy": {
+    "newModBranchesByDefault": false,
+    "mergeStaleHistoryWholesale": false,
+    "aheadCountAloneAuthorizesSalvage": false,
+    "requireNewEvidenceClassForRepeatReverse": true
+  },
+  "branches": [
+    {"name":"reverse/mod-completion-20260907","class":"CANONICAL_ACTIVE"},
+    {"name":"mod-skin","class":"FULLY_SUBSUMED"},
+    {"name":"mod-texture-state","class":"FULLY_SUBSUMED"},
+    {"name":"ada/real-mod-shw-payload-binding-20260901","class":"FULLY_SUBSUMED"},
+    {"name":"agent/source-modification-integration","class":"FULLY_SUBSUMED_RELATED_INFRASTRUCTURE"},
+    {"name":"fix/mod-shared-mesh-fields","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-animation-binding-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-canonical-consolidation-20260906","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-header-core-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-mesh-preservation-skin-abi-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-motion-group-em000-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-object-core-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-object-runtime-projection-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-runtime-postload-20260906","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-skin-palette-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/mod-texture-binding-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/model-family-native-reader-v2","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/model-texture-companion-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"integrate/model-texture-runtime-descriptor-20260907","class":"FULLY_SUBSUMED"},
+    {"name":"reverse/mod-header-0x14","class":"FULLY_SUBSUMED"},
+    {"name":"tmp-rebase-mod-default-joint-index","class":"FULLY_SUBSUMED_TEMP"},
+    {"name":"mod-skin-reverse","class":"SUPERSEDED_DO_NOT_RESEARCH_FROM","supersededByPr":305},
+    {"name":"research/mod-world-transform-exe-proof","class":"SUPERSEDED_DO_NOT_RESEARCH_FROM","supersededByPr":305},
+    {"name":"research/mod-world-transform-exe-proof-v2","class":"SUPERSEDED_DO_NOT_RESEARCH_FROM","supersededByPr":305},
+    {"name":"model-family","class":"MIXED_STALE_DO_NOT_MERGE"},
+    {"name":"model-family-reader-hardening","class":"SUPERSEDED_DO_NOT_MERGE","supersededByPr":305,"closedPr":284},
+    {"name":"integrate/mod-default-joint-index-20260907","class":"PATCH_EQUIVALENT_SUBSUMED"},
+    {"name":"integrate/mod-motion-group-em000-20260907-v2","class":"PATCH_EQUIVALENT_SUBSUMED"},
+    {"name":"integrate/model-family-native-reader","class":"STALE_JUNK_DO_NOT_SALVAGE","note":"reported branch-only current diff was empty README.tmp"},
+    {"name":"architecture/modular-format-architecture-20260907","class":"RELATED_POLICY_ONLY"},
+    {"name":"site/mod-native-lessons","class":"RELATED_PRESENTATION_ONLY"},
+    {"name":"site/mod-lesson-live-acceptance","class":"RELATED_PRESENTATION_ONLY"},
+    {"name":"refactor/native-reader-modular-main","class":"RELATED_INFRASTRUCTURE_ONLY"},
+    {"name":"claude/rengine-cpp-analysis-review-541wxb","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":280,"note":"early EFM/MOD/MOT/PTX/SHW parser package; reconcile non-MOD slices separately"},
+    {"name":"claude/android-gds-app-msiuu8","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":254,"note":"animation/naming/content-tag reverse; current MOD receipts override overlapping MOD claims"},
+    {"name":"agent/wave3-runtime-execution-v2","class":"MIXED_HISTORICAL_MOD_SOURCE_DO_NOT_SALVAGE_MOD","pr":89,"note":"early recovered MOD/EFM post-load; later canonical MOD runtime-postload promotion supersedes MOD slice"},
+    {"name":"agent/vanilla-runtime-wave3-integration","class":"HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD","pr":79,"note":"broad Wave-3 runtime model with typed MOD/EFM/SCM/SHW/PNST post-load context; mixed observations are provisional"},
+    {"name":"agent/issue55-stage-row-runtime-resolution","class":"HISTORICAL_RUNTIME_CONTEXT_ONLY_FOR_MOD","pr":74,"note":"Stage/resource runtime stack with typed MOD/EFM/SCM/SHW helper identities; not a MOD format source"}
+  ],
+  "closedBaselineDomains": [
+    "0x40 document header / 0x40 object / 0x50 mesh structural shell",
+    "position normal fixed-point UV blend-index packed-weight stream framing",
+    "hierarchy local/world transform propagation",
+    "inverse-rest/current-world skin palette",
+    "skin weight packing and topology-break decoding",
+    "runtime topology workspace generation",
+    "texture slot companion count runtime descriptor and GS CLAMP chain",
+    "header +0x13 default joint selector",
+    "header +0x14 raw runtime-carried u32 with universal decimal MOD semantic rejected",
+    "object core alpha flags and bounding sphere",
+    "source flag 0x00100000 technical GS alpha/depth state",
+    "motion-group and animation-binding ownership boundary",
+    "mesh +0x0C/+0x38/+0x4C preservation contracts",
+    "transform +0x1C preservation contract",
+    "BLENDINDICES.x canonical-path non-consumption boundary"
+  ],
+  "doNotRepeatWithoutNewEvidence": [
+    "mod-skin/world-transform rediscovery",
+    "0x40/0x40/0x50 shell rediscovery",
+    "same skin-weight bit-packing reverse",
+    "header +0x14 decimal decomposition",
+    "raw +0x18/+0x14 global displacement searches without owner provenance",
+    "already audited bit21 GS/material helper paths",
+    "same-offset SCM/EFM semantic transfer into MOD",
+    "zero histograms for already bounded fields without a new corpus class or writer experiment"
+  ],
+  "acceptedNewWorkClasses": [
+    "NEW_CONSUMER",
+    "NEW_PRODUCER",
+    "NEW_CORPUS_CLASS",
+    "WRITER_GATE",
+    "GAME_ACCEPTANCE",
+    "CONTRADICTION"
+  ],
+  "priorityFrontier": [
+    "writer/authoring no-op byte parity and deterministic layout",
+    "undecoded-byte preservation under serialization",
+    "controlled mutation and reopen/reparse validation",
+    "texture companion and PAC/PNST/NBZ reintegration",
+    "original dmc3.exe no-op rebuilt MOD acceptance",
+    "provenance-confirmed remaining runtime +0x18 retained-pointer consumers",
+    "node-domain secondary provenance only after raw owner proof"
+  ]
+}
