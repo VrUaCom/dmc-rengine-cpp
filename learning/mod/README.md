@@ -68,6 +68,18 @@ NBZ / PAC / PNST
 - mesh `+0x38` — family-sensitive slot: inactive в audited MOD path, але homologous EFM slot live як COLOR0;
 - mesh `+0x0C/+0x4C` і transform `+0x1C` — preserved undecoded, не padding лише тому, що bound corpus zero.
 
+## Що змінив writer pass 2026-09-09
+
+MOD більше не є суто read-only authoring surface. Канонічно promoted:
+
+- **Preserve-Layout Writer Gate 1** (#365): writer починає з immutable source image, повторно парсить source, дозволяє лише явно авторизовані fixed-size byte spans, перевіряє unauthorized-byte preservation і повторно відкриває результат;
+- deterministic writer corpus runner (#367);
+- provenance-bound retail no-op parity (#368): **38/38** MOD файлів parse -> preserve-layout write -> exact byte equality -> canonical reopen, 882,736 source bytes, 0 modified bytes, 0 failures;
+- один provenance-bound real retail edit (#369): `em000_021.mod`, `object[0].bounding_radius`, serialized span `[124,128)`, рівно 3 змінені байти, усі інші байти preserved, disk SHA/reread/reopen PASS;
+- `ModAuthoredChildBridge` + synthetic PAC reintegration/reopen regression (#369).
+
+Це **bounded writer authority**, а не unrestricted writer.
+
 ## Ключове правило
 
 Не змішуй чотири різні речі:
@@ -77,12 +89,14 @@ NBZ / PAC / PNST
 - **semantic name** — що поле означає для автора/движка;
 - **writer authority** — чи доведено, що ми можемо безпечно генерувати/редагувати його.
 
-Reader success не означає writer authority. Однаковий offset у SCM/MOD/EFM не означає однакову семантику. Runtime image не можна просто записати назад як serialized MOD.
+Reader success не означає writer authority. Bounded preserve-layout writer success не означає rebuild-from-scratch authority. Однаковий offset у SCM/MOD/EFM не означає однакову семантику. Runtime image не можна просто записати назад як serialized MOD.
 
 ## Canonical code entry points
 
 - `include/dmc_rengine/formats/mod.hpp`
 - `src/formats/mod.cpp`
+- `include/dmc_rengine/formats/mod_writer.hpp`
+- `include/dmc_rengine/formats/mod_writer_corpus.hpp`
 - `include/dmc_rengine/formats/mod_skin.hpp`
 - `include/dmc_rengine/formats/mod/transform_domain.hpp`
 - `include/dmc_rengine/formats/mod/world_transform.hpp`
@@ -100,4 +114,6 @@ Reader success не означає writer authority. Однаковий offset �
 
 Read/reverse підтримка MOD сильна й evidence-backed. Spatial hierarchy, skin ABI, inverse-rest palette, texture binding, MOD-side animation binding і кілька legacy renderer-state semantics канонізовані або суттєво звужені.
 
-Але **production MOD writer**, broad no-edit byte parity, safe mutation rules, deterministic rebuild/reintegration і original-game edited-MOD acceptance ще не закриті. До проходження цих gates сайт і курс не мають права називати MOD “100% reversed” або довільно editable.
+Також уже закриті **38-file provenance-bound no-op byte parity** і вузький Preserve-Layout Writer Gate 1 для fixed-size authoring поверх original layout.
+
+Ще **не** закриті full production MOD writer authority, layout synthesis/reflow або rebuild from typed IR alone, transform/skin/material/texture-companion authoring, broader safe mutation rules для preserved-undecoded fields, provenance-bound retail PAC/PNST reintegration, NBZ acceptance і original-game authored-MOD acceptance. До проходження цих gates сайт і курс не мають права називати MOD “100% reversed” або довільно editable.
