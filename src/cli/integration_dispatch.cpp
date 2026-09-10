@@ -8,6 +8,7 @@
 #include "relative_slot_commands.hpp"
 #include "scm_authoring_commands.hpp"
 #include "scm_rotation_authoring_commands.hpp"
+#include "scm_vertex_authoring_commands.hpp"
 #include "scm_corpus_commands.hpp"
 
 #include <filesystem>
@@ -32,6 +33,7 @@ void print_integration_help() {
     print_hits_help();
     print_scm_authoring_help();
     print_scm_rotation_authoring_help();
+    print_scm_vertex_authoring_help();
     print_scm_corpus_help();
 }
 
@@ -77,6 +79,12 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_scm_rotation_authoring_command(argc, argv);
     if (scm_rotation_authoring_result != -1) {
         return scm_rotation_authoring_result;
+    }
+
+    const auto scm_vertex_authoring_result =
+        try_run_scm_vertex_authoring_command(argc, argv);
+    if (scm_vertex_authoring_result != -1) {
+        return scm_vertex_authoring_result;
     }
 
     const auto scm_authoring_result = try_run_scm_authoring_command(argc, argv);

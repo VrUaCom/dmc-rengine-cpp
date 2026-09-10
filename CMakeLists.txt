@@ -134,6 +134,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod_authored_child_bridge
         mod_skin
         scm_writer
+        scm_vertex_authoring
         scm_transform_inverse
         mot
         mot_key_decode
@@ -311,6 +312,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)
     add_test(NAME dmc_rengine_cli_integration_status COMMAND dmc-rengine integration-status)
+    add_test(
+        NAME dmc_rengine_cli_scm_set_vertex_position_usage
+        COMMAND dmc-rengine scm-set-vertex-position)
+    set_tests_properties(
+        dmc_rengine_cli_scm_set_vertex_position_usage
+        PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_mod_writer_corpus_usage
         COMMAND dmc-rengine mod-writer-corpus)
