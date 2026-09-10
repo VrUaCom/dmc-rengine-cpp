@@ -29,6 +29,7 @@ OpenRouter::OpenRouter() {
     set_route("shw", ToolTarget::modviz_scene);
     set_route("dds", ToolTarget::modviz_scene);
     set_route("ptx", ToolTarget::modviz_scene);
+    set_route("wrapped-dds", ToolTarget::modviz_scene);
     set_route("cam", ToolTarget::stage_ops);
     set_route("dca", ToolTarget::stage_ops);
     set_route("lig", ToolTarget::stage_ops);

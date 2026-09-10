@@ -399,6 +399,20 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "wrapped-dds",
+            .parser_id = "formats.ptx-dmc3-reader",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = true,
+            .stage_category = gdspaces::StageResourceCategory::textures,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "A texture slot's second framing: one 0x70 descriptor and the DDS it describes, with no bundle header in front. Read by the same TextureSlotFramingParser as a PTX bundle, and reported as its own format because it is not one.",
+                "Carries no magic; identity is the descriptor's declared dimensions, row bytes and reciprocals agreeing with the DDS behind them.",
+                "Bound by the complete em000 extraction (source archive SHA-256 3061301250...66d07b), where it accepts 8 payloads of 306.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "mot",
             .parser_id = "formats.mot-structural-v1",
             .maturity = IntegrationMaturity::structural,
