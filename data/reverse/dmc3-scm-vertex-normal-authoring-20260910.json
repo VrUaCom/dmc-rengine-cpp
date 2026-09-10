@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "format": "SCM",
+  "topic": "vertex-normal-authoring",
+  "date": "2026-09-10",
+  "evidenceStatus": "STRUCTURAL_CONFIRMED",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "branch": "reverse/mod-completion-20260907",
+  "baselineMain": "c689d5e439b0cd81bdfed2506ca09e3a1692a7ee",
+  "sourceEvidence": {
+    "kind": "synthetic-test-fixture",
+    "proprietaryPayloadCommitted": false,
+    "realRetailPayloadAvailableInConnectedSurface": false
+  },
+  "serializedDomain": {
+    "offsetExpression": "mesh.normals_offset + vertex_index * 12",
+    "width": 12,
+    "encoding": "float32-le x3"
+  },
+  "authoringPolicy": {
+    "name": "PRESERVE_AUTHORED_COMPONENTS",
+    "typedEditApi": "set_vertex_normal",
+    "finiteComponentsRequired": true,
+    "normalizesAuthoredVector": false,
+    "recalculatesFromGeometry": false
+  },
+  "guards": {
+    "preserveLayoutRequired": true,
+    "exactExpectedImageRequired": true,
+    "allChangedBytesInsideSelectedNormalRecord": true,
+    "canonicalReparseRequired": true,
+    "publication": "publish_bytes_no_replace",
+    "existingOutputFailsClosed": true
+  },
+  "syntheticAcceptance": {
+    "isolatedNormalEdit": true,
+    "expectedImageEqualsWriterOutput": true,
+    "inverseRestoresExactSource": true,
+    "boundingRadiusRemainsSourceIdentical": true,
+    "nonFiniteRejected": true,
+    "outOfRangeRejected": true,
+    "existingOutputReplayPreservesFirstOutput": true
+  },
+  "promotionBoundary": {
+    "realCorpusNormalAuthoring": false,
+    "normalizationPolicy": false,
+    "recalculationPolicy": false,
+    "pacReintegration": false,
+    "retailNbzAcceptance": false,
+    "vanillaDmc3ExeAcceptance": false,
+    "genericScmWriterAuthority": false
+  },
+  "nextRequiredEvidence": [
+    "provenance-bound real SCM payload",
+    "bounded real normal edit",
+    "exact serialized diff",
+    "canonical SCM reparse",
+    "PAC reintegration and reopen/extract",
+    "inverse exact restoration or source-image rollback"
+  ]
+}
