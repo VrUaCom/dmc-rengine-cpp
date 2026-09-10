@@ -4,7 +4,15 @@
 
 Канонічний executable: `dmc3.exe`, SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`.
 
-## Поточний evidence baseline
+## Статус курсу
+
+**MOD reverse complete for the canonical DMC3 HD scope.**
+
+Це означає, що всі домени serialized/runtime контракту мають термінальний evidence-статус: typed semantic, preservation-only terminal state, reserved observation або rejected hypothesis. `PRESERVED_UNDECODED` більше не трактується як «ще не дореверсили» — це навмисна фінальна класифікація там, де сильнішої семантичної назви доказів немає.
+
+Окремо продовжується writer/authoring/integration acceptance. Reverse completeness не означає unrestricted writer.
+
+## Evidence baseline
 
 ```text
 38 unique MOD
@@ -55,14 +63,31 @@ NBZ / PAC / PNST
      GPU renderer
 ```
 
-## Що змінив reverse closure 2026-09-09
+## Що закрито reverse
+
+Канонічно закриті:
+
+- document/object/mesh ABI;
+- hierarchy/order domain;
+- local/world transforms;
+- default joint behavior;
+- skin indices/packed weights;
+- topology generation;
+- texture slot + legacy GS CLAMP;
+- texture companion/runtime descriptor binding;
+- object runtime projection;
+- MOD-side animation-binding boundary;
+- post-load relocation;
+- preservation policy для всіх непідтверджених семантичних назв.
+
+Ключові closure outcomes:
 
 - header `+0x14` — raw runtime-carried `u32`; universal decimal family/model/sub-index interpretation для MOD **REJECTED**;
 - `BLENDINDICES.x` — preserved ABI byte; canonical compiled shader path читає Y/Z/W;
 - source flag `0x00100000` — EXE-confirmed legacy GS TEST/ZBUF selector без вигаданого material label;
-- source flag `0x00200000` — runtime-carried/restored, terminal semantic ще open;
-- mesh `+0x38` — inactive в audited MOD path, але homologous EFM slot live;
-- mesh `+0x0C/+0x4C` і transform `+0x1C` — preserved undecoded.
+- source flag `0x00200000` — runtime-carried/restored terminal preservation state;
+- mesh `+0x38` — family-sensitive: inactive в audited MOD path, homologous EFM slot live;
+- mesh `+0x0C/+0x4C` і transform `+0x1C` — explicit source-preservation terminal states.
 
 ## Що вже доведено як writer/container chain
 
@@ -73,7 +98,7 @@ NBZ / PAC / PNST
 - provenance-bound retail no-op parity (#368): **38/38**, 882,736 bytes, exact byte equality, 0 modified bytes, 0 failures;
 - один provenance-bound real retail edit (#369): `em000_021.mod`, `object[0].bounding_radius`, span `[124,128)`, рівно 3 changed bytes, решта preserved;
 - writer receipt -> `AuthoredChildImage` trust bridge + synthetic PAC reintegration (#369);
-- provenance-bound **real retail PNST reintegration** (#372): `m20_s00_012.pac`, 33 slots, target physical slot 23, parent size unchanged, slot table unchanged, лише 3 expected child bytes змінені, canonical reopen повертає exact authored MOD;
+- provenance-bound **real retail PNST reintegration** (#372): `m20_s00_012.pac`, physical slot 23, parent size unchanged, slot table unchanged, only expected child bytes changed, canonical reopen returns exact authored MOD;
 - synthetic **MOD -> container -> NBZ overlay -> reopen** (#372) через існуючі NBZ writer/source компоненти.
 
 Це сильна bounded authoring chain, але не unrestricted writer і не original-game acceptance.
@@ -82,14 +107,15 @@ NBZ / PAC / PNST
 
 Не змішуй:
 
+- **reverse completeness**;
 - **serialized layout**;
 - **runtime behavior**;
-- **semantic name**;
+- **semantic naming**;
 - **writer authority**;
 - **container reintegration authority**;
 - **original-game acceptance**.
 
-Reader success не означає writer authority. Preserve-layout writer не означає typed-IR-only rebuild. Retail PNST reintegration не означає, що original resolver вибрав authored NBZ. Synthetic NBZ reopen не означає original `dmc3.exe` acceptance.
+MOD reverse already complete. Writer and original-runtime acceptance are separate programs.
 
 ## Canonical code entry points
 
@@ -108,8 +134,15 @@ Reader success не означає writer authority. Preserve-layout writer не
 - `include/dmc_rengine/analysis/mod/animation_binding.hpp`
 - `include/dmc_rengine/analysis/mod/texture_binding.hpp`
 
-## Поточна межа
+## Що залишається після reverse completion
 
-Ще **не** закриті full production MOD writer authority, layout synthesis/reflow або typed-IR-only rebuild, transform/skin/material/texture-companion authoring, broader mutation authority, provenance-bound **retail NBZ** overlay acceptance та original-game authored-MOD acceptance.
+Це вже не MOD reverse backlog:
 
-До проходження цих gates сайт і курс не мають права називати MOD “100% reversed”, “full writer” або довільно editable.
+- typed-IR-only layout synthesis/reflow;
+- transform/skin/material authoring;
+- texture-companion rewriting;
+- broader mutation authority;
+- provenance-bound retail NBZ acceptance;
+- original-game authored-MOD acceptance and rollback.
+
+Сайт і курс можуть називати MOD **reverse complete / fully reverse-engineered within the canonical DMC3 HD scope**, але не `full writer` або arbitrary original-game-safe editing.

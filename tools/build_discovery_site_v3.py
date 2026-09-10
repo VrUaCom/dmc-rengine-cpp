@@ -51,41 +51,55 @@ def _append_related(page: dict, path: str, label: str) -> None:
 
 
 def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
+    mod_format = by_path["/formats/mod/"]
+    mod_format["summary"] = (
+        "The DMC3 HD MOD reverse is complete for the canonical project scope: serialized layout, "
+        "runtime-facing behavior and preservation boundaries have terminal evidence states. Writer, "
+        "retail NBZ and original-game acceptance remain separate capability gates."
+    )
+
     inspect_mod = by_path["/guides/inspect-mod/"]
     inspect_mod["description"] = (
-        "DMC3 MOD viewer and bounded preserve-layout writer guide for hierarchy, meshes, "
-        "skinning, fixed-layout edits, retail PNST reintegration and evidence boundaries."
+        "DMC3 MOD reverse-complete viewer and bounded preserve-layout writer guide covering the "
+        "canonical model contract, retail PNST reintegration and remaining authoring gates."
     )
     inspect_mod["summary"] = (
-        "Open and inspect DMC3 MOD model files through the canonical reader, then use the "
-        "promoted Preserve-Layout Writer Gate 1 only for its proven fixed-size edit surface. "
-        "The writer preserves the original physical layout, protects unauthorized bytes and "
-        "passes a provenance-bound 38/38 no-edit retail corpus gate. A same-size authored MOD "
-        "also has provenance-bound real retail PNST reintegration, while retail NBZ selection "
-        "and original-game edited-MOD acceptance remain separate proof gates."
+        "Open and inspect DMC3 MOD files through the completed canonical reverse contract. Every "
+        "relevant serialized/runtime domain has a terminal evidence state, including deliberate "
+        "PRESERVED_UNDECODED outcomes where stronger semantic names are not proven. Preserve-Layout "
+        "Writer Gate 1 and real retail PNST reintegration are separate bounded authoring capabilities; "
+        "retail NBZ selection and original-game acceptance remain open."
     )
     inspect_mod["sections"] = [
         {
-            "heading": "Reader plus preserve-layout writer Gate 1",
+            "heading": "MOD reverse complete",
             "items": [
-                "The canonical MOD reader exposes document/object/mesh structure, hierarchy and transforms, texture-facing relationships, runtime topology evidence, inverse-rest ownership and packed skinning data for structural and pose-aware inspection.",
-                "Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and authorizes only fixed-size edits to already-typed spans: object bounding center/radius plus existing mesh positions, normals and UV values.",
-                "The writer does not synthesize offsets, tables or stream layout; it independently checks every changed byte against the authorized spans and reparses the output through the canonical MOD parser before reporting success."
+                "The canonical DMC3 HD MOD reverse is complete: document/object/mesh ABI, hierarchy and ordering, local/world transforms, skinning, topology, texture binding, runtime object projection, post-load relocation and the MOD-side animation boundary all have evidence-backed terminal states.",
+                "Reverse completeness does not require speculative artistic names. PRESERVED_UNDECODED, RESERVED_OBSERVED_ZERO and REJECTED are valid terminal outcomes when the strongest evidence supports preservation, bounded zero observation or rejection rather than a stronger semantic label.",
+                "Header +0x14, BLENDINDICES.x, source flag 0x00200000, mesh +0x0C/+0x38/+0x4C and transform +0x1C therefore no longer represent open MOD reverse work; their preservation/family-sensitive boundaries are the closed result."
             ],
         },
         {
-            "heading": "What the writer and container gates prove",
+            "heading": "Preserve-layout writer and retail PNST gate",
             "items": [
-                "The provenance-bound no-edit corpus gate passes 38/38 retail MOD files with exact source/output SHA equality, zero modified bytes across 882,736 source bytes and 38/38 canonical reopen.",
-                "PR #372 proves provenance-bound real retail PNST reintegration for the same-size authored MOD child: parent size and slot table remain unchanged, only the three expected child bytes change, and canonical reparse/re-expand returns the exact writer output.",
-                "A synthetic MOD -> container -> NBZ overlay -> reopen chain is also proven, but provenance-bound retail NBZ selection, original dmc3.exe consumption, unrestricted transform/skin/material authoring and a 100% MOD writer claim remain open."
+                "Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and authorizes only fixed-size edits to already-typed spans such as object bounds and existing position, normal and UV streams.",
+                "The provenance-bound no-edit corpus gate passes 38/38 retail MOD files with exact source/output equality across 882,736 source bytes, while one controlled em000_021.mod bounding-radius edit changes exactly three authorized bytes and survives disk reread and canonical reopen.",
+                "PR #372 proves provenance-bound real retail PNST reintegration for the same-size authored MOD child: parent size and slot table remain unchanged, only the expected three child bytes change, and canonical reparse/re-expand returns the exact writer output."
+            ],
+        },
+        {
+            "heading": "What remains after reverse completion",
+            "items": [
+                "A synthetic MOD -> container -> NBZ overlay -> reopen chain is proven through the existing NBZ infrastructure, but provenance-bound retail NBZ selection and original dmc3.exe consumption remain separate acceptance gates.",
+                "Typed-IR-only layout synthesis/reflow, transform and skin authoring, material/source-flag/texture-binding authoring, texture-companion rewriting and broader mutation authority for preservation-only fields remain writer work rather than unfinished reverse.",
+                "The public surface may say MOD reverse complete or fully reverse-engineered within the canonical DMC3 HD scope, but it must not claim a full MOD writer, arbitrary original-game-safe editing or Capcom authoring-tool equivalence."
             ],
         },
     ]
     _append_related(
         inspect_mod,
         "/formats/mod/",
-        "Read the canonical DMC3 MOD format and writer evidence surface",
+        "Read the reverse-complete canonical DMC3 MOD format map",
     )
     _append_related(
         inspect_mod,
@@ -95,30 +109,29 @@ def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
 
     extract_models = by_path["/guides/extract-models/"]
     extract_models["description"] = (
-        "DMC3 model extraction guide connecting NBZ/PAC/PNST resources to MOD and SCM "
-        "inspection plus the bounded MOD preserve-layout writer and retail PNST gate."
+        "DMC3 model extraction guide connecting NBZ/PAC/PNST resources to the reverse-complete "
+        "MOD contract, SCM inspection and bounded MOD authoring/reintegration gates."
     )
     extract_models["summary"] = (
-        "Find and inspect DMC3 HD model-related resources while preserving the archive and "
-        "container path, then keep MOD and SCM as separate binary authorities. MOD now has a "
-        "bounded preserve-layout writer and one provenance-bound real retail PNST reintegration "
-        "receipt; this remains narrower than unrestricted model editing or original-game acceptance."
+        "Find and inspect DMC3 HD model resources while preserving archive/container provenance. "
+        "The canonical MOD binary/runtime reverse is complete, while its writer remains deliberately "
+        "bounded; SCM stays a separate scene-family authority rather than being flattened into MOD."
     )
     extract_models["sections"] = [
         {
-            "heading": "From archive slot to typed model resource",
+            "heading": "From archive slot to reverse-complete MOD",
             "items": [
                 "Model discovery begins in the NBZ materialization path and may cross PAC or PNST before a leaf payload can be classified as MOD, SCM or another family; physical archive and slot provenance stay attached to the result.",
-                "MOD remains the primary character/enemy-style model-family research surface while SCM is scene-oriented, so extraction should route each payload through its real format authority instead of flattening every resource into a generic model representation.",
-                "The canonical MOD reader supports meaningful hierarchy, transform, texture-slot and skinning inspection, including skeleton/weight visualization and pose-aware analysis under the promoted evidence set."
+                "For canonical DMC3 HD MOD resources the reverse contract is complete, covering structure, hierarchy, transforms, texture relationships, skinning, topology, post-load behavior and terminal preservation classifications.",
+                "SCM remains scene-oriented and uses its own canonical parser/writer authority, so extraction should route each payload through its real family instead of flattening every geometry resource into a generic model representation."
             ],
         },
         {
-            "heading": "Bounded MOD editing is now a separate proved capability",
+            "heading": "Reverse complete, authoring still bounded",
             "items": [
-                "Preserve-Layout Writer Gate 1 can apply fixed-size edits to object bounds, existing positions, existing normals and existing UVs while preserving the original physical layout and rejecting unauthorized byte changes.",
-                "Its no-edit retail corpus receipt passes 38/38 MOD files with exact byte/hash parity and canonical reopen, while PR #372 separately proves real retail PNST reintegration of one same-size authored MOD child.",
-                "The synthetic NBZ reopen gate still does not establish provenance-bound retail NBZ selection or original dmc3.exe consumption, and topology/cardinality, transform, skin, material and texture-companion authoring remain outside Gate 1."
+                "Preserve-Layout Writer Gate 1 can apply fixed-size edits to object bounds and existing position, normal and UV data while preserving the original physical layout and rejecting unauthorized byte changes.",
+                "The no-edit retail corpus passes 38/38 MOD files with exact byte/hash parity and canonical reopen, and PR #372 separately proves real retail PNST reintegration of one same-size authored MOD child.",
+                "The synthetic NBZ reopen gate does not establish provenance-bound retail NBZ selection or original dmc3.exe consumption; topology/cardinality, transform, skin, material and texture-companion authoring remain separate writer gates."
             ],
         },
     ]
@@ -127,23 +140,23 @@ def _promote_mod_writer_gate(by_path: dict[str, dict]) -> None:
     sections = models.setdefault("sections", [])
     if not any(
         isinstance(section, dict)
-        and section.get("heading") == "Bounded MOD preserve-layout authoring"
+        and section.get("heading") == "MOD reverse complete; authoring bounded"
         for section in sections
     ):
         sections.append(
             {
-                "heading": "Bounded MOD preserve-layout authoring",
+                "heading": "MOD reverse complete; authoring bounded",
                 "items": [
-                    "DMC Rengine now has a promoted MOD Preserve-Layout Writer Gate 1 in addition to the canonical reader, so the model surface is no longer accurately described as purely read-only.",
-                    "The writer authorizes fixed-size changes only for currently proved spans and preserves all other bytes against the immutable source image; 38/38 provenance-bound retail MOD files pass the no-edit exact-parity and canonical-reopen gate.",
-                    "One same-size authored MOD child also has real retail PNST reintegration proof, while provenance-bound retail NBZ selection, original-game acceptance and broader transform/skin/material authoring remain separate gates."
+                    "DMC Rengine now treats the canonical DMC3 HD MOD reverse as complete: every relevant serialized/runtime domain has reached a terminal evidence state, including preservation-only outcomes where stronger semantics are not evidenced.",
+                    "The promoted Preserve-Layout Writer Gate 1 remains intentionally narrower than the reverse contract; 38/38 provenance-bound retail MOD files pass no-edit exact parity and canonical reopen, and one authored child has real retail PNST reintegration proof.",
+                    "Provenance-bound retail NBZ selection, original-game acceptance and broader transform/skin/material/texture-companion authoring remain separate gates and do not reopen the completed MOD reverse."
                 ],
             }
         )
     _append_related(
         models,
         "/guides/inspect-mod/",
-        "Inspect MOD files and review the bounded preserve-layout writer gate",
+        "Inspect the reverse-complete MOD contract and bounded authoring gates",
     )
 
 
@@ -229,8 +242,8 @@ def _promote_post_372_model_format_truth(by_path: dict[str, dict]) -> None:
         {
             "heading": "Post-PR #372 model-format reconciliation",
             "items": [
-                "MOD now has provenance-bound real retail PNST reintegration of a same-size authored child; the synthetic MOD-to-NBZ reopen gate does not yet prove provenance-bound retail NBZ selection or original-game consumption.",
-                "SCM now has the selected bounded preserve_layout/canonical_rebuild stack and a 78-path / 68-unique no-edit corpus gate, while production reintegration and original-game acceptance remain open.",
+                "The canonical DMC3 HD MOD reverse is complete; MOD also has provenance-bound real retail PNST reintegration of a same-size authored child, while the synthetic MOD-to-NBZ reopen gate does not yet prove provenance-bound retail NBZ selection or original-game consumption.",
+                "SCM has the selected bounded preserve_layout/canonical_rebuild stack and a 78-path / 68-unique no-edit corpus gate, while production reintegration and original-game acceptance remain open.",
                 "NativeReaderModuleRegistry directly includes MOT plus SO graph, SO volume and SO link; registry membership is product integration and does not by itself grant universal semantic or writer authority."
             ],
         }

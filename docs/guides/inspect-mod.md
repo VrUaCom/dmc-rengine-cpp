@@ -2,36 +2,92 @@
 
 This guide targets searches such as **open DMC3 MOD file**, **DMC3 MOD viewer**, **DMC3 model viewer**, **DMC3 MOD editor**, and **Devil May Cry 3 MOD format**.
 
-DMC Rengine treats MOD as a model-format research surface with a canonical reader plus a deliberately bounded preserve-layout writer. The goal is to expose what the evidence supports while preserving unresolved bytes and relationships instead of turning the first writer gate into an unsupported "full MOD editor" claim.
+## MOD reverse status
 
-## What the MOD reader can expose
+**DMC3 HD `.MOD` reverse is complete for the canonical project scope.**
 
-The promoted MOD work covers document/object/mesh structure, hierarchy and ordering, local transforms and world propagation, mesh texture slots, legacy texture-facing state, runtime topology generation, object controls and bounds, model texture companion relationships, inverse-rest ownership and packed skinning data.
+That means the serialized format, runtime-facing structure and preservation boundaries have all reached terminal evidence states. Some bytes intentionally remain `PRESERVED_UNDECODED`: their storage and runtime carriage are understood, but the project does not invent artistic/material names that the executable evidence does not prove.
 
-That is enough for meaningful structural inspection, skeleton and weight visualization, texture-binding analysis and pose-aware research. It also lets tools present typed fields while retaining raw source/control bytes for unresolved variants.
+This is a completed reverse contract, not a promise that every field is freely writable.
+
+## What the canonical MOD reader exposes
+
+The completed MOD model covers:
+
+- document, object and mesh records;
+- position, normal and fixed-point UV streams;
+- blend indices, packed skin weights and topology control;
+- hierarchy/order relationships and default-joint behavior;
+- local transforms, world propagation and inverse-rest/current-world skin palette construction;
+- mesh texture slots, texture-companion validation and runtime texture descriptor relationships;
+- post-load relocation and generated topology workspace behavior;
+- object bounds, alpha/runtime flag projection and legacy GS-facing state;
+- the MOD-side boundary into MOT/CMotion animation evaluation;
+- source-byte preservation for fields whose strongest honest semantic remains preservation-only.
+
+That is enough for structural inspection, skeleton and weight visualization, texture-binding analysis, pose-aware research and a complete evidence-backed map of the MOD resource.
+
+## Why “reverse complete” can still include preserved fields
+
+Reverse engineering is complete when every relevant byte/field/path has a defensible terminal classification, not when every value has a convenient English label.
+
+Examples:
+
+- header `+0x14` is runtime-carried, while the old universal decimal interpretation is rejected;
+- `BLENDINDICES.x` is part of the serialized ABI but is not consumed by the audited shader path;
+- source flag `0x00200000` is preserved through the recovered runtime state without a proven artistic label;
+- mesh `+0x0C/+0x4C`, mesh `+0x38` and transform `+0x1C` have explicit preservation/family-sensitive contracts.
+
+Those are closed evidence outcomes rather than remaining MOD reverse tasks.
 
 ## What the preserve-layout writer can do
 
-MOD Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and allows only fixed-size edits whose serialized spans are already typed. The current bounded edit set includes object bounding center/radius, existing mesh positions, existing mesh normals and existing UV values. It does not synthesize a new physical layout or change stream/table cardinality.
+MOD Preserve-Layout Writer Gate 1 starts from an immutable original serialized image and allows only fixed-size edits whose byte spans are already authorized. The current edit surface includes object bounding center/radius and existing position, normal and UV values.
 
-The writer independently protects every byte outside the authorized edit spans and reparses output through the canonical MOD parser before success. Its provenance-bound retail no-edit corpus gate passes **38/38 MOD files** with exact source/output SHA equality, zero modified bytes across **882,736 source bytes**, and **38/38 canonical reopen**.
+The writer protects every byte outside those spans and reparses output through the canonical MOD parser before success.
 
-This is real writer evidence, but it is specifically **preserve-layout Gate 1** rather than unrestricted authoring.
+The provenance-bound retail no-op corpus gate passes:
 
-## What is still outside the claim
+```text
+38 / 38 MOD files
+882,736 source bytes
+38 / 38 exact byte equality
+38 / 38 canonical reopen
+0 unauthorized modified bytes
+```
 
-A visible hierarchy or a successful preserve-layout write does not mean every node has a fully decoded animation role or that arbitrary model authoring is closed. Current evidence still blocks transform authoring, skin/blend-index authoring, texture-slot/material-state authoring, stream/cardinality changes, layout synthesis, texture-companion rewriting, PAC/PNST/NBZ reintegration of MOD writer output, and original `dmc3.exe` acceptance of either a rebuilt or edited MOD.
+A controlled retail edit to `em000_021.mod` changes exactly three bytes inside the serialized `bounding_radius` span and passes independent raw diff, disk hash/reread and canonical reopen.
 
-The project therefore does **not** claim a complete MOD editor, a canonical rebuild-from-typed-IR writer, production texture replacement authority, Capcom authoring-tool equivalence or a 100% MOD writer.
+## Container reintegration already proved
+
+The authored MOD child has a provenance-bound real retail PNST reintegration receipt in `m20_s00_012.pac` physical slot 23:
+
+- parent size unchanged;
+- slot table unchanged;
+- only the expected authored child bytes changed;
+- canonical parent reparse/re-expand reproduces the exact MOD writer output.
+
+A synthetic MOD -> container -> NBZ overlay -> reopen chain also passes through the existing NBZ infrastructure.
+
+## What remains outside the claim
+
+These are authoring/integration/acceptance tasks, not unfinished MOD reverse:
+
+- typed-IR-only layout synthesis and structural reflow;
+- transform and skin authoring;
+- material/source-flag/texture-binding authoring;
+- texture-companion rewriting;
+- unrestricted mutation of preservation-only fields;
+- provenance-bound retail NBZ acceptance;
+- original `dmc3.exe` selection and acceptance of rebuilt or edited MOD resources;
+- rollback-backed original-game acceptance.
+
+The project therefore distinguishes **MOD reverse complete** from **full MOD writer complete**.
 
 ## Related resources
 
-MOD model data can refer into a separate texture domain, and animation behavior intersects with MOT research. Those neighboring resources must remain separate authorities rather than being flattened into a single "MOD contains everything" model.
+Animation evaluation is owned by the neighboring MOT/CMotion authority, and texture payload authoring belongs to the texture-companion/TIM2/DDS/PTX stack. Those dependencies do not reopen the MOD binary reverse.
 
-Use the dedicated texture guide for DDS/PTX extraction and the canonical MOD research pages for field-level evidence. Use DMC Native Reader where the current build exposes model inspection, and use GDSpaces/PocketGDS to reach the physical archive/container slot that supplied the file.
+Use DMC Native Reader where the current application exposes model inspection, and GDSpaces/PocketGDS to reach the physical archive/container slot that supplied the file.
 
-For writer-specific evidence, see `docs/research/dmc3-mod-preserve-layout-writer-gate-2026-09-09.md` in the canonical repository.
-
-## Evidence-first workflow
-
-When inspecting or authoring a MOD, keep five questions separate: what bytes are structurally present, what semantics are corpus-confirmed, what semantics are executable-confirmed, which exact byte spans are currently authorized to change, and what remains preserved but undecoded. DMC Rengine's evidence labels and writer receipts exist specifically to prevent a successful render or write from silently upgrading a bounded capability into complete format authority.
+For exact field-level evidence and writer receipts, follow the canonical MOD research and status documents linked from the format page.
