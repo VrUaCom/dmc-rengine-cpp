@@ -1,0 +1,115 @@
+{
+  "schema": "dmc-rengine.scm-real-rotation-pac-reintegration-attestation.v1",
+  "date": "2026-09-10",
+  "project": "DMC Rengine",
+  "evidenceClass": "REAL_CORPUS_BOUND_SCM_ROTATION_AND_PARENT_PAC_REINTEGRATION",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "canonicalScmAuthority": {
+    "realPayloadLabel": "st001.scm",
+    "size": 887760,
+    "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "status": "HASH_BOUND_REAL_SCM_PAYLOAD"
+  },
+  "runner": {
+    "pullRequest": 380,
+    "branchHeadSha": "4a9e587c30623d5a58f68d092da7b3118f275cfd",
+    "workflowRunId": 34445596904,
+    "ubuntuJobPassed": true,
+    "windowsJobPassed": true,
+    "fullCTestPassedOnBothPlatforms": true,
+    "artifactId": 10139581586,
+    "artifactName": "dmc-rengine-linux-f34f352681f5094323b2e5d0538e8a5da449c03d",
+    "artifactDigest": "sha256:8d566bbfba887b8c03ac884435c9c5609c3332dddc4a1fe1d48f3f4cc109b618",
+    "executableSha256": "b624c6c022ae663a5ec894ea2c4cb1965baf0e531556a25bab75244fbb3f1eae"
+  },
+  "sourceTransform": {
+    "nodeIndex": 0,
+    "sceneBlockOffset": 748080,
+    "sceneBlockOffsetHex": "0xB6A30",
+    "transformRelativeOffset": 192,
+    "transformRecordOffset": 748272,
+    "transformRecordOffsetHex": "0xB6AF0",
+    "translation": [0.0, -27.5, 0.0],
+    "translationMagnitude": 27.5,
+    "rotationXyzRadians": [0.0, 0.0, 0.0],
+    "reserved1c": 0.0
+  },
+  "controlledEdit": {
+    "api": "set_node_rotation",
+    "writerMode": "preserve_layout",
+    "newRotationXyzRadians": [0.125, 0.0, 0.0],
+    "authorizedSerializedSpan": {"start": 748288, "startHex": "0xB6B00", "size": 12},
+    "sourceScmSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "authoredScmSha256": "e29e298260127d5154a783e9d32b215c816d62926d9ee0164f25562820deaa0c",
+    "sourceSize": 887760,
+    "outputSize": 887760,
+    "canonicalWriterOk": true,
+    "canonicalWriterReparseOk": true,
+    "exactSpanGuardPassed": true,
+    "changedByteCount": 1,
+    "changedBytes": [{"offset": 748291, "offsetHex": "0xB6B03", "before": 0, "after": 62}],
+    "translationBytesChanged": false,
+    "translationMagnitudeChanged": false,
+    "reserved1cChanged": false
+  },
+  "publication": {
+    "noReplacePassed": true,
+    "existingDestinationReplayExitCode": 12,
+    "existingDestinationStatus": "destination-exists",
+    "existingOutputShaUnchanged": true
+  },
+  "parent": {
+    "label": "st001.pac",
+    "detectedFormat": "PAC",
+    "physicalSlotIndex": 2,
+    "slotOffset": 3485792,
+    "slotOffsetHex": "0x353060",
+    "sourceSize": 4632960,
+    "sourceSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "outputSize": 4632960,
+    "outputSha256": "46e4ffc77bc36af62e8b8701278a95c2f0ba3f59e95446642136deb829263996",
+    "changedByteCount": 1,
+    "changedBytes": [{"offset": 4234083, "offsetHex": "0x409B63", "before": 0, "after": 62}],
+    "allNonTargetSlotsByteIdentical": true,
+    "protectedInstallProvenanceBound": false
+  },
+  "reopen": {
+    "canonicalParentReopen": true,
+    "canonicalParentFullyExpanded": true,
+    "extractedPhysicalSlot": 2,
+    "extractedChildSha256": "e29e298260127d5154a783e9d32b215c816d62926d9ee0164f25562820deaa0c",
+    "extractedChildEqualsAuthoredChild": true,
+    "canonicalScmReparse": true,
+    "reopenedRotationXyzRadians": [0.125, 0.0, 0.0]
+  },
+  "reversibility": {
+    "inverseEdit": "node[0].rotation (0.125,0,0) -> (0,0,0)",
+    "restoredScmSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "restoredScmBytesEqualOriginal": true,
+    "restoredParentSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "restoredParentBytesEqualOriginal": true
+  },
+  "failureGuards": {
+    "noOpExitCode": 6,
+    "outOfRangeNodeExitCode": 5,
+    "nonFiniteRotationExitCode": 2,
+    "sameSourceOutputExitCode": 12,
+    "sourceShaAfterSameSourceOutput": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "allRejectedWithoutOutputOrSourceMutation": true
+  },
+  "claims": {
+    "hashBoundRealScmRotationEdit": true,
+    "translationPreservation": true,
+    "translationMagnitudePreservation": true,
+    "reserved1cPreservation": true,
+    "parentPacReintegration": true,
+    "canonicalReopenAndExtraction": true,
+    "childAndParentExactReversibility": true,
+    "genericScmTransformAuthoring": false,
+    "protectedInstallParentPacProvenance": false,
+    "retailNbzAcceptance": false,
+    "originalDmc3ExeAcceptance": false,
+    "fullScmWriterAuthority": false
+  },
+  "evidenceBoundary": "No proprietary SCM or PAC payload bytes are committed. This receipt proves one bounded node-rotation edit class on a hash-bound real SCM payload and parent PAC reintegration. It does not promote generic SCM product write authority, NBZ acceptance, original-game acceptance, or Capcom-builder equivalence."
+}
