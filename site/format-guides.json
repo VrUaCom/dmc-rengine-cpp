@@ -5,44 +5,51 @@
       "source_path": "docs/research/dmc3-mod-public-status-2026-09-09.md",
       "sections": [
         {
-          "heading": "Current MOD evidence baseline",
+          "heading": "MOD reverse complete",
           "items": [
-            "The current bounded corpus contains 38 unique MOD resources, 166 objects, 180 meshes, 20,976 vertices and 285 transforms across em000, pl000 main/cloth-associated resources and id100, so the public page no longer treats enemy-only observations as the whole format population.",
-            "The canonical MOD adapter retains the recovered 0x40 document header, 0x40 outer-object and 0x50 inner-mesh grammar together with position, normal, fixed-point UV, BLENDINDICES and packed skin/topology streams, node-domain hierarchy, world transforms and texture-companion relationships.",
-            "Unknown source bytes remain preservation authority: zero-heavy fields are not silently promoted to padding, and shared offsets across MOD, EFM and SCM are not assigned the same semantic without independent executable evidence."
+            "The DMC3 HD MOD reverse is complete for the canonical project scope: the serialized format, runtime-facing model contract and source-preservation boundaries all have terminal evidence states.",
+            "Reverse complete does not mean every byte received a speculative artistic name. PRESERVED_UNDECODED, RESERVED_OBSERVED_ZERO and REJECTED are valid terminal outcomes where stronger semantics are not evidenced.",
+            "The public MOD section therefore separates a completed reverse/reader contract from the still-bounded writer, archive reintegration and original-game acceptance programs."
           ]
         },
         {
-          "heading": "Important 2026-09-09 closures and corrections",
+          "heading": "Canonical MOD map",
           "items": [
-            "BLENDINDICES.x is now bounded by the canonical runtime/shader chain: compiled DXBC input signatures use ReadWriteMask 0xE and therefore consume Y/Z/W rather than X; the raw X byte is still part of the serialized ABI and must be preserved rather than treated as disposable padding.",
-            "Object source flag 0x00100000 has an EXE-confirmed technical renderer semantic: in the active low-mode path it switches legacy GS TEST_1 AREF between 0 and 16 and ZBUF_1.ZMSK between masked and writable depth state. This does not authorize an invented artistic label such as cloth or transparent material.",
-            "The older universal decimal interpretation of MOD header +0x14 is rejected by the expanded pl000/id100 corpus. The field is a raw runtime-carried u32 transferred to manager +0xE4 and remains PRESERVED_UNDECODED at the high-level semantic layer.",
-            "Mesh +0x38 is family-sensitive rather than globally equivalent: the audited MOD path does not forward the slot while the homologous EFM path uses it for COLOR0-facing state. Mesh +0x0C/+0x4C and transform +0x1C also retain source-preservation contracts without being renamed as padding."
+            "The recovered contract covers the 0x40 document header, 0x40 object records, 0x50 mesh records, position/normal/fixed-point UV streams, blend indices, packed skin weights and topology control.",
+            "Hierarchy/order, default-joint behavior, local/world transforms, inverse-rest/current-world skin palette construction, post-load relocation and generated topology workspace behavior are part of the canonical MOD runtime map.",
+            "Texture-slot selection, GS CLAMP state, the external texture-companion/runtime-descriptor relationship, object runtime projection and the MOD-side MOT/CMotion boundary are also recovered without collapsing neighboring resource families into MOD."
           ]
         },
         {
-          "heading": "What MOD still does not authorize",
+          "heading": "Terminal preservation outcomes",
           "items": [
-            "Source flag 0x00200000 is confirmed as baseline/effective runtime-carried state, but its distinct terminal semantic consumer remains unresolved and it must not inherit semantics from unrelated equal-mask manager/object fields.",
-            "Reader, hierarchy, skinning, topology and renderer-state recovery do not authorize unrestricted MOD writing: mutation dependencies, deterministic authoring layout, reopen/reparse, container reintegration, original-game acceptance and rollback integrity remain separate promotion gates.",
-            "A visible skeleton, decoded skin weights, a correctly rendered model or a zero-filled corpus field is not proof that every semantic, variant or writer rule is known. Public claims therefore stay evidence-bounded rather than advertising 100% reverse or arbitrary original-game-safe editing."
+            "Header +0x14 is a runtime-carried u32 and the old universal decimal family/model/sub-index interpretation is rejected for MOD.",
+            "BLENDINDICES.x remains a serialized ABI lane while the audited compiled shader path consumes Y/Z/W; source flag 0x00200000 is runtime-carried/restored without an invented artistic label.",
+            "Mesh +0x38 is family-sensitive and inactive on the audited MOD path while its EFM homologue is live; mesh +0x0C/+0x4C and transform +0x1C retain explicit preservation contracts instead of being mislabeled as padding."
+          ]
+        },
+        {
+          "heading": "Writer and reintegration are separate gates",
+          "items": [
+            "Preserve-Layout Writer Gate 1 supports bounded fixed-size edits over an immutable source image, and the provenance-bound retail no-op corpus passes 38/38 files across 882,736 source bytes with exact byte parity and canonical reopen.",
+            "One controlled retail bounding-radius edit changes exactly three authorized bytes, and the authored child has a provenance-bound real retail PNST reintegration receipt plus a synthetic MOD-to-NBZ overlay reopen gate.",
+            "Typed-IR-only reflow, transform/skin/material/texture-companion authoring, provenance-bound retail NBZ acceptance and original dmc3.exe acceptance remain open authoring/integration work; they do not reopen the MOD reverse."
           ]
         }
       ],
       "lessons": [
-        {"title": "01 — What is MOD?", "path": "learning/mod/01-what-is-mod.md", "description": "Start with the role of MOD in DMC3 HD, its evidence boundaries and the difference between a model document, its runtime objects and neighboring resource families."},
-        {"title": "02 — Document, objects and meshes", "path": "learning/mod/02-document-objects-meshes.md", "description": "Walk through the current multi-corpus document/object/mesh contract, corrected header +0x14 boundary, object flags and preserved mesh fields."},
-        {"title": "03 — Skeleton, hierarchy and transforms", "path": "learning/mod/03-skeleton-hierarchy-transforms.md", "description": "Study parent/order topology, local/world transforms and the executable-backed preservation boundary for transform +0x1C."},
-        {"title": "04 — Skinning, topology and shader inputs", "path": "learning/mod/04-skinning-topology-shader.md", "description": "Follow packed influences and topology generation through the shader ABI, including the new compiled-DXBC closure showing BLENDINDICES Y/Z/W consumption but not X."},
-        {"title": "05 — Textures and materials", "path": "learning/mod/05-textures-materials.md", "description": "Relate texture slots and companions to runtime material state and the EXE-confirmed 0x00100000 GS TEST_1/ZBUF_1 selector without inventing an artistic category."},
-        {"title": "06 — Animation and motion groups", "path": "learning/mod/06-animation-motion-groups.md", "description": "Understand the recovered motion-group table, node-domain animation relationships and the boundary where MOT evaluation becomes a separate authority."},
-        {"title": "07 — Related formats", "path": "learning/mod/07-related-formats.md", "description": "Compare MOD with SCM, SHW, EFM, MOT, SO and texture companions so shared physical concepts are not mistaken for identical semantics."},
-        {"title": "08 — Evidence and unknowns", "path": "learning/mod/08-evidence-and-unknowns.md", "description": "Review the expanded multi-corpus closure, rejected hypotheses, negative executable evidence and exact preservation rules for still-undecoded fields."},
-        {"title": "09 — Reverse workflow", "path": "learning/mod/09-reverse-workflow.md", "description": "Use the project evidence workflow to move from raw bytes and corpus observations through hypotheses, implementation, tests and promotion gates."},
-        {"title": "10 — Exercises and debugging", "path": "learning/mod/10-exercises-debugging.md", "description": "Practice diagnosing offsets, counts, hierarchy relationships, transform mistakes and skin/topology problems using evidence rather than visual guesswork."},
-        {"title": "MOD glossary", "path": "learning/mod/GLOSSARY.md", "description": "Reference current MOD terminology including runtime_metadata_u32, GS state selectors, BLENDINDICES.x evidence and preserved-undecoded boundaries."},
-        {"title": "MOD reference map", "path": "learning/mod/REFERENCE-MAP.md", "description": "Jump from the latest public learning concepts to canonical code, tests, research notes and 2026-09-09 evidence packets."}
+        {"title": "01 — What is MOD?", "path": "learning/mod/01-what-is-mod.md", "description": "Start with the completed DMC3 HD MOD reverse, the resource's role and the separation between reverse completeness and writer/original-game acceptance."},
+        {"title": "02 — Document, objects and meshes", "path": "learning/mod/02-document-objects-meshes.md", "description": "Walk through the canonical document/object/mesh contract, header boundaries, object state and preservation-aware mesh fields."},
+        {"title": "03 — Skeleton, hierarchy and transforms", "path": "learning/mod/03-skeleton-hierarchy-transforms.md", "description": "Study parent/order topology, local/world transforms, inverse-rest relationships and the terminal preservation boundary for transform +0x1C."},
+        {"title": "04 — Skinning, topology and shader inputs", "path": "learning/mod/04-skinning-topology-shader.md", "description": "Follow packed influences and topology generation through the shader ABI, including BLENDINDICES Y/Z/W consumption and the preserved X lane."},
+        {"title": "05 — Textures and materials", "path": "learning/mod/05-textures-materials.md", "description": "Relate texture slots and companions to runtime material state and EXE-confirmed GS-facing selectors without inventing artistic categories."},
+        {"title": "06 — Animation and motion groups", "path": "learning/mod/06-animation-motion-groups.md", "description": "Understand the recovered motion-group and MOD-side animation-binding boundary while keeping MOT/CMotion as its own authority."},
+        {"title": "07 — Related formats", "path": "learning/mod/07-related-formats.md", "description": "Compare MOD with SCM, SHW, EFM, MOT, SO and texture companions so neighboring systems are not mistaken for unfinished MOD reverse."},
+        {"title": "08 — Evidence and terminal unknowns", "path": "learning/mod/08-evidence-and-unknowns.md", "description": "Learn why preservation-only and rejected outcomes are valid terminal reverse states rather than invitations to invent semantics."},
+        {"title": "09 — Reverse workflow", "path": "learning/mod/09-reverse-workflow.md", "description": "Review the evidence workflow that closed MOD: raw bytes, executable evidence, corpus validation, hypothesis rejection, terminal classification and promotion."},
+        {"title": "10 — Exercises and debugging", "path": "learning/mod/10-exercises-debugging.md", "description": "Practice diagnosing offsets, counts, hierarchy relationships, transform mistakes and skin/topology problems using the completed canonical contract."},
+        {"title": "MOD glossary", "path": "learning/mod/GLOSSARY.md", "description": "Reference current MOD terminology, terminal evidence classes, runtime metadata, GS state selectors and skinning ABI."},
+        {"title": "MOD reference map", "path": "learning/mod/REFERENCE-MAP.md", "description": "Jump from the completed MOD learning surface to canonical code, tests, research notes and evidence receipts."}
       ]
     }
   }
