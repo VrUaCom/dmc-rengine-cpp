@@ -1,6 +1,7 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v4",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v5",
   "date": "2026-09-09",
+  "last_evidence_sync": "2026-09-10",
   "branch": "reverse/mod-completion-20260907",
   "canonical_executable": {
     "name": "dmc3.exe",
@@ -19,6 +20,14 @@
     "RESERVED_OBSERVED_ZERO",
     "REJECTED"
   ],
+  "serialized_materialized_boundary": {
+    "declared_element_count_is_not_stream_proof": true,
+    "materialized_vector_is_not_stream_proof": true,
+    "writer_owned_output_stream_is_not_source_stream_proof": true,
+    "mesh_plus_48_is": "separate serialized generated_topology_count",
+    "topology_workspace_span_rule": "align16(6*(vertex_count-2)) belongs to physical workspace associated with +0x40, not to serialized +0x48",
+    "android_reader_tests": "regression/build evidence only; not file-format semantic proof"
+  },
   "corpus": {
     "unique_mods": 38,
     "objects": 166,
@@ -31,7 +40,7 @@
   "fields": {
     "transform_1c": {
       "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "0x140330450 consumes rotation XYZ only; 0x14030F850 transfers +0x00/+04/+08/+10/+14/+18 then advances source by 0x20, skipping +0x1C; MOD 285/285 and EFM 5/5 are zero",
+      "summary": "0x1402FA080 physically transfers serialized +0x10..+0x1F; 0x140330450 consumes rotation XYZ only; 0x14030F850 transfers +0x00/+04/+08/+10/+14/+18 then advances source by 0x20, skipping +0x1C; MOD 285/285 and EFM 5/5 are zero; whole-EXE semantic closure remains open",
       "receipt": "data/reverse/dmc3-mod-transform-1c-20260909.json",
       "writer_policy": "preserve"
     },
@@ -56,7 +65,7 @@
     },
     "mesh_4c": {
       "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "raw trailing u32; +0x48 is generated topology-count positive control; no +0x4C companion transfer in audited path; MOD 180/180 and bound EFM 2/2 zero",
+      "summary": "raw trailing u32; serialized +0x48 is the separate generated topology count and is not the align16(6*(vertex_count-2)) workspace capacity; no +0x4C companion transfer in audited path; MOD 180/180 and bound EFM 2/2 zero",
       "receipt": "data/reverse/dmc3-mod-mesh-4c-20260909.json",
       "writer_policy": "preserve"
     },
@@ -68,7 +77,16 @@
     },
     "header_14": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; 83 whole-EXE raw +0xE4 candidates type-filtered with no provenance-confirmed downstream manager read",
+      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; 83 raw whole-EXE +0xE4 candidates plus typed parent+0x80/+0x50 manager accessor escape census yield no provenance-confirmed immediate or first-hop manager+0xE4 read; recursive forwarding remains open",
+      "typed_escape": {
+        "parent_plus_80_accessor": "0x140089DE0",
+        "parent_plus_80_calls": 2695,
+        "parent_plus_50_accessor": "0x140089DF0",
+        "parent_plus_50_calls": 131,
+        "unique_first_hop_helpers": 67,
+        "proven_manager_e4_reads_immediate_or_first_hop": 0,
+        "rejected_false_positive": "0x14030F8AE in 0x14030F850 writes destination CMotion +0xE4 while accessor-derived manager is RDX/R15"
+      },
       "receipt": "data/reverse/dmc3-mod-header-14-20260909.json",
       "writer_policy": "preserve"
     },
@@ -82,7 +100,7 @@
     },
     "source_flag_00200000": {
       "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 and participates in baseline/effective restoration; canonical GS-state helper does not interpret bit21; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains",
+      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 and participates in baseline/effective restoration; canonical GS-state and common material helpers do not interpret bit21; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains",
       "receipt": "data/reverse/dmc3-mod-source-flag-00200000-20260909.json",
       "writer_policy": "preserve"
     }
@@ -98,8 +116,15 @@
     "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
   },
   "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes or shell regions.",
+  "closed_gates": [
+    "BLENDINDICES.x canonical CPU/GPU runtime consumption: canonical shaders and provenance-confirmed CPU consumers do not consume X",
+    "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend",
+    "mesh +0x38 MOD-specific runtime role relative to EFM homologous COLOR0 stream"
+  ],
   "remaining_gates": [
-    "downstream terminal semantic consumer of source-carried runtime bit 0x00200000, if one exists outside the bounded MOD GS-state path",
+    "provenance-aware whole-EXE closure for transform +0x1C outside 0x1402FA080 -> 0x140330450 and 0x14030F850",
+    "recursive typed manager escape census beyond the 67 first-hop helpers for header +0x14 -> manager +0xE4",
+    "downstream terminal semantic consumer of source-carried runtime bit 0x00200000, if one exists outside the bounded MOD object-state/material paths",
     "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
     "retained-pointer consumer census for secondary object regions +0x04..07/+0x14..17/+0x20..2F",
     "secondary header and node-domain whole-program closure",

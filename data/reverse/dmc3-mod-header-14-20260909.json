@@ -40,6 +40,32 @@
     "result": "no additional provenance-confirmed read of the model-manager u32 +0xE4 field found",
     "status": "EXE_CONFIRMED"
   },
+  "typed_manager_escape_census_20260910": {
+    "construction_accessors": [
+      {
+        "address": "0x140089DE0",
+        "result": "parent +0x80 embedded manager",
+        "whole_exe_call_count": 2695
+      },
+      {
+        "address": "0x140089DF0",
+        "result": "parent +0x50 embedded manager",
+        "whole_exe_call_count": 131
+      }
+    ],
+    "accessor_derived_immediate_manager_e4_reads": 0,
+    "unique_first_hop_helpers": 67,
+    "first_hop_helpers_with_any_raw_plus_e4_operand": 1,
+    "provenance_confirmed_manager_e4_reads_in_first_hop_helpers": 0,
+    "rejected_first_hop_false_positive": {
+      "helper": "0x14030F850",
+      "instruction": "0x14030F8AE",
+      "reason": "the accessor-derived manager is passed as RDX and retained as R15; the +0xE4 write targets the first-argument destination object passed in RCX and retained as RDI, so this is CMotion-destination state rather than model-manager metadata",
+      "status": "REJECTED"
+    },
+    "closure_boundary": "Immediate caller-side and first-hop typed consumers are closed with zero provenance-confirmed reads of manager +0xE4. Deeper recursive forwarding remains open and prevents a whole-program unused claim.",
+    "status": "EXE_CONFIRMED"
+  },
   "rejected_candidates": [
     {
       "address": "0x1401832DE",
@@ -49,6 +75,11 @@
     {
       "address": "0x1401B6778",
       "reason": "+0xE0/+0xE4/+0xE8 are read as float scalars, which is incompatible with the model-manager u32/u32/u16 fingerprint",
+      "status": "REJECTED"
+    },
+    {
+      "address": "0x14030F8AE",
+      "reason": "first-hop helper 0x14030F850 receives the model manager in RDX/R15, but this instruction writes +0xE4 on the separate RCX/RDI destination object",
       "status": "REJECTED"
     }
   ],
@@ -62,8 +93,9 @@
   "rejected_hypotheses": [
     "universal LegacyResourceCode = family*100000 + model_set*100 + sub_index",
     "every executable access at object displacement +0xE4 consumes this manager field",
+    "first-hop destination write 0x14030F8AE consumes model-manager +0xE4",
     "header +0x14 may be renamed resource identity before a type-aware downstream consumer is proven"
   ],
   "writer_policy": "preserve",
-  "closure_boundary": "Serialized +0x14 -> manager +0xE4 is EXE_CONFIRMED. A width- and fingerprint-aware whole-EXE census found no additional provenance-confirmed consumer, so high-level semantics remain PRESERVED_UNDECODED rather than guessed."
+  "closure_boundary": "Serialized +0x14 -> manager +0xE4 is EXE_CONFIRMED. Raw whole-EXE candidates plus typed parent+0x80/parent+0x50 accessor escapes and 67 first-hop helpers yield no provenance-confirmed manager +0xE4 read. Recursive deeper forwarding is not yet closed, so high-level semantics remain PRESERVED_UNDECODED."
 }
