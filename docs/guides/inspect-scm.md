@@ -2,28 +2,52 @@
 
 This guide targets searches such as **open DMC3 SCM file**, **DMC3 SCM viewer**, **DMC3 stage model format**, and **Devil May Cry 3 SCM format**.
 
-SCM is a scene-oriented resource family. DMC Rengine's canonical research models scene nodes, object bindings, meshes, streams, transforms and texture-facing state without collapsing those domains into a simplified editor-only representation.
+SCM is a scene-oriented resource family. DMC Rengine models scene nodes, object bindings, meshes, streams, transforms and texture-facing state through the canonical parser/IR rather than collapsing the format into an editor-only representation.
 
 ## What SCM inspection covers
 
-The current research exposes the scene hierarchy, object/mesh relationships, positions, normals, UV data, topology reconstruction, transform relationships and legacy rendering-facing fields that have enough evidence to be typed.
+The canonical path exposes hierarchy, object/mesh relationships, positions, normals, UV data, topology reconstruction, transforms and evidence-backed rendering-facing fields.
 
-This makes SCM useful for stage/world inspection and for understanding how scene structure reaches geometry and texture-facing state.
+## Current writer/rebuild authority
+
+PR #372 promotes one selected canonical SCM authoring stack:
+
+- `preserve_layout` for source-bound same-layout edits;
+- deterministic `canonical_rebuild` from typed IR;
+- typed edits for position, normal, UV, texture slot, alpha, nearest-filter bit, GS CLAMP REGION_REPEAT and node translation/rotation;
+- dependent metadata derivation;
+- mandatory canonical output reparse;
+- source-bound mutation guards;
+- fail-closed canonical reflow if retained source contains non-zero unmodeled bytes;
+- bounded SCM/texture-companion coherence through `ScmResourceBundleWriter` and the existing texture framing/reflow implementation.
+
+The consolidated no-edit corpus is:
+
+```text
+paths                           78
+unique SHA-256 inputs           68
+parse                           78/78 PASS
+preserve-layout exact parity    78/78 PASS
+canonical rebuild + reparse     78/78 PASS
+canonical exact no-edit parity  78/78 PASS
+```
+
+This closes that explicit no-edit corpus gate. It does **not** prove universal stage editing, every retail SCM variant, Capcom offline-tool equivalence or original-game acceptance.
+
+## Still open
+
+- provenance-bound representative same-layout semantic edits across SCM domains;
+- provenance-bound retail texture rewrite;
+- real-retail size-changing canonical rebuild;
+- SCM PAC/PNST/NBZ reintegration;
+- original `dmc3.exe` acceptance.
 
 ## Why SCM is different from MOD
 
-MOD and SCM both contain geometry-related information, but they serve different resource roles and have different binary layouts. MOD is the main model-family surface for character/enemy-style documents; SCM is scene-oriented and carries its own node/object/mesh organization.
-
-A tool should therefore route each file through its canonical parser instead of treating SCM as simply another MOD variant.
-
-## Writer and authoring boundary
-
-DMC Rengine has substantial SCM writer/rebuild research, but structural serialization alone does not prove equivalence with Capcom's original offline tooling or acceptance by every original-game path.
-
-For SEO and user documentation we therefore distinguish **open**, **inspect**, **parse** and evidence-backed **rebuild research** from any stronger claim of universal stage editing or production reintegration.
+MOD and SCM both contain geometry-related information, but they serve different resource roles and have different physical/semantic contracts. Shared model-family infrastructure is not permission to copy field meanings across formats.
 
 ## Ecosystem workflow
 
-Use GDSpaces/PocketGDS to locate and materialize the containing resource, DMC Rengine for canonical SCM parsing/evidence, and DMC Native Reader where the current client exposes scene/model inspection capabilities.
+Use GDSpaces/PocketGDS to locate and materialize the containing resource, DMC Rengine for canonical SCM parsing/writing evidence, and DMC Native Reader where the current client exposes scene/model inspection capabilities.
 
-For exact field layouts, writer modes, proof gates and current maturity, follow the canonical SCM format documentation and `docs/status/current.md`.
+For the exact current authority boundary, use `docs/research/dmc3-model-formats-unified-frontier-2026-09-09.md` and `docs/status/current.md`.

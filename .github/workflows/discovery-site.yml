@@ -79,6 +79,7 @@ jobs:
           test -f _site/guides/browse-pnst/index.html
           test -f _site/guides/extract-models/index.html
           test -f _site/guides/inspect-mod/index.html
+          test -f _site/guides/inspect-scm/index.html
           test -f _site/guides/dante-model-textures/index.html
           test -f _site/guides/character-models/index.html
           test -f _site/guides/enemy-models/index.html
@@ -102,15 +103,24 @@ jobs:
           grep -q 'rel="canonical"' _site/index.html
           grep -q 'Complete canonical format and resource-family catalog' _site/formats/index.html
           grep -q 'MOD learning path' _site/formats/mod/index.html
+          grep -q 'MOD reverse complete' _site/formats/mod/index.html
+          grep -q 'MOD reverse complete' _site/formats/mod/lessons/01-what-is-mod/index.html
           grep -q '38/38' _site/formats/mod/lessons/01-what-is-mod/index.html
           grep -q 'Preserve-Layout Writer Gate 1' _site/formats/mod/lessons/01-what-is-mod/index.html
+          grep -q 'real retail PNST' _site/formats/mod/lessons/01-what-is-mod/index.html
+          ! grep -q 'provenance-bound retail PAC/PNST reintegration writer output' _site/formats/mod/lessons/01-what-is-mod/index.html
           ! grep -q 'broad no-edit byte parity' _site/formats/mod/lessons/01-what-is-mod/index.html
           grep -q 'Practical tutorial path' _site/formats/mot/index.html
           grep -q 'How to Extract DMC3 PAC Files' _site/guides/extract-pac/index.html
+          grep -q 'MOD reverse complete' _site/guides/inspect-mod/index.html
           grep -q 'Preserve-Layout Writer Gate 1' _site/guides/inspect-mod/index.html
           grep -q '38/38' _site/guides/inspect-mod/index.html
-          grep -q 'Bounded MOD editing is now a separate proved capability' _site/guides/extract-models/index.html
-          grep -q 'Bounded MOD preserve-layout authoring' _site/models/index.html
+          grep -q 'canonical_rebuild' _site/guides/inspect-scm/index.html
+          grep -q '78/78' _site/guides/inspect-scm/index.html
+          grep -q 'compression-3' _site/guides/animations/index.html
+          grep -q 'NativeReaderModuleRegistry' _site/guides/animations/index.html
+          grep -q 'Reverse complete, authoring still bounded' _site/guides/extract-models/index.html
+          grep -q 'MOD reverse complete; authoring bounded' _site/models/index.html
           ! grep -q 'canonical read-only research path' _site/guides/inspect-mod/index.html
           ! grep -q 'MOD remains read-only' _site/guides/extract-models/index.html
           grep -q 'How to Find Dante Models and Textures' _site/guides/dante-model-textures/index.html
@@ -123,6 +133,8 @@ jobs:
           grep -q 'How to Inspect DMC3 Animations' _site/guides/animations/index.html
           grep -q 'DMC Native Reader for Android' _site/native-reader/android/index.html
           grep -q 'Windows, Web and iOS are not advertised' _site/native-reader/android/index.html
+          grep -q 'retail PNST' docs/status/current.md
+          grep -q 'SO graph' docs/status/current.md
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/assets/style.css' _site/index.html
           grep -q 'https://vruacom.github.io/dmc-rengine-cpp/formats/' _site/index.html
           grep -q 'User-agent: OAI-SearchBot' _site/robots.txt
