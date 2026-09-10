@@ -136,6 +136,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         scm_writer
         scm_vertex_authoring
         scm_normal_authoring
+        scm_uv_authoring
         scm_transform_inverse
         mot
         mot_key_decode
@@ -324,6 +325,12 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine scm-set-vertex-normal)
     set_tests_properties(
         dmc_rengine_cli_scm_set_vertex_normal_usage
+        PROPERTIES WILL_FAIL TRUE)
+    add_test(
+        NAME dmc_rengine_cli_scm_set_vertex_uv_usage
+        COMMAND dmc-rengine scm-set-vertex-uv)
+    set_tests_properties(
+        dmc_rengine_cli_scm_set_vertex_uv_usage
         PROPERTIES WILL_FAIL TRUE)
     add_test(
         NAME dmc_rengine_cli_mod_writer_corpus_usage
