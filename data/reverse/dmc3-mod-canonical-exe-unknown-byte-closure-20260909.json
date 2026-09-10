@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v5",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v6",
   "date": "2026-09-09",
   "last_evidence_sync": "2026-09-10",
   "branch": "reverse/mod-completion-20260907",
@@ -39,10 +39,12 @@
   },
   "fields": {
     "transform_1c": {
-      "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "0x1402FA080 physically transfers serialized +0x10..+0x1F; 0x140330450 consumes rotation XYZ only; 0x14030F850 transfers +0x00/+04/+08/+10/+14/+18 then advances source by 0x20, skipping +0x1C; MOD 285/285 and EFM 5/5 are zero; whole-EXE semantic closure remains open",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "canonical transform-runtime consumption is closed as dormant: manager +0x20/+0xEA/+0x188 whole-image fingerprint finds source materializer, MOD/EFM builder, SCM control and two CMotion materializers; none gives serialized +0x1C a runtime transform effect; MOD 285/285 and EFM 5/5 are zero",
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-transform-1c-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source bits"
     },
     "object_18_1c": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "PRESERVED_UNDECODED"],
@@ -53,7 +55,7 @@
     },
     "mesh_0c": {
       "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "raw u32; MOD 180/180 and bound EFM 2/2 zero; no positive semantic consumer in audited load/build/material paths",
+      "summary": "raw u32; MOD 180/180 and bound EFM 2/2 zero; no positive semantic consumer in audited load/build/material paths; whole-EXE provenance closure remains",
       "receipt": "data/reverse/dmc3-mod-mesh-0c-20260909.json",
       "writer_policy": "preserve"
     },
@@ -65,30 +67,40 @@
     },
     "mesh_4c": {
       "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "raw trailing u32; serialized +0x48 is the separate generated topology count and is not the align16(6*(vertex_count-2)) workspace capacity; no +0x4C companion transfer in audited path; MOD 180/180 and bound EFM 2/2 zero",
+      "summary": "raw trailing u32; serialized +0x48 is the separate generated topology count and is not align16(6*(vertex_count-2)) workspace capacity; no +0x4C companion transfer in audited path; whole-EXE provenance closure remains",
       "receipt": "data/reverse/dmc3-mod-mesh-4c-20260909.json",
       "writer_policy": "preserve"
     },
     "blendindices_x": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "canonical runtime non-use is closed: serialized +0x28 -> runtime +0x140 -> draw descriptor +0x30 is proven; provenance-confirmed CPU consumers do not read X; all 8 compiled DXBC input signatures carrying BLENDINDICES have Mask=0xF and ReadWriteMask=0xE, proving compiled shaders read Y/Z/W but not X; MOD 20976/20976 zero",
+      "summary": "canonical runtime non-use is closed: serialized +0x28 -> runtime +0x140 -> draw descriptor +0x30; provenance-confirmed CPU consumers do not read X; all 8 compiled DXBC BLENDINDICES signatures have Mask=0xF and ReadWriteMask=0xE, proving Y/Z/W read and X not read; MOD 20976/20976 zero",
       "receipt": "data/reverse/dmc3-mod-blendindices-x-20260909.json",
       "writer_policy": "preserve raw X lane exactly; do not rename padding/reserved"
     },
     "header_14": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized +0x14 -> manager +0xE4 at 0x1402F95C2/0x1402F95C5; old universal decimal identity formula rejected by pl000/id100 counterexamples; 83 raw whole-EXE +0xE4 candidates plus typed parent+0x80/+0x50 manager accessor escape census yield no provenance-confirmed immediate or first-hop manager+0xE4 read; recursive forwarding remains open",
+      "summary": "serialized +0x14 -> model manager +0xE4 is confirmed. Completed whole-image raw +0xE4 classification plus accessor-rooted recursive dataflow, wrapper escapes, exact CMotion RTTI/vtable and whole +0xE8 read census find no canonical downstream consumer; old universal decimal identity formula remains rejected",
+      "canonical_runtime_consumption": "EXE_CONFIRMED carriage with no downstream manager +0xE4 consumer found",
       "typed_escape": {
         "parent_plus_80_accessor": "0x140089DE0",
         "parent_plus_80_calls": 2695,
         "parent_plus_50_accessor": "0x140089DF0",
         "parent_plus_50_calls": 131,
         "unique_first_hop_helpers": 67,
-        "proven_manager_e4_reads_immediate_or_first_hop": 0,
-        "rejected_false_positive": "0x14030F8AE in 0x14030F850 writes destination CMotion +0xE4 while accessor-derived manager is RDX/R15"
+        "recursive_taint_states": 70,
+        "recursive_unique_functions": 49,
+        "proven_manager_e4_reads": 0,
+        "pointer_storage_escapes": 3,
+        "cmotion_type_descriptor": ".?AVCMotion@@",
+        "cmotion_vtable": "0x140507938",
+        "cmotion_vtable_method_count": 45,
+        "cmotion_vtable_methods_accessing_plus_e8": 0,
+        "whole_exe_nonstack_qword_plus_e8_reads": 6,
+        "whole_exe_plus_e8_readers_reaching_manager_e4": 0
       },
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-header-14-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source u32"
     },
     "source_flag_00100000": {
       "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED"],
@@ -117,13 +129,13 @@
   },
   "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes or shell regions.",
   "closed_gates": [
-    "BLENDINDICES.x canonical CPU/GPU runtime consumption: canonical shaders and provenance-confirmed CPU consumers do not consume X",
-    "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend",
-    "mesh +0x38 MOD-specific runtime role relative to EFM homologous COLOR0 stream"
+    "BLENDINDICES.x canonical CPU/GPU runtime consumption",
+    "transform +0x1C canonical transform-runtime consumption: EXE_CONFIRMED dormant/no effect",
+    "mesh +0x38 MOD-specific runtime role relative to EFM homologous COLOR0 stream",
+    "header +0x14 -> manager +0xE4 canonical downstream consumer census: no consumer found",
+    "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend"
   ],
   "remaining_gates": [
-    "provenance-aware whole-EXE closure for transform +0x1C outside 0x1402FA080 -> 0x140330450 and 0x14030F850",
-    "recursive typed manager escape census beyond the 67 first-hop helpers for header +0x14 -> manager +0xE4",
     "downstream terminal semantic consumer of source-carried runtime bit 0x00200000, if one exists outside the bounded MOD object-state/material paths",
     "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
     "retained-pointer consumer census for secondary object regions +0x04..07/+0x14..17/+0x20..2F",

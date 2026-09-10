@@ -1,25 +1,26 @@
-# DMC3 HD MOD — header +0x14 reverse closure
+# DMC3 HD MOD — header +0x14 canonical runtime consumer closure
 
 **Branch:** `reverse/mod-completion-20260907`  
 **Canonical executable:** `dmc3.exe`  
-**SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
+**SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`  
+**Evidence follow-up:** 2026-09-10
 
 ## Serialized ABI and runtime transfer
 
 The serialized field is a raw little-endian `u32` at MOD header `+0x14`.
 
-Canonical MOD manager initialization at `0x1402F9570` proves the transfer:
+Canonical MOD manager initialization at `0x1402F9570` proves:
 
 ```text
-0x1402F95C2  read  serialized header +0x14
-0x1402F95C5  write manager +0xE4
+0x1402F95C2  read serialized header +0x14
+0x1402F95C5  write the same u32 to model manager +0xE4
 ```
 
-This transfer is `EXE_CONFIRMED`. It proves runtime carriage, not the higher-level meaning of the value.
+This is `EXE_CONFIRMED` runtime carriage. It is not a semantic name.
 
 ## Corpus falsification of the old decimal hypothesis
 
-Expanded corpus observations include:
+Observed examples include:
 
 ```text
 pl000        -> 217
@@ -27,133 +28,161 @@ pl000 cloth  -> 217
 id100        -> 1000000
 ```
 
-These values falsify the earlier universal interpretation:
+They falsify the earlier universal interpretation:
 
 ```text
 family * 100000 + model_set * 100 + sub_index
 ```
 
-That hypothesis is therefore `REJECTED`; the field must not be exposed as a universal `LegacyResourceCode` in the MOD contract.
+That formula remains `REJECTED`; MOD header `+0x14` must not be exposed as a universal `LegacyResourceCode`.
 
-## Raw displacement census
+## Whole-image raw displacement control
 
-A direct model-core census over `0x1402F9000..0x14030D000` finds the provenance-confirmed manager write above and no direct provenance-confirmed read of this field.
+A whole-executable disassembly scan contains 83 instructions with raw object displacement `+0xE4`. Offset equality is not type provenance. Width/fingerprint classification found no additional provenance-confirmed read of the model-manager `u32 +0xE4` field.
 
-A whole-executable disassembly scan finds 83 instructions using raw object displacement `+0xE4`. This is not 83 xrefs to the MOD manager. The candidates operate on unrelated object layouts and include different scalar widths and floating-point accesses. Offset equality alone cannot establish manager type provenance.
+Examples already rejected include unrelated blob-relative and float-layout accesses. The first-hop hit `0x14030F8AE` is also a false positive: it writes `CMotion destination +0xE4` while the model manager is the separate second argument in `RDX/R15`.
 
-Known call sites into the manager initializer include:
+## Typed owner-to-manager roots
 
-```text
-0x1403039E8
-0x140303B0D
-0x140303C38
-0x140303D1D
-```
-
-They establish manager construction context but do not themselves give the `+0xE4` value a semantic identity.
-
-## Typed manager escape census — 2026-09-10 follow-up
-
-The canonical executable was re-hashed before this pass and matched the project SHA-256 exactly.
-
-The construction call chains expose two embedded manager layouts in the owning object:
+Two canonical accessors expose the embedded model-manager domains:
 
 ```text
-0x140089DE0  -> return parent +0x80
-0x140089DF0  -> return parent +0x50
+0x140089DE0 -> parent +0x80
+0x140089DF0 -> parent +0x50
 ```
 
-These accessors give a type-aware escape route that is stronger than scanning every raw `[reg+0xE4]` instruction.
-
-Whole-executable call census:
+Whole-image direct call census:
 
 ```text
-calls to 0x140089DE0 (parent+0x80 manager)   2695
-calls to 0x140089DF0 (parent+0x50 manager)    131
+0x140089DE0 calls  2695
+0x140089DF0 calls   131
 ```
 
-For all immediate caller-side uses of the returned manager pointer, there is no direct read of `manager+0xE4`.
+Immediate caller-side use contains zero provenance-confirmed `manager+0xE4` reads.
 
-The accessor-derived pointer is then forwarded into 67 unique first-hop helpers. A helper-body displacement census finds only one first-hop helper containing any raw `+0xE4` access: `0x14030F850`.
+Across 67 unique first-hop helpers, only `0x14030F850` contains any raw `+0xE4` operand; its `+0xE4` target is the first-argument CMotion object, not the manager.
 
-That hit is a provenance false positive for the manager field. At a representative call site:
+## Recursive typed manager dataflow
+
+A `.pdata`-bounded register/stack dataflow pass propagated the accessor-derived manager pointer through direct argument transfers and local spills.
+
+Bounded result:
 
 ```text
-0x140110315  call 0x140089DE0
-0x14011031A  mov  rax, rdx       ; accessor-derived manager -> RDX
-...                              ; destination object -> RCX
-0x14011032B  call 0x14030F850
+recursive taint states                     70
+unique functions reached                  49
+provenance-confirmed manager+0xE4 reads    0
+pointer-storage escapes                     3
 ```
 
-Inside `0x14030F850`:
+The three storage escapes are:
 
 ```text
-RDX -> R15   manager/source object
-RCX -> RDI   destination CMotion object
-
-0x14030F8A7  write R15 to destination +0xE8
-0x14030F8AE  write u32 to destination +0xE4
+0x1402ECCD5  wrapper +0x08 = model manager
+0x1402ECD0D  wrapper +0x10 = model manager
+0x14030F8A7  CMotion +0xE8 = model manager
 ```
 
-The function subsequently reads manager/source fields through `R15` (`+0xEA`, `+0x188`, and others). Therefore `0x14030F8AE` is a write to a different destination layout, not a read or write of the MOD manager `+0xE4` metadata field. It is `REJECTED` as a manager-`+0xE4` consumer.
+The first two wrapper domains and the CMotion domain were then audited separately because a stored pointer cannot be dismissed by caller-local dataflow alone.
 
-Bounded typed result:
+## Wrapper escape closure
+
+`0x1402ECCC0` and `0x1402ECCF0` build wrappers with model-manager pointers at `+0x08` / `+0x10`.
+
+Their runtime methods consume known manager fields such as object count `+0xE8` and pointer `+0x108`, then enter the helper family:
 
 ```text
-accessor-derived immediate manager+0xE4 reads     0
-unique first-hop helpers                          67
-first-hop helpers with any raw +0xE4 operand      1
-proven manager+0xE4 reads in first-hop helpers    0
+0x1402F7350
+0x1402F73A0
+0x1402F7430
+0x1402F7480
+0x1402F74E0
+0x1402F75D0
 ```
 
-This materially strengthens the negative census, but it is intentionally not promoted to a mathematical whole-program unused claim. A first-hop helper can still forward the manager pointer to deeper callees, so recursive typed escape closure remains open.
+No wrapper method or helper in this family reads model-manager `+0xE4`. No further manager-pointer storage escape was found in this wrapper family.
 
-## Semantic boundary
+## CMotion escape closure
 
-The following possibilities remain unproven:
-
-- resource class;
-- actor/model identity;
-- variant selector;
-- render-family selector;
-- cache key;
-- effect-attachment identity;
-- manager-routing value.
-
-None is selected as the field name without a type-aware downstream consumer.
-
-## C++ contract
-
-The MOD header keeps the raw field as `runtime_metadata_u32`. The evidence layer records:
+Both CMotion materializers store the manager as a backreference:
 
 ```text
-serialized -> manager transfer        EXE_CONFIRMED
-typed immediate/first-hop non-use      EXE_CONFIRMED (bounded)
-old decimal identity formula           REJECTED
-global semantic                        PRESERVED_UNDECODED
-writer policy                          preserve
+0x14030F8A7  path A: CMotion +0xE8 = manager
+0x14030FB1F  path B: CMotion +0xE8 = manager
 ```
 
-A future writer must reproduce the source `u32` unless an explicitly requested edit targets a subsequently proven semantic. It must not regenerate the value from model filenames or the rejected decimal decomposition.
+The CMotion initializer `0x14030FE00` clears this pointer at `0x14030FE24` before materialization.
 
-## Status
+The canonical executable RTTI identifies the exact type:
 
 ```text
-serialized offset/width               STRUCTURAL_CONFIRMED
-runtime transfer to manager+0xE4      EXE_CONFIRMED
-multi-corpus falsification             CORPUS_CONFIRMED
-typed immediate/first-hop census       EXE_CONFIRMED
-global semantic                        PRESERVED_UNDECODED
-writer policy                          preserve
+TypeDescriptor  .?AVCMotion@@
+CompleteObjectLocator  0x140520018
+vtable                 0x140507938
+vtable methods         45
 ```
 
-## Rejected hypotheses / false positives
+None of those 45 CMotion virtual methods contains an access to `this+0xE8`.
+
+A wider motion-family scan over:
+
+```text
+0x14030E000 .. 0x140311500
+```
+
+finds zero non-stack qword reads of `[*+0xE8]`. In particular, the direct CMotion transform rebuild path `0x14030F530` operates on node count `+0x20`, node array `+0x28`, and per-node runtime state without reading the manager backreference.
+
+## Whole-executable `qword [object+0xE8]` negative control
+
+Only six non-stack qword reads at displacement `+0xE8` exist in the canonical executable.
+
+Four are RTTI-classified unrelated enemy/common objects:
+
+```text
+0x140064FD8 -> CComEm000
+0x14006D406 -> CComEm005
+0x140070F36 -> CComEm006
+0x14007DF16 -> CComEm008
+```
+
+They are `REJECTED` as CMotion/model-manager-backreference consumers.
+
+The remaining two candidates still do not reach manager `+0xE4`:
+
+- logical function rooted at `0x1400935F0` uses its `+0xE8` pointee as an indexed pointer array and never reads or forwards pointee `+0xE4`; its local layout also conflicts with canonical CMotion field packing (for example distinct `+0xD0` state overlaps the CMotion qword written at `+0xCC`), so it is not the stored CMotion backreference domain;
+- `0x1402BBA10` reads its `+0xE8` pointee at `+0x18/+0x20` only. Even if treated as a manager-like pointer candidate, it neither reads `+0xE4` nor forwards the original pointer to a downstream call before reusing `RDX`.
+
+Therefore the stored-pointer escapes do not reveal a hidden consumer of MOD header `+0x14`.
+
+## Canonical conclusion
+
+The strongest evidence-safe result is now:
+
+```text
+serialized offset/width                    STRUCTURAL_CONFIRMED
+serialized +0x14 -> manager +0xE4          EXE_CONFIRMED
+multi-corpus formula falsification          CORPUS_CONFIRMED / REJECTED old formula
+canonical downstream manager+0xE4 consumer EXE_CONFIRMED: none found in completed typed census
+high-level serialized semantic              PRESERVED_UNDECODED
+writer policy                               preserve exact source u32
+```
+
+This closes the canonical runtime-consumer gate. It does **not** convert the serialized field into padding, reserved space, or a semantic identifier.
+
+A future executable/version or new corpus may establish a semantic use, so the source value remains first-class preserved ABI.
+
+## C++ / writer boundary
+
+The evidence-safe contract remains the raw `runtime_metadata_u32` representation. No writer may regenerate the field from filenames, model IDs, or the rejected decimal decomposition. No-edit writeback must reproduce the exact source bits.
+
+## Rejected hypotheses
 
 - universal `LegacyResourceCode = family*100000 + model_set*100 + sub_index` — `REJECTED`;
 - every executable access at displacement `+0xE4` consumes this manager field — `REJECTED`;
-- `0x14030F8AE` in `0x14030F850` consumes manager `+0xE4` — `REJECTED`; it writes destination `CMotion +0xE4` while the manager is the second argument;
-- header `+0x14` may be renamed as resource identity before a typed downstream consumer is proven — `REJECTED`.
+- CMotion destination `+0xE4` at `0x14030F8AE` is model-manager metadata — `REJECTED`;
+- any of the four `CComEm*` `+0xE8` readers follows the CMotion manager backreference — `REJECTED`;
+- canonical runtime non-consumption permits zero-normalization or semantic renaming — `REJECTED`.
 
-## Next direct-EXE action
+## Closure
 
-Recursively follow the 67 typed first-hop helper paths that retain or forward the accessor-derived manager pointer. Classify deeper callees by register/stack provenance rather than displacement equality. Only a provenance-confirmed read of the original manager `+0xE4`, or a completed recursive escape census with no such read, can close the remaining semantic gate.
+No further canonical-DMC3-HD manager `+0xE4` consumer tracing is required before the MOD unknown-field phase advances. The remaining work is semantic only if new evidence appears; the current writer contract is already determined: preserve the serialized `u32` exactly.
