@@ -1,0 +1,131 @@
+{
+  "schema": "dmc-rengine.scm-real-translation-pac-reintegration-attestation.v1",
+  "date": "2026-09-10",
+  "project": "DMC Rengine",
+  "evidenceClass": "REAL_CORPUS_BOUND_SCM_TRANSLATION_AND_PARENT_PAC_REINTEGRATION",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "canonicalScmAuthority": {
+    "realPayloadLabel": "st001.scm",
+    "size": 887760,
+    "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "status": "HASH_BOUND_REAL_SCM_PAYLOAD"
+  },
+  "runner": {
+    "pullRequest": 379,
+    "branchHeadSha": "2f8d6477fbadc54bcc78447a2b1b46ab685732ef",
+    "workflowRunId": 34441590590,
+    "ubuntuJobPassed": true,
+    "windowsJobPassed": true,
+    "fullCTestPassedOnBothPlatforms": true,
+    "artifactId": 10138153714,
+    "artifactName": "dmc-rengine-linux-26125bb1c4d21f45409313561f3eebb22f589af3",
+    "artifactDigest": "sha256:2015498c13afd82067922adece2a07ea2daebd5bb98b203fec084c336ed56424",
+    "executableSha256": "918c43004dfae25776a7b3ed2bfa0daf97977d83229ccac801f22f91f3a64f35",
+    "note": "Artifact name uses the pull-request merge-ref github.sha label; branch-head authority is recorded separately."
+  },
+  "sourceTransform": {
+    "nodeIndex": 0,
+    "sceneBlockOffset": 748080,
+    "sceneBlockOffsetHex": "0xB6A30",
+    "transformRelativeOffset": 192,
+    "transformRecordOffset": 748272,
+    "transformRecordOffsetHex": "0xB6AF0",
+    "translation": [0.0, -27.5, 0.0],
+    "translationMagnitude": 27.5,
+    "rotationXyzRadians": [0.0, 0.0, 0.0],
+    "reserved1c": 0.0
+  },
+  "controlledEdit": {
+    "api": "set_node_translation",
+    "writerMode": "preserve_layout",
+    "newTranslation": [1.0, -27.5, 0.0],
+    "derivedTranslationMagnitude": 27.51817512512207,
+    "authorizedSerializedSpan": {"start": 748272, "startHex": "0xB6AF0", "size": 16},
+    "sourceScmSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "authoredScmSha256": "5d552c1144f2a17513455938afe988c6aa82727f50377141dd18c009b4a9dcd6",
+    "sourceSize": 887760,
+    "outputSize": 887760,
+    "canonicalWriterOk": true,
+    "canonicalWriterReparseOk": true,
+    "exactSpanGuardPassed": true,
+    "changedByteCount": 4,
+    "changedBytes": [
+      {"offset": 748274, "offsetHex": "0xB6AF2", "before": 0, "after": 128},
+      {"offset": 748275, "offsetHex": "0xB6AF3", "before": 0, "after": 63},
+      {"offset": 748284, "offsetHex": "0xB6AFC", "before": 0, "after": 57},
+      {"offset": 748285, "offsetHex": "0xB6AFD", "before": 0, "after": 37}
+    ],
+    "rotationBytesChanged": false,
+    "reserved1cChanged": false
+  },
+  "publication": {
+    "noReplacePassed": true,
+    "existingDestinationReplayExitCode": 12,
+    "existingDestinationStatus": "destination-exists",
+    "existingOutputShaUnchanged": true
+  },
+  "parent": {
+    "label": "st001.pac",
+    "detectedFormat": "PAC",
+    "physicalSlotIndex": 2,
+    "slotOffset": 3485792,
+    "slotOffsetHex": "0x353060",
+    "sourceSize": 4632960,
+    "sourceSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "outputSize": 4632960,
+    "outputSha256": "f0f7b90536cc8d05b1cf361baf83c9a554f75349796bcaf45f66d65a9502c91f",
+    "changedByteCount": 4,
+    "changedBytes": [
+      {"offset": 4234066, "offsetHex": "0x409B52", "before": 0, "after": 128},
+      {"offset": 4234067, "offsetHex": "0x409B53", "before": 0, "after": 63},
+      {"offset": 4234076, "offsetHex": "0x409B5C", "before": 0, "after": 57},
+      {"offset": 4234077, "offsetHex": "0x409B5D", "before": 0, "after": 37}
+    ],
+    "allNonTargetSlotsByteIdentical": true,
+    "protectedInstallProvenanceBound": false
+  },
+  "reopen": {
+    "canonicalParentReopen": true,
+    "canonicalParentFullyExpanded": true,
+    "extractedPhysicalSlot": 2,
+    "extractedChildSha256": "5d552c1144f2a17513455938afe988c6aa82727f50377141dd18c009b4a9dcd6",
+    "extractedChildEqualsAuthoredChild": true,
+    "canonicalScmReparse": true,
+    "reopenedTranslation": [1.0, -27.5, 0.0],
+    "reopenedTranslationMagnitude": 27.51817512512207
+  },
+  "reversibility": {
+    "inverseEdit": "node[0].translation (1,-27.5,0) -> (0,-27.5,0)",
+    "restoredScmSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "restoredScmBytesEqualOriginal": true,
+    "restoredParentSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "restoredParentBytesEqualOriginal": true
+  },
+  "sampleTransformCensus": {
+    "nodeCount": 50,
+    "nonzeroTranslations": 45,
+    "nonzeroRotations": 0,
+    "nonzeroReserved1c": 0,
+    "magnitudeBitExactToCurrentFloatDerivation": 46,
+    "magnitudeWithinOneUlpOfCurrentFloatDerivation": 50,
+    "oneUlpMismatchNodeIndices": [4, 12, 14, 44],
+    "interpretation": "Stored magnitude is numerically consistent with Euclidean translation length across this sample, but current float derivation is not bit-identical for every node; exact inverse-byte restoration is therefore claimed only for the verified node-0 edit sample."
+  },
+  "claims": {
+    "hashBoundRealScmTranslationEdit": true,
+    "derivedMagnitudeSerialization": true,
+    "rotationPreservation": true,
+    "reserved1cPreservation": true,
+    "parentPacReintegration": true,
+    "canonicalReopenAndExtraction": true,
+    "childAndParentExactReversibility": true,
+    "genericScmTransformAuthoring": false,
+    "rotationAuthoringAcceptance": false,
+    "protectedInstallParentPacProvenance": false,
+    "retailNbzAcceptance": false,
+    "originalDmc3ExeAcceptance": false,
+    "fullScmWriterAuthority": false,
+    "universalBitExactTranslationMagnitudeReconstruction": false
+  },
+  "evidenceBoundary": "No proprietary SCM or PAC payload bytes are committed. This receipt proves one bounded node-translation edit class on a hash-bound real SCM payload and parent PAC reintegration. It does not promote generic SCM product write authority, NBZ acceptance, or original-game acceptance. Stored translation magnitude is within one ULP of the current C++ float derivation for 50/50 transforms in this sample but bit-identical for 46/50, so universal byte-exact magnitude reconstruction is not claimed; exact inverse restoration is proven for node 0."
+}
