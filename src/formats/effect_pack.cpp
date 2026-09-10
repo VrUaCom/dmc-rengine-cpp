@@ -128,9 +128,14 @@ struct ManifestLine final {
 } // namespace
 
 bool EffectPackDocument::valid() const noexcept {
+    // The manifest names every record that is not a companion, and the two
+    // counts add up to what the container holds. The earlier invariant was
+    // `populated_record_count == manifest_line_count`, which is the same
+    // statement only for a pack with no companions — and refused every pack
+    // that has one.
     return document_size != 0U && manifest_names_every_populated_record &&
-        records.size() == populated_record_count &&
-        populated_record_count == manifest_line_count;
+        records.size() == manifest_line_count &&
+        manifest_line_count + companion_record_count == populated_record_count;
 }
 
 EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) {
@@ -205,14 +210,37 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             return left.slot_index < right.slot_index;
         });
 
+    // A pack may hold records the manifest does not name. This reader required
+    // the two counts to be equal, which was true of the two packs it was
+    // recovered from and is not a property of the format: the em000 pack holds
+    // 183 populated records against 173 manifest lines, and requiring equality
+    // refused the whole pack — so all 173 named records lost their names over
+    // ten the manifest never claimed.
+    //
+    // The ten are byte-identical companions. Setting those aside, line k names
+    // record k for all 173, kind and identifier, in order.
+    std::vector<ContainerEntry> named;
+    named.reserve(populated.size());
+    for (const auto& entry : populated) {
+        const auto record = records_bytes.subspan(
+            static_cast<std::size_t>(entry.offset),
+            static_cast<std::size_t>(entry.size));
+        if (Contract::is_companion_record(record)) {
+            document.companion_record_count += 1U;
+            continue;
+        }
+        named.push_back(entry);
+    }
+
     document.manifest_line_count = static_cast<std::uint32_t>(lines.size());
     document.populated_record_count = static_cast<std::uint32_t>(populated.size());
-    if (document.manifest_line_count != document.populated_record_count) {
+    if (document.manifest_line_count != named.size()) {
         return fail(
             EffectPackParseError::line_count_mismatch,
-            "effect manifest does not name exactly one entry per populated record payload");
+            "effect manifest does not name exactly one entry per named record payload");
     }
     document.manifest_names_every_populated_record = true;
+    populated = std::move(named);
 
     bool extents_match = true;
     document.records.reserve(populated.size());

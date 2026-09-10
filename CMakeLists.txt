@@ -176,6 +176,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         index_name_evidence_persistence
         embedded_name_evidence
         effect_stored_name_evidence
+        effect_pack_records
         resource_naming_identity
         companion_index_locator
         legacy_index_replay
