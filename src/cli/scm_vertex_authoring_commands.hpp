@@ -70,7 +70,7 @@ namespace scm_vertex_authoring_detail {
 inline void print_scm_vertex_authoring_help() {
     std::cout
         << "  scm-set-vertex-position <input.scm> <object-index> <mesh-index> <vertex-index> <x> <y> <z> <output.scm>\n"
-        << "                             Bounded preserve-layout SCM vertex authoring with derived-radius exact-image guard\n";
+        << "                             Bounded preserve-layout SCM vertex authoring with source-radius and exact-image guards\n";
 }
 
 inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
@@ -145,11 +145,22 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
     const Vec3f source_position = source_mesh.positions[vertex_index];
     const Vec3f source_center = source_object.bounding_center;
     const float source_radius = source_object.bounding_radius;
+
+    float reconstructed_source_radius = 0.0F;
+    if (!scm_vertex_authoring_detail::derive_bounding_radius(
+            source_object, reconstructed_source_radius) ||
+        !scm_vertex_authoring_detail::same_float_bits(
+            reconstructed_source_radius, source_radius)) {
+        std::cerr
+            << "scm-set-vertex-position: source bounding_radius is not bit-exact under the current reconstruction policy; authoring fails closed\n";
+        return 6;
+    }
+
     if (source_position.x == x && source_position.y == y &&
         source_position.z == z) {
         std::cerr
             << "scm-set-vertex-position: requested position is already present\n";
-        return 6;
+        return 7;
     }
 
     const auto position_offset_u64 =
@@ -159,7 +170,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
     if (position_offset_u64 > std::numeric_limits<std::size_t>::max() ||
         radius_offset_u64 > std::numeric_limits<std::size_t>::max()) {
         std::cerr << "scm-set-vertex-position: serialized offset overflow\n";
-        return 7;
+        return 8;
     }
     const auto position_offset =
         static_cast<std::size_t>(position_offset_u64);
@@ -175,7 +186,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
         new_position);
     if (!edit.ok() || !edit.changed) {
         std::cerr << "scm-set-vertex-position: typed edit rejected\n";
-        return 8;
+        return 9;
     }
 
     float expected_radius = 0.0F;
@@ -183,18 +194,18 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
             document.objects[object_index], expected_radius)) {
         std::cerr
             << "scm-set-vertex-position: cannot derive finite bounding radius\n";
-        return 9;
+        return 10;
     }
 
     const auto written = Writer::write(document, WriteMode::preserve_layout);
     if (!written.ok() || !written.wrote || !written.reparse_ok) {
         std::cerr
             << "scm-set-vertex-position: preserve-layout writer rejected output\n";
-        return 10;
+        return 11;
     }
     if (written.bytes.size() != source.size()) {
         std::cerr << "scm-set-vertex-position: preserve-layout size changed\n";
-        return 11;
+        return 12;
     }
 
     auto expected = source;
@@ -208,12 +219,12 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
             expected, radius_offset, expected_radius)) {
         std::cerr
             << "scm-set-vertex-position: expected serialized span is out of bounds\n";
-        return 12;
+        return 13;
     }
     if (written.bytes != expected) {
         std::cerr
             << "scm-set-vertex-position: exact-image guard rejected writer output\n";
-        return 13;
+        return 14;
     }
 
     const auto diffs = scm_authoring_detail::changed_offsets(
@@ -235,7 +246,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
     if (unexpected_diff || !position_byte_changed) {
         std::cerr
             << "scm-set-vertex-position: exact-span guard rejected unexpected output diff\n";
-        return 13;
+        return 14;
     }
 
     const auto reparsed = Parser::parse(
@@ -247,7 +258,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
                             .positions.size()) {
         std::cerr
             << "scm-set-vertex-position: canonical output reparse failed\n";
-        return 14;
+        return 15;
     }
     const auto& reparsed_object = reparsed.document.objects[object_index];
     const auto& reparsed_position =
@@ -260,7 +271,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
             reparsed_object.bounding_radius, expected_radius)) {
         std::cerr
             << "scm-set-vertex-position: canonical output reparse mismatch\n";
-        return 15;
+        return 16;
     }
 
     const auto validator = [&](const std::filesystem::path& staged_path) {
@@ -303,7 +314,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
             std::cerr << ": " << publication.detail;
         }
         std::cerr << '\n';
-        return 16;
+        return 17;
     }
 
     std::cout
@@ -324,6 +335,7 @@ inline int try_run_scm_vertex_authoring_command(int argc, char** argv) {
         << " changedBytes=" << diffs.size()
         << " sourceSize=" << source.size()
         << " outputSize=" << written.bytes.size()
+        << " sourceRadiusReconstruction=BIT_EXACT_PASS"
         << " reparse=PASS"
         << " exactImageGuard=PASS"
         << " publication=NO_REPLACE_PASS\n";
