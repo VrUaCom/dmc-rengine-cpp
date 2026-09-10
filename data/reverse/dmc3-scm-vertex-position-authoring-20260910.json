@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "format": "SCM",
+  "topic": "vertex-position-authoring",
+  "date": "2026-09-10",
+  "evidenceStatus": "STRUCTURAL_CONFIRMED",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "branch": "reverse/mod-completion-20260907",
+  "pullRequest": 381,
+  "baselineMain": "3831fa787d413c339af2011597f628bd7e925473",
+  "sourceEvidence": {
+    "kind": "synthetic-test-fixture",
+    "proprietaryPayloadCommitted": false,
+    "realRetailPayloadAvailableInConnectedSurface": false
+  },
+  "serializedDomain": {
+    "position": {
+      "offsetExpression": "mesh.positions_offset + vertex_index * 12",
+      "width": 12,
+      "encoding": "float32-le x3"
+    },
+    "derivedBoundingRadius": {
+      "offsetExpression": "object.record_offset + 0x3C",
+      "width": 4,
+      "encoding": "float32-le",
+      "writerOwned": true
+    }
+  },
+  "guards": {
+    "typedEditApi": "set_vertex_position",
+    "finitePositionRequired": true,
+    "sourceRadiusReconstruction": "max Euclidean distance from bounding_center across all mesh positions",
+    "sourceRadiusMustMatchSerializedBits": true,
+    "oneUlpSourceRadiusMismatchFailsClosed": true,
+    "exactExpectedImageRequired": true,
+    "canonicalReparseRequired": true,
+    "publication": "publish_bytes_no_replace",
+    "existingOutputFailsClosed": true
+  },
+  "syntheticAcceptance": {
+    "isolatedVertexEdit": true,
+    "derivedRadiusUpdated": true,
+    "changedBytesSubset": [
+      "selected 12-byte position record",
+      "selected object +0x3C..+0x3F bounding_radius"
+    ],
+    "expectedImageEqualsWriterOutput": true,
+    "inverseRestoresExactSource": true,
+    "nonFiniteRejected": true,
+    "outOfRangeRejected": true,
+    "oneUlpSourceRadiusMismatchRejectedBeforePublication": true,
+    "existingOutputReplayPreservesFirstOutput": true
+  },
+  "promotionBoundary": {
+    "realCorpusVertexAuthoring": false,
+    "pacReintegration": false,
+    "retailNbzAcceptance": false,
+    "vanillaDmc3ExeAcceptance": false,
+    "genericScmWriterAuthority": false
+  },
+  "nextRequiredEvidence": [
+    "provenance-bound real SCM payload",
+    "bit-exact source bounding-radius reconstruction precondition",
+    "bounded real vertex edit",
+    "exact serialized diff",
+    "canonical SCM reparse",
+    "PAC reintegration and reopen/extract",
+    "inverse or source-image exact restoration"
+  ]
+}
