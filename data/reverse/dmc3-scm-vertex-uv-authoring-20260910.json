@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "format": "SCM",
+  "topic": "vertex-uv-authoring",
+  "date": "2026-09-10",
+  "evidenceStatus": "STRUCTURAL_CONFIRMED",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "branch": "reverse/mod-completion-20260907",
+  "baselineMain": "75820f4ded862e168ffcc3ee4fa293409279f8d8",
+  "sourceEvidence": {
+    "kind": "synthetic-test-fixture",
+    "proprietaryPayloadCommitted": false,
+    "realRetailPayloadAvailableInConnectedSurface": false
+  },
+  "serializedDomain": {
+    "offsetExpression": "mesh.uv_offset + vertex_index * 4",
+    "width": 4,
+    "encoding": "signed-int16-le x2",
+    "scale": 4096
+  },
+  "encodingPolicy": {
+    "operation": "llround(value * 4096)",
+    "overflow": "fail_closed",
+    "silentMasking": false,
+    "typedApi": "set_uv",
+    "typedEncoderCrossCheckedAgainstIndependentGuard": true
+  },
+  "boundaryRegression": {
+    "0.5": 2048,
+    "-0.25": -1024,
+    "+1/8192": 1,
+    "-1/8192": -1,
+    "32767/4096": 32767,
+    "-8.0": -32768,
+    "8.0": "REJECTED",
+    "-32769/4096": "REJECTED"
+  },
+  "guards": {
+    "preserveLayoutRequired": true,
+    "exactExpectedImageRequired": true,
+    "allChangedBytesInsideSelectedUvRecord": true,
+    "quantizedNoOpRejected": true,
+    "canonicalReparseRequired": true,
+    "publication": "publish_bytes_no_replace",
+    "existingOutputFailsClosed": true
+  },
+  "syntheticAcceptance": {
+    "isolatedUvEdit": true,
+    "expectedImageEqualsWriterOutput": true,
+    "inverseRestoresExactSource": true,
+    "boundingRadiusRemainsSourceIdentical": true,
+    "positiveAndNegativeHalfStepRoundingLocked": true,
+    "signedInt16ExtremesAccepted": true,
+    "overflowRejected": true,
+    "outOfRangeRejected": true,
+    "existingOutputReplayPreservesFirstOutput": true
+  },
+  "promotionBoundary": {
+    "realCorpusUvAuthoring": false,
+    "pacReintegration": false,
+    "textureCompanionCoherence": false,
+    "retailNbzAcceptance": false,
+    "vanillaDmc3ExeAcceptance": false,
+    "genericScmWriterAuthority": false
+  },
+  "nextRequiredEvidence": [
+    "provenance-bound real SCM payload",
+    "bounded real UV edit",
+    "exact serialized diff",
+    "canonical SCM reparse",
+    "PAC reintegration and reopen/extract",
+    "inverse exact restoration"
+  ]
+}
