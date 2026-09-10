@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v6",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v7",
   "date": "2026-09-09",
   "last_evidence_sync": "2026-09-10",
   "branch": "reverse/mod-completion-20260907",
@@ -112,9 +112,23 @@
     },
     "source_flag_00200000": {
       "status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
-      "summary": "serialized source flag word is copied intact to runtime object +0x10/+0x14 and participates in baseline/effective restoration; canonical GS-state and common material helpers do not interpret bit21; equal numeric masks in manager +0xE0 and runtime +0x304 are separate domains",
+      "summary": "canonical typed runtime consumption is closed as carried/restored but uninterpreted: exact manager-bound runtime-object derivation covers 31 functions, 61 object-passing call sites and 39 direct helper targets; conservative recursive dataflow covers 45 typed states and 19 propagation edges with zero tagged indirect/vtable calls and zero bit21 semantic decoders",
+      "typed_surface": {
+        "runtime_object_derivation": "manager +0x100 + object_index*0x380",
+        "derivation_functions": 31,
+        "direct_object_passing_call_sites": 61,
+        "unique_direct_helper_targets": 39,
+        "direct_effective_flag_reads": 1,
+        "direct_baseline_flag_reads": 0,
+        "recursive_typed_states": 45,
+        "recursive_propagation_edges": 19,
+        "tagged_indirect_or_vtable_calls": 0,
+        "bit21_semantic_decoders": 0
+      },
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant / carried but uninterpreted in canonical typed model runtime surface",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-source-flag-00200000-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source bit"
     }
   },
   "secondary_region_correction": {
@@ -127,16 +141,16 @@
     "status": "REJECTED",
     "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
   },
-  "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes or shell regions.",
+  "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes, fields or source bits.",
   "closed_gates": [
     "BLENDINDICES.x canonical CPU/GPU runtime consumption",
     "transform +0x1C canonical transform-runtime consumption: EXE_CONFIRMED dormant/no effect",
     "mesh +0x38 MOD-specific runtime role relative to EFM homologous COLOR0 stream",
     "header +0x14 -> manager +0xE4 canonical downstream consumer census: no consumer found",
-    "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend"
+    "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend",
+    "source flag 0x00200000 canonical typed runtime consumption: carried/restored but no provenance-confirmed bit21 decoder"
   ],
   "remaining_gates": [
-    "downstream terminal semantic consumer of source-carried runtime bit 0x00200000, if one exists outside the bounded MOD object-state/material paths",
     "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
     "retained-pointer consumer census for secondary object regions +0x04..07/+0x14..17/+0x20..2F",
     "secondary header and node-domain whole-program closure",

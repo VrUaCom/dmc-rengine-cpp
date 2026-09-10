@@ -1,11 +1,13 @@
 {
-  "schema": "dmc-rengine.mod-object-flag-receipt.v3",
+  "schema": "dmc-rengine.mod-object-flag-receipt.v4",
   "field": "object source flag 0x00200000",
   "serialized_offset": "object +0x10 bit 21",
   "width": "u32 mask",
   "canonical_executable": {
     "name": "dmc3.exe",
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "architecture": "PE32+ x86-64"
   },
   "corpus": {
     "em000_objects_with_bit": 7,
@@ -17,97 +19,138 @@
     "status": "CORPUS_CONFIRMED"
   },
   "runtime_flag_model": {
-    "initializer_read": "0x140302AB2",
-    "baseline_write": "0x140302AC9 -> runtime object +0x10",
-    "effective_write": "0x140302ABF -> runtime object +0x14",
+    "initializer": "0x1403029E0",
+    "initializer_read": "0x140302AB2 reads serialized object +0x10 source_flags",
+    "baseline_write": "0x140302AC9 writes complete source dword to runtime object +0x10",
+    "effective_write": "0x140302ABF writes complete source dword to runtime object +0x14",
     "baseline_role": "source/baseline flag word",
     "effective_role": "mutable/effective flag word",
-    "status": "EXE_CONFIRMED"
-  },
-  "object_state_consumer_census": {
-    "bounded_range": "canonical MOD object-state helpers 0x140302640..0x140305C37 with runtime-object provenance",
-    "effective_word_read_sites": [
-      "0x140305911",
-      "0x140305930",
-      "0x140305942",
-      "0x14030599D",
-      "0x1403059AE",
-      "0x140305BBC",
-      "0x140305BDA",
-      "0x140305BEF",
-      "0x140305BFF"
-    ],
-    "baseline_word_read_sites": [
-      "0x140305903",
-      "0x140305924",
-      "0x140305BD7"
-    ],
-    "terminal_local_state_builder": "0x140302640",
-    "state_builder_masks": [
-      "0x0000000F low mode nibble",
-      "0x00010000",
-      "0x00100000"
-    ],
-    "state_builder_bit21_test": false,
-    "meaning": "provenance-confirmed object-state paths preserve/carry bit21, but the local GS state builder does not interpret it",
-    "status": "EXE_CONFIRMED"
-  },
-  "external_effective_word_census": {
-    "effective_mutator": {
-      "helper": "0x1402F28E0",
-      "read": "0x1402F2901 reads runtime object +0x14",
-      "operation": "BTS bit17 / OR-equivalent set mask 0x00020000, then writes complete word back to +0x14",
-      "bit21_effect": "pre-existing bit21 is preserved but not tested/interpreted",
-      "status": "EXE_CONFIRMED"
-    },
-    "material_paths": [
-      {
-        "effective_read": "0x1402F9ED9",
-        "call": "0x1402F9EEF -> 0x1402F9890",
-        "provenance": "manager +0x100 + object_index*0x380; MOD family path selected by manager +0xE0 high nibble 0x10000000"
-      },
-      {
-        "effective_read": "0x1402FA042",
-        "call": "0x1402FA058 -> 0x1402F9890",
-        "provenance": "parallel object/material construction path using runtime object +0x14"
-      }
-    ],
-    "material_helper": "0x1402F9890",
-    "material_helper_flag_mask": "0x00004000 only",
-    "material_helper_effect": "selects legacy GS TEX1 filtering state; does not test/extract 0x00200000",
-    "bit21_effect": "whole effective dword reaches common material helper, but bit21 remains uninterpreted",
     "status": "EXE_CONFIRMED"
   },
   "state_machine_evidence": {
     "selective_reset_helper": "0x1403058F0",
     "selective_reset_formula": "effective = (effective & 0xFFEFFFF0) | (baseline & 0x0010000F)",
-    "bit21_effect_on_selective_reset": "bit21 is not refreshed from baseline by this path; its current effective state is retained",
+    "bit21_effect_on_selective_reset": "current effective bit21 is preserved; baseline bit21 is not selected by the partial refresh",
     "override_helper": "0x140305B90",
-    "zero_override_branch": "when incoming override mask is zero, the complete baseline +0x10 word is ORed into effective +0x14, reintroducing source bit21 if present",
-    "nonzero_override_branch": "otherwise the supplied override mask is ORed into effective +0x14",
-    "downstream": "both paths pass effective +0x14 to 0x140302640, which ignores bit21",
+    "zero_override_branch": "ORs the complete baseline +0x10 word into effective +0x14, therefore source bit21 can be reintroduced",
+    "downstream": "effective +0x14 reaches 0x140302640",
     "status": "EXE_CONFIRMED"
   },
-  "literal_mask_census": {
-    "model_subsystem_equal_mask_candidates": [
-      "0x1402F4C21 runtime object +0x304",
-      "0x140303F2F manager +0xE0"
+  "direct_runtime_object_surface": {
+    "derivation": "runtime_object = manager +0x100 + object_index*0x380",
+    "derived_function_count": 31,
+    "direct_object_passing_call_sites": 61,
+    "unique_direct_helper_targets": 39,
+    "direct_runtime_plus14_reads": [
+      {
+        "address": "0x1402F9ED9",
+        "instruction": "mov r8d,[runtime_object+0x14]",
+        "callee": "0x1402F9890",
+        "status": "EXE_CONFIRMED"
+      }
     ],
-    "direct_tests_of_runtime_plus_10_or_plus_14": 0,
+    "direct_runtime_plus10_reads": [],
+    "result": "the only direct effective-word read on the exact manager-bound derivation surface is the known common-material path",
     "status": "EXE_CONFIRMED"
   },
-  "candidate_rejections": [
-    {
-      "address": "0x1402F4C21",
-      "reason": "tests mask 0x00200000 in runtime word +0x304, not source-carried +0x10/+0x14; no derivation edge is proven",
+  "semantic_decoders": {
+    "local_gs_state": {
+      "helper": "0x140302640",
+      "interpreted_masks": ["0x0000000F", "0x00010000", "0x00100000"],
+      "bit21_interpreted": false,
+      "table_index_control": "low mode is ANDed with 0xF before 0x1402F17C0; bit21 cannot contribute to the table address",
+      "status": "EXE_CONFIRMED"
+    },
+    "common_material": {
+      "helper": "0x1402F9890",
+      "incoming_effective_read": "0x1402F9ED9",
+      "mask_instruction": "0x1402F98E6 AND 0x00004000",
+      "meaning": "legacy GS TEX1 filtering selector",
+      "bit21_interpreted": false,
+      "status": "EXE_CONFIRMED"
+    },
+    "external_effective_mutator": {
+      "helper": "0x1402F28E0",
+      "read": "0x1402F2901 runtime +0x14",
+      "operation": "0x1402F2904 BTS bit17",
+      "write_back": "0x1402F290C runtime +0x14",
+      "bit21_effect": "preserved but not tested/interpreted",
+      "status": "EXE_CONFIRMED"
+    }
+  },
+  "recursive_typed_census": {
+    "seed_helper_targets": 39,
+    "typed_interprocedural_states": 45,
+    "typed_propagation_edges": 19,
+    "tagged_indirect_or_vtable_calls": 0,
+    "new_bit21_semantic_decoders": 0,
+    "flag_derived_memory_address_control": {
+      "helper": "0x1402F17C0",
+      "address_use": "0x1402F17DF mov rax,[rcx+rax*8]",
+      "provenance": "input index was reduced from the low mode nibble after AND 0xF in 0x140302640",
+      "bit21_can_affect_index": false,
+      "status": "EXE_CONFIRMED"
+    },
+    "result": "no reachable typed helper uses source-carried bit21 as a branch, compare, shift-derived selector, table/address index, material/packet field, or other terminal semantic input",
+    "status": "EXE_CONFIRMED"
+  },
+  "pointer_escape_control": {
+    "method": "path-insensitive candidate generation followed by manual canonical-disassembly provenance classification",
+    "proven_runtime_object_getter_or_store_escape": false,
+    "representative_rejections": [
+      {
+        "address": "0x1402F5640",
+        "reason": "stored/returned RAX is a shifted scalar/state value by the candidate site, not the runtime object pointer"
+      },
+      {
+        "address": "0x1402F8996",
+        "reason": "stored pointer derives from manager +0x120 / draw structures, not the manager-bound 0x380 runtime object"
+      },
+      {
+        "address": "0x1402FF2AF",
+        "reason": "stored pointer belongs to per-draw state, not the 0x380 runtime object"
+      },
+      {
+        "address": "0x140302F09",
+        "reason": "returns the original allocation/runtime-array argument from [rbp+0x88], not the per-object derived pointer"
+      },
+      {
+        "address": "0x14030732A",
+        "reason": "writes a manager +0x118-derived mesh/subobject pointer into a per-mesh runtime record"
+      },
+      {
+        "address": "0x1403075A9",
+        "reason": "writes a newly assembled 64-bit packet/state value into a per-mesh record"
+      }
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "equal_mask_domain_rejections": {
+    "runtime_plus304": {
+      "builder": "0x1402F2C30",
+      "bit21_set": "0x1402F2CDD BTS bit21",
+      "consumer": "0x1402F4C21 AND 0x00200000",
+      "source_plus10_plus14_derivation": false,
+      "reason": "runtime +0x304 is independently initialized/mutated and is not proven to derive from source-carried baseline/effective flags",
       "status": "REJECTED"
     },
-    {
-      "address": "0x140303F2F",
-      "reason": "tests manager +0xE0 bit 0x00200000, a separate runtime domain raised by source flags 0x00000200/0x00000400",
+    "manager_plusE0": {
+      "bit21_set_from_source_00000200": "0x140302CF9",
+      "bit21_set_from_source_00000400": "0x140302D59",
+      "consumer": "0x140303F2F AND 0x00200000",
+      "reason": "manager +0xE0 bit21 is independently generated from different serialized source bits and is not serialized source bit21",
       "status": "REJECTED"
     }
-  ],
+  },
+  "external_layout_rejection": {
+    "candidate": "0x140320DDC..0x140321117",
+    "reason": "coincidental +0xE8/+0x100/+0x380 accesses belong to an unrelated float/array interpolation layout with no model-manager provenance",
+    "status": "REJECTED"
+  },
+  "canonical_runtime_consumption": {
+    "result": "dormant / carried but uninterpreted in the canonical typed model runtime surface",
+    "status": "EXE_CONFIRMED"
+  },
   "semantic_status": "PRESERVED_UNDECODED",
   "evidence_status": [
     "EXE_CONFIRMED",
@@ -115,15 +158,20 @@
     "PRESERVED_UNDECODED",
     "REJECTED"
   ],
+  "cpp_contract": {
+    "implementation": "include/dmc_rengine/analysis/mod/object_flags.hpp",
+    "regression_test": "tests/mod_skin_tests.cpp",
+    "contract": "models exact baseline/effective carry, restoration, external bit17 mutation and common-material mask while synthetic bit21 remains preserved and outside all proven interpreted masks"
+  },
   "rejected_hypotheses": [
     "source flag 0x00200000 equals cloth",
     "manager +0xE0 bit 0x00200000 is the same field as serialized object source flag 0x00200000",
     "runtime +0x304 bit 0x00200000 is automatically derived from serialized source flag 0x00200000",
     "presence in baseline/effective words implies a GS packet semantic",
-    "0x140302640 consumes every high bit present in effective flags",
-    "passing the complete effective flag word to 0x1402F9890 means every bit is a material input"
+    "passing the complete effective flag word to a helper means every bit is semantically consumed",
+    "canonical runtime non-consumption makes the serialized bit padding or reserved",
+    "a future writer may clear or synthesize source bit21"
   ],
-  "cpp_contract": "analysis/mod/object_flags.hpp models exact baseline/effective carry, restoration, the external bit17 mutator and the common-material interpreted mask without assigning a terminal semantic to bit21",
-  "writer_policy": "preserve",
-  "closure_boundary": "Bit21 is EXE_CONFIRMED as carried and mutation-preserved state across local object-state, an external effective-word mutator and the common material construction path. The two proven semantic interpreters reached from these flows are 0x140302640 and 0x1402F9890; neither interprets 0x00200000. A high-level semantic claim therefore requires a separately proven consumer outside these audited model render/material/state paths or a provenance edge to another runtime domain."
+  "writer_policy": "preserve exact source bit",
+  "closure_boundary": "The canonical DMC3 HD typed model-manager/runtime-object surface is closed for source-carried bit21 consumption: 31 exact runtime-object derivation functions, 61 object-passing call sites, 39 direct helper targets and a conservative 45-state/19-edge recursive pass expose no bit21 semantic decoder or indirect typed escape. The serialized high-level semantic remains PRESERVED_UNDECODED."
 }
