@@ -47,9 +47,10 @@ def main() -> None:
     assert len(mod["learning_links"]) == 12
     assert all(lesson.get("route", "").startswith("/formats/mod/lessons/") for lesson in mod["learning_links"])
     assert len({lesson["route"] for lesson in mod["learning_links"]}) == 12
-    assert any(section["heading"] == "Current MOD evidence baseline" for section in mod["sections"])
-    assert any(section["heading"] == "Important 2026-09-09 closures and corrections" for section in mod["sections"])
-    assert any(section["heading"] == "What MOD still does not authorize" for section in mod["sections"])
+    assert any(section["heading"] == "MOD reverse complete" for section in mod["sections"])
+    assert any(section["heading"] == "Canonical MOD map" for section in mod["sections"])
+    assert any(section["heading"] == "Terminal preservation outcomes" for section in mod["sections"])
+    assert any(section["heading"] == "Writer and reintegration are separate gates" for section in mod["sections"])
 
     first_lesson_route = "/formats/mod/lessons/01-what-is-mod/"
     last_lesson_route = "/formats/mod/lessons/reference-map/"
@@ -109,16 +110,16 @@ def main() -> None:
         assert f'{base_url}/archives/nbz/' in formats_html
 
         assert "MOD at a glance" in mod_html
-        assert "Current MOD evidence baseline" in mod_html
-        assert "Important 2026-09-09 closures and corrections" in mod_html
-        assert "38 unique MOD resources" in mod_html
-        assert "20,976 vertices" in mod_html
-        assert "BLENDINDICES.x" in mod_html
-        assert "ReadWriteMask 0xE" in mod_html
-        assert "TEST_1 AREF" in mod_html
-        assert "universal decimal interpretation" in mod_html
+        assert "MOD reverse complete" in mod_html
+        assert "Canonical MOD map" in mod_html
+        assert "Terminal preservation outcomes" in mod_html
+        assert "Writer and reintegration are separate gates" in mod_html
         assert "PRESERVED_UNDECODED" in mod_html
-        assert "100% reverse" in mod_html
+        assert "BLENDINDICES.x" in mod_html
+        assert "0x00200000" in mod_html
+        assert "38/38" in mod_html
+        assert "882,736" in mod_html
+        assert "original-game acceptance" in mod_html
         assert "MOD learning path" in mod_html
         assert "01 — What is MOD?" in mod_html
         assert "10 — Exercises and debugging" in mod_html
@@ -132,6 +133,7 @@ def main() -> None:
         assert "Урок 1 — Що таке .MOD" in lesson_html
         assert "Урок 1 — Що таке `.MOD`" not in lesson_html
         assert "Не «просто 3D-модель»" in lesson_html
+        assert "MOD reverse complete" in lesson_html
         assert "DMC3-*.nbz" in lesson_html
         assert "serialized MOD" in lesson_html
         assert '<pre><code class="language-text">' in lesson_html
