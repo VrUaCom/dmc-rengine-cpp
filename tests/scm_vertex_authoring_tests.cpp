@@ -2,14 +2,20 @@
 #include "dmc_rengine/formats/scm_edit.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
+#include "../src/cli/scm_vertex_authoring_commands.hpp"
 
+#include <array>
 #include <bit>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <limits>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace {
@@ -31,7 +37,7 @@ void put_f32_le(std::vector<std::byte>& bytes, std::size_t offset, float value) 
         std::byte{static_cast<unsigned char>((raw >> 24U) & 0xFFU)};
 }
 
-std::vector<std::byte> fixture() {
+std::vector<std::byte> fixture(float serialized_radius = 2.0F) {
     using namespace dmc::rengine::formats::scm;
 
     ObjectShape shape;
@@ -61,7 +67,7 @@ std::vector<std::byte> fixture() {
     put<std::uint16_t>(bytes, object_offset + 0x02U, 3U);
     put<std::uint64_t>(
         bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
-    put<float>(bytes, object_offset + 0x3CU, 2.0F);
+    put<float>(bytes, object_offset + 0x3CU, serialized_radius);
 
     const auto& mesh_layout = object_layout.meshes[0];
     const auto mesh_offset =
@@ -99,6 +105,42 @@ std::vector<std::byte> fixture() {
     bytes[scene_offset + layout.scene.order_rel] = std::byte{0};
     bytes[scene_offset + layout.scene.object_binding_rel] = std::byte{0};
     return bytes;
+}
+
+void write_file(
+    const std::filesystem::path& path,
+    std::span<const std::byte> bytes) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    assert(stream);
+    if (!bytes.empty()) {
+        stream.write(
+            reinterpret_cast<const char*>(bytes.data()),
+            static_cast<std::streamsize>(bytes.size()));
+    }
+    assert(stream.good());
+}
+
+int run_vertex_cli(
+    const std::filesystem::path& input,
+    const std::filesystem::path& output) {
+    std::vector<std::string> storage{
+        "dmc-rengine",
+        "scm-set-vertex-position",
+        input.string(),
+        "0",
+        "0",
+        "0",
+        "4",
+        "0",
+        "0",
+        output.string(),
+    };
+    std::array<char*, 10> argv{};
+    for (std::size_t index = 0U; index < storage.size(); ++index) {
+        argv[index] = storage[index].data();
+    }
+    return dmc::rengine::cli::try_run_scm_vertex_authoring_command(
+        static_cast<int>(argv.size()), argv.data());
 }
 
 } // namespace
@@ -194,5 +236,39 @@ int main() {
     assert(!out_of_range.ok());
     assert(!out_of_range.changed);
 
+    const auto test_root =
+        std::filesystem::temp_directory_path() /
+        "dmc-rengine-scm-vertex-authoring-tests";
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(test_root, cleanup_error);
+    assert(std::filesystem::create_directories(test_root));
+
+    const auto mismatch_input = test_root / "radius-mismatch.scm";
+    const auto mismatch_output = test_root / "radius-mismatch-authored.scm";
+    const auto one_ulp_above_two = std::bit_cast<float>(
+        std::bit_cast<std::uint32_t>(2.0F) + 1U);
+    const auto mismatch_source = fixture(one_ulp_above_two);
+    write_file(mismatch_input, std::span<const std::byte>{mismatch_source});
+    assert(run_vertex_cli(mismatch_input, mismatch_output) == 6);
+    assert(!std::filesystem::exists(mismatch_output));
+
+    const auto valid_input = test_root / "valid.scm";
+    const auto valid_output = test_root / "valid-authored.scm";
+    write_file(valid_input, std::span<const std::byte>{source});
+    assert(run_vertex_cli(valid_input, valid_output) == 0);
+
+    std::vector<std::byte> cli_output;
+    assert(dmc::rengine::cli::scm_authoring_detail::read_file(
+        valid_output, cli_output));
+    assert(cli_output == expected);
+
+    const auto first_output = cli_output;
+    assert(run_vertex_cli(valid_input, valid_output) == 17);
+    cli_output.clear();
+    assert(dmc::rengine::cli::scm_authoring_detail::read_file(
+        valid_output, cli_output));
+    assert(cli_output == first_output);
+
+    std::filesystem::remove_all(test_root, cleanup_error);
     return 0;
 }
