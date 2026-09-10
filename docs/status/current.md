@@ -1,12 +1,13 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-09  
-**Canonical implementation base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
-**Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT model-format consolidation and container gates (merged after PR #375)  
-**Latest public/status reconciliation:** PR #375 — MOD Writer Gate 1 roadmap/learning reconciliation  
-**Latest canonical Native Reader integration review:** current `NativeReaderModuleRegistry` verified directly at `main@d8534bad…`  
+**Snapshot date:** 2026-09-10  
+**Canonical implementation base reviewed:** `main@c4a3fc2d4fc661d82e17b25c119f742ccda4973f`  
+**Latest reviewed public/status promotion:** PR #377 — canonical model-format truth + discovery reconciliation  
+**Latest SCM authoring promotion:** PR #376 — bounded real-corpus SCM alpha authoring + PAC reintegration  
+**Latest MOD/SCM/MOT consolidation:** PR #372 — unified model-format consolidation and MOD container gates  
+**Latest canonical Native Reader integration review:** `NativeReaderModuleRegistry` verified on current `main`  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete. Model-format authoring advanced materially: MOD now has real retail PNST reintegration, SCM has a canonical bounded writer/rebuild stack with a 68-unique no-edit corpus, and MOT has canonical Native Reader registry presence plus the consolidated parser/IR and bounded key-evaluation recovery. Retail NBZ/original-game acceptance and protected-process proof remain open.
+**Overall status:** L1/L2/L3 remain incomplete. The canonical DMC3 HD MOD reverse is complete; MOD writer/original-game acceptance remain separate bounded programs. SCM and MOT continue on their own authoring/runtime proof tracks.
 
 ## Authority split
 
@@ -31,7 +32,7 @@ The protected distribution execution candidate remains a separate build and requ
 
 ## Native Reader current state
 
-The directly verified `NativeReaderModuleRegistry` on current `main` registers:
+The directly verified `NativeReaderModuleRegistry` registers:
 
 - DDS;
 - PTX;
@@ -48,7 +49,7 @@ The directly verified `NativeReaderModuleRegistry` on current `main` registers:
 - SHW;
 - PE/EXE.
 
-This corrects older status pages that omitted MOT and the SO module family. Registry membership is a product-integration fact; it does not by itself grant complete semantic or writer authority.
+Registry membership is a product-integration fact; it does not by itself grant complete semantic or writer authority.
 
 EFM is still not a canonical Native Reader module. MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
 
@@ -56,9 +57,30 @@ SHW remains structural/read-only. Matrix-palette ownership, universal revision c
 
 ## MOD / model-family state
 
-Canonical read/reverse authority includes hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, companion binding, inverse-rest skin palette, runtime descriptors, object-runtime projections, preserved serialized unknowns and direct skin ABI evidence.
+### Reverse status — COMPLETE
 
-Canonical authoring evidence now includes:
+**The DMC3 HD MOD reverse is complete for the canonical project scope.**
+
+The reverse is considered closed because every relevant serialized/runtime domain now has a terminal evidence state. Terminal outcomes include typed semantics, explicit family-sensitive boundaries, `PRESERVED_UNDECODED`, `RESERVED_OBSERVED_ZERO` and `REJECTED` hypotheses. Preservation-only fields are therefore not open reverse blockers simply because no unsupported artistic/material label was invented.
+
+The completed canonical MOD map includes:
+
+- document/object/mesh ABI;
+- hierarchy/order domain and default-joint behavior;
+- local/world transforms and inverse-rest/current-world skin palette construction;
+- position/normal/fixed-point UV, blend-index and packed skin/topology streams;
+- texture slot + legacy GS CLAMP state;
+- external texture-companion/runtime-descriptor ownership and binding validation;
+- object runtime projection;
+- post-load relocation and generated topology behavior;
+- MOD-side motion-group / MOT/CMotion boundary;
+- source-byte preservation rules for every field whose strongest honest semantic is preservation-only.
+
+Important terminal preservation outcomes include header `+0x14`, `BLENDINDICES.x`, source flag `0x00200000`, mesh `+0x0C/+0x38/+0x4C` and transform `+0x1C`. These are closed reverse results, not unfinished MOD research.
+
+### Writer/container state — bounded, separate from reverse completion
+
+Canonical authoring evidence includes:
 
 - PR #365 — Preserve-Layout Writer Gate 1 with immutable-source binding and authorized-byte-span enforcement;
 - PR #367 — deterministic writer corpus runner;
@@ -68,11 +90,13 @@ Canonical authoring evidence now includes:
 - PR #372 — provenance-bound real retail PNST reintegration of the authored MOD child: physical slot 23 in `m20_s00_012.pac`, unchanged parent size/slot table, only the expected three parent bytes changed, exact authored MOD recovered after canonical reparse/re-expand;
 - PR #372 — synthetic MOD -> container -> next-volume NBZ overlay -> reopen gate using existing NBZ infrastructure.
 
-This is real bounded authoring authority, not full MOD writer authority. Still open are typed-IR-only layout synthesis/reflow, transform/skin/material/texture-companion authoring, broader unknown-field mutation authority, provenance-bound **retail NBZ** overlay acceptance and original `dmc3.exe` no-op/edited MOD acceptance.
+Still open are typed-IR-only layout synthesis/reflow, transform/skin/material/texture-companion authoring, broader preservation-only-field mutation authority, provenance-bound **retail NBZ** overlay acceptance and original `dmc3.exe` no-op/edited MOD acceptance.
+
+Those are writer/integration/acceptance gates and do not reopen the completed MOD reverse.
 
 ## SCM state
 
-PR #372 promotes one selected canonical SCM authoring stack:
+PR #372 promoted one selected canonical SCM authoring stack:
 
 - `preserve_layout` source-bound same-layout authoring;
 - deterministic `canonical_rebuild` typed-IR layout planning;
@@ -83,7 +107,7 @@ PR #372 promotes one selected canonical SCM authoring stack:
 - fail-closed canonical reflow when non-zero unmodeled source bytes exist;
 - bounded SCM/texture-companion coherence through `ScmResourceBundleWriter` and existing texture framing/reflow.
 
-Consolidated corpus receipt:
+Consolidated no-edit corpus receipt:
 
 ```text
 paths                           78
@@ -94,11 +118,11 @@ canonical rebuild + reparse     78/78 PASS
 canonical exact no-edit parity  78/78 PASS
 ```
 
-This closes the no-edit corpus gate for that explicit population. It does not prove production/100% SCM authoring. Still open: provenance-bound representative semantic edits, retail texture rewrite, real-retail size-changing rebuild, SCM PAC/PNST/NBZ reintegration and original-game acceptance.
+PR #376 further adds bounded real-corpus SCM alpha authoring, race-safe no-replace publication and parent PAC reintegration evidence. This advances SCM authoring but does not prove production/100% SCM authoring, protected-install/NBZ selection or original-game acceptance.
 
 ## MOT state
 
-MOT is already present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery.
+MOT is present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery.
 
 Current canonical evidence includes:
 
@@ -159,7 +183,7 @@ OpenGameResource(request)
  -> rollback
 ```
 
-The new #372 retail PNST and synthetic NBZ gates reduce implementation uncertainty but do not replace original-process selection/consumption evidence.
+The MOD reverse-complete status does not replace this cross-layer original-process acceptance chain.
 
 ## Discovery/publication state
 
