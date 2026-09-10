@@ -1,45 +1,37 @@
 # Current Project Status
 
 **Snapshot date:** 2026-09-09  
-**Canonical implementation base reviewed:** `main@cf7bd4d2a57c40e8127aed353ebefe2b4763398a`  
-**Latest repository promotion in this reviewed snapshot:** PR #373 — public MOD discovery aligned with Preserve-Layout Writer Gate 1  
-**Latest canonical reverse/model-family promotion:** PR #369 — controlled retail MOD writer receipt + MOD-to-PAC reintegration trust bridge  
-**Latest canonical Native Reader module promotion:** PR #288 — evidence-backed SHW structural reader + cross-registry integration hardening  
-**Latest canonical proof promotion:** PR #287 — proof roadmap + successful-mount topology correction  
-**Latest provenance-bound retail MOD evidence:** PR #369 — one controlled retail fixed-layout edit; prerequisite PR #368 proves 38/38 no-op retail byte parity  
+**Canonical implementation base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
+**Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT model-format consolidation and container gates (merged after PR #375)  
+**Latest public/status reconciliation:** PR #375 — MOD Writer Gate 1 roadmap/learning reconciliation  
+**Latest canonical Native Reader integration review:** current `NativeReaderModuleRegistry` verified directly at `main@d8534bad…`  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete. MOD authoring has advanced from read-only inspection to a bounded preserve-layout writer with retail no-op parity and one controlled retail edit, but full writer authority, retail container reintegration, NBZ/original-game acceptance and the protected-process proof chain remain open.
+**Overall status:** L1/L2/L3 remain incomplete. Model-format authoring advanced materially: MOD now has real retail PNST reintegration, SCM has a canonical bounded writer/rebuild stack with a 68-unique no-edit corpus, and MOT has canonical Native Reader registry presence plus the consolidated parser/IR and bounded key-evaluation recovery. Retail NBZ/original-game acceptance and protected-process proof remain open.
 
 ## Authority split
 
 - GitHub `main` is canonical implementation truth.
-- A pull-request branch is branch truth until promoted.
+- A PR branch is branch truth until promoted.
 - Reverse claims are bounded to exact artifact/address/range/scope.
-- Synthetic/public CI proves product/tool behavior only.
-- Original-game equivalence requires canonical-EXE reverse plus original-process evidence where runtime identity/consumption is claimed.
-- Retail corpus claims require hash-bound corpus receipts.
-- DMC Rengine product-safety policies such as atomic/no-replace publication are not presented as Capcom behavior.
-- Canonical analysis executable and protected distribution execution authority are separate builds; canonical VAs/RVAs require independent mapping before protected-process use.
+- Retail corpus claims require hash/provenance-bound receipts.
+- Synthetic/public CI proves DMC Rengine behavior only.
+- Original-game equivalence requires the appropriate original-process/consumer evidence.
 - Discovery/SEO pages are navigation/readability surfaces, never a second technical authority.
 
-See [project roadmap](../roadmap.md) and [proof roadmap](../gdspaces/proof-roadmap-2026-09-05.md).
+## Canonical executable authority
 
-## Canonical analysis authority
-
-Canonical `dmc3.exe`:
+Canonical analysis `dmc3.exe`:
 
 - SHA-256 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`;
 - size 6,356,432;
 - PE32+ x86-64;
 - ImageBase `0x140000000`.
 
-Protected distribution/original execution candidate remains separately identified as SHA-256 `81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6`, size 6,567,320. No global build equivalence is claimed.
+The protected distribution execution candidate remains a separate build and requires independent RVA/process mapping before runtime identity claims.
 
 ## Native Reader current state
 
-The resource-level Native Reader is modular (`NativeReaderModuleRegistry`). PAC/PNST remain container parsers; NBZ remains a source/materialization adapter.
-
-Canonical built-in reader modules on current `main`:
+The directly verified `NativeReaderModuleRegistry` on current `main` registers:
 
 - DDS;
 - PTX;
@@ -49,229 +41,129 @@ Canonical built-in reader modules on current `main`:
 - Stage TXT;
 - SCM;
 - MOD;
+- MOT;
+- SO graph;
+- SO volume;
+- SO link;
 - SHW;
 - PE/EXE.
 
-SHW is canonical as `formats.shw-structural-v1`, structural/read-only. The promotion is bounded to the canonical EXE plus one hash-bound real payload (`slot_0008.shw`, size 9,488, SHA-256 `cb392ef2e874addb887d32bc44d409299a32a83a4845afcbdef31698283f2e7e`). The reader materializes the confirmed `0x20` header, `0x40` hull records, triangle topology, exact adjacency records, `float4` positions and per-vertex transform selectors. Selector semantics are EXE-confirmed; SHW matrix-palette ownership/construction remains open. One-payload invariants are variant warnings rather than universal hard rejects. No SHW writer or universal revision coverage is claimed.
+This corrects older status pages that omitted MOT and the SO module family. Registry membership is a product-integration fact; it does not by itself grant complete semantic or writer authority.
 
-PR #288 also closed product-integration drift around SHW: `FormatIntegrationRegistry`, `NativeReaderModuleRegistry`, `OpenRouter`, `ToolRegistry`, parser-validation publication and `ResourceAnalyzer` share explicit regression contracts. Parser execution is fail-closed if its canonical workspace completion receipt cannot be published. The exact PR head tree passed Ubuntu + Windows build/test CI before promotion.
+EFM is still not a canonical Native Reader module. MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
 
-### MOD / model-family promotion stack
+SHW remains structural/read-only. Matrix-palette ownership, universal revision coverage and writer/original-game acceptance remain open.
 
-The canonical MOD reader remains the structural/semantic inspection authority, and MOD now also has a deliberately bounded **Preserve-Layout Writer Gate 1**. The writer is not a canonical rebuild-from-scratch system: the immutable original serialized image remains physical-layout authority.
+## MOD / model-family state
 
-Promoted reader/reverse slices include:
+Canonical read/reverse authority includes hierarchy/world transforms, texture/GS state, post-load relocation/topology, object/header state, companion binding, inverse-rest skin palette, runtime descriptors, object-runtime projections, preserved serialized unknowns and direct skin ABI evidence.
 
-- PR #305 — canonical hierarchy/local transforms/world propagation consolidation;
-- PR #307 — typed mesh texture slot + legacy GS CLAMP state;
-- PR #310 — EXE-backed post-load relocation/topology generation reconstruction;
-- PR #312 — typed object alpha/control, source flags and bounds;
-- PR #313 — EXE-confirmed model texture companion envelope with TM2-backed payload allocation;
-- PR #314 — typed document/header texture-domain mirror and raw runtime header state;
-- PR #315 — mesh texture binding validation against companion-authoritative runtime domain;
-- PR #316 — inverse-rest ownership and `skinMatrix = inverseRestWorld * currentWorld` palette composition;
-- PR #317 — runtime model-texture descriptor ABI with GS TEX0/MIPTBP1 decode;
-- PR #318 — EXE-backed object runtime flag/render-parameter projection;
-- PR #323 — serialized mesh `+0x0C/+0x38/+0x4C` preservation classification plus direct `/4` blend-index and 5+5+5-bit `/31` weight ABI evidence;
-- PR #356 — broader multi-corpus unknown-field closure and preservation contracts;
-- PR #359 — source-flag `0x00200000` negative evidence extended through effective-word/material paths without speculative semantic promotion;
-- PR #360 — retained serialized-object pointer consumers classified and false SCM provenance rejected;
-- PR #363 — MOD branch history consolidated with an explicit no-repeat evidence frontier.
+Canonical authoring evidence now includes:
 
-Promoted writer/authoring gates now include:
+- PR #365 — Preserve-Layout Writer Gate 1 with immutable-source binding and authorized-byte-span enforcement;
+- PR #367 — deterministic writer corpus runner;
+- PR #368 — 38/38 provenance-bound retail no-op exact byte parity across 882,736 bytes;
+- PR #369 — one provenance-bound real retail `bounding_radius` edit with exactly three changed bytes and independent raw-diff/reopen validation;
+- PR #369 — MOD writer receipt -> `AuthoredChildImage` trust bridge + synthetic PAC reintegration;
+- PR #372 — provenance-bound real retail PNST reintegration of the authored MOD child: physical slot 23 in `m20_s00_012.pac`, unchanged parent size/slot table, only the expected three parent bytes changed, exact authored MOD recovered after canonical reparse/re-expand;
+- PR #372 — synthetic MOD -> container -> next-volume NBZ overlay -> reopen gate using existing NBZ infrastructure.
 
-- PR #365 — Preserve-Layout Writer Gate 1: immutable-source binding, canonical source reparse, explicit authorized-byte spans, output reparse and fixed-size edits only for object bounding center/radius plus existing mesh positions, normals and UVs;
-- PR #367 — deterministic multi-file writer corpus runner and machine-readable receipts;
-- PR #368 — provenance-bound retail no-op gate: 38/38 MOD files parse, write byte-identically and reopen canonically; 882,736 source bytes, zero modified bytes, zero failures;
-- PR #369 — one provenance-bound real retail `em000_021.mod` bounding-radius edit: serialized span `[124,128)`, exactly three changed bytes, unauthorized-byte preservation PASS, disk reread/hash/reopen PASS and independent raw-diff verification PASS;
-- PR #369 — `ModAuthoredChildBridge` validates a successful MOD writer receipt before emitting the generic `AuthoredChildImage`; a synthetic PAC regression then reintegrates and reopens the writer output through the existing `NestedRelativeSlotReintegrator`.
+This is real bounded authoring authority, not full MOD writer authority. Still open are typed-IR-only layout synthesis/reflow, transform/skin/material/texture-companion authoring, broader unknown-field mutation authority, provenance-bound **retail NBZ** overlay acceptance and original `dmc3.exe` no-op/edited MOD acceptance.
 
-This establishes real bounded MOD writer authority, not full MOD authoring authority. Still open are:
+## SCM state
 
-- layout synthesis/reflow and rebuild from typed IR alone;
-- transform authoring;
-- skin/blend-index authoring;
-- source-flag/material/texture-binding authoring;
-- texture-companion rewriting/coherence;
-- provenance-bound retail PAC/PNST reintegration of writer output;
-- NBZ overlay acceptance for the MOD authoring chain;
-- original `dmc3.exe` acceptance of a no-op rebuilt MOD;
-- original `dmc3.exe` acceptance of an edited MOD;
-- complete current animation/pose ownership;
-- Capcom offline authoring-tool equivalence;
-- a `100% MOD writer` claim.
+PR #372 promotes one selected canonical SCM authoring stack:
 
-Current reader frontier:
+- `preserve_layout` source-bound same-layout authoring;
+- deterministic `canonical_rebuild` typed-IR layout planning;
+- typed geometry, normal, UV, texture-slot, alpha, nearest-filter, GS CLAMP REGION_REPEAT and node transform edits;
+- dependent metadata derivation;
+- mandatory canonical output reparse;
+- source-bound mutation guards;
+- fail-closed canonical reflow when non-zero unmodeled source bytes exist;
+- bounded SCM/texture-companion coherence through `ScmResourceBundleWriter` and existing texture framing/reflow.
 
-- EFM — reverse evidence exists, but no canonical Native Reader module;
-- MOT — research/parser work exists outside the canonical reader set;
-- MRP/MCV/CAM/CLT/TSC and other recognized families remain evidence-gated.
+Consolidated corpus receipt:
+
+```text
+paths                           78
+unique SHA-256 inputs           68
+parse                           78/78 PASS
+preserve-layout exact parity    78/78 PASS
+canonical rebuild + reparse     78/78 PASS
+canonical exact no-edit parity  78/78 PASS
+```
+
+This closes the no-edit corpus gate for that explicit population. It does not prove production/100% SCM authoring. Still open: provenance-bound representative semantic edits, retail texture rewrite, real-retail size-changing rebuild, SCM PAC/PNST/NBZ reintegration and original-game acceptance.
+
+## MOT state
+
+MOT is already present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery.
+
+Current canonical evidence includes:
+
+- `MOT\0` marker and aligned header/channel-mask contract;
+- nine-bit channel mask and record-count/popcount relationship;
+- typed compression-2 and compression-3 key payloads;
+- three hash-bound real MOT payloads parsing through the modular path;
+- canonical-EXE recovery of binding-bit traversal, signed track start-time offsets, quantization and compression-3 linear/Hermite segment evaluation with slope orientation.
+
+The interpolation helper is an algebraic semantic recovery, not a bit-identical SSE or complete player claim. Exact segment lookup/cache, duplicate-time behavior, flag `0x2` binding, other compression modes, looping/blending/full transform composition and original-game output parity remain open.
+
+## SO module state
+
+`NativeReaderModuleRegistry` also contains `so_graph`, `so_volume` and `so_link`. Their registry presence is canonical product integration. It must not be inflated into universal SO semantic/writer authority; cross-resource MOD/SO semantics remain evidence-gated by their dedicated analysis modules and receipts.
 
 ## L1 — Resource Materialization
 
-### Closed product capabilities
+Closed/advanced evidence includes NBZ/PAC/PNST product paths, authoring infrastructure, MOD Writer Gate 1, real retail PNST reintegration and synthetic NBZ reopen.
 
-- NBZ classic ZIP indexing/materialization;
-- STORE + raw-DEFLATE product path;
-- CRC/size/SHA/ByteProvenance;
-- artifact-bound archive/member observations;
-- atomic/no-replace publication;
-- PAC/PNST sparse/empty/alias-preserving parse + recursive expansion;
-- size-changing relative-slot reflow;
-- nested root-to-leaf PAC/PNST slot-path authoring;
-- immutable NBZ copy rebuild;
-- next-contiguous STORE NBZ overlay authoring;
-- canonical reopen/rematerialization checks;
-- direct-retail acquisition tooling and protected-build preflight.
+Mandatory remaining acceptance chain:
 
-### Reverse-backed bounded facts
-
-- `DMC3-%d.nbz` bootstrap and first-gap discovery;
-- PAC/PNST typed traversal in the recovered post-load path;
-- PAC physical slot 0 is traversed;
-- materialization-dispatch success gates LoadedResource state1;
-- packed-vs-`.lst` representation selection is original-runtime authority; external `.index` is not recovered as runtime materialization authority on this path.
-
-### Mandatory remaining L1 receipts
-
-1. real protected-install resolver-selected provenance;
-2. exact selected retail representation classification;
-3. one provenance-bound retail container reintegration/reopen receipt for a supported authored child chain;
-4. original runtime selects the authored higher-numbered overlay;
-5. deterministic consumer-visible effect attributable to authored bytes;
+1. trusted original resolver-selected provenance;
+2. exact representation classification for that selected lineage;
+3. same-lineage authored overlay construction and original-runtime selection;
+4. exact rematerialization to the authored child;
+5. deterministic original consumer-visible effect;
 6. rollback proving original retail immutability;
 7. final L1 audit.
-
-The synthetic MOD-in-PAC regression from PR #369 strengthens the product reintegration path but does not satisfy the provenance-bound retail or original-runtime gates above.
 
 **L1 COMPLETE = NO.**
 
 ## L2 — Resource Resolution
 
-### Closed/reverse-backed
-
-- `OpenGameResource` bounded direct caller census;
-- six-prefix archive-then-physical request policy for the recovered direct-call surface;
-- executable-relative `data\\dmc3\\` root and numbered first-gap discovery;
-- successful archive registrations prepend to the mount list;
-- clean higher-numbered archive precedence;
-- archive `0x0E` / physical `0x0C` normalization;
-- terminal archive-wrapper failure distinction;
-- type-0 physical final-open/miss bounded contract;
-- protected-runtime mapping tooling (#219).
-
-### Retail collision evidence
-
-Bound retail `dmc3-0.nbz`:
-
-```text
-files-only          : 4333 keys / 4333 unique / 0 collisions
-all central entries : 4334 keys / 4334 unique / 0 collisions
-```
-
-Receipt: `data/reverse/dmc3-nbz-archive-key-census-20260903.json`.
-
-This closes collision freedom only for that exact archive. Wider resolver scope still requires per-volume and cross-volume census.
-
-### Successful-mount topology correction
-
-PR #287 is promoted to `main`. The product model reflects the reverse-backed distinction:
-
-```text
-filename discovery / registration attempt
-!=
-successful linked runtime mount topology
-```
-
-Canonical product behavior keeps discovery evidence separate from explicitly successful providers; sparse successful archive registration is representable; the resolver traverses only successful topology; discovered-but-failed archives are absent rather than manufactured as misses; failed physical registration produces no physical probe. Product receipts still do not claim original-process mount topology.
-
-### Remaining L2 frontier
-
-- per-volume + cross-volume collision census for any wider resolver scope;
-- real protected-process R2B multi-anchor mapping receipt;
-- trusted R3 selected-provider/member identity;
-- direct-retail original resolver winner receipt;
-- final L2 audit.
+Reverse-backed resolver/mount behavior and the exact `dmc3-0.nbz` zero-collision census remain canonical. Wider collision scope, real protected-process R2B mapping, trusted R3 selected-provider identity, direct-retail original resolver winner and final L2 audit remain open.
 
 **L2 COMPLETE = NO.**
 
 ## L3 — Original Runtime / Lifecycle
 
-Reverse-backed bounded core includes:
+The bounded LoadedResource spine remains canonical: materialization success -> state1 -> state2 -> typed post-load/callback -> state3, with bounded cancellation/quiescence/release rules.
 
-- 363-record LoadedResource registry topology;
-- acquisition/materialization success -> state1;
-- normal completion `1 -> 2`;
-- typed post-load -> optional callback -> state3;
-- global cancellation `1|2 -> 4`;
-- quiescence requires all records in `{0,3}`;
-- distinct ordinary release, cancellation cleanup and forced reset policies;
-- central typed dispatcher paths for MOD/EFM/SCM/SHW plus PNST recursion.
-
-The promoted MOD post-load/runtime and authoring evidence strengthens one family-specific part of this spine but does not establish original-runtime acceptance of authored MOD bytes and does not close global lifecycle proof.
-
-Remaining L3 work:
-
-- promote/reconcile final R1 contradiction-gated writer census onto current main;
-- close R2 family/backing ownership;
-- close the exact materialization scheduler terminal condition preventing failed/incomplete transport from reaching normal state2 publication;
-- capture V1–V7 original-process lifecycle receipts;
-- validate original `dmc3.exe` selection/consumption of the bounded MOD authoring chain before promoting game-acceptance claims;
-- final L3 audit.
+Still open: current-main R1 promotion, family/backing ownership, exact scheduler terminal dependency, V1–V7 original-process lifecycle receipts, original `dmc3.exe` authored-resource selection/consumption and final L3 audit.
 
 **L3 COMPLETE = NO.**
 
-## Current P0 proof track
+## Current P0 track
 
 ```text
 OpenGameResource(request)
- -> discovered volumes
  -> successful mount topology
  -> selected provider/volume/member
  -> exact materialized bytes
- -> PAC/PNST expansion where applicable
+ -> PAC/PNST expansion
  -> typed post-load
  -> LoadedResource state3
  -> deterministic consumer-visible effect
+ -> repeat with authored higher-numbered NBZ
+ -> rollback
 ```
 
-Then repeat the same lineage with an authored next-volume NBZ and rollback.
-
-Immediate order:
-
-1. ✅ roadmap/status proof model and successful-mount topology are canonical;
-2. ✅ SHW structural Native Reader and cross-registry routing/validation hardening are canonical;
-3. ✅ MOD Preserve-Layout Writer Gate 1, 38/38 provenance-bound no-op retail parity, one controlled retail fixed-layout edit and a synthetic PAC reintegration trust bridge are canonical;
-4. ⚠️ exact canonical EXE bytes are available to recent reverse work, but unrelated GDSpaces/L3 raw targets still require their own fresh bounded passes;
-5. ❌ execute protected-process R2B mapping;
-6. ❌ capture trusted R3 selected identity;
-7. ❌ bind selected identity to exact independently materialized bytes;
-8. ❌ obtain provenance-bound retail container reintegration for the bounded authored MOD child;
-9. ❌ observe typed post-load/state3 for the same lineage;
-10. ❌ repeat using authored higher-volume overlay;
-11. ❌ record deterministic consumer effect + rollback;
-12. ❌ run independent final L1/L2/L3 audits.
-
-## Current evidence-access boundary
-
-The old 2026-09-05 statement that raw canonical `e454...` executable bytes were unavailable is no longer current. The exact canonical executable has been supplied and used for promoted MOD/model-family reverse work.
-
-That availability is **not** a blanket proof upgrade. Each unrelated GDSpaces/L3 raw target still requires its own fresh address/range/scope-bounded analysis before any claim changes, and protected-process/original-consumption gates remain mandatory where runtime identity or acceptance is claimed.
+The new #372 retail PNST and synthetic NBZ gates reduce implementation uncertainty but do not replace original-process selection/consumption evidence.
 
 ## Discovery/publication state
 
-The discovery surface is production-active and remains separate from technical authority:
-
-- GitHub Pages is enabled and production HTTP acceptance is green;
-- the manifest-driven surface contains **104 controlled Pages URLs** across **63 format/resource families**;
-- canonical URLs, `index,follow`, sitemap ↔ `site-index.json` parity, breadcrumbs/`BreadcrumbList`, Open Graph/Twitter metadata and the approved 1280x640 social raster are production-validated;
-- automated IndexNow notification runs only after successful Pages deployment/acceptance; the 104-URL batch has a production **HTTP 200 accepted** receipt;
-- Google Search Console is intentionally not a project dependency;
-- the reviewed repository Topics payload remains unapplied because the connected GitHub path does not expose a Topics/settings write action (#294);
-- the specialist external reverse-engineering index contribution remains prepared but not submitted because the connected GitHub path does not expose fork creation (#300);
-- the latest independent public-search recheck still observed no DMC Rengine Pages result; IndexNow acceptance is not treated as proof of indexing or ranking.
-
-Discovery work does not alter L1/L2/L3 completion.
+The discovery surface remains production-active and separate from technical authority. GitHub Pages deployment/HTTP acceptance, sitemap/site-index parity, social metadata and IndexNow transport are product/discovery signals only; they do not change L1/L2/L3 completion.
 
 ## Navigation
 
@@ -282,4 +174,4 @@ Discovery work does not alter L1/L2/L3 completion.
 - [Blockers](blockers.md)
 - [Machine-readable status](canonical-status.json)
 
-No percentage, green synthetic suite, parser success, discovery metadata or crash-free launch overrides the gate-based completion rule.
+No percentage, parser success, synthetic fixture, CI green state, successful rebuild or crash-free launch overrides the gate-based completion rule.

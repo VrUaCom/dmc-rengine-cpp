@@ -6,8 +6,6 @@
 
 ## Поточний evidence baseline
 
-Bound multi-corpus pass, який лежить під актуальними уроками:
-
 ```text
 38 unique MOD
 166 objects
@@ -16,7 +14,7 @@ Bound multi-corpus pass, який лежить під актуальними у�
 285 transforms
 ```
 
-Він охоплює не лише `em000`, а й `pl000` main/cloth-associated model resources та `id100`. Це ширша evidence base, але все одно не привід перетворювати corpus invariant на universal rule без independent proof.
+Corpus охоплює `em000`, незалежні `pl000` model resources та `id100`. Corpus invariant не стає universal rule без незалежного доказу.
 
 ## Як проходити курс
 
@@ -41,55 +39,57 @@ NBZ / PAC / PNST
         v
    serialized MOD
         |
-        +--> object + mesh state
+        +--> objects / meshes / streams
         +--> node hierarchy + rest transforms
-        +--> skin indices + weights
+        +--> skin binding
         +--> texture slots
         |
         v
   runtime model manager
         |
-        +--> external texture companion -> runtime descriptors
-        +--> CMotion/MOT -> evaluated animated locals
+        +--> texture companion
+        +--> MOT / CMotion evaluated locals
         +--> currentWorld
         +--> inverseRest * currentWorld
         v
      GPU renderer
 ```
 
-## Що змінив 2026-09-09 closure pass
+## Що змінив reverse closure 2026-09-09
 
-Курс більше не вчить кілька старих intermediate hypotheses як canonical truth:
+- header `+0x14` — raw runtime-carried `u32`; universal decimal family/model/sub-index interpretation для MOD **REJECTED**;
+- `BLENDINDICES.x` — preserved ABI byte; canonical compiled shader path читає Y/Z/W;
+- source flag `0x00100000` — EXE-confirmed legacy GS TEST/ZBUF selector без вигаданого material label;
+- source flag `0x00200000` — runtime-carried/restored, terminal semantic ще open;
+- mesh `+0x38` — inactive в audited MOD path, але homologous EFM slot live;
+- mesh `+0x0C/+0x4C` і transform `+0x1C` — preserved undecoded.
 
-- MOD header `+0x14` — raw runtime-carried `u32`; universal decimal family/model/sub-index interpretation **REJECTED** broader corpus evidence;
-- `BLENDINDICES.x` — canonical compiled shader path reads Y/Z/W (`ReadWriteMask = 0xE`), а X лишається raw preserved ABI byte;
-- source flag `0x00100000` — EXE-confirmed legacy GS `TEST_1` AREF / `ZBUF_1` ZMSK selector, без вигаданого artistic/material label;
-- source flag `0x00200000` — runtime-carried/restored state, але terminal semantic consumer ще open;
-- mesh `+0x38` — family-sensitive slot: inactive в audited MOD path, але homologous EFM slot live як COLOR0;
-- mesh `+0x0C/+0x4C` і transform `+0x1C` — preserved undecoded, не padding лише тому, що bound corpus zero.
+## Що вже доведено як writer/container chain
 
-## Що змінив writer pass 2026-09-09
+Канонічно promoted:
 
-MOD більше не є суто read-only authoring surface. Канонічно promoted:
-
-- **Preserve-Layout Writer Gate 1** (#365): writer починає з immutable source image, повторно парсить source, дозволяє лише явно авторизовані fixed-size byte spans, перевіряє unauthorized-byte preservation і повторно відкриває результат;
+- **Preserve-Layout Writer Gate 1** (#365): immutable source, source reparse, explicit fixed-size authorized spans, unauthorized-byte rejection, output reparse;
 - deterministic writer corpus runner (#367);
-- provenance-bound retail no-op parity (#368): **38/38** MOD файлів parse -> preserve-layout write -> exact byte equality -> canonical reopen, 882,736 source bytes, 0 modified bytes, 0 failures;
-- один provenance-bound real retail edit (#369): `em000_021.mod`, `object[0].bounding_radius`, serialized span `[124,128)`, рівно 3 змінені байти, усі інші байти preserved, disk SHA/reread/reopen PASS;
-- `ModAuthoredChildBridge` + synthetic PAC reintegration/reopen regression (#369).
+- provenance-bound retail no-op parity (#368): **38/38**, 882,736 bytes, exact byte equality, 0 modified bytes, 0 failures;
+- один provenance-bound real retail edit (#369): `em000_021.mod`, `object[0].bounding_radius`, span `[124,128)`, рівно 3 changed bytes, решта preserved;
+- writer receipt -> `AuthoredChildImage` trust bridge + synthetic PAC reintegration (#369);
+- provenance-bound **real retail PNST reintegration** (#372): `m20_s00_012.pac`, 33 slots, target physical slot 23, parent size unchanged, slot table unchanged, лише 3 expected child bytes змінені, canonical reopen повертає exact authored MOD;
+- synthetic **MOD -> container -> NBZ overlay -> reopen** (#372) через існуючі NBZ writer/source компоненти.
 
-Це **bounded writer authority**, а не unrestricted writer.
+Це сильна bounded authoring chain, але не unrestricted writer і не original-game acceptance.
 
 ## Ключове правило
 
-Не змішуй чотири різні речі:
+Не змішуй:
 
-- **serialized layout** — що лежить у байтах;
-- **runtime behavior** — що з цими байтами робить `dmc3.exe`;
-- **semantic name** — що поле означає для автора/движка;
-- **writer authority** — чи доведено, що ми можемо безпечно генерувати/редагувати його.
+- **serialized layout**;
+- **runtime behavior**;
+- **semantic name**;
+- **writer authority**;
+- **container reintegration authority**;
+- **original-game acceptance**.
 
-Reader success не означає writer authority. Bounded preserve-layout writer success не означає rebuild-from-scratch authority. Однаковий offset у SCM/MOD/EFM не означає однакову семантику. Runtime image не можна просто записати назад як serialized MOD.
+Reader success не означає writer authority. Preserve-layout writer не означає typed-IR-only rebuild. Retail PNST reintegration не означає, що original resolver вибрав authored NBZ. Synthetic NBZ reopen не означає original `dmc3.exe` acceptance.
 
 ## Canonical code entry points
 
@@ -98,22 +98,18 @@ Reader success не означає writer authority. Bounded preserve-layout wri
 - `include/dmc_rengine/formats/mod_writer.hpp`
 - `include/dmc_rengine/formats/mod_writer_corpus.hpp`
 - `include/dmc_rengine/formats/mod_skin.hpp`
+- `include/dmc_rengine/profiles/dmc3/mod_authored_child_bridge.hpp`
+- `include/dmc_rengine/profiles/dmc3/nested_relative_slot_reintegrator.hpp`
+- `include/dmc_rengine/profiles/dmc3/nbz_overlay_writer.hpp`
 - `include/dmc_rengine/formats/mod/transform_domain.hpp`
 - `include/dmc_rengine/formats/mod/world_transform.hpp`
-- `include/dmc_rengine/analysis/mod/corpus_observations.hpp`
 - `include/dmc_rengine/analysis/mod/object_flags.hpp`
 - `include/dmc_rengine/analysis/mod/mesh_serialized.hpp`
-- `include/dmc_rengine/analysis/mod/secondary_serialized.hpp`
-- `include/dmc_rengine/analysis/mod/unresolved_field_evidence.hpp`
-- `include/dmc_rengine/analysis/mod/motion_group.hpp`
 - `include/dmc_rengine/analysis/mod/animation_binding.hpp`
-- `include/dmc_rengine/analysis/mod/object_runtime.hpp`
 - `include/dmc_rengine/analysis/mod/texture_binding.hpp`
 
 ## Поточна межа
 
-Read/reverse підтримка MOD сильна й evidence-backed. Spatial hierarchy, skin ABI, inverse-rest palette, texture binding, MOD-side animation binding і кілька legacy renderer-state semantics канонізовані або суттєво звужені.
+Ще **не** закриті full production MOD writer authority, layout synthesis/reflow або typed-IR-only rebuild, transform/skin/material/texture-companion authoring, broader mutation authority, provenance-bound **retail NBZ** overlay acceptance та original-game authored-MOD acceptance.
 
-Також уже закриті **38-file provenance-bound no-op byte parity** і вузький Preserve-Layout Writer Gate 1 для fixed-size authoring поверх original layout.
-
-Ще **не** закриті full production MOD writer authority, layout synthesis/reflow або rebuild from typed IR alone, transform/skin/material/texture-companion authoring, broader safe mutation rules для preserved-undecoded fields, provenance-bound retail PAC/PNST reintegration, NBZ acceptance і original-game authored-MOD acceptance. До проходження цих gates сайт і курс не мають права називати MOD “100% reversed” або довільно editable.
+До проходження цих gates сайт і курс не мають права називати MOD “100% reversed”, “full writer” або довільно editable.
