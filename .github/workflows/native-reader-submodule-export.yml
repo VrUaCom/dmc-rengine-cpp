@@ -1,0 +1,26 @@
+name: Native Reader pinned submodule export
+
+on:
+  pull_request:
+
+jobs:
+  export-reader-submodule:
+    if: github.head_ref == 'ci/native-reader-android-toolchain'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 1fc62d3484251aa56b4a05415e10e9a7759d8982
+          path: dmc-rengine-cpp
+      - name: Pack pinned reader dependency
+        run: |
+          set -euxo pipefail
+          tar -C dmc-rengine-cpp -czf "$RUNNER_TEMP/dmc-rengine-reader-1fc62d3.tar.gz" \
+            cmake/reader_core.cmake include src
+          ls -lh "$RUNNER_TEMP/dmc-rengine-reader-1fc62d3.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmc-rengine-reader-1fc62d3
+          path: ${{ runner.temp }}/dmc-rengine-reader-1fc62d3.tar.gz
+          if-no-files-found: error
+          retention-days: 1
