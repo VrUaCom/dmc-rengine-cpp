@@ -44,6 +44,7 @@ std::optional<binary::Document> build_binary_document(
         return std::nullopt;
     }
 
+    const auto& dds = scan.reader.document;
     const binary::Reader reader(bytes);
     binary::Document document(std::move(resource), bytes.size());
     if (!document.add_region(binary::Region{
@@ -59,11 +60,10 @@ std::optional<binary::Document> build_binary_document(
             .name = "DDS compressed mip payload",
             .range = {
                 .offset = header_size,
-                .size = scan.profile.document.payload_size,
+                .size = dds.payload_size,
             },
             .kind = binary::RegionKind::payload,
-            .type_name = scan.profile.document.compression ==
-                    profiles::dmc3::Dmc3DdsCompression::dxt1
+            .type_name = dds.compression == codecs::dds_bc::Compression::dxt1
                 ? "DXT1MipChain"
                 : "DXT5MipChain",
             .evidence_id = {},
@@ -96,8 +96,7 @@ std::optional<binary::Document> build_binary_document(
             .range = {.offset = 84U, .size = 4U},
             .kind = binary::FieldKind::string,
             .type_name = "char[4]",
-            .display_value = scan.profile.document.compression ==
-                    profiles::dmc3::Dmc3DdsCompression::dxt1
+            .display_value = dds.compression == codecs::dds_bc::Compression::dxt1
                 ? "DXT1"
                 : "DXT5",
             .parent_id = {},
@@ -110,12 +109,12 @@ std::optional<binary::Document> build_binary_document(
     static_cast<void>(document.add_ownership(binary::OwnershipClaim{
         .owner_id = "formats.dds",
         .range = {.offset = 0U, .size = header_size},
-        .rationale = "The modular DDS reader owns the corpus-confirmed DMC3 DDS header.",
+        .rationale = "The modular direct DDS reader owns the bounded DDS header.",
     }));
     static_cast<void>(document.add_ownership(binary::OwnershipClaim{
         .owner_id = "formats.dds",
-        .range = {.offset = header_size, .size = scan.profile.document.payload_size},
-        .rationale = "The modular DDS reader owns the bounded DXT mip payload extent.",
+        .range = {.offset = header_size, .size = dds.payload_size},
+        .rationale = "The modular direct DDS reader owns the bounded DXT mip payload extent.",
     }));
     return document;
 }
