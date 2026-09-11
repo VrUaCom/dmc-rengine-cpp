@@ -1,4 +1,6 @@
+#include "dmc_rengine/analysis/mot/channel_binding.hpp"
 #include "dmc_rengine/analysis/mot/key_decode.hpp"
+#include "dmc_rengine/analysis/mot/track_evaluation.hpp"
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -29,7 +31,8 @@ int main() {
     assert(mot::evaluate_segment3(linear, *right, 5) == 0);
     assert(!mot::evaluate_segment3(*left, *left, 0));
     assert(!mot::evaluate_segment3(*left, *right, -1));
-    assert(!mot::evaluate_segment3(*left, *right, std::numeric_limits<float>::quiet_NaN()));
+    assert(!mot::evaluate_segment3(
+        *left, *right, std::numeric_limits<float>::quiet_NaN()));
     track.compression = 2;
     track.quantization_float_count = 2;
     track.keys2 = {{10, 65535}};
@@ -63,12 +66,14 @@ int main() {
     assert(backward->left_index == 0U && backward->right_index == 1U);
     assert(backward->cached_index == 0);
 
-    const auto before_first = mot::select_cached_segment3(search_track, -1.0F, 1);
+    const auto before_first =
+        mot::select_cached_segment3(search_track, -1.0F, 1);
     assert(before_first && !before_first->is_segment());
     assert(before_first->left_index == 0U && before_first->right_index == 0U);
     assert(before_first->cached_index == 0);
 
-    const auto after_last = mot::select_cached_segment3(search_track, 25.0F, 1);
+    const auto after_last =
+        mot::select_cached_segment3(search_track, 25.0F, 1);
     assert(after_last && !after_last->is_segment());
     assert(after_last->left_index == 2U && after_last->right_index == 2U);
     assert(after_last->cached_index == 2);
@@ -112,4 +117,66 @@ int main() {
         {0x000A, 0, 0, 0},
     };
     assert(!mot::select_cached_segment3(search_track, 5.0F, 0));
+
+    // Normal MOT mask traversal -> CMotionJoint channel semantics.
+    dmc::rengine::formats::mot::Document binding_document;
+    binding_document.channel_domain_count = 2;
+    binding_document.channel_masks = {0x1C0U, 0x038U};
+    binding_document.record_count = 6;
+    binding_document.tracks.resize(6);
+
+    const auto binding = mot::project_normal_binding(binding_document, 2U);
+    assert(binding && binding->tracks.size() == 6U);
+    assert(binding->tracks[0].node_index == 0U);
+    assert(binding->tracks[0].track_index == 0U);
+    assert(binding->tracks[0].channel == mot::JointChannel::translation_x);
+    assert(binding->tracks[0].joint_channel_base_offset == 0x120U);
+    assert(binding->tracks[2].channel == mot::JointChannel::translation_z);
+    assert(binding->tracks[2].joint_channel_base_offset == 0x160U);
+    assert(binding->tracks[3].node_index == 1U);
+    assert(binding->tracks[3].track_index == 3U);
+    assert(binding->tracks[3].channel == mot::JointChannel::rotation_x);
+    assert(binding->tracks[5].channel == mot::JointChannel::rotation_z);
+    assert(binding->tracks[5].joint_channel_base_offset == 0x1C0U);
+    assert(!mot::project_normal_binding(binding_document, 1U));
+    binding_document.tracks.pop_back();
+    assert(!mot::project_normal_binding(binding_document, 2U));
+
+    // Full bounded compression-3 scalar path: signed offset + cached search +
+    // key decode + interpolation. With start offset -10, raw key times 10/20
+    // become global times 0/10.
+    dmc::rengine::formats::mot::TrackRecord eval_track;
+    eval_track.compression = 3;
+    eval_track.key_count = 2;
+    eval_track.start_time_raw = 0xFFF6U;
+    eval_track.quantization_float_count = 6;
+    eval_track.quantization_raw = {0.0F, 10.0F, 0.0F, 0.0F, 0.0F, 0.0F};
+    eval_track.keys3 = {
+        {0x000AU, 0U, 0U, 0U},
+        {0x0014U, 65535U, 0U, 0U},
+    };
+
+    const auto scalar_mid =
+        mot::evaluate_compression3_track(eval_track, 5.0F, 0);
+    assert(scalar_mid && scalar_mid->value == 5.0F);
+    assert(scalar_mid->selection_kind == mot::SegmentSelectionKind::segment);
+    assert(scalar_mid->left_index == 0U && scalar_mid->right_index == 1U);
+    assert(scalar_mid->cached_index == 0);
+
+    const auto scalar_before =
+        mot::evaluate_compression3_track(eval_track, -5.0F, 0);
+    assert(scalar_before && scalar_before->value == 0.0F);
+    assert(scalar_before->selection_kind ==
+           mot::SegmentSelectionKind::single_key);
+
+    const auto scalar_after =
+        mot::evaluate_compression3_track(eval_track, 20.0F, 0);
+    assert(scalar_after && scalar_after->value == 10.0F);
+    assert(scalar_after->cached_index == 1);
+
+    eval_track.compression = 2;
+    assert(!mot::evaluate_compression3_track(eval_track, 5.0F, 0));
+    eval_track.compression = 3;
+    assert(!mot::evaluate_compression3_track(
+        eval_track, std::numeric_limits<float>::quiet_NaN(), 0));
 }
