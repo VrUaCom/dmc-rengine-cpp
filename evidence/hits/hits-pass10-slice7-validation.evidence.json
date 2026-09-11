@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice7-validation-2026-08-14",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "slice": 7,
+  "validated_code_head": "cccb5fc45c0c4cb1746cd5630d474533fadb6f76",
+  "github_actions_run_id": 31815597161,
+  "conclusion": "success",
+  "platforms": {
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "validated_targets": [
+    "include/dmc_rengine/profiles/dmc3/hits_primitive_shape_evidence.hpp",
+    "tests/hits_primitive_shape_evidence_tests.cpp",
+    "CMakeLists.txt"
+  ],
+  "supersedes": {
+    "file": "evidence/hits/hits-pass10-query-runtime-evidence.evidence.json",
+    "field": "implementation.slice7_ci_state",
+    "old_value": "VALIDATION_ACTIVE",
+    "new_value": "SUCCESS_UBUNTU_WINDOWS"
+  },
+  "note": "Documentation and machine-evidence commits after the validated code head do not change the validated C++ implementation."
+}

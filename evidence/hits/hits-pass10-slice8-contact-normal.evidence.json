@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice8-contact-normal-2026-08-15",
+  "date": "2026-08-15",
+  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATED",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "common_surface_normal": {
+    "metadata_offset": "0x28",
+    "component_offsets": ["0x28", "0x2C", "0x30"],
+    "component_count": 3,
+    "semantic_name": "collision/contact surface normal",
+    "semantic_status": "EXE CONFIRMED",
+    "exact_orientation_or_handedness": "UNRESOLVED"
+  },
+  "static_hits": {
+    "query_va": "0x14005E880",
+    "raw_record_normal_offset": "0x28",
+    "query_direction_normalizer": {
+      "va": "0x140330390",
+      "end_va": "0x14033044A",
+      "size_bytes": 186,
+      "sha256": "568543ebcb3a7ea60b09e65c54da9f9364417d3679f5e9101a80722472f1a9d4"
+    },
+    "facing_dot3": {
+      "va": "0x14032E5C0",
+      "end_va": "0x14032E5E5",
+      "size_bytes": 37,
+      "sha256": "d9dba88696b4f17f15617eb2dd1b2e39713da0d0225f4e2130e0efc0931c0779"
+    },
+    "role": "normalized query direction dot raw-record surface normal facing gate"
+  },
+  "dynamic_query": {
+    "va": "0x14005BCF0",
+    "metadata_output_offset": "0x28",
+    "runtime_type_2": "normalized contact_point - sphere_center radial normal",
+    "runtime_type_5": "pre-normalized three-vertex-face normal from object+0x160",
+    "runtime_type_6": "axial +/-Y cap normal or normalized radial side normal",
+    "type5_direction_transform": {
+      "va": "0x14032DC70",
+      "end_va": "0x14032DCF6",
+      "size_bytes": 134,
+      "sha256": "46a253c0b7824d5ac26104947597961ff4d1399cabbd069b732ad43bab29fe1d",
+      "translation_used": false
+    }
+  },
+  "reflection_consumer": {
+    "function": {
+      "va": "0x1402C64F0",
+      "end_va": "0x1402C6805",
+      "size_bytes": 789,
+      "sha256": "86b77b7431411f7b2ed1c6f7b1109aebd36c305e2e8684c6d6897f915b76e7c4"
+    },
+    "combined_query_callsite_va": "0x1402C65B2",
+    "dot3_helper": {
+      "va": "0x140030D30",
+      "end_va": "0x140030DB1",
+      "size_bytes": 129,
+      "sha256": "7a1a584ecdd42d4c0af7c9f5bfdb02a47d32facd4d0c75efd777e11cac5cdae8"
+    },
+    "xyz_scale_preserve_w_helper": {
+      "va": "0x1400311E0",
+      "end_va": "0x1400311FE",
+      "size_bytes": 30,
+      "sha256": "c4a58e73cfb2af640f32fad70956b98f58038c4d28b23c62ea74a6f239300e40"
+    },
+    "reconstructed_operation": "v' = v - 2 * dot(v,n) * n",
+    "reflection_formula_confirmed": true
+  },
+  "corrections": [
+    {
+      "id": "hits.pass10.metadata-vector-semantic-name",
+      "status": "SUPERSEDED",
+      "old": "UNRESOLVED caller-visible vector",
+      "new": "common collision/contact surface normal float3"
+    },
+    {
+      "id": "hits.pass10.normal-orientation",
+      "status": "RESEARCH_REQUIRED",
+      "statement": "Do not infer global outward/inward orientation or handedness from the confirmed normal role alone."
+    }
+  ],
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_contact_normal_evidence.hpp",
+    "test": "tests/hits_contact_normal_evidence_tests.cpp",
+    "ctest": "hits_contact_normal_evidence",
+    "code_head": "63a2782bb18649f0b7a19e0110671897721f16da",
+    "ci_run_id": 31852876030,
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "proprietary_bytes_committed": false
+}

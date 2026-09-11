@@ -49,7 +49,9 @@ void write_vec3(
     write_u32(bytes, 0x04U, static_cast<std::uint32_t>(end_offset));
     write_vec3(bytes, 0x08U, -1.0F, -1.0F, -1.0F);
     write_vec3(bytes, 0x14U, 1.0F, 1.0F, 1.0F);
-    write_vec3(bytes, 0x20U, 2.0F, 2.0F, 2.0F);
+    write_u32(bytes, 0x20U, 2U);
+    write_u32(bytes, 0x24U, 2U);
+    write_u32(bytes, 0x28U, 2U);
     write_u32(bytes, 0x2CU, 1U);
     write_u32(bytes, 0x30U, 1U);
     write_u32(bytes, 0x34U, 1U);
@@ -107,6 +109,13 @@ int main() {
     const auto* header = document->find_region("hits-header");
     assert(header != nullptr);
     assert(header->range.size == 0x44U);
+
+    const auto* cell_x = document->find_field("hits-cell-size-x");
+    const auto* cell_y = document->find_field("hits-cell-size-y");
+    const auto* cell_z = document->find_field("hits-cell-size-z");
+    assert(cell_x != nullptr && cell_x->display_value == "2");
+    assert(cell_y != nullptr && cell_y->display_value == "2");
+    assert(cell_z != nullptr && cell_z->display_value == "2");
 
     const auto* spatial = document->find_region("hits-spatial-index");
     assert(spatial != nullptr);

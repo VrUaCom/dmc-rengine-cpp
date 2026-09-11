@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice10-primitive-type01-2026-08-15",
+  "date": "2026-08-15",
+  "status": "EXE_CONFIRMED_IMPLEMENTED_VALIDATED",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "runtime_type_0": {
+    "structural_name": "one-point runtime representation",
+    "source_token_confirmed": false,
+    "constructor": {
+      "va": "0x1402CCA30",
+      "end_va": "0x1402CCA64",
+      "size_bytes": 52,
+      "sha256": "8033e51cb704386397c4ee988304b55dbffd538e0710514eaedc785da26ba132"
+    },
+    "descriptor_point_offset": "0x10",
+    "runtime_point_offset": "0x130",
+    "transform_applied": true
+  },
+  "runtime_type_1": {
+    "structural_name": "two-endpoint segment representation",
+    "source_token_confirmed": false,
+    "constructor": {
+      "va": "0x1402CCA70",
+      "end_va": "0x1402CCB46",
+      "size_bytes": 214,
+      "sha256": "c06cf1554f9b98b3d012ab0f83b3d2ae85d1a0b0c7a49ea69c573cd4820218fd"
+    },
+    "descriptor_first_endpoint_offset": "0x10",
+    "descriptor_second_endpoint_offset": "0x20",
+    "runtime_first_endpoint_offset": "0x130",
+    "runtime_second_endpoint_offset": "0x140",
+    "runtime_midpoint_offset": "0xE0",
+    "runtime_endpoint_distance_offset": "0x18",
+    "midpoint_formula": "(endpoint0 + endpoint1) * 0.5",
+    "contact_resolution_may_replace_first_endpoint": true
+  },
+  "xyz_endpoint_distance_helper": {
+    "va": "0x14032E5F0",
+    "end_va": "0x14032E62D",
+    "size_bytes": 61,
+    "sha256": "7ca8c6b01c910665e3f70490b9339010ab6a17a5193779f29f0863278520f7d1",
+    "operation": "sqrt((ax-bx)^2 + (ay-by)^2 + (az-bz)^2)"
+  },
+  "runtime_type_map_structural": {
+    "0": "one-point representation",
+    "1": "two-endpoint segment representation",
+    "2": "sphere representation",
+    "3": "box representation",
+    "4": "capsule / swept-sphere representation",
+    "5": "three-vertex face representation",
+    "6": "cylinder representation"
+  },
+  "source_vocabulary_boundary": {
+    "confirmed_parser_tokens": {
+      "2": "sphere",
+      "3": "box",
+      "4": "capsule",
+      "6": "cylinder"
+    },
+    "unresolved_source_tokens": [0, 1, 5]
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_primitive_type01_evidence.hpp",
+    "test": "tests/hits_primitive_type01_evidence_tests.cpp",
+    "ctest": "hits_primitive_type01_evidence",
+    "code_head": "9ec763dd2016c9d52b9aa7ad5467d2df1b3ec89c",
+    "ci_run_id": 31854177561,
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "proprietary_bytes_committed": false
+}

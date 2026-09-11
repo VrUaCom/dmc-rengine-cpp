@@ -1,0 +1,123 @@
+{
+  "schema": "dmc-rengine.reverse.hits-repeat.v1",
+  "date": "2026-09-04",
+  "target": {
+    "profile": "dmc3-hd",
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "corpus": {
+    "payload_instances": 16,
+    "unique_payload_hashes": 14,
+    "triangle_count": 4420,
+    "cell_triangle_reference_count": 40789,
+    "distinct_raw_flag_count": 24,
+    "samples": [
+      {"container":"st000.zip","payload":"st000/st000_003.ukn","size":11056,"end_offset":11056,"cell_extent":[300,300,300],"grid":[6,4,5],"triangles":127,"references":729,"sha256":"a3458863ac9ed0e66e2feebb4a884e00c96aeb6259c09f2c5013f46079ff34c6"},
+      {"container":"st000.zip","payload":"st000/st000_006.ukn","size":2592,"end_offset":2580,"cell_extent":[300,300,300],"grid":[6,3,5],"triangles":20,"references":168,"sha256":"d6f8f2cb2d22e0d7eeb8d576cb76c8ac0a03a8d06531381a816e92fbcdb87d9b"},
+      {"container":"st001.zip","payload":"st001/st001_003.ukn","size":26160,"end_offset":26148,"cell_extent":[500,500,500],"grid":[9,6,7],"triangles":294,"references":1648,"sha256":"80b4b64318d84748c34a9e4f08065e35998e2e14e3766affb653e0f26adab77a"},
+      {"container":"st001.zip","payload":"st001/st001_006.ukn","size":1648,"end_offset":1644,"cell_extent":[500,500,500],"grid":[4,2,2],"triangles":20,"references":82,"sha256":"0f3d9952b61e3d1346dc9910c9c401fc0214d0d6fb2593791e0c000cc4599f64"},
+      {"container":"st111.zip","payload":"st111/st111_003.ukn","size":155440,"end_offset":155428,"cell_extent":[300,300,300],"grid":[27,20,20],"triangles":736,"references":6936,"sha256":"83346491bb17874b60ac75c8a8c3fde051de5e991059df445184dfd5fa735e9b"},
+      {"container":"st111.zip","payload":"st111/st111_006.ukn","size":52928,"end_offset":52924,"cell_extent":[300,300,300],"grid":[23,13,17],"triangles":60,"references":2208,"sha256":"9b10aca8932ee8f4201377f028b5968f9de566d5d9900593c7fa9e960c7c2c37"},
+      {"container":"st143.zip","payload":"st143/st143_003.ukn","size":74544,"end_offset":74540,"cell_extent":[600,600,600],"grid":[11,15,11],"triangles":762,"references":4320,"sha256":"7276793a1a3fa0aebfc681392aff8ea04689a7400e1aedb32b576ce1c30bf4cf"},
+      {"container":"st225.zip","payload":"st225/st225_003.ukn","size":137072,"end_offset":137072,"cell_extent":[300,300,300],"grid":[20,21,27],"triangles":485,"references":4781,"sha256":"8a5e01357fa822083b185105ac3442ad01bfb44cd63240d1d087a3f700810b98"},
+      {"container":"st434.zip","payload":"st434/st434_003.ukn","size":155440,"end_offset":155428,"cell_extent":[300,300,300],"grid":[27,20,20],"triangles":736,"references":6936,"sha256":"83346491bb17874b60ac75c8a8c3fde051de5e991059df445184dfd5fa735e9b"},
+      {"container":"st434.zip","payload":"st434/st434_006.ukn","size":52928,"end_offset":52924,"cell_extent":[300,300,300],"grid":[23,13,17],"triangles":60,"references":2208,"sha256":"9b10aca8932ee8f4201377f028b5968f9de566d5d9900593c7fa9e960c7c2c37"},
+      {"container":"st449.zip","payload":"st449/st449_003.ukn","size":82128,"end_offset":82124,"cell_extent":[300,300,300],"grid":[18,26,18],"triangles":48,"references":2994,"sha256":"59174de9ffcf92290e1bf622fce41e385bce46d4c1244bbbaf89ed488e8b0c7e"},
+      {"container":"st449.zip","payload":"st449/st449_006.ukn","size":800,"end_offset":800,"cell_extent":[300,300,300],"grid":[6,1,11],"triangles":1,"references":37,"sha256":"037bde95adf5bb5755bd1870bd2ecd1d23c13a4df969a390bf0f4430584da0a9"},
+      {"container":"st600.zip","payload":"st600/st600_003.ukn","size":58192,"end_offset":58184,"cell_extent":[250,250,250],"grid":[12,6,11],"triangles":642,"references":3957,"sha256":"8f4b4ad2aff67d0ed2de9b6da98adf589199a2eb5268a2b7659cea555ab7cce0"},
+      {"container":"st600.zip","payload":"st600/st600_006.ukn","size":2320,"end_offset":2316,"cell_extent":[300,300,300],"grid":[3,2,4],"triangles":28,"references":122,"sha256":"2bab883a541485af410ab1d9a3c8021c112f948f4e660034255a06de44d07f83"},
+      {"container":"st600.zip","payload":"st601/st601_003.ukn","size":36144,"end_offset":36132,"cell_extent":[300,300,300],"grid":[14,9,19],"triangles":129,"references":2422,"sha256":"d3f02d5c195dc9f6d3297d5254b91c3d37bce8315cae7875b8d0dfebd14c1ff0"},
+      {"container":"st900.zip","payload":"st900/st900_003.ukn","size":23152,"end_offset":23144,"cell_extent":[600,600,600],"grid":[12,5,6],"triangles":272,"references":1241,"sha256":"74aaf33f13193992ed229b77415f7a86c11fea18f091bdfd3e8a7a6262f2024e"}
+    ]
+  },
+  "corrected_header": {
+    "0x00": "char[4] HITS",
+    "0x04": "u32 end_offset",
+    "0x08": "vec3f bounds_min",
+    "0x14": "vec3f bounds_max",
+    "0x20": "u32 cell_extent_x",
+    "0x24": "u32 cell_extent_y",
+    "0x28": "u32 cell_extent_z",
+    "0x2C": "u32 grid_count_x",
+    "0x30": "u32 grid_count_y",
+    "0x34": "u32 grid_count_z",
+    "0x38": "u32 triangle_count",
+    "0x3C": "u32 spatial_table_relative_offset",
+    "0x40": "u32 triangle_array_relative_offset"
+  },
+  "exe_confirmed": {
+    "world_to_grid": "0x1402D2F50",
+    "broadphase_collector": "0x1402D2A10",
+    "cell_geometry_helper": "0x1402D2E80",
+    "cell_unflatten": "0x1402D2E00",
+    "cell_list_resolver": "0x1402D29F0",
+    "runtime_initializer": "0x1402D3060",
+    "record_resolver": "0x1402D3050",
+    "triangle_box_sat_style": "0x1402D2670",
+    "integer_cell_extent_usage": true,
+    "relative_offset_base": 8,
+    "flatten_formula": "((x * grid_count_y) + y) * grid_count_z + z",
+    "cell_half_extent_multiplier": 0.5
+  },
+  "stock_grid_fit": {
+    "bounds_min": "floor(global_vertex_min)",
+    "grid_count": "max(1, ceil((global_vertex_max - bounds_min) / cell_extent))",
+    "bounds_max": "bounds_min + cell_extent * grid_count",
+    "matched_payload_instances": 16,
+    "original_authoring_writer_provenance": "RESEARCH REQUIRED"
+  },
+  "spatial_membership": {
+    "tested_triangles": 4420,
+    "exact_sat_membership_sets": 4420,
+    "mismatches": 0,
+    "serialized_reference_count": 40789,
+    "old_candidate_range_boundary_failures": 192,
+    "candidate_lower": "ceil((triangle_min - bounds_min) / extent) - 1",
+    "candidate_upper": "floor((triangle_max - bounds_min) / extent)",
+    "final_filter": "triangle-vs-closed-cell-AABB SAT"
+  },
+  "triangle_geometry": {
+    "stride": 56,
+    "degenerate_triangles": 0,
+    "max_unit_normal_error": 4.294726441145258e-08,
+    "minimum_stored_vs_cross_direction_dot": 0.9999999592047425,
+    "max_plane_residual": 0.00047607719898223877,
+    "float32_recompute_exact_normal_bits": 1784,
+    "float32_recompute_exact_plane_d_bits": 2572,
+    "double_then_f32_exact_normal_bits": 3490,
+    "double_then_f32_exact_plane_d_bits": 3407,
+    "exact_original_authoring_arithmetic": "RESEARCH REQUIRED"
+  },
+  "raw_flag_histogram": {
+    "0x00000001":1723,"0x10040001":358,"0x18540001":337,"0x10000002":292,
+    "0x18260001":248,"0x00040001":218,"0x18060001":194,"0x00000000":188,
+    "0x182E0001":151,"0x100A0002":150,"0x00000002":118,"0x00000009":83,
+    "0x18000001":76,"0x100C0002":60,"0x18040001":58,"0x10000001":49,
+    "0x0000000C":37,"0x182E0000":32,"0x00000003":25,"0x184C0000":8,
+    "0x0000000A":6,"0x0000000B":4,"0x00040003":3,"0x00000004":2
+  },
+  "file_termination": {
+    "end_formula": "triangle_base + triangle_count * 0x38",
+    "physical_size_formula": "align16(end_offset)",
+    "observed_tail_bytes": [0,4,8,12],
+    "tail_zero_filled": true
+  },
+  "implementation_corrections": [
+    "Header cell extents changed from float Vec3 to u32 CellExtent.",
+    "Parser reads DWORD cell extents.",
+    "Runtime world-to-grid uses integer extent semantics.",
+    "Binary Inspector exposes u32_le[3] extents.",
+    "Writer serializes DWORD extents.",
+    "Fit-grid floors global minimum before deriving counts.",
+    "Writer candidate cell range includes adjacent closed-boundary cells before SAT.",
+    "Regression tests include exact internal-cell-boundary triangle membership."
+  ],
+  "open_gates": [
+    "Complete semantic names for raw flags.",
+    "Bit-exact original normal/plane-D authoring arithmetic.",
+    "Original Capcom offline writer identity/provenance.",
+    "Controlled original-game acceptance of arbitrary topology-changing rebuilt HITS.",
+    "Unobserved HITS variants outside the 16-instance corpus."
+  ]
+}

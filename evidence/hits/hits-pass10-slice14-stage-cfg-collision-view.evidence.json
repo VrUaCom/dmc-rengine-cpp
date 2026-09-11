@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice14-stage-cfg-collision-view-2026-08-15",
+  "date": "2026-08-15",
+  "status": "IMPLEMENTED_REVIEWED_DEBUGGED_VALIDATED",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "slot_generations": {
+    "modern_cem_stage_cfg": {"entry_table_slot":39,"primitive_descriptor_table_slot":40},
+    "legacy_cem008_stage_cfg": {"entry_table_slot":22,"primitive_descriptor_table_slot":23}
+  },
+  "entry_abi": {
+    "stride":"0x04",
+    "flags_offset":"0x00",
+    "transform_selector_offset":"0x01",
+    "descriptor_index_offset":"0x02",
+    "descriptor_index_type":"u16_le"
+  },
+  "descriptor_abi": {
+    "stride":"0x50",
+    "primitive_type_offset":"0x00"
+  },
+  "validation_contract": {
+    "canonical_sha_required":true,
+    "existing_container_document_required":true,
+    "container_document_valid_required":true,
+    "container_byte_bounds_required":true,
+    "entry_stride_multiple_required":true,
+    "descriptor_stride_multiple_required":true,
+    "descriptor_reference_bounds_checked":true,
+    "transform_selector_bounds_checked":false,
+    "transform_selector_reason":"Stage-CFG transform-provider provenance remains unresolved; slot38 is not promoted as the 0x40 transform table."
+  },
+  "review_debug": {
+    "initial_code_head":"5444030d88fe4ea55b8e71a7e5e804a281a3edcd",
+    "initial_ci_run_id":31856145056,
+    "initial_result":"ubuntu_build_failed",
+    "root_cause":"adapter/test drifted from the actual existing formats::ContainerDocument and ContainerEntry API",
+    "specific_errors":[
+      "ContainerEntry::valid used as if it were a boolean field rather than valid(container_size)",
+      "synthetic tests used obsolete/imagined ContainerDocument source_name/header fields"
+    ],
+    "fixes":[
+      "call ContainerEntry::valid(container.container_size)",
+      "construct fixtures with real format/schema_version/declared_slot_count/container_size fields",
+      "mark populated fixture slots with logical_name and populated=true",
+      "convert uint64 offsets/sizes to size_t only after explicit range proof"
+    ],
+    "gates_weakened":false
+  },
+  "implementation": {
+    "header":"include/dmc_rengine/profiles/dmc3/hits_stage_cfg_collision_tables.hpp",
+    "test":"tests/hits_stage_cfg_collision_tables_tests.cpp",
+    "ctest":"hits_stage_cfg_collision_tables",
+    "validated_code_head":"8bcc309664ba68f9e490cb1569c457aee2fa8fe2",
+    "ci_run_id":31856349259,
+    "ci_state":"PASSED",
+    "ubuntu":"success",
+    "windows":"success"
+  },
+  "tooling_consequence":"Binary Inspector/Stage-CFG tooling may expose entry flags, raw transform selector, descriptor index, referenced primitive type, and broken descriptor references; transform resolution must remain explicitly unresolved.",
+  "next_boundary":"trace the actual Stage-CFG transform provider before validating transform-selector bounds or constructing a Stage-CFG three-table adapter",
+  "proprietary_bytes_committed":false
+}
