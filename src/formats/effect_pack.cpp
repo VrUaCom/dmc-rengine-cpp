@@ -4,7 +4,6 @@
 #include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
 
 #include <algorithm>
-#include <charconv>
 #include <utility>
 
 namespace dmc::rengine::formats {
@@ -77,45 +76,28 @@ struct ManifestLine final {
         if (end == std::string::npos) {
             end = text.size();
         }
-        auto line = text.substr(at, end - at);
+        const auto raw = std::string_view{text}.substr(at, end - at);
         at = end + 1U;
-        while (!line.empty() &&
-               (line.back() == '\r' || line.back() == ' ' || line.back() == '\t')) {
-            line.pop_back();
-        }
-        std::size_t front = 0U;
-        while (front < line.size() &&
-               (line[front] == ' ' || line[front] == '\t')) {
-            ++front;
-        }
-        if (front != 0U) {
-            line.erase(0U, front);
-        }
 
-        if (line.empty() || line.front() == Contract::comment_prefix) {
+        // The grammar is the contract's, not this file's. It was here once,
+        // and the classifier needed the same rule to tell a manifest slot from
+        // any other text — two copies of a grammar is how a slot comes to be a
+        // manifest to one reader and not to the other.
+        const auto read = Contract::read_manifest_line(raw);
+        if (read.line_kind == Contract::ManifestLineKind::invalid) {
+            return false;
+        }
+        if (!read.is_record()) {
             if (at > text.size()) {
                 break;
             }
             continue;
         }
 
-        const auto space = line.find(Contract::field_separator);
-        if (space != 1U || line.size() < 3U) {
-            return false;
-        }
-
-        std::uint32_t identifier = 0U;
-        const auto* first = line.data() + 2;
-        const auto* last = line.data() + line.size();
-        const auto parsed = std::from_chars(first, last, identifier);
-        if (parsed.ec != std::errc{} || parsed.ptr != last) {
-            return false;
-        }
-
         lines.push_back(ManifestLine{
-            .kind = line.front(),
-            .identifier = identifier,
-            .text = line,
+            .kind = read.kind,
+            .identifier = read.identifier,
+            .text = std::string{Contract::trim_manifest_line(raw)},
             .source_line = physical_line,
         });
         if (at > text.size()) {

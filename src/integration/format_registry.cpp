@@ -455,6 +455,21 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "effect-manifest",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Slot 0 of a two-slot effect pack: the CRLF ASCII manifest naming the records in slot 1, one `<kind> <identifier>` line per record, closed by `# End`.",
+                "Identified by that grammar rather than by an opening marker, through the same profiles::dmc3::EffectPackContract line reader the pack parser walks the manifest with; identification additionally requires every kind to be one the corpus holds, which reading an already-identified manifest does not.",
+                "No original executable read site for this text has been found. The pack's own arithmetic is recovered; the runtime's use of the manifest is not, so it is not evidence that the game reads these names.",
+                "Names the records and says nothing about their content. The manifest carries no filename of its own, and none is synthesized for it.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "clt",
             .parser_id = {},
             .maturity = IntegrationMaturity::recognized,

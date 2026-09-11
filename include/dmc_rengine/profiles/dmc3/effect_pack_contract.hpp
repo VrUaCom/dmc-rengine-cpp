@@ -100,6 +100,98 @@ struct EffectPackContract final {
         return true;
     }
 
+    /// What the grammar makes of one physical line.
+    enum class ManifestLineKind : std::uint8_t {
+        /// Nothing but whitespace.
+        blank,
+        /// Opens with `#`. Carried by the file and read by the grammar as
+        /// nothing.
+        comment,
+        /// The `# End` line. A comment as far as reading goes; reported apart
+        /// because it is the one comment whose text the format fixes.
+        terminator,
+        /// `<kind> <decimal identifier>`.
+        record,
+        /// Text the grammar does not admit.
+        invalid,
+    };
+
+    struct ManifestLine final {
+        ManifestLineKind line_kind{ManifestLineKind::invalid};
+        char kind{};
+        std::uint32_t identifier{};
+
+        [[nodiscard]] constexpr bool is_record() const noexcept {
+            return line_kind == ManifestLineKind::record;
+        }
+    };
+
+    /// Leading and trailing spaces, tabs and a trailing `\r`.
+    [[nodiscard]] static constexpr std::string_view trim_manifest_line(
+        std::string_view line) noexcept {
+        const auto blank = [](char character) noexcept {
+            return character == ' ' || character == '\t';
+        };
+        while (!line.empty() && (blank(line.back()) || line.back() == '\r')) {
+            line.remove_suffix(1U);
+        }
+        while (!line.empty() && blank(line.front())) {
+            line.remove_prefix(1U);
+        }
+        return line;
+    }
+
+    /**
+     * One manifest line, by the only grammar this format has.
+     *
+     * This lives on the contract rather than inside the pack reader because
+     * two callers need it: the reader, which walks a manifest it has already
+     * been handed, and the classifier, which has to decide whether a nameless
+     * text slot *is* one. A second copy of the rule in the second caller is
+     * how the two drift, and a slot would then read as a manifest to one and
+     * not to the other.
+     *
+     * The identifier is parsed here rather than with `from_chars` so the whole
+     * grammar stays constant-evaluable. Overflow is `invalid`, not a wrap: a
+     * line naming an identifier the format cannot hold is not a line.
+     */
+    [[nodiscard]] static constexpr ManifestLine read_manifest_line(
+        std::string_view raw) noexcept {
+        const auto line = trim_manifest_line(raw);
+        if (line.empty()) {
+            return ManifestLine{.line_kind = ManifestLineKind::blank};
+        }
+        if (line.front() == comment_prefix) {
+            return ManifestLine{
+                .line_kind = line == terminator_line
+                    ? ManifestLineKind::terminator
+                    : ManifestLineKind::comment};
+        }
+        // A kind is one character and the separator is the next, so anything
+        // else is not this grammar. The third character begins the decimal.
+        if (line.size() < 3U || line[1U] != field_separator) {
+            return ManifestLine{};
+        }
+        std::uint32_t identifier = 0U;
+        for (std::size_t index = 2U; index < line.size(); ++index) {
+            const auto digit = line[index];
+            if (digit < '0' || digit > '9') {
+                return ManifestLine{};
+            }
+            const auto value = static_cast<std::uint32_t>(digit - '0');
+            constexpr std::uint32_t limit = 0xFFFFFFFFU;
+            if (identifier > (limit - value) / 10U) {
+                return ManifestLine{};
+            }
+            identifier = identifier * 10U + value;
+        }
+        return ManifestLine{
+            .line_kind = ManifestLineKind::record,
+            .kind = line.front(),
+            .identifier = identifier,
+        };
+    }
+
     static constexpr std::size_t texture_dimensions_offset = 0x10U;
     static constexpr std::uint32_t texture_observed_square_small = 128U;
     static constexpr std::uint32_t texture_observed_square_large = 256U;
