@@ -11,30 +11,52 @@ A zero-filled region is not promoted to padding. `RESERVED_OBSERVED_ZERO` means 
 
 Canonical runtime dormancy is also a behavioral result, not a serialized semantic name. A dormant field remains `PRESERVED_UNDECODED` unless stronger format evidence gives it a semantic identity.
 
-## Header shell — still open
+The final header/node whole-image receipt is:
 
-Canonical manager/header initializer `0x1402F9570` positively consumes the known header domain including `+0x10`, `+0x11`, `+0x13`, and `+0x14`. Within that initializer there is no raw read from:
+`data/reverse/dmc3-mod-header-node-shell-closure-20260911.json`
+
+with the detailed research note:
+
+`docs/research/dmc3-mod-header-node-shell-closure-2026-09-11.md`.
+
+## Header shell — whole-image closed
+
+Canonical manager/header initializer `0x1402F9570` positively consumes the known header domain including `+0x10`, `+0x11`, `+0x13`, and `+0x14`. It retains the complete source document at manager `+0x108`, so initializer-local no-read evidence was not sufficient.
+
+The final whole-image census starts from all non-stack `+0x108 -> register` source-like loads in the 12,235 `.pdata` runtime functions and performs a separate leaf-code pass. It finds:
+
+```text
+116 pdata functions with source-like +0x108 loads
+234 source-like load sites
+53 raw header-target candidate functions
+138 raw target-range read/write operations
+14 direct family-classifier call sites
+0 provenance-confirmed model-manager target reads
+0 provenance-confirmed model-manager target writes
+```
+
+The raw target candidates are offset collisions in other owner layouts. Important rejected controls include the separate `0x14030B550/0x14030B5C0` owner reached from `0x14008BE50`, the resource/table owners at `0x140291D60/0x14029581C`, and the distinct CMotion/runtime-transform owner family around `0x14030E.../0x14031...`.
+
+The leaf pass adds two source-like loads, `0x140165B23` and `0x140165B46`; both are nested-owner transform-like writes through `owner +0x448` and lack model-manager provenance.
+
+Canonical result:
 
 ```text
 header +0x08..+0x0F
 header +0x18..+0x1F
 header +0x28..+0x3F
+
+bounded corpus                       RESERVED_OBSERVED_ZERO
+canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
+serialized semantic                  PRESERVED_UNDECODED
+writer policy                        preserve exact source bytes
 ```
 
-Status remains loader-scoped:
-
-```text
-corpus zero observation       RESERVED_OBSERVED_ZERO
-initializer-local no-read     EXE_CONFIRMED
-whole-program no-read         not yet claimed
-writer policy                 preserve
-```
-
-A type-aware whole-image check rejected apparent `source +0x18` candidates around `0x14030B568`: the owner reached from `0x14008BE50` is a different resource layout using manager-like fields `+0x78/+0x80/+0x88`, not the MOD manager `+0xE4/+0xE8/+0xEA` domain.
+No region is renamed padding/reserved.
 
 ## Object record provenance
 
-The canonical MOD/EFM object initializer `0x1403029E0` derives each serialized object as:
+The canonical MOD/EFM object initializer `0x1403029E0` derives each serialized object exactly as:
 
 ```text
 source_header + 0x40 + object_index * 0x40
@@ -118,7 +140,7 @@ No retained serialized-object pointer is stored or passed through an indirect ca
 
 ## Additional whole-image source-header derivation control
 
-The executable can also reconstruct serialized objects directly from the source header rather than following runtime `+0x18`. A separate whole-image census searched for the joint pattern:
+A separate whole-image census searched for:
 
 ```text
 manager/source +0x108 -> source header
@@ -136,69 +158,62 @@ Exactly five functions match:
 0x140302F10
 ```
 
-Classification:
+The MOD/EFM/shared planning paths consume known fields only. `0x140302F10` is the independently identified SCM `0x3C0` object initializer, and `0x1402F9F20` belongs to the same separate `0x3C0` runtime-owner domain.
 
-- `0x1403029E0` is the canonical MOD/EFM initializer and consumes the already-known live object fields, not the three target zero regions;
-- `0x1402FDB40` and `0x1402FDD10` are layout/planning paths. Their serialized-object reads are limited to the known object count/mesh-table domain (`+0x00`, `+0x08`) before entering 0x50-byte mesh records;
-- `0x140302F10` uses a `0x3C0` runtime-object stride and is independently identified as the SCM object initializer; it is `REJECTED` as a MOD consumer;
-- `0x1402F9F20` also uses the separate `0x3C0` runtime-owner domain. It is not accepted as MOD/EFM `0x380` object provenance and does not establish use of the target secondary bytes.
-
-Thus no alternative direct-source path revives the target regions.
-
-## SCM false-positive rejection
-
-`0x140302F10..0x14030345A` is deliberately kept as a cross-format negative control. It also retains a 0x40-byte serialized record pointer at runtime `+0x18`, but its runtime object stride is `0x3C0`, not MOD/EFM `0x380`, and it contains the separately documented SCM `EA -> C5` / `C4 -> 80` compatibility behavior.
-
-Therefore equal serialized stride and equal retained-pointer offset do not transfer semantics across families.
+Thus no alternative direct-source path revives the target object regions.
 
 ## Canonical closure of object secondary regions
 
-The retained-pointer surface and the independent direct-source-header surface jointly close canonical runtime consumption of the three target regions:
-
 ```text
 object +0x04..+0x07
-  bounded corpus                       RESERVED_OBSERVED_ZERO
-  canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
-  serialized semantic                  PRESERVED_UNDECODED
-  writer policy                        preserve exact source bytes
-
 object +0x14..+0x17
-  bounded corpus                       RESERVED_OBSERVED_ZERO
-  canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
-  serialized semantic                  PRESERVED_UNDECODED
-  writer policy                        preserve exact source bytes
-
 object +0x20..+0x2F
-  bounded corpus                       RESERVED_OBSERVED_ZERO
-  canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
-  serialized semantic                  PRESERVED_UNDECODED
-  writer policy                        preserve exact source bytes
+
+bounded corpus                       RESERVED_OBSERVED_ZERO
+canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
+serialized semantic                  PRESERVED_UNDECODED
+writer policy                        preserve exact source bytes
 ```
 
-“Dormant” does not mean padding/reserved. A future executable/version or non-zero corpus sample may reopen the semantic question, but the canonical DMC3 HD runtime-consumption gate is closed.
+## Node-domain shell — whole-image closed
 
-## Node-domain shell — still open
+`0x1402F1DB0` binds only the four relative dwords `+0x00/+0x04/+0x08/+0x0C`; it does not consume the secondary shell.
 
-`node-domain +0x10..+0x1F` remains zero in the bounded corpus. Transform initializer `0x1402FA080` consumes domain-resolved arrays/pointers rather than providing enough raw serialized provenance to declare the shell globally unused.
-
-Status remains:
+Whole-image source/node propagation leaves three raw candidates. Two are separate resource owners and are rejected. The one canonical model path is the layout planner `0x1402FD9C0`:
 
 ```text
-CORPUS_CONFIRMED
-RESERVED_OBSERVED_ZERO
-writer policy = preserve
-whole-program closure = pending
+0x1402FD9F1  manager +0x108 -> source
+0x1402FDA00  source +0x20   -> node-domain
+0x1402FDA0C  read byte [node +0x10]
+0x1402FDA10  store byte -> [rbp+0x18]
+```
+
+The local `[rbp+0x18]` value has **zero later reads** before return. `node +0x10` therefore has one canonical dead read, not “no read”. `node +0x11..+0x1F` has no provenance-confirmed model-domain consumer, and the raw shell pointer does not escape.
+
+Canonical result:
+
+```text
+node-domain +0x10..+0x1F
+
+bounded corpus                       RESERVED_OBSERVED_ZERO
+canonical typed runtime effect       EXE_CONFIRMED: dormant / no effect
+serialized semantic                  PRESERVED_UNDECODED
+writer policy                        preserve exact source bytes
 ```
 
 ## Rejected claims
 
 - zero shell implies padding — `REJECTED`;
 - no initializer read implies no later read — `REJECTED`;
-- `0x140302AAA` reads serialized `+0x18/+0x1C` — `REJECTED`; it stores the serialized record pointer;
+- raw `+0x108` displacement equality proves model-manager provenance — `REJECTED`;
+- node-domain `+0x10` is never read — `REJECTED`; it has one dead read at `0x1402FDA0C`;
+- `0x140302AAA` reads serialized object `+0x18/+0x1C` — `REJECTED`; it stores the serialized record pointer;
 - equal `+0x18` displacement in another owner proves MOD use — `REJECTED`;
 - the SCM `0x3C0` retained-pointer path is a MOD consumer because it also uses 0x40 source records — `REJECTED`;
 - canonical runtime dormancy authorizes writer zero-normalization — `REJECTED`.
 
-## Next gate
+## Phase result
 
-The object-secondary retained-pointer gate is closed. Remaining secondary work is now the **header shell** and **node-domain `+0x10..+0x1F`** whole-program census. Until those are independently closed, their source bytes remain preservation obligations.
+The secondary header, object and node-domain runtime-consumption gates are closed. Together with the previously closed transform, mesh, BLENDINDICES and source-flag gates, there is no remaining direct-EXE unknown-field consumer gate in the current canonical MOD contract.
+
+The next separate phase is byte-preserving MOD writer promotion and exact no-edit round-trip proof. Source preservation remains mandatory for every undecoded field.
