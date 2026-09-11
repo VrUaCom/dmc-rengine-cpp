@@ -104,3 +104,68 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
+
+  native-reader-private-build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Probe private Native Reader checkout with scoped GITHUB_TOKEN
+        id: reader_checkout
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: VrUaCom/DMC-Native-Reader
+          ref: feature/png-export-multi-mod-v27
+          submodules: recursive
+          token: ${{ github.token }}
+          path: native-reader
+
+      - name: Report cross-repository access result
+        run: echo "private_checkout_outcome=${{ steps.reader_checkout.outcome }}"
+
+      - uses: actions/setup-java@v4
+        if: steps.reader_checkout.outcome == 'success'
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.reader_checkout.outcome == 'success'
+        with:
+          gradle-version: '9.5.0'
+
+      - uses: android-actions/setup-android@v3
+        if: steps.reader_checkout.outcome == 'success'
+
+      - name: Install Native Reader Android dependencies
+        if: steps.reader_checkout.outcome == 'success'
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;28.2.13676358" \
+            "cmake;3.22.1"
+
+      - name: Build and test exact v27 head
+        if: steps.reader_checkout.outcome == 'success'
+        working-directory: native-reader
+        run: |
+          set -euxo pipefail
+          echo "reader_head=$(git rev-parse HEAD)"
+          cmake -S app/src/main/cpp -B build/host \
+            -DDMC_NATIVE_READER_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/host --parallel 2
+          ctest --test-dir build/host --output-on-failure
+          gradle --no-daemon :app:assembleDebug
+          python3 tools/verify_device_apk.py app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        if: steps.reader_checkout.outcome == 'success'
+        with:
+          name: dmc-native-reader-v27-ptx-fix-apk
+          path: native-reader/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 1
