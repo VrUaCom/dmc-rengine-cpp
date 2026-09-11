@@ -1,0 +1,82 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-mot-animated-local-matrix-2026-09-11",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "window_size_policy": "Probe sizes are acquisition coverage only. They are not function-body sizes and must not be promoted as body boundaries.",
+  "windows": [
+    {
+      "id": "cmotion-normal-matrix-path-14030e780",
+      "va": "0x14030E780",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Primary frontier: recover exact current Translation/Rotation/Scale channel-state reads, exceptional branches, rotation/translation/scale construction order, compose calls and final matrix destination around the normal CMotion matrix path anchored by 0x14030E7CB and 0x14030E9B0. Do not pre-label joint+0x110 as a final animated-local matrix until the fresh bytes establish ownership and write order."
+    },
+    {
+      "id": "cmotion-group-channel-update-140310100",
+      "va": "0x140310100",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Recover selected motion-group channel-state update/copy behavior around 0x1403101B8 and 0x140310348. Establish which per-channel fields are current evaluated values versus defaults/cache/control state before matrix construction."
+    },
+    {
+      "id": "cmotion-normal-and-flag2-binding-140310a20",
+      "va": "0x140310A20",
+      "size": "0x400",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire the normal mask/track binding at 0x140310A61 and the header-flag 0x2 alternate branch at 0x140310CBF. Determine whether the alternate path changes channel ownership, source order, defaults or only selection/control behavior."
+    },
+    {
+      "id": "cmotion-rest-joint-binding-14030f800",
+      "va": "0x14030F800",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Regression and ownership anchor for MOD rest transform -> CMotionJoint initialization. Reconfirm translation defaults at +0x124/+0x144/+0x164, rotation defaults at +0x184/+0x1A4/+0x1C4, scale defaults at +0x1E4/+0x204/+0x224, hierarchy binding and motion-group +0xF8 without extending semantics beyond observed writes."
+    },
+    {
+      "id": "matrix-scale-helper-14032ed00",
+      "va": "0x14032ED00",
+      "size": "0x100",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire the scale helper around 0x14032ED30 to pin exact input/output matrix convention: XYZ factors scale vectors at +0/+0x10/+0x20 while +0x30 remains unchanged. Use only as primitive evidence for the enclosing CMotion path."
+    },
+    {
+      "id": "matrix-rotation-xyz-helper-140330400",
+      "va": "0x140330400",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Regression anchor for the recovered XYZ rotation helper at 0x140330450. Verify call-compatible matrix convention and operand ownership before reusing it in the animated-local reconstruction."
+    },
+    {
+      "id": "matrix-translation-helper-140031180",
+      "va": "0x140031180",
+      "size": "0x180",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Regression anchor for translation helper 0x140031200 and adjacent matrix operations. Establish the exact write/add convention needed when classifying translation state in the CMotion matrix path."
+    },
+    {
+      "id": "matrix-compose-wrapper-140030d80",
+      "va": "0x140030D80",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Regression anchor spanning rigid inverse 0x140030DC0 and operand-reversing compose wrapper 0x140030E40. Preserve the already recovered row-vector multiplication convention while tracing the CMotion matrix accumulator."
+    },
+    {
+      "id": "mod-current-world-propagation-1402f9680",
+      "va": "0x1402F9680",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Downstream regression anchor for 0x1402F9700 current-world propagation. Once animated-local ownership is recovered, prove the exact handoff into the already canonical local * parent/rootBase world composition without inventing an intermediate representation."
+    }
+  ]
+}
