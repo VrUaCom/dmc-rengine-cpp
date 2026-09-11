@@ -1,0 +1,87 @@
+{
+  "schema": "dmc-rengine.mod-format-lineage.v1",
+  "date": "2026-09-11",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "target_question": "Does canonical DMC3 HD node-domain +0x10 descend from an older live model-format field?",
+  "hd_baseline": {
+    "magic": "MOD ",
+    "version_encoding": "f32@+0x04",
+    "object_count": "u8@+0x10",
+    "node_count": "u8@+0x11",
+    "node_domain_offset": "u64@+0x20",
+    "header_size": "0x40",
+    "node_domain_header_size": "0x20",
+    "node_plus_10": {
+      "read": "0x1402FDA0C",
+      "local_store": "0x1402FDA10",
+      "later_local_reads": 0,
+      "runtime_effect": "dead read / no downstream effect",
+      "semantic_status": "PRESERVED_UNDECODED"
+    }
+  },
+  "legacy_dmc3_candidate": {
+    "source": "Techokami/noesis-plugins-official/demonsangel/fmt_dmc3_mod.py",
+    "historical_commit": "c3251e6d055ea588920898a983ab8b526c526ff8",
+    "commit_date": "2012-11-24",
+    "authority": "external corroboration only",
+    "canonical_status": "SEMANTIC_CANDIDATE",
+    "reported_magic": "MOD ",
+    "reported_fields": {
+      "+0x10": "u8 numMesh",
+      "+0x11": "u8 numBones",
+      "+0x1C": "u32 pointer named bone_ptr by importer",
+      "+0x30": "start of repeated approximately 0x30-byte submesh-like records"
+    },
+    "important_boundary": "The importer reads but does not consume its bone_ptr; its semantic name is not proof of the pointed block.",
+    "lineage_signal": "same exact magic plus same two count-byte positions, followed by divergent serialized body layout"
+  },
+  "legacy_pc_packaging": {
+    "status": "SEMANTIC_CANDIDATE",
+    "facts": [
+      "Game Extractor DMC3 PC PAC plugin recognizes 0x20444F4D as mod",
+      "archived DMC3SE 2006 Style Switcher works with data/GData.pak -> GDATA.AFS and data2/*.pac",
+      "legacy Steam DMC3SE depot exposes data/GData.pak and data2/*.pac"
+    ],
+    "strongest_next_corpus": "retail DMC3SE PC 2006 MOD/PAC sample"
+  },
+  "mt_framework_comparison": {
+    "public_reverse_source": "tge-was-taken/umvc3-tools/templates/mt_mod.bt",
+    "magic": "MOD\\0",
+    "version_encoding": "u16@+0x04",
+    "joint_count": "u16@+0x06",
+    "result": "same serialized ABI as DMC3 MOD family",
+    "status": "REJECTED",
+    "reason": "magic terminator, version type, count placement and header/offset organization materially differ"
+  },
+  "dmc2": {
+    "model_abi": "unresolved",
+    "status": "SEMANTIC_CANDIDATE",
+    "public_evidence": "QuickBMS includes dmc2_uncompress, but compression evidence does not identify model serialization"
+  },
+  "onimusha3": {
+    "model_abi": "unresolved",
+    "status": "SEMANTIC_CANDIDATE",
+    "role": "parallel engine-lineage control only; no DMC3 MOD structural semantic promoted"
+  },
+  "dead_read_ancestry_test": [
+    "obtain retail pre-HDC DMC3 MOD bytes with provenance",
+    "verify magic and +0x10/+0x11 counts directly",
+    "resolve legacy +0x1C pointer structurally without trusting importer naming",
+    "identify legacy node/bone-domain shell",
+    "test whether an ancestral field corresponding to HDC node +0x10 exists",
+    "trace that field in the matching retail executable",
+    "then move backward to DMC2 if the DMC3 lineage remains continuous"
+  ],
+  "prohibited_promotions": [
+    "third-party importer equals format authority",
+    "same extension means same ABI",
+    "same offset means same semantic",
+    "legacy importer field names may be copied into canonical DMC3 HD without retail evidence"
+  ],
+  "writer_policy": "preserve all current HD PRESERVED_UNDECODED bytes exactly",
+  "closure": "Lineage origin is open. A concrete pre-HDC DMC3 ancestor candidate and falsifiable experiment are established; MT Framework MOD\\0 is rejected as the same serialized ABI."
+}
