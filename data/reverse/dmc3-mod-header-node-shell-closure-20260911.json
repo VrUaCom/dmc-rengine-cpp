@@ -1,0 +1,103 @@
+{
+  "schema": "dmc-rengine.mod-header-node-shell-closure.v1",
+  "date": "2026-09-11",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "architecture": "PE32+ x86-64",
+    "image_base": "0x140000000",
+    "pdata_runtime_functions": 12235
+  },
+  "header_shell": {
+    "regions": [
+      "header +0x08..+0x0F",
+      "header +0x18..+0x1F",
+      "header +0x28..+0x3F"
+    ],
+    "corpus_status": "RESERVED_OBSERVED_ZERO",
+    "source_pointer_census": {
+      "pdata_functions_with_nonstack_plus_108_load": 116,
+      "nonstack_plus_108_load_sites": 234,
+      "raw_target_candidate_functions": 53,
+      "raw_target_read_write_operations": 138,
+      "direct_family_classifier": "0x1402FD650",
+      "direct_family_classifier_call_sites": 14,
+      "proven_model_manager_target_reads": 0,
+      "proven_model_manager_target_writes": 0
+    },
+    "leaf_control": {
+      "source_like_loads": ["0x140165B23", "0x140165B46"],
+      "result": "separate nested owner via +0x448; transform-like +0x34/+0x38 writes; no model-manager provenance",
+      "status": "REJECTED"
+    },
+    "known_false_positive_controls": [
+      {
+        "functions": ["0x14030B550", "0x14030B5C0"],
+        "reason": "separate owner reached from 0x14008BE50; own +0x78/+0x80/+0x88 state and +0x18 count",
+        "status": "REJECTED"
+      },
+      {
+        "functions": ["0x140291D60", "0x14029581C"],
+        "reason": "separate resource/table owner; owner +0x108 source uses +0x18/+0x20 as live pointer/table state, incompatible with zero MOD header +0x18..+0x1F corpus region",
+        "status": "REJECTED"
+      },
+      {
+        "range": "0x14030E000..0x140312FFF",
+        "reason": "separate CMotion/runtime-transform owner family; offset equality at +0x108/+0x110 is not model-source provenance",
+        "status": "REJECTED"
+      }
+    ],
+    "canonical_runtime_effect": "EXE_CONFIRMED dormant/no effect",
+    "serialized_semantic": "PRESERVED_UNDECODED",
+    "writer_policy": "preserve exact source bytes"
+  },
+  "node_shell": {
+    "region": "node-domain +0x10..+0x1F",
+    "corpus_status": "RESERVED_OBSERVED_ZERO",
+    "binder": {
+      "function": "0x1402F1DB0",
+      "resolved_relative_dwords": ["+0x00", "+0x04", "+0x08", "+0x0C"],
+      "target_shell_reads": 0
+    },
+    "whole_image_raw_candidate_functions": [
+      "0x140291D60",
+      "0x14029581C",
+      "0x1402FD9C0"
+    ],
+    "rejected_raw_candidates": [
+      "0x140291D60",
+      "0x14029581C"
+    ],
+    "canonical_dead_read": {
+      "function": "0x1402FD9C0",
+      "caller": "0x1402FD8D0",
+      "source_load": "0x1402FD9F1 manager+0x108",
+      "node_domain_load": "0x1402FDA00 source+0x20",
+      "read": "0x1402FDA0C byte node+0x10",
+      "local_store": "0x1402FDA10 rbp+0x18",
+      "later_local_reads": 0,
+      "behavioral_effect": "none observed",
+      "status": "EXE_CONFIRMED"
+    },
+    "node_11_1f_proven_model_reads": 0,
+    "node_11_1f_proven_model_writes": 0,
+    "raw_node_shell_pointer_escapes": 0,
+    "canonical_runtime_effect": "EXE_CONFIRMED dormant/no effect",
+    "serialized_semantic": "PRESERVED_UNDECODED",
+    "writer_policy": "preserve exact source bytes"
+  },
+  "phase_result": {
+    "direct_exe_unknown_field_consumer_gates_remaining": 0,
+    "semantic_names_still_required_for_dormant_fields": false,
+    "next_gate": "byte-preserving MOD writer and exact no-edit round-trip",
+    "status": "EXE_CONFIRMED"
+  },
+  "rejected_hypotheses": [
+    "zero shell means padding",
+    "raw +0x108 displacement equality proves model-manager provenance",
+    "node-domain +0x10 is never read",
+    "canonical runtime dormancy authorizes writer zero-normalization"
+  ]
+}
