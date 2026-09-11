@@ -1,6 +1,6 @@
 # Current Blockers
 
-**Snapshot date:** 2026-09-09  
+**Snapshot date:** 2026-09-11  
 **Canonical base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
 **Latest reviewed promotion:** PR #372 — unified MOD/SCM/MOT consolidation and container gates  
 **Native Reader registry authority:** directly verified on current `main`  
@@ -150,9 +150,9 @@ Still open:
 
 ## MOT boundary
 
-**Status:** ✅ CANONICAL NATIVE READER MODULE + PARSER/IR + BOUNDED KEY EVALUATION / ❌ COMPLETE PLAYER PARITY OPEN
+**Status:** ✅ CANONICAL NATIVE READER MODULE + PARSER/IR + BOUNDED NORMAL-PATH CHANNEL EVALUATION / ❌ COMPLETE PLAYER PARITY OPEN
 
-MOT already exists in the canonical Native Reader registry as `native_reader_modules::mot()`. PR #372 replaces duplicate structural decoding with the modular parser/IR and promotes bounded canonical-EXE-backed key evaluation.
+MOT already exists in the canonical Native Reader registry as `native_reader_modules::mot()`. PR #372 replaces duplicate structural decoding with the modular parser/IR and promotes bounded canonical-EXE-backed key evaluation. The current `reverse/mod-completion-20260907` branch additionally closes the static compression-3 cached-search path and composes it with exact normal-path T/R/S channel binding plus the MOD motion-group selector.
 
 Closed at current scope:
 
@@ -160,19 +160,26 @@ Closed at current scope:
 - nine-bit channel mask and record/popcount relation;
 - compression-2/3 typed key payloads;
 - three hash-bound real MOT payloads through the modular parser;
-- binding-bit traversal;
+- exact normal-path binding-bit traversal and track ordinal consumption;
+- exact Translation/Rotation/Scale channel semantics and CMotionJoint channel bases;
 - signed track start-time offsets;
 - quantization decode;
-- compression-3 linear/Hermite segment algebra and slope orientation.
+- compression-3 forward/backward cached segment search at `0x1402E8C80..0x1402E8E10`;
+- endpoint behavior and cache-dependent duplicate-time selection in the recovered static algorithm;
+- compression-3 linear/Hermite segment algebra and slope orientation;
+- group-aware compression-3 scalar projection through the EXE-confirmed MOD motion-group selector.
 
 Still open:
 
-- exact segment lookup/cache and duplicate-time behavior;
-- flag `0x2` alternate binding;
-- other compression modes;
-- looping/blending/motion-selection/full transform composition;
-- bit-identical SSE parity where required;
+- execution/differential confirmation of cache lifecycle and bit-identical SSE parity where required;
+- header flag `0x2` alternate binding at `0x140310CBF`;
+- compression-2 whole-track evaluation parity and other compression modes;
+- exact mutable CMotion channel-state ownership;
+- T/R/S channel state -> animated local matrix construction around the normal `0x14030E9B0` path;
+- looping/blending/motion-selection/scheduler lifecycle;
 - original-game output comparison.
+
+The next direct-EXE acquisition surface is tracked by `data/reverse/dmc3-mot-local-matrix-window-plan.v1.json`. Do not promote `joint+0x110` to a final animated-local matrix until that packet closes ownership and write ordering.
 
 ## SO boundary
 
@@ -224,6 +231,7 @@ Targets remain `0x1402EF4D0`, `0x1402EF790`, `0x1400333E0`, `0x140033390`, `0x14
 - MOD retail PNST + synthetic NBZ reopen (#372);
 - SCM selected writer stack + 68-unique/78-path no-edit corpus (#372);
 - MOT canonical registry membership plus parser/IR/key-evaluation consolidation (#372 for the parser/IR and evaluation slice);
+- bounded compression-3 cached search + normal T/R/S channel/motion-group scalar bridge on `reverse/mod-completion-20260907`;
 - SO graph/volume/link canonical registry membership.
 
 ## Current access boundary
