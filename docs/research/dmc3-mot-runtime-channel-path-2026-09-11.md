@@ -152,7 +152,43 @@ serialized MOT compression-3
   -> skin palette                         CLOSED
 ```
 
-## 6. Regression surface
+## 6. Next direct-EXE acquisition gate
+
+The exact next reverse packet is now machine-readable at:
+
+```text
+data/reverse/dmc3-mot-local-matrix-window-plan.v1.json
+```
+
+It is SHA-gated to the canonical 6,356,432-byte executable and requests probe windows for:
+
+- the normal CMotion matrix path around `0x14030E7CB` / `0x14030E9B0`;
+- selected motion-group channel update paths around `0x1403101B8` and `0x140310348`;
+- normal binding `0x140310A61` plus alternate `flag 0x2` binding `0x140310CBF`;
+- rest/joint initialization around `0x14030F850`;
+- scale helper `0x14032ED30`;
+- XYZ rotation helper `0x140330450`;
+- translation helper `0x140031200`;
+- compose/inverse helpers `0x140030DC0` / `0x140030E40`;
+- downstream MOD current-world propagation `0x1402F9700`.
+
+The packet exists specifically to answer the unresolved ownership questions rather than to smuggle assumptions into code. Fresh bytes must establish:
+
+```text
+which channel-state lane is the current evaluated scalar
+what the neighboring/default/cache lanes mean only where directly consumed
+how T/R/S are ordered into the local matrix
+where the complete local matrix is written
+whether joint+0x110 is accumulator, final local matrix, or another runtime stage
+how exceptional scale/near-unit/tiny-factor branches alter the normal path
+what flag 0x2 changes relative to normal binding
+```
+
+Probe window sizes are acquisition coverage only, not claimed function boundaries.
+
+CI validates the plan schema with the same canonical `extract_exe_window_packet.py` guardrail used by the existing reverse acquisition packets. Plan validation is not semantic proof; only a completed SHA-bound packet plus instruction analysis may promote the remaining claims.
+
+## 7. Regression surface
 
 `tests/mot_key_decode_tests.cpp` now covers:
 
