@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-secondary-zero-regions.v4",
+  "schema": "dmc-rengine.mod-secondary-zero-regions.v5",
   "date": "2026-09-09",
   "last_evidence_sync": "2026-09-11",
   "canonical_executable": {
@@ -14,14 +14,17 @@
     "objects": 166,
     "status": "CORPUS_CONFIRMED"
   },
+  "final_shell_closure_receipt": "data/reverse/dmc3-mod-header-node-shell-closure-20260911.json",
   "header_regions": [
     {
       "region": "header +0x08..+0x0F",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
-      "whole_program_closure": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "whole_program_closure": true,
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
       "writer_policy": "preserve exact source bytes"
     },
     {
@@ -29,8 +32,10 @@
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
-      "whole_program_closure": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "whole_program_closure": true,
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
       "writer_policy": "preserve exact source bytes"
     },
     {
@@ -38,11 +43,27 @@
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
-      "whole_program_closure": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+      "whole_program_closure": true,
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
       "writer_policy": "preserve exact source bytes"
     }
   ],
+  "header_whole_image_census": {
+    "pdata_runtime_functions": 12235,
+    "functions_with_nonstack_plus_108_source_like_load": 116,
+    "source_like_load_sites": 234,
+    "raw_target_candidate_functions": 53,
+    "raw_target_read_write_operations": 138,
+    "direct_family_classifier": "0x1402FD650",
+    "direct_family_classifier_call_sites": 14,
+    "proven_model_manager_target_reads": 0,
+    "proven_model_manager_target_writes": 0,
+    "leaf_source_like_loads": ["0x140165B23", "0x140165B46"],
+    "leaf_result": "separate nested owner; no model-manager provenance",
+    "status": "EXE_CONFIRMED"
+  },
   "object_regions": [
     {
       "region": "object +0x04..+0x07",
@@ -72,9 +93,21 @@
   "node_region": {
     "region": "node-domain +0x10..+0x1F",
     "corpus_status": "RESERVED_OBSERVED_ZERO",
-    "canonical_transform_initializer": "0x1402FA080",
-    "whole_program_closure": false,
-    "status": ["CORPUS_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
+    "canonical_binder": "0x1402F1DB0",
+    "whole_program_closure": true,
+    "canonical_dead_read": {
+      "planner": "0x1402FD9C0",
+      "caller": "0x1402FD8D0",
+      "read": "0x1402FDA0C byte node+0x10",
+      "local_store": "0x1402FDA10 rbp+0x18",
+      "later_local_reads": 0
+    },
+    "node_plus_11_1f_proven_model_reads": 0,
+    "node_plus_11_1f_proven_model_writes": 0,
+    "raw_node_shell_pointer_escapes": 0,
+    "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+    "serialized_semantic": "PRESERVED_UNDECODED",
+    "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED", "REJECTED"],
     "writer_policy": "preserve exact source bytes"
   },
   "object_pointer_retention": {
@@ -138,13 +171,7 @@
   ],
   "whole_exe_direct_source_object_census": {
     "fingerprint": "manager/source +0x108 source header; index*0x40; source_header +0x40",
-    "matching_functions": [
-      "0x1402F9F20",
-      "0x1402FDB40",
-      "0x1402FDD10",
-      "0x1403029E0",
-      "0x140302F10"
-    ],
+    "matching_functions": ["0x1402F9F20", "0x1402FDB40", "0x1402FDD10", "0x1403029E0", "0x140302F10"],
     "matching_function_count": 5,
     "mod_efm_or_shared_planning_result": "known fields only; no reads of object +0x04..07/+0x14..17/+0x20..2F",
     "separate_0x3c0_owner_paths": ["0x1402F9F20", "0x140302F10"],
@@ -174,16 +201,23 @@
       "status": "REJECTED"
     },
     {
+      "address": "0x140291D60 / 0x14029581C",
+      "reason": "different resource/table owner; raw +0x108 and node-like offset equality is not model-manager/node-domain provenance",
+      "status": "REJECTED"
+    },
+    {
       "address": "0x140302F10..0x14030345A",
       "reason": "SCM-specific 0x3C0 runtime owner, not canonical MOD/EFM 0x380 object path",
       "status": "REJECTED"
     }
   ],
   "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes and byte-preservation snapshots; canonical runtime dormancy does not alter source preservation",
-  "closure_boundary": "The canonical DMC3 HD object-secondary runtime-consumption gate is closed. Whole-image 0x380 runtime-object provenance reaches only five retained serialized-object loads; three consume only object +0x08 before switching to mesh records and two are dead after load. An independent manager+0x108 direct-source-object census also finds no target-region reads. Object +0x04..07/+0x14..17/+0x20..2F remain serialized PRESERVED_UNDECODED and exact-byte writer obligations.",
+  "closure_boundary": "Canonical runtime-consumption closure is complete for secondary header, object and node-domain shells. Header target regions have no provenance-confirmed model-manager read/write. Node +0x10 has one canonical dead read at 0x1402FDA0C with zero later local consumers; node +0x11..+0x1F has no model-domain consumer. All serialized shell bytes remain PRESERVED_UNDECODED and exact-byte writer obligations.",
   "rejected_hypotheses": [
     "zero shell region equals padding",
     "absence from initializer proves no later consumer",
+    "raw +0x108 displacement equality proves model-manager provenance",
+    "node-domain +0x10 is never read",
     "0x140302AAA reads serialized object +0x18/+0x1C",
     "every retained +0x18 pointer on a 0x40 serialized record belongs to MOD",
     "canonical runtime dormancy authorizes writer zero-normalization"
