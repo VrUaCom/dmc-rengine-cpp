@@ -23,40 +23,71 @@ PR #372 consolidates the structural implementation onto one modular parser/IR an
 - zero-only post-track padding validation;
 - three hash-bound real MOT payloads parsing through the modular path.
 
-Canonical-EXE-backed key evaluation additionally recovers:
+Canonical-EXE-backed evaluation additionally recovers:
 
 - nine-channel binding-bit traversal order;
+- exact Translation/Rotation/Scale channel semantics and CMotionJoint channel-base offsets;
 - signed 16-bit track start-time offsets;
 - quantization `raw * range / 65535 + min`;
+- compression-3 cached forward/backward segment search;
+- endpoint and cache-dependent duplicate-time behavior;
 - compression-3 linear vs cubic/Hermite segment algebra;
-- incoming/outgoing slope orientation.
+- incoming/outgoing slope orientation;
+- the MOD motion-group selector relationship used to decide which joint channels are applied.
 
-The interpolation helper is an algebraic semantic recovery, **not** a bit-identical SSE reimplementation and not a complete animation-player claim.
+The current analysis path can therefore compose, for the supported normal compression-3 route:
+
+```text
+MOT mask
+  -> serialized track ordinal
+  -> MOD/CMotion joint
+  -> semantic T/R/S channel
+  -> cached key selection
+  -> decoded/interpolated scalar
+  -> selected motion group
+```
+
+This is a bounded semantic recovery, **not** a bit-identical SSE reimplementation and not a complete animation-player claim.
+
+See `docs/research/dmc3-mot-runtime-channel-path-2026-09-11.md` for the exact current boundary.
 
 ## Remaining animation boundary
 
 Still open:
 
-- exact segment lookup/cache and duplicate-time behavior;
+- compression-2 segment selection/evaluation parity;
 - flag `0x2` alternate binding path;
+- exact mutable CMotion channel-state ownership where required;
+- T/R/S channel state -> animated local matrix construction, including scale and exceptional factor branches;
 - other compression modes with executable + real-corpus agreement;
-- looping, blending, motion selection and full transform composition;
+- looping, blending, motion selection and scheduler/cache lifecycle;
+- bit-identical SSE parity where required;
 - original-game output comparison;
 - edited MOT authoring/original-game acceptance.
 
-A useful analysis chain is:
+The useful analysis chain is now:
 
 ```text
 MOD hierarchy / node domain
   -> motion-group relationship
   -> MOT parser/IR
-  -> bounded key evaluation
-  -> evaluated local transforms
+  -> normal channel binding
+  -> bounded compression-3 scalar evaluation
+  -> animated local matrix             # next major reverse gate
   -> world pose / skin palette analysis
+```
+
+Once a trustworthy animated-local matrix is available, the later MOD chain is already recovered:
+
+```text
+animatedLocal
+  -> currentWorld
+  -> inverseRestWorld * currentWorld
+  -> skin palette
 ```
 
 ## Product-surface distinction
 
 DMC Rengine C++ registry membership and the DMC Native Reader Android application are separate product surfaces. Do not infer that every C++ module is exposed by a particular Android build without checking that application's current baseline.
 
-For exact current authority, use `docs/research/dmc3-model-formats-unified-frontier-2026-09-09.md` and `docs/status/current.md`.
+For exact current authority, use the dated research receipts and `docs/status/current.md` rather than older roadmap wording.
