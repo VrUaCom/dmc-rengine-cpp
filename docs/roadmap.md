@@ -1,9 +1,10 @@
 # DMC Rengine Roadmap
 
-**Snapshot:** 2026-09-09  
+**Snapshot:** 2026-09-11  
 **Canonical base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
 **Latest reviewed promotion on current main:** PR #372 — unified MOD/SCM/MOT consolidation and container gates (merged after PR #375)  
 **Latest public/status reconciliation:** PR #375 — MOD Writer Gate 1 roadmap/learning reconciliation  
+**Active branch advancement:** `reverse/mod-completion-20260907` — bounded MOT runtime channel path + animated-local EXE acquisition gate  
 **Native Reader registry authority:** directly verified on current `main`  
 **Completion model:** evidence-gated, not percentage-gated.
 
@@ -126,9 +127,13 @@ PR #372 promotes one selected canonical bounded authoring stack:
 - ✅ PR #372 consolidates its structural implementation onto one modular parser/IR.
 - ✅ `MOT\0`, aligned header/mask contract, nine-bit channel mask, record/popcount relation and compression-2/3 typed keys are canonical.
 - ✅ three hash-bound real MOT payloads parse through the modular path.
-- ✅ canonical-EXE recovery covers binding traversal, signed start-time offsets, quantization and compression-3 linear/Hermite segment algebra with slope orientation.
-- ⚠️ interpolation is algebraic semantic recovery, not bit-identical SSE parity.
-- ❌ exact segment lookup/cache/duplicate-time behavior, flag `0x2` alternate binding, other compression modes, looping/blending/full player composition and original-game parity remain open.
+- ✅ canonical-EXE recovery covers exact normal-path binding traversal, serialized track ordinal consumption, signed start-time offsets, quantization and exact T/R/S semantic channel mapping/CMotionJoint channel bases.
+- ✅ compression-3 cached forward/backward segment search, endpoints and cache-dependent duplicate-time selection are statically recovered from `0x1402E8C80..0x1402E8E10`.
+- ✅ compression-3 linear/Hermite segment algebra and slope orientation are recovered and composed into a bounded scalar evaluator.
+- ✅ branch-level analysis composes `MOT track -> semantic T/R/S channel -> EXE-confirmed MOD motion group` without renumbering excluded track ordinals.
+- ⚠️ interpolation/search recovery is semantic/static authority, not bit-identical SSE or complete runtime cache-lifecycle parity.
+- ❌ header flag `0x2` alternate binding, compression-2 whole-track parity/other modes, exact mutable CMotion channel-state ownership, T/R/S -> animated local matrix construction, looping/blending/player scheduler behavior and original-game parity remain open.
+- ⚠️ next direct-EXE gate is encoded in `data/reverse/dmc3-mot-local-matrix-window-plan.v1.json`; `joint+0x110` is not promoted to a final animated-local matrix until fresh canonical bytes close ownership/write ordering.
 
 ### SO / SHW / textures
 
