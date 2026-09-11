@@ -1,10 +1,11 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-10  
+**Snapshot date:** 2026-09-11  
 **Canonical implementation base reviewed:** `main@c4a3fc2d4fc661d82e17b25c119f742ccda4973f`  
 **Latest reviewed public/status promotion:** PR #377 — canonical model-format truth + discovery reconciliation  
 **Latest SCM authoring promotion:** PR #376 — bounded real-corpus SCM alpha authoring + PAC reintegration  
 **Latest MOD/SCM/MOT consolidation:** PR #372 — unified model-format consolidation and MOD container gates  
+**Active branch advancement:** `reverse/mod-completion-20260907` — bounded MOT runtime channel path and next EXE acquisition gate  
 **Latest canonical Native Reader integration review:** `NativeReaderModuleRegistry` verified on current `main`  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
 **Overall status:** L1/L2/L3 remain incomplete. The canonical DMC3 HD MOD reverse is complete; MOD writer/original-game acceptance remain separate bounded programs. SCM and MOT continue on their own authoring/runtime proof tracks.
@@ -122,17 +123,58 @@ PR #376 further adds bounded real-corpus SCM alpha authoring, race-safe no-repla
 
 ## MOT state
 
-MOT is present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery.
+MOT is present in the canonical `NativeReaderModuleRegistry` as `native_reader_modules::mot()`. PR #372 consolidates the underlying structural path onto one modular parser/IR and advances semantic recovery. The current `reverse/mod-completion-20260907` branch carries additional bounded runtime recovery that remains branch truth until promoted.
 
-Current canonical evidence includes:
+Current canonical/branch evidence includes:
 
 - `MOT\0` marker and aligned header/channel-mask contract;
 - nine-bit channel mask and record-count/popcount relationship;
 - typed compression-2 and compression-3 key payloads;
 - three hash-bound real MOT payloads parsing through the modular path;
-- canonical-EXE recovery of binding-bit traversal, signed track start-time offsets, quantization and compression-3 linear/Hermite segment evaluation with slope orientation.
+- exact normal-path binding traversal and serialized track ordinal consumption;
+- exact Translation/Rotation/Scale channel semantics and CMotionJoint channel-base offsets;
+- signed track start-time offsets;
+- quantization `raw * range / 65535 + min`;
+- compression-3 cached forward/backward segment search at `0x1402E8C80..0x1402E8E10`;
+- endpoint and cache-dependent duplicate-time behavior in that recovered static search;
+- compression-3 linear/Hermite segment evaluation with slope orientation;
+- bounded composition from serialized compression-3 track -> semantic joint channel -> EXE-confirmed MOD motion group.
 
-The interpolation helper is an algebraic semantic recovery, not a bit-identical SSE or complete player claim. Exact segment lookup/cache, duplicate-time behavior, flag `0x2` binding, other compression modes, looping/blending/full transform composition and original-game output parity remain open.
+The current analysis API therefore closes the following bounded normal path:
+
+```text
+MOT mask
+ -> serialized track ordinal
+ -> MOD/CMotion node
+ -> semantic T/R/S channel
+ -> cached key selection
+ -> decoded/interpolated scalar
+ -> selected motion group
+```
+
+The interpolation/search helpers are semantic/static recoveries, not a claim of bit-identical SSE execution or complete CMotion player parity.
+
+Still open:
+
+- execution/differential confirmation of cache lifecycle and bit-identical SSE parity where required;
+- header flag `0x2` alternate binding at `0x140310CBF`;
+- compression-2 whole-track evaluation parity and other compression modes;
+- exact mutable CMotion channel-state ownership;
+- T/R/S channel state -> animated local matrix construction around `0x14030E9B0`;
+- looping, blending, motion selection and scheduler/cache lifecycle;
+- original-game output comparison;
+- edited MOT authoring/original-game acceptance.
+
+The next direct-EXE gate is explicitly encoded in `data/reverse/dmc3-mot-local-matrix-window-plan.v1.json`. Known scale evidence reaches the matrix path and `joint+0x110`, but that storage is not promoted to a final animated-local matrix until fresh canonical bytes close exact ownership and write ordering.
+
+Once a trustworthy animated-local matrix exists, the downstream MOD path is already recovered:
+
+```text
+animatedLocal
+ -> currentWorld
+ -> inverseRestWorld * currentWorld
+ -> skin palette
+```
 
 ## SO module state
 
