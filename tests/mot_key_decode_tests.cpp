@@ -1,11 +1,14 @@
+#include "dmc_rengine/analysis/mod/mot_pose.hpp"
 #include "dmc_rengine/analysis/mot/channel_binding.hpp"
 #include "dmc_rengine/analysis/mot/key_decode.hpp"
 #include "dmc_rengine/analysis/mot/track_evaluation.hpp"
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <limits>
 
 int main() {
+    namespace mod_analysis = dmc::rengine::analysis::mod;
     namespace mot = dmc::rengine::analysis::mot;
     dmc::rengine::formats::mot::TrackRecord track;
     track.compression = 3;
@@ -179,4 +182,37 @@ int main() {
     eval_track.compression = 3;
     assert(!mot::evaluate_compression3_track(
         eval_track, std::numeric_limits<float>::quiet_NaN(), 0));
+
+    // MOT -> MOD group-aware scalar bridge. Track ordinals for the excluded
+    // group remain present, but only matching CMotionJoint +0xF8 selectors are
+    // evaluated/applied.
+    binding_document.tracks.assign(6U, eval_track);
+    mod_analysis::AnimationBindingProjection model_binding;
+    model_binding.by_node_index = {
+        mod_analysis::AnimationJointBinding{0U, -1, 0U, 0U},
+        mod_analysis::AnimationJointBinding{1U, 0, 1U, 1U},
+    };
+    model_binding.node_at_order_position = {0U, 1U};
+    const std::array<std::int32_t, 6> caches{0, 0, 0, 0, 0, 0};
+
+    const auto group0 = mod_analysis::evaluate_motion_group_compression3_channels(
+        binding_document, model_binding, 0U, 5.0F, caches);
+    assert(group0 && group0->samples.size() == 3U);
+    assert(group0->samples[0].node_index == 0U);
+    assert(group0->samples[0].track_index == 0U);
+    assert(group0->samples[0].channel == mot::JointChannel::translation_x);
+    assert(group0->samples[0].value == 5.0F);
+    assert(group0->samples[2].track_index == 2U);
+
+    const auto group1 = mod_analysis::evaluate_motion_group_compression3_channels(
+        binding_document, model_binding, 1U, 5.0F, caches);
+    assert(group1 && group1->samples.size() == 3U);
+    assert(group1->samples[0].node_index == 1U);
+    assert(group1->samples[0].track_index == 3U);
+    assert(group1->samples[0].channel == mot::JointChannel::rotation_x);
+    assert(group1->samples[2].track_index == 5U);
+
+    auto wrong_caches = std::array<std::int32_t, 5>{0, 0, 0, 0, 0};
+    assert(!mod_analysis::evaluate_motion_group_compression3_channels(
+        binding_document, model_binding, 0U, 5.0F, wrong_caches));
 }
