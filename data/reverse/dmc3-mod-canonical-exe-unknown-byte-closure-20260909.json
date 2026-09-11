@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v9",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v10",
   "date": "2026-09-09",
   "last_evidence_sync": "2026-09-11",
   "branch": "reverse/mod-completion-20260907",
@@ -119,6 +119,7 @@
   },
   "secondary_regions": {
     "receipt": "data/reverse/dmc3-mod-secondary-zero-regions-20260909.json",
+    "final_shell_receipt": "data/reverse/dmc3-mod-header-node-shell-closure-20260911.json",
     "runtime_serialized_object_pointer": "0x140302AAA stores complete serialized object pointer into runtime object +0x18",
     "object_regions": {
       "regions": ["object +0x04..+0x07", "object +0x14..+0x17", "object +0x20..+0x2F"],
@@ -138,12 +139,27 @@
     },
     "header_regions": {
       "regions": ["header +0x08..+0x0F", "header +0x18..+0x1F", "header +0x28..+0x3F"],
-      "status": "whole-program closure pending",
+      "whole_program_closure": true,
+      "pdata_source_like_functions": 116,
+      "source_like_load_sites": 234,
+      "raw_candidate_functions": 53,
+      "raw_candidate_accesses": 138,
+      "proven_model_target_reads": 0,
+      "proven_model_target_writes": 0,
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "writer_policy": "preserve exact source bytes"
     },
     "node_region": {
       "region": "node-domain +0x10..+0x1F",
-      "status": "whole-program closure pending",
+      "whole_program_closure": true,
+      "canonical_plus_10_read": "0x1402FDA0C",
+      "canonical_plus_10_local_store": "0x1402FDA10",
+      "canonical_plus_10_later_local_reads": 0,
+      "node_plus_11_1f_model_reads": 0,
+      "node_plus_11_1f_model_writes": 0,
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "writer_policy": "preserve exact source bytes"
     }
   },
@@ -153,6 +169,11 @@
     "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
   },
   "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime dormancy/non-use is not permission to zero-normalize serialized ABI lanes, fields, regions or source bits.",
+  "direct_exe_unknown_phase": {
+    "status": "closed",
+    "remaining_field_consumer_gates": 0,
+    "meaning": "Every previously open direct-EXE MOD byte/bit/region now has either a recovered active role or a provenance-closed canonical runtime behavior. Dormant serialized semantics remain PRESERVED_UNDECODED rather than receiving invented names."
+  },
   "closed_gates": [
     "BLENDINDICES.x canonical CPU/GPU runtime consumption",
     "transform +0x1C canonical transform-runtime consumption",
@@ -162,11 +183,11 @@
     "header +0x14 -> manager +0xE4 canonical downstream consumer census",
     "source flag 0x00100000 technical renderer semantic",
     "source flag 0x00200000 canonical typed-runtime consumption",
-    "object secondary regions +0x04..07/+0x14..17/+0x20..2F canonical runtime-consumption census"
+    "object secondary regions +0x04..07/+0x14..17/+0x20..2F canonical runtime-consumption census",
+    "secondary header regions +0x08..0x0F/+0x18..0x1F/+0x28..0x3F whole-program closure",
+    "node-domain +0x10..+0x1F whole-program closure"
   ],
   "remaining_gates": [
-    "secondary header regions +0x08..0x0F/+0x18..0x1F/+0x28..0x3F whole-program closure",
-    "node-domain +0x10..+0x1F whole-program closure",
     "promote byte-preserving MOD writer and prove exact no-edit round-trip before edited writer authority"
   ]
 }
