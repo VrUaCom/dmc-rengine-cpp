@@ -127,8 +127,8 @@ static_assert(em000_generated_workspace_capacity(34U) ==
 static_assert(em000_generated_workspace_capacity(376U) ==
               mod_generated_workspace_capacity(376U));
 
-// Cross-check newly recovered executable behavior against the bounded corpus
-// constants so evidence drift fails compilation rather than silently diverging.
+// Cross-check recovered executable behavior against bounded corpus constants
+// so evidence drift fails compilation rather than silently diverging.
 static_assert(CanonicalExeUnknownFieldEvidence::mod_transform_1c_zero_count ==
               MultiCorpusModSummary::transform_record_count);
 static_assert(CanonicalExeUnknownFieldEvidence::mod_mesh_38_zero_count ==
@@ -143,6 +143,22 @@ static_assert(!CanonicalExeUnknownFieldEvidence::transform_1c_used_by_local_matr
 static_assert(CanonicalExeUnknownFieldEvidence::efm_mesh_38_is_runtime_active);
 static_assert(!CanonicalExeUnknownFieldEvidence::mod_mesh_38_is_runtime_active);
 static_assert(CanonicalExeUnknownFieldEvidence::header_14_is_runtime_carried);
+
+// Final 2026-09-11 unknown-shell closure. Corpus zero observations remain
+// separate from executable behavior; closed runtime use does not grant writer
+// normalization authority.
+static_assert(CanonicalExeUnknownFieldEvidence::header_secondary_whole_program_closed);
+static_assert(CanonicalExeUnknownFieldEvidence::proven_model_header_secondary_read_count == 0U);
+static_assert(CanonicalExeUnknownFieldEvidence::proven_model_header_secondary_write_count == 0U);
+static_assert(CanonicalExeUnknownFieldEvidence::node_secondary_whole_program_closed);
+static_assert(CanonicalExeUnknownFieldEvidence::node_secondary_10_later_local_read_count == 0U);
+static_assert(CanonicalExeUnknownFieldEvidence::node_secondary_11_1f_model_read_count == 0U);
+static_assert(CanonicalExeUnknownFieldEvidence::node_secondary_11_1f_model_write_count == 0U);
+static_assert(CanonicalExeUnknownFieldEvidence::direct_exe_unknown_field_consumer_phase_closed);
+static_assert(MultiCorpusModSummary::header_08_0f_all_zero);
+static_assert(MultiCorpusModSummary::header_18_1f_all_zero);
+static_assert(MultiCorpusModSummary::header_28_3f_all_zero);
+static_assert(MultiCorpusModSummary::node_domain_10_1f_all_zero);
 
 } // namespace
 } // namespace dmc::rengine::analysis::mod
