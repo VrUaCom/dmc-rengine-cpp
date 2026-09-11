@@ -42,3 +42,42 @@ jobs:
           name: dmc-rengine-linux-${{ github.sha }}
           path: build/dmc-rengine
           if-no-files-found: error
+
+  native-reader-android-toolchain:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Native Reader toolchain
+        run: |
+          set -euxo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;28.2.13676358"
+
+      - name: Pack Android SDK/NDK slice
+        run: |
+          set -euxo pipefail
+          SDK="$ANDROID_SDK_ROOT"
+          NDK="$SDK/ndk/28.2.13676358"
+          OUT="$RUNNER_TEMP/dmc-android-toolchain"
+          mkdir -p "$OUT/sdk/platforms/android-36" "$OUT/sdk/build-tools/36.0.0" "$OUT/ndk"
+          cp "$SDK/platforms/android-36/android.jar" "$OUT/sdk/platforms/android-36/"
+          cp -a "$SDK/build-tools/36.0.0/." "$OUT/sdk/build-tools/36.0.0/"
+          cp "$NDK/source.properties" "$OUT/ndk/"
+          cp -a "$NDK/build" "$OUT/ndk/"
+          cp -a "$NDK/toolchains" "$OUT/ndk/"
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/dmc-android-toolchain-r28c.tar.gz" dmc-android-toolchain
+          ls -lh "$RUNNER_TEMP/dmc-android-toolchain-r28c.tar.gz"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dmc-android-toolchain-r28c
+          path: ${{ runner.temp }}/dmc-android-toolchain-r28c.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
