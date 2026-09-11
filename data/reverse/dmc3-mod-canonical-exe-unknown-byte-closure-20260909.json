@@ -1,7 +1,7 @@
 {
-  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v7",
+  "schema": "dmc-rengine.mod-canonical-exe-unknown-byte-closure.v8",
   "date": "2026-09-09",
-  "last_evidence_sync": "2026-09-10",
+  "last_evidence_sync": "2026-09-11",
   "branch": "reverse/mod-completion-20260907",
   "canonical_executable": {
     "name": "dmc3.exe",
@@ -54,10 +54,23 @@
       "writer_policy": "preserve exact values"
     },
     "mesh_0c": {
-      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "raw u32; MOD 180/180 and bound EFM 2/2 zero; no positive semantic consumer in audited load/build/material paths; whole-EXE provenance closure remains",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "whole-image source-mesh provenance is closed: six exact object.mesh_table(+0x08)+index*0x50 derivation functions plus 34 exact runtime-mesh derivation functions; typed propagation reaches 43 functions and 20 calls with zero serialized-source pointer escapes/indirect calls; 21 live backreference field reads consume neighboring fields but never +0x0C",
+      "typed_surface": {
+        "direct_serialized_mesh_derivation_functions": 6,
+        "runtime_mesh_derivation_functions": 34,
+        "typed_reachable_functions": 43,
+        "typed_direct_calls": 20,
+        "serialized_source_pointer_escapes": 0,
+        "serialized_source_indirect_calls": 0,
+        "live_serialized_field_reads": 21,
+        "mesh_plus_0c_reads": 0,
+        "mesh_plus_0c_writes": 0
+      },
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-mesh-0c-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source u32"
     },
     "mesh_38": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "EXE_AND_CORPUS_CONFIRMED"],
@@ -66,10 +79,24 @@
       "writer_policy": "preserve"
     },
     "mesh_4c": {
-      "status": ["STRUCTURAL_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
-      "summary": "raw trailing u32; serialized +0x48 is the separate generated topology count and is not align16(6*(vertex_count-2)) workspace capacity; no +0x4C companion transfer in audited path; whole-EXE provenance closure remains",
+      "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
+      "summary": "whole-image source-mesh provenance is closed across the same six direct and 34 runtime-mesh derivation functions; 21 live source reads include five post-build +0x48 reads but zero +0x4C reads/writes. Raw +0x4C model-region hits are unrelated statistics/control layouts. Neighbor +0x48 remains a separate generated topology count, not workspace capacity",
+      "typed_surface": {
+        "direct_serialized_mesh_derivation_functions": 6,
+        "runtime_mesh_derivation_functions": 34,
+        "typed_reachable_functions": 43,
+        "typed_direct_calls": 20,
+        "serialized_source_pointer_escapes": 0,
+        "serialized_source_indirect_calls": 0,
+        "live_serialized_field_reads": 21,
+        "mesh_plus_48_live_reads": 5,
+        "mesh_plus_4c_reads": 0,
+        "mesh_plus_4c_writes": 0
+      },
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
       "receipt": "data/reverse/dmc3-mod-mesh-4c-20260909.json",
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source u32"
     },
     "blendindices_x": {
       "status": ["STRUCTURAL_CONFIRMED", "EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED"],
@@ -141,17 +168,18 @@
     "status": "REJECTED",
     "replacement": "data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json"
   },
-  "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime non-use is not permission to zero-normalize serialized ABI lanes, fields or source bits.",
+  "writer_authority": "All unresolved/secondary bytes remain source-preserved. Canonical runtime dormancy/non-use is not permission to zero-normalize serialized ABI lanes, fields or source bits.",
   "closed_gates": [
     "BLENDINDICES.x canonical CPU/GPU runtime consumption",
     "transform +0x1C canonical transform-runtime consumption: EXE_CONFIRMED dormant/no effect",
+    "mesh +0x0C canonical typed runtime consumption: EXE_CONFIRMED dormant/no effect",
     "mesh +0x38 MOD-specific runtime role relative to EFM homologous COLOR0 stream",
+    "mesh +0x4C canonical typed runtime consumption: EXE_CONFIRMED dormant/no effect with live +0x48 positive control",
     "header +0x14 -> manager +0xE4 canonical downstream consumer census: no consumer found",
     "source flag 0x00100000 technical renderer semantic: GS TEST_1 AREF and ZBUF_1 ZMSK selector through generic backend",
     "source flag 0x00200000 canonical typed runtime consumption: carried/restored but no provenance-confirmed bit21 decoder"
   ],
   "remaining_gates": [
-    "provenance-complete whole-EXE census for mesh +0x0C/+0x4C",
     "retained-pointer consumer census for secondary object regions +0x04..07/+0x14..17/+0x20..2F",
     "secondary header and node-domain whole-program closure",
     "promote byte-preserving MOD writer and prove exact no-edit round-trip before edited writer authority"

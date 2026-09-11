@@ -1,11 +1,13 @@
 {
-  "schema": "dmc-rengine.mod-unknown-field-receipt.v2",
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v3",
   "field": "mesh+0x0C",
   "serialized_offset": "mesh +0x0C",
   "width": "u32",
   "canonical_executable": {
     "name": "dmc3.exe",
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "architecture": "PE32+ x86-64"
   },
   "corpus": {
     "mod_meshes": 180,
@@ -14,27 +16,71 @@
     "efm_zero_values": 2,
     "status": "CORPUS_CONFIRMED"
   },
-  "mod_mesh_provenance": {
-    "record_stride": "0x50",
-    "post_load_record_base": "0x1402FE452..0x1402FE462 derives object.mesh_table + mesh_index*0x50",
-    "runtime_builder_record_base": "0x1402FE6F4..0x1402FE707 derives the same 0x50-byte source mesh record",
-    "size_planner_record_base": "0x1402FDE54..0x1402FDE70 derives object.mesh_table + mesh_index*0x50 in the MOD layout planning path",
+  "direct_serialized_mesh_census": {
+    "derivation": "object.mesh_table(+0x08) + mesh_index*0x50",
+    "whole_exe_matching_function_count": 6,
+    "functions": [
+      "0x1402F7A90",
+      "0x1402F7D60",
+      "0x1402FDB40",
+      "0x1402FDD10",
+      "0x1402FE3B0",
+      "0x1402FE6A0"
+    ],
+    "mesh_plus_0c_reads": 0,
+    "mesh_plus_0c_writes": 0,
+    "positive_neighbor_examples": [
+      "0x1402FE6A0 reads +0x00/+0x02, stream pointers, +0x40 and +0x48",
+      "0x1402FE3B0 relocates stream pointers and generates +0x48"
+    ],
     "status": "EXE_CONFIRMED"
   },
-  "provenance_confirmed_field_access_census": {
-    "post_load_0x1402FE3B0": {
-      "positive_offsets": ["+0x10", "+0x18", "+0x20", "+0x28", "+0x30", "+0x40", "+0x48"],
-      "mesh_plus_0c_accesses": 0
+  "runtime_backreference": {
+    "builder_store": "0x1402FE713 serialized mesh pointer -> runtime mesh +0x10",
+    "runtime_mesh_derivation": "object.runtime_mesh_array(+0x20) + mesh_index*0x1A0",
+    "whole_exe_runtime_mesh_derivation_functions": 34,
+    "typed_reachable_functions": 43,
+    "typed_direct_calls": 20,
+    "serialized_source_pointer_escapes": 0,
+    "serialized_source_indirect_calls": 0,
+    "extra_whole_image_roots": [
+      {
+        "address": "0x14030D9B0",
+        "callee": "0x14030D8B0",
+        "result": "runtime stream-buffer consumer only; no runtime +0x10 source dereference"
+      },
+      {
+        "address": "0x14030DA80",
+        "callee": "0x14030D8B0",
+        "result": "runtime stream-buffer consumer only; no runtime +0x10 source dereference"
+      }
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "live_source_field_reads": {
+    "total": 21,
+    "distribution": {
+      "+0x00": 6,
+      "+0x02": 2,
+      "+0x04": 2,
+      "+0x06": 1,
+      "+0x08": 1,
+      "+0x0A": 1,
+      "+0x40": 3,
+      "+0x48": 5
     },
-    "runtime_builder_0x1402FE6A0": {
-      "positive_offsets": ["+0x00", "+0x02", "+0x10", "+0x18", "+0x20", "+0x28", "+0x30", "+0x40", "+0x48"],
-      "mesh_plus_0c_accesses": 0
-    },
-    "layout_planning_path_near_0x1402FDE64": {
-      "positive_offset": "+0x00 vertex_count",
-      "mesh_plus_0c_accesses": 0
-    },
-    "common_material_helper": "0x1402F9890 consumes mesh texture/clamp fields through +0x0A and establishes no +0x0C use",
+    "mesh_plus_0c_reads": 0,
+    "representative_consumers": [
+      "0x1402F9890",
+      "0x1402F8000",
+      "0x1402FE930",
+      "0x140307230",
+      "0x140309C60"
+    ],
+    "status": "EXE_CONFIRMED"
+  },
+  "canonical_runtime_consumption": {
+    "result": "dormant / no effect in canonical typed serialized-mesh surface",
     "status": "EXE_CONFIRMED"
   },
   "semantic_status": "PRESERVED_UNDECODED",
@@ -42,15 +88,16 @@
     "STRUCTURAL_CONFIRMED",
     "EXE_CONFIRMED",
     "CORPUS_CONFIRMED",
-    "PRESERVED_UNDECODED"
+    "PRESERVED_UNDECODED",
+    "REJECTED"
   ],
   "rejected_hypotheses": [
     "mesh +0x0C is padding because it fills the gap before an aligned u64",
     "mesh +0x0C is reserved because the bounded corpus is zero",
-    "mesh +0x0C may be zero-normalized by a writer",
-    "any unrelated +0x0C access on a 0x50-byte structure is a MOD mesh consumer"
+    "canonical runtime dormancy authorizes writer zero-normalization",
+    "unrelated +0x0C accesses without serialized-mesh pointer provenance are MOD mesh consumers"
   ],
-  "cpp_contract": "analysis/mod/mesh_serialized.hpp preserves raw u32; synthetic DEADBEEF regression is registered through mod_skin_tests",
-  "writer_policy": "preserve",
-  "closure_boundary": "The canonical MOD post-load, runtime-builder, layout-planning and material paths all have source-mesh provenance and skip +0x0C while consuming neighboring fields. This is strong EXE_CONFIRMED negative evidence for those complete MOD paths, but not authority to rename the serialized u32 reserved/padding. Preserve it exactly unless a distinct provenance-confirmed consumer is found."
+  "cpp_contract": "include/dmc_rengine/analysis/mod/mesh_serialized.hpp preserves the raw u32; tests/mod_skin_tests.cpp requires synthetic 0xDEADBEEF to survive the preservation projection",
+  "writer_policy": "preserve exact source u32",
+  "closure_boundary": "Whole-image direct mesh-table derivation and independent runtime-mesh backreference propagation are closed. No provenance-confirmed canonical consumer reads or writes serialized +0x0C. The canonical runtime behavior is EXE_CONFIRMED dormant/no effect, while the serialized semantic remains PRESERVED_UNDECODED and writer-preserved."
 }

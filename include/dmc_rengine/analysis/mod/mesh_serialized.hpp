@@ -10,18 +10,28 @@
 
 namespace dmc::rengine::analysis::mod {
 
-// Serialized MOD inner-mesh bytes intentionally kept separate from runtime-live
-// stream/state fields. Canonical post-load 0x1402FE3B0 and runtime mesh
-// construction 0x1402FE6A0 provide bounded negative evidence for these source
-// fields. Negative runtime evidence never authorizes a writer to clear them;
-// they remain byte-preservation obligations.
+// Serialized MOD inner-mesh bytes intentionally remain separate from
+// runtime-live stream/state fields. Canonical whole-image provenance closure
+// now covers both ways the executable reaches the 0x50-byte source mesh:
+//
+// 1) direct object.mesh_table(+0x08) + mesh_index*0x50 derivation; and
+// 2) the live source backreference stored by 0x1402FE713 at runtime mesh +0x10.
+//
+// The whole executable contains exactly six direct 0x50-table derivation
+// functions. The runtime-mesh surface has 34 exact index*0x1A0 + array(+0x20)
+// derivation functions; typed propagation covers 43 reachable functions and
+// 20 direct typed calls with zero serialized-source pointer escapes and zero
+// serialized-source indirect calls. Live backreference consumers read source
+// offsets +0x00/+0x02/+0x04/+0x06/+0x08/+0x0A/+0x40/+0x48, but never +0x0C
+// or +0x4C. This closes canonical runtime consumption of +0x0C/+0x4C as
+// EXE_CONFIRMED dormant/no effect. It does NOT rename either serialized field
+// padding/reserved and does not authorize a writer to normalize it.
 //
 // Evidence boundaries:
-// - MOD +0x0C is a u32 between the 12-byte material/CLAMP prefix and the first
-//   u64 stream pointer. It is zero in the current bounded corpus, but neither
-//   the zero histogram nor its physical position proves padding/alignment.
-//   Status remains PRESERVED_UNDECODED until a complete consumer census closes
-//   it.
+// - MOD +0x0C is a raw u32 between the material/CLAMP prefix and the first u64
+//   stream pointer. It is zero in the bounded MOD/EFM corpus and has no
+//   provenance-confirmed canonical consumer. Serialized semantic remains
+//   PRESERVED_UNDECODED; exact source bits remain a writer obligation.
 // - +0x38 is not generic padding. EFM post-load 0x1402F7A90 relocates the
 //   homologous slot and EFM runtime builder 0x1402F7D60 forwards it as the
 //   extra COLOR0 stream. Canonical MOD builder 0x1402FE6A0 instead explicitly
@@ -29,10 +39,13 @@ namespace dmc::rengine::analysis::mod {
 //   serialized MOD +0x38. The shared physical description is therefore a
 //   family-specific auxiliary-stream slot; MOD does not inherit EFM COLOR0
 //   semantics by offset similarity. Source bytes are still preserved.
-// - MOD +0x4C is the trailing u32 after runtime-generated count +0x48. It is
-//   zero in the bounded MOD corpus and has no positive consumer in the audited
-//   load/build paths. That is not sufficient to call it reserved or padding;
-//   its global semantic remains PRESERVED_UNDECODED.
+// - MOD +0x4C is the raw trailing u32 after the separate generated topology
+//   count at +0x48. +0x48 is live in build and post-build consumers, including
+//   the runtime-mesh +0x10 backreference path; +0x4C is not. It is zero in the
+//   bounded MOD/EFM corpus, canonical runtime behavior is dormant/no effect,
+//   and serialized semantic remains PRESERVED_UNDECODED. The physical
+//   topology-workspace span align16(6*(vertex_count-2)) belongs to +0x40, not
+//   to serialized +0x48 or +0x4C.
 struct MeshSerializedPreservationAbi final {
     static constexpr std::size_t record_size = 0x50U;
     static constexpr std::size_t preserved0c_u32_field = 0x0CU;

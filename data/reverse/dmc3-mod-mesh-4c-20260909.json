@@ -1,11 +1,13 @@
 {
-  "schema": "dmc-rengine.mod-unknown-field-receipt.v2",
+  "schema": "dmc-rengine.mod-unknown-field-receipt.v3",
   "field": "mesh+0x4C",
   "serialized_offset": "mesh +0x4C",
   "width": "u32",
   "canonical_executable": {
     "name": "dmc3.exe",
-    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "architecture": "PE32+ x86-64"
   },
   "corpus": {
     "mod_meshes": 180,
@@ -14,34 +16,70 @@
     "efm_zero_values": 2,
     "status": "CORPUS_CONFIRMED"
   },
-  "mod_mesh_provenance": {
-    "record_stride": "0x50",
-    "post_load_record_base": "0x1402FE452..0x1402FE462 derives object.mesh_table + mesh_index*0x50",
-    "runtime_builder_record_base": "0x1402FE6F4..0x1402FE707 derives the same source record",
-    "layout_planning_record_base": "0x1402FDE54..0x1402FDE70 derives object.mesh_table + mesh_index*0x50",
-    "status": "EXE_CONFIRMED"
-  },
   "neighbor_positive_control": {
-    "post_load_write": "0x1402FE684 writes generated topology count to mesh +0x48",
-    "runtime_builder_read": "0x1402FE904 reads mesh +0x48",
-    "runtime_builder_write": "0x1402FE907 writes that count to runtime +0x198",
+    "field": "mesh +0x48 generated topology count",
+    "post_load_write": "0x1402FE684",
+    "runtime_builder_read": "0x1402FE904",
+    "runtime_builder_write": "0x1402FE907 -> runtime +0x198",
+    "post_builder_reads": 5,
+    "workspace_correction": "+0x48 is not align16(6*(vertex_count-2)); physical workspace span belongs to +0x40",
     "status": "EXE_CONFIRMED"
   },
-  "provenance_confirmed_field_access_census": {
-    "post_load_0x1402FE3B0": {
-      "mesh_plus_4c_reads": 0,
-      "mesh_plus_4c_writes": 0,
-      "note": "function reaches the end-of-record +0x48 positive control and writes it, then advances to next 0x50-byte record without touching +0x4C"
+  "direct_serialized_mesh_census": {
+    "derivation": "object.mesh_table(+0x08) + mesh_index*0x50",
+    "whole_exe_matching_function_count": 6,
+    "functions": [
+      "0x1402F7A90",
+      "0x1402F7D60",
+      "0x1402FDB40",
+      "0x1402FDD10",
+      "0x1402FE3B0",
+      "0x1402FE6A0"
+    ],
+    "mesh_plus_4c_reads": 0,
+    "mesh_plus_4c_writes": 0,
+    "status": "EXE_CONFIRMED"
+  },
+  "runtime_backreference": {
+    "builder_store": "0x1402FE713 serialized mesh pointer -> runtime mesh +0x10",
+    "runtime_mesh_derivation": "object.runtime_mesh_array(+0x20) + mesh_index*0x1A0",
+    "whole_exe_runtime_mesh_derivation_functions": 34,
+    "typed_reachable_functions": 43,
+    "typed_direct_calls": 20,
+    "serialized_source_pointer_escapes": 0,
+    "serialized_source_indirect_calls": 0,
+    "status": "EXE_CONFIRMED"
+  },
+  "live_source_field_reads": {
+    "total": 21,
+    "distribution": {
+      "+0x00": 6,
+      "+0x02": 2,
+      "+0x04": 2,
+      "+0x06": 1,
+      "+0x08": 1,
+      "+0x0A": 1,
+      "+0x40": 3,
+      "+0x48": 5
     },
-    "runtime_builder_0x1402FE6A0": {
-      "mesh_plus_4c_reads": 0,
-      "mesh_plus_4c_writes": 0,
-      "note": "builder forwards +0x48 to runtime +0x198 and performs no +0x4C companion transfer"
-    },
-    "layout_planning_path_near_0x1402FDE64": {
-      "mesh_plus_4c_reads": 0,
-      "mesh_plus_4c_writes": 0
-    },
+    "mesh_plus_4c_reads": 0,
+    "mesh_plus_4c_writes": 0,
+    "strong_positive_control": "0x140309C60 follows runtime +0x10 and reads +0x48 repeatedly, including compares to 0xA2 and 0x16, while never accessing adjacent +0x4C",
+    "status": "EXE_CONFIRMED"
+  },
+  "raw_plus_4c_displacement_control": {
+    "model_region_nonstack_read_candidates": [
+      "0x1402F78DE",
+      "0x14030134F",
+      "0x140305FAF",
+      "0x14030806E",
+      "0x1403086A6"
+    ],
+    "provenance_result": "all candidates belong to global statistics/control layouts such as 0x1405D9D98/0x1405D9D68, not serialized mesh records",
+    "status": "REJECTED"
+  },
+  "canonical_runtime_consumption": {
+    "result": "dormant / no effect in canonical typed serialized-mesh surface",
     "status": "EXE_CONFIRMED"
   },
   "semantic_status": "PRESERVED_UNDECODED",
@@ -49,15 +87,16 @@
     "STRUCTURAL_CONFIRMED",
     "EXE_CONFIRMED",
     "CORPUS_CONFIRMED",
-    "PRESERVED_UNDECODED"
+    "PRESERVED_UNDECODED",
+    "REJECTED"
   ],
   "rejected_hypotheses": [
-    "mesh +0x4C is the second half of a runtime topology-count pair",
-    "mesh +0x4C is padding because it ends the 0x50-byte record",
-    "mesh +0x4C may be zero-normalized because current corpus is zero",
-    "unrelated runtime/command structures with a +0x4C member are MOD serialized mesh evidence"
+    "mesh +0x4C is the second half of generated topology count +0x48",
+    "mesh +0x4C is padding because it terminates the 0x50-byte record",
+    "raw +0x4C accesses on unrelated runtime/statistics objects are serialized MOD mesh evidence",
+    "canonical runtime dormancy authorizes writer zero-normalization"
   ],
-  "cpp_contract": "analysis/mod/mesh_serialized.hpp preserves raw u32; synthetic A5A55A5A regression is registered through mod_skin_tests",
-  "writer_policy": "preserve",
-  "closure_boundary": "Three provenance-confirmed canonical MOD paths derive the 0x50-byte source mesh record and skip +0x4C. The post-load and runtime-builder paths explicitly use neighboring +0x48 as a topology-count positive control, making absence of a +0x4C transfer stronger negative evidence. This still does not justify calling +0x4C padding/reserved; writer preservation remains mandatory."
+  "cpp_contract": "include/dmc_rengine/analysis/mod/mesh_serialized.hpp preserves the raw u32; tests/mod_skin_tests.cpp requires synthetic 0xA5A55A5A to survive the preservation projection",
+  "writer_policy": "preserve exact source u32",
+  "closure_boundary": "Whole-image direct mesh-table derivation and independent runtime-mesh backreference propagation are closed. Neighbor +0x48 is live in both build and post-build consumers, while serialized +0x4C has no provenance-confirmed canonical read/write. Canonical runtime behavior is EXE_CONFIRMED dormant/no effect; serialized semantics remain PRESERVED_UNDECODED."
 }
