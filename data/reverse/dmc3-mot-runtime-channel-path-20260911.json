@@ -1,0 +1,110 @@
+{
+  "schema": "dmc-rengine.mot-runtime-channel-path.v1",
+  "date": "2026-09-11",
+  "repository": "VrUaCom/dmc-rengine-cpp",
+  "branch": "reverse/mod-completion-20260907",
+  "base_before_receipt": "b2636589d6781a5a6d261b4c5df779bc912aaefc",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "scope": "bounded normal-path MOT compression-3 scalar evaluation through semantic CMotion joint channel and EXE-confirmed MOD motion-group selection",
+  "implementation": {
+    "channel_binding": "include/dmc_rengine/analysis/mot/channel_binding.hpp",
+    "track_evaluation": "include/dmc_rengine/analysis/mot/track_evaluation.hpp",
+    "mod_motion_bridge": "include/dmc_rengine/analysis/mod/mot_pose.hpp",
+    "regression": "tests/mot_key_decode_tests.cpp",
+    "research_receipt": "docs/research/dmc3-mot-runtime-channel-path-2026-09-11.md",
+    "next_exe_packet_plan": "data/reverse/dmc3-mot-local-matrix-window-plan.v1.json"
+  },
+  "exe_anchors": {
+    "cached_segment_search": "0x1402E8C80..0x1402E8E10",
+    "key_decode": "0x1402E9650",
+    "track_evaluator": "0x1402E9170",
+    "compression3_branch": "0x1402E91D8",
+    "interpolation_mode_branch": "0x1402E9261",
+    "hermite_helper": "0x1402E9880..0x1402E994F",
+    "mod_cmotion_binding": "0x14030F850",
+    "normal_mask_binding": "0x140310A61",
+    "alternate_flag2_binding": "0x140310CBF",
+    "normal_matrix_path": "0x14030E9B0",
+    "current_world_update": "0x1402F9700",
+    "skin_palette_loop": "0x140300580..0x1403006C3"
+  },
+  "normal_channel_order": [
+    {"mask": "0x040", "channel": "translation_x", "joint_base": "0x120", "status": "EXE_CONFIRMED"},
+    {"mask": "0x080", "channel": "translation_y", "joint_base": "0x140", "status": "EXE_CONFIRMED"},
+    {"mask": "0x100", "channel": "translation_z", "joint_base": "0x160", "status": "EXE_CONFIRMED"},
+    {"mask": "0x008", "channel": "rotation_x", "joint_base": "0x180", "status": "EXE_CONFIRMED"},
+    {"mask": "0x010", "channel": "rotation_y", "joint_base": "0x1A0", "status": "EXE_CONFIRMED"},
+    {"mask": "0x020", "channel": "rotation_z", "joint_base": "0x1C0", "status": "EXE_CONFIRMED"},
+    {"mask": "0x001", "channel": "scale_x", "joint_base": "0x1E0", "status": "EXE_CONFIRMED"},
+    {"mask": "0x002", "channel": "scale_y", "joint_base": "0x200", "status": "EXE_CONFIRMED"},
+    {"mask": "0x004", "channel": "scale_z", "joint_base": "0x220", "status": "EXE_CONFIRMED"}
+  ],
+  "claims": [
+    {
+      "claim": "normal-path MOT track traversal consumes serialized track ordinals in the recovered nine-channel mask order",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "claim": "track start-time offset is signed i16 at track+0x06",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "claim": "compression-3 key time lower 15 bits select the time index and bit15 selects linear versus cubic/Hermite behavior for the recovered segment path",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "claim": "compression-3 cached segment search walks forward/backward from the cached index and retains cache-dependent duplicate-time behavior",
+      "status": "EXE_CONFIRMED_STATIC_RECOVERY"
+    },
+    {
+      "claim": "quantized value and compression-3 slopes decode as raw*range/65535+bias with recovered incoming/outgoing orientation",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "claim": "MOD serialized third node-domain table is copied to CMotionJoint+0xF8 and used as the requested motion-group selector",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "claim": "DMC Rengine can compose supported compression-3 MOT data to an evaluated scalar with exact node, track ordinal, semantic T/R/S channel, CMotionJoint channel base and selected motion group",
+      "status": "STRUCTURAL_COMPOSITION_OF_EXE_CONFIRMED_CONTRACTS"
+    },
+    {
+      "claim": "joint+0x110 is the final animated-local matrix",
+      "status": "PRESERVED_UNPROMOTED"
+    }
+  ],
+  "closed_bounded_path": [
+    "mot-mask-bit",
+    "serialized-track-ordinal",
+    "joint-node-index",
+    "semantic-translation-rotation-scale-channel",
+    "cmotion-joint-channel-base",
+    "compression3-cached-key-selection",
+    "decoded-interpolated-scalar",
+    "mod-motion-group-selection"
+  ],
+  "open_boundaries": [
+    "execution-differential-cache-lifecycle",
+    "bit-identical-sse-parity-where-required",
+    "header-flag-0x2-alternate-binding",
+    "compression2-whole-track-evaluation-parity",
+    "other-compression-modes",
+    "exact-mutable-cmotion-channel-state-ownership",
+    "translation-rotation-scale-to-animated-local-matrix",
+    "joint-plus-0x110-exact-ownership-and-write-order",
+    "looping-blending-motion-selection-scheduler-lifecycle",
+    "original-game-output-comparison",
+    "mot-writer-authority"
+  ],
+  "evidence_boundary": {
+    "semantic_claims_require_fresh_canonical_bytes_for_next_gate": true,
+    "probe_window_sizes_are_function_boundaries": false,
+    "ci_green_equals_original_game_acceptance": false,
+    "writer_authority_promoted": false
+  }
+}
