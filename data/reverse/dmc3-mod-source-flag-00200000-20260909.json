@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.mod-object-flag-receipt.v4",
+  "schema": "dmc-rengine.mod-object-flag-receipt.v5",
   "field": "object source flag 0x00200000",
   "serialized_offset": "object +0x10 bit 21",
   "width": "u32 mask",
@@ -38,7 +38,18 @@
   },
   "direct_runtime_object_surface": {
     "derivation": "runtime_object = manager +0x100 + object_index*0x380",
-    "derived_function_count": 31,
+    "derived_function_count": 32,
+    "previous_bounded_count": 31,
+    "whole_image_added_root": {
+      "function": "0x14029F0B0",
+      "manager_accessor": "0x140089DE0",
+      "manager_fields": ["+0xE8", "+0x100"],
+      "runtime_object_stride": "0x380",
+      "flag_plus10_reads": 0,
+      "flag_plus14_reads": 0,
+      "note": "the additional whole-image root follows runtime +0x18 to serialized object +0x08/mesh data and does not consume baseline/effective source flags",
+      "status": "EXE_CONFIRMED"
+    },
     "direct_object_passing_call_sites": 61,
     "unique_direct_helper_targets": 39,
     "direct_runtime_plus14_reads": [
@@ -50,7 +61,7 @@
       }
     ],
     "direct_runtime_plus10_reads": [],
-    "result": "the only direct effective-word read on the exact manager-bound derivation surface is the known common-material path",
+    "result": "the only provenance-confirmed direct effective-word read on the complete manager-bound derivation surface is the known common-material path",
     "status": "EXE_CONFIRMED"
   },
   "semantic_decoders": {
@@ -98,30 +109,12 @@
     "method": "path-insensitive candidate generation followed by manual canonical-disassembly provenance classification",
     "proven_runtime_object_getter_or_store_escape": false,
     "representative_rejections": [
-      {
-        "address": "0x1402F5640",
-        "reason": "stored/returned RAX is a shifted scalar/state value by the candidate site, not the runtime object pointer"
-      },
-      {
-        "address": "0x1402F8996",
-        "reason": "stored pointer derives from manager +0x120 / draw structures, not the manager-bound 0x380 runtime object"
-      },
-      {
-        "address": "0x1402FF2AF",
-        "reason": "stored pointer belongs to per-draw state, not the 0x380 runtime object"
-      },
-      {
-        "address": "0x140302F09",
-        "reason": "returns the original allocation/runtime-array argument from [rbp+0x88], not the per-object derived pointer"
-      },
-      {
-        "address": "0x14030732A",
-        "reason": "writes a manager +0x118-derived mesh/subobject pointer into a per-mesh runtime record"
-      },
-      {
-        "address": "0x1403075A9",
-        "reason": "writes a newly assembled 64-bit packet/state value into a per-mesh record"
-      }
+      {"address": "0x1402F5640", "reason": "stored/returned RAX is scalar/state, not the runtime object pointer"},
+      {"address": "0x1402F8996", "reason": "stored pointer derives from manager +0x120 / draw structures"},
+      {"address": "0x1402FF2AF", "reason": "stored pointer belongs to per-draw state"},
+      {"address": "0x140302F09", "reason": "returns original allocation/runtime-array argument, not per-object pointer"},
+      {"address": "0x14030732A", "reason": "writes manager +0x118-derived mesh/subobject pointer"},
+      {"address": "0x1403075A9", "reason": "writes assembled 64-bit packet/state value"}
     ],
     "status": "EXE_CONFIRMED"
   },
@@ -152,12 +145,7 @@
     "status": "EXE_CONFIRMED"
   },
   "semantic_status": "PRESERVED_UNDECODED",
-  "evidence_status": [
-    "EXE_CONFIRMED",
-    "CORPUS_CONFIRMED",
-    "PRESERVED_UNDECODED",
-    "REJECTED"
-  ],
+  "evidence_status": ["EXE_CONFIRMED", "CORPUS_CONFIRMED", "PRESERVED_UNDECODED", "REJECTED"],
   "cpp_contract": {
     "implementation": "include/dmc_rengine/analysis/mod/object_flags.hpp",
     "regression_test": "tests/mod_skin_tests.cpp",
@@ -173,5 +161,5 @@
     "a future writer may clear or synthesize source bit21"
   ],
   "writer_policy": "preserve exact source bit",
-  "closure_boundary": "The canonical DMC3 HD typed model-manager/runtime-object surface is closed for source-carried bit21 consumption: 31 exact runtime-object derivation functions, 61 object-passing call sites, 39 direct helper targets and a conservative 45-state/19-edge recursive pass expose no bit21 semantic decoder or indirect typed escape. The serialized high-level semantic remains PRESERVED_UNDECODED."
+  "closure_boundary": "The canonical DMC3 HD typed model-manager/runtime-object surface is closed for source-carried bit21 consumption. Whole-image census now contains 32 exact runtime-object derivation functions; the additional 0x14029F0B0 root does not read +0x10/+0x14. The existing 61 object-passing call sites, 39 helper targets and conservative 45-state/19-edge recursive semantic-decoder pass expose no bit21 consumer or indirect typed escape. Serialized high-level semantic remains PRESERVED_UNDECODED."
 }

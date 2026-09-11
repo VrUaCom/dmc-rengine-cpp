@@ -7,9 +7,9 @@
 **Bounded MOD corpus:** 38 unique MODs / 166 objects / 180 meshes / 20,976 vertices / 285 transforms  
 **Evidence sync follow-up:** 2026-09-11
 
-## Evidence vocabulary
+## Evidence vocabulary and boundary
 
-This note uses only the project-wide canonical statuses:
+Only canonical statuses are used:
 
 ```text
 EXE_CONFIRMED
@@ -24,142 +24,85 @@ REJECTED
 
 Zero in the corpus is never padding proof. Blender/importer behavior is not format authority. Same offset across MOD/EFM/SCM is not semantic proof.
 
-## Canonical serialized/materialized boundary
+Reader-side materialization is also not serialized-ABI evidence. Declared count, serialized source field/offset, materialized vector and writer-owned output stream remain distinct.
 
-Reader-side state is not serialized-ABI evidence. The following remain distinct:
-
-```text
-declared element count
-serialized stream offset / serialized field
-materialized reader vector
-writer-owned output stream
-```
-
-A reader may resize a vector from a declared count before proving a valid serialized source stream exists. Therefore reader vector size cannot establish serialized stream presence.
-
-MOD mesh `+0x48` is the separate serialized/generated `generated_topology_count`; it is not physical topology-workspace capacity. The observed `align16(6*(vertex_count-2))` rule belongs to the workspace associated with `+0x40`.
-
-Android/native-reader test success is regression/build evidence, not semantic file-format proof.
-
-## Canonical executable verification
-
-The retail executable used for direct reverse is 6,356,432 bytes and hashes exactly to the canonical SHA-256 above. All direct VAs refer to that binary.
+MOD mesh `+0x48` is the separate generated topology count. It is not `align16(6*(vertex_count-2))`; that physical workspace span belongs to the workspace associated with `+0x40`.
 
 ## Closure table
 
-| Target | Current evidence-safe status | Key direct result | Canonical note |
-|---|---|---|---|
-| `BLENDINDICES.x` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | canonical runtime non-use closed: serialized `+0x28` -> runtime `+0x140` -> draw descriptor `+0x30`; all 8 compiled DXBC BLENDINDICES signatures have `Mask=0xF`, `ReadWriteMask=0xE`; CPU census has no X consumer | `dmc3-mod-blendindices-x-reverse-2026-09-09.md` |
-| transform `+0x1C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | whole-image manager-transform fingerprint census closes canonical runtime behavior as dormant/no effect; MOD/EFM matrix path and two CMotion transfer paths do not consume `+0x1C`; SCM control explicitly overwrites homologous W scratch | `dmc3-mod-transform-1c-reverse-2026-09-09.md` |
-| mesh `+0x0C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | whole-image closure: 6 exact direct `mesh_table + index*0x50` derivations plus 34 runtime-mesh derivations; 43 reachable typed funcs / 20 typed calls / 0 source-pointer escapes; 21 live source-field reads consume neighbors but never `+0x0C` | `dmc3-mod-mesh-0c-reverse-2026-09-09.md` |
-| mesh `+0x38` | `EXE_AND_CORPUS_CONFIRMED` for MOD-specific runtime role | EFM homologous slot is live COLOR0; canonical MOD disables corresponding runtime auxiliary stream | `dmc3-mod-mesh-38-reverse-2026-09-09.md` |
-| mesh `+0x4C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | same whole-image direct/backreference closure; live post-build source reads consume `+0x48` five times but never adjacent `+0x4C`; raw `+0x4C` hits are unrelated layouts | `dmc3-mod-mesh-4c-reverse-2026-09-09.md` |
-| header `+0x14` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | serialized raw `u32` copied to manager `+0xE4`; old decimal identity rejected; whole-image raw `+0xE4` census plus accessor-rooted recursive dataflow, wrapper escapes and exact CMotion RTTI/vtable census find no downstream manager `+0xE4` consumer | `dmc3-mod-header-14-reverse-2026-09-09.md` |
-| source flag `0x00100000` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED`; artistic category `PRESERVED_UNDECODED` | technical semantic closed: GS `TEST_1.AREF` 0 vs 16 and `ZBUF_1.ZMSK` 1 vs 0 through per-mesh A+D descriptors and generic backend | `dmc3-mod-source-flag-00100000-reverse-2026-09-09.md` |
-| source flag `0x00200000` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | canonical typed runtime consumption closed as carried/restored but uninterpreted: 31 exact object-derivation functions, 61 direct object-passing calls, 39 helper targets and a 45-state/19-edge recursive census expose no bit21 semantic decoder or typed indirect escape | `dmc3-mod-source-flag-00200000-reverse-2026-09-09.md` |
+| Target | Evidence-safe status | Canonical result |
+|---|---|---|
+| `BLENDINDICES.x` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | CPU/DXBC runtime non-use closed; all 8 DXBC signatures read Y/Z/W but not X |
+| transform `+0x1C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | whole-image transform-runtime behavior closed as dormant/no effect |
+| mesh `+0x0C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | six direct source-mesh derivation funcs + 34 runtime-mesh roots; no canonical source `+0x0C` consumer |
+| mesh `+0x38` | `EXE_AND_CORPUS_CONFIRMED` | MOD-specific auxiliary stream role closed; EFM homologous slot is COLOR0 |
+| mesh `+0x4C` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | no canonical `+0x4C` consumer; neighboring `+0x48` remains live positive control |
+| header `+0x14` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | copied to manager `+0xE4`; whole recursive downstream census finds no consumer |
+| source flag `0x00100000` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` | technical GS TEST/ZBUF semantic closed |
+| source flag `0x00200000` | `EXE_CONFIRMED` + `CORPUS_CONFIRMED` + `PRESERVED_UNDECODED` | carried/restored but uninterpreted in canonical typed runtime surface |
+| object `+0x04..07` | `EXE_CONFIRMED` + `RESERVED_OBSERVED_ZERO` + `PRESERVED_UNDECODED` | whole-image retained/direct-source census closes canonical runtime effect as dormant/no effect |
+| object `+0x14..17` | same | dormant/no effect; source bytes still preserved |
+| object `+0x20..2F` | same | dormant/no effect; source bytes still preserved |
 
 ## Writer-preservation contracts
 
-The evidence layer separates serialized bytes from runtime semantics.
+Canonical runtime dormancy/non-use never authorizes zero-normalization.
 
-- `BLENDINDICES.x` is preserved exactly even though canonical CPU/DXBC consumption is closed as non-use.
-- transform `+0x1C` remains raw/preserved even though canonical transform-runtime behavior is closed as dormant.
-- mesh `+0x0C` and `+0x4C` remain raw/preserved even though whole-image typed runtime consumption is closed as dormant/no effect.
-- mesh `+0x38` remains source-preserved despite its MOD-specific runtime role being understood relative to EFM COLOR0.
-- header `+0x14` remains raw/preserved even though canonical manager `+0xE4` downstream non-consumption is closed.
-- source flag `0x00100000` has a technical GS-state semantic, but the source bit is preserved exactly.
-- source flag `0x00200000` is preserved exactly even though canonical typed runtime consumption is closed as carried but uninterpreted.
+The current preservation obligations include:
 
-Canonical runtime dormancy/non-use never authorizes zero-normalizing unresolved serialized bytes or source bits.
+- `BLENDINDICES.x` exact source byte;
+- transform `+0x1C` exact source bits;
+- mesh `+0x0C/+0x38/+0x4C` exact source bytes;
+- header `+0x14` exact source `u32`;
+- source flags including `0x00100000` and `0x00200000` exactly;
+- object secondary regions `+0x04..07`, `+0x14..17`, `+0x20..2F` exactly.
 
-## Transform `+0x1C` closure follow-up
+`include/dmc_rengine/analysis/mod/secondary_serialized.hpp` now includes a compile-time synthetic non-zero preservation probe for all three object-secondary regions.
 
-The manager transform domain uses `+0x20` transform pointer, `+0xEA` count and `+0x188` runtime workspace. A whole-image joint-fingerprint census finds exactly five functions: source-pointer materializer `0x1402F1DB0`, MOD/EFM transform builder `0x1402FA080`, SCM control `0x1402FA360`, and CMotion materializers `0x14030F850` / `0x14030FAD0`.
+## Transform `+0x1C`
 
-Every canonical consumer either constructs the pointer or gives serialized `+0x1C` no transform effect. Canonical runtime behavior is therefore closed as `EXE_CONFIRMED` dormant; serialized semantics remain `PRESERVED_UNDECODED`.
+Whole-image manager transform fingerprint `+0x20/+0xEA/+0x188` yields the source materializer, MOD/EFM builder, SCM control and two CMotion materializers. No canonical consumer gives serialized `+0x1C` a transform effect. Runtime behavior is `EXE_CONFIRMED` dormant; serialized semantic remains `PRESERVED_UNDECODED`.
 
-## Header `+0x14` recursive typed closure follow-up
+## Header `+0x14`
 
-Owner-to-manager accessors:
+`0x1402F95C2 -> 0x1402F95C5` copies serialized `+0x14` to model manager `+0xE4`. Whole-image raw classification plus accessor-rooted recursive dataflow, wrapper escapes and exact CMotion RTTI/vtable closure find no downstream consumer. The old universal decimal identity formula remains `REJECTED`.
 
-```text
-0x140089DE0 -> parent +0x80
-0x140089DF0 -> parent +0x50
-```
+## Source flag `0x00200000` — whole-image root correction
 
-Immediate and 67 first-hop helper census yields zero manager `+0xE4` reads. Recursive `.pdata`-bounded pointer dataflow reaches 70 taint states across 49 functions, again with zero manager `+0xE4` reads, and identifies three stored-pointer escapes.
-
-Two wrapper escapes (`+0x08/+0x10`) were followed through wrapper methods and helper family `0x1402F7350..0x1402F75D0`; they consume other manager state, not `+0xE4`.
-
-The third escape stores the manager to `CMotion +0xE8` in both CMotion materializers. Exact RTTI identifies `.?AVCMotion@@`, CompleteObjectLocator `0x140520018`, vtable `0x140507938`, 45 virtual methods. None accesses `this+0xE8`, and the wider motion-family span contains no relevant backreference consumer.
-
-Canonical downstream non-consumption of manager `+0xE4` is closed as `EXE_CONFIRMED`. This does not rename the serialized field: it stays `PRESERVED_UNDECODED` and writer-preserved.
-
-## Source flag `0x00200000` typed-runtime closure follow-up
-
-The serialized source word is copied intact into runtime baseline/effective flags:
+The exact runtime-object fingerprint is:
 
 ```text
-0x140302AB2  read serialized object +0x10
-0x140302ABF  -> runtime effective +0x14
-0x140302AC9  -> runtime baseline +0x10
+manager +0xE8 count
+manager +0x100 object array
+runtime_object = manager +0x100 + index*0x380
 ```
 
-The recovered semantic decoders use other bits only:
+The earlier model-core pass counted 31 derivation functions. Whole-image follow-up adds `0x14029F0B0`, which calls model-manager accessor `0x140089DE0`, validates `+0xE8` and derives the same `+0x100/index*0x380` object. The canonical count is therefore **32**.
+
+The added root does not read baseline `+0x10` or effective `+0x14`; it follows runtime `+0x18` to serialized object `+0x08` and mesh data. Bit21 closure is unchanged:
 
 ```text
-0x140302640  -> masks 0xF, 0x00010000, 0x00100000
-0x1402F9890  -> masks 0x00004000
-0x1402F28E0  -> BTS bit17 and writes the complete effective word back
+32 exact runtime-object roots
+61 direct object-passing call sites
+39 direct helper targets
+45 conservative typed states / 19 propagation edges
+0 tagged indirect/vtable calls
+0 bit21 semantic decoders
 ```
 
-The direct typed surface contains 31 exact runtime-object derivation functions, 61 direct object-passing call sites and 39 unique helper targets. Conservative recursive propagation reaches 45 typed states / 19 edges with zero tagged indirect/vtable calls and zero bit21 semantic decoders.
+## Mesh `+0x0C/+0x4C`
 
-The canonical typed-runtime gate is closed as carried/restored but uninterpreted. The source bit remains `PRESERVED_UNDECODED` and writer-preserved.
-
-## Mesh `+0x0C/+0x4C` whole-image closure follow-up
-
-Two independent pointer-provenance surfaces were closed.
-
-### Direct serialized mesh table
-
-Whole-image function census for:
+Whole-image direct serialized-mesh derivation:
 
 ```text
 serialized_mesh = object.mesh_table(+0x08) + mesh_index*0x50
 ```
 
-finds exactly six functions:
+occurs in exactly six functions. Runtime builder also stores the live source mesh pointer at `runtime mesh +0x10`.
 
-```text
-0x1402F7A90
-0x1402F7D60
-0x1402FDB40
-0x1402FDD10
-0x1402FE3B0
-0x1402FE6A0
-```
+Whole-image runtime-mesh derivation occurs in 34 functions; typed propagation reaches 43 funcs / 20 direct calls with zero source-pointer escapes or indirect source calls.
 
-None reads or writes `+0x0C` or `+0x4C`. Neighboring fields are actively consumed, including generated topology count `+0x48`.
-
-### Runtime mesh source backreference
-
-MOD runtime builder stores the serialized source pointer at `runtime mesh +0x10` (`0x1402FE713`). A whole-image census of exact runtime-mesh derivation:
-
-```text
-runtime_mesh = object.runtime_mesh_array(+0x20) + mesh_index*0x1A0
-```
-
-finds **34 functions**. Conservative typed propagation from those roots reaches **43 functions** and **20 direct typed calls**, with:
-
-```text
-serialized-source pointer escapes    0
-serialized-source indirect calls     0
-```
-
-Two roots outside the earlier local window, `0x14030D9B0` and `0x14030DA80`, feed `0x14030D8B0`; that helper operates on runtime stream buffers and never follows `runtime +0x10`.
-
-Live source-backreference consumers make 21 provenance-confirmed serialized reads:
+Live source-backreference consumers make 21 serialized reads:
 
 ```text
 +0x00  6
@@ -172,70 +115,61 @@ Live source-backreference consumers make 21 provenance-confirmed serialized read
 +0x48  5
 ```
 
-There are zero reads/writes of source `+0x0C` and zero reads/writes of source `+0x4C`.
+`+0x0C` and `+0x4C` have zero reads/writes. `+0x48` is a strong positive control because it is generated, forwarded and consumed post-build.
 
-`+0x48` is a particularly strong positive control: canonical build code writes/forwards it, and post-build consumer `0x140309C60` follows the source backreference and compares `+0x48` against `0xA2` and `0x16`, while never touching adjacent `+0x4C`.
+## Object secondary regions — whole-image closure
 
-Raw model-region `+0x4C` candidates (`0x1402F78DE`, `0x14030134F`, `0x140305FAF`, `0x14030806E`, `0x1403086A6`) were provenance-classified as unrelated statistics/control layouts, not serialized mesh records.
+`0x140302AAA` stores the complete serialized 0x40-byte object pointer at runtime object `+0x18`. The new whole-image census begins from all **32 exact `0x380` runtime-object roots** and propagates pointer provenance through **61 typed states / 49 direct pointer-tagged calls**.
 
-Therefore canonical runtime consumption is closed for both fields:
-
-```text
-mesh +0x0C runtime effect   EXE_CONFIRMED dormant/no effect
-mesh +0x4C runtime effect   EXE_CONFIRMED dormant/no effect
-serialized semantics        PRESERVED_UNDECODED
-writer policy               preserve exact source u32
-```
-
-Dormancy is behavioral evidence only. Neither field is renamed padding/reserved.
-
-## Corrected `0x00200000` domain collision
-
-Historical `dmc3-mod-source-flag-00200000-chain-20260909.json` describes manager `+0xE0` bit `0x00200000`, raised through a different source path. It remains `REJECTED` as a serialized source-bit receipt. Its evidence lives in:
+Only five paths load runtime object `+0x18`:
 
 ```text
-data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json
+0x14029F0B0 -> 0x14029F0F0 -> serialized object +0x08
+0x1402F7D60 -> 0x1402F7DB4 -> serialized object +0x08   (EFM sibling)
+0x1402F8000 -> 0x1402F845E -> saved local, never dereferenced
+0x1402FE6A0 -> 0x1402FE6F4 -> serialized object +0x08   (MOD)
+0x1402FE930 -> 0x1402FED8E -> saved local, never dereferenced
 ```
 
-## Machine-readable receipts
+The retained serialized pointer has:
 
 ```text
-data/reverse/dmc3-mod-blendindices-x-20260909.json
-data/reverse/dmc3-mod-transform-1c-20260909.json
-data/reverse/dmc3-mod-mesh-0c-20260909.json
-data/reverse/dmc3-mod-mesh-38-20260909.json
-data/reverse/dmc3-mod-mesh-4c-20260909.json
-data/reverse/dmc3-mod-header-14-20260909.json
-data/reverse/dmc3-mod-source-flag-00100000-20260909.json
-data/reverse/dmc3-mod-source-flag-00200000-20260909.json
-data/reverse/dmc3-mod-manager-bit21-runtime-vector-20260909.json
+pointer escapes         0
+indirect-call escapes   0
+target-region reads     0
+target-region writes    0
 ```
 
-Aggregate machine index:
+A second whole-image control looks for direct reconstruction from `manager/source +0x108`, `index*0x40`, `source_header+0x40`. Exactly five functions match. MOD/EFM/shared planning paths consume known fields only; `0x3C0` runtime-owner paths are separate provenance domains and are not promoted as MOD consumers.
+
+Therefore canonical runtime consumption is closed for:
 
 ```text
-data/reverse/dmc3-mod-canonical-exe-unknown-byte-closure-20260909.json
+object +0x04..+0x07  -> EXE_CONFIRMED dormant/no effect
+object +0x14..+0x17  -> EXE_CONFIRMED dormant/no effect
+object +0x20..+0x2F  -> EXE_CONFIRMED dormant/no effect
 ```
+
+All three remain `PRESERVED_UNDECODED` serialized regions with exact-byte writer preservation. `RESERVED_OBSERVED_ZERO` remains a corpus-only statement.
 
 ## Closed direct-EXE gates
 
-The following are no longer blockers for the unknown-field phase:
+The following no longer block the unknown-field phase:
 
 1. `BLENDINDICES.x` canonical CPU/GPU consumption;
 2. transform `+0x1C` canonical transform-runtime consumption;
 3. mesh `+0x0C` canonical typed runtime consumption;
 4. mesh `+0x38` MOD-specific auxiliary-stream role;
 5. mesh `+0x4C` canonical typed runtime consumption;
-6. header `+0x14 -> manager +0xE4` canonical downstream consumer census;
+6. header `+0x14 -> manager +0xE4` downstream consumer census;
 7. source flag `0x00100000` technical renderer semantic;
-8. source flag `0x00200000` canonical typed-runtime consumption.
-
-Their serialized preservation requirements remain in force where stated.
+8. source flag `0x00200000` canonical typed-runtime consumption;
+9. object secondary regions `+0x04..07/+0x14..17/+0x20..2F` canonical runtime-consumption census.
 
 ## Remaining direct-EXE gates
 
-1. Classify retained-pointer consumers for secondary object regions `+0x04..+0x07`, `+0x14..+0x17`, `+0x20..+0x2F`.
-2. Census secondary header and node-domain zero regions without promoting zero observations to padding.
+1. Whole-program closure for secondary header regions `+0x08..0x0F`, `+0x18..0x1F`, `+0x28..0x3F`.
+2. Whole-program closure for node-domain `+0x10..+0x1F`.
 3. After writer-critical preservation contracts are complete, promote the MOD byte-preserving writer and prove exact no-edit round-trip before edited writer authority.
 
-Until a remaining field gains stronger evidence, `PRESERVED_UNDECODED` is the correct writer-safe semantic status.
+Until stronger evidence exists for remaining regions, source preservation remains mandatory.

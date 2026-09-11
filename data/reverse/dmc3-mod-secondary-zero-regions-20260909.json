@@ -1,10 +1,12 @@
 {
-  "schema": "dmc-rengine.mod-secondary-zero-regions.v3",
+  "schema": "dmc-rengine.mod-secondary-zero-regions.v4",
   "date": "2026-09-09",
+  "last_evidence_sync": "2026-09-11",
   "canonical_executable": {
     "name": "dmc3.exe",
     "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
     "size": 6356432,
+    "architecture": "PE32+ x86-64",
     "direct_disassembly_available": true
   },
   "corpus": {
@@ -18,137 +20,172 @@
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
+      "whole_program_closure": false,
       "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source bytes"
     },
     {
       "region": "header +0x18..+0x1F",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
+      "whole_program_closure": false,
       "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source bytes"
     },
     {
       "region": "header +0x28..+0x3F",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
       "canonical_loader": "0x1402F9570",
       "loader_raw_read": false,
+      "whole_program_closure": false,
       "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "writer_policy": "preserve exact source bytes"
     }
   ],
   "object_regions": [
     {
       "region": "object +0x04..+0x07",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
-      "canonical_initializer": "0x1403029E0",
-      "initializer_raw_read": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED", "REJECTED"],
+      "writer_policy": "preserve exact source bytes"
     },
     {
       "region": "object +0x14..+0x17",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
-      "canonical_initializer": "0x1403029E0",
-      "initializer_raw_read": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED", "REJECTED"],
+      "writer_policy": "preserve exact source bytes"
     },
     {
       "region": "object +0x20..+0x2F",
       "corpus_status": "RESERVED_OBSERVED_ZERO",
-      "canonical_initializer": "0x1403029E0",
-      "initializer_raw_read": false,
-      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-      "writer_policy": "preserve"
+      "canonical_runtime_consumption": "EXE_CONFIRMED dormant/no effect",
+      "serialized_semantic": "PRESERVED_UNDECODED",
+      "status": ["CORPUS_CONFIRMED", "EXE_CONFIRMED", "RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED", "REJECTED"],
+      "writer_policy": "preserve exact source bytes"
     }
   ],
   "node_region": {
     "region": "node-domain +0x10..+0x1F",
     "corpus_status": "RESERVED_OBSERVED_ZERO",
     "canonical_transform_initializer": "0x1402FA080",
+    "whole_program_closure": false,
     "status": ["CORPUS_CONFIRMED", "RESERVED_OBSERVED_ZERO"],
-    "writer_policy": "preserve"
+    "writer_policy": "preserve exact source bytes"
   },
   "object_pointer_retention": {
     "serialized_object_derivation": "0x140302A70..0x140302A81: source_header + 0x40 + object_index*0x40",
     "runtime_destination": "runtime object +0x18",
     "write_address": "0x140302AAA",
-    "meaning": "the complete serialized object-record pointer is retained in runtime; 0x140302AAA is NOT a read of serialized object +0x18/+0x1C",
+    "meaning": "complete serialized object-record pointer retained in runtime; this is not a read of serialized +0x18/+0x1C",
     "status": "EXE_CONFIRMED"
   },
-  "retained_pointer_consumer_census": {
-    "mod_runtime_mesh_builder": {
-      "function": "0x1402FE6A0..0x1402FE921",
-      "runtime_object_stride": "0x380",
-      "retained_pointer_load": "0x1402FE6F4: runtime object +0x18",
-      "serialized_object_dereference": "0x1402FE700: serialized object +0x08 mesh-table pointer",
-      "secondary_object_region_reads_before_mesh_domain": 0,
-      "meaning": "positive control: retained serialized-object pointer is live, but this MOD path consumes object +0x08 and then changes provenance into the 0x50-byte serialized mesh domain",
+  "whole_exe_runtime_object_census": {
+    "fingerprint": "manager +0xE8 count; manager +0x100 array; index*0x380",
+    "exact_derivation_roots": 32,
+    "correction_from_previous_count": "previous bounded model-core pass counted 31; 0x14029F0B0 is an additional whole-image root using 0x140089DE0 and the same model-manager +0xE8/+0x100/0x380 provenance",
+    "typed_interprocedural_states": 61,
+    "pointer_tagged_direct_calls": 49,
+    "retained_serialized_pointer_loads": 5,
+    "retained_serialized_pointer_escapes": 0,
+    "retained_serialized_pointer_indirect_calls": 0,
+    "status": "EXE_CONFIRMED"
+  },
+  "retained_pointer_consumers": [
+    {
+      "function": "0x14029F0B0",
+      "load": "0x14029F0F0 runtime object +0x18",
+      "serialized_object_reads": ["+0x08 mesh-table pointer"],
+      "target_secondary_region_reads": 0,
       "status": "EXE_CONFIRMED"
     },
-    "mod_render_command_builder": {
-      "function": "0x1402FE930..0x1402FF563",
-      "runtime_object_stride": "0x380",
-      "retained_pointer_load": "0x1402FED8E",
-      "saved_local_store": "0x1402FED92 -> rbp+0x30",
-      "saved_local_reads_after_store": 0,
-      "meaning": "the retained pointer is loaded and saved, but the exact bounded function contains no later read of that saved local before return",
+    {
+      "function": "0x1402F7D60",
+      "load": "0x1402F7DB4 runtime object +0x18",
+      "serialized_object_reads": ["+0x08 mesh-table pointer"],
+      "target_secondary_region_reads": 0,
+      "family_note": "EFM sibling control",
       "status": "EXE_CONFIRMED"
     },
-    "efm_render_command_positive_control": {
-      "function": "0x1402F8000..0x1402F8C4A",
-      "retained_pointer_load": "0x1402F845E",
-      "saved_local_store": "0x1402F8462 -> rbp+0x30",
-      "saved_local_reads_after_store": 0,
-      "meaning": "homologous family control shows the same dead-after-load pattern; it is not semantic authority for MOD fields",
+    {
+      "function": "0x1402F8000",
+      "load": "0x1402F845E runtime object +0x18",
+      "saved_local": "0x1402F8462 -> rbp+0x30",
+      "later_saved_local_dereferences": 0,
+      "target_secondary_region_reads": 0,
+      "family_note": "EFM sibling render builder",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "function": "0x1402FE6A0",
+      "load": "0x1402FE6F4 runtime object +0x18",
+      "serialized_object_reads": ["0x1402FE700 -> +0x08 mesh-table pointer"],
+      "target_secondary_region_reads": 0,
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "function": "0x1402FE930",
+      "load": "0x1402FED8E runtime object +0x18",
+      "saved_local": "0x1402FED92 -> rbp+0x30",
+      "later_saved_local_dereferences": 0,
+      "target_secondary_region_reads": 0,
       "status": "EXE_CONFIRMED"
     }
+  ],
+  "whole_exe_direct_source_object_census": {
+    "fingerprint": "manager/source +0x108 source header; index*0x40; source_header +0x40",
+    "matching_functions": [
+      "0x1402F9F20",
+      "0x1402FDB40",
+      "0x1402FDD10",
+      "0x1403029E0",
+      "0x140302F10"
+    ],
+    "matching_function_count": 5,
+    "mod_efm_or_shared_planning_result": "known fields only; no reads of object +0x04..07/+0x14..17/+0x20..2F",
+    "separate_0x3c0_owner_paths": ["0x1402F9F20", "0x140302F10"],
+    "scm_initializer": "0x140302F10",
+    "status": "EXE_CONFIRMED"
+  },
+  "object_secondary_closure": {
+    "regions": ["+0x04..+0x07", "+0x14..+0x17", "+0x20..+0x2F"],
+    "canonical_runtime_effect": "dormant/no effect",
+    "serialized_semantic": "PRESERVED_UNDECODED",
+    "status": "EXE_CONFIRMED",
+    "writer_policy": "preserve exact source bytes"
   },
   "cross_format_false_positive_rejection": {
     "function": "0x140302F10..0x14030345A",
     "runtime_object_stride": "0x3C0",
     "serialized_record_stride": "0x40",
     "retained_pointer_offset": "+0x18",
-    "independent_owner_evidence": "SCM object initializer; direct code contains the SCM narrow compatibility rewrites for runtime object +0x07, including source-control cases EA->C5 and C4->80",
+    "independent_owner_evidence": "SCM object initializer with separately documented EA->C5 and C4->80 compatibility behavior",
     "mod_efm_runtime_object_stride": "0x380",
-    "reason": "same +0x18 pointer offset and 0x40 serialized stride do not establish MOD provenance when runtime owner/stride and SCM-specific behavior differ",
-    "status": "REJECTED_AS_MOD_CONSUMER"
-  },
-  "positive_controls": {
-    "header_loader_direct_reads": ["+0x10", "+0x11", "+0x13", "+0x14", "magic +0x00..+0x03 via 0x1402FD650"],
-    "object_initializer_direct_reads": ["+0x00", "+0x01", "+0x10", "+0x30..+0x3F"],
-    "object_initializer_retained_pointer": "entire serialized object record -> runtime +0x18",
-    "mod_retained_pointer_real_consumer": "0x1402FE6F4 -> serialized object +0x08 at 0x1402FE700"
+    "status": "REJECTED"
   },
   "rejected_false_positives": [
     {
       "address": "0x14030B568 / 0x14030B57F / 0x14030B5ED",
-      "candidate": "raw +0x18 read after an object +0x108 pointer",
-      "reason": "different resource owner reached from 0x14008BE50; manager layout uses +0x78/+0x80/+0x88 and byte +0x18 as a count for count*0x80 storage, not the MOD manager +0xE4/+0xE8/+0xEA domain",
-      "status": "REJECTED"
-    },
-    {
-      "address": "0x1402F556C and nearby rbp+0x108 uses",
-      "candidate": "manager +0x108 source pointer",
-      "reason": "rbp+0x108 is a local stack slot holding a runtime object pointer derived from manager +0x100 + object_index*0x380; it is not the manager source pointer field",
+      "reason": "different resource owner/layout; not MOD model-manager provenance",
       "status": "REJECTED"
     },
     {
       "address": "0x140302F10..0x14030345A",
-      "candidate": "retained +0x18 serialized pointer with 0x40 source-record stride",
-      "reason": "SCM-specific runtime owner uses 0x3C0 stride and contains independently documented SCM C4/EA compatibility rewrites; it is not the canonical MOD/EFM 0x380 object path",
-      "status": "REJECTED_AS_MOD_CONSUMER"
+      "reason": "SCM-specific 0x3C0 runtime owner, not canonical MOD/EFM 0x380 object path",
+      "status": "REJECTED"
     }
   ],
-  "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes, byte-preservation snapshots, retained-pointer consumer addresses, bounded no-dereference results and the SCM cross-format rejection",
-  "closure_boundary": "The retained serialized-object pointer is proven live, and the audited canonical MOD runtime-mesh path uses it for object +0x08 while the audited MOD render-command path loads it without later dereference. This materially narrows the escape surface but does not establish whole-program non-use of object +0x04..07/+0x14..17/+0x20..2F. Continue provenance-directed consumer classification; preserve every unresolved byte.",
+  "cpp_contract": "include/dmc_rengine/analysis/mod/secondary_serialized.hpp formalizes exact region offsets/sizes and byte-preservation snapshots; canonical runtime dormancy does not alter source preservation",
+  "closure_boundary": "The canonical DMC3 HD object-secondary runtime-consumption gate is closed. Whole-image 0x380 runtime-object provenance reaches only five retained serialized-object loads; three consume only object +0x08 before switching to mesh records and two are dead after load. An independent manager+0x108 direct-source-object census also finds no target-region reads. Object +0x04..07/+0x14..17/+0x20..2F remain serialized PRESERVED_UNDECODED and exact-byte writer obligations.",
   "rejected_hypotheses": [
     "zero shell region equals padding",
-    "absence from the initializer proves no later consumer",
+    "absence from initializer proves no later consumer",
     "0x140302AAA reads serialized object +0x18/+0x1C",
     "every retained +0x18 pointer on a 0x40 serialized record belongs to MOD",
-    "writer may zero-normalize secondary regions"
+    "canonical runtime dormancy authorizes writer zero-normalization"
   ]
 }
