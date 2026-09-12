@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::formats::evt {
@@ -17,6 +18,34 @@ inline constexpr std::uint8_t multi_stream_pre_terminal_opcode = 0x0EU;
 inline constexpr std::uint8_t observed_stream_entry_opcode = 0x57U;
 inline constexpr std::uint8_t observed_stream_boundary_opcode = 0x00U;
 
+enum class OpcodeSemanticClass : std::uint8_t {
+    unknown,
+    structural,
+    condition,
+    inventory,
+    spawn,
+    object_state,
+    controller_state,
+};
+
+enum class OpcodeEvidence : std::uint8_t {
+    unknown,
+    corpus_structural_confirmed,
+    corpus_semantic_candidate,
+    exe_confirmed,
+};
+
+struct OpcodeDescriptor final {
+    std::uint8_t opcode{};
+    std::string_view name{"unknown"};
+    OpcodeSemanticClass semantic_class{OpcodeSemanticClass::unknown};
+    OpcodeEvidence evidence{OpcodeEvidence::unknown};
+};
+
+[[nodiscard]] OpcodeDescriptor describe_opcode(std::uint8_t opcode) noexcept;
+[[nodiscard]] std::string_view to_string(OpcodeSemanticClass value) noexcept;
+[[nodiscard]] std::string_view to_string(OpcodeEvidence value) noexcept;
+
 struct Command final {
     std::uint64_t offset{};
     std::uint32_t raw_header{};
@@ -26,6 +55,10 @@ struct Command final {
 
     [[nodiscard]] std::uint64_t serialized_size() const noexcept {
         return 4U + static_cast<std::uint64_t>(argument_count) * 4U;
+    }
+
+    [[nodiscard]] OpcodeDescriptor descriptor() const noexcept {
+        return describe_opcode(opcode);
     }
 };
 
