@@ -1,8 +1,9 @@
 # Current Blockers
 
-**Snapshot date:** 2026-09-11  
-**Canonical base reviewed:** `main@d8534badbbe52cae1610d624822874431f581fa9`  
+**Snapshot date:** 2026-09-13  
+**Canonical base reviewed:** `main@64d2d27db4b4b974addcc0e78c342fb169e2fd97`  
 **Latest reviewed promotion:** PR #372 — unified MOD/SCM/MOT consolidation and container gates  
+**Active model-format branch:** `reverse/mod-completion-20260907`  
 **Native Reader registry authority:** directly verified on current `main`  
 **Completion rule:** synthetic CI and registry membership never equal original-game equivalence or unrestricted writer authority.
 
@@ -22,19 +23,9 @@ Do not infer writer authority from filename, transformed texture data or an unre
 
 ### B-L1-03 — Same-lineage authored rebuild/rematerialization
 
-**Status:** ⚠️ REAL RETAIL PNST GATE CLOSED / ORIGINAL-SELECTED LINEAGE OPEN
+**Status:** ⚠️ REAL RETAIL PNST/PAC GATES EXIST / ORIGINAL-SELECTED LINEAGE OPEN
 
-PR #372 closes provenance-bound real retail PNST reintegration for an authored MOD child:
-
-- `m20_s00_012.pac` byte-classified as PNST;
-- 33 physical slots;
-- target MOD physical slot 23, offset 129280, size 1888;
-- parent remains 346272 bytes;
-- slot table unchanged;
-- only three expected authored child bytes change in the full parent image;
-- canonical reparse/re-expand returns exact writer output.
-
-PR #372 also proves a synthetic MOD -> container -> NBZ overlay -> reopen chain with the existing NBZ writer/source path.
+MOD already has provenance-bound real retail PNST reintegration. SCM has hash-bound real same-layout alpha/translation/rotation edits reinserted into a real parent PAC with canonical reopen/extraction and exact inverse restoration. These are strong bounded container receipts but are not yet the original resolver-selected protected lineage.
 
 Still required:
 
@@ -102,7 +93,8 @@ Registry membership is not full semantic/writer authority.
 
 ## MOD boundary
 
-**Status:** ✅ BOUNDED WRITER + REAL RETAIL PNST REINTEGRATION / ❌ FULL WRITER + RETAIL NBZ + ORIGINAL-GAME ACCEPTANCE OPEN
+**Reverse:** ✅ COMPLETE for canonical serialized/runtime scope.  
+**Writer/integration:** ✅ bounded writer + real retail PNST reintegration / ❌ full writer + retail NBZ + original-game acceptance open.
 
 Closed at exact scopes:
 
@@ -125,11 +117,29 @@ Still open:
 - complete current animation/pose ownership;
 - any `100% MOD writer` claim.
 
+These are not MOD reverse blockers.
+
 ## SCM boundary
 
-**Status:** ✅ CANONICAL BOUNDED WRITER/REBUILD STACK / ❌ PRODUCTION + ORIGINAL-GAME ACCEPTANCE OPEN
+### Reverse — COMPLETE
 
-PR #372 closes the selected canonical implementation/corpus scope:
+**Status:** ✅ COMPLETE for canonical DMC3 HD serialized/runtime SCM scope.
+
+Completion authority:
+
+- `docs/research/dmc3-scm-reverse-completion-2026-09-13.md`;
+- `data/reverse/dmc3-scm-reverse-completion-20260913.json`;
+- reconciled `docs/formats/scm.md`.
+
+There are zero current `RESEARCH_REQUIRED` field-consumer gates in the terminal map. Every serialized/runtime domain is typed/structural, preservation-only (`PRESERVED_UNDECODED` / `RESERVED_OBSERVED_ZERO`) or explicitly rejected/superseded. Lack of an invented artistic/source-code name is not a reverse blocker.
+
+Closed domains include header/resource-code state, object alpha/flags/bounds, GS TEX1 and GS TEST/ZBUF technical selectors, terminal source bit `0x00200000` preservation, fixed 0x50 mesh ABI, GS CLAMP, all vertex streams, topology/index generation, scene hierarchy/binding, SCM-specific local/world transform path and external texture-companion ownership.
+
+### Writer/integration — bounded, separate
+
+**Status:** ✅ canonical bounded writer/rebuild + real same-layout PAC receipts / ❌ production + original-game acceptance open.
+
+Closed at current scopes:
 
 - `preserve_layout`;
 - deterministic `canonical_rebuild`;
@@ -137,16 +147,19 @@ PR #372 closes the selected canonical implementation/corpus scope:
 - mandatory reparse and mutation guards;
 - fail-closed reflow on non-zero unmodeled source bytes;
 - bounded texture-companion coherence;
-- 78 paths / 68 unique inputs with 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical exact no-edit parity.
+- 78 paths / 68 unique inputs with 78/78 parse, preserve-layout exact parity, canonical rebuild+reparse and canonical exact no-edit parity;
+- real hash-bound alpha, node-translation and node-rotation edits with parent PAC reintegration, reopen/extraction and exact inverse restoration.
 
 Still open:
 
-- provenance-bound representative semantic edits;
+- provenance-bound real geometry/normal/UV/filter/GS-CLAMP edit receipts where useful for writer promotion;
 - provenance-bound retail texture rewrite;
 - real-retail size-changing rebuild;
-- SCM PAC/PNST/NBZ reintegration;
+- broader PNST/NBZ authored-resource delivery for SCM;
 - original-game acceptance;
-- universal/100% production claim.
+- universal/100% production writer claim.
+
+These are writer/integration/acceptance gates and **must not be reported as unfinished SCM reverse**.
 
 ## MOT boundary
 
@@ -227,9 +240,11 @@ Targets remain `0x1402EF4D0`, `0x1402EF790`, `0x1400333E0`, `0x140033390`, `0x14
 - successful-mount topology correction (#287);
 - SHW structural reader integration (#288);
 - exact `dmc3-0.nbz` zero-collision receipt;
-- MOD Gate 1/no-op/controlled edit (#365/#368/#369);
+- MOD canonical reverse completion plus Gate 1/no-op/controlled edit (#365/#368/#369);
 - MOD retail PNST + synthetic NBZ reopen (#372);
+- SCM canonical reverse completion (`2026-09-13` audit/receipt);
 - SCM selected writer stack + 68-unique/78-path no-edit corpus (#372);
+- SCM real same-layout alpha/translation/rotation PAC reintegration receipts;
 - MOT canonical registry membership plus parser/IR/key-evaluation consolidation (#372 for the parser/IR and evaluation slice);
 - bounded compression-3 cached search + normal T/R/S channel/motion-group scalar bridge on `reverse/mod-completion-20260907`;
 - SO graph/volume/link canonical registry membership.
