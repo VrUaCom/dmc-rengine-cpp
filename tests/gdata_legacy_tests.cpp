@@ -143,6 +143,35 @@ void put_u32(std::vector<std::byte>& bytes, std::size_t offset, std::uint32_t va
     return out;
 }
 
+[[nodiscard]] std::vector<std::byte> multi_stream_evt_fixture() {
+    std::vector<std::byte> out(0x60U, std::byte{0});
+    out[0] = std::byte{'E'};
+    out[1] = std::byte{'V'};
+    out[2] = std::byte{'T'};
+    out[3] = std::byte{0};
+    put_u32(out, 0x04U, 0x00020001U); // revision 1, two streams
+
+    std::size_t cursor = 0x20U;
+    put_u32(out, cursor, 0x00000157U);
+    put_u32(out, cursor + 4U, 0U);
+    cursor += 8U;
+    put_u32(out, cursor, 0x00000000U);
+    cursor += 4U;
+
+    const auto second_stream = cursor;
+    put_u32(out, cursor, 0x00000157U);
+    put_u32(out, cursor + 4U, 60U);
+    cursor += 8U;
+    put_u32(out, cursor, 0x0000000EU);
+    cursor += 4U;
+
+    const auto terminal = cursor;
+    put_u32(out, cursor, 0x00000020U);
+    put_u32(out, 0x08U, static_cast<std::uint32_t>(terminal));
+    put_u32(out, terminal + 4U, static_cast<std::uint32_t>(second_stream));
+    return out;
+}
+
 } // namespace
 
 int main() {
@@ -178,7 +207,11 @@ int main() {
     const auto event = evt_fixture();
     const auto event_parse = evt::Parser::parse(event);
     assert(event_parse.ok());
-    assert(event_parse.document.header.version == evt::corpus_version);
+    assert(event_parse.document.header.version == 0x00010001U);
+    assert(event_parse.document.header.revision == evt::corpus_revision);
+    assert(event_parse.document.header.stream_count == 1U);
+    assert(event_parse.document.stream_offsets.size() == 1U);
+    assert(event_parse.document.stream_offsets[0] == evt::header_size);
     assert(event_parse.document.commands.size() == 4U);
     assert(event_parse.document.commands[0].opcode == 0x02U);
     assert(event_parse.document.commands[0].argument_count == 1U);
@@ -186,10 +219,34 @@ int main() {
     assert(event_parse.document.commands[1].opcode == 0x03U);
     assert(event_parse.document.commands[1].arguments.size() == 2U);
     assert(event_parse.document.commands.back().opcode == evt::terminal_opcode);
+    assert(event_parse.document.commands[0].descriptor().semantic_class ==
+           evt::OpcodeSemanticClass::controller_state);
+    assert(event_parse.document.commands[0].descriptor().evidence ==
+           evt::OpcodeEvidence::exe_confirmed);
+    assert(evt::describe_opcode(0x15U).name == "item_acquired_or_quantity_condition");
+    assert(evt::describe_opcode(0x61U).semantic_class == evt::OpcodeSemanticClass::spawn);
+    assert(evt::describe_opcode(0x8BU).name == "direct_item_spawn");
+    assert(evt::describe_opcode(0x23U).evidence == evt::OpcodeEvidence::unknown);
+
     const auto evt_class = gdspaces::ResourceClassifier::classify("EventTbl20.bin", event);
     assert(evt_class.format == "evt");
     assert(evt_class.magic_confirmed);
     assert(evt_class.structural_confirmed);
+
+    const auto multi = multi_stream_evt_fixture();
+    const auto multi_parse = evt::Parser::parse(multi);
+    assert(multi_parse.ok());
+    assert(multi_parse.document.header.revision == evt::corpus_revision);
+    assert(multi_parse.document.header.stream_count == 2U);
+    assert(multi_parse.document.stream_offsets.size() == 2U);
+    assert(multi_parse.document.stream_offsets[0] == 0x20U);
+    assert(multi_parse.document.stream_offsets[1] == 0x2CU);
+    assert(multi_parse.document.commands[multi_parse.document.commands.size() - 2U].opcode ==
+           evt::multi_stream_pre_terminal_opcode);
+
+    auto bad_stream = multi;
+    put_u32(bad_stream, multi_parse.document.header.terminal_command_offset + 4U, 0x30U);
+    assert(!evt::Parser::parse(bad_stream).ok());
 
     auto broken = event;
     put_u32(broken, 0x20U, 0x00010102U); // upper descriptor bits are outside corpus grammar
