@@ -92,7 +92,9 @@ def main() -> int:
                 """
                 INSERT INTO source_artifact(source_kind, name, provenance, notes)
                 VALUES(?, ?, ?, ?)
-                ON CONFLICT(source_kind, name, sha256) DO NOTHING
+                ON CONFLICT(source_kind, name) DO UPDATE SET
+                    provenance=excluded.provenance,
+                    notes=excluded.notes
                 """,
                 (kind, name, provenance, notes),
             )
@@ -103,12 +105,15 @@ def main() -> int:
         }
 
         scope = census["scope"]
+        census_unique_opcodes = len({parse_int(row[0]) for row in census["opcode_census"]})
+        declared_unique_opcodes = int(scope["distinct_observed_opcodes"])
         meta = {
             "eventtbl_census_schema": census["schema"],
             "eventtbl_census_date": census["date"],
             "eventtbl_files_analyzed": str(scope["files_analyzed"]),
             "eventtbl_commands": str(scope["commands"]),
-            "eventtbl_distinct_observed_opcodes": str(scope["distinct_observed_opcodes"]),
+            "eventtbl_distinct_observed_opcodes_declared": str(declared_unique_opcodes),
+            "eventtbl_distinct_observed_opcodes_rows": str(census_unique_opcodes),
             "eventtbl_max_opcode": scope["max_opcode"],
             "eventtbl_max_argument_count": str(scope["max_argument_count"]),
         }
@@ -278,6 +283,16 @@ def main() -> int:
                 "docs/research/dmc3-eventtbl-corpus-reverse-2026-09-12.md",
             ),
         ]
+        if census_unique_opcodes != declared_unique_opcodes:
+            claims.append(
+                (
+                    "corpus",
+                    "EventTbl.opcode_census",
+                    f"Machine-readable opcode rows contain {census_unique_opcodes} unique opcodes while scope metadata declares {declared_unique_opcodes}; preserve both until the census is reconciled.",
+                    "PRESERVED_UNDECODED",
+                    "docs/research/dmc3-eventtbl-opcode-census-2026-09-12.json",
+                )
+            )
         for subject_type, subject_key, claim, status, locator in claims:
             con.execute(
                 """
@@ -291,7 +306,8 @@ def main() -> int:
                 (subject_type, subject_key, claim, status, locator),
             )
 
-    # Basic integrity checks catch drift between the JSON source and SQL import.
+    # Basic integrity checks catch import failures without treating source-metadata
+    # disagreements as if the importer could resolve them automatically.
     expected_files = census["scope"]["files_analyzed"]
     imported_files = con.execute(
         "SELECT COUNT(*) FROM resource_file WHERE format_id=?", (format_id,)
@@ -302,10 +318,9 @@ def main() -> int:
     imported_opcodes = con.execute(
         "SELECT COUNT(*) FROM evt_opcode WHERE observed_in_supplied_corpus=1"
     ).fetchone()[0]
-    expected_opcodes = census["scope"]["distinct_observed_opcodes"]
-    if imported_opcodes != expected_opcodes:
+    if imported_opcodes != census_unique_opcodes:
         raise RuntimeError(
-            f"opcode count mismatch: expected {expected_opcodes}, got {imported_opcodes}"
+            f"opcode import mismatch: census rows={census_unique_opcodes}, db={imported_opcodes}"
         )
 
     con.close()
