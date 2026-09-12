@@ -4,7 +4,6 @@
 #include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
 
 #include <algorithm>
-#include <charconv>
 #include <utility>
 
 namespace dmc::rengine::formats {
@@ -77,45 +76,28 @@ struct ManifestLine final {
         if (end == std::string::npos) {
             end = text.size();
         }
-        auto line = text.substr(at, end - at);
+        const auto raw = std::string_view{text}.substr(at, end - at);
         at = end + 1U;
-        while (!line.empty() &&
-               (line.back() == '\r' || line.back() == ' ' || line.back() == '\t')) {
-            line.pop_back();
-        }
-        std::size_t front = 0U;
-        while (front < line.size() &&
-               (line[front] == ' ' || line[front] == '\t')) {
-            ++front;
-        }
-        if (front != 0U) {
-            line.erase(0U, front);
-        }
 
-        if (line.empty() || line.front() == Contract::comment_prefix) {
+        // The grammar is the contract's, not this file's. It was here once,
+        // and the classifier needed the same rule to tell a manifest slot from
+        // any other text — two copies of a grammar is how a slot comes to be a
+        // manifest to one reader and not to the other.
+        const auto read = Contract::read_manifest_line(raw);
+        if (read.line_kind == Contract::ManifestLineKind::invalid) {
+            return false;
+        }
+        if (!read.is_record()) {
             if (at > text.size()) {
                 break;
             }
             continue;
         }
 
-        const auto space = line.find(Contract::field_separator);
-        if (space != 1U || line.size() < 3U) {
-            return false;
-        }
-
-        std::uint32_t identifier = 0U;
-        const auto* first = line.data() + 2;
-        const auto* last = line.data() + line.size();
-        const auto parsed = std::from_chars(first, last, identifier);
-        if (parsed.ec != std::errc{} || parsed.ptr != last) {
-            return false;
-        }
-
         lines.push_back(ManifestLine{
-            .kind = line.front(),
-            .identifier = identifier,
-            .text = line,
+            .kind = read.kind,
+            .identifier = read.identifier,
+            .text = std::string{Contract::trim_manifest_line(raw)},
             .source_line = physical_line,
         });
         if (at > text.size()) {
@@ -128,9 +110,14 @@ struct ManifestLine final {
 } // namespace
 
 bool EffectPackDocument::valid() const noexcept {
+    // The manifest names every record that is not a companion, and the two
+    // counts add up to what the container holds. The earlier invariant was
+    // `populated_record_count == manifest_line_count`, which is the same
+    // statement only for a pack with no companions — and refused every pack
+    // that has one.
     return document_size != 0U && manifest_names_every_populated_record &&
-        records.size() == populated_record_count &&
-        populated_record_count == manifest_line_count;
+        records.size() == manifest_line_count &&
+        manifest_line_count + companion_record_count == populated_record_count;
 }
 
 EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) {
@@ -205,14 +192,37 @@ EffectPackParseResult EffectPackParser::parse(std::span<const std::byte> bytes) 
             return left.slot_index < right.slot_index;
         });
 
+    // A pack may hold records the manifest does not name. This reader required
+    // the two counts to be equal, which was true of the two packs it was
+    // recovered from and is not a property of the format: the em000 pack holds
+    // 183 populated records against 173 manifest lines, and requiring equality
+    // refused the whole pack — so all 173 named records lost their names over
+    // ten the manifest never claimed.
+    //
+    // The ten are byte-identical companions. Setting those aside, line k names
+    // record k for all 173, kind and identifier, in order.
+    std::vector<ContainerEntry> named;
+    named.reserve(populated.size());
+    for (const auto& entry : populated) {
+        const auto record = records_bytes.subspan(
+            static_cast<std::size_t>(entry.offset),
+            static_cast<std::size_t>(entry.size));
+        if (Contract::is_companion_record(record)) {
+            document.companion_record_count += 1U;
+            continue;
+        }
+        named.push_back(entry);
+    }
+
     document.manifest_line_count = static_cast<std::uint32_t>(lines.size());
     document.populated_record_count = static_cast<std::uint32_t>(populated.size());
-    if (document.manifest_line_count != document.populated_record_count) {
+    if (document.manifest_line_count != named.size()) {
         return fail(
             EffectPackParseError::line_count_mismatch,
-            "effect manifest does not name exactly one entry per populated record payload");
+            "effect manifest does not name exactly one entry per named record payload");
     }
     document.manifest_names_every_populated_record = true;
+    populated = std::move(named);
 
     bool extents_match = true;
     document.records.reserve(populated.size());

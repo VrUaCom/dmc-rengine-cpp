@@ -6,6 +6,7 @@
 // eight CLT payloads and one TSC were all being reported as `txt`.
 
 #include "dmc_rengine/gdspaces/classifier.hpp"
+#include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 
 #include <cassert>
@@ -86,7 +87,14 @@ void the_classifier_reports_the_dialect_rather_than_txt() {
 
     // Text this project cannot place is not a guess at a dialect: it falls
     // back to the path, the same as any payload the classifier cannot read.
-    const auto plain = text("G 13\r\nG 75\r\nG 152\r\n");
+    //
+    // This case used to use `G 13\r\nG 75\r\nG 152\r\n` as its example of
+    // unplaceable text. That is an effect pack's manifest — the reading below
+    // — so what the assertion actually pinned was the gap that made the
+    // manifest unrecognizable, written down as if it were the correct answer.
+    // The example is now text that really is unplaceable: authoring lines with
+    // no dialect marker and no grammar this project holds.
+    const auto plain = text("ClothNum\t1\r\nGravity 0.000000\r\n");
     const auto unplaced = gdspaces::ResourceClassifier::classify(
         "slot_0000.bin", std::span<const std::byte>{plain});
     assert(unplaced.format == "bin");
@@ -124,6 +132,102 @@ void the_classifier_reports_the_dialect_rather_than_txt() {
         "tsc");
 }
 
+// The dialect that was declared and could never be returned.
+//
+// `TextResourceDialect::effect_manifest` existed in the enum and in
+// `to_string` from the day the dialects were recovered, and `identify()` had
+// no branch that produced it. So slot 0 of every effect pack in the corpus
+// classified as `txt` — the resource whose whole content is the names of the
+// records beside it, typed as untyped text. That is this project's other
+// recurring defect: something implemented and unreachable.
+void an_effect_manifest_is_not_untyped_text() {
+    // The shape em000's pack has: `<kind> <id>` lines and nothing else.
+    const auto manifest = text(
+        "V 26\r\nE 26\r\nP 26\r\nM 17\r\nG 608\r\n# End\r\n");
+    const auto identity = dmc3::TextResourceDialects::identify(manifest);
+    assert(identity.dialect == dmc3::TextResourceDialect::effect_manifest);
+    // It names the records; it does not name itself. Nothing is synthesized.
+    assert(!identity.embedded_original_name.has_value());
+
+    assert(
+        gdspaces::ResourceClassifier::classify(
+            "slot_0000.bin", std::span<const std::byte>{manifest}).format ==
+        "effect-manifest");
+
+    // Padded to a container's alignment, the way it actually arrives.
+    auto padded = manifest;
+    padded.resize(96U, std::byte{0});
+    assert(
+        dmc3::TextResourceDialects::identify(padded).dialect ==
+        dmc3::TextResourceDialect::effect_manifest);
+
+    // A manifest of one record still reads, because the file closes itself.
+    assert(
+        dmc3::TextResourceDialects::identify(text("A 3\r\n# End\r\n")).dialect ==
+        dmc3::TextResourceDialect::effect_manifest);
+}
+
+// What keeps the shape test from typing things that merely resemble it.
+void the_manifest_grammar_admits_only_the_manifest() {
+    const auto refused = [](std::string_view value) {
+        return !dmc3::TextResourceDialects::identify(text(value)).recognized();
+    };
+
+    // One line is a coincidence three bytes of anything can produce.
+    assert(refused("A 1\r\n"));
+    // A kind the corpus does not hold. The pack reader admits any single
+    // character once it knows it holds a manifest; deciding that it does is a
+    // stricter question, and this is the difference.
+    assert(refused("Z 1\r\nZ 2\r\nZ 3\r\n# End\r\n"));
+    // One line that is not the grammar refuses the payload, however many are.
+    assert(refused("V 26\r\nE 26\r\nClothNum\t1\r\n"));
+    // A kind and no identifier, an identifier that is not a decimal, and a
+    // separator that is not the one character the format uses.
+    assert(refused("V\r\nE\r\nP\r\n"));
+    assert(refused("V 26\r\nE 2x\r\n"));
+    assert(refused("V\t26\r\nE\t26\r\n"));
+    // Comments alone are a file of comments.
+    assert(refused("# a note\r\n# another\r\n# End\r\n"));
+
+    // And the two dialects that announce themselves first still do. A cloth
+    // definition is read as cloth, not as a manifest with a bad first line.
+    assert(
+        dmc3::TextResourceDialects::identify(
+            text(";em000_01.clt\r\nV 26\r\nE 26\r\n")).dialect ==
+        dmc3::TextResourceDialect::clt);
+}
+
+// The grammar has one home. Both callers ask it, so a line the pack reader
+// walks and a line the classifier judges can never be read two ways.
+void the_line_grammar_is_the_contract_s() {
+    using Contract = dmc::rengine::profiles::dmc3::EffectPackContract;
+
+    static_assert(Contract::read_manifest_line("V 26").is_record());
+    static_assert(Contract::read_manifest_line("V 26").kind == 'V');
+    static_assert(Contract::read_manifest_line("V 26").identifier == 26U);
+    // Trailing CR and surrounding whitespace are the file's, not the line's.
+    static_assert(Contract::read_manifest_line("  G 608 \r").identifier == 608U);
+    static_assert(
+        Contract::read_manifest_line("# End").line_kind ==
+        Contract::ManifestLineKind::terminator);
+    static_assert(
+        Contract::read_manifest_line("# something").line_kind ==
+        Contract::ManifestLineKind::comment);
+    static_assert(
+        Contract::read_manifest_line("\t ").line_kind ==
+        Contract::ManifestLineKind::blank);
+    static_assert(
+        Contract::read_manifest_line("V 26x").line_kind ==
+        Contract::ManifestLineKind::invalid);
+    // An identifier wider than the field is not a line. Wrapping it would
+    // invent a record number the file does not contain.
+    static_assert(
+        Contract::read_manifest_line("V 4294967295").identifier == 4294967295U);
+    static_assert(
+        Contract::read_manifest_line("V 4294967296").line_kind ==
+        Contract::ManifestLineKind::invalid);
+}
+
 } // namespace
 
 int main() {
@@ -131,6 +235,9 @@ int main() {
     a_scroll_table_is_not_a_cloth();
     an_arbitrary_comment_is_not_a_cloth();
     the_classifier_reports_the_dialect_rather_than_txt();
+    an_effect_manifest_is_not_untyped_text();
+    the_manifest_grammar_admits_only_the_manifest();
+    the_line_grammar_is_the_contract_s();
     std::cout << "text_resource_dialect_tests: all assertions held\n";
     return EXIT_SUCCESS;
 }

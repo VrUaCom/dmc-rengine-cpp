@@ -1,5 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
 
+#include "dmc_rengine/profiles/dmc3/effect_pack_contract.hpp"
+
 #include <algorithm>
 #include <cctype>
 
@@ -59,6 +61,60 @@ namespace {
         });
 }
 
+/**
+ * Whether the probe window reads as an effect pack's record manifest.
+ *
+ * The grammar is not restated here: `EffectPackContract::read_manifest_line`
+ * is the one home for it, and the pack reader walks a manifest with the same
+ * call. What differs is the question. The reader has already been handed a
+ * manifest and only has to walk it, so it admits any single-character kind;
+ * this has to decide whether an unnamed slot *is* one, so it admits only the
+ * kinds the corpus holds. A stricter test for identifying a payload than for
+ * reading one already identified is the right asymmetry: the cost of a wrong
+ * yes here is a resource typed as something it is not.
+ *
+ * Only whole lines count. The window is sixty-four bytes and a manifest is
+ * longer, so the last line in it is usually cut in half — judging a fragment
+ * would make the verdict depend on where the window happens to land.
+ */
+[[nodiscard]] bool reads_as_effect_manifest(std::string_view text) noexcept {
+    using Contract = EffectPackContract;
+
+    std::size_t records = 0U;
+    bool terminated = false;
+    std::size_t at = 0U;
+    while (true) {
+        const auto end = text.find('\n', at);
+        if (end == std::string_view::npos) {
+            break;  // a partial trailing line; the window cut it
+        }
+        const auto line = Contract::read_manifest_line(text.substr(at, end - at));
+        at = end + 1U;
+
+        switch (line.line_kind) {
+        case Contract::ManifestLineKind::invalid:
+            return false;
+        case Contract::ManifestLineKind::record:
+            if (!Contract::is_known_kind(line.kind)) {
+                return false;
+            }
+            ++records;
+            break;
+        case Contract::ManifestLineKind::terminator:
+            terminated = true;
+            break;
+        case Contract::ManifestLineKind::blank:
+        case Contract::ManifestLineKind::comment:
+            break;
+        }
+    }
+
+    // One record line is a coincidence a short binary payload can produce —
+    // `A 1` followed by a NUL is three bytes of anything. Two in a row, or one
+    // the file then closes with its terminator, is the format.
+    return records >= 2U || (records == 1U && terminated);
+}
+
 } // namespace
 
 TextResourceIdentity TextResourceDialects::identify(
@@ -86,6 +142,15 @@ TextResourceIdentity TextResourceDialects::identify(
     // line is a property of these payloads and not obviously of the format.
     if (text.find(".TSC") != std::string_view::npos) {
         identity.dialect = TextResourceDialect::tsc;
+        return identity;
+    }
+
+    // An effect pack's manifest is the one dialect here that announces itself
+    // by its whole shape rather than by an opening marker: every line is
+    // `<kind> <id>`, and there is nothing else in the file. It says no
+    // filename, so none is invented.
+    if (reads_as_effect_manifest(text)) {
+        identity.dialect = TextResourceDialect::effect_manifest;
         return identity;
     }
 

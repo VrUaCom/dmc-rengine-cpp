@@ -36,6 +36,16 @@ struct EffectPackDocument final {
     std::uint64_t document_size{};
     std::uint32_t manifest_line_count{};
     std::uint32_t populated_record_count{};
+    /**
+     * Populated records the manifest does not name.
+     *
+     * Byte-identical sixteen-byte companions, each observed in the slot after
+     * a record the manifest calls `M`. They are counted rather than dropped
+     * silently: a pack whose companion count is not what its records suggest
+     * is worth looking at, and a reader that hides them is a reader that
+     * cannot be asked.
+     */
+    std::uint32_t companion_record_count{};
     bool manifest_names_every_populated_record{false};
     bool extents_match_known_kinds{false};
     std::string manifest_text;

@@ -57,7 +57,8 @@ void add_route(
     return format == "scm" || format == "mod" || format == "shw" ||
            format == "dds" || format == "ptx" || format == "cam" ||
            format == "dca" || format == "lig" || format == "lig2" ||
-           format == "hits" || format == "mot";
+           format == "hits" || format == "mot" ||
+           format == "wrapped-dds";
 }
 
 [[nodiscard]] bool is_stage_format(std::string_view format) noexcept {

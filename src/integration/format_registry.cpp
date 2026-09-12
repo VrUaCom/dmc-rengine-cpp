@@ -399,6 +399,20 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             },
         },
         FormatIntegrationDescriptor{
+            .format = "wrapped-dds",
+            .parser_id = "formats.ptx-dmc3-reader",
+            .maturity = IntegrationMaturity::structural,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = true,
+            .stage_category = gdspaces::StageResourceCategory::textures,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "A texture slot's second framing: one 0x70 descriptor and the DDS it describes, with no bundle header in front. Read by the same TextureSlotFramingParser as a PTX bundle, and reported as its own format because it is not one.",
+                "Carries no magic; identity is the descriptor's declared dimensions, row bytes and reciprocals agreeing with the DDS behind them.",
+                "Bound by the complete em000 extraction (source archive SHA-256 3061301250...66d07b), where it accepts 8 payloads of 306.",
+            },
+        },
+        FormatIntegrationDescriptor{
             .format = "mot",
             .parser_id = "formats.mot-structural-v1",
             .maturity = IntegrationMaturity::structural,
@@ -438,6 +452,21 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
                 "Declared by the second recovered type registry (profiles::dmc3::AnimationTypeContract at 0x1402E01A0); no structural parser exists yet.",
                 "Serialized as text and identified by the `.TSC` tag line its own payload opens with (profiles::dmc3::TextResourceDialects), which is how a nameless slot is typed; the runtime itself types it by name only.",
                 "Record semantics are unrecovered; the dialect probe establishes identity, not content.",
+            },
+        },
+        FormatIntegrationDescriptor{
+            .format = "effect-manifest",
+            .parser_id = {},
+            .maturity = IntegrationMaturity::recognized,
+            .write_policy = ResourceWritePolicy::read_only,
+            .binary_adapter = false,
+            .stage_category = std::nullopt,
+            .evidence_claim_ids = {},
+            .limitations = {
+                "Slot 0 of a two-slot effect pack: the CRLF ASCII manifest naming the records in slot 1, one `<kind> <identifier>` line per record, closed by `# End`.",
+                "Identified by that grammar rather than by an opening marker, through the same profiles::dmc3::EffectPackContract line reader the pack parser walks the manifest with; identification additionally requires every kind to be one the corpus holds, which reading an already-identified manifest does not.",
+                "No original executable read site for this text has been found. The pack's own arithmetic is recovered; the runtime's use of the manifest is not, so it is not evidence that the game reads these names.",
+                "Names the records and says nothing about their content. The manifest carries no filename of its own, and none is synthesized for it.",
             },
         },
         FormatIntegrationDescriptor{
