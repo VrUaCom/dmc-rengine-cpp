@@ -9,9 +9,10 @@ This directory contains format-specific structural documentation and the canonic
 - [DMC3 HD machine-readable format-purpose registry](dmc3-hd-format-purpose-registry.json) — normalized registry separating identity, subsystem purpose, schema maturity and current clean-product support; use [Current Project Status](../status/current.md) for live promoted reader/integration state.
 - [DMC3 HD format presence census](dmc3-hd-format-presence-census.md) — separates formats with real bound payload bytes from EXE-only identities/references, top-level retail members, nested/corpus payloads, generic `.bin`/`.ukn` carriers and project working names such as `SO`.
 - [DMC3 HD machine-readable format presence census](dmc3-hd-format-presence-census.json) — machine-readable companion for physical/corpus presence status; presence is intentionally independent from purpose and schema maturity.
-- [SCM structural specification](scm.md) — current C++20/parser-facing SCM layout: header, objects, fixed 0x50 mesh ABI, vertex streams, scene-node hierarchy, transforms, runtime object-flag projection and index-workspace envelope.
-- [DMC3 SCM deep reverse — 2026-09-02](../research/dmc3-scm-deep-reverse-2026-09-02.md) — canonical EXE + 68-file corpus reconciliation, including the fixed-stride/continuation resolution and writer acceptance boundary.
-- [DMC3 SCM runtime object flags — 2026-09-03](../research/dmc3-scm-runtime-object-flags-2026-09-03.md) — direct canonical-EXE mapping for serialized object `+0x01/+0x10` into runtime object state, with semantics kept neutral where not proven.
+- [SCM structural specification](scm.md) — canonical C++20/parser-facing SCM layout and terminal serialized/runtime map: header, objects, fixed 0x50 mesh ABI, streams, hierarchy, transforms, render state, texture ownership and preservation-only fields.
+- [DMC3 SCM reverse completion audit — 2026-09-13](../research/dmc3-scm-reverse-completion-2026-09-13.md) — terminal reverse audit: all current SCM serialized/runtime domains are typed/structural, preservation-only, or rejected; writer/integration/original-game acceptance remains a separate track.
+- [DMC3 SCM deep reverse — 2026-09-02](../research/dmc3-scm-deep-reverse-2026-09-02.md) — historical canonical EXE + 68-file corpus reconciliation, including the fixed-stride/continuation resolution; later completion records supersede its old open-frontier list.
+- [DMC3 SCM runtime object flags — 2026-09-03](../research/dmc3-scm-runtime-object-flags-2026-09-03.md) — direct canonical-EXE mapping for serialized object `+0x01/+0x10` into runtime object state; later render/flag evidence further closes alpha, GS TEX1 and GS TEST/ZBUF technical semantics.
 - [DMC3 runtime type-evidence split — 2026-08-31](../research/dmc3-runtime-type-evidence-split-2026-08-31.md) — canonical correction separating the three-byte registry probe, PAC/PNST container dispatcher and four-byte family-mask classifier; supersedes global “exactly five tags / byte 3 never matters” claims.
 - [DMC3 primary 3D / render family reverse — 2026-08-31](../research/dmc3-primary-3d-render-family-reverse-2026-08-31.md) — evidence-backed `MOD/EFM/SCM/MRP/SHW` classification, including EFM model/mesh proof, SHW topology ownership and the remaining MRP boundary.
 - [DMC3 real MOD / SHW payload binding — 2026-09-01](../research/dmc3-real-mod-shw-payload-binding-2026-09-01.md) — hash-bound payload proof for the MOD five-stream layout and self-contained SHW shadow hulls; supersedes the earlier external-vertex-pool interpretation.
@@ -60,5 +61,7 @@ A known purpose does not imply a complete schema, a parser does not imply origin
 - `RESEARCH_REQUIRED` — identity or label exists, exact purpose/schema unresolved.
 - `CAPABILITY_ONLY` — executable/media support exists; shipped DMC3 presence is not claimed.
 - `REJECTED` — superseded or contradicted claim; not current authority.
+
+For terminal field-level MOD/SCM reverse work, the stricter canonical vocabulary also includes `CORPUS_CONFIRMED`, `EXE_AND_CORPUS_CONFIRMED`, `STRUCTURAL_CONFIRMED`, `PRESERVED_UNDECODED` and `RESERVED_OBSERVED_ZERO`. A preservation-only terminal state is not equivalent to `RESEARCH_REQUIRED`.
 
 Historical research remains useful acquisition evidence but does not override stronger current implementation or later canonical reverse documentation.
