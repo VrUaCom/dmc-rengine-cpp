@@ -98,6 +98,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         relative_slot_path_reflow_writer
         gdspaces_l1_full_a2z_roundtrip
         dds_profile
+        gdata_legacy
         native_reader_texture
         texture_slot_framing
         texture_slot_packed_reflow_writer
