@@ -1,65 +1,88 @@
 # DMC Rengine research SQLite
 
 This directory is the structured evidence store for reverse-engineering facts.
+The repository tracks schema, importers and machine-readable evidence; the mutable
+`.sqlite3` database is generated locally and is not committed.
 
-The repository tracks **schema, importers and source evidence**, not a mutable
-binary database. A local SQLite database is regenerated from committed evidence
-so changes remain reviewable in Git.
+## EventTbl authority model
+
+The canonical EventTbl scope is **all 22 runtime slots**:
+
+```text
+EventTbl00.bin ... EventTbl21.bin
+```
+
+The database always creates 22 `evt_runtime_slot` rows. A slot is never removed
+from the research model merely because its current byte payload is unavailable.
+At the 2026-09-12 corpus state:
+
+- 22/22 runtime slots are represented;
+- 19/22 byte payloads are available and parsed (`00..09`, `13..21`);
+- `10..12` are represented as `MISSING_BYTES`;
+- 12,012 command instances are imported;
+- 16,927 raw u32 arguments are imported;
+- 121 opcode values are observed in the available bytes.
 
 ## Build the database
 
-From the repository root:
+Place available stock EventTbl payloads in:
 
-```bash
-python research/sql/import_eventtbl_census.py
+```text
+research-private/eventtbl/
 ```
 
-Default output:
+using their stock names (`EventTbl00.bin` ... `EventTbl21.bin`), then run:
+
+```bash
+python research/sql/import_eventtbl_runtime_family.py
+```
+
+Default database:
 
 ```text
 research-private/dmc_rengine_research.sqlite3
 ```
 
-No third-party Python modules are required.
-
-To choose another database path:
+The legacy command still works and routes to the same full importer:
 
 ```bash
-python research/sql/import_eventtbl_census.py --db out/research.sqlite3
+python research/sql/import_eventtbl_census.py
 ```
 
-## Current EventTbl coverage
+To require byte-complete `00..21` coverage instead of allowing explicit missing
+slots:
 
-The importer consumes:
-
-```text
-docs/research/dmc3-eventtbl-opcode-census-2026-09-12.json
+```bash
+python research/sql/import_eventtbl_runtime_family.py --require-all-bytes
 ```
 
-and stores:
+## What is stored
 
-- format identity (`EventTbl`, `EVT\0`, stock `.bin` filename extension);
-- corpus/source provenance;
-- EventTbl file hashes and structural metadata;
-- stream roots where present in the census;
-- complete opcode census rows;
-- observed opcode arity/count/file count;
-- semantic registry and evidence status;
-- structural begin/end opcode pairs;
-- evidence claims with repository source locators.
+`001_schema.sql` defines the shared research/evidence tables. `002_eventtbl_runtime_family.sql`
+adds the fixed `00..21` runtime-slot layer.
 
-The schema also reserves normalized `evt_command` and `evt_argument` tables for
-the next stage: exporting every parsed command and raw argument from the actual
-EventTbl payloads. Unknown argument semantics remain
-`PRESERVED_UNDECODED` until evidence promotes them.
+For every available valid EventTbl payload the importer stores:
+
+- stock slot index/name/runtime path;
+- exact size and SHA-256;
+- revision, stream count, terminal offset;
+- every stream root;
+- every command instance with offset, raw descriptor, opcode and arity;
+- every raw u32 argument;
+- opcode command/file counts;
+- known semantic registry entries and evidence status;
+- structural scope-pair evidence.
+
+Missing byte payloads remain queryable through `evt_runtime_slot` with
+`bytes_status='MISSING_BYTES'`.
 
 ## Evidence rule
 
-SQLite is not authority by itself. Every semantic promotion must retain an
-evidence status and source. Do not convert a corpus correlation into an
-EXE-confirmed semantic merely because it is stored in the database.
+SQLite is an index, not authority by itself. Unknown opcode/argument semantics
+remain `PRESERVED_UNDECODED`. A semantic name is promoted only when supported by
+EXE/runtime or explicit corpus evidence.
 
-Useful statuses include the project evidence vocabulary such as:
+Project evidence vocabulary includes:
 
 ```text
 EXE_CONFIRMED
@@ -72,58 +95,57 @@ RESERVED_OBSERVED_ZERO
 REJECTED
 ```
 
-Legacy research rows may also preserve narrower source strings such as
-`CORPUS_STRUCTURAL_CONFIRMED`; those should be migrated deliberately rather
-than silently rewritten.
+## Useful queries
 
-## Example queries
-
-Known and unknown opcodes:
+Full 00..21 coverage:
 
 ```sql
-SELECT opcode_hex, argc, commands, files, name, semantic_class, evidence_status
-FROM v_evt_opcode_status;
+SELECT * FROM v_evt_runtime_coverage;
 ```
 
-Only unresolved opcodes, ordered by frequency:
+Slots whose bytes are still missing/invalid:
 
 ```sql
-SELECT opcode_hex, argc, commands, files
-FROM v_evt_opcode_status
-WHERE evidence_status = 'PRESERVED_UNDECODED'
-ORDER BY commands DESC;
+SELECT * FROM v_evt_runtime_missing;
 ```
 
-Files and stream counts:
+Highest-frequency unresolved opcodes:
 
 ```sql
-SELECT * FROM v_evt_file_summary;
+SELECT printf('0x%02X', opcode) AS opcode,
+       observed_argument_count AS argc,
+       observed_command_count AS commands,
+       observed_file_count AS files
+FROM evt_opcode
+WHERE evidence_status='PRESERVED_UNDECODED'
+ORDER BY observed_command_count DESC;
 ```
 
-Confirmed spawn-related opcodes:
+Every occurrence of one opcode with file/stream/offset:
 
 ```sql
-SELECT opcode_hex, name, evidence_status
-FROM v_evt_opcode_status
-WHERE semantic_class = 'spawn';
+SELECT f.stock_name, c.stream_ordinal, c.sequence_index,
+       printf('0x%X', c.file_offset) AS file_offset
+FROM evt_command c
+JOIN resource_file f ON f.id=c.file_id
+WHERE c.opcode=0x2C
+ORDER BY f.corpus_index, c.sequence_index;
 ```
 
-Evidence attached to EventTbl:
+Raw argument domain for one opcode:
 
 ```sql
-SELECT subject_key, claim, evidence_status, source_locator
-FROM evidence_claim
-WHERE subject_type IN ('format', 'corpus')
-ORDER BY subject_key;
+SELECT a.argument_index, a.value_u32, COUNT(*) AS n
+FROM evt_command c
+JOIN evt_argument a ON a.command_id=c.id
+WHERE c.opcode=0x2C
+GROUP BY a.argument_index, a.value_u32
+ORDER BY a.argument_index, n DESC;
 ```
 
-## Direction
+## Canonical machine-readable evidence
 
-The database is intentionally broader than EventTbl. New reverse domains can
-add normalized tables/migrations under `research/sql/` while sharing
-`source_artifact`, `resource_file` and `evidence_claim`.
-
-For EventTbl the next importer should consume the C++ parser output and fill
-`evt_command` + `evt_argument` for every supplied file. That makes queries such
-as opcode neighbourhoods, argument-domain clustering, stream-flow analysis and
-EXE semantic promotion reproducible instead of living only in prose reports.
+`docs/research/dmc3-eventtbl-opcode-census-2026-09-12.json` is regenerated from
+the actual available binary payloads and describes the 22-slot runtime family,
+including explicit `MISSING_BYTES` slots. The Markdown report is
+`docs/research/dmc3-eventtbl-corpus-reverse-2026-09-12.md`.
