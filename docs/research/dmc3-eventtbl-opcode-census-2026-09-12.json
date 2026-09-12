@@ -1,0 +1,110 @@
+{
+  "schema": "dmc-rengine.dmc3-eventtbl-opcode-census.v1",
+  "date": "2026-09-12",
+  "format": {
+    "family": "EventTbl",
+    "magic": "EVT\\0",
+    "stock_extension": ".bin",
+    "command_descriptor": "bits0..7=opcode,bits8..15=u32_argument_count,bits16..31=0"
+  },
+  "scope": {
+    "complete_gdata_afs_owner_supplied": [0,1,2,3,4,5,6,7,8,9],
+    "additional_owner_supplied": [13,14,15,16,17,18,19,20,21],
+    "stock_indices_not_available_as_bytes": [10,11,12],
+    "files_analyzed": 19,
+    "commands": 12012,
+    "distinct_observed_opcodes": 121,
+    "max_opcode": "0x8C",
+    "max_argument_count": 6
+  },
+  "subsets": {
+    "gdata_00_09": {"commands":5351,"distinct_opcodes":103},
+    "additional_13_21": {"commands":6661,"distinct_opcodes":105}
+  },
+  "structural_pairs": [
+    {"begin":"0x07","end":"0x08","begin_arity":1,"end_arity":0,"evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"begin":"0x09","end":"0x0A","begin_arity":1,"end_arity":0,"evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"begin":"0x0B","end":"0x0C","begin_arity":1,"end_arity":0,"evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"begin":"0x0D","end":"0x0E","begin_arity":2,"end_arity":0,"evidence":"CORPUS_STRUCTURAL_CONFIRMED"}
+  ],
+  "semantic_registry": [
+    {"opcode":"0x00","name":"stream_boundary_marker","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x01","name":"stream_end","class":"structural","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x02","name":"controller_event_state_02","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x03","name":"controller_event_state_03","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x04","name":"controller_event_state_04","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x05","name":"controller_event_state_05","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x07","name":"section_selector","class":"structural","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x08","name":"scope_07_end","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x09","name":"scope_09_begin","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x0A","name":"scope_09_end","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x0B","name":"scope_0b_begin","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x0C","name":"scope_0b_end","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x0D","name":"subtype_ordinal_command","class":"structural","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x0E","name":"scope_0d_end_or_stream_boundary","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x15","name":"item_acquired_or_quantity_condition","class":"condition","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x16","name":"item_resolver_unavailable_condition","class":"condition","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x20","name":"file_terminal","class":"structural","evidence":"CORPUS_STRUCTURAL_CONFIRMED"},
+    {"opcode":"0x57","name":"timeline_position_marker","class":"structural","evidence":"CORPUS_SEMANTIC_CANDIDATE"},
+    {"opcode":"0x5C","name":"inventory_add","class":"inventory","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x5D","name":"inventory_subtract","class":"inventory","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x5E","name":"global_state_write","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x5F","name":"controller_field_128_write","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x60","name":"controller_field_12c_write","class":"controller_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x61","name":"registered_item_spawn","class":"spawn","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x62","name":"last_spawn_state_change","class":"object_state","evidence":"EXE_CONFIRMED"},
+    {"opcode":"0x63","name":"last_spawn_state_change_63","class":"object_state","evidence":"EXE_CONFIRMED","observed_in_supplied_corpus":false},
+    {"opcode":"0x8B","name":"direct_item_spawn","class":"spawn","evidence":"EXE_CONFIRMED"}
+  ],
+  "opcode_census": [
+    ["0x00",0,448,19],["0x01",0,14,14],["0x02",1,14,8],["0x03",2,867,16],["0x04",1,102,9],["0x05",0,80,12],["0x06",0,88,13],["0x07",1,25,15],["0x08",0,25,15],["0x09",1,68,13],["0x0A",0,68,13],["0x0B",1,97,16],["0x0C",0,97,16],["0x0D",2,1499,19],["0x0E",0,1517,19],["0x0F",1,103,15],
+    ["0x10",1,104,16],["0x11",1,105,15],["0x12",1,458,15],["0x13",1,1,1],["0x14",1,353,15],["0x15",1,20,8],["0x16",2,3,1],["0x17",1,11,5],["0x18",1,70,17],["0x19",1,16,10],["0x1A",1,87,15],["0x1B",1,9,5],["0x1C",3,14,5],["0x1D",2,5,2],["0x1E",2,4,2],["0x1F",1,10,4],
+    ["0x20",0,19,19],["0x21",1,124,11],["0x22",1,13,8],["0x29",5,2,1],["0x2A",3,79,9],["0x2B",1,215,1],["0x2C",1,134,10],["0x2D",1,5,2],["0x2E",1,17,7],["0x2F",2,4,3],
+    ["0x30",1,11,6],["0x31",1,11,6],["0x32",1,2,1],["0x33",2,6,4],["0x34",3,6,3],["0x35",1,1,1],["0x36",2,2,2],["0x37",2,4,3],["0x38",2,18,7],["0x39",1,4,3],["0x3A",1,105,10],["0x3B",1,7,5],["0x3C",2,8,4],["0x3D",2,21,10],["0x3E",2,43,9],["0x3F",1,27,10],
+    ["0x40",2,21,6],["0x41",1,1,1],["0x43",2,1,1],["0x44",4,1,1],["0x45",2,4,2],["0x46",3,11,6],["0x47",3,4,4],["0x48",3,12,8],["0x49",2,2,1],["0x4A",2,5,2],["0x4B",1,21,12],["0x4D",2,7,4],["0x4E",1,4,4],
+    ["0x50",1,5,5],["0x51",1,5,4],["0x53",3,3,3],["0x55",2,30,10],["0x56",3,19,7],["0x57",1,574,19],["0x58",1,2,2],["0x59",2,386,15],["0x5B",5,31,10],["0x5C",2,31,10],["0x5D",2,10,6],["0x5E",2,70,12],["0x5F",1,19,9],
+    ["0x60",1,29,13],["0x61",6,44,11],["0x62",0,2,1],["0x64",3,24,9],["0x65",3,12,6],["0x66",4,9,5],["0x67",3,5,3],["0x68",4,16,6],["0x69",0,2,1],["0x6A",5,7,5],["0x6B",2,6,4],["0x6C",1,4,3],["0x6D",2,36,10],["0x6E",2,5,4],["0x6F",1,18,8],
+    ["0x70",4,107,17],["0x71",5,522,18],["0x72",4,142,17],["0x73",3,312,17],["0x74",3,30,10],["0x75",5,5,4],["0x76",1,51,11],["0x77",2,13,5],["0x78",2,104,16],["0x79",2,49,13],["0x7A",3,16,8],["0x7B",1,1,1],["0x7C",1,5,2],["0x7D",1,165,16],["0x7E",1,12,7],["0x7F",3,5,4],
+    ["0x80",1,5,3],["0x81",2,4,4],["0x82",2,3,2],["0x83",2,4,3],["0x84",0,20,10],["0x89",3,6,4],["0x8A",0,83,6],["0x8B",4,56,1],["0x8C",0,1,1]
+  ],
+  "opcode_census_columns": ["opcode","argument_count","command_count","file_count"],
+  "gdata_files": [
+    {"index":0,"size":1440,"sha256":"2bdfcc56733c0e2867bf54b70031e206758e262d0155374ee2fcd0fc4315fedb","streams":1,"commands":211,"terminal":"0x590","roots":["0x20"]},
+    {"index":1,"size":608,"sha256":"cedb5f494267812aac4901c278097330666285a929067f81bf34ec9c471801e9","streams":1,"commands":92,"terminal":"0x248","roots":["0x20"]},
+    {"index":2,"size":1152,"sha256":"c338f3673e331887baa6750835a180c36747baf5e73c47a99d5e25cd36f20f41","streams":2,"commands":172,"terminal":"0x478","roots":["0x20","0x280"]},
+    {"index":3,"size":4256,"sha256":"8829123ae479747424593c4a53957fda3d80c11a57462632a3b0a8598d9dd61f","streams":2,"commands":679,"terminal":"0x107C","roots":["0x20","0x708"]},
+    {"index":4,"size":3840,"sha256":"8cbad909cdbb392b8642176021c225b73f0a84aafcd59004ff2d650aec7ec392","streams":1,"commands":625,"terminal":"0xEDC","roots":["0x20"]},
+    {"index":5,"size":7552,"sha256":"6055f97bb0948147172349795112c149a4c963656e761b6cfd99edc6351328df","streams":2,"commands":1211,"terminal":"0x1D64","roots":["0x20","0x2B0"]},
+    {"index":6,"size":6880,"sha256":"2dd939f6bcc9018334051f3f8f7a21d28fe30f43f07b88714893357a9a74b01c","streams":5,"commands":1071,"terminal":"0x1AB0","roots":["0x20","0xD8","0x308","0xE7C","0xF68"]},
+    {"index":7,"size":15584,"sha256":"887e145b948516c0f7a48a2752f4ec29556c71bcbcc2e15add341c837e6bcffa","streams":6,"commands":2476,"terminal":"0x3CA4","roots":["0x20","0x738","0x958","0x2898","0x2C48","0x2DE0"]},
+    {"index":8,"size":4032,"sha256":"6d8704bffef8a94f36703112561a0b2eaedc9cc79e745b77192d498e52f88886","streams":1,"commands":678,"terminal":"0xFA4","roots":["0x20"]},
+    {"index":9,"size":3584,"sha256":"3c16c653bccb11b10dd83a9a98d9e56b5bbaa2fcd7e013cc1913324d47eb4b35","streams":1,"commands":577,"terminal":"0xDF0","roots":["0x20"]}
+  ],
+  "additional_files": [
+    {"index":13,"size":2272,"sha256":"263787383896ea9ffe7d4c31e723ebcfc8c8f249caf866ff3c9ede1ac09e9ce9","streams":1,"commands":246},
+    {"index":14,"size":6880,"sha256":"2b3a4ad4a4a6a0c7136107874923a502280d2b5a2dc023f10f45fd1fadcf9a22","streams":1,"commands":668},
+    {"index":15,"size":5760,"sha256":"dcc839902a43987a6895402d1984234e495e67bfdeaf6336e323499e99804396","streams":1,"commands":597},
+    {"index":16,"size":5152,"sha256":"db3ae3bd51b27544871d87689d9a2b180fa8f91ad46adb21fa6a3fa779875c1a","streams":1,"commands":580},
+    {"index":17,"size":4128,"sha256":"7cbf67ee022fb3abd2fd81a134543165d71b6c58dad9bd2be627631699f9c46b","streams":1,"commands":484},
+    {"index":18,"size":6816,"sha256":"7f73b7f197c1316194ee7dd01f0e30b02f5a2785656a41d8bb2d0be30543af01","streams":1,"commands":758},
+    {"index":19,"size":4256,"sha256":"f5658942495254780ebd1fe1df01935b08246de3338039541347427a51c7b84e","streams":1,"commands":462},
+    {"index":20,"size":416,"sha256":"3d5bbeb17c582d784df4aec2e2d01887563cff8335957281df72204f3c55ce8b","streams":1,"commands":51},
+    {"index":21,"size":31968,"sha256":"ae5519388153032822c906a63017d84fb8cf72eacf1019faf0044fb60db7ca6a","streams":1,"commands":2815}
+  ],
+  "exe_anchors": {
+    "first_eventtbl_path_file_offset": "0x004EBCA8",
+    "descriptor_table_file_offset": "0x005B0020",
+    "descriptor_table_va": "0x1405B1A20",
+    "mission_eventtbl_loader": "0x14023A43D",
+    "general_resource_loader": "0x1401B8DF0",
+    "stream_initializer_scanner": "0x1401AA500",
+    "main_action_dispatcher": "0x1401A6510",
+    "condition_dispatcher": "0x1401A8320"
+  },
+  "evidence_boundary": {
+    "eventtbl21_bloody_palace": "HIGH_CONFIDENCE",
+    "eventtbl00_exact_role": "OPEN",
+    "cutscene_gameplay_enemy_boss_door_sound_camera_labels": "NOT_YET_OPCODE_BOUND",
+    "writer": "NOT_PROMOTED"
+  }
+}
