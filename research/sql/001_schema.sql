@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS source_artifact (
     sha256 TEXT,
     provenance TEXT NOT NULL,
     notes TEXT,
-    UNIQUE(source_kind, name, sha256)
+    UNIQUE(source_kind, name)
 );
 
 CREATE TABLE IF NOT EXISTS resource_file (
