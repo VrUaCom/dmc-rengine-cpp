@@ -1,10 +1,11 @@
 #include "dmc_rengine/gdspaces/classifier.hpp"
 
 #include "dmc_rengine/core/sha256.hpp"
+#include "dmc_rengine/formats/evt.hpp"
 #include "dmc_rengine/formats/mot.hpp"
 #include "dmc_rengine/formats/pnst.hpp"
 #include "dmc_rengine/formats/so.hpp"
-#include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
 #include "dmc_rengine/gdspaces/resource_payload.hpp"
 #include "dmc_rengine/profiles/dmc3/resource_type_contract.hpp"
 #include "dmc_rengine/profiles/dmc3/text_resource_dialects.hpp"
@@ -94,6 +95,10 @@ ResourceClassification ResourceClassifier::classify(
     } else if (starts_with(bytes, "HITS")) {
         result.format = "hits";
         result.magic_confirmed = true;
+    } else if (starts_with(bytes, std::string_view{"EVT\0", 4U})) {
+        result.format = "evt";
+        result.magic_confirmed = true;
+        result.structural_confirmed = formats::evt::Parser::parse(bytes).ok();
     } else if (starts_with(bytes, "DDS ")) {
         result.format = "dds";
         result.magic_confirmed = true;
@@ -103,18 +108,15 @@ ResourceClassification ResourceClassifier::classify(
         // other name stopped the container walk.
         result.format = "nbz";
         result.magic_confirmed = true;
-    } else if (const auto framing =
-                   profiles::dmc3::TextureSlotFramingParser::parse(bytes);
-               framing.ok()) {
-        // Neither texture framing carries a magic. A bundle opens with a
-        // count and a sector-span table, and a wrapped DDS opens with its
-        // descriptor — so the identity is that the framing's own arithmetic
-        // closes: spans that sum to the slot, descriptors whose declared
-        // dimensions, row bytes and reciprocals agree with the DDS behind
-        // them. Both readers existed and neither was reachable from here,
-        // which is why an enemy's first slot — its texture pack — was `bin`.
+    } else if (const auto read =
+                   profiles::dmc3::TextureSlotFramingReader::parse(bytes);
+               read.ok()) {
+        // Texture identity is byte-driven. This intentionally lets legacy
+        // resources named .tm2 classify as descriptor-wrapped DDS when their
+        // bytes are not TIM2, and lets single-level .ptx bundles reach the same
+        // DDS child expansion as canonical full-mip bundles.
         result.format =
-            framing.document.kind ==
+            read.framing.document.kind ==
                 profiles::dmc3::TextureSlotFramingKind::texture_bundle
             ? "ptx"
             : "wrapped-dds";

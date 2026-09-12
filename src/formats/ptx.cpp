@@ -1,6 +1,7 @@
 #include "dmc_rengine/formats/ptx.hpp"
 
 #include "dmc_rengine/profiles/dmc3/texture_slot_expander.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
 
 #include <algorithm>
 #include <string>
@@ -55,7 +56,8 @@ ScanResult Reader::scan(
     std::span<const std::byte> bytes,
     profiles::dmc3::TextureSlotFramingSafety safety) {
     ScanResult result;
-    result.framing = profiles::dmc3::TextureSlotFramingParser::parse(bytes, safety);
+    const auto read = profiles::dmc3::TextureSlotFramingReader::parse(bytes, safety);
+    result.framing = read.framing;
 
     if (!result.framing.ok()) {
         if (result.framing.status ==
@@ -64,7 +66,7 @@ ScanResult Reader::scan(
                 result,
                 ParseSeverity::warning,
                 "ptx.unrecognized",
-                "The resource does not expose the evidenced DMC3 PTX texture-bundle framing.");
+                "The resource does not expose an evidenced DMC3 PTX texture-bundle framing.");
             return result;
         }
         add_diagnostic(
@@ -85,6 +87,14 @@ ScanResult Reader::scan(
             "ptx.wrapped-dds-not-bundle",
             "The resource is a validated descriptor-plus-DDS texture slot, not a PTX texture bundle.");
         return result;
+    }
+
+    if (read.compatibility_used()) {
+        add_diagnostic(
+            result,
+            ParseSeverity::info,
+            "ptx.legacy-single-level",
+            "The texture bundle uses the hash-bound legacy single-level DXT5 descriptor variant; reading is supported without granting writer authority.");
     }
 
     result.recognized = true;

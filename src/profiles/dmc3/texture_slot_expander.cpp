@@ -1,5 +1,7 @@
 #include "dmc_rengine/profiles/dmc3/texture_slot_expander.hpp"
 
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing_compat.hpp"
+
 #include <iomanip>
 #include <limits>
 #include <optional>
@@ -105,9 +107,10 @@ gdspaces::ContainerExpansion TextureSlotExpander::expand(
         return expansion;
     }
 
-    const auto framing = TextureSlotFramingParser::parse(
+    const auto read = TextureSlotFramingReader::parse(
         std::span<const std::byte>{parent.bytes.data(), parent.bytes.size()},
         safety);
+    const auto& framing = read.framing;
     if (!framing.ok()) {
         add_error(
             expansion,

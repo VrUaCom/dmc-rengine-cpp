@@ -20,6 +20,10 @@ set(DMC_RENGINE_READER_CORE_SOURCES
     # stays in Rengine; platform shells never parse +0x38/+0x64/0x70 offsets.
     "${DMC_RENGINE_READER_ROOT}/src/codecs/dds_bc.cpp"
     "${DMC_RENGINE_READER_ROOT}/src/profiles/dmc3/texture_slot_framing.cpp"
+    "${DMC_RENGINE_READER_ROOT}/src/profiles/dmc3/texture_slot_framing_compat.cpp"
+
+    # Canonical EVT structural reader used by EventTbl inspection surfaces.
+    "${DMC_RENGINE_READER_ROOT}/src/formats/evt.cpp"
 
     # Canonical MOD read-side slice already consumed by Native Reader.
     "${DMC_RENGINE_READER_ROOT}/src/formats/mod_skin.cpp"
