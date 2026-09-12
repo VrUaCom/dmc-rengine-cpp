@@ -88,7 +88,8 @@
       "0x00100000": "EXE_CONFIRMED legacy GS TEST_1 AREF 0/16 and ZBUF_1 ZMSK 1/0 selector in shared helper path",
       "0x00200000": "PRESERVED_UNDECODED; corpus-observed/runtime-preserved with whole-image candidate provenance rejection",
       "0x00004000": "EXE_CONFIRMED legacy GS TEX1 nearest(0) versus linear(0x60)",
-      "0x0F000000": "EXE_CONFIRMED high-mode projection"
+      "0x0F000000": "EXE_CONFIRMED high-mode projection",
+      "all_other_bits": "PRESERVED_UNDECODED if encountered; exact source preservation is mandatory until an independent SCM-provenanced consumer promotes a stronger semantic"
     },
     "mesh": {
       "record_stride": "0x50",
@@ -109,6 +110,7 @@
     "topology": {
       "rgb_stream": "EXE_AND_CORPUS_CONFIRMED",
       "break_bit_02": "EXE_CONFIRMED",
+      "all_other_flag_bits": "PRESERVED_UNDECODED if encountered; only bit 0x02 is currently promoted to a topology semantic",
       "workspace_sentinel_1212": "CORPUS_CONFIRMED",
       "workspace_capacity": "STRUCTURAL_CONFIRMED align16(6*(vertexCount-2))"
     },
