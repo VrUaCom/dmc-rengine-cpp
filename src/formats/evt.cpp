@@ -40,6 +40,122 @@ void add_diagnostic(
 
 } // namespace
 
+OpcodeDescriptor describe_opcode(std::uint8_t opcode) noexcept {
+    using Class = OpcodeSemanticClass;
+    using Evidence = OpcodeEvidence;
+
+    switch (opcode) {
+    case 0x00U:
+        return {opcode, "stream_boundary_marker", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x01U:
+        return {opcode, "stream_end", Class::structural,
+                Evidence::exe_confirmed};
+    case 0x02U:
+        return {opcode, "controller_event_state_02", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x03U:
+        return {opcode, "controller_event_state_03", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x04U:
+        return {opcode, "controller_event_state_04", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x05U:
+        return {opcode, "controller_event_state_05", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x07U:
+        return {opcode, "section_selector", Class::structural,
+                Evidence::exe_confirmed};
+    case 0x08U:
+        return {opcode, "scope_07_end", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x09U:
+        return {opcode, "scope_09_begin", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x0AU:
+        return {opcode, "scope_09_end", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x0BU:
+        return {opcode, "scope_0b_begin", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x0CU:
+        return {opcode, "scope_0b_end", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x0DU:
+        return {opcode, "subtype_ordinal_command", Class::structural,
+                Evidence::exe_confirmed};
+    case 0x0EU:
+        return {opcode, "scope_0d_end_or_stream_boundary", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x15U:
+        return {opcode, "item_acquired_or_quantity_condition", Class::condition,
+                Evidence::exe_confirmed};
+    case 0x16U:
+        return {opcode, "item_resolver_unavailable_condition", Class::condition,
+                Evidence::exe_confirmed};
+    case 0x20U:
+        return {opcode, "file_terminal", Class::structural,
+                Evidence::corpus_structural_confirmed};
+    case 0x57U:
+        return {opcode, "timeline_position_marker", Class::structural,
+                Evidence::corpus_semantic_candidate};
+    case 0x5CU:
+        return {opcode, "inventory_add", Class::inventory,
+                Evidence::exe_confirmed};
+    case 0x5DU:
+        return {opcode, "inventory_subtract", Class::inventory,
+                Evidence::exe_confirmed};
+    case 0x5EU:
+        return {opcode, "global_state_write", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x5FU:
+        return {opcode, "controller_field_128_write", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x60U:
+        return {opcode, "controller_field_12c_write", Class::controller_state,
+                Evidence::exe_confirmed};
+    case 0x61U:
+        return {opcode, "registered_item_spawn", Class::spawn,
+                Evidence::exe_confirmed};
+    case 0x62U:
+        return {opcode, "last_spawn_state_change", Class::object_state,
+                Evidence::exe_confirmed};
+    case 0x63U:
+        return {opcode, "last_spawn_state_change_63", Class::object_state,
+                Evidence::exe_confirmed};
+    case 0x8BU:
+        return {opcode, "direct_item_spawn", Class::spawn,
+                Evidence::exe_confirmed};
+    default:
+        return {opcode, "unknown", Class::unknown, Evidence::unknown};
+    }
+}
+
+std::string_view to_string(OpcodeSemanticClass value) noexcept {
+    switch (value) {
+    case OpcodeSemanticClass::unknown: return "unknown";
+    case OpcodeSemanticClass::structural: return "structural";
+    case OpcodeSemanticClass::condition: return "condition";
+    case OpcodeSemanticClass::inventory: return "inventory";
+    case OpcodeSemanticClass::spawn: return "spawn";
+    case OpcodeSemanticClass::object_state: return "object_state";
+    case OpcodeSemanticClass::controller_state: return "controller_state";
+    }
+    return "unknown";
+}
+
+std::string_view to_string(OpcodeEvidence value) noexcept {
+    switch (value) {
+    case OpcodeEvidence::unknown: return "UNKNOWN";
+    case OpcodeEvidence::corpus_structural_confirmed:
+        return "CORPUS_STRUCTURAL_CONFIRMED";
+    case OpcodeEvidence::corpus_semantic_candidate:
+        return "CORPUS_SEMANTIC_CANDIDATE";
+    case OpcodeEvidence::exe_confirmed: return "EXE_CONFIRMED";
+    }
+    return "UNKNOWN";
+}
+
 bool ParseResult::ok() const noexcept {
     return recognized && !has_error(diagnostics);
 }
