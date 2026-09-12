@@ -76,6 +76,35 @@ For every available valid EventTbl payload the importer stores:
 Missing byte payloads remain queryable through `evt_runtime_slot` with
 `bytes_status='MISSING_BYTES'`.
 
+## Semantic reverse workflow
+
+`analyze_eventtbl_semantics.py` performs reproducible corpus analysis over the
+normalized command/argument tables. It reports file coverage, argument domains,
+immediate predecessor/successor distributions and leaves semantics neutral by
+default.
+
+Example:
+
+```bash
+python research/sql/analyze_eventtbl_semantics.py \
+  --opcode 0x2C --opcode 0x31 --opcode 0x48 --opcode 0x3D \
+  --output research-private/eventtbl-semantic-pass01.json
+```
+
+Current evidence migrations and reports are:
+
+```text
+003_eventtbl_semantic_pass01.sql  -> 0x2C, 0x31, 0x48, 0x3D
+004_eventtbl_semantic_pass02.sql  -> 0x4D, 0x4F, 0x36, 0x49
+005_eventtbl_semantic_pass03.sql  -> 0x4C, 0x58, 0x47, 0x72, 0x37, 0x65
+006_eventtbl_semantic_pass04.sql  -> 0x46, 0x6E, 0x6F, 0x38, 0x71, 0x66
+```
+
+with corresponding Markdown reports under `docs/research/`.
+
+Corpus facts and semantic hypotheses are stored separately. A `SEMANTIC_CANDIDATE`
+never becomes `EXE_CONFIRMED` merely because a repeated motif is strong.
+
 ## Evidence rule
 
 SQLite is an index, not authority by itself. Unknown opcode/argument semantics
