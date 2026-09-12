@@ -1,0 +1,148 @@
+{
+  "schema": "dmc-rengine.scm-reverse-completion.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "scope": "canonical DMC3 HD SCM serialized/runtime reverse; writer/integration/original-game acceptance excluded",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "status_vocabulary": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "EXE_AND_CORPUS_CONFIRMED",
+    "STRUCTURAL_CONFIRMED",
+    "SEMANTIC_CANDIDATE",
+    "PRESERVED_UNDECODED",
+    "RESERVED_OBSERVED_ZERO",
+    "REJECTED"
+  ],
+  "completion": {
+    "reverse_complete": true,
+    "research_required_field_gates": 0,
+    "rule": "Every serialized/runtime domain has a typed/structural semantic, a terminal preservation disposition, or a rejected hypothesis. Human-friendly names are not required for preservation-only fields.",
+    "non_claims": [
+      "unrestricted SCM writer authority",
+      "Capcom offline-builder equivalence",
+      "original dmc3.exe acceptance of arbitrary authored SCM",
+      "official source-symbol/class names"
+    ]
+  },
+  "corpus": {
+    "unique_scm": 68,
+    "objects": 254,
+    "meshes": 481,
+    "scene_nodes": 328,
+    "vertices": 182612,
+    "version_1_01": 68,
+    "no_edit_writer_paths": 78,
+    "no_edit_unique_sha256": 68
+  },
+  "runtime_anchors": {
+    "family_classifier": "0x1402FD650",
+    "manager_initializer": "0x1402F9570",
+    "node_binder": "0x1402F1DB0",
+    "scm_object_initializer": "0x140302F10",
+    "scm_setup": "0x140303C10",
+    "scm_local_transform_initializer": "0x1402FA360",
+    "generic_world_update": "0x1402F9700",
+    "scm_normalizer": "0x1403051B0",
+    "fixed_stride_mesh_consumer": "0x1402FDD10",
+    "material_helper": "0x1402F9890",
+    "object_state_helper": "0x140302640",
+    "rotation_xyz_helper": "0x140330450",
+    "translation_helper": "0x140031200"
+  },
+  "terminal_domains": {
+    "header": {
+      "magic": "EXE_CONFIRMED",
+      "version": "CORPUS_CONFIRMED",
+      "secondary_zero_regions": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "object_count": "EXE_CONFIRMED",
+      "scene_node_count": "EXE_CONFIRMED",
+      "texture_slot_count": "EXE_AND_CORPUS_CONFIRMED serialized mirror; external companion is runtime authority",
+      "byte_13": "PRESERVED_UNDECODED runtime-carried to manager+0xFA",
+      "resource_code_14": "CORPUS_CONFIRMED arithmetic decomposition + EXE_CONFIRMED manager+0xE4 carry; neutral class labels terminal",
+      "scene_node_block_offset": "STRUCTURAL_CONFIRMED"
+    },
+    "object": {
+      "record_stride": "0x40",
+      "runtime_stride": "0x3C0",
+      "mesh_count": "EXE_CONFIRMED",
+      "alpha_control_01": "EXE_CONFIRMED",
+      "total_vertex_count_02": "STRUCTURAL_CONFIRMED",
+      "secondary_zero_regions": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "mesh_table_08": "EXE_CONFIRMED",
+      "flags_10": "EXE_CONFIRMED projection with per-bit terminal dispositions",
+      "bounding_sphere_30": "CORPUS_CONFIRMED"
+    },
+    "object_flags": {
+      "low_nibble": "EXE_CONFIRMED helper/render mode and forced alpha-control path",
+      "0x00000020": "EXE_CONFIRMED runtime projection",
+      "0x00010000": "EXE_CONFIRMED runtime/secondary-boolean projection",
+      "0x00020000": "EXE_CONFIRMED runtime flag plus unit-vector initialization",
+      "0x00040000": "EXE_CONFIRMED runtime projection",
+      "0x00080000": "EXE_CONFIRMED runtime projection",
+      "0x00100000": "EXE_CONFIRMED legacy GS TEST_1 AREF 0/16 and ZBUF_1 ZMSK 1/0 selector in shared helper path",
+      "0x00200000": "PRESERVED_UNDECODED; corpus-observed/runtime-preserved with whole-image candidate provenance rejection",
+      "0x00004000": "EXE_CONFIRMED legacy GS TEX1 nearest(0) versus linear(0x60)",
+      "0x0F000000": "EXE_CONFIRMED high-mode projection"
+    },
+    "mesh": {
+      "record_stride": "0x50",
+      "vertex_count_00": "STRUCTURAL_CONFIRMED",
+      "texture_index_02": "EXE_CONFIRMED external companion runtime-table slot",
+      "clamp_04_0a": "EXE_CONFIRMED legacy GS CLAMP REGION_REPEAT",
+      "raw_0c": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "positions_10": "EXE_AND_CORPUS_CONFIRMED",
+      "normals_18": "EXE_AND_CORPUS_CONFIRMED",
+      "uv_20": "EXE_AND_CORPUS_CONFIRMED signed i16 fixed point scale 1/4096",
+      "continuation_28": "EXE_AND_CORPUS_CONFIRMED",
+      "raw_30": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "rgb_topology_38": "EXE_AND_CORPUS_CONFIRMED",
+      "index_workspace_40": "EXE_CONFIRMED",
+      "generated_index_count_48": "EXE_AND_CORPUS_CONFIRMED",
+      "raw_4c": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"]
+    },
+    "topology": {
+      "rgb_stream": "EXE_AND_CORPUS_CONFIRMED",
+      "break_bit_02": "EXE_CONFIRMED",
+      "workspace_sentinel_1212": "CORPUS_CONFIRMED",
+      "workspace_capacity": "STRUCTURAL_CONFIRMED align16(6*(vertexCount-2))"
+    },
+    "scene": {
+      "parent_by_order_position": "EXE_AND_CORPUS_CONFIRMED",
+      "node_at_order_position": "EXE_AND_CORPUS_CONFIRMED",
+      "object_binding_by_node_index": "EXE_AND_CORPUS_CONFIRMED",
+      "transform_by_node_index": "EXE_AND_CORPUS_CONFIRMED",
+      "shell_10_1f": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED", "EXE_CONFIRMED dormant/no effect in audited model path"]
+    },
+    "transform": {
+      "translation_00": "EXE_CONFIRMED",
+      "translation_magnitude_0c": "EXE_AND_CORPUS_CONFIRMED Euclidean length; excluded from homogeneous W",
+      "rotation_10": "EXE_CONFIRMED XYZ radians; Rz*Ry*Rx",
+      "raw_1c": ["RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED"],
+      "world_composition": "EXE_CONFIRMED world = local * parentOrRootWorld"
+    },
+    "texture_ownership": {
+      "scm_manager_pointer": "manager+0x108",
+      "companion_manager_pointer": "manager+0x110",
+      "runtime_texture_count": "manager+0xEC from companion",
+      "mesh_slot_binding": "EXE_CONFIRMED"
+    }
+  },
+  "rejected_or_superseded": [
+    "SCM is a MOD alias",
+    "object+0x01 is only an unknown classification byte",
+    "mesh+0x04..+0x0B is reserved",
+    "object flag 0x00004000 has only opaque 0/0x60 descriptor semantics",
+    "object flag 0x00100000 has only opaque 0x5000D/0x5010D semantics",
+    "nearby 0x00200000 masks prove the SCM object bit21 meaning",
+    "0x1402FA080 is the SCM local-transform initializer",
+    "SCM local-to-world composition remains open",
+    "header+0x14 needs an invented gameplay label before reverse completion"
+  ],
+  "authoritative_note": "docs/research/dmc3-scm-reverse-completion-2026-09-13.md"
+}
