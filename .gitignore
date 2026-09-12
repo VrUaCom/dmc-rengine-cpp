@@ -38,6 +38,9 @@ Testing/
 *.bin
 *.dump
 *.dmp
+*.sqlite
+*.sqlite3
+*.db
 /game/
 /local-data/
 /research-private/
