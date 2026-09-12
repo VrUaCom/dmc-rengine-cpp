@@ -1,14 +1,15 @@
 # Current Project Status
 
-**Snapshot date:** 2026-09-11  
-**Canonical implementation base reviewed:** `main@c4a3fc2d4fc661d82e17b25c119f742ccda4973f`  
+**Snapshot date:** 2026-09-13  
+**Canonical implementation base reviewed:** `main@64d2d27db4b4b974addcc0e78c342fb169e2fd97`  
 **Latest reviewed public/status promotion:** PR #377 — canonical model-format truth + discovery reconciliation  
-**Latest SCM authoring promotion:** PR #376 — bounded real-corpus SCM alpha authoring + PAC reintegration  
+**Latest SCM reverse completion:** `reverse/mod-completion-20260907` — terminal field/runtime map + machine receipt  
+**Latest SCM authoring promotions:** bounded real alpha/translation/rotation authoring + PAC reintegration receipts  
 **Latest MOD/SCM/MOT consolidation:** PR #372 — unified model-format consolidation and MOD container gates  
-**Active branch advancement:** `reverse/mod-completion-20260907` — bounded MOT runtime channel path and next EXE acquisition gate  
+**Active branch advancement:** `reverse/mod-completion-20260907`  
 **Latest canonical Native Reader integration review:** `NativeReaderModuleRegistry` verified on current `main`  
 **Primary execution program:** proof-gated L2 -> L1 -> L3 vertical acceptance  
-**Overall status:** L1/L2/L3 remain incomplete. The canonical DMC3 HD MOD reverse is complete; MOD writer/original-game acceptance remain separate bounded programs. SCM and MOT continue on their own authoring/runtime proof tracks.
+**Overall status:** L1/L2/L3 remain incomplete. The canonical DMC3 HD MOD and SCM reverses are complete for their defined serialized/runtime scopes; writer/integration/original-game acceptance remain separate bounded programs. MOT continues on its runtime/player proof track.
 
 ## Authority split
 
@@ -97,7 +98,39 @@ Those are writer/integration/acceptance gates and do not reopen the completed MO
 
 ## SCM state
 
-PR #372 promoted one selected canonical SCM authoring stack:
+### Reverse status — COMPLETE
+
+**The DMC3 HD SCM reverse is complete for the canonical serialized/runtime scope.**
+
+Completion is recorded by:
+
+- `docs/research/dmc3-scm-reverse-completion-2026-09-13.md`;
+- `data/reverse/dmc3-scm-reverse-completion-20260913.json`;
+- the reconciled canonical `docs/formats/scm.md`.
+
+The completion rule matches the MOD standard: every relevant field/domain must terminate in a typed/structural semantic, a preservation-only state (`PRESERVED_UNDECODED` / `RESERVED_OBSERVED_ZERO`) or a rejected hypothesis. Human-friendly names are not required for bytes whose strongest honest result is exact preservation.
+
+Closed SCM domains include:
+
+- complete header/object/mesh/scene serialized ABI and physical layout;
+- `LegacyResourceCode` arithmetic structure and runtime carry;
+- `alpha_control` packet/shader projection;
+- object runtime flag projection including GS TEX1 filter and the shared GS TEST_1/ZBUF_1 technical selector;
+- terminal `PRESERVED_UNDECODED` disposition for source bit `0x00200000` after whole-image provenance rejection of false consumers;
+- GS CLAMP REGION_REPEAT fields;
+- position/normal/fixed-point UV/RGB-topology streams;
+- generated index-workspace algorithm;
+- scene hierarchy/order/object binding;
+- SCM-specific local transform path `0x1402FA360`, XYZ radians and `Rz*Ry*Rx`;
+- local-to-world relation `world = local * parentOrRootWorld`;
+- external texture-companion ownership and mesh-slot binding;
+- terminal preservation contracts for zero/dormant header, object, mesh, scene-shell and transform lanes.
+
+Historical claims that `object+0x01`, mesh `+0x04..+0x0B`, SCM world composition or the SCM transform initializer remain unresolved are superseded by later evidence.
+
+### Writer/container state — bounded, separate from reverse completion
+
+The selected canonical SCM authoring stack includes:
 
 - `preserve_layout` source-bound same-layout authoring;
 - deterministic `canonical_rebuild` typed-IR layout planning;
@@ -119,7 +152,9 @@ canonical rebuild + reparse     78/78 PASS
 canonical exact no-edit parity  78/78 PASS
 ```
 
-PR #376 further adds bounded real-corpus SCM alpha authoring, race-safe no-replace publication and parent PAC reintegration evidence. This advances SCM authoring but does not prove production/100% SCM authoring, protected-install/NBZ selection or original-game acceptance.
+Real hash-bound same-layout receipts additionally cover alpha-control, node translation and node rotation through parent PAC reintegration, canonical reopen/extraction and exact inverse restoration.
+
+Still open are real-retail size-changing rebuild, provenance-bound retail texture rewrite, broader PAC/PNST/NBZ authored-delivery coverage and original `dmc3.exe` acceptance. These are writer/integration/acceptance gates and do not reopen SCM reverse.
 
 ## MOT state
 
@@ -225,7 +260,7 @@ OpenGameResource(request)
  -> rollback
 ```
 
-The MOD reverse-complete status does not replace this cross-layer original-process acceptance chain.
+The MOD/SCM reverse-complete status does not replace this cross-layer original-process acceptance chain.
 
 ## Discovery/publication state
 
