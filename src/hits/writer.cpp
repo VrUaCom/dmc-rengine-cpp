@@ -35,6 +35,11 @@ struct PreparedSurface final {
     Triangle triangle;
 };
 
+struct AxisRange final {
+    std::uint32_t minimum{};
+    std::uint32_t maximum{};
+};
+
 void add_diagnostic(
     RebuildResult& result,
     ParseSeverity severity,
@@ -196,11 +201,84 @@ void add_diagnostic(
     };
 }
 
+// Closed cell boxes share their boundary planes. A triangle whose minimum lies
+// exactly on a cell boundary therefore has to test the preceding cell too.
+// The 16-file / 4,420-triangle stock corpus reproduces its serialized cell
+// memberships exactly with this candidate range followed by SAT filtering.
+[[nodiscard]] std::optional<AxisRange> closed_candidate_axis_range(
+    float triangle_minimum,
+    float triangle_maximum,
+    float grid_minimum,
+    std::uint32_t cell_extent,
+    std::uint32_t cell_count) noexcept {
+    if (!std::isfinite(triangle_minimum) || !std::isfinite(triangle_maximum) ||
+        !std::isfinite(grid_minimum) || triangle_maximum < triangle_minimum ||
+        cell_extent == 0U || cell_count == 0U) {
+        return std::nullopt;
+    }
+
+    const auto extent = static_cast<double>(cell_extent);
+    const auto normalized_minimum =
+        (static_cast<double>(triangle_minimum) -
+         static_cast<double>(grid_minimum)) / extent;
+    const auto normalized_maximum =
+        (static_cast<double>(triangle_maximum) -
+         static_cast<double>(grid_minimum)) / extent;
+    const auto last = static_cast<double>(cell_count - 1U);
+    const auto lower = std::clamp(
+        std::ceil(normalized_minimum) - 1.0, 0.0, last);
+    const auto upper = std::clamp(
+        std::floor(normalized_maximum), 0.0, last);
+    if (lower > upper) {
+        return std::nullopt;
+    }
+    return AxisRange{
+        .minimum = static_cast<std::uint32_t>(lower),
+        .maximum = static_cast<std::uint32_t>(upper),
+    };
+}
+
+[[nodiscard]] std::optional<runtime::GridRange> closed_triangle_candidate_range(
+    const Header& header,
+    const Triangle& triangle) noexcept {
+    if (!runtime::valid_runtime_grid(header)) {
+        return std::nullopt;
+    }
+    const auto minimum = minimum_point(triangle);
+    const auto maximum = maximum_point(triangle);
+    const auto x = closed_candidate_axis_range(
+        minimum.x, maximum.x, header.bounds_min.x,
+        header.cell_size.x, header.grid_count_x);
+    const auto y = closed_candidate_axis_range(
+        minimum.y, maximum.y, header.bounds_min.y,
+        header.cell_size.y, header.grid_count_y);
+    const auto z = closed_candidate_axis_range(
+        minimum.z, maximum.z, header.bounds_min.z,
+        header.cell_size.z, header.grid_count_z);
+    if (!x || !y || !z) {
+        return std::nullopt;
+    }
+    return runtime::GridRange{
+        .minimum = runtime::GridCoordinate{
+            .x = x->minimum,
+            .y = y->minimum,
+            .z = z->minimum,
+        },
+        .maximum = runtime::GridCoordinate{
+            .x = x->maximum,
+            .y = y->maximum,
+            .z = z->maximum,
+        },
+    };
+}
+
 [[nodiscard]] bool compute_fit_grid(
     Header& header,
     std::span<const PreparedSurface> surfaces,
     float padding) noexcept {
-    if (surfaces.empty() || !std::isfinite(padding) || padding < 0.0F) {
+    if (surfaces.empty() || !std::isfinite(padding) || padding < 0.0F ||
+        header.cell_size.x == 0U || header.cell_size.y == 0U ||
+        header.cell_size.z == 0U) {
         return false;
     }
     Vec3 minimum = minimum_point(surfaces.front().triangle);
@@ -216,9 +294,11 @@ void add_diagnostic(
         maximum.z = std::max(maximum.z, local_maximum.z);
     }
 
-    minimum.x -= padding;
-    minimum.y -= padding;
-    minimum.z -= padding;
+    // Stock corpus rule: bounds_min is floor(global vertex minimum). Padding is
+    // applied before the floor so authoring mode remains conservative.
+    minimum.x = std::floor(minimum.x - padding);
+    minimum.y = std::floor(minimum.y - padding);
+    minimum.z = std::floor(minimum.z - padding);
     maximum.x += padding;
     maximum.y += padding;
     maximum.z += padding;
@@ -228,18 +308,17 @@ void add_diagnostic(
 
     const auto count_for_axis = [](float minimum_value,
                                    float maximum_value,
-                                   float cell_size)
+                                   std::uint32_t cell_extent)
         -> std::optional<std::uint32_t> {
         if (!std::isfinite(minimum_value) || !std::isfinite(maximum_value) ||
-            !std::isfinite(cell_size) || cell_size <= 0.0F ||
-            maximum_value < minimum_value) {
+            cell_extent == 0U || maximum_value < minimum_value) {
             return std::nullopt;
         }
         const auto extent = static_cast<double>(maximum_value) -
                             static_cast<double>(minimum_value);
         const auto raw = std::max(
             1.0,
-            std::ceil(extent / static_cast<double>(cell_size)));
+            std::ceil(extent / static_cast<double>(cell_extent)));
         if (raw > static_cast<double>(std::numeric_limits<std::uint32_t>::max())) {
             return std::nullopt;
         }
@@ -258,9 +337,12 @@ void add_diagnostic(
     header.grid_count_y = *count_y;
     header.grid_count_z = *count_z;
     header.bounds_max = Vec3{
-        .x = minimum.x + header.cell_size.x * static_cast<float>(*count_x),
-        .y = minimum.y + header.cell_size.y * static_cast<float>(*count_y),
-        .z = minimum.z + header.cell_size.z * static_cast<float>(*count_z),
+        .x = minimum.x + static_cast<float>(header.cell_size.x) *
+            static_cast<float>(*count_x),
+        .y = minimum.y + static_cast<float>(header.cell_size.y) *
+            static_cast<float>(*count_y),
+        .z = minimum.z + static_cast<float>(header.cell_size.z) *
+            static_cast<float>(*count_z),
     };
     return finite(header.bounds_max);
 }
@@ -362,6 +444,7 @@ RebuildResult SpatialWriter::rebuild(
     std::span<const Surface> surfaces,
     RebuildOptions options) {
     RebuildResult result;
+    static_cast<void>(source_bytes);
     if (!source_scan.ok()) {
         add_diagnostic(
             result,
@@ -507,10 +590,7 @@ RebuildResult SpatialWriter::rebuild(
         }
         const auto relative_offset = static_cast<std::uint32_t>(relative_offset_u64);
         const auto& triangle = prepared[triangle_index].triangle;
-        const auto range = runtime::world_range_to_grid(
-            result.header,
-            minimum_point(triangle),
-            maximum_point(triangle));
+        const auto range = closed_triangle_candidate_range(result.header, triangle);
         if (!range) {
             add_diagnostic(
                 result,
@@ -539,16 +619,19 @@ RebuildResult SpatialWriter::rebuild(
                     }
                     const Vec3 cell_min{
                         .x = result.header.bounds_min.x +
-                            result.header.cell_size.x * static_cast<float>(x),
+                            static_cast<float>(result.header.cell_size.x) *
+                                static_cast<float>(x),
                         .y = result.header.bounds_min.y +
-                            result.header.cell_size.y * static_cast<float>(y),
+                            static_cast<float>(result.header.cell_size.y) *
+                                static_cast<float>(y),
                         .z = result.header.bounds_min.z +
-                            result.header.cell_size.z * static_cast<float>(z),
+                            static_cast<float>(result.header.cell_size.z) *
+                                static_cast<float>(z),
                     };
                     const Vec3 cell_max{
-                        .x = cell_min.x + result.header.cell_size.x,
-                        .y = cell_min.y + result.header.cell_size.y,
-                        .z = cell_min.z + result.header.cell_size.z,
+                        .x = cell_min.x + static_cast<float>(result.header.cell_size.x),
+                        .y = cell_min.y + static_cast<float>(result.header.cell_size.y),
+                        .z = cell_min.z + static_cast<float>(result.header.cell_size.z),
                     };
                     if (triangle_intersects_box(
                             triangle,
@@ -645,7 +728,9 @@ RebuildResult SpatialWriter::rebuild(
     write_u32(output, 0x04U, result.header.end_offset);
     write_vec3(output, 0x08U, result.header.bounds_min);
     write_vec3(output, 0x14U, result.header.bounds_max);
-    write_vec3(output, 0x20U, result.header.cell_size);
+    write_u32(output, 0x20U, result.header.cell_size.x);
+    write_u32(output, 0x24U, result.header.cell_size.y);
+    write_u32(output, 0x28U, result.header.cell_size.z);
     write_u32(output, 0x2CU, result.header.grid_count_x);
     write_u32(output, 0x30U, result.header.grid_count_y);
     write_u32(output, 0x34U, result.header.grid_count_z);
@@ -708,7 +793,7 @@ RebuildResult SpatialWriter::rebuild(
         result,
         ParseSeverity::warning,
         "hits.writer.modified_topology_game_validation_required",
-        "The file-level spatial algorithm is corpus-verified; modified topology still requires controlled in-game validation.");
+        "The stock-corpus cell assignment is reproduced by boundary-inclusive candidate cells plus triangle-box SAT; modified topology still requires controlled in-game validation.");
     return result;
 }
 

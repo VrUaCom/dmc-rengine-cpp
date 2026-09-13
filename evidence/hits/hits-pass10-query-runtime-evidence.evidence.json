@@ -1,0 +1,113 @@
+{
+  "schema_version": 2,
+  "id": "hits-pass10-query-runtime-evidence-2026-08-15",
+  "title": "HITS Pass 10 — Canonical Query, Runtime, Primitive Semantics and Ownership Evidence",
+  "date": "2026-08-15",
+  "status": "TOP_LEVEL_P0_ABI_CLOSED_DEEP_SEMANTICS_ACTIVE",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "excluded_executable": {
+    "sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+    "reason": "Different packed build; canonical HITS VAs, body hashes and ABIs require independent rebasing and verification."
+  },
+  "canonical_byte_provenance": {
+    "preserved_project_artifact": "dmc3_phase17_reng_probe.exe",
+    "source_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "verifier_preserved_raw_range": "0x400..0x60E600",
+    "preserved_range_byte_identical": true,
+    "secondary_consistency_artifact": "dmc3_phase18_red_orb_x2_hook.exe",
+    "proprietary_bytes_committed": false
+  },
+  "query_family": [
+    {"va":"0x14005E460","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
+    {"va":"0x14005E7A0","direct_callers":51,"status":"ABI CLOSED","abi_kind":"combined_point_query"},
+    {"va":"0x14005EBE0","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"mutable_vec4_inout"},
+    {"va":"0x14005EE40","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"bool_observed_in_al"},
+    {"va":"0x14005F070","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"mutable_vec4_inout_plus_aux"},
+    {"va":"0x14005FD10","direct_callers":1,"status":"EXE CONFIRMED","boundary":"Exact result ABI unresolved."},
+    {"va":"0x14005FEC0","direct_callers":1,"status":"ABI CLOSED","abi_kind":"source1_segment_correction"},
+    {"va":"0x1400601E0","direct_callers":5,"status":"ABI CLOSED","abi_kind":"source1_displacement_accumulator"},
+    {"va":"0x140060790","direct_callers":1,"status":"EXE CONFIRMED","abi_kind":"bool_observed_in_al"}
+  ],
+  "combined_query": {
+    "va":"0x14005E7A0",
+    "body":{"end_va":"0x14005E880","size_bytes":224,"sha256":"3716472a87c7edd9ea27b800e165de7fee8254c8b928c3a41e431b0f350b8a6f"},
+    "argument_count":6,
+    "passes":[
+      {"order":0,"kind":"static_hits","helper_va":"0x14005E880"},
+      {"order":1,"kind":"dynamic_category","helper_va":"0x14005BCF0","category":"0x0E"},
+      {"order":2,"kind":"dynamic_category","helper_va":"0x14005BCF0","category":"0x11"}
+    ],
+    "caller_visible_output_precedence":"last successful pass wins: static < 0x0E < 0x11",
+    "rejected_model":"No E7A0 metric/equality/tie-break arbitration exists."
+  },
+  "common_hit_metadata": {
+    "size_bytes":56,
+    "identity":{"dynamic_source_offset":"0xD8","metadata_offset":"0x00"},
+    "surface_normal": {
+      "offsets":["0x28","0x2C","0x30"],
+      "component_count":3,
+      "semantic_name":"collision/contact surface normal",
+      "status":"EXE CONFIRMED / Slice 8 VALIDATED",
+      "static_facing_gate":true,
+      "dynamic_sphere_radial_normal":true,
+      "dynamic_face_normal":true,
+      "dynamic_cylinder_axial_or_radial_normal":true,
+      "reflection_consumer_formula":"v' = v - 2 * dot(v,n) * n",
+      "exact_global_orientation_or_handedness":"UNRESOLVED"
+    }
+  },
+  "primitive_shape_mapping": {
+    "status":"EXE CONFIRMED / Slice 7 VALIDATED",
+    "mappings":[
+      {"token":"sphere","parser_enum":0,"descriptor_type":2,"primary_runtime_type":2},
+      {"token":"box","parser_enum":1,"descriptor_type":3,"primary_runtime_type":3},
+      {"token":"cylinder","parser_enum":2,"descriptor_type":6,"primary_runtime_type":6},
+      {"token":"capsule","parser_enum":3,"descriptor_type":4,"primary_runtime_type":4}
+    ],
+    "runtime_type4":"capsule / swept-sphere representation with dual origin",
+    "runtime_type5":"three-vertex face structural representation; source-text name unresolved"
+  },
+  "primitive_descriptor_ownership": {
+    "status":"EXE CONFIRMED / Slice 9 VALIDATED",
+    "manager_entry_table_pointer_offset":"0x108",
+    "manager_descriptor_table_pointer_offset":"0x110",
+    "entry_count_offset":"0x04",
+    "entry_layout":{"stride":4,"flags_offset":"0x00","transform_selector_offset":"0x01","descriptor_index_offset":"0x02","descriptor_index_width":2},
+    "descriptor_stride":"0x50",
+    "resolution":"manager+0x110 + u16(entry+0x02) * 0x50",
+    "runtime_entry_pointer_offset":"0x110",
+    "runtime_descriptor_pointer_offset":"0x118",
+    "runtime_transform_pointer_offset":"0x20",
+    "constructor_dispatcher_va":"0x1402CC530",
+    "correction":"runtime+0x20 is transform pointer; primitive descriptor pointer is runtime+0x118",
+    "bounded_static_census":{"callsites":14,"referenced_entries":18,"observed_types":[2],"type5_found":false}
+  },
+  "source1": {
+    "fec0":{"status":"ABI CLOSED / VALIDATED","body_sha256":"cfaca9752adf3a581969875e99c6c1b9ffaa7f83d19d22fddbe8dec2d5cab09e","return":"nondegenerate segment processing, not hit boolean"},
+    "601e0":{"status":"ABI CLOSED / VALIDATED","body_sha256":"7fb7fb7ce9447a5e200ba1471774eafe7e5f21877da71902f047563bd9f7597a","return":"material final XYZ displacement"}
+  },
+  "validated_code_heads": [
+    {"scope":"Slices 4-6","head":"db7a557de428d4e379ecd51b9670e97dc8c435f7","run_id":31813329645,"ubuntu":"success","windows":"success"},
+    {"scope":"Slice 7","head":"cccb5fc45c0c4cb1746cd5630d474533fadb6f76","run_id":31815597161,"ubuntu":"success","windows":"success"},
+    {"scope":"Slice 8","head":"63a2782bb18649f0b7a19e0110671897721f16da","run_id":31852876030,"ubuntu":"success","windows":"success"},
+    {"scope":"Slice 9","head":"b919e89084d5583a940fc1fe8ecc8f90cb1968fd","run_id":31853246146,"ubuntu":"success","windows":"success"}
+  ],
+  "corrections": [
+    {"id":"hits.pass10.e7a0-metric-tiebreak","status":"REJECTED"},
+    {"id":"hits.pass10.b460-query-candidate-role","status":"REJECTED"},
+    {"id":"hits.pass10.fec0-return-hit-boolean","status":"REJECTED"},
+    {"id":"hits.pass10.metadata-vector-semantic-name","status":"SUPERSEDED","current":"collision/contact surface normal float3"},
+    {"id":"hits.pass10.runtime-object-descriptor-offset","status":"CORRECTED","current":"descriptor +0x118; transform +0x20"}
+  ],
+  "next_boundary": [
+    "trace population/writers of manager+0x110 primitive descriptor tables",
+    "find actually referenced descriptor type 5 producers without unbounded scans",
+    "reconstruct primitive-specific geometry/contact helpers for source-equivalent C++",
+    "close remaining fourth-component semantics only with cross-producer/consumer evidence",
+    "controlled canonical runtime comparison against reconstructed behavior"
+  ],
+  "proprietary_bytes_committed": false
+}

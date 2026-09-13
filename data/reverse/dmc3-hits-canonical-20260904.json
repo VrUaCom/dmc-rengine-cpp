@@ -1,0 +1,133 @@
+{
+  "schema": "dmc-rengine.reverse.hits-canonical.v1",
+  "generated_on": "2026-09-04",
+  "target": {
+    "profile": "dmc3-hd",
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "branch": "hits",
+  "architecture": {
+    "shared_format": [
+      "include/dmc_rengine/formats/hits.hpp",
+      "src/formats/hits.cpp",
+      "include/dmc_rengine/formats/hits_binary.hpp",
+      "src/formats/hits_binary.cpp"
+    ],
+    "game_agnostic_runtime": "include/dmc_rengine/hits + src/hits",
+    "dmc3_exact_build_evidence": "include/dmc_rengine/profiles/dmc3/hits_*_evidence.hpp"
+  },
+  "format": {
+    "magic_ascii": "HITS",
+    "magic_size": 4,
+    "header_size": 68,
+    "relative_offset_base": 8,
+    "triangle_stride": 56,
+    "cell_list_terminator_i32": -1,
+    "header": {
+      "0x04": "u32 end_offset",
+      "0x08": "vec3f bounds_min",
+      "0x14": "vec3f bounds_max",
+      "0x20": "vec3f cell_size",
+      "0x2C": "u32 grid_count_x",
+      "0x30": "u32 grid_count_y",
+      "0x34": "u32 grid_count_z",
+      "0x38": "u32 triangle_count",
+      "0x3C": "u32 spatial_table_relative_offset",
+      "0x40": "u32 triangle_array_relative_offset"
+    },
+    "triangle": {
+      "0x00": "u32 raw_flags",
+      "0x04": "vec3f point_a",
+      "0x10": "vec3f point_b",
+      "0x1C": "vec3f point_c",
+      "0x28": "vec3f normal",
+      "0x34": "f32 plane_d"
+    },
+    "corrections": [
+      "HITS$ is not the magic; the canonical magic is four-byte HITS.",
+      "0x18060001 is an observed raw flag value, not a universal record marker.",
+      "HITS is a spatial collision resource with a grid and triangle reference lists, not a flat anonymous record table."
+    ]
+  },
+  "runtime": {
+    "static_sources": [
+      {
+        "source_index": 0,
+        "stage_member": 3,
+        "runtime_owner_offset": "0x680",
+        "raw_pointer_offset": "0x730"
+      },
+      {
+        "source_index": 1,
+        "stage_member": 6,
+        "runtime_owner_offset": "0x6C8",
+        "raw_pointer_offset": "0x738"
+      }
+    ],
+    "helpers": {
+      "initializer": "0x1402D3060",
+      "teardown": "0x1402D29C0",
+      "source_binder": "0x14005EBA0",
+      "source_selector": "0x14005EBC0",
+      "candidate_cell_collector": "0x1402D2A10",
+      "cell_list_resolver": "0x1402D29F0",
+      "record_resolver": "0x1402D3050",
+      "plane_evaluator": "0x1402CF820",
+      "normal_classifier": "0x1402CCF20"
+    },
+    "combined_query": {
+      "function": "0x14005E7A0",
+      "argument_count": 6,
+      "returns_any_hit_in_al": true,
+      "passes": [
+        "static HITS",
+        "dynamic category 0x0E",
+        "dynamic category 0x11"
+      ],
+      "total_miss_copies_working_point_to_output": true,
+      "last_successful_pass_has_output_precedence": true
+    }
+  },
+  "dynamic_categories": [
+    {"activation": "0x00001000", "manager_field": "0x10", "category": "0x02", "static_reject_mask": "0x0040"},
+    {"activation": "0x00002000", "manager_field": "0x28", "category": "0x05", "static_reject_mask": "0x0002"},
+    {"activation": "0x00004000", "manager_field": "0x40", "category": "0x08", "static_reject_mask": "0x0010"},
+    {"activation": "0x00008000", "manager_field": "0x58", "category": "0x0B", "static_reject_mask": "0x0020"},
+    {"activation": "0x00010000", "manager_field": "0x70", "category": "0x0E", "static_reject_mask": "0x0000"},
+    {"activation": "0x00020000", "manager_field": "0x88", "category": "0x11", "static_reject_mask": "0x0000"}
+  ],
+  "stage_cfg": {
+    "entry_stride": 4,
+    "descriptor_stride": 80,
+    "entry_layout": {
+      "0x00": "u8 flags",
+      "0x01": "u8 transform_selector",
+      "0x02": "u16 descriptor_index"
+    },
+    "modern_cem_slots": [39, 40],
+    "legacy_cem008_slots": [22, 23],
+    "transform_selector_bounds_available": false
+  },
+  "depth": {
+    "scale": "DL0-DL8",
+    "format_layout": "DL2",
+    "query_runtime_pipeline": "DL6",
+    "stage_cfg_binding": "DL6",
+    "universal_flag_semantics": "open",
+    "in_game_topology_writer_parity": "not claimed"
+  },
+  "open_gates": [
+    "Exact semantic names for all raw HITS flag bits/masks.",
+    "Transform-selector source ownership and bounds.",
+    "Remaining primitive-type runtime semantics.",
+    "Specialized query/result ABI gaps retained by Pass 10.",
+    "Original-game validation for topology-changing spatial rebuilds."
+  ],
+  "evidence_policy": {
+    "depth_is_not_confidence": true,
+    "preserve_raw_unknowns": true,
+    "forbid_convention_only_gameplay_names": true,
+    "original_game_acceptance_requires_runtime_validation": true
+  }
+}

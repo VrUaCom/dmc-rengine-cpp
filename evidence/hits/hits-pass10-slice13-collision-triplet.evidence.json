@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice13-collision-triplet-2026-08-15",
+  "date": "2026-08-15",
+  "status": "EXE_AND_DATA_CONFIRMED_IMPLEMENTED_VALIDATED",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "serialized_abi": {
+    "transform_stride": "0x40",
+    "entry_stride": "0x04",
+    "entry_fields": {
+      "flags": {"offset":"0x00","type":"u8"},
+      "transform_selector": {"offset":"0x01","type":"u8"},
+      "descriptor_index": {"offset":"0x02","type":"u16_le"}
+    },
+    "primitive_descriptor_stride": "0x50",
+    "primitive_type_offset": "0x00",
+    "reference_validation": [
+      "transform_selector < transform_count",
+      "descriptor_index < primitive_descriptor_count"
+    ]
+  },
+  "phase15_em000_data_side_validation": {
+    "container": "em000.pac",
+    "container_scope_warning": "slot numbers are not globally semantic across PAC containers",
+    "transform_table": {
+      "slot": 38,
+      "size_bytes": 6144,
+      "record_count": 96,
+      "sha1": "088d32720e5c3c970d96012b03c4e1c3c301ffe7"
+    },
+    "entry_table": {
+      "slot": 39,
+      "size_bytes": 96,
+      "record_count": 24,
+      "sha1": "28585e6b75468bb4874c1d66c2592ea993351804",
+      "first_four_decoded": [
+        {"flags":"0x06","transform_selector":0,"descriptor_index":0},
+        {"flags":"0x02","transform_selector":3,"descriptor_index":1},
+        {"flags":"0x01","transform_selector":9,"descriptor_index":2},
+        {"flags":"0x04","transform_selector":17,"descriptor_index":3}
+      ]
+    },
+    "primitive_descriptor_table": {
+      "slot": 40,
+      "size_bytes": 1840,
+      "record_count": 23,
+      "sha1": "d8948c18e4eb0432e42078962cf7835e6fa5a8d2",
+      "first_descriptor_type": 2
+    },
+    "all_first_four_entry_references_in_range": true
+  },
+  "phase15_id100_negative_control": {
+    "container": "id100.pac",
+    "slot38_size_bytes": 12288,
+    "slot39_size_bytes": 448,
+    "slot39_kind": "MOD-like / not collision-entry evidence",
+    "slot40_size_bytes": 4096,
+    "slot40_mod_0x50": 16,
+    "collision_triplet_by_slot_number_rejected": true
+  },
+  "stage_cfg_boundary": {
+    "entry_table_slots": {"modern":39,"legacy_observed":22},
+    "primitive_descriptor_table_slots": {"modern":40,"legacy_observed":23},
+    "slot38_transform_table_confirmed": false,
+    "representative_slot38_consumer_va": "0x1400594B0",
+    "correction": "Stage-CFG slot38 is a related collision/source block with its own u16-relative-offset structure; do not feed Stage-CFG slots38/39/40 into the three-span view as an assumed transform/entry/descriptor triplet."
+  },
+  "architecture": {
+    "parser_scope": "DMC3 profile-specific serialized dynamic collision three-span view",
+    "hardcoded_pac_slot_numbers": false,
+    "hardcoded_executable_vas": false,
+    "unknown_primitive_types_preserved": true,
+    "static_hits_parser_separate": true,
+    "runtime_object_model_separate": true,
+    "span_identity_must_be_proven_before_open": true
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_collision_triplet.hpp",
+    "test": "tests/hits_collision_triplet_tests.cpp",
+    "ctest": "hits_collision_triplet",
+    "code_head": "cc64f6ffdffc96a5c92596f37f33ba4a3769a37f",
+    "ci_run_id": 31855809613,
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "proprietary_bytes_committed": false
+}
