@@ -194,11 +194,12 @@ FormatIntegrationRegistry::FormatIntegrationRegistry() {
             .parser_id = "formats.scm-structural-v1",
             .maturity = IntegrationMaturity::structural,
             .write_policy = ResourceWritePolicy::read_only,
-            .binary_adapter = false,
+            .binary_adapter = true,
             .stage_category = gdspaces::StageResourceCategory::models,
             .evidence_claim_ids = {},
             .limitations = {
                 "The Model Family SCM adapter materializes the 0x40 header/object shell, 0x50 mesh records, position/normal/fixed-point UV streams, scene hierarchy and XYZ-radian transforms.",
+                "The evidence-aware Binary Inspector adapter maps typed fields, physical stream ownership and preservation-only domains without promoting undecoded bytes to invented semantics.",
                 "SCM-specific texture-slot binding, alpha control, legacy GS sampler state and topology/control bytes remain in the SCM adapter rather than the shared ABI.",
                 "SCM authoring remains read-only in Native Reader; experimental writer work does not imply production or Capcom-builder equivalence.",
             },
