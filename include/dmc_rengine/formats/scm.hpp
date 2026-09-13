@@ -21,6 +21,29 @@ inline constexpr std::size_t scene_block_header_size = 0x20U;
 inline constexpr std::size_t scene_transform_size = 0x20U;
 inline constexpr std::uint16_t index_workspace_sentinel = 0x1212U;
 
+// Expanded stage-PAC retail authority (st000.pac..st003.pac, 2026-09-13)
+// confirms the recovered SCM grammar at four serialized versions. Keep this
+// explicit rather than treating one floating-point version as universal.
+inline constexpr std::array<float, 4> confirmed_retail_versions{
+    0.83F, 0.90F, 1.00F, 1.01F};
+inline constexpr float retail_version_tolerance = 0.0001F;
+
+[[nodiscard]] constexpr bool is_confirmed_retail_version(float version) noexcept {
+    for (const auto confirmed : confirmed_retail_versions) {
+        if (version >= confirmed - retail_version_tolerance &&
+            version <= confirmed + retail_version_tolerance) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static_assert(is_confirmed_retail_version(0.83F));
+static_assert(is_confirmed_retail_version(0.90F));
+static_assert(is_confirmed_retail_version(1.00F));
+static_assert(is_confirmed_retail_version(1.01F));
+static_assert(!is_confirmed_retail_version(0.82F));
+
 struct Vec3f final { float x{}; float y{}; float z{}; };
 struct SerializedUv final { std::int16_t u{}; std::int16_t v{}; };
 struct ColorTopology final { std::uint8_t r{}; std::uint8_t g{}; std::uint8_t b{}; std::uint8_t topology_flags{}; };
@@ -32,16 +55,21 @@ struct Header final {
     std::uint8_t scene_node_count{};
     std::uint8_t texture_slot_count{};
 
-    // Legacy storage name retained for authoring compatibility. Canonical EXE
-    // evidence closes the technical semantic as lighting_reference_node_index:
-    // +0x13 -> manager+0xFA -> scene-node world matrix manager+0x188[index*0x40]
-    // -> selected world-position lane +0x30 -> lighting query -> MDL_LIGHT_MAT
-    // Lc/Lv shader constants. Original source symbol/content label is unknown.
-    std::uint8_t reserved13{};
+    // EXE-confirmed technical semantic. Canonical dmc3.exe copies +0x13 to
+    // manager+0xFA; CDrawSCM uses it as a scene-node world-matrix index and
+    // feeds the selected node position through the lighting query into the
+    // MDL_LIGHT_MAT { Lc, Lv } constants consumed by the stage vertex shader.
+    // `reserved13` remains a source-compatibility alias only; it is not an
+    // undecoded preservation field anymore.
+    union {
+        std::uint8_t lighting_reference_node_index{};
+        std::uint8_t reserved13;
+    };
 
-    // Decimal structural decomposition is corpus-confirmed. Fresh retail st002
-    // extends the observed family_class domain to 8. The exact high-level role
-    // of the runtime copy at manager+0xE4 remains unproven.
+    // Decimal structural decomposition is corpus-confirmed. The expanded
+    // stage-PAC retail authority observes family classes 3, 4, 7 and 8. The
+    // exact high-level role of the runtime copy at manager+0xE4 remains
+    // unproven, so this stays a structural resource code rather than an ID.
     LegacyResourceCode resource_code{};
 
     std::uint64_t reserved18{};
