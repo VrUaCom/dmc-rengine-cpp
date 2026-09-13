@@ -1,6 +1,7 @@
 #include "dmc_rengine/formats/scm.hpp"
 #include "dmc_rengine/formats/scm_binary.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
+#include "dmc_rengine/formats/scm_render.hpp"
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
 #include "dmc_rengine/formats/scm_runtime_provenance.hpp"
 
@@ -97,6 +98,38 @@ int main() {
     using namespace dmc::rengine;
     using namespace dmc::rengine::formats::scm;
 
+    // Exact SCM compatibility selector -> VS-base table recovered from the
+    // canonical 0x1400446C4 jump table. Selector 6 deliberately has no
+    // shader-bind path. SCM source initialization itself produces 2 or 3.
+    assert(runtime::scm_compatibility_object_selector(0U) == 3U);
+    assert(runtime::scm_compatibility_object_selector(
+               runtime::source_mask_00080000) == 2U);
+    assert(runtime::scm_compatibility_vs_base_key(2U) == 13U);
+    assert(runtime::scm_compatibility_vs_base_key(3U) == 13U);
+    assert(runtime::scm_compatibility_vs_base_key(4U) == 5U);
+    assert(runtime::scm_compatibility_vs_base_key(5U) == 8U);
+    assert(runtime::scm_compatibility_vs_base_key(6U) ==
+           runtime::scm_compat_invalid_vs_base_key);
+    assert(runtime::scm_compatibility_vs_base_key(7U) == 10U);
+    assert(runtime::scm_compatibility_vs_base_key(8U) == 11U);
+    assert(runtime::scm_compatibility_vs_base_key(9U) == 9U);
+    assert(runtime::scm_compatibility_vs_base_key(10U) == 7U);
+    assert(runtime::scm_compatibility_vs_base_key(11U) == 12U);
+    assert(runtime::scm_compatibility_vs_base_key(12U) == 6U);
+
+    // Exact real SCM material GIF packet: one PACKED loop, four A+D writes.
+    assert(scm_material_gif_tag_qword == 0x4000000000008001ULL);
+    assert(scm_material_gif_regs_qword == 0x000000000020EEEEULL);
+    assert(scm_material_gif_nreg == 4U);
+    assert(scm_material_ad_registers[0] == legacy_gs_reg_tex0_1);
+    assert(scm_material_ad_registers[1] == legacy_gs_reg_tex1_1);
+    assert(scm_material_ad_registers[2] == legacy_gs_reg_clamp_1);
+    assert(scm_material_ad_registers[3] == legacy_gs_reg_miptbp1_1);
+    assert(std::find(scm_material_ad_registers.begin(),
+                     scm_material_ad_registers.end(),
+                     static_cast<std::uint8_t>(0x7DU)) ==
+           scm_material_ad_registers.end());
+
     const auto bytes = fixture();
     const auto parsed = Parser::parse(std::span<const std::byte>{bytes});
     assert(parsed.recognized);
@@ -146,8 +179,6 @@ int main() {
     assert(document.find_annotation("scm-scene-preservation-10-1f") != nullptr);
     assert(document.find_annotation("scm-mesh-000-000-topology-contract") != nullptr);
 
-    // Runtime provenance is now part of the same shared Binary Inspector
-    // document instead of living only in research notes.
     const auto* texture_mirror =
         document.find_annotation("scm-prov-header-texture-mirror");
     assert(texture_mirror != nullptr);
@@ -157,6 +188,23 @@ int main() {
     assert(alpha != nullptr);
     assert(has_tag(*alpha, "shader-visible"));
     assert(alpha->text.find("COLOR0.a") != std::string::npos);
+
+    const auto* selector =
+        document.find_annotation("scm-prov-object-000-compat-selector");
+    assert(selector != nullptr);
+    assert(has_tag(*selector, "EXE_CONFIRMED"));
+    assert(has_tag(*selector, "d3d11"));
+    assert(selector->text.find("selector 3") != std::string::npos);
+    assert(selector->text.find("VS base key 13") != std::string::npos);
+    assert(selector->text.find("VSSetShader") != std::string::npos);
+    assert(selector->text.find("PSSetShader") != std::string::npos);
+
+    const auto* tex1 =
+        document.find_annotation("scm-prov-object-000-tex1-filter");
+    assert(tex1 != nullptr);
+    assert(has_tag(*tex1, "TEX1_1"));
+    assert(tex1->text.find("0x60 linear") != std::string::npos);
+    assert(tex1->text.find("register 0x14") != std::string::npos);
 
     const auto* bit21 =
         document.find_annotation("scm-prov-object-000-bit21-negative");
@@ -169,16 +217,22 @@ int main() {
         document.find_annotation("scm-prov-mesh-000-000-texture");
     assert(texture != nullptr);
     assert(texture->text.find("index*0x40") != std::string::npos);
+    assert(texture->text.find("TEX0_1") != std::string::npos);
+    assert(texture->text.find("MIPTBP1_1") != std::string::npos);
+    assert(texture->text.find("0x14003F7A0/0x14003F580") != std::string::npos);
+    assert(has_tag(*texture, "SRV_SAMPLER_SOURCE_BINDING_OPEN"));
+
+    const auto* clamp =
+        document.find_annotation("scm-prov-mesh-000-000-gs-clamp");
+    assert(clamp != nullptr);
+    assert(has_tag(*clamp, "CLAMP_1"));
+    assert(clamp->text.find("register 0x08") != std::string::npos);
 
     const auto* scene_shell =
         document.find_annotation("scm-prov-scene-shell-negative");
     assert(scene_shell != nullptr);
     assert(has_tag(*scene_shell, "PRESERVED_UNDECODED"));
 
-    // Every reserved lane states its negative evidence, the header's three
-    // included. "Preserved-undecoded" alone does not distinguish a lane a
-    // census looked at and found dormant from one nobody has examined, and the
-    // completion audit gives all three header lanes the first disposition.
     for (const auto* id : {
              "scm-prov-header-reserved08-negative",
              "scm-prov-header-reserved18-negative",
@@ -191,16 +245,6 @@ int main() {
         assert(has_tag(*lane, "BOUNDED_NEGATIVE_EVIDENCE"));
     }
 
-    // The contrast that makes the three lanes above mean something: a span the
-    // runtime demonstrably carries must never wear the dormancy evidence.
-    //
-    // +0x13 used to be this example. It is not any more — the canonical EXE
-    // pass closed it as the scene-node index CDrawSCM selects a world matrix
-    // with, so it is EXE_CONFIRMED and no longer undecoded at all. That is why
-    // the example moved to +0x14, which is still the shape the contrast needs:
-    // structurally confirmed, copied to manager +0xE4, and with its high-level
-    // role open. Claiming dormancy for it would assert that nothing reads a
-    // word the executable copies.
     const auto* carried = document.find_annotation("scm-prov-header-resource-code");
     assert(carried != nullptr);
     assert(has_tag(*carried, "EXE_AND_CORPUS_CONFIRMED"));
@@ -208,8 +252,6 @@ int main() {
     assert(!has_tag(*carried, "BOUNDED_NEGATIVE_EVIDENCE"));
     assert(!has_tag(*carried, "DEEP_NEGATIVE_EVIDENCE"));
 
-    // And the closure itself, asserted rather than assumed: +0x13 is a
-    // confirmed reading now, with the lighting path named in its text.
     const auto* lighting = document.find_annotation("scm-prov-header-13");
     assert(lighting != nullptr);
     assert(has_tag(*lighting, "EXE_CONFIRMED"));
@@ -222,9 +264,6 @@ int main() {
     assert(rotation != nullptr);
     assert(rotation->text.find("0x1402F9700") != std::string::npos);
 
-    // The deep reader must remain read-only and evidence aware. It may leave
-    // canonical alignment padding uncovered, but it must map all owned semantic
-    // payload domains and never overlap physical regions.
     assert(document.conflicts().empty());
     assert(document.ownership_conflicts().empty());
 

@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-hd-command-compatibility-pipeline.v1",
+  "schema": "dmc-rengine.scm-hd-command-compatibility-pipeline.v2",
   "date": "2026-09-13",
   "branch": "reverse/mod-completion-20260907",
   "target": {
@@ -8,7 +8,13 @@
     "image_base": "0x140000000",
     "status": "EXE_CONFIRMED"
   },
-  "status": "EXE_CONFIRMED_COMPATIBILITY_ABI",
+  "status": "EXE_CONFIRMED_SCM_TO_D3D11_SHADER_BIND",
+  "retail_source_flag_census": {
+    "objects_total": 345,
+    "source_mask_00080000_objects": 46,
+    "status": "CORPUS_CONFIRMED",
+    "note": "0x00080000 is a live retail SCM source bit, not a theoretical executable-only branch."
+  },
   "outer_dma_chain": {
     "interpreter": "0x140029880",
     "confirmed_tag_classes": [
@@ -19,7 +25,7 @@
       {"id":6,"safe_name":"RET-like","evidence":"restores previously stored return cursor"},
       {"id":7,"safe_name":"END-like","evidence":"processes final payload and terminates the chain"}
     ],
-    "boundary":"Names are compatibility/behavior names. IDs 0 and 4 are not promoted here without an independent SCM-provenanced path."
+    "boundary":"Names are compatibility/behavior names. IDs 0 and 4 are not promoted without an independent SCM-provenanced path."
   },
   "vif_compatibility": {
     "interpreter":"0x140032CD0",
@@ -33,7 +39,7 @@
       {"word":"0x6C100000","safe_name":"UNPACK-compatible","reason":"same command family"},
       {"word":"0x6C0103D2","safe_name":"UNPACK-compatible","reason":"same command family"},
       {"word":"0x6C0103A7","safe_name":"UNPACK-compatible","reason":"same command family"},
-      {"word":"0x57000000","safe_name":"HD compatibility converter selector","reason":"sets active converter command to 0x57; SCM mesh 0x5B blocks therefore dispatch through 0x140044310 rather than the 0x58 alternate converter"},
+      {"word":"0x57000000","safe_name":"HD compatibility converter selector","reason":"sets active converter command to 0x57; SCM mesh 0x5B blocks dispatch through 0x140044310 rather than the 0x58 alternate converter"},
       {"word":"0x5B00001C","safe_name":"HD mesh-descriptor block","reason":"sets a 0x1C-dword payload domain consumed by the active converter"}
     ],
     "boundary":"0x55..0x5C are HD compatibility commands and are not relabeled as standard PS2 VIF opcodes."
@@ -66,51 +72,91 @@
       "authoritative_low_register_descriptors":[14,14,14,14],
       "descriptor_name":"A+D",
       "ad_addresses":[
-        {"address":"0x06","safe_name":"TEX0_1","value_source":"runtime mesh texture descriptor"},
-        {"address":"0x14","safe_name":"TEX1_1","value_source":"filter state; canonical SCM path projects nearest/linear including object flag 0x00004000"},
+        {"address":"0x06","safe_name":"TEX0_1","value_source":"mesh texture_index -> runtime texture table stride 0x40 -> descriptor +0x20"},
+        {"address":"0x14","safe_name":"TEX1_1","value_source":"object flag 0x00004000 -> nearest 0x00, otherwise linear 0x60"},
         {"address":"0x08","safe_name":"CLAMP_1","value_source":"mesh +0x04..+0x0B REGION_REPEAT projection"},
-        {"address":"0x34","safe_name":"MIPTBP1_1","value_source":"runtime texture/mipmap descriptor state"}
+        {"address":"0x34","safe_name":"MIPTBP1_1","value_source":"runtime texture descriptor +0x28 mipmap register image"}
       ],
-      "important_negative":"This SCM material packet does not address 0x7D. Therefore backend A+D handler 0x7D is not promoted as the SCM material/shader path."
+      "important_negative":"This real SCM material packet does not address 0x7D. Backend A+D handler 0x7D is therefore rejected as SCM-specific material/shader evidence."
     }
+  },
+  "runtime_object_selector_producer": {
+    "serialized_source":"SCM object +0x10 flag 0x00080000",
+    "chain":[
+      "0x1403033E3..0x1403033FC projects source flag 0x00080000 to runtimeObject+0x00 bit 0x20",
+      "0x14030DB50 writes runtimeObject+0x05 = 2 when bit 0x20 is set and = 3 otherwise",
+      "0x14030DBA0 emits 0x5C000000 | runtimeObject+0x05",
+      "0x1400331E6 stores the command low byte as the compatibility object selector",
+      "0x140044310 consumes the selector through jump table 0x1400446C4"
+    ],
+    "projection": {
+      "source_flag_set": {"selector":2,"vs_base_key":13},
+      "source_flag_clear": {"selector":3,"vs_base_key":13}
+    },
+    "status":"EXE_CONFIRMED",
+    "important_result":"0x00080000 changes compatibility selector state but does not change the SCM converter VS base family because selectors 2 and 3 alias VS base key 13."
+  },
+  "compatibility_selector_vs_base_key": {
+    "jump_table":"0x1400446C4",
+    "mapping": {
+      "2":13,
+      "3":13,
+      "4":5,
+      "5":8,
+      "6":null,
+      "7":10,
+      "8":11,
+      "9":9,
+      "10":7,
+      "11":12,
+      "12":6
+    },
+    "selector_6":"exits before shader binding; no VS base key",
+    "status":"EXE_CONFIRMED"
   },
   "scm_mesh_converter_to_shader": {
     "provenance": [
       "0x140309DF0 emits compatibility command 0x57000000",
-      "0x140033174 handler records active converter command 0x57",
-      "0x14030DBA0 emits 0x5C000000 | runtimeObject+0x05 for each SCM runtime object",
+      "0x140033174 records active converter command 0x57",
+      "0x14030DBA0 emits 0x5C000002 or 0x5C000003 from the source-proven runtimeObject+0x05 selector",
       "0x1400331E6 stores the low byte as compatibility object/vertex-format selector",
       "0x14030A705 emits CNT-like QWC=7 with 0x5B00001C and a 0x1C-dword mesh descriptor",
       "0x140032D7A sees active mesh descriptor payload and active converter != 0x58, therefore calls 0x140044310",
-      "0x140044310 selects render/input variant and calls 0x140045FE0",
+      "0x140044310 selects the render/input variant and calls 0x140045FE0",
       "0x140045FE0 resolves a VS table key and a PS table key, then calls 0x14004C340 and 0x14004C140",
       "0x14004C340 reaches ID3D11DeviceContext::VSSetShader (vtable +0x58)",
       "0x14004C140 reaches ID3D11DeviceContext::PSSetShader (vtable +0x48)"
     ],
-    "selector_formula_boundary":"The exact keys are runtime-derived. VS-side key in 0x140044310 is selected from the compatibility object selector (observed mapping into numeric keys 5..13 plus conditional +0x40 variant). PS-side key is derived from mesh/auxiliary/runtime state and conditional +0x20/+0x40 variants. These numeric keys are technically proven table selectors; artistic shader names are not promoted.",
+    "vs_boundary":"Base VS mapping for selectors 2..12 is exact. SCM source initialization produces 2/3, both base key 13. A conditional +0x40 runtime variant exists downstream and is not assigned an artistic shader name.",
+    "ps_boundary":"PS binding itself is EXE-confirmed, but the complete numeric PS-key formula still depends on auxiliary mesh/runtime state and conditional +0x20/+0x40 variants. Do not infer a one-to-one PS family from source flag 0x00080000.",
     "status":"EXE_CONFIRMED_TO_D3D11_SHADER_BIND"
   },
   "d3d11_backend": {
     "context_global":"0x140C0B420",
     "wrappers":[
-      {"va":"0x14004C340","operation":"VSSetShader","context_vtable_offset":"0x58"},
-      {"va":"0x14004C140","operation":"PSSetShader","context_vtable_offset":"0x48"},
+      {"va":"0x14004C340","operation":"VSSetShader","context_vtable_offset":"0x58","scm_source_provenance":"closed"},
+      {"va":"0x14004C140","operation":"PSSetShader","context_vtable_offset":"0x48","scm_source_provenance":"closed to bind; exact PS key formula remains open"},
       {"va":"0x1400460E0","operation":"Map -> copy -> Unmap -> VSSetConstantBuffers","context_vtable_offsets":["0x70","0x78","0x38"]},
       {"va":"0x140045F00","operation":"Map -> copy -> Unmap -> PSSetConstantBuffers","context_vtable_offsets":["0x70","0x78","0x80"]},
       {"va":"0x140043F90","operation":"draw wrapper: input/index/topology setup then DrawIndexed or Draw","context_vtable_offsets":["0x98","0xC0","0x60","0x68"]},
-      {"va":"0x14003F7A0/0x14003F580","operation":"texture/SRV/sampler binding family","context_vtable_offsets":["0x40","0x50"]}
+      {"va":"0x14003F7A0/0x14003F580","operation":"texture/SRV/sampler binding family","context_vtable_offsets":["0x40","0x50"],"scm_source_provenance":"backend family confirmed; exact SCM TEX0/TEX1/CLAMP/MIPTBP1 -> D3D11 SRV/sampler slot chain remains open"}
     ]
   },
   "rejected_overclaim": {
     "backend_handler":"0x14002D0D2 / secondary 0x7D",
     "known_effect":"binds one decoded shader pair path plus constant buffers and draw state",
-    "reason_not_scm_authority":"No provenance-clean SCM A+D address 0x7D was recovered. The explicit SCM material packet uses A+D addresses 0x06/0x14/0x08/0x34, while the SCM geometry packet uses PACKED descriptors ST/RGBAQ/XYZF2.",
+    "reason_not_scm_authority":"No provenance-clean SCM A+D address 0x7D exists in the recovered SCM material packet. The packet uses 0x06/0x14/0x08/0x34, while geometry uses PACKED ST/RGBAQ/XYZF2.",
     "status":"REJECTED_AS_SCM_SPECIFIC_SHADER_EVIDENCE"
   },
   "remaining_frontier":[
-    "recover/label the producer and technical meaning of runtimeObject+0x05 compatibility selector used by SCM 0x5C command",
-    "derive the exact numeric VS/PS table key formula for every SCM object-state combination in 0x140044310",
-    "bind the texture/SRV/sampler wrappers to each SCM texture-state branch with the same provenance standard",
+    "derive the complete numeric PS table-key formula for every SCM mesh/auxiliary/runtime-state combination in 0x140044310/0x140045FE0",
+    "bind SCM TEX0/TEX1/CLAMP/MIPTBP1 state to the exact D3D11 SRV and sampler slots behind 0x14003F7A0/0x14003F580 with source-level provenance",
     "keep object source bit 0x00200000 preservation-only until a source-proven semantic consumer is recovered"
+  ],
+  "closed_frontier":[
+    "runtimeObject+0x05 producer and source flag 0x00080000 projection",
+    "selector 2/3 -> VS base key 13 and full selector 2..12 VS-base jump table",
+    "real SCM material GIF packet TEX0_1/TEX1_1/CLAMP_1/MIPTBP1_1 register ABI",
+    "SCM compatibility command path to ID3D11DeviceContext::VSSetShader and PSSetShader"
   ]
 }
