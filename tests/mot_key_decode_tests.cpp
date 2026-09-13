@@ -141,6 +141,15 @@ int main() {
     assert(binding->tracks[3].channel == mot::JointChannel::rotation_x);
     assert(binding->tracks[5].channel == mot::JointChannel::rotation_z);
     assert(binding->tracks[5].joint_channel_base_offset == 0x1C0U);
+    // The names, which is what a binding says once it leaves this library.
+    // Each one is pinned to the channel the mask walk assigns, so a reordered
+    // table would rename channels rather than silently renumbering them.
+    assert(mot::to_string(binding->tracks[0].channel) == "translation-x");
+    assert(mot::to_string(binding->tracks[2].channel) == "translation-z");
+    assert(mot::to_string(binding->tracks[3].channel) == "rotation-x");
+    assert(mot::to_string(binding->tracks[5].channel) == "rotation-z");
+    assert(mot::to_string(mot::JointChannel::scale_y) == "scale-y");
+
     assert(!mot::project_normal_binding(binding_document, 1U));
     binding_document.tracks.pop_back();
     assert(!mot::project_normal_binding(binding_document, 2U));

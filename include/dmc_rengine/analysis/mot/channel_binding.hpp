@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::analysis::mot {
@@ -24,6 +25,25 @@ enum class JointChannel : std::uint8_t {
     scale_y,
     scale_z,
 };
+
+// The channel names as the recovered order defines them. A binding that
+// crosses an ABI or reaches a screen needs the channel said, not its ordinal:
+// "track 41 -> rotation-y on node 6" is actionable and "track 41 -> channel 4"
+// is a number an operator has to decode by hand against this table.
+[[nodiscard]] constexpr std::string_view to_string(JointChannel channel) noexcept {
+    switch (channel) {
+    case JointChannel::translation_x: return "translation-x";
+    case JointChannel::translation_y: return "translation-y";
+    case JointChannel::translation_z: return "translation-z";
+    case JointChannel::rotation_x: return "rotation-x";
+    case JointChannel::rotation_y: return "rotation-y";
+    case JointChannel::rotation_z: return "rotation-z";
+    case JointChannel::scale_x: return "scale-x";
+    case JointChannel::scale_y: return "scale-y";
+    case JointChannel::scale_z: return "scale-z";
+    }
+    return "unknown";
+}
 
 struct JointChannelDescriptor final {
     std::uint16_t mask_bit{};
