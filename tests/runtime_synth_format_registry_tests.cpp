@@ -91,11 +91,13 @@ int main() {
     assert(scm->parser_id == "formats.scm-structural-v1");
     assert(scm->parser_validation_required);
     assert(scm->write_policy == integration::ResourceWritePolicy::read_only);
+    assert(scm->binary_adapter);
     assert(readers.find(scm->parser_id) != nullptr);
     assert(!scm->allows_working_copy());
     assert(!scm->allows_guarded_export());
     assert(scm->writer_modes.empty());
     assert(has_limitation(*scm, "0x50 mesh records"));
+    assert(has_limitation(*scm, "Binary Inspector adapter"));
     assert(has_limitation(*scm, "read-only"));
 
     const auto* mod = registry.find("MOD");
