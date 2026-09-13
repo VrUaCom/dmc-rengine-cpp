@@ -63,7 +63,25 @@ inline constexpr std::string_view evidence_id =
             {"EXE_AND_CORPUS_CONFIRMED", "runtime-provenance", "identity"}) &&
         add(document, "scm-prov-header-scene-offset", 0x20U, 8U,
             "L0 scene-node block offset -> SCM setup 0x140303C10 -> L2/L3 common node binder 0x1402F1DB0.",
-            {"STRUCTURAL_CONFIRMED", "runtime-provenance", "scene"});
+            {"STRUCTURAL_CONFIRMED", "runtime-provenance", "scene"}) &&
+        // The three reserved header lanes. The physical map already marks them
+        // preserved-undecoded; what the completion audit adds is the census
+        // behind that word. Every other reserved lane in the document -- mesh
+        // +0x0C/+0x30/+0x4C, the scene shell, transform +0x1C -- carries its
+        // negative evidence here, and these three were the only ones left
+        // saying "undecoded" without saying who looked.
+        add(document, "scm-prov-header-reserved08-negative", 0x08U, 8U,
+            "SCM+0x08..+0x0F is bounded-corpus zero. The shared model-manager whole-image source-pointer census finds no typed runtime effect for this lane. Preserve exact source bytes; corpus zero is not padding authority.",
+            {"RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED",
+             "BOUNDED_NEGATIVE_EVIDENCE", "runtime-provenance", "header"}) &&
+        add(document, "scm-prov-header-reserved18-negative", 0x18U, 8U,
+            "SCM+0x18..+0x1F is bounded-corpus zero with whole-image model-source dormancy. No promoted typed consumer is established. Preserve exact source bytes.",
+            {"RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED",
+             "BOUNDED_NEGATIVE_EVIDENCE", "runtime-provenance", "header"}) &&
+        add(document, "scm-prov-header-reserved28-negative", 0x28U, 0x18U,
+            "SCM+0x28..+0x3F is the terminal header shell: bounded-corpus zero with whole-image model-source dormancy and no promoted typed consumer. Preserve exact source bytes.",
+            {"RESERVED_OBSERVED_ZERO", "PRESERVED_UNDECODED",
+             "BOUNDED_NEGATIVE_EVIDENCE", "runtime-provenance", "header"});
 }
 
 [[nodiscard]] bool add_object_provenance(

@@ -175,6 +175,29 @@ int main() {
     assert(scene_shell != nullptr);
     assert(has_tag(*scene_shell, "PRESERVED_UNDECODED"));
 
+    // Every reserved lane states its negative evidence, the header's three
+    // included. "Preserved-undecoded" alone does not distinguish a lane a
+    // census looked at and found dormant from one nobody has examined, and the
+    // completion audit gives all three header lanes the first disposition.
+    for (const auto* id : {
+             "scm-prov-header-reserved08-negative",
+             "scm-prov-header-reserved18-negative",
+             "scm-prov-header-reserved28-negative",
+         }) {
+        const auto* lane = document.find_annotation(id);
+        assert(lane != nullptr);
+        assert(has_tag(*lane, "RESERVED_OBSERVED_ZERO"));
+        assert(has_tag(*lane, "PRESERVED_UNDECODED"));
+        assert(has_tag(*lane, "BOUNDED_NEGATIVE_EVIDENCE"));
+    }
+
+    // +0x13 is carried to manager +0xFA, so it is undecoded but not dormant.
+    // Giving it the same negative evidence would claim nothing reads it.
+    const auto* carried = document.find_annotation("scm-prov-header-13");
+    assert(carried != nullptr);
+    assert(has_tag(*carried, "runtime-carried"));
+    assert(!has_tag(*carried, "BOUNDED_NEGATIVE_EVIDENCE"));
+
     const auto* rotation =
         document.find_annotation("scm-prov-transform-000-rotation");
     assert(rotation != nullptr);
