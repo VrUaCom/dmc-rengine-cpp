@@ -1,6 +1,8 @@
 #pragma once
 
 #include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_runtime_flags.hpp"
+#include "dmc_rengine/formats/scm_topology.hpp"
 #include "dmc_rengine/formats/scm_writer.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -39,6 +41,27 @@ struct FileResult final {
     std::size_t meshes{};
     std::size_t nodes{};
     std::uint64_t vertices{};
+
+    // Reverse-reader census. These fields are intentionally raw/operational:
+    // they identify new corpus deltas without promoting semantics that are not
+    // evidenced by the canonical executable.
+    std::uint32_t source_flag_union{};
+    std::uint32_t preserved_undecoded_source_flag_union{};
+    std::uint8_t topology_flag_union{};
+    std::uint8_t topology_unconfirmed_flag_union{};
+    std::uint8_t texture_slot_count{};
+    std::uint32_t resource_code_raw{};
+    std::uint8_t resource_family_class{};
+    std::uint16_t resource_model_set{};
+    std::uint8_t resource_sub_index{};
+    std::size_t gs_clamp_nonzero_meshes{};
+    std::size_t object_preservation_nonzero_records{};
+    std::size_t mesh_preservation_nonzero_records{};
+    std::size_t transform_preservation_nonzero_records{};
+    std::size_t serialized_generated_index_count_nonzero_meshes{};
+    bool header_preservation_nonzero{false};
+    bool scene_preservation_nonzero{false};
+
     bool read_ok{false};
     bool parse_ok{false};
     bool preserve_write_ok{false};
@@ -96,6 +119,23 @@ struct FileResult final {
     return out.str();
 }
 
+[[nodiscard]] inline std::string hex_text(
+    std::uint64_t value,
+    std::size_t width) {
+    std::ostringstream out;
+    out << "0x" << std::uppercase << std::hex << std::setfill('0')
+        << std::setw(static_cast<int>(width)) << value;
+    return out.str();
+}
+
+template <std::size_t N>
+[[nodiscard]] inline bool any_nonzero(
+    const std::array<std::byte, N>& bytes) noexcept {
+    return std::any_of(
+        bytes.begin(), bytes.end(),
+        [](std::byte value) { return value != std::byte{0}; });
+}
+
 [[nodiscard]] inline FileResult verify_one(
     const SourceRegistry& registry,
     const ResourceRef& resource) {
@@ -114,12 +154,58 @@ struct FileResult final {
     result.diagnostic_count += parsed.diagnostics.size();
     if (!parsed.ok()) return result;
 
+    const auto& header = parsed.document.header;
     result.objects = parsed.document.objects.size();
     result.nodes = parsed.document.scene_nodes.transform_by_node_index.size();
+    result.texture_slot_count = header.texture_slot_count;
+    result.resource_code_raw = header.resource_code.raw;
+    result.resource_family_class = header.resource_code.family_class;
+    result.resource_model_set = header.resource_code.model_set;
+    result.resource_sub_index = header.resource_code.sub_index;
+    result.header_preservation_nonzero =
+        header.reserved08 != 0U || header.reserved13 != 0U ||
+        header.reserved18 != 0U || header.reserved28 != 0U ||
+        header.reserved30 != 0U || header.reserved38 != 0U;
+    result.scene_preservation_nonzero =
+        any_nonzero(parsed.document.scene_nodes.reserved10_1f);
+
     for (const auto& object : parsed.document.objects) {
+        result.source_flag_union |= object.flags;
+        result.preserved_undecoded_source_flag_union |=
+            formats::scm::runtime::project(object.flags)
+                .preserved_undecoded_source_bits;
+
+        if (object.reserved04 != 0U || any_nonzero(object.reserved14_2f)) {
+            ++result.object_preservation_nonzero_records;
+        }
+
         result.meshes += object.meshes.size();
         for (const auto& mesh : object.meshes) {
             result.vertices += mesh.positions.size();
+            result.topology_flag_union |= mesh.observed_topology_flag_mask;
+            result.topology_unconfirmed_flag_union |= static_cast<std::uint8_t>(
+                mesh.observed_topology_flag_mask &
+                static_cast<std::uint8_t>(~formats::scm::triangle_break_bit));
+
+            const auto& clamp = mesh.gs_clamp_region_repeat;
+            if (clamp.min_u != 0U || clamp.max_u != 0U ||
+                clamp.min_v != 0U || clamp.max_v != 0U) {
+                ++result.gs_clamp_nonzero_meshes;
+            }
+            if (mesh.reserved0c != 0U || mesh.reserved30 != 0U ||
+                mesh.reserved4c != 0U) {
+                ++result.mesh_preservation_nonzero_records;
+            }
+            if (mesh.generated_index_count != 0U) {
+                ++result.serialized_generated_index_count_nonzero_meshes;
+            }
+        }
+    }
+
+    for (const auto& transform :
+         parsed.document.scene_nodes.transform_by_node_index) {
+        if (transform.reserved1c != 0.0F) {
+            ++result.transform_preservation_nonzero_records;
         }
     }
 
@@ -148,11 +234,32 @@ struct FileResult final {
     std::size_t preserve_identical = 0U;
     std::size_t canonical_ok = 0U;
     std::size_t canonical_identical = 0U;
+    std::uint32_t source_flag_union = 0U;
+    std::uint32_t preserved_undecoded_source_flag_union = 0U;
+    std::uint8_t topology_flag_union = 0U;
+    std::uint8_t topology_unconfirmed_flag_union = 0U;
+    std::size_t gs_clamp_nonzero_meshes = 0U;
+    std::size_t files_with_nonzero_preservation = 0U;
+
     for (const auto& result : results) {
         if (result.parse_ok) ++parse_ok;
         if (result.preserve_bit_identical) ++preserve_identical;
         if (result.canonical_write_ok && result.canonical_reparse_ok) ++canonical_ok;
         if (result.canonical_bit_identical) ++canonical_identical;
+        source_flag_union |= result.source_flag_union;
+        preserved_undecoded_source_flag_union |=
+            result.preserved_undecoded_source_flag_union;
+        topology_flag_union |= result.topology_flag_union;
+        topology_unconfirmed_flag_union |= result.topology_unconfirmed_flag_union;
+        gs_clamp_nonzero_meshes += result.gs_clamp_nonzero_meshes;
+        if (result.header_preservation_nonzero ||
+            result.scene_preservation_nonzero ||
+            result.object_preservation_nonzero_records != 0U ||
+            result.mesh_preservation_nonzero_records != 0U ||
+            result.transform_preservation_nonzero_records != 0U ||
+            result.serialized_generated_index_count_nonzero_meshes != 0U) {
+            ++files_with_nonzero_preservation;
+        }
     }
 
     const auto percent = [&](std::size_t value) {
@@ -173,7 +280,17 @@ struct FileResult final {
         << "    \"canonicalWriteAndReparseOk\": " << canonical_ok << ",\n"
         << "    \"canonicalBitIdentical\": " << canonical_identical << ",\n"
         << "    \"canonicalBitIdenticalPercent\": "
-        << std::fixed << std::setprecision(3) << percent(canonical_identical) << "\n"
+        << std::fixed << std::setprecision(3) << percent(canonical_identical) << ",\n"
+        << "    \"sourceFlagUnion\": \"" << hex_text(source_flag_union, 8U) << "\",\n"
+        << "    \"preservedUndecodedSourceFlagUnion\": \""
+        << hex_text(preserved_undecoded_source_flag_union, 8U) << "\",\n"
+        << "    \"topologyFlagUnion\": \""
+        << hex_text(topology_flag_union, 2U) << "\",\n"
+        << "    \"topologyUnconfirmedFlagUnion\": \""
+        << hex_text(topology_unconfirmed_flag_union, 2U) << "\",\n"
+        << "    \"gsClampNonzeroMeshes\": " << gs_clamp_nonzero_meshes << ",\n"
+        << "    \"filesWithNonzeroPreservationDomains\": "
+        << files_with_nonzero_preservation << "\n"
         << "  },\n"
         << "  \"files\": [\n";
 
@@ -186,6 +303,36 @@ struct FileResult final {
             << "      \"meshes\": " << result.meshes << ",\n"
             << "      \"nodes\": " << result.nodes << ",\n"
             << "      \"vertices\": " << result.vertices << ",\n"
+            << "      \"textureSlotCount\": "
+            << static_cast<unsigned>(result.texture_slot_count) << ",\n"
+            << "      \"resourceCodeRaw\": " << result.resource_code_raw << ",\n"
+            << "      \"resourceFamilyClass\": "
+            << static_cast<unsigned>(result.resource_family_class) << ",\n"
+            << "      \"resourceModelSet\": " << result.resource_model_set << ",\n"
+            << "      \"resourceSubIndex\": "
+            << static_cast<unsigned>(result.resource_sub_index) << ",\n"
+            << "      \"sourceFlagUnion\": \""
+            << hex_text(result.source_flag_union, 8U) << "\",\n"
+            << "      \"preservedUndecodedSourceFlagUnion\": \""
+            << hex_text(result.preserved_undecoded_source_flag_union, 8U) << "\",\n"
+            << "      \"topologyFlagUnion\": \""
+            << hex_text(result.topology_flag_union, 2U) << "\",\n"
+            << "      \"topologyUnconfirmedFlagUnion\": \""
+            << hex_text(result.topology_unconfirmed_flag_union, 2U) << "\",\n"
+            << "      \"gsClampNonzeroMeshes\": "
+            << result.gs_clamp_nonzero_meshes << ",\n"
+            << "      \"headerPreservationNonzero\": "
+            << (result.header_preservation_nonzero ? "true" : "false") << ",\n"
+            << "      \"scenePreservationNonzero\": "
+            << (result.scene_preservation_nonzero ? "true" : "false") << ",\n"
+            << "      \"objectPreservationNonzeroRecords\": "
+            << result.object_preservation_nonzero_records << ",\n"
+            << "      \"meshPreservationNonzeroRecords\": "
+            << result.mesh_preservation_nonzero_records << ",\n"
+            << "      \"transformPreservationNonzeroRecords\": "
+            << result.transform_preservation_nonzero_records << ",\n"
+            << "      \"serializedGeneratedIndexCountNonzeroMeshes\": "
+            << result.serialized_generated_index_count_nonzero_meshes << ",\n"
             << "      \"readOk\": " << (result.read_ok ? "true" : "false") << ",\n"
             << "      \"parseOk\": " << (result.parse_ok ? "true" : "false") << ",\n"
             << "      \"preserveWriteOk\": " << (result.preserve_write_ok ? "true" : "false") << ",\n"
@@ -214,7 +361,8 @@ struct FileResult final {
 inline void print_scm_corpus_help() {
     std::cout
         << "  verify-scm-corpus <directory> [--json <report.json>]\n"
-        << "                             Parse/write/reparse every .scm through GDSpaces\n";
+        << "                             Parse/write/reparse every .scm through GDSpaces\n"
+        << "                             and emit reverse-reader field/unknown-domain census\n";
 }
 
 inline int try_run_scm_corpus_command(int argc, char** argv) {
@@ -280,7 +428,17 @@ inline int try_run_scm_corpus_command(int argc, char** argv) {
             << " objects=" << result.objects
             << " meshes=" << result.meshes
             << " nodes=" << result.nodes
-            << " vertices=" << result.vertices;
+            << " vertices=" << result.vertices
+            << " srcFlags=" << scm_corpus_detail::hex_text(result.source_flag_union, 8U)
+            << " topo=" << scm_corpus_detail::hex_text(result.topology_flag_union, 2U);
+        if (result.preserved_undecoded_source_flag_union != 0U) {
+            std::cout << " undecodedFlags="
+                      << scm_corpus_detail::hex_text(
+                             result.preserved_undecoded_source_flag_union, 8U);
+        }
+        if (result.gs_clamp_nonzero_meshes != 0U) {
+            std::cout << " gsClampNonzero=" << result.gs_clamp_nonzero_meshes;
+        }
         if (result.first_mismatch_offset.has_value()) {
             std::cout << " firstMismatch=0x" << std::hex
                       << *result.first_mismatch_offset << std::dec;
