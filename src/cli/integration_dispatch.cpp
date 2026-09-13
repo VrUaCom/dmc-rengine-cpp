@@ -11,6 +11,7 @@
 #include "scm_vertex_authoring_commands.hpp"
 #include "scm_normal_authoring_commands.hpp"
 #include "scm_uv_authoring_commands.hpp"
+#include "scm_reflow_authoring_commands.hpp"
 #include "scm_corpus_commands.hpp"
 #include "scm_occurrence_census_commands.hpp"
 #include "scm_reader_commands.hpp"
@@ -41,6 +42,7 @@ void print_integration_help() {
     print_scm_vertex_authoring_help();
     print_scm_normal_authoring_help();
     print_scm_uv_authoring_help();
+    print_scm_reflow_authoring_help();
     print_scm_corpus_help();
 }
 
@@ -109,6 +111,12 @@ int try_run_integration_command(int argc, char** argv) {
         try_run_scm_uv_authoring_command(argc, argv);
     if (scm_uv_authoring_result != -1) {
         return scm_uv_authoring_result;
+    }
+
+    const auto scm_reflow_authoring_result =
+        try_run_scm_reflow_authoring_command(argc, argv);
+    if (scm_reflow_authoring_result != -1) {
+        return scm_reflow_authoring_result;
     }
 
     const auto scm_authoring_result = try_run_scm_authoring_command(argc, argv);
