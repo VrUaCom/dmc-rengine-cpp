@@ -8,6 +8,15 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Executable structural reverse
+
+- `PeReader` extended with COFF timestamp/characteristics, DLL characteristics, alignments, checksum, code/data sizes and the data-directory array;
+- `PeDirectoryReader`: imports (delay imports and ordinal-only entries included), exports with forwarder detection, the x64 exception directory as a function inventory, the debug directory with CodeView GUID/age/PDB identity, base relocations, TLS with its callback array, and the resource tree — each recovered independently so one malformed table does not cost the others;
+- `RttiScanner`: MSVC type descriptors, complete-object locators, class hierarchy and base-class descriptors, and vtables, grouped by type with per-subobject vtable offsets; locators are accepted only when their self-reference matches, and MSVC decorated names are reconstructed with an explicit completeness flag;
+- `dmc-rengine analyze-exe` emitting a deterministic JSON analysis report;
+- synthetic PE32+ fixtures covering every directory, the RTTI hierarchy and their failure paths;
+- structural reverse of the canonical DMC3 HD target recorded as evidence: build identity, 12,235 unwind-backed function ranges over 89.1 percent of `.text`, the 26-module import surface, the `dmc3_main` export, and 396 polymorphic types across 915 vtables.
+
 #### Runtime host layer
 
 - new responsibility boundary: platform, fixed-step frame loop and rendering device abstraction for playable targets (Specification 010);

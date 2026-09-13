@@ -1,5 +1,7 @@
 #include "dmc_rengine/exe/pe_reader.hpp"
 
+#include "pe_byte_access.hpp"
+
 #include <algorithm>
 #include <cstdint>
 #include <limits>
@@ -8,58 +10,10 @@
 namespace dmc::rengine::exe {
 namespace {
 
-[[nodiscard]] bool has_range(
-    std::span<const std::byte> bytes,
-    std::size_t offset,
-    std::size_t size) noexcept {
-    return offset <= bytes.size() && size <= bytes.size() - offset;
-}
-
-[[nodiscard]] std::optional<std::uint16_t> read_u16(
-    std::span<const std::byte> bytes,
-    std::size_t offset) noexcept {
-    if (!has_range(bytes, offset, 2U)) {
-        return std::nullopt;
-    }
-
-    return static_cast<std::uint16_t>(
-        std::to_integer<std::uint8_t>(bytes[offset]) |
-        (static_cast<std::uint16_t>(
-             std::to_integer<std::uint8_t>(bytes[offset + 1U]))
-         << 8U));
-}
-
-[[nodiscard]] std::optional<std::uint32_t> read_u32(
-    std::span<const std::byte> bytes,
-    std::size_t offset) noexcept {
-    if (!has_range(bytes, offset, 4U)) {
-        return std::nullopt;
-    }
-
-    std::uint32_t value = 0;
-    for (std::size_t index = 0; index < 4U; ++index) {
-        value |= static_cast<std::uint32_t>(
-                     std::to_integer<std::uint8_t>(bytes[offset + index]))
-            << static_cast<unsigned>(index * 8U);
-    }
-    return value;
-}
-
-[[nodiscard]] std::optional<std::uint64_t> read_u64(
-    std::span<const std::byte> bytes,
-    std::size_t offset) noexcept {
-    if (!has_range(bytes, offset, 8U)) {
-        return std::nullopt;
-    }
-
-    std::uint64_t value = 0;
-    for (std::size_t index = 0; index < 8U; ++index) {
-        value |= static_cast<std::uint64_t>(
-                     std::to_integer<std::uint8_t>(bytes[offset + index]))
-            << static_cast<unsigned>(index * 8U);
-    }
-    return value;
-}
+using detail::has_range;
+using detail::read_u16;
+using detail::read_u32;
+using detail::read_u64;
 
 [[nodiscard]] std::string read_name(
     std::span<const std::byte> bytes,
@@ -183,6 +137,47 @@ PeReadResult PeReader::read(std::span<const std::byte> bytes) {
     image.size_of_image = *size_of_image;
     image.size_of_headers = *size_of_headers;
     image.subsystem = *subsystem;
+    image.timestamp = read_u32(bytes, pe_offset + 8U).value_or(0U);
+    image.characteristics = read_u16(bytes, pe_offset + 22U).value_or(0U);
+    image.dll_characteristics = read_u16(bytes, optional_offset + 70U).value_or(0U);
+    image.size_of_code = read_u32(bytes, optional_offset + 4U).value_or(0U);
+    image.size_of_initialized_data = read_u32(bytes, optional_offset + 8U).value_or(0U);
+    image.size_of_uninitialized_data = read_u32(bytes, optional_offset + 12U).value_or(0U);
+    image.section_alignment = read_u32(bytes, optional_offset + 32U).value_or(0U);
+    image.file_alignment = read_u32(bytes, optional_offset + 36U).value_or(0U);
+    image.checksum = read_u32(bytes, optional_offset + 64U).value_or(0U);
+
+    // The directory array sits after the last fixed field, and PE32 reaches it
+    // sooner than PE32+ because its image base and stack/heap fields are
+    // narrower.
+    const std::size_t directory_count_offset =
+        optional_offset + (image.kind == PeKind::pe32_plus ? 108U : 92U);
+    const std::size_t directory_table_offset = directory_count_offset + 4U;
+    const auto directory_count_value = read_u32(bytes, directory_count_offset);
+    if (!directory_count_value.has_value()) {
+        result.warnings.emplace_back("Optional header declares no data-directory count.");
+    } else if (*directory_count_value > 16U) {
+        result.warnings.emplace_back("Data-directory count exceeds the specified maximum of 16.");
+    } else {
+        const auto directory_count = static_cast<std::size_t>(*directory_count_value);
+        const auto declared_end = directory_table_offset + directory_count * 8U;
+        if (declared_end > optional_offset + optional_size) {
+            result.warnings.emplace_back(
+                "Data-directory array extends past the optional header.");
+        }
+
+        image.data_directories.reserve(directory_count);
+        for (std::size_t index = 0; index < directory_count; ++index) {
+            const auto entry_offset = directory_table_offset + index * 8U;
+            const auto rva = read_u32(bytes, entry_offset);
+            const auto size = read_u32(bytes, entry_offset + 4U);
+            if (!rva.has_value() || !size.has_value()) {
+                result.warnings.emplace_back("Truncated data-directory entry.");
+                break;
+            }
+            image.data_directories.push_back(PeDataDirectory{*rva, *size});
+        }
+    }
 
     const auto section_table_offset = optional_offset + optional_size;
     constexpr std::size_t section_header_size = 40U;

@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-structural-reverse",
+  "title": "DMC3 HD executable structural reverse",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-build-identity",
+      "claim_id": "claim-dmc3-build-identity",
+      "title": "CodeView build identity",
+      "summary": "The debug directory carries an RSDS CodeView record identifying PDB GUID 8DACCD58-89B6-4E0C-9B74-EC2A1292FC90 age 1, emitted for C:\\dev\\dmc\\dmc3\\build\\x64\\dmc3.pdb. This is the strongest available build fingerprint for the canonical target and distinguishes it from any other build of the same source.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "debug-directory",
+        "codeview",
+        "build-identity"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5295600,
+          "size": 84,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_DEBUG",
+          "note": "Debug directory at RVA 0x50CDF0, size 0x54, holding three entries: CodeView (2), VC feature (12) and POGO (13)."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-link-timestamp",
+      "claim_id": "claim-dmc3-link-timestamp",
+      "title": "COFF link timestamp",
+      "summary": "The COFF header TimeDateStamp is 1521798082 (0x5AB4CBC2), which reads as 2018-03-23T09:41:22Z. The field is a timestamp by specification; whether this build used a real clock or a reproducible-build substitute is not established here.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "coff",
+        "timestamp"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 320,
+          "size": 4,
+          "symbol": "IMAGE_FILE_HEADER.TimeDateStamp",
+          "note": "PE signature at file offset 0x138; the COFF timestamp follows at 0x140."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-function-inventory",
+      "claim_id": "claim-dmc3-function-inventory",
+      "title": "Unwind-backed function inventory",
+      "summary": "The x64 exception directory holds 12235 RUNTIME_FUNCTION entries covering 3085665 bytes, which is 89.1 percent of the 3464526-byte .text virtual size. Every entry is a compiler-emitted function range. The table bounds the function count from below; it does not name or explain any function, and the uncovered remainder is not established to be non-code.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "exception-directory",
+        "pdata",
+        "function-inventory"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14102528,
+          "size": 146820,
+          "symbol": ".pdata",
+          "note": "Exception directory at RVA 0xD73000, size 0x23D84; 12 bytes per entry."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-export-surface",
+      "claim_id": "claim-dmc3-export-surface",
+      "title": "Export surface",
+      "summary": "The image exports exactly two named symbols: dmc3_main at RVA 0x2C5DF0 (VA 0x1402C5DF0) and FMODGetCodecDescription at RVA 0x32BA0. Neither is forwarded. The names are the linker's own; their runtime roles are recorded separately.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "export-directory",
+        "symbols"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5571952,
+          "size": 104,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_EXPORT",
+          "note": "Export directory at RVA 0x550570, size 0x68, ordinal base 1."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2907632,
+          "va": 5371616752,
+          "symbol": "dmc3_main",
+          "note": "Exported ordinal 2. RVA 0x2C5DF0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-import-surface",
+      "claim_id": "claim-dmc3-import-surface",
+      "title": "Import surface",
+      "summary": "The import directory binds 26 modules and 229 functions, with no delay-import directory present. Non-OS modules are d3d11.dll and dxgi.dll, fmod64.dll and fmodstudio64.dll, MFPlat.DLL and MFReadWrite.dll, DINPUT8.dll and XINPUT9_1_0.dll, and steam_api64.dll.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "import-directory",
+        "dependencies"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5572056,
+          "size": 540,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_IMPORT",
+          "note": "Import directory at RVA 0x5505D8, size 0x21C."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-subsystem-attribution",
+      "claim_id": "claim-dmc3-subsystem-attribution",
+      "title": "Runtime subsystem attribution from imports",
+      "summary": "Linked libraries indicate a Direct3D 11 renderer, FMOD and FMOD Studio audio, Media Foundation video playback, DirectInput 8 with XInput for input, and Steamworks platform services. This is an inference from the dependency set, not a behavioral observation: an imported library may be initialized conditionally or left unused on some paths.",
+      "confidence": "high",
+      "tags": [
+        "exe",
+        "subsystems",
+        "inference"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5572056,
+          "size": 540,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_IMPORT",
+          "note": "fmod64.dll contributes 33 of the 229 imported functions, the largest non-OS share."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-rtti-inventory",
+      "claim_id": "claim-dmc3-rtti-inventory",
+      "title": "MSVC RTTI inventory",
+      "summary": "The image retains MSVC run-time type information: 408 type descriptors, 915 complete-object locators and 915 located vtables resolving to 396 distinct polymorphic types. Locators outnumber types because multiple inheritance gives a type one locator and one vtable per base subobject. The 12 descriptors without a locator belong to types that are not polymorphic or appear only as bases.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "type-system",
+        "vtables"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "size": 2110312,
+          "symbol": ".rdata",
+          "note": "Type descriptors, locators, class hierarchy descriptors and vtables all reside in .rdata at RVA 0x34F000."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-class-spine",
+      "claim_id": "claim-dmc3-class-spine",
+      "title": "Recovered class spine",
+      "summary": "Class hierarchy descriptors show CWork as a base of 264 of the 396 polymorphic types, with CActor, IActor and ICollisionHandle beneath 181, 182 and 188 types respectively. The deepest declared hierarchies carry 12 bases, for example CEm021 deriving through CEm017 and CNonPlayer to CActor, CWork, IActor and ICollisionHandle. These are the relationships the compiler recorded; the responsibilities of each class are not established by the hierarchy alone.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "class-hierarchy",
+        "object-model"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "symbol": "RTTIClassHierarchyDescriptor",
+          "note": "Read from the base class arrays of each complete-object locator in .rdata."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-relocation-and-tls",
+      "claim_id": "claim-dmc3-relocation-and-tls",
+      "title": "Relocation and TLS directories",
+      "summary": "The base relocation table holds 35936 entries across 158 blocks, all DIR64 apart from block padding. A TLS directory is present and declares an index and a raw data range, with an empty callback array.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "relocations",
+        "tls"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14262272,
+          "size": 73136,
+          "symbol": ".reloc",
+          "note": "Base relocation directory at RVA 0xD9A000, size 0x11DB0."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5295848,
+          "size": 40,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_TLS",
+          "note": "TLS directory at RVA 0x50CEE8, size 0x28."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-structural-reverse-scope",
+      "claim_id": "claim-dmc3-structural-reverse-scope",
+      "title": "Scope boundary of the structural reverse",
+      "summary": "This packet records structure the image itself declares: headers, directories, symbol tables, unwind ranges and run-time type information. It establishes no function semantics, no field layouts beyond RTTI subobject offsets, and no behavioral equivalence. Per-function recovery across the 12235 unwind ranges remains an open program and requires its own evidence.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "scope",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 0,
+          "symbol": "whole image",
+          "note": "Regenerate with: dmc-rengine analyze-exe <exe> --out report.json"
+        }
+      ]
+    }
+  ]
+}

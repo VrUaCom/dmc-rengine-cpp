@@ -6,6 +6,11 @@ This directory contains sanitized, versioned evidence metadata. It does not cont
 
 - [`dmc3-hdc-phase12.evidence.json`](known-targets/dmc3-hdc-phase12.evidence.json) — canonical executable hash and confirmed PE/stage metadata migrated from Phase 12 research.
 
+## Executable structure
+
+- [`dmc3-hdc-structural-reverse.evidence.json`](executable/dmc3-hdc-structural-reverse.evidence.json) — build identity, directory inventory, unwind-backed function count and recovered RTTI class spine for the canonical target;
+- [`dmc3-hdc-structural-reverse.report.json`](executable/dmc3-hdc-structural-reverse.report.json) — the full machine-readable analysis the packet summarizes, regenerable with `dmc-rengine analyze-exe`.
+
 ## Rules
 
 - identify local artifacts by SHA-256 and role;

@@ -7,7 +7,10 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
 #include "dmc_rengine/evidence/json_import.hpp"
+#include "dmc_rengine/exe/executable_report.hpp"
+#include "dmc_rengine/exe/pe_directories.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
+#include "dmc_rengine/exe/rtti_scanner.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -15,6 +18,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -45,6 +49,8 @@ void print_help() {
         << "  validate-evidence <path>  Strictly validate an Evidence Packet JSON\n"
         << "  route <format>            Show the default tool route for a format\n"
         << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
+        << "  analyze-exe <path> [--out <file>] [--ranges] [--no-rtti]\n"
+        << "                            Full structural analysis report as JSON\n"
         << "  extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]\n"
         << "                            Hash-gated reverse-evidence byte window\n";
     dmc::rengine::cli::print_integration_help();
@@ -292,6 +298,91 @@ int run_inspect_exe(const std::filesystem::path& path) {
     return 0;
 }
 
+int run_analyze_exe(int argc, char** argv) {
+    if (argc < 3) {
+        std::cerr << "analyze-exe: usage: analyze-exe <path> [--out <file>] [--ranges] [--no-rtti]\n";
+        return 2;
+    }
+
+    dmc::rengine::exe::ExecutableReportOptions options;
+    std::filesystem::path output_path;
+    for (int index = 3; index < argc; ++index) {
+        const std::string_view argument{argv[index]};
+        if (argument == "--ranges") {
+            options.include_function_ranges = true;
+        } else if (argument == "--no-rtti") {
+            options.include_rtti_classes = false;
+        } else if (argument == "--no-imports") {
+            options.include_import_functions = false;
+        } else if (argument == "--out" && index + 1 < argc) {
+            output_path = argv[++index];
+        } else {
+            std::cerr << "analyze-exe: unknown argument: " << argument << '\n';
+            return 2;
+        }
+    }
+
+    const auto payload = load_local_file(argv[2], "exe-analyze", "analyze-exe");
+    if (!payload.has_value()) {
+        return 2;
+    }
+
+    const auto bytes = std::span<const std::byte>{payload->bytes};
+    const auto result = dmc::rengine::exe::PeReader::read(bytes);
+    for (const auto& warning : result.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+    for (const auto& parse_error : result.errors) {
+        std::cerr << "[error] " << parse_error << '\n';
+    }
+    if (!result.ok()) {
+        return 3;
+    }
+
+    const auto& image = *result.image;
+    auto directories = dmc::rengine::exe::PeDirectoryReader::read(bytes, image);
+    for (const auto& warning : directories.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+    for (const auto& directory_error : directories.errors) {
+        std::cerr << "[error] " << directory_error << '\n';
+    }
+
+    dmc::rengine::exe::RttiScanResult rtti;
+    if (options.include_rtti_classes) {
+        rtti = dmc::rengine::exe::RttiScanner::scan(bytes, image);
+        for (const auto& warning : rtti.warnings) {
+            std::cerr << "[warning] " << warning << '\n';
+        }
+    }
+
+    dmc::rengine::exe::ExecutableArtifactIdentity artifact;
+    artifact.sha256 = dmc::rengine::core::Sha256::compute(bytes).hex();
+    artifact.size = static_cast<std::uint64_t>(bytes.size());
+
+    const auto report =
+        dmc::rengine::exe::to_json(artifact, image, directories.directories, rtti, options);
+
+    if (output_path.empty()) {
+        std::cout << report;
+        return 0;
+    }
+
+    std::ofstream output{output_path, std::ios::binary | std::ios::trunc};
+    if (!output) {
+        std::cerr << "analyze-exe: cannot write " << output_path.string() << '\n';
+        return 4;
+    }
+    output << report;
+    if (!output) {
+        std::cerr << "analyze-exe: failed while writing " << output_path.string() << '\n';
+        return 4;
+    }
+
+    std::cerr << "analyze-exe: wrote " << output_path.string() << '\n';
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -370,6 +461,10 @@ int main(int argc, char** argv) {
             return 1;
         }
         return run_route(std::string{argv[2]});
+    }
+
+    if (command == "analyze-exe") {
+        return run_analyze_exe(argc, argv);
     }
 
     if (command == "inspect-exe") {

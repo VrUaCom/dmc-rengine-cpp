@@ -57,6 +57,27 @@ EFM is still not a canonical Native Reader module. MRP/MCV/CAM/CLT/TSC and other
 
 SHW remains structural/read-only. Matrix-palette ownership, universal revision coverage and writer/original-game acceptance remain open.
 
+## Executable structural reverse state
+
+### Structural reverse — COMPLETE for declared structure
+
+Every PE structure the canonical target declares is now parsed and recorded as evidence: headers, the data-directory array, imports, exports, the exception directory, the debug directory, base relocations, TLS and resources, plus the MSVC RTTI class graph. See [the structural reverse](../reverse/dmc3-exe-structural-reverse-2026-09-13.md) and [`dmc3-hdc-structural-reverse.evidence.json`](../../evidence/executable/dmc3-hdc-structural-reverse.evidence.json).
+
+Recovered and confirmed:
+
+- build identity: CodeView GUID `8DACCD58-89B6-4E0C-9B74-EC2A1292FC90` age 1, `C:\dev\dmc\dmc3\build\x64\dmc3.pdb`;
+- 12,235 unwind-backed function ranges covering 89.1 percent of `.text`;
+- 26 imported modules / 229 functions; exports `dmc3_main` (RVA `0x2C5DF0`) and `FMODGetCodecDescription`;
+- 408 RTTI type descriptors, 915 complete-object locators, 396 distinct polymorphic types, 915 vtables;
+- object spine: `CWork` under 264 of 396 types, `CActor` / `IActor` / `ICollisionHandle` under ~180 each.
+
+### Open
+
+- **no function semantics.** The inventory counts and bounds functions; it names and explains none. Per-function recovery over the 12,235 ranges is a separate program;
+- **no field layouts.** RTTI supplies subobject offsets, not members;
+- **renderer surface invisible to imports.** D3D11 is reached through COM vtables; recovering those is separate work;
+- subsystem attribution from the dependency set is recorded at confidence `high`, not `confirmed`.
+
 ## Runtime host layer state
 
 ### Implementation status — INITIAL

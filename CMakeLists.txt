@@ -178,6 +178,9 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         executable_workspace_manifest
         evidence_address_resolver
         exe_byte_window
+        pe_directories
+        rtti_scanner
+        executable_report
         exe_byte_window_receipt
         process_memory_window
         process_memory_window_receipt
@@ -362,6 +365,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
     add_test(
+        NAME dmc_rengine_structural_reverse_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-structural-reverse.evidence.json)
+    add_test(
         NAME dmc_rengine_save_pass31_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass31.evidence.json)
@@ -379,6 +386,11 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         set_tests_properties(dmc_rengine_runtime_probe_rejects_unknown_argument
                              PROPERTIES WILL_FAIL TRUE)
     endif()
+
+    add_test(NAME dmc_rengine_cli_analyze_exe_usage COMMAND dmc-rengine analyze-exe)
+    set_tests_properties(
+        dmc_rengine_cli_analyze_exe_usage
+        PROPERTIES WILL_FAIL TRUE)
 
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)

@@ -78,4 +78,13 @@ std::optional<std::uint32_t> PeImage::file_offset_to_rva(
     return std::nullopt;
 }
 
+
+PeDataDirectory PeImage::directory(PeDirectory entry) const noexcept {
+    const auto index = static_cast<std::size_t>(entry);
+    if (index >= data_directories.size()) {
+        return PeDataDirectory{};
+    }
+    return data_directories[index];
+}
+
 } // namespace dmc::rengine::exe
