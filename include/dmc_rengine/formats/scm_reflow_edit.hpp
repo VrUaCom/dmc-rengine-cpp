@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <limits>
 #include <span>
+#include <utility>
 #include <vector>
 
 namespace dmc::rengine::formats::scm {
@@ -45,9 +46,19 @@ namespace reflow_edit_detail {
     for (const auto& object : document.objects) {
         ObjectShape shape;
         shape.mesh_vertex_counts.reserve(object.meshes.size());
+        std::size_t object_vertex_total = 0U;
         for (const auto& mesh : object.meshes) {
             const auto count = mesh.positions.size();
-            if (count > std::numeric_limits<std::uint16_t>::max()) return false;
+            if (mesh.normals.size() != count || mesh.uvs.size() != count ||
+                mesh.colors_topology.size() != count ||
+                count > std::numeric_limits<std::uint16_t>::max()) {
+                return false;
+            }
+            object_vertex_total += count;
+            if (object_vertex_total >
+                std::numeric_limits<std::uint16_t>::max()) {
+                return false;
+            }
             shape.mesh_vertex_counts.push_back(
                 static_cast<std::uint16_t>(count));
         }
