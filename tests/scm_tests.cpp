@@ -5,6 +5,7 @@
 #include "dmc_rengine/formats/scm_topology.hpp"
 #include "dmc_rengine/formats/scm_transform.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
