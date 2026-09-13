@@ -221,6 +221,18 @@ int main() {
         assert(mixed_parsed.status ==
                family::TextureCompanionStatus::mixed_framing);
 
+        // The status word crosses the ABI to an operator, so it has to say the
+        // condition rather than the history. `tm2_magic_mismatch` kept its
+        // identifier so existing consumers compile, and it no longer means
+        // "not TM2" — it means neither framing was recognized. A reader shown
+        // "tm2-magic-mismatch" for a bundle whose payloads are DDS-framed
+        // would go looking for the wrong problem.
+        assert(family::to_string(family::TextureCompanionStatus::tm2_magic_mismatch) ==
+               "no-recognized-payload-framing");
+        assert(family::to_string(family::TextureCompanionStatus::mixed_framing) ==
+               "mixed-framing");
+        assert(family::to_string(family::TextureCompanionStatus::ok) == "ok");
+
         // And neither signature is still a refusal: widening the contract must
         // not turn it into "anything with a block table".
         std::vector<std::byte> neither(0x1000U, std::byte{0});

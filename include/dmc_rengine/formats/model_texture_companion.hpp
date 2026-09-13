@@ -80,6 +80,27 @@ enum class TextureCompanionStatus : std::uint8_t {
     mixed_framing,
 };
 
+[[nodiscard]] constexpr std::string_view to_string(
+    TextureCompanionStatus status) noexcept {
+    switch (status) {
+    case TextureCompanionStatus::ok: return "ok";
+    case TextureCompanionStatus::truncated_count: return "truncated-count";
+    case TextureCompanionStatus::block_table_out_of_bounds:
+        return "block-table-out-of-bounds";
+    case TextureCompanionStatus::block_table_overlaps_payload:
+        return "block-table-overlaps-payload";
+    case TextureCompanionStatus::payload_size_overflow:
+        return "payload-size-overflow";
+    case TextureCompanionStatus::payload_out_of_bounds:
+        return "payload-out-of-bounds";
+    case TextureCompanionStatus::tm2_magic_mismatch:
+        // The name is historical; the condition is "neither framing".
+        return "no-recognized-payload-framing";
+    case TextureCompanionStatus::mixed_framing: return "mixed-framing";
+    }
+    return "unknown";
+}
+
 struct TextureCompanionEntry final {
     std::uint32_t index{};
     std::uint32_t block_count{};
