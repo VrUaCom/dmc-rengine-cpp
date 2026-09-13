@@ -1,0 +1,122 @@
+{
+  "schema": "dmc-rengine.exe-window-packet-plan.v1",
+  "id": "dmc3-hd-scm-deep-reader-2026-09-13",
+  "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "artifact_size": 6356432,
+  "authority_role": "analysis-reverse",
+  "window_size_policy": "Probe sizes are acquisition coverage only. They are not function-body sizes and must not be promoted as body boundaries.",
+  "windows": [
+    {
+      "id": "scm-postload-normalizer-1403051b0",
+      "va": "0x1403051B0",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Primary SCM serialized-mesh read surface. Reacquire continuation walking, color/topology relocation, generated-index workspace handling and every serialized displacement touched by the normalizer. Explicitly census +0x0C, +0x30 and +0x4C rather than assuming zero-corpus fields are globally unused."
+    },
+    {
+      "id": "scm-runtime-mesh-materialization-1402f9bb0",
+      "va": "0x1402F9BB0",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire the primary serializedMesh -> runtimeMesh materialization path. Confirm runtimeMesh+0x10 backreference ownership and direct reads of +0x00/+0x02/+0x10/+0x18/+0x20/+0x28/+0x38; search fresh bytes for any indirect use of +0x0C/+0x30/+0x4C."
+    },
+    {
+      "id": "scm-common-material-helper-1402f9890",
+      "va": "0x1402F9890",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reconfirm texture-slot table indexing, GS CLAMP REGION_REPEAT packing and TEX1 nearest/linear selection with serialized pointer provenance. Record all source/runtime reads so adjacent technical render state cannot be misattributed to SCM fields."
+    },
+    {
+      "id": "scm-object-materialization-140302f10",
+      "va": "0x140302F10",
+      "size": "0x900",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire SCM object 0x40-stride materialization into the 0x3C0 runtime object. Enumerate every serialized object displacement and every copy/projection of source flags, with special attention to preservation-only +0x04..+0x07, +0x14..+0x2F and bit 0x00200000."
+    },
+    {
+      "id": "scm-object-flag-helper-140302640",
+      "va": "0x140302640",
+      "size": "0x900",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire the low-mode/helper-state projection from SCM source flags. Trace transformed/indirect bit operations so source bit 0x00200000 is not missed merely because a downstream consumer lacks an immediate 0x200000 mask."
+    },
+    {
+      "id": "scm-manager-header-load-1402f9570",
+      "va": "0x1402F9570",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reconfirm SCM header/runtime manager ownership: +0x10 object count, +0x11 scene-node count, +0x13 runtime-carried byte, +0x14 legacy resource code and external companion texture-count authority. Census any fresh reads of the preserved header shells."
+    },
+    {
+      "id": "scm-resource-pair-binding-140304ae0",
+      "va": "0x140304AE0",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire SCM-resource and external texture-companion pairing at manager +0x108/+0x110 and the companion table build. Keep serialized SCM ownership separate from texture payload ownership."
+    },
+    {
+      "id": "scm-scene-setup-140303c10",
+      "va": "0x140303C10",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire SCM scene-node setup and handoff into the SCM local-transform initializer. Track parent/order/binding/transform arrays from their common binder into node runtime state and look for consumers of scene header +0x10..+0x1F."
+    },
+    {
+      "id": "scm-node-binder-1402f1db0",
+      "va": "0x1402F1DB0",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reconfirm four-array scene-node binding and pointer ownership. Distinguish SCM object-binding semantics from MOD node-side semantics and census all reads of the scene-node block header beyond the four confirmed relative offsets."
+    },
+    {
+      "id": "scm-local-transform-1402fa360",
+      "va": "0x1402FA360",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reacquire the corrected SCM-specific local transform path: translation, XYZ radians through 0x140330450, Rz*Ry*Rx composition and translation application. Explicitly verify that serialized transform +0x1C remains outside matrix construction."
+    },
+    {
+      "id": "scm-mesh-consumer-1402fdd10",
+      "va": "0x1402FDD10",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Regression anchor for fixed 0x50 physical SCM mesh stride and downstream mesh consumption. Enumerate serialized/runtime backreference reads to close any gap between materialization-time and draw-time field usage."
+    },
+    {
+      "id": "scm-alpha-packet-build-140304100",
+      "va": "0x140304100",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Reconfirm alpha_control projection into the 0x30-byte MDL_PARTS_COLOR_PKT and capture adjacent draw-state ownership. This is a regression surface for object +0x01 and low-mode forced 0x80 behavior, not authority to rename unrelated flags."
+    },
+    {
+      "id": "scm-bit21-rejected-manager-hit-140303e80",
+      "va": "0x140303E80",
+      "size": "0x300",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Negative-provenance regression around the previously rejected manager+0xE0 AND 0x00200000 hit at 0x140303F2F. Preserve the separation between manager bitfield state and serialized SCM object +0x10 bit 21."
+    },
+    {
+      "id": "scm-bit21-rejected-runtime-hit-1402f4b80",
+      "va": "0x1402F4B80",
+      "size": "0x280",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "Negative-provenance regression around the previously rejected runtimeRecord+0x304 bit-21 test at 0x1402F4C21. Confirm independent initialization chain and prevent future evidence laundering into SCM source flags."
+    }
+  ]
+}
