@@ -223,9 +223,6 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
                 !mark(mesh.normals_offset, vertex_count * 12U) ||
                 !mark(mesh.uv_offset, vertex_count * 4U) ||
                 !mark(mesh.color_flags_offset, vertex_count * 4U) ||
-                // Index workspace is an explicitly regenerated domain in
-                // canonical rebuild mode. Its source bytes are therefore not
-                // unknown evidence that must be transplanted across reflow.
                 !mark(
                     mesh.index_workspace_offset,
                     mesh.index_workspace_capacity)) {
@@ -311,8 +308,15 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
     if (header.reserved08 != source_header.reserved08) {
         return reject_unknown(0x08U, "header +0x08");
     }
-    if (header.reserved13 != source_header.reserved13) {
-        return reject_unknown(0x13U, "header +0x13");
+    if (header.lighting_reference_node_index !=
+        source_header.lighting_reference_node_index) {
+        const auto node_count =
+            document.scene_nodes.transform_by_node_index.size();
+        if (header.lighting_reference_node_index >= node_count) {
+            return reject_invalid(
+                0x13U,
+                "lighting reference node index");
+        }
     }
     if (header.reserved18 != source_header.reserved18) {
         return reject_unknown(0x18U, "header +0x18");
@@ -948,7 +952,10 @@ first_nonzero_unmodeled_source_byte(const Document& source_document) {
         !write_value(bytes, 0x10U, object_count) ||
         !write_value(bytes, 0x11U, node_count) ||
         !write_value(bytes, 0x12U, document.header.texture_slot_count) ||
-        !write_value(bytes, 0x13U, document.header.reserved13) ||
+        !write_value(
+            bytes,
+            0x13U,
+            document.header.lighting_reference_node_index) ||
         !write_value(bytes, 0x14U, document.header.resource_code.raw) ||
         !write_value(bytes, 0x18U, document.header.reserved18) ||
         !write_value(bytes, 0x20U, layout.scene.block_offset) ||
@@ -1231,6 +1238,25 @@ WriteResult Writer::write(
         return out;
     }
 
+    if (document.source_bytes.empty()) {
+        const auto lighting_reference =
+            document.header.lighting_reference_node_index;
+        const bool invalid_reference =
+            (node_count == 0U && lighting_reference != 0U) ||
+            (node_count != 0U && lighting_reference >= node_count);
+        if (invalid_reference) {
+            add_diag(
+                out,
+                ParseSeverity::error,
+                "scm.writer-invalid-lighting-reference-node",
+                "SCM lighting reference node must select an existing scene "
+                "node; zero is preserved for the empty-scene structural "
+                "case.",
+                0x13U);
+            return out;
+        }
+    }
+
     if (!document.source_bytes.empty()) {
         const auto source_reparsed = Parser::parse(
             std::span<const std::byte>{document.source_bytes});
@@ -1286,9 +1312,6 @@ WriteResult Writer::write(
                 document,
                 layout,
                 std::span<const ObjectShape>{shapes})) {
-            // Source-bound unknown padding/workspace bytes are preservation
-            // evidence. Reuse them only when the newly planned canonical
-            // layout is exactly the same shape and offsets.
             out.bytes = document.source_bytes;
         } else {
             if (!document.source_bytes.empty()) {

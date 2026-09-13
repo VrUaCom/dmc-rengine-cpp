@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.scm-canonical-exe-deep-reader.v2",
+  "schema": "dmc-rengine.scm-canonical-exe-deep-reader.v3",
   "date": "2026-09-13",
   "branch": "reverse/mod-completion-20260907",
   "target": {
@@ -9,15 +9,22 @@
     "image_base": "0x140000000",
     "status": "EXE_CONFIRMED"
   },
-  "supplied_retail_samples": [
-    {"scm":"st001.scm","sha256":"3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5","size":887760,"objects":44,"meshes":77,"nodes":50,"texture_slots":17,"header_13":0,"header_14":300100,"resource_code_components":{"family_class":3,"model_set":1,"sub_index":0},"bit21_objects":[8,39,40]},
-    {"scm":"st002.scm","sha256":"670ded6de6bd57ecc75118eaf89e9918dbb4b92ce271c96526b9e758b5ba7f44","size":860928,"objects":66,"meshes":107,"nodes":67,"texture_slots":14,"header_13":0,"header_14":813800,"resource_code_components":{"family_class":8,"model_set":138,"sub_index":0},"bit21_objects":[]},
-    {"scm":"st003.scm","sha256":"d573034fc4fd5496e3ffd1d84830f748cc70af2dbcc4d442d8af8694ac410be5","size":670816,"objects":13,"meshes":45,"nodes":14,"texture_slots":17,"header_13":0,"header_14":300300,"resource_code_components":{"family_class":3,"model_set":3,"sub_index":0},"bit21_objects":[]}
-  ],
-  "texture_companions": [
-    {"name":"st001.ptx","sha256":"976e6a6961686572c66cb6935f7e44dd450990016071604d99ff831ed9d36d5a","size":3485696,"slot_count":17,"payload_base":"0x800","slot_payload_dds_offset":"0x70","tm2_at_slot_start_count":0},
-    {"name":"st002.ptx","sha256":"1e3ff9dd1a9936ad6157ba5ce40a6707113fc24e424c9e675573b5e9dcf5d75e","size":3260416,"slot_count":14,"payload_base":"0x800","slot_payload_dds_offset":"0x70","tm2_at_slot_start_count":0},
-    {"name":"st003.ptx","sha256":"084822a6e8910e77ce318aea0ec6f69cf3ac02f2ff1e1c6a1bc0c214f034c4c4","size":1673216,"slot_count":17,"payload_base":"0x800","slot_payload_dds_offset":"0x70","tm2_at_slot_start_count":0}
+  "fresh_retail_authority": {
+    "stage_pacs": ["st000.pac","st001.pac","st002.pac","st003.pac"],
+    "structurally_valid_scm_occurrences": 51,
+    "unique_payload_sha256": 51,
+    "versions": {"0.83":1,"0.90":16,"1.00":1,"1.01":33},
+    "resource_family_classes": {"3":3,"4":29,"7":14,"8":5},
+    "objects": 345,
+    "meshes": 506,
+    "scene_nodes": 408,
+    "vertices": 107233,
+    "topology_byte_values": [0,2]
+  },
+  "supplied_named_samples": [
+    {"scm":"st001.scm","sha256":"3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5","objects":44,"meshes":77,"nodes":50,"texture_slots":17,"header_13":0,"header_14":300100,"bit21_objects":[8,39,40]},
+    {"scm":"st002.scm","sha256":"670ded6de6bd57ecc75118eaf89e9918dbb4b92ce271c96526b9e758b5ba7f44","objects":66,"meshes":107,"nodes":67,"texture_slots":14,"header_13":0,"header_14":813800,"bit21_objects":[]},
+    {"scm":"st003.scm","sha256":"d573034fc4fd5496e3ffd1d84830f748cc70af2dbcc4d442d8af8694ac410be5","objects":13,"meshes":45,"nodes":14,"texture_slots":17,"header_13":0,"header_14":300300,"bit21_objects":[]}
   ],
   "claims": [
     {
@@ -28,75 +35,94 @@
       "path": [
         "0x1402F960E reads SCM+0x13",
         "0x1402F9616 writes zero-extended value to manager+0xFA",
-        "0x1402F1DB0 stores scene-node world-matrix array base at manager+0x188; stride 0x40 per node",
+        "0x1402F1DB0 owns manager+0x188 scene-node world-matrix array, stride 0x40",
         "0x1402F9700 updates manager+0x188 + nodeIndex*0x40 through hierarchy world composition",
-        "0x1402FD0A3 reads manager+0xFA and 0x1402FD0AA scales it by 0x40",
-        "0x1402FD0B5 loads manager+0x188; 0x1402FD0C2 selects matrix lane +0x30",
-        "0x1402EE560 consumes that selected world-space float4 as the spatial query input and produces four 0x30-byte lighting records",
-        "CDrawSCM transposes record lanes +0x00 and +0x10 into two 4x4 matrices",
-        "0x1402FC850 writes those matrices into per-buffer constant backing at +0x280 following MDL_GLOBAL_MAT at +0x200/+0x240",
-        "embedded DMC3 HLSL declares this 0x80 block as MDL_LIGHT_MAT { matrix Lc; matrix Lv; }",
-        "stage vertex shader uses light.Lv to derive saturated normal-dependent light intensity and light.Lc to derive light color"
+        "0x1402FD040 indexes that array by manager+0xFA and selects world-matrix lane +0x30",
+        "0x1402EE560 builds four lighting records from the selected spatial input",
+        "CDrawSCM transposes record lanes into two 4x4 matrices",
+        "0x1402FC850 writes the matrices into the 0x80-byte lighting constant block",
+        "embedded DMC3 HLSL identifies the block as MDL_LIGHT_MAT { Lc, Lv } and uses Lv/Lc for light intensity/color"
       ],
-      "boundary": "technical role is closed as scene-node-indexed lighting reference; original source symbol/name and intended content-authoring label are not recovered",
-      "corpus": "0 in supplied st001/st002/st003 and previous bounded retail corpus, so current samples select node 0"
+      "boundary": "technical lighting-reference node semantics are closed; original source symbol is not recovered",
+      "retail_observation": "0 in all 51 fresh stage-PAC SCM payloads"
     },
     {
-      "id": "scm.header.14.resource-code-domain-extension",
+      "id": "scm.header.14.structural-resource-code",
       "serialized": "u32@header+0x14",
-      "status": "CORPUS_CONFIRMED_EXTENSION",
-      "observation": "st002.scm carries raw 813800 => family_class=8, model_set=138, sub_index=0",
-      "consequence": "previous corpus-shape predicate limited to family classes 3/4 is stale and must not warn on this supplied retail sample",
-      "runtime": "0x1402F95C2 -> manager+0xE4 remains EXE_CONFIRMED; no type-proven downstream manager+0xE4 semantic read was recovered in the model-core census"
+      "status": "CORPUS_CONFIRMED_STRUCTURE_PLUS_EXE_CONFIRMED_CARRY",
+      "formula": "raw = family_class*100000 + model_set*100 + sub_index",
+      "observed_family_classes": [3,4,7,8],
+      "examples": [
+        "730507 => family=7 model_set=305 sub_index=7",
+        "813800 => family=8 model_set=138 sub_index=0"
+      ],
+      "unique_identity_hypothesis": "REJECTED",
+      "identity_rejection_evidence": [
+        "730507 occurs in 14 different SHA-unique SCM payloads",
+        "813800 occurs in 5 different SHA-unique SCM payloads"
+      ],
+      "runtime": "0x1402F95C2/0x1402F95C5 carries the serialized value to manager+0xE4",
+      "downstream_role": "PRESERVED_UNDECODED_WITH_BOUNDED_MODEL_CORE_NEGATIVE_EVIDENCE"
+    },
+    {
+      "id": "scm.retail.version-domain",
+      "status": "CORPUS_CONFIRMED",
+      "observed_versions": ["0.83","0.90","1.00","1.01"],
+      "consequence": "1.01-only corpus warning is stale"
     },
     {
       "id": "scm.object.flags.bit21.expanded-whole-image-negative",
       "serialized": "object+0x10 & 0x00200000",
       "status": "PRESERVED_UNDECODED_WITH_EXPANDED_NEGATIVE_EVIDENCE",
       "real_positive_samples": "st001 objects 8,39,40",
-      "new_rejected_candidates": [
+      "rejected_candidates": [
         "0x1402F2CDD BTS bit21 operates record stride 0x380 and runtime field +0x304, not SCM runtime-object stride 0x3C0",
-        "0x140212B08 BTR bit21 operates unrelated actor/global state at +0x3FF8"
-      ],
-      "previous_rejected_candidates": [
-        "0x1402F4C21 runtimeRecord+0x304 with independent producer",
-        "0x140303F2F manager+0xE0 with independent producer",
-        "0x140302CF9/0x140302D59 manager bit21 setters from separate control state"
+        "0x140212B08 BTR bit21 operates unrelated actor/global state at +0x3FF8",
+        "0x1402F4C21 tests independent runtimeRecord+0x304",
+        "0x140303F2F tests independently produced manager+0xE0",
+        "0x140302CF9/0x140302D59 set manager bit21 from separate control state"
       ],
       "conclusion": "no provenance-clean semantic consumer of serialized SCM bit21 recovered; preserve exactly"
     },
     {
       "id": "scm.mesh.preservation-lanes.indirect-consumer-census",
-      "serialized": ["mesh+0x0C u32", "mesh+0x30 u64", "mesh+0x4C u32"],
+      "serialized": ["mesh+0x0C u32","mesh+0x30 u64","mesh+0x4C u32"],
       "status": "PRESERVED_UNDECODED_WITH_DEEP_NEGATIVE_EVIDENCE",
       "paths": [
-        "0x1402F9BB0 installs runtimeMesh+0x10 serialized backreference and directly reads +0x00/+0x02/+0x10/+0x18/+0x20/+0x28/+0x38 only",
-        "0x140308C00 post-init touches runtime-only +0xF0/+0xF4/+0xF8 and never follows runtimeMesh+0x10",
-        "0x1402F9890 follows runtimeMesh+0x10 for texture index and GS CLAMP +0x02..+0x0A, then skips preservation lanes",
-        "0x1402F9A80 common follow-up operates generated runtime descriptor state and does not follow the serialized backreference",
-        "0x1402F9F20 SCM-specialized allocation composes 0x1402F9BB0 -> 0x1402F9890 -> 0x1402F9A80 without additional reads of +0x0C/+0x30/+0x4C"
+        "0x1402F9BB0 primary materializer reads +0x00/+0x02/+0x10/+0x18/+0x20/+0x28/+0x38 only",
+        "0x140308C00 post-init stays in runtime-only fields",
+        "0x1402F9890 follows serialized backreference for +0x02..+0x0A then skips preservation lanes",
+        "0x1402F9A80 does not follow serialized backreference",
+        "0x1402F9F20 composes the above paths without additional +0x0C/+0x30/+0x4C reads"
       ],
-      "note": "runtime mesh field +0x4C is written elsewhere from runtime object state; numeric offset equality is explicitly rejected as serialized mesh+0x4C evidence"
+      "fresh_legacy_corpus": "all three lanes remain zero across 506 meshes spanning SCM versions 0.83/0.90/1.00/1.01"
     },
     {
-      "id": "scm.object.flags.helper-mode-dispatch",
+      "id": "scm.render.pass4",
       "status": "EXE_CONFIRMED",
-      "path": "0x140302640 chooses numeric mode; 0x1402F17C0 indexes a pointer table at 0x1405D0550 by mode and stores the selected pointer",
-      "boundary": "modes 1/2/4/9 are lookup-table selector IDs; no artistic semantic names are promoted"
+      "family_classifier": "manager+0xE0 high nibble 0x30000000 == SCM family",
+      "setter": "0x140302370 sets manager+0x214 = 4 only for that family",
+      "bucket": "0x140304950 -> 0x1402F9680(manager+0x210,0x7E,7) -> manager+0x218",
+      "per_object_dispatch": "mode 4 -> manager+0xE0 bit1 ? 0x140305440 : 0x140300150",
+      "command_queues": [
+        "0x140305440 -> arena global 0x1405D9D88 -> drain 0x140308470",
+        "0x140300150 -> arena global 0x1405D9D70 -> drain 0x1403081F0"
+      ],
+      "common_linker": "0x140333A50",
+      "boundary": "exact backend command/shader identity remains below the shared queue/link domain"
     },
     {
       "id": "scm.texture-companion.dds-fallback-retail",
       "status": "CORPUS_AND_EXE_CONFIRMED",
-      "exe": "0x1403365B0 has a direct TM2\\0 branch and a non-TM2 generic fallback",
-      "retail_samples": "all supplied st001/st002/st003 PTX slots have DDS magic at slot+0x70 and zero TM2-at-start slots",
-      "conclusion": "TM2 is not mandatory for SCM texture companion slots; current supplied retail samples exercise descriptor+0x70 DDS framing/fallback ownership"
+      "exe": "0x1403365B0 has direct TM2\\0 branch and non-TM2 fallback",
+      "retail_samples": "supplied st001/st002/st003 PTX slots use descriptor + DDS@+0x70 framing",
+      "conclusion": "TM2 is not mandatory for SCM companion slots"
     }
   ],
   "open_semantic_frontier": [
-    "recover original source symbol/content-authoring label for lighting_reference_node_index or find a non-zero retail specimen",
     "type-proven downstream role of manager+0xE4 / SCM header+0x14",
     "semantic effect of serialized object flag 0x00200000",
     "producer or non-zero canonical specimen for mesh +0x0C/+0x30/+0x4C",
-    "finish exact CDrawSCM branch/resource/shader-variant selection mapping beyond the closed lighting constant ABI"
+    "trace SCM pass4 linked command nodes through backend executor to exact shader/resource variant identity"
   ]
 }

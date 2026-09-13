@@ -1,4 +1,4 @@
-# DMC3 HD SCM writer / authoring validation — consolidated 2026-09-09
+# DMC3 HD SCM writer / authoring validation — consolidated 2026-09-13
 
 ## Scope
 
@@ -21,13 +21,14 @@ The parser materializes the authoring payloads required by the current writer:
 - positions: `float32 x/y/z`;
 - normals: `float32 x/y/z`;
 - UV: exact signed `int16 u/v` serialized representation;
-- color/topology: `u8 r/g/b/topologyFlags`.
+- color/topology: `u8 r/g/b/topologyFlags`;
+- header `+0x13`: `lighting_reference_node_index`, an EXE-confirmed scene-node index consumed by the CDrawSCM lighting path.
 
 Serialized state that is not semantically decoded is represented or preserved rather than silently discarded:
 
 - object bytes `+0x14..+0x2F`;
 - scene header bytes `+0x10..+0x1F`;
-- header reserved fields;
+- remaining header reserved fields;
 - mesh reserved fields;
 - scene transform `+0x1C`;
 - the original recognized byte image for same-layout preservation.
@@ -53,6 +54,7 @@ Current typed edits include:
 - alpha-control;
 - confirmed nearest/linear texture-filter flag;
 - GS CLAMP REGION_REPEAT;
+- lighting-reference scene-node index;
 - node translation and XYZ rotation.
 
 ### `WriteMode::canonical_rebuild`
@@ -114,20 +116,30 @@ A parsed `Document` exposes both semantic and preservation-only fields. That pub
 
 The source-bound writer therefore fails closed when retained-source comparison finds unauthorized direct mutation of preservation-only or derived state.
 
-Regression coverage now explicitly proves rejection of:
-
-- header `reserved13` direct mutation;
-- object flag bit `0x00200000`, which remains preserved/undecoded;
-- direct `bounding_radius` mutation when it is a derived writer-controlled field rather than an authorized semantic edit.
-
-Stable diagnostics:
+The 2026-09-13 canonical-EXE pass supersedes the historical treatment of header `+0x13` as `reserved13`. Its technical semantic is now closed as `lighting_reference_node_index`, so a bounded mutation of this field is authorized when and only when the selected index exists in the current scene-node table. The typed edit API is:
 
 ```text
+set_lighting_reference_node(document, node_index)
+```
+
+Regression coverage now explicitly proves:
+
+- `lighting_reference_node_index: 0 -> 1` on a two-node scene writes byte `+0x13 = 1`, reparses successfully and returns typed value `1`;
+- edit-API request for node `2` on a two-node scene is rejected;
+- direct source-bound mutation to an out-of-range lighting node is rejected at offset `0x13`;
+- object flag bit `0x00200000` remains preserved/undecoded and rejects direct mutation;
+- direct `bounding_radius` mutation remains rejected when it is a derived writer-controlled field rather than an authorized semantic edit.
+
+Stable diagnostics include:
+
+```text
+scm.edit-lighting-reference-node-out-of-range
+scm.writer-source-bound-invalid-authored-value
 scm.writer-source-bound-undecoded-field-mutated
 scm.writer-source-bound-derived-field-mutated
 ```
 
-This is an authority boundary, not merely an input-validation convenience: unknown and derived fields remain protected even though their storage is visible in the IR.
+This is an authority boundary, not merely an input-validation convenience: promoted typed fields may be edited within their recovered domain, while unknown and derived fields remain protected even though their storage is visible in the IR.
 
 ## 6. Dependent-field policy
 
@@ -176,6 +188,7 @@ set_texture_slot
 set_alpha_control
 set_texture_filter_nearest
 set_region_repeat
+set_lighting_reference_node
 set_node_translation
 set_node_rotation
 ```
@@ -183,6 +196,7 @@ set_node_rotation
 Safety properties include:
 
 - range checks for object/mesh/vertex/node indices;
+- lighting-reference bounds against the actual scene-node transform table;
 - rejection of non-finite position, normal and transform values;
 - UV quantization to signed int16 at the confirmed `1/4096` scale, failing if not representable;
 - texture-index bounds against the SCM texture-count mirror when non-zero;
@@ -198,6 +212,8 @@ The current corpus verifier is:
 ```text
 dmc-rengine verify-scm-corpus <directory> [--json <report.json>]
 ```
+
+The verifier now reports `lightingReferenceNode` as typed state and `filesWithNonzeroLightingReference` separately from preservation domains. Header `+0x13` is no longer counted as a reserved/preservation anomaly.
 
 Retail payload bytes are externally held and are not committed. The machine receipt is:
 
@@ -218,9 +234,9 @@ canonical exact byte identity         78 / 78 PASS
 canonical no-edit parity              100%
 ```
 
-This supersedes the earlier two-file-only baseline (`st001.scm` and `st114.scm`) as the strongest current no-edit writer evidence.
+The later direct stage-PAC census additionally established 51 structurally valid SCM occurrences in `st000.pac`–`st003.pac`, all 51 SHA-256 distinct, with versions `0.83 / 0.90 / 1.00 / 1.01`. Those versions are now the parser's confirmed retail domain rather than false-positive warning cases.
 
-The result proves the current writer reproduces all 68 unique hash-bound inputs byte-for-byte in both no-edit modes. It does **not** prove every possible SCM layout or edited layout accepted by the original game.
+The result proves the current writer reproduces all 68 unique hash-bound extracted inputs byte-for-byte in both no-edit modes. It does **not** prove every possible SCM layout or edited layout accepted by the original game.
 
 ## 9. Size-changing synthetic acceptance
 
@@ -269,6 +285,7 @@ Current evidence supports:
 reader                                strong
 semantic IR                           strong
 safe same-layout edit API             implemented
+lighting-reference authoring          synthetic bounded PASS
 writer                                experimental
 retail no-edit corpus                 78 paths / 68 unique PASS
 preserve-layout retail byte parity    68 / 68 unique PASS
@@ -288,13 +305,15 @@ Registry maturity must therefore remain below game-validated/production authorin
 
 ## 12. Next evidence frontier
 
-Do not repeat the already-closed 68-unique no-edit corpus pass. The next useful SCM evidence is:
+Do not repeat the already-closed no-edit corpus pass. The next useful SCM evidence is:
 
-1. provenance-bound real SCM same-layout edits across representative domains: geometry, UV, alpha/filter, GS CLAMP and transforms;
+1. provenance-bound real SCM same-layout edits across representative domains: geometry, UV, alpha/filter, GS CLAMP, lighting reference and transforms;
 2. provenance-bound retail texture-companion authoring where texture state actually changes;
 3. real size-changing SCM canonical rebuild with exact preservation accounting;
 4. PAC/PNST reintegration through the existing Layer-1 authored-child/container path;
 5. NBZ overlay emission/reopen through the existing NBZ writer path;
 6. original `dmc3.exe` load/visual/rollback acceptance.
+
+The renderer-command reverse remains a separate frontier: pass-4 command construction and lower dispatch are evidenced, but exact per-variant D3D11 shader/resource binding is not promoted here until the backend chain is closed.
 
 No `100% SCM`, Capcom-tool equivalence, arbitrary authoring or production-ready claim is made.

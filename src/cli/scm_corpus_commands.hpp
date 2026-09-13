@@ -50,6 +50,7 @@ struct FileResult final {
     std::uint8_t topology_flag_union{};
     std::uint8_t topology_unconfirmed_flag_union{};
     std::uint8_t texture_slot_count{};
+    std::uint8_t lighting_reference_node{};
     std::uint32_t resource_code_raw{};
     std::uint8_t resource_family_class{};
     std::uint16_t resource_model_set{};
@@ -158,14 +159,15 @@ template <std::size_t N>
     result.objects = parsed.document.objects.size();
     result.nodes = parsed.document.scene_nodes.transform_by_node_index.size();
     result.texture_slot_count = header.texture_slot_count;
+    result.lighting_reference_node = header.lighting_reference_node_index;
     result.resource_code_raw = header.resource_code.raw;
     result.resource_family_class = header.resource_code.family_class;
     result.resource_model_set = header.resource_code.model_set;
     result.resource_sub_index = header.resource_code.sub_index;
     result.header_preservation_nonzero =
-        header.reserved08 != 0U || header.reserved13 != 0U ||
-        header.reserved18 != 0U || header.reserved28 != 0U ||
-        header.reserved30 != 0U || header.reserved38 != 0U;
+        header.reserved08 != 0U || header.reserved18 != 0U ||
+        header.reserved28 != 0U || header.reserved30 != 0U ||
+        header.reserved38 != 0U;
     result.scene_preservation_nonzero =
         any_nonzero(parsed.document.scene_nodes.reserved10_1f);
 
@@ -239,6 +241,7 @@ template <std::size_t N>
     std::uint8_t topology_flag_union = 0U;
     std::uint8_t topology_unconfirmed_flag_union = 0U;
     std::size_t gs_clamp_nonzero_meshes = 0U;
+    std::size_t files_with_nonzero_lighting_reference = 0U;
     std::size_t files_with_nonzero_preservation = 0U;
 
     for (const auto& result : results) {
@@ -252,6 +255,9 @@ template <std::size_t N>
         topology_flag_union |= result.topology_flag_union;
         topology_unconfirmed_flag_union |= result.topology_unconfirmed_flag_union;
         gs_clamp_nonzero_meshes += result.gs_clamp_nonzero_meshes;
+        if (result.lighting_reference_node != 0U) {
+            ++files_with_nonzero_lighting_reference;
+        }
         if (result.header_preservation_nonzero ||
             result.scene_preservation_nonzero ||
             result.object_preservation_nonzero_records != 0U ||
@@ -289,6 +295,8 @@ template <std::size_t N>
         << "    \"topologyUnconfirmedFlagUnion\": \""
         << hex_text(topology_unconfirmed_flag_union, 2U) << "\",\n"
         << "    \"gsClampNonzeroMeshes\": " << gs_clamp_nonzero_meshes << ",\n"
+        << "    \"filesWithNonzeroLightingReference\": "
+        << files_with_nonzero_lighting_reference << ",\n"
         << "    \"filesWithNonzeroPreservationDomains\": "
         << files_with_nonzero_preservation << "\n"
         << "  },\n"
@@ -305,6 +313,8 @@ template <std::size_t N>
             << "      \"vertices\": " << result.vertices << ",\n"
             << "      \"textureSlotCount\": "
             << static_cast<unsigned>(result.texture_slot_count) << ",\n"
+            << "      \"lightingReferenceNode\": "
+            << static_cast<unsigned>(result.lighting_reference_node) << ",\n"
             << "      \"resourceCodeRaw\": " << result.resource_code_raw << ",\n"
             << "      \"resourceFamilyClass\": "
             << static_cast<unsigned>(result.resource_family_class) << ",\n"
@@ -431,6 +441,10 @@ inline int try_run_scm_corpus_command(int argc, char** argv) {
             << " vertices=" << result.vertices
             << " srcFlags=" << scm_corpus_detail::hex_text(result.source_flag_union, 8U)
             << " topo=" << scm_corpus_detail::hex_text(result.topology_flag_union, 2U);
+        if (result.lighting_reference_node != 0U) {
+            std::cout << " lightingNode="
+                      << static_cast<unsigned>(result.lighting_reference_node);
+        }
         if (result.preserved_undecoded_source_flag_union != 0U) {
             std::cout << " undecodedFlags="
                       << scm_corpus_detail::hex_text(
