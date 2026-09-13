@@ -49,6 +49,14 @@ void put_u32(
     return total;
 }
 
+[[nodiscard]] std::uint32_t base_mip_payload_size(
+    std::uint32_t width,
+    std::uint32_t height,
+    bool dxt5) {
+    return std::max(1U, (width + 3U) / 4U) *
+        std::max(1U, (height + 3U) / 4U) * (dxt5 ? 16U : 8U);
+}
+
 [[nodiscard]] std::vector<std::byte> payload(
     std::uint32_t width,
     std::uint32_t height,
@@ -72,6 +80,24 @@ void put_u32(
             .size = size,
         },
         .display_name = "test.dds",
+        .format = "dds",
+        .profile = "dmc3-hd",
+        .synthetic_name = false,
+        .container = false,
+    };
+}
+
+[[nodiscard]] dmc::rengine::gdspaces::ResourceRef direct_resource(
+    std::uint64_t size) {
+    return dmc::rengine::gdspaces::ResourceRef{
+        .id = dmc::rengine::gdspaces::ResourceId{
+            .source_id = "dds-direct-reader-test",
+            .logical_path = "texture/standalone.dds",
+            .container_chain = "DIRECT",
+            .offset = 0U,
+            .size = size,
+        },
+        .display_name = "standalone.dds",
         .format = "dds",
         .profile = "dmc3-hd",
         .synthetic_name = false,
@@ -118,8 +144,10 @@ int main() {
         std::span<const std::byte>{dxt1.bytes.data(), dxt1.bytes.size()});
     assert(native_scan.recognized);
     assert(native_scan.ok());
-    assert(native_scan.profile.document.width == 256U);
-    assert(native_scan.profile.document.height == 128U);
+    assert(native_scan.reader.ok());
+    assert(native_scan.reader.document.width == 256U);
+    assert(native_scan.reader.document.height == 128U);
+    assert(native_scan.profile.ok());
     assert(native_scan.profile.document.compression == dmc3::Dmc3DdsCompression::dxt1);
     const auto native_document =
         dmc::rengine::formats::dds::build_binary_document(
@@ -157,6 +185,56 @@ int main() {
     assert(dds_session->events().by_type(
         dmc::rengine::integration::WorkspaceEventType::parser_completed).size() == 1U);
 
+    // Direct standalone DDS is a first-class Rengine path. It must not require
+    // a PTX parent or the strict full-chain DMC3 authoring profile.
+    auto standalone = dxt1.bytes;
+    const auto standalone_payload = base_mip_payload_size(256U, 128U, false);
+    put_u32(standalone, 8U, 0x00081007U);
+    put_u32(standalone, 20U, standalone_payload);
+    put_u32(standalone, 28U, 1U);
+    put_u32(standalone, 108U, 0x00001000U);
+    standalone.resize(128U + standalone_payload);
+
+    const auto standalone_scan = dmc::rengine::formats::dds::Reader::scan(
+        std::span<const std::byte>{standalone.data(), standalone.size()});
+    assert(standalone_scan.recognized);
+    assert(standalone_scan.ok());
+    assert(standalone_scan.reader.ok());
+    assert(standalone_scan.reader.document.mip_count == 1U);
+    assert(!standalone_scan.profile.ok());
+
+    const auto standalone_document =
+        dmc::rengine::formats::dds::build_binary_document(
+            direct_resource(standalone.size()),
+            std::span<const std::byte>{standalone.data(), standalone.size()},
+            standalone_scan);
+    assert(standalone_document.has_value());
+    assert(standalone_document->coverage_bytes() == standalone.size());
+
+    dmc::rengine::integration::ProjectWorkspace direct_project;
+    const auto direct_dds_resource = direct_resource(standalone.size());
+    assert(direct_project.create_session(dmc::rengine::gdspaces::ResourcePayload{
+        .resource = direct_dds_resource,
+        .bytes = standalone,
+        .diagnostics = {},
+    }));
+    const auto direct_analysis = dmc::rengine::integration::ResourceAnalyzer::analyze(
+        direct_project, direct_dds_resource.id);
+    assert(direct_analysis.ok());
+    assert(direct_analysis.parser_available);
+    assert(direct_analysis.parser_id == "formats.dds-dmc3-reader");
+    assert(direct_analysis.binary_document_attached);
+
+    // Direct reader owns an exact standalone DDS extent; carrier/framing bytes
+    // are not silently treated as part of a plain DDS file.
+    auto standalone_with_trailing = standalone;
+    standalone_with_trailing.push_back(std::byte{0});
+    const auto trailing_scan = dmc::rengine::formats::dds::Reader::scan(
+        std::span<const std::byte>{
+            standalone_with_trailing.data(), standalone_with_trailing.size()});
+    assert(trailing_scan.recognized);
+    assert(!trailing_scan.ok());
+
     const auto dxt5_payload = payload(512U, 512U, true);
     const auto dxt5 = dmc3::Dmc3DdsProfile::build(
         512U, 512U, dmc3::Dmc3DdsCompression::dxt5,
@@ -175,7 +253,9 @@ int main() {
     const auto bad_native = dmc::rengine::formats::dds::Reader::scan(
         std::span<const std::byte>{bad_flags.data(), bad_flags.size()});
     assert(bad_native.recognized);
-    assert(!bad_native.ok());
+    assert(bad_native.ok());
+    assert(bad_native.reader.ok());
+    assert(!bad_native.profile.ok());
     assert(!bad_native.diagnostics.empty());
 
     auto bad_linear = dxt5.bytes;
