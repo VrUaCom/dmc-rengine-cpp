@@ -44,9 +44,10 @@
     },
     {
       "serialized": "+0x14 u32 legacy_resource_code",
-      "status": "EXE_AND_CORPUS_CONFIRMED",
-      "path": ["L0 family_class*100000 + model_set*100 + sub_index", "L1 0x1402F9570", "L2 manager+0xE4"],
-      "policy": "typed structural identity/provenance code; do not invent official class labels"
+      "status": "CORPUS_CONFIRMED_STRUCTURE + EXE_CONFIRMED_CARRY + PRESERVED_UNDECODED_HIGH_LEVEL_ROLE",
+      "path": ["L0 SCM-corpus arithmetic family_class*100000 + model_set*100 + sub_index", "L1 0x1402F9570", "L2 manager+0xE4"],
+      "negative_evidence": "model-core manager+0xE4 xref census confirms the write but no type-proven downstream read; raw +0xE4 displacement matches elsewhere are unrelated object layouts until pointer provenance is established",
+      "policy": "keep neutral structural code/decomposition for SCM; preserve raw u32; do not claim runtime resource class/identity/routing/cache semantics or official class labels"
     },
     {
       "serialized": "+0x20 u64 scene_node_block_offset",
