@@ -5,13 +5,14 @@
 namespace dmc::rengine::formats::scm {
 
 // Serialized SCM header +0x14 is retained by the canonical HD runtime at
-// manager +0xE4. The preserved retail corpus plus fresh hash-bound st001/st002/
-// st003 specimens show a stable decimal decomposition:
+// manager +0xE4. The preserved corpus plus a fresh structural sweep of 51
+// hash-unique SCM payloads recovered from retail st000..st003 PACs shows the
+// same stable decimal decomposition:
 //
 //   raw = family_class * 100000 + model_set * 100 + sub_index
 //
 // The component names are intentionally structural. Observed family classes now
-// include 3, 4 and 8; no gameplay/artistic labels are assigned until a
+// include 3, 4, 7 and 8; no gameplay/artistic labels are assigned until a
 // provenance-clean producer or typed downstream manager+0xE4 consumer is
 // recovered. `model_set` is preferred over `stage` because observed values do
 // not consistently equal the current stage number.
@@ -42,16 +43,21 @@ struct LegacyResourceCode final {
 }
 
 // Corpus-shape predicate only; this is not a file-validity rule. The historical
-// bounded corpus established classes 3/4. Fresh hash-bound st002.scm extends
-// the observed domain with 813800 => class 8, model_set 138, sub_index 0.
-// Classes 3 and 8 are currently observed with sub_index 0; class 4 includes
-// zero and non-zero child indices.
+// corpus established classes 3/4. Fresh hash-bound PAC extraction extends the
+// observed retail domain with class 7 (730507) and class 8 (813800).
+// Keep this predicate deliberately narrow: a future unseen code is preserved
+// and warned about, never rejected as an invalid SCM.
 [[nodiscard]] constexpr bool matches_observed_scm_resource_code_shape(
     const LegacyResourceCode& code) noexcept {
-    if (code.family_class == 3U || code.family_class == 8U) {
-        return code.sub_index == 0U;
+    if (code.family_class == 3U) return code.sub_index == 0U;
+    if (code.family_class == 4U) return true;
+    if (code.family_class == 7U) {
+        return code.model_set == 305U && code.sub_index == 7U;
     }
-    return code.family_class == 4U;
+    if (code.family_class == 8U) {
+        return code.model_set == 138U && code.sub_index == 0U;
+    }
+    return false;
 }
 
 } // namespace dmc::rengine::formats::scm
