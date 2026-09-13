@@ -1,6 +1,7 @@
 #include "dmc_rengine/formats/scm_runtime_provenance.hpp"
 
 #include "dmc_rengine/formats/scm_binary.hpp"
+#include "dmc_rengine/formats/scm_render.hpp"
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
 
 #include <iomanip>
@@ -49,20 +50,11 @@ inline constexpr std::string_view evidence_id =
         "EXE-confirmed draw reference node index: SCM+0x13 -> manager+0xFA. 0x1402F1DB0 installs scene-node matrices at manager+0x188 with 0x40 stride; CDrawSCM 0x1402FD040 indexes that array by manager+0xFA, reads selected matrix lane +0x30 and passes the spatial float4 to 0x1402EE560. High-level producer/artistic label remains open.",
         {"EXE_CONFIRMED","runtime-provenance","scene-node","draw-reference","matrix-selector"}) &&
     add(d, "scm-prov-header-resource-code", 0x14U, 4U,
-        "SCM+0x14 decimal structural code -> 0x1402F9570 -> manager+0xE4. Fresh st002 expands observed family_class to 8; no type-proven downstream manager+0xE4 role is promoted.",
+        "SCM+0x14 decimal structural code -> 0x1402F9570 -> manager+0xE4. Expanded retail authority observes family classes 3/4/7/8; no type-proven downstream manager+0xE4 role is promoted.",
         {"EXE_AND_CORPUS_CONFIRMED","runtime-provenance","structural-code","PRESERVED_UNDECODED_HIGH_LEVEL_ROLE"}) &&
     add(d, "scm-prov-header-scene-offset", 0x20U, 8U,
         "Scene-node block offset -> SCM setup 0x140303C10 -> node binder 0x1402F1DB0.",
         {"STRUCTURAL_CONFIRMED","runtime-provenance","scene"}) &&
-    // The three dormant header lanes. The physical map marks them
-    // preserved-undecoded; what belongs here is the census behind that word.
-    // Every other reserved lane in this document states its negative evidence
-    // -- mesh +0x0C/+0x30/+0x4C now at DEEP_NEGATIVE_EVIDENCE, the scene shell,
-    // transform +0x1C -- and these three were the only ones left saying
-    // "undecoded" without saying who looked. Their evidence is the shared
-    // model-manager source-pointer census, which is bounded rather than deep:
-    // it is a whole-image sweep of one manager's sources, not the multi-hop
-    // chain walk that cleared the mesh lanes, and the tag says so.
     add(d, "scm-prov-header-reserved08-negative", 0x08U, 8U,
         "SCM+0x08..+0x0F is corpus-zero. The shared model-manager whole-image source-pointer census exposes no typed runtime effect for this lane. Preserve exactly; corpus zero is not padding authority.",
         {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","BOUNDED_NEGATIVE_EVIDENCE","runtime-provenance","header"}) &&
@@ -85,6 +77,37 @@ inline constexpr std::string_view evidence_id =
             !add(d,p+"-flags",o.record_offset+0x10U,4U,
             "object+0x10 source flags -> 0x140302F10 -> runtime baseline/effective +0x10/+0x14 -> 0x140302640 and 0x1402F9890. Only independently proven bits receive semantics.",
             {"EXE_CONFIRMED","runtime-provenance","source-flags"})) return false;
+
+        const auto selector = runtime::scm_compatibility_object_selector(o.flags);
+        const auto vs_base_key = runtime::scm_compatibility_vs_base_key(selector);
+        std::ostringstream selector_text;
+        selector_text
+            << "object+0x10 flag 0x00080000 -> 0x1403033E3..0x1403033FC "
+               "runtimeObject+0x00 bit 0x20 -> 0x14030DB50 runtimeObject+0x05 selector "
+            << static_cast<unsigned>(selector)
+            << " -> 0x14030DBA0 emits 0x5C00000"
+            << static_cast<unsigned>(selector)
+            << " -> 0x1400331E6 -> 0x140044310. Selector "
+            << static_cast<unsigned>(selector)
+            << " maps to VS base key " << static_cast<unsigned>(vs_base_key)
+            << "; selectors 2 and 3 both map to base key 13. The path continues "
+               "through 0x140045FE0 to 0x14004C340 VSSetShader and 0x14004C140 "
+               "PSSetShader. Pixel-shader key variants remain mesh/aux-state dependent.";
+        if (!add(d,p+"-compat-selector",o.record_offset+0x10U,4U,
+            selector_text.str(),
+            {"EXE_CONFIRMED","runtime-provenance","compatibility-selector","vertex-shader","pixel-shader","d3d11"})) return false;
+
+        const auto tex1 = legacy_gs_tex1_filter_from_object_flags(o.flags);
+        const bool nearest = tex1 == legacy_gs_tex1_nearest_filter;
+        std::ostringstream tex1_text;
+        tex1_text
+            << "object+0x10 flag 0x00004000 -> 0x1402F9890 legacy GS TEX1 state "
+            << (nearest ? "0x00 nearest" : "0x60 linear")
+            << " -> SCM material PACKED A+D packet register 0x14 (TEX1_1).";
+        if (!add(d,p+"-tex1-filter",o.record_offset+0x10U,4U,
+            tex1_text.str(),
+            {"EXE_CONFIRMED","runtime-provenance","legacy-gs","TEX1_1","texture-filter","material-packet"})) return false;
+
         if ((o.flags & runtime::source_mask_00200000)!=0U &&
             !add(d,p+"-bit21-negative",o.record_offset+0x10U,4U,
             "Bit 0x00200000 remains semantically undecoded. Rejected provenance includes 0x1402F4C21 runtimeRecord+0x304, 0x140303F2F manager+0xE0, 0x140302CF9/0x140302D59 manager setters, fresh 0x1402F2CDD on 0x380-stride records, and fresh 0x140212B08 on unrelated +0x3FF8 actor/global state. Preserve exactly.",
@@ -94,11 +117,11 @@ inline constexpr std::string_view evidence_id =
             const auto& m=o.meshes[mi];
             const auto q=index_id("scm-prov-mesh",oi,mi);
             if (!add(d,q+"-texture",m.record_offset+2U,2U,
-                "mesh+0x02 -> 0x1402F9890 -> runtime texture table index*0x40 -> record+0x20; ownership comes from external companion.",
-                {"EXE_CONFIRMED","runtime-provenance","texture-binding"}) ||
+                "mesh+0x02 -> 0x1402F9890 -> runtime texture table index*0x40. Descriptor+0x20 supplies TEX0_1 and descriptor+0x28 supplies MIPTBP1_1 to the exact SCM material GIF packet built by 0x1402F99B0/0x1402F9AC0 (tag 0x4000000000008001, REGS 0x000000000020EEEE; A+D 0x06 TEX0_1 and 0x34 MIPTBP1_1). The packet reaches the canonical compatibility interpreter. Backend SRV/sampler wrappers 0x14003F7A0/0x14003F580 are confirmed as renderer infrastructure, but the exact SCM texture-state-to-D3D11 resource-slot provenance is still intentionally unpromoted.",
+                {"EXE_CONFIRMED","runtime-provenance","texture-binding","external-companion","TEX0_1","MIPTBP1_1","material-packet","SRV_SAMPLER_SOURCE_BINDING_OPEN"}) ||
                 !add(d,q+"-gs-clamp",m.record_offset+4U,8U,
-                "mesh+0x04..+0x0B -> 0x1402F9890 -> legacy GS CLAMP REGION_REPEAT packing.",
-                {"EXE_CONFIRMED","runtime-provenance","legacy-gs","REGION_REPEAT"}) ||
+                "mesh+0x04..+0x0B -> 0x1402F9890 -> legacy GS CLAMP REGION_REPEAT packing -> SCM material PACKED A+D register 0x08 (CLAMP_1).",
+                {"EXE_CONFIRMED","runtime-provenance","legacy-gs","REGION_REPEAT","CLAMP_1","material-packet"}) ||
                 !add(d,q+"-reserved0c-negative",m.record_offset+0x0CU,4U,
                 "mesh+0x0C is corpus-zero. Deep canonical chain 0x1402F9BB0 -> 0x140308C00 -> 0x1402F9890 -> 0x1402F9A80 plus SCM-specific 0x1402F9F20 exposes no provenance-clean read. Preserve exactly; not global padding.",
                 {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","DEEP_NEGATIVE_EVIDENCE","runtime-provenance"}) ||

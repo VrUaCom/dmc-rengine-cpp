@@ -282,6 +282,25 @@ inline void error(
     return result;
 }
 
+[[nodiscard]] inline EditResult set_lighting_reference_node(
+    Document& document,
+    std::uint8_t node_index) {
+    EditResult result;
+    const auto node_count =
+        document.scene_nodes.transform_by_node_index.size();
+    if (node_index >= node_count) {
+        edit_detail::error(
+            result,
+            "scm.edit-lighting-reference-node-out-of-range",
+            "Lighting reference node must select an existing SCM scene node.");
+        return result;
+    }
+    result.changed =
+        document.header.lighting_reference_node_index != node_index;
+    document.header.lighting_reference_node_index = node_index;
+    return result;
+}
+
 [[nodiscard]] inline EditResult set_node_translation(
     Document& document,
     std::size_t node_index,

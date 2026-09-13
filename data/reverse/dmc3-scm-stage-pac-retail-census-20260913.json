@@ -1,0 +1,93 @@
+{
+  "schema": "dmc-rengine.scm-stage-pac-retail-census.v1",
+  "date": "2026-09-13",
+  "target": {
+    "executable": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "source_pacs": [
+    {"name":"st000.pac","sha256":"a155af1c18be616c8d203bb67b1751f6fca958d07ed29f65c3782eaa9638c748","scm_occurrences":16},
+    {"name":"st001.pac","sha256":"43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9","scm_occurrences":3},
+    {"name":"st002.pac","sha256":"1b4a3895674bf2f0e076b8cdb465be5e1846c725a2b3c6458c9fded02e1061b0","scm_occurrences":5},
+    {"name":"st003.pac","sha256":"d9e1d339872eb1142ae889aea52552e7437dfb74329e52407a02c2623db0f868","scm_occurrences":27}
+  ],
+  "corpus": {
+    "scm_occurrences": 51,
+    "unique_payload_sha256": 51,
+    "objects": 345,
+    "meshes": 506,
+    "scene_nodes": 408,
+    "vertices": 107233,
+    "version_counts": {"0.83":1,"0.90":16,"1.00":1,"1.01":33},
+    "resource_family_counts": {"3":3,"4":29,"7":14,"8":5},
+    "topology_byte_values": [0,2],
+    "lighting_reference_node_values": [0]
+  },
+  "validation": {
+    "candidate_rule": "SCM magic inside PAC followed by full structural validation",
+    "requirements": [
+      "object table in bounds",
+      "mesh tables in bounds",
+      "fixed mesh continuation chain: non-final 0x50, final 0",
+      "sum(mesh.vertex_count) == object.total_vertex_count",
+      "position/normal/UV/RGB-topology streams in bounds",
+      "scene relative arrays in bounds",
+      "scene order is a permutation",
+      "transform array in bounds",
+      "generated-index workspace footprint in bounds"
+    ],
+    "result": "51/51 candidates structurally self-consistent",
+    "deduplication": "51/51 payloads have distinct SHA-256"
+  },
+  "resource_code": {
+    "formula": "raw = family_class*100000 + model_set*100 + sub_index",
+    "status": "CORPUS_CONFIRMED_STRUCTURE",
+    "observed_family_classes": [3,4,7,8],
+    "new_examples": [
+      {"raw":730507,"family_class":7,"model_set":305,"sub_index":7,"occurrences":14,"unique_sha256":14},
+      {"raw":813800,"family_class":8,"model_set":138,"sub_index":0,"occurrences":5,"unique_sha256":5}
+    ],
+    "unique_resource_identity_hypothesis": "REJECTED",
+    "reason": "730507 occurs in 14 different SHA-unique SCM payloads and 813800 occurs in 5 different SHA-unique SCM payloads",
+    "runtime_carry": "SCM+0x14 -> 0x1402F95C2/0x1402F95C5 -> manager+0xE4",
+    "runtime_role": "PRESERVED_UNDECODED_WITH_BOUNDED_NEGATIVE_EVIDENCE"
+  },
+  "preservation_census": {
+    "header_secondary_lanes_nonzero": 0,
+    "object_secondary_lanes_nonzero": 0,
+    "mesh_0c_nonzero": 0,
+    "mesh_30_nonzero": 0,
+    "mesh_serialized_generated_count_nonzero": 0,
+    "mesh_4c_nonzero": 0,
+    "scene_10_1f_nonzero": 0,
+    "transform_1c_nonzero": 0,
+    "gs_clamp_nonzero_meshes": 0,
+    "interpretation": "negative corpus evidence across retail SCM revisions; exact source preservation remains mandatory"
+  },
+  "claims": [
+    {
+      "id": "scm.retail.version-domain",
+      "status": "CORPUS_CONFIRMED",
+      "value": ["0.83","0.90","1.00","1.01"],
+      "consequence": "1.01-only parser warning is stale"
+    },
+    {
+      "id": "scm.resource-code.family-domain",
+      "status": "CORPUS_CONFIRMED",
+      "value": [3,4,7,8],
+      "consequence": "3/4-only and 3/4/8-only observed-shape assumptions are stale"
+    },
+    {
+      "id": "scm.preservation.legacy-revision-stability",
+      "status": "CORPUS_CONFIRMED_NEGATIVE",
+      "value": "preservation lanes remain zero across 0.83/0.90/1.00/1.01 retail samples"
+    },
+    {
+      "id": "scm.topology.retail-domain",
+      "status": "CORPUS_CONFIRMED",
+      "value": [0,2],
+      "population_vertices": 107233
+    }
+  ]
+}

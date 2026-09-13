@@ -1,0 +1,64 @@
+{
+  "schema": "dmc-rengine.scm-render-pass-dispatch.v1",
+  "date": "2026-09-13",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+  },
+  "family_selector": {
+    "manager_field": "+0xE0 high nibble",
+    "scm_value": "0x30000000",
+    "setter": "0x140302370",
+    "pass_field": "manager+0x214 u16",
+    "scm_pass_value": 4,
+    "status": "EXE_CONFIRMED"
+  },
+  "bucket_stage": {
+    "dispatcher": "0x140300740",
+    "mode4_wrapper": "0x140304950",
+    "quantizer": "0x1402F9680",
+    "arguments": {"upper_or_bucket_limit":"0x7E","shift_or_precision":7},
+    "input": "manager+0x210",
+    "output": "manager+0x218",
+    "note": "0x1402F9680 is the mode bucket/index quantizer; do not conflate it with adjacent world-transform updater 0x1402F9700"
+  },
+  "per_object_stage": {
+    "dispatcher": "0x140300740",
+    "runtime_object_stride": "0x3C0",
+    "mode4_branch_condition": "manager+0xE0 bit1",
+    "branch_bit_set": "0x140305440",
+    "branch_bit_clear": "0x140300150",
+    "shared_inputs": ["manager+0x218 pass bucket","per-frame manager arrays +0x138/+0x148","per-object runtime state"],
+    "status": "EXE_CONFIRMED"
+  },
+  "command_queues": [
+    {
+      "builder": "0x140300150",
+      "arena_global": "0x1405D9D70",
+      "arena_page_stride": "0x800",
+      "entry_stride": "0x10",
+      "drain": "0x1403081F0",
+      "linker": "0x140333A50"
+    },
+    {
+      "builder": "0x140305440",
+      "arena_global": "0x1405D9D88",
+      "arena_page_stride": "0x800",
+      "entry_stride": "0x10",
+      "drain": "0x140308470",
+      "linker": "0x140333A50"
+    }
+  ],
+  "queue_linker": {
+    "function": "0x140333A50",
+    "common_relative_base": "0x1405D9EA8",
+    "queue_table": "0x1405D9D50",
+    "effect": "links relative encoded command nodes into the runtime queue domain",
+    "boundary": "this is command-queue infrastructure, not enough evidence to assign an artistic/material/shader label to either SCM mode4 subpath"
+  },
+  "status": {
+    "scm_family_to_pass4": "EXE_CONFIRMED",
+    "pass4_to_two_command_queues": "EXE_CONFIRMED",
+    "exact_command_executor_to_shader_binding": "RESEARCH_REQUIRED"
+  }
+}

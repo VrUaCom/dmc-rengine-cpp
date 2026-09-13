@@ -1,0 +1,73 @@
+{
+  "schema": "dmc-rengine.scm-lighting-reference-authoring.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "serialized_field": {
+    "offset": "0x13",
+    "type": "u8",
+    "safe_name": "lighting_reference_node_index",
+    "semantic_status": "EXE_CONFIRMED_TECHNICAL_SEMANTIC",
+    "runtime_path": [
+      "SCM+0x13",
+      "manager+0xFA",
+      "manager+0x188 scene-node world-matrix array, stride 0x40",
+      "selected node world-position lane +0x30",
+      "lighting query",
+      "MDL_LIGHT_MAT { Lc, Lv }",
+      "stage shader lighting intensity/color"
+    ]
+  },
+  "authoring_contract": {
+    "status": "STRUCTURAL_CONFIRMED_SYNTHETIC",
+    "setter": "set_lighting_reference_node(Document&, uint8_t)",
+    "valid_domain": "node_index < document.scene_nodes.transform_by_node_index.size()",
+    "source_bound_writer": "permits changed typed value only inside the current scene-node domain",
+    "invalid_direct_mutation_diagnostic": "scm.writer-source-bound-invalid-authored-value",
+    "invalid_edit_diagnostic": "scm.edit-lighting-reference-node-out-of-range",
+    "serialized_offset": "0x13"
+  },
+  "regression": {
+    "fixture_scene_nodes": 2,
+    "source_value": 0,
+    "authored_value": 1,
+    "expected_byte_at_0x13": 1,
+    "writer_mode": "preserve_layout",
+    "post_write_reparse": "required",
+    "reparsed_value": 1,
+    "out_of_range_value": 2,
+    "out_of_range_result": "REJECT"
+  },
+  "retail_reader_domain": {
+    "versions": [0.83, 0.90, 1.00, 1.01],
+    "stage_pac_scm_occurrences": 51,
+    "unique_payload_sha256": 51,
+    "retail_observed_lighting_reference_value": 0
+  },
+  "preservation_policy": {
+    "header_0x13_is_preservation_only": false,
+    "corpus_tool_reports_field_separately": true,
+    "object_flag_0x00200000": "PRESERVED_UNDECODED"
+  },
+  "integration_commits": [
+    "abe3d49f827edda99a77a60ae3b92b548529b225",
+    "5bb143fa2a662cabb151781d5e533497597c4b2b",
+    "14c887629432f10119c93be03a16a868bfe771e7",
+    "e2f2ed27413b26c72ee1b134a1e2e3ee282cbc32",
+    "5e6a5c677a8783692819f4fe458dae689596fe8d",
+    "a705d52f87c0b2d3d13fa42556e9f64c53576d72",
+    "7d52a53ad38e7552c24fdab83b7abb434b76d445",
+    "a2a1374c064b8abcf005ac27ca8819e0d1fd4ccb",
+    "0d060593513db79d83a2c1442e021f572435b3d6"
+  ],
+  "non_claims": [
+    "No retail specimen with non-zero lighting_reference_node_index has been observed in the 51-payload stage-PAC census.",
+    "Synthetic writer round-trip does not establish vanilla dmc3.exe acceptance of an authored non-zero lighting reference.",
+    "Exact SCM render-VM to D3D11 shader/resource binding remains open.",
+    "This receipt does not promote the full SCM writer to production/game-validated authority."
+  ]
+}

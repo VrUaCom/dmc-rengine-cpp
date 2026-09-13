@@ -1,89 +1,99 @@
-# SCM occurrence census — method and open statistic, 2026-09-13
+# SCM occurrence census — direct container method and closed retail statistic, 2026-09-13
 
-**Branch:** `main`
-**Canonical executable:** `dmc3.exe`
+**Canonical branch:** `reverse/mod-completion-20260907`  
+**Canonical executable:** `dmc3.exe`  
 **SHA-256:** `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`
-**Scope:** how SCM payloads are counted inside retail containers. No new field semantics.
 
-## Why a per-file sweep was not enough
+## Why the per-file sweep was insufficient
 
-`verify-scm-corpus` walks a directory of extracted `.scm` files. That answers
-questions about files, and the containers hold occurrences: the same scene
-model appears more than once across a stage set, and extraction tooling
-silently drops payloads it does not have a slot name for. A direct scan of
-`st000.pac`–`st003.pac` found 51 structurally valid SCM occurrences — 16 in
-st000, 3 in st001, 5 in st002, 27 in st003 — against a version distribution of
-0.83 ×1, 0.90 ×16, 1.00 ×1, 1.01 ×33.
+`verify-scm-corpus` walks extracted `.scm` files. Retail stage containers hold
+occurrences, and extraction/naming metadata can omit unnamed payloads. A direct
+scan of `st000.pac`–`st003.pac` therefore remains a separate authority.
 
-Those are occurrence counts. How many of the 51 are distinct payloads was not
-determined in that pass, and the distinction changes what every derived
-statement means: "16 at version 0.90" is a claim about how widespread a legacy
-revision is only if the 16 are 16 different files.
+Matching `SCM ` magic is not enough. The occurrence scanner validates object and
+mesh tables, the `0x50` continuation chain, vertex sums, stream bounds, scene
+arrays and index-workspace footprint through the canonical SCM grammar.
 
-## The method
+## Exact-span method
 
-Matching `SCM ` is not the test. The magic appears inside unrelated payloads,
-and the reader is the authority on whether bytes are a document. But the reader
-refuses a span that does not terminate exactly where the canonical layout ends,
-which is a condition no payload embedded in a container can meet when handed
-the rest of the file — every embedded SCM fails with
-`scm.serialized-size-mismatch`.
+The canonical parser rejects a container tail because the serialized SCM must end
+at its own exact layout extent. The scanner therefore works in two passes:
 
-So the scan is two passes:
+1. probe the candidate tail to recover object/mesh shape;
+2. compute the serialized extent with `build_serialized_layout`;
+3. parse exactly that span and keep it only when the canonical reader accepts it;
+4. hash that exact span for payload identity.
 
-1. parse the tail to learn the object/mesh shape, then compute the serialized
-   extent with `build_serialized_layout` — the same layout authority the reader
-   and the writer both use;
-2. parse exactly that extent and keep the occurrence only if `ok()`.
+Hashing to end-of-container would make identical embedded payloads appear unique,
+so the exact extent is part of the evidence contract.
 
-The extent is also what makes the digest identify a payload. Hashing to
-end-of-file gives every occurrence in a container a different hash and the
-deduplication reports nothing; the regression test for this holds the
-difference.
+The CLI is:
 
-## Reproducing it
-
-```
-dmc-rengine census-scm-occurrences st000.pac st001.pac st002.pac st003.pac \
-    --json scm-occurrence-census.json
+```text
+dmc-rengine census-scm-occurrences <container>... [--json <report.json>]
 ```
 
-The report gives, per occurrence: container, offset, serialized size, SHA-256,
-version, resource code with its decimal decomposition, the lighting reference
-node against the scene-node count, and object/mesh/vertex counts. The summary
-gives occurrences against unique payloads overall and per version, the family
-class histogram, the topology flag union, how many occurrences revive a
-preservation-only domain, and how many carry a lighting reference outside the
-serialized scene-node domain.
+## Closed st000..st003 result
 
-## What has been run here
+Fresh retail authority for the four stage PACs is now:
 
-Only `st001.pac` and `st114.pac` are present in this working environment.
+```text
+st000.pac   16 structurally valid SCM occurrences
+st001.pac    3 structurally valid SCM occurrences
+st002.pac    5 structurally valid SCM occurrences
+st003.pac   27 structurally valid SCM occurrences
+--------------------------------------------------
+total       51 occurrences
+unique      51 SHA-256-distinct payloads
+```
 
-| Container | Occurrences | Unique payloads | Versions | Family classes |
-|---|---:|---:|---|---|
-| `st001.pac` | 3 | 3 | 1.01 ×3 | 3 ×1, 4 ×2 |
-| `st114.pac` | 4 | 4 | 1.01 ×4 | 3 ×4 |
+Version distribution:
 
-The st001 figure reproduces the independent scan exactly, which is what
-qualifies the method rather than the numbers.
+```text
+0.83   x1
+0.90  x16
+1.00   x1
+1.01  x33
+```
 
-Two observations from st114, which the earlier pass did not cover:
+Aggregate structure:
 
-- its four occurrences carry the same resource code `311400` and are four
-  distinct payloads, so the code is not a payload identity;
-- all seven occurrences have a lighting reference node of 0, so the
-  out-of-range check has no positive case in this sample and is unproven
-  against retail data.
+```text
+objects       345
+meshes        506
+scene nodes   408
+vertices      107233
+topology      {0, 2}
+```
 
-Across both containers: 54,544 vertices, topology flag union `0x02`, and no
-occurrence reviving any preservation-only domain — consistent with the
-st000–st003 result and on a much smaller sample.
+Observed `header +0x14` family classes are `3 / 4 / 7 / 8`. The structural code
+is not a unique payload identifier: the same raw code can occur in multiple
+SHA-distinct SCM payloads.
 
-## Open
+## Preservation and lighting observations
 
-**The 51-occurrence deduplication is not finished here.** `st000.pac`,
-`st002.pac` and `st003.pac` are not in this environment; the command above run
-over all four containers closes it. Until then, the version distribution
-recorded in `formats/scm_version.hpp` is stated as occurrence counts, and says
-so.
+Across these 51 payloads the checked preservation domains remain zero:
+
+- header reserved lanes except typed `+0x13`;
+- object `+0x04` and `+0x14..+0x2F`;
+- mesh `+0x0C`, `+0x30`, serialized `+0x48`, `+0x4C`;
+- scene shell `+0x10..+0x1F`;
+- transform `+0x1C`;
+- GS CLAMP REGION_REPEAT fields.
+
+Topology uses only `0` and confirmed break bit `0x02` over all 107233 vertices.
+
+Header `+0x13` is no longer a preservation field. Canonical EXE evidence closes
+its technical role as `lighting_reference_node_index`. The current 51-payload
+retail census observes value `0` in every payload, so authored non-zero values
+remain a synthetic structural authoring result until a retail specimen or
+vanilla-game acceptance test extends that evidence.
+
+## Evidence boundary
+
+This census closes occurrence-vs-unique accounting for `st000.pac`–`st003.pac`.
+It does not claim that every game container has been scanned, that every SCM
+revision is supported, or that the full SCM writer is game-validated.
+
+Exact SCM render-command VM to D3D11 shader/resource binding remains a separate
+reverse frontier.
