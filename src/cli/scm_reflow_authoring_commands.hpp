@@ -81,6 +81,8 @@ namespace scm_reflow_authoring_detail {
 
 inline void print_scm_reflow_authoring_help() {
     std::cout
+        << "  scm-find-size-growth-target <input.scm>\n"
+        << "                             Find the first append-break target whose canonical layout is guaranteed to grow\n"
         << "  scm-append-break-vertex-copy <input.scm> <object-index> <mesh-index> <source-vertex-index> <output.scm>\n"
         << "                             Evidence-oriented size-changing canonical rebuild: copy one vertex and append topology break 0x02\n";
 }
@@ -90,6 +92,55 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
 
     if (argc <= 1) return -1;
     const std::string_view command{argv[1]};
+
+    if (command == "scm-find-size-growth-target") {
+        if (argc != 3) {
+            std::cerr
+                << "usage: scm-find-size-growth-target <input.scm>\n";
+            return 1;
+        }
+
+        const std::filesystem::path input{argv[2]};
+        std::vector<std::byte> source;
+        if (!scm_reflow_authoring_detail::read_file(input, source)) {
+            std::cerr << "scm-find-size-growth-target: cannot read input\n";
+            return 2;
+        }
+
+        const auto parsed = Parser::parse(std::span<const std::byte>{source});
+        if (!parsed.ok()) {
+            std::cerr
+                << "scm-find-size-growth-target: canonical parse failed\n";
+            return 3;
+        }
+
+        const auto plan =
+            find_append_break_vertex_growth_target(parsed.document);
+        if (!plan.valid || !plan.grows()) {
+            std::cerr
+                << "scm-find-size-growth-target: no canonical growth target found\n";
+            return 4;
+        }
+        if (plan.source_file_size != source.size()) {
+            std::cerr
+                << "scm-find-size-growth-target: source physical size does not match canonical layout\n";
+            return 5;
+        }
+
+        std::cout
+            << "SCM_SIZE_GROWTH_TARGET_FOUND\n"
+            << "object=" << plan.object_index << '\n'
+            << "mesh=" << plan.mesh_index << '\n'
+            << "sourceVertex=" << plan.source_vertex_index << '\n'
+            << "sourceVertices=" << plan.source_vertex_count << '\n'
+            << "sourceSize=" << source.size() << '\n'
+            << "sourceCanonicalSize=" << plan.source_file_size << '\n'
+            << "outputCanonicalSize=" << plan.output_file_size << '\n'
+            << "sizeDelta=" << plan.size_delta() << '\n'
+            << "sourceLayoutMatch=PASS\n";
+        return 0;
+    }
+
     if (command != "scm-append-break-vertex-copy") return -1;
 
     if (argc != 7) {
@@ -153,19 +204,31 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
     const auto copied_uv = source_mesh.uvs[source_vertex_index];
     const auto copied_color = source_mesh.colors_topology[source_vertex_index];
 
+    const auto layout_plan = plan_append_break_vertex_copy_layout(
+        parsed.document,
+        object_index,
+        mesh_index,
+        source_vertex_index);
+    if (!layout_plan.valid || !layout_plan.grows() ||
+        layout_plan.source_file_size != source.size()) {
+        std::cerr
+            << "scm-append-break-vertex-copy: selected target is not guaranteed to grow canonical physical size\n";
+        return 7;
+    }
+
     auto document = parsed.document;
     const auto edit = append_break_vertex_copy(
         document, object_index, mesh_index, source_vertex_index);
     if (!edit.ok() || !edit.changed) {
         std::cerr << "scm-append-break-vertex-copy: typed structural edit rejected\n";
-        return 7;
+        return 8;
     }
 
     const auto preserve = Writer::write(document, WriteMode::preserve_layout);
     if (preserve.ok()) {
         std::cerr
             << "scm-append-break-vertex-copy: preserve-layout unexpectedly accepted size-changing edit\n";
-        return 8;
+        return 9;
     }
 
     const auto written = Writer::write(document, WriteMode::canonical_rebuild);
@@ -176,12 +239,13 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
             std::cerr << "  " << diagnostic.code << ": "
                       << diagnostic.message << '\n';
         }
-        return 9;
-    }
-    if (written.bytes.size() <= source.size()) {
-        std::cerr
-            << "scm-append-break-vertex-copy: output did not grow\n";
         return 10;
+    }
+    if (written.bytes.size() != layout_plan.output_file_size ||
+        written.bytes.size() <= source.size()) {
+        std::cerr
+            << "scm-append-break-vertex-copy: writer size does not match canonical growth plan\n";
+        return 11;
     }
 
     const auto reparsed = Parser::parse(
@@ -190,7 +254,7 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
         mesh_index >= reparsed.document.objects[object_index].meshes.size()) {
         std::cerr
             << "scm-append-break-vertex-copy: rebuilt output reparse failed\n";
-        return 11;
+        return 12;
     }
 
     const auto& output_object = reparsed.document.objects[object_index];
@@ -200,7 +264,7 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
         output_mesh.vertex_count != source_vertex_count + 1U) {
         std::cerr
             << "scm-append-break-vertex-copy: derived vertex counts mismatch\n";
-        return 12;
+        return 13;
     }
 
     const auto& appended_position = output_mesh.positions.back();
@@ -220,7 +284,7 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
         appended_color.topology_flags != triangle_break_bit) {
         std::cerr
             << "scm-append-break-vertex-copy: appended vertex reparse mismatch\n";
-        return 13;
+        return 14;
     }
 
     const auto output_topology =
@@ -231,7 +295,7 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
     if (output_triangle_count != source_triangle_count) {
         std::cerr
             << "scm-append-break-vertex-copy: structural growth changed non-degenerate triangle count\n";
-        return 14;
+        return 15;
     }
 
     const auto validator = [&](const std::filesystem::path& staged_path) {
@@ -265,7 +329,7 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
         std::cerr
             << "scm-append-break-vertex-copy: publication failed: "
             << to_string(publication.status) << '\n';
-        return 15;
+        return 16;
     }
 
     std::cout
@@ -279,10 +343,11 @@ inline int try_run_scm_reflow_authoring_command(int argc, char** argv) {
         << "outputObjectVertices=" << output_object.total_vertex_count << '\n'
         << "sourceSize=" << source.size() << '\n'
         << "outputSize=" << written.bytes.size() << '\n'
-        << "sizeDelta=" << (written.bytes.size() - source.size()) << '\n'
+        << "sizeDelta=" << layout_plan.size_delta() << '\n'
         << "trianglesBefore=" << source_triangle_count << '\n'
         << "trianglesAfter=" << output_triangle_count << '\n'
         << "appendedTopology=2\n"
+        << "layoutPreflight=PASS\n"
         << "reparse=PASS\n"
         << "publication=NO_REPLACE_PASS\n";
     return 0;
