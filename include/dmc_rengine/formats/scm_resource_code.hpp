@@ -1,21 +1,22 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace dmc::rengine::formats::scm {
 
 // Serialized SCM header +0x14 is retained by the canonical HD runtime at
-// manager +0xE4. The preserved corpus plus a fresh structural sweep of 51
-// hash-unique SCM payloads recovered from retail st000..st003 PACs shows the
-// same stable decimal decomposition:
+// manager+0xE4. The hash-bound retail stage-PAC authority confirms the stable
+// decimal decomposition:
 //
 //   raw = family_class * 100000 + model_set * 100 + sub_index
 //
-// The component names are intentionally structural. Observed family classes now
-// include 3, 4, 7 and 8; no gameplay/artistic labels are assigned until a
-// provenance-clean producer or typed downstream manager+0xE4 consumer is
-// recovered. `model_set` is preferred over `stage` because observed values do
-// not consistently equal the current stage number.
+// The component names are intentionally structural. Across 51 SHA-distinct SCM
+// payloads from st000.pac..st003.pac, observed family classes are 3, 4, 7 and 8.
+// No gameplay/artistic label is assigned until a provenance-clean producer or
+// typed downstream manager+0xE4 consumer is recovered. `model_set` is preferred
+// over `stage` because observed values do not consistently equal the current
+// stage number.
 struct LegacyResourceCode final {
     std::uint32_t raw{};
     std::uint16_t model_set{};
@@ -42,22 +43,26 @@ struct LegacyResourceCode final {
            static_cast<std::uint32_t>(sub_index);
 }
 
-// Corpus-shape predicate only; this is not a file-validity rule. The historical
-// corpus established classes 3/4. Fresh hash-bound PAC extraction extends the
-// observed retail domain with class 7 (730507) and class 8 (813800).
-// Keep this predicate deliberately narrow: a future unseen code is preserved
-// and warned about, never rejected as an invalid SCM.
+// Corpus-shape predicate only; this is not a file-validity rule.
+//
+// The observed domain widened repeatedly during the retail scan. Classes 3 and
+// 8 are observed with sub_index 0; classes 4 and 7 contain both zero and
+// non-zero child indices, so neither class gets an invented sub-index rule.
+// A future code outside this predicate is preserved and warned about, never
+// rejected as an invalid SCM.
+inline constexpr std::array<std::uint16_t, 4> observed_family_classes{
+    3U,
+    4U,
+    7U,
+    8U,
+};
+
 [[nodiscard]] constexpr bool matches_observed_scm_resource_code_shape(
     const LegacyResourceCode& code) noexcept {
-    if (code.family_class == 3U) return code.sub_index == 0U;
-    if (code.family_class == 4U) return true;
-    if (code.family_class == 7U) {
-        return code.model_set == 305U && code.sub_index == 7U;
+    if (code.family_class == 3U || code.family_class == 8U) {
+        return code.sub_index == 0U;
     }
-    if (code.family_class == 8U) {
-        return code.model_set == 138U && code.sub_index == 0U;
-    }
-    return false;
+    return code.family_class == 4U || code.family_class == 7U;
 }
 
 } // namespace dmc::rengine::formats::scm

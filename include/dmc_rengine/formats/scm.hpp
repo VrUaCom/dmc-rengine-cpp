@@ -3,6 +3,7 @@
 #include "dmc_rengine/formats/diagnostic.hpp"
 #include "dmc_rengine/formats/scm_render.hpp"
 #include "dmc_rengine/formats/scm_resource_code.hpp"
+#include "dmc_rengine/formats/scm_version.hpp"
 
 #include <array>
 #include <cstddef>
@@ -21,21 +22,11 @@ inline constexpr std::size_t scene_block_header_size = 0x20U;
 inline constexpr std::size_t scene_transform_size = 0x20U;
 inline constexpr std::uint16_t index_workspace_sentinel = 0x1212U;
 
-// Expanded stage-PAC retail authority (st000.pac..st003.pac, 2026-09-13)
-// confirms the recovered SCM grammar at four serialized versions. Keep this
-// explicit rather than treating one floating-point version as universal.
-inline constexpr std::array<float, 4> confirmed_retail_versions{
-    0.83F, 0.90F, 1.00F, 1.01F};
-inline constexpr float retail_version_tolerance = 0.0001F;
-
+// Compatibility spelling retained for callers introduced before the version
+// domain was factored into scm_version.hpp. The authority is the hash-bound
+// corpus helper above, so there is only one version list to maintain.
 [[nodiscard]] constexpr bool is_confirmed_retail_version(float version) noexcept {
-    for (const auto confirmed : confirmed_retail_versions) {
-        if (version >= confirmed - retail_version_tolerance &&
-            version <= confirmed + retail_version_tolerance) {
-            return true;
-        }
-    }
-    return false;
+    return is_corpus_confirmed_structural_version(version);
 }
 
 static_assert(is_confirmed_retail_version(0.83F));

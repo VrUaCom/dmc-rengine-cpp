@@ -175,6 +175,48 @@ int main() {
     assert(scene_shell != nullptr);
     assert(has_tag(*scene_shell, "PRESERVED_UNDECODED"));
 
+    // Every reserved lane states its negative evidence, the header's three
+    // included. "Preserved-undecoded" alone does not distinguish a lane a
+    // census looked at and found dormant from one nobody has examined, and the
+    // completion audit gives all three header lanes the first disposition.
+    for (const auto* id : {
+             "scm-prov-header-reserved08-negative",
+             "scm-prov-header-reserved18-negative",
+             "scm-prov-header-reserved28-negative",
+         }) {
+        const auto* lane = document.find_annotation(id);
+        assert(lane != nullptr);
+        assert(has_tag(*lane, "RESERVED_OBSERVED_ZERO"));
+        assert(has_tag(*lane, "PRESERVED_UNDECODED"));
+        assert(has_tag(*lane, "BOUNDED_NEGATIVE_EVIDENCE"));
+    }
+
+    // The contrast that makes the three lanes above mean something: a span the
+    // runtime demonstrably carries must never wear the dormancy evidence.
+    //
+    // +0x13 used to be this example. It is not any more — the canonical EXE
+    // pass closed it as the scene-node index CDrawSCM selects a world matrix
+    // with, so it is EXE_CONFIRMED and no longer undecoded at all. That is why
+    // the example moved to +0x14, which is still the shape the contrast needs:
+    // structurally confirmed, copied to manager +0xE4, and with its high-level
+    // role open. Claiming dormancy for it would assert that nothing reads a
+    // word the executable copies.
+    const auto* carried = document.find_annotation("scm-prov-header-resource-code");
+    assert(carried != nullptr);
+    assert(has_tag(*carried, "EXE_AND_CORPUS_CONFIRMED"));
+    assert(has_tag(*carried, "PRESERVED_UNDECODED_HIGH_LEVEL_ROLE"));
+    assert(!has_tag(*carried, "BOUNDED_NEGATIVE_EVIDENCE"));
+    assert(!has_tag(*carried, "DEEP_NEGATIVE_EVIDENCE"));
+
+    // And the closure itself, asserted rather than assumed: +0x13 is a
+    // confirmed reading now, with the lighting path named in its text.
+    const auto* lighting = document.find_annotation("scm-prov-header-13");
+    assert(lighting != nullptr);
+    assert(has_tag(*lighting, "EXE_CONFIRMED"));
+    assert(!has_tag(*lighting, "PRESERVED_UNDECODED"));
+    assert(lighting->text.find("manager+0xFA") != std::string::npos);
+    assert(lighting->text.find("0x1402FD040") != std::string::npos);
+
     const auto* rotation =
         document.find_annotation("scm-prov-transform-000-rotation");
     assert(rotation != nullptr);

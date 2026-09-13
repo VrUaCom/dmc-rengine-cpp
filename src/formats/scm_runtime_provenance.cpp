@@ -53,7 +53,25 @@ inline constexpr std::string_view evidence_id =
         {"EXE_AND_CORPUS_CONFIRMED","runtime-provenance","structural-code","PRESERVED_UNDECODED_HIGH_LEVEL_ROLE"}) &&
     add(d, "scm-prov-header-scene-offset", 0x20U, 8U,
         "Scene-node block offset -> SCM setup 0x140303C10 -> node binder 0x1402F1DB0.",
-        {"STRUCTURAL_CONFIRMED","runtime-provenance","scene"});
+        {"STRUCTURAL_CONFIRMED","runtime-provenance","scene"}) &&
+    // The three dormant header lanes. The physical map marks them
+    // preserved-undecoded; what belongs here is the census behind that word.
+    // Every other reserved lane in this document states its negative evidence
+    // -- mesh +0x0C/+0x30/+0x4C now at DEEP_NEGATIVE_EVIDENCE, the scene shell,
+    // transform +0x1C -- and these three were the only ones left saying
+    // "undecoded" without saying who looked. Their evidence is the shared
+    // model-manager source-pointer census, which is bounded rather than deep:
+    // it is a whole-image sweep of one manager's sources, not the multi-hop
+    // chain walk that cleared the mesh lanes, and the tag says so.
+    add(d, "scm-prov-header-reserved08-negative", 0x08U, 8U,
+        "SCM+0x08..+0x0F is corpus-zero. The shared model-manager whole-image source-pointer census exposes no typed runtime effect for this lane. Preserve exactly; corpus zero is not padding authority.",
+        {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","BOUNDED_NEGATIVE_EVIDENCE","runtime-provenance","header"}) &&
+    add(d, "scm-prov-header-reserved18-negative", 0x18U, 8U,
+        "SCM+0x18..+0x1F is corpus-zero with whole-image model-source dormancy. No promoted typed consumer is established. Preserve exactly.",
+        {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","BOUNDED_NEGATIVE_EVIDENCE","runtime-provenance","header"}) &&
+    add(d, "scm-prov-header-reserved28-negative", 0x28U, 0x18U,
+        "SCM+0x28..+0x3F is the terminal header shell: corpus-zero with whole-image model-source dormancy and no promoted typed consumer. Preserve exactly.",
+        {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","BOUNDED_NEGATIVE_EVIDENCE","runtime-provenance","header"});
 }
 
 [[nodiscard]] bool add_object_provenance(binary::Document& d,
