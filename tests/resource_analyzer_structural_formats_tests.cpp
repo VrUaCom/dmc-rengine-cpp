@@ -2,6 +2,8 @@
 #include "dmc_rengine/formats/dca.hpp"
 #include "dmc_rengine/formats/lig2.hpp"
 #include "dmc_rengine/formats/mod.hpp"
+#include "dmc_rengine/formats/scm.hpp"
+#include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/integration/project_workspace.hpp"
 #include "dmc_rengine/integration/resource_analyzer.hpp"
 
@@ -131,6 +133,62 @@ void put_f32(std::vector<std::byte>& bytes, std::size_t offset, float value) {
     return bytes;
 }
 
+[[nodiscard]] std::vector<std::byte> scm_bytes() {
+    using namespace dmc::rengine::formats::scm;
+
+    ObjectShape shape;
+    shape.mesh_vertex_counts = {3U};
+    const std::vector<ObjectShape> shapes{shape};
+    const auto layout = build_serialized_layout(
+        std::span<const ObjectShape>{shapes}, 1U);
+
+    std::vector<std::byte> bytes(
+        static_cast<std::size_t>(layout.file_size), std::byte{0});
+    bytes[0] = std::byte{'S'};
+    bytes[1] = std::byte{'C'};
+    bytes[2] = std::byte{'M'};
+    bytes[3] = std::byte{' '};
+    put_f32(bytes, 0x04U, 1.01F);
+    put_u8(bytes, 0x10U, 1U);
+    put_u8(bytes, 0x11U, 1U);
+    put_u8(bytes, 0x12U, 1U);
+    put_u32(bytes, 0x14U, 300100U);
+    put_u64(bytes, 0x20U, layout.scene.block_offset);
+
+    const auto& object = layout.objects[0];
+    const auto object_offset = static_cast<std::size_t>(object.record_offset);
+    put_u8(bytes, object_offset + 0x00U, 1U);
+    put_u8(bytes, object_offset + 0x01U, 0x80U);
+    put_u16(bytes, object_offset + 0x02U, 3U);
+    put_u64(bytes, object_offset + 0x08U, object.mesh_table_offset);
+    put_f32(bytes, object_offset + 0x3CU, 1.0F);
+
+    const auto& mesh = object.meshes[0];
+    const auto mesh_offset = static_cast<std::size_t>(mesh.record_offset);
+    put_u16(bytes, mesh_offset + 0x00U, 3U);
+    put_u16(bytes, mesh_offset + 0x02U, 0U);
+    put_u64(bytes, mesh_offset + 0x10U, mesh.positions_offset);
+    put_u64(bytes, mesh_offset + 0x18U, mesh.normals_offset);
+    put_u64(bytes, mesh_offset + 0x20U, mesh.uv_offset);
+    put_u64(bytes, mesh_offset + 0x28U, 0U);
+    put_u64(bytes, mesh_offset + 0x38U, mesh.color_flags_offset);
+    put_u64(bytes, mesh_offset + 0x40U,
+            mesh.index_workspace_offset - mesh.record_offset);
+    put_u16(bytes, static_cast<std::size_t>(mesh.index_workspace_offset),
+            index_workspace_sentinel);
+
+    const auto scene_offset = static_cast<std::size_t>(layout.scene.block_offset);
+    put_u32(bytes, scene_offset + 0x00U, layout.scene.parent_rel);
+    put_u32(bytes, scene_offset + 0x04U, layout.scene.order_rel);
+    put_u32(bytes, scene_offset + 0x08U, layout.scene.object_binding_rel);
+    put_u32(bytes, scene_offset + 0x0CU, layout.scene.transform_rel);
+    put_u8(bytes, scene_offset + layout.scene.parent_rel, 0xFFU);
+    put_u8(bytes, scene_offset + layout.scene.order_rel, 0U);
+    put_u8(bytes, scene_offset + layout.scene.object_binding_rel, 0U);
+
+    return bytes;
+}
+
 } // namespace
 
 int main() {
@@ -223,6 +281,32 @@ int main() {
         txt_session->evidence_record_ids().begin(),
         txt_session->evidence_record_ids().end(),
         "ev-stage-set-test") != txt_session->evidence_record_ids().end());
+
+    const auto scm_data = scm_bytes();
+    const auto scm = resource(
+        "room/st001_000.scm", "scm", 0x3400U, scm_data.size());
+    assert(project.create_session(ResourcePayload{
+        .resource = scm,
+        .bytes = scm_data,
+        .diagnostics = {},
+    }, stage_context));
+    const auto scm_report = ResourceAnalyzer::analyze(project, scm.id);
+    assert(scm_report.ok());
+    assert(scm_report.parser_available);
+    assert(scm_report.recognized);
+    assert(scm_report.parser_id == "formats.scm-structural-v1");
+    assert(scm_report.binary_document_attached);
+    const auto* scm_session = project.find_session(scm.id);
+    assert(scm_session != nullptr);
+    assert(scm_session->format() != nullptr);
+    assert(scm_session->format()->binary_adapter);
+    assert(scm_session->format()->stage_category == StageResourceCategory::models);
+    assert(scm_session->parser_validation() != nullptr);
+    assert(scm_session->parser_validation()->parser_id == "formats.scm-structural-v1");
+    assert(scm_session->binary_document() != nullptr);
+    assert(scm_session->binary_document()->find_region("scm-header") != nullptr);
+    assert(scm_session->binary_document()->find_region("scm-mesh-000-000") != nullptr);
+    assert(scm_session->events().by_type(WorkspaceEventType::parser_completed).size() == 1U);
 
     const auto mod_data = mod_bytes();
     const auto mod = resource(
