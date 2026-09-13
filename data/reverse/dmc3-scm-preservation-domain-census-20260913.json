@@ -1,0 +1,76 @@
+{
+  "schema": "dmc-rengine.scm-preservation-domain-census.v1",
+  "date": "2026-09-13",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "source_receipts": [
+    "data/reverse/dmc3-scm-layout-20260902.json",
+    "data/reverse/dmc3-scm-consolidated-corpus-20260909.json",
+    "data/reverse/dmc3-scm-reverse-completion-20260913.json"
+  ],
+  "corpus": {
+    "unique_scm": 68,
+    "paths": 78,
+    "objects": 254,
+    "meshes": 481,
+    "scene_nodes": 328,
+    "vertices": 182612,
+    "parser_recognized_unique": 68,
+    "parser_ok_unique": 68,
+    "parser_diagnostics_unique": 0,
+    "topology_flag_byte_values": [0, 2]
+  },
+  "inference_rule": "The canonical parser emits warnings when checked preservation/reserved SCM lanes are non-zero. The 68-unique-file structural sweep has zero diagnostics. Therefore each checked lane below is zero throughout this bounded corpus. This is corpus evidence only and never global padding authority.",
+  "zero_domains": [
+    {
+      "domain": "header secondary lanes",
+      "serialized_ranges": ["+0x08..+0x0F", "+0x13", "+0x18..+0x1F", "+0x28..+0x2F", "+0x30..+0x37", "+0x38..+0x3F"],
+      "status": ["CORPUS_CONFIRMED_ZERO", "PRESERVED_UNDECODED"],
+      "promotion_boundary": "requires provenance-clean consumer/producer or non-zero shipped specimen"
+    },
+    {
+      "domain": "object secondary lanes",
+      "serialized_ranges": ["object+0x04..+0x07", "object+0x14..+0x2F"],
+      "population": 254,
+      "status": ["CORPUS_CONFIRMED_ZERO", "PRESERVED_UNDECODED"],
+      "promotion_boundary": "requires serialized-object-base provenance into a technical effect"
+    },
+    {
+      "domain": "mesh reserved/runtime lanes",
+      "serialized_ranges": ["mesh+0x0C..+0x0F", "mesh+0x30..+0x37", "mesh+0x4C..+0x4F"],
+      "population": 481,
+      "status": ["CORPUS_CONFIRMED_ZERO", "PRESERVED_UNDECODED"],
+      "known_negative_path": "primary 0x1402F9BB0 materialization omits +0x0C; v3 acquisition packet extends the census through 0x140308C00, 0x1402F9A80 and SCM-specialized 0x1402F9F20",
+      "promotion_boundary": "requires non-zero specimen, producer, indirect backreference consumer, or controlled mutation"
+    },
+    {
+      "domain": "scene block secondary shell",
+      "serialized_ranges": ["scene+0x10..+0x1F"],
+      "status": ["CORPUS_CONFIRMED_ZERO", "PRESERVED_UNDECODED"],
+      "known_negative_path": "audited model-path planner reads +0x10 into a dead local; raw shell pointer does not escape the recovered path",
+      "promotion_boundary": "requires a live consumer or non-zero specimen"
+    },
+    {
+      "domain": "transform fourth lane",
+      "serialized_ranges": ["transform+0x1C..+0x1F"],
+      "population": 328,
+      "status": ["CORPUS_CONFIRMED_ZERO", "PRESERVED_UNDECODED"],
+      "known_negative_path": "SCM initializer 0x1402FA360 constructs temporary translation W=1 and rotation W=0 and does not consume serialized +0x1C",
+      "promotion_boundary": "requires independent transform consumer/producer or non-zero specimen"
+    }
+  ],
+  "topology_domain": {
+    "serialized": "per-vertex fourth byte in RGB/topology stream",
+    "observed_values": [0, 2],
+    "population_vertices": 182612,
+    "confirmed_semantic": "bit 0x02 breaks/skips a triangle-strip run in 0x1403051B0",
+    "unobserved_bits": "all bits except 0x02",
+    "status_unobserved_bits": "PRESERVED_UNDECODED_IF_ENCOUNTERED",
+    "note": "No current retail-corpus evidence exists for any topology bit other than 0x02."
+  },
+  "global_policy": [
+    "zero observation does not authorize memset/normalization of parsed resources",
+    "parsed resources preserve exact source bytes",
+    "new canonical records may use zero only where the canonical authoring policy explicitly chooses the observed default",
+    "semantic editor controls are forbidden for preservation-only domains"
+  ]
+}
