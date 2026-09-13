@@ -12,6 +12,7 @@
 #include "scm_normal_authoring_commands.hpp"
 #include "scm_uv_authoring_commands.hpp"
 #include "scm_corpus_commands.hpp"
+#include "scm_reader_commands.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -33,6 +34,7 @@ void print_integration_help() {
     print_nbz_copy_help();
     print_relative_slot_help();
     print_hits_help();
+    print_scm_reader_help();
     print_scm_authoring_help();
     print_scm_rotation_authoring_help();
     print_scm_vertex_authoring_help();
@@ -77,6 +79,11 @@ int try_run_integration_command(int argc, char** argv) {
     const auto hits_result = try_run_hits_command(argc, argv);
     if (hits_result != -1) {
         return hits_result;
+    }
+
+    const auto scm_reader_result = try_run_scm_reader_command(argc, argv);
+    if (scm_reader_result != -1) {
+        return scm_reader_result;
     }
 
     const auto scm_rotation_authoring_result =
