@@ -65,4 +65,33 @@ inline constexpr std::array<std::uint16_t, 4> observed_family_classes{
     return code.family_class == 4U || code.family_class == 7U;
 }
 
+// Compile-time evidence locks. These are deliberately examples of the
+// structural domain rather than gameplay labels.
+inline constexpr auto observed_resource_code_730507 =
+    decode_legacy_resource_code(730507U);
+static_assert(observed_resource_code_730507.family_class == 7U);
+static_assert(observed_resource_code_730507.model_set == 305U);
+static_assert(observed_resource_code_730507.sub_index == 7U);
+static_assert(matches_observed_scm_resource_code_shape(
+    observed_resource_code_730507));
+
+inline constexpr auto observed_resource_code_813800 =
+    decode_legacy_resource_code(813800U);
+static_assert(observed_resource_code_813800.family_class == 8U);
+static_assert(observed_resource_code_813800.model_set == 138U);
+static_assert(observed_resource_code_813800.sub_index == 0U);
+static_assert(matches_observed_scm_resource_code_shape(
+    observed_resource_code_813800));
+
+static_assert(!matches_observed_scm_resource_code_shape(
+    decode_legacy_resource_code(300101U)));
+static_assert(!matches_observed_scm_resource_code_shape(
+    decode_legacy_resource_code(813801U)));
+static_assert(matches_observed_scm_resource_code_shape(
+    decode_legacy_resource_code(400115U)));
+static_assert(matches_observed_scm_resource_code_shape(
+    decode_legacy_resource_code(700115U)));
+static_assert(!matches_observed_scm_resource_code_shape(
+    decode_legacy_resource_code(900100U)));
+
 } // namespace dmc::rengine::formats::scm
