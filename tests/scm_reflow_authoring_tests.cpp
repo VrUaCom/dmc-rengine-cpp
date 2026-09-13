@@ -21,8 +21,11 @@ void put(std::vector<std::byte>& bytes, std::size_t offset, T value) {
 std::vector<std::byte> fixture() {
     using namespace dmc::rengine::formats::scm;
 
+    // Four vertices deliberately place every stream exactly on a 16-byte
+    // boundary. Appending the fifth vertex therefore crosses the canonical
+    // layout threshold instead of merely consuming alignment slack.
     ObjectShape shape;
-    shape.mesh_vertex_counts = {3U};
+    shape.mesh_vertex_counts = {4U};
     const std::vector<ObjectShape> shapes{shape};
     const auto layout = build_serialized_layout(
         std::span<const ObjectShape>{shapes}, 1U);
@@ -45,15 +48,15 @@ std::vector<std::byte> fixture() {
         static_cast<std::size_t>(object_layout.record_offset);
     bytes[object_offset] = std::byte{1};
     bytes[object_offset + 1U] = std::byte{0x80};
-    put<std::uint16_t>(bytes, object_offset + 0x02U, 3U);
+    put<std::uint16_t>(bytes, object_offset + 0x02U, 4U);
     put<std::uint64_t>(
         bytes, object_offset + 0x08U, object_layout.mesh_table_offset);
-    put<float>(bytes, object_offset + 0x3CU, 4.0F);
+    put<float>(bytes, object_offset + 0x3CU, 5.0F);
 
     const auto& mesh_layout = object_layout.meshes[0];
     const auto mesh_offset =
         static_cast<std::size_t>(mesh_layout.record_offset);
-    put<std::uint16_t>(bytes, mesh_offset + 0x00U, 3U);
+    put<std::uint16_t>(bytes, mesh_offset + 0x00U, 4U);
     put<std::uint64_t>(bytes, mesh_offset + 0x10U, mesh_layout.positions_offset);
     put<std::uint64_t>(bytes, mesh_offset + 0x18U, mesh_layout.normals_offset);
     put<std::uint64_t>(bytes, mesh_offset + 0x20U, mesh_layout.uv_offset);
@@ -67,7 +70,7 @@ std::vector<std::byte> fixture() {
         static_cast<std::size_t>(mesh_layout.index_workspace_offset),
         index_workspace_sentinel);
 
-    for (std::size_t index = 0U; index < 3U; ++index) {
+    for (std::size_t index = 0U; index < 4U; ++index) {
         const auto p = static_cast<std::size_t>(mesh_layout.positions_offset) +
                        index * 12U;
         put<float>(bytes, p + 0U, static_cast<float>(index + 1U));
@@ -86,7 +89,8 @@ std::vector<std::byte> fixture() {
         bytes[color + 0U] = std::byte{0x10};
         bytes[color + 1U] = std::byte{0x20};
         bytes[color + 2U] = std::byte{0x30};
-        bytes[color + 3U] = std::byte{0};
+        bytes[color + 3U] =
+            index == 3U ? std::byte{triangle_break_bit} : std::byte{0};
     }
 
     const auto scene_offset =
@@ -131,14 +135,14 @@ int main() {
     assert(parsed.ok());
     assert(parsed.document.objects.size() == 1U);
     assert(parsed.document.objects[0].meshes.size() == 1U);
-    assert(parsed.document.objects[0].meshes[0].vertex_count == 3U);
+    assert(parsed.document.objects[0].meshes[0].vertex_count == 4U);
     assert(triangle_count(parsed.document.objects[0].meshes[0]) == 1U);
 
     auto document = parsed.document;
-    const auto edit = append_break_vertex_copy(document, 0U, 0U, 2U);
+    const auto edit = append_break_vertex_copy(document, 0U, 0U, 3U);
     assert(edit.ok());
     assert(edit.changed);
-    assert(document.objects[0].meshes[0].positions.size() == 4U);
+    assert(document.objects[0].meshes[0].positions.size() == 5U);
     assert(
         document.objects[0].meshes[0].colors_topology.back().topology_flags ==
         triangle_break_bit);
@@ -155,16 +159,16 @@ int main() {
         std::span<const std::byte>{rebuilt.bytes});
     assert(reparsed.ok());
     const auto& mesh = reparsed.document.objects[0].meshes[0];
-    assert(mesh.vertex_count == 4U);
-    assert(reparsed.document.objects[0].total_vertex_count == 4U);
-    assert(mesh.positions.back().x == parsed.document.objects[0].meshes[0].positions[2].x);
-    assert(mesh.positions.back().y == parsed.document.objects[0].meshes[0].positions[2].y);
-    assert(mesh.positions.back().z == parsed.document.objects[0].meshes[0].positions[2].z);
+    assert(mesh.vertex_count == 5U);
+    assert(reparsed.document.objects[0].total_vertex_count == 5U);
+    assert(mesh.positions.back().x == parsed.document.objects[0].meshes[0].positions[3].x);
+    assert(mesh.positions.back().y == parsed.document.objects[0].meshes[0].positions[3].y);
+    assert(mesh.positions.back().z == parsed.document.objects[0].meshes[0].positions[3].z);
     assert(mesh.colors_topology.back().topology_flags == triangle_break_bit);
     assert(triangle_count(mesh) == 1U);
 
     auto invalid = parsed.document;
-    const auto invalid_edit = append_break_vertex_copy(invalid, 0U, 0U, 3U);
+    const auto invalid_edit = append_break_vertex_copy(invalid, 0U, 0U, 4U);
     assert(!invalid_edit.ok());
     assert(!invalid_edit.changed);
 
