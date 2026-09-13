@@ -193,6 +193,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mot_structural
         text_resource_dialect
         scm
+        scm_binary
         shw
         so
         so_graph
