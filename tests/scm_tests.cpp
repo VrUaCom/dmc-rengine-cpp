@@ -5,6 +5,7 @@
 #include "dmc_rengine/formats/scm_topology.hpp"
 #include "dmc_rengine/formats/scm_transform.hpp"
 
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -101,6 +102,12 @@ int main() {
     static_assert(mesh_record_size == 0x50U);
     static_assert(index_workspace_capacity_bytes(3U) == 16U);
     static_assert(index_workspace_capacity_bytes(10U) == 48U);
+    static_assert(is_confirmed_retail_version(0.83F));
+    static_assert(is_confirmed_retail_version(0.90F));
+    static_assert(is_confirmed_retail_version(1.00F));
+    static_assert(is_confirmed_retail_version(1.01F));
+    static_assert(!is_confirmed_retail_version(0.82F));
+    static_assert(!is_confirmed_retail_version(1.02F));
 
     constexpr LegacyGsClampRegionRepeat disabled_clamp{};
     static_assert(pack_legacy_gs_clamp_region_repeat(disabled_clamp) == 0U);
@@ -160,6 +167,7 @@ int main() {
     assert(parsed.ok());
     assert(parsed.document.header.object_count == 1U);
     assert(parsed.document.header.scene_node_count == 1U);
+    assert(parsed.document.header.lighting_reference_node_index == 0U);
     assert(parsed.document.objects.size() == 1U);
     assert(parsed.document.objects[0].alpha_control == 0x80U);
     assert(parsed.document.objects[0].meshes.size() == 1U);
@@ -169,6 +177,64 @@ int main() {
     assert(parsed.document.scene_nodes.parent_by_order_position[0] == -1);
     assert(parsed.document.scene_nodes.node_at_order_position[0] == 0U);
     assert(parsed.document.scene_nodes.object_binding_by_node_index[0] == 0);
+
+    constexpr std::array<float, 4> confirmed_versions{
+        0.83F, 0.90F, 1.00F, 1.01F};
+    for (const auto version : confirmed_versions) {
+        auto version_bytes = bytes;
+        put<float>(version_bytes, 0x04U, version);
+        const auto version_parsed = Parser::parse(
+            std::span<const std::byte>{version_bytes});
+        assert(version_parsed.ok());
+        const auto warning = std::find_if(
+            version_parsed.diagnostics.begin(),
+            version_parsed.diagnostics.end(),
+            [](const auto& diagnostic) {
+                return diagnostic.code == "scm.unconfirmed-version";
+            });
+        assert(warning == version_parsed.diagnostics.end());
+    }
+
+    auto unconfirmed_version_bytes = bytes;
+    put<float>(unconfirmed_version_bytes, 0x04U, 0.99F);
+    const auto unconfirmed_version_parsed = Parser::parse(
+        std::span<const std::byte>{unconfirmed_version_bytes});
+    assert(unconfirmed_version_parsed.ok());
+    const auto unconfirmed_version_warning = std::find_if(
+        unconfirmed_version_parsed.diagnostics.begin(),
+        unconfirmed_version_parsed.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code == "scm.unconfirmed-version";
+        });
+    assert(
+        unconfirmed_version_warning !=
+        unconfirmed_version_parsed.diagnostics.end());
+
+    auto out_of_range_lighting = bytes;
+    out_of_range_lighting[0x13U] = std::byte{1};
+    const auto out_of_range_lighting_parsed = Parser::parse(
+        std::span<const std::byte>{out_of_range_lighting});
+    assert(out_of_range_lighting_parsed.ok());
+    assert(
+        out_of_range_lighting_parsed.document.header
+            .lighting_reference_node_index == 1U);
+    const auto lighting_warning = std::find_if(
+        out_of_range_lighting_parsed.diagnostics.begin(),
+        out_of_range_lighting_parsed.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code ==
+                "scm.lighting-reference-node-out-of-range";
+        });
+    assert(lighting_warning != out_of_range_lighting_parsed.diagnostics.end());
+    const auto false_reserved_warning = std::find_if(
+        out_of_range_lighting_parsed.diagnostics.begin(),
+        out_of_range_lighting_parsed.diagnostics.end(),
+        [](const auto& diagnostic) {
+            return diagnostic.code == "scm.header-reserved-nonzero";
+        });
+    assert(
+        false_reserved_warning ==
+        out_of_range_lighting_parsed.diagnostics.end());
 
     const auto mesh_offset = static_cast<std::size_t>(
         parsed.document.objects[0].meshes[0].record_offset);
