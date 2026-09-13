@@ -22,14 +22,14 @@ void put(std::vector<std::byte>& bytes, std::size_t offset, T value) {
     std::memcpy(bytes.data() + offset, &value, sizeof(T));
 }
 
-std::vector<std::byte> fixture() {
+std::vector<std::byte> fixture(std::uint8_t node_count = 1U) {
     using namespace dmc::rengine::formats::scm;
 
     ObjectShape shape;
     shape.mesh_vertex_counts = {3U};
     const std::vector<ObjectShape> shapes{shape};
     const auto layout = build_serialized_layout(
-        std::span<const ObjectShape>{shapes}, 1U);
+        std::span<const ObjectShape>{shapes}, node_count);
     std::vector<std::byte> bytes(
         static_cast<std::size_t>(layout.file_size), std::byte{0});
 
@@ -39,7 +39,7 @@ std::vector<std::byte> fixture() {
     bytes[3] = std::byte{' '};
     put<float>(bytes, 0x04U, 1.01F);
     bytes[0x10U] = std::byte{1};
-    bytes[0x11U] = std::byte{1};
+    bytes[0x11U] = std::byte{node_count};
     bytes[0x12U] = std::byte{2};
     put<std::uint32_t>(bytes, 0x14U, 300100U);
     put<std::uint64_t>(bytes, 0x20U, layout.scene.block_offset);
@@ -92,9 +92,14 @@ std::vector<std::byte> fixture() {
         bytes, scene_offset + 0x08U, layout.scene.object_binding_rel);
     put<std::uint32_t>(
         bytes, scene_offset + 0x0CU, layout.scene.transform_rel);
-    bytes[scene_offset + layout.scene.parent_rel] = std::byte{0xFF};
-    bytes[scene_offset + layout.scene.order_rel] = std::byte{0};
-    bytes[scene_offset + layout.scene.object_binding_rel] = std::byte{0};
+    for (std::uint8_t index = 0U; index < node_count; ++index) {
+        bytes[scene_offset + layout.scene.parent_rel + index] =
+            index == 0U ? std::byte{0xFF} : std::byte{0};
+        bytes[scene_offset + layout.scene.order_rel + index] =
+            std::byte{index};
+        bytes[scene_offset + layout.scene.object_binding_rel + index] =
+            index == 0U ? std::byte{0} : std::byte{0xFF};
+    }
     return bytes;
 }
 
@@ -249,23 +254,54 @@ int main() {
         LegacyGsClampRegionRepeat{0x400U, 0U, 0U, 0U});
     assert(!invalid_clamp.ok());
 
-    // Source-bound callers cannot bypass the evidence-aware edit API by
-    // mutating reserved/undecoded public IR fields directly.
-    auto reserved_header_document = parsed.document;
-    reserved_header_document.header.reserved13 = 1U;
-    const auto rejected_reserved_header = Writer::write(
-        reserved_header_document, WriteMode::preserve_layout);
-    assert(!rejected_reserved_header.ok());
-    const auto reserved_header_diag = std::find_if(
-        rejected_reserved_header.diagnostics.begin(),
-        rejected_reserved_header.diagnostics.end(),
+    const auto lighting_source = fixture(2U);
+    const auto lighting_parsed = Parser::parse(
+        std::span<const std::byte>{lighting_source});
+    assert(lighting_parsed.ok());
+    assert(
+        lighting_parsed.document.header.lighting_reference_node_index == 0U);
+
+    auto lighting_document = lighting_parsed.document;
+    const auto lighting_edit = set_lighting_reference_node(
+        lighting_document, 1U);
+    assert(lighting_edit.ok());
+    assert(lighting_edit.changed);
+    const auto lighting_written = Writer::write(
+        lighting_document, WriteMode::preserve_layout);
+    assert(lighting_written.ok());
+    assert(!lighting_written.bit_identical_to_source);
+    assert(lighting_written.bytes[0x13U] == std::byte{1});
+    const auto lighting_reparsed = Parser::parse(
+        std::span<const std::byte>{lighting_written.bytes});
+    assert(lighting_reparsed.ok());
+    assert(
+        lighting_reparsed.document.header.lighting_reference_node_index == 1U);
+
+    auto invalid_lighting_document = lighting_parsed.document;
+    const auto invalid_lighting_edit = set_lighting_reference_node(
+        invalid_lighting_document, 2U);
+    assert(!invalid_lighting_edit.ok());
+    assert(!invalid_lighting_edit.changed);
+
+    auto invalid_direct_lighting_document = lighting_parsed.document;
+    invalid_direct_lighting_document.header.lighting_reference_node_index = 2U;
+    const auto rejected_invalid_lighting = Writer::write(
+        invalid_direct_lighting_document, WriteMode::preserve_layout);
+    assert(!rejected_invalid_lighting.ok());
+    const auto invalid_lighting_diag = std::find_if(
+        rejected_invalid_lighting.diagnostics.begin(),
+        rejected_invalid_lighting.diagnostics.end(),
         [](const auto& diagnostic) {
             return diagnostic.code ==
-                "scm.writer-source-bound-undecoded-field-mutated";
+                "scm.writer-source-bound-invalid-authored-value";
         });
-    assert(reserved_header_diag != rejected_reserved_header.diagnostics.end());
-    assert(reserved_header_diag->offset == 0x13U);
+    assert(
+        invalid_lighting_diag !=
+        rejected_invalid_lighting.diagnostics.end());
+    assert(invalid_lighting_diag->offset == 0x13U);
 
+    // Source-bound callers still cannot bypass the evidence-aware edit API by
+    // mutating fields whose semantics remain undecoded.
     auto unknown_flag_document = parsed.document;
     unknown_flag_document.objects[0].flags ^= 0x00200000U;
     const auto rejected_unknown_flag = Writer::write(
@@ -399,16 +435,11 @@ int main() {
     assert(resized_parse.ok());
     assert(resized_parse.document.objects[0].meshes[0].vertex_count == 4U);
     assert(resized_parse.document.objects[0].total_vertex_count == 4U);
-    // Alignment may absorb an extra vertex without changing total file size.
-    // Reparsed count and payload values prove the geometry edit survived.
     assert(resized.bytes != source);
     assert(resized_parse.document.objects[0].meshes[0].positions.back().x == 1.0F);
     assert(resized_parse.document.objects[0].meshes[0].positions.back().y == 1.0F);
     assert(resized_parse.document.objects[0].meshes[0].positions.back().z == 1.0F);
 
-    // Layout-changing canonical rebuild must not silently normalize an
-    // unmodeled non-zero source byte. 0xF4 is align16 padding immediately
-    // after the 3-vertex position stream in this fixture.
     auto padded_source = source;
     padded_source[0xF4U] = std::byte{0xA5U};
     const auto padded_parse = Parser::parse(
