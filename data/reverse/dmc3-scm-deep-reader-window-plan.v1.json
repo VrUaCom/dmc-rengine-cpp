@@ -1,6 +1,6 @@
 {
   "schema": "dmc-rengine.exe-window-packet-plan.v1",
-  "id": "dmc3-hd-scm-deep-reader-2026-09-13",
+  "id": "dmc3-hd-scm-deep-reader-v2-2026-09-13",
   "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "artifact_size": 6356432,
   "authority_role": "analysis-reverse",
@@ -47,6 +47,14 @@
       "purpose": "Reacquire the low-mode/helper-state projection from SCM source flags. Trace transformed/indirect bit operations so source bit 0x00200000 is not missed merely because a downstream consumer lacks an immediate 0x200000 mask."
     },
     {
+      "id": "scm-helper-mode-dispatch-1402f17c0",
+      "va": "0x1402F17C0",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New deeper frontier. Follow helper modes selected by 0x140302640 beyond the immediate source-flag projection. Determine which runtime state is produced by modes 1/2/4/9 and whether any transformed source-flag information, including preserved bit21, re-enters later state without a direct immediate mask. Keep numeric mode identity separate from speculative artistic labels."
+    },
+    {
       "id": "scm-manager-header-load-1402f9570",
       "va": "0x1402F9570",
       "size": "0x500",
@@ -60,7 +68,15 @@
       "size": "0x500",
       "mode": "probe",
       "issues": [],
-      "purpose": "Reacquire SCM-resource and external texture-companion pairing at manager +0x108/+0x110 and the companion table build. Keep serialized SCM ownership separate from texture payload ownership."
+      "purpose": "Reacquire SCM-resource and external texture-companion pairing at manager +0x108/+0x110 and the companion table build around 0x140304B30. Keep serialized SCM ownership separate from texture payload ownership."
+    },
+    {
+      "id": "scm-texture-payload-parser-1403365b0",
+      "va": "0x140336500",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New cross-resource frontier. Reacquire the direct companion texture payload parser around 0x1403365B0, including the TM2\\0 check and all fallback branches reachable from the SCM companion table. Establish exactly which companion slot metadata reaches runtime texture records without asserting that every valid slot is TM2."
     },
     {
       "id": "scm-scene-setup-140303c10",
@@ -87,6 +103,14 @@
       "purpose": "Reacquire the corrected SCM-specific local transform path: translation, XYZ radians through 0x140330450, Rz*Ry*Rx composition and translation application. Explicitly verify that serialized transform +0x1C remains outside matrix construction."
     },
     {
+      "id": "scm-world-transform-update-1402f9700",
+      "va": "0x1402F9680",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New downstream transform frontier. Reacquire the generic world update around 0x1402F9700 from an SCM-provenanced caller and prove operand order, parent/root selection and destination ownership through the final world matrix. This closes the reader trace beyond local transform construction rather than stopping at 0x1402FA360."
+    },
+    {
       "id": "scm-mesh-consumer-1402fdd10",
       "va": "0x1402FDD10",
       "size": "0x500",
@@ -101,6 +125,22 @@
       "mode": "probe",
       "issues": [],
       "purpose": "Reconfirm alpha_control projection into the 0x30-byte MDL_PARTS_COLOR_PKT and capture adjacent draw-state ownership. This is a regression surface for object +0x01 and low-mode forced 0x80 behavior, not authority to rename unrelated flags."
+    },
+    {
+      "id": "scm-draw-packet-path-1402fd040",
+      "va": "0x1402FCF00",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New final-consumer frontier. Reacquire the CDrawSCM path around 0x1402FD040, prove the 0x30 packet stride from pointer provenance, and trace which runtime object/material/color packet lanes reach draw submission. Explicitly distinguish packet-level state from serialized fields that merely share numeric values."
+    },
+    {
+      "id": "scm-draw-submission-1402fc850",
+      "va": "0x1402FC700",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New final-consumer frontier. Reacquire SCM draw submission around 0x1402FC850 and follow texture/color/alpha state into shader/resource binding. Record branch predicates and packet ownership needed to map SCM runtime state to concrete draw variants without assigning shader semantics to unproven source bits."
     },
     {
       "id": "scm-bit21-rejected-manager-hit-140303e80",
