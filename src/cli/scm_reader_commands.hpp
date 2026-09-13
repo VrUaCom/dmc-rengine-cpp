@@ -2,7 +2,7 @@
 
 #include "dmc_rengine/binary/manifest.hpp"
 #include "dmc_rengine/formats/scm.hpp"
-#include "dmc_rengine/formats/scm_binary.hpp"
+#include "dmc_rengine/formats/scm_runtime_provenance.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
 
@@ -135,8 +135,21 @@ inline void print_summary(
         }
     }
 
+    std::size_t provenance_annotations = 0U;
+    std::size_t negative_evidence_annotations = 0U;
+    for (const auto& annotation : document.annotations()) {
+        if (std::find(annotation.tags.begin(), annotation.tags.end(),
+                      "runtime-provenance") != annotation.tags.end()) {
+            ++provenance_annotations;
+        }
+        if (std::find(annotation.tags.begin(), annotation.tags.end(),
+                      "BOUNDED_NEGATIVE_EVIDENCE") != annotation.tags.end()) {
+            ++negative_evidence_annotations;
+        }
+    }
+
     std::cout
-        << "SCM deep reader\n"
+        << "SCM deep reader + runtime provenance\n"
         << "version=" << h.version << '\n'
         << "objects=" << parsed.document.objects.size() << '\n'
         << "meshes=" << mesh_count << '\n'
@@ -155,6 +168,9 @@ inline void print_summary(
         << " fields=" << document.fields().size()
         << " owners=" << document.ownership().size()
         << " annotations=" << document.annotations().size() << '\n'
+        << "runtimeProvenanceAnnotations=" << provenance_annotations
+        << " negativeEvidenceAnnotations=" << negative_evidence_annotations
+        << '\n'
         << "unknownRanges=" << document.unknown_ranges().size()
         << " regionConflicts=" << document.conflicts().size()
         << " ownershipConflicts=" << document.ownership_conflicts().size()
@@ -177,7 +193,7 @@ inline void print_summary(
 inline void print_scm_reader_help() {
     std::cout
         << "  inspect-scm <file> [--json | --offset <n>]\n"
-        << "                             Deep read-only SCM byte/evidence inspection\n"
+        << "                             Deep read-only SCM byte/runtime-provenance inspection\n"
         << "                             --json emits the full Binary Inspector manifest\n"
         << "                             --offset accepts decimal or 0x-prefixed byte offset\n";
 }
@@ -237,10 +253,10 @@ inline int try_run_scm_reader_command(int argc, char** argv) {
         return 4;
     }
 
-    auto document = formats::scm::build_binary_document(
+    auto document = formats::scm::build_deep_binary_document(
         payload->resource, bytes, parsed);
     if (!document.has_value()) {
-        std::cerr << "inspect-scm: failed to build SCM binary map\n";
+        std::cerr << "inspect-scm: failed to build SCM deep binary/provenance map\n";
         return 5;
     }
 
