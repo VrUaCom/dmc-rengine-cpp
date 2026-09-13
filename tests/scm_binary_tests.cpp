@@ -2,12 +2,15 @@
 #include "dmc_rengine/formats/scm_binary.hpp"
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
+#include "dmc_rengine/formats/scm_runtime_provenance.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace {
@@ -81,6 +84,13 @@ std::vector<std::byte> fixture() {
     return bytes;
 }
 
+bool has_tag(
+    const dmc::rengine::binary::Annotation& annotation,
+    std::string_view tag) {
+    return std::find(annotation.tags.begin(), annotation.tags.end(), tag) !=
+        annotation.tags.end();
+}
+
 } // namespace
 
 int main() {
@@ -107,7 +117,7 @@ int main() {
         .container = false,
     };
 
-    const auto mapped = build_binary_document(
+    const auto mapped = build_deep_binary_document(
         resource, std::span<const std::byte>{bytes}, parsed);
     assert(mapped.has_value());
 
@@ -135,6 +145,40 @@ int main() {
     assert(document.find_annotation("scm-object-000-flag-bit21") != nullptr);
     assert(document.find_annotation("scm-scene-preservation-10-1f") != nullptr);
     assert(document.find_annotation("scm-mesh-000-000-topology-contract") != nullptr);
+
+    // Runtime provenance is now part of the same shared Binary Inspector
+    // document instead of living only in research notes.
+    const auto* texture_mirror =
+        document.find_annotation("scm-prov-header-texture-mirror");
+    assert(texture_mirror != nullptr);
+    assert(has_tag(*texture_mirror, "external-companion"));
+
+    const auto* alpha = document.find_annotation("scm-prov-object-000-alpha");
+    assert(alpha != nullptr);
+    assert(has_tag(*alpha, "shader-visible"));
+    assert(alpha->text.find("COLOR0.a") != std::string::npos);
+
+    const auto* bit21 =
+        document.find_annotation("scm-prov-object-000-bit21-negative");
+    assert(bit21 != nullptr);
+    assert(has_tag(*bit21, "BOUNDED_NEGATIVE_EVIDENCE"));
+    assert(bit21->text.find("0x1402F4C21") != std::string::npos);
+    assert(bit21->text.find("0x140303F2F") != std::string::npos);
+
+    const auto* texture =
+        document.find_annotation("scm-prov-mesh-000-000-texture");
+    assert(texture != nullptr);
+    assert(texture->text.find("index*0x40") != std::string::npos);
+
+    const auto* scene_shell =
+        document.find_annotation("scm-prov-scene-shell-negative");
+    assert(scene_shell != nullptr);
+    assert(has_tag(*scene_shell, "PRESERVED_UNDECODED"));
+
+    const auto* rotation =
+        document.find_annotation("scm-prov-transform-000-rotation");
+    assert(rotation != nullptr);
+    assert(rotation->text.find("0x1402F9700") != std::string::npos);
 
     // The deep reader must remain read-only and evidence aware. It may leave
     // canonical alignment padding uncovered, but it must map all owned semantic
