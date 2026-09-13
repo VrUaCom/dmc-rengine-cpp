@@ -87,6 +87,7 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
 
 struct SlotSnapshot final {
     bool populated{};
+    std::uint64_t source_offset{};
     std::vector<std::byte> bytes;
 };
 
@@ -97,6 +98,7 @@ struct SlotSnapshot final {
     for (const auto& child : expansion.children) {
         SlotSnapshot snapshot{
             .populated = child.entry.populated,
+            .source_offset = child.entry.offset,
             .bytes = {},
         };
         if (child.entry.populated) {
@@ -110,6 +112,7 @@ struct SlotSnapshot final {
 
 struct VerificationContext final {
     unsigned int slot_index{};
+    std::uint64_t target_source_offset{};
     std::vector<std::byte> authored_scm;
     std::vector<SlotSnapshot> source_slots;
     std::string expected_format;
@@ -139,16 +142,19 @@ struct VerificationContext final {
         return false;
     }
 
+    bool target_seen = false;
     for (std::size_t index = 0U; index < expansion.children.size(); ++index) {
         const auto& before = context.source_slots[index];
         const auto& after = expansion.children[index];
         if (before.populated != after.entry.populated) return false;
+        if (!before.populated) continue;
+        if (!after.payload.readable()) return false;
 
-        if (index == context.slot_index) {
-            if (!after.entry.populated || !after.payload.readable() ||
-                after.payload.bytes != context.authored_scm) {
-                return false;
-            }
+        const bool target_alias =
+            before.source_offset == context.target_source_offset;
+        if (target_alias) {
+            target_seen = true;
+            if (after.payload.bytes != context.authored_scm) return false;
             const auto authored_parse = formats::scm::Parser::parse(
                 std::span<const std::byte>{
                     after.payload.bytes.data(), after.payload.bytes.size()});
@@ -156,12 +162,9 @@ struct VerificationContext final {
             continue;
         }
 
-        if (!before.populated) continue;
-        if (!after.payload.readable() || before.bytes != after.payload.bytes) {
-            return false;
-        }
+        if (before.bytes != after.payload.bytes) return false;
     }
-    return true;
+    return target_seen;
 }
 
 } // namespace scm_reintegration_detail
@@ -169,7 +172,7 @@ struct VerificationContext final {
 inline void print_scm_reintegration_help() {
     std::cout
         << "  verify-scm-reintegration <source.scm> <authored.scm> <parent.pac|pnst> <slot-index> <output-parent>\n"
-        << "                             Provenance-bound SCM child replacement with staged reopen, exact non-target-slot preservation and SCM reparse\n";
+        << "                             Provenance-bound SCM child replacement with staged reopen, target-alias rematerialization, exact non-target physical-span preservation and SCM reparse\n";
 }
 
 inline int try_run_scm_reintegration_command(int argc, char** argv) {
@@ -292,8 +295,17 @@ inline int try_run_scm_reintegration_command(int argc, char** argv) {
         return 10;
     }
 
+    std::size_t target_alias_count = 0U;
+    for (const auto& snapshot : *source_slots) {
+        if (snapshot.populated &&
+            snapshot.source_offset == source_child.entry.offset) {
+            ++target_alias_count;
+        }
+    }
+
     detail::VerificationContext verification{
         .slot_index = *slot_index,
+        .target_source_offset = source_child.entry.offset,
         .authored_scm = authored_scm,
         .source_slots = *source_slots,
         .expected_format = rebuilt.receipt->output_topology.format,
@@ -321,6 +333,7 @@ inline int try_run_scm_reintegration_command(int argc, char** argv) {
         << "SCM_REINTEGRATION_VERIFIED"
         << " format=" << rebuilt.receipt->output_topology.format
         << " slot=" << *slot_index
+        << " targetAliases=" << target_alias_count
         << " sourceScmSha256=" << source_child_sha
         << " authoredScmSha256=" << authored_child_sha
         << " sourceParentSha256=" << rebuilt.receipt->source_sha256
@@ -329,8 +342,8 @@ inline int try_run_scm_reintegration_command(int argc, char** argv) {
         << " authoredScmBytes=" << authored_scm.size()
         << " sourceParentBytes=" << rebuilt.receipt->source_topology.container_size
         << " outputParentBytes=" << rebuilt.receipt->output_topology.container_size
-        << " targetRematerialization=PASS"
-        << " nonTargetSlotsExact=PASS"
+        << " targetAliasRematerialization=PASS"
+        << " nonTargetPhysicalSpansExact=PASS"
         << " authoredScmReparse=PASS"
         << " publication=NO_REPLACE_PASS\n";
     return 0;
