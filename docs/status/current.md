@@ -57,6 +57,32 @@ EFM is still not a canonical Native Reader module. MRP/MCV/CAM/CLT/TSC and other
 
 SHW remains structural/read-only. Matrix-palette ownership, universal revision coverage and writer/original-game acceptance remain open.
 
+## Runtime host layer state
+
+### Implementation status — INITIAL
+
+A new responsibility boundary (`DMCRengine::Runtime`, Specification 010) providing platform surface/lifecycle, a fixed-step frame loop and a rendering device abstraction. Host-validated on Ubuntu and Windows across C++20 and C++23; the C++26 configuration steps down automatically where the toolchain lacks it.
+
+Implemented and covered by tests:
+
+- `IPlatform` with `HeadlessPlatform` and `AndroidPlatform`;
+- `FrameClock` fixed-step accumulator with bounded catch-up;
+- `IRenderDevice` with the `NullRenderDevice` reference backend;
+- `RenderBackendRegistry` distinguishing declared from implemented backends;
+- `ResourceBridge` over `SourceRegistry`;
+- `StageHost` mirroring a Stage Ops `StageBundle`;
+- `RuntimeApplication` loop with surface-loss, suspend/resume and focus handling;
+- Android Gradle project, JNI bridge and Java shell.
+
+### Open
+
+- **no GPU backend.** Vulkan, GLES, D3D11 and Metal are declared; creating one fails closed;
+- **no device acceptance.** CI assembles the Android debug APK; no physical-device acceptance record exists;
+- **no game logic.** The runtime executes no DMC3 behavior and makes no equivalence claim. Original runtime behavior remains L3 work under the Recovered Game Source Tree;
+- **Article VII amendment pending.** The Constitution's responsibility-boundary list does not yet name a runtime host; promotion beyond initial implementation requires that amendment.
+
+The runtime is not a resolver and not a scene authority. `ResourceBridge` is the only unit in the layer that reads bytes, and `StageHost` replaces its mirror wholesale on rebind rather than merging.
+
 ## MOD / model-family state
 
 ### Reverse status — COMPLETE

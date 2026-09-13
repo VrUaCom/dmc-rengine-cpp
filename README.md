@@ -21,6 +21,7 @@ The canonical repository already contains substantial reviewed implementation an
 - PAC/PNST sparse/empty/alias-preserving parsing, recursive expansion and bounded reintegration;
 - Binary Inspector and executable-analysis infrastructure;
 - evidence-backed DMC3 format documentation and machine-readable registries;
+- a runtime host layer (platform/frame-loop/render-device abstraction) with an Android build;
 - guarded modification/reintegration paths for explicitly supported subsets.
 
 Canonical built-in Native Reader modules are currently documented for:
@@ -50,7 +51,8 @@ DMC Rengine does **not** currently claim:
 - whole-game behavioral equivalence;
 - Capcom offline-writer equivalence;
 - a complete desktop editor;
-- a behaviorally equivalent rebuilt executable.
+- a behaviorally equivalent rebuilt executable;
+- a playable port. The runtime host layer runs a frame loop; it executes no DMC3 game logic and has no GPU backend yet.
 
 Completion is gate-based. A parser, green synthetic test, structural match or successful bounded writer does not by itself promote a subsystem to complete.
 
@@ -80,6 +82,7 @@ Documented/researched families include SCM, MOD, SHW, HITS, PAC, PNST, DDS/PTX, 
 - **Stage Ops — The Theatre:** product-side stage/scene assembly and operational workspace authority.
 - **Stage Semantic Graph:** evidence-aware representation/index emitted from Stage Ops state.
 - **ModViz — The Observatory:** scene/model/menu editor and visualization consumer over Stage Ops/Semantic Graph.
+- **Runtime — The Host:** platform surface/lifecycle, fixed-step frame loop and rendering device abstraction for playable targets.
 - **Build & Test Lab — The Trial Chamber:** reproducibility, validation, generated outputs and behavioral receipts.
 
 ### Core engineering laws
@@ -93,6 +96,8 @@ Documented/researched families include SCM, MOD, SHW, HITS, PAC, PNST, DDS/PTX, 
 > **No implicit retail-file mutation.**
 
 > **No second resolver or scene truth.**
+
+> **The Runtime hosts; it does not resolve or assemble.**
 
 ## Important evidence boundaries
 
@@ -110,6 +115,16 @@ cmake -S . -B build -DDMC_RENGINE_BUILD_TESTS=ON
 cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
+
+The runtime host layer builds as its own target on its own standard:
+
+```bash
+cmake -S . -B build -DDMC_RENGINE_RUNTIME_CXX_STANDARD=23
+cmake --build build --target dmc-rengine-runtime-probe
+./build/dmc-rengine-runtime-probe --frames 120
+```
+
+`DMC_RENGINE_RUNTIME_CXX_STANDARD` accepts `20`, `23` (default) or `26` and steps down to the highest standard the toolchain advertises. The Android build lives in [`android/`](android/README.md).
 
 Ninja presets:
 

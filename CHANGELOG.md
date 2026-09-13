@@ -8,6 +8,21 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Runtime host layer
+
+- new responsibility boundary: platform, fixed-step frame loop and rendering device abstraction for playable targets (Specification 010);
+- `IPlatform` with `HeadlessPlatform` (deterministic, display-free) and `AndroidPlatform` (lifecycle- and surface-aware);
+- `FrameClock` fixed-step accumulator with a bounded catch-up budget that drops a stall instead of replaying it;
+- `IRenderDevice` abstraction, implemented `NullRenderDevice` reference backend, and a `RenderBackendRegistry` in which declared-but-unimplemented backends fail closed rather than substituting `null`;
+- `ResourceBridge`: the layer's only door to resource bytes, over `SourceRegistry`, with residency accounting and typed failures;
+- `StageHost`: runtime mirror of a Stage Ops `StageBundle` that projects a deterministic draw list and never synthesizes geometry;
+- `RuntimeApplication` loop handling surface loss/recreation, suspend/resume and focus throttling;
+- separate `DMCRengine::Runtime` target on C++23 by default, selectable across C++20/23/26 with automatic step-down, keeping the core library on its C++20 baseline;
+- `std::expected` and `std::move_only_function` used where the toolchain provides them, with API-identical fallbacks otherwise;
+- `dmc-rengine-runtime-probe` host tool and 7 runtime test suites, green in both the standard and fallback builds;
+- Android Gradle project, JNI bridge and Java shell (minSdk 26, targetSdk 36, `arm64-v8a` + `x86_64`);
+- `Runtime` CI workflow covering C++20/23 on Ubuntu and Windows, a forward-looking C++26 job, and an Android APK job.
+
 #### Core and build
 
 - C++20/CMake core library and CLI;
@@ -17,6 +32,7 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - SHA-256 implementation and known-vector tests;
 - bounds-checked binary reader;
 - expanded CTest integration stack, reaching 68 validated tests per platform after Binary Inspector Cross-Port Wave 1.
+- optional CLI (`DMC_RENGINE_BUILD_CLI`) and runtime (`DMC_RENGINE_BUILD_RUNTIME`) targets so the Android NDK build excludes the desktop tool and the CTest suite.
 
 #### Evidence and Canon
 

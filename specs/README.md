@@ -12,6 +12,8 @@ Specifications define problems, scope, non-goals, architecture, acceptance crite
 - [006 — Binary Inspector Domain Model](006-binary-inspector-domain/spec.md)
 - [007 — Known Executable Targets](007-known-executable-targets/spec.md)
 - [008 — Container Source Foundation](008-container-source-foundation/spec.md)
+- [009 — HITS Record Scanner](009-hits-record-scanner/spec.md)
+- [010 — Runtime Platform Foundation](010-runtime-platform-foundation/spec.md)
 
 ## Status language
 

@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.25)
 project(DMCRengine VERSION 0.2.0 LANGUAGES CXX)
 
 option(DMC_RENGINE_BUILD_TESTS "Build DMC Rengine tests" ON)
+option(DMC_RENGINE_BUILD_RUNTIME "Build the DMC Rengine runtime host layer" ON)
+option(DMC_RENGINE_BUILD_CLI "Build the DMC Rengine command-line tool" ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +30,21 @@ function(dmc_rengine_configure_test target source)
     endif()
 endfunction()
 
+function(dmc_rengine_add_runtime_test stem)
+    set(target "dmc_rengine_${stem}_tests")
+    add_executable(${target} "tests/${stem}_tests.cpp")
+    target_link_libraries(${target} PRIVATE DMCRengine::Runtime)
+    dmc_rengine_enable_warnings(${target})
+
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /UNDEBUG)
+    else()
+        target_compile_options(${target} PRIVATE -UNDEBUG)
+    endif()
+
+    add_test(NAME ${target} COMMAND ${target})
+endfunction()
+
 function(dmc_rengine_add_simple_test stem)
     set(target "dmc_rengine_${stem}_tests")
     dmc_rengine_configure_test(${target} "tests/${stem}_tests.cpp")
@@ -37,6 +54,9 @@ endfunction()
 file(GLOB_RECURSE DMC_RENGINE_CORE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 list(FILTER DMC_RENGINE_CORE_SOURCES EXCLUDE REGEX "/src/cli/")
+# The runtime host layer is a separate target on its own C++ standard.
+list(FILTER DMC_RENGINE_CORE_SOURCES EXCLUDE REGEX "/src/runtime/")
+list(FILTER DMC_RENGINE_CORE_SOURCES EXCLUDE REGEX "/src/runtime_probe/")
 
 add_library(dmc_rengine_core ${DMC_RENGINE_CORE_SOURCES})
 add_library(DMCRengine::Core ALIAS dmc_rengine_core)
@@ -50,27 +70,38 @@ target_include_directories(dmc_rengine_core
 target_compile_features(dmc_rengine_core PUBLIC cxx_std_20)
 dmc_rengine_enable_warnings(dmc_rengine_core)
 
-add_executable(dmc-rengine
-    src/cli/main.cpp
-    src/cli/exe_acquisition_commands.cpp
-    src/cli/integration_commands.cpp
-    src/cli/integration_dispatch.cpp
-    src/cli/dmc3_build_authority_commands.cpp
-    src/cli/dmc3_l1_closure_commands.cpp
-    src/cli/dmc3_overlay_commands.cpp
-    src/cli/dmc3_retail_acquisition_commands.cpp
-    src/cli/nbz_copy_commands.cpp
-    src/cli/archive_key_census_commands.cpp
-    src/cli/container_inspect_commands.cpp
-    src/cli/mod_writer_corpus_commands.cpp
-    src/cli/relative_slot_commands.cpp
-    src/cli/hits_commands.cpp
-    src/cli/stage_commands.cpp
-)
-target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
-dmc_rengine_enable_warnings(dmc-rengine)
+if(DMC_RENGINE_BUILD_CLI)
+    add_executable(dmc-rengine
+        src/cli/main.cpp
+        src/cli/exe_acquisition_commands.cpp
+        src/cli/integration_commands.cpp
+        src/cli/integration_dispatch.cpp
+        src/cli/dmc3_build_authority_commands.cpp
+        src/cli/dmc3_l1_closure_commands.cpp
+        src/cli/dmc3_overlay_commands.cpp
+        src/cli/dmc3_retail_acquisition_commands.cpp
+        src/cli/nbz_copy_commands.cpp
+        src/cli/archive_key_census_commands.cpp
+        src/cli/container_inspect_commands.cpp
+        src/cli/mod_writer_corpus_commands.cpp
+        src/cli/relative_slot_commands.cpp
+        src/cli/hits_commands.cpp
+        src/cli/stage_commands.cpp
+    )
+    target_link_libraries(dmc-rengine PRIVATE DMCRengine::Core)
+    dmc_rengine_enable_warnings(dmc-rengine)
+endif()
+
+if(DMC_RENGINE_BUILD_RUNTIME)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/runtime.cmake")
+endif()
 
 include(CTest)
+if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS AND NOT DMC_RENGINE_BUILD_CLI)
+    message(FATAL_ERROR
+        "DMC_RENGINE_BUILD_TESTS=ON requires DMC_RENGINE_BUILD_CLI=ON: part of the suite drives the CLI.")
+endif()
+
 if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
     dmc_rengine_configure_test(dmc_rengine_tests tests/core_tests.cpp)
     add_test(NAME dmc_rengine_core_tests COMMAND dmc_rengine_tests)
@@ -215,6 +246,21 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         dmc_rengine_add_simple_test(${stem})
     endforeach()
 
+    if(DMC_RENGINE_BUILD_RUNTIME)
+        set(DMC_RENGINE_RUNTIME_TESTS
+            runtime_status
+            runtime_frame_clock
+            runtime_headless_platform
+            runtime_render_backend
+            runtime_resource_bridge
+            runtime_stage_host
+            runtime_application
+        )
+        foreach(stem IN LISTS DMC_RENGINE_RUNTIME_TESTS)
+            dmc_rengine_add_runtime_test(${stem})
+        endforeach()
+    endif()
+
     dmc_rengine_configure_test(
         dmc_rengine_relative_slot_cli_tests
         tests/relative_slot_cli_tests.cpp)
@@ -323,6 +369,17 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_save_pass32_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/save/dmc3-pc-save-pass32.evidence.json)
+    if(DMC_RENGINE_BUILD_RUNTIME AND TARGET dmc-rengine-runtime-probe)
+        add_test(NAME dmc_rengine_runtime_probe_build_info
+                 COMMAND dmc-rengine-runtime-probe)
+        add_test(NAME dmc_rengine_runtime_probe_headless_frames
+                 COMMAND dmc-rengine-runtime-probe --frames 120)
+        add_test(NAME dmc_rengine_runtime_probe_rejects_unknown_argument
+                 COMMAND dmc-rengine-runtime-probe --nope)
+        set_tests_properties(dmc_rengine_runtime_probe_rejects_unknown_argument
+                             PROPERTIES WILL_FAIL TRUE)
+    endif()
+
     add_test(NAME dmc_rengine_cli_help COMMAND dmc-rengine help)
     add_test(NAME dmc_rengine_cli_list_tools COMMAND dmc-rengine list-tools)
     add_test(NAME dmc_rengine_cli_list_formats COMMAND dmc-rengine list-formats)

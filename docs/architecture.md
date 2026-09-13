@@ -14,6 +14,7 @@ Evidence / exact artifacts
  -> Stage Ops assembly/orchestration
  -> Stage Semantic Graph
  -> ModViz/editor consumers
+ -> Runtime host layer
 ```
 
 These layers cooperate but do not collapse ownership.
@@ -27,6 +28,7 @@ These layers cooperate but do not collapse ownership.
 5. **ModViz consumes Stage Ops/Semantic Graph state; it does not create a second scene/resource truth.**
 6. **Binary Inspector consumes bytes/regions/evidence; it is not a source resolver.**
 7. **EXE Editor is a frontend over executable/recovered-source evidence, not a second reverse authority database.**
+8. **The Runtime host layer owns platform, frame loop and rendering device only; it reads resources through GDSpaces and mirrors Stage Ops scene state.**
 
 ## Product layers
 
@@ -57,6 +59,16 @@ Editor/visualization consumer over Stage Ops and Semantic Graph state. Edits flo
 ### EXE Editor
 
 Owns executable navigation/editing UX over exact artifact mappings, recovered-source identities, evidence and guarded patch/rebuild requests. Recovered source is not promoted from readability or compile success alone.
+
+### Runtime host layer
+
+Owns the playable-target host: surface lifetime, host lifecycle, the fixed-step frame loop and the rendering device abstraction. It exists so DMC Rengine has somewhere to *run* resources, on Android first and on desktop and further platforms after.
+
+Both authority doors are closed by construction. `ResourceBridge` holds a `SourceRegistry` reference and is the only unit in the layer that reads bytes, so the runtime cannot become a second resolver. `StageHost` mirrors a Stage Ops `StageBundle` in bundle order and replaces it wholesale on rebind, so it cannot become a second scene truth.
+
+The layer makes no behavioral claim about DMC3. It draws a stage member only when an owner supplies geometry for it, and every rendering backend except the reference `null` device is declared rather than implemented — creating one fails closed instead of silently substituting.
+
+The runtime is a separate CMake target (`DMCRengine::Runtime`) on its own C++ standard, so the core library keeps its C++20 baseline. See [Specification 010](../specs/010-runtime-platform-foundation/spec.md).
 
 ## Current primary dependency
 
