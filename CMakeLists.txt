@@ -135,6 +135,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod_authored_child_bridge
         mod_skin
         scm_writer
+        scm_reflow_authoring
         scm_vertex_authoring
         scm_normal_authoring
         scm_uv_authoring
