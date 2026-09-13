@@ -1,5 +1,7 @@
 #include "dmc_rengine/formats/scm.hpp"
 
+#include "dmc_rengine/formats/scm_version.hpp"
+
 #include "dmc_rengine/formats/scm_layout.hpp"
 #include "dmc_rengine/formats/scm_topology.hpp"
 #include "scm_internal.hpp"
@@ -52,9 +54,10 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
     r.read(0x30U, h.reserved30);
     r.read(0x38U, h.reserved38);
 
-    if (std::fabs(h.version - 1.01F) > 0.0001F) {
+    if (!is_corpus_confirmed_structural_version(h.version)) {
         diag(out, ParseSeverity::warning, "scm.unconfirmed-version",
-             "Confirmed DMC3-HD SCM corpus uses version 1.01.", 0x04U);
+             "SCM version is outside the observed structural set "
+             "{0.83, 0.90, 1.00, 1.01}.", 0x04U);
     }
     if (h.resource_code.raw != 0U &&
         !matches_observed_scm_resource_code_shape(h.resource_code)) {

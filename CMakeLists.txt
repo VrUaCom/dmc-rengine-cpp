@@ -229,6 +229,16 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc_rengine_relative_slot_cli_tests)
 
     dmc_rengine_configure_test(
+        dmc_rengine_scm_occurrence_census_cli_tests
+        tests/scm_occurrence_census_cli_tests.cpp)
+    target_include_directories(
+        dmc_rengine_scm_occurrence_census_cli_tests
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cli)
+    add_test(
+        NAME dmc_rengine_scm_occurrence_census_cli_tests
+        COMMAND dmc_rengine_scm_occurrence_census_cli_tests)
+
+    dmc_rengine_configure_test(
         dmc_rengine_archive_key_census_cli_tests
         tests/archive_key_census_cli_tests.cpp)
     target_sources(

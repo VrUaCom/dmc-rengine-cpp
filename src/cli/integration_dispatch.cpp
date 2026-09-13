@@ -12,6 +12,7 @@
 #include "scm_normal_authoring_commands.hpp"
 #include "scm_uv_authoring_commands.hpp"
 #include "scm_corpus_commands.hpp"
+#include "scm_occurrence_census_commands.hpp"
 #include "scm_reader_commands.hpp"
 
 #include <filesystem>
@@ -118,6 +119,12 @@ int try_run_integration_command(int argc, char** argv) {
     const auto scm_corpus_result = try_run_scm_corpus_command(argc, argv);
     if (scm_corpus_result != -1) {
         return scm_corpus_result;
+    }
+
+    const auto scm_occurrence_result =
+        try_run_scm_occurrence_census_command(argc, argv);
+    if (scm_occurrence_result != -1) {
+        return scm_occurrence_result;
     }
 
     if (argc <= 1) {

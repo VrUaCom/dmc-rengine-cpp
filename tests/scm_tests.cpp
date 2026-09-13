@@ -4,6 +4,8 @@
 #include "dmc_rengine/formats/scm_runtime_flags.hpp"
 #include "dmc_rengine/formats/scm_topology.hpp"
 #include "dmc_rengine/formats/scm_transform.hpp"
+#include "dmc_rengine/formats/scm_version.hpp"
+#include "dmc_rengine/formats/scm_resource_code.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -93,7 +95,91 @@ void assert_identity(const dmc::rengine::formats::scm::Matrix4f& matrix) {
 
 } // namespace
 
+// Which versions and which resource-code families the reader accepts without
+// complaint, and which it flags.
+//
+// Both domains widened on 2026-09-13 and the widening is the point. The parser
+// had warned on every SCM that was not 1.01, which is the corpus the reverse
+// closed against; a direct scan of the retail stage containers found 0.83, 0.90
+// and 1.00 alongside it, on files that parse under the same grammar. A warning
+// on a retail file is a false alarm an operator has to learn to ignore, which
+// is worse than no warning at all, so the set is the evidence and the check
+// reads it rather than restating one member of it.
+//
+// The family-class domain widened twice in the same pass — 3/4, then 8 from
+// st002, then 7 from the container scan. These assertions pin the domain that
+// exists now; a new class is a reason to extend the list, and this test is
+// where that extension gets noticed.
+void the_observed_domains_are_what_the_reader_accepts() {
+    using namespace dmc::rengine::formats::scm;
+
+    for (const float version : {0.83F, 0.90F, 1.00F, 1.01F}) {
+        assert(is_corpus_confirmed_structural_version(version));
+    }
+    // Not a validity rule, so the neighbours of the set must still be outside
+    // it: a predicate that accepted everything would pass the loop above and
+    // mean nothing.
+    assert(!is_corpus_confirmed_structural_version(0.82F));
+    assert(!is_corpus_confirmed_structural_version(1.02F));
+    assert(!is_corpus_confirmed_structural_version(0.0F));
+
+    // A parsed document at each observed version raises no version warning.
+    for (const float version : {0.83F, 0.90F, 1.00F, 1.01F}) {
+        auto bytes = fixture();
+        put<float>(bytes, 0x04U, version);
+        const auto parsed = Parser::parse(bytes);
+        assert(parsed.ok());
+        for (const auto& diagnostic : parsed.diagnostics) {
+            assert(diagnostic.code != "scm.unconfirmed-version");
+        }
+    }
+
+    // And one outside it still does, so the check has not been turned off.
+    {
+        auto bytes = fixture();
+        put<float>(bytes, 0x04U, 2.00F);
+        const auto parsed = Parser::parse(bytes);
+        bool warned = false;
+        for (const auto& diagnostic : parsed.diagnostics) {
+            if (diagnostic.code == "scm.unconfirmed-version") warned = true;
+        }
+        assert(warned);
+    }
+
+    // 730507 from the container scan: family 7, model_set 305, sub_index 7.
+    // The decomposition and the shape predicate are separate claims and both
+    // are asserted, because a predicate that accepted the raw word without
+    // agreeing on its components would pass one and fail the other silently.
+    const auto seven = decode_legacy_resource_code(730507U);
+    assert(seven.family_class == 7U);
+    assert(seven.model_set == 305U);
+    assert(seven.sub_index == 7U);
+    assert(matches_observed_scm_resource_code_shape(seven));
+
+    // 813800 from st002: family 8, model_set 138, sub_index 0.
+    const auto eight = decode_legacy_resource_code(813800U);
+    assert(eight.family_class == 8U);
+    assert(eight.model_set == 138U);
+    assert(eight.sub_index == 0U);
+    assert(matches_observed_scm_resource_code_shape(eight));
+
+    // Classes 3 and 8 are observed only with sub_index 0, and the predicate
+    // still says so. Classes 4 and 7 carry child indices.
+    assert(!matches_observed_scm_resource_code_shape(
+        decode_legacy_resource_code(300101U)));
+    assert(!matches_observed_scm_resource_code_shape(
+        decode_legacy_resource_code(813801U)));
+    assert(matches_observed_scm_resource_code_shape(
+        decode_legacy_resource_code(400115U)));
+
+    // A class nobody has seen is outside the domain. This is the assertion
+    // that will fail the day a new class turns up, which is what it is for.
+    assert(!matches_observed_scm_resource_code_shape(
+        decode_legacy_resource_code(900100U)));
+}
+
 int main() {
+    the_observed_domains_are_what_the_reader_accepts();
     using namespace dmc::rengine::formats::scm;
 
     static_assert(header_size == 0x40U);
