@@ -64,7 +64,14 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
              "resource-code classes/sub-index shape; raw value is preserved.",
              0x14U);
     }
-    if (h.reserved08 || h.reserved13 || h.reserved18 || h.reserved28 ||
+    if (h.scene_node_count != 0U && h.reserved13 >= h.scene_node_count) {
+        diag(out, ParseSeverity::warning,
+             "scm.lighting-reference-node-out-of-range",
+             "SCM +0x13 lighting reference node index is outside the serialized "
+             "scene-node domain used by the canonical CDrawSCM lighting path.",
+             0x13U);
+    }
+    if (h.reserved08 || h.reserved18 || h.reserved28 ||
         h.reserved30 || h.reserved38) {
         diag(out, ParseSeverity::warning, "scm.header-reserved-nonzero",
              "Reserved SCM header fields differ from the confirmed zero-filled "

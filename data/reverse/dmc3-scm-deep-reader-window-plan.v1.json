@@ -1,6 +1,6 @@
 {
   "schema": "dmc-rengine.exe-window-packet-plan.v1",
-  "id": "dmc3-hd-scm-deep-reader-v2-2026-09-13",
+  "id": "dmc3-hd-scm-deep-reader-v3-2026-09-13",
   "artifact_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
   "artifact_size": 6356432,
   "authority_role": "analysis-reverse",
@@ -23,12 +23,36 @@
       "purpose": "Reacquire the primary serializedMesh -> runtimeMesh materialization path. Confirm runtimeMesh+0x10 backreference ownership and direct reads of +0x00/+0x02/+0x10/+0x18/+0x20/+0x28/+0x38; search fresh bytes for any indirect use of +0x0C/+0x30/+0x4C."
     },
     {
+      "id": "scm-runtime-mesh-postinit-140308c00",
+      "va": "0x140308C00",
+      "size": "0x600",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New indirect-consumer frontier. 0x1402F9BB0 calls this helper after installing the serialized mesh backreference. Reacquire runtime-only initialization around mesh+0xF0/+0xF4/+0xF8 and prove whether the helper or callees ever follow runtimeMesh+0x10 back to serialized +0x0C/+0x30/+0x4C. Historical evidence says it does not read +0x0C; v3 packet turns that into a regression boundary across the full helper window."
+    },
+    {
       "id": "scm-common-material-helper-1402f9890",
       "va": "0x1402F9890",
       "size": "0x300",
       "mode": "probe",
       "issues": [],
       "purpose": "Reconfirm texture-slot table indexing, GS CLAMP REGION_REPEAT packing and TEX1 nearest/linear selection with serialized pointer provenance. Record all source/runtime reads so adjacent technical render state cannot be misattributed to SCM fields."
+    },
+    {
+      "id": "scm-common-followup-mesh-state-1402f9a80",
+      "va": "0x1402F9A80",
+      "size": "0x500",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New common-material frontier. Reacquire the follow-up mesh state immediately downstream of 0x1402F9890. Enumerate runtime mesh/descriptor fields consumed or produced after texture-slot, GS CLAMP and filter projection, and trace any backreference dereference to serialized mesh fields before the family paths diverge."
+    },
+    {
+      "id": "scm-specialized-mesh-allocation-1402f9f20",
+      "va": "0x1402F9F20",
+      "size": "0x700",
+      "mode": "probe",
+      "issues": [],
+      "purpose": "New SCM-specific mesh-object allocation frontier. Reacquire the path identified by expanded Model Family ABI work as SCM-specialized while sharing the lower material ABI. Establish its relation to 0x1402F9BB0, enumerate runtime record sizes/ownership, and check whether SCM-only allocation state consumes preserved serialized mesh lanes that the common helpers ignore."
     },
     {
       "id": "scm-object-materialization-140302f10",
@@ -60,7 +84,7 @@
       "size": "0x500",
       "mode": "probe",
       "issues": [],
-      "purpose": "Reconfirm SCM header/runtime manager ownership: +0x10 object count, +0x11 scene-node count, +0x13 runtime-carried byte, +0x14 legacy resource code and external companion texture-count authority. Census any fresh reads of the preserved header shells."
+      "purpose": "Reconfirm SCM header/runtime manager ownership: +0x10 object count, +0x11 scene-node count, +0x13 runtime-carried byte, +0x14 raw SCM structural code carried to manager+0xE4, and external companion texture-count authority. Follow manager pointer escape rather than raw +0xE4 displacement matches so the unresolved high-level role of +0x14 cannot be promoted without type provenance. Census any fresh reads of preserved header shells."
     },
     {
       "id": "scm-resource-pair-binding-140304ae0",
