@@ -138,6 +138,30 @@ int main() {
     assert(parsed.document.objects[0].meshes[0].vertex_count == 4U);
     assert(triangle_count(parsed.document.objects[0].meshes[0]) == 1U);
 
+    const auto explicit_plan = plan_append_break_vertex_copy_layout(
+        parsed.document, 0U, 0U, 3U);
+    assert(explicit_plan.valid);
+    assert(explicit_plan.grows());
+    assert(explicit_plan.source_vertex_count == 4U);
+    assert(explicit_plan.source_file_size == source.size());
+    assert(explicit_plan.output_file_size > explicit_plan.source_file_size);
+    assert(explicit_plan.size_delta() ==
+           explicit_plan.output_file_size - explicit_plan.source_file_size);
+
+    const auto automatic_plan =
+        find_append_break_vertex_growth_target(parsed.document);
+    assert(automatic_plan.valid);
+    assert(automatic_plan.grows());
+    assert(automatic_plan.object_index == 0U);
+    assert(automatic_plan.mesh_index == 0U);
+    assert(automatic_plan.source_vertex_index == 3U);
+    assert(automatic_plan.source_file_size == explicit_plan.source_file_size);
+    assert(automatic_plan.output_file_size == explicit_plan.output_file_size);
+
+    const auto invalid_plan = plan_append_break_vertex_copy_layout(
+        parsed.document, 0U, 0U, 4U);
+    assert(!invalid_plan.valid);
+
     auto document = parsed.document;
     const auto edit = append_break_vertex_copy(document, 0U, 0U, 3U);
     assert(edit.ok());
@@ -153,6 +177,7 @@ int main() {
     const auto rebuilt = Writer::write(document, WriteMode::canonical_rebuild);
     assert(rebuilt.ok());
     assert(rebuilt.bytes.size() > source.size());
+    assert(rebuilt.bytes.size() == explicit_plan.output_file_size);
     assert(!rebuilt.bit_identical_to_source);
 
     const auto reparsed = Parser::parse(
