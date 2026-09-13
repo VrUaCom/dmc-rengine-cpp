@@ -5,15 +5,16 @@
 namespace dmc::rengine::formats::scm {
 
 // Serialized SCM header +0x14 is retained by the canonical HD runtime at
-// manager +0xE4. A 77-copy corpus sweep shows a stable six-decimal-digit
-// decomposition for every SCM sample:
+// manager +0xE4. The preserved retail corpus plus fresh hash-bound st001/st002/
+// st003 specimens show a stable decimal decomposition:
 //
 //   raw = family_class * 100000 + model_set * 100 + sub_index
 //
-// The component names are intentionally structural. In particular, family
-// classes 3/4 are not assigned gameplay names until a producer/lookup is
-// recovered. `model_set` is preferred over `stage` because st445 resources
-// carry model_set 115, proving this component is not the current stage number.
+// The component names are intentionally structural. Observed family classes now
+// include 3, 4 and 8; no gameplay/artistic labels are assigned until a
+// provenance-clean producer or typed downstream manager+0xE4 consumer is
+// recovered. `model_set` is preferred over `stage` because observed values do
+// not consistently equal the current stage number.
 struct LegacyResourceCode final {
     std::uint32_t raw{};
     std::uint16_t model_set{};
@@ -40,12 +41,16 @@ struct LegacyResourceCode final {
            static_cast<std::uint32_t>(sub_index);
 }
 
-// Corpus-shape predicate only; this is not a file-validity rule. All 77 SCM
-// copies in the preserved corpus use class 3 or 4. Class 3 always has
-// sub_index 0; class 4 uses 0 and non-zero child indices.
+// Corpus-shape predicate only; this is not a file-validity rule. The historical
+// bounded corpus established classes 3/4. Fresh hash-bound st002.scm extends
+// the observed domain with 813800 => class 8, model_set 138, sub_index 0.
+// Classes 3 and 8 are currently observed with sub_index 0; class 4 includes
+// zero and non-zero child indices.
 [[nodiscard]] constexpr bool matches_observed_scm_resource_code_shape(
     const LegacyResourceCode& code) noexcept {
-    if (code.family_class == 3U) return code.sub_index == 0U;
+    if (code.family_class == 3U || code.family_class == 8U) {
+        return code.sub_index == 0U;
+    }
     return code.family_class == 4U;
 }
 
