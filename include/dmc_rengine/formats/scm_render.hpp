@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 namespace dmc::rengine::formats::scm {
@@ -56,6 +57,33 @@ inline constexpr std::uint64_t legacy_gs_tex1_linear_filter = 0x60U;
         ? legacy_gs_tex1_nearest_filter
         : legacy_gs_tex1_linear_filter;
 }
+
+// Canonical HD SCM does not translate texture state directly from serialized
+// fields to D3D11. 0x1402F99B0/0x1402F9AC0 build a 0x50-byte legacy-GIF
+// compatibility packet and 0x14030A5F8..0x14030A632 submit it through a
+// REF-like DMA tag plus DIRECT(5). 0x140032CD0 decodes the packet as PACKED
+// A+D. Only the low four register descriptors are authoritative because NREG=4.
+inline constexpr std::uint64_t scm_material_gif_tag_qword =
+    0x4000000000008001ULL; // NLOOP=1, EOP=1, FLG=PACKED, NREG=4.
+inline constexpr std::uint64_t scm_material_gif_regs_qword =
+    0x000000000020EEEEULL; // low four descriptors = A+D (0xE).
+inline constexpr std::uint8_t scm_material_gif_nreg = 4U;
+inline constexpr std::uint8_t legacy_gs_reg_tex0_1 = 0x06U;
+inline constexpr std::uint8_t legacy_gs_reg_clamp_1 = 0x08U;
+inline constexpr std::uint8_t legacy_gs_reg_tex1_1 = 0x14U;
+inline constexpr std::uint8_t legacy_gs_reg_miptbp1_1 = 0x34U;
+inline constexpr std::array<std::uint8_t, scm_material_gif_nreg>
+    scm_material_ad_registers{
+        legacy_gs_reg_tex0_1,
+        legacy_gs_reg_tex1_1,
+        legacy_gs_reg_clamp_1,
+        legacy_gs_reg_miptbp1_1,
+    };
+
+static_assert(scm_material_ad_registers[0] == 0x06U);
+static_assert(scm_material_ad_registers[1] == 0x14U);
+static_assert(scm_material_ad_registers[2] == 0x08U);
+static_assert(scm_material_ad_registers[3] == 0x34U);
 
 struct AlphaControlProjection final {
     // These values correspond to runtime object +0x17C / +0x178 and
