@@ -1,0 +1,232 @@
+{
+  "schema": "dmc-rengine.scm-runtime-provenance.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "scope": "canonical DMC3 HD SCM serialized byte -> runtime state -> consumer provenance; no new semantics without canonical evidence",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "provenance_levels": {
+    "L0": "serialized SCM bytes",
+    "L1": "SCM-specific materialization / normalization",
+    "L2": "runtime manager/object/mesh/node state",
+    "L3": "geometry/material/render consumer",
+    "L4": "draw submission, shader ABI, or external companion ownership"
+  },
+  "header": [
+    {
+      "serialized": "+0x10 u8 object_count",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 SCM+0x10", "L1 0x1402F9570", "L2 manager+0xE8 object count"],
+      "policy": "typed"
+    },
+    {
+      "serialized": "+0x11 u8 scene_node_count",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 SCM+0x11", "L1 0x1402F9570", "L2 manager+0xEA scene-node count", "L3 0x1402F1DB0 scene-node binding domain"],
+      "policy": "typed"
+    },
+    {
+      "serialized": "+0x12 u8 texture_slot_count",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 SCM+0x12 serialized mirror", "L4 manager+0x110 external texture companion", "L1 0x1402F9570 reads companion+0x00", "L2 manager+0xEC live texture count"],
+      "policy": "mirror-only; runtime authority is external companion"
+    },
+    {
+      "serialized": "+0x13 u8",
+      "status": "PRESERVED_UNDECODED",
+      "path": ["L0 SCM+0x13", "L1 0x1402F9570", "L2 manager+0xFA"],
+      "negative_evidence": "zero in bounded retail corpus; no independently proven higher-level consumer",
+      "policy": "preserve exact"
+    },
+    {
+      "serialized": "+0x14 u32 legacy_resource_code",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 family_class*100000 + model_set*100 + sub_index", "L1 0x1402F9570", "L2 manager+0xE4"],
+      "policy": "typed structural identity/provenance code; do not invent official class labels"
+    },
+    {
+      "serialized": "+0x20 u64 scene_node_block_offset",
+      "status": "STRUCTURAL_CONFIRMED",
+      "path": ["L0 scene-node block absolute offset", "L1 SCM setup 0x140303C10", "L2/L3 node binder 0x1402F1DB0"],
+      "policy": "typed file offset"
+    }
+  ],
+  "object": [
+    {
+      "serialized": "+0x01 u8 alpha_control",
+      "status": "EXE_CONFIRMED",
+      "path": [
+        "L0 object+0x01",
+        "L1 0x14030303A inside SCM initializer 0x140302F10 copies to runtime+0x07",
+        "L2 effective control initializes runtime+0x178/+0x17C after bounded C4/EA compatibility rewrites",
+        "L3 0x140304111..0x140304167 builds MDL_PARTS_COLOR_PKT.alpha.w",
+        "L4 DMC3_STG shader ABI forwards colors.alpha.w to COLOR0.a; texture/color variants can feed alpha test/clip"
+      ],
+      "projection": "effective<=0x80 => alpha=value/255; effective>0x80 => control retained and alpha=1.0; non-zero low object mode forces effective 0x80",
+      "policy": "typed control, not plain opacity"
+    },
+    {
+      "serialized": "+0x10 u32 source flags",
+      "status": "EXE_CONFIRMED_WITH_PRESERVED_SUBDOMAIN",
+      "path": ["L0 object+0x10", "L1 0x140302F10", "L2 baseline/effective runtime flags +0x10/+0x14", "L3 0x140302640 common render-state helper and 0x1402F9890 material helper"],
+      "direct_projection_sites": {
+        "low_nibble": "0x1403032E1 -> runtime flag bit 8; helper mode; forces alpha control 0x80 when non-zero",
+        "0x00000020": "0x1403032FB -> runtime flag bit 10",
+        "0x00020000": "0x140303315 -> runtime flag bit 9 plus unit vector +0x160/+0x164/+0x168=1.0,+0x16C=0",
+        "0x00010000": "0x14030337C -> runtime flag bit 7 and helper secondary boolean inversion",
+        "0x00040000": "0x140303398 -> runtime flag bit 4",
+        "0x00080000": "0x1403033E3 -> runtime flag bit 5",
+        "0x0F000000": "0x1403033B3 -> runtime flag bit 15 plus highNibble-1 at runtime+0x0D",
+        "0x00100000": "0x140302640 -> legacy GS TEST_1 AREF and ZBUF_1 ZMSK selector",
+        "0x00004000": "0x1402F9890 -> legacy GS TEX1 0 nearest vs 0x60 linear",
+        "0x00200000": "runtime-preserved only; terminal semantic remains PRESERVED_UNDECODED"
+      },
+      "policy": "decode proven bits only; preserve all unknown bits exactly"
+    },
+    {
+      "serialized": "+0x10 bit 0x00200000",
+      "status": "PRESERVED_UNDECODED_WITH_BOUNDED_NEGATIVE_EVIDENCE",
+      "corpus": "19/254 objects",
+      "path": ["L0 source bit21", "L1 0x140302F10 preserves into baseline/effective flags", "L2 survives low-mode mutation"],
+      "rejected_candidates": [
+        "0x1402F4C21 tests independent runtimeRecord+0x304; source chain is constructor/runtime input+0x128 masked by 0xF0000000",
+        "0x140303F2F tests manager+0xE0; manager field is produced by 0x1402F9570/family classifier path",
+        "0x140302CF9/0x140302D59 BTS manager bit21 from a separate control word; not source object+0x10"
+      ],
+      "policy": "preserve exact; no semantic editor toggle; do not call globally unused/reserved"
+    }
+  ],
+  "mesh": [
+    {
+      "serialized": "+0x02 u16 texture_index",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 mesh+0x02", "L1/L3 0x1402F9890", "L2 runtimeTextureTable + textureIndex*0x40", "L4 texture record+0x20 -> runtime mesh descriptor texture"],
+      "external_owner": "manager+0x110 texture companion",
+      "policy": "validate against live companion-derived texture count"
+    },
+    {
+      "serialized": "+0x04/+0x06/+0x08/+0x0A u16 MINU/MAXU/MINV/MAXV",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 mesh GS clamp words", "L3 0x1402F9890", "L3 packed legacy GS CLAMP register with WMS=WMT=REGION_REPEAT(3)"],
+      "packing": "(MINU<<4)|0x0F|(MAXU<<14)|(MINV<<24)|(MAXV<<34); MINU==0 emits disabled/sentinel 0",
+      "corpus": "all 481 current retail meshes zero; executable support remains live",
+      "policy": "preserve u16 source; warn rather than mask values above GS 10-bit width"
+    },
+    {
+      "serialized": "+0x0C u32",
+      "status": "RESERVED_OBSERVED_ZERO + PRESERVED_UNDECODED",
+      "path": ["L0 mesh+0x0C", "L1 primary materialization 0x1402F9BB0 does not directly consume", "L3 material helper 0x1402F9890 consumes preceding CLAMP words and skips +0x0C"],
+      "negative_evidence": "st001/st114 direct census zero; canonical primary paths recovered so far do not assign a semantic",
+      "policy": "preserve exact on parsed resources; default zero only for genuinely new authored records"
+    },
+    {
+      "serialized": "+0x10/+0x18/+0x20 position/normal/uv stream offsets",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 absolute stream offsets", "L1 0x1402F9BB0 materializes runtime mesh stream references", "L2 positions float3, normals float3, UV signed i16/4096"],
+      "policy": "typed streams"
+    },
+    {
+      "serialized": "+0x28 continuation_span",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 0x50 non-final / 0 final", "L1 normalizer 0x1403051B0 walks physical mesh chain", "L3 fixed-stride consumer 0x1402FDD10 is regression anchor"],
+      "policy": "typed physical-layout control"
+    },
+    {
+      "serialized": "+0x30 u64",
+      "status": "RESERVED_OBSERVED_ZERO + PRESERVED_UNDECODED",
+      "path": ["L0 mesh+0x30", "L1 no promoted assignment in recovered normalizer/materializer"],
+      "policy": "preserve exact; do not normalize away"
+    },
+    {
+      "serialized": "+0x38 RGB + topology flags stream",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 byte4 vertices: RGB + topology flags", "L1 normalizer 0x1403051B0", "L2/L3 topology flag bit 0x02 breaks/skips triangle-strip run", "L1 generated u16 indices written into mesh-relative workspace"],
+      "policy": "bit 0x02 typed; other topology bits preservation-gated"
+    },
+    {
+      "serialized": "+0x40 workspace relative offset / +0x48 generated index count",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 workspace reserve starts with corpus sentinel 0x1212 and serialized count 0", "L1 0x1403051B0 reconstructs indices", "L2 +0x48 receives generated u16 word count"],
+      "capacity": "align16(6*(vertexCount-2))",
+      "policy": "runtime-generated workspace; writer must plan capacity exactly"
+    },
+    {
+      "serialized": "+0x4C u32",
+      "status": "RESERVED_OBSERVED_ZERO + PRESERVED_UNDECODED",
+      "path": ["L0 mesh+0x4C", "L1 no promoted semantic in recovered SCM normalizer/materializer"],
+      "policy": "preserve exact; no semantic editor control"
+    }
+  ],
+  "scene_node_block": [
+    {
+      "serialized": "+0x00/+0x04/+0x08/+0x0C relative offsets",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 parentByOrderPosition / nodeAtOrderPosition / objectBindingByNodeIndex / transformByNodeIndex", "L1 SCM setup 0x140303C10", "L2/L3 common node binder 0x1402F1DB0"],
+      "policy": "typed hierarchy arrays; SCM object-binding semantics remain format-specific"
+    },
+    {
+      "serialized": "+0x10..+0x1F shell",
+      "status": "RESERVED_OBSERVED_ZERO + PRESERVED_UNDECODED",
+      "path": ["L0 scene shell", "L1 layout planner reads +0x10 once into a dead local", "L2 raw shell pointer does not escape in audited model path"],
+      "effect": "dormant/no effect in recovered canonical path",
+      "policy": "preserve exact; do not promote to padding"
+    }
+  ],
+  "transform": [
+    {
+      "serialized": "+0x00 float3 translation",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 transform translation", "L1 SCM initializer 0x1402FA360", "L3 translation helper 0x140031200", "L3 world update 0x1402F9700"]
+    },
+    {
+      "serialized": "+0x0C f32 translation_magnitude",
+      "status": "EXE_AND_CORPUS_CONFIRMED",
+      "path": ["L0 precomputed Euclidean length of translation", "L1 SCM matrix construction intentionally excludes it from homogeneous W"],
+      "policy": "typed scalar; recompute when translation is authored"
+    },
+    {
+      "serialized": "+0x10 float3 rotation_xyz_radians",
+      "status": "EXE_CONFIRMED",
+      "path": ["L0 XYZ radians", "L1 0x1402FA360", "L3 0x140330450", "L3 Rz*Ry*Rx local rotation", "L3 0x1402F9700 world = local * parentOrRootWorld"],
+      "policy": "typed transform"
+    },
+    {
+      "serialized": "+0x1C f32 fourth lane",
+      "status": "RESERVED_OBSERVED_ZERO + PRESERVED_UNDECODED",
+      "path": ["L0 transform+0x1C", "L1 0x1402FA360 does not consume it in confirmed matrix construction"],
+      "policy": "preserve exact; no transform semantic"
+    }
+  ],
+  "external_texture_companion": {
+    "status": "EXE_CONFIRMED_OWNERSHIP_BOUNDARY",
+    "path": [
+      "0x140304AE0 binds manager+0x108=SCM and manager+0x110=texture companion",
+      "0x140304B30 exposes companion count/blockCount table and 0x800 payload start",
+      "0x1403365B0 direct texture payload path checks TM2\\0 magic; fallback paths also exist",
+      "mesh+0x02 indexes runtime texture records at 0x40 stride through 0x1402F9890"
+    ],
+    "policy": "SCM authoring must keep companion count/slot ownership coherent; do not embed texture payload ownership into SCM"
+  },
+  "draw_bridge": {
+    "status": "EXE_CONFIRMED_SUBSYSTEM_BINDING",
+    "path": [
+      "SCM alpha/control path produces 0x30-byte MDL_PARTS_COLOR_PKT",
+      "CDrawSCM path reaches 0x1402FD040 with strict 0x30 packet stride",
+      "0x1402FD040 forwards into SCM draw submission 0x1402FC850",
+      "embedded DMC3_STG shader ABI consumes alpha.w as COLOR0.a"
+    ],
+    "policy": "draw bridge confirms subsystem ownership; it does not authorize inventing semantics for unrelated preserved fields"
+  },
+  "blocked_fresh_reverse": {
+    "reason": "canonical executable bytes are not currently available in connected artifacts",
+    "available_library_artifacts": [
+      "original-exe-bytes.json: canonical SHA but only an unrelated four-byte item-registry window",
+      "dmc3_drive_exe_audit.json: different SHA 81c7e619... and profileMatch=false"
+    ],
+    "required_next_evidence": "materialize the validated deep-reader window packet from the canonical SHA target, then compare recovered reads/indirect consumers against this provenance graph"
+  }
+}
