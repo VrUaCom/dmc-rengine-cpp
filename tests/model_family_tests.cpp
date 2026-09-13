@@ -151,6 +151,100 @@ int main() {
                family::TextureCompanionStatus::payload_out_of_bounds);
     }
 
+    // The framing every preserved specimen actually uses.
+    //
+    // This parser required "TM2\0" at payload offset zero, and the fixture
+    // above is the only thing that has ever satisfied it: every .ptx in the
+    // reference corpus and in the supplied stage sets carries a 0x70 texture
+    // slot descriptor with the DDS image behind it, and the first four bytes
+    // of the payload are zero. So the parser refused the entire corpus, and
+    // analyze_texture_binding — whose whole job is to check mesh slots against
+    // the companion — answered "no valid companion" for every real model.
+    //
+    // The synthetic fixture is exactly why that went unnoticed. A test that
+    // builds the input its parser wants proves the parser reads that input and
+    // nothing about whether the input exists.
+    {
+        constexpr auto descriptor =
+            family::ModelTextureCompanionAbi::wrapped_descriptor_size;
+        std::vector<std::byte> bytes(0x2000U, std::byte{0});
+        put_u32(bytes, 0x000U, 2U);
+        put_u32(bytes, 0x004U, 1U);
+        put_u32(bytes, 0x008U, 2U);
+        put_u32(
+            bytes, 0x800U + descriptor,
+            family::ModelTextureCompanionAbi::dds_magic_le);
+        put_u32(
+            bytes, 0x1000U + descriptor,
+            family::ModelTextureCompanionAbi::dds_magic_le);
+
+        const auto parsed = family::parse_texture_companion(bytes);
+        assert(parsed.ok());
+        assert(parsed.texture_count == 2U);
+        assert(parsed.entries.size() == 2U);
+        assert(parsed.framing ==
+               family::TextureCompanionFraming::descriptor_wrapped_dds);
+        // The allocation still starts where it always did; the image does not.
+        // A consumer reading pixels from payload_offset would read descriptor
+        // bytes and call the result a corrupt texture.
+        assert(parsed.entries[0].payload_offset == 0x800U);
+        assert(parsed.entries[0].image_offset() == 0x800U + descriptor);
+        assert(parsed.entries[1].image_offset() == 0x1000U + descriptor);
+        assert(parsed.entries[0].framing ==
+               family::TextureCompanionFraming::descriptor_wrapped_dds);
+
+        // Under the TM2 framing the image is the payload, so the accessor has
+        // to stay an identity there rather than adding the descriptor blindly.
+        std::vector<std::byte> tm2(0x1000U, std::byte{0});
+        put_u32(tm2, 0x000U, 1U);
+        put_u32(tm2, 0x004U, 1U);
+        put_u32(tm2, 0x800U, family::ModelTextureCompanionAbi::tm2_magic_le);
+        const auto tm2_parsed = family::parse_texture_companion(tm2);
+        assert(tm2_parsed.ok());
+        assert(tm2_parsed.framing ==
+               family::TextureCompanionFraming::tm2_at_payload_start);
+        assert(tm2_parsed.entries[0].image_offset() == 0x800U);
+
+        // A companion is one runtime table materialized one way, so payloads
+        // that are individually recognized but disagree are a refusal, not a
+        // per-entry detail an unsuspecting consumer would average over.
+        std::vector<std::byte> mixed(0x2000U, std::byte{0});
+        put_u32(mixed, 0x000U, 2U);
+        put_u32(mixed, 0x004U, 1U);
+        put_u32(mixed, 0x008U, 2U);
+        put_u32(mixed, 0x800U, family::ModelTextureCompanionAbi::tm2_magic_le);
+        put_u32(
+            mixed, 0x1000U + descriptor,
+            family::ModelTextureCompanionAbi::dds_magic_le);
+        const auto mixed_parsed = family::parse_texture_companion(mixed);
+        assert(!mixed_parsed.ok());
+        assert(mixed_parsed.status ==
+               family::TextureCompanionStatus::mixed_framing);
+
+        // The status word crosses the ABI to an operator, so it has to say the
+        // condition rather than the history. `tm2_magic_mismatch` kept its
+        // identifier so existing consumers compile, and it no longer means
+        // "not TM2" — it means neither framing was recognized. A reader shown
+        // "tm2-magic-mismatch" for a bundle whose payloads are DDS-framed
+        // would go looking for the wrong problem.
+        assert(family::to_string(family::TextureCompanionStatus::tm2_magic_mismatch) ==
+               "no-recognized-payload-framing");
+        assert(family::to_string(family::TextureCompanionStatus::mixed_framing) ==
+               "mixed-framing");
+        assert(family::to_string(family::TextureCompanionStatus::ok) == "ok");
+
+        // And neither signature is still a refusal: widening the contract must
+        // not turn it into "anything with a block table".
+        std::vector<std::byte> neither(0x1000U, std::byte{0});
+        put_u32(neither, 0x000U, 1U);
+        put_u32(neither, 0x004U, 1U);
+        put_u32(neither, 0x800U, 0xDEADBEEFU);
+        const auto refused = family::parse_texture_companion(neither);
+        assert(!refused.ok());
+        assert(refused.status ==
+               family::TextureCompanionStatus::tm2_magic_mismatch);
+    }
+
     {
         mod_format::Document document;
         document.header.texture_slot_count = 3U; // serialized mirror only

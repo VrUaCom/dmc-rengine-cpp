@@ -1,9 +1,13 @@
 #pragma once
 
+#include "dmc_rengine/profiles/dmc3/texture_slot_framing.hpp"
+#include "dmc_rengine/profiles/dmc3/texture_slot_runtime_materialization.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <span>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::formats::model_family {
@@ -18,7 +22,41 @@ struct ModelTextureCompanionAbi final {
     static constexpr std::size_t payload_base = 0x800U;
     static constexpr std::size_t payload_block_size = 0x800U;
     static constexpr std::uint32_t tm2_magic_le = 0x00324D54U; // "TM2\0"
+
+    // The second payload framing, and the one every preserved specimen
+    // actually uses: a 0x70-byte texture-slot descriptor followed by the DDS
+    // image it describes. Both constants are the canonical framing contract's
+    // rather than new numbers — k_descriptor_size from TextureSlotFramingParser
+    // and k_dds_magic from the runtime materialization contract — so the two
+    // readers cannot drift apart on what a slot payload looks like.
+    static constexpr std::size_t wrapped_descriptor_size =
+        profiles::dmc3::TextureSlotFramingParser::k_descriptor_size;
+    static constexpr std::uint32_t dds_magic_le =
+        profiles::dmc3::TextureSlotRuntimeMaterializationInspector::k_dds_magic;
 };
+
+// Which framing a companion's payloads use. Recorded rather than normalized
+// away: an authoring path that rebuilds a companion has to write back the
+// framing it read, and a consumer that silently accepted either would have no
+// way to say which.
+enum class TextureCompanionFraming : std::uint8_t {
+    // No payload has been examined yet.
+    unknown,
+    // "TM2\0" at payload offset zero.
+    tm2_at_payload_start,
+    // A 0x70 descriptor and the DDS behind it.
+    descriptor_wrapped_dds,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(
+    TextureCompanionFraming framing) noexcept {
+    switch (framing) {
+    case TextureCompanionFraming::unknown: return "unknown";
+    case TextureCompanionFraming::tm2_at_payload_start: return "tm2";
+    case TextureCompanionFraming::descriptor_wrapped_dds: return "wrapped-dds";
+    }
+    return "unknown";
+}
 
 static_assert(ModelTextureCompanionAbi::texture_count_field == 0x000U);
 static_assert(ModelTextureCompanionAbi::block_count_table == 0x004U);
@@ -33,20 +71,57 @@ enum class TextureCompanionStatus : std::uint8_t {
     block_table_overlaps_payload,
     payload_size_overflow,
     payload_out_of_bounds,
+    // No payload signature was recognized. The legacy name is kept so existing
+    // consumers keep compiling; it now means "neither framing", not "not TM2".
     tm2_magic_mismatch,
+    // Payloads were individually recognized but not all under one framing. A
+    // companion is a single runtime table and the canonical path materializes
+    // it one way, so a mixture is a refusal rather than a per-entry detail.
+    mixed_framing,
 };
+
+[[nodiscard]] constexpr std::string_view to_string(
+    TextureCompanionStatus status) noexcept {
+    switch (status) {
+    case TextureCompanionStatus::ok: return "ok";
+    case TextureCompanionStatus::truncated_count: return "truncated-count";
+    case TextureCompanionStatus::block_table_out_of_bounds:
+        return "block-table-out-of-bounds";
+    case TextureCompanionStatus::block_table_overlaps_payload:
+        return "block-table-overlaps-payload";
+    case TextureCompanionStatus::payload_size_overflow:
+        return "payload-size-overflow";
+    case TextureCompanionStatus::payload_out_of_bounds:
+        return "payload-out-of-bounds";
+    case TextureCompanionStatus::tm2_magic_mismatch:
+        // The name is historical; the condition is "neither framing".
+        return "no-recognized-payload-framing";
+    case TextureCompanionStatus::mixed_framing: return "mixed-framing";
+    }
+    return "unknown";
+}
 
 struct TextureCompanionEntry final {
     std::uint32_t index{};
     std::uint32_t block_count{};
     std::size_t payload_offset{};
     std::size_t allocated_size{};
+    TextureCompanionFraming framing{TextureCompanionFraming::unknown};
+
+    /// Where the image itself starts, past the descriptor where there is one.
+    [[nodiscard]] constexpr std::size_t image_offset() const noexcept {
+        return framing == TextureCompanionFraming::descriptor_wrapped_dds
+            ? payload_offset + ModelTextureCompanionAbi::wrapped_descriptor_size
+            : payload_offset;
+    }
 };
 
 struct TextureCompanionParseResult final {
     TextureCompanionStatus status{TextureCompanionStatus::truncated_count};
     std::uint32_t texture_count{};
     std::vector<TextureCompanionEntry> entries;
+    /// The one framing every payload used. `unknown` where none were read.
+    TextureCompanionFraming framing{TextureCompanionFraming::unknown};
 
     [[nodiscard]] bool ok() const noexcept {
         return status == TextureCompanionStatus::ok;
@@ -141,9 +216,31 @@ namespace texture_companion_detail {
             out.status = TextureCompanionStatus::payload_out_of_bounds;
             return out;
         }
-        if (read_u32_le(bytes, payload_offset) !=
+        // Which of the two framings this payload uses. TM2 at offset zero is
+        // the framing the contract was written against; the descriptor-wrapped
+        // DDS is the one every preserved specimen turns out to use, so
+        // requiring the first alone made this parser refuse the entire corpus.
+        auto framing = TextureCompanionFraming::unknown;
+        if (read_u32_le(bytes, payload_offset) ==
             ModelTextureCompanionAbi::tm2_magic_le) {
+            framing = TextureCompanionFraming::tm2_at_payload_start;
+        } else if (
+            allocated_size >=
+                ModelTextureCompanionAbi::wrapped_descriptor_size + 4U &&
+            read_u32_le(
+                bytes,
+                payload_offset +
+                    ModelTextureCompanionAbi::wrapped_descriptor_size) ==
+                ModelTextureCompanionAbi::dds_magic_le) {
+            framing = TextureCompanionFraming::descriptor_wrapped_dds;
+        } else {
             out.status = TextureCompanionStatus::tm2_magic_mismatch;
+            return out;
+        }
+        if (out.framing == TextureCompanionFraming::unknown) {
+            out.framing = framing;
+        } else if (out.framing != framing) {
+            out.status = TextureCompanionStatus::mixed_framing;
             return out;
         }
 
@@ -152,6 +249,7 @@ namespace texture_companion_detail {
             .block_count = blocks,
             .payload_offset = payload_offset,
             .allocated_size = allocated_size,
+            .framing = framing,
         });
         payload_offset += allocated_size;
     }

@@ -13,6 +13,18 @@
 
 ## Authority split
 
+### Internal game structure — fresh structural pass, 2026-09-13
+
+The active user objective is the **internal DMC3 runtime tree**, including
+classes, addresses and their relationships. The fresh canonical-EXE census
+reproduces 915 COL/vftable anchors and 12,235 unwind ranges; it records 408
+decorated type candidates, 407 hierarchy-linked types and 438 direct
+inheritance edges. All 433 old Drive edges are retained, with five additional
+base-subtree relations. This is structural evidence, not full-game
+decompilation or mobile-port completion. See the
+[internal runtime tree report](../research/dmc3-internal-runtime-tree-2026-09-13.md)
+and its generated class/address graph.
+
 - GitHub `main` is canonical implementation truth.
 - A PR branch is branch truth until promoted.
 - Reverse claims are bounded to exact artifact/address/range/scope.
