@@ -33,10 +33,10 @@ struct Header final {
     std::uint8_t texture_slot_count{};
 
     // Legacy storage name retained for authoring compatibility. Canonical EXE
-    // evidence proves +0x13 -> manager+0xFA and CDrawSCM uses it as an index
-    // into the scene-node world-matrix array at manager+0x188 (0x40 stride),
-    // consuming selected matrix lane +0x30 as a spatial draw-state input.
-    // Evidence-safe semantic name: draw_reference_node_index.
+    // evidence closes the technical semantic as lighting_reference_node_index:
+    // +0x13 -> manager+0xFA -> scene-node world matrix manager+0x188[index*0x40]
+    // -> selected world-position lane +0x30 -> lighting query -> MDL_LIGHT_MAT
+    // Lc/Lv shader constants. Original source symbol/content label is unknown.
     std::uint8_t reserved13{};
 
     // Decimal structural decomposition is corpus-confirmed. Fresh retail st002
@@ -56,10 +56,6 @@ struct Mesh final {
     std::uint16_t vertex_count{};
     std::uint16_t texture_index{};
     LegacyGsClampRegionRepeat gs_clamp_region_repeat{};
-
-    // Corpus-zero preservation lanes. Canonical deep census follows primary
-    // materialization, post-init, common material/follow-up and SCM-specialized
-    // allocation without recovering provenance-clean reads of these fields.
     std::uint32_t reserved0c{};
     std::uint64_t positions_offset{};
     std::uint64_t normals_offset{};
@@ -70,7 +66,6 @@ struct Mesh final {
     std::uint64_t index_workspace_relative_offset{};
     std::uint32_t generated_index_count{};
     std::uint32_t reserved4c{};
-
     std::uint64_t index_workspace_offset{};
     std::uint64_t index_workspace_capacity{};
     std::uint8_t observed_topology_flag_mask{};
@@ -87,10 +82,6 @@ struct Object final {
     std::uint16_t total_vertex_count{};
     std::uint32_t reserved04{};
     std::uint64_t mesh_table_offset{};
-
-    // Runtime-consumed source flags. Proven bits have typed projections;
-    // 0x00200000 remains real runtime-carried state with expanded whole-image
-    // negative provenance and must be preserved exactly.
     std::uint32_t flags{};
     std::array<std::byte, 0x1CU> reserved14_2f{};
     Vec3f bounding_center{};
