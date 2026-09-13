@@ -1,0 +1,160 @@
+{
+  "schema": "dmc-rengine.scm-canonical-exe-deep-reader.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000",
+    "status": "EXE_CONFIRMED"
+  },
+  "supplied_retail_samples": [
+    {
+      "scm": "st001.scm",
+      "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+      "size": 887760,
+      "objects": 44,
+      "meshes": 77,
+      "nodes": 50,
+      "texture_slots": 17,
+      "header_13": 0,
+      "header_14": 300100,
+      "resource_code_components": {"family_class": 3, "model_set": 1, "sub_index": 0},
+      "bit21_objects": [8, 39, 40]
+    },
+    {
+      "scm": "st002.scm",
+      "sha256": "670ded6de6bd57ecc75118eaf89e9918dbb4b92ce271c96526b9e758b5ba7f44",
+      "size": 860928,
+      "objects": 66,
+      "meshes": 107,
+      "nodes": 67,
+      "texture_slots": 14,
+      "header_13": 0,
+      "header_14": 813800,
+      "resource_code_components": {"family_class": 8, "model_set": 138, "sub_index": 0},
+      "bit21_objects": []
+    },
+    {
+      "scm": "st003.scm",
+      "sha256": "d573034fc4fd5496e3ffd1d84830f748cc70af2dbcc4d442d8af8694ac410be5",
+      "size": 670816,
+      "objects": 13,
+      "meshes": 45,
+      "nodes": 14,
+      "texture_slots": 17,
+      "header_13": 0,
+      "header_14": 300300,
+      "resource_code_components": {"family_class": 3, "model_set": 3, "sub_index": 0},
+      "bit21_objects": []
+    }
+  ],
+  "texture_companions": [
+    {
+      "name": "st001.ptx",
+      "sha256": "976e6a6961686572c66cb6935f7e44dd450990016071604d99ff831ed9d36d5a",
+      "size": 3485696,
+      "slot_count": 17,
+      "payload_base": "0x800",
+      "slot_payload_dds_offset": "0x70",
+      "tm2_at_slot_start_count": 0
+    },
+    {
+      "name": "st002.ptx",
+      "sha256": "1e3ff9dd1a9936ad6157ba5ce40a6707113fc24e424c9e675573b5e9dcf5d75e",
+      "size": 3260416,
+      "slot_count": 14,
+      "payload_base": "0x800",
+      "slot_payload_dds_offset": "0x70",
+      "tm2_at_slot_start_count": 0
+    },
+    {
+      "name": "st003.ptx",
+      "sha256": "084822a6e8910e77ce318aea0ec6f69cf3ac02f2ff1e1c6a1bc0c214f034c4c4",
+      "size": 1673216,
+      "slot_count": 17,
+      "payload_base": "0x800",
+      "slot_payload_dds_offset": "0x70",
+      "tm2_at_slot_start_count": 0
+    }
+  ],
+  "claims": [
+    {
+      "id": "scm.header.13.draw-reference-node-index",
+      "serialized": "u8@header+0x13",
+      "status": "EXE_CONFIRMED_TECHNICAL_SEMANTIC",
+      "path": [
+        "0x1402F960E reads SCM+0x13",
+        "0x1402F9616 writes zero-extended value to manager+0xFA",
+        "0x1402F1DB0 stores scene-node matrix-array base at manager+0x188; stride is 0x40 per scene node",
+        "0x1402F9700 indexes manager+0x188 by scene node and updates those 0x40 matrices",
+        "0x1402FD0A3 reads manager+0xFA",
+        "0x1402FD0AA multiplies selector by 0x40",
+        "0x1402FD0B5 loads manager+0x188",
+        "0x1402FD0C2 adds +0x30 and copies the selected matrix row into CDrawSCM packet setup",
+        "0x1402EE560 receives that float4 as a spatial input to downstream draw-state selection"
+      ],
+      "safe_name": "draw_reference_node_index",
+      "boundary": "technical scene-node matrix selector is proven; artistic/gameplay role and intended producer label are not",
+      "corpus": "0 in st001/st002/st003 and the previous bounded retail corpus"
+    },
+    {
+      "id": "scm.header.14.resource-code-domain-extension",
+      "serialized": "u32@header+0x14",
+      "status": "CORPUS_CONFIRMED_EXTENSION",
+      "observation": "st002.scm carries raw 813800 => family_class=8, model_set=138, sub_index=0",
+      "consequence": "previous corpus-shape predicate limited to family classes 3/4 is stale and must not warn on this supplied retail sample",
+      "runtime": "0x1402F95C2 -> manager+0xE4 remains EXE_CONFIRMED; no type-proven downstream manager+0xE4 semantic read was recovered in the model-core census"
+    },
+    {
+      "id": "scm.object.flags.bit21.expanded-whole-image-negative",
+      "serialized": "object+0x10 & 0x00200000",
+      "status": "PRESERVED_UNDECODED_WITH_EXPANDED_NEGATIVE_EVIDENCE",
+      "real_positive_samples": "st001 objects 8,39,40",
+      "new_rejected_candidates": [
+        "0x1402F2CDD BTS bit21 operates record stride 0x380 and runtime field +0x304, not SCM runtime-object stride 0x3C0",
+        "0x140212B08 BTR bit21 operates unrelated actor/global state at +0x3FF8"
+      ],
+      "previous_rejected_candidates": [
+        "0x1402F4C21 runtimeRecord+0x304 with independent producer",
+        "0x140303F2F manager+0xE0 with independent producer",
+        "0x140302CF9/0x140302D59 manager bit21 setters from separate control state"
+      ],
+      "conclusion": "no provenance-clean semantic consumer of serialized SCM bit21 recovered; preserve exactly"
+    },
+    {
+      "id": "scm.mesh.preservation-lanes.indirect-consumer-census",
+      "serialized": ["mesh+0x0C u32", "mesh+0x30 u64", "mesh+0x4C u32"],
+      "status": "PRESERVED_UNDECODED_WITH_DEEP_NEGATIVE_EVIDENCE",
+      "paths": [
+        "0x1402F9BB0 installs runtimeMesh+0x10 serialized backreference and directly reads +0x00/+0x02/+0x10/+0x18/+0x20/+0x28/+0x38 only",
+        "0x140308C00 post-init touches runtime-only +0xF0/+0xF4/+0xF8 and never follows runtimeMesh+0x10",
+        "0x1402F9890 follows runtimeMesh+0x10 for texture index and GS CLAMP +0x02..+0x0A, then skips preservation lanes",
+        "0x1402F9A80 common follow-up operates generated runtime descriptor state and does not follow the serialized backreference",
+        "0x1402F9F20 SCM-specialized allocation composes 0x1402F9BB0 -> 0x1402F9890 -> 0x1402F9A80 without additional reads of +0x0C/+0x30/+0x4C"
+      ],
+      "note": "runtime mesh field +0x4C is written elsewhere from runtime object state; numeric offset equality is explicitly rejected as serialized mesh+0x4C evidence"
+    },
+    {
+      "id": "scm.object.flags.helper-mode-dispatch",
+      "status": "EXE_CONFIRMED",
+      "path": "0x140302640 chooses numeric mode; 0x1402F17C0 indexes a pointer table at 0x1405D0550 by mode and stores the selected pointer",
+      "boundary": "modes 1/2/4/9 are lookup-table selector IDs; no artistic semantic names are promoted"
+    },
+    {
+      "id": "scm.texture-companion.dds-fallback-retail",
+      "status": "CORPUS_AND_EXE_CONFIRMED",
+      "exe": "0x1403365B0 has a direct TM2\\0 branch and a non-TM2 generic fallback",
+      "retail_samples": "all supplied st001/st002/st003 PTX slots have DDS magic at slot+0x70 and zero TM2-at-start slots",
+      "conclusion": "TM2 is not mandatory for SCM texture companion slots; current supplied retail samples exercise descriptor+0x70 DDS framing/fallback ownership"
+    }
+  ],
+  "open_semantic_frontier": [
+    "exact high-level purpose/producer name of draw_reference_node_index beyond its proven scene-node-matrix selection behavior",
+    "type-proven downstream role of manager+0xE4 / SCM header+0x14",
+    "semantic effect of serialized object flag 0x00200000",
+    "producer or non-zero canonical specimen for mesh +0x0C/+0x30/+0x4C",
+    "exact CDrawSCM draw-variant to shader/resource selection mapping"
+  ]
+}
