@@ -21,6 +21,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -84,10 +85,33 @@ namespace dmc3 = dmc::rengine::profiles::dmc3;
     return core::Sha256::compute(bytes).hex();
 }
 
+struct SlotSnapshot final {
+    bool populated{};
+    std::vector<std::byte> bytes;
+};
+
+[[nodiscard]] inline std::optional<std::vector<SlotSnapshot>> snapshot_slots(
+    const gdspaces::ContainerExpansion& expansion) {
+    std::vector<SlotSnapshot> snapshots;
+    snapshots.reserve(expansion.children.size());
+    for (const auto& child : expansion.children) {
+        SlotSnapshot snapshot{
+            .populated = child.entry.populated,
+            .bytes = {},
+        };
+        if (child.entry.populated) {
+            if (!child.payload.readable()) return std::nullopt;
+            snapshot.bytes = child.payload.bytes;
+        }
+        snapshots.push_back(std::move(snapshot));
+    }
+    return snapshots;
+}
+
 struct VerificationContext final {
     unsigned int slot_index{};
     std::vector<std::byte> authored_scm;
-    gdspaces::ExpansionResult source_expansion;
+    std::vector<SlotSnapshot> source_slots;
     std::string expected_format;
     std::uint32_t expected_slot_count{};
 };
@@ -110,15 +134,15 @@ struct VerificationContext final {
 
     const auto expansion = gdspaces::ContainerExpander::expand(*staged, parsed);
     if (!expansion.usable() ||
-        expansion.children.size() != context.source_expansion.children.size() ||
+        expansion.children.size() != context.source_slots.size() ||
         context.slot_index >= expansion.children.size()) {
         return false;
     }
 
     for (std::size_t index = 0U; index < expansion.children.size(); ++index) {
-        const auto& before = context.source_expansion.children[index];
+        const auto& before = context.source_slots[index];
         const auto& after = expansion.children[index];
-        if (before.entry.populated != after.entry.populated) return false;
+        if (before.populated != after.entry.populated) return false;
 
         if (index == context.slot_index) {
             if (!after.entry.populated || !after.payload.readable() ||
@@ -132,9 +156,8 @@ struct VerificationContext final {
             continue;
         }
 
-        if (!before.entry.populated) continue;
-        if (!before.payload.readable() || !after.payload.readable() ||
-            before.payload.bytes != after.payload.bytes) {
+        if (!before.populated) continue;
+        if (!after.payload.readable() || before.bytes != after.payload.bytes) {
             return false;
         }
     }
@@ -239,6 +262,13 @@ inline int try_run_scm_reintegration_command(int argc, char** argv) {
         return 9;
     }
 
+    const auto source_slots = detail::snapshot_slots(source_expansion);
+    if (!source_slots.has_value()) {
+        std::cerr
+            << "verify-scm-reintegration: cannot snapshot populated source slots for exact-preservation validation\n";
+        return 9;
+    }
+
     const auto source_child_sha = detail::sha256_of(
         std::span<const std::byte>{source_scm});
     const auto authored_child_sha = detail::sha256_of(
@@ -265,7 +295,7 @@ inline int try_run_scm_reintegration_command(int argc, char** argv) {
     detail::VerificationContext verification{
         .slot_index = *slot_index,
         .authored_scm = authored_scm,
-        .source_expansion = source_expansion,
+        .source_slots = *source_slots,
         .expected_format = rebuilt.receipt->output_topology.format,
         .expected_slot_count = rebuilt.receipt->output_topology.declared_slot_count,
     };
