@@ -42,7 +42,7 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
     r.read(0x10U, h.object_count);
     r.read(0x11U, h.scene_node_count);
     r.read(0x12U, h.texture_slot_count);
-    r.read(0x13U, h.reserved13);
+    r.read(0x13U, h.lighting_reference_node_index);
     std::uint32_t raw_resource_code{};
     r.read(0x14U, raw_resource_code);
     h.resource_code = decode_legacy_resource_code(raw_resource_code);
@@ -52,9 +52,11 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
     r.read(0x30U, h.reserved30);
     r.read(0x38U, h.reserved38);
 
-    if (std::fabs(h.version - 1.01F) > 0.0001F) {
+    if (!std::isfinite(h.version) || !is_confirmed_retail_version(h.version)) {
         diag(out, ParseSeverity::warning, "scm.unconfirmed-version",
-             "Confirmed DMC3-HD SCM corpus uses version 1.01.", 0x04U);
+             "Expanded DMC3-HD retail SCM corpus confirms versions "
+             "0.83, 0.90, 1.00 and 1.01; raw version is preserved.",
+             0x04U);
     }
     if (h.resource_code.raw != 0U &&
         !matches_observed_scm_resource_code_shape(h.resource_code)) {
@@ -64,11 +66,19 @@ ParseResult Parser::parse(std::span<const std::byte> bytes) {
              "resource-code classes/sub-index shape; raw value is preserved.",
              0x14U);
     }
-    if (h.scene_node_count != 0U && h.reserved13 >= h.scene_node_count) {
+    if (h.scene_node_count != 0U &&
+        h.lighting_reference_node_index >= h.scene_node_count) {
         diag(out, ParseSeverity::warning,
              "scm.lighting-reference-node-out-of-range",
              "SCM +0x13 lighting reference node index is outside the serialized "
              "scene-node domain used by the canonical CDrawSCM lighting path.",
+             0x13U);
+    } else if (h.scene_node_count == 0U &&
+               h.lighting_reference_node_index != 0U) {
+        diag(out, ParseSeverity::warning,
+             "scm.lighting-reference-node-without-scene",
+             "SCM +0x13 selects a lighting reference node but the serialized "
+             "scene-node domain is empty.",
              0x13U);
     }
     if (h.reserved08 || h.reserved18 || h.reserved28 ||
