@@ -1,0 +1,169 @@
+{
+  "schema": "dmc-rengine.scm-real-size-changing-pac-reintegration-attestation.v1",
+  "date": "2026-09-13",
+  "project": "DMC Rengine",
+  "evidenceClass": "REAL_CORPUS_BOUND_SCM_SIZE_CHANGING_CANONICAL_REBUILD_AND_PARENT_PAC_REINTEGRATION",
+  "workingBranch": "reverse/mod-completion-20260907",
+  "pullRequest": 386,
+  "runner": {
+    "branchHeadSha": "08d9c7935316d9afa2991e3210a02561099a9011",
+    "workflowRunId": 34759963639,
+    "ubuntuJobPassed": true,
+    "windowsJobPassed": true,
+    "fullCTestPassedOnBothPlatforms": true,
+    "artifactId": 10318353331,
+    "artifactName": "dmc-rengine-linux-fcc9df0cd25addcc288c2f0ed36f59d37fba1b06",
+    "artifactDigest": "sha256:77b106594215287e9d7514910b016c1094288b944cd2d9d709dcf3d8c5d97c02",
+    "artifactWorkflowHeadSha": "08d9c7935316d9afa2991e3210a02561099a9011",
+    "executableSha256": "e22f7ee8cf31e26758c207658e20416abcfdbef6b83ea15681c5e920b2997a86"
+  },
+  "sourceScm": {
+    "label": "st001.scm",
+    "parentPhysicalSlot": 2,
+    "size": 887760,
+    "sha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+    "status": "HASH_BOUND_REAL_SCM_PAYLOAD"
+  },
+  "controlledSizeChangingEdit": {
+    "api": "append_break_vertex_copy",
+    "cli": "scm-append-break-vertex-copy",
+    "writerMode": "canonical_rebuild",
+    "objectIndex": 0,
+    "meshIndex": 0,
+    "sourceVertexIndex": 166,
+    "sourceMeshVertexCount": 167,
+    "outputMeshVertexCount": 168,
+    "sourceObjectVertexCount": 167,
+    "outputObjectVertexCount": 168,
+    "appendedTopologyFlags": 2,
+    "triangleBreakBitHex": "0x02",
+    "nonDegenerateTrianglesBefore": 118,
+    "nonDegenerateTrianglesAfter": 118,
+    "preserveLayoutRejected": true,
+    "canonicalRebuildPassed": true,
+    "canonicalReparsePassed": true,
+    "sourceSize": 887760,
+    "outputSize": 887776,
+    "sizeDelta": 16,
+    "authoredSha256": "467734f48d96c76eb44abb395280a8743fac0ce959dbd26c5ce226f928cb9cc2",
+    "noReplacePublicationPassed": true,
+    "repeatRunByteDeterministic": true
+  },
+  "parentPac": {
+    "label": "st001.pac",
+    "detectedFormat": "PAC",
+    "sourceSize": 4632960,
+    "sourceSha256": "43034a2e0596f744ea2d50fd785b2783d319fe5f0c7e15061e7c68b2786a57d9",
+    "targetPhysicalSlot": 2,
+    "targetSourceOffset": 3485792,
+    "targetSourceOffsetHex": "0x353060",
+    "targetSourceSize": 887760,
+    "targetOutputOffset": 3485792,
+    "targetOutputSize": 887776,
+    "outputSize": 4632976,
+    "outputSizeDelta": 16,
+    "outputSha256": "adb978f58926f0f04cd2d72fe3fc12a410d9dd9c2277819f9637cb71d4b9c5f6",
+    "targetAliasCount": 1,
+    "targetAliasRematerializationPassed": true,
+    "nonTargetPhysicalSpansExact": true,
+    "canonicalParentReopenPassed": true,
+    "canonicalParentFullyExpanded": true,
+    "authoredScmReparsePassed": true,
+    "noReplacePublicationPassed": true,
+    "repeatRunByteDeterministic": true,
+    "protectedInstallProvenanceBound": false
+  },
+  "slotPreservation": [
+    {
+      "slot": 0,
+      "sourceOffset": 48,
+      "outputOffset": 48,
+      "size": 48,
+      "sha256": "7efcf182f28135a3d694324ba06715ca6f6b075a028d035c89c69809df23faa5",
+      "byteIdentical": true
+    },
+    {
+      "slot": 1,
+      "sourceOffset": 96,
+      "outputOffset": 96,
+      "size": 3485696,
+      "sha256": "976e6a6961686572c66cb6935f7e44dd450990016071604d99ff831ed9d36d5a",
+      "byteIdentical": true
+    },
+    {
+      "slot": 2,
+      "sourceOffset": 3485792,
+      "outputOffset": 3485792,
+      "sourceSize": 887760,
+      "outputSize": 887776,
+      "sourceSha256": "3ed787cc8a41f4c21b972664cf4174739382230ce0010f166c32c2a9e3626ba5",
+      "outputSha256": "467734f48d96c76eb44abb395280a8743fac0ce959dbd26c5ce226f928cb9cc2",
+      "target": true
+    },
+    {
+      "slot": 3,
+      "sourceOffset": 4373552,
+      "outputOffset": 4373568,
+      "size": 26160,
+      "sha256": "80b4b64318d84748c34a9e4f08065e35998e2e14e3766affb653e0f26adab77a",
+      "byteIdentical": true
+    },
+    {
+      "slot": 4,
+      "sourceOffset": 4399712,
+      "outputOffset": 4399728,
+      "size": 256,
+      "sha256": "36d40827c90e7ce0750a56c0f267be6721dd2b2e4bf30f4100a0cd6ecdabc07e",
+      "byteIdentical": true
+    },
+    {
+      "slot": 5,
+      "sourceOffset": 4399968,
+      "outputOffset": 4399984,
+      "size": 167888,
+      "sha256": "500dadbc8e0db8d8d232fa04c49db437d41cbe6c50e555e24d91e758c6bcc4b0",
+      "byteIdentical": true,
+      "detectedFormat": "PNST"
+    },
+    {
+      "slot": 6,
+      "sourceOffset": 4567856,
+      "outputOffset": 4567872,
+      "size": 1648,
+      "sha256": "0f3d9952b61e3d1346dc9910c9c401fc0214d0d6fb2593791e0c000cc4599f64",
+      "byteIdentical": true
+    },
+    {
+      "slot": 7,
+      "sourceOffset": 4569504,
+      "outputOffset": 4569520,
+      "size": 63456,
+      "sha256": "f0c0a2252f26d8e6f1538bc307b9c2ebf9a785e5d11b1fbe4ffc45672a3a5487",
+      "byteIdentical": true,
+      "detectedFormat": "PAC"
+    }
+  ],
+  "independentReopen": {
+    "extractedPhysicalSlot": 2,
+    "extractedChildSize": 887776,
+    "extractedChildSha256": "467734f48d96c76eb44abb395280a8743fac0ce959dbd26c5ce226f928cb9cc2",
+    "extractedChildEqualsAuthoredChild": true,
+    "allSevenNonTargetTopLevelSlotsByteIdentical": true,
+    "nestedPnstStillExpands": true,
+    "nestedPacStillExpands": true
+  },
+  "claims": {
+    "hashBoundRealScmSizeChangingCanonicalRebuild": true,
+    "realRetailParentPacPackedReflow": true,
+    "realRetailParentPacReopenAndExactAuthoredChildExtraction": true,
+    "nonTargetPhysicalSpanPreservation": true,
+    "realRetailSizeChangingScmGateClosed": true,
+    "genericScmProductionWriterAuthority": false,
+    "provenanceBoundRetailTextureRewrite": false,
+    "broaderPnstAuthoredDelivery": false,
+    "retailNbzAuthoredDelivery": false,
+    "originalDmc3ExeAcceptance": false,
+    "capcomOfflineBuilderEquivalence": false
+  },
+  "evidenceBoundary": "No proprietary SCM or PAC payload bytes are committed. This receipt proves one bounded size-changing typed SCM authoring class on a hash-bound real SCM payload, deterministic canonical reflow, real parent PAC packed reflow, exact authored-child rematerialization after reopen, and byte-exact preservation of every non-target top-level physical slot. It does not prove retail NBZ delivery, original resolver selection, original dmc3.exe acceptance, generic production SCM writer authority, or Capcom offline-builder equivalence."
+}
