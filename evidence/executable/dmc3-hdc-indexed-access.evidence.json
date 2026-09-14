@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "dmc3-hdc-indexed-access",
-  "title": "DMC3 HD recovered name runs are layout, not indexed tables",
+  "title": "DMC3 HD indexed data arrays, and why the name runs are not among them",
   "project": "DMC Rengine",
   "artifacts": [
     {
@@ -67,7 +67,7 @@
       "id": "ev-dmc3-name-runs-are-not-indexed",
       "claim_id": "claim-dmc3-name-runs-are-not-indexed",
       "title": "No recovered name run or record is indexed as an array",
-      "summary": "Of 1,303 indexed reads whose base the walk can name, not one reaches a recovered run or record at its own element size. The four whose base register holds a run's base exactly are all the inlined string scan, base plus index times one minus one, walking the first name's characters. Every other access into a run's bytes loads one element's address outright. The runs are therefore a layout fact about how the linker packed these literals, not an access fact about how the game reads them, and the fixed stride is the packer's alignment rather than an array's element size. The evidence is strong where a stride is eight, because a scale of eight is then the natural encoding and 211 such reads exist elsewhere in the image; it is weaker above eight, where a scale cannot express the stride and the element address is computed before the read, which this walk does not follow.",
+      "summary": "Of 1,303 indexed reads whose base the walk can name, not one reaches a recovered run or record at its own element size. The four whose base register holds a run's base exactly are all the inlined string scan, base plus index times one minus one, walking the first name's characters. Every other access into a run's bytes loads one element's address outright. The runs are therefore a layout fact about how the linker packed these literals, not an access fact about how the game reads them, and the fixed stride is the packer's alignment rather than an array's element size. The evidence is strong where a stride is eight, because a scale of eight is then the natural encoding and 211 such reads exist elsewhere in the image; it was weaker above eight until the index multiplier was carried through, and now holds for every stride the walk can name: 155 arrays are walked with a scaled index, with element sizes up to 72 bytes, and not one of them is a recovered run.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -91,6 +91,66 @@
           "size": 72,
           "symbol": "stride-eight run reached only by per-element loads",
           "note": "RVA 0x5069B8, stride 8, sample name EffectI. Eleven sites, none of them an indexed read."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-index-multiplier",
+      "claim_id": "claim-dmc3-index-multiplier",
+      "title": "An element size above eight is carried in the index, not the scale",
+      "summary": "A SIB scale encodes only one, two, four and eight, so an array of any other element size is reached by multiplying the index before the read: lea reg with base and index the same register multiplies by two, three, five or nine, imul by a constant multiplies by it, and a shift by a constant multiplies by a power of two. The image holds 933 of the lea form alone. Carrying that multiplier through to the read makes those element sizes visible, and 40 reads then show sizes of 6, 10, 12, 20, 24, 40 and 72 bytes that no scale field could have expressed. This closes the half of the earlier finding that was weak: the absence of indexed access to a name run is now measured for every stride, not only for eight.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "decoder",
+        "data-layout",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6096032,
+          "size": 24,
+          "symbol": "array of 24-byte elements read at three field offsets",
+          "note": "RVA 0x5DE5B0, element 24 bytes, fields at +0, +8 and +16, six sites in the function at RVA 0x31FB0."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6097056,
+          "size": 20,
+          "symbol": "array of 20-byte elements read at four field offsets",
+          "note": "RVA 0x5D08A0, element 20 bytes, fields at +4, +8, +12 and +16."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-indexed-arrays",
+      "claim_id": "claim-dmc3-indexed-arrays",
+      "title": "155 arrays in data are walked with a scaled index, and their element layout is partly readable",
+      "summary": "Of 554 indexed reads on a base other than the image base, 267 have a displacement that lands inside the element, which is what a field offset must do. 255 have a negative displacement and are the inlined character scan over a string rather than an array walk. 32 sit at or past the element, meaning the element size or the base is wrong there, and that 5.8 per cent is the error bar on the inference rather than something to hide. What survives is 155 arrays, of which 28 are read at more than one offset within their element and so carry a partial layout rather than a single observation: the array at RVA 0x5D08A0 has a 20-byte element read at four offsets, and the one at RVA 0x570600 a 12-byte element read at three. All of this is layout recovered from instruction encodings; no contents are read.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5680640,
+          "size": 12,
+          "symbol": "array whose element layout is partly recovered",
+          "note": "RVA 0x570600, element 12 bytes, fields at +0, +4 and +8."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 6089776,
+          "size": 4,
+          "symbol": "most-read indexed array",
+          "note": "RVA 0x5CEC30, element 4 bytes, all four byte offsets read, 25 sites across 5 functions."
         }
       ]
     }

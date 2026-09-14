@@ -98,6 +98,59 @@ fact about how the game reads them.
   the walk names a base for 1,303. The rest take their base from loads,
   parameters and arithmetic. The tracking is a floor, not a census.
 
+## Closing the gap above stride 8
+
+A SIB scale encodes only 1, 2, 4 and 8. Any other element size is reached by
+multiplying the **index** first:
+
+```asm
+lea rax,[rcx+rcx*2]      ; index * 3
+mov edx,[rbx+rax*8]      ; base + index * 24
+```
+
+The image holds **933** of the `lea reg,[a+a*k]` form alone, plus `imul` by a
+constant and shifts. Carrying that multiplier through to the read makes those
+sizes visible, and 40 reads then show element sizes of **6, 10, 12, 20, 24, 40
+and 72 bytes** — none of which a scale field could have expressed.
+
+So the weak half of the finding is now measured rather than assumed: the
+absence of indexed access to a name run holds for **every** stride the walk can
+name, not only for 8.
+
+## What it did find: 155 indexed arrays
+
+The same machinery, pointed at everything rather than at the name runs, reads
+data layout straight out of the instruction stream.
+
+On a held base the displacement is a **field offset inside the element**, so it
+has to land inside it. That is a free consistency check, and it splits the 554
+such reads three ways:
+
+| | count | meaning |
+| --- | --- | --- |
+| offset inside the element | **267** | an array walk with a readable field |
+| negative offset | 255 | the inlined character scan, `[base + i*1 - 1]` |
+| offset at or past the element | **32** | the element size or base is wrong |
+
+That 32 — **5.8%** — is the error bar on the element-size inference, and it is
+worth stating rather than hiding.
+
+What survives is **155 arrays**, of which **28** are read at more than one
+offset and so carry a partial element layout rather than a single observation:
+
+| Array | Element | Fields observed | Sites |
+| --- | --- | --- | --- |
+| `0x5CEC30` | 4 bytes | +0 +1 +2 +3 | 25, across 5 functions |
+| `0x5D08A0` | 20 bytes | +4 +8 +12 +16 | 4 |
+| `0x5DE5B0` | 24 bytes | +0 +8 +16 | 6 |
+| `0x570600` | 12 bytes | +0 +4 +8 | 3 |
+| `0xCA13E0` | 10 bytes | +0 +8 | 6 |
+| `0x580D20` | 24 bytes | +4 +8 | 4 |
+
+These are runtime state arrays in writable data — which is also why none of
+them is a name run. Layout only: where the array is, how wide its element is,
+and which offsets inside that element the code reads. No contents.
+
 ## What this changes
 
 Coverage by constant index still means something — it means code reaches those
@@ -106,7 +159,12 @@ reading that treated the two as one should be read with this alongside it.
 
 ## Open work
 
-- **follow arithmetic on a held base**, which would settle the strides above 8;
+- **the 32 inconsistent sites.** Each is a base or an element size the walk got
+  wrong, and each is individually checkable against the instructions;
+- **the 749 image-base-relative reads.** Their array base is the displacement,
+  so a field offset cannot be separated from it without a second observation at
+  the same base. Correlating reads that share a displacement modulo the element
+  size would recover those layouts too;
 - **the receiver of a virtual call**, which needs the same machinery pointed at
   a vtable pointer rather than a table base;
 - **the tables no direct reference reaches** — now a sharper question, since a

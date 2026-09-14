@@ -491,6 +491,26 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
             return std::nullopt;
         }
 
+        instruction.immediate_size = static_cast<std::uint8_t>(immediate);
+        switch (immediate) {
+        case 1U:
+            instruction.immediate =
+                static_cast<std::int8_t>(std::to_integer<std::uint8_t>(bytes[cursor.position]));
+            break;
+        case 2U:
+            instruction.immediate = static_cast<std::int16_t>(
+                static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(bytes[cursor.position])) |
+                (static_cast<std::uint16_t>(std::to_integer<std::uint8_t>(
+                     bytes[cursor.position + 1U]))
+                 << 8U));
+            break;
+        case 4U:
+            instruction.immediate = read_i32(bytes, cursor.position);
+            break;
+        default:
+            break;
+        }
+
         instruction.flow = classify(opcode, instruction.two_byte_opcode, instruction.has_modrm,
                                     instruction.modrm_reg);
         switch (instruction.flow) {

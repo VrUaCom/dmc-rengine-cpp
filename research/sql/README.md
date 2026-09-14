@@ -254,5 +254,21 @@ literal at that offset are the same instruction. `elements_named_by_constant`
 says code reaches those bytes; only `indexed_sites` says it treats them as a
 table.
 
+### Indexed data arrays
+
+`exe_indexed_array` holds arrays the code walks with a scaled index, and
+`exe_indexed_array_field` the offsets read inside their elements. Element sizes
+above eight come from the index multiplier, not the scale field.
+
+```sql
+-- Arrays whose element layout is more than a single observation.
+SELECT base_rva, element_bytes, fields_observed, field_offsets, sites
+FROM v_exe_array_layout
+ORDER BY fields_observed DESC, sites DESC;
+```
+
+A field offset must fall inside its element; the importer refuses one that does
+not rather than storing a layout that contradicts itself.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

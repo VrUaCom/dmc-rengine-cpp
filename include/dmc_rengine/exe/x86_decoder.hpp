@@ -90,6 +90,13 @@ struct X86Instruction final {
     /// table of fixed-width elements carries the element size here.
     std::uint8_t memory_scale{1U};
 
+    /// Width of the encoded immediate in bytes, and its sign-extended value.
+    /// A branch's relative target is reported as `branch_displacement` instead;
+    /// this is the immediate as an operand, which is what an `imul` by a
+    /// constant or a shift by a constant needs.
+    std::uint8_t immediate_size{};
+    std::int64_t immediate{};
+
     [[nodiscard]] bool transfers_control() const noexcept {
         return flow != X86Flow::sequential;
     }

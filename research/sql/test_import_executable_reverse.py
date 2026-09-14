@@ -88,6 +88,22 @@ def make_map() -> dict:
         "schema": "dmc-rengine.function-map.v1",
         "artifact": dict(ARTIFACT),
         "class_coverage": [],
+        "indexed_arrays": [
+            {
+                "base_rva": "0x5d08a0",
+                "element_bytes": 20,
+                "sites": 4,
+                "referencing_functions": 1,
+                "field_offsets": [4, 8, 12, 16],
+            },
+            {
+                "base_rva": "0x597150",
+                "element_bytes": 8,
+                "sites": 2,
+                "referencing_functions": 1,
+                "field_offsets": [0, 4],
+            },
+        ],
         "name_table_usage": [
             {
                 "table_base_rva": "0x506f68",
@@ -157,6 +173,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     image_id = importer.load_image(con, analysis)
     tables = importer.load_name_tables(con, image_id, analysis)
     importer.load_referenced_tables(con, image_id, mapping, tables)
+    importer.load_indexed_arrays(con, image_id, mapping)
     classes = importer.load_classes(con, image_id, mapping)
     importer.load_functions(con, image_id, mapping, classes, tables)
     con.commit()
@@ -186,6 +203,25 @@ class ImporterTests(unittest.TestCase):
             "SELECT extent_status FROM exe_name_table WHERE base_rva=?", (0x520C64,)
         ).fetchone()[0]
         self.assertEqual(status, "SEMANTIC_CANDIDATE")
+
+    def test_indexed_arrays_carry_their_field_layout(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT element_bytes, sites, fields_observed, field_offsets"
+            " FROM v_exe_array_layout WHERE base_rva='0x5d08a0'"
+        ).fetchone()
+        self.assertEqual(row, (20, 4, 4, "4,8,12,16"))
+
+    def test_a_field_outside_its_element_is_refused(self) -> None:
+        # A field offset at or past the element size would mean the element size
+        # is wrong, so the layout contradicts itself and is not stored.
+        mapping = make_map()
+        mapping["indexed_arrays"][0]["field_offsets"] = [4, 8, 20]
+        con = sqlite3.connect(self.directory / "bad.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(SystemExit):
+            importer.load_indexed_arrays(con, image_id, mapping)
 
     def test_a_record_interior_is_marked_as_one(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

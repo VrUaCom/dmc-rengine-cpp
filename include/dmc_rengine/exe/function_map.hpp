@@ -190,6 +190,24 @@ struct NameTableUsage final {
     friend bool operator==(const NameTableUsage&, const NameTableUsage&) = default;
 };
 
+/// An array in data that code walks with a scaled index.
+///
+/// Recovered from instruction encodings alone: the base a register was seen to
+/// hold, the element size the scale and any index multiplier imply, and the
+/// displacements used against it, which are offsets of fields within the
+/// element. A displacement must land inside the element to be counted, which is
+/// a free consistency check on the element size.
+struct IndexedArray final {
+    std::uint32_t base_rva{};
+    std::uint32_t element_bytes{};
+    std::uint32_t sites{};
+    std::uint32_t referencing_functions{};
+    /// Sorted, unique field offsets observed, each below `element_bytes`.
+    std::vector<std::uint32_t> field_offsets;
+
+    friend bool operator==(const IndexedArray&, const IndexedArray&) = default;
+};
+
 struct ImportUsage final {
     std::string module;
     std::string function;
@@ -228,6 +246,16 @@ struct FunctionMapSummary final {
     std::size_t indexed_accesses{};
     std::size_t image_base_indexed_accesses{};
     std::size_t indexed_table_accesses{};
+    /// Accesses on a base other than the image base, split by whether the
+    /// displacement lands inside the element. A negative displacement is the
+    /// inlined character scan over a string, not an array walk; one at or past
+    /// the element means the element size or the base is wrong, and is the
+    /// error bar on this inference.
+    std::size_t held_base_accesses{};
+    std::size_t consistent_array_accesses{};
+    std::size_t string_scan_accesses{};
+    std::size_t inconsistent_array_accesses{};
+    std::size_t indexed_arrays{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};
@@ -253,6 +281,8 @@ struct FunctionMap final {
     std::vector<DispatchSlotUsage> dispatch_slots;
     /// Recovered name tables and how many functions reach each.
     std::vector<NameTableUsage> name_table_usage;
+    /// Arrays in data the code walks with a scaled index, most-used first.
+    std::vector<IndexedArray> indexed_arrays;
     std::vector<std::string> warnings;
 };
 

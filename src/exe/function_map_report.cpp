@@ -48,6 +48,14 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.image_base_indexed_accesses));
     writer.member("indexed_table_accesses",
                   static_cast<std::uint64_t>(summary.indexed_table_accesses));
+    writer.member("held_base_accesses", static_cast<std::uint64_t>(summary.held_base_accesses));
+    writer.member("consistent_array_accesses",
+                  static_cast<std::uint64_t>(summary.consistent_array_accesses));
+    writer.member("string_scan_accesses",
+                  static_cast<std::uint64_t>(summary.string_scan_accesses));
+    writer.member("inconsistent_array_accesses",
+                  static_cast<std::uint64_t>(summary.inconsistent_array_accesses));
+    writer.member("indexed_arrays", static_cast<std::uint64_t>(summary.indexed_arrays));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
@@ -115,6 +123,27 @@ void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
 }
 
 void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("indexed_arrays");
+    writer.begin_array();
+    // Layout only: where an array is, how wide its element is, and which
+    // offsets inside that element the code reads. No contents.
+    for (const auto& array : map.indexed_arrays) {
+        writer.begin_object();
+        writer.hex_member("base_rva", array.base_rva);
+        writer.member("element_bytes", static_cast<std::uint64_t>(array.element_bytes));
+        writer.member("sites", static_cast<std::uint64_t>(array.sites));
+        writer.member("referencing_functions",
+                      static_cast<std::uint64_t>(array.referencing_functions));
+        writer.key("field_offsets");
+        writer.begin_array();
+        for (const auto offset : array.field_offsets) {
+            writer.number(static_cast<std::uint64_t>(offset));
+        }
+        writer.end_array();
+        writer.end_object();
+    }
+    writer.end_array();
+
     writer.key("name_table_usage");
     writer.begin_array();
     for (const auto& usage : map.name_table_usage) {

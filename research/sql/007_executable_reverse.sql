@@ -173,6 +173,26 @@ CREATE TABLE IF NOT EXISTS exe_table_reference (
 
 CREATE INDEX IF NOT EXISTS idx_exe_table_reference_table ON exe_table_reference(table_id);
 
+-- Arrays in data the code walks with a scaled index, and the offsets it reads
+-- inside their elements. Recovered from instruction encodings alone; layout
+-- only, never contents.
+CREATE TABLE IF NOT EXISTS exe_indexed_array (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    base_rva INTEGER NOT NULL,
+    element_bytes INTEGER NOT NULL,
+    sites INTEGER NOT NULL DEFAULT 0,
+    referencing_functions INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(image_id, base_rva, element_bytes)
+);
+
+CREATE TABLE IF NOT EXISTS exe_indexed_array_field (
+    id INTEGER PRIMARY KEY,
+    array_id INTEGER NOT NULL REFERENCES exe_indexed_array(id) ON DELETE CASCADE,
+    field_offset INTEGER NOT NULL,
+    UNIQUE(array_id, field_offset)
+);
+
 -- Coverage of a table by constant indices: trustworthy for a pure name array,
 -- an upper bound for a payload-bearing run whose extent may be over-stated.
 CREATE VIEW IF NOT EXISTS v_exe_table_coverage AS
@@ -233,3 +253,19 @@ SELECT id, printf('0x%x', base_rva) AS base_rva, layout, element_bytes, entries,
        fields_per_record, sample_name, extent_status
 FROM exe_name_table
 WHERE interior_of_record_rva IS NULL;
+
+-- Arrays whose element layout is partly recovered: more than one field offset
+-- observed inside the element, which is a layout statement rather than a single
+-- observation.
+CREATE VIEW IF NOT EXISTS v_exe_array_layout AS
+SELECT a.id AS array_id,
+       printf('0x%x', a.base_rva) AS base_rva,
+       a.element_bytes,
+       a.sites,
+       a.referencing_functions,
+       COUNT(f.id) AS fields_observed,
+       GROUP_CONCAT(f.field_offset, ',') AS field_offsets
+FROM exe_indexed_array a
+LEFT JOIN exe_indexed_array_field f ON f.array_id = a.id
+GROUP BY a.id
+HAVING fields_observed > 1;

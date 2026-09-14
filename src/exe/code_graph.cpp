@@ -145,21 +145,32 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     // that survives all of that and lands on a known table at that table's own
     // element size is not a coincidence.
     constexpr std::uint32_t kMaxBaseAge = 64U;
-    struct HeldAddress final {
+    constexpr std::uint32_t kMaxMultiplier = 1U << 16U;
+    struct HeldValue final {
         std::uint32_t rva{};
         std::uint32_t age{};
         bool held{false};
+        /// Constant the register's index value has been multiplied by since it
+        /// was an index. A scale field encodes only 1, 2, 4 and 8, so an array
+        /// of any other element size is reached by multiplying the index first
+        /// — `lea reg,[a+a*2]` for three, then a scale of eight for
+        /// twenty-four. Carrying the multiplier is what makes those strides
+        /// visible at the point of the read.
+        std::uint32_t multiplier{1U};
     };
-    std::array<HeldAddress, 16U> held{};
+    std::array<HeldValue, 16U> held{};
     std::uint32_t traced = 0U;
 
     const auto forget_all = [&]() {
-        held.fill(HeldAddress{});
+        held.fill(HeldValue{});
     };
     const auto forget = [&](std::uint8_t reg) {
         if (reg < held.size()) {
-            held[reg] = HeldAddress{};
+            held[reg] = HeldValue{};
         }
+    };
+    const auto multiplier_of = [&](std::uint8_t reg) -> std::uint32_t {
+        return reg < held.size() ? held[reg].multiplier : 1U;
     };
 
     std::vector<std::uint32_t> worklist;
@@ -216,6 +227,32 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
             const std::uint32_t next = rva + length;
 
+            // What this instruction computes has to be read before the
+            // invalidation below throws its inputs away.
+            std::uint32_t produced_multiplier = 0U;
+            if (!decoded->two_byte_opcode && decoded->has_modrm) {
+                if (decoded->opcode == 0x8DU && decoded->memory_base != X86Instruction::kNoRegister &&
+                    decoded->memory_base == decoded->memory_index && decoded->displacement == 0) {
+                    // `lea reg,[a + a*k]` is a multiply by k+1.
+                    produced_multiplier = multiplier_of(decoded->memory_base) *
+                                          (static_cast<std::uint32_t>(decoded->memory_scale) + 1U);
+                } else if ((decoded->opcode == 0x69U || decoded->opcode == 0x6BU) &&
+                           decoded->immediate > 0) {
+                    const auto source = decoded->modrm_mod == 3U
+                                            ? multiplier_of(static_cast<std::uint8_t>(
+                                                  decoded->modrm_rm))
+                                            : 1U;
+                    produced_multiplier =
+                        source * static_cast<std::uint32_t>(decoded->immediate);
+                } else if (decoded->opcode == 0xC1U && decoded->modrm_reg == 4U &&
+                           decoded->modrm_mod == 3U && decoded->immediate > 0 &&
+                           decoded->immediate < 16) {
+                    // `shl reg, imm` is a multiply by a power of two.
+                    produced_multiplier = multiplier_of(static_cast<std::uint8_t>(decoded->modrm_rm))
+                                          << static_cast<std::uint32_t>(decoded->immediate);
+                }
+            }
+
             // Every register this instruction names may have been written by
             // it. Reads are invalidated too, which costs recall and buys the
             // right to make no claim the encoding does not support.
@@ -244,8 +281,12 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             if (decoded->indexed_memory() && decoded->memory_base < held.size()) {
                 const auto& base = held[decoded->memory_base];
                 if (base.held && traced - base.age <= kMaxBaseAge) {
+                    // The element size the code assumes is the scale field and
+                    // whatever the index was multiplied by on the way here.
+                    const auto element = static_cast<std::uint64_t>(decoded->memory_scale) *
+                                         multiplier_of(decoded->memory_index);
                     walk.indexed_accesses.push_back(FunctionWalk::IndexedAccess{
-                        rva, base.rva, decoded->memory_scale, decoded->displacement});
+                        rva, base.rva, static_cast<std::uint32_t>(element), decoded->displacement});
                 }
             }
 
@@ -257,7 +298,7 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 if (decoded->rip_relative_lea()) {
                     remember_candidate(target);
                     if (decoded->reg_operand < held.size()) {
-                        held[decoded->reg_operand] = HeldAddress{target, traced, true};
+                        held[decoded->reg_operand] = HeldValue{target, traced, true, 1U};
                     }
                 }
             } else if (decoded->displacement_size == 4U && decoded->displacement > 0) {
@@ -269,6 +310,12 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 if (candidate >= image.size_of_headers && candidate < image.size_of_image) {
                     remember_candidate(candidate);
                 }
+            }
+
+            if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier &&
+                decoded->reg_operand < held.size()) {
+                held[decoded->reg_operand].multiplier = produced_multiplier;
+                held[decoded->reg_operand].age = traced;
             }
 
             const auto branch_target = [&]() {

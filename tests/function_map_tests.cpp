@@ -493,6 +493,84 @@ void an_address_pointing_at_a_nul_is_not_a_table_reference() {
     assert(map.name_table_usage[0].elements_named_by_constant == 1U);
 }
 
+void an_indexed_array_carries_its_element_size_and_fields() {
+    Fixture fixture;
+
+    // Overwrite function B's body with a base load, an index multiply and two
+    // reads at different offsets inside a 24-byte element:
+    //   48 8d 1d <rel>   lea rbx,[rip+rel]        ; -> .rdata 0x2000
+    //   48 8d 04 40      lea rax,[rax+rax*2]      ; index * 3
+    //   8b 0c c3         mov ecx,[rbx+rax*8]      ; + 0
+    //   8b 4c c3 08      mov ecx,[rbx+rax*8+8]    ; + 8
+    //   c3               ret
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x1D});
+    put_i32(fixture.bytes, at + 3U,
+            static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x48, 0x8D, 0x04, 0x40});
+    put(fixture.bytes, at + 11U, {0x8B, 0x0C, 0xC3});
+    put(fixture.bytes, at + 14U, {0x8B, 0x4C, 0xC3, 0x08});
+    put(fixture.bytes, at + 18U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.indexed_arrays.size() == 1U);
+    const auto& array = map.indexed_arrays[0];
+    assert(array.base_rva == 0x2000U);
+    // A scale of eight against an index already multiplied by three: an element
+    // size no scale field alone can express.
+    assert(array.element_bytes == 24U);
+    assert(array.sites == 2U);
+    const std::vector<std::uint32_t> expected_fields{0U, 8U};
+    assert(array.field_offsets == expected_fields);
+    assert(map.summary.consistent_array_accesses == 2U);
+    assert(map.summary.inconsistent_array_accesses == 0U);
+}
+
+void a_field_offset_outside_the_element_is_not_an_array() {
+    Fixture fixture;
+
+    // The same pair, but the second read is 8 bytes into a 4-byte element,
+    // which cannot be a field of it. The element size or the base is wrong, so
+    // the site is counted against the inference rather than believed.
+    //   lea rbx,[rip+rel]
+    //   8b 4c 9b 08       mov ecx,[rbx+rbx*4+8]  -- no: use rax as index
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x1D});
+    put_i32(fixture.bytes, at + 3U,
+            static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x8B, 0x4C, 0x83, 0x08});  // mov ecx,[rbx+rax*4+8]
+    put(fixture.bytes, at + 11U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.indexed_arrays.empty());
+    assert(map.summary.inconsistent_array_accesses == 1U);
+    assert(map.summary.consistent_array_accesses == 0U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -531,6 +609,8 @@ int main() {
     a_constant_table_index_names_one_element();
     an_unaligned_offset_is_not_a_constant_index();
     an_address_pointing_at_a_nul_is_not_a_table_reference();
+    an_indexed_array_carries_its_element_size_and_fields();
+    a_field_offset_outside_the_element_is_not_an_array();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();

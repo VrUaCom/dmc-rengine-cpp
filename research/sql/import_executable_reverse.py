@@ -190,6 +190,45 @@ def apply_indexed_sites(con: sqlite3.Connection, image_id: int, mapping: dict) -
         )
 
 
+def load_indexed_arrays(con: sqlite3.Connection, image_id: int, mapping: dict) -> int:
+    """Stores the arrays the code walks with a scaled index, and their fields."""
+    imported = 0
+    for entry in mapping.get("indexed_arrays", []):
+        base = parse_rva(entry["base_rva"])
+        con.execute(
+            """INSERT INTO exe_indexed_array(
+                   image_id, base_rva, element_bytes, sites, referencing_functions)
+               VALUES(?,?,?,?,?)
+               ON CONFLICT(image_id, base_rva, element_bytes) DO UPDATE SET
+                   sites=excluded.sites,
+                   referencing_functions=excluded.referencing_functions""",
+            (image_id, base, entry["element_bytes"], entry.get("sites", 0),
+             entry.get("referencing_functions", 0)),
+        )
+        row = con.execute(
+            "SELECT id FROM exe_indexed_array"
+            " WHERE image_id=? AND base_rva=? AND element_bytes=?",
+            (image_id, base, entry["element_bytes"]),
+        ).fetchone()
+        array_id = int(row[0])
+        for offset in entry.get("field_offsets", []):
+            # A field offset outside the element would mean the element size is
+            # wrong, and the reports already drop those; refuse one here too
+            # rather than store a layout that contradicts itself.
+            if offset >= entry["element_bytes"]:
+                raise SystemExit(
+                    f"field offset {offset} is outside the {entry['element_bytes']}-byte"
+                    f" element of the array at {entry['base_rva']}"
+                )
+            con.execute(
+                "INSERT OR IGNORE INTO exe_indexed_array_field(array_id, field_offset)"
+                " VALUES(?,?)",
+                (array_id, offset),
+            )
+        imported += 1
+    return imported
+
+
 def load_classes(con: sqlite3.Connection, image_id: int, mapping: dict) -> dict:
     ids: dict[str, int] = {}
     for entry in mapping.get("class_coverage", []):
@@ -365,6 +404,7 @@ def main() -> int:
     tables = load_name_tables(con, image_id, analysis)
     load_referenced_tables(con, image_id, mapping, tables)
     apply_indexed_sites(con, image_id, mapping)
+    load_indexed_arrays(con, image_id, mapping)
     classes = load_classes(con, image_id, mapping)
     functions = load_functions(con, image_id, mapping, classes, tables)
     con.commit()
@@ -380,6 +420,8 @@ def main() -> int:
             "exe_dispatch_site",
             "exe_name_table",
             "exe_table_reference",
+            "exe_indexed_array",
+            "exe_indexed_array_field",
         )
     }
     con.close()

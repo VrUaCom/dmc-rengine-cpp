@@ -790,6 +790,13 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     // this worth recording: a coincidence would have to land on a recovered
     // base and agree about its stride.
     std::map<std::uint32_t, std::uint32_t> table_indexed_sites;
+    struct ArrayFacts final {
+        std::set<std::uint32_t> fields;
+        std::set<std::uint32_t> functions;
+        std::uint32_t sites{};
+    };
+    std::map<std::pair<std::uint32_t, std::uint32_t>, ArrayFacts> arrays;
+
     for (const auto& walk : graph.functions) {
         for (const auto& access : walk.indexed_accesses) {
             ++map.summary.indexed_accesses;
@@ -799,15 +806,58 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
 
             const auto addressed = static_cast<std::uint32_t>(
                 static_cast<std::int64_t>(access.base_rva) + access.displacement);
-            const auto* table = table_containing(addressed);
-            if (table == nullptr || addressed != table->base ||
-                table->element_bytes != access.element_bytes) {
+            if (const auto* table = table_containing(addressed);
+                table != nullptr && addressed == table->base &&
+                table->element_bytes == access.element_bytes) {
+                ++table_indexed_sites[table->base];
+                ++map.summary.indexed_table_accesses;
+            }
+
+            if (access.base_rva == 0U || access.element_bytes == 0U) {
                 continue;
             }
-            ++table_indexed_sites[table->base];
-            ++map.summary.indexed_table_accesses;
+
+            // On a held base the displacement is a field offset within the
+            // element, so it has to land inside it.
+            ++map.summary.held_base_accesses;
+            if (access.displacement < 0) {
+                ++map.summary.string_scan_accesses;
+                continue;
+            }
+            if (static_cast<std::uint32_t>(access.displacement) >= access.element_bytes) {
+                ++map.summary.inconsistent_array_accesses;
+                continue;
+            }
+
+            ++map.summary.consistent_array_accesses;
+            auto& facts = arrays[{access.base_rva, access.element_bytes}];
+            facts.fields.insert(static_cast<std::uint32_t>(access.displacement));
+            facts.functions.insert(walk.begin_rva);
+            ++facts.sites;
         }
     }
+
+    map.indexed_arrays.reserve(arrays.size());
+    for (const auto& [key, facts] : arrays) {
+        IndexedArray entry;
+        entry.base_rva = key.first;
+        entry.element_bytes = key.second;
+        entry.sites = facts.sites;
+        entry.referencing_functions = static_cast<std::uint32_t>(facts.functions.size());
+        entry.field_offsets.assign(facts.fields.begin(), facts.fields.end());
+        map.indexed_arrays.push_back(std::move(entry));
+    }
+    map.summary.indexed_arrays = map.indexed_arrays.size();
+    std::sort(map.indexed_arrays.begin(), map.indexed_arrays.end(),
+              [](const IndexedArray& left, const IndexedArray& right) {
+                  if (left.field_offsets.size() != right.field_offsets.size()) {
+                      return left.field_offsets.size() > right.field_offsets.size();
+                  }
+                  if (left.sites != right.sites) {
+                      return left.sites > right.sites;
+                  }
+                  return left.base_rva < right.base_rva;
+              });
 
     map.name_table_usage.reserve(table_spans.size());
     for (const auto& span : table_spans) {
