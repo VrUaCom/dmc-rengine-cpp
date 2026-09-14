@@ -22,6 +22,10 @@ dmc-rengine analyze-exe /path/to/dmc3.exe --out report.json   # name_tables sect
 222 runs of fixed-width NUL-padded name fields hold 5,692 entries in read-only
 data. Each run's stride is sized to its own longest name, rounded up:
 
+> The run table below predates the phantom-grid correction described later in
+> this document. The individual rows are unaffected; the totals are now 220 runs
+> and 5,785 entries.
+
 | Base RVA | Stride | Entries | Longest name | Pure array | Sample |
 | --- | --- | --- | --- | --- | --- |
 | `0x4F22C8` | 24 | 1,747 | 23 | yes | `afs/sound/m03_s00.adx` |
@@ -175,12 +179,61 @@ table shows the opposite — payload at the same offset in every element. The
 scanner now measures both the payload's text-likeness and the consistency of its
 offset, and reports both rather than issuing a verdict.
 
+## Linking tables to the code that reads them
+
+Matching each function's RIP-relative data references against the recovered
+tables links **45 functions to 27 tables**. 218 tables have no direct reference
+from code at all.
+
+That silence is a property of the addressing, not of the tables. A base held in
+a register, computed from another pointer, or stored in writable data leaves no
+RIP-relative reference to match. Direct-reference linkage reaches only the
+tables addressed by a literal displacement — it is sound where it fires and
+silent, not negative, where it does not.
+
+### A third false-positive mode, caught by its own referrers
+
+The first linkage run reported 174 functions and named one structure far above
+the rest: a 384-byte stride over 8 entries at RVA `0x36E7A0`, referenced by
+**128 functions**. It is not a table.
+
+Two things gave it away, and the second is the more useful.
+
+Its contents: one supposed element holds C++ standard library exception text.
+No resource name table contains that.
+
+Its **reference offsets**: of the 128 functions, 118 addressed the single offset
+`0x230`, and only 3 addressed a multiple of the supposed 384-byte stride. A
+genuine indexed table is addressed at its base or at multiples of its element
+size. A crowd converging on one interior offset is a crowd referencing *one
+string* that happens to lie inside a phantom span.
+
+The underlying fault is that **the acceptance test weakens as the stride grows**.
+"Every element holds a name terminated inside its field" is a strong constraint
+at stride 16 and no constraint at all at stride 384, because a dense pool always
+terminates a name somewhere inside so wide a field.
+
+The rule that fixes it is the one the payload measurements already implied:
+an element's bytes after the terminator must be either all zero, or text
+beginning at the same offset in every element. Applying it gives 220 runs and
+5,785 entries, and drops the linkage to 45 functions — **129 of the original 174
+attributions were phantom**.
+
+Entry count rises while run count falls, which is the expected signature:
+rejecting a phantom frees its candidates for the genuine shorter runs beneath it.
+
+Reference-offset distribution is now a usable independent check on any recovered
+table, and it cost nothing to obtain — the data was already in the function map.
+
 ## Open work
 
 - **non-name fields.** Every layout recovered so far is made entirely of name
   fields. A record mixing names with numeric fields would not be found by gap
   periodicity, because the numbers leave no candidate name to measure from;
-- **table base to function.** Six functions index the `.pac` array; recovering
-  how they compute the index would tie a name to a call site;
+- **how an index is computed.** Linkage now says *which* functions reach a
+  table; recovering how each computes its index would tie a specific name to a
+  specific call site;
+- **the 218 unreferenced tables.** Reaching them means following bases through
+  registers and writable data, which direct-reference matching cannot do;
 - **the `id\idNNNN\` numbering.** The two largest arrays are dominated by a
   structured identifier scheme whose meaning is not established here.

@@ -8,6 +8,12 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Code-to-table linkage
+
+- `FunctionMapBuilder` matches each function's RIP-relative data references against recovered name tables, reporting the table, the offset addressed within it, and per-table referrer counts: 45 functions linked to 27 tables, with 218 tables addressed in ways direct-reference matching cannot follow;
+- **correction:** a third false-positive mode removed. The stride acceptance test weakens as the stride grows — at 384 bytes "a name terminated inside the field" constrains nothing, since a dense pool always terminates a name somewhere inside. An element's payload must now be all zero or text at a consistent offset, giving 220 runs and 5,785 entries in place of 222 and 5,692, and dropping linkage from 174 functions to 45;
+- the phantom was caught by its own referrers: 118 of its 128 referring functions addressed one interior offset and only 3 a multiple of the stride, which makes reference-offset distribution an independent check on any recovered table.
+
 #### Multi-field name record layouts
 
 - `StringTableScanner` gains a gap-period pass that finds records whose name fields differ in width, which no constant-stride hypothesis can cover: 25 layouts holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields per record;

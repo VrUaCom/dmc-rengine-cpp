@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-table-linkage",
+  "title": "DMC3 HD code-to-name-table linkage and a stride-scan correction",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-name-table-layout-v2",
+      "claim_id": "claim-dmc3-name-table-layout",
+      "title": "Name table count corrected: 220 runs, 5785 entries",
+      "summary": "The earlier figure of 222 runs holding 5692 entries included grids laid over packed string pools. At a large stride the acceptance test is toothless: a 384-byte field containing a twelve-character name and hundreds of bytes of other text satisfies every condition the scan checked, because a dense pool always terminates a name somewhere inside so wide a field. Requiring that an element's bytes after the terminator be either all zero or text beginning at the same offset in every element removes those grids, giving 220 runs and 5785 entries. Entry count rises while run count falls because rejecting a phantom frees its candidates for the genuine shorter runs underneath it.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "data-layout",
+        "resource-names",
+        "methodology",
+        "correction"
+      ],
+      "supersedes": [
+        "ev-dmc3-name-table-layout"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3598240,
+          "size": 3072,
+          "symbol": "rejected phantom grid",
+          "note": "RVA 0x36E7A0 was read as a 384-byte stride over 8 entries. One of its supposed elements contains C++ standard library exception text, which no resource name table holds."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-phantom-grid-referrer-signature",
+      "claim_id": "claim-dmc3-phantom-grid-referrer-signature",
+      "title": "Reference offsets expose a phantom table",
+      "summary": "The rejected grid at RVA 0x36E7A0 was the most referenced structure the linkage pass found, with 128 functions addressing it, and the reference offsets are what showed it was not a table. Of those 128 functions, 118 addressed the single offset 0x230 and only 3 addressed a multiple of the supposed 384-byte stride. A genuine indexed table is addressed at its base or at multiples of its element size; a crowd of references converging on one interior offset is a crowd of references to one string that happens to lie inside a phantom span. Reference-offset distribution is therefore a usable independent check on any recovered table.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "methodology",
+        "validation",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3598240,
+          "symbol": "phantom grid reference distribution",
+          "note": "118 of 128 referring functions addressed offset 0x230; 3 addressed a multiple of 384."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-table-code-linkage",
+      "claim_id": "claim-dmc3-table-code-linkage",
+      "title": "Code-to-table linkage after the correction",
+      "summary": "Matching each function's RIP-relative data references against the recovered tables links 45 functions to 27 tables. 218 recovered tables have no direct reference from code at all. That is a property of the addressing, not of the tables: a base held in a register, computed from another pointer, or stored in writable data leaves no RIP-relative reference to match, so direct-reference linkage reaches only the minority of tables addressed by a literal displacement. The link is therefore sound where it exists and silent, not negative, where it does not.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "resource-names",
+        "gdspaces",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601520,
+          "size": 312,
+          "symbol": "most referenced surviving table",
+          "note": "RVA 0x371598, stride 24, 13 entries, referenced by 8 functions."
+        }
+      ]
+    }
+  ]
+}

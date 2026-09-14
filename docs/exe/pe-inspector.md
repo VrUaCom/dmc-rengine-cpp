@@ -184,6 +184,12 @@ that fits inside the stride **and begins immediately after a terminator**. That
 last requirement is not optional: without it a stride can land inside a real name
 and still read a valid-looking tail, and the run marches across unrelated tables.
 
+A second requirement covers the case the first cannot: an element's bytes after
+its terminator must be either all zero, or text beginning at the same offset in
+every element. Without it a large stride accepts any dense string pool, because
+"a name terminated inside the field" constrains nothing once the field is wide
+enough.
+
 Each run reports its base, stride, entry count, longest name, and whether any
 element carries payload after its terminator. Payload is reported as two
 measurements rather than a verdict — whether it decodes as further text, and
@@ -205,6 +211,21 @@ multiple of the real period.
 
 Only one representative name per run is retained; table contents are game data
 and are not extracted.
+
+## Linking tables to code
+
+`FunctionMapBuilder` accepts the scanner's result and matches each function's
+RIP-relative data references against the recovered table spans, reporting per
+function which tables it addresses and at what offset within them.
+
+The offsets are worth reading, not just the counts. A genuine indexed table is
+addressed at its base or at multiples of its element size; many references
+converging on one interior offset mean the span is not a table but a stretch of
+pool containing one popular string. That check found and removed a phantom the
+stride rules had passed.
+
+Linkage is silent, not negative, for a table whose base arrives in a register or
+from writable data: there is no RIP-relative reference to match.
 
 ## Full analysis report
 

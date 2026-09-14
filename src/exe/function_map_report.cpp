@@ -36,6 +36,11 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("structurally_unreferenced",
                   static_cast<std::uint64_t>(summary.structurally_unreferenced));
     writer.member("strings_recovered", static_cast<std::uint64_t>(summary.strings_recovered));
+    writer.member("with_name_table", static_cast<std::uint64_t>(summary.with_name_table));
+    writer.member("name_tables_referenced",
+                  static_cast<std::uint64_t>(summary.name_tables_referenced));
+    writer.member("name_tables_unreferenced",
+                  static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
                   static_cast<std::uint64_t>(summary.with_vtable_install));
     writer.member("with_resource_family",
@@ -95,6 +100,26 @@ void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
         writer.member("literals", static_cast<std::uint64_t>(entry.literals));
         writer.member("referencing_functions",
                       static_cast<std::uint64_t>(entry.referencing_functions));
+        writer.end_object();
+    }
+    writer.end_array();
+}
+
+void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("name_table_usage");
+    writer.begin_array();
+    for (const auto& usage : map.name_table_usage) {
+        if (usage.referencing_functions == 0U) {
+            continue;  // layout is already reported by analyze-exe
+        }
+        writer.begin_object();
+        writer.hex_member("table_base_rva", usage.table_base_rva);
+        writer.member("record_layout", usage.record_layout);
+        writer.member("element_bytes", static_cast<std::uint64_t>(usage.element_bytes));
+        writer.member("entries", static_cast<std::uint64_t>(usage.entries));
+        writer.member("referencing_functions",
+                      static_cast<std::uint64_t>(usage.referencing_functions));
+        writer.member("base_references", static_cast<std::uint64_t>(usage.base_references));
         writer.end_object();
     }
     writer.end_array();
@@ -215,6 +240,24 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
         writer.end_array();
     }
 
+    if (!facts.name_tables.empty()) {
+        writer.key("name_tables");
+        writer.begin_array();
+        for (const auto& reference : facts.name_tables) {
+            writer.begin_object();
+            writer.hex_member("table_base_rva", reference.table_base_rva);
+            if (reference.offset_in_table != 0U) {
+                writer.member("offset_in_table",
+                              static_cast<std::uint64_t>(reference.offset_in_table));
+            }
+            writer.member("record_layout", reference.record_layout);
+            writer.member("element_bytes", static_cast<std::uint64_t>(reference.element_bytes));
+            writer.member("entries", static_cast<std::uint64_t>(reference.entries));
+            writer.end_object();
+        }
+        writer.end_array();
+    }
+
     if (!facts.resource_families.empty()) {
         writer.key("resource_families");
         writer.begin_array();
@@ -271,6 +314,7 @@ std::string to_json(const ExecutableArtifactIdentity& artifact, const CodeGraph&
     write_class_coverage(writer, map);
     write_resource_families(writer, map);
     write_dispatch_slots(writer, map);
+    write_name_table_usage(writer, map);
 
     writer.key("functions");
     writer.begin_array();
@@ -278,7 +322,7 @@ std::string to_json(const ExecutableArtifactIdentity& artifact, const CodeGraph&
     for (const auto& facts : map.functions) {
         const bool attributed = !facts.virtual_bindings.empty() || !facts.imports_called.empty() ||
                                 facts.string_reference_count != 0U || facts.exported ||
-                                !facts.installs_vtables.empty();
+                                !facts.installs_vtables.empty() || !facts.name_tables.empty();
         if (!attributed && !options.include_unattributed) {
             continue;
         }

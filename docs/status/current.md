@@ -83,7 +83,8 @@ Instruction-accurate walks, the call graph and mechanical attribution are in pla
 - 2,889 functions attributed: 1,879 bound to a class vtable slot, 710 referencing a class vtable (construction sites), 535 calling imports, 160 referencing literals;
 - dispatch census: 10,958 indirect call sites across 2,070 functions over 145 distinct offsets;
 - resource-name literals are packed into data tables and shader bytecode, not code constants — measured, and it bounds what literal attribution can yield;
-- 222 fixed-width name arrays holding 5,692 entries recovered, stride sized to each run's longest name; layout only, contents not extracted;
+- 220 fixed-width name arrays holding 5,785 entries recovered, stride sized to each run's longest name; layout only, contents not extracted;
+- 45 functions linked to 27 recovered tables through RIP-relative references; 218 tables are addressed in ways direct-reference matching cannot follow;
 - 352-byte cutscene localisation record resolved exactly: 32-byte archive name plus eight 40-byte per-language message names, validated across all 49 records — and independently re-derived by the gap-period detector;
 - 25 multi-field name record layouts recovered holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields per record; largest is an 80-byte four-field record repeated 119 times;
 - extension census adds `.adx`, `.ogg`, `.sfd`, `.fxh` and `.tm2` to the family classifier; `.sfd` corroborates the FMV subsystem alongside RTTI classes and Media Foundation imports;

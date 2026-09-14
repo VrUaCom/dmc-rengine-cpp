@@ -11,6 +11,7 @@
 #include <deque>
 #include <limits>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -223,6 +224,57 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
     }
 
+    // Recovered name tables, ordered by base so a data reference can be placed
+    // inside a span by binary search. A reference need not land on the base:
+    // the compiler folds a constant index into the displacement.
+    struct TableSpan final {
+        std::uint32_t base{};
+        std::uint32_t end{};
+        bool record_layout{};
+        std::uint32_t element_bytes{};
+        std::uint32_t entries{};
+    };
+    std::vector<TableSpan> table_spans;
+    if (inputs.name_tables != nullptr) {
+        for (const auto& run : inputs.name_tables->runs) {
+            const auto span = run.span_bytes();
+            if (span == 0U) {
+                continue;
+            }
+            table_spans.push_back(TableSpan{run.base_rva,
+                                            static_cast<std::uint32_t>(run.base_rva + span), false,
+                                            run.stride, run.entries});
+        }
+        for (const auto& run : inputs.name_tables->records) {
+            const auto span = run.span_bytes();
+            if (span == 0U) {
+                continue;
+            }
+            table_spans.push_back(TableSpan{run.base_rva,
+                                            static_cast<std::uint32_t>(run.base_rva + span), true,
+                                            run.record_bytes, run.records});
+        }
+        std::sort(table_spans.begin(), table_spans.end(),
+                  [](const TableSpan& left, const TableSpan& right) {
+                      return left.base < right.base;
+                  });
+    }
+
+    const auto table_containing = [&](std::uint32_t rva) -> const TableSpan* {
+        if (table_spans.empty()) {
+            return nullptr;
+        }
+        auto entry = std::upper_bound(table_spans.begin(), table_spans.end(), rva,
+                                      [](std::uint32_t value, const TableSpan& candidate) {
+                                          return value < candidate.base;
+                                      });
+        if (entry == table_spans.begin()) {
+            return nullptr;
+        }
+        --entry;
+        return rva >= entry->base && rva < entry->end ? &*entry : nullptr;
+    };
+
     const FunctionIndex index{graph.functions};
     map.functions.resize(graph.functions.size());
     for (std::size_t position = 0; position < graph.functions.size(); ++position) {
@@ -400,6 +452,13 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 continue;
             }
 
+            if (const auto* table = table_containing(target); table != nullptr) {
+                facts.name_tables.push_back(NameTableReference{
+                    table->base, target - table->base, table->record_layout,
+                    table->element_bytes, table->entries});
+                continue;
+            }
+
             if (const auto owner = vtable_owners.find(target); owner != vtable_owners.end()) {
                 facts.installs_vtables.push_back(VtableInstall{
                     owner->second.class_display_name, owner->second.vtable_index, target});
@@ -421,6 +480,17 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 }
             }
         }
+
+        std::sort(facts.name_tables.begin(), facts.name_tables.end(),
+                  [](const NameTableReference& left, const NameTableReference& right) {
+                      if (left.table_base_rva != right.table_base_rva) {
+                          return left.table_base_rva < right.table_base_rva;
+                      }
+                      return left.offset_in_table < right.offset_in_table;
+                  });
+        facts.name_tables.erase(
+            std::unique(facts.name_tables.begin(), facts.name_tables.end()),
+            facts.name_tables.end());
 
         std::sort(facts.resource_families.begin(), facts.resource_families.end());
         facts.resource_families.erase(
@@ -515,6 +585,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     std::map<std::string, std::uint32_t> family_functions;
     std::map<std::string, std::uint32_t> install_sites;
     std::map<std::uint32_t, std::uint32_t> dispatch_sites;
+    std::map<std::uint32_t, std::uint32_t> table_referrers;
+    std::map<std::uint32_t, std::uint32_t> table_base_references;
     map.summary.functions = map.functions.size();
     map.summary.indirect_call_sites = graph.indirect_call_sites;
     for (const auto& facts : map.functions) {
@@ -551,7 +623,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         if (!facts.virtual_bindings.empty() || !facts.imports_called.empty() ||
             facts.string_reference_count != 0U || facts.exported ||
-            !facts.installs_vtables.empty()) {
+            !facts.installs_vtables.empty() || !facts.name_tables.empty()) {
             ++map.summary.attributed;
         }
 
@@ -568,6 +640,9 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         map.summary.largest_stack_allocation =
             std::max(map.summary.largest_stack_allocation, facts.frame.stack_allocation);
 
+        if (!facts.name_tables.empty()) {
+            ++map.summary.with_name_table;
+        }
         if (!facts.installs_vtables.empty()) {
             ++map.summary.with_vtable_install;
         }
@@ -589,6 +664,17 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         for (const auto& install : facts.installs_vtables) {
             ++install_sites[install.class_display_name];
+        }
+
+        std::set<std::uint32_t> tables_this_function_reaches;
+        for (const auto& reference : facts.name_tables) {
+            tables_this_function_reaches.insert(reference.table_base_rva);
+            if (reference.offset_in_table == 0U) {
+                ++table_base_references[reference.table_base_rva];
+            }
+        }
+        for (const auto base : tables_this_function_reaches) {
+            ++table_referrers[base];
         }
     }
 
@@ -615,6 +701,33 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                       return left.referencing_functions > right.referencing_functions;
                   }
                   return left.family < right.family;
+              });
+
+    map.name_table_usage.reserve(table_spans.size());
+    for (const auto& span : table_spans) {
+        NameTableUsage usage;
+        usage.table_base_rva = span.base;
+        usage.record_layout = span.record_layout;
+        usage.element_bytes = span.element_bytes;
+        usage.entries = span.entries;
+        const auto referrers = table_referrers.find(span.base);
+        usage.referencing_functions = referrers == table_referrers.end() ? 0U : referrers->second;
+        const auto bases = table_base_references.find(span.base);
+        usage.base_references = bases == table_base_references.end() ? 0U : bases->second;
+
+        if (usage.referencing_functions == 0U) {
+            ++map.summary.name_tables_unreferenced;
+        } else {
+            ++map.summary.name_tables_referenced;
+        }
+        map.name_table_usage.push_back(std::move(usage));
+    }
+    std::sort(map.name_table_usage.begin(), map.name_table_usage.end(),
+              [](const NameTableUsage& left, const NameTableUsage& right) {
+                  if (left.referencing_functions != right.referencing_functions) {
+                      return left.referencing_functions > right.referencing_functions;
+                  }
+                  return left.table_base_rva < right.table_base_rva;
               });
 
     map.dispatch_slots.reserve(dispatch_sites.size());

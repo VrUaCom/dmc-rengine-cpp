@@ -419,6 +419,20 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
                 continue;
             }
 
+            // Reject a grid laid over a packed string pool. In a pool the
+            // bytes after a name are further names, and each element's payload
+            // starts wherever the previous name happened to end. A genuine
+            // field is the name plus NUL padding; a genuine record puts its
+            // next field at the same offset every time.
+            //
+            // This check matters most at large strides, where "a name
+            // terminated inside the field" is satisfied by almost any dense
+            // text and validates nothing on its own.
+            if (run.text_payload_records != 0U && !run.payload_offset_consistent) {
+                ++position;
+                continue;
+            }
+
             run.entries = static_cast<std::uint32_t>(entries);
             extensions.resize(entries);
             detect_content_period(extensions, options.maximum_content_period, run);

@@ -16956,8 +16956,8 @@
   },
   "name_tables": {
     "candidate_names": 13767,
-    "runs": 222,
-    "entries_in_runs": 5692,
+    "runs": 220,
+    "entries_in_runs": 5785,
     "record_runs": 25,
     "records": [
       {
@@ -18646,6 +18646,15 @@
         "sample_name": "id\\id300\\id358I.pac"
       },
       {
+        "base_rva": "0x36ea20",
+        "stride": 16,
+        "entries": 104,
+        "longest_name": 15,
+        "span_bytes": 1664,
+        "pure_name_array": true,
+        "sample_name": "Battle_00.ogg"
+      },
+      {
         "base_rva": "0x4eb4b0",
         "stride": 32,
         "entries": 78,
@@ -18683,6 +18692,20 @@
         "span_bytes": 1032,
         "pure_name_array": true,
         "sample_name": "se\\snd_com0a.pac"
+      },
+      {
+        "base_rva": "0x36f288",
+        "stride": 16,
+        "entries": 30,
+        "longest_name": 14,
+        "span_bytes": 480,
+        "pure_name_array": false,
+        "records_with_payload": 2,
+        "text_payload_records": 1,
+        "first_payload_offset": 8,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
+        "sample_name": "Maguma.ogg"
       },
       {
         "base_rva": "0x506148",
@@ -18730,6 +18753,15 @@
         "sample_name": "se\\snd_em06.pac"
       },
       {
+        "base_rva": "0x4ecaa8",
+        "stride": 24,
+        "entries": 22,
+        "longest_name": 23,
+        "span_bytes": 528,
+        "pure_name_array": true,
+        "sample_name": "eventtbl\\EventTbl00.bin"
+      },
+      {
         "base_rva": "0x506f68",
         "stride": 16,
         "entries": 22,
@@ -18744,13 +18776,18 @@
         "sample_name": "FogColor"
       },
       {
-        "base_rva": "0x4ecad8",
+        "base_rva": "0x36f0a0",
         "stride": 24,
         "entries": 20,
-        "longest_name": 23,
+        "longest_name": 18,
         "span_bytes": 480,
-        "pure_name_array": true,
-        "sample_name": "eventtbl\\EventTbl02.bin"
+        "pure_name_array": false,
+        "records_with_payload": 1,
+        "text_payload_records": 0,
+        "first_payload_offset": 16,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
+        "sample_name": "m_demo_02_001.ogg"
       },
       {
         "base_rva": "0x4eb380",
@@ -18760,20 +18797,6 @@
         "span_bytes": 304,
         "pure_name_array": true,
         "sample_name": "obj\\pl011.pac"
-      },
-      {
-        "base_rva": "0x4ec868",
-        "stride": 32,
-        "entries": 19,
-        "longest_name": 31,
-        "span_bytes": 608,
-        "pure_name_array": false,
-        "records_with_payload": 3,
-        "text_payload_records": 2,
-        "first_payload_offset": 16,
-        "payload_offset_consistent": false,
-        "uniform_records": false,
-        "sample_name": "message\\japanese\\msg_jpn.pac"
       },
       {
         "base_rva": "0x4f0f00",
@@ -18802,20 +18825,6 @@
         "payload_offset_consistent": true,
         "uniform_records": false,
         "sample_name": "afs/sound/m_demo_02_001.adx"
-      },
-      {
-        "base_rva": "0x506e48",
-        "stride": 16,
-        "entries": 16,
-        "longest_name": 15,
-        "span_bytes": 256,
-        "pure_name_array": false,
-        "records_with_payload": 6,
-        "text_payload_records": 5,
-        "first_payload_offset": 8,
-        "payload_offset_consistent": false,
-        "uniform_records": false,
-        "sample_name": "SPEED_CHG"
       },
       {
         "base_rva": "0x520c64",
@@ -19019,15 +19028,6 @@
         "span_bytes": 240,
         "pure_name_array": true,
         "sample_name": "id7160.pac"
-      },
-      {
-        "base_rva": "0x35ebe8",
-        "stride": 16,
-        "entries": 15,
-        "longest_name": 12,
-        "span_bytes": 240,
-        "pure_name_array": true,
-        "sample_name": "id7164.pac"
       }
     ]
   }

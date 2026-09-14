@@ -79,6 +79,11 @@ void records_with_payload_are_distinguished_from_pure_arrays() {
     assert(result.runs.size() == 1U);
     assert(!result.runs[0].pure_name_array());
     assert(result.runs[0].records_with_payload == 12U);
+
+    // Binary payload is not pool text, so the pool rejection must leave it be.
+    assert(result.runs[0].text_payload_records == 0U);
+    assert(result.runs[0].first_payload_offset == 14U);
+    assert(result.runs[0].payload_offset_consistent);
 }
 
 void a_run_shorter_than_the_minimum_is_not_a_table() {
@@ -237,6 +242,35 @@ void the_content_period_of_a_uniform_run_is_one() {
     assert(result.runs[0].period_extensions[0] == "pac");
 }
 
+void a_grid_over_a_packed_pool_is_rejected() {
+    // A dense pool of names, four per 64-byte block, with the first name's
+    // length varying per block. Every 64th byte is a genuine name start, so a
+    // stride-64 hypothesis clears the boundary check and every element holds a
+    // terminated name — the validation that suffices at small strides says
+    // nothing here. What gives the pool away is its payload: further names,
+    // beginning at a different offset in each element.
+    std::vector<std::byte> bytes(0xA00U, std::byte{0});
+    for (std::size_t block = 0; block < 8U; ++block) {
+        const std::size_t base = 0x400U + block * 64U;
+        const std::size_t first_length = 7U + (block % 3U) * 4U;
+
+        put_text(bytes, base, std::string(first_length, 'a') + std::to_string(block));
+        std::size_t offset = base + first_length + 4U;
+        for (std::size_t extra = 0; offset + 12U < base + 64U; ++extra) {
+            put_text(bytes, offset, "pool" + std::to_string(block) + std::to_string(extra));
+            offset += 12U;
+        }
+    }
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+
+    for (const auto& run : result.runs) {
+        // Nothing may be reported at the pool's spacing.
+        assert(run.stride != 64U);
+    }
+}
+
 void degenerate_options_are_refused() {
     const auto image = make_image();
     const auto bytes = make_pure_array();
@@ -263,6 +297,7 @@ int main() {
     uniform_field_widths_are_left_to_the_stride_scan();
     too_few_records_is_not_a_table();
     the_content_period_of_a_uniform_run_is_one();
+    a_grid_over_a_packed_pool_is_rejected();
     degenerate_options_are_refused();
     return 0;
 }

@@ -10,7 +10,7 @@
     "attributed": 2889,
     "with_virtual_binding": 1879,
     "with_import_call": 535,
-    "with_string_reference": 160,
+    "with_string_reference": 136,
     "import_thunks": 0,
     "external_thunks_resolved": 90,
     "virtual_dispatch_candidates": 1879,
@@ -19,6 +19,9 @@
     "reachable_from_export": 357,
     "structurally_unreferenced": 848,
     "strings_recovered": 13767,
+    "with_name_table": 45,
+    "name_tables_referenced": 27,
+    "name_tables_unreferenced": 218,
     "with_vtable_install": 710,
     "with_resource_family": 9,
     "with_indirect_dispatch": 2070,
@@ -3923,14 +3926,9 @@
   ],
   "resource_family_usage": [
     {
-      "family": "PAC",
-      "literals": 7118,
-      "referencing_functions": 6
-    },
-    {
-      "family": "MOT",
-      "literals": 2,
-      "referencing_functions": 1
+      "family": "ADX",
+      "literals": 306,
+      "referencing_functions": 7
     },
     {
       "family": "NBZ",
@@ -3938,8 +3936,8 @@
       "referencing_functions": 1
     },
     {
-      "family": "PTX",
-      "literals": 6,
+      "family": "PAC",
+      "literals": 7118,
       "referencing_functions": 1
     },
     {
@@ -3958,13 +3956,43 @@
       "referencing_functions": 0
     },
     {
+      "family": "MOT",
+      "literals": 2,
+      "referencing_functions": 0
+    },
+    {
+      "family": "OGG",
+      "literals": 154,
+      "referencing_functions": 0
+    },
+    {
+      "family": "PTX",
+      "literals": 6,
+      "referencing_functions": 0
+    },
+    {
+      "family": "SFD",
+      "literals": 32,
+      "referencing_functions": 0
+    },
+    {
       "family": "SHADER",
-      "literals": 283,
+      "literals": 391,
       "referencing_functions": 0
     },
     {
       "family": "TEX",
       "literals": 6,
+      "referencing_functions": 0
+    },
+    {
+      "family": "TEXT",
+      "literals": 920,
+      "referencing_functions": 0
+    },
+    {
+      "family": "TM2",
+      "literals": 9,
       "referencing_functions": 0
     }
   ],
@@ -4695,6 +4723,224 @@
       "call_sites": 1
     }
   ],
+  "name_table_usage": [
+    {
+      "table_base_rva": "0x36f470",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 9,
+      "referencing_functions": 8,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x371598",
+      "record_layout": false,
+      "element_bytes": 24,
+      "entries": 13,
+      "referencing_functions": 8,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x3716f0",
+      "record_layout": false,
+      "element_bytes": 24,
+      "entries": 12,
+      "referencing_functions": 7,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x36c298",
+      "record_layout": false,
+      "element_bytes": 16,
+      "entries": 15,
+      "referencing_functions": 4,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x506f68",
+      "record_layout": false,
+      "element_bytes": 16,
+      "entries": 22,
+      "referencing_functions": 4,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x365d68",
+      "record_layout": true,
+      "element_bytes": 568,
+      "entries": 12,
+      "referencing_functions": 2,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x36f288",
+      "record_layout": false,
+      "element_bytes": 16,
+      "entries": 30,
+      "referencing_functions": 2,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4ed6a0",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 2,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4ee720",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 2,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4f0da0",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 2,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x5069b8",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 9,
+      "referencing_functions": 2,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x5071d8",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 9,
+      "referencing_functions": 2,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x35d4b8",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 10,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x370d98",
+      "record_layout": false,
+      "element_bytes": 16,
+      "entries": 24,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x4e3f98",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 9,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x4e4018",
+      "record_layout": false,
+      "element_bytes": 16,
+      "entries": 9,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x4e6a08",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 11,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x4ed120",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4edd80",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4ee1a0",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4ee460",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4ee5c0",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4eeb40",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4f0140",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x4f1460",
+      "record_layout": false,
+      "element_bytes": 40,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 0
+    },
+    {
+      "table_base_rva": "0x506bf8",
+      "record_layout": false,
+      "element_bytes": 8,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 1
+    },
+    {
+      "table_base_rva": "0x506c38",
+      "record_layout": false,
+      "element_bytes": 24,
+      "entries": 8,
+      "referencing_functions": 1,
+      "base_references": 1
+    }
+  ],
   "functions": [
     {
       "begin_rva": "0x1450",
@@ -5383,19 +5629,79 @@
           "function": "strncpy"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x35d4b8",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        },
+        {
+          "table_base_rva": "0x35d4b8",
+          "offset_in_table": 72,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 10
+        }
+      ],
       "dispatch_displacements": [
         128
-      ],
-      "string_references": 10,
-      "referenced_strings": [
-        ".PSS",
-        ".THP",
-        ".PAM",
-        ".XMV",
-        ".WMV",
-        ".PMF",
-        ".AVI",
-        ".MPG"
       ]
     },
     {
@@ -6475,10 +6781,18 @@
           "function": "FMOD_System_CreateStream"
         }
       ],
-      "string_references": 2,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 1,
       "referenced_strings": [
-        "\\data\\dmc3\\",
-        "%s%s"
+        "\\data\\dmc3\\"
       ]
     },
     {
@@ -6755,16 +7069,83 @@
           "function": "FMOD_Studio_System_Initialize"
         }
       ],
-      "string_references": 11,
-      "referenced_strings": [
-        "system",
-        "common",
-        "player-style",
-        "weapon1",
-        "weapon2",
-        "weapon3",
-        "weapon4",
-        "enemy"
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f288",
+          "offset_in_table": 456,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 30
+        },
+        {
+          "table_base_rva": "0x36f288",
+          "offset_in_table": 464,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 30
+        },
+        {
+          "table_base_rva": "0x36f288",
+          "offset_in_table": 472,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 30
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
       ]
     },
     {
@@ -7353,16 +7734,174 @@
       },
       "callers": 2,
       "callees": 3,
-      "string_references": 24,
-      "referenced_strings": [
-        "keyboard_0",
-        "keyboard_1",
-        "keyboard_2",
-        "keyboard_3",
-        "keyboard_4",
-        "keyboard_5",
-        "keyboard_6",
-        "keyboard_7"
+      "name_tables": [
+        {
+          "table_base_rva": "0x370d98",
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 80,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 112,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 128,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 144,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 160,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 176,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 192,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 208,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 224,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 240,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 256,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 272,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 288,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 304,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 320,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 336,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 352,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        },
+        {
+          "table_base_rva": "0x370d98",
+          "offset_in_table": 368,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 24
+        }
       ]
     },
     {
@@ -7580,6 +8119,15 @@
           "function": "SteamInternal_ContextInit"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x36c298",
+          "offset_in_table": 189,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 15
+        }
+      ],
       "dispatch_displacements": [
         0
       ],
@@ -7786,16 +8334,42 @@
           "function": "SteamInternal_ContextInit"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4736,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4808,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4880,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4952,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         0,
         104
       ],
-      "string_references": 6,
+      "string_references": 2,
       "referenced_strings": [
-        "icon.sys",
-        "icon00.ico",
-        "icon01.ico",
-        "icon02.ico",
         "dmc3.sav",
         "BASLUS-21361DMC3SE"
       ]
@@ -8610,14 +9184,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 168,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        },
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 192,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         8,
         376
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_AntiFlicker Begin",
-        "FX_AntiFlicker End"
       ]
     },
     {
@@ -8641,14 +9226,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 144,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 168,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_BloomGlow Begin",
-        "FX_BloomGlow End"
       ]
     },
     {
@@ -8664,14 +9260,24 @@
       },
       "callers": 1,
       "callees": 6,
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         376
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_ColCorrect Begin",
-        "FX_ColCorrect End"
       ]
     },
     {
@@ -8694,15 +9300,26 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 216,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        },
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 240,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         8,
         32,
         264
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_DepthOfField Begin",
-        "FX_DepthOfField End"
       ]
     },
     {
@@ -8725,14 +9342,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 240,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 264,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_DirGlow Begin",
-        "FX_DirGlow End"
       ]
     },
     {
@@ -8755,14 +9383,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 72,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_EdgeDetect Begin",
-        "FX_EdgeDetect End"
       ]
     },
     {
@@ -8817,13 +9456,20 @@
       },
       "callers": 1,
       "callees": 0,
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         376
       ],
-      "string_references": 2,
+      "string_references": 1,
       "referenced_strings": [
-        "FX_FS_DrawToTexBuff Begin",
-        "FX_FS_DrawToTexBuff End"
+        "FX_FS_DrawToTexBuff Begin"
       ]
     },
     {
@@ -8846,14 +9492,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 264,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        },
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 288,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         8,
         264
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_GradFog Begin",
-        "FX_GradFog End"
       ]
     },
     {
@@ -8875,14 +9532,22 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 304,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         8,
         32,
         264
       ],
-      "string_references": 2,
+      "string_references": 1,
       "referenced_strings": [
-        "FX_HeatHaze Begin",
         "FX_HeatHaze End"
       ]
     },
@@ -8970,6 +9635,15 @@
           "function": "sinf"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "resource_families": [
         "PAC"
       ],
@@ -8977,9 +9651,8 @@
         8,
         32
       ],
-      "string_references": 3,
+      "string_references": 2,
       "referenced_strings": [
-        "FX_ProcFog Begin",
         "demo\\m20_s00\\m20_s00.pac",
         "FX_ProcFog End"
       ]
@@ -9042,14 +9715,25 @@
           "function": "sinf"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 72,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        },
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_ShadowFinish Begin",
-        "FX_ShadowFinish End"
       ]
     },
     {
@@ -9072,13 +9756,24 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        },
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
+      ],
       "dispatch_displacements": [
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_ShadowPrepare Begin",
-        "FX_ShadowPrepare End"
       ]
     },
     {
@@ -9093,9 +9788,14 @@
       },
       "callers": 1,
       "callees": 2,
-      "string_references": 1,
-      "referenced_strings": [
-        "FX_ShadowPrimStart"
+      "name_tables": [
+        {
+          "table_base_rva": "0x371598",
+          "offset_in_table": 120,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 13
+        }
       ]
     },
     {
@@ -9117,14 +9817,25 @@
           "function": "memset"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 120,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_SimpleEdgeAA Begin",
-        "FX_SimpleEdgeAA End"
       ]
     },
     {
@@ -9154,14 +9865,25 @@
           "function": "sinf"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 192,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x3716f0",
+          "offset_in_table": 216,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 12
+        }
+      ],
       "dispatch_displacements": [
         8,
         32
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "FX_StarGlare Begin",
-        "FX_StarGlare End"
       ]
     },
     {
@@ -57478,9 +58200,14 @@
           "function": "memcpy"
         }
       ],
-      "string_references": 1,
-      "referenced_strings": [
-        "%s%s"
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
       ]
     },
     {
@@ -57504,9 +58231,14 @@
           "function": "memcpy"
         }
       ],
-      "string_references": 1,
-      "referenced_strings": [
-        "%s%s"
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
       ]
     },
     {
@@ -57551,9 +58283,17 @@
           "function": "memcpy"
         }
       ],
-      "string_references": 2,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 1,
       "referenced_strings": [
-        "%s%s",
         "dummy"
       ]
     },
@@ -57679,6 +58419,9 @@
       },
       "callers": 1,
       "callees": 5,
+      "resource_families": [
+        "ADX"
+      ],
       "dispatch_displacements": [
         24,
         40,
@@ -71941,6 +72684,9 @@
           "subobject_offset": 0
         }
       ],
+      "resource_families": [
+        "ADX"
+      ],
       "string_references": 2,
       "referenced_strings": [
         "afs/sound/M_start.adx",
@@ -72031,6 +72777,9 @@
       },
       "callers": 0,
       "callees": 17,
+      "resource_families": [
+        "ADX"
+      ],
       "dispatch_displacements": [
         32,
         48,
@@ -72075,6 +72824,9 @@
       },
       "callers": 0,
       "callees": 17,
+      "resource_families": [
+        "ADX"
+      ],
       "dispatch_displacements": [
         32,
         48,
@@ -72182,6 +72934,9 @@
       },
       "callers": 1,
       "callees": 7,
+      "resource_families": [
+        "ADX"
+      ],
       "string_references": 1,
       "referenced_strings": [
         "afs/sound/Kaze_01.adx"
@@ -72221,6 +72976,9 @@
       },
       "callers": 1,
       "callees": 9,
+      "resource_families": [
+        "ADX"
+      ],
       "dispatch_displacements": [
         32,
         48,
@@ -72404,6 +73162,9 @@
           "slot": 1,
           "subobject_offset": 0
         }
+      ],
+      "resource_families": [
+        "ADX"
       ],
       "dispatch_displacements": [
         368,
@@ -72776,16 +73537,78 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 15,
+      "name_tables": [
+        {
+          "table_base_rva": "0x4e4018",
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 80,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 112,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e4018",
+          "offset_in_table": 128,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 9
+        }
+      ],
+      "string_references": 6,
       "referenced_strings": [
         "RED_ORB",
-        "GREEN_ORB0",
-        "GREEN_ORB1",
-        "GREEN_ORB2",
-        "WHITE_ORB0",
-        "WHITE_ORB1",
-        "WHITE_ORB2",
-        "GOLD_ORB"
+        "BLUE_ORB_FRAGMENT",
+        "VITAL_STAR_L",
+        "VITAL_STAR_S",
+        "DEVIL_STAR",
+        "HOLY_WATER"
       ]
     },
     {
@@ -72807,7 +73630,71 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 31,
+      "name_tables": [
+        {
+          "table_base_rva": "0x4e3f98",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x4e3f98",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 22,
       "referenced_strings": [
         "COLOR",
         "STAY",
@@ -76804,7 +77691,85 @@
       },
       "callers": 1,
       "callees": 5,
-      "string_references": 23,
+      "name_tables": [
+        {
+          "table_base_rva": "0x4e6a08",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 72,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        },
+        {
+          "table_base_rva": "0x4e6a08",
+          "offset_in_table": 80,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 11
+        }
+      ],
+      "string_references": 12,
       "referenced_strings": [
         "once",
         "type",
@@ -78346,16 +79311,39 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 15,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f288",
+          "offset_in_table": 456,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 30
+        },
+        {
+          "table_base_rva": "0x36f288",
+          "offset_in_table": 464,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 30
+        },
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 12,
       "referenced_strings": [
-        "system",
-        "common",
-        "room",
         "width",
         "once",
         "type",
         "interval",
-        "move"
+        "move",
+        "valid",
+        "loop",
+        "settype"
       ]
     },
     {
@@ -86790,17 +87778,49 @@
       },
       "callers": 2,
       "callees": 2,
-      "resource_families": [
-        "PAC"
-      ],
-      "string_references": 6,
-      "referenced_strings": [
-        "demo\\m05_b00\\m05_b00.pac",
-        "demo\\m08_c00\\m08_c00.pac",
-        "demo\\m09_b00\\m09_b00.pac",
-        "demo\\m09_b01\\m09_b01.pac",
-        "demo\\m16_b00\\m16_b00.pac",
-        "demo\\m99_c01\\m99_c01.pac"
+      "name_tables": [
+        {
+          "table_base_rva": "0x4edd80",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4ee460",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4ee5c0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4ee720",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4f0140",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4f1460",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        }
       ]
     },
     {
@@ -87266,7 +88286,71 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 19,
+      "name_tables": [
+        {
+          "table_base_rva": "0x5069b8",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 10,
       "referenced_strings": [
         "Load",
         "Offset",
@@ -87350,9 +88434,17 @@
           "function": "strstr"
         }
       ],
-      "string_references": 2,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 1,
       "referenced_strings": [
-        "demo",
         "Model"
       ]
     },
@@ -87474,7 +88566,15 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 13,
+      "name_tables": [
+        {
+          "table_base_rva": "0x506f68",
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        }
+      ],
+      "string_references": 12,
       "referenced_strings": [
         "Camera",
         "Clip",
@@ -87577,7 +88677,114 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 24,
+      "name_tables": [
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 80,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 112,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 128,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 144,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 160,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 176,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 192,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 208,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 224,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 240,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        }
+      ],
+      "string_references": 9,
       "referenced_strings": [
         "Hide",
         "Clip",
@@ -87693,16 +88900,149 @@
           "function": "strcmp"
         }
       ],
-      "string_references": 47,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36f470",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5069b8",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506bf8",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 72,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 96,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 120,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 144,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 168,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x506c38",
+          "offset_in_table": 188,
+          "record_layout": false,
+          "element_bytes": 24,
+          "entries": 8
+        }
+      ],
+      "string_references": 28,
       "referenced_strings": [
-        "demo",
         "ClothSim1D",
         "Model",
-        "Light",
         "Clip",
         "SetFrame",
         "SkipFrame",
-        "CutFrame"
+        "CutFrame",
+        "ClipScale",
+        "Life"
       ]
     },
     {
@@ -87909,19 +89249,84 @@
           "function": "strstr"
         }
       ],
-      "resource_families": [
-        "PTX"
-      ],
-      "string_references": 11,
-      "referenced_strings": [
-        "%s/%s",
-        ".ptx",
-        ".PTX",
-        ".Ptx",
-        ".clt",
-        ".CLT",
-        ".Clt",
-        ".c1d"
+      "name_tables": [
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 256,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 264,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 272,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 288,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 296,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 304,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 312,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 320,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 328,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 336,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        }
       ]
     },
     {
@@ -88066,19 +89471,90 @@
           "function": "strstr"
         }
       ],
-      "resource_families": [
-        "MOT"
-      ],
-      "string_references": 12,
-      "referenced_strings": [
-        "%s/%s",
-        ".clt",
-        ".CLT",
-        ".MOT",
-        ".mcv",
-        ".MCV",
-        ".cam",
-        ".CAM"
+      "name_tables": [
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 256,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 288,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x506f68",
+          "offset_in_table": 296,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 22
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 8,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 16,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 24,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 32,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 40,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 48,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 56,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        },
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
       ]
     },
     {
@@ -88531,13 +90007,21 @@
       },
       "callers": 1,
       "callees": 7,
-      "resource_families": [
-        "PAC"
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "demo\\m03_b01\\m03_b01.pac",
-        "demo\\m19_b01\\m19_b01.pac"
+      "name_tables": [
+        {
+          "table_base_rva": "0x4ed6a0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4f0da0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        }
       ]
     },
     {
@@ -88554,13 +90038,21 @@
       },
       "callers": 2,
       "callees": 9,
-      "resource_families": [
-        "PAC"
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "demo\\m03_b01\\m03_b01.pac",
-        "demo\\m19_b01\\m19_b01.pac"
+      "name_tables": [
+        {
+          "table_base_rva": "0x4ed6a0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4f0da0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        }
       ]
     },
     {
@@ -88888,13 +90380,21 @@
       },
       "callers": 2,
       "callees": 4,
-      "resource_families": [
-        "PAC"
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "demo\\m02_c01\\m02_c01.pac",
-        "demo\\m10_c00\\m10_c00.pac"
+      "name_tables": [
+        {
+          "table_base_rva": "0x4ed120",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4eeb40",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        }
       ]
     },
     {
@@ -88911,9 +90411,17 @@
       },
       "callers": 1,
       "callees": 3,
-      "string_references": 5,
+      "name_tables": [
+        {
+          "table_base_rva": "0x5071d8",
+          "offset_in_table": 64,
+          "record_layout": false,
+          "element_bytes": 8,
+          "entries": 9
+        }
+      ],
+      "string_references": 4,
       "referenced_strings": [
-        ".TSC",
         "RELATIVE",
         "ABSOLUTE",
         "<Finish>",
@@ -89971,6 +91479,15 @@
           "function": "strcmp"
         }
       ],
+      "name_tables": [
+        {
+          "table_base_rva": "0x36c298",
+          "offset_in_table": 189,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 15
+        }
+      ],
       "string_references": 66,
       "referenced_strings": [
         "Range",
@@ -90583,13 +92100,21 @@
       },
       "callers": 2,
       "callees": 0,
-      "resource_families": [
-        "PAC"
-      ],
-      "string_references": 2,
-      "referenced_strings": [
-        "demo\\m07_s00\\m07_s00.pac",
-        "demo\\m09_b01\\m09_b01.pac"
+      "name_tables": [
+        {
+          "table_base_rva": "0x4ee1a0",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        },
+        {
+          "table_base_rva": "0x4ee720",
+          "offset_in_table": 280,
+          "record_layout": false,
+          "element_bytes": 40,
+          "entries": 8
+        }
       ]
     },
     {
@@ -91335,12 +92860,38 @@
       },
       "callers": 1,
       "callees": 0,
-      "string_references": 5,
+      "name_tables": [
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4736,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4808,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4880,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        },
+        {
+          "table_base_rva": "0x365d68",
+          "offset_in_table": 4952,
+          "record_layout": true,
+          "element_bytes": 568,
+          "entries": 12
+        }
+      ],
+      "string_references": 1,
       "referenced_strings": [
-        "icon.sys",
-        "icon00.ico",
-        "icon01.ico",
-        "icon02.ico",
         "BASLUS-21361DMC3SE"
       ]
     },
@@ -91963,6 +93514,15 @@
       },
       "callers": 1,
       "callees": 3,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36c298",
+          "offset_in_table": 189,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 15
+        }
+      ],
       "string_references": 1,
       "referenced_strings": [
         "%s%s%s%s"
@@ -91981,6 +93541,15 @@
       },
       "callers": 0,
       "callees": 4,
+      "name_tables": [
+        {
+          "table_base_rva": "0x36c298",
+          "offset_in_table": 189,
+          "record_layout": false,
+          "element_bytes": 16,
+          "entries": 15
+        }
+      ],
       "string_references": 1,
       "referenced_strings": [
         "%s%s%s%s"

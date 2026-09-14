@@ -4,6 +4,7 @@
 #include "dmc_rengine/exe/pe_directories.hpp"
 #include "dmc_rengine/exe/pe_image.hpp"
 #include "dmc_rengine/exe/rtti_scanner.hpp"
+#include "dmc_rengine/exe/string_table_scanner.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -55,6 +56,25 @@ struct VtableInstall final {
 /// and a match is a lead rather than a conclusion.
 [[nodiscard]] std::vector<std::string> resource_family_hints(std::string_view literal);
 
+/// A recovered name table this function addresses.
+///
+/// A table is indexed from its base, so a reference is the link between code
+/// and the resource names it resolves. A reference landing inside the span
+/// rather than on the base is equally real: the compiler folds a constant index
+/// into the displacement.
+struct NameTableReference final {
+    std::uint32_t table_base_rva{};
+    /// Byte offset of the reference within the table; zero means the base.
+    std::uint32_t offset_in_table{};
+    /// True for a multi-field record layout, false for a constant-stride run.
+    bool record_layout{false};
+    /// Stride for a run, record size for a record layout.
+    std::uint32_t element_bytes{};
+    std::uint32_t entries{};
+
+    friend bool operator==(const NameTableReference&, const NameTableReference&) = default;
+};
+
 /// What is known about one function, from structure alone.
 struct FunctionFacts final {
     std::uint32_t begin_rva{};
@@ -86,6 +106,8 @@ struct FunctionFacts final {
 
     /// Class vtables whose addresses this function references.
     std::vector<VtableInstall> installs_vtables;
+    /// Name tables this function addresses.
+    std::vector<NameTableReference> name_tables;
     /// Resource families named by literals this function references.
     std::vector<std::string> resource_families;
     /// Dispatch offsets of `call [reg + disp]` sites within this function.
@@ -134,6 +156,19 @@ struct DispatchSlotUsage final {
     friend bool operator==(const DispatchSlotUsage&, const DispatchSlotUsage&) = default;
 };
 
+/// How a recovered name table is reached from code.
+struct NameTableUsage final {
+    std::uint32_t table_base_rva{};
+    bool record_layout{false};
+    std::uint32_t element_bytes{};
+    std::uint32_t entries{};
+    std::uint32_t referencing_functions{};
+    /// References landing on the base rather than inside the span.
+    std::uint32_t base_references{};
+
+    friend bool operator==(const NameTableUsage&, const NameTableUsage&) = default;
+};
+
 struct ImportUsage final {
     std::string module;
     std::string function;
@@ -163,6 +198,9 @@ struct FunctionMapSummary final {
     std::size_t structurally_unreferenced{};
     std::size_t attributed{};
     std::size_t strings_recovered{};
+    std::size_t with_name_table{};
+    std::size_t name_tables_referenced{};
+    std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};
     std::size_t with_indirect_dispatch{};
@@ -185,6 +223,8 @@ struct FunctionMap final {
     std::vector<ResourceFamilyUsage> resource_family_usage;
     /// Dispatch offsets ranked by call sites.
     std::vector<DispatchSlotUsage> dispatch_slots;
+    /// Recovered name tables and how many functions reach each.
+    std::vector<NameTableUsage> name_table_usage;
     std::vector<std::string> warnings;
 };
 
@@ -193,6 +233,9 @@ struct FunctionMapInputs final {
     const PeDirectories* directories{};
     const RttiScanResult* rtti{};
     const CodeGraph* graph{};
+    /// Optional: recovered name tables, to link code to the resource names it
+    /// resolves.
+    const StringTableScanResult* name_tables{};
 };
 
 /// True for a function whose unwind record describes no prologue work at all:

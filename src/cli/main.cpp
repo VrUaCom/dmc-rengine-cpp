@@ -455,11 +455,17 @@ int run_map_functions(int argc, char** argv) {
         std::cerr << "[warning] " << warning << '\n';
     }
 
+    const auto name_tables = dmc::rengine::exe::StringTableScanner::scan(bytes, image);
+    for (const auto& warning : name_tables.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+
     dmc::rengine::exe::FunctionMapInputs inputs;
     inputs.image = &image;
     inputs.directories = &directories.directories;
     inputs.rtti = &rtti;
     inputs.graph = &graph;
+    inputs.name_tables = &name_tables;
 
     const auto map = dmc::rengine::exe::FunctionMapBuilder::build(bytes, inputs);
     for (const auto& warning : map.warnings) {
