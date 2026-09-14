@@ -43,6 +43,11 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.computed_index_references));
     writer.member("name_tables_referenced",
                   static_cast<std::uint64_t>(summary.name_tables_referenced));
+    writer.member("indexed_accesses", static_cast<std::uint64_t>(summary.indexed_accesses));
+    writer.member("image_base_indexed_accesses",
+                  static_cast<std::uint64_t>(summary.image_base_indexed_accesses));
+    writer.member("indexed_table_accesses",
+                  static_cast<std::uint64_t>(summary.indexed_table_accesses));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
@@ -126,6 +131,7 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("base_references", static_cast<std::uint64_t>(usage.base_references));
         writer.member("elements_named_by_constant",
                       static_cast<std::uint64_t>(usage.elements_named_by_constant));
+        writer.member("indexed_sites", static_cast<std::uint64_t>(usage.indexed_sites));
         writer.end_object();
     }
     writer.end_array();

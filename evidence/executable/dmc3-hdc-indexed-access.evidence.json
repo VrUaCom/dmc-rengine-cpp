@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-indexed-access",
+  "title": "DMC3 HD recovered name runs are layout, not indexed tables",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-addressing-fields-validated",
+      "claim_id": "claim-dmc3-addressing-fields-validated",
+      "title": "The decoder's addressing fields agree with an independent disassembler everywhere",
+      "summary": "Following a table base through a register needs the base, index and scale of a memory operand, which the length decoder parsed and discarded. Surfacing them changes no length logic: REX.R, REX.X and REX.B extend the register numbers, a SIB index of four without REX.X is the encoding for no index while with REX.X it is r12, and a SIB base of five under mod zero is a bare displacement with no base at all. Every indexed memory operand in the image was then compared against objdump: 16,503 operands, complete agreement on base, index and scale. The 56 not compared are objdump's riz pseudo-register, which is the no-index encoding the decoder reports as having no index, and 32-bit addressing forms.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "decoder",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section cross-validated for addressing operands",
+          "note": "16,503 indexed memory operands compared against objdump, agreement on base, index and scale in every case."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-image-base-in-a-register",
+      "claim_id": "claim-dmc3-image-base-in-a-register",
+      "title": "The image base is held in a register and indexed against",
+      "summary": "A bounded walk that remembers what a RIP-relative lea put into a register, and gives it up on any instruction naming that register, on every call and after sixty-four instructions, finds 1,303 indexed reads whose base it can name. 749 of them hold RVA zero, which is the image base: MSVC emits lea against __ImageBase and then reaches a table by displacement alone. The function at RVA 0x31650 shows the whole form, loading the image base into r13 and reading a table of eight-byte elements at RVA 0x5E1668 with a scaled index. This is the same construct the switch-table recovery relies on, now readable for data tables generally rather than inferred from a candidate list.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 202912,
+          "size": 8,
+          "symbol": "image base loaded into a register",
+          "note": "RVA 0x316A0, lea r13 against __ImageBase."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 202656,
+          "size": 10,
+          "symbol": "table read against the image base",
+          "note": "RVA 0x317A0, movss from r13 plus rbx times eight plus 0x5E1668."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-name-runs-are-not-indexed",
+      "claim_id": "claim-dmc3-name-runs-are-not-indexed",
+      "title": "No recovered name run or record is indexed as an array",
+      "summary": "Of 1,303 indexed reads whose base the walk can name, not one reaches a recovered run or record at its own element size. The four whose base register holds a run's base exactly are all the inlined string scan, base plus index times one minus one, walking the first name's characters. Every other access into a run's bytes loads one element's address outright. The runs are therefore a layout fact about how the linker packed these literals, not an access fact about how the game reads them, and the fixed stride is the packer's alignment rather than an array's element size. The evidence is strong where a stride is eight, because a scale of eight is then the natural encoding and 211 such reads exist elsewhere in the image; it is weaker above eight, where a scale cannot express the stride and the element address is computed before the read, which this walk does not follow.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "data-layout",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3528376,
+          "size": 80,
+          "symbol": "stride-eight run reached only by per-element loads",
+          "note": "RVA 0x35D4B8, stride 8, sample name .PSS. Eight sites reach its elements, each an inlined character scan of an address loaded outright."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5270456,
+          "size": 72,
+          "symbol": "stride-eight run reached only by per-element loads",
+          "note": "RVA 0x5069B8, stride 8, sample name EffectI. Eleven sites, none of them an indexed read."
+        }
+      ]
+    }
+  ]
+}

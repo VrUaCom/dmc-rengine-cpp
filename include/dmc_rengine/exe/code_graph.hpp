@@ -59,6 +59,29 @@ struct FunctionWalk final {
     /// why these are displacements rather than resolved targets.
     std::vector<std::uint32_t> indirect_call_displacements;
 
+    /// An instruction that reads `[base + index*scale + disp]` where the base
+    /// register was loaded with an image address earlier in the same trace.
+    ///
+    /// This is the difference between code that *reaches* a table's bytes and
+    /// code that *indexes* it. A constant index folded into a displacement and
+    /// a direct load of one literal are the same instruction; holding a base
+    /// and scaling an index is not, and only this can tell them apart.
+    struct IndexedAccess final {
+        /// Address of the indexing instruction.
+        std::uint32_t site_rva{};
+        /// Image address the base register held.
+        std::uint32_t base_rva{};
+        /// Scale applied to the index: the element size the code assumes.
+        std::uint32_t element_bytes{};
+        /// Constant added on top of the base, which picks a field.
+        std::int32_t displacement{};
+
+        friend bool operator==(const IndexedAccess&, const IndexedAccess&) = default;
+    };
+
+    /// Indexed reads of a base the walk could follow, in address order.
+    std::vector<IndexedAccess> indexed_accesses;
+
     std::uint32_t indirect_calls{};
     std::uint32_t indirect_jumps{};
     std::uint32_t returns{};

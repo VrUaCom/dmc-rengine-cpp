@@ -161,15 +161,33 @@ def load_referenced_tables(con: sqlite3.Connection, image_id: int, mapping: dict
         con.execute(
             """INSERT OR IGNORE INTO exe_name_table(
                    image_id, base_rva, layout, element_bytes, entries,
-                   extent_status, known_from)
-               VALUES(?,?,?,?,?, 'EXTENT_UNCLASSIFIED', 'MAP')""",
-            (image_id, base, layout, entry["element_bytes"], entry["entries"]),
+                   indexed_sites, extent_status, known_from)
+               VALUES(?,?,?,?,?,?, 'EXTENT_UNCLASSIFIED', 'MAP')""",
+            (image_id, base, layout, entry["element_bytes"], entry["entries"],
+             entry.get("indexed_sites", 0)),
         )
         row = con.execute(
             "SELECT id FROM exe_name_table WHERE image_id=? AND base_rva=? AND layout=?",
             (image_id, base, layout),
         ).fetchone()
         ids[(base, layout)] = int(row[0])
+
+
+def apply_indexed_sites(con: sqlite3.Connection, image_id: int, mapping: dict) -> None:
+    """Records, for every run the map describes, how often code indexes it.
+
+    Kept separate from run creation because a run listed by the analysis report
+    is created before the map is read, and this is a map fact.
+    """
+    for entry in mapping.get("name_table_usage", []):
+        sites = entry.get("indexed_sites", 0)
+        if not sites:
+            continue
+        con.execute(
+            "UPDATE exe_name_table SET indexed_sites=? WHERE image_id=? AND base_rva=? AND layout=?",
+            (sites, image_id, parse_rva(entry["table_base_rva"]),
+             "RECORD" if entry.get("record_layout") else "STRIDE"),
+        )
 
 
 def load_classes(con: sqlite3.Connection, image_id: int, mapping: dict) -> dict:
@@ -346,6 +364,7 @@ def main() -> int:
     image_id = load_image(con, analysis)
     tables = load_name_tables(con, image_id, analysis)
     load_referenced_tables(con, image_id, mapping, tables)
+    apply_indexed_sites(con, image_id, mapping)
     classes = load_classes(con, image_id, mapping)
     functions = load_functions(con, image_id, mapping, classes, tables)
     con.commit()

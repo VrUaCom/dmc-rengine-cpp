@@ -778,6 +778,37 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                   return left.family < right.family;
               });
 
+    // Which runs the code actually indexes as arrays.
+    //
+    // The address an indexed instruction forms is `base + displacement +
+    // index * scale`, so the table it walks begins at base plus displacement,
+    // and the scale is the element size the code assumes. A base register
+    // holding the image base makes the displacement an absolute RVA, which is
+    // how MSVC reaches a table it does not need a separate pointer for.
+    //
+    // Requiring the scale to equal the run's own element size is what makes
+    // this worth recording: a coincidence would have to land on a recovered
+    // base and agree about its stride.
+    std::map<std::uint32_t, std::uint32_t> table_indexed_sites;
+    for (const auto& walk : graph.functions) {
+        for (const auto& access : walk.indexed_accesses) {
+            ++map.summary.indexed_accesses;
+            if (access.base_rva == 0U) {
+                ++map.summary.image_base_indexed_accesses;
+            }
+
+            const auto addressed = static_cast<std::uint32_t>(
+                static_cast<std::int64_t>(access.base_rva) + access.displacement);
+            const auto* table = table_containing(addressed);
+            if (table == nullptr || addressed != table->base ||
+                table->element_bytes != access.element_bytes) {
+                continue;
+            }
+            ++table_indexed_sites[table->base];
+            ++map.summary.indexed_table_accesses;
+        }
+    }
+
     map.name_table_usage.reserve(table_spans.size());
     for (const auto& span : table_spans) {
         NameTableUsage usage;
@@ -792,6 +823,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         const auto named = table_elements.find(span.base);
         usage.elements_named_by_constant =
             named == table_elements.end() ? 0U : static_cast<std::uint32_t>(named->second.size());
+        const auto indexed = table_indexed_sites.find(span.base);
+        usage.indexed_sites = indexed == table_indexed_sites.end() ? 0U : indexed->second;
 
         if (usage.referencing_functions == 0U) {
             ++map.summary.name_tables_unreferenced;

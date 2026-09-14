@@ -306,6 +306,80 @@ void an_undecodable_body_marks_the_walk_incomplete() {
     assert(graph.functions_complete == 0U);
 }
 
+void a_base_held_in_a_register_makes_an_indexed_access_readable() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // .text 0x1100:
+    //   48 8d 1d <rel>   lea rbx,[rip+rel]        ; -> .rdata 0x2000
+    //   8b 04 8b         mov eax,[rbx+rcx*4]
+    //   c3               ret
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    // The operand is relative to the end of the instruction at 0x1107.
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0x8B, 0x04, 0x8B});
+    put(bytes, 0x30AU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions.size() == 1U);
+
+    const auto& accesses = graph.functions[0].indexed_accesses;
+    assert(accesses.size() == 1U);
+    assert(accesses[0].site_rva == 0x1107U);
+    assert(accesses[0].base_rva == 0x2000U);
+    assert(accesses[0].element_bytes == 4U);
+    assert(accesses[0].displacement == 0);
+}
+
+void a_call_between_the_load_and_the_use_forfeits_the_base() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // The same pair with a `call` in between. Which registers survive a call is
+    // a calling-convention claim this walk does not make, so the base is given
+    // up rather than assumed.
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0xE8});
+    put_i32(bytes, 0x308U, 0);  // call to the instruction after it
+    put(bytes, 0x30CU, {0x8B, 0x04, 0x8B});
+    put(bytes, 0x30FU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions.size() == 1U);
+    assert(graph.functions[0].indexed_accesses.empty());
+}
+
+void overwriting_the_base_register_forfeits_it() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    //   lea rbx,[rip+rel]
+    //   48 89 c3          mov rbx,rax       ; names rbx in a ModRM rm field
+    //   8b 04 8b          mov eax,[rbx+rcx*4]
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0x48, 0x89, 0xC3});
+    put(bytes, 0x30AU, {0x8B, 0x04, 0x8B});
+    put(bytes, 0x30DU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions.size() == 1U);
+    assert(graph.functions[0].indexed_accesses.empty());
+}
+
 } // namespace
 
 int main() {
@@ -317,5 +391,8 @@ int main() {
     a_memory_indirect_jump_is_never_treated_as_a_switch();
     a_range_outside_every_section_is_reported_not_walked();
     an_undecodable_body_marks_the_walk_incomplete();
+    a_base_held_in_a_register_makes_an_indexed_access_readable();
+    a_call_between_the_load_and_the_use_forfeits_the_base();
+    overwriting_the_base_register_forfeits_it();
     return 0;
 }

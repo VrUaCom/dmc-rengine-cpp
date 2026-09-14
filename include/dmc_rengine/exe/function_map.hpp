@@ -178,6 +178,14 @@ struct NameTableUsage final {
     std::uint32_t base_references{};
     /// Distinct elements named outright by a constant index.
     std::uint32_t elements_named_by_constant{};
+    /// Instructions that index this run as an array: a register holding its
+    /// base, scaled by its own element size.
+    ///
+    /// This is the difference between code reaching a run's bytes and code
+    /// treating it as a table. A constant index folded into a displacement is
+    /// indistinguishable from a direct load of the literal at that offset; a
+    /// held base with a scaled index is not.
+    std::uint32_t indexed_sites{};
 
     friend bool operator==(const NameTableUsage&, const NameTableUsage&) = default;
 };
@@ -215,6 +223,11 @@ struct FunctionMapSummary final {
     std::size_t constant_index_references{};
     std::size_t computed_index_references{};
     std::size_t name_tables_referenced{};
+    /// Instructions indexing a base the walk could follow, and how many of
+    /// those reach a recovered run or record at its own element size.
+    std::size_t indexed_accesses{};
+    std::size_t image_base_indexed_accesses{};
+    std::size_t indexed_table_accesses{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};

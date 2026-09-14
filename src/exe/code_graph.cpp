@@ -1,5 +1,7 @@
 #include "dmc_rengine/exe/code_graph.hpp"
 
+#include <array>
+
 #include "dmc_rengine/exe/x86_decoder.hpp"
 
 #include "pe_byte_access.hpp"
@@ -131,6 +133,35 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
         table_candidates.push_back(candidate);
     };
 
+    // Image addresses currently held in registers, and how many instructions
+    // ago each was loaded.
+    //
+    // This is deliberately not a dataflow analysis. The decoder models no
+    // mnemonics, so which instructions write which register is not knowable
+    // here; what is knowable is that an instruction naming a register in its
+    // ModRM fields may well have written it. Invalidating on that, on every
+    // call, and on a bounded age keeps the claim small, and the caller then
+    // validates the result against a table it recovered independently. A base
+    // that survives all of that and lands on a known table at that table's own
+    // element size is not a coincidence.
+    constexpr std::uint32_t kMaxBaseAge = 64U;
+    struct HeldAddress final {
+        std::uint32_t rva{};
+        std::uint32_t age{};
+        bool held{false};
+    };
+    std::array<HeldAddress, 16U> held{};
+    std::uint32_t traced = 0U;
+
+    const auto forget_all = [&]() {
+        held.fill(HeldAddress{});
+    };
+    const auto forget = [&](std::uint8_t reg) {
+        if (reg < held.size()) {
+            held[reg] = HeldAddress{};
+        }
+    };
+
     std::vector<std::uint32_t> worklist;
     worklist.reserve(walk.ranges.size() + 1U);
     // Every range entry is a trace root: a continuation range is reached by a
@@ -146,6 +177,10 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     while (!worklist.empty()) {
         std::uint32_t rva = worklist.back();
         worklist.pop_back();
+
+        // A trace root is reached by a branch whose origin is not known here,
+        // so nothing a previous trace established still holds.
+        forget_all();
 
         while (owns(rva)) {
             const auto index = static_cast<std::size_t>(rva - lowest);
@@ -181,6 +216,39 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
             const std::uint32_t next = rva + length;
 
+            // Every register this instruction names may have been written by
+            // it. Reads are invalidated too, which costs recall and buys the
+            // right to make no claim the encoding does not support.
+            ++traced;
+            if (decoded->has_modrm) {
+                forget(decoded->reg_operand);
+                if (decoded->modrm_mod == 3U) {
+                    forget(static_cast<std::uint8_t>(decoded->modrm_rm));
+                    forget(static_cast<std::uint8_t>(decoded->modrm_rm | 8U));
+                }
+            } else {
+                // push/pop, `mov imm -> reg` and `xchg` write a register named
+                // in the low opcode bits and carry no ModRM to read it from.
+                const auto low = static_cast<std::uint8_t>(decoded->opcode & 0x07U);
+                const bool writes_encoded_register =
+                    !decoded->two_byte_opcode &&
+                    ((decoded->opcode >= 0x50U && decoded->opcode <= 0x5FU) ||
+                     (decoded->opcode >= 0x90U && decoded->opcode <= 0x97U) ||
+                     (decoded->opcode >= 0xB0U && decoded->opcode <= 0xBFU));
+                if (writes_encoded_register) {
+                    forget(low);
+                    forget(static_cast<std::uint8_t>(low | 8U));
+                }
+            }
+
+            if (decoded->indexed_memory() && decoded->memory_base < held.size()) {
+                const auto& base = held[decoded->memory_base];
+                if (base.held && traced - base.age <= kMaxBaseAge) {
+                    walk.indexed_accesses.push_back(FunctionWalk::IndexedAccess{
+                        rva, base.rva, decoded->memory_scale, decoded->displacement});
+                }
+            }
+
             if (decoded->rip_relative) {
                 const auto target = static_cast<std::uint32_t>(
                     static_cast<std::int64_t>(next) + decoded->displacement);
@@ -188,6 +256,9 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
                 if (decoded->rip_relative_lea()) {
                     remember_candidate(target);
+                    if (decoded->reg_operand < held.size()) {
+                        held[decoded->reg_operand] = HeldAddress{target, traced, true};
+                    }
                 }
             } else if (decoded->displacement_size == 4U && decoded->displacement > 0) {
                 // A non-RIP disp32 can be an absolute table RVA: MSVC keeps the
@@ -209,6 +280,9 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             switch (decoded->flow) {
             case X86Flow::call_direct:
                 walk.call_targets.push_back(branch_target());
+                // A call clobbers the volatile registers, and which ones
+                // survive is a calling-convention claim this walk does not make.
+                forget_all();
                 break;
             case X86Flow::conditional_jump: {
                 const auto target = branch_target();
@@ -307,6 +381,20 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     sort_unique(walk.external_jump_targets);
     sort_unique(walk.switch_targets);
     sort_unique(walk.indirect_call_displacements);
+
+    // A trace can be re-entered from several roots, so the same site can be
+    // recorded more than once.
+    std::sort(walk.indexed_accesses.begin(), walk.indexed_accesses.end(),
+              [](const FunctionWalk::IndexedAccess& left,
+                 const FunctionWalk::IndexedAccess& right) {
+                  if (left.site_rva != right.site_rva) {
+                      return left.site_rva < right.site_rva;
+                  }
+                  return left.base_rva < right.base_rva;
+              });
+    walk.indexed_accesses.erase(
+        std::unique(walk.indexed_accesses.begin(), walk.indexed_accesses.end()),
+        walk.indexed_accesses.end());
 }
 
 } // namespace

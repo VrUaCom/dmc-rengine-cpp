@@ -72,6 +72,24 @@ struct X86Instruction final {
     /// ModRM rm field, without the REX.B extension bit.
     std::uint8_t modrm_rm{};
 
+    /// Sentinel for a register role the encoding leaves empty.
+    static constexpr std::uint8_t kNoRegister = 16U;
+
+    /// Register the ModRM reg field names, 0-15, with REX.R applied. For the
+    /// forms that matter here — `lea reg, [mem]` and `mov reg, [mem]` — this is
+    /// the destination.
+    std::uint8_t reg_operand{kNoRegister};
+    /// Base register of the memory operand, 0-15, or `kNoRegister` when the
+    /// encoding has none: a RIP-relative operand, a SIB with no base, or a
+    /// register-direct instruction.
+    std::uint8_t memory_base{kNoRegister};
+    /// Index register of the memory operand, or `kNoRegister` when there is no
+    /// SIB or the SIB names no index.
+    std::uint8_t memory_index{kNoRegister};
+    /// Scale applied to the index register: 1, 2, 4 or 8. An indexed read of a
+    /// table of fixed-width elements carries the element size here.
+    std::uint8_t memory_scale{1U};
+
     [[nodiscard]] bool transfers_control() const noexcept {
         return flow != X86Flow::sequential;
     }
@@ -80,6 +98,12 @@ struct X86Instruction final {
     /// switch table base and to take the address of a literal.
     [[nodiscard]] bool rip_relative_lea() const noexcept {
         return !two_byte_opcode && opcode == 0x8DU && rip_relative;
+    }
+
+    /// True for a memory operand of the form `[base + index*scale + disp]`,
+    /// which is how code reads an element out of a table whose base it holds.
+    [[nodiscard]] bool indexed_memory() const noexcept {
+        return memory_base != kNoRegister && memory_index != kNoRegister;
     }
 
     /// True for a register-direct indirect transfer such as `jmp rax`, which is

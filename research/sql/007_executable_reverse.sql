@@ -121,6 +121,10 @@ CREATE TABLE IF NOT EXISTS exe_name_table (
     -- Elements the scan removed from the end of the run because they were a
     -- packed string pool the grid had absorbed rather than table elements.
     absorbed_elements INTEGER NOT NULL DEFAULT 0,
+    -- Instructions that index this run as an array: a register holding its
+    -- base, scaled by the run's own element size. Zero throughout the canonical
+    -- image, which is the finding rather than a gap in the data.
+    indexed_sites INTEGER NOT NULL DEFAULT 0,
     -- Where this run sits inside a record run's field layout, and how many
     -- elements it had to give back at the end of that record's field block.
     interior_of_record_rva INTEGER,
@@ -188,6 +192,7 @@ SELECT t.id AS table_id,
        COUNT(CASE WHEN r.offset_in_element != 0 THEN 1 END) AS interior_references,
        t.absorbed_elements,
        t.overrun_elements,
+       t.indexed_sites,
        CASE WHEN t.interior_of_record_rva IS NULL THEN NULL
             ELSE printf('0x%x', t.interior_of_record_rva) END AS interior_of_record,
        t.extent_status

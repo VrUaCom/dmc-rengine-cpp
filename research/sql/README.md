@@ -235,5 +235,24 @@ SELECT * FROM v_exe_independent_table;
 | `SEMANTIC_CANDIDATE` | payload-bearing run whose extent is not settled |
 | `EXTENT_UNCLASSIFIED` | run known only through the function map, which carries its layout but not its payload measurements |
 
+### Reading a table's access
+
+`exe_name_table.indexed_sites` counts instructions that index a run as an array
+— a register holding its base, scaled by the run's own element size. It is zero
+throughout the canonical image, and that is the finding rather than a gap:
+
+```sql
+-- Runs the code indexes as arrays, as opposed to reaching element by element.
+SELECT base_rva, element_bytes, entries, indexed_sites
+FROM v_exe_table_coverage
+WHERE indexed_sites > 0;
+```
+
+A reference whose offset is a whole multiple of the stride is *not* evidence of
+indexing: a constant index folded into a displacement and a direct load of the
+literal at that offset are the same instruction. `elements_named_by_constant`
+says code reaches those bytes; only `indexed_sites` says it treats them as a
+table.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

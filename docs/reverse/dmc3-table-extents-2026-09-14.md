@@ -275,10 +275,9 @@ worth keeping. It is now discharged for the runs it was written about.
 
 ## Open work
 
-- **which runs are indexed and which are pools of literals.** The instruction
-  for a constant index and for a direct literal load is the same; only following
-  the base through a register separates them. Until that exists, every run's
-  coverage figure carries the caveat above;
+- ~~**which runs are indexed and which are pools of literals.**~~ Answered: none
+  of them are indexed. See
+  [indexed access](dmc3-indexed-access-2026-09-14.md);
 - **runs that overlap without being interiors.** Reconciliation settles a run
   that matches a field offset and width. A run inside a record's extent matching
   neither is still unexplained, and may mean the *record's* extent is the

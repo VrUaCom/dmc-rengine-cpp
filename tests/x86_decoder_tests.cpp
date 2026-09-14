@@ -186,6 +186,95 @@ void decoding_respects_the_starting_offset() {
     assert(!X86LengthDecoder::decode(std::span<const std::byte>{bytes}, bytes.size()).has_value());
 }
 
+void addressing_registers_and_scale_are_reported() {
+    using Instruction = dmc::rengine::exe::X86Instruction;
+
+    // 48 8d 05 13 43 03 00   lea rax,[rip+0x34313]
+    {
+        const auto bytes = encode({0x48, 0x8D, 0x05, 0x13, 0x43, 0x03, 0x00});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->rip_relative_lea());
+        assert(decoded->reg_operand == 0U);
+        // RIP-relative addressing names no base or index register.
+        assert(decoded->memory_base == Instruction::kNoRegister);
+        assert(decoded->memory_index == Instruction::kNoRegister);
+        assert(!decoded->indexed_memory());
+    }
+
+    // 41 8b 0c 84            mov ecx,[r12+rax*4]
+    // REX.B extends the SIB base to r12; this is the form MSVC uses to read a
+    // switch table with the image base in a register.
+    {
+        const auto bytes = encode({0x41, 0x8B, 0x0C, 0x84});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->length == 4U);
+        assert(decoded->reg_operand == 1U);
+        assert(decoded->memory_base == 12U);
+        assert(decoded->memory_index == 0U);
+        assert(decoded->memory_scale == 4U);
+        assert(decoded->indexed_memory());
+    }
+
+    // 48 8d 1c c3            lea rbx,[rbx+rax*8]
+    {
+        const auto bytes = encode({0x48, 0x8D, 0x1C, 0xC3});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->reg_operand == 3U);
+        assert(decoded->memory_base == 3U);
+        assert(decoded->memory_index == 0U);
+        assert(decoded->memory_scale == 8U);
+    }
+
+    // 48 8d 04 24            lea rax,[rsp]
+    // SIB index 4 without REX.X is the encoding for "no index", so rsp as a
+    // base must not be read as an indexed operand.
+    {
+        const auto bytes = encode({0x48, 0x8D, 0x04, 0x24});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->memory_base == 4U);
+        assert(decoded->memory_index == Instruction::kNoRegister);
+        assert(!decoded->indexed_memory());
+    }
+
+    // 4a 8b 04 e5 00 10 40 00   mov rax,[r12*8+0x401000]
+    // SIB base 5 with mod 0 is a bare disp32, and REX.X makes index 4 mean r12
+    // rather than "no index".
+    {
+        const auto bytes = encode({0x4A, 0x8B, 0x04, 0xE5, 0x00, 0x10, 0x40, 0x00});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->length == 8U);
+        assert(decoded->memory_base == Instruction::kNoRegister);
+        assert(decoded->memory_index == 12U);
+        assert(decoded->memory_scale == 8U);
+        assert(decoded->displacement == 0x401000);
+    }
+
+    // 48 8b 45 10            mov rax,[rbp+0x10]
+    {
+        const auto bytes = encode({0x48, 0x8B, 0x45, 0x10});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->memory_base == 5U);
+        assert(decoded->memory_index == Instruction::kNoRegister);
+        assert(decoded->displacement == 0x10);
+    }
+
+    // 48 89 d8               mov rax,rbx  -- register-direct names no memory.
+    {
+        const auto bytes = encode({0x48, 0x89, 0xD8});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->register_indirect());
+        assert(decoded->memory_base == Instruction::kNoRegister);
+        assert(decoded->memory_index == Instruction::kNoRegister);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -196,6 +285,7 @@ int main() {
     indirect_transfers_are_classified_by_the_group_field();
     group_immediates_depend_on_the_reg_field();
     displacement_width_and_operand_shape_are_reported();
+    addressing_registers_and_scale_are_reported();
     unmodelled_and_truncated_encodings_fail_closed();
     decoding_respects_the_starting_offset();
     return 0;

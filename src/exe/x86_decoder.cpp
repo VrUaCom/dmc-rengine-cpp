@@ -362,9 +362,15 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
         }
     }
 
+    bool rex_r = false;
+    bool rex_x = false;
+    bool rex_b = false;
     if (cursor.available(1U) && (cursor.peek() & 0xF0U) == 0x40U) {
         const auto rex = cursor.take();
         rex_w = (rex & 0x08U) != 0U;
+        rex_r = (rex & 0x04U) != 0U;
+        rex_x = (rex & 0x02U) != 0U;
+        rex_b = (rex & 0x01U) != 0U;
     }
 
     if (!cursor.available(1U)) {
@@ -416,6 +422,8 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
         instruction.modrm_reg = static_cast<std::uint8_t>((modrm >> 3U) & 0x07U);
         instruction.modrm_mod = mod;
         instruction.modrm_rm = rm;
+        instruction.reg_operand =
+            static_cast<std::uint8_t>(instruction.modrm_reg | (rex_r ? 8U : 0U));
 
         std::size_t displacement_bytes = 0U;
         bool sib = false;
@@ -427,6 +435,8 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
                 // The one RIP-relative form in 64-bit addressing.
                 instruction.rip_relative = true;
                 displacement_bytes = 4U;
+            } else {
+                instruction.memory_base = static_cast<std::uint8_t>(rm | (rex_b ? 8U : 0U));
             }
 
             if (mod == 1U) {
@@ -440,9 +450,22 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
             if (!cursor.available(1U)) {
                 return std::nullopt;
             }
-            const auto base = static_cast<std::uint8_t>(cursor.take() & 0x07U);
+            const auto sib_byte = cursor.take();
+            const auto base = static_cast<std::uint8_t>(sib_byte & 0x07U);
+            const auto index = static_cast<std::uint8_t>((sib_byte >> 3U) & 0x07U);
+            instruction.memory_scale = static_cast<std::uint8_t>(1U << ((sib_byte >> 6U) & 0x03U));
+
+            // Index 4 without REX.X is the encoding for "no index"; with REX.X
+            // it is r12, which is a perfectly ordinary index register.
+            if (index != 4U || rex_x) {
+                instruction.memory_index = static_cast<std::uint8_t>(index | (rex_x ? 8U : 0U));
+            }
+
             if (mod == 0U && base == 5U) {
+                // No base register: a bare disp32, optionally indexed.
                 displacement_bytes = 4U;
+            } else {
+                instruction.memory_base = static_cast<std::uint8_t>(base | (rex_b ? 8U : 0U));
             }
         }
 
