@@ -13,6 +13,7 @@ This directory contains sanitized, versioned evidence metadata. It does not cont
 - [`dmc3-hdc-function-map.evidence.json`](executable/dmc3-hdc-function-map.evidence.json) — function count correction, call graph, decoder validation, class/code binding, import call surface and reachability bounds;
 - [`dmc3-hdc-function-map.report.json`](executable/dmc3-hdc-function-map.report.json) — the attributed function map, regenerable with `dmc-rengine map-functions`.
 - [`dmc3-hdc-code-recovery.evidence.json`](executable/dmc3-hdc-code-recovery.evidence.json) — switch dispatch recovery, post-switch graph and reachability corrections, and per-function prologue facts.
+- [`dmc3-hdc-semantic-anchors.evidence.json`](executable/dmc3-hdc-semantic-anchors.evidence.json) — vtable construction sites, the indirect dispatch census, why resource literals are table content, and three candidate resource-resolution functions.
 
 ## Rules
 

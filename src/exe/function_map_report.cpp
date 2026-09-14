@@ -36,6 +36,14 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("structurally_unreferenced",
                   static_cast<std::uint64_t>(summary.structurally_unreferenced));
     writer.member("strings_recovered", static_cast<std::uint64_t>(summary.strings_recovered));
+    writer.member("with_vtable_install",
+                  static_cast<std::uint64_t>(summary.with_vtable_install));
+    writer.member("with_resource_family",
+                  static_cast<std::uint64_t>(summary.with_resource_family));
+    writer.member("with_indirect_dispatch",
+                  static_cast<std::uint64_t>(summary.with_indirect_dispatch));
+    writer.member("indirect_call_sites",
+                  static_cast<std::uint64_t>(summary.indirect_call_sites));
     writer.member("with_frame_pointer", static_cast<std::uint64_t>(summary.with_frame_pointer));
     writer.member("with_exception_handler",
                   static_cast<std::uint64_t>(summary.with_exception_handler));
@@ -78,6 +86,33 @@ void write_import_usage(JsonWriter& writer, const FunctionMap& map) {
     writer.end_array();
 }
 
+void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("resource_family_usage");
+    writer.begin_array();
+    for (const auto& entry : map.resource_family_usage) {
+        writer.begin_object();
+        writer.member("family", entry.family);
+        writer.member("literals", static_cast<std::uint64_t>(entry.literals));
+        writer.member("referencing_functions",
+                      static_cast<std::uint64_t>(entry.referencing_functions));
+        writer.end_object();
+    }
+    writer.end_array();
+}
+
+void write_dispatch_slots(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("dispatch_slots");
+    writer.begin_array();
+    for (const auto& entry : map.dispatch_slots) {
+        writer.begin_object();
+        writer.member("displacement", static_cast<std::uint64_t>(entry.displacement));
+        writer.member("slot", static_cast<std::uint64_t>(entry.slot));
+        writer.member("call_sites", static_cast<std::uint64_t>(entry.call_sites));
+        writer.end_object();
+    }
+    writer.end_array();
+}
+
 void write_class_coverage(JsonWriter& writer, const FunctionMap& map) {
     writer.key("class_coverage");
     writer.begin_array();
@@ -88,6 +123,7 @@ void write_class_coverage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("slots_bound_to_functions",
                       static_cast<std::uint64_t>(entry.slots_bound_to_functions));
         writer.member("distinct_functions", static_cast<std::uint64_t>(entry.distinct_functions));
+        writer.member("install_sites", static_cast<std::uint64_t>(entry.install_sites));
         writer.end_object();
     }
     writer.end_array();
@@ -166,6 +202,37 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
         writer.end_array();
     }
 
+    if (!facts.installs_vtables.empty()) {
+        writer.key("installs_vtables");
+        writer.begin_array();
+        for (const auto& install : facts.installs_vtables) {
+            writer.begin_object();
+            writer.member("class", install.class_display_name);
+            writer.member("vtable_index", static_cast<std::uint64_t>(install.vtable_index));
+            writer.hex_member("vtable_rva", install.vtable_rva);
+            writer.end_object();
+        }
+        writer.end_array();
+    }
+
+    if (!facts.resource_families.empty()) {
+        writer.key("resource_families");
+        writer.begin_array();
+        for (const auto& family : facts.resource_families) {
+            writer.string(family);
+        }
+        writer.end_array();
+    }
+
+    if (!facts.indirect_call_displacements.empty()) {
+        writer.key("dispatch_displacements");
+        writer.begin_array();
+        for (const auto displacement : facts.indirect_call_displacements) {
+            writer.number(static_cast<std::uint64_t>(displacement));
+        }
+        writer.end_array();
+    }
+
     if (facts.string_reference_count != 0U) {
         writer.member("string_references",
                       static_cast<std::uint64_t>(facts.string_reference_count));
@@ -202,13 +269,16 @@ std::string to_json(const ExecutableArtifactIdentity& artifact, const CodeGraph&
     write_graph(writer, graph);
     write_import_usage(writer, map);
     write_class_coverage(writer, map);
+    write_resource_families(writer, map);
+    write_dispatch_slots(writer, map);
 
     writer.key("functions");
     writer.begin_array();
     std::size_t emitted = 0U;
     for (const auto& facts : map.functions) {
         const bool attributed = !facts.virtual_bindings.empty() || !facts.imports_called.empty() ||
-                                facts.string_reference_count != 0U || facts.exported;
+                                facts.string_reference_count != 0U || facts.exported ||
+                                !facts.installs_vtables.empty();
         if (!attributed && !options.include_unattributed) {
             continue;
         }

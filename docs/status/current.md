@@ -80,7 +80,10 @@ Instruction-accurate walks, the call graph and mechanical attribution are in pla
 - 637 switch dispatch tables recovered yielding 6,867 block addresses; 1,177 indirect jumps remain unresolved;
 - prologue facts per function from unwind codes: 694,008 bytes reserved in total, 308 functions with a frame pointer, 2,210 declaring a handler (matching an independent flag census);
 - **correction:** 12,235 exception-directory entries resolve to 7,389 functions plus 4,846 continuation ranges. Supersedes `ev-dmc3-function-inventory`;
-- 2,426 functions attributed: 1,879 bound to a class vtable slot, 535 calling imports, 160 referencing literals;
+- 2,889 functions attributed: 1,879 bound to a class vtable slot, 710 referencing a class vtable (construction sites), 535 calling imports, 160 referencing literals;
+- dispatch census: 10,958 indirect call sites across 2,070 functions over 145 distinct offsets;
+- resource-name literals are packed into data tables and shader bytecode, not code constants — measured, and it bounds what literal attribution can yield;
+- three candidate resource-resolution functions recorded at `high` confidence (NBZ volume path, PTX extension matching, MOT/CLT extension matching);
 - functions with no structural referrer at all fell from 2,101 to 848 once switch edges existed;
 - 3,588 of 13,894 vtable slots bound to inventoried functions.
 
@@ -88,7 +91,7 @@ Instruction-accurate walks, the call graph and mechanical attribution are in pla
 
 - **no function semantics.** The map attributes and counts; it names and explains nothing. A function known to be slot 7 of `CEm010`'s third vtable and to call `sqrtf` still has no established behavior. Per-function recovery is a separate program;
 - **reachability is a floor, not a measure.** 2,249 of 7,389 functions are structurally reachable; the rest are reached by virtual dispatch, function pointers and callbacks that the graph cannot follow. This is not evidence of dead code;
-- **virtual call sites are the largest remaining gap.** 1,177 indirect jumps plus every virtual call are unresolved; resolving receiver types is the next layer;
+- **virtual call sites are the largest remaining gap.** 10,958 dispatch sites carry offsets but no receiver type, and 1,177 indirect jumps stay unresolved. Construction sites give the next foothold: a function installing a class's vtable is handling that class;
 - **no field layouts.** RTTI supplies subobject offsets, not members;
 - **renderer surface invisible to imports.** D3D11 is reached through COM vtables; recovering those is separate work;
 - subsystem attribution from the dependency set is recorded at confidence `high`, not `confirmed`.

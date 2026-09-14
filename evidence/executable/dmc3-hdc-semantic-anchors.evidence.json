@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-semantic-anchors",
+  "title": "DMC3 HD construction sites, dispatch census and resource-resolution anchors",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-vtable-install-sites",
+      "claim_id": "claim-dmc3-vtable-install-sites",
+      "title": "Functions that install class vtables",
+      "summary": "710 functions reference the address of a recovered class vtable. Installing a vtable is what construction code does, so each reference ties a function to a class without any inference about the operation: an initializer, a destructor and a placement helper all reference the same table. Ranked by referencing functions: CWork with 75, CConstraint with 55, CPlayerWeapon with 48, CStageSet with 32, CCnsRandom with 17. CWork leading is consistent with it being the base of 264 of the 396 polymorphic types.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "vtables",
+        "construction",
+        "class-binding"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "symbol": ".rdata vtables",
+          "note": "A function's RIP-relative data references are matched against the vtable addresses recovered from RTTI."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-dispatch-census",
+      "claim_id": "claim-dmc3-dispatch-census",
+      "title": "Indirect dispatch offset census",
+      "summary": "The walk records 10958 indirect call sites across 2070 functions, using 145 distinct dispatch offsets. The ten most frequent offsets account for 46.8 percent of all sites, led by displacement 64 with 543 sites, displacement 8 with 308, displacement 56 with 298 and displacement 80 with 274. At eight bytes per entry these are vtable slots 8, 1, 7 and 10. The census records displacements, not resolved targets: the receiver's type at each site is not established, so no call is attributed to a class here.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "virtual-dispatch",
+        "call-graph",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3464526,
+          "symbol": ".text",
+          "note": "Displacements are taken from memory-indirect call sites with a register base; register-direct and RIP-relative calls carry none."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-resource-literal-locality",
+      "claim_id": "claim-dmc3-resource-literal-locality",
+      "title": "Resource name literals live in data tables, not in code constants",
+      "summary": "Of 13767 recovered literals, only 9 functions reference one whose text names a documented resource family. The cause is locality rather than absence. The 7118 literals ending in .pac are packed back to back across RVA 0x35D640 to 0x505E28 with a median gap of 24 bytes and 99.1 percent of gaps under 64 bytes, which is a name table rather than scattered constants. The 283 literals ending in .hlsl lie between RVA 0x373551 and 0x4C4DD5 with DXBC container magic present shortly before the first, so they are shader debug paths inside compiled bytecode and are not referenced by code at all. Literal-to-function attribution is therefore a narrow anchor for this image: few hits, but each one lands on code that indexes a table rather than on code that merely mentions a name.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "literals",
+        "resource-names",
+        "methodology",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3528256,
+          "size": 1738728,
+          "symbol": ".pac name table span",
+          "note": "RVA 0x35D640 to 0x505E28, measured from literal start addresses."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3617617,
+          "size": 1381508,
+          "symbol": ".hlsl path span inside shader bytecode",
+          "note": "RVA 0x373551 to 0x4C4DD5."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-resource-resolution-anchors",
+      "claim_id": "claim-dmc3-resource-resolution-anchors",
+      "title": "Three candidate resource-resolution functions",
+      "summary": "Three functions combine resource-family literals with imports in a way that reads as path and extension handling. The function at RVA 0x2E930 references a data directory literal and an NBZ volume format literal while calling GetModuleFileNameA and strrchr, which is the shape of volume-path construction relative to the module location. The function at RVA 0x2DB3C0 references a two-part path format literal together with three case variants of the PTX extension and calls strstr, which is the shape of case-insensitive extension matching. The function at RVA 0x2E01A0 does the same for the MOT and CLT extensions, which is evidence that both families are handled by one matching path. The literal and import observations are directly read; the functional reading of each is an inference from that combination and is recorded at high confidence, not as confirmed behavior.",
+      "confidence": "high",
+      "tags": [
+        "exe",
+        "resource-resolution",
+        "nbz",
+        "ptx",
+        "mot",
+        "clt",
+        "candidate-semantics"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 190256,
+          "size": 261,
+          "symbol": "candidate NBZ volume path construction",
+          "note": "RVA 0x2E930, 55 instructions, one caller, five callees."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2995648,
+          "size": 716,
+          "symbol": "candidate PTX extension matching",
+          "note": "RVA 0x2DB3C0, 159 instructions, one caller, six callees."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3015072,
+          "size": 1236,
+          "symbol": "candidate MOT and CLT extension matching",
+          "note": "RVA 0x2E01A0, 295 instructions, one caller, three callees."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-semantic-anchor-scope",
+      "claim_id": "claim-dmc3-semantic-anchor-scope",
+      "title": "Scope boundary of the anchor layer",
+      "summary": "Attribution now covers 2889 of 7389 functions. Class ownership, construction sites, dispatch offsets, import usage, frame structure and literal references are all recorded. None of that names a function. The three candidate resource-resolution functions are the first entries in this programme carrying a functional reading at all, and they are recorded at high confidence with their supporting observations stated separately so the reading can be challenged without discarding the facts.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "scope",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 0,
+          "symbol": "whole image",
+          "note": "Regenerate with: dmc-rengine map-functions <exe> --out map.json"
+        }
+      ]
+    }
+  ]
+}

@@ -273,6 +273,15 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             }
             case X86Flow::call_indirect:
                 ++walk.indirect_calls;
+                // A memory-indirect call through a register base carries the
+                // dispatch offset in its displacement. Register-direct calls
+                // (`call rax`) and RIP-relative ones (import slots) do not.
+                if (decoded->has_modrm && !decoded->register_indirect() &&
+                    !decoded->rip_relative && decoded->displacement >= 0 &&
+                    decoded->displacement % 8 == 0) {
+                    walk.indirect_call_displacements.push_back(
+                        static_cast<std::uint32_t>(decoded->displacement));
+                }
                 break;
             case X86Flow::return_:
                 ++walk.returns;
@@ -297,6 +306,7 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     sort_unique(walk.data_references);
     sort_unique(walk.external_jump_targets);
     sort_unique(walk.switch_targets);
+    sort_unique(walk.indirect_call_displacements);
 }
 
 } // namespace
@@ -351,6 +361,7 @@ CodeGraph CodeGraphBuilder::build(std::span<const std::byte> bytes, const PeImag
         graph.total_decoded_bytes += walk.decoded_bytes;
         graph.call_edges += walk.call_targets.size();
         graph.data_reference_edges += walk.data_references.size();
+        graph.indirect_call_sites += walk.indirect_calls;
         graph.switch_tables_recovered += walk.switch_tables;
         graph.switch_targets_recovered += walk.switch_targets.size();
         graph.unresolved_indirect_jumps += walk.unresolved_indirect_jumps;

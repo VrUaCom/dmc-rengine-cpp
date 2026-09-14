@@ -123,15 +123,17 @@ costing.
 
 ## Attribution
 
-2,426 of 7,389 functions now carry at least one structural fact beyond their
-extent.
+Attribution covers 2,889 of 7,389 functions.
 
 | Attribution | Functions |
 | --- | --- |
 | Bound to a class vtable slot | 1,879 |
+| References a class vtable (construction site) | 710 |
 | Calls an imported symbol | 535 |
 | References a literal | 160 |
 | Exported by name | 2 |
+
+2,889 of 7,389 functions carry at least one of these.
 
 ### Code bound to classes
 
@@ -175,6 +177,85 @@ the function inventory — an independent objdump pass finds 771 IAT reference
 sites, 651 calls and 120 thunk jumps, of which 110 thunks lie outside every
 unwind range. The map resolves 90 of them by decoding the thunk's single jump,
 which is why `import_thunks` reads zero while import attribution still works.
+
+### Construction sites
+
+710 functions reference the address of a recovered class vtable. Installing a
+vtable is what construction code does, so each reference ties a function to a
+class — without inferring which *operation* it is, since an initializer, a
+destructor and a placement helper all touch the same table.
+
+| Class | Functions referencing its vtable |
+| --- | --- |
+| `CWork` | 75 |
+| `CConstraint` | 55 |
+| `CPlayerWeapon` | 48 |
+| `CStageSet` | 32 |
+| `CCnsRandom` | 17 |
+
+`CWork` leading is consistent with it being the base of 264 of 396 polymorphic
+types.
+
+### Dispatch offset census
+
+10,958 indirect call sites across 2,070 functions use 145 distinct dispatch
+offsets. The ten most frequent cover 46.8 percent of all sites.
+
+| Displacement | Slot | Call sites |
+| --- | --- | --- |
+| 64 | 8 | 543 |
+| 8 | 1 | 308 |
+| 56 | 7 | 298 |
+| 80 | 10 | 274 |
+| 32 | 4 | 234 |
+
+These are displacements, not resolved targets. The receiver's type at each site
+is unknown, so no call is attributed to a class.
+
+## Where the resource names actually live
+
+Only **9** functions reference a literal whose text names a documented resource
+family — out of 13,767 literals. That looked like a weak result until measured,
+and the measurement explains it: the names are not code constants.
+
+| Family | Literals | Referencing functions |
+| --- | --- | --- |
+| PAC | 7,118 | 6 |
+| SHADER | 283 | 0 |
+| MOD | 8 | 0 |
+| PTX | 6 | 1 |
+| MOT | 2 | 1 |
+| NBZ | 1 | 1 |
+
+The 7,118 `.pac` literals are packed back to back from RVA `0x35D640` to
+`0x505E28` — median gap 24 bytes, 99.1 percent of gaps under 64 — which is a
+**name table**, not scattered constants. Only code that indexes the table refers
+to it, so six referrers is the right answer.
+
+The 283 `.hlsl` literals span RVA `0x373551`–`0x4C4DD5` with DXBC container
+magic shortly before the first. They are shader debug paths inside compiled
+bytecode and are referenced by no code at all.
+
+So literal attribution is a *narrow* anchor here — but a sharp one. Few hits,
+and each lands on table-indexing code rather than on code that merely mentions a
+name.
+
+### Three candidate resource-resolution functions
+
+| RVA | Literals referenced | Imports | Reading |
+| --- | --- | --- | --- |
+| `0x2E930` | a data directory path, an NBZ volume format | `GetModuleFileNameA`, `strrchr` | volume-path construction relative to the module |
+| `0x2DB3C0` | a two-part path format, three case variants of `.ptx` | `strstr` | case-insensitive extension matching |
+| `0x2E01A0` | the same shape for `.MOT` and `.CLT` | `strstr` | one matching path serving both families |
+
+The literal and import observations are directly read. The functional reading of
+each is an inference from that combination, recorded at **high** confidence
+rather than as confirmed behavior — and stated separately from the facts so it
+can be challenged without discarding them.
+
+The third is worth noting for the project specifically: `CLT` is listed under
+`docs/formats` as recognized but evidence-gated, and this is evidence that it
+shares MOT's extension-matching path.
 
 ## Reachability, and what it does not mean
 
@@ -241,14 +322,15 @@ has no established behavior.
 
 Next layers, in order of leverage:
 
-- **resolve virtual call sites.** 1,177 indirect jumps and every virtual call
-  remain unresolved. Where a call site's receiver type can be established, the
-  edge becomes real and reachability stops being a floor. This is the single
-  largest remaining gap in the graph;
-- **cross-reference literals** against the documented resource families under
-  [`docs/formats/`](../formats/README.md). A function referencing a known path
-  pattern gains a first semantic anchor, and 13,767 literals are already
-  recovered and attributed;
+- **resolve virtual call sites.** 10,958 dispatch sites have offsets but no
+  receiver type, and 1,177 indirect jumps stay unresolved. Constructor sites now
+  give a starting point: a function that installs `CWork`'s vtable is handling a
+  `CWork`, so its dispatch offsets can be read against that class's table. This
+  is the single largest remaining gap in the graph;
+- **follow the name tables.** Literal attribution is done and its ceiling is
+  known: the names live in tables, so the next step is identifying the table
+  *structures* and the functions that index them, starting from the six PAC
+  referrers;
 - **argument and return shape** from the frame facts plus register reads before
   first write, which would give each function a candidate signature;
 - **COM vtable recovery** for the D3D11 path, invisible to the import table.

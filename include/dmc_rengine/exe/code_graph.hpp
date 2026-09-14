@@ -52,6 +52,13 @@ struct FunctionWalk final {
     /// MSVC emits tail calls and shared epilogues.
     std::vector<std::uint32_t> external_jump_targets;
 
+    /// Byte displacements of `call [reg + disp]` sites, sorted and unique.
+    ///
+    /// In a vtable dispatch the displacement is the slot offset, so a value of
+    /// 0x48 means slot nine. The receiver's type is not known here, which is
+    /// why these are displacements rather than resolved targets.
+    std::vector<std::uint32_t> indirect_call_displacements;
+
     std::uint32_t indirect_calls{};
     std::uint32_t indirect_jumps{};
     std::uint32_t returns{};
@@ -94,6 +101,7 @@ struct CodeGraph final {
     std::uint64_t total_decoded_bytes{};
     std::size_t call_edges{};
     std::size_t data_reference_edges{};
+    std::size_t indirect_call_sites{};
     std::size_t switch_tables_recovered{};
     std::size_t switch_targets_recovered{};
     std::size_t unresolved_indirect_jumps{};

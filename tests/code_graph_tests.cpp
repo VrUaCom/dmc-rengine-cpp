@@ -105,7 +105,8 @@ void put_i32(std::vector<std::byte>& bytes, std::size_t offset, std::int32_t val
     put(bytes, 0x2A0U, {0x8B, 0x04, 0x85});                   // 0x10A0
     put_i32(bytes, 0x2A3U, 0x20C0);                           //        table at 0x20C0
     put(bytes, 0x2A7U, {0xFF, 0xE0});                         // 0x10A7 jmp rax
-    put(bytes, 0x2B0U, {0xC3});                               // 0x10B0 case 0
+    put(bytes, 0x2B0U, {0xFF, 0x50, 0x48});                   // 0x10B0 call [rax+0x48]
+    put(bytes, 0x2B3U, {0xC3});                               // 0x10B3 case 0 returns
     put(bytes, 0x2B8U, {0xC3});                               // 0x10B8 case 1
 
     // The table itself, in .rdata at 0x20C0 (file 0x4C0). A third entry would
@@ -182,6 +183,9 @@ void control_flow_and_references_are_extracted() {
     assert(first.data_references[0] == 0x2000U);
     assert(first.data_references[1] == 0x2100U);
     assert(first.indirect_calls == 1U);
+    // Function A's indirect call goes through a RIP-relative slot, which has no
+    // dispatch offset to record.
+    assert(first.indirect_call_displacements.empty());
     assert(first.returns == 2U);
     assert(first.external_jump_targets.empty());
 
@@ -193,7 +197,7 @@ void control_flow_and_references_are_extracted() {
     // The jump into its own continuation is local, not an external edge.
     assert(second.external_jump_targets.empty());
 
-    assert(graph.total_instructions == 17U);
+    assert(graph.total_instructions == 18U);
     assert(graph.call_edges == 2U);
     // The switch lookup's displacement is a table candidate, not a RIP-relative
     // operand, so it adds no data-reference edge.
@@ -216,10 +220,15 @@ void a_switch_table_is_recovered_and_walked() {
 
     // Both case blocks were reached only through the table, so their `ret`
     // instructions are part of the walk.
-    assert(dispatch.instruction_count == 4U);
+    assert(dispatch.instruction_count == 5U);
     assert(dispatch.returns == 2U);
     assert(dispatch.indirect_jumps == 1U);
     assert(dispatch.complete);
+
+    // The dispatch offset of `call [rax+0x48]` is slot nine of a 64-bit vtable.
+    assert(dispatch.indirect_calls == 1U);
+    assert(dispatch.indirect_call_displacements.size() == 1U);
+    assert(dispatch.indirect_call_displacements[0] == 0x48U);
 
     assert(graph.switch_tables_recovered == 1U);
     assert(graph.switch_targets_recovered == 2U);
@@ -242,8 +251,10 @@ void an_indirect_jump_without_a_valid_table_stays_unresolved() {
     assert(dispatch.switch_targets.empty());
     assert(dispatch.unresolved_indirect_jumps == 1U);
 
-    // The case blocks are now unreachable, so the walk is shorter.
+    // The case blocks are now unreachable, so the walk is shorter and the
+    // dispatch call inside one of them is never seen.
     assert(dispatch.instruction_count == 2U);
+    assert(dispatch.indirect_call_displacements.empty());
     assert(graph.unresolved_indirect_jumps == 1U);
 }
 

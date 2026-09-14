@@ -34,6 +34,27 @@ struct VirtualMethodBinding final {
     friend bool operator==(const VirtualMethodBinding&, const VirtualMethodBinding&) = default;
 };
 
+/// A class vtable whose address this function writes or takes.
+///
+/// Installing a vtable is what a constructor does, so this is the strongest
+/// mechanical pointer to construction and destruction code that a stripped
+/// binary offers. It identifies the class, not the operation: an initializer, a
+/// destructor and a placement helper all reference the same table.
+struct VtableInstall final {
+    std::string class_display_name;
+    std::uint32_t vtable_index{};
+    std::uint32_t vtable_rva{};
+
+    friend bool operator==(const VtableInstall&, const VtableInstall&) = default;
+};
+
+/// Resource families a literal's text names.
+///
+/// Purely a property of the string: a literal containing ".pac" names the PAC
+/// family. It says nothing about what the referencing function does with it,
+/// and a match is a lead rather than a conclusion.
+[[nodiscard]] std::vector<std::string> resource_family_hints(std::string_view literal);
+
 /// What is known about one function, from structure alone.
 struct FunctionFacts final {
     std::uint32_t begin_rva{};
@@ -63,6 +84,13 @@ struct FunctionFacts final {
     std::vector<std::string> referenced_strings;
     std::uint32_t string_reference_count{};
 
+    /// Class vtables whose addresses this function references.
+    std::vector<VtableInstall> installs_vtables;
+    /// Resource families named by literals this function references.
+    std::vector<std::string> resource_families;
+    /// Dispatch offsets of `call [reg + disp]` sites within this function.
+    std::vector<std::uint32_t> indirect_call_displacements;
+
     [[nodiscard]] std::uint32_t size() const noexcept {
         return end_rva > begin_rva ? end_rva - begin_rva : 0U;
     }
@@ -82,8 +110,28 @@ struct ClassCodeCoverage final {
     std::uint32_t vtable_slots{};
     std::uint32_t slots_bound_to_functions{};
     std::uint32_t distinct_functions{};
+    /// Functions that reference one of this class's vtables.
+    std::uint32_t install_sites{};
 
     friend bool operator==(const ClassCodeCoverage&, const ClassCodeCoverage&) = default;
+};
+
+struct ResourceFamilyUsage final {
+    std::string family;
+    std::uint32_t literals{};
+    std::uint32_t referencing_functions{};
+
+    friend bool operator==(const ResourceFamilyUsage&, const ResourceFamilyUsage&) = default;
+};
+
+/// Census of dispatch offsets across all indirect call sites.
+struct DispatchSlotUsage final {
+    std::uint32_t displacement{};
+    /// Slot index the displacement implies for a 64-bit vtable.
+    std::uint32_t slot{};
+    std::uint32_t call_sites{};
+
+    friend bool operator==(const DispatchSlotUsage&, const DispatchSlotUsage&) = default;
 };
 
 struct ImportUsage final {
@@ -115,6 +163,10 @@ struct FunctionMapSummary final {
     std::size_t structurally_unreferenced{};
     std::size_t attributed{};
     std::size_t strings_recovered{};
+    std::size_t with_vtable_install{};
+    std::size_t with_resource_family{};
+    std::size_t with_indirect_dispatch{};
+    std::size_t indirect_call_sites{};
     std::size_t with_frame_pointer{};
     std::size_t with_exception_handler{};
     std::size_t leaf_functions{};
@@ -129,6 +181,10 @@ struct FunctionMap final {
     std::vector<ImportUsage> import_usage;
     /// Classes ranked by vtable surface.
     std::vector<ClassCodeCoverage> class_coverage;
+    /// Resource families ranked by referencing functions.
+    std::vector<ResourceFamilyUsage> resource_family_usage;
+    /// Dispatch offsets ranked by call sites.
+    std::vector<DispatchSlotUsage> dispatch_slots;
     std::vector<std::string> warnings;
 };
 

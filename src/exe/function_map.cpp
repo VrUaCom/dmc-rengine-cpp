@@ -5,6 +5,8 @@
 #include "pe_byte_access.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <utility>
 #include <cstdint>
 #include <deque>
 #include <limits>
@@ -154,7 +156,42 @@ private:
     std::vector<Entry> order_;
 };
 
+[[nodiscard]] std::string lowered(std::string_view value) {
+    std::string result{value};
+    for (auto& character : result) {
+        character = static_cast<char>(
+            std::tolower(static_cast<unsigned char>(character)));
+    }
+    return result;
+}
+
 } // namespace
+
+std::vector<std::string> resource_family_hints(std::string_view literal) {
+    // Extensions and namespace markers for the families documented under
+    // docs/formats. Matching is on the literal's own text; it carries no claim
+    // about what the referencing code does with it.
+    static constexpr std::pair<std::string_view, std::string_view> kMarkers[]{
+        {".pac", "PAC"},      {".pnst", "PNST"},  {".mod", "MOD"},
+        {".scm", "SCM"},      {".shw", "SHW"},    {".ptx", "PTX"},
+        {".dds", "DDS"},      {".nbz", "NBZ"},    {".lig", "LIG"},
+        {".dca", "DCA"},      {".efm", "EFM"},    {".mot", "MOT"},
+        {".hit", "HITS"},     {".hlsl", "SHADER"},{".afs", "ARCHIVE"},
+        {".sac", "SAC"},      {".tex", "TEX"},
+    };
+
+    const auto haystack = lowered(literal);
+    std::vector<std::string> families;
+    for (const auto& [marker, family] : kMarkers) {
+        if (haystack.find(marker) != std::string::npos) {
+            families.emplace_back(family);
+        }
+    }
+
+    std::sort(families.begin(), families.end());
+    families.erase(std::unique(families.begin(), families.end()), families.end());
+    return families;
+}
 
 FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                                       const FunctionMapInputs& inputs) {
@@ -205,6 +242,24 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             if (const auto owner = index.containing(symbol.rva); owner.has_value()) {
                 map.functions[*owner].exported = true;
                 map.functions[*owner].export_name = symbol.name;
+            }
+        }
+    }
+
+    // Vtable address -> owning class. A function referencing one of these is
+    // installing that vtable, which is what construction code does.
+    struct VtableOwner final {
+        std::string class_display_name;
+        std::uint32_t vtable_index{};
+    };
+    std::unordered_map<std::uint32_t, VtableOwner> vtable_owners;
+    if (inputs.rtti != nullptr) {
+        for (const auto& entry : inputs.rtti->classes) {
+            for (std::uint32_t index = 0U; index < entry.vtables.size(); ++index) {
+                if (entry.vtables[index].vtable_rva != 0U) {
+                    vtable_owners.emplace(entry.vtables[index].vtable_rva,
+                                          VtableOwner{entry.display_name, index});
+                }
             }
         }
     }
@@ -333,9 +388,17 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         const auto& walk = graph.functions[position];
         auto& facts = map.functions[position];
 
+        facts.indirect_call_displacements = walk.indirect_call_displacements;
+
         for (const auto target : walk.data_references) {
             if (const auto slot = iat_slots.find(target); slot != iat_slots.end()) {
                 facts.imports_called.push_back(slot->second);
+                continue;
+            }
+
+            if (const auto owner = vtable_owners.find(target); owner != vtable_owners.end()) {
+                facts.installs_vtables.push_back(VtableInstall{
+                    owner->second.class_display_name, owner->second.vtable_index, target});
                 continue;
             }
 
@@ -349,8 +412,16 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 if (facts.referenced_strings.size() < kMaxStringsPerFunction) {
                     facts.referenced_strings.push_back(literal->second);
                 }
+                for (auto& family : resource_family_hints(literal->second)) {
+                    facts.resource_families.push_back(std::move(family));
+                }
             }
         }
+
+        std::sort(facts.resource_families.begin(), facts.resource_families.end());
+        facts.resource_families.erase(
+            std::unique(facts.resource_families.begin(), facts.resource_families.end()),
+            facts.resource_families.end());
 
         // Tail calls leave the range, so they are call edges too.
         std::vector<std::uint32_t> targets = walk.call_targets;
@@ -437,7 +508,11 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
 
     // ----- aggregates ------------------------------------------------------
     std::map<std::pair<std::string, std::string>, std::uint32_t> usage;
+    std::map<std::string, std::uint32_t> family_functions;
+    std::map<std::string, std::uint32_t> install_sites;
+    std::map<std::uint32_t, std::uint32_t> dispatch_sites;
     map.summary.functions = map.functions.size();
+    map.summary.indirect_call_sites = graph.indirect_call_sites;
     for (const auto& facts : map.functions) {
         if (facts.walk_complete) {
             ++map.summary.walks_complete;
@@ -471,7 +546,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             ++map.summary.structurally_reachable;
         }
         if (!facts.virtual_bindings.empty() || !facts.imports_called.empty() ||
-            facts.string_reference_count != 0U || facts.exported) {
+            facts.string_reference_count != 0U || facts.exported ||
+            !facts.installs_vtables.empty()) {
             ++map.summary.attributed;
         }
 
@@ -488,9 +564,71 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         map.summary.largest_stack_allocation =
             std::max(map.summary.largest_stack_allocation, facts.frame.stack_allocation);
 
+        if (!facts.installs_vtables.empty()) {
+            ++map.summary.with_vtable_install;
+        }
+        if (!facts.resource_families.empty()) {
+            ++map.summary.with_resource_family;
+        }
+        if (!facts.indirect_call_displacements.empty()) {
+            ++map.summary.with_indirect_dispatch;
+        }
+
         for (const auto& call : facts.imports_called) {
             ++usage[{call.module, call.function}];
         }
+        for (const auto& family : facts.resource_families) {
+            ++family_functions[family];
+        }
+        for (const auto displacement : facts.indirect_call_displacements) {
+            ++dispatch_sites[displacement];
+        }
+        for (const auto& install : facts.installs_vtables) {
+            ++install_sites[install.class_display_name];
+        }
+    }
+
+    // Literals per family, counted independently of how many functions use them.
+    std::map<std::string, std::uint32_t> family_literals;
+    for (const auto& [rva, literal] : strings) {
+        static_cast<void>(rva);
+        for (const auto& family : resource_family_hints(literal)) {
+            ++family_literals[family];
+        }
+    }
+    for (const auto& [family, literals] : family_literals) {
+        ResourceFamilyUsage entry;
+        entry.family = family;
+        entry.literals = literals;
+        const auto referencing = family_functions.find(family);
+        entry.referencing_functions =
+            referencing == family_functions.end() ? 0U : referencing->second;
+        map.resource_family_usage.push_back(std::move(entry));
+    }
+    std::sort(map.resource_family_usage.begin(), map.resource_family_usage.end(),
+              [](const ResourceFamilyUsage& left, const ResourceFamilyUsage& right) {
+                  if (left.referencing_functions != right.referencing_functions) {
+                      return left.referencing_functions > right.referencing_functions;
+                  }
+                  return left.family < right.family;
+              });
+
+    map.dispatch_slots.reserve(dispatch_sites.size());
+    for (const auto& [displacement, sites] : dispatch_sites) {
+        map.dispatch_slots.push_back(
+            DispatchSlotUsage{displacement, displacement / 8U, sites});
+    }
+    std::sort(map.dispatch_slots.begin(), map.dispatch_slots.end(),
+              [](const DispatchSlotUsage& left, const DispatchSlotUsage& right) {
+                  if (left.call_sites != right.call_sites) {
+                      return left.call_sites > right.call_sites;
+                  }
+                  return left.displacement < right.displacement;
+              });
+
+    for (auto& entry : map.class_coverage) {
+        const auto sites = install_sites.find(entry.class_display_name);
+        entry.install_sites = sites == install_sites.end() ? 0U : sites->second;
     }
 
     map.import_usage.reserve(usage.size());

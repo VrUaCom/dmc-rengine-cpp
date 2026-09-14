@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -100,7 +101,9 @@ void put_text(std::vector<std::byte>& bytes, std::size_t offset, std::string_vie
     put_i32(bytes, 0x241U, 0x0B);
     put(bytes, 0x250U, {0x48, 0x8D, 0x0D});
     put_i32(bytes, 0x253U, 0x0FB9);              // -> literal at 0x2010
-    put(bytes, 0x257U, {0xC3});
+    put(bytes, 0x257U, {0x48, 0x8D, 0x0D});
+    put_i32(bytes, 0x25AU, 0x1122);              // -> the CThing vtable at 0x2180
+    put(bytes, 0x25EU, {0xC3});
 
     put(bytes, 0x280U, {0xFF, 0x25});            // thunk: jmp [rip+...]
     put_i32(bytes, 0x282U, 0x1082);              // -> IAT slot 0x2108
@@ -331,6 +334,58 @@ void prologue_facts_come_from_the_primary_range() {
     assert(map.summary.leaf_functions == 0U);
 }
 
+void referencing_a_vtable_marks_a_construction_site() {
+    const Fixture fixture;
+    const auto map = fixture.build();
+
+    const auto& second = map.functions[1];
+    assert(second.installs_vtables.size() == 1U);
+    assert(second.installs_vtables[0].class_display_name == "CThing");
+    assert(second.installs_vtables[0].vtable_index == 0U);
+    assert(second.installs_vtables[0].vtable_rva == 0x2180U);
+
+    assert(map.summary.with_vtable_install == 1U);
+    assert(map.class_coverage[0].install_sites == 1U);
+
+    // A vtable reference is an attribution in its own right.
+    assert(map.summary.attributed == 2U);
+
+    // The first function references no vtable.
+    assert(map.functions[0].installs_vtables.empty());
+}
+
+void resource_families_are_read_from_literal_text() {
+    using dmc::rengine::exe::resource_family_hints;
+
+    assert(resource_family_hints("demo\\m05_b00\\m05_b00.pac") ==
+           std::vector<std::string>{"PAC"});
+    assert(resource_family_hints("%sDMC3-%d.nbz") == std::vector<std::string>{"NBZ"});
+
+    // Case is irrelevant, and one literal can name several families.
+    assert(resource_family_hints(".PTX") == std::vector<std::string>{"PTX"});
+    const auto several = resource_family_hints("convert .mod to .scm");
+    assert(several.size() == 2U);
+    assert(several[0] == "MOD");
+    assert(several[1] == "SCM");
+
+    // A shader path names the shader family, not a resource container.
+    assert(resource_family_hints("shaders/hlsl/ps/col.hlsl") ==
+           std::vector<std::string>{"SHADER"});
+
+    assert(resource_family_hints("hello world").empty());
+    assert(resource_family_hints("").empty());
+}
+
+void literal_families_reach_the_summary_and_the_census() {
+    const Fixture fixture;
+    const auto map = fixture.build();
+
+    // The fixture's literals name no family, so the census stays empty rather
+    // than inventing one.
+    assert(map.summary.with_resource_family == 0U);
+    assert(map.resource_family_usage.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -366,6 +421,9 @@ int main() {
     call_edges_and_exports_are_recorded();
     reachability_follows_call_edges_from_both_roots();
     prologue_facts_come_from_the_primary_range();
+    referencing_a_vtable_marks_a_construction_site();
+    resource_families_are_read_from_literal_text();
+    literal_families_reach_the_summary_and_the_census();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

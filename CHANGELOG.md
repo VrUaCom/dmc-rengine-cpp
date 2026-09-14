@@ -8,6 +8,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Construction sites, dispatch census and semantic anchors
+
+- functions referencing a recovered class vtable are recorded as construction sites — 710 on the canonical target, led by `CWork` (75), `CConstraint` (55) and `CPlayerWeapon` (48);
+- indirect dispatch census: displacements of `call [reg + disp]` sites collected per function and aggregated — 10,958 sites across 2,070 functions over 145 distinct offsets;
+- `resource_family_hints` classifies a literal's text against the documented resource families, with per-function families and a repository-wide census;
+- measured why literal attribution is narrow in this image: `.pac` names are a packed table (median gap 24 bytes, 99.1 percent under 64) and `.hlsl` paths sit inside DXBC bytecode, so names are data-table content rather than code constants;
+- three candidate resource-resolution functions recorded at `high` confidence with their supporting observations stated separately: NBZ volume-path construction, PTX extension matching, and MOT/CLT extension matching — the last being evidence that CLT shares MOT's path.
+
 #### Switch dispatch and prologue recovery
 
 - switch-table recovery behind register-indirect jumps: candidate bases from RIP-relative `lea` targets *and* non-RIP 32-bit displacements, since a compiler holding the image base in a register reaches tables through `base + disp32`; a candidate is accepted only when consecutive entries land inside the same function, and both offset readings are tried;
