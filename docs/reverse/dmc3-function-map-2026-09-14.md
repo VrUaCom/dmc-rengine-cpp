@@ -79,26 +79,58 @@ enters a jump table.
 | --- | --- |
 | Functions walked | 7,389 |
 | Walks complete | 7,381 |
-| Instructions decoded | 593,458 |
-| Bytes decoded | 2,647,277 |
-| Direct call edges | 26,322 |
-| RIP-relative data references | 25,105 |
+| Instructions decoded | 680,902 |
+| Bytes decoded | 3,042,423 — **98.6%** of the unwind extent |
+| Direct call edges | 28,866 |
+| RIP-relative data references | 27,821 |
+| Switch tables recovered | 637 |
+| Block addresses from switch tables | 6,867 |
+| Indirect jumps still unresolved | 1,177 |
 | Literals recovered | 13,767 |
 
-Decoded bytes fall short of the unwind extent for three reasons, none of them
-decoder failure: embedded jump tables, alignment padding, and blocks reached
-only through indirect dispatch.
+The residual 1.4 percent is alignment padding and blocks reached only through
+indirect dispatch — not decoder failure.
+
+### Switch dispatch
+
+Reaching 98.6 percent required resolving compiled switches, and the dispatch
+form in this build is not the textbook one. It does not load the table with
+`lea reg, [rip+table]`:
+
+```text
+cmp  eax, 6
+ja   default
+mov  ecx, [r12 + rax*4 + 0x29B14]   ; r12 holds the image base
+add  rcx, r12
+jmp  rcx
+```
+
+The table base arrives as a plain 32-bit displacement, because the compiler
+keeps the image base in a register and indexes `base + displacement`. Entries
+are therefore image-base-relative RVAs, not offsets from the table.
+
+That is why the first implementation found zero tables: it only collected
+RIP-relative `lea` targets. Any disp32 in a memory operand is now a candidate,
+and **validation does the filtering** — a candidate is accepted only when
+consecutive entries land inside the same function's own ranges. A large
+structure offset produces zero valid entries and is rejected. Both readings
+(offset-from-table and image-base-relative) are tried, and the one validating
+further wins.
+
+Recovering the tables cut the functions with no structural referrer at all from
+2,101 to **848**, which is the clearest measure of what those missing edges were
+costing.
 
 ## Attribution
 
-2,412 of 7,389 functions now carry at least one structural fact beyond their
+2,426 of 7,389 functions now carry at least one structural fact beyond their
 extent.
 
 | Attribution | Functions |
 | --- | --- |
 | Bound to a class vtable slot | 1,879 |
-| Calls an imported symbol | 528 |
-| References a literal | 150 |
+| Calls an imported symbol | 535 |
+| References a literal | 160 |
 | Exported by name | 2 |
 
 ### Code bound to classes
@@ -122,7 +154,7 @@ inventoried function are mostly shared or unwind-less stubs.
 
 ### Import usage
 
-528 functions call imports, across 218 distinct imported symbols.
+535 functions call imports, across 218 distinct imported symbols.
 
 | Calling functions | Import |
 | --- | --- |
@@ -141,22 +173,49 @@ Two forms are attributed. The direct one is `call [rip+slot]`. The indirect one
 is a thunk: `jmp [rip+slot]`. Thunks carry no unwind data, so they never enter
 the function inventory — an independent objdump pass finds 771 IAT reference
 sites, 651 calls and 120 thunk jumps, of which 110 thunks lie outside every
-unwind range. The map resolves 89 of them by decoding the thunk's single jump,
+unwind range. The map resolves 90 of them by decoding the thunk's single jump,
 which is why `import_thunks` reads zero while import attribution still works.
 
 ## Reachability, and what it does not mean
 
 | Root | Functions reached |
 | --- | --- |
-| CRT entry point, direct calls | 319 |
-| `dmc3_main`, direct calls | 306 |
-| Union with vtable-bound functions | 2,198 |
+| CRT entry point, direct and switch edges | 370 |
+| `dmc3_main`, direct and switch edges | 357 |
+| Union with vtable-bound functions | 2,249 |
+| No structural referrer at all | 848 |
 
-**The remaining 5,191 functions are not dead code.** Virtual dispatch, function
+**The remaining 5,140 functions are not dead code.** Virtual dispatch, function
 pointers in data, jump tables and callbacks are all indirect, and a direct-call
 graph cannot follow any of them. In a codebase where `CWork` is the base of two
 thirds of all polymorphic types, most calls are virtual by construction. The
 number measures the method's reach, not the program's.
+
+## Stack frames from unwind codes
+
+The unwind codes describe exactly what each prologue did, so every function now
+carries frame structure recovered without interpreting a single instruction.
+
+| | |
+| --- | --- |
+| Total stack reserved across all prologues | 694,008 bytes |
+| Average frame | 94 bytes |
+| Largest single frame | 13,544 bytes |
+| Functions establishing a frame pointer | 308 |
+| Functions declaring an exception or termination handler | 2,210 |
+
+The handler count matches an independent flag census of the same directory
+exactly, which is a useful cross-check on the code walker.
+
+`dmc3_main` reads out as: 19-byte prologue, 88 bytes reserved, no pushed
+registers, exception handler present, 103 instructions, 13 callees.
+
+One metric deserves a caution rather than a headline. Exactly **2** of 7,389
+functions have an unwind record describing no prologue work. That is a property
+of the inventory's membership rule, not of the program: a function earns an
+exception-directory entry *because* it has a prologue worth unwinding. The 110
+import thunks sitting outside every unwind range are the same effect seen from
+the other side.
 
 ## Method
 
@@ -165,7 +224,8 @@ synthetic fixtures built inside the test files:
 
 - `X86LengthDecoder` — bounded, fail-closed instruction lengths;
 - `CodeGraphBuilder` — recursive-descent walks folding chained ranges into the
-  function that owns them;
+  function that owns them, and recovering switch tables behind
+  register-indirect jumps;
 - `FunctionMapBuilder` — joins the graph against the import table, the export
   table and the recovered class graph.
 
@@ -181,14 +241,14 @@ has no established behavior.
 
 Next layers, in order of leverage:
 
-- **resolve virtual call sites.** Where a call site's receiver type can be
-  established, a virtual call becomes a real edge and reachability stops being
-  a floor;
-- **switch table recovery.** Decoding the embedded tables the descent currently
-  steps around turns indirect jumps into edges;
-- **COM vtable recovery** for the D3D11 path, invisible to the import table;
-- **prologue and frame analysis** from the unwind codes already parsed, which
-  yields stack frame sizes and saved-register sets per function;
-- **cross-referencing literals** against the documented resource families under
-  [`docs/formats/`](../formats/README.md), where a function referencing a
-  known path pattern gains a first semantic anchor.
+- **resolve virtual call sites.** 1,177 indirect jumps and every virtual call
+  remain unresolved. Where a call site's receiver type can be established, the
+  edge becomes real and reachability stops being a floor. This is the single
+  largest remaining gap in the graph;
+- **cross-reference literals** against the documented resource families under
+  [`docs/formats/`](../formats/README.md). A function referencing a known path
+  pattern gains a first semantic anchor, and 13,767 literals are already
+  recovered and attributed;
+- **argument and return shape** from the frame facts plus register reads before
+  first write, which would give each function a candidate signature;
+- **COM vtable recovery** for the D3D11 path, invisible to the import table.

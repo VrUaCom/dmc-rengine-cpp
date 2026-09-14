@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-code-recovery",
+  "title": "DMC3 HD switch dispatch and prologue recovery",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-switch-dispatch",
+      "claim_id": "claim-dmc3-switch-dispatch",
+      "title": "Compiled switch tables recovered",
+      "summary": "637 switch dispatch tables were recovered behind register-indirect jumps, yielding 6867 block addresses that no direct branch reaches. 1177 indirect jumps remain unresolved and are counted as such. The dispatch form in this build takes the table base from a 32-bit displacement rather than from a RIP-relative load: the compiler keeps the image base in a register and indexes base plus displacement, so table entries are plain RVAs. A candidate table is accepted only when consecutive entries land inside the same function's own ranges, which is what separates a table address from a large structure offset.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "control-flow",
+        "switch-tables",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 170229,
+          "size": 28,
+          "symbol": "switch dispatch",
+          "note": "RVA 0x298D3-0x298F7: a bounds check, an indexed load from a table at displacement 0x29B14, an add of the base register, then a register-indirect jump."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-code-graph-v2",
+      "claim_id": "claim-dmc3-code-graph",
+      "title": "Call and data-reference graph after switch recovery",
+      "summary": "With switch targets treated as walk roots, the recursive descent decodes 680902 instructions over 3042423 bytes, which is 98.6 percent of the 3085665 bytes the unwind data covers. The graph holds 28866 direct call edges and 27821 RIP-relative data references. The earlier figures of 593458 instructions and 2647277 bytes were taken before switch dispatch was resolved and are superseded. 7381 of 7389 functions walk to completion; the residual gap is alignment padding and blocks reached only through indirect dispatch.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "disassembly",
+        "coverage",
+        "correction"
+      ],
+      "supersedes": [
+        "ev-dmc3-code-graph"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3464526,
+          "symbol": ".text",
+          "note": "Regenerate with: dmc-rengine map-functions <exe> --out map.json"
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-reachability-bound-v2",
+      "claim_id": "claim-dmc3-reachability-bound",
+      "title": "Reachability after switch recovery",
+      "summary": "Direct call edges plus recovered switch edges reach 370 functions from the CRT entry point and 357 from dmc3_main. Adding functions bound to a vtable slot brings structurally reachable code to 2249 of 7389. Functions with no structural referrer at all fell from 2101 to 848 once switch edges were available, which is the clearest measure of what the missing edges were costing. The remainder is still not evidence of dead code: virtual dispatch, function pointers in data and callbacks stay indirect. Earlier figures of 319, 306 and 2198 are superseded.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "reachability",
+        "call-graph",
+        "limitations",
+        "correction"
+      ],
+      "supersedes": [
+        "ev-dmc3-reachability-bound"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2907632,
+          "symbol": "dmc3_main",
+          "note": "Reachability root for the game-side traversal."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-prologue-frames",
+      "claim_id": "claim-dmc3-prologue-frames",
+      "title": "Per-function prologue and stack frame facts",
+      "summary": "Unwind codes were decoded for every function, giving each one its prologue size, stack reservation, pushed and saved register counts, and frame-pointer register where one is established. Across 7389 functions the prologues reserve 694008 bytes in total, averaging 94 bytes, with the largest single frame at 13544 bytes. 308 functions establish a frame pointer and 2210 declare an exception or termination handler; the handler count matches an independent flag census of the same directory. This is prologue behavior read from the compiler's own records, without interpreting a single instruction.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "unwind",
+        "stack-frames",
+        "calling-convention"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14102528,
+          "size": 146820,
+          "symbol": "UNWIND_INFO records",
+          "note": "Example: dmc3_main has a 19-byte prologue reserving 88 bytes and declares an exception handler."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-unwind-entry-criterion",
+      "claim_id": "claim-dmc3-unwind-entry-criterion",
+      "title": "Only 2 functions have an empty unwind record",
+      "summary": "Of 7389 functions, exactly 2 carry an unwind record describing no prologue work. This is structural rather than surprising: a function earns an exception-directory entry because it has a prologue worth unwinding, so functions without one are generally absent from the directory. The 110 import thunks that lie outside every unwind range are the same effect seen from the other side. A near-zero count of prologue-free functions is therefore a property of the inventory's membership rule, not a measure of the program.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "unwind",
+        "methodology",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14102528,
+          "symbol": "UNWIND_INFO CountOfCodes",
+          "note": "Independent census of the directory finds CountOfCodes equal to zero on 2 of 7389 primary ranges."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-code-recovery-scope",
+      "claim_id": "claim-dmc3-code-recovery-scope",
+      "title": "Scope boundary after switch and prologue recovery",
+      "summary": "This layer adds control-flow completeness and per-function frame structure. It still names no function and establishes no behavior. Knowing that a function reserves 88 bytes, pushes one register, dispatches through a seven-entry switch and calls sqrtf constrains what it could be doing without establishing what it does. Semantic recovery remains per-function work requiring its own evidence.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "scope",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 0,
+          "symbol": "whole image",
+          "note": "Attributed subset of the map is committed; the full table is regenerable with --all."
+        }
+      ]
+    }
+  ]
+}

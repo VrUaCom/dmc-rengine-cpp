@@ -114,9 +114,37 @@ void put_text(std::vector<std::byte>& bytes, std::size_t offset, std::string_vie
 
 [[nodiscard]] PeFunctionTable make_function_table() {
     PeFunctionTable table;
-    table.functions.push_back(PeFunctionRange{0x1000U, 0x1030U, 0U, false, 0x1000U});
-    table.functions.push_back(PeFunctionRange{0x1040U, 0x1050U, 0U, false, 0x1040U});
-    table.functions.push_back(PeFunctionRange{0x1050U, 0x1060U, 0U, true, 0x1040U});
+
+    // Prologue facts as an unwind record would report them.
+    dmc::rengine::exe::PeUnwindFrame first{};
+    first.version = 1U;
+    first.prolog_size = 0x12U;
+    first.code_count = 2U;
+    first.stack_allocation = 96U;
+    first.pushed_registers = 1U;
+    first.decoded = true;
+
+    dmc::rengine::exe::PeUnwindFrame second{};
+    second.version = 1U;
+    second.prolog_size = 0x10U;
+    second.code_count = 1U;
+    second.frame_register = 5U;
+    second.has_exception_handler = true;
+    second.decoded = true;
+
+    PeFunctionRange entry{0x1000U, 0x1030U, 0U, false, 0x1000U};
+    entry.frame = first;
+    PeFunctionRange split{0x1040U, 0x1050U, 0U, false, 0x1040U};
+    split.frame = second;
+    // A continuation carries its own record, which must not be mistaken for the
+    // function's prologue.
+    PeFunctionRange continuation{0x1050U, 0x1060U, 0U, true, 0x1040U};
+    continuation.frame.stack_allocation = 4096U;
+    continuation.frame.decoded = true;
+
+    table.functions.push_back(entry);
+    table.functions.push_back(split);
+    table.functions.push_back(continuation);
     return table;
 }
 
@@ -162,6 +190,9 @@ struct Fixture final {
     dmc::rengine::exe::CodeGraph graph;
 
     Fixture() {
+        // The exception directory belongs to the directories, exactly as the
+        // PE reader produces it; the map reads prologue facts from there.
+        directories.functions = table;
         graph = CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
     }
 
@@ -270,6 +301,36 @@ void reachability_follows_call_edges_from_both_roots() {
     assert(map.summary.attributed == 2U);
 }
 
+void prologue_facts_come_from_the_primary_range() {
+    const Fixture fixture;
+    const auto map = fixture.build();
+
+    const auto& first = map.functions[0];
+    assert(first.frame.decoded);
+    assert(first.frame.prolog_size == 0x12U);
+    assert(first.frame.stack_allocation == 96U);
+    assert(first.frame.pushed_registers == 1U);
+    assert(!first.frame.uses_frame_pointer());
+
+    const auto& second = map.functions[1];
+    assert(second.frame.uses_frame_pointer());
+    assert(second.frame.frame_register == 5U);
+    assert(second.frame.has_exception_handler);
+
+    // The continuation's 4096-byte record belongs to the range, not to the
+    // function's prologue.
+    assert(second.frame.stack_allocation == 0U);
+
+    assert(map.summary.with_frame_pointer == 1U);
+    assert(map.summary.with_exception_handler == 1U);
+    assert(map.summary.total_stack_allocation == 96U);
+    assert(map.summary.largest_stack_allocation == 96U);
+
+    // Neither function is a leaf: one reserves stack, the other sets a frame
+    // pointer.
+    assert(map.summary.leaf_functions == 0U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -304,6 +365,7 @@ int main() {
     vtable_slots_bind_functions_to_classes();
     call_edges_and_exports_are_recorded();
     reachability_follows_call_edges_from_both_roots();
+    prologue_facts_come_from_the_primary_range();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

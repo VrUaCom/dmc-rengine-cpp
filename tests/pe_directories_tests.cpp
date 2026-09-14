@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <span>
 #include <string>
 #include <string_view>
@@ -52,6 +53,13 @@ void write_u64(std::vector<std::byte>& bytes, std::size_t offset, std::uint64_t 
     for (std::size_t index = 0; index < 8U; ++index) {
         bytes[offset + index] =
             static_cast<std::byte>((value >> static_cast<unsigned>(index * 8U)) & 0xFFU);
+    }
+}
+
+void put(std::vector<std::byte>& bytes, std::size_t offset, std::initializer_list<int> values) {
+    std::size_t index = offset;
+    for (const auto value : values) {
+        bytes[index++] = static_cast<std::byte>(static_cast<unsigned char>(value));
     }
 }
 
@@ -179,6 +187,17 @@ void write_text(std::vector<std::byte>& bytes, std::size_t offset, std::string_v
     write_u32(bytes, file_of(0x21C0U) + 24U, 0x1100U);
     write_u32(bytes, file_of(0x21C0U) + 28U, 0x1100U);
     write_u32(bytes, file_of(0x21C0U) + 32U, 0x2320U);
+
+    // ----- unwind info ----------------------------------------------------
+    // Record for the first function: push one register, then reserve 88 bytes.
+    put(bytes, file_of(0x2300U), {0x01, 0x12, 0x02, 0x00});
+    put(bytes, file_of(0x2300U) + 4U, {0x12, 0x50});  // push non-volatile reg 5
+    put(bytes, file_of(0x2300U) + 6U, {0x0E, 0xA2});  // alloc small: 10*8 + 8
+
+    // Record for the second function: establishes a frame pointer and declares
+    // an exception handler.
+    put(bytes, file_of(0x2310U), {0x09, 0x10, 0x01, 0x25});
+    put(bytes, file_of(0x2310U) + 4U, {0x04, 0x03});  // set frame pointer
 
     // ----- debug ----------------------------------------------------------
     write_u32(bytes, file_of(0x2200U) + 12U, 2U);       // CodeView
@@ -342,6 +361,86 @@ void relocations_and_tls_are_summarized() {
     assert(result.directories.tls->callbacks[0] == 0x140001040ULL);
 }
 
+void unwind_records_describe_each_prologue() {
+    const auto bytes = make_fixture();
+    const auto image = read_image(bytes);
+    const auto result = PeDirectoryReader::read(std::span<const std::byte>{bytes}, image);
+
+    const auto& table = *result.directories.functions;
+    assert(table.functions.size() == 2U);
+
+    const auto& first = table.functions[0].frame;
+    assert(first.decoded);
+    assert(first.version == 1U);
+    assert(first.prolog_size == 0x12U);
+    assert(first.pushed_registers == 1U);
+    // Eight bytes for the push, eighty-eight for the small allocation.
+    assert(first.stack_allocation == 96U);
+    assert(!first.uses_frame_pointer());
+    assert(!first.has_exception_handler);
+
+    const auto& second = table.functions[1].frame;
+    assert(second.decoded);
+    assert(second.uses_frame_pointer());
+    assert(second.frame_register == 5U);
+    assert(second.frame_offset == 2U);
+    assert(second.has_exception_handler);
+    assert(second.stack_allocation == 0U);
+    assert(second.pushed_registers == 0U);
+
+    assert(table.primary_functions == 2U);
+    assert(table.chained_ranges == 0U);
+    assert(table.frame_pointer_functions == 1U);
+    assert(table.handler_functions == 1U);
+    assert(table.total_stack_allocation == 96U);
+    assert(table.largest_stack_allocation == 96U);
+}
+
+void a_large_stack_allocation_is_read_from_its_slot() {
+    auto bytes = make_fixture();
+
+    // Replace the first record with a single large allocation of 0x200 slots.
+    put(bytes, file_of(0x2300U), {0x01, 0x08, 0x02, 0x00});
+    put(bytes, file_of(0x2300U) + 4U, {0x08, 0x01});  // alloc large, info 0
+    put(bytes, file_of(0x2300U) + 6U, {0x00, 0x02});  // 0x200 slots
+
+    const auto image = read_image(bytes);
+    const auto result = PeDirectoryReader::read(std::span<const std::byte>{bytes}, image);
+
+    const auto& frame = result.directories.functions->functions[0].frame;
+    assert(frame.decoded);
+    assert(frame.stack_allocation == 0x200U * 8U);
+    assert(frame.pushed_registers == 0U);
+}
+
+void a_chained_range_is_attributed_to_its_parent() {
+    auto bytes = make_fixture();
+
+    // Make the third exception entry a real range that chains to the first.
+    write_u32(bytes, file_of(0x21C0U) + 28U, 0x1140U);  // non-degenerate end
+    put(bytes, file_of(0x2320U), {0x21, 0x00, 0x00, 0x00});  // version 1, CHAININFO
+    write_u32(bytes, file_of(0x2320U) + 4U, 0x1000U);        // parent begin
+    write_u32(bytes, file_of(0x2320U) + 8U, 0x1040U);        // parent end
+    write_u32(bytes, file_of(0x2320U) + 12U, 0x2300U);       // parent unwind
+
+    const auto image = read_image(bytes);
+    const auto result = PeDirectoryReader::read(std::span<const std::byte>{bytes}, image);
+
+    const auto& table = *result.directories.functions;
+    assert(table.functions.size() == 3U);
+    assert(table.primary_functions == 2U);
+    assert(table.chained_ranges == 1U);
+
+    const auto& continuation = table.functions[2];
+    assert(continuation.chained);
+    assert(!continuation.primary());
+    assert(continuation.primary_begin_rva == 0x1000U);
+
+    // A primary range names itself.
+    assert(table.functions[0].primary());
+    assert(table.functions[0].primary_begin_rva == 0x1000U);
+}
+
 void a_truncated_directory_degrades_without_losing_the_others() {
     auto bytes = make_fixture();
 
@@ -380,6 +479,9 @@ int main() {
     exports_distinguish_addresses_from_forwarders();
     the_exception_table_is_a_function_inventory();
     codeview_identity_is_recovered();
+    unwind_records_describe_each_prologue();
+    a_large_stack_allocation_is_read_from_its_slot();
+    a_chained_range_is_attributed_to_its_parent();
     relocations_and_tls_are_summarized();
     a_truncated_directory_degrades_without_losing_the_others();
     an_image_without_directories_is_not_an_error();

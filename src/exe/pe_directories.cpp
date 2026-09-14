@@ -326,38 +326,129 @@ void read_exports(std::span<const std::byte> bytes, const PeImage& image,
     result.directories.exports = std::move(table);
 }
 
-/// Reads one `UNWIND_INFO` and, when it chains, the parent `RUNTIME_FUNCTION`.
+/// Reads one `UNWIND_INFO`: its prologue facts and, when it chains, the parent
+/// `RUNTIME_FUNCTION` that names the function this range continues.
 ///
 /// Layout: a four-byte header, then `CountOfCodes` two-byte unwind codes padded
-/// to an even count, then — when `UNW_FLAG_CHAININFO` is set — the parent
-/// entry. Handler data occupies the same slot for the handler flags, so the
-/// chained form is the only one this reads.
-[[nodiscard]] std::optional<std::uint32_t> read_chained_parent(std::span<const std::byte> bytes,
-                                                               const PeImage& image,
-                                                               std::uint32_t unwind_rva,
-                                                               bool& readable) {
-    readable = false;
+/// to an even count, then either handler data or — when `UNW_FLAG_CHAININFO` is
+/// set — the parent entry.
+[[nodiscard]] std::optional<std::uint32_t> read_unwind(std::span<const std::byte> bytes,
+                                                      const PeImage& image,
+                                                      std::uint32_t unwind_rva,
+                                                      PeUnwindFrame& frame) {
     const auto offset = offset_of(bytes, image, unwind_rva);
     if (!offset.has_value()) {
         return std::nullopt;
     }
 
     const auto version_flags = read_u8(bytes, *offset);
+    const auto prolog_size = read_u8(bytes, *offset + 1U);
     const auto code_count = read_u8(bytes, *offset + 2U);
-    if (!version_flags.has_value() || !code_count.has_value()) {
+    const auto frame_fields = read_u8(bytes, *offset + 3U);
+    if (!version_flags.has_value() || !prolog_size.has_value() || !code_count.has_value() ||
+        !frame_fields.has_value()) {
         return std::nullopt;
     }
-    readable = true;
 
+    constexpr std::uint8_t exception_handler = 0x01U;
+    constexpr std::uint8_t termination_handler = 0x02U;
     constexpr std::uint8_t chain_info = 0x04U;
-    const auto flags = static_cast<std::uint8_t>(*version_flags >> 3U);
-    if ((flags & chain_info) == 0U) {
+
+    frame.version = static_cast<std::uint8_t>(*version_flags & 0x07U);
+    frame.flags = static_cast<std::uint8_t>(*version_flags >> 3U);
+    frame.prolog_size = *prolog_size;
+    frame.code_count = *code_count;
+    frame.frame_register = static_cast<std::uint8_t>(*frame_fields & 0x0FU);
+    frame.frame_offset = static_cast<std::uint8_t>(*frame_fields >> 4U);
+    frame.has_exception_handler =
+        (frame.flags & (exception_handler | termination_handler)) != 0U;
+
+    // Walk the code array. Each operation declares how many slots it consumes,
+    // so an unrecognised one stops the walk rather than desynchronising it.
+    std::size_t slot = 0U;
+    bool walked = true;
+    while (slot < frame.code_count) {
+        const std::size_t node = *offset + 4U + slot * 2U;
+        const auto operation = read_u8(bytes, node + 1U);
+        if (!operation.has_value()) {
+            walked = false;
+            break;
+        }
+
+        const auto code = static_cast<std::uint8_t>(*operation & 0x0FU);
+        const auto info = static_cast<std::uint8_t>(*operation >> 4U);
+        std::size_t consumed = 1U;
+
+        switch (code) {
+        case 0U:  // push a non-volatile register
+            ++frame.pushed_registers;
+            frame.stack_allocation += 8U;
+            break;
+        case 1U:  // large stack allocation
+            if (info == 0U) {
+                const auto slots = read_u16(bytes, node + 2U);
+                if (!slots.has_value()) {
+                    walked = false;
+                } else {
+                    frame.stack_allocation += static_cast<std::uint32_t>(*slots) * 8U;
+                }
+                consumed = 2U;
+            } else {
+                const auto amount = read_u32(bytes, node + 2U);
+                if (!amount.has_value()) {
+                    walked = false;
+                } else {
+                    frame.stack_allocation += *amount;
+                }
+                consumed = 3U;
+            }
+            break;
+        case 2U:  // small stack allocation, encoded in the operation info
+            frame.stack_allocation += static_cast<std::uint32_t>(info) * 8U + 8U;
+            break;
+        case 3U:  // establish the frame pointer
+            break;
+        case 4U:  // save a non-volatile register
+            ++frame.saved_registers;
+            consumed = 2U;
+            break;
+        case 5U:  // save a non-volatile register, far offset
+            ++frame.saved_registers;
+            consumed = 3U;
+            break;
+        case 8U:  // save an XMM register
+            ++frame.saved_xmm;
+            consumed = 2U;
+            break;
+        case 9U:  // save an XMM register, far offset
+            ++frame.saved_xmm;
+            consumed = 3U;
+            break;
+        case 10U:  // push a machine frame
+            frame.machine_frame = true;
+            break;
+        default:
+            // Epilogue and spare codes have version-dependent sizes. Stop
+            // rather than guess how many slots they take.
+            walked = false;
+            break;
+        }
+
+        if (!walked) {
+            break;
+        }
+        slot += consumed;
+    }
+
+    frame.decoded = walked && slot == frame.code_count;
+
+    if ((frame.flags & chain_info) == 0U) {
         return std::nullopt;
     }
 
-    const std::size_t padded_codes = (static_cast<std::size_t>(*code_count) + 1U) & ~std::size_t{1U};
-    const std::size_t parent_offset = *offset + 4U + padded_codes * 2U;
-    const auto parent_begin = read_u32(bytes, parent_offset);
+    const std::size_t padded_codes =
+        (static_cast<std::size_t>(frame.code_count) + 1U) & ~std::size_t{1U};
+    const auto parent_begin = read_u32(bytes, *offset + 4U + padded_codes * 2U);
     if (!parent_begin.has_value()) {
         return std::nullopt;
     }
@@ -374,10 +465,9 @@ void resolve_chained_functions(std::span<const std::byte> bytes, const PeImage& 
 
     std::vector<std::optional<std::uint32_t>> parents(table.functions.size());
     for (std::size_t index = 0; index < table.functions.size(); ++index) {
-        bool readable = false;
-        parents[index] =
-            read_chained_parent(bytes, image, table.functions[index].unwind_rva, readable);
-        if (!readable) {
+        auto& range = table.functions[index];
+        parents[index] = read_unwind(bytes, image, range.unwind_rva, range.frame);
+        if (range.frame.code_count == 0U && !range.frame.decoded) {
             ++table.unwind_unreadable;
         }
     }
@@ -407,9 +497,19 @@ void resolve_chained_functions(std::span<const std::byte> bytes, const PeImage& 
         range.primary_begin_rva = table.functions[current].begin_rva;
         if (range.chained) {
             ++table.chained_ranges;
-        } else {
-            ++table.primary_functions;
+            continue;
         }
+
+        ++table.primary_functions;
+        if (range.frame.uses_frame_pointer()) {
+            ++table.frame_pointer_functions;
+        }
+        if (range.frame.has_exception_handler) {
+            ++table.handler_functions;
+        }
+        table.total_stack_allocation += range.frame.stack_allocation;
+        table.largest_stack_allocation =
+            std::max(table.largest_stack_allocation, range.frame.stack_allocation);
     }
 }
 

@@ -36,6 +36,13 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("structurally_unreferenced",
                   static_cast<std::uint64_t>(summary.structurally_unreferenced));
     writer.member("strings_recovered", static_cast<std::uint64_t>(summary.strings_recovered));
+    writer.member("with_frame_pointer", static_cast<std::uint64_t>(summary.with_frame_pointer));
+    writer.member("with_exception_handler",
+                  static_cast<std::uint64_t>(summary.with_exception_handler));
+    writer.member("leaf_functions", static_cast<std::uint64_t>(summary.leaf_functions));
+    writer.member("total_stack_allocation", summary.total_stack_allocation);
+    writer.member("largest_stack_allocation",
+                  static_cast<std::uint64_t>(summary.largest_stack_allocation));
     writer.end_object();
 }
 
@@ -49,6 +56,12 @@ void write_graph(JsonWriter& writer, const CodeGraph& graph) {
     writer.member("call_edges", static_cast<std::uint64_t>(graph.call_edges));
     writer.member("data_reference_edges",
                   static_cast<std::uint64_t>(graph.data_reference_edges));
+    writer.member("switch_tables_recovered",
+                  static_cast<std::uint64_t>(graph.switch_tables_recovered));
+    writer.member("switch_targets_recovered",
+                  static_cast<std::uint64_t>(graph.switch_targets_recovered));
+    writer.member("unresolved_indirect_jumps",
+                  static_cast<std::uint64_t>(graph.unresolved_indirect_jumps));
     writer.end_object();
 }
 
@@ -90,6 +103,27 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     if (!facts.walk_complete) {
         writer.member("walk_complete", false);
     }
+    writer.key("frame");
+    writer.begin_object();
+    writer.member("prolog_size", static_cast<std::uint64_t>(facts.frame.prolog_size));
+    writer.member("stack_allocation", static_cast<std::uint64_t>(facts.frame.stack_allocation));
+    writer.member("pushed_registers", static_cast<std::uint64_t>(facts.frame.pushed_registers));
+    if (facts.frame.saved_registers != 0U) {
+        writer.member("saved_registers", static_cast<std::uint64_t>(facts.frame.saved_registers));
+    }
+    if (facts.frame.saved_xmm != 0U) {
+        writer.member("saved_xmm", static_cast<std::uint64_t>(facts.frame.saved_xmm));
+    }
+    if (facts.frame.uses_frame_pointer()) {
+        writer.member("frame_register", static_cast<std::uint64_t>(facts.frame.frame_register));
+    }
+    if (facts.frame.has_exception_handler) {
+        writer.member("exception_handler", true);
+    }
+    if (!facts.frame.decoded) {
+        writer.member("decoded", false);
+    }
+    writer.end_object();
     writer.member("callers", static_cast<std::uint64_t>(facts.caller_count));
     writer.member("callees", static_cast<std::uint64_t>(facts.callee_count));
     if (facts.exported) {

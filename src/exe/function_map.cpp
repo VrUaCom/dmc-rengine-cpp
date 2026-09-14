@@ -172,6 +172,16 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                                : std::unordered_map<std::uint32_t, ImportCall>{};
     map.summary.strings_recovered = strings.size();
 
+    // Prologue facts live on the primary unwind range, keyed by function entry.
+    std::unordered_map<std::uint32_t, PeUnwindFrame> frames;
+    if (inputs.directories != nullptr && inputs.directories->functions.has_value()) {
+        for (const auto& range : inputs.directories->functions->functions) {
+            if (!range.chained) {
+                frames.emplace(range.begin_rva, range.frame);
+            }
+        }
+    }
+
     const FunctionIndex index{graph.functions};
     map.functions.resize(graph.functions.size());
     for (std::size_t position = 0; position < graph.functions.size(); ++position) {
@@ -181,6 +191,9 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         facts.end_rva = walk.end_rva;
         facts.instruction_count = walk.instruction_count;
         facts.walk_complete = walk.complete;
+        if (const auto frame = frames.find(walk.begin_rva); frame != frames.end()) {
+            facts.frame = frame->second;
+        }
     }
 
     // ----- exports ---------------------------------------------------------
@@ -461,6 +474,19 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             facts.string_reference_count != 0U || facts.exported) {
             ++map.summary.attributed;
         }
+
+        if (facts.frame.uses_frame_pointer()) {
+            ++map.summary.with_frame_pointer;
+        }
+        if (facts.frame.has_exception_handler) {
+            ++map.summary.with_exception_handler;
+        }
+        if (is_leaf_frame(facts.frame)) {
+            ++map.summary.leaf_functions;
+        }
+        map.summary.total_stack_allocation += facts.frame.stack_allocation;
+        map.summary.largest_stack_allocation =
+            std::max(map.summary.largest_stack_allocation, facts.frame.stack_allocation);
 
         for (const auto& call : facts.imports_called) {
             ++usage[{call.module, call.function}];

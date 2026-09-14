@@ -135,6 +135,33 @@ void group_immediates_depend_on_the_reg_field() {
     assert(decode_ok({0xF6, 0xD1}).length == 2U);
 }
 
+void displacement_width_and_operand_shape_are_reported() {
+    // A non-RIP disp32 is what a switch-table lookup rides on:
+    // mov eax, [rax*4 + 0x20C0]
+    const auto table_read = decode_ok({0x8B, 0x04, 0x85, 0xC0, 0x20, 0, 0});
+    assert(table_read.length == 7U);
+    assert(!table_read.rip_relative);
+    assert(table_read.displacement_size == 4U);
+    assert(table_read.displacement == 0x20C0);
+
+    const auto short_displacement = decode_ok({0x8B, 0x41, 0x08});
+    assert(short_displacement.displacement_size == 1U);
+    assert(short_displacement.displacement == 8);
+
+    assert(decode_ok({0x8B, 0xC1}).displacement_size == 0U);
+
+    // `jmp rax` is register-direct; `jmp [rip+x]` is not.
+    const auto dispatch = decode_ok({0xFF, 0xE0});
+    assert(dispatch.flow == X86Flow::jump_indirect);
+    assert(dispatch.register_indirect());
+    assert(!decode_ok({0xFF, 0x25, 0x20, 0, 0, 0}).register_indirect());
+
+    // The RIP-relative lea helper must not fire on other RIP operands.
+    assert(decode_ok({0x48, 0x8D, 0x0D, 0x10, 0, 0, 0}).rip_relative_lea());
+    assert(!decode_ok({0x48, 0x8B, 0x0D, 0x10, 0, 0, 0}).rip_relative_lea());
+    assert(!decode_ok({0x48, 0x8D, 0x41, 0x10}).rip_relative_lea());
+}
+
 void unmodelled_and_truncated_encodings_fail_closed() {
     refuses({0xC5, 0xF8, 0x57, 0xC0});  // 2-byte VEX
     refuses({0xC4, 0xE2, 0x79, 0x18});  // 3-byte VEX
@@ -168,6 +195,7 @@ int main() {
     direct_branches_carry_their_displacement();
     indirect_transfers_are_classified_by_the_group_field();
     group_immediates_depend_on_the_reg_field();
+    displacement_width_and_operand_shape_are_reported();
     unmodelled_and_truncated_encodings_fail_closed();
     decoding_respects_the_starting_offset();
     return 0;

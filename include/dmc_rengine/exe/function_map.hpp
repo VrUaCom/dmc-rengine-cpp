@@ -55,6 +55,9 @@ struct FunctionFacts final {
     /// is normally false even in an image full of them.
     bool import_thunk{false};
 
+    /// Prologue facts from the function's unwind record.
+    PeUnwindFrame frame{};
+
     std::vector<ImportCall> imports_called;
     std::vector<VirtualMethodBinding> virtual_bindings;
     std::vector<std::string> referenced_strings;
@@ -112,6 +115,11 @@ struct FunctionMapSummary final {
     std::size_t structurally_unreferenced{};
     std::size_t attributed{};
     std::size_t strings_recovered{};
+    std::size_t with_frame_pointer{};
+    std::size_t with_exception_handler{};
+    std::size_t leaf_functions{};
+    std::uint64_t total_stack_allocation{};
+    std::uint32_t largest_stack_allocation{};
 };
 
 struct FunctionMap final {
@@ -130,6 +138,19 @@ struct FunctionMapInputs final {
     const RttiScanResult* rtti{};
     const CodeGraph* graph{};
 };
+
+/// True for a function whose unwind record describes no prologue work at all:
+/// no stack reserved, nothing saved, no frame pointer established.
+///
+/// Vanishingly rare in practice, and structurally so: a function earns an
+/// exception-directory entry because it has a prologue worth unwinding. A
+/// function with none usually has no entry, which is why import thunks are
+/// absent from the inventory entirely.
+[[nodiscard]] inline bool is_leaf_frame(const PeUnwindFrame& frame) noexcept {
+    return frame.decoded && frame.stack_allocation == 0U && frame.pushed_registers == 0U &&
+           frame.saved_registers == 0U && frame.saved_xmm == 0U && !frame.uses_frame_pointer() &&
+           !frame.machine_frame;
+}
 
 /// Joins the code graph against the import table, the export table and the
 /// recovered class graph to say what is known about each function.

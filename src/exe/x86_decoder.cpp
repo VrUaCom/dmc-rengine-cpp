@@ -414,6 +414,8 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
         const auto mod = static_cast<std::uint8_t>(modrm >> 6U);
         const auto rm = static_cast<std::uint8_t>(modrm & 0x07U);
         instruction.modrm_reg = static_cast<std::uint8_t>((modrm >> 3U) & 0x07U);
+        instruction.modrm_mod = mod;
+        instruction.modrm_rm = rm;
 
         std::size_t displacement_bytes = 0U;
         bool sib = false;
@@ -448,6 +450,7 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
             if (!cursor.available(displacement_bytes)) {
                 return std::nullopt;
             }
+            instruction.displacement_size = static_cast<std::uint8_t>(displacement_bytes);
             if (displacement_bytes == 4U) {
                 instruction.displacement = read_i32(bytes, cursor.position);
             } else {

@@ -50,6 +50,11 @@ struct X86Instruction final {
     /// True when the memory operand is `[rip + displacement]`.
     bool rip_relative{false};
     std::int32_t displacement{};
+    /// Width of the encoded displacement in bytes: 0, 1 or 4. A four-byte
+    /// displacement on a non-RIP operand can be an absolute table address when
+    /// the base register holds the image base, which is how MSVC x64 reaches a
+    /// switch table.
+    std::uint8_t displacement_size{};
 
     /// Signed displacement of a direct branch, valid when `flow` is a direct
     /// call, direct jump or conditional jump. The target is
@@ -61,9 +66,26 @@ struct X86Instruction final {
     /// ModRM reg field, which selects the operation for group opcodes such as
     /// `FF /2` (indirect call) and `FF /4` (indirect jump).
     std::uint8_t modrm_reg{};
+    /// ModRM mod field. Value 3 is register-direct, which distinguishes
+    /// `jmp rax` from `jmp [rax]`.
+    std::uint8_t modrm_mod{};
+    /// ModRM rm field, without the REX.B extension bit.
+    std::uint8_t modrm_rm{};
 
     [[nodiscard]] bool transfers_control() const noexcept {
         return flow != X86Flow::sequential;
+    }
+
+    /// True for `lea reg, [rip + displacement]`, the form MSVC uses to load a
+    /// switch table base and to take the address of a literal.
+    [[nodiscard]] bool rip_relative_lea() const noexcept {
+        return !two_byte_opcode && opcode == 0x8DU && rip_relative;
+    }
+
+    /// True for a register-direct indirect transfer such as `jmp rax`, which is
+    /// how a compiled switch dispatches.
+    [[nodiscard]] bool register_indirect() const noexcept {
+        return has_modrm && modrm_mod == 3U;
     }
 };
 

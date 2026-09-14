@@ -56,6 +56,40 @@ struct PeExportTable final {
     friend bool operator==(const PeExportTable&, const PeExportTable&) = default;
 };
 
+/// Prologue facts recovered from an x64 `UNWIND_INFO` record.
+///
+/// The unwind codes describe exactly what the prologue did: which non-volatile
+/// registers it pushed, how much stack it reserved, whether it established a
+/// frame pointer. That is real per-function structure, recovered without
+/// interpreting a single instruction.
+struct PeUnwindFrame final {
+    std::uint8_t version{};
+    std::uint8_t flags{};
+    std::uint8_t prolog_size{};
+    std::uint8_t code_count{};
+    /// Register number establishing the frame pointer, or zero for none.
+    std::uint8_t frame_register{};
+    std::uint8_t frame_offset{};
+
+    /// Bytes reserved by the prologue's stack allocation operations.
+    std::uint32_t stack_allocation{};
+    std::uint8_t pushed_registers{};
+    std::uint8_t saved_registers{};
+    std::uint8_t saved_xmm{};
+
+    bool has_exception_handler{false};
+    bool machine_frame{false};
+    /// False when the code array could not be walked to its end; the counts
+    /// gathered so far remain valid but are incomplete.
+    bool decoded{false};
+
+    [[nodiscard]] bool uses_frame_pointer() const noexcept {
+        return frame_register != 0U;
+    }
+
+    friend bool operator==(const PeUnwindFrame&, const PeUnwindFrame&) = default;
+};
+
 /// One `RUNTIME_FUNCTION` of an x64 exception directory.
 ///
 /// The table covers every function the compiler emitted unwind data for, which
@@ -75,6 +109,7 @@ struct PeFunctionRange final {
     /// Entry range of the function this range belongs to. Equals `begin_rva`
     /// for a primary range.
     std::uint32_t primary_begin_rva{};
+    PeUnwindFrame frame{};
 
     [[nodiscard]] bool primary() const noexcept {
         return !chained;
@@ -101,6 +136,12 @@ struct PeFunctionTable final {
     /// Ranges whose unwind info could not be read; these are treated as
     /// primary rather than silently attached to a neighbour.
     std::uint32_t unwind_unreadable{};
+    /// Functions whose prologue establishes a frame pointer.
+    std::uint32_t frame_pointer_functions{};
+    /// Functions carrying an exception or termination handler.
+    std::uint32_t handler_functions{};
+    std::uint64_t total_stack_allocation{};
+    std::uint32_t largest_stack_allocation{};
 
     friend bool operator==(const PeFunctionTable&, const PeFunctionTable&) = default;
 };

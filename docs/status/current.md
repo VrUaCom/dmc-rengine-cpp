@@ -76,15 +76,19 @@ Recovered and confirmed:
 Instruction-accurate walks, the call graph and mechanical attribution are in place. See [the function map](../reverse/dmc3-function-map-2026-09-14.md) and [`dmc3-hdc-function-map.evidence.json`](../../evidence/executable/dmc3-hdc-function-map.evidence.json).
 
 - x86-64 length decoder, fail-closed, cross-validated against objdump at 875,067 positions with 99.93 percent agreement (every disagreement in embedded data);
-- recursive-descent walks: 593,458 instructions, 26,322 call edges, 25,105 data references, 7,381 of 7,389 functions complete;
+- recursive-descent walks with switch recovery: 680,902 instructions over 3,042,423 bytes — **98.6 percent of the unwind extent** — 28,866 call edges, 27,821 data references, 7,381 of 7,389 functions complete;
+- 637 switch dispatch tables recovered yielding 6,867 block addresses; 1,177 indirect jumps remain unresolved;
+- prologue facts per function from unwind codes: 694,008 bytes reserved in total, 308 functions with a frame pointer, 2,210 declaring a handler (matching an independent flag census);
 - **correction:** 12,235 exception-directory entries resolve to 7,389 functions plus 4,846 continuation ranges. Supersedes `ev-dmc3-function-inventory`;
-- 2,412 functions attributed: 1,879 bound to a class vtable slot, 528 calling imports, 150 referencing literals;
+- 2,426 functions attributed: 1,879 bound to a class vtable slot, 535 calling imports, 160 referencing literals;
+- functions with no structural referrer at all fell from 2,101 to 848 once switch edges existed;
 - 3,588 of 13,894 vtable slots bound to inventoried functions.
 
 ### Open
 
 - **no function semantics.** The map attributes and counts; it names and explains nothing. A function known to be slot 7 of `CEm010`'s third vtable and to call `sqrtf` still has no established behavior. Per-function recovery is a separate program;
-- **reachability is a floor, not a measure.** 2,198 of 7,389 functions are structurally reachable; the rest are reached by virtual dispatch, function pointers, jump tables and callbacks that a direct-call graph cannot follow. This is not evidence of dead code;
+- **reachability is a floor, not a measure.** 2,249 of 7,389 functions are structurally reachable; the rest are reached by virtual dispatch, function pointers and callbacks that the graph cannot follow. This is not evidence of dead code;
+- **virtual call sites are the largest remaining gap.** 1,177 indirect jumps plus every virtual call are unresolved; resolving receiver types is the next layer;
 - **no field layouts.** RTTI supplies subobject offsets, not members;
 - **renderer surface invisible to imports.** D3D11 is reached through COM vtables; recovering those is separate work;
 - subsystem attribution from the dependency set is recorded at confidence `high`, not `confirmed`.

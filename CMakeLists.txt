@@ -368,6 +368,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
     add_test(
+        NAME dmc_rengine_code_recovery_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-code-recovery.evidence.json)
+    add_test(
         NAME dmc_rengine_function_map_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-function-map.evidence.json)

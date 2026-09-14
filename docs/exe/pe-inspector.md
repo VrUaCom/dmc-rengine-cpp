@@ -134,6 +134,21 @@ The builder also folds chained ranges. An exception-directory entry whose
 so entry count overstates function count — on the canonical DMC3 target, 12,235
 entries are 7,389 functions.
 
+Behind a register-indirect jump it attempts switch-table recovery. Candidate
+table bases are every RIP-relative `lea` target and every 32-bit displacement in
+a memory operand, because a compiler that keeps the image base in a register
+reaches its tables through `base + disp32` rather than through a RIP-relative
+load. A candidate is accepted only when consecutive entries land inside the same
+function's own ranges; both the offset-from-table and the image-base-relative
+reading are tried, and the one validating further wins. Jumps with no valid
+table are counted as unresolved rather than assumed empty.
+
+`PeDirectoryReader` also decodes the unwind code array, so each range reports its
+prologue size, stack reservation, pushed and saved register counts,
+frame-pointer register and handler flags. An unrecognised unwind operation stops
+the walk instead of desynchronising it, and the range is marked not fully
+decoded.
+
 ## Function attribution
 
 `FunctionMapBuilder::build(bytes, inputs)` joins the code graph against the
@@ -141,6 +156,9 @@ import table, the export table and the recovered RTTI class graph. Per function
 it reports callers and callees, reachability from the entry point and from each
 export, vtable slots that bind it to a class, imported symbols it calls, and
 literals it references.
+
+Per function it also surfaces the prologue facts from the primary unwind range —
+a continuation's own record is never mistaken for the function's prologue.
 
 Import calls are attributed in both forms: `call [rip+slot]` directly, and
 `jmp [rip+slot]` thunks. Thunks usually carry no unwind data and so never enter
@@ -174,9 +192,8 @@ for the canonical target's results.
 ## Planned extensions
 
 - load-config and control-flow-guard tables;
-- switch jump-table recovery, turning indirect jumps into graph edges;
 - virtual call-site resolution, which would lift reachability off its floor;
-- prologue and frame analysis from the unwind codes already parsed;
+- argument and return shape from frame facts plus first-use register analysis;
 - COM vtable recovery for interfaces the import table cannot see;
 - per-function semantic recovery over the function inventory;
 - executable source-recovery database.

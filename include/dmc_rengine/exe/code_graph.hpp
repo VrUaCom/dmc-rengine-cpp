@@ -56,6 +56,14 @@ struct FunctionWalk final {
     std::uint32_t indirect_jumps{};
     std::uint32_t returns{};
 
+    /// Switch dispatch tables recovered behind register-indirect jumps.
+    std::uint32_t switch_tables{};
+    /// Indirect jumps for which no table could be validated. These remain
+    /// genuine holes in the graph rather than assumed-empty ones.
+    std::uint32_t unresolved_indirect_jumps{};
+    /// Sorted, unique block addresses reached only through a switch table.
+    std::vector<std::uint32_t> switch_targets;
+
     /// Sum of the function's range sizes, which is its real code extent.
     [[nodiscard]] std::uint32_t size() const noexcept {
         std::uint32_t total = 0U;
@@ -86,6 +94,9 @@ struct CodeGraph final {
     std::uint64_t total_decoded_bytes{};
     std::size_t call_edges{};
     std::size_t data_reference_edges{};
+    std::size_t switch_tables_recovered{};
+    std::size_t switch_targets_recovered{};
+    std::size_t unresolved_indirect_jumps{};
 
     std::vector<std::string> warnings;
 };

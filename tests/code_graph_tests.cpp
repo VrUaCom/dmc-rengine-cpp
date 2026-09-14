@@ -99,6 +99,20 @@ void put_i32(std::vector<std::byte>& bytes, std::size_t offset, std::int32_t val
     put(bytes, 0x280U, {0xFF, 0x25});                         // 0x1080 jmp [rip+...]
     put_i32(bytes, 0x282U, 0x1082);                           //        -> slot 0x2108
 
+    // --- function C at 0x10A0: a compiled switch -------------------------
+    // mov eax, [rax*4 + 0x20C0] loads a table entry; the base register is
+    // assumed to hold the image base, so entries are plain RVAs.
+    put(bytes, 0x2A0U, {0x8B, 0x04, 0x85});                   // 0x10A0
+    put_i32(bytes, 0x2A3U, 0x20C0);                           //        table at 0x20C0
+    put(bytes, 0x2A7U, {0xFF, 0xE0});                         // 0x10A7 jmp rax
+    put(bytes, 0x2B0U, {0xC3});                               // 0x10B0 case 0
+    put(bytes, 0x2B8U, {0xC3});                               // 0x10B8 case 1
+
+    // The table itself, in .rdata at 0x20C0 (file 0x4C0). A third entry would
+    // read as zero, which lands outside the function and ends enumeration.
+    put_i32(bytes, 0x4C0U, 0x10B0);
+    put_i32(bytes, 0x4C4U, 0x10B8);
+
     return bytes;
 }
 
@@ -108,7 +122,8 @@ void put_i32(std::vector<std::byte>& bytes, std::size_t offset, std::int32_t val
     table.functions.push_back(PeFunctionRange{0x1040U, 0x1050U, 0U, false, 0x1040U});
     // The continuation names its primary, which is what folds them together.
     table.functions.push_back(PeFunctionRange{0x1050U, 0x1060U, 0U, true, 0x1040U});
-    table.primary_functions = 2U;
+    table.functions.push_back(PeFunctionRange{0x10A0U, 0x10C0U, 0U, false, 0x10A0U});
+    table.primary_functions = 3U;
     table.chained_ranges = 1U;
     return table;
 }
@@ -121,9 +136,9 @@ void chained_ranges_fold_into_one_function() {
     const auto graph =
         CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
 
-    assert(graph.exception_directory_entries == 3U);
-    assert(graph.functions.size() == 2U);
-    assert(graph.functions_walked == 2U);
+    assert(graph.exception_directory_entries == 4U);
+    assert(graph.functions.size() == 3U);
+    assert(graph.functions_walked == 3U);
 
     const auto& split = graph.functions[1];
     assert(split.begin_rva == 0x1040U);
@@ -146,7 +161,7 @@ void the_descent_never_walks_unreachable_bytes() {
     // walk stays complete.
     assert(first.instruction_count == 10U);
     assert(first.complete);
-    assert(graph.functions_complete == 2U);
+    assert(graph.functions_complete == 3U);
     // 4 + 7 + 5 + 2 + 6 + 2 + 4 + 1 + 5 + 1 bytes. The int3 padding between the
     // two returns is unreachable and stays undecoded.
     assert(first.decoded_bytes == 37U);
@@ -178,9 +193,73 @@ void control_flow_and_references_are_extracted() {
     // The jump into its own continuation is local, not an external edge.
     assert(second.external_jump_targets.empty());
 
-    assert(graph.total_instructions == 13U);
+    assert(graph.total_instructions == 17U);
     assert(graph.call_edges == 2U);
+    // The switch lookup's displacement is a table candidate, not a RIP-relative
+    // operand, so it adds no data-reference edge.
     assert(graph.data_reference_edges == 3U);
+}
+
+void a_switch_table_is_recovered_and_walked() {
+    const auto image = make_image();
+    const auto bytes = make_code();
+    const auto graph = CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image,
+                                              make_function_table());
+
+    const auto& dispatch = graph.functions[2];
+    assert(dispatch.begin_rva == 0x10A0U);
+    assert(dispatch.switch_tables == 1U);
+    assert(dispatch.unresolved_indirect_jumps == 0U);
+    assert(dispatch.switch_targets.size() == 2U);
+    assert(dispatch.switch_targets[0] == 0x10B0U);
+    assert(dispatch.switch_targets[1] == 0x10B8U);
+
+    // Both case blocks were reached only through the table, so their `ret`
+    // instructions are part of the walk.
+    assert(dispatch.instruction_count == 4U);
+    assert(dispatch.returns == 2U);
+    assert(dispatch.indirect_jumps == 1U);
+    assert(dispatch.complete);
+
+    assert(graph.switch_tables_recovered == 1U);
+    assert(graph.switch_targets_recovered == 2U);
+    assert(graph.unresolved_indirect_jumps == 0U);
+}
+
+void an_indirect_jump_without_a_valid_table_stays_unresolved() {
+    const auto image = make_image();
+    auto bytes = make_code();
+
+    // Point the lookup at a table whose entries land outside the function.
+    put_i32(bytes, 0x4C0U, 0x9000);
+    put_i32(bytes, 0x4C4U, 0x9008);
+
+    const auto graph = CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image,
+                                              make_function_table());
+
+    const auto& dispatch = graph.functions[2];
+    assert(dispatch.switch_tables == 0U);
+    assert(dispatch.switch_targets.empty());
+    assert(dispatch.unresolved_indirect_jumps == 1U);
+
+    // The case blocks are now unreachable, so the walk is shorter.
+    assert(dispatch.instruction_count == 2U);
+    assert(graph.unresolved_indirect_jumps == 1U);
+}
+
+void a_memory_indirect_jump_is_never_treated_as_a_switch() {
+    const auto image = make_image();
+    const auto bytes = make_code();
+
+    // Function at 0x1080 is `jmp [rip+slot]`: a thunk, not a dispatch.
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1080U, 0x1090U, 0U, false, 0x1080U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions[0].indirect_jumps == 1U);
+    assert(graph.functions[0].switch_tables == 0U);
+    assert(graph.functions[0].unresolved_indirect_jumps == 1U);
 }
 
 void a_range_outside_every_section_is_reported_not_walked() {
@@ -222,6 +301,9 @@ int main() {
     chained_ranges_fold_into_one_function();
     the_descent_never_walks_unreachable_bytes();
     control_flow_and_references_are_extracted();
+    a_switch_table_is_recovered_and_walked();
+    an_indirect_jump_without_a_valid_table_stays_unresolved();
+    a_memory_indirect_jump_is_never_treated_as_a_switch();
     a_range_outside_every_section_is_reported_not_walked();
     an_undecodable_body_marks_the_walk_incomplete();
     return 0;
