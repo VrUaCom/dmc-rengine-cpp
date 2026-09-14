@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-table-extents",
+  "title": "DMC3 HD table extents corrected against absorbed string pools",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-reference-pitch-detects-extent-error",
+      "claim_id": "claim-dmc3-reference-pitch-detects-extent-error",
+      "title": "The pitch of constant references measures a table's real element size",
+      "summary": "A constant index folded into a displacement makes every reference an exact byte offset into the table, so the spacing of those offsets is a measurement of the element size that is independent of anything read from the bytes. Where the two disagree the byte reading is wrong. Two runs disagreed: at RVA 0x36F288 and at RVA 0x506F68 the references ran at a pitch of eight under a declared stride of sixteen, and the scan had to record every second one as landing eight bytes inside an element. Neither run is indexed at eight throughout; in both the pitch changes partway, and the point at which it changes is the end of the real table. This is a cheap check that needs no new analysis, only the references already recovered, and it is the check that would have caught the blind spot recorded in dmc3-hdc-table-indices without waiting for anyone to doubt the result.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271912,
+          "size": 352,
+          "symbol": "run whose reference pitch contradicted its stride",
+          "note": "RVA 0x506F68, declared stride 16 over 22 elements. References at offsets 0 through 240 run at a pitch of 16; from offset 256 they run at a pitch of 8."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601032,
+          "size": 480,
+          "symbol": "run whose reference pitch contradicted its stride",
+          "note": "RVA 0x36F288, declared stride 16 over 30 elements. References at offsets 456, 464 and 472 run at a pitch of 8."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-trailing-pool-absorption",
+      "claim_id": "claim-dmc3-pool-rejection-blind-spot",
+      "title": "A grid runs off its table into the pool that follows it",
+      "summary": "The blind spot recorded earlier is not a pool that resembles a table; it is a real table whose extent ran past its own end. A pool of short names is padded to the same alignment the grid uses, so the grid keeps validating after the table has ended, and because the pool's own strings fall at a fixed sub-multiple of the stride the payload offsets stay consistent and the existing pool rejection never fires. What separates the two is where payload appears: an element of a name table is a name and NUL padding, so payload can only appear once the grid has left the table, as an unbroken run at the end. Payload from the first element is a record whose second field the constant-stride scan cannot see, and trimming that would delete a real table, so the rule requires a strict suffix containing at least one text payload. Applying it corrects RVA 0x506F68 from 22 elements to 16 and RVA 0x36F288 from 30 to 28, and trims two further runs, removing 14 absorbed elements in total across four runs of 223.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-pool-rejection-blind-spot"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271912,
+          "size": 256,
+          "symbol": "corrected table extent",
+          "note": "RVA 0x506F68, stride 16, corrected from 22 elements to 16. The corrected run is a pure name array; sample name FogColor."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601032,
+          "size": 448,
+          "symbol": "corrected table extent",
+          "note": "RVA 0x36F288, stride 16, corrected from 30 elements to 28. Sample name Maguma.ogg."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-trimmed-tail-recovered",
+      "claim_id": "claim-dmc3-trimmed-tail-recovered",
+      "title": "The absorbed tail is a table in its own right",
+      "summary": "Trimming does not consume the elements it removes, so the scan reads the region again on its own terms. The tail taken off RVA 0x506F68 is recovered as a separate run at RVA 0x507068 with a stride of eight and 11 entries, and every one of those entries is named by a constant index from two functions. That is the strongest confirmation available for both readings at once: the pitch of eight that contradicted the old stride is the new run's declared stride, and the contradiction disappears. Across the image the references that had to be recorded as landing inside an element fall from 16 to 7, and the total number of references rises from 202 to 206. The seven that remain sit at offsets of 13, 16 and 20 under strides of 16 and 24, which is not the sub-multiple pitch of an absorbed pool and points at genuine field access within a record.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5272168,
+          "size": 88,
+          "symbol": "table recovered from a trimmed tail",
+          "note": "RVA 0x507068, stride 8, 11 entries, all 11 named by a constant index from 2 functions."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271688,
+          "size": 144,
+          "symbol": "table adjacent to a corrected extent",
+          "note": "RVA 0x506E88, stride 16, 9 entries, all 9 named by a constant index."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-table-coverage-reading-corrected",
+      "claim_id": "claim-dmc3-table-coverage-reading",
+      "title": "How to read a table's coverage, with payload-bearing runs settled",
+      "summary": "The earlier reading held that coverage measured over a payload-bearing run is an upper bound until the extent is confirmed independently. That caveat can now be discharged for the two runs it was written about. RVA 0x506F68 read 22 of 22 elements covered; corrected to 16 elements it reads 16 of 16, and the tail that inflated the count is its own fully covered table. The caveat itself stands and is worth keeping: coverage is trustworthy where the extent is, and the reference pitch is what settles the extent.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "resource-names",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [
+        "ev-dmc3-table-coverage-reading"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271912,
+          "size": 256,
+          "symbol": "fully covered name array",
+          "note": "RVA 0x506F68, stride 16, 16 entries, all 16 named by a constant index from 2 functions."
+        }
+      ]
+    }
+  ]
+}

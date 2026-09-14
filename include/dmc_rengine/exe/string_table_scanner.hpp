@@ -37,6 +37,11 @@ struct StringTableRun final {
     /// happens to fall on a regular spacing.
     bool payload_offset_consistent{true};
 
+    /// Elements trimmed from the end of the run because they were a packed
+    /// string pool the grid had absorbed, not table elements. Zero for a run
+    /// whose extent the scan never had reason to doubt.
+    std::uint32_t absorbed_elements{};
+
     /// First name in the run, as a sample of what the table holds.
     std::string first_name;
 

@@ -178,3 +178,58 @@ ORDER BY a.argument_index, n DESC;
 the actual available binary payloads and describes the 22-slot runtime family,
 including explicit `MISSING_BYTES` slots. The Markdown report is
 `docs/research/dmc3-eventtbl-corpus-reverse-2026-09-12.md`.
+
+## Executable reverse layer
+
+`007_executable_reverse.sql` indexes the deterministic reports produced by the
+`analyze-exe` and `map-functions` commands: functions and their prologue facts,
+RTTI classes, vtable bindings and installs, import calls, virtual dispatch
+offsets, recovered name tables and the references from code into them. Build it
+from reports, never from the executable directly:
+
+```sh
+dmc-rengine analyze-exe   <exe> --out analysis.json
+dmc-rengine map-functions <exe> --all --out map.json
+python research/sql/import_executable_reverse.py \
+    --analysis analysis.json --map map.json \
+    --db research-private/reverse.sqlite3
+```
+
+The importer refuses reports whose artifact SHA-256 differ, and never invents a
+table to hang a reference on. Tables hold layout and linkage only, plus one
+representative name per run; table contents are not extracted here.
+
+No function carries a recovered name. `exe_function.recovered_name` is NULL
+throughout with `name_evidence_status='PRESERVED_UNDECODED'`, and the column
+exists for names that evidence later supports.
+
+### Reading a table's extent
+
+`v_exe_table_coverage` answers the question the scan cannot answer alone: does
+the code agree with the extent read off the bytes? A constant index is folded
+into its displacement, so each reference is an exact byte offset and the spacing
+of those offsets measures the element size independently.
+
+```sql
+-- Runs the code indexes at a pitch their declared stride cannot express.
+SELECT base_rva, element_bytes, entries, interior_references, extent_status
+FROM v_exe_table_coverage
+WHERE interior_references > 0;
+
+-- Runs whose extent was corrected against an absorbed string pool.
+SELECT base_rva, element_bytes, entries, absorbed_elements, sample_name
+FROM exe_name_table
+WHERE absorbed_elements > 0;
+```
+
+`extent_status` records how far each run's extent is settled:
+
+| value | meaning |
+| --- | --- |
+| `STRUCTURAL_CONFIRMED` | layout and extent both stand as read |
+| `EXTENT_TRIMMED` | extent corrected against an absorbed string pool |
+| `SEMANTIC_CANDIDATE` | payload-bearing run whose extent is not settled |
+| `EXTENT_UNCLASSIFIED` | run known only through the function map, which carries its layout but not its payload measurements |
+
+Guardrails for the importer are in `test_import_executable_reverse.py` and run
+in CI.

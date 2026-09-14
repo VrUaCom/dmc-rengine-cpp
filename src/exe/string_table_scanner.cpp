@@ -381,9 +381,9 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
             run.stride = stride;
 
             std::vector<std::string> extensions;
-            std::size_t entries = 0U;
-            while (entries < kMaxRunEntries) {
-                const auto offset = begin + starts[position] + entries * stride;
+            std::vector<Element> elements;
+            while (elements.size() < kMaxRunEntries) {
+                const auto offset = begin + starts[position] + elements.size() * stride;
                 if (offset + stride > begin + size) {
                     break;
                 }
@@ -395,28 +395,70 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
                 }
 
                 const auto name = detail::read_cstring(bytes, offset, stride);
-                if (entries == 0U) {
+                if (elements.empty()) {
                     run.first_name = name.value_or(std::string{});
                 }
                 extensions.push_back(extension_of(name.value_or(std::string{})));
-                run.longest_name = std::max(run.longest_name, element.name_length);
-                if (element.payload_after_terminator) {
-                    if (run.records_with_payload == 0U) {
-                        run.first_payload_offset = element.payload_offset;
-                    } else if (element.payload_offset != run.first_payload_offset) {
-                        run.payload_offset_consistent = false;
+                elements.push_back(element);
+            }
+
+            // A grid can run off the end of its table into the packed string
+            // pool that follows it, because a pool of short names is padded to
+            // the same alignment the grid uses and so keeps validating. What
+            // gives it away is where the payload sits: table elements are name
+            // plus NUL padding, so payload appears only once the grid has left
+            // the table, as an unbroken run of elements at the end.
+            //
+            // Trimming needs that run to be a strict suffix. Payload from the
+            // first element onwards is a record array whose second field this
+            // scan cannot see, and trimming it would delete a real table.
+            //
+            // What is left after trimming is not second-guessed here. A head
+            // too short to be a table fails the minimum below and the run goes
+            // entirely, which is the right answer: three names and a pool is
+            // evidence of a pool, not of a three-element table.
+            auto entries = elements.size();
+            {
+                std::size_t first_payload = entries;
+                std::size_t payload_count = 0U;
+                std::size_t text_count = 0U;
+                for (std::size_t index = 0U; index < entries; ++index) {
+                    if (!elements[index].payload_after_terminator) {
+                        continue;
                     }
-                    ++run.records_with_payload;
-                    if (element.payload_is_text) {
-                        ++run.text_payload_records;
-                    }
+                    first_payload = std::min(first_payload, index);
+                    ++payload_count;
+                    text_count += elements[index].payload_is_text ? 1U : 0U;
                 }
-                ++entries;
+
+                const bool suffix = payload_count != 0U && first_payload + payload_count == entries;
+                if (suffix && text_count != 0U && first_payload != 0U) {
+                    run.absorbed_elements = static_cast<std::uint32_t>(entries - first_payload);
+                    entries = first_payload;
+                }
             }
 
             if (entries < options.minimum_entries) {
                 ++position;
                 continue;
+            }
+
+            elements.resize(entries);
+            extensions.resize(entries);
+            for (const auto& element : elements) {
+                run.longest_name = std::max(run.longest_name, element.name_length);
+                if (!element.payload_after_terminator) {
+                    continue;
+                }
+                if (run.records_with_payload == 0U) {
+                    run.first_payload_offset = element.payload_offset;
+                } else if (element.payload_offset != run.first_payload_offset) {
+                    run.payload_offset_consistent = false;
+                }
+                ++run.records_with_payload;
+                if (element.payload_is_text) {
+                    ++run.text_payload_records;
+                }
             }
 
             // Reject a grid laid over a packed string pool. In a pool the
@@ -434,12 +476,13 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
             }
 
             run.entries = static_cast<std::uint32_t>(entries);
-            extensions.resize(entries);
             detect_content_period(extensions, options.maximum_content_period, run);
             result.entries_in_runs += entries;
             result.runs.push_back(std::move(run));
 
-            // Skip the candidates this run consumed.
+            // Skip the candidates this run consumed. Absorbed elements are not
+            // consumed: the pool they came from is left for the scan to read on
+            // its own terms.
             const auto run_end = starts[position] + entries * stride;
             while (position < starts.size() && starts[position] < run_end) {
                 ++position;

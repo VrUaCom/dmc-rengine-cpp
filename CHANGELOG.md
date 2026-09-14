@@ -8,6 +8,23 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Table extents corrected against absorbed string pools
+
+- **blind spot closed.** The limitation recorded below is not a pool that resembles a table; it is a real table whose extent ran past its own end into the pool that follows it. A pool of short names is padded to the alignment the grid uses, and because its strings fall at a fixed sub-multiple of the stride the payload offsets stay consistent, so the pool rejection never fires;
+- `StringTableScanner` now trims a run whose payload-bearing elements form a strict suffix containing at least one text payload. Payload from the first element is a record whose second field the constant-stride scan cannot see, and trimming that would delete a real table, so the rule requires a suffix. A head too short to be a table then fails the minimum and the run goes entirely: three names and a pool is evidence of a pool;
+- `FogColor` at RVA 0x506F68 is corrected from 22 elements to 16 and `Maguma.ogg` at RVA 0x36F288 from 30 to 28; four runs are trimmed of 14 absorbed elements in total, giving 223 runs and 5,813 entries;
+- trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
+- **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
+
+#### Research SQLite: executable reverse layer
+
+- `research/sql/007_executable_reverse.sql` indexes the `analyze-exe` and `map-functions` reports across 10 tables and 3 views, so cross-cutting questions — which functions read a given table, call a maths import and are bound to a class — are a query rather than a walk over a two-megabyte document;
+- `v_exe_table_coverage` exposes `interior_references` against each run's declared stride, which is the extent check above as a standing query rather than a one-off;
+- `extent_status` records how far each run's extent is settled: `STRUCTURAL_CONFIRMED`, `EXTENT_TRIMMED`, `SEMANTIC_CANDIDATE`, or `EXTENT_UNCLASSIFIED` for a run known only through the function map;
+- the importer refuses reports whose artifact SHA-256 differ and never invents a table to hang a reference on; a run the analysis report's capped list omits is created from the map's own layout facts, with payload measurements left unknown rather than guessed, so all 206 references land;
+- no function carries a recovered name: `exe_function.recovered_name` is NULL throughout with `name_evidence_status='PRESERVED_UNDECODED'`;
+- the database is generated locally and is not committed. Importer guardrails run in CI.
+
 #### Constant table indices
 
 - each table reference now resolves its element: a constant index is folded into the displacement, so an offset that is a whole multiple of the element size names one element outright, and for a record layout the remainder picks the field. 186 of 202 references are constant, 16 computed;

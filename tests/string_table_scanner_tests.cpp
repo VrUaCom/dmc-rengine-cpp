@@ -13,6 +13,7 @@ namespace {
 using dmc::rengine::exe::PeImage;
 using dmc::rengine::exe::PeKind;
 using dmc::rengine::exe::PeSection;
+using dmc::rengine::exe::StringTableRun;
 using dmc::rengine::exe::StringTableScanner;
 using dmc::rengine::exe::StringTableScanOptions;
 
@@ -271,6 +272,81 @@ void a_grid_over_a_packed_pool_is_rejected() {
     }
 }
 
+void a_trailing_pool_is_trimmed_off_the_run() {
+    // The shape that defeats the pool rejection above: a real stride-16 array
+    // followed immediately by a pool of short names packed at 8-byte alignment.
+    // Every absorbed element holds a terminated name and its payload starts at
+    // the same offset each time, so consistency proves nothing. What does prove
+    // something is that payload appears only once the grid has left the table.
+    auto bytes = make_pure_array();
+    constexpr std::size_t kPool = 0x400U + 12U * 16U;
+    for (std::size_t index = 0; index < 8U; ++index) {
+        put_text(bytes, kPool + index * 8U, "ext" + std::to_string(index));
+    }
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+
+    const auto* table = static_cast<const StringTableRun*>(nullptr);
+    for (const auto& run : result.runs) {
+        if (run.stride == 16U) {
+            table = &run;
+        }
+    }
+    assert(table != nullptr);
+    assert(table->entries == 12U);
+    assert(table->absorbed_elements == 4U);
+    // Trimming restores the table's real character: it is a pure name array.
+    assert(table->pure_name_array());
+    assert(table->span_bytes() == 192U);
+
+    // The trimmed elements are not consumed, so the pool is free to be read at
+    // its own spacing rather than being lost with the tail.
+    bool pool_seen = false;
+    for (const auto& run : result.runs) {
+        if (run.stride == 8U && run.base_rva == 0x2000U + 192U) {
+            pool_seen = true;
+            assert(run.entries == 8U);
+        }
+    }
+    assert(pool_seen);
+}
+
+void a_head_too_short_to_be_a_table_is_rejected_not_trimmed() {
+    // Only three clean elements before the pool begins. Trimming leaves a stub
+    // below the minimum, and a stub is not evidence of a table: the run must be
+    // dropped rather than reported at its trimmed length.
+    std::vector<std::byte> bytes(0xA00U, std::byte{0});
+    for (std::size_t index = 0; index < 3U; ++index) {
+        put_text(bytes, 0x400U + index * 16U, "name" + std::to_string(index) + ".pac");
+    }
+    for (std::size_t index = 0; index < 16U; ++index) {
+        put_text(bytes, 0x400U + 48U + index * 8U, "ext" + std::to_string(index));
+    }
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    for (const auto& run : result.runs) {
+        assert(run.stride != 16U);
+    }
+}
+
+void scattered_payload_is_not_a_trailing_pool() {
+    // Two payload-bearing elements in the middle of the run. A pool the grid
+    // has run into cannot stop and resume, so a gap after payload rules the
+    // reading out and the extent stands.
+    auto bytes = make_pure_array();
+    put_text(bytes, 0x400U + 3U * 16U + 11U, "mid3");
+    put_text(bytes, 0x400U + 9U * 16U + 11U, "mid9");
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.runs.size() == 1U);
+    assert(result.runs[0].entries == 12U);
+    assert(result.runs[0].absorbed_elements == 0U);
+    assert(result.runs[0].records_with_payload == 2U);
+}
+
 void degenerate_options_are_refused() {
     const auto image = make_image();
     const auto bytes = make_pure_array();
@@ -298,6 +374,9 @@ int main() {
     too_few_records_is_not_a_table();
     the_content_period_of_a_uniform_run_is_one();
     a_grid_over_a_packed_pool_is_rejected();
+    a_trailing_pool_is_trimmed_off_the_run();
+    a_head_too_short_to_be_a_table_is_rejected_not_trimmed();
+    scattered_payload_is_not_a_trailing_pool();
     degenerate_options_are_refused();
     return 0;
 }

@@ -259,6 +259,20 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
     writer.member("runs", static_cast<std::uint64_t>(tables.runs.size()));
     writer.member("entries_in_runs", static_cast<std::uint64_t>(tables.entries_in_runs));
 
+    // Runs whose extent the scan pulled back off a trailing string pool, and
+    // how many elements that removed in total.
+    std::uint64_t trimmed_runs = 0U;
+    std::uint64_t absorbed_elements = 0U;
+    for (const auto& run : tables.runs) {
+        if (run.absorbed_elements == 0U) {
+            continue;
+        }
+        ++trimmed_runs;
+        absorbed_elements += run.absorbed_elements;
+    }
+    writer.member("trimmed_runs", trimmed_runs);
+    writer.member("absorbed_elements", absorbed_elements);
+
     writer.member("record_runs", static_cast<std::uint64_t>(tables.records.size()));
 
     writer.key("records");
@@ -304,6 +318,9 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
         writer.member("longest_name", static_cast<std::uint64_t>(run.longest_name));
         writer.member("span_bytes", run.span_bytes());
         writer.member("pure_name_array", run.pure_name_array());
+        if (run.absorbed_elements != 0U) {
+            writer.member("absorbed_elements", static_cast<std::uint64_t>(run.absorbed_elements));
+        }
         if (!run.pure_name_array()) {
             writer.member("records_with_payload",
                           static_cast<std::uint64_t>(run.records_with_payload));

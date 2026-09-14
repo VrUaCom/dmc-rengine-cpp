@@ -275,6 +275,13 @@ upper bound until the run's extent is confirmed some other way.
 Three false-positive modes were found and closed earlier in this work; this is a
 fourth, found by pushing on a result that looked too good.
 
+> **Closed.** The reading above is right that the run over-extends and wrong
+> about what it is: `0x506F68` is a real sixteen-element table, not a pool, and
+> the grid ran off its end into the pool that follows. See
+> [table extents](dmc3-table-extents-2026-09-14.md), where the run is corrected
+> to 16 elements reading 16 of 16 covered, and the absorbed tail is recovered as
+> a table of its own.
+
 ## Open work
 
 - **non-name fields.** Every layout recovered so far is made entirely of name
@@ -282,9 +289,10 @@ fourth, found by pushing on a result that looked too good.
   periodicity, because the numbers leave no candidate name to measure from;
 - **the 16 computed indices.** Constant indices are read; the rest arrive in a
   register and need the same value tracking that virtual dispatch needs;
-- **narrowing over-extended runs.** A run's extent could be confirmed against
-  the constant indices that reference it: references clustering in the first N
-  elements while the run claims more is a signal the tail is absorbed;
+- ~~**narrowing over-extended runs.**~~ Done, by a stronger form of the same
+  idea: the *pitch* of a run's references measures its element size, and where
+  that contradicts the declared stride the stride is wrong. See
+  [table extents](dmc3-table-extents-2026-09-14.md);
 - **the 218 unreferenced tables.** Reaching them means following bases through
   registers and writable data, which direct-reference matching cannot do;
 - **the `id\idNNNN\` numbering.** The two largest arrays are dominated by a
