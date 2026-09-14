@@ -243,6 +243,13 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             if (span == 0U) {
                 continue;
             }
+            // A run that is a record's interior describes bytes the record
+            // describes in full. Matching against the record instead resolves a
+            // reference to a record and a field rather than to a grid position,
+            // and keeps the same bytes from being counted as two tables.
+            if (run.is_record_interior()) {
+                continue;
+            }
             table_spans.push_back(TableSpan{run.base_rva,
                                             static_cast<std::uint32_t>(run.base_rva + span), false,
                                             run.stride, run.entries, {}});
@@ -262,6 +269,15 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                   });
     }
 
+    // Spans can overlap, so the nearest preceding base is not always the one
+    // that contains an address: a run sitting inside a record array starts
+    // later and can end sooner. Walking back by the widest span seen covers
+    // every candidate; the widest is what bounds how far back one can begin.
+    std::uint64_t widest_span = 0U;
+    for (const auto& span : table_spans) {
+        widest_span = std::max<std::uint64_t>(widest_span, span.end - span.base);
+    }
+
     const auto table_containing = [&](std::uint32_t rva) -> const TableSpan* {
         if (table_spans.empty()) {
             return nullptr;
@@ -270,11 +286,26 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                                       [](std::uint32_t value, const TableSpan& candidate) {
                                           return value < candidate.base;
                                       });
-        if (entry == table_spans.begin()) {
-            return nullptr;
+
+        const TableSpan* chosen = nullptr;
+        while (entry != table_spans.begin()) {
+            --entry;
+            if (rva - entry->base > widest_span) {
+                break;
+            }
+            if (rva < entry->base || rva >= entry->end) {
+                continue;
+            }
+            // A record reading names the field the reference picks, so it is
+            // preferred; between two of the same kind the tighter span is the
+            // more specific statement about the address.
+            if (chosen == nullptr || (entry->record_layout && !chosen->record_layout) ||
+                (entry->record_layout == chosen->record_layout &&
+                 entry->end - entry->base < chosen->end - chosen->base)) {
+                chosen = &*entry;
+            }
         }
-        --entry;
-        return rva >= entry->base && rva < entry->end ? &*entry : nullptr;
+        return chosen;
     };
 
     const FunctionIndex index{graph.functions};

@@ -121,13 +121,20 @@ CREATE TABLE IF NOT EXISTS exe_name_table (
     -- Elements the scan removed from the end of the run because they were a
     -- packed string pool the grid had absorbed rather than table elements.
     absorbed_elements INTEGER NOT NULL DEFAULT 0,
+    -- Where this run sits inside a record run's field layout, and how many
+    -- elements it had to give back at the end of that record's field block.
+    interior_of_record_rva INTEGER,
+    interior_field_index INTEGER,
+    overrun_elements INTEGER NOT NULL DEFAULT 0,
     -- STRUCTURAL_CONFIRMED  layout and extent both stand as read
+    -- RECORD_INTERIOR       the run is a record's block of equal-width fields,
+    --                       so the record describes the same bytes more fully
     -- EXTENT_TRIMMED        extent corrected against an absorbed string pool
     -- SEMANTIC_CANDIDATE    payload-bearing run whose extent is not settled
     -- EXTENT_UNCLASSIFIED   run known only through the function map, which
     --                       carries its layout but not its payload measurements
     extent_status TEXT NOT NULL DEFAULT 'STRUCTURAL_CONFIRMED'
-        CHECK(extent_status IN ('STRUCTURAL_CONFIRMED','EXTENT_TRIMMED',
+        CHECK(extent_status IN ('STRUCTURAL_CONFIRMED','RECORD_INTERIOR','EXTENT_TRIMMED',
                                 'SEMANTIC_CANDIDATE','EXTENT_UNCLASSIFIED')),
     -- Which report the row was read from. The analysis report lists only the
     -- largest runs, so a table reached by a call site is often known through
@@ -180,6 +187,9 @@ SELECT t.id AS table_id,
        -- wrong or the run spans more than one structure.
        COUNT(CASE WHEN r.offset_in_element != 0 THEN 1 END) AS interior_references,
        t.absorbed_elements,
+       t.overrun_elements,
+       CASE WHEN t.interior_of_record_rva IS NULL THEN NULL
+            ELSE printf('0x%x', t.interior_of_record_rva) END AS interior_of_record,
        t.extent_status
 FROM exe_name_table t
 LEFT JOIN exe_table_reference r ON r.table_id = t.id
@@ -209,3 +219,12 @@ FROM exe_import_call
 GROUP BY module, symbol;
 
 COMMIT;
+
+-- Tables that stand on their own: a record run, or a stride run that is not
+-- some record's interior. Counting every recovered run as a table counts the
+-- same bytes twice wherever a record is made of equal-width name fields.
+CREATE VIEW IF NOT EXISTS v_exe_independent_table AS
+SELECT id, printf('0x%x', base_rva) AS base_rva, layout, element_bytes, entries,
+       fields_per_record, sample_name, extent_status
+FROM exe_name_table
+WHERE interior_of_record_rva IS NULL;

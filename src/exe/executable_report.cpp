@@ -263,15 +263,31 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
     // how many elements that removed in total.
     std::uint64_t trimmed_runs = 0U;
     std::uint64_t absorbed_elements = 0U;
+    std::uint64_t interior_runs = 0U;
+    std::uint64_t overrun_runs = 0U;
+    std::uint64_t overrun_elements = 0U;
     for (const auto& run : tables.runs) {
-        if (run.absorbed_elements == 0U) {
-            continue;
+        if (run.absorbed_elements != 0U) {
+            ++trimmed_runs;
+            absorbed_elements += run.absorbed_elements;
         }
-        ++trimmed_runs;
-        absorbed_elements += run.absorbed_elements;
+        if (run.is_record_interior()) {
+            ++interior_runs;
+        }
+        if (run.overrun_elements != 0U) {
+            ++overrun_runs;
+            overrun_elements += run.overrun_elements;
+        }
     }
     writer.member("trimmed_runs", trimmed_runs);
     writer.member("absorbed_elements", absorbed_elements);
+    // Runs that turned out to describe a record's interior, and the extent
+    // corrections that reconciling the two scans produced.
+    writer.member("record_interior_runs", interior_runs);
+    writer.member("independent_runs",
+                  static_cast<std::uint64_t>(tables.runs.size()) - interior_runs);
+    writer.member("overrun_runs", overrun_runs);
+    writer.member("overrun_elements", overrun_elements);
 
     writer.member("record_runs", static_cast<std::uint64_t>(tables.records.size()));
 
@@ -320,6 +336,14 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
         writer.member("pure_name_array", run.pure_name_array());
         if (run.absorbed_elements != 0U) {
             writer.member("absorbed_elements", static_cast<std::uint64_t>(run.absorbed_elements));
+        }
+        if (run.is_record_interior()) {
+            writer.hex_member("interior_of_record_rva", run.interior_of_record_rva);
+            writer.member("interior_field_index",
+                          static_cast<std::uint64_t>(run.interior_field_index));
+        }
+        if (run.overrun_elements != 0U) {
+            writer.member("overrun_elements", static_cast<std::uint64_t>(run.overrun_elements));
         }
         if (!run.pure_name_array()) {
             writer.member("records_with_payload",

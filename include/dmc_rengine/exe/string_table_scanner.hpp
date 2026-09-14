@@ -42,6 +42,18 @@ struct StringTableRun final {
     /// whose extent the scan never had reason to doubt.
     std::uint32_t absorbed_elements{};
 
+    /// Base of the record run whose interior this run turned out to be, or
+    /// zero when the run stands on its own. A record made of equal-width name
+    /// fields contains a constant-stride grid by construction, so the two
+    /// scans describe the same bytes and the record's is the fuller reading.
+    std::uint32_t interior_of_record_rva{};
+    /// Index of the record field this run's first element is.
+    std::uint32_t interior_field_index{};
+    /// Elements trimmed because the run ran past the end of the record field
+    /// block it sits in, into a field of a different width or a neighbouring
+    /// structure.
+    std::uint32_t overrun_elements{};
+
     /// First name in the run, as a sample of what the table holds.
     std::string first_name;
 
@@ -54,6 +66,11 @@ struct StringTableRun final {
     /// Extension class at each position of one period, lower-cased, empty where
     /// an element's name carries no extension.
     std::vector<std::string> period_extensions;
+
+    /// The run describes bytes a record run already describes in full.
+    [[nodiscard]] bool is_record_interior() const noexcept {
+        return interior_of_record_rva != 0U;
+    }
 
     [[nodiscard]] bool pure_name_array() const noexcept {
         return records_with_payload == 0U;

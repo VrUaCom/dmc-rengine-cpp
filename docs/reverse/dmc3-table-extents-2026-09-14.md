@@ -80,8 +80,9 @@ right answer: three names followed by a pool is evidence of a pool.
 | `0x36F288` (`Maguma.ogg`) | 30 | 28 | 2 |
 | `0x4EC868` (`message\japanese\msg_jpn.pac`) | 19 | 16 | 3 |
 
-Four runs trimmed of 14 absorbed elements, giving 223 runs holding 5,813
-entries.
+Four runs trimmed of 14 absorbed elements. With the record reconciliation below
+applied as well, the scan reports 223 runs holding 5,543 entries — of which 44
+stand on their own and 179 are a record's interior.
 
 ### The tail is a table too
 
@@ -102,6 +103,74 @@ The seven that remain sit at offsets of 13, 16 and 20 under strides of 16 and
 24. That is not the sub-multiple pitch of an absorbed pool, and points instead
 at genuine field access within a record — a separate question.
 
+## The other extent error: record interiors
+
+A record whose name fields are all one width **contains a constant-stride grid
+by construction.** Both scans then describe the same bytes, and both report
+them.
+
+The record array at `0x35D640` is the plainest case. Its 264-byte record is
+fifteen 16-byte name fields followed by one of 24:
+
+```text
+record 0  [16][16][16][16][16][16][16][16][16][16][16][16][16][16][16][   24   ]
+          \___________________ reported as a 15-entry table ___________/
+record 1  [16][16] ...
+```
+
+The stride scan reports those fifteen fields as a table — once per record, 20
+times over. Across the image **179 of 223 runs** coincide with a block of
+equal-width fields in one of the 25 record layouts, leaving **44 that stand on
+their own.**
+
+They are kept and marked rather than deleted; the record is simply the fuller
+reading of the same bytes, and counting both as tables counts the bytes twice.
+
+### And a grid does not stop at the block's end
+
+Nothing halts a constant-stride walk at a field of a *different* width whose
+name is short enough to terminate inside the walk's stride. So a run started
+inside a record keeps going — into the next field, the next record, or out of
+the record array altogether. **87 runs overrun their field block, by 270
+elements in total.**
+
+The 352-byte localisation record shows it cleanly. Its fields are one of 32
+bytes then eight of 40; a run starting at field 2 has seven 40-byte fields ahead
+of it, yet eleven separate runs claim eight. The eighth element is the *next
+record's* 32-byte field, read as though it were 40.
+
+| Run | Claimed | Field block | Overrun |
+| --- | --- | --- | --- |
+| `0x4ED6A0` and 10 others | 8 × 40 | fields 2–8 of `0x4ECCB8` | 1 |
+| `0x4F0F00` | 16 × 40 | fields 2–8 of `0x4ECCB8` | 9 |
+| `0x361560` | 48 × 16 | fields 4–15 of `0x35FE68` | 36 |
+
+The record's widths repeat with a measured period; the grid's evidence is only
+that names keep terminating. The record wins, and the run is cut back.
+
+A block shorter than the minimum entry count is **kept**. The minimum exists to
+stop a stride *hypothesis* being reported on the strength of a few coincidences,
+and a seven-field block that two scans agree on is not a hypothesis. Erasing
+those blocks was the first thing this pass got wrong, and the references caught
+it — see below.
+
+## The references are the check
+
+Cutting the interiors back left references pointing into bytes no run covered.
+The matcher checked only the span with the nearest preceding base, and an
+interior sitting inside a record array starts later and now ended sooner, so it
+shadowed the record that encloses it: 14 references vanished and the tables
+reached fell from 28 to 17.
+
+Considering every span that can contain an address, and preferring the record
+reading, restores **all 206 references** and moves 18 of them from a grid
+position to a record and a field — references resolved against a record layout
+rise from 8 to 26.
+
+That the count comes back *exactly* is the check that the reconciliation removed
+duplication rather than evidence. A reconciliation that loses a reference has
+deleted a table the code demonstrably reads.
+
 ## The index
 
 The reports are now loaded into SQLite
@@ -112,6 +181,9 @@ lives as a standing query rather than a one-off:
 SELECT base_rva, element_bytes, entries, interior_references, extent_status
 FROM v_exe_table_coverage
 WHERE interior_references > 0;
+
+-- Tables that stand on their own, with each record's interior excluded.
+SELECT COUNT(*) FROM v_exe_independent_table;
 ```
 
 `0x506F68` now reads 16 of 16 elements covered, where it read 22 of 22 before.
@@ -121,14 +193,16 @@ worth keeping. It is now discharged for the runs it was written about.
 
 ## Open work
 
-- **overlapping runs.** 29 pairs of recovered runs overlap. Some are containment
-  rather than conflict: a 264-byte record array at `0x35D640` contains 21 of the
-  reported stride-16 grids at exactly its record spacing, which makes them its
-  interior field layout rather than 21 independent tables. Others are genuine
-  boundary conflicts. Reconciling the two detectors' views is the next extent
-  question and needs no new measurement;
-- **the 7 remaining interior references** (offsets 13, 16, 20) — field access
-  within a record, or a further layout error;
+- **the 7 remaining interior references.** Four are one address inside record 15
+  of `0x36B308`, at offset 213 within a 264-byte record — not a field offset, so
+  most likely a pointer into the middle of a name. Two sit 16 bytes into a
+  24-byte element of `0x371598` and `0x3716F0`, and one 20 bytes into an element
+  of `0x506C38`. Either those three runs are records this scan has not resolved,
+  or the code addresses a name's tail;
+- **runs that overlap without being interiors.** Reconciliation settles a run
+  that matches a field offset and width. A run inside a record's extent matching
+  neither is still unexplained, and may mean the *record's* extent is the
+  over-stated one;
 - **the computed indices**, which still need the value tracking that virtual
   dispatch needs;
 - **the tables no direct reference reaches**, whose bases arrive through

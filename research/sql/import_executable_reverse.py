@@ -59,13 +59,16 @@ def load_name_tables(con: sqlite3.Connection, image_id: int, analysis: dict) -> 
 
     for run in tables.get("largest", []):
         base = parse_rva(run["base_rva"])
+        interior = run.get("interior_of_record_rva")
+        interior = parse_rva(interior) if interior is not None else None
         con.execute(
             """INSERT OR IGNORE INTO exe_name_table(
                    image_id, base_rva, layout, element_bytes, entries, longest_name,
                    pure_name_array, records_with_payload, text_payload_records,
                    payload_offset_consistent, content_period, sample_name,
-                   absorbed_elements, extent_status)
-               VALUES(?,?, 'STRIDE', ?,?,?,?,?,?,?,?,?,?,?)""",
+                   absorbed_elements, interior_of_record_rva, interior_field_index,
+                   overrun_elements, extent_status)
+               VALUES(?,?, 'STRIDE', ?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 image_id,
                 base,
@@ -79,13 +82,24 @@ def load_name_tables(con: sqlite3.Connection, image_id: int, analysis: dict) -> 
                 run.get("content_period"),
                 run.get("sample_name"),
                 run.get("absorbed_elements", 0),
-                # A trimmed run keeps that provenance even though trimming
-                # usually leaves a pure array behind: its extent was corrected,
-                # not merely read. An untrimmed payload-bearing run may still
-                # have absorbed neighbouring strings.
-                "EXTENT_TRIMMED"
-                if run.get("absorbed_elements", 0)
-                else ("STRUCTURAL_CONFIRMED" if run.get("pure_name_array") else "SEMANTIC_CANDIDATE"),
+                interior,
+                run.get("interior_field_index") if interior is not None else None,
+                run.get("overrun_elements", 0),
+                # An interior says what the run *is*, so it wins over how its
+                # extent was arrived at. A trimmed run keeps that provenance even
+                # though trimming usually leaves a pure array behind: its extent
+                # was corrected, not merely read.
+                "RECORD_INTERIOR"
+                if interior is not None
+                else (
+                    "EXTENT_TRIMMED"
+                    if run.get("absorbed_elements", 0)
+                    else (
+                        "STRUCTURAL_CONFIRMED"
+                        if run.get("pure_name_array")
+                        else "SEMANTIC_CANDIDATE"
+                    )
+                ),
             ),
         )
         row = con.execute(

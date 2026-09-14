@@ -347,6 +347,60 @@ void scattered_payload_is_not_a_trailing_pool() {
     assert(result.runs[0].records_with_payload == 2U);
 }
 
+void a_record_interior_is_marked_and_cut_to_its_field_block() {
+    // A record of one 24-byte field followed by three 16-byte fields. The block
+    // of 16s is a constant-stride grid, so the stride scan reports it as a
+    // table; nothing stops that grid at the block's end, so it takes the next
+    // record's 24-byte field as a fourth element.
+    std::vector<std::byte> bytes(0xA00U, std::byte{0});
+    constexpr std::size_t kRecord = 72U;
+    for (std::size_t record = 0; record < 6U; ++record) {
+        const std::size_t base = 0x400U + record * kRecord;
+        put_text(bytes, base, "arch" + std::to_string(record) + ".pac");
+        put_text(bytes, base + 24U, "n" + std::to_string(record) + "a.txt");
+        put_text(bytes, base + 40U, "n" + std::to_string(record) + "b.txt");
+        put_text(bytes, base + 56U, "n" + std::to_string(record) + "c.txt");
+    }
+
+    StringTableScanOptions options;
+    options.minimum_entries = 4U;
+    options.minimum_records = 4U;
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image, options);
+
+    // The record itself is recovered by the gap-period scan.
+    assert(result.records.size() == 1U);
+    assert(result.records[0].record_bytes == kRecord);
+    assert(result.records[0].fields_per_record == 4U);
+
+    // One interior run per record that has a record after it to run into. The
+    // sixth block is only three elements, below the minimum, so the stride scan
+    // never reports it — which is the minimum doing its job on a hypothesis.
+    assert(result.runs.size() == 5U);
+    for (const auto& run : result.runs) {
+        assert(run.is_record_interior());
+        assert(run.interior_of_record_rva == 0x2000U);
+        assert(run.interior_field_index == 1U);
+        // Cut back from four elements to the three fields of the block.
+        assert(run.entries == 3U);
+        assert(run.overrun_elements == 1U);
+        // Below the minimum entry count, and kept regardless: a block two scans
+        // agree on is not a hypothesis resting on coincidence.
+        assert(run.entries < options.minimum_entries);
+    }
+}
+
+void a_run_outside_every_record_stands_on_its_own() {
+    const auto image = make_image();
+    const auto bytes = make_pure_array();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.runs.size() == 1U);
+    assert(!result.runs[0].is_record_interior());
+    assert(result.runs[0].overrun_elements == 0U);
+}
+
 void degenerate_options_are_refused() {
     const auto image = make_image();
     const auto bytes = make_pure_array();
@@ -377,6 +431,8 @@ int main() {
     a_trailing_pool_is_trimmed_off_the_run();
     a_head_too_short_to_be_a_table_is_rejected_not_trimmed();
     scattered_payload_is_not_a_trailing_pool();
+    a_record_interior_is_marked_and_cut_to_its_field_block();
+    a_run_outside_every_record_stands_on_its_own();
     degenerate_options_are_refused();
     return 0;
 }

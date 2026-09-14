@@ -33,8 +33,8 @@ def make_analysis() -> dict:
         "image": {"image_base": "0x140000000", "entry_point_rva": "0x1000", "machine": "x86-64"},
         "name_tables": {
             "candidate_names": 3,
-            "runs": 2,
-            "entries_in_runs": 28,
+            "runs": 3,
+            "entries_in_runs": 35,
             "trimmed_runs": 1,
             "absorbed_elements": 6,
             "record_runs": 0,
@@ -49,6 +49,20 @@ def make_analysis() -> dict:
                     "pure_name_array": True,
                     "absorbed_elements": 6,
                     "sample_name": "FogColor",
+                },
+                {
+                    # A record's block of equal-width fields, cut back to the
+                    # block after running on into the next record.
+                    "base_rva": "0x4ed6a0",
+                    "stride": 40,
+                    "entries": 7,
+                    "longest_name": 36,
+                    "span_bytes": 280,
+                    "pure_name_array": True,
+                    "interior_of_record_rva": "0x4eccb8",
+                    "interior_field_index": 2,
+                    "overrun_elements": 1,
+                    "sample_name": "message\\japanese\\m01_s00_msg_jpn.txt",
                 },
                 {
                     "base_rva": "0x520c64",
@@ -172,6 +186,26 @@ class ImporterTests(unittest.TestCase):
             "SELECT extent_status FROM exe_name_table WHERE base_rva=?", (0x520C64,)
         ).fetchone()[0]
         self.assertEqual(status, "SEMANTIC_CANDIDATE")
+
+    def test_a_record_interior_is_marked_as_one(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT entries, interior_of_record_rva, interior_field_index,"
+            " overrun_elements, extent_status FROM exe_name_table WHERE base_rva=?",
+            (0x4ED6A0,),
+        ).fetchone()
+        # Interior wins over the pure-array reading: what the run *is* outranks
+        # how its extent was arrived at.
+        self.assertEqual(row, (7, 0x4ECCB8, 2, 1, "RECORD_INTERIOR"))
+
+    def test_independent_tables_exclude_record_interiors(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        bases = {
+            row[0]
+            for row in con.execute("SELECT base_rva FROM v_exe_independent_table")
+        }
+        self.assertNotIn("0x4ed6a0", bases)
+        self.assertIn("0x506f68", bases)
 
     def test_a_run_known_only_to_the_map_is_kept_and_marked(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "dmc3-hdc-table-extents",
-  "title": "DMC3 HD table extents corrected against absorbed string pools",
+  "title": "DMC3 HD table extents corrected against absorbed pools and record interiors",
   "project": "DMC Rengine",
   "artifacts": [
     {
@@ -127,6 +127,90 @@
           "size": 256,
           "symbol": "fully covered name array",
           "note": "RVA 0x506F68, stride 16, 16 entries, all 16 named by a constant index from 2 functions."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-record-interior-runs",
+      "claim_id": "claim-dmc3-record-interior-runs",
+      "title": "Most recovered runs are a record's interior, not a table",
+      "summary": "A record whose name fields are all one width contains a constant-stride grid by construction, so the two scans describe the same bytes and report them twice. 179 of 223 runs coincide with a contiguous block of equal-width fields in one of the 25 recovered record layouts, leaving 44 that stand on their own. The record array at RVA 0x35D640 alone accounts for 20 of them: its 264-byte record is fifteen 16-byte name fields followed by one of 24, and the stride scan reports the fifteen as a table once per record. Counting every run as a table counts the same bytes twice, and a reference resolved against the record names the record and the field it picks rather than a position in a grid.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3528256,
+          "size": 7656,
+          "symbol": "record array whose interior was read as 20 tables",
+          "note": "RVA 0x35D640, 264-byte record over 29 records, 16 name fields: fifteen of 16 bytes then one of 24."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5164728,
+          "size": 17248,
+          "symbol": "record array whose interior was read as 11 tables",
+          "note": "RVA 0x4ECCB8, 352-byte record over 49 records, 9 name fields: one of 32 bytes then eight of 40."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-grid-crosses-record-boundary",
+      "claim_id": "claim-dmc3-grid-crosses-record-boundary",
+      "title": "A grid does not stop at the end of a record's field block",
+      "summary": "Nothing stops a constant-stride walk at a field of a different width whose name is short enough to terminate inside the walk's stride, so a run started inside a record keeps going into the next field, the next record, or out of the record array entirely. 87 runs overrun their field block, by 270 elements in total. The 40-byte blocks inside the 352-byte localisation record are the clearest case: the block is seven fields, eleven separate runs claim eight, and the eighth element is the following record's 32-byte field read as though it were 40. The record's field widths repeat with a measured period and are the stronger reading, so the run is cut back to its block. A block shorter than the minimum entry count is kept rather than discarded: the minimum exists to stop a stride hypothesis being reported on a few coincidences, and a block two scans agree on is not a hypothesis.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5167776,
+          "size": 320,
+          "symbol": "run that overran its field block",
+          "note": "RVA 0x4ED6A0, stride 40, claimed 8 elements; fields 2 to 8 of the record at RVA 0x4ECCB8 are seven 40-byte fields, so the extent is 7."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3544928,
+          "size": 768,
+          "symbol": "run that overran out of its record array",
+          "note": "RVA 0x361560, stride 16, claimed 48 elements; fields 4 to 15 of the record at RVA 0x35FE68 are twelve 16-byte fields, so the extent is 12."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-reference-reattribution",
+      "claim_id": "claim-dmc3-reference-reattribution",
+      "title": "Reconciling the two scans loses no reference and reads 18 of them better",
+      "summary": "Cutting the interiors back left references pointing into bytes no run covered, because the matcher checked only the span with the nearest preceding base and an interior sitting inside a record array starts later and now ends sooner. Considering every span that can contain an address, and preferring the record reading, restores all 206 references and moves 18 of them from a grid position to a record and a field: references resolved against a record layout rise from 8 to 26. That the count is exactly restored is the check that the reconciliation removed duplication rather than evidence.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5164728,
+          "size": 17248,
+          "symbol": "record reached by references formerly attributed to its interiors",
+          "note": "RVA 0x4ECCB8 now carries 13 references naming a record and a field, where those references formerly named 10 separate interior runs."
         }
       ]
     }

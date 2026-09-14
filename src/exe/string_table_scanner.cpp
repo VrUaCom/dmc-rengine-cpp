@@ -319,6 +319,107 @@ void detect_record_runs(std::span<const std::byte> bytes, const PeSection& secti
     }
 }
 
+/// Re-derives a run's aggregate facts over its first `entries` elements.
+void summarise(std::span<const std::byte> bytes, std::size_t offset, StringTableRun& run,
+               std::uint32_t entries, std::uint32_t minimum_name_length,
+               std::size_t section_begin) {
+    run.longest_name = 0U;
+    run.records_with_payload = 0U;
+    run.text_payload_records = 0U;
+    run.first_payload_offset = 0U;
+    run.payload_offset_consistent = true;
+
+    for (std::uint32_t index = 0U; index < entries; ++index) {
+        const auto element = read_element(bytes, offset + index * run.stride, run.stride,
+                                          minimum_name_length, section_begin);
+        if (!element.valid) {
+            break;
+        }
+        run.longest_name = std::max(run.longest_name, element.name_length);
+        if (!element.payload_after_terminator) {
+            continue;
+        }
+        if (run.records_with_payload == 0U) {
+            run.first_payload_offset = element.payload_offset;
+        } else if (element.payload_offset != run.first_payload_offset) {
+            run.payload_offset_consistent = false;
+        }
+        ++run.records_with_payload;
+        if (element.payload_is_text) {
+            ++run.text_payload_records;
+        }
+    }
+}
+
+/// Settles the two scans against each other where they describe the same bytes.
+///
+/// A record whose fields are all one width contains a constant-stride grid, so
+/// the stride scan reports the record's interior as a table of its own. That is
+/// not a contradiction and the run is kept, but it is marked, because counting
+/// it as an independent table counts the same bytes twice.
+///
+/// Where the two disagree is the run's extent. A grid has nothing to stop it at
+/// a field of a different width whose name is short enough to terminate inside
+/// the grid's stride, so it runs on into the next field, the next record, or
+/// out of the record array altogether. The record's field widths repeat with a
+/// measured period and are the stronger reading, so the run is cut back to the
+/// block of equal-width fields it started in.
+void reconcile_record_interiors(std::span<const std::byte> bytes, const PeSection& section,
+                                std::size_t section_begin,
+                                const StringTableScanOptions& options,
+                                StringTableScanResult& result, std::size_t first_run) {
+    for (std::size_t index = first_run; index < result.runs.size(); ++index) {
+        auto& run = result.runs[index];
+
+        for (const auto& record : result.records) {
+            if (record.record_bytes == 0U || run.base_rva < record.base_rva) {
+                continue;
+            }
+            const auto delta = static_cast<std::uint64_t>(run.base_rva) - record.base_rva;
+            if (delta >= record.span_bytes()) {
+                continue;
+            }
+
+            const auto offset_in_record = static_cast<std::uint32_t>(delta % record.record_bytes);
+            std::size_t field = record.field_offsets.size();
+            for (std::size_t candidate = 0; candidate < record.field_offsets.size(); ++candidate) {
+                if (record.field_offsets[candidate] == offset_in_record &&
+                    record.field_widths[candidate] == run.stride) {
+                    field = candidate;
+                    break;
+                }
+            }
+            if (field == record.field_offsets.size()) {
+                continue;
+            }
+
+            std::uint32_t block = 0U;
+            while (field + block < record.field_widths.size() &&
+                   record.field_widths[field + block] == run.stride) {
+                ++block;
+            }
+
+            run.interior_of_record_rva = record.base_rva;
+            run.interior_field_index = static_cast<std::uint32_t>(field);
+            if (run.entries > block) {
+                run.overrun_elements = run.entries - block;
+                result.entries_in_runs -= run.overrun_elements;
+                run.entries = block;
+                const auto offset = section_begin + (run.base_rva - section.virtual_address);
+                summarise(bytes, offset, run, run.entries, options.minimum_name_length,
+                          section_begin);
+            }
+            break;
+        }
+    }
+
+    // Nothing is erased here. The minimum entry count exists to keep a stride
+    // *hypothesis* from being reported on the strength of a few coincidences; a
+    // block cut to the width of a record's field pattern is not a hypothesis but
+    // a reading two scans agree on, and a seven-field block is a seven-field
+    // block whatever the minimum says.
+}
+
 } // namespace
 
 StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
@@ -367,6 +468,7 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
 
         // Walk the candidates in order, taking the distance to the next as the
         // stride hypothesis and extending while every element validates.
+        const auto first_run_of_section = result.runs.size();
         std::size_t position = 0U;
         while (position + 1U < starts.size()) {
             const auto stride64 = starts[position + 1U] - starts[position];
@@ -488,6 +590,8 @@ StringTableScanResult StringTableScanner::scan(std::span<const std::byte> bytes,
                 ++position;
             }
         }
+
+        reconcile_record_interiors(bytes, section, begin, options, result, first_run_of_section);
     }
 
     std::sort(result.records.begin(), result.records.end(),

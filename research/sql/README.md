@@ -220,6 +220,9 @@ WHERE interior_references > 0;
 SELECT base_rva, element_bytes, entries, absorbed_elements, sample_name
 FROM exe_name_table
 WHERE absorbed_elements > 0;
+
+-- Tables that stand on their own, with each record's interior excluded.
+SELECT * FROM v_exe_independent_table;
 ```
 
 `extent_status` records how far each run's extent is settled:
@@ -228,6 +231,7 @@ WHERE absorbed_elements > 0;
 | --- | --- |
 | `STRUCTURAL_CONFIRMED` | layout and extent both stand as read |
 | `EXTENT_TRIMMED` | extent corrected against an absorbed string pool |
+| `RECORD_INTERIOR` | the run is a record's block of equal-width fields, so the record describes the same bytes more fully |
 | `SEMANTIC_CANDIDATE` | payload-bearing run whose extent is not settled |
 | `EXTENT_UNCLASSIFIED` | run known only through the function map, which carries its layout but not its payload measurements |
 
