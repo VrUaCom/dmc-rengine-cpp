@@ -87,6 +87,32 @@
           "note": "Volatile registers rax, rcx, rdx and r8 to r11 given up at every call; the rest carried across."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-block-dataflow",
+      "claim_id": "claim-dmc3-this-dispatch-resolved",
+      "title": "Block dataflow lifts the analysis, and shows what was really limiting it",
+      "summary": "The register analysis now runs as its own pass over the instructions the walk decoded, with a state per instruction and a meet at every join, where the meet keeps a fact only when every path into the point agrees on it. That replaces a single pass whose facts depended on the order the traces happened to run. The code graph is unchanged, which is the check that the walk itself was not disturbed: the same 7,389 functions, the same 7,381 complete walks, byte for byte. Indexed reads with a nameable base rise from 1,524 to 1,963, consistent array walks from 368 to 531, recovered arrays from 190 to 278, dispatches on `this` from 105 to 175 and resolved dispatches from 19 to 30. The earlier reading held that dataflow was what stood between 105 and the thousands of dispatches in bound methods. It lifted the figure by two thirds and the rest is not analysis at all: the method at RVA 0x2A9A0 reads a container out of a field of `this`, takes an element pointer out of that container, and dispatches on the element. Its contents are built at run time and are not in the file. Most dispatch sites are of that shape, so the ceiling of 2,487 displacements in single-vtable methods was never reachable by following `this`.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "methodology",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-this-dispatch-resolved"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 174496,
+          "size": 104,
+          "symbol": "dispatch on a container element rather than on this",
+          "note": "RVA 0x2A9A0, a method of DMC3::FullMotionVideoManager: it reads a field of `this` at +8, indexes it, loads the element's vtable pointer and dispatches on slot 4 at RVA 0x2A9DB."
+        }
+      ]
     }
   ]
 }

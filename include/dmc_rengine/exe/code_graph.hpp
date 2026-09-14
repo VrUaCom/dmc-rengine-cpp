@@ -106,6 +106,12 @@ struct FunctionWalk final {
     /// Virtual dispatch sites whose receiver object the walk could name.
     std::vector<DispatchSite> resolved_dispatch_sites;
 
+    /// Addresses of the instructions the walk decoded, in order. The register
+    /// analysis runs over these rather than re-discovering the code, so it
+    /// inherits the walk's guarantee that every one of them is a real
+    /// instruction boundary.
+    std::vector<std::uint32_t> instruction_starts;
+
     std::uint32_t indirect_calls{};
     std::uint32_t indirect_jumps{};
     std::uint32_t returns{};

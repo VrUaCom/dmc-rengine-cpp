@@ -441,6 +441,65 @@ void a_shift_multiplies_the_index() {
     assert(graph.functions[0].indexed_accesses[0].element_bytes == 32U);
 }
 
+void a_fact_that_differs_between_paths_does_not_survive_the_join() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    //   1100: 85 c0             test eax,eax
+    //   1102: 74 07             je 0x110b
+    //   1104: 48 8d 1d <rel>    lea rbx,[rip -> 0x2000]
+    //   110b: 8b 04 83          mov eax,[rbx+rax*4]     <- the join
+    //   110e: c3                ret
+    //
+    // One path gives rbx an address and the other leaves it unknown, so at the
+    // join nothing is known about it and the read is not an array access. A
+    // walk that took the traces in order would have believed whichever ran
+    // last.
+    put(bytes, 0x300U, {0x85, 0xC0});
+    put(bytes, 0x302U, {0x74, 0x07});
+    put(bytes, 0x304U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x307U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x110B));
+    put(bytes, 0x30BU, {0x8B, 0x04, 0x83});
+    put(bytes, 0x30EU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions.size() == 1U);
+    assert(graph.functions[0].indexed_accesses.empty());
+}
+
+void a_fact_both_paths_agree_on_survives_the_join() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    //   1100: 85 c0             test eax,eax
+    //   1102: 74 07             je 0x110b
+    //   1104: 48 8d 1d <rel>    lea rbx,[rip -> 0x2000]
+    //   110b: 48 8d 1d <rel>    lea rbx,[rip -> 0x2000]   (the other path)
+    //   1112: 8b 04 83          mov eax,[rbx+rax*4]
+    //
+    // Laid out so both paths reach the read with rbx holding the same address.
+    put(bytes, 0x300U, {0x85, 0xC0});
+    put(bytes, 0x302U, {0x74, 0x07});
+    put(bytes, 0x304U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x307U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x110B));
+    put(bytes, 0x30BU, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x30EU, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1112));
+    put(bytes, 0x312U, {0x8B, 0x04, 0x83});
+    put(bytes, 0x315U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions[0].indexed_accesses.size() == 1U);
+    assert(graph.functions[0].indexed_accesses[0].base_rva == 0x2000U);
+}
+
 } // namespace
 
 int main() {
@@ -457,5 +516,7 @@ int main() {
     overwriting_the_base_register_forfeits_it();
     a_self_add_doubles_the_index_multiplier();
     a_shift_multiplies_the_index();
+    a_fact_that_differs_between_paths_does_not_survive_the_join();
+    a_fact_both_paths_agree_on_survives_the_join();
     return 0;
 }

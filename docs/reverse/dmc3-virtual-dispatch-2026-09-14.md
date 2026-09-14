@@ -47,9 +47,9 @@ inferred.
 | | count |
 | --- | --- |
 | dispatch sites | 10,274 |
-| dispatched on `this` | 105 |
-| …inside a method the RTTI binds into a vtable | 98 |
-| …bound into exactly one vtable, so the class is unambiguous | **19** |
+| dispatched on `this` | 175 |
+| …inside a method the RTTI binds into a vtable | 158 |
+| …bound into exactly one vtable, so the class is unambiguous | **30** |
 
 Those 19 resolve to a class, a slot and a target across 15 classes:
 
@@ -64,14 +64,44 @@ A method bound into more than one vtable is inherited, and `this` then does not
 say which one — those are counted and left unresolved rather than attributed to
 the first class that fits.
 
-### Why only 19
+### Why only 19 — and what happened when that was fixed
 
-The walk gives up its register state at every trace root, because a block
-reached by a branch has a state that depends on which predecessor ran, and
-picking one would be unsound. So only dispatches reachable in straight-line
-flow from a method's entry keep the `this` fact. Block-level dataflow with a
-proper merge at join points is what would lift this, and it is the next thing
-worth building.
+The walk gave up its register state at every trace root, because a block reached
+by a branch has a state depending on which predecessor ran, and picking one
+would be unsound. So only dispatches in straight-line flow from a method's entry
+kept the `this` fact.
+
+The register analysis now runs as **its own pass** over the instructions the
+walk decoded, with a state per instruction and a **meet at every join** — a fact
+survives only when every path into the point agrees on it. The walk itself is
+untouched, and the code graph comes out byte-identical, which is the check that
+says so.
+
+| | single pass | block dataflow |
+| --- | --- | --- |
+| indexed reads with a nameable base | 1,524 | **1,963** |
+| consistent array walks | 368 | **531** |
+| recovered arrays | 190 | **278** |
+| dispatches on `this` | 105 | **175** |
+| resolved | 19 | **30** |
+
+**And the earlier reading was wrong about the ceiling.** Dataflow lifted the
+figure by two thirds; the rest is not an analysis problem. Here is a method of
+`DMC3::FullMotionVideoManager` at `0x2A9A0`:
+
+```asm
+mov rbx,rcx              ; this
+ ...
+mov rax,[rbx+0x8]        ; a container held in a field of this
+mov rcx,[rsi+rax*1]      ; an element pointer out of that container
+mov rax,[rcx]            ; the element's vtable
+call [rax+0x20]          ; slot 4
+```
+
+The receiver is not `this` — it is an element of a container whose contents are
+built at run time. Most dispatch sites are that shape, so the 2,487
+displacements in single-vtable methods were never reachable by following `this`,
+and no amount of dataflow gets there.
 
 ## The calling convention is evidence
 
@@ -97,11 +127,13 @@ not.
 
 ## Open work
 
-- **block-level dataflow with merges**, which is what stands between 105 `this`
-  dispatches and the thousands that are surely there;
-- **the 98 minus 19** — methods bound into several vtables, where the class is
+- **the 158 minus 30** — methods bound into several vtables, where the class is
   genuinely ambiguous from `this` alone and would need the call sites of the
   method itself to narrow;
+- **stack slots.** The analysis tracks registers only, so a `this` spilled to
+  the frame and reloaded is lost. Tracking frame offsets while the frame pointer
+  is fixed would recover those;
 - **receivers from fields.** A dispatch on `this->member` is one step further
-  than `this`, and the member's type would come from what the constructor
-  stores there.
+  than `this`, and the member's type would come from what the constructor stores
+  there. This is where the bulk of the sites are, and it is the only route to
+  them that does not require running the game.

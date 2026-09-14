@@ -10,6 +10,7 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <cstdint>
 #include <vector>
 
@@ -86,6 +87,194 @@ struct SwitchTableReading final {
 }
 
 /// Recursive-descent walk of one function across all of its ranges.
+/// One register's value, as far as the analysis can say.
+///
+/// The meet is equality: a fact survives a join only when every path into the
+/// block agrees on it. That is what makes a fact at a dispatch site a statement
+/// about the programme rather than about the order the walk happened to take.
+struct RegisterFact final {
+    enum class Kind : std::uint8_t {
+        unknown,
+        /// An address a RIP-relative `lea` put here.
+        image_address,
+        /// The value the register held on entry to the function. For rcx under
+        /// the Microsoft x64 convention that is the first argument, and in a
+        /// method that is `this`.
+        entry_value,
+        /// Loaded through the entry value: for `this` that is the vtable
+        /// pointer, which a virtual call reads a slot out of.
+        loaded_through_entry,
+        /// Loaded from a known address.
+        loaded_from,
+    };
+
+    Kind kind{Kind::unknown};
+    std::uint32_t rva{};
+    /// What an index in this register has been multiplied by. A scale field
+    /// encodes only 1, 2, 4 and 8, so any other element size arrives here.
+    std::uint32_t multiplier{1U};
+
+    friend bool operator==(const RegisterFact&, const RegisterFact&) = default;
+};
+
+using RegisterState = std::array<RegisterFact, 16U>;
+
+[[nodiscard]] RegisterState meet(const RegisterState& left, const RegisterState& right) {
+    RegisterState result;
+    for (std::size_t reg = 0; reg < result.size(); ++reg) {
+        result[reg] = left[reg] == right[reg] ? left[reg] : RegisterFact{};
+    }
+    return result;
+}
+
+/// Applies one instruction to a register state, optionally recording what the
+/// instruction says about the data it touches.
+void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& state,
+           FunctionWalk* emit) {
+    constexpr std::uint32_t kMaxMultiplier = 1U << 16U;
+    const auto multiplier_of = [&](std::uint8_t reg) -> std::uint32_t {
+        return reg < state.size() ? state[reg].multiplier : 1U;
+    };
+
+    // Everything this instruction computes is read from the state before the
+    // invalidation below throws its inputs away.
+    std::uint32_t produced_multiplier = 0U;
+    std::uint8_t multiplier_destination = X86Instruction::kNoRegister;
+    if (!decoded.two_byte_opcode && decoded.has_modrm) {
+        if (decoded.opcode == 0x8DU && decoded.memory_base != X86Instruction::kNoRegister &&
+            decoded.memory_base == decoded.memory_index && decoded.displacement == 0) {
+            produced_multiplier =
+                multiplier_of(decoded.memory_base) * (decoded.memory_scale + 1U);
+            multiplier_destination = decoded.reg_operand;
+        } else if ((decoded.opcode == 0x69U || decoded.opcode == 0x6BU) && decoded.immediate > 0) {
+            const auto source =
+                decoded.modrm_mod == 3U ? multiplier_of(decoded.rm_operand) : 1U;
+            produced_multiplier = source * static_cast<std::uint32_t>(decoded.immediate);
+            multiplier_destination = decoded.reg_operand;
+        } else if (decoded.opcode == 0xC1U && decoded.modrm_reg == 4U && decoded.modrm_mod == 3U &&
+                   decoded.immediate > 0 && decoded.immediate < 16) {
+            produced_multiplier = multiplier_of(decoded.rm_operand)
+                                  << static_cast<std::uint32_t>(decoded.immediate);
+            multiplier_destination = decoded.rm_operand;
+        } else if ((decoded.opcode == 0x01U || decoded.opcode == 0x03U) &&
+                   decoded.modrm_mod == 3U && decoded.reg_operand == decoded.rm_operand) {
+            produced_multiplier = multiplier_of(decoded.reg_operand) * 2U;
+            multiplier_destination = decoded.reg_operand;
+        }
+    }
+
+    // A method usually moves `this` out of rcx into a register that survives
+    // calls, and every dispatch after that goes through the copy.
+    std::uint8_t entry_copy_destination = X86Instruction::kNoRegister;
+    if (!decoded.two_byte_opcode && decoded.modrm_mod == 3U &&
+        (decoded.opcode == 0x89U || decoded.opcode == 0x8BU)) {
+        const auto source = decoded.opcode == 0x8BU ? decoded.rm_operand : decoded.reg_operand;
+        const auto destination = decoded.opcode == 0x8BU ? decoded.reg_operand : decoded.rm_operand;
+        if (source < state.size() && state[source].kind == RegisterFact::Kind::entry_value) {
+            entry_copy_destination = destination;
+        }
+    }
+
+    // `mov reg, [base]` where the base is known: the register now holds
+    // whatever that address contains.
+    RegisterFact loaded;
+    std::uint8_t load_destination = X86Instruction::kNoRegister;
+    if (!decoded.two_byte_opcode && decoded.opcode == 0x8BU && decoded.modrm_mod != 3U &&
+        !decoded.rip_relative && decoded.memory_index == X86Instruction::kNoRegister &&
+        decoded.memory_base < state.size() && decoded.displacement == 0) {
+        const auto& base = state[decoded.memory_base];
+        if (base.kind == RegisterFact::Kind::image_address) {
+            loaded = RegisterFact{RegisterFact::Kind::loaded_from, base.rva, 1U};
+            load_destination = decoded.reg_operand;
+        } else if (base.kind == RegisterFact::Kind::entry_value) {
+            loaded = RegisterFact{RegisterFact::Kind::loaded_through_entry, 0U, 1U};
+            load_destination = decoded.reg_operand;
+        }
+    }
+
+    // ----- what the instruction says about data ----------------------------
+    if (emit != nullptr) {
+        if (decoded.indexed_memory() && decoded.memory_base < state.size() &&
+            state[decoded.memory_base].kind == RegisterFact::Kind::image_address) {
+            const auto element = static_cast<std::uint64_t>(decoded.memory_scale) *
+                                 multiplier_of(decoded.memory_index);
+            emit->indexed_accesses.push_back(
+                FunctionWalk::IndexedAccess{rva, state[decoded.memory_base].rva,
+                                            static_cast<std::uint32_t>(element),
+                                            decoded.displacement, decoded.memory_index});
+        }
+
+        if (decoded.flow == X86Flow::call_indirect && decoded.has_modrm &&
+            !decoded.register_indirect() && !decoded.rip_relative && decoded.displacement >= 0 &&
+            decoded.displacement % 8 == 0) {
+            std::uint32_t receiver = 0U;
+            bool through_this = false;
+            if (decoded.memory_base < state.size()) {
+                const auto& through = state[decoded.memory_base];
+                if (through.kind == RegisterFact::Kind::loaded_from) {
+                    receiver = through.rva;
+                } else if (through.kind == RegisterFact::Kind::loaded_through_entry) {
+                    through_this = true;
+                }
+            }
+            emit->resolved_dispatch_sites.push_back(FunctionWalk::DispatchSite{
+                rva, static_cast<std::uint32_t>(decoded.displacement), receiver, through_this});
+        }
+    }
+
+    // ----- invalidation ----------------------------------------------------
+    const auto forget = [&](std::uint8_t reg) {
+        if (reg < state.size()) {
+            state[reg] = RegisterFact{};
+        }
+    };
+
+    if (decoded.has_modrm) {
+        forget(decoded.reg_operand);
+        if (decoded.modrm_mod == 3U) {
+            forget(decoded.rm_operand);
+        }
+    } else {
+        const auto low = static_cast<std::uint8_t>(decoded.opcode & 0x07U);
+        const bool writes_encoded_register =
+            !decoded.two_byte_opcode &&
+            ((decoded.opcode >= 0x50U && decoded.opcode <= 0x5FU) ||
+             (decoded.opcode >= 0x90U && decoded.opcode <= 0x97U) ||
+             (decoded.opcode >= 0xB0U && decoded.opcode <= 0xBFU));
+        if (writes_encoded_register) {
+            forget(low);
+            forget(static_cast<std::uint8_t>(low | 8U));
+        }
+    }
+
+    // A call clobbers the volatile registers and leaves the rest. That is the
+    // Microsoft x64 convention, which compiler-generated code follows, and it
+    // is what lets a `this` pointer copied into a saved register at entry still
+    // be `this` after the method has called something.
+    if (decoded.flow == X86Flow::call_direct || decoded.flow == X86Flow::call_indirect) {
+        for (const auto reg : {0U, 1U, 2U, 8U, 9U, 10U, 11U}) {
+            state[reg] = RegisterFact{};
+        }
+    }
+
+    // ----- what the instruction produces -----------------------------------
+    if (decoded.rip_relative_lea() && decoded.reg_operand < state.size()) {
+        const auto target = static_cast<std::uint32_t>(static_cast<std::int64_t>(rva) +
+                                                       decoded.length + decoded.displacement);
+        state[decoded.reg_operand] = RegisterFact{RegisterFact::Kind::image_address, target, 1U};
+    }
+    if (entry_copy_destination < state.size()) {
+        state[entry_copy_destination] = RegisterFact{RegisterFact::Kind::entry_value, 0U, 1U};
+    }
+    if (load_destination < state.size()) {
+        state[load_destination] = loaded;
+    }
+    if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier &&
+        multiplier_destination < state.size()) {
+        state[multiplier_destination].multiplier = produced_multiplier;
+    }
+}
+
 void walk_function(std::span<const std::byte> bytes, const PeImage& image, FunctionWalk& walk,
                    std::vector<std::uint8_t>& visited) {
     if (walk.ranges.empty()) {
@@ -133,67 +322,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
         table_candidates.push_back(candidate);
     };
 
-    // Image addresses currently held in registers, and how many instructions
-    // ago each was loaded.
-    //
-    // This is deliberately not a dataflow analysis. The decoder models no
-    // mnemonics, so which instructions write which register is not knowable
-    // here; what is knowable is that an instruction naming a register in its
-    // ModRM fields may well have written it. Invalidating on that, on every
-    // call, and on a bounded age keeps the claim small, and the caller then
-    // validates the result against a table it recovered independently. A base
-    // that survives all of that and lands on a known table at that table's own
-    // element size is not a coincidence.
-    constexpr std::uint32_t kMaxBaseAge = 64U;
-    constexpr std::uint32_t kMaxMultiplier = 1U << 16U;
-    struct HeldValue final {
-        std::uint32_t rva{};
-        std::uint32_t age{};
-        bool held{false};
-        /// Constant the register's index value has been multiplied by since it
-        /// was an index. A scale field encodes only 1, 2, 4 and 8, so an array
-        /// of any other element size is reached by multiplying the index first
-        /// — `lea reg,[a+a*2]` for three, then a scale of eight for
-        /// twenty-four. Carrying the multiplier is what makes those strides
-        /// visible at the point of the read.
-        std::uint32_t multiplier{1U};
-        /// Address this register's value was *loaded from*, when the walk saw
-        /// the load. For a polymorphic object's first quadword that is the
-        /// vtable pointer, which is what a virtual call dispatches through.
-        std::uint32_t loaded_from{};
-        bool is_load{false};
-        /// The register still holds the value it had on entry to the function.
-        /// For rcx under the Microsoft x64 convention that is the first
-        /// argument, which for a method is `this`.
-        bool is_entry_value{false};
-        /// The register was loaded through the entry value: for `this` that
-        /// makes it the object's vtable pointer.
-        bool loaded_from_entry_value{false};
-    };
-    std::array<HeldValue, 16U> held{};
-    std::uint32_t traced = 0U;
-
-    const auto forget_all = [&]() {
-        held.fill(HeldValue{});
-    };
-    // A call clobbers the volatile registers and leaves the rest. That is the
-    // Microsoft x64 calling convention, which compiler-generated code follows,
-    // and it is what lets a `this` pointer copied into a non-volatile register
-    // at entry still be `this` after the method has called something.
-    const auto forget_volatile = [&]() {
-        for (const auto reg : {0U, 1U, 2U, 8U, 9U, 10U, 11U}) {
-            held[reg] = HeldValue{};
-        }
-    };
-    const auto forget = [&](std::uint8_t reg) {
-        if (reg < held.size()) {
-            held[reg] = HeldValue{};
-        }
-    };
-    const auto multiplier_of = [&](std::uint8_t reg) -> std::uint32_t {
-        return reg < held.size() ? held[reg].multiplier : 1U;
-    };
-
     std::vector<std::uint32_t> worklist;
     worklist.reserve(walk.ranges.size() + 1U);
     // Every range entry is a trace root: a continuation range is reached by a
@@ -209,17 +337,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     while (!worklist.empty()) {
         std::uint32_t rva = worklist.back();
         worklist.pop_back();
-
-        // A trace root is reached by a branch whose origin is not known here,
-        // so nothing a previous trace established still holds. The exception is
-        // the function's own entry, where the calling convention says what rcx
-        // holds: the first argument, which for a method is `this`.
-        forget_all();
-        if (rva == walk.begin_rva) {
-            constexpr std::uint8_t kFirstArgument = 1U;  // rcx
-            held[kFirstArgument].is_entry_value = true;
-            held[kFirstArgument].age = traced;
-        }
 
         while (owns(rva)) {
             const auto index = static_cast<std::size_t>(rva - lowest);
@@ -252,111 +369,9 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             }
             ++walk.instruction_count;
             walk.decoded_bytes += length;
+            walk.instruction_starts.push_back(rva);
 
             const std::uint32_t next = rva + length;
-
-            // What this instruction computes has to be read before the
-            // invalidation below throws its inputs away.
-            std::uint32_t produced_multiplier = 0U;
-            if (!decoded->two_byte_opcode && decoded->has_modrm) {
-                if (decoded->opcode == 0x8DU && decoded->memory_base != X86Instruction::kNoRegister &&
-                    decoded->memory_base == decoded->memory_index && decoded->displacement == 0) {
-                    // `lea reg,[a + a*k]` is a multiply by k+1.
-                    produced_multiplier = multiplier_of(decoded->memory_base) *
-                                          (static_cast<std::uint32_t>(decoded->memory_scale) + 1U);
-                } else if ((decoded->opcode == 0x69U || decoded->opcode == 0x6BU) &&
-                           decoded->immediate > 0) {
-                    const auto source = decoded->modrm_mod == 3U
-                                            ? multiplier_of(static_cast<std::uint8_t>(
-                                                  decoded->modrm_rm))
-                                            : 1U;
-                    produced_multiplier =
-                        source * static_cast<std::uint32_t>(decoded->immediate);
-                } else if (decoded->opcode == 0xC1U && decoded->modrm_reg == 4U &&
-                           decoded->modrm_mod == 3U && decoded->immediate > 0 &&
-                           decoded->immediate < 16) {
-                    // `shl reg, imm` is a multiply by a power of two.
-                    produced_multiplier = multiplier_of(decoded->rm_operand)
-                                          << static_cast<std::uint32_t>(decoded->immediate);
-                } else if ((decoded->opcode == 0x01U || decoded->opcode == 0x03U) &&
-                           decoded->modrm_mod == 3U &&
-                           decoded->reg_operand == decoded->rm_operand) {
-                    // `add reg,reg` doubles. MSVC reaches an eighty-byte element
-                    // as a multiply by five, this doubling, and a scale of
-                    // eight, and missing the doubling puts every field offset
-                    // outside the element it computed.
-                    produced_multiplier = multiplier_of(decoded->reg_operand) * 2U;
-                }
-            }
-
-            // A method usually moves `this` out of rcx into a register that
-            // survives calls, and every dispatch after that goes through the
-            // copy. Following the copy is what makes those visible.
-            std::uint8_t entry_copy_destination = X86Instruction::kNoRegister;
-            if (!decoded->two_byte_opcode && decoded->modrm_mod == 3U &&
-                (decoded->opcode == 0x89U || decoded->opcode == 0x8BU)) {
-                const auto source =
-                    decoded->opcode == 0x8BU ? decoded->rm_operand : decoded->reg_operand;
-                const auto destination =
-                    decoded->opcode == 0x8BU ? decoded->reg_operand : decoded->rm_operand;
-                if (source < held.size() && held[source].is_entry_value) {
-                    entry_copy_destination = destination;
-                }
-            }
-
-            // Every register this instruction names may have been written by
-            // it. Reads are invalidated too, which costs recall and buys the
-            // right to make no claim the encoding does not support.
-            ++traced;
-            if (decoded->has_modrm) {
-                forget(decoded->reg_operand);
-                if (decoded->modrm_mod == 3U) {
-                    forget(decoded->rm_operand);
-                }
-            } else {
-                // push/pop, `mov imm -> reg` and `xchg` write a register named
-                // in the low opcode bits and carry no ModRM to read it from.
-                const auto low = static_cast<std::uint8_t>(decoded->opcode & 0x07U);
-                const bool writes_encoded_register =
-                    !decoded->two_byte_opcode &&
-                    ((decoded->opcode >= 0x50U && decoded->opcode <= 0x5FU) ||
-                     (decoded->opcode >= 0x90U && decoded->opcode <= 0x97U) ||
-                     (decoded->opcode >= 0xB0U && decoded->opcode <= 0xBFU));
-                if (writes_encoded_register) {
-                    forget(low);
-                    forget(static_cast<std::uint8_t>(low | 8U));
-                }
-            }
-
-            // `mov reg, [base]` where the base is a held address: the register
-            // now holds whatever that address contains.
-            std::uint32_t loaded_from = 0U;
-            bool loaded_from_entry_value = false;
-            if (!decoded->two_byte_opcode && decoded->opcode == 0x8BU &&
-                decoded->modrm_mod != 3U && !decoded->rip_relative &&
-                decoded->memory_index == X86Instruction::kNoRegister &&
-                decoded->memory_base < held.size() && decoded->displacement == 0) {
-                const auto& base = held[decoded->memory_base];
-                if (base.held && traced - base.age <= kMaxBaseAge) {
-                    loaded_from = base.rva;
-                }
-                if (base.is_entry_value) {
-                    loaded_from_entry_value = true;
-                }
-            }
-
-            if (decoded->indexed_memory() && decoded->memory_base < held.size()) {
-                const auto& base = held[decoded->memory_base];
-                if (base.held && traced - base.age <= kMaxBaseAge) {
-                    // The element size the code assumes is the scale field and
-                    // whatever the index was multiplied by on the way here.
-                    const auto element = static_cast<std::uint64_t>(decoded->memory_scale) *
-                                         multiplier_of(decoded->memory_index);
-                    walk.indexed_accesses.push_back(
-                        FunctionWalk::IndexedAccess{rva, base.rva, static_cast<std::uint32_t>(element),
-                                                    decoded->displacement, decoded->memory_index});
-                }
-            }
 
             if (decoded->rip_relative) {
                 const auto target = static_cast<std::uint32_t>(
@@ -365,9 +380,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
                 if (decoded->rip_relative_lea()) {
                     remember_candidate(target);
-                    if (decoded->reg_operand < held.size()) {
-                        held[decoded->reg_operand] = HeldValue{target, traced, true, 1U};
-                    }
                 }
             } else if (decoded->displacement_size == 4U && decoded->displacement > 0) {
                 // A non-RIP disp32 can be an absolute table RVA: MSVC keeps the
@@ -380,50 +392,15 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 }
             }
 
-            if (entry_copy_destination < held.size()) {
-                held[entry_copy_destination] = HeldValue{};
-                held[entry_copy_destination].is_entry_value = true;
-                held[entry_copy_destination].age = traced;
-            }
-
-            if ((loaded_from != 0U || loaded_from_entry_value) &&
-                decoded->reg_operand < held.size()) {
-                held[decoded->reg_operand] =
-                    HeldValue{0U, traced, false, 1U, loaded_from, true, false};
-                // The value loaded from `this` is the vtable pointer, which is
-                // what the dispatch below reads a slot out of.
-                held[decoded->reg_operand].is_entry_value = false;
-                if (loaded_from_entry_value) {
-                    held[decoded->reg_operand].loaded_from_entry_value = true;
-                }
-            }
-
-            if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier) {
-                // `add r/m, reg` and the shift group write the rm operand —
-                // for a shift the reg field is the group selector and names no
-                // register at all. `lea` and `imul` write the reg operand.
-                const auto destination =
-                    !decoded->two_byte_opcode &&
-                            (decoded->opcode == 0x01U || decoded->opcode == 0xC1U)
-                        ? decoded->rm_operand
-                        : decoded->reg_operand;
-                if (destination < held.size()) {
-                    held[destination].multiplier = produced_multiplier;
-                    held[destination].age = traced;
-                }
-            }
-
             const auto branch_target = [&]() {
                 return static_cast<std::uint32_t>(static_cast<std::int64_t>(next) +
                                                   decoded->branch_displacement);
             };
 
             bool fall_through = true;
-            bool forget_after_call = false;
             switch (decoded->flow) {
             case X86Flow::call_direct:
                 walk.call_targets.push_back(branch_target());
-                forget_volatile();
                 break;
             case X86Flow::conditional_jump: {
                 const auto target = branch_target();
@@ -488,9 +465,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             }
             case X86Flow::call_indirect:
                 ++walk.indirect_calls;
-                // Recorded below before the clobber, since the dispatch reads
-                // the register it is about to lose.
-                forget_after_call = true;
                 // A memory-indirect call through a register base carries the
                 // dispatch offset in its displacement. Register-direct calls
                 // (`call rax`) and RIP-relative ones (import slots) do not.
@@ -499,20 +473,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                     decoded->displacement % 8 == 0) {
                     walk.indirect_call_displacements.push_back(
                         static_cast<std::uint32_t>(decoded->displacement));
-
-                    std::uint32_t receiver = 0U;
-                    bool through_this = false;
-                    if (decoded->memory_base < held.size()) {
-                        const auto& through = held[decoded->memory_base];
-                        if (through.is_load && traced - through.age <= kMaxBaseAge) {
-                            receiver = through.loaded_from;
-                            through_this = through.loaded_from_entry_value;
-                        }
-                    }
-                    walk.resolved_dispatch_sites.push_back(
-                        FunctionWalk::DispatchSite{rva,
-                                                   static_cast<std::uint32_t>(decoded->displacement),
-                                                   receiver, through_this});
                 }
                 break;
             case X86Flow::return_:
@@ -525,10 +485,6 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 break;
             case X86Flow::sequential:
                 break;
-            }
-
-            if (forget_after_call) {
-                forget_volatile();
             }
 
             if (!fall_through) {
@@ -557,6 +513,143 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
     walk.indexed_accesses.erase(
         std::unique(walk.indexed_accesses.begin(), walk.indexed_accesses.end()),
         walk.indexed_accesses.end());
+}
+
+/// Runs the register analysis over the instructions the walk already decoded.
+///
+/// Separate from the walk on purpose. The walk's job is to find the code, and
+/// it is the thing every other measurement rests on; this reads that code again
+/// and says what the registers hold at each point, which needs a state per
+/// instruction and a meet at every join. Doing it in the walk would have meant
+/// facts that depend on which order the traces happened to run.
+void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
+                       FunctionWalk& walk) {
+    auto& starts = walk.instruction_starts;
+    std::sort(starts.begin(), starts.end());
+    starts.erase(std::unique(starts.begin(), starts.end()), starts.end());
+    if (starts.empty()) {
+        return;
+    }
+
+    // A function large enough to make the fixpoint expensive is left without
+    // register facts rather than allowed to dominate the run.
+    constexpr std::size_t kMaxInstructions = 16U * 1024U;
+    if (starts.size() > kMaxInstructions) {
+        return;
+    }
+
+    const auto index_of = [&](std::uint32_t rva) -> std::size_t {
+        const auto found = std::lower_bound(starts.begin(), starts.end(), rva);
+        if (found == starts.end() || *found != rva) {
+            return starts.size();
+        }
+        return static_cast<std::size_t>(found - starts.begin());
+    };
+
+    std::vector<std::optional<X86Instruction>> decoded(starts.size());
+    std::vector<std::array<std::size_t, 2U>> successors(
+        starts.size(), {starts.size(), starts.size()});
+
+    for (std::size_t position = 0; position < starts.size(); ++position) {
+        const auto offset = image.rva_to_file_offset(starts[position]);
+        if (!offset.has_value()) {
+            continue;
+        }
+        decoded[position] = X86LengthDecoder::decode(bytes, static_cast<std::size_t>(*offset));
+        if (!decoded[position].has_value()) {
+            continue;
+        }
+
+        const auto& instruction = *decoded[position];
+        const auto next = starts[position] + instruction.length;
+        const bool falls_through = instruction.flow != X86Flow::jump_direct &&
+                                   instruction.flow != X86Flow::jump_indirect &&
+                                   instruction.flow != X86Flow::return_ &&
+                                   instruction.flow != X86Flow::interrupt;
+        if (falls_through) {
+            successors[position][0] = index_of(next);
+        }
+        if (instruction.flow == X86Flow::jump_direct ||
+            instruction.flow == X86Flow::conditional_jump) {
+            successors[position][1] = index_of(static_cast<std::uint32_t>(
+                static_cast<std::int64_t>(next) + instruction.branch_displacement));
+        }
+    }
+
+    std::vector<RegisterState> incoming(starts.size());
+    std::vector<std::uint8_t> reached(starts.size(), 0U);
+
+    // The function's own entry is where the calling convention speaks: rcx holds
+    // the first argument. Every other root is reached by a branch this analysis
+    // cannot see, so it starts knowing nothing.
+    std::vector<std::size_t> pending;
+    const auto entry = index_of(walk.begin_rva);
+    if (entry < starts.size()) {
+        constexpr std::uint8_t kFirstArgument = 1U;  // rcx
+        incoming[entry][kFirstArgument] = RegisterFact{RegisterFact::Kind::entry_value, 0U, 1U};
+        reached[entry] = 1U;
+        pending.push_back(entry);
+    }
+    for (const auto& range : walk.ranges) {
+        const auto root = index_of(range.begin_rva);
+        if (root < starts.size() && reached[root] == 0U) {
+            reached[root] = 1U;
+            pending.push_back(root);
+        }
+    }
+
+    // Facts only ever weaken, so the iteration terminates; the cap is there for
+    // a malformed graph rather than for a slow one.
+    const auto budget = starts.size() * 64U + 1024U;
+    std::size_t applications = 0U;
+    while (!pending.empty() && applications < budget) {
+        const auto position = pending.back();
+        pending.pop_back();
+        ++applications;
+
+        if (!decoded[position].has_value()) {
+            continue;
+        }
+        auto state = incoming[position];
+        apply(*decoded[position], starts[position], state, nullptr);
+
+        for (const auto successor : successors[position]) {
+            if (successor >= starts.size()) {
+                continue;
+            }
+            if (reached[successor] == 0U) {
+                incoming[successor] = state;
+                reached[successor] = 1U;
+                pending.push_back(successor);
+                continue;
+            }
+            const auto merged = meet(incoming[successor], state);
+            if (merged != incoming[successor]) {
+                incoming[successor] = merged;
+                pending.push_back(successor);
+            }
+        }
+    }
+
+    // An instruction the analysis never reached is read with an empty state: it
+    // still counts towards the dispatch census, and claims nothing.
+    for (std::size_t position = 0; position < starts.size(); ++position) {
+        if (!decoded[position].has_value()) {
+            continue;
+        }
+        auto state = incoming[position];
+        apply(*decoded[position], starts[position], state, &walk);
+    }
+
+    std::sort(walk.indexed_accesses.begin(), walk.indexed_accesses.end(),
+              [](const FunctionWalk::IndexedAccess& left,
+                 const FunctionWalk::IndexedAccess& right) {
+                  return left.site_rva < right.site_rva;
+              });
+    std::sort(walk.resolved_dispatch_sites.begin(), walk.resolved_dispatch_sites.end(),
+              [](const FunctionWalk::DispatchSite& left, const FunctionWalk::DispatchSite& right) {
+                  return left.site_rva < right.site_rva;
+              });
 }
 
 } // namespace
@@ -602,6 +695,7 @@ CodeGraph CodeGraphBuilder::build(std::span<const std::byte> bytes, const PeImag
         }
 
         walk_function(bytes, image, walk, visited);
+        analyse_registers(bytes, image, walk);
 
         ++graph.functions_walked;
         if (walk.complete) {

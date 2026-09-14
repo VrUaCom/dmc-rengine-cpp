@@ -16,6 +16,13 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### Register analysis as block dataflow
+
+- the register analysis now runs as its own pass over the instructions the walk decoded, with a state per instruction and a **meet at every join** — a fact survives only when every path into the point agrees on it. That replaces a single pass whose facts depended on the order the traces happened to run. The walk is untouched and the code graph comes out **byte-identical**, which is the check that says so;
+- indexed reads with a nameable base 1,524 → **1,963**, consistent array walks 368 → **531**, recovered arrays 190 → **278**, dispatches on `this` 105 → **175**, resolved dispatches 19 → **30**;
+- **the earlier reading was wrong about the ceiling.** Dataflow was said to be what stood between 105 `this` dispatches and the 2,487 displacements in single-vtable methods. It lifted the figure by two thirds, and the rest is not an analysis problem: the method at RVA 0x2A9A0 reads a container out of a field of `this`, takes an element pointer from it and dispatches on the element, whose contents are built at run time. Most sites are that shape, so the ceiling was never reachable by following `this`;
+- tests pin the meet in both directions: a fact two paths disagree on does not survive the join, one they agree on does.
+
 #### Virtual dispatch: a census, and the receivers that can be named
 
 - recording each call through a register base rather than only its displacement gives **10,274 dispatch sites** where 3,410 distinct displacements were known;
