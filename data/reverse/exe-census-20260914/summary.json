@@ -77,8 +77,8 @@
   "import_slots": 229,
   "disassembled_instruction_starts": 880446,
   "instruction_starts_outside_runtime_ranges": 180553,
-  "bad_decodes": 3488,
-  "bad_decodes_inside_runtime_ranges": 3133,
+  "bad_decodes": 3651,
+  "bad_decodes_inside_runtime_ranges": 3292,
   "transfer_counts": {
     "call:direct": 44407,
     "call:import_slot": 651,

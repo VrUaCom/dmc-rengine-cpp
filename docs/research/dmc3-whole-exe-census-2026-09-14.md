@@ -5,6 +5,11 @@ Status: **STRUCTURAL_CONFIRMED** for PE metadata and address arithmetic;
 **SEMANTIC_CANDIDATE** for the disassembly-derived transfer inventory.
 Full semantic reverse and recompilation are **not complete**.
 
+Correction from the CFG follow-up: the original bad-decode counter missed
+prefixed forms such as `rex.XB (bad)`. Counts below include them. See
+[dmc3-cfg-decoding-2026-09-14.md](dmc3-cfg-decoding-2026-09-14.md)
+for the subsequent control-flow traversal and explicit limits.
+
 ## Results
 
 | Measurement | Observed count |
@@ -18,8 +23,8 @@ Full semantic reverse and recompilation are **not complete**.
 | Jumps referencing known import slots | 96 |
 | Unresolved indirect call candidates | 10,308 |
 | Unresolved indirect jump candidates | 699 |
-| Bad decodes, including those outside runtime ranges | 3,488 |
-| Bad decodes inside runtime ranges | 3,133 |
+| Bad decodes, including those outside runtime ranges | 3,651 |
+| Bad decodes inside runtime ranges | 3,292 |
 
 All 12,235 begin/end/unwind triples match the existing independent C++
 runtime-tree extractor's `runtime_ranges.tsv`. All 65,704 direct call/jump
@@ -70,7 +75,7 @@ remain linear-disassembly candidates until control flow is validated.
 
 1. Recover validated instruction boundaries and CFGs, including conditional
    edges, switch tables, unwind chains, exceptions, callbacks and indirect
-   dispatch. Resolve the 3,133 in-range bad decodes before coverage claims.
+   dispatch. Resolve the 3,292 in-range bad decodes before coverage claims.
 2. Join function identities and vtable targets to existing RTTI/type evidence;
    recover calling contracts, layouts, ownership and side effects.
 3. Complete subsystem semantics: startup/shutdown, platform, resource loading,

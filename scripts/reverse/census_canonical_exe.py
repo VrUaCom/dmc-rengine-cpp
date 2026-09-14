@@ -91,8 +91,10 @@ def census(exe, out):
         fn = owner(va)
         per_range[fn] += 1
         unowned += fn is None
-        bad += op == '(bad)'
-        bad_in_ranges += op == '(bad)' and fn is not None
+        # objdump can emit prefixed invalid forms such as "rex.XB (bad)".
+        is_bad = '(bad)' in (op+' '+operands)
+        bad += is_bad
+        bad_in_ranges += is_bad and fn is not None
         if op not in ('call','jmp'):
             continue
         direct = re.match(r'^0x([0-9a-f]+)(?:\s|$)', operands)

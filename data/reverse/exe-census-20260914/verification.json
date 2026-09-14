@@ -2,5 +2,5 @@
   "range_rows_match_existing_cpp_extractor": 12235,
   "direct_targets_independently_checked_from_machine_bytes": 65704,
   "unsupported_direct_encodings": [],
-  "bad_decodes_inside_runtime_ranges": 3133
+  "bad_decodes_inside_runtime_ranges": 3292
 }
