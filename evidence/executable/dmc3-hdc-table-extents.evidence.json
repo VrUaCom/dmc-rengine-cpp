@@ -213,6 +213,90 @@
           "note": "RVA 0x4ECCB8 now carries 13 references naming a record and a field, where those references formerly named 10 separate interior runs."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-pool-string-crossing-element-boundary",
+      "claim_id": "claim-dmc3-pool-string-crossing-element-boundary",
+      "title": "A pool string that crosses an element's far edge is the plainest pool evidence, and was being discarded",
+      "summary": "The test for text payload required the payload's own name to terminate inside the element. That excluded the case it most needed to catch. Names packed to an eight-byte boundary whose lengths all round up to the same figure produce a perfect fixed-stride run with nothing but NUL padding in every element, and the first thing that breaks the pattern is a name that rounds up to less: it begins inside the element and runs straight through the far edge, so its terminator falls outside and the payload was not counted as text. A field of a record always terminates within its element, so a name crossing the edge is pool evidence and nothing else. Accepting it takes the runs trimmed from 4 to 73 and absorbed elements from 14 to 83.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3610008,
+          "size": 312,
+          "symbol": "run of names sharing one length class",
+          "note": "RVA 0x371598, stride 24 over 13 elements: names of 16 to 23 characters, every one padded to 24 at eight-byte alignment. Element 12 holds a 14-character name, which pads to 16, and the next pool string crosses the element edge."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5270072,
+          "size": 192,
+          "symbol": "run of names sharing one length class",
+          "note": "RVA 0x506C38, stride 24 over 8 elements, sample name SYS_OT_LV_MDL_SHW."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-folded-empty-string-literal",
+      "claim_id": "claim-dmc3-folded-empty-string-literal",
+      "title": "An address inside a table pointing at NUL is a folded empty string",
+      "summary": "Four functions reference one address 213 bytes into record 15 of the layout at RVA 0x36B308, which is neither a field offset nor a name start but the second NUL in a field's padding. Disassembly settles it: each loads that address into r8 for a call whose format string at RVA 0x508848 is \"%s%s%s%s\", so the argument is an empty string. The linker folds an empty string literal into any NUL byte in the image, and a name table's padding is nothing but NUL bytes, so an empty string routinely arrives wearing a table's coordinates. Rejecting an address whose byte is NUL takes the references that could only be placed inside an element from 4 to 0: every reference into a recovered table now lands on an element or a field.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3589973,
+          "size": 1,
+          "symbol": "folded empty string literal",
+          "note": "RVA 0x36C355, inside the padding of a name field in record 15 of the layout at RVA 0x36B308. Loaded by functions at RVA 0x38C00, 0x31B2D0, 0x338020 and 0x338140."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3374144,
+          "size": 8,
+          "symbol": "format string taking the empty argument",
+          "note": "RVA 0x508848, \"%s%s%s%s\"."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-literal-pool-versus-indexed-table",
+      "claim_id": "claim-dmc3-literal-pool-versus-indexed-table",
+      "title": "A constant index and a direct literal reference are the same instruction",
+      "summary": "A reference whose offset is a whole multiple of a run's stride was read as a constant index into a table. It is equally the shape of code loading one string literal that happens to sit at that offset, and the instruction cannot tell them apart. The run at RVA 0x506C38 settles the question for itself: the function at RVA 0x2D83E0 reaches all eight of its elements, but through eight separate lea instructions at eight different addresses, interleaved with other work, and never once holds the base and adds an index. That is eight literals, not a table of eight. Coverage by constant index is therefore evidence that code reaches those bytes, not that it indexes them; distinguishing the two needs the base to be tracked through a register, which is the same value tracking virtual dispatch needs.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "methodology",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2982880,
+          "size": 4804,
+          "symbol": "function reaching eight adjacent strings through eight separate loads",
+          "note": "RVA 0x2D83E0, with lea instructions at RVA 0x2D8B50, 0x2D8B7A, 0x2D8B9C, 0x2D8BBE, 0x2D8BE0, 0x2D8C02, 0x2D8C24 and 0x2D8C46 naming the eight strings at RVA 0x506C38 onwards."
+        }
+      ]
     }
   ]
 }

@@ -171,6 +171,88 @@ That the count comes back *exactly* is the check that the reconciliation removed
 duplication rather than evidence. A reconciliation that loses a reference has
 deleted a table the code demonstrably reads.
 
+## The fifth pool mode, and the last mid-element reference
+
+Four mid-element references remained after the reconciliation, plus three more
+that were not what they looked like. Chasing all seven closed two more things.
+
+### Names that share a length class
+
+Three of the seven pointed at addresses that turned out to be perfectly good
+**name starts** — just not at the stride the run claimed:
+
+```text
+0x371598  +  0  'FX_FS_DrawToTexBuff End'   23 chars → padded to 24
+          + 24  'FX_ShadowPrepare Begin'    22        → 24
+           ...                                 16..23 → 24  (eleven more)
+          +288  'FX_GradFog End'            14        → 16   ← breaks here
+          +304  'FX_HeatHaze Begin'         17        → 24
+```
+
+Every one of these is a string packed to an **eight-byte boundary**. Lengths of
+16 to 23 all round up to 24, so thirteen of them in a row produce a flawless
+stride-24 run whose every element is a name with nothing but NUL padding after
+it. No payload test can see a thing — until a 14-character name rounds up to 16
+instead, and the string after it begins inside the element and runs out through
+its far edge.
+
+And that is exactly the case the text-payload test was throwing away: it
+required the payload's own name to **terminate inside the element**. A field of
+a record always does. A pool string crossing the edge never does — which makes
+it the strongest pool evidence there is, and it was the one case excluded.
+
+Accepting it takes trimmed runs from 4 to **73**, and absorbed elements from 14
+to **83**.
+
+### A reference into padding is an empty string
+
+The remaining four were one address, reached by four different functions: 213
+bytes into record 15 of the layout at `0x36B308`. Not a field offset, not a name
+start — the second NUL in a field's padding.
+
+```asm
+lea  rax,[rip+0x34313]        # 0x36c355  ->  ""
+mov  r8,rax
+lea  rdx,[rip+0x1d07ea]       # 0x508848  ->  "%s%s%s%s"
+call 0x2ff80
+```
+
+It is an **empty string literal**. The linker folds `""` into any NUL byte in
+the image, and a name table's padding is nothing but NUL bytes, so an empty
+string routinely arrives wearing a table's coordinates.
+
+Rejecting an address whose byte is NUL takes mid-element references from 4 to
+**0**. Every reference into a recovered table now lands on an element or a
+field.
+
+## What a constant index actually proves
+
+Trimming `0x506C38` dropped it below the minimum and released its eight
+references — which the code demonstrably makes. Before accepting that, the
+instructions:
+
+```asm
+2d8b50:  lea rdx,[rip+0x22e0e1]   # 0x506c38
+2d8b7a:  lea rdx,[rip+0x22e0cf]   # 0x506c50
+2d8b9c:  lea rdx,[rip+0x22e0c5]   # 0x506c68
+ ... five more, at five more addresses, interleaved with other work
+```
+
+**Eight separate loads at eight different instructions.** The base is never held
+and indexed. That is eight string literals that happen to sit 24 bytes apart,
+not a table of eight — and the reclassification is right.
+
+This is a caveat on the earlier reading. A reference whose offset is a whole
+multiple of the stride was called a constant index folded into the displacement.
+It is *equally* the shape of code loading one literal at that offset, and the
+instruction cannot tell the two apart. Coverage by constant index is evidence
+that code reaches those bytes — not that it indexes them. Separating the two
+needs the base followed through a register, which is the same value tracking
+virtual dispatch needs.
+
+No reference was lost to any of this: `string_references` rose by exactly the 13
+the tables gave up.
+
 ## The index
 
 The reports are now loaded into SQLite
@@ -193,12 +275,10 @@ worth keeping. It is now discharged for the runs it was written about.
 
 ## Open work
 
-- **the 7 remaining interior references.** Four are one address inside record 15
-  of `0x36B308`, at offset 213 within a 264-byte record — not a field offset, so
-  most likely a pointer into the middle of a name. Two sit 16 bytes into a
-  24-byte element of `0x371598` and `0x3716F0`, and one 20 bytes into an element
-  of `0x506C38`. Either those three runs are records this scan has not resolved,
-  or the code addresses a name's tail;
+- **which runs are indexed and which are pools of literals.** The instruction
+  for a constant index and for a direct literal load is the same; only following
+  the base through a register separates them. Until that exists, every run's
+  coverage figure carries the caveat above;
 - **runs that overlap without being interiors.** Reconciliation settles a run
   that matches a field offset and width. A run inside a record's extent matching
   neither is still unexplained, and may mean the *record's* extent is the

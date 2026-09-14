@@ -94,13 +94,20 @@ struct Element final {
         // Does the payload begin another name? A packed pool and a multi-field
         // record both look like text here; the caller separates them by whether
         // the offset is the same in every element.
+        //
+        // The name need not terminate inside the element. Requiring that hid
+        // the plainest pool there is: one whose next string runs straight
+        // through the element boundary, which a field of a record never does.
         std::uint32_t run = 0U;
         while (index + run < stride &&
                printable(std::to_integer<unsigned char>(bytes[offset + index + run]))) {
             ++run;
         }
-        element.payload_is_text = run >= minimum_name_length && index + run < stride &&
-            std::to_integer<unsigned char>(bytes[offset + index + run]) == 0U;
+        const bool reaches_boundary = index + run == stride;
+        element.payload_is_text =
+            run >= minimum_name_length &&
+            (reaches_boundary ||
+             std::to_integer<unsigned char>(bytes[offset + index + run]) == 0U);
         break;
     }
 

@@ -401,6 +401,41 @@ void a_run_outside_every_record_stands_on_its_own() {
     assert(result.runs[0].overrun_elements == 0U);
 }
 
+void a_pool_string_crossing_the_element_boundary_is_pool_evidence() {
+    // The plainest pool of all, and the one that hid longest: names packed to
+    // an eight-byte boundary whose lengths all happen to round up to the same
+    // stride. There is no payload to catch until the run reaches a name that
+    // rounds up to less, and that name starts inside the element and runs
+    // straight through its far edge. Requiring the payload to terminate inside
+    // the element missed exactly this case.
+    std::vector<std::byte> bytes(0xA00U, std::byte{0});
+    std::size_t offset = 0x400U;
+    for (std::size_t index = 0; index < 12U; ++index) {
+        // 17 to 23 characters: every one rounds up to 24.
+        put_text(bytes, offset, "parameter_name_" + std::to_string(100U + index));
+        offset += 24U;
+    }
+    // 14 characters, so this one rounds up to 16 and the next begins at +16.
+    put_text(bytes, offset, "shorter_name_0");
+    put_text(bytes, offset + 16U, "another_long_name_here");
+
+    const auto image = make_image();
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+
+    const StringTableRun* run = nullptr;
+    for (const auto& candidate : result.runs) {
+        if (candidate.stride == 24U && candidate.base_rva == 0x2000U) {
+            run = &candidate;
+        }
+    }
+    assert(run != nullptr);
+    // The thirteenth element holds "shorter_name_0" and then the head of the
+    // next pool string, which crosses the element's far edge.
+    assert(run->entries == 12U);
+    assert(run->absorbed_elements == 1U);
+    assert(run->pure_name_array());
+}
+
 void degenerate_options_are_refused() {
     const auto image = make_image();
     const auto bytes = make_pure_array();
@@ -433,6 +468,7 @@ int main() {
     scattered_payload_is_not_a_trailing_pool();
     a_record_interior_is_marked_and_cut_to_its_field_block();
     a_run_outside_every_record_stands_on_its_own();
+    a_pool_string_crossing_the_element_boundary_is_pool_evidence();
     degenerate_options_are_refused();
     return 0;
 }

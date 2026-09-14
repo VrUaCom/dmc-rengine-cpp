@@ -485,7 +485,19 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 continue;
             }
 
-            if (const auto* table = table_containing(target); table != nullptr) {
+            // An address inside a table that points at a NUL byte is not a
+            // table access. The linker folds an empty string literal into any
+            // NUL it can find, and a table's padding is full of them, so `""`
+            // in a format call arrives here wearing a table's coordinates.
+            const auto target_offset = image.rva_to_file_offset(target);
+            const bool points_at_nul =
+                target_offset.has_value() &&
+                static_cast<std::size_t>(*target_offset) < bytes.size() &&
+                std::to_integer<unsigned char>(bytes[static_cast<std::size_t>(*target_offset)]) ==
+                    0U;
+
+            if (const auto* table = points_at_nul ? nullptr : table_containing(target);
+                table != nullptr) {
                 NameTableReference reference;
                 reference.table_base_rva = table->base;
                 reference.offset_in_table = target - table->base;

@@ -460,6 +460,39 @@ void an_unaligned_offset_is_not_a_constant_index() {
     assert(map.summary.computed_index_references == 1U);
 }
 
+void an_address_pointing_at_a_nul_is_not_a_table_reference() {
+    Fixture fixture;
+
+    // The linker folds an empty string literal into any NUL byte it can find,
+    // and a name table's padding is full of them. Such a reference arrives with
+    // a table's coordinates and means nothing about the table: in the retail
+    // image four functions pass one address inside a record's padding to a
+    // "%s%s%s%s" call, and it resolves to "".
+    const auto offset = fixture.image.rva_to_file_offset(0x2010U);
+    assert(offset.has_value());
+    fixture.bytes[static_cast<std::size_t>(*offset)] = std::byte{0};
+
+    dmc::rengine::exe::StringTableScanResult tables;
+    dmc::rengine::exe::StringTableRun run;
+    run.base_rva = 0x2000U;
+    run.stride = 16U;
+    run.entries = 2U;
+    tables.runs.push_back(run);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &fixture.graph;
+    inputs.name_tables = &tables;
+
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // Function A still reaches element 0; function B's reference is dropped.
+    assert(map.functions[0].name_tables.size() == 1U);
+    assert(map.functions[1].name_tables.empty());
+    assert(map.name_table_usage[0].elements_named_by_constant == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -497,6 +530,7 @@ int main() {
     prologue_facts_come_from_the_primary_range();
     a_constant_table_index_names_one_element();
     an_unaligned_offset_is_not_a_constant_index();
+    an_address_pointing_at_a_nul_is_not_a_table_reference();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();
