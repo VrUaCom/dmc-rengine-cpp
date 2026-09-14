@@ -1,0 +1,33 @@
+{
+  "schema": "dmc-rengine.dmc3-bootstrap-scene-flow.v1",
+  "target": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "image_base": "0x140000000"
+  },
+  "status": "STRUCTURAL_CONFIRMED",
+  "roots": [
+    {"symbol":"dmc3_main", "va":"0x1402C5DF0", "role":"runtime_entry"},
+    {"symbol":"ArenaInitializer", "va":"0x140030190", "role":"memory_bootstrap"},
+    {"symbol":"CSceneFactoryApp_global", "va":"0x140C8F970", "role":"scene_factory_storage"},
+    {"symbol":"SceneSelectorDispatch", "va":"0x140240090", "role":"scene_constructor_dispatch"}
+  ],
+  "edges": [
+    {"from":"dmc3_main", "to":"ArenaInitializer", "kind":"direct_call", "callsite":"0x1402C5E03"},
+    {"from":"dmc3_main", "to":"CSceneFactoryApp_global", "kind":"address_passed_to_registration", "callsite":"0x1402C5E48"},
+    {"from":"CSceneFactoryApp_global", "to":"SceneSelectorDispatch", "kind":"dispatch_target"}
+  ],
+  "scene_selectors": [
+    {"selector":0,"type":"CSceneBoot","size":"0x38"},
+    {"selector":1,"type":"CSceneOpening","size":"0x28"},
+    {"selector":2,"type":"CSceneStartMenu","size":"0xC8"},
+    {"selector":3,"type":"CSceneMisSelect","size":"0xD0"},
+    {"selector":4,"type":"CSceneGame","size":"0x12E0"},
+    {"selector":5,"type":"CSceneGameMain","size":"0x1BA30"},
+    {"selector":6,"type":"CSceneDemo","size":"0x24A30"},
+    {"selector":7,"type":"CSceneMisStart","size":"0x500"},
+    {"selector":8,"type":"CSceneResult","size":"0x358"},
+    {"selector":9,"type":"CSceneEnding","size":"0x18"}
+  ],
+  "non_claims": ["constructor_body_recovery","complete_scene_lifecycle_semantics","behavioral_equivalence","mobile_port_acceptance"]
+}

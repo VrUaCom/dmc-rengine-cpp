@@ -35,6 +35,11 @@ multiple inheritance or shared services into a single-parent folder tree.
 Fresh, deterministic C++ outputs are in
 [`data/reverse/runtime-tree-20260913`](../../data/reverse/runtime-tree-20260913).
 
+The bounded root/relationship manifest is
+[`dmc3-internal-runtime-roots-20260914.json`](../../data/reverse/dmc3-internal-runtime-roots-20260914.json).
+It separates address-backed relationships from domain labels and explicitly
+lists claims that have not been proved.
+
 | Output | Meaning |
 | --- | --- |
 | `class_tree.md` | Every hierarchy-linked class with its address and direct bases |
@@ -163,6 +168,10 @@ the successful sanitizer runs use `ASAN_OPTIONS=detect_leaks=0`; leak checking
 is not claimed. No original-game runtime or Android/iOS acceptance was run.
 
 ## Remaining whole-tree work
+
+The bootstrap slice is also serialized as
+`data/reverse/dmc3-bootstrap-scene-flow-20260914.json`; it records only
+EXE-confirmed roots, callsites and the ten scene selector construction slots.
 
 1. Resolve every runtime range's fragment/CHAININFO relationship without
    equating an unwind family with a logical C++ function automatically.
