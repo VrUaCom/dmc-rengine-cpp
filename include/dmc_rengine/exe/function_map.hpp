@@ -88,6 +88,9 @@ struct NameTableReference final {
 
 /// What is known about one function, from structure alone.
 struct FunctionFacts final {
+    /// Class whose vtable this function writes at offset zero of the object it
+    /// was given, which makes it a constructor or destructor of that class.
+    std::string constructs_class;
     std::uint32_t begin_rva{};
     std::uint32_t end_rva{};
     std::uint32_t instruction_count{};
@@ -231,6 +234,29 @@ struct ResolvedDispatch final {
     friend bool operator==(const ResolvedDispatch&, const ResolvedDispatch&) = default;
 };
 
+/// A vtable a constructor writes into its object, read as class layout.
+///
+/// A constructor writes its own class's vtable at offset zero and the vtables
+/// of whatever sits inside the object at their offsets. Where the vtable
+/// belongs to another class the offset names an embedded member and its type;
+/// where it belongs to the same class it is a base subobject of that class's
+/// own hierarchy, and the RTTI's recorded subobject offset is a second,
+/// independent statement of where it sits.
+struct ClassFieldLayout final {
+    std::string class_display_name;
+    std::uint32_t offset{};
+    std::string member_class_display_name;
+    std::uint32_t site_rva{};
+    /// The member's class differs from the constructor's, so the offset names
+    /// something the object contains rather than something it is.
+    bool embedded_member{false};
+    /// The RTTI records this vtable's subobject offset, and it is the offset
+    /// the store used.
+    bool offset_confirmed_by_rtti{false};
+
+    friend bool operator==(const ClassFieldLayout&, const ClassFieldLayout&) = default;
+};
+
 struct ImportUsage final {
     std::string module;
     std::string function;
@@ -302,6 +328,15 @@ struct FunctionMapSummary final {
     std::size_t dispatch_sites_on_this{};
     std::size_t dispatch_sites_in_a_bound_function{};
     std::size_t dispatch_sites_resolved{};
+    /// Stores of an address the code took with a `lea` into the object a
+    /// function was given, and how many of those land on a known vtable. A
+    /// store at offset zero identifies the function as a constructor or
+    /// destructor of that vtable's class.
+    std::size_t stores_into_this{};
+    std::size_t stores_of_a_vtable{};
+    std::size_t constructors_identified{};
+    std::size_t field_layout_entries{};
+    std::size_t field_offsets_confirmed_by_rtti{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};
@@ -329,6 +364,8 @@ struct FunctionMap final {
     std::vector<NameTableUsage> name_table_usage;
     /// Arrays in data the code walks with a scaled index, most-used first.
     std::vector<IndexedArray> indexed_arrays;
+    /// Class layout read out of constructor stores, by class then offset.
+    std::vector<ClassFieldLayout> class_field_layout;
     /// Virtual calls resolved to a class and a target, in address order.
     std::vector<ResolvedDispatch> resolved_dispatches;
     std::vector<std::string> warnings;

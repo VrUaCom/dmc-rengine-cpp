@@ -731,6 +731,92 @@ void a_dispatch_on_something_other_than_this_is_not_resolved() {
     assert(map.resolved_dispatches.empty());
 }
 
+void a_constructor_store_names_the_class_and_its_layout() {
+    Fixture fixture;
+
+    // A constructor writes its class's vtable at offset zero, which is what
+    // identifies it, and whatever else it writes into the object names what the
+    // object contains.
+    //   48 8d 05 <rel>    lea rax,[rip -> the CThing vtable at 0x2180]
+    //   48 89 01          mov [rcx],rax            ; offset 0: this is CThing
+    //   48 8d 05 <rel>    lea rax,[rip -> 0x2180]
+    //   48 89 41 10       mov [rcx+0x10],rax       ; offset 16: a base subobject
+    //   c3                ret
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U,
+            static_cast<std::int32_t>(0x2180) - static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x48, 0x89, 0x01});
+    put(fixture.bytes, at + 10U, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 13U,
+            static_cast<std::int32_t>(0x2180) - static_cast<std::int32_t>(0x1051));
+    put(fixture.bytes, at + 17U, {0x48, 0x89, 0x41, 0x10});
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.stores_into_this == 2U);
+    assert(map.summary.stores_of_a_vtable == 2U);
+    assert(map.summary.constructors_identified == 1U);
+    assert(map.functions[0].constructs_class == "CThing");
+
+    // Only the non-zero offset is layout; offset zero says what the object is.
+    assert(map.class_field_layout.size() == 1U);
+    const auto& field = map.class_field_layout[0];
+    assert(field.class_display_name == "CThing");
+    assert(field.offset == 16U);
+    assert(field.member_class_display_name == "CThing");
+    // Same class, so a base subobject rather than something the object holds.
+    assert(!field.embedded_member);
+    // The fixture's RTTI records a subobject offset of zero, which is not 16,
+    // so the store stands alone rather than being confirmed twice over.
+    assert(!field.offset_confirmed_by_rtti);
+}
+
+void a_store_of_something_that_is_not_a_vtable_is_not_layout() {
+    Fixture fixture;
+
+    // The same shape, but the address stored is a string literal rather than a
+    // vtable. It is counted as a store into the object and goes no further.
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U,
+            static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x48, 0x89, 0x01});
+    put(fixture.bytes, at + 10U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.stores_into_this == 1U);
+    assert(map.summary.stores_of_a_vtable == 0U);
+    assert(map.summary.constructors_identified == 0U);
+    assert(map.class_field_layout.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -775,6 +861,8 @@ int main() {
     image_base_reads_spanning_elements_are_two_arrays_not_one();
     a_virtual_call_on_this_resolves_to_a_class_and_a_target();
     a_dispatch_on_something_other_than_this_is_not_resolved();
+    a_constructor_store_names_the_class_and_its_layout();
+    a_store_of_something_that_is_not_a_vtable_is_not_layout();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();

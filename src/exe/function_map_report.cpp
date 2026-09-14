@@ -72,6 +72,14 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.dispatch_sites_in_a_bound_function));
     writer.member("dispatch_sites_resolved",
                   static_cast<std::uint64_t>(summary.dispatch_sites_resolved));
+    writer.member("stores_into_this", static_cast<std::uint64_t>(summary.stores_into_this));
+    writer.member("stores_of_a_vtable", static_cast<std::uint64_t>(summary.stores_of_a_vtable));
+    writer.member("constructors_identified",
+                  static_cast<std::uint64_t>(summary.constructors_identified));
+    writer.member("field_layout_entries",
+                  static_cast<std::uint64_t>(summary.field_layout_entries));
+    writer.member("field_offsets_confirmed_by_rtti",
+                  static_cast<std::uint64_t>(summary.field_offsets_confirmed_by_rtti));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
@@ -139,6 +147,20 @@ void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
 }
 
 void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("class_field_layout");
+    writer.begin_array();
+    for (const auto& field : map.class_field_layout) {
+        writer.begin_object();
+        writer.member("class", field.class_display_name);
+        writer.member("offset", static_cast<std::uint64_t>(field.offset));
+        writer.member("member_class", field.member_class_display_name);
+        writer.hex_member("site_rva", field.site_rva);
+        writer.member("embedded_member", field.embedded_member);
+        writer.member("offset_confirmed_by_rtti", field.offset_confirmed_by_rtti);
+        writer.end_object();
+    }
+    writer.end_array();
+
     writer.key("resolved_dispatches");
     writer.begin_array();
     for (const auto& dispatch : map.resolved_dispatches) {

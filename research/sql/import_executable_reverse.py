@@ -232,6 +232,30 @@ def load_indexed_arrays(con: sqlite3.Connection, image_id: int, mapping: dict) -
     return imported
 
 
+def load_class_fields(con: sqlite3.Connection, image_id: int, mapping: dict,
+                      classes: dict) -> int:
+    """Stores the class layout read out of constructor stores."""
+    imported = 0
+    for entry in mapping.get("class_field_layout", []):
+        con.execute(
+            """INSERT OR IGNORE INTO exe_class_field(
+                   image_id, class_id, member_class_id, field_offset, site_rva,
+                   embedded_member, offset_confirmed_by_rtti)
+               VALUES(?,?,?,?,?,?,?)""",
+            (
+                image_id,
+                classes.get(entry["class"]),
+                classes.get(entry["member_class"]),
+                entry["offset"],
+                parse_rva(entry["site_rva"]),
+                1 if entry.get("embedded_member") else 0,
+                1 if entry.get("offset_confirmed_by_rtti") else 0,
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: dict,
                              functions: dict, classes: dict) -> int:
     """Stores virtual calls resolved to a class, a slot and a target."""
@@ -442,6 +466,7 @@ def main() -> int:
             "SELECT begin_rva, id FROM exe_function WHERE image_id=?", (image_id,)
         )
     }
+    load_class_fields(con, image_id, mapping, classes)
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
 
@@ -459,6 +484,7 @@ def main() -> int:
             "exe_indexed_array",
             "exe_indexed_array_field",
             "exe_resolved_dispatch",
+            "exe_class_field",
         )
     }
     con.close()

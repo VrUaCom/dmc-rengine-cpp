@@ -204,6 +204,20 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                                             decoded.displacement, decoded.memory_index});
         }
 
+        // `mov [this + offset], reg` with the register holding an address the
+        // code took with a `lea`. In a constructor that is a vtable going into
+        // its slot, which is the class's layout written out.
+        if (!decoded.two_byte_opcode && decoded.opcode == 0x89U && decoded.modrm_mod != 3U &&
+            !decoded.rip_relative && decoded.memory_index == X86Instruction::kNoRegister &&
+            decoded.memory_base < state.size() && decoded.displacement >= 0 &&
+            decoded.reg_operand < state.size() &&
+            state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
+            state[decoded.reg_operand].kind == RegisterFact::Kind::image_address) {
+            emit->stores_into_this.push_back(
+                FunctionWalk::VtableStore{rva, static_cast<std::uint32_t>(decoded.displacement),
+                                          state[decoded.reg_operand].rva});
+        }
+
         if (decoded.flow == X86Flow::call_indirect && decoded.has_modrm &&
             !decoded.register_indirect() && !decoded.rip_relative && decoded.displacement >= 0 &&
             decoded.displacement % 8 == 0) {
@@ -644,6 +658,10 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
     std::sort(walk.indexed_accesses.begin(), walk.indexed_accesses.end(),
               [](const FunctionWalk::IndexedAccess& left,
                  const FunctionWalk::IndexedAccess& right) {
+                  return left.site_rva < right.site_rva;
+              });
+    std::sort(walk.stores_into_this.begin(), walk.stores_into_this.end(),
+              [](const FunctionWalk::VtableStore& left, const FunctionWalk::VtableStore& right) {
                   return left.site_rva < right.site_rva;
               });
     std::sort(walk.resolved_dispatch_sites.begin(), walk.resolved_dispatch_sites.end(),

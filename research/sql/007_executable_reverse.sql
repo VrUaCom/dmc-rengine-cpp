@@ -198,6 +198,25 @@ CREATE TABLE IF NOT EXISTS exe_indexed_array_field (
     UNIQUE(array_id, field_offset)
 );
 
+-- Class layout read out of constructor stores: which class sits at which
+-- offset inside another. Layout only, from instruction encodings and the RTTI
+-- the compiler emitted.
+CREATE TABLE IF NOT EXISTS exe_class_field (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    class_id INTEGER REFERENCES exe_class(id) ON DELETE CASCADE,
+    member_class_id INTEGER REFERENCES exe_class(id) ON DELETE CASCADE,
+    field_offset INTEGER NOT NULL,
+    site_rva INTEGER NOT NULL,
+    -- The member's class differs from the constructor's, so the offset names
+    -- something the object contains rather than a base it is.
+    embedded_member INTEGER NOT NULL DEFAULT 0,
+    -- The RTTI records this vtable's subobject offset and it matches the store:
+    -- two independent statements of where the subobject sits.
+    offset_confirmed_by_rtti INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(image_id, class_id, field_offset, member_class_id)
+);
+
 -- Virtual calls resolved to a class, a slot and a target function.
 --
 -- The receiver is `this`: the dispatch reads the vtable pointer out of the
@@ -307,3 +326,16 @@ FROM exe_resolved_dispatch d
 LEFT JOIN exe_function caller ON caller.id = d.caller_id
 LEFT JOIN exe_function target ON target.id = d.target_id
 LEFT JOIN exe_class c ON c.id = d.class_id;
+
+-- What each class contains, by offset: members it holds and bases it is.
+CREATE VIEW IF NOT EXISTS v_exe_class_layout AS
+SELECT c.display_name AS class_name,
+       f.field_offset,
+       m.display_name AS member_class,
+       CASE WHEN f.embedded_member THEN 'MEMBER' ELSE 'BASE' END AS relation,
+       f.offset_confirmed_by_rtti,
+       printf('0x%x', f.site_rva) AS site_rva
+FROM exe_class_field f
+JOIN exe_class c ON c.id = f.class_id
+LEFT JOIN exe_class m ON m.id = f.member_class_id
+ORDER BY c.display_name, f.field_offset;

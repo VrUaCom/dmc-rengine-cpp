@@ -106,6 +106,24 @@ struct FunctionWalk final {
     /// Virtual dispatch sites whose receiver object the walk could name.
     std::vector<DispatchSite> resolved_dispatch_sites;
 
+    /// A store of a known image address into the object the function was given
+    /// as its first argument: `mov [this + offset], reg` with the register
+    /// holding an address a RIP-relative `lea` produced.
+    ///
+    /// A constructor writes its class's vtable at offset zero, and the vtables
+    /// of its base subobjects and embedded members at their offsets, so these
+    /// stores are the class's layout as the compiler laid it out.
+    struct VtableStore final {
+        std::uint32_t site_rva{};
+        std::uint32_t offset{};
+        std::uint32_t stored_rva{};
+
+        friend bool operator==(const VtableStore&, const VtableStore&) = default;
+    };
+
+    /// Stores into `this`, in address order.
+    std::vector<VtableStore> stores_into_this;
+
     /// Addresses of the instructions the walk decoded, in order. The register
     /// analysis runs over these rather than re-discovering the code, so it
     /// inherits the walk's guarantee that every one of them is a real

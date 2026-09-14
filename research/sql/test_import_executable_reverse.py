@@ -96,6 +96,16 @@ def make_map() -> dict:
                 "install_sites": 1,
             }
         ],
+        "class_field_layout": [
+            {
+                "class": "CCameraRail",
+                "offset": 96,
+                "member_class": "CCameraRail",
+                "site_rva": "0x23f7f7",
+                "embedded_member": False,
+                "offset_confirmed_by_rtti": True,
+            }
+        ],
         "resolved_dispatches": [
             {
                 "site_rva": "0x58cc3",
@@ -200,6 +210,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
             "SELECT begin_rva, id FROM exe_function WHERE image_id=?", (image_id,)
         )
     }
+    importer.load_class_fields(con, image_id, mapping, classes)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
     return con
@@ -247,6 +258,14 @@ class ImporterTests(unittest.TestCase):
         image_id = importer.load_image(con, make_analysis())
         with self.assertRaises(SystemExit):
             importer.load_indexed_arrays(con, image_id, mapping)
+
+    def test_class_layout_records_the_relation_and_its_confirmation(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT field_offset, member_class, relation, offset_confirmed_by_rtti"
+            " FROM v_exe_class_layout WHERE class_name='CCameraRail'"
+        ).fetchone()
+        self.assertEqual(row, (96, "CCameraRail", "BASE", 1))
 
     def test_a_resolved_dispatch_becomes_a_virtual_call_edge(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

@@ -276,6 +276,20 @@ array was reached against the image base, where the start is folded into the
 displacement: the stored base is then the lowest address observed, an upper
 bound, with the field offsets measured relative to it.
 
+### Class layout
+
+`exe_class_field` holds what each class contains at which offset, read out of
+what its constructor writes into the object.
+
+```sql
+SELECT * FROM v_exe_class_layout WHERE class_name = 'CScene';
+```
+
+`relation` is `MEMBER` when the vtable belongs to another class, so the offset
+names something the object holds, and `BASE` when it belongs to the same class,
+so the offset names a base subobject. `offset_confirmed_by_rtti` marks the
+entries where the RTTI's own recorded subobject offset agrees with the store.
+
 ### Virtual call edges
 
 `exe_resolved_dispatch` holds virtual calls whose receiver is `this`, resolved

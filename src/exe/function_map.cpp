@@ -932,6 +932,95 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                   return left.base_rva < right.base_rva;
               });
 
+    // ----- class layout from constructor stores ----------------------------
+    //
+    // A constructor writes its class's vtable at offset zero; everything else
+    // it writes into the object at a non-zero offset is what the object
+    // contains. Where that vtable belongs to another class the offset names an
+    // embedded member and its type; where it belongs to the same class it is a
+    // base subobject, and the RTTI's own subobject offset says independently
+    // where that sits.
+    {
+        std::map<std::uint32_t, std::pair<std::string, std::uint32_t>> vtable_class;
+        if (inputs.rtti != nullptr) {
+            for (const auto& entry : inputs.rtti->classes) {
+                for (const auto& vtable : entry.vtables) {
+                    vtable_class[vtable.vtable_rva] = {entry.display_name,
+                                                       vtable.subobject_offset};
+                }
+            }
+        }
+
+        for (std::size_t position = 0; position < graph.functions.size(); ++position) {
+            const auto& walk = graph.functions[position];
+            if (walk.stores_into_this.empty()) {
+                continue;
+            }
+
+            std::string owner;
+            for (const auto& store : walk.stores_into_this) {
+                if (store.offset != 0U) {
+                    continue;
+                }
+                const auto found = vtable_class.find(store.stored_rva);
+                if (found != vtable_class.end()) {
+                    owner = found->second.first;
+                }
+            }
+            if (!owner.empty()) {
+                map.functions[position].constructs_class = owner;
+                ++map.summary.constructors_identified;
+            }
+
+            for (const auto& store : walk.stores_into_this) {
+                ++map.summary.stores_into_this;
+                const auto found = vtable_class.find(store.stored_rva);
+                if (found == vtable_class.end()) {
+                    continue;
+                }
+                ++map.summary.stores_of_a_vtable;
+                if (store.offset == 0U || owner.empty()) {
+                    continue;
+                }
+
+                ClassFieldLayout field;
+                field.class_display_name = owner;
+                field.offset = store.offset;
+                field.member_class_display_name = found->second.first;
+                field.site_rva = store.site_rva;
+                field.embedded_member = found->second.first != owner;
+                field.offset_confirmed_by_rtti = found->second.second == store.offset;
+                map.class_field_layout.push_back(std::move(field));
+            }
+        }
+
+        std::sort(map.class_field_layout.begin(), map.class_field_layout.end(),
+                  [](const ClassFieldLayout& left, const ClassFieldLayout& right) {
+                      if (left.class_display_name != right.class_display_name) {
+                          return left.class_display_name < right.class_display_name;
+                      }
+                      if (left.offset != right.offset) {
+                          return left.offset < right.offset;
+                      }
+                      return left.member_class_display_name < right.member_class_display_name;
+                  });
+        map.class_field_layout.erase(
+            std::unique(map.class_field_layout.begin(), map.class_field_layout.end(),
+                        [](const ClassFieldLayout& left, const ClassFieldLayout& right) {
+                            return left.class_display_name == right.class_display_name &&
+                                   left.offset == right.offset &&
+                                   left.member_class_display_name ==
+                                       right.member_class_display_name;
+                        }),
+            map.class_field_layout.end());
+        map.summary.field_layout_entries = map.class_field_layout.size();
+        for (const auto& field : map.class_field_layout) {
+            if (field.offset_confirmed_by_rtti) {
+                ++map.summary.field_offsets_confirmed_by_rtti;
+            }
+        }
+    }
+
     // ----- virtual dispatch resolved through `this` ------------------------
     for (std::size_t position = 0; position < graph.functions.size(); ++position) {
         const auto& walk = graph.functions[position];

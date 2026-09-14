@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-class-layout",
+  "title": "DMC3 HD class layout read out of constructor stores",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-constructor-stores",
+      "claim_id": "claim-dmc3-constructor-stores",
+      "title": "A store of a vtable into the first argument identifies a constructor",
+      "summary": "A constructor writes its class's vtable into the object at offset zero. Following the register the Microsoft x64 convention puts the first argument in, and the register a RIP-relative lea filled, finds 270 such stores of a taken address into that object. 265 of them store a known vtable, which at ninety-eight per cent is a check on the following rather than a result of it: an address written into an object at a fixed offset, taken by lea in a function whose first argument that object is, is overwhelmingly a vtable. 146 functions store one at offset zero and are therefore constructors or destructors of that vtable's class, named without reading a symbol.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2357239,
+          "size": 8,
+          "symbol": "constructor store naming an embedded member",
+          "note": "RVA 0x23F7F7, storing the CGameLoader vtable at offset 2688 of a CScene."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-class-field-layout",
+      "claim_id": "claim-dmc3-class-field-layout",
+      "title": "44 typed fields recovered, 29 of them confirmed twice over",
+      "summary": "Everything a constructor writes into its object at a non-zero offset names what sits there. Where the vtable belongs to the constructor's own class the offset is a base subobject of its hierarchy, and the RTTI records that vtable's subobject offset independently: the two agree on 29 of the 44 entries, which is a second source saying the same thing rather than the same source said twice. Where the vtable belongs to a different class the offset names an embedded member and its type, and there are 15 of those. CScene is the clearest: a CLightMgr at 64, a CGameW at 88, a CChain at 112, a CEventMission at 592, a CGameLoader at 2688, a CList of CNonPlayer at 3312, a second CChain at 4256, a CLightStatic at 7552 and a CCameraMiniDemo at 22832. Layout only, from instruction encodings and the type information the compiler emitted; no field contents are read.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2357188,
+          "size": 8,
+          "symbol": "class with nine recovered members",
+          "note": "CScene, constructed at RVA 0x23F7C4 onwards, with typed members at offsets 64 through 22832."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2357188,
+          "size": 8,
+          "symbol": "base subobject offsets agreeing with the RTTI",
+          "note": "CEm021, CEm029Cart and CNonPlayer carry base subobjects at offsets 96, 208, 272, 384 and 592, each offset also recorded by the RTTI for that vtable."
+        }
+      ]
+    }
+  ]
+}

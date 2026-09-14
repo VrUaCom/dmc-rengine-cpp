@@ -16,6 +16,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### Class layout from constructor stores
+
+- a constructor writes its class's vtable into the object at offset zero, which names the function without reading a symbol, and everything it writes at a non-zero offset names what sits there. The register analysis already knows which register holds the first argument and which holds an address a `lea` produced, so both fall out of it;
+- **270 stores** of a taken address into the first argument, **265 of them a known vtable** — 98%, which is a check on the register following rather than a result of it. **146 constructors and destructors identified** by their offset-zero store;
+- **44 typed fields recovered**, 15 of them embedded members of a different class. `CScene` holds a `CLightMgr` at +64, a `CGameW` at +88, a `CChain` at +112, a `CEventMission` at +592, a `CGameLoader` at +2688, a `CList<CNonPlayer>` at +3312, a second `CChain` at +4256, a `CLightStatic` at +7552 and a `CCameraMiniDemo` at +22832;
+- **29 offsets confirmed twice over.** Where the vtable belongs to the constructor's own class the offset is a base subobject, and the RTTI records that vtable's subobject offset independently — an instruction the compiler emitted and a structure the compiler emitted saying the same thing. `CEm021`, `CEm029Cart` and `CNonPlayer` carry bases at +96, +208, +272, +384 and +592 on that footing;
+- `FunctionFacts.constructs_class` names the class each constructor builds; `exe_class_field` and `v_exe_class_layout` carry the layout into SQL. Offsets and type names only — no field contents.
+
 #### Register analysis as block dataflow
 
 - the register analysis now runs as its own pass over the instructions the walk decoded, with a state per instruction and a **meet at every join** — a fact survives only when every path into the point agrees on it. That replaces a single pass whose facts depended on the order the traces happened to run. The walk is untouched and the code graph comes out **byte-identical**, which is the check that says so;
