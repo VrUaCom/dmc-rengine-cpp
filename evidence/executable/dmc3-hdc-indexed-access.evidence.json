@@ -208,6 +208,36 @@
           "note": "RVA 0x596DE0, read as a 48-byte element at six sites and as an 8-byte element at one."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-image-base-grouping",
+      "claim_id": "claim-dmc3-image-base-grouping",
+      "title": "Grouping image-base reads by address proximity would have invented layouts",
+      "summary": "An image-base read folds the array's start into the displacement, so one read cannot separate base from field. Grouping reads whose addresses lie within one element of each other looked like the way to recover those layouts, and would have produced eighteen arrays. Grouping instead by what is actually shared — one function, one index register, one element size — shows why that is unsound: of the 60 such groups holding more than one read, 53 span more than one element, meaning the register was reused for a different array. Only 7 are one array's fields, and two of those reproduce a base and element size a register was separately seen holding, which corroborates both routes. The measurement of the false-merge rate is the result here; the seven layouts are recorded with their base marked as an upper bound, since the array may begin before the lowest address observed.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5148704,
+          "size": 8,
+          "symbol": "array reached by both routes",
+          "note": "RVA 0x4E9020, element 8 bytes, fields at +0 and +4, seen both through a register holding the base and through image-base reads sharing an index register."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14076756,
+          "size": 24,
+          "symbol": "layout from image-base reads alone",
+          "note": "RVA 0xD6CB54, element 24 bytes, fields at +0, +4 and +12 relative to the lowest address observed, which bounds the array's start from above."
+        }
+      ]
     }
   ]
 }

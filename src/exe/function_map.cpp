@@ -12,6 +12,7 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <tuple>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -837,6 +838,61 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
     }
 
+    // Image-base reads: the array's start is folded into the displacement, so a
+    // single read cannot separate base from field. Two reads that share a
+    // function, an index register and an element size are walking one array, and
+    // that is measured rather than guessed from how close their addresses are —
+    // which matters, because most such groups turn out to span more than one
+    // element, meaning the register was reused for a different array.
+    std::set<std::pair<std::uint32_t, std::uint32_t>> image_base_derived;
+    {
+        std::map<std::tuple<std::uint32_t, std::uint8_t, std::uint32_t>,
+                 std::set<std::int32_t>>
+            groups;
+        for (const auto& walk : graph.functions) {
+            for (const auto& access : walk.indexed_accesses) {
+                if (access.base_rva != 0U || access.element_bytes == 0U ||
+                    access.displacement <= 0) {
+                    continue;
+                }
+                groups[{walk.begin_rva, access.index_register, access.element_bytes}].insert(
+                    access.displacement);
+            }
+        }
+
+        map.summary.image_base_groups = groups.size();
+        for (const auto& [key2, displacements] : groups) {
+            if (displacements.size() < 2U) {
+                continue;
+            }
+            ++map.summary.image_base_groups_with_several_reads;
+
+            const auto element = std::get<2>(key2);
+            const auto lowest = *displacements.begin();
+            const auto highest = *displacements.rbegin();
+            if (static_cast<std::uint32_t>(highest - lowest) >= element) {
+                ++map.summary.image_base_groups_spanning_elements;
+                continue;
+            }
+
+            // Where a register was also seen holding this base at this element
+            // size, the two routes agree and the measured base stands; the
+            // offsets merge into it rather than becoming a second array.
+            const auto key = std::pair{static_cast<std::uint32_t>(lowest), element};
+            auto& facts = arrays[key];
+            if (facts.sites == 0U) {
+                image_base_derived.insert(key);
+            } else {
+                ++map.summary.image_base_groups_corroborating;
+            }
+            facts.functions.insert(std::get<0>(key2));
+            for (const auto displacement : displacements) {
+                facts.fields.insert(static_cast<std::uint32_t>(displacement - lowest));
+                ++facts.sites;
+            }
+        }
+    }
+
     map.indexed_arrays.reserve(arrays.size());
     for (const auto& [key, facts] : arrays) {
         IndexedArray entry;
@@ -845,17 +901,18 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         entry.sites = facts.sites;
         entry.referencing_functions = static_cast<std::uint32_t>(facts.functions.size());
         entry.field_offsets.assign(facts.fields.begin(), facts.fields.end());
+        entry.base_measured = image_base_derived.find(key) == image_base_derived.end();
         map.indexed_arrays.push_back(std::move(entry));
     }
     map.summary.indexed_arrays = map.indexed_arrays.size();
     {
-        std::map<std::uint32_t, std::uint32_t> sizes_per_base;
+        std::map<std::uint32_t, std::set<std::uint32_t>> sizes_per_base;
         for (const auto& array : map.indexed_arrays) {
-            ++sizes_per_base[array.base_rva];
+            sizes_per_base[array.base_rva].insert(array.element_bytes);
         }
-        for (const auto& [base, count] : sizes_per_base) {
+        for (const auto& [base, sizes] : sizes_per_base) {
             static_cast<void>(base);
-            if (count > 1U) {
+            if (sizes.size() > 1U) {
                 ++map.summary.arrays_with_conflicting_element_size;
             }
         }

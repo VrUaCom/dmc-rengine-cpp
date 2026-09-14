@@ -197,13 +197,16 @@ def load_indexed_arrays(con: sqlite3.Connection, image_id: int, mapping: dict) -
         base = parse_rva(entry["base_rva"])
         con.execute(
             """INSERT INTO exe_indexed_array(
-                   image_id, base_rva, element_bytes, sites, referencing_functions)
-               VALUES(?,?,?,?,?)
+                   image_id, base_rva, element_bytes, sites, referencing_functions,
+                   base_measured)
+               VALUES(?,?,?,?,?,?)
                ON CONFLICT(image_id, base_rva, element_bytes) DO UPDATE SET
                    sites=excluded.sites,
-                   referencing_functions=excluded.referencing_functions""",
+                   referencing_functions=excluded.referencing_functions,
+                   base_measured=excluded.base_measured""",
             (image_id, base, entry["element_bytes"], entry.get("sites", 0),
-             entry.get("referencing_functions", 0)),
+             entry.get("referencing_functions", 0),
+             1 if entry.get("base_measured", True) else 0),
         )
         row = con.execute(
             "SELECT id FROM exe_indexed_array"

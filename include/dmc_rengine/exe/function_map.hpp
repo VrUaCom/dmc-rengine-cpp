@@ -204,6 +204,12 @@ struct IndexedArray final {
     std::uint32_t referencing_functions{};
     /// Sorted, unique field offsets observed, each below `element_bytes`.
     std::vector<std::uint32_t> field_offsets;
+    /// True when a register was seen holding this base, so the base is where
+    /// the array starts. False when it was reached against the image base, in
+    /// which case the array's start is folded into the displacement and this
+    /// is only the lowest address observed — an upper bound on the base, with
+    /// the field offsets measured relative to it.
+    bool base_measured{true};
 
     friend bool operator==(const IndexedArray&, const IndexedArray&) = default;
 };
@@ -260,6 +266,17 @@ struct FunctionMapSummary final {
     /// least one of the readings is wrong. Reported rather than resolved, since
     /// nothing here says which.
     std::size_t arrays_with_conflicting_element_size{};
+    /// Image-base reads grouped by function, index register and element size.
+    /// A group whose reads span more than one element means the index register
+    /// was reused for another array, which is what makes grouping by address
+    /// proximity alone unsound.
+    std::size_t image_base_groups{};
+    std::size_t image_base_groups_with_several_reads{};
+    std::size_t image_base_groups_spanning_elements{};
+    /// Groups that reproduce a base and element size a register was also seen
+    /// holding: two routes to the same array, which is corroboration rather
+    /// than a second array.
+    std::size_t image_base_groups_corroborating{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};

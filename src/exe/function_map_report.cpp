@@ -58,6 +58,13 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("indexed_arrays", static_cast<std::uint64_t>(summary.indexed_arrays));
     writer.member("arrays_with_conflicting_element_size",
                   static_cast<std::uint64_t>(summary.arrays_with_conflicting_element_size));
+    writer.member("image_base_groups", static_cast<std::uint64_t>(summary.image_base_groups));
+    writer.member("image_base_groups_with_several_reads",
+                  static_cast<std::uint64_t>(summary.image_base_groups_with_several_reads));
+    writer.member("image_base_groups_spanning_elements",
+                  static_cast<std::uint64_t>(summary.image_base_groups_spanning_elements));
+    writer.member("image_base_groups_corroborating",
+                  static_cast<std::uint64_t>(summary.image_base_groups_corroborating));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
@@ -136,6 +143,7 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("sites", static_cast<std::uint64_t>(array.sites));
         writer.member("referencing_functions",
                       static_cast<std::uint64_t>(array.referencing_functions));
+        writer.member("base_measured", array.base_measured);
         writer.key("field_offsets");
         writer.begin_array();
         for (const auto offset : array.field_offsets) {

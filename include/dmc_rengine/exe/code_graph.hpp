@@ -75,6 +75,10 @@ struct FunctionWalk final {
         std::uint32_t element_bytes{};
         /// Constant added on top of the base, which picks a field.
         std::int32_t displacement{};
+        /// Register holding the index. Two reads in one trace that share it and
+        /// an element size are walking the same array, which is what makes a
+        /// field offset measured rather than inferred from proximity.
+        std::uint8_t index_register{};
 
         friend bool operator==(const IndexedAccess&, const IndexedAccess&) = default;
     };

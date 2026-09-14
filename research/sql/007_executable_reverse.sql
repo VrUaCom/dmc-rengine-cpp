@@ -183,6 +183,11 @@ CREATE TABLE IF NOT EXISTS exe_indexed_array (
     element_bytes INTEGER NOT NULL,
     sites INTEGER NOT NULL DEFAULT 0,
     referencing_functions INTEGER NOT NULL DEFAULT 0,
+    -- 1 when a register was seen holding this base, so it is where the array
+    -- starts. 0 when the array was reached against the image base, where the
+    -- start is folded into the displacement and this is the lowest address
+    -- observed: an upper bound, with the field offsets relative to it.
+    base_measured INTEGER NOT NULL DEFAULT 1,
     UNIQUE(image_id, base_rva, element_bytes)
 );
 
@@ -263,6 +268,7 @@ SELECT a.id AS array_id,
        a.element_bytes,
        a.sites,
        a.referencing_functions,
+       a.base_measured,
        COUNT(f.id) AS fields_observed,
        GROUP_CONCAT(f.field_offset, ',') AS field_offsets
 FROM exe_indexed_array a

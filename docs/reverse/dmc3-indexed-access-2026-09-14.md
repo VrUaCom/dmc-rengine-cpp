@@ -161,7 +161,7 @@ hiding. Alongside it, **5 of 168 bases** are read at two different element
 sizes. A base cannot have two, so one reading of each is wrong and nothing in
 the encodings says which; the count is reported rather than a winner picked.
 
-What survives is **173 arrays** over 168 bases, of which **28** are read at more than one
+What survives is **178 arrays**, of which **28** are read at more than one
 offset and so carry a partial element layout rather than a single observation:
 
 | Array | Element | Fields observed | Sites |
@@ -180,6 +180,32 @@ These are runtime state arrays in writable data — which is also why none of
 them is a name run. Layout only: where the array is, how wide its element is,
 and which offsets inside that element the code reads. No contents.
 
+## The image-base reads, and a layout not invented
+
+778 reads reach their array against the image base, where the array's start is
+folded into the displacement. One read cannot separate base from field.
+
+Grouping reads whose addresses fall within one element of each other looked
+like the way in, and it yields **18 arrays**. Grouping instead by what is
+actually shared — one function, one index register, one element size — shows
+why that is unsound:
+
+| groups with more than one read | 60 |
+| --- | --- |
+| **spanning more than one element** | **53** |
+| one array's fields | 7 |
+
+53 of 60 means the index register was reused for a *different* array. Proximity
+would have merged them and invented a layout for each. The false-merge rate is
+the result here; the 7 surviving layouts are recorded with `base_measured=false`,
+because the array may begin before the lowest address observed and only the
+offsets between reads are measured.
+
+Two of the seven reproduce a base and element size a register was separately
+seen holding — `0x4E9020`, an 8-byte element with fields at +0 and +4. Two
+independent routes to the same array, which is corroboration rather than a
+second array, so they merge into the measured entry.
+
 ## What this changes
 
 Coverage by constant index still means something — it means code reaches those
@@ -191,10 +217,10 @@ reading that treated the two as one should be read with this alongside it.
 - **the 16 remaining inconsistent sites, and the 5 conflicting bases.** Each is
   individually checkable against the instructions, exactly as the 16 that were
   closed here were;
-- **the 749 image-base-relative reads.** Their array base is the displacement,
-  so a field offset cannot be separated from it without a second observation at
-  the same base. Correlating reads that share a displacement modulo the element
-  size would recover those layouts too;
+- **the ~630 single image-base reads.** Each measures that an array of a known
+  element size covers a known address, and no more. Separating base from field
+  needs a second read through the same index register, which 60 groups have and
+  only 7 survive;
 - **the receiver of a virtual call**, which needs the same machinery pointed at
   a vtable pointer rather than a table base;
 - **the tables no direct reference reaches** — now a sharper question, since a

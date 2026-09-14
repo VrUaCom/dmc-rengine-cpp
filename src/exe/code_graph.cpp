@@ -292,8 +292,9 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                     // whatever the index was multiplied by on the way here.
                     const auto element = static_cast<std::uint64_t>(decoded->memory_scale) *
                                          multiplier_of(decoded->memory_index);
-                    walk.indexed_accesses.push_back(FunctionWalk::IndexedAccess{
-                        rva, base.rva, static_cast<std::uint32_t>(element), decoded->displacement});
+                    walk.indexed_accesses.push_back(
+                        FunctionWalk::IndexedAccess{rva, base.rva, static_cast<std::uint32_t>(element),
+                                                    decoded->displacement, decoded->memory_index});
                 }
             }
 

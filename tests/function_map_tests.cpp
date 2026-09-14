@@ -571,6 +571,87 @@ void a_field_offset_outside_the_element_is_not_an_array() {
     assert(map.summary.consistent_array_accesses == 0U);
 }
 
+void image_base_reads_sharing_an_index_register_are_one_array() {
+    Fixture fixture;
+
+    // Two reads against a register holding the image base, in one function,
+    // through one index register, at one element size. Their addresses differ
+    // by four, which is inside the eight-byte element, so they are two fields
+    // of one array and the lower address bounds where it starts.
+    //   48 8d 1d <rel>    lea rbx,[rip+rel]        ; -> RVA 0 (__ImageBase)
+    //   8b 8c c3 00 20 00 00   mov ecx,[rbx+rax*8+0x2000]
+    //   8b 8c c3 04 20 00 00   mov ecx,[rbx+rax*8+0x2004]
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x1D});
+    put_i32(fixture.bytes, at + 3U, -static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x8B, 0x8C, 0xC3});
+    put_i32(fixture.bytes, at + 10U, 0x2000);
+    put(fixture.bytes, at + 14U, {0x8B, 0x8C, 0xC3});
+    put_i32(fixture.bytes, at + 17U, 0x2004);
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.image_base_groups == 1U);
+    assert(map.summary.image_base_groups_with_several_reads == 1U);
+    assert(map.summary.image_base_groups_spanning_elements == 0U);
+    assert(map.indexed_arrays.size() == 1U);
+
+    const auto& array = map.indexed_arrays[0];
+    assert(array.base_rva == 0x2000U);
+    assert(array.element_bytes == 8U);
+    // The base is an upper bound: the array may begin earlier, and only the
+    // offsets between the reads are measured.
+    assert(!array.base_measured);
+    const std::vector<std::uint32_t> expected{0U, 4U};
+    assert(array.field_offsets == expected);
+}
+
+void image_base_reads_spanning_elements_are_two_arrays_not_one() {
+    Fixture fixture;
+
+    // The same shape, but the two addresses are 0x40 apart, well beyond the
+    // eight-byte element. One index register was reused for a second array, so
+    // nothing here says these are fields of anything, and grouping them by how
+    // close their addresses are would invent a layout.
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x1D});
+    put_i32(fixture.bytes, at + 3U, -static_cast<std::int32_t>(0x1047));
+    put(fixture.bytes, at + 7U, {0x8B, 0x8C, 0xC3});
+    put_i32(fixture.bytes, at + 10U, 0x2000);
+    put(fixture.bytes, at + 14U, {0x8B, 0x8C, 0xC3});
+    put_i32(fixture.bytes, at + 17U, 0x2040);
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.image_base_groups_with_several_reads == 1U);
+    assert(map.summary.image_base_groups_spanning_elements == 1U);
+    assert(map.indexed_arrays.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -611,6 +692,8 @@ int main() {
     an_address_pointing_at_a_nul_is_not_a_table_reference();
     an_indexed_array_carries_its_element_size_and_fields();
     a_field_offset_outside_the_element_is_not_an_array();
+    image_base_reads_sharing_an_index_register_are_one_array();
+    image_base_reads_spanning_elements_are_two_arrays_not_one();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();

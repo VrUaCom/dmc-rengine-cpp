@@ -270,5 +270,11 @@ ORDER BY fields_observed DESC, sites DESC;
 A field offset must fall inside its element; the importer refuses one that does
 not rather than storing a layout that contradicts itself.
 
+`base_measured` separates the two routes to an array. It is 1 when a register
+was seen holding the base, so that is where the array starts. It is 0 when the
+array was reached against the image base, where the start is folded into the
+displacement: the stored base is then the lowest address observed, an upper
+bound, with the field offsets measured relative to it.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.
