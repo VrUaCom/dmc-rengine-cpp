@@ -1,4 +1,5 @@
 #include "dmc_rengine/integration/executable_workspace_manifest.hpp"
+#include "dmc_rengine/profiles/dmc3/recovered_source_tree.hpp"
 
 #include <algorithm>
 #include <sstream>
@@ -37,6 +38,83 @@ void write_string(std::ostringstream& output, std::string_view value) {
     output << '"' << escape_json(value) << '"';
 }
 
+void write_recovered_source_tree(
+    std::ostringstream& output,
+    const ExecutableResourceContext& executable) {
+    const bool canonical_dmc3 = executable.known_target_hash_match &&
+        executable.known_target_id == "dmc3-hdc-phase12-canonical-target";
+    output << "  \"recovered_source_tree\": [";
+    if (!canonical_dmc3) {
+        output << "],\n";
+        return;
+    }
+
+    const auto& tree = profiles::dmc3::recovered_source_tree();
+    if (!tree.empty()) {
+        output << '\n';
+    }
+    for (std::size_t index = 0; index < tree.size(); ++index) {
+        const auto& symbol = tree[index];
+        output << "    {\n      \"id\": ";
+        write_string(output, symbol.id);
+        output << ",\n      \"parent_id\": ";
+        write_string(output, symbol.parent_id);
+        output << ",\n      \"kind\": ";
+        write_string(output, profiles::dmc3::to_string(symbol.kind));
+        output << ",\n      \"name\": ";
+        write_string(output, symbol.name);
+        output << ",\n      \"summary\": ";
+        write_string(output, symbol.summary);
+        output << ",\n      \"status\": ";
+        write_string(output, profiles::dmc3::to_string(symbol.status));
+        output << ",\n      \"va\": ";
+        if (symbol.va.has_value()) {
+            output << *symbol.va;
+        } else {
+            output << "null";
+        }
+        output << ",\n      \"size\": ";
+        if (symbol.size.has_value()) {
+            output << *symbol.size;
+        } else {
+            output << "null";
+        }
+        output << ",\n      \"evidence_passes\": [";
+        for (std::size_t pass_index = 0;
+             pass_index < symbol.evidence_passes.size(); ++pass_index) {
+            if (pass_index != 0U) {
+                output << ',';
+            }
+            output << symbol.evidence_passes[pass_index];
+        }
+        output << "],\n      \"attributes\": {";
+        if (!symbol.attributes.empty()) {
+            output << '\n';
+            std::size_t attribute_index = 0U;
+            for (const auto& [key, value] : symbol.attributes) {
+                output << "        ";
+                write_string(output, key);
+                output << ": ";
+                write_string(output, value);
+                if (++attribute_index != symbol.attributes.size()) {
+                    output << ',';
+                }
+                output << '\n';
+            }
+            output << "      ";
+        }
+        output << "}\n    }";
+        if (index + 1U != tree.size()) {
+            output << ',';
+        }
+        output << '\n';
+    }
+    if (!tree.empty()) {
+        output << "  ";
+    }
+    output << "],\n";
+}
+
 } // namespace
 
 std::string executable_workspace_manifest_json(
@@ -58,7 +136,7 @@ std::string executable_workspace_manifest_json(
 
     std::ostringstream output;
     output << "{\n"
-           << "  \"schema_version\": 1,\n"
+           << "  \"schema_version\": 2,\n"
            << "  \"resource\": {\n"
            << "    \"canonical_id\": ";
     write_string(output, session->resource().id.canonical());
@@ -163,7 +241,9 @@ std::string executable_workspace_manifest_json(
         output << "  ";
     }
 
-    output << "],\n  \"workspace\": {\n"
+    output << "],\n";
+    write_recovered_source_tree(output, executable);
+    output << "  \"workspace\": {\n"
            << "    \"status\": ";
     write_string(output, to_string(session->status()));
     output << ",\n    \"event_count\": " << session->events().size()
