@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-table-indices",
+  "title": "DMC3 HD constant table indices and a pool-rejection blind spot",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-constant-table-indices",
+      "claim_id": "claim-dmc3-constant-table-indices",
+      "title": "Most table references name one element outright",
+      "summary": "Of 202 references from code into recovered name tables, 186 land on a whole multiple of the element size and 16 do not. A compiler folds a constant index into the displacement, so a constant lookup is readable directly from the reference while a computed one is not. Dividing the offset by the element size therefore names the element a call site reaches, which is a link from a specific instruction to a specific table entry rather than to the table as a whole. For record layouts the remainder picks a field within the record, so an offset that is not a multiple of the record size can still be read.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "call-graph",
+        "data-layout",
+        "gdspaces"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601520,
+          "size": 312,
+          "symbol": "fully covered name array",
+          "note": "RVA 0x371598, stride 24, 13 entries, 8 referring functions, 12 of 13 entries named by a constant index."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601648,
+          "size": 288,
+          "symbol": "fully covered name array",
+          "note": "RVA 0x3716F0, stride 24, 12 entries, 7 referring functions, all 12 entries named by a constant index."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-pool-rejection-blind-spot",
+      "claim_id": "claim-dmc3-pool-rejection-blind-spot",
+      "title": "A pool of uniformly short strings passes the pool rejection",
+      "summary": "The rule that rejects a grid over a packed pool requires an element's payload to be either all zero or text at a consistent offset. A pool whose strings happen to share a length class defeats it: at RVA 0x506F68 the payload-bearing elements hold names of four and five characters padded to an eight-byte boundary, so each one's successor begins at offset eight and the offsets are consistent. The run passes, and its tail runs on past the parameter names it began with into an adjacent region of extension-variant strings. Its reported coverage of 22 of 22 elements is therefore overstated, and the three other fully covered tables are unaffected because they are pure name arrays with no payload at all. Payload-offset consistency is evidence of a record only when the strings in question vary in length.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "methodology",
+        "data-layout",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271912,
+          "size": 352,
+          "symbol": "parameter name pool with a run over-extending into adjacent strings",
+          "note": "RVA 0x506F68: the first sixteen elements are parameter names at a genuine sixteen-byte spacing; the remainder are four- and five-character extension variants padded to eight bytes."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-table-coverage-reading",
+      "claim_id": "claim-dmc3-table-coverage-reading",
+      "title": "How to read a table's coverage",
+      "summary": "Three recovered tables have every or nearly every element named by a constant index from code: RVA 0x36F470 with 9 of 9 across 8 functions, RVA 0x3716F0 with 12 of 12 across 7 functions, and RVA 0x371598 with 12 of 13 across 8 functions. All three are pure name arrays, which is what makes the coverage trustworthy: there is no payload to have been misread and no adjacent region for the run to have absorbed. Coverage measured over a payload-bearing run should be treated as an upper bound until the run's extent is confirmed independently.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3601008,
+          "size": 72,
+          "symbol": "fully covered name array",
+          "note": "RVA 0x36F470, stride 8, 9 entries, all named by constant indices from 8 functions."
+        }
+      ]
+    }
+  ]
+}

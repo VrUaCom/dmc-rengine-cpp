@@ -20,6 +20,8 @@
     "structurally_unreferenced": 848,
     "strings_recovered": 13767,
     "with_name_table": 45,
+    "constant_index_references": 186,
+    "computed_index_references": 16,
     "name_tables_referenced": 27,
     "name_tables_unreferenced": 218,
     "with_vtable_install": 710,
@@ -4730,7 +4732,8 @@
       "element_bytes": 8,
       "entries": 9,
       "referencing_functions": 8,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 9
     },
     {
       "table_base_rva": "0x371598",
@@ -4738,7 +4741,8 @@
       "element_bytes": 24,
       "entries": 13,
       "referencing_functions": 8,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 12
     },
     {
       "table_base_rva": "0x3716f0",
@@ -4746,7 +4750,8 @@
       "element_bytes": 24,
       "entries": 12,
       "referencing_functions": 7,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 12
     },
     {
       "table_base_rva": "0x36c298",
@@ -4754,7 +4759,8 @@
       "element_bytes": 16,
       "entries": 15,
       "referencing_functions": 4,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 0
     },
     {
       "table_base_rva": "0x506f68",
@@ -4762,7 +4768,8 @@
       "element_bytes": 16,
       "entries": 22,
       "referencing_functions": 4,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 22
     },
     {
       "table_base_rva": "0x365d68",
@@ -4770,7 +4777,8 @@
       "element_bytes": 568,
       "entries": 12,
       "referencing_functions": 2,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x36f288",
@@ -4778,7 +4786,8 @@
       "element_bytes": 16,
       "entries": 30,
       "referencing_functions": 2,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4ed6a0",
@@ -4786,7 +4795,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 2,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4ee720",
@@ -4794,7 +4804,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 2,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4f0da0",
@@ -4802,7 +4813,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 2,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x5069b8",
@@ -4810,7 +4822,8 @@
       "element_bytes": 8,
       "entries": 9,
       "referencing_functions": 2,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 9
     },
     {
       "table_base_rva": "0x5071d8",
@@ -4818,7 +4831,8 @@
       "element_bytes": 8,
       "entries": 9,
       "referencing_functions": 2,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 9
     },
     {
       "table_base_rva": "0x35d4b8",
@@ -4826,7 +4840,8 @@
       "element_bytes": 8,
       "entries": 10,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 10
     },
     {
       "table_base_rva": "0x370d98",
@@ -4834,7 +4849,8 @@
       "element_bytes": 16,
       "entries": 24,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 24
     },
     {
       "table_base_rva": "0x4e3f98",
@@ -4842,7 +4858,8 @@
       "element_bytes": 8,
       "entries": 9,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 9
     },
     {
       "table_base_rva": "0x4e4018",
@@ -4850,7 +4867,8 @@
       "element_bytes": 16,
       "entries": 9,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 9
     },
     {
       "table_base_rva": "0x4e6a08",
@@ -4858,7 +4876,8 @@
       "element_bytes": 8,
       "entries": 11,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 11
     },
     {
       "table_base_rva": "0x4ed120",
@@ -4866,7 +4885,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4edd80",
@@ -4874,7 +4894,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4ee1a0",
@@ -4882,7 +4903,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4ee460",
@@ -4890,7 +4912,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4ee5c0",
@@ -4898,7 +4921,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4eeb40",
@@ -4906,7 +4930,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4f0140",
@@ -4914,7 +4939,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x4f1460",
@@ -4922,7 +4948,8 @@
       "element_bytes": 40,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 0
+      "base_references": 0,
+      "elements_named_by_constant": 1
     },
     {
       "table_base_rva": "0x506bf8",
@@ -4930,7 +4957,8 @@
       "element_bytes": 8,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 8
     },
     {
       "table_base_rva": "0x506c38",
@@ -4938,7 +4966,8 @@
       "element_bytes": 24,
       "entries": 8,
       "referencing_functions": 1,
-      "base_references": 1
+      "base_references": 1,
+      "elements_named_by_constant": 8
     }
   ],
   "functions": [
@@ -5634,70 +5663,80 @@
           "table_base_rva": "0x35d4b8",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 8
         },
         {
           "table_base_rva": "0x35d4b8",
           "offset_in_table": 72,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 10
+          "entries": 10,
+          "element_index": 9
         }
       ],
       "dispatch_displacements": [
@@ -6787,7 +6826,8 @@
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 1,
@@ -7075,76 +7115,89 @@
           "offset_in_table": 456,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 30
+          "entries": 30,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x36f288",
           "offset_in_table": 464,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 30
+          "entries": 30,
+          "element_index": 29
         },
         {
           "table_base_rva": "0x36f288",
           "offset_in_table": 472,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 30
+          "entries": 30,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x36f470",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         }
       ]
     },
@@ -7739,168 +7792,192 @@
           "table_base_rva": "0x370d98",
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 80,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 112,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 128,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 8
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 144,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 9
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 160,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 10
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 176,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 11
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 192,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 12
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 208,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 13
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 224,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 14
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 240,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 15
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 256,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 16
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 272,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 17
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 288,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 18
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 304,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 19
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 320,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 20
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 336,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 21
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 352,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 22
         },
         {
           "table_base_rva": "0x370d98",
           "offset_in_table": 368,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 24
+          "entries": 24,
+          "element_index": 23
         }
       ]
     },
@@ -8125,7 +8202,9 @@
           "offset_in_table": 189,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 15
+          "entries": 15,
+          "constant_index": false,
+          "offset_in_element": 13
         }
       ],
       "dispatch_displacements": [
@@ -8340,28 +8419,36 @@
           "offset_in_table": 4736,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 11
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4808,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 15
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4880,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 19
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4952,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 23
         }
       ],
       "dispatch_displacements": [
@@ -9190,14 +9277,16 @@
           "offset_in_table": 168,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x371598",
           "offset_in_table": 192,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 8
         }
       ],
       "dispatch_displacements": [
@@ -9232,14 +9321,16 @@
           "offset_in_table": 144,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 168,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 7
         }
       ],
       "dispatch_displacements": [
@@ -9265,14 +9356,16 @@
           "table_base_rva": "0x3716f0",
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 1
         }
       ],
       "dispatch_displacements": [
@@ -9306,14 +9399,16 @@
           "offset_in_table": 216,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 9
         },
         {
           "table_base_rva": "0x371598",
           "offset_in_table": 240,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 10
         }
       ],
       "dispatch_displacements": [
@@ -9348,14 +9443,16 @@
           "offset_in_table": 240,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 10
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 264,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 11
         }
       ],
       "dispatch_displacements": [
@@ -9389,14 +9486,16 @@
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 72,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 3
         }
       ],
       "dispatch_displacements": [
@@ -9461,7 +9560,8 @@
           "table_base_rva": "0x371598",
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 0
         }
       ],
       "dispatch_displacements": [
@@ -9498,14 +9598,16 @@
           "offset_in_table": 264,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 11
         },
         {
           "table_base_rva": "0x371598",
           "offset_in_table": 288,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 12
         }
       ],
       "dispatch_displacements": [
@@ -9538,7 +9640,9 @@
           "offset_in_table": 304,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "constant_index": false,
+          "offset_in_element": 16
         }
       ],
       "dispatch_displacements": [
@@ -9641,7 +9745,9 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "constant_index": false,
+          "offset_in_element": 16
         }
       ],
       "resource_families": [
@@ -9721,14 +9827,16 @@
           "offset_in_table": 72,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x371598",
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 4
         }
       ],
       "dispatch_displacements": [
@@ -9762,14 +9870,16 @@
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x371598",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 2
         }
       ],
       "dispatch_displacements": [
@@ -9794,7 +9904,8 @@
           "offset_in_table": 120,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 13
+          "entries": 13,
+          "element_index": 5
         }
       ]
     },
@@ -9823,14 +9934,16 @@
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 120,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 5
         }
       ],
       "dispatch_displacements": [
@@ -9871,14 +9984,16 @@
           "offset_in_table": 192,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8
         },
         {
           "table_base_rva": "0x3716f0",
           "offset_in_table": 216,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 12
+          "entries": 12,
+          "element_index": 9
         }
       ],
       "dispatch_displacements": [
@@ -58206,7 +58321,8 @@
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ]
     },
@@ -58237,7 +58353,8 @@
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ]
     },
@@ -58289,7 +58406,8 @@
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 1,
@@ -73542,63 +73660,72 @@
           "table_base_rva": "0x4e4018",
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 80,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 112,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4e4018",
           "offset_in_table": 128,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 6,
@@ -73635,63 +73762,72 @@
           "table_base_rva": "0x4e3f98",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4e3f98",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 22,
@@ -77696,77 +77832,88 @@
           "table_base_rva": "0x4e6a08",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 8
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 72,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 9
         },
         {
           "table_base_rva": "0x4e6a08",
           "offset_in_table": 80,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 11
+          "entries": 11,
+          "element_index": 10
         }
       ],
       "string_references": 12,
@@ -79317,21 +79464,25 @@
           "offset_in_table": 456,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 30
+          "entries": 30,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x36f288",
           "offset_in_table": 464,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 30
+          "entries": 30,
+          "element_index": 29
         },
         {
           "table_base_rva": "0x36f470",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         }
       ],
       "string_references": 12,
@@ -87784,42 +87935,48 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4ee460",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4ee5c0",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4ee720",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4f0140",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4f1460",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         }
       ]
     },
@@ -88291,63 +88448,72 @@
           "table_base_rva": "0x5069b8",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 10,
@@ -88440,7 +88606,8 @@
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         }
       ],
       "string_references": 1,
@@ -88571,7 +88738,8 @@
           "table_base_rva": "0x506f68",
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 0
         }
       ],
       "string_references": 12,
@@ -88683,105 +88851,120 @@
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 80,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 112,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 128,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 144,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 9
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 160,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 10
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 176,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 11
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 192,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 12
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 208,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 13
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 224,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 14
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 240,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 15
         }
       ],
       "string_references": 9,
@@ -88906,131 +89089,151 @@
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x5069b8",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x506bf8",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x506bf8",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x506c38",
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 72,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 96,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 120,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 144,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 168,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x506c38",
           "offset_in_table": 188,
           "record_layout": false,
           "element_bytes": 24,
-          "entries": 8
+          "entries": 8,
+          "constant_index": false,
+          "offset_in_element": 20
         }
       ],
       "string_references": 28,
@@ -89255,77 +89458,93 @@
           "offset_in_table": 256,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 16
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 264,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 272,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 17
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 288,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 18
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 296,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 304,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 19
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 312,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 320,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 20
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 328,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 336,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 21
         }
       ]
     },
@@ -89477,83 +89696,96 @@
           "offset_in_table": 256,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 16
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 288,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "element_index": 18
         },
         {
           "table_base_rva": "0x506f68",
           "offset_in_table": 296,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 22
+          "entries": 22,
+          "constant_index": false,
+          "offset_in_element": 8
         },
         {
           "table_base_rva": "0x5071d8",
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 0
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 8,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 1
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 16,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 2
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 24,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 3
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 32,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 4
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 40,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 5
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 48,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 6
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 56,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x5071d8",
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ]
     },
@@ -90013,14 +90245,16 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4f0da0",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         }
       ]
     },
@@ -90044,14 +90278,16 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4f0da0",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         }
       ]
     },
@@ -90386,14 +90622,16 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4eeb40",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         }
       ]
     },
@@ -90417,7 +90655,8 @@
           "offset_in_table": 64,
           "record_layout": false,
           "element_bytes": 8,
-          "entries": 9
+          "entries": 9,
+          "element_index": 8
         }
       ],
       "string_references": 4,
@@ -91485,7 +91724,9 @@
           "offset_in_table": 189,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 15
+          "entries": 15,
+          "constant_index": false,
+          "offset_in_element": 13
         }
       ],
       "string_references": 66,
@@ -92106,14 +92347,16 @@
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         },
         {
           "table_base_rva": "0x4ee720",
           "offset_in_table": 280,
           "record_layout": false,
           "element_bytes": 40,
-          "entries": 8
+          "entries": 8,
+          "element_index": 7
         }
       ]
     },
@@ -92866,28 +93109,36 @@
           "offset_in_table": 4736,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 11
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4808,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 15
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4880,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 19
         },
         {
           "table_base_rva": "0x365d68",
           "offset_in_table": 4952,
           "record_layout": true,
           "element_bytes": 568,
-          "entries": 12
+          "entries": 12,
+          "element_index": 8,
+          "field_index": 23
         }
       ],
       "string_references": 1,
@@ -93520,7 +93771,9 @@
           "offset_in_table": 189,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 15
+          "entries": 15,
+          "constant_index": false,
+          "offset_in_element": 13
         }
       ],
       "string_references": 1,
@@ -93547,7 +93800,9 @@
           "offset_in_table": 189,
           "record_layout": false,
           "element_bytes": 16,
-          "entries": 15
+          "entries": 15,
+          "constant_index": false,
+          "offset_in_element": 13
         }
       ],
       "string_references": 1,

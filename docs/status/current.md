@@ -85,6 +85,7 @@ Instruction-accurate walks, the call graph and mechanical attribution are in pla
 - resource-name literals are packed into data tables and shader bytecode, not code constants — measured, and it bounds what literal attribution can yield;
 - 220 fixed-width name arrays holding 5,785 entries recovered, stride sized to each run's longest name; layout only, contents not extracted;
 - 45 functions linked to 27 recovered tables through RIP-relative references; 218 tables are addressed in ways direct-reference matching cannot follow;
+- 186 of 202 table references carry a constant index and name one element outright; three pure name arrays have every or nearly every element named from code;
 - 352-byte cutscene localisation record resolved exactly: 32-byte archive name plus eight 40-byte per-language message names, validated across all 49 records — and independently re-derived by the gap-period detector;
 - 25 multi-field name record layouts recovered holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields per record; largest is an 80-byte four-field record repeated 119 times;
 - extension census adds `.adx`, `.ogg`, `.sfd`, `.fxh` and `.tm2` to the family classifier; `.sfd` corroborates the FMV subsystem alongside RTTI classes and Media Foundation imports;

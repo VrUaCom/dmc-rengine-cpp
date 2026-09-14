@@ -8,6 +8,12 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Constant table indices
+
+- each table reference now resolves its element: a constant index is folded into the displacement, so an offset that is a whole multiple of the element size names one element outright, and for a record layout the remainder picks the field. 186 of 202 references are constant, 16 computed;
+- per-table coverage reports how many elements are named from code; three pure name arrays are fully or nearly fully covered (9/9, 12/12, 12/13);
+- **limitation recorded:** the pool rejection has a blind spot. A pool whose strings share a length class produces consistent payload offsets and passes, which is how the `FogColor` run at RVA 0x506F68 survives and over-extends into an adjacent region of four- and five-character extension variants. Payload-offset consistency is evidence of a record only when string lengths vary, and coverage over a payload-bearing run is an upper bound.
+
 #### Code-to-table linkage
 
 - `FunctionMapBuilder` matches each function's RIP-relative data references against recovered name tables, reporting the table, the offset addressed within it, and per-table referrer counts: 45 functions linked to 27 tables, with 218 tables addressed in ways direct-reference matching cannot follow;

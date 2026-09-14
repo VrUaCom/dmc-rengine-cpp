@@ -37,6 +37,10 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.structurally_unreferenced));
     writer.member("strings_recovered", static_cast<std::uint64_t>(summary.strings_recovered));
     writer.member("with_name_table", static_cast<std::uint64_t>(summary.with_name_table));
+    writer.member("constant_index_references",
+                  static_cast<std::uint64_t>(summary.constant_index_references));
+    writer.member("computed_index_references",
+                  static_cast<std::uint64_t>(summary.computed_index_references));
     writer.member("name_tables_referenced",
                   static_cast<std::uint64_t>(summary.name_tables_referenced));
     writer.member("name_tables_unreferenced",
@@ -120,6 +124,8 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("referencing_functions",
                       static_cast<std::uint64_t>(usage.referencing_functions));
         writer.member("base_references", static_cast<std::uint64_t>(usage.base_references));
+        writer.member("elements_named_by_constant",
+                      static_cast<std::uint64_t>(usage.elements_named_by_constant));
         writer.end_object();
     }
     writer.end_array();
@@ -253,6 +259,18 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
             writer.member("record_layout", reference.record_layout);
             writer.member("element_bytes", static_cast<std::uint64_t>(reference.element_bytes));
             writer.member("entries", static_cast<std::uint64_t>(reference.entries));
+            if (reference.constant_index) {
+                writer.member("element_index",
+                              static_cast<std::uint64_t>(reference.element_index));
+                if (reference.record_layout) {
+                    writer.member("field_index",
+                                  static_cast<std::uint64_t>(reference.field_index));
+                }
+            } else {
+                writer.member("constant_index", false);
+                writer.member("offset_in_element",
+                              static_cast<std::uint64_t>(reference.offset_in_element));
+            }
             writer.end_object();
         }
         writer.end_array();

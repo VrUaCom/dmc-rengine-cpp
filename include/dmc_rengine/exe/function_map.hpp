@@ -72,6 +72,17 @@ struct NameTableReference final {
     std::uint32_t element_bytes{};
     std::uint32_t entries{};
 
+    /// True when the offset is a whole multiple of the element size, so the
+    /// reference names one element outright. A compiler folds a constant index
+    /// into the displacement, which is why a constant lookup is readable here
+    /// and a computed one is not.
+    bool constant_index{false};
+    /// Element the reference names, valid when `constant_index` holds.
+    std::uint32_t element_index{};
+    /// For a record layout, the field within the record the offset falls in.
+    std::uint32_t field_index{};
+    std::uint32_t offset_in_element{};
+
     friend bool operator==(const NameTableReference&, const NameTableReference&) = default;
 };
 
@@ -165,6 +176,8 @@ struct NameTableUsage final {
     std::uint32_t referencing_functions{};
     /// References landing on the base rather than inside the span.
     std::uint32_t base_references{};
+    /// Distinct elements named outright by a constant index.
+    std::uint32_t elements_named_by_constant{};
 
     friend bool operator==(const NameTableUsage&, const NameTableUsage&) = default;
 };
@@ -199,6 +212,8 @@ struct FunctionMapSummary final {
     std::size_t attributed{};
     std::size_t strings_recovered{};
     std::size_t with_name_table{};
+    std::size_t constant_index_references{};
+    std::size_t computed_index_references{};
     std::size_t name_tables_referenced{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};

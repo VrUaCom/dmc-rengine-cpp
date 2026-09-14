@@ -225,14 +225,66 @@ rejecting a phantom frees its candidates for the genuine shorter runs beneath it
 Reference-offset distribution is now a usable independent check on any recovered
 table, and it cost nothing to obtain — the data was already in the function map.
 
+## Which element does a call site reach?
+
+Of 202 references from code into recovered tables, **186 land on a whole
+multiple of the element size** and 16 do not.
+
+That split is the whole story. A compiler folds a **constant** index into the
+displacement, so `table + 5 * stride` arrives as one number and the element is
+readable by division. A **computed** index arrives in a register and leaves
+nothing in the displacement to read. The 186 are therefore links from a specific
+instruction to a specific table entry, not merely to the table.
+
+For a record layout the remainder is useful too: it picks the field within the
+record, so an offset that is not a multiple of the record size is still readable.
+
+Three tables have every or nearly every element named this way:
+
+| Table | Stride | Entries | Functions | Elements named |
+| --- | --- | --- | --- | --- |
+| `0x36F470` | 8 | 9 | 8 | 9 of 9 |
+| `0x3716F0` | 24 | 12 | 7 | 12 of 12 |
+| `0x371598` | 24 | 13 | 8 | 12 of 13 |
+
+All three are **pure name arrays**, and that is what makes the coverage
+trustworthy: no payload to have been misread, no adjacent region for the run to
+have absorbed.
+
+### A fourth table looked fully covered and is not
+
+`0x506F68` reports 22 of 22 elements named, and the figure is overstated.
+
+This is the `FogColor` parameter run from earlier in this document — the one
+identified as an alignment-padded pool. The pool rejection did not fire on it,
+and the reason is a genuine blind spot in that rule.
+
+The rule asks whether an element's payload begins at a consistent offset. A pool
+whose strings happen to share a length class satisfies it trivially: here the
+payload-bearing elements hold four- and five-character extension variants padded
+to an eight-byte boundary, so each one's successor begins at offset 8, every
+time. Consistent offsets, and yet a pool.
+
+The run's tail duly runs past the sixteen genuine parameter names it began with
+and into that adjacent region of extension variants.
+
+So: **payload-offset consistency is evidence of a record only when the strings
+in question vary in length.** Coverage measured over a payload-bearing run is an
+upper bound until the run's extent is confirmed some other way.
+
+Three false-positive modes were found and closed earlier in this work; this is a
+fourth, found by pushing on a result that looked too good.
+
 ## Open work
 
 - **non-name fields.** Every layout recovered so far is made entirely of name
   fields. A record mixing names with numeric fields would not be found by gap
   periodicity, because the numbers leave no candidate name to measure from;
-- **how an index is computed.** Linkage now says *which* functions reach a
-  table; recovering how each computes its index would tie a specific name to a
-  specific call site;
+- **the 16 computed indices.** Constant indices are read; the rest arrive in a
+  register and need the same value tracking that virtual dispatch needs;
+- **narrowing over-extended runs.** A run's extent could be confirmed against
+  the constant indices that reference it: references clustering in the first N
+  elements while the run claims more is a signal the tail is absorbed;
 - **the 218 unreferenced tables.** Reaching them means following bases through
   registers and writable data, which direct-reference matching cannot do;
 - **the `id\idNNNN\` numbering.** The two largest arrays are dominated by a

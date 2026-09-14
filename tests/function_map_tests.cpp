@@ -386,6 +386,80 @@ void literal_families_reach_the_summary_and_the_census() {
     assert(map.resource_family_usage.empty());
 }
 
+void a_constant_table_index_names_one_element() {
+    const Fixture fixture;
+
+    // Treat the literal region as a stride-16 table: the function's reference
+    // to the second literal is then a constant index of one.
+    dmc::rengine::exe::StringTableScanResult tables;
+    dmc::rengine::exe::StringTableRun run;
+    run.base_rva = 0x2000U;
+    run.stride = 16U;
+    run.entries = 2U;
+    run.first_name = "hello world";
+    tables.runs.push_back(run);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.directories = &fixture.directories;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &fixture.graph;
+    inputs.name_tables = &tables;
+
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // Function A reaches element 0, function B reaches element 1.
+    assert(map.functions[0].name_tables.size() == 1U);
+    assert(map.functions[0].name_tables[0].table_base_rva == 0x2000U);
+    assert(map.functions[0].name_tables[0].constant_index);
+    assert(map.functions[0].name_tables[0].element_index == 0U);
+
+    assert(map.functions[1].name_tables.size() == 1U);
+    assert(map.functions[1].name_tables[0].constant_index);
+    assert(map.functions[1].name_tables[0].element_index == 1U);
+    assert(map.functions[1].name_tables[0].offset_in_table == 16U);
+
+    assert(map.summary.with_name_table == 2U);
+    assert(map.summary.constant_index_references == 2U);
+    assert(map.summary.computed_index_references == 0U);
+    assert(map.summary.name_tables_referenced == 1U);
+
+    assert(map.name_table_usage.size() == 1U);
+    assert(map.name_table_usage[0].referencing_functions == 2U);
+    assert(map.name_table_usage[0].elements_named_by_constant == 2U);
+
+    // Literals reached through the table are no longer counted as loose
+    // literal references.
+    assert(map.summary.with_string_reference == 0U);
+}
+
+void an_unaligned_offset_is_not_a_constant_index() {
+    const Fixture fixture;
+
+    // A stride of 24 makes the second literal land four bytes into element one.
+    dmc::rengine::exe::StringTableScanResult tables;
+    dmc::rengine::exe::StringTableRun run;
+    run.base_rva = 0x2000U;
+    run.stride = 12U;
+    run.entries = 4U;
+    tables.runs.push_back(run);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &fixture.graph;
+    inputs.name_tables = &tables;
+
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    const auto& reference = map.functions[1].name_tables.at(0);
+    assert(!reference.constant_index);
+    assert(reference.element_index == 1U);
+    assert(reference.offset_in_element == 4U);
+    assert(map.summary.computed_index_references == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -421,6 +495,8 @@ int main() {
     call_edges_and_exports_are_recorded();
     reachability_follows_call_edges_from_both_roots();
     prologue_facts_come_from_the_primary_range();
+    a_constant_table_index_names_one_element();
+    an_unaligned_offset_is_not_a_constant_index();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();

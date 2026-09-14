@@ -227,6 +227,16 @@ stride rules had passed.
 Linkage is silent, not negative, for a table whose base arrives in a register or
 from writable data: there is no RIP-relative reference to match.
 
+Each reference also resolves its element. A constant index is folded into the
+displacement by the compiler, so an offset that is a whole multiple of the
+element size names one element outright; for a record layout the remainder picks
+the field. An offset that is not a multiple means the index was computed at run
+time and is not readable from the reference.
+
+Coverage — how many of a table's elements are named by some constant index — is
+trustworthy for a pure name array and an upper bound for a payload-bearing run,
+whose extent may have absorbed neighbouring data.
+
 ## Full analysis report
 
 ```bash

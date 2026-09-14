@@ -233,6 +233,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         bool record_layout{};
         std::uint32_t element_bytes{};
         std::uint32_t entries{};
+        /// Field offsets within a record, for record layouts only.
+        std::vector<std::uint32_t> field_offsets;
     };
     std::vector<TableSpan> table_spans;
     if (inputs.name_tables != nullptr) {
@@ -243,7 +245,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
             table_spans.push_back(TableSpan{run.base_rva,
                                             static_cast<std::uint32_t>(run.base_rva + span), false,
-                                            run.stride, run.entries});
+                                            run.stride, run.entries, {}});
         }
         for (const auto& run : inputs.name_tables->records) {
             const auto span = run.span_bytes();
@@ -252,7 +254,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
             table_spans.push_back(TableSpan{run.base_rva,
                                             static_cast<std::uint32_t>(run.base_rva + span), true,
-                                            run.record_bytes, run.records});
+                                            run.record_bytes, run.records, run.field_offsets});
         }
         std::sort(table_spans.begin(), table_spans.end(),
                   [](const TableSpan& left, const TableSpan& right) {
@@ -453,9 +455,32 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
 
             if (const auto* table = table_containing(target); table != nullptr) {
-                facts.name_tables.push_back(NameTableReference{
-                    table->base, target - table->base, table->record_layout,
-                    table->element_bytes, table->entries});
+                NameTableReference reference;
+                reference.table_base_rva = table->base;
+                reference.offset_in_table = target - table->base;
+                reference.record_layout = table->record_layout;
+                reference.element_bytes = table->element_bytes;
+                reference.entries = table->entries;
+
+                if (table->element_bytes != 0U) {
+                    reference.element_index = reference.offset_in_table / table->element_bytes;
+                    reference.offset_in_element = reference.offset_in_table % table->element_bytes;
+                    reference.constant_index = reference.offset_in_element == 0U;
+
+                    // Inside a record the offset picks a field rather than the
+                    // record's start, so an unaligned offset is still readable.
+                    if (table->record_layout && !table->field_offsets.empty()) {
+                        for (std::size_t field = 0; field < table->field_offsets.size(); ++field) {
+                            if (table->field_offsets[field] <= reference.offset_in_element) {
+                                reference.field_index = static_cast<std::uint32_t>(field);
+                            }
+                        }
+                        reference.constant_index =
+                            reference.offset_in_element == table->field_offsets[reference.field_index];
+                    }
+                }
+
+                facts.name_tables.push_back(std::move(reference));
                 continue;
             }
 
@@ -587,6 +612,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     std::map<std::uint32_t, std::uint32_t> dispatch_sites;
     std::map<std::uint32_t, std::uint32_t> table_referrers;
     std::map<std::uint32_t, std::uint32_t> table_base_references;
+    std::map<std::uint32_t, std::set<std::uint32_t>> table_elements;
     map.summary.functions = map.functions.size();
     map.summary.indirect_call_sites = graph.indirect_call_sites;
     for (const auto& facts : map.functions) {
@@ -672,6 +698,12 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             if (reference.offset_in_table == 0U) {
                 ++table_base_references[reference.table_base_rva];
             }
+            if (reference.constant_index) {
+                ++map.summary.constant_index_references;
+                table_elements[reference.table_base_rva].insert(reference.element_index);
+            } else {
+                ++map.summary.computed_index_references;
+            }
         }
         for (const auto base : tables_this_function_reaches) {
             ++table_referrers[base];
@@ -714,6 +746,9 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         usage.referencing_functions = referrers == table_referrers.end() ? 0U : referrers->second;
         const auto bases = table_base_references.find(span.base);
         usage.base_references = bases == table_base_references.end() ? 0U : bases->second;
+        const auto named = table_elements.find(span.base);
+        usage.elements_named_by_constant =
+            named == table_elements.end() ? 0U : static_cast<std::uint32_t>(named->second.size());
 
         if (usage.referencing_functions == 0U) {
             ++map.summary.name_tables_unreferenced;
