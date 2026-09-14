@@ -66,14 +66,25 @@ Every PE structure the canonical target declares is now parsed and recorded as e
 Recovered and confirmed:
 
 - build identity: CodeView GUID `8DACCD58-89B6-4E0C-9B74-EC2A1292FC90` age 1, `C:\dev\dmc\dmc3\build\x64\dmc3.pdb`;
-- 12,235 unwind-backed function ranges covering 89.1 percent of `.text`;
+- 7,389 functions across 12,235 unwind ranges, covering 89.1 percent of `.text`;
 - 26 imported modules / 229 functions; exports `dmc3_main` (RVA `0x2C5DF0`) and `FMODGetCodecDescription`;
 - 408 RTTI type descriptors, 915 complete-object locators, 396 distinct polymorphic types, 915 vtables;
 - object spine: `CWork` under 264 of 396 types, `CActor` / `IActor` / `ICollisionHandle` under ~180 each.
 
+### Function map — INITIAL
+
+Instruction-accurate walks, the call graph and mechanical attribution are in place. See [the function map](../reverse/dmc3-function-map-2026-09-14.md) and [`dmc3-hdc-function-map.evidence.json`](../../evidence/executable/dmc3-hdc-function-map.evidence.json).
+
+- x86-64 length decoder, fail-closed, cross-validated against objdump at 875,067 positions with 99.93 percent agreement (every disagreement in embedded data);
+- recursive-descent walks: 593,458 instructions, 26,322 call edges, 25,105 data references, 7,381 of 7,389 functions complete;
+- **correction:** 12,235 exception-directory entries resolve to 7,389 functions plus 4,846 continuation ranges. Supersedes `ev-dmc3-function-inventory`;
+- 2,412 functions attributed: 1,879 bound to a class vtable slot, 528 calling imports, 150 referencing literals;
+- 3,588 of 13,894 vtable slots bound to inventoried functions.
+
 ### Open
 
-- **no function semantics.** The inventory counts and bounds functions; it names and explains none. Per-function recovery over the 12,235 ranges is a separate program;
+- **no function semantics.** The map attributes and counts; it names and explains nothing. A function known to be slot 7 of `CEm010`'s third vtable and to call `sqrtf` still has no established behavior. Per-function recovery is a separate program;
+- **reachability is a floor, not a measure.** 2,198 of 7,389 functions are structurally reachable; the rest are reached by virtual dispatch, function pointers, jump tables and callbacks that a direct-call graph cannot follow. This is not evidence of dead code;
 - **no field layouts.** RTTI supplies subobject offsets, not members;
 - **renderer surface invisible to imports.** D3D11 is reached through COM vtables; recovering those is separate work;
 - subsystem attribution from the dependency set is recorded at confidence `high`, not `confirmed`.

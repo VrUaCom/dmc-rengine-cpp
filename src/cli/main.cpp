@@ -7,7 +7,10 @@
 #include "dmc_rengine/core/sha256.hpp"
 #include "dmc_rengine/core/version.hpp"
 #include "dmc_rengine/evidence/json_import.hpp"
+#include "dmc_rengine/exe/code_graph.hpp"
 #include "dmc_rengine/exe/executable_report.hpp"
+#include "dmc_rengine/exe/function_map.hpp"
+#include "dmc_rengine/exe/function_map_report.hpp"
 #include "dmc_rengine/exe/pe_directories.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/exe/rtti_scanner.hpp"
@@ -51,6 +54,8 @@ void print_help() {
         << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
         << "  analyze-exe <path> [--out <file>] [--ranges] [--no-rtti]\n"
         << "                            Full structural analysis report as JSON\n"
+        << "  map-functions <path> [--out <file>] [--all] [--limit <n>]\n"
+        << "                            Function-level call/attribution map as JSON\n"
         << "  extract-exe-window <exe> <expected-sha256> <va> <size> [--hex]\n"
         << "                            Hash-gated reverse-evidence byte window\n";
     dmc::rengine::cli::print_integration_help();
@@ -383,6 +388,98 @@ int run_analyze_exe(int argc, char** argv) {
     return 0;
 }
 
+int run_map_functions(int argc, char** argv) {
+    if (argc < 3) {
+        std::cerr << "map-functions: usage: map-functions <path> [--out <file>] [--all]"
+                     " [--limit <n>]\n";
+        return 2;
+    }
+
+    dmc::rengine::exe::FunctionMapReportOptions options;
+    std::filesystem::path output_path;
+    for (int index = 3; index < argc; ++index) {
+        const std::string_view argument{argv[index]};
+        if (argument == "--all") {
+            options.include_unattributed = true;
+        } else if (argument == "--no-strings") {
+            options.include_referenced_strings = false;
+        } else if (argument == "--limit" && index + 1 < argc) {
+            options.function_limit = static_cast<std::size_t>(std::stoul(argv[++index]));
+        } else if (argument == "--out" && index + 1 < argc) {
+            output_path = argv[++index];
+        } else {
+            std::cerr << "map-functions: unknown argument: " << argument << '\n';
+            return 2;
+        }
+    }
+
+    const auto payload = load_local_file(argv[2], "exe-map", "map-functions");
+    if (!payload.has_value()) {
+        return 2;
+    }
+
+    const auto bytes = std::span<const std::byte>{payload->bytes};
+    const auto parsed = dmc::rengine::exe::PeReader::read(bytes);
+    for (const auto& parse_error : parsed.errors) {
+        std::cerr << "[error] " << parse_error << '\n';
+    }
+    if (!parsed.ok()) {
+        return 3;
+    }
+
+    const auto& image = *parsed.image;
+    const auto directories = dmc::rengine::exe::PeDirectoryReader::read(bytes, image);
+    for (const auto& directory_error : directories.errors) {
+        std::cerr << "[error] " << directory_error << '\n';
+    }
+    if (!directories.directories.functions.has_value()) {
+        std::cerr << "map-functions: the image carries no exception directory to map\n";
+        return 3;
+    }
+
+    const auto rtti = dmc::rengine::exe::RttiScanner::scan(bytes, image);
+    const auto graph = dmc::rengine::exe::CodeGraphBuilder::build(
+        bytes, image, *directories.directories.functions);
+    for (const auto& warning : graph.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+
+    dmc::rengine::exe::FunctionMapInputs inputs;
+    inputs.image = &image;
+    inputs.directories = &directories.directories;
+    inputs.rtti = &rtti;
+    inputs.graph = &graph;
+
+    const auto map = dmc::rengine::exe::FunctionMapBuilder::build(bytes, inputs);
+    for (const auto& warning : map.warnings) {
+        std::cerr << "[warning] " << warning << '\n';
+    }
+
+    dmc::rengine::exe::ExecutableArtifactIdentity artifact;
+    artifact.sha256 = dmc::rengine::core::Sha256::compute(bytes).hex();
+    artifact.size = static_cast<std::uint64_t>(bytes.size());
+
+    const auto report = dmc::rengine::exe::to_json(artifact, graph, map, options);
+    if (output_path.empty()) {
+        std::cout << report;
+        return 0;
+    }
+
+    std::ofstream output{output_path, std::ios::binary | std::ios::trunc};
+    if (!output) {
+        std::cerr << "map-functions: cannot write " << output_path.string() << '\n';
+        return 4;
+    }
+    output << report;
+    if (!output) {
+        std::cerr << "map-functions: failed while writing " << output_path.string() << '\n';
+        return 4;
+    }
+
+    std::cerr << "map-functions: wrote " << output_path.string() << '\n';
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -461,6 +558,10 @@ int main(int argc, char** argv) {
             return 1;
         }
         return run_route(std::string{argv[2]});
+    }
+
+    if (command == "map-functions") {
+        return run_map_functions(argc, argv);
     }
 
     if (command == "analyze-exe") {

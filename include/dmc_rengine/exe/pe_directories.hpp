@@ -67,6 +67,19 @@ struct PeFunctionRange final {
     std::uint32_t end_rva{};
     std::uint32_t unwind_rva{};
 
+    /// True when the unwind info sets `UNW_FLAG_CHAININFO`: this range is a
+    /// continuation of another function rather than a function of its own.
+    /// MSVC splits a function across several entries when the linker separates
+    /// its blocks, so entry count overstates function count.
+    bool chained{false};
+    /// Entry range of the function this range belongs to. Equals `begin_rva`
+    /// for a primary range.
+    std::uint32_t primary_begin_rva{};
+
+    [[nodiscard]] bool primary() const noexcept {
+        return !chained;
+    }
+
     [[nodiscard]] std::uint32_t size() const noexcept {
         return end_rva > begin_rva ? end_rva - begin_rva : 0U;
     }
@@ -75,11 +88,19 @@ struct PeFunctionRange final {
 };
 
 struct PeFunctionTable final {
+    /// One entry per `RUNTIME_FUNCTION`, including chained continuations.
     std::vector<PeFunctionRange> functions;
     std::uint32_t smallest_size{};
     std::uint32_t largest_size{};
     std::uint64_t covered_bytes{};
     bool sorted_by_address{true};
+
+    /// Ranges whose unwind info makes them a function entry.
+    std::uint32_t primary_functions{};
+    std::uint32_t chained_ranges{};
+    /// Ranges whose unwind info could not be read; these are treated as
+    /// primary rather than silently attached to a neighbour.
+    std::uint32_t unwind_unreadable{};
 
     friend bool operator==(const PeFunctionTable&, const PeFunctionTable&) = default;
 };

@@ -6,6 +6,7 @@
 #include <array>
 #include <cstdio>
 #include <limits>
+#include <map>
 #include <string>
 #include <utility>
 
@@ -14,6 +15,7 @@ namespace {
 
 using detail::has_range;
 using detail::read_cstring;
+using detail::read_u8;
 using detail::read_u16;
 using detail::read_u32;
 using detail::read_u64;
@@ -324,6 +326,93 @@ void read_exports(std::span<const std::byte> bytes, const PeImage& image,
     result.directories.exports = std::move(table);
 }
 
+/// Reads one `UNWIND_INFO` and, when it chains, the parent `RUNTIME_FUNCTION`.
+///
+/// Layout: a four-byte header, then `CountOfCodes` two-byte unwind codes padded
+/// to an even count, then — when `UNW_FLAG_CHAININFO` is set — the parent
+/// entry. Handler data occupies the same slot for the handler flags, so the
+/// chained form is the only one this reads.
+[[nodiscard]] std::optional<std::uint32_t> read_chained_parent(std::span<const std::byte> bytes,
+                                                               const PeImage& image,
+                                                               std::uint32_t unwind_rva,
+                                                               bool& readable) {
+    readable = false;
+    const auto offset = offset_of(bytes, image, unwind_rva);
+    if (!offset.has_value()) {
+        return std::nullopt;
+    }
+
+    const auto version_flags = read_u8(bytes, *offset);
+    const auto code_count = read_u8(bytes, *offset + 2U);
+    if (!version_flags.has_value() || !code_count.has_value()) {
+        return std::nullopt;
+    }
+    readable = true;
+
+    constexpr std::uint8_t chain_info = 0x04U;
+    const auto flags = static_cast<std::uint8_t>(*version_flags >> 3U);
+    if ((flags & chain_info) == 0U) {
+        return std::nullopt;
+    }
+
+    const std::size_t padded_codes = (static_cast<std::size_t>(*code_count) + 1U) & ~std::size_t{1U};
+    const std::size_t parent_offset = *offset + 4U + padded_codes * 2U;
+    const auto parent_begin = read_u32(bytes, parent_offset);
+    if (!parent_begin.has_value()) {
+        return std::nullopt;
+    }
+    return *parent_begin;
+}
+
+/// Groups continuation ranges under the function they belong to.
+void resolve_chained_functions(std::span<const std::byte> bytes, const PeImage& image,
+                               PeFunctionTable& table, PeDirectoryReadResult& result) {
+    std::map<std::uint32_t, std::size_t> by_begin;
+    for (std::size_t index = 0; index < table.functions.size(); ++index) {
+        by_begin.emplace(table.functions[index].begin_rva, index);
+    }
+
+    std::vector<std::optional<std::uint32_t>> parents(table.functions.size());
+    for (std::size_t index = 0; index < table.functions.size(); ++index) {
+        bool readable = false;
+        parents[index] =
+            read_chained_parent(bytes, image, table.functions[index].unwind_rva, readable);
+        if (!readable) {
+            ++table.unwind_unreadable;
+        }
+    }
+
+    for (std::size_t index = 0; index < table.functions.size(); ++index) {
+        auto& range = table.functions[index];
+
+        // Follow the chain to the function entry. The depth guard keeps a
+        // malformed or circular chain from costing unbounded work.
+        std::size_t current = index;
+        std::size_t depth = 0U;
+        constexpr std::size_t max_chain_depth = 64U;
+        while (parents[current].has_value() && depth < max_chain_depth) {
+            const auto parent = by_begin.find(*parents[current]);
+            if (parent == by_begin.end() || parent->second == current) {
+                break;
+            }
+            current = parent->second;
+            ++depth;
+        }
+
+        if (depth >= max_chain_depth) {
+            result.warnings.emplace_back("Unwind chain exceeded the depth limit.");
+        }
+
+        range.chained = current != index;
+        range.primary_begin_rva = table.functions[current].begin_rva;
+        if (range.chained) {
+            ++table.chained_ranges;
+        } else {
+            ++table.primary_functions;
+        }
+    }
+}
+
 void read_exception_table(std::span<const std::byte> bytes, const PeImage& image,
                           PeDirectoryReadResult& result) {
     const auto directory = image.directory(PeDirectory::exception_table);
@@ -388,6 +477,8 @@ void read_exception_table(std::span<const std::byte> bytes, const PeImage& image
     if (table.functions.empty()) {
         table.smallest_size = 0U;
     }
+
+    resolve_chained_functions(bytes, image, table, result);
     result.directories.functions = std::move(table);
 }
 

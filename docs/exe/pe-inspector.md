@@ -113,6 +113,47 @@ is reported with a zero vtable RVA rather than a guessed one.
 whether the reconstruction is complete. Unmodelled constructs are preserved
 verbatim rather than dropped.
 
+## Instruction decoding and the code graph
+
+`X86LengthDecoder::decode(bytes, offset)` is a bounded x86-64 instruction
+*length* decoder. It reports where an instruction ends, its control-flow role,
+its RIP-relative displacement and its direct branch displacement. It models no
+mnemonics: the analyses built on it do not need them, and a smaller decoder is
+one that can be trusted.
+
+It fails closed. VEX and EVEX encodings, opcodes invalid in 64-bit mode and
+truncated instructions return nothing rather than a guessed length.
+
+`CodeGraphBuilder::build(bytes, image, functions)` walks each function by
+**recursive descent** from its entry, following fall-through and direct
+branches. It is deliberately not a linear sweep: MSVC embeds switch jump tables
+inside function ranges, and a sweep decodes those tables as instructions.
+
+The builder also folds chained ranges. An exception-directory entry whose
+`UNWIND_INFO` sets `UNW_FLAG_CHAININFO` is a continuation of another function,
+so entry count overstates function count — on the canonical DMC3 target, 12,235
+entries are 7,389 functions.
+
+## Function attribution
+
+`FunctionMapBuilder::build(bytes, inputs)` joins the code graph against the
+import table, the export table and the recovered RTTI class graph. Per function
+it reports callers and callees, reachability from the entry point and from each
+export, vtable slots that bind it to a class, imported symbols it calls, and
+literals it references.
+
+Import calls are attributed in both forms: `call [rip+slot]` directly, and
+`jmp [rip+slot]` thunks. Thunks usually carry no unwind data and so never enter
+the inventory; the builder decodes a called-but-uninventoried target's single
+jump to recover the import behind it.
+
+```bash
+dmc-rengine map-functions <path> [--out <file>] [--all] [--limit <n>] [--no-strings]
+```
+
+By default the report emits the attributed subset plus the aggregate tables;
+`--all` emits every function.
+
 ## Full analysis report
 
 ```bash
@@ -133,7 +174,9 @@ for the canonical target's results.
 ## Planned extensions
 
 - load-config and control-flow-guard tables;
+- switch jump-table recovery, turning indirect jumps into graph edges;
+- virtual call-site resolution, which would lift reachability off its floor;
+- prologue and frame analysis from the unwind codes already parsed;
 - COM vtable recovery for interfaces the import table cannot see;
-- sanitized higher-level disassembly acquisition packets;
-- per-function recovery over the unwind inventory;
+- per-function semantic recovery over the function inventory;
 - executable source-recovery database.

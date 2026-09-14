@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-function-map",
+  "title": "DMC3 HD function-level map and call graph",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-function-count-corrected",
+      "claim_id": "claim-dmc3-function-inventory",
+      "title": "Function count corrected: 7389 functions, not 12235",
+      "summary": "The exception directory's 12235 RUNTIME_FUNCTION entries resolve to 7389 functions and 4846 continuation ranges. A range whose UNWIND_INFO sets UNW_FLAG_CHAININFO is a continuation of another function, and its chained parent entry names the function it belongs to. The earlier record correctly stated that entry count bounds function count from below; this supersedes it with the exact figure. Example: the exported dmc3_main occupies four ranges, 0x2C5DF0-0x2C5E10, 0x2C5E10-0x2C5F55, 0x2C5F55-0x2C5F75 and 0x2C5F75-0x2C5FE7, so reading its primary range alone sees 32 of its 503 bytes.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "exception-directory",
+        "unwind",
+        "function-inventory",
+        "correction"
+      ],
+      "supersedes": [
+        "ev-dmc3-function-inventory"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14102528,
+          "size": 146820,
+          "symbol": ".pdata",
+          "note": "Chaining is read from UNWIND_INFO: a four-byte header, CountOfCodes two-byte codes padded to an even count, then the parent RUNTIME_FUNCTION."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2907632,
+          "size": 503,
+          "symbol": "dmc3_main",
+          "note": "Four chained ranges spanning RVA 0x2C5DF0 to 0x2C5FE7."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-code-graph",
+      "claim_id": "claim-dmc3-code-graph",
+      "title": "Call and data-reference graph",
+      "summary": "A recursive-descent walk from each function entry decodes 593458 instructions over 2647277 bytes and yields 26322 direct call edges and 25105 RIP-relative data references. 7381 of 7389 functions walk to completion. The walk is not a linear sweep: MSVC embeds switch jump tables inside function ranges, and a sweep decodes those tables as instructions. Decoded bytes fall short of the unwind extent because embedded tables, alignment padding and blocks reached only through indirect dispatch are never entered.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "disassembly",
+        "control-flow"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3464526,
+          "symbol": ".text",
+          "note": "Regenerate with: dmc-rengine map-functions <exe> --out map.json"
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-decoder-validation",
+      "claim_id": "claim-dmc3-decoder-validation",
+      "title": "Instruction decoder cross-validated against an independent disassembler",
+      "summary": "The instruction length decoder was compared against GNU objdump 2.42 at every position objdump decoded inside a function range: 875067 positions, 99.93 percent agreement. Every disagreement examined fell in embedded data rather than an instruction stream. For example the bytes at RVA 0x6E200 hold the values 0x6DF9B, 0x6E009 and 0x6E06F, all of which are block addresses inside the function at 0x6DF70-0x6E12F, so the region is a switch jump table; objdump itself loses synchronisation there. Instruction length is undefined over such bytes, which is why the production walk is a descent rather than a sweep.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "decoder",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 450560,
+          "size": 12,
+          "symbol": "embedded jump table",
+          "note": "RVA 0x6E200: three little-endian block addresses inside the enclosing function."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-class-code-binding",
+      "claim_id": "claim-dmc3-class-code-binding",
+      "title": "Code bound to classes through vtable slots",
+      "summary": "Reading each recovered vtable resolves 3588 of 13894 slots to inventoried functions, binding 1879 distinct functions to a class, a vtable index and a slot number. This is the compiler's own binding of code to type: it gives a function an owner and an ordinal position, not a name and not a behavior. Slots that resolve to no inventoried function are mostly shared or unwind-less stubs.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "vtables",
+        "virtual-methods"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "symbol": ".rdata vtables",
+          "note": "Slot pointers are read as image-base-relative 64-bit values and mapped back to the function inventory."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-import-call-surface",
+      "claim_id": "claim-dmc3-import-call-surface",
+      "title": "Import call surface per function",
+      "summary": "528 functions call imported symbols, across 218 distinct imported functions. Ranked by calling functions, the largest consumers are memset (110), sqrtf (66), cosf (53), sinf (51) and atan2f (39). The trigonometric surface spanning over 150 functions is consistent with a 3D action game's math load. Attribution covers both the direct call-through-slot form and 89 import thunks that carry no unwind data and therefore never enter the function inventory.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "imports",
+        "call-graph",
+        "subsystems"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "size": 2040,
+          "symbol": "IMAGE_DIRECTORY_ENTRY_IAT",
+          "note": "IAT at RVA 0x34F000, size 0x7F8. An independent objdump pass finds 771 IAT reference sites, 651 calls and 120 thunk jumps, of which 110 thunks lie outside every unwind range."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-reachability-bound",
+      "claim_id": "claim-dmc3-reachability-bound",
+      "title": "Reachability is bounded by indirect dispatch, not by dead code",
+      "summary": "Following direct call edges reaches 319 functions from the CRT entry point and 306 from dmc3_main. Adding functions bound to a vtable slot brings structurally reachable code to 2198 of 7389 functions. The remaining 5191 functions are not evidence of dead code: virtual dispatch, function pointers in data, jump tables and callbacks are all indirect, and a direct-call graph cannot follow any of them. 13767 literals were recovered from read-only data, of which 150 functions reference at least one.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "call-graph",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2907632,
+          "symbol": "dmc3_main",
+          "note": "Reachability root for the game-side traversal."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-function-map-scope",
+      "claim_id": "claim-dmc3-function-map-scope",
+      "title": "Scope boundary of the function map",
+      "summary": "This packet records structural facts about code: function extents, call and reference edges, vtable ownership, import usage and literal references. It names no function and establishes no behavior. A function known to be slot 7 of CEm010's third vtable and to call sqrtf still has no recovered semantics. Assigning meaning to individual functions requires separate evidence per function and is not claimed here.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "scope",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "file_offset": 0,
+          "symbol": "whole image",
+          "note": "Attributed subset of the map is committed; the full table is regenerable with --all."
+        }
+      ]
+    }
+  ]
+}

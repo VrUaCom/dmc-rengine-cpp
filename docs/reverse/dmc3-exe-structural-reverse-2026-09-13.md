@@ -95,6 +95,10 @@ game's content lives in the executable's resource tree.
 The x64 exception directory holds **12,235 `RUNTIME_FUNCTION` entries**
 covering **3,085,665 bytes**, or 89.1 percent of the `.text` virtual size.
 
+> **Corrected 2026-09-14.** Those 12,235 entries resolve to **7,389 functions**
+> plus 4,846 continuation ranges. See
+> [the function map](dmc3-function-map-2026-09-14.md#correction-7389-functions-not-12235).
+
 | Function size | Count |
 | --- | --- |
 | ≤ 16 bytes | 593 |
@@ -110,9 +114,8 @@ covering **3,085,665 bytes**, or 89.1 percent of the `.text` virtual size.
 | ≤ 16,384 | 3 |
 | ≤ 32,768 | 1 |
 
-Two cautions on reading this table. The entry count bounds the function count
-from below, not exactly: the compiler emits unwind data per range, and a
-function split across ranges appears more than once. And the uncovered 10.9
+Two cautions on reading this table. The entry count is a count of *ranges*, not
+of functions — the correction above resolves it. And the uncovered 10.9
 percent of `.text` is *not* established to be non-code — it is simply not
 covered by unwind data, which also describes import thunks and padding.
 
@@ -245,7 +248,7 @@ files. No original executable bytes appear in the repository.
 
 ## Open work
 
-- per-function recovery across the 12,235 ranges;
+- per-function recovery across the 7,389 functions;
 - tying `dmc3_main` to observed behavior rather than to its name;
 - COM vtable recovery for the D3D11 render path, which the import table cannot
   see;

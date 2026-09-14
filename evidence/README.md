@@ -10,6 +10,8 @@ This directory contains sanitized, versioned evidence metadata. It does not cont
 
 - [`dmc3-hdc-structural-reverse.evidence.json`](executable/dmc3-hdc-structural-reverse.evidence.json) — build identity, directory inventory, unwind-backed function count and recovered RTTI class spine for the canonical target;
 - [`dmc3-hdc-structural-reverse.report.json`](executable/dmc3-hdc-structural-reverse.report.json) — the full machine-readable analysis the packet summarizes, regenerable with `dmc-rengine analyze-exe`.
+- [`dmc3-hdc-function-map.evidence.json`](executable/dmc3-hdc-function-map.evidence.json) — function count correction, call graph, decoder validation, class/code binding, import call surface and reachability bounds;
+- [`dmc3-hdc-function-map.report.json`](executable/dmc3-hdc-function-map.report.json) — the attributed function map, regenerable with `dmc-rengine map-functions`.
 
 ## Rules
 
