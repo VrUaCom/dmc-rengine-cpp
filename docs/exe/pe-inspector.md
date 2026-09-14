@@ -185,9 +185,26 @@ last requirement is not optional: without it a stride can land inside a real nam
 and still read a valid-looking tail, and the run marches across unrelated tables.
 
 Each run reports its base, stride, entry count, longest name, and whether any
-element carries payload after its terminator — a pure name array versus records
-with a leading name field. Only one representative name per run is retained;
-table contents are game data and are not extracted.
+element carries payload after its terminator. Payload is reported as two
+measurements rather than a verdict — whether it decodes as further text, and
+whether it begins at the same offset in every element — because consistent text
+payload is a multi-field record while inconsistent text payload is an
+alignment-padded pool that merely happens to line up.
+
+The scanner also reports the smallest period at which a run's extensions repeat,
+which is how a multi-field record shows itself to a scan that only sees the
+innermost spacing.
+
+A second pass looks for a period in the sequence of *gaps* between names instead
+of assuming one constant stride. That finds records whose fields differ in width
+— a 32-byte leading field followed by eight 40-byte fields breaks every
+single-stride hypothesis at each record boundary, but its gap pattern is regular.
+A chosen period is reduced to the smallest divisor at which both field widths and
+field extensions repeat, since maximising coverage can otherwise settle on a
+multiple of the real period.
+
+Only one representative name per run is retained; table contents are game data
+and are not extracted.
 
 ## Full analysis report
 

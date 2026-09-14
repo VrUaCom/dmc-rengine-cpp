@@ -84,7 +84,8 @@ Instruction-accurate walks, the call graph and mechanical attribution are in pla
 - dispatch census: 10,958 indirect call sites across 2,070 functions over 145 distinct offsets;
 - resource-name literals are packed into data tables and shader bytecode, not code constants — measured, and it bounds what literal attribution can yield;
 - 222 fixed-width name arrays holding 5,692 entries recovered, stride sized to each run's longest name; layout only, contents not extracted;
-- 352-byte cutscene localisation record resolved exactly: 32-byte archive name plus eight 40-byte per-language message names, validated across all 49 records;
+- 352-byte cutscene localisation record resolved exactly: 32-byte archive name plus eight 40-byte per-language message names, validated across all 49 records — and independently re-derived by the gap-period detector;
+- 25 multi-field name record layouts recovered holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields per record; largest is an 80-byte four-field record repeated 119 times;
 - extension census adds `.adx`, `.ogg`, `.sfd`, `.fxh` and `.tm2` to the family classifier; `.sfd` corroborates the FMV subsystem alongside RTTI classes and Media Foundation imports;
 - three candidate resource-resolution functions recorded at `high` confidence (NBZ volume path, PTX extension matching, MOT/CLT extension matching);
 - functions with no structural referrer at all fell from 2,101 to 848 once switch edges existed;

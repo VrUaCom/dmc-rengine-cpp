@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-name-records",
+  "title": "DMC3 HD multi-field name record layouts",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-name-record-runs",
+      "claim_id": "claim-dmc3-name-record-runs",
+      "title": "25 multi-field name record layouts recovered",
+      "summary": "Looking for a period in the sequence of gaps between consecutive names, rather than assuming one constant stride, recovers 25 record layouts holding 5076 name fields. Field counts per record are 2, 4, 9, 12, 16 and 32. The largest by record count is at RVA 0x5038E8: an 80-byte record of four archive-name fields with widths 16, 16, 24 and 24, repeated 119 times. A 264-byte record of sixteen fields at RVA 0x36B308 repeats 51 times. Each layout is accepted only when every field of every record in the run holds a name terminated inside that field's width, so a run of 51 records validates the pattern 816 times.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "record-layout",
+        "resource-names",
+        "data-layout",
+        "gdspaces"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5257960,
+          "size": 9520,
+          "symbol": "largest name record run",
+          "note": "RVA 0x5038E8, 80-byte record, four fields of widths 16, 16, 24, 24, 119 records."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3584264,
+          "size": 13464,
+          "symbol": "sixteen-field record run",
+          "note": "RVA 0x36B308, 264-byte record, sixteen fields, 51 records."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-localisation-record-rederived",
+      "claim_id": "claim-dmc3-cutscene-localisation-record",
+      "title": "Cutscene localisation layout independently re-derived",
+      "summary": "The gap-period detector reproduces the 352-byte cutscene localisation record without being told about it: base RVA 0x4ECCB8, nine fields of widths 32 then eight times 40, extensions pac then eight times txt, 49 records. That layout was first recovered by hand; an automatic pass over the same bytes arriving at the identical field table is independent confirmation of both the layout and the detector. A single-stride scan cannot see this record at all, because its 32-byte leading field breaks every stride hypothesis at each record boundary.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "record-layout",
+        "localisation",
+        "cross-validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5163704,
+          "size": 17248,
+          "symbol": "cutscene localisation table",
+          "note": "RVA 0x4ECCB8, 49 records of 352 bytes, field widths 32 and eight of 40."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-parameter-name-pools",
+      "claim_id": "claim-dmc3-parameter-name-pools",
+      "title": "Alignment-padded name pools are not record tables",
+      "summary": "Two runs at RVA 0x506F68 and 0x506E48 hold parameter-style names and appeared to carry payload after their terminators, which would suggest a record with a leading name field. They are not records. The payload decodes as further printable names, and the offset at which it begins differs between elements, which is the signature of an alignment-padded string pool whose names merely happen to fall on a regular spacing where consecutive lengths allow it. A record table shows the opposite: payload at the same offset in every element. Measuring both the payload's text-likeness and the consistency of its offset is what separates the two, and the scanner now reports both rather than issuing a verdict.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "methodology",
+        "limitations"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5271912,
+          "symbol": "parameter name pool",
+          "note": "RVA 0x506F68: payload present in 6 of 22 elements, text in 5 of those 6, payload offsets inconsistent."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-record-period-reduction",
+      "claim_id": "claim-dmc3-record-period-reduction",
+      "title": "A gap-period search must reduce to the smallest period",
+      "summary": "A search that maximises coverage can settle on a multiple of the real period: a four-field record repeated four times matches a sixteen-field pattern equally well. The detector therefore reduces a chosen period to the smallest divisor at which both field widths and field extensions repeat. On this image the reduction changes nothing, and one run shows why the check must test widths and not extensions alone: the run at RVA 0x35FE68 has extensions repeating every four fields as adx, pac, pac, pac, but its widths do not, because one field is 24 bytes wide in all 23 records while the corresponding field of each later group is 16. It is a genuine sixteen-field record, and reducing on the extension pattern alone would have misreported it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "record-layout",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3538536,
+          "size": 6072,
+          "symbol": "sixteen-field record with a periodic extension pattern",
+          "note": "RVA 0x35FE68, 264-byte record, 23 records; widths 16, 16, 16, 24 then twelve of 16."
+        }
+      ]
+    }
+  ]
+}

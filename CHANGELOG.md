@@ -8,6 +8,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Multi-field name record layouts
+
+- `StringTableScanner` gains a gap-period pass that finds records whose name fields differ in width, which no constant-stride hypothesis can cover: 25 layouts holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields per record;
+- the pass independently re-derives the 352-byte cutscene localisation record — same base, widths, extensions and record count as the hand analysis;
+- a chosen period is reduced to the smallest divisor at which both field widths *and* extensions repeat; testing extensions alone would misreport the 16-field record at RVA 0x35FE68, whose extensions repeat every four fields but whose widths do not;
+- payload after a name terminator is now reported as two measurements — text-likeness and offset consistency — instead of implying a record: inconsistent text payload is an alignment-padded pool, and two parameter-name pools were misreadable as records without it;
+- runs also report the smallest period at which their extensions repeat.
+
 #### Resource name tables
 
 - `StringTableScanner` recovers runs of fixed-width NUL-padded name fields from read-only data, reporting base, stride, entry count, longest name and whether elements carry payload after the terminator; only one representative name per run is retained, since table contents are game data;

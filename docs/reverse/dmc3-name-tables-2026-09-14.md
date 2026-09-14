@@ -119,11 +119,67 @@ logical namespace rather than of a binary AFS backend. This corroborates it from
 a new direction: the namespace appears as stored table text, and nothing here
 shows a container implementation behind it.
 
+## Records with fields of differing widths
+
+The constant-stride scan cannot see the localisation table at all. Its leading
+field is 32 bytes while its message fields are 40, so the gap sequence is
+`32, 40, 40, 40, 40, 40, 40, 40` — and every single-stride hypothesis breaks at
+each record boundary.
+
+Looking for a period in the **gap sequence** instead finds records whole. That
+recovers 25 layouts holding 5,076 name fields, with 2, 4, 9, 12, 16 or 32 fields
+per record.
+
+| Base RVA | Record | Fields | Records | Field widths | Extensions |
+| --- | --- | --- | --- | --- | --- |
+| `0x5038E8` | 80 | 4 | 119 | 16, 16, 24, 24 | all `pac` |
+| `0x502530` | 80 | 4 | 56 | 24, 24, 16, 16 | all `pac` |
+| `0x36B308` | 264 | 16 | 51 | 24 then 15×16 | all `pac` |
+| `0x4ECCB8` | 352 | 9 | 49 | 32 then 8×40 | `pac`, 8×`txt` |
+| `0x35FE68` | 264 | 16 | 23 | 16,16,16,24 then 12×16 | `adx`,`pac`,`pac`,`pac` ×4 |
+| `0x35F448` | 200 | 12 | 13 | 11×16 then 24 | `pac`×2, `afs`, `pac`×9 |
+
+A layout is accepted only when every field of every record holds a name
+terminated inside that field's width — a run of 51 records validates its pattern
+816 times.
+
+### The detector re-derives the localisation table on its own
+
+Row four above is the 352-byte record recovered by hand earlier in this document:
+same base, same nine fields, same widths, same extension sequence, same 49
+records. An automatic pass arriving independently at the identical field table is
+confirmation of both the layout and the detector.
+
+### Two ways the search can mislead, and the checks for them
+
+**A multiple of the real period.** Maximising coverage can settle on `2p` or `4p`
+where `p` fits equally well. The detector reduces to the smallest divisor at
+which both widths *and* extensions repeat.
+
+The run at `0x35FE68` shows why widths must be part of that test. Its extensions
+repeat every four fields — `adx, pac, pac, pac` — but its widths do not: field 3
+is 24 bytes wide in all 23 records while the corresponding field of each later
+group is 16. It is a genuine 16-field record, and reducing on the extension
+pattern alone would have misreported it as four fields.
+
+**Alignment-padded pools wearing record clothing.** Two runs holding
+parameter-style names (`FogColor`, `AlphaBlendMode`, `ShadowDarkness`,
+`SPEED_CHG`, `GRAVITY`, `UVScroll`, `CnsTrack`) appeared to carry payload after
+their terminators, which reads as a record with a leading name field. They are
+nothing of the kind: the payload decodes as *further names*, and the offset where
+it begins differs between elements.
+
+That is the signature of a pool padded to an alignment boundary, whose names fall
+on a regular spacing only where consecutive lengths happen to allow it. A record
+table shows the opposite — payload at the same offset in every element. The
+scanner now measures both the payload's text-likeness and the consistency of its
+offset, and reports both rather than issuing a verdict.
+
 ## Open work
 
-- **the payload in the non-pure runs.** Several runs carry data after the name
-  field, like the localisation table did. Each is a record layout waiting to be
-  resolved the same way;
+- **non-name fields.** Every layout recovered so far is made entirely of name
+  fields. A record mixing names with numeric fields would not be found by gap
+  periodicity, because the numbers leave no candidate name to measure from;
 - **table base to function.** Six functions index the `.pac` array; recovering
   how they compute the index would tie a name to a call site;
 - **the `id\idNNNN\` numbering.** The two largest arrays are dominated by a

@@ -152,6 +152,91 @@ void writable_sections_are_skipped() {
     assert(result.candidate_names == 0U);
 }
 
+/// Writes `records` records whose field widths follow `widths`.
+[[nodiscard]] std::vector<std::byte> make_record_table(
+    const std::vector<std::size_t>& widths, std::size_t records,
+    const std::vector<std::string>& extensions) {
+    std::vector<std::byte> bytes(0xA00U, std::byte{0});
+    std::size_t offset = 0x400U;
+    for (std::size_t record = 0; record < records; ++record) {
+        for (std::size_t field = 0; field < widths.size(); ++field) {
+            put_text(bytes, offset, "f" + std::to_string(field) + "r" + std::to_string(record) +
+                                        extensions[field]);
+            offset += widths[field];
+        }
+    }
+    return bytes;
+}
+
+void a_record_with_differing_field_widths_is_recovered() {
+    const std::vector<std::size_t> widths{16U, 24U};
+    const auto bytes = make_record_table(widths, 6U, {".pac", ".txt"});
+    const auto image = make_image();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.records.size() == 1U);
+
+    const auto& run = result.records[0];
+    assert(run.base_rva == 0x2000U);
+    assert(run.fields_per_record == 2U);
+    assert(run.records == 6U);
+    assert(run.record_bytes == 40U);
+    assert(run.field_offsets[0] == 0U);
+    assert(run.field_offsets[1] == 16U);
+    assert(run.field_widths[0] == 16U);
+    assert(run.field_widths[1] == 24U);
+    assert(run.field_extensions[0] == "pac");
+    assert(run.field_extensions[1] == "txt");
+    assert(run.span_bytes() == 240U);
+}
+
+void a_multiple_of_the_real_period_is_reduced() {
+    // Two records' worth of pattern written as one: the search may settle on
+    // four fields, and the reduction must bring it back to two.
+    const std::vector<std::size_t> widths{16U, 24U, 16U, 24U};
+    const auto bytes = make_record_table(widths, 6U, {".pac", ".txt", ".pac", ".txt"});
+    const auto image = make_image();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.records.size() == 1U);
+    assert(result.records[0].fields_per_record == 2U);
+    assert(result.records[0].record_bytes == 40U);
+    assert(result.records[0].records == 12U);
+}
+
+void uniform_field_widths_are_left_to_the_stride_scan() {
+    // Every field the same width is a constant-stride run, not a record.
+    const std::vector<std::size_t> widths{16U, 16U};
+    const auto bytes = make_record_table(widths, 8U, {".pac", ".pac"});
+    const auto image = make_image();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.records.empty());
+    assert(!result.runs.empty());
+    assert(result.runs[0].stride == 16U);
+}
+
+void too_few_records_is_not_a_table() {
+    const std::vector<std::size_t> widths{16U, 24U};
+    const auto bytes = make_record_table(widths, 3U, {".pac", ".txt"});
+    const auto image = make_image();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.records.empty());
+}
+
+void the_content_period_of_a_uniform_run_is_one() {
+    const auto image = make_image();
+    const auto bytes = make_pure_array();
+
+    const auto result = StringTableScanner::scan(std::span<const std::byte>{bytes}, image);
+    assert(result.runs.size() == 1U);
+    // Every element ends in .pac, so the extension sequence is uniform.
+    assert(result.runs[0].content_period == 1U);
+    assert(result.runs[0].period_extensions.size() == 1U);
+    assert(result.runs[0].period_extensions[0] == "pac");
+}
+
 void degenerate_options_are_refused() {
     const auto image = make_image();
     const auto bytes = make_pure_array();
@@ -173,6 +258,11 @@ int main() {
     irregular_spacing_is_rejected();
     a_name_filling_the_stride_breaks_the_run();
     writable_sections_are_skipped();
+    a_record_with_differing_field_widths_is_recovered();
+    a_multiple_of_the_real_period_is_reduced();
+    uniform_field_widths_are_left_to_the_stride_scan();
+    too_few_records_is_not_a_table();
+    the_content_period_of_a_uniform_run_is_one();
     degenerate_options_are_refused();
     return 0;
 }

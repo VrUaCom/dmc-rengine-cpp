@@ -259,6 +259,37 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
     writer.member("runs", static_cast<std::uint64_t>(tables.runs.size()));
     writer.member("entries_in_runs", static_cast<std::uint64_t>(tables.entries_in_runs));
 
+    writer.member("record_runs", static_cast<std::uint64_t>(tables.records.size()));
+
+    writer.key("records");
+    writer.begin_array();
+    constexpr std::size_t kReportedRecords = 24U;
+    for (std::size_t index = 0; index < tables.records.size() && index < kReportedRecords;
+         ++index) {
+        const auto& run = tables.records[index];
+        writer.begin_object();
+        writer.hex_member("base_rva", run.base_rva);
+        writer.member("record_bytes", static_cast<std::uint64_t>(run.record_bytes));
+        writer.member("fields_per_record", static_cast<std::uint64_t>(run.fields_per_record));
+        writer.member("records", static_cast<std::uint64_t>(run.records));
+        writer.member("span_bytes", run.span_bytes());
+
+        writer.key("fields");
+        writer.begin_array();
+        for (std::size_t field = 0; field < run.field_offsets.size(); ++field) {
+            writer.begin_object();
+            writer.member("offset", static_cast<std::uint64_t>(run.field_offsets[field]));
+            writer.member("width", static_cast<std::uint64_t>(run.field_widths[field]));
+            writer.member("extension", run.field_extensions[field]);
+            writer.end_object();
+        }
+        writer.end_array();
+
+        writer.member("sample_name", run.first_name);
+        writer.end_object();
+    }
+    writer.end_array();
+
     writer.key("largest");
     writer.begin_array();
     // Layout only, plus one representative name per run. The tables hold game
@@ -276,8 +307,23 @@ void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) 
         if (!run.pure_name_array()) {
             writer.member("records_with_payload",
                           static_cast<std::uint64_t>(run.records_with_payload));
+            writer.member("text_payload_records",
+                          static_cast<std::uint64_t>(run.text_payload_records));
+            writer.member("first_payload_offset",
+                          static_cast<std::uint64_t>(run.first_payload_offset));
+            writer.member("payload_offset_consistent", run.payload_offset_consistent);
+            writer.member("uniform_records", run.uniform_records());
         }
         writer.member("sample_name", run.first_name);
+        if (run.content_period > 1U) {
+            writer.member("content_period", static_cast<std::uint64_t>(run.content_period));
+            writer.key("period_extensions");
+            writer.begin_array();
+            for (const auto& extension : run.period_extensions) {
+                writer.string(extension);
+            }
+            writer.end_array();
+        }
         writer.end_object();
     }
     writer.end_array();

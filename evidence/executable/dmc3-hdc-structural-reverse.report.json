@@ -16958,6 +16958,1669 @@
     "candidate_names": 13767,
     "runs": 222,
     "entries_in_runs": 5692,
+    "record_runs": 25,
+    "records": [
+      {
+        "base_rva": "0x5038e8",
+        "record_bytes": 80,
+        "fields_per_record": 4,
+        "records": 119,
+        "span_bytes": 9520,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 56,
+            "width": 24,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "se\\snd_r900.pac"
+      },
+      {
+        "base_rva": "0x502530",
+        "record_bytes": 80,
+        "fields_per_record": 4,
+        "records": 56,
+        "span_bytes": 4480,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 24,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 64,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "room\\st307cfg.pac"
+      },
+      {
+        "base_rva": "0x36b308",
+        "record_bytes": 264,
+        "fields_per_record": 16,
+        "records": 51,
+        "span_bytes": 13464,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 24,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 40,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 56,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 120,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 136,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 152,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 168,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 184,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 200,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 216,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 232,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "st136_effect.pac"
+      },
+      {
+        "base_rva": "0x4eccb8",
+        "record_bytes": 352,
+        "fields_per_record": 9,
+        "records": 49,
+        "span_bytes": 17248,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 32,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 72,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 112,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 152,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 192,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 232,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 272,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 312,
+            "width": 40,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "demo\\m99_s00\\m99_s00.pac"
+      },
+      {
+        "base_rva": "0x35d640",
+        "record_bytes": 264,
+        "fields_per_record": 16,
+        "records": 29,
+        "span_bytes": 7656,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 64,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 80,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 96,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 112,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 192,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 208,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 224,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 240,
+            "width": 24,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id7060I.pac"
+      },
+      {
+        "base_rva": "0x35fe68",
+        "record_bytes": 264,
+        "fields_per_record": 16,
+        "records": 23,
+        "span_bytes": 6072,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 120,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 136,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 152,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 168,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 184,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 200,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 216,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 232,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "Battle_01b.adx"
+      },
+      {
+        "base_rva": "0x361830",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 18,
+        "span_bytes": 1296,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "adx"
+          }
+        ],
+        "sample_name": "id1908C.pac"
+      },
+      {
+        "base_rva": "0x3679f0",
+        "record_bytes": 584,
+        "fields_per_record": 32,
+        "records": 18,
+        "span_bytes": 10512,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 56,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 200,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 216,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 232,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 264,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 288,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 304,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 320,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 344,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 360,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 376,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 392,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 416,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 432,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 448,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 464,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 488,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 504,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 520,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 536,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 560,
+            "width": 24,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id5737.pac"
+      },
+      {
+        "base_rva": "0x5036b0",
+        "record_bytes": 40,
+        "fields_per_record": 2,
+        "records": 14,
+        "span_bytes": 560,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 24,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "room\\st600cfg.pac"
+      },
+      {
+        "base_rva": "0x35f448",
+        "record_bytes": 200,
+        "fields_per_record": 12,
+        "records": 13,
+        "span_bytes": 2600,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "afs"
+          },
+          {
+            "offset": 48,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 64,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 80,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 96,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 112,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 24,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id339I.pac"
+      },
+      {
+        "base_rva": "0x365d68",
+        "record_bytes": 568,
+        "fields_per_record": 32,
+        "records": 12,
+        "span_bytes": 6816,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 56,
+            "width": 16,
+            "extension": "bin"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "phd"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 192,
+            "width": 16,
+            "extension": "tsb"
+          },
+          {
+            "offset": 208,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 224,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 240,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 264,
+            "width": 16,
+            "extension": "bd"
+          },
+          {
+            "offset": 280,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 296,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 312,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 336,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 352,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 368,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 384,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 408,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 424,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 440,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 456,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 480,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 496,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 512,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 528,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 552,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id5041.pac"
+      },
+      {
+        "base_rva": "0x36a4e0",
+        "record_bytes": 296,
+        "fields_per_record": 16,
+        "records": 12,
+        "span_bytes": 3552,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 72,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 96,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 112,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 128,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 152,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 168,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 184,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 200,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 224,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 240,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 256,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 272,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "st124cfg.pac"
+      },
+      {
+        "base_rva": "0x363288",
+        "record_bytes": 568,
+        "fields_per_record": 32,
+        "records": 10,
+        "span_bytes": 5680,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": ""
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 120,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 192,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 216,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 232,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 264,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 280,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 296,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 312,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 328,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 352,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 368,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 384,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 400,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 424,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 440,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 456,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 472,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 496,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 512,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 528,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 544,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "SAVEDATA/"
+      },
+      {
+        "base_rva": "0x362848",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 8,
+        "span_bytes": 576,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "sfd"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "m19_c00.sfd"
+      },
+      {
+        "base_rva": "0x362a80",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 8,
+        "span_bytes": 576,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "sfd"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "GameOverI.sfd"
+      },
+      {
+        "base_rva": "0x362ee8",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 8,
+        "span_bytes": 576,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "pl013.pac"
+      },
+      {
+        "base_rva": "0x361d90",
+        "record_bytes": 264,
+        "fields_per_record": 16,
+        "records": 7,
+        "span_bytes": 1848,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 64,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 80,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 96,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 112,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 16,
+            "extension": "adx"
+          },
+          {
+            "offset": 192,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 208,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 224,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 16,
+            "extension": "adx"
+          }
+        ],
+        "sample_name": "id2222Z.pac"
+      },
+      {
+        "base_rva": "0x4f1018",
+        "record_bytes": 352,
+        "fields_per_record": 9,
+        "records": 7,
+        "span_bytes": 2464,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 40,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 80,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 120,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 160,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 200,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 240,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 280,
+            "width": 40,
+            "extension": "txt"
+          },
+          {
+            "offset": 320,
+            "width": 32,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "message\\japanese\\m20_s00_msg_jpn.txt"
+      },
+      {
+        "base_rva": "0x364c18",
+        "record_bytes": 80,
+        "fields_per_record": 4,
+        "records": 6,
+        "span_bytes": 480,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 24,
+            "extension": "pac"
+          },
+          {
+            "offset": 24,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 40,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 56,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "plwp_ladygun.pac"
+      },
+      {
+        "base_rva": "0x364f38",
+        "record_bytes": 568,
+        "fields_per_record": 32,
+        "records": 6,
+        "span_bytes": 3408,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 56,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 72,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 88,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 104,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 128,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 144,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 160,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 176,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 200,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 216,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 232,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 248,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 272,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 288,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 304,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 320,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 344,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 360,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 376,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 392,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 408,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 424,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 440,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 456,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 480,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 496,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 512,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 528,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 552,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id5000I.pac"
+      },
+      {
+        "base_rva": "0x362cb8",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 5,
+        "span_bytes": 360,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "sfd"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "Omake0.sfd"
+      },
+      {
+        "base_rva": "0x3649e8",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 5,
+        "span_bytes": 360,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 24,
+            "extension": "txt"
+          },
+          {
+            "offset": 56,
+            "width": 16,
+            "extension": "pac"
+          }
+        ],
+        "sample_name": "id4530.pac"
+      },
+      {
+        "base_rva": "0x3648b8",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 4,
+        "span_bytes": 288,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "pl002_00_0.pac"
+      },
+      {
+        "base_rva": "0x3678c8",
+        "record_bytes": 72,
+        "fields_per_record": 4,
+        "records": 4,
+        "span_bytes": 288,
+        "fields": [
+          {
+            "offset": 0,
+            "width": 16,
+            "extension": "mod"
+          },
+          {
+            "offset": 16,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 32,
+            "width": 16,
+            "extension": "pac"
+          },
+          {
+            "offset": 48,
+            "width": 24,
+            "extension": "txt"
+          }
+        ],
+        "sample_name": "at000.mod"
+      }
+    ],
     "largest": [
       {
         "base_rva": "0x4f22c8",
@@ -16976,6 +18639,10 @@
         "span_bytes": 24264,
         "pure_name_array": false,
         "records_with_payload": 1,
+        "text_payload_records": 0,
+        "first_payload_offset": 16,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
         "sample_name": "id\\id300\\id358I.pac"
       },
       {
@@ -16986,6 +18653,10 @@
         "span_bytes": 2496,
         "pure_name_array": false,
         "records_with_payload": 1,
+        "text_payload_records": 0,
+        "first_payload_offset": 24,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
         "sample_name": "motion\\pl000\\pl000_00_0.pac"
       },
       {
@@ -16995,7 +18666,14 @@
         "longest_name": 12,
         "span_bytes": 768,
         "pure_name_array": true,
-        "sample_name": "m18_c00.adx"
+        "sample_name": "m18_c00.adx",
+        "content_period": 4,
+        "period_extensions": [
+          "adx",
+          "pac",
+          "pac",
+          "pac"
+        ]
       },
       {
         "base_rva": "0x4ec460",
@@ -17059,6 +18737,10 @@
         "span_bytes": 352,
         "pure_name_array": false,
         "records_with_payload": 6,
+        "text_payload_records": 5,
+        "first_payload_offset": 8,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
         "sample_name": "FogColor"
       },
       {
@@ -17087,6 +18769,10 @@
         "span_bytes": 608,
         "pure_name_array": false,
         "records_with_payload": 3,
+        "text_payload_records": 2,
+        "first_payload_offset": 16,
+        "payload_offset_consistent": false,
+        "uniform_records": false,
         "sample_name": "message\\japanese\\msg_jpn.pac"
       },
       {
@@ -17097,6 +18783,10 @@
         "span_bytes": 640,
         "pure_name_array": false,
         "records_with_payload": 1,
+        "text_payload_records": 0,
+        "first_payload_offset": 32,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
         "sample_name": "message\\english\\m19_b01_msg_eng.txt"
       },
       {
@@ -17107,6 +18797,10 @@
         "span_bytes": 512,
         "pure_name_array": false,
         "records_with_payload": 1,
+        "text_payload_records": 0,
+        "first_payload_offset": 24,
+        "payload_offset_consistent": true,
+        "uniform_records": false,
         "sample_name": "afs/sound/m_demo_02_001.adx"
       },
       {
@@ -17117,6 +18811,10 @@
         "span_bytes": 256,
         "pure_name_array": false,
         "records_with_payload": 6,
+        "text_payload_records": 5,
+        "first_payload_offset": 8,
+        "payload_offset_consistent": false,
+        "uniform_records": false,
         "sample_name": "SPEED_CHG"
       },
       {
@@ -17127,6 +18825,10 @@
         "span_bytes": 320,
         "pure_name_array": false,
         "records_with_payload": 16,
+        "text_payload_records": 0,
+        "first_payload_offset": 12,
+        "payload_offset_consistent": false,
+        "uniform_records": false,
         "sample_name": ".CRT$XCA"
       },
       {
