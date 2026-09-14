@@ -214,6 +214,23 @@ struct IndexedArray final {
     friend bool operator==(const IndexedArray&, const IndexedArray&) = default;
 };
 
+/// A virtual call whose receiver the walk could name, resolved to a target.
+///
+/// The receiver is `this`: the dispatch reads the vtable pointer out of the
+/// register the Microsoft x64 convention puts the first argument in, or out of
+/// a copy of it. The enclosing function's own class then says which vtable, and
+/// the displacement says which slot, so the target is read rather than guessed.
+struct ResolvedDispatch final {
+    std::uint32_t site_rva{};
+    std::uint32_t caller_rva{};
+    std::uint32_t displacement{};
+    std::uint32_t slot{};
+    std::string class_display_name;
+    std::uint32_t target_rva{};
+
+    friend bool operator==(const ResolvedDispatch&, const ResolvedDispatch&) = default;
+};
+
 struct ImportUsage final {
     std::string module;
     std::string function;
@@ -277,6 +294,14 @@ struct FunctionMapSummary final {
     /// holding: two routes to the same array, which is corroboration rather
     /// than a second array.
     std::size_t image_base_groups_corroborating{};
+    /// Virtual dispatch through a register base, and how far each site could be
+    /// followed. A site is resolved only when the receiver is `this`, the
+    /// enclosing function belongs to exactly one class, and that class's vtable
+    /// has the slot.
+    std::size_t dispatch_sites{};
+    std::size_t dispatch_sites_on_this{};
+    std::size_t dispatch_sites_in_a_bound_function{};
+    std::size_t dispatch_sites_resolved{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};
@@ -304,6 +329,8 @@ struct FunctionMap final {
     std::vector<NameTableUsage> name_table_usage;
     /// Arrays in data the code walks with a scaled index, most-used first.
     std::vector<IndexedArray> indexed_arrays;
+    /// Virtual calls resolved to a class and a target, in address order.
+    std::vector<ResolvedDispatch> resolved_dispatches;
     std::vector<std::string> warnings;
 };
 

@@ -157,12 +157,33 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
         /// twenty-four. Carrying the multiplier is what makes those strides
         /// visible at the point of the read.
         std::uint32_t multiplier{1U};
+        /// Address this register's value was *loaded from*, when the walk saw
+        /// the load. For a polymorphic object's first quadword that is the
+        /// vtable pointer, which is what a virtual call dispatches through.
+        std::uint32_t loaded_from{};
+        bool is_load{false};
+        /// The register still holds the value it had on entry to the function.
+        /// For rcx under the Microsoft x64 convention that is the first
+        /// argument, which for a method is `this`.
+        bool is_entry_value{false};
+        /// The register was loaded through the entry value: for `this` that
+        /// makes it the object's vtable pointer.
+        bool loaded_from_entry_value{false};
     };
     std::array<HeldValue, 16U> held{};
     std::uint32_t traced = 0U;
 
     const auto forget_all = [&]() {
         held.fill(HeldValue{});
+    };
+    // A call clobbers the volatile registers and leaves the rest. That is the
+    // Microsoft x64 calling convention, which compiler-generated code follows,
+    // and it is what lets a `this` pointer copied into a non-volatile register
+    // at entry still be `this` after the method has called something.
+    const auto forget_volatile = [&]() {
+        for (const auto reg : {0U, 1U, 2U, 8U, 9U, 10U, 11U}) {
+            held[reg] = HeldValue{};
+        }
     };
     const auto forget = [&](std::uint8_t reg) {
         if (reg < held.size()) {
@@ -190,8 +211,15 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
         worklist.pop_back();
 
         // A trace root is reached by a branch whose origin is not known here,
-        // so nothing a previous trace established still holds.
+        // so nothing a previous trace established still holds. The exception is
+        // the function's own entry, where the calling convention says what rcx
+        // holds: the first argument, which for a method is `this`.
         forget_all();
+        if (rva == walk.begin_rva) {
+            constexpr std::uint8_t kFirstArgument = 1U;  // rcx
+            held[kFirstArgument].is_entry_value = true;
+            held[kFirstArgument].age = traced;
+        }
 
         while (owns(rva)) {
             const auto index = static_cast<std::size_t>(rva - lowest);
@@ -261,6 +289,21 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 }
             }
 
+            // A method usually moves `this` out of rcx into a register that
+            // survives calls, and every dispatch after that goes through the
+            // copy. Following the copy is what makes those visible.
+            std::uint8_t entry_copy_destination = X86Instruction::kNoRegister;
+            if (!decoded->two_byte_opcode && decoded->modrm_mod == 3U &&
+                (decoded->opcode == 0x89U || decoded->opcode == 0x8BU)) {
+                const auto source =
+                    decoded->opcode == 0x8BU ? decoded->rm_operand : decoded->reg_operand;
+                const auto destination =
+                    decoded->opcode == 0x8BU ? decoded->reg_operand : decoded->rm_operand;
+                if (source < held.size() && held[source].is_entry_value) {
+                    entry_copy_destination = destination;
+                }
+            }
+
             // Every register this instruction names may have been written by
             // it. Reads are invalidated too, which costs recall and buys the
             // right to make no claim the encoding does not support.
@@ -282,6 +325,23 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 if (writes_encoded_register) {
                     forget(low);
                     forget(static_cast<std::uint8_t>(low | 8U));
+                }
+            }
+
+            // `mov reg, [base]` where the base is a held address: the register
+            // now holds whatever that address contains.
+            std::uint32_t loaded_from = 0U;
+            bool loaded_from_entry_value = false;
+            if (!decoded->two_byte_opcode && decoded->opcode == 0x8BU &&
+                decoded->modrm_mod != 3U && !decoded->rip_relative &&
+                decoded->memory_index == X86Instruction::kNoRegister &&
+                decoded->memory_base < held.size() && decoded->displacement == 0) {
+                const auto& base = held[decoded->memory_base];
+                if (base.held && traced - base.age <= kMaxBaseAge) {
+                    loaded_from = base.rva;
+                }
+                if (base.is_entry_value) {
+                    loaded_from_entry_value = true;
                 }
             }
 
@@ -320,6 +380,24 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 }
             }
 
+            if (entry_copy_destination < held.size()) {
+                held[entry_copy_destination] = HeldValue{};
+                held[entry_copy_destination].is_entry_value = true;
+                held[entry_copy_destination].age = traced;
+            }
+
+            if ((loaded_from != 0U || loaded_from_entry_value) &&
+                decoded->reg_operand < held.size()) {
+                held[decoded->reg_operand] =
+                    HeldValue{0U, traced, false, 1U, loaded_from, true, false};
+                // The value loaded from `this` is the vtable pointer, which is
+                // what the dispatch below reads a slot out of.
+                held[decoded->reg_operand].is_entry_value = false;
+                if (loaded_from_entry_value) {
+                    held[decoded->reg_operand].loaded_from_entry_value = true;
+                }
+            }
+
             if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier) {
                 // `add r/m, reg` and the shift group write the rm operand —
                 // for a shift the reg field is the group selector and names no
@@ -341,12 +419,11 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             };
 
             bool fall_through = true;
+            bool forget_after_call = false;
             switch (decoded->flow) {
             case X86Flow::call_direct:
                 walk.call_targets.push_back(branch_target());
-                // A call clobbers the volatile registers, and which ones
-                // survive is a calling-convention claim this walk does not make.
-                forget_all();
+                forget_volatile();
                 break;
             case X86Flow::conditional_jump: {
                 const auto target = branch_target();
@@ -411,6 +488,9 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             }
             case X86Flow::call_indirect:
                 ++walk.indirect_calls;
+                // Recorded below before the clobber, since the dispatch reads
+                // the register it is about to lose.
+                forget_after_call = true;
                 // A memory-indirect call through a register base carries the
                 // dispatch offset in its displacement. Register-direct calls
                 // (`call rax`) and RIP-relative ones (import slots) do not.
@@ -419,6 +499,20 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                     decoded->displacement % 8 == 0) {
                     walk.indirect_call_displacements.push_back(
                         static_cast<std::uint32_t>(decoded->displacement));
+
+                    std::uint32_t receiver = 0U;
+                    bool through_this = false;
+                    if (decoded->memory_base < held.size()) {
+                        const auto& through = held[decoded->memory_base];
+                        if (through.is_load && traced - through.age <= kMaxBaseAge) {
+                            receiver = through.loaded_from;
+                            through_this = through.loaded_from_entry_value;
+                        }
+                    }
+                    walk.resolved_dispatch_sites.push_back(
+                        FunctionWalk::DispatchSite{rva,
+                                                   static_cast<std::uint32_t>(decoded->displacement),
+                                                   receiver, through_this});
                 }
                 break;
             case X86Flow::return_:
@@ -431,6 +525,10 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 break;
             case X86Flow::sequential:
                 break;
+            }
+
+            if (forget_after_call) {
+                forget_volatile();
             }
 
             if (!fall_through) {

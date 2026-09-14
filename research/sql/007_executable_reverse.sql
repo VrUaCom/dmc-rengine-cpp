@@ -198,6 +198,24 @@ CREATE TABLE IF NOT EXISTS exe_indexed_array_field (
     UNIQUE(array_id, field_offset)
 );
 
+-- Virtual calls resolved to a class, a slot and a target function.
+--
+-- The receiver is `this`: the dispatch reads the vtable pointer out of the
+-- register the Microsoft x64 convention puts the first argument in, or out of a
+-- copy of it. The enclosing method's own binding then says which vtable, and the
+-- displacement says which slot, so the target is read rather than guessed.
+CREATE TABLE IF NOT EXISTS exe_resolved_dispatch (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    site_rva INTEGER NOT NULL,
+    caller_id INTEGER REFERENCES exe_function(id) ON DELETE SET NULL,
+    target_id INTEGER REFERENCES exe_function(id) ON DELETE SET NULL,
+    class_id INTEGER REFERENCES exe_class(id) ON DELETE SET NULL,
+    displacement INTEGER NOT NULL,
+    slot INTEGER NOT NULL,
+    UNIQUE(image_id, site_rva)
+);
+
 -- Coverage of a table by constant indices: trustworthy for a pure name array,
 -- an upper bound for a payload-bearing run whose extent may be over-stated.
 CREATE VIEW IF NOT EXISTS v_exe_table_coverage AS
@@ -275,3 +293,17 @@ FROM exe_indexed_array a
 LEFT JOIN exe_indexed_array_field f ON f.array_id = a.id
 GROUP BY a.id
 HAVING fields_observed > 1;
+
+-- Virtual call edges, as caller and target addresses with the class the call
+-- dispatches on.
+CREATE VIEW IF NOT EXISTS v_exe_virtual_call_edge AS
+SELECT printf('0x%x', d.site_rva) AS site_rva,
+       printf('0x%x', caller.begin_rva) AS caller_rva,
+       c.display_name AS class_name,
+       d.slot,
+       printf('0x%x', target.begin_rva) AS target_rva,
+       target.size_bytes AS target_size
+FROM exe_resolved_dispatch d
+LEFT JOIN exe_function caller ON caller.id = d.caller_id
+LEFT JOIN exe_function target ON target.id = d.target_id
+LEFT JOIN exe_class c ON c.id = d.class_id;

@@ -232,6 +232,29 @@ def load_indexed_arrays(con: sqlite3.Connection, image_id: int, mapping: dict) -
     return imported
 
 
+def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: dict,
+                             functions: dict, classes: dict) -> int:
+    """Stores virtual calls resolved to a class, a slot and a target."""
+    imported = 0
+    for entry in mapping.get("resolved_dispatches", []):
+        con.execute(
+            """INSERT OR IGNORE INTO exe_resolved_dispatch(
+                   image_id, site_rva, caller_id, target_id, class_id, displacement, slot)
+               VALUES(?,?,?,?,?,?,?)""",
+            (
+                image_id,
+                parse_rva(entry["site_rva"]),
+                functions.get(parse_rva(entry["caller_rva"])),
+                functions.get(parse_rva(entry["target_rva"])),
+                classes.get(entry["class"]),
+                entry["displacement"],
+                entry["slot"],
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_classes(con: sqlite3.Connection, image_id: int, mapping: dict) -> dict:
     ids: dict[str, int] = {}
     for entry in mapping.get("class_coverage", []):
@@ -410,6 +433,16 @@ def main() -> int:
     load_indexed_arrays(con, image_id, mapping)
     classes = load_classes(con, image_id, mapping)
     functions = load_functions(con, image_id, mapping, classes, tables)
+
+    # Dispatches name functions by address, so they are stored once every
+    # function exists.
+    function_ids = {
+        int(row[0]): int(row[1])
+        for row in con.execute(
+            "SELECT begin_rva, id FROM exe_function WHERE image_id=?", (image_id,)
+        )
+    }
+    load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
 
     counts = {
@@ -425,6 +458,7 @@ def main() -> int:
             "exe_table_reference",
             "exe_indexed_array",
             "exe_indexed_array_field",
+            "exe_resolved_dispatch",
         )
     }
     con.close()

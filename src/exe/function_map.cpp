@@ -355,6 +355,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     }
 
     // ----- virtual method bindings -----------------------------------------
+    std::map<std::tuple<std::string, std::uint32_t, std::uint32_t>, std::uint32_t> slot_targets;
     if (inputs.rtti != nullptr) {
         std::map<std::string, ClassCodeCoverage> coverage;
         for (const auto& entry : inputs.rtti->classes) {
@@ -394,6 +395,9 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                     map.functions[*owner].virtual_bindings.push_back(VirtualMethodBinding{
                         entry.display_name, vtable_index, static_cast<std::uint32_t>(slot),
                         vtable.subobject_offset});
+                    slot_targets[{entry.display_name, vtable_index,
+                                  static_cast<std::uint32_t>(slot)}] =
+                        static_cast<std::uint32_t>(delta);
                 }
             }
 
@@ -926,6 +930,53 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                       return left.sites > right.sites;
                   }
                   return left.base_rva < right.base_rva;
+              });
+
+    // ----- virtual dispatch resolved through `this` ------------------------
+    for (std::size_t position = 0; position < graph.functions.size(); ++position) {
+        const auto& walk = graph.functions[position];
+        const auto& facts = map.functions[position];
+
+        for (const auto& site : walk.resolved_dispatch_sites) {
+            ++map.summary.dispatch_sites;
+            if (!site.through_this) {
+                continue;
+            }
+            ++map.summary.dispatch_sites_on_this;
+            if (facts.virtual_bindings.empty()) {
+                continue;
+            }
+            ++map.summary.dispatch_sites_in_a_bound_function;
+
+            // A method bound into more than one vtable is inherited, and `this`
+            // then does not say which one the call dispatches through. Where
+            // there is exactly one, that vtable is the receiver's: a method
+            // reached through a secondary vtable gets a `this` adjusted to that
+            // subobject, so the secondary vtable is the right one to read.
+            std::set<std::pair<std::string, std::uint32_t>> vtables;
+            for (const auto& binding : facts.virtual_bindings) {
+                vtables.insert({binding.class_display_name, binding.vtable_index});
+            }
+            if (vtables.size() != 1U) {
+                continue;
+            }
+
+            const auto& [class_name, vtable_index] = *vtables.begin();
+            const auto slot = site.displacement / 8U;
+            const auto target = slot_targets.find({class_name, vtable_index, slot});
+            if (target == slot_targets.end()) {
+                continue;
+            }
+
+            ++map.summary.dispatch_sites_resolved;
+            map.resolved_dispatches.push_back(ResolvedDispatch{site.site_rva, walk.begin_rva,
+                                                               site.displacement, slot, class_name,
+                                                               target->second});
+        }
+    }
+    std::sort(map.resolved_dispatches.begin(), map.resolved_dispatches.end(),
+              [](const ResolvedDispatch& left, const ResolvedDispatch& right) {
+                  return left.site_rva < right.site_rva;
               });
 
     map.name_table_usage.reserve(table_spans.size());

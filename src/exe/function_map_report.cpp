@@ -65,6 +65,13 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.image_base_groups_spanning_elements));
     writer.member("image_base_groups_corroborating",
                   static_cast<std::uint64_t>(summary.image_base_groups_corroborating));
+    writer.member("dispatch_sites", static_cast<std::uint64_t>(summary.dispatch_sites));
+    writer.member("dispatch_sites_on_this",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_on_this));
+    writer.member("dispatch_sites_in_a_bound_function",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_in_a_bound_function));
+    writer.member("dispatch_sites_resolved",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_resolved));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",
@@ -132,6 +139,20 @@ void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
 }
 
 void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("resolved_dispatches");
+    writer.begin_array();
+    for (const auto& dispatch : map.resolved_dispatches) {
+        writer.begin_object();
+        writer.hex_member("site_rva", dispatch.site_rva);
+        writer.hex_member("caller_rva", dispatch.caller_rva);
+        writer.member("displacement", static_cast<std::uint64_t>(dispatch.displacement));
+        writer.member("slot", static_cast<std::uint64_t>(dispatch.slot));
+        writer.member("class", dispatch.class_display_name);
+        writer.hex_member("target_rva", dispatch.target_rva);
+        writer.end_object();
+    }
+    writer.end_array();
+
     writer.key("indexed_arrays");
     writer.begin_array();
     // Layout only: where an array is, how wide its element is, and which

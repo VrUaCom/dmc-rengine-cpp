@@ -335,27 +335,35 @@ void a_base_held_in_a_register_makes_an_indexed_access_readable() {
     assert(accesses[0].displacement == 0);
 }
 
-void a_call_between_the_load_and_the_use_forfeits_the_base() {
+void a_call_forfeits_a_volatile_base_and_spares_a_saved_one() {
     const auto image = make_image();
-    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
 
-    // The same pair with a `call` in between. Which registers survive a call is
-    // a calling-convention claim this walk does not make, so the base is given
-    // up rather than assumed.
-    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
-    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
-    put(bytes, 0x307U, {0xE8});
-    put_i32(bytes, 0x308U, 0);  // call to the instruction after it
-    put(bytes, 0x30CU, {0x8B, 0x04, 0x8B});
-    put(bytes, 0x30FU, {0xC3});
+    // The same load-and-use pair with a `call` in between, once through rcx and
+    // once through rbx. The Microsoft x64 convention makes rcx volatile and rbx
+    // saved, so the call destroys one base and not the other.
+    const auto build_with = [&](std::initializer_list<int> lea, std::initializer_list<int> use) {
+        std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+        put(bytes, 0x300U, lea);
+        put_i32(bytes, 0x303U,
+                static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+        put(bytes, 0x307U, {0xE8});
+        put_i32(bytes, 0x308U, 0);  // call to the instruction after it
+        put(bytes, 0x30CU, use);
+        put(bytes, 0x30FU, {0xC3});
 
-    PeFunctionTable table;
-    table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+        PeFunctionTable table;
+        table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+        return CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    };
 
-    const auto graph =
-        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
-    assert(graph.functions.size() == 1U);
-    assert(graph.functions[0].indexed_accesses.empty());
+    // lea rcx,[rip+rel] ; call ; mov eax,[rcx+rax*4]
+    const auto volatile_base = build_with({0x48, 0x8D, 0x0D}, {0x8B, 0x04, 0x81});
+    assert(volatile_base.functions[0].indexed_accesses.empty());
+
+    // lea rbx,[rip+rel] ; call ; mov eax,[rbx+rax*4]
+    const auto saved_base = build_with({0x48, 0x8D, 0x1D}, {0x8B, 0x04, 0x83});
+    assert(saved_base.functions[0].indexed_accesses.size() == 1U);
+    assert(saved_base.functions[0].indexed_accesses[0].base_rva == 0x2000U);
 }
 
 void overwriting_the_base_register_forfeits_it() {
@@ -445,7 +453,7 @@ int main() {
     a_range_outside_every_section_is_reported_not_walked();
     an_undecodable_body_marks_the_walk_incomplete();
     a_base_held_in_a_register_makes_an_indexed_access_readable();
-    a_call_between_the_load_and_the_use_forfeits_the_base();
+    a_call_forfeits_a_volatile_base_and_spares_a_saved_one();
     overwriting_the_base_register_forfeits_it();
     a_self_add_doubles_the_index_multiplier();
     a_shift_multiplies_the_index();

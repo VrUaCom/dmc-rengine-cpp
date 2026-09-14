@@ -87,7 +87,25 @@ def make_map() -> dict:
     return {
         "schema": "dmc-rengine.function-map.v1",
         "artifact": dict(ARTIFACT),
-        "class_coverage": [],
+        "class_coverage": [
+            {
+                "class": "CCameraRail",
+                "vtable_slots": 4,
+                "slots_bound_to_functions": 4,
+                "distinct_functions": 4,
+                "install_sites": 1,
+            }
+        ],
+        "resolved_dispatches": [
+            {
+                "site_rva": "0x58cc3",
+                "caller_rva": "0x2d7210",
+                "displacement": 24,
+                "slot": 3,
+                "class": "CCameraRail",
+                "target_rva": "0x2d7210",
+            }
+        ],
         "indexed_arrays": [
             {
                 "base_rva": "0x5d08a0",
@@ -176,6 +194,13 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     importer.load_indexed_arrays(con, image_id, mapping)
     classes = importer.load_classes(con, image_id, mapping)
     importer.load_functions(con, image_id, mapping, classes, tables)
+    function_ids = {
+        int(row[0]): int(row[1])
+        for row in con.execute(
+            "SELECT begin_rva, id FROM exe_function WHERE image_id=?", (image_id,)
+        )
+    }
+    importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
     return con
 
@@ -222,6 +247,13 @@ class ImporterTests(unittest.TestCase):
         image_id = importer.load_image(con, make_analysis())
         with self.assertRaises(SystemExit):
             importer.load_indexed_arrays(con, image_id, mapping)
+
+    def test_a_resolved_dispatch_becomes_a_virtual_call_edge(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT caller_rva, class_name, slot, target_rva FROM v_exe_virtual_call_edge"
+        ).fetchone()
+        self.assertEqual(row, ("0x2d7210", "CCameraRail", 3, "0x2d7210"))
 
     def test_a_record_interior_is_marked_as_one(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

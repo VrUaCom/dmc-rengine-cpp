@@ -86,6 +86,26 @@ struct FunctionWalk final {
     /// Indexed reads of a base the walk could follow, in address order.
     std::vector<IndexedAccess> indexed_accesses;
 
+    /// A `call [reg + disp]` whose receiver the walk could follow back to a
+    /// static object: `lea reg,[rip+object]`, then a load of the object's first
+    /// quadword, which for a polymorphic C++ object is its vtable pointer.
+    struct DispatchSite final {
+        std::uint32_t site_rva{};
+        std::uint32_t displacement{};
+        /// Address the dispatched-through pointer was loaded from, or zero when
+        /// the walk could not follow it there.
+        std::uint32_t receiver_object_rva{};
+        /// The pointer was loaded through the register holding the function's
+        /// first argument: a call on `this`, so the receiver is the enclosing
+        /// method's own class.
+        bool through_this{false};
+
+        friend bool operator==(const DispatchSite&, const DispatchSite&) = default;
+    };
+
+    /// Virtual dispatch sites whose receiver object the walk could name.
+    std::vector<DispatchSite> resolved_dispatch_sites;
+
     std::uint32_t indirect_calls{};
     std::uint32_t indirect_jumps{};
     std::uint32_t returns{};

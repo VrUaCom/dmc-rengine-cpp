@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-virtual-dispatch",
+  "title": "DMC3 HD virtual dispatch: a census, and the receivers that can be named",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-dispatch-site-census",
+      "claim_id": "claim-dmc3-dispatch-site-census",
+      "title": "10,274 virtual dispatch sites, and no statically known receiver among them",
+      "summary": "Recording each call through a register base rather than only its displacement gives a census of 10,274 dispatch sites in place of the 3,410 distinct displacements known before. Of those, the number whose receiver object the walk can name as a static address is zero: the pattern of taking a global object's address and reading its first quadword never occurs. Receivers arrive as arguments or through pointers loaded from writable data, whose values are established at run time and are not in the image. That is a property of the programme rather than a shortfall of the walk, and it means whole-image devirtualisation by reading the file cannot be had.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the dispatch sites",
+          "note": "10,274 calls through a register base with a slot-aligned displacement; none reaches a receiver object at a static address."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-this-dispatch-resolved",
+      "claim_id": "claim-dmc3-this-dispatch-resolved",
+      "title": "A call on `this` names its own class, and 19 resolve to a target",
+      "summary": "One receiver is knowable without any analysis of what a pointer holds: `this`. The Microsoft x64 convention puts the first argument in rcx, so a load through rcx, or through a register a method copied rcx into at entry, is the object's vtable pointer. The enclosing method's own binding then says which vtable that is, and the displacement says which slot, so the target is read from the vtable rather than inferred. 105 sites dispatch on `this`, 98 of them inside a method the RTTI binds into a vtable, and 19 in a method bound into exactly one vtable, which is what makes the class unambiguous. Those 19 resolve to a class, a slot and a target function across 15 classes, among them CPlDante, CPlVergil and the CEm enemy family. The number is small because the walk gives up its register state at every trace root, so only dispatches reachable in straight-line flow from a method's entry keep the fact; block-level dataflow with merges is what would lift it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 363471,
+          "size": 6,
+          "symbol": "virtual call on this resolved to a target",
+          "note": "RVA 0x58CC3 in the method at RVA 0x58C10, slot 3 of CCameraRail, target RVA 0x580A0."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 522616,
+          "size": 6,
+          "symbol": "virtual call on this resolved to a target",
+          "note": "RVA 0x7F978 in the method at RVA 0x7F960, slot 26 of CComEm008, target RVA 0x61130."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-calling-convention-register-lifetime",
+      "claim_id": "claim-dmc3-calling-convention-register-lifetime",
+      "title": "Which registers survive a call is an ABI fact, not an assumption",
+      "summary": "The walk previously gave up every register at a call, because which ones survive looked like a claim it had no right to make. It is not a claim: the Microsoft x64 convention names rax, rcx, rdx and r8 to r11 volatile and the rest preserved, and compiler-generated code follows it. Forgetting only the volatile registers is what lets a `this` pointer copied into a saved register at entry still be `this` after the method has called something, and it lifts recall everywhere the same state is used: indexed reads with a nameable base rise from 1,357 to 1,524, consistent array walks from 304 to 368, and recovered arrays from 178 to 190. A test pins both halves, that a base in rcx is lost across a call and a base in rbx is not.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "methodology",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section walked under the calling convention",
+          "note": "Volatile registers rax, rcx, rdx and r8 to r11 given up at every call; the rest carried across."
+        }
+      ]
+    }
+  ]
+}

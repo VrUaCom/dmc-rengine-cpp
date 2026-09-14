@@ -16,6 +16,18 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### Virtual dispatch: a census, and the receivers that can be named
+
+- recording each call through a register base rather than only its displacement gives **10,274 dispatch sites** where 3,410 distinct displacements were known;
+- **no receiver is statically known.** The one shape that would resolve — a global object whose vtable pointer is baked into the image — occurs zero times. Receivers arrive as arguments or through pointers loaded from writable data, so whole-image devirtualisation by reading the file is not available. That is a property of the programme, not a shortfall of the walk;
+- **`this` is knowable without analysing what any pointer holds.** The Microsoft x64 convention puts the first argument in rcx, so a load through rcx — or through the saved register a method copies it into at entry — is the object's vtable pointer. The enclosing method's own binding says which vtable, the displacement says which slot, and the target is read out of the vtable. 105 sites dispatch on `this`, 98 inside a method the RTTI binds, and **19 in a method bound into exactly one vtable**, which is what makes the class unambiguous; those resolve to a class, slot and target across 15 classes. A method bound into several vtables is inherited and is left unresolved rather than attributed to the first class that fits;
+- only 19 because the walk gives up its register state at every trace root, since a block reached by a branch has a state depending on which predecessor ran. Block-level dataflow with a merge at join points is what would lift it;
+- `exe_resolved_dispatch` and `v_exe_virtual_call_edge` carry the resolved calls into SQL.
+
+#### The calling convention is evidence, not an assumption
+
+- the walk gave up every register at a call, on the grounds that which ones survive was a claim it had no right to make. It is not a claim: the Microsoft x64 convention names rax, rcx, rdx and r8–r11 volatile and the rest preserved, and compiler-generated code follows it. Forgetting only the volatile ones lifts recall everywhere the register state is used — indexed reads with a nameable base 1,357 → **1,524**, consistent array walks 304 → **368**, recovered arrays 178 → **190**. A test pins both halves: a base in rcx is lost across a call, a base in rbx is not.
+
 #### Image-base reads: a layout not invented
 
 - 778 indexed reads reach their array against the image base, where the array's start is folded into the displacement, so one read cannot separate base from field. Grouping reads whose addresses fall within one element of each other yields 18 arrays and **is unsound**: grouping instead by what is actually shared — one function, one index register, one element size — shows that **53 of the 60** multi-read groups span more than one element, meaning the register was reused for a different array. Proximity would have merged them and invented a layout for each;

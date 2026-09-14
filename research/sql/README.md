@@ -276,5 +276,18 @@ array was reached against the image base, where the start is folded into the
 displacement: the stored base is then the lowest address observed, an upper
 bound, with the field offsets measured relative to it.
 
+### Virtual call edges
+
+`exe_resolved_dispatch` holds virtual calls whose receiver is `this`, resolved
+to a class, a slot and a target function.
+
+```sql
+SELECT * FROM v_exe_virtual_call_edge ORDER BY class_name, slot;
+```
+
+Only calls on `this` in a method bound into exactly one vtable are here. Every
+other dispatch site is counted in the report's summary and left unresolved:
+nothing in the file says what an argument or a heap pointer points at.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

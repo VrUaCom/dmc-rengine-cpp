@@ -652,6 +652,85 @@ void image_base_reads_spanning_elements_are_two_arrays_not_one() {
     assert(map.indexed_arrays.empty());
 }
 
+void a_virtual_call_on_this_resolves_to_a_class_and_a_target() {
+    Fixture fixture;
+
+    // Function B is a virtual method of the fixture's class: the RTTI vtable
+    // binds it into a slot. Give it a call on `this` at slot one, and the
+    // receiver follows from the calling convention rather than from analysis —
+    // rcx holds the first argument, the load off it is the vtable pointer, and
+    // the method's own binding says which vtable that is.
+    //   48 8b 01          mov rax,[rcx]
+    //   ff 10             call QWORD PTR [rax]
+    //   c3                ret
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x01});
+    put(fixture.bytes, at + 3U, {0xFF, 0x10});
+    put(fixture.bytes, at + 5U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.dispatch_sites == 1U);
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.summary.dispatch_sites_in_a_bound_function == 1U);
+    assert(map.summary.dispatch_sites_resolved == 1U);
+
+    assert(map.resolved_dispatches.size() == 1U);
+    const auto& dispatch = map.resolved_dispatches[0];
+    assert(dispatch.caller_rva == 0x1040U);
+    assert(dispatch.displacement == 0U);
+    assert(dispatch.slot == 0U);
+    assert(dispatch.class_display_name == "CThing");
+    // The one slot of the fixture's vtable holds function B itself, so the
+    // method's own binding resolves the call back to it.
+    assert(dispatch.target_rva == 0x1040U);
+}
+
+void a_dispatch_on_something_other_than_this_is_not_resolved() {
+    Fixture fixture;
+
+    // The same call, but the vtable pointer comes from rdx rather than from the
+    // register the convention puts the first argument in. Nothing here says
+    // what rdx points at, so the site is counted and left unresolved.
+    //   48 8b 02          mov rax,[rdx]
+    //   ff 10             call QWORD PTR [rax]
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x02});
+    put(fixture.bytes, at + 3U, {0xFF, 0x10});
+    put(fixture.bytes, at + 5U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.dispatch_sites == 1U);
+    assert(map.summary.dispatch_sites_on_this == 0U);
+    assert(map.resolved_dispatches.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -694,6 +773,8 @@ int main() {
     a_field_offset_outside_the_element_is_not_an_array();
     image_base_reads_sharing_an_index_register_are_one_array();
     image_base_reads_spanning_elements_are_two_arrays_not_one();
+    a_virtual_call_on_this_resolves_to_a_class_and_a_target();
+    a_dispatch_on_something_other_than_this_is_not_resolved();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();
