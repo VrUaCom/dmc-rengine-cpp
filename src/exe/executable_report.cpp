@@ -252,6 +252,38 @@ void write_resources(JsonWriter& writer, const PeDirectories& directories) {
     writer.end_array();
 }
 
+void write_name_tables(JsonWriter& writer, const StringTableScanResult& tables) {
+    writer.key("name_tables");
+    writer.begin_object();
+    writer.member("candidate_names", static_cast<std::uint64_t>(tables.candidate_names));
+    writer.member("runs", static_cast<std::uint64_t>(tables.runs.size()));
+    writer.member("entries_in_runs", static_cast<std::uint64_t>(tables.entries_in_runs));
+
+    writer.key("largest");
+    writer.begin_array();
+    // Layout only, plus one representative name per run. The tables hold game
+    // data and are deliberately not extracted here.
+    constexpr std::size_t kReported = 40U;
+    for (std::size_t index = 0; index < tables.runs.size() && index < kReported; ++index) {
+        const auto& run = tables.runs[index];
+        writer.begin_object();
+        writer.hex_member("base_rva", run.base_rva);
+        writer.member("stride", static_cast<std::uint64_t>(run.stride));
+        writer.member("entries", static_cast<std::uint64_t>(run.entries));
+        writer.member("longest_name", static_cast<std::uint64_t>(run.longest_name));
+        writer.member("span_bytes", run.span_bytes());
+        writer.member("pure_name_array", run.pure_name_array());
+        if (!run.pure_name_array()) {
+            writer.member("records_with_payload",
+                          static_cast<std::uint64_t>(run.records_with_payload));
+        }
+        writer.member("sample_name", run.first_name);
+        writer.end_object();
+    }
+    writer.end_array();
+    writer.end_object();
+}
+
 void write_rtti(JsonWriter& writer, const RttiScanResult& rtti,
                 const ExecutableReportOptions& options) {
     writer.key("rtti");
@@ -323,6 +355,7 @@ void write_rtti(JsonWriter& writer, const RttiScanResult& rtti,
 
 std::string to_json(const ExecutableArtifactIdentity& artifact, const PeImage& image,
                     const PeDirectories& directories, const RttiScanResult& rtti,
+                    const StringTableScanResult& name_tables,
                     const ExecutableReportOptions& options) {
     std::ostringstream output;
     JsonWriter writer{output};
@@ -366,6 +399,9 @@ std::string to_json(const ExecutableArtifactIdentity& artifact, const PeImage& i
     write_tls(writer, directories);
     write_resources(writer, directories);
     write_rtti(writer, rtti, options);
+    if (options.include_name_tables) {
+        write_name_tables(writer, name_tables);
+    }
 
     writer.end_object();
     output << '\n';

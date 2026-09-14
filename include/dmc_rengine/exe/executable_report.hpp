@@ -3,6 +3,7 @@
 #include "dmc_rengine/exe/pe_directories.hpp"
 #include "dmc_rengine/exe/pe_image.hpp"
 #include "dmc_rengine/exe/rtti_scanner.hpp"
+#include "dmc_rengine/exe/string_table_scanner.hpp"
 
 #include <cstdint>
 #include <string>
@@ -17,6 +18,12 @@ struct ExecutableReportOptions final {
     bool include_import_functions{true};
     bool include_rtti_classes{true};
     bool include_rtti_hierarchy{true};
+    /// Fixed-width name tables found in read-only data.
+    ///
+    /// Only each run's layout and one representative name are recorded. The
+    /// tables themselves are game data and must not be extracted into the
+    /// repository.
+    bool include_name_tables{true};
 };
 
 /// Identity of the analysed artifact.
@@ -34,6 +41,7 @@ struct ExecutableArtifactIdentity final {
 /// makes the report usable as an evidence record rather than a printout.
 [[nodiscard]] std::string to_json(const ExecutableArtifactIdentity& artifact, const PeImage& image,
                                   const PeDirectories& directories, const RttiScanResult& rtti,
+                                  const StringTableScanResult& name_tables,
                                   const ExecutableReportOptions& options = {});
 
 } // namespace dmc::rengine::exe

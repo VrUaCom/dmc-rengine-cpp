@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-name-tables",
+  "title": "DMC3 HD resource name tables and cutscene localisation records",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-name-table-layout",
+      "claim_id": "claim-dmc3-name-table-layout",
+      "title": "Resource names are stored as fixed-width NUL-padded arrays",
+      "summary": "222 runs of fixed-width name fields hold 5692 entries in read-only data. Each run's stride is sized to its longest name rounded up: a run whose longest name is 23 characters uses stride 24, one with 28 uses stride 32, one with 12 uses stride 16. The two largest runs are at RVA 0x4F22C8 with 1747 entries at stride 24 and RVA 0x4FC6B0 with 1011 entries at stride 24. This is why literal-to-function attribution finds so few referrers: an indexed array is reached by its base, so only the code walking it refers to the names at all. Recovered layout only; the tables hold game data and their contents are deliberately not extracted into this repository.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "data-layout",
+        "gdspaces"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5186760,
+          "size": 41928,
+          "symbol": "largest name array",
+          "note": "RVA 0x4F22C8, stride 24, 1747 entries, longest name 23 characters."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5228208,
+          "size": 24264,
+          "symbol": "second name array",
+          "note": "RVA 0x4FC6B0, stride 24, 1011 entries, longest name 22 characters."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-name-table-scan-boundary",
+      "claim_id": "claim-dmc3-name-table-scan-boundary",
+      "title": "A stride scan must require elements to begin where strings begin",
+      "summary": "An earlier pass over the same image reported 191 runs holding 5824 entries. That count was inflated by phantom grids: a stride can land inside a real name and still read a printable, NUL-terminated tail, so a run marches across unrelated tables. Requiring each element to start immediately after a terminator corrects the reading to 222 runs and 5692 entries, and the direction of the change is the signature of the fault: fewer entries spread over more runs, because grids spanning several real tables broke into their genuine constituents. The earlier figures are superseded and were never published as evidence.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "methodology",
+        "data-layout",
+        "correction"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "symbol": ".rdata",
+          "note": "Regenerate with: dmc-rengine analyze-exe <exe> --out report.json"
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-cutscene-localisation-record",
+      "claim_id": "claim-dmc3-cutscene-localisation-record",
+      "title": "352-byte cutscene localisation record",
+      "summary": "A table of 49 records at RVA 0x4ECCB8 uses a 352-byte stride and resolves exactly: a 32-byte leading name field holding a cutscene archive path, followed by eight 40-byte name fields holding one message-text path per language. 32 plus eight times 40 is 352, with no residue. The language order across all 49 records is japanese, english, french, german, italian, spanish, chinese and a second chinese variant. Records differ only in the scene identifier embedded in each of the nine paths, which is consistent with one record per cutscene. The layout is validated across every record in the table.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "record-layout",
+        "localisation",
+        "cutscene",
+        "text-resources"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5163704,
+          "size": 17248,
+          "symbol": "cutscene localisation table",
+          "note": "RVA 0x4ECCB8, 49 records of 352 bytes. Field offsets: 0x00 archive name, then message names at 0x20, 0x48, 0x70, 0x98, 0xC0, 0xE8, 0x110 and 0x138."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-extension-census",
+      "claim_id": "claim-dmc3-extension-census",
+      "title": "Extension census over the name tables",
+      "summary": "Counting terminated name literals by trailing extension: pac 7118, txt 920, adx 306, hlsl 283, ogg 154, fxh 108, bin 58, sfd 32, dll 26, tm2 9, mod 8. Four of these were not in the project's family list. The sfd count is worth noting for triangulation: Sofdec video names appear alongside the FullMotionVideo classes recovered from RTTI and the Media Foundation imports, so three independent parts of the image agree on a video subsystem. The presence of tm2 names is consistent with the title's PlayStation 2 lineage. Counting a name's extension establishes what the name says, not that the image implements a reader for it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-names",
+        "format-census",
+        "fmv"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3469312,
+          "size": 2110312,
+          "symbol": ".rdata name literals",
+          "note": "Counts are over NUL-terminated printable literals with a two-to-four character extension."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-afs-namespace-in-name-tables",
+      "claim_id": "claim-dmc3-afs-namespace-in-name-tables",
+      "title": "Forward-slash afs namespace appears inside a name array",
+      "summary": "The largest name array holds entries under an afs/sound/ prefix using forward slashes, while resource paths elsewhere in the same image use backslashes. This corroborates the project's existing boundary that afs strings are evidence of a logical namespace rather than of a binary AFS backend: the namespace appears as stored table text, and nothing here shows a container implementation behind it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "afs",
+        "namespace",
+        "gdspaces",
+        "evidence-boundary"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5186760,
+          "symbol": "afs namespace entries",
+          "note": "RVA 0x4F22C8, first entry uses the afs/sound/ prefix with forward slashes."
+        }
+      ]
+    }
+  ]
+}

@@ -8,6 +8,15 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Resource name tables
+
+- `StringTableScanner` recovers runs of fixed-width NUL-padded name fields from read-only data, reporting base, stride, entry count, longest name and whether elements carry payload after the terminator; only one representative name per run is retained, since table contents are game data;
+- elements must begin immediately after a terminator — without that constraint a stride locks onto a phantom grid that slices through real names and marches across unrelated tables; a wandering-spacing fixture guards it;
+- `analyze-exe` gains a `name_tables` section and a `--no-name-tables` switch;
+- on the canonical target: 222 runs holding 5,692 entries, largest 1,747 entries at stride 24;
+- 352-byte cutscene localisation record resolved exactly — 32-byte archive name plus eight 40-byte per-language message names, no residue, validated across all 49 records;
+- extension census adds ADX, OGG, SFD, FXH and TM2 to `resource_family_hints`; SFD corroborates the FMV subsystem alongside the RTTI `FullMotionVideo` classes and the Media Foundation imports.
+
 #### Construction sites, dispatch census and semantic anchors
 
 - functions referencing a recovered class vtable are recorded as construction sites — 710 on the canonical target, led by `CWork` (75), `CConstraint` (55) and `CPlayerWeapon` (48);

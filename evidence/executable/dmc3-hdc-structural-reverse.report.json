@@ -16953,5 +16953,380 @@
         ]
       }
     ]
+  },
+  "name_tables": {
+    "candidate_names": 13767,
+    "runs": 222,
+    "entries_in_runs": 5692,
+    "largest": [
+      {
+        "base_rva": "0x4f22c8",
+        "stride": 24,
+        "entries": 1747,
+        "longest_name": 23,
+        "span_bytes": 41928,
+        "pure_name_array": true,
+        "sample_name": "afs/sound/m03_s00.adx"
+      },
+      {
+        "base_rva": "0x4fc6b0",
+        "stride": 24,
+        "entries": 1011,
+        "longest_name": 22,
+        "span_bytes": 24264,
+        "pure_name_array": false,
+        "records_with_payload": 1,
+        "sample_name": "id\\id300\\id358I.pac"
+      },
+      {
+        "base_rva": "0x4eb4b0",
+        "stride": 32,
+        "entries": 78,
+        "longest_name": 28,
+        "span_bytes": 2496,
+        "pure_name_array": false,
+        "records_with_payload": 1,
+        "sample_name": "motion\\pl000\\pl000_00_0.pac"
+      },
+      {
+        "base_rva": "0x361560",
+        "stride": 16,
+        "entries": 48,
+        "longest_name": 12,
+        "span_bytes": 768,
+        "pure_name_array": true,
+        "sample_name": "m18_c00.adx"
+      },
+      {
+        "base_rva": "0x4ec460",
+        "stride": 24,
+        "entries": 43,
+        "longest_name": 18,
+        "span_bytes": 1032,
+        "pure_name_array": true,
+        "sample_name": "se\\snd_com0a.pac"
+      },
+      {
+        "base_rva": "0x506148",
+        "stride": 24,
+        "entries": 30,
+        "longest_name": 23,
+        "span_bytes": 720,
+        "pure_name_array": true,
+        "sample_name": "afs/sound/M_clear.adx"
+      },
+      {
+        "base_rva": "0x505e68",
+        "stride": 24,
+        "entries": 28,
+        "longest_name": 23,
+        "span_bytes": 672,
+        "pure_name_array": true,
+        "sample_name": "afs/sound/Battle_00.adx"
+      },
+      {
+        "base_rva": "0x370d98",
+        "stride": 16,
+        "entries": 24,
+        "longest_name": 11,
+        "span_bytes": 384,
+        "pure_name_array": true,
+        "sample_name": "keyboard_0"
+      },
+      {
+        "base_rva": "0x4ec048",
+        "stride": 16,
+        "entries": 24,
+        "longest_name": 13,
+        "span_bytes": 384,
+        "pure_name_array": true,
+        "sample_name": "obj\\em000.pac"
+      },
+      {
+        "base_rva": "0x4ec1e0",
+        "stride": 16,
+        "entries": 23,
+        "longest_name": 15,
+        "span_bytes": 368,
+        "pure_name_array": true,
+        "sample_name": "se\\snd_em06.pac"
+      },
+      {
+        "base_rva": "0x506f68",
+        "stride": 16,
+        "entries": 22,
+        "longest_name": 15,
+        "span_bytes": 352,
+        "pure_name_array": false,
+        "records_with_payload": 6,
+        "sample_name": "FogColor"
+      },
+      {
+        "base_rva": "0x4ecad8",
+        "stride": 24,
+        "entries": 20,
+        "longest_name": 23,
+        "span_bytes": 480,
+        "pure_name_array": true,
+        "sample_name": "eventtbl\\EventTbl02.bin"
+      },
+      {
+        "base_rva": "0x4eb380",
+        "stride": 16,
+        "entries": 19,
+        "longest_name": 13,
+        "span_bytes": 304,
+        "pure_name_array": true,
+        "sample_name": "obj\\pl011.pac"
+      },
+      {
+        "base_rva": "0x4ec868",
+        "stride": 32,
+        "entries": 19,
+        "longest_name": 31,
+        "span_bytes": 608,
+        "pure_name_array": false,
+        "records_with_payload": 3,
+        "sample_name": "message\\japanese\\msg_jpn.pac"
+      },
+      {
+        "base_rva": "0x4f0f00",
+        "stride": 40,
+        "entries": 16,
+        "longest_name": 36,
+        "span_bytes": 640,
+        "pure_name_array": false,
+        "records_with_payload": 1,
+        "sample_name": "message\\english\\m19_b01_msg_eng.txt"
+      },
+      {
+        "base_rva": "0x506418",
+        "stride": 32,
+        "entries": 16,
+        "longest_name": 27,
+        "span_bytes": 512,
+        "pure_name_array": false,
+        "records_with_payload": 1,
+        "sample_name": "afs/sound/m_demo_02_001.adx"
+      },
+      {
+        "base_rva": "0x506e48",
+        "stride": 16,
+        "entries": 16,
+        "longest_name": 15,
+        "span_bytes": 256,
+        "pure_name_array": false,
+        "records_with_payload": 6,
+        "sample_name": "SPEED_CHG"
+      },
+      {
+        "base_rva": "0x520c64",
+        "stride": 20,
+        "entries": 16,
+        "longest_name": 9,
+        "span_bytes": 320,
+        "pure_name_array": false,
+        "records_with_payload": 16,
+        "sample_name": ".CRT$XCA"
+      },
+      {
+        "base_rva": "0x35d640",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7060I.pac"
+      },
+      {
+        "base_rva": "0x35d748",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7062G.pac"
+      },
+      {
+        "base_rva": "0x35d850",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7070.pac"
+      },
+      {
+        "base_rva": "0x35d958",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7074.pac"
+      },
+      {
+        "base_rva": "0x35da60",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7078.pac"
+      },
+      {
+        "base_rva": "0x35db68",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7082.pac"
+      },
+      {
+        "base_rva": "0x35dc70",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7086.pac"
+      },
+      {
+        "base_rva": "0x35dd78",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7090.pac"
+      },
+      {
+        "base_rva": "0x35de80",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7094.pac"
+      },
+      {
+        "base_rva": "0x35df88",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7098.pac"
+      },
+      {
+        "base_rva": "0x35e090",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7102.pac"
+      },
+      {
+        "base_rva": "0x35e198",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7106.pac"
+      },
+      {
+        "base_rva": "0x35e2a0",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7121.pac"
+      },
+      {
+        "base_rva": "0x35e3a8",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7125.pac"
+      },
+      {
+        "base_rva": "0x35e4b0",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7129.pac"
+      },
+      {
+        "base_rva": "0x35e5b8",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7140.pac"
+      },
+      {
+        "base_rva": "0x35e6c0",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7144.pac"
+      },
+      {
+        "base_rva": "0x35e7c8",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7148.pac"
+      },
+      {
+        "base_rva": "0x35e8d0",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7152.pac"
+      },
+      {
+        "base_rva": "0x35e9d8",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7156.pac"
+      },
+      {
+        "base_rva": "0x35eae0",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7160.pac"
+      },
+      {
+        "base_rva": "0x35ebe8",
+        "stride": 16,
+        "entries": 15,
+        "longest_name": 12,
+        "span_bytes": 240,
+        "pure_name_array": true,
+        "sample_name": "id7164.pac"
+      }
+    ]
   }
 }

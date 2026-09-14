@@ -1,5 +1,6 @@
 #include "dmc_rengine/core/json.hpp"
 #include "dmc_rengine/exe/executable_report.hpp"
+#include "dmc_rengine/exe/string_table_scanner.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -31,6 +32,7 @@ struct Fixture final {
     PeImage image;
     PeDirectories directories;
     RttiScanResult rtti;
+    dmc::rengine::exe::StringTableScanResult name_tables;
 
     Fixture() {
         artifact.sha256 = "0123456789abcdef";
@@ -75,13 +77,24 @@ struct Fixture final {
         rtti.type_descriptors = 2U;
         rtti.locators = 1U;
         rtti.vtables_located = 1U;
+
+        dmc::rengine::exe::StringTableRun run;
+        run.base_rva = 0x2000U;
+        run.stride = 16U;
+        run.entries = 12U;
+        run.longest_name = 10U;
+        run.first_name = "name0.pac";
+        name_tables.runs.push_back(run);
+        name_tables.candidate_names = 12U;
+        name_tables.entries_in_runs = 12U;
     }
 };
 
 void the_report_is_valid_json() {
     const Fixture fixture;
     const auto report =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
 
     assert(!report.empty());
     assert(report.front() == '{');
@@ -94,7 +107,8 @@ void the_report_is_valid_json() {
 void a_literal_member_stays_a_string() {
     const Fixture fixture;
     const auto report =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
 
     // A string literal converts to bool before string_view, so without a
     // dedicated overload the schema member silently serialized as `true`.
@@ -108,12 +122,44 @@ void a_literal_member_stays_a_string() {
     assert(*schema->second.as_string() == "dmc-rengine.executable-report.v1");
 }
 
+void name_tables_report_layout_without_extracting_content() {
+    const Fixture fixture;
+    const auto report =
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
+
+    const auto parsed = Parser::parse(report);
+    assert(parsed.ok());
+
+    const auto* root = parsed.value->as_object();
+    const auto tables = root->find("name_tables");
+    assert(tables != root->end());
+    const auto* object = tables->second.as_object();
+    assert(object->find("runs") != object->end());
+    assert(object->find("entries_in_runs") != object->end());
+
+    // One representative name per run, never the table's contents.
+    assert(report.find("\"sample_name\": \"name0.pac\"") != std::string::npos);
+    assert(report.find("\"stride\": 16") != std::string::npos);
+    assert(report.find("\"pure_name_array\": true") != std::string::npos);
+
+    ExecutableReportOptions without;
+    without.include_name_tables = false;
+    const auto trimmed =
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables, without);
+    assert(trimmed.find("name_tables") == std::string::npos);
+    assert(Parser::parse(trimmed).ok());
+}
+
 void the_report_is_deterministic() {
     const Fixture fixture;
     const auto first =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
     const auto second =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
     assert(first == second);
 }
 
@@ -121,14 +167,16 @@ void function_ranges_are_opt_in() {
     const Fixture fixture;
 
     const auto summary =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
     assert(summary.find("\"size_histogram\"") != std::string::npos);
     assert(summary.find("\"ranges\"") == std::string::npos);
 
     ExecutableReportOptions options;
     options.include_function_ranges = true;
     const auto detailed =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti, options);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables, options);
     assert(detailed.find("\"ranges\"") != std::string::npos);
     assert(Parser::parse(detailed).ok());
 }
@@ -140,7 +188,8 @@ void optional_sections_can_be_suppressed() {
     options.include_import_functions = false;
     options.include_rtti_classes = false;
     const auto trimmed =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti, options);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables, options);
 
     assert(trimmed.find("alpha_one") == std::string::npos);
     assert(trimmed.find("class_graph") == std::string::npos);
@@ -161,7 +210,8 @@ void escaping_survives_a_windows_path() {
         dmc::rengine::exe::PeDebugEntry{2U, 46U, 0x2220U, 0x820U, 0U});
 
     const auto report =
-        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti);
+        to_json(fixture.artifact, fixture.image, fixture.directories, fixture.rtti,
+                fixture.name_tables);
     const auto parsed = Parser::parse(report);
     assert(parsed.ok());
 
@@ -182,6 +232,7 @@ void escaping_survives_a_windows_path() {
 int main() {
     the_report_is_valid_json();
     a_literal_member_stays_a_string();
+    name_tables_report_layout_without_extracting_content();
     the_report_is_deterministic();
     function_ranges_are_opt_in();
     optional_sections_can_be_suppressed();

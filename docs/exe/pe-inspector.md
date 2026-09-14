@@ -172,6 +172,23 @@ dmc-rengine map-functions <path> [--out <file>] [--all] [--limit <n>] [--no-stri
 By default the report emits the attributed subset plus the aggregate tables;
 `--all` emits every function.
 
+## Name table scanning
+
+`StringTableScanner::scan(bytes, image)` finds runs of fixed-width, NUL-padded
+name fields in read-only data. Resource names are frequently stored that way
+rather than as individually referenced constants, so recovering the stride and
+extent is what turns an opaque blob of text into an addressable table.
+
+A run is accepted only when every element holds a printable, terminated name
+that fits inside the stride **and begins immediately after a terminator**. That
+last requirement is not optional: without it a stride can land inside a real name
+and still read a valid-looking tail, and the run marches across unrelated tables.
+
+Each run reports its base, stride, entry count, longest name, and whether any
+element carries payload after its terminator — a pure name array versus records
+with a leading name field. Only one representative name per run is retained;
+table contents are game data and are not extracted.
+
 ## Full analysis report
 
 ```bash
@@ -182,7 +199,8 @@ Emits a deterministic JSON report — identical bytes produce byte-identical
 output — covering headers, sections, directories, imports, exports, the
 function inventory, debug identity, relocations, TLS, resources, and the RTTI
 class graph. `--ranges` adds the individual `RUNTIME_FUNCTION` entries, which
-are omitted by default because they are large and regenerable.
+are omitted by default because they are large and regenerable, and
+`--no-name-tables` skips the name-table scan.
 
 The report records a SHA-256 and a size for the artifact, never its bytes.
 

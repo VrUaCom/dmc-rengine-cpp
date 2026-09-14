@@ -14,6 +14,7 @@
 #include "dmc_rengine/exe/pe_directories.hpp"
 #include "dmc_rengine/exe/pe_reader.hpp"
 #include "dmc_rengine/exe/rtti_scanner.hpp"
+#include "dmc_rengine/exe/string_table_scanner.hpp"
 #include "dmc_rengine/gdspaces/local_directory_source.hpp"
 #include "dmc_rengine/gdspaces/open_router.hpp"
 #include "dmc_rengine/gdspaces/source_registry.hpp"
@@ -52,7 +53,7 @@ void print_help() {
         << "  validate-evidence <path>  Strictly validate an Evidence Packet JSON\n"
         << "  route <format>            Show the default tool route for a format\n"
         << "  inspect-exe <path>        Inspect and identify a PE file through GDSpaces\n"
-        << "  analyze-exe <path> [--out <file>] [--ranges] [--no-rtti]\n"
+        << "  analyze-exe <path> [--out <file>] [--ranges] [--no-rtti] [--no-name-tables]\n"
         << "                            Full structural analysis report as JSON\n"
         << "  map-functions <path> [--out <file>] [--all] [--limit <n>]\n"
         << "                            Function-level call/attribution map as JSON\n"
@@ -317,6 +318,8 @@ int run_analyze_exe(int argc, char** argv) {
             options.include_function_ranges = true;
         } else if (argument == "--no-rtti") {
             options.include_rtti_classes = false;
+        } else if (argument == "--no-name-tables") {
+            options.include_name_tables = false;
         } else if (argument == "--no-imports") {
             options.include_import_functions = false;
         } else if (argument == "--out" && index + 1 < argc) {
@@ -361,12 +364,20 @@ int run_analyze_exe(int argc, char** argv) {
         }
     }
 
+    dmc::rengine::exe::StringTableScanResult name_tables;
+    if (options.include_name_tables) {
+        name_tables = dmc::rengine::exe::StringTableScanner::scan(bytes, image);
+        for (const auto& warning : name_tables.warnings) {
+            std::cerr << "[warning] " << warning << '\n';
+        }
+    }
+
     dmc::rengine::exe::ExecutableArtifactIdentity artifact;
     artifact.sha256 = dmc::rengine::core::Sha256::compute(bytes).hex();
     artifact.size = static_cast<std::uint64_t>(bytes.size());
 
-    const auto report =
-        dmc::rengine::exe::to_json(artifact, image, directories.directories, rtti, options);
+    const auto report = dmc::rengine::exe::to_json(artifact, image, directories.directories, rtti,
+                                                   name_tables, options);
 
     if (output_path.empty()) {
         std::cout << report;

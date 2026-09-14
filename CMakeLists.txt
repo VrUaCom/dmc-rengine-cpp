@@ -180,6 +180,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         exe_byte_window
         pe_directories
         x86_decoder
+        string_table_scanner
         code_graph
         function_map
         rtti_scanner
@@ -367,6 +368,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         NAME dmc_rengine_item_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/items/dmc3-item-runtime.evidence.json)
+    add_test(
+        NAME dmc_rengine_name_tables_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-name-tables.evidence.json)
     add_test(
         NAME dmc_rengine_semantic_anchors_evidence_validation
         COMMAND dmc-rengine validate-evidence

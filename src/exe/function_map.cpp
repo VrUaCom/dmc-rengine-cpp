@@ -178,6 +178,10 @@ std::vector<std::string> resource_family_hints(std::string_view literal) {
         {".dca", "DCA"},      {".efm", "EFM"},    {".mot", "MOT"},
         {".hit", "HITS"},     {".hlsl", "SHADER"},{".afs", "ARCHIVE"},
         {".sac", "SAC"},      {".tex", "TEX"},
+        // Families measured in this image's name tables rather than inherited
+        // from the format docs. Counts are recorded in the evidence packet.
+        {".adx", "ADX"},      {".ogg", "OGG"},    {".sfd", "SFD"},
+        {".fxh", "SHADER"},   {".tm2", "TM2"},    {".txt", "TEXT"},
     };
 
     const auto haystack = lowered(literal);
