@@ -380,6 +380,59 @@ void overwriting_the_base_register_forfeits_it() {
     assert(graph.functions[0].indexed_accesses.empty());
 }
 
+void a_self_add_doubles_the_index_multiplier() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // The form MSVC uses to reach an eighty-byte element:
+    //   48 8d 1d <rel>   lea rbx,[rip+rel]     ; -> .rdata 0x2000
+    //   48 8d 04 80      lea rax,[rax+rax*4]   ; index * 5
+    //   48 03 c0         add rax,rax           ; index * 10
+    //   8b 0c c3         mov ecx,[rbx+rax*8]   ; base + index * 80
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0x48, 0x8D, 0x04, 0x80});
+    put(bytes, 0x30BU, {0x48, 0x03, 0xC0});
+    put(bytes, 0x30EU, {0x8B, 0x0C, 0xC3});
+    put(bytes, 0x311U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions.size() == 1U);
+
+    const auto& accesses = graph.functions[0].indexed_accesses;
+    assert(accesses.size() == 1U);
+    assert(accesses[0].base_rva == 0x2000U);
+    // Five, doubled, scaled by eight. Missing the doubling reports forty and
+    // puts every field offset outside the element.
+    assert(accesses[0].element_bytes == 80U);
+}
+
+void a_shift_multiplies_the_index() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    //   lea rbx,[rip+rel]
+    //   48 c1 e0 02       shl rax,2         ; index * 4
+    //   8b 0c c3          mov ecx,[rbx+rax*8]
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0x48, 0xC1, 0xE0, 0x02});
+    put(bytes, 0x30BU, {0x8B, 0x0C, 0xC3});
+    put(bytes, 0x30EU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions[0].indexed_accesses.size() == 1U);
+    assert(graph.functions[0].indexed_accesses[0].element_bytes == 32U);
+}
+
 } // namespace
 
 int main() {
@@ -394,5 +447,7 @@ int main() {
     a_base_held_in_a_register_makes_an_indexed_access_readable();
     a_call_between_the_load_and_the_use_forfeits_the_base();
     overwriting_the_base_register_forfeits_it();
+    a_self_add_doubles_the_index_multiplier();
+    a_shift_multiplies_the_index();
     return 0;
 }

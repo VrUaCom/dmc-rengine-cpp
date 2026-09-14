@@ -264,7 +264,41 @@ void addressing_registers_and_scale_are_reported() {
         assert(decoded->displacement == 0x10);
     }
 
+    // 49 03 db               add rbx,r11 -- REX.B extends the rm operand.
+    {
+        const auto bytes = encode({0x49, 0x03, 0xDB});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->reg_operand == 3U);
+        assert(decoded->rm_operand == 11U);
+    }
+
+    // 48 03 db               add rbx,rbx -- both operands the same register,
+    // which is a doubling and the step MSVC uses to reach an eighty-byte
+    // element alongside a multiply by five and a scale of eight.
+    {
+        const auto bytes = encode({0x48, 0x03, 0xDB});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->reg_operand == decoded->rm_operand);
+        assert(decoded->reg_operand == 3U);
+    }
+
+    // 48 c1 e3 04            shl rbx,4 -- the immediate is reported as a value.
+    {
+        const auto bytes = encode({0x48, 0xC1, 0xE3, 0x04});
+        const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
+        assert(decoded.has_value());
+        assert(decoded->modrm_reg == 4U);
+        assert(decoded->rm_operand == 3U);
+        assert(decoded->immediate_size == 1U);
+        assert(decoded->immediate == 4);
+    }
+
     // 48 89 d8               mov rax,rbx  -- register-direct names no memory.
+    // `89` is MOV r/m, r: the rm field is the destination rax and the reg field
+    // the source rbx, which is the direction that makes `add r/m, reg` write
+    // the rm operand.
     {
         const auto bytes = encode({0x48, 0x89, 0xD8});
         const auto decoded = X86LengthDecoder::decode(std::span<const std::byte>{bytes}, 0U);
@@ -272,6 +306,8 @@ void addressing_registers_and_scale_are_reported() {
         assert(decoded->register_indirect());
         assert(decoded->memory_base == Instruction::kNoRegister);
         assert(decoded->memory_index == Instruction::kNoRegister);
+        assert(decoded->reg_operand == 3U);
+        assert(decoded->rm_operand == 0U);
     }
 }
 

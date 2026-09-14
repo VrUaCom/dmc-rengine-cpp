@@ -256,6 +256,10 @@ struct FunctionMapSummary final {
     std::size_t string_scan_accesses{};
     std::size_t inconsistent_array_accesses{};
     std::size_t indexed_arrays{};
+    /// Bases read at more than one element size, which is a contradiction: at
+    /// least one of the readings is wrong. Reported rather than resolved, since
+    /// nothing here says which.
+    std::size_t arrays_with_conflicting_element_size{};
     std::size_t name_tables_unreferenced{};
     std::size_t with_vtable_install{};
     std::size_t with_resource_family{};

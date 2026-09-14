@@ -56,6 +56,8 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("inconsistent_array_accesses",
                   static_cast<std::uint64_t>(summary.inconsistent_array_accesses));
     writer.member("indexed_arrays", static_cast<std::uint64_t>(summary.indexed_arrays));
+    writer.member("arrays_with_conflicting_element_size",
+                  static_cast<std::uint64_t>(summary.arrays_with_conflicting_element_size));
     writer.member("name_tables_unreferenced",
                   static_cast<std::uint64_t>(summary.name_tables_unreferenced));
     writer.member("with_vtable_install",

@@ -848,6 +848,18 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         map.indexed_arrays.push_back(std::move(entry));
     }
     map.summary.indexed_arrays = map.indexed_arrays.size();
+    {
+        std::map<std::uint32_t, std::uint32_t> sizes_per_base;
+        for (const auto& array : map.indexed_arrays) {
+            ++sizes_per_base[array.base_rva];
+        }
+        for (const auto& [base, count] : sizes_per_base) {
+            static_cast<void>(base);
+            if (count > 1U) {
+                ++map.summary.arrays_with_conflicting_element_size;
+            }
+        }
+    }
     std::sort(map.indexed_arrays.begin(), map.indexed_arrays.end(),
               [](const IndexedArray& left, const IndexedArray& right) {
                   if (left.field_offsets.size() != right.field_offsets.size()) {

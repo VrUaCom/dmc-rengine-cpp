@@ -79,6 +79,10 @@ struct X86Instruction final {
     /// forms that matter here — `lea reg, [mem]` and `mov reg, [mem]` — this is
     /// the destination.
     std::uint8_t reg_operand{kNoRegister};
+    /// Register the ModRM rm field names, 0-15, with REX.B applied. Meaningful
+    /// only for a register-direct operand; a memory operand's registers are
+    /// reported as the base and index below.
+    std::uint8_t rm_operand{kNoRegister};
     /// Base register of the memory operand, 0-15, or `kNoRegister` when the
     /// encoding has none: a RIP-relative operand, a SIB with no base, or a
     /// register-direct instruction.

@@ -130,17 +130,46 @@ such reads three ways:
 | --- | --- | --- |
 | offset inside the element | **267** | an array walk with a readable field |
 | negative offset | 255 | the inlined character scan, `[base + i*1 - 1]` |
-| offset at or past the element | **32** | the element size or base is wrong |
+| offset at or past the element | **16** | the element size or base is wrong |
 
-That 32 — **5.8%** — is the error bar on the element-size inference, and it is
-worth stating rather than hiding.
+### The failures named the missing instruction
 
-What survives is **155 arrays**, of which **28** are read at more than one
+That third row started at **32**, and the sites in it were not noise. The
+function at `0x274730`:
+
+```asm
+lea  r14,[rip+0x3229d1]     # 0x597150      <- base
+lea  rbx,[rbx+rbx*4]        ; index * 5
+add  rbx,rbx                ; index * 10        <- not modelled
+mov  eax,[r14+rbx*8]        ; base + index * 80
+movzx eax,BYTE PTR [r14+rbx*8+0x4]
+mov  eax,[r14+rbx*8+0x8]
+ ... up to +0x1c
+```
+
+**Eighty bytes.** The doubling was the step the multiplier tracking did not
+model, so the element read as 40 and every offset from +8 to +28 fell outside
+it. Adding the self-add form — and the shift form alongside it — took
+inconsistent reads from 32 to **16** and consistent walks from 267 to **304**.
+
+The check earned its keep twice: it flagged the gap, and the gap named the
+instruction to add. `0x597150` now reads as an 80-byte element with eight
+4-byte fields, which is what the instructions say it is.
+
+The remaining 16 — **2.8%** — is the error bar, and worth stating rather than
+hiding. Alongside it, **5 of 168 bases** are read at two different element
+sizes. A base cannot have two, so one reading of each is wrong and nothing in
+the encodings says which; the count is reported rather than a winner picked.
+
+What survives is **173 arrays** over 168 bases, of which **28** are read at more than one
 offset and so carry a partial element layout rather than a single observation:
 
 | Array | Element | Fields observed | Sites |
 | --- | --- | --- | --- |
+| `0x597150` | 80 bytes | +0 +4 +8 +12 +16 +20 +24 +28 | 8 |
 | `0x5CEC30` | 4 bytes | +0 +1 +2 +3 | 25, across 5 functions |
+| `0x582450` | 16 bytes | +0 +4 +8 +12 | 4 |
+| `0x596DE0` | 48 bytes | +16 +20 +24 | 6 |
 | `0x5D08A0` | 20 bytes | +4 +8 +12 +16 | 4 |
 | `0x5DE5B0` | 24 bytes | +0 +8 +16 | 6 |
 | `0x570600` | 12 bytes | +0 +4 +8 | 3 |
@@ -159,8 +188,9 @@ reading that treated the two as one should be read with this alongside it.
 
 ## Open work
 
-- **the 32 inconsistent sites.** Each is a base or an element size the walk got
-  wrong, and each is individually checkable against the instructions;
+- **the 16 remaining inconsistent sites, and the 5 conflicting bases.** Each is
+  individually checkable against the instructions, exactly as the 16 that were
+  closed here were;
 - **the 749 image-base-relative reads.** Their array base is the displacement,
   so a field offset cannot be separated from it without a second observation at
   the same base. Correlating reads that share a displacement modulo the element

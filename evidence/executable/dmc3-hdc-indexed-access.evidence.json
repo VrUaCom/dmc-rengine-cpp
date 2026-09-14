@@ -153,6 +153,61 @@
           "note": "RVA 0x5CEC30, element 4 bytes, all four byte offsets read, 25 sites across 5 functions."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-self-add-multiplier",
+      "claim_id": "claim-dmc3-self-add-multiplier",
+      "title": "The sites that failed the consistency check named the step that was missing",
+      "summary": "Thirty-two reads had a field offset at or past the element the walk computed, and they were not noise. The function at RVA 0x274730 shows what they were: a base loaded into r14, then lea with base and index the same register to multiply by five, then add of the register to itself to double it, then a read scaled by eight. Eighty bytes. The doubling was the step the multiplier tracking did not model, so the element read as forty and every field offset from eight to twenty-eight fell outside it. Adding the self-add form, and the shift form alongside it, takes inconsistent reads from 32 to 16 and consistent array walks from 267 to 304. The array at RVA 0x597150 now reads as an eighty-byte element with eight four-byte fields, which is what the instructions say it is. The check earned its keep twice over: it flagged the gap, and the gap named the instruction form to add.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "decoder",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [
+        "ev-dmc3-indexed-arrays"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5861712,
+          "size": 80,
+          "symbol": "array whose element size needed the doubling",
+          "note": "RVA 0x597150, element 80 bytes, fields at +0, +4, +8, +12, +16, +20, +24 and +28, eight sites in the function at RVA 0x274730."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2573695,
+          "size": 16,
+          "symbol": "the multiply the tracking was missing",
+          "note": "RVA 0x27477F, lea rbx with base and index rbx and a scale of four, then add rbx to itself at RVA 0x274783."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-array-element-size-conflicts",
+      "claim_id": "claim-dmc3-array-element-size-conflicts",
+      "title": "Five bases are read at two element sizes, which cannot both be right",
+      "summary": "Grouping by base and element size leaves 173 arrays over 168 distinct bases, so five bases carry two readings apiece. A base cannot have two element sizes, so at least one reading of each is wrong, and nothing in the encodings says which. Reporting the count rather than picking a winner keeps the contradiction visible: three per cent of bases, alongside the sixteen reads whose field offset still falls outside its element.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5860320,
+          "size": 48,
+          "symbol": "base read at two element sizes",
+          "note": "RVA 0x596DE0, read as a 48-byte element at six sites and as an 8-byte element at one."
+        }
+      ]
     }
   ]
 }

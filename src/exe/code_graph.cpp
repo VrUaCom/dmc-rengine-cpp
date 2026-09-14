@@ -248,8 +248,16 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                            decoded->modrm_mod == 3U && decoded->immediate > 0 &&
                            decoded->immediate < 16) {
                     // `shl reg, imm` is a multiply by a power of two.
-                    produced_multiplier = multiplier_of(static_cast<std::uint8_t>(decoded->modrm_rm))
+                    produced_multiplier = multiplier_of(decoded->rm_operand)
                                           << static_cast<std::uint32_t>(decoded->immediate);
+                } else if ((decoded->opcode == 0x01U || decoded->opcode == 0x03U) &&
+                           decoded->modrm_mod == 3U &&
+                           decoded->reg_operand == decoded->rm_operand) {
+                    // `add reg,reg` doubles. MSVC reaches an eighty-byte element
+                    // as a multiply by five, this doubling, and a scale of
+                    // eight, and missing the doubling puts every field offset
+                    // outside the element it computed.
+                    produced_multiplier = multiplier_of(decoded->reg_operand) * 2U;
                 }
             }
 
@@ -260,8 +268,7 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
             if (decoded->has_modrm) {
                 forget(decoded->reg_operand);
                 if (decoded->modrm_mod == 3U) {
-                    forget(static_cast<std::uint8_t>(decoded->modrm_rm));
-                    forget(static_cast<std::uint8_t>(decoded->modrm_rm | 8U));
+                    forget(decoded->rm_operand);
                 }
             } else {
                 // push/pop, `mov imm -> reg` and `xchg` write a register named
@@ -312,10 +319,19 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 }
             }
 
-            if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier &&
-                decoded->reg_operand < held.size()) {
-                held[decoded->reg_operand].multiplier = produced_multiplier;
-                held[decoded->reg_operand].age = traced;
+            if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier) {
+                // `add r/m, reg` and the shift group write the rm operand —
+                // for a shift the reg field is the group selector and names no
+                // register at all. `lea` and `imul` write the reg operand.
+                const auto destination =
+                    !decoded->two_byte_opcode &&
+                            (decoded->opcode == 0x01U || decoded->opcode == 0xC1U)
+                        ? decoded->rm_operand
+                        : decoded->reg_operand;
+                if (destination < held.size()) {
+                    held[destination].multiplier = produced_multiplier;
+                    held[destination].age = traced;
+                }
             }
 
             const auto branch_target = [&]() {

@@ -424,6 +424,9 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
         instruction.modrm_rm = rm;
         instruction.reg_operand =
             static_cast<std::uint8_t>(instruction.modrm_reg | (rex_r ? 8U : 0U));
+        if (mod == 3U) {
+            instruction.rm_operand = static_cast<std::uint8_t>(rm | (rex_b ? 8U : 0U));
+        }
 
         std::size_t displacement_bytes = 0U;
         bool sib = false;
