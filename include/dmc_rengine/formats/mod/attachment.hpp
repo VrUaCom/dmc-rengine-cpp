@@ -4,6 +4,7 @@
 #include "dmc_rengine/formats/mod/world_transform.hpp"
 
 #include <cstdint>
+#include <span>
 
 namespace dmc::rengine::formats::mod::attachment {
 
@@ -27,6 +28,14 @@ struct DefaultJointResolution final {
         return status == ResolveStatus::resolved;
     }
 };
+
+// Resolve one already-decoded default-joint selector against an explicit host
+// world-matrix domain. This overload lets platform-neutral consumers retain
+// their own typed scene projection while keeping selector/index semantics in
+// canonical Rengine code.
+[[nodiscard]] DefaultJointResolution resolve_default_joint(
+    std::uint8_t selector,
+    std::span<const world_transform::Matrix4f> host_world) noexcept;
 
 // Resolve the child MOD default_joint_index against one explicit host MOD.
 //
