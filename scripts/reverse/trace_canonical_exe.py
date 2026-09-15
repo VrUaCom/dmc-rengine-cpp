@@ -34,7 +34,7 @@ SWITCHES = [
 ]
 
 
-def run(exe, out):
+def run(exe, out, vtable_anchors=None):
     data = exe.read_bytes()
     if hashlib.sha256(data).hexdigest() != CANONICAL:
         raise ValueError('canonical SHA-256 mismatch')
@@ -85,6 +85,41 @@ def run(exe, out):
         selector_max=240,slot_by_selector=remap)
     table_intervals.append((base+0x2c85c,base+0x2c94d))
     original_seeds = set(starts) | {base+u('I',opt+16)[0]}
+    metadata_roots = []
+    if vtable_anchors is not None:
+        # Canonical CRT boundaries are byte-checked against startup arguments.
+        for kind,begin,end,rcxsite,rdxsite in [
+            ('crt_initterm',0x34f808,0x35d250,0x34606d,0x346066),
+            ('crt_initterm_e',0x35d258,0x35d278,0x34604c,0x346045)]:
+            for site,target in [(rcxsite,begin),(rdxsite,end)]:
+                p=offset(site,7)
+                assert data[p:p+2] == b'\x48\x8d'
+                assert site+7+u('i',p+3)[0] == target
+            for slot in range(begin,end,8):
+                target=u('Q',offset(slot,8))[0]
+                if target:
+                    assert executable(target)
+                    metadata_roots.append((kind,base+slot,target))
+        with vtable_anchors.open() as source:
+            for row in csv.DictReader(source,delimiter='\t'):
+                anchor=int(row['vftable_va'],16)
+                col=u('Q',offset(anchor-base-8,8))[0]
+                cp=offset(col-base,24)
+                assert u('I',cp)[0]==1 and u('I',cp+20)[0]+base==col
+                assert u('I',cp+12)[0]+base==int(row['type_va'],16)
+                target=u('Q',offset(anchor-base,8))[0]
+                assert target==int(row['first_entry_va'],16) and executable(target)
+                metadata_roots.append(('vtable_first_entry',anchor,target))
+        for a,b,unwind in ranges:
+            p=offset(unwind,4)
+            flags=data[p]>>3
+            if flags&3 and not flags&4:
+                assert data[p]&7==1
+                slot=unwind+4+((data[p+2]+1)&~1)*2
+                target=base+u('I',offset(slot,4))[0]
+                assert executable(target)
+                metadata_roots.append(('exception_handler',base+slot,target))
+        original_seeds |= {target for kind,slot,target in metadata_roots}
     excluded_seeds = {a for a in original_seeds if any(lo <= a < hi for lo,hi in table_intervals)}
     seeds = original_seeds-excluded_seeds
     pending = list(sorted(seeds,reverse=True))
@@ -220,8 +255,10 @@ def run(exe, out):
           [(hx(a),b,c,d) for a,b,c,d in reanchored])
     table('excluded-data-seeds.tsv',['seed_va','reason'],
           [(hx(a),'EXE_CONFIRMED switch table data') for a in sorted(excluded_seeds)])
+    table('metadata-roots.tsv.gz',['kind','source_slot_va','target_va','coverage'],
+          [(kind,hx(slot),hx(target),coverage(target)) for kind,slot,target in metadata_roots],True)
     (out/'switches.json').write_text(json.dumps(switch_evidence,indent=2)+'\n')
-    summary = dict(schema='dmc3-static-cfg-v1',sha256=CANONICAL,
+    summary = dict(schema='dmc3-static-cfg-v2' if vtable_anchors is not None else 'dmc3-static-cfg-v1',sha256=CANONICAL,
         capstone_version=capstone.__version__,
         status='STRUCTURAL_CONFIRMED',semantic_completion_claim=False,
         seed_count=len(seeds),runtime_range_count=len(ranges),visited_instruction_starts=len(visited),
@@ -235,8 +272,12 @@ def run(exe, out):
         bad_dispositions=dict(collections.Counter(coverage(a) for a in bad)),
         common_start_length_agreements=agrees,decoder_disagreements=len(disagreements),
         reanchored_length_agreements=sum(d for a,b,c,d in reanchored),
+        metadata_root_records=len(metadata_roots),
+        metadata_unique_targets=len({target for kind,slot,target in metadata_roots}),
+        metadata_root_coverage=dict(collections.Counter(coverage(target) for kind,slot,target in metadata_roots)),
+        vtable_anchor_file_sha256=hashlib.sha256(vtable_anchors.read_bytes()).hexdigest() if vtable_anchors is not None else None,
         limitations=['Seeds are static metadata, not proof of execution.',
-          'Only six reviewed switch sites are resolved; other indirect jumps terminate traversal. Callbacks, TLS callbacks, vtables and exception handlers are not comprehensively seeded.',
+          'Only six reviewed switch sites are resolved; other indirect jumps terminate traversal. With vtable_anchors supplied CRT targets, first vtable entries and direct unwind handlers are seeded, but other virtual slots and callbacks remain incomplete.',
           'Calls conservatively assume fallthrough, including potentially noreturn functions.',
           'Unvisited bytes are not proven data or unreachable.',
           'Second-decoder comparison verifies lengths at common starts, not full instruction semantics.'])
@@ -248,5 +289,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('exe',type=pathlib.Path)
     parser.add_argument('out',type=pathlib.Path)
+    parser.add_argument('--vtable-anchors',type=pathlib.Path)
     args = parser.parse_args()
-    print(json.dumps(run(args.exe,args.out),indent=2))
+    print(json.dumps(run(args.exe,args.out,args.vtable_anchors),indent=2))

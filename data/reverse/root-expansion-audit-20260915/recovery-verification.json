@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "parent_commit": "6215bb460ebb88162e95a7fae1821fe842153f30",
+  "source": "recovered interrupted root-pass",
+  "independent_cfg_verification": "repeated: 99572 direct edges, 633647 boundaries",
+  "crt_prefix_reproduction": "byte-identical gzip table",
+  "root_audit_reproduction": "all five address tables byte-identical; summary equal except local path keys",
+  "canonical_exe_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "files": {
+    "data/reverse/root-expansion-20260915/bad-decode-disposition.tsv": "dd76add3f0e9ddbd951c44942c6c38111326b5eaf186f52c3a94a77bee59b3c7",
+    "data/reverse/root-expansion-20260915/crt-prefix-summary.json": "23276eeef7d0b7227c4c06d771a718a4a5ace62529c6c226a04868c6402c9960",
+    "data/reverse/root-expansion-20260915/crt-prefixes.tsv.gz": "86d37b7c421c31ee286931316213b8a9fe08f070070b5ca4788939c59ab639f8",
+    "data/reverse/root-expansion-20260915/decoder-disagreements.tsv": "15eaeff542f250e37b5793c527df77b63b7ef0ae04199e832d0fe1bc84614161",
+    "data/reverse/root-expansion-20260915/edges.tsv.gz": "aa05297c1aeadf537778589f2557a2454c3c9fdb183c9c16b46cd7ac8fc2c006",
+    "data/reverse/root-expansion-20260915/excluded-data-seeds.tsv": "0de4936478d7d1eacc42d91c0b4bd4b071982e8da302675fdb2138d91dcd2d58",
+    "data/reverse/root-expansion-20260915/metadata-roots.tsv.gz": "2524f8346764e132497694b3f2ec24df8c86822579a3a586eae8b259e4c126fa",
+    "data/reverse/root-expansion-20260915/overlaps.tsv": "408f442dbf7a315c9cd70e1b7c920f8fe3973c4a6b3055c9edec0108c68ee8a1",
+    "data/reverse/root-expansion-20260915/reanchored-comparison.tsv": "a3505ecdd16daed01d702cd550315f6237f2f3da8f994dd7c2a33c9ed4dfa2a4",
+    "data/reverse/root-expansion-20260915/summary.json": "6a5dadff2aaf184ec5ba3077cd0d4c2e8efe9fbf6043143aa36707d23043674d",
+    "data/reverse/root-expansion-20260915/switches.json": "7d89787e895de5efcd9d72621a0198560d11c4e371ae3368917074bd87132556",
+    "data/reverse/root-expansion-20260915/unresolved.tsv": "0cd9c0318fcdef57c5d6d8bcd8e8c8d7111d3b11adc1e2a95bb3e3e669d0f005",
+    "data/reverse/root-expansion-20260915/verification.json": "29eb60222fef4212dad8e878cd799db1a87c5d74f04ed39b3eafbd5048f9464c",
+    "data/reverse/root-expansion-20260915/visited.tsv.gz": "d3b1e0f7820302c5e15a188085d476c6de43acae1931aeb704b54db02dd1051f"
+  }
+}
