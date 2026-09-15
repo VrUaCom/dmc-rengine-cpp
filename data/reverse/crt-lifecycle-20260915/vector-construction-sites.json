@@ -1,0 +1,167 @@
+[
+  {
+    "initializer": "0x140002530",
+    "site": "0x140002557",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x1405eae50",
+      "rdx": "0x38",
+      "r8": "0x5",
+      "r9": "0x14002dfb0"
+    },
+    "local_stack_argument5": "0x14002dfd0",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140002570",
+    "site": "0x1400025ab",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x1405eac80",
+      "rdx": "0x38",
+      "r8": "0x5",
+      "r9": "0x14002dfb0"
+    },
+    "local_stack_argument5": "0x14002dfd0",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x14001c4c0",
+    "site": "0x14001c4e7",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140ca8910",
+      "rdx": "0x28",
+      "r8": "0x3",
+      "r9": "0x1402c5ff0"
+    },
+    "local_stack_argument5": "0x14024ea30",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x14001e850",
+    "site": "0x14001e877",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140caa1a8",
+      "rdx": "0x10",
+      "r8": "0xa",
+      "r9": "0x1402d3b60"
+    },
+    "local_stack_argument5": "0x14024ea30",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140020490",
+    "site": "0x1400204c2",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140caf4b0",
+      "rdx": "0x20",
+      "r8": "0xb",
+      "r9": "0x14004c7a0"
+    },
+    "local_stack_argument5": "0x140337440",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140020490",
+    "site": "0x1400204e4",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140caf610",
+      "rdx": "0x20",
+      "r8": "0xb",
+      "r9": "0x14004c7a0"
+    },
+    "local_stack_argument5": "0x140337440",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140021f80",
+    "site": "0x140021fc8",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140cdc380",
+      "rdx": "0x260",
+      "r8": "0x10",
+      "r9": "0x140315350"
+    },
+    "local_stack_argument5": "0x140315390",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140021f80",
+    "site": "0x140021fec",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140cde980",
+      "rdx": "0x260",
+      "r8": "0x6",
+      "r9": "0x140315350"
+    },
+    "local_stack_argument5": "0x140315390",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140022d40",
+    "site": "0x140022d67",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140cf1048",
+      "rdx": "0x20",
+      "r8": "0x2",
+      "r9": "0x14004c7a0"
+    },
+    "local_stack_argument5": "0x140337440",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140023ff0",
+    "site": "0x140024019",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140cf3708",
+      "rdx": "0x303a8",
+      "r8": "0x2",
+      "r9": "0x14032b810"
+    },
+    "local_stack_argument5": "0x14032b8a0",
+    "conditional_on_site_reached": true
+  },
+  {
+    "initializer": "0x140024270",
+    "site": "0x140024299",
+    "kind": "call",
+    "target": "0x140345b24",
+    "import_symbol": null,
+    "local_arguments": {
+      "rcx": "0x140d543b0",
+      "rdx": "0x168",
+      "r8": "0x1",
+      "r9": "0x14032bf20"
+    },
+    "local_stack_argument5": "0x14032bf80",
+    "conditional_on_site_reached": true
+  }
+]

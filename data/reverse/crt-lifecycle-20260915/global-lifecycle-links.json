@@ -1,0 +1,33 @@
+[
+  {
+    "class_name": "CMcAppli",
+    "global_va": "0x140cf3310",
+    "initializer": "0x140023e10",
+    "registered_cleanup": "0x14034eb80",
+    "vtable": "0x140508728",
+    "initialized_subobjects": [
+      "0x140cf3598",
+      "0x140cf35c0"
+    ],
+    "cleanup_subobjects_in_order": [
+      "0x140cf35c0",
+      "0x140cf3598"
+    ],
+    "status": "EXE_CONFIRMED",
+    "scope": "call arguments and order, not full member semantics"
+  },
+  {
+    "class_name": "CPtxManager",
+    "global_va": "0x140d5b860",
+    "initializer": "0x140025050",
+    "constructor": "0x140314c50",
+    "registered_cleanup": "0x14034eca0",
+    "destructor_target": "0x140314d00",
+    "vtable": "0x140507b60",
+    "base_vtable_after_cleanup": "0x140507b30",
+    "element_stride": 536,
+    "element_count": 32,
+    "status": "EXE_CONFIRMED",
+    "scope": "global binding, vptr writes and array-helper arguments; full slot semantics open"
+  }
+]

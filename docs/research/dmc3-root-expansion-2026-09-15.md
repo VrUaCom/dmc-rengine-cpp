@@ -1,6 +1,7 @@
 # Metadata root expansion, 2026-09-15
 
 Status: structurally verified bounded CFG expansion; full reverse remains open.
+Recovery commit: `9b63f338b2daca9dc9f3fbf8895bc351f2380427`. The interrupted output was recovered and independently rechecked. The [CRT/lifecycle follow-up](dmc3-crt-lifecycle-2026-09-15.md) supersedes the triage and capped-run frontier below, while retaining the 899 unvisited candidate targets.
 Canonical SHA256: e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082.
 
 The previous completeness audit identified 7,450 unique confirmed metadata targets absent from the CFG. The tracer now seeds CRT tables, RTTI-validated first vtable entries, and direct unwind handlers, recording each source slot. It validates canonical CRT bound instructions, COL signature/self/type links, first-entry bytes, executable membership and unwind alignment. It does not promote later pointer-run candidates to confirmed vtable slots.
