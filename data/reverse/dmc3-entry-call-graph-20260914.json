@@ -1,0 +1,29 @@
+{
+  "schema": "dmc-rengine.dmc3-entry-call-graph.v1",
+  "target": {"name":"dmc3.exe", "sha256":"e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082", "image_base":"0x140000000"},
+  "caller": "0x1402C5DF0",
+  "status": "STRUCTURAL_CONFIRMED",
+  "edge_policy": "direct_call_only; unknown callees remain address-keyed",
+  "calls": [
+    {"callsite":"0x1402C5E03","callee":"0x140030190"},
+    {"callsite":"0x1402C5E1F","callee":"0x1400479C0"},
+    {"callsite":"0x1402C5E2B","callee":"0x140337BF0"},
+    {"callsite":"0x1402C5E30","callee":"0x1402C60E0"},
+    {"callsite":"0x1402C5E3C","callee":"0x140337B70"},
+    {"callsite":"0x1402C5E48","callee":"0x14004F120"},
+    {"callsite":"0x1402C5E4D","callee":"0x140337F80"},
+    {"callsite":"0x1402C5E59","callee":"0x140337F70"},
+    {"callsite":"0x1402C5E69","callee":"0x14024EA30"},
+    {"callsite":"0x1402C5F39","callee":"0x140048970"},
+    {"callsite":"0x1402C5F5C","callee":"0x140337CC0"},
+    {"callsite":"0x1402C5F6B","callee":"0x1403455F0"},
+    {"callsite":"0x1402C5F75","callee":"0x140030530"},
+    {"callsite":"0x1402C5F85","callee":"0x140337DF0"},
+    {"callsite":"0x1402C5F91","callee":"0x140337AF0"},
+    {"callsite":"0x1402C5F9D","callee":"0x14004F1E0"},
+    {"callsite":"0x1402C5FA9","callee":"0x1402E9F90"},
+    {"callsite":"0x1402C5FB5","callee":"0x140337AA0"},
+    {"callsite":"0x1402C5FD3","callee":"0x14032D450"}
+  ],
+  "non_claims": ["function_signatures", "callee_semantics", "ownership", "behavioral_equivalence"]
+}

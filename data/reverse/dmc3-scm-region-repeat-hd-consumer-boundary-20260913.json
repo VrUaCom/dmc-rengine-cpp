@@ -1,0 +1,60 @@
+{
+  "schema": "dmc-rengine.scm-region-repeat-hd-consumer-boundary.v1",
+  "date": "2026-09-13",
+  "branch": "reverse/mod-completion-20260907",
+  "canonical_executable": {
+    "name": "dmc3.exe",
+    "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+    "size": 6356432,
+    "image_base": "0x140000000"
+  },
+  "serialized_fields": [
+    "mesh+0x04 MINU",
+    "mesh+0x06 MAXU",
+    "mesh+0x08 MINV",
+    "mesh+0x0A MAXV"
+  ],
+  "source_status": "EXE_CONFIRMED_LEGACY_GS_CLAMP_REGION_REPEAT",
+  "source_projection": {
+    "producer": "0x1402F9890",
+    "formula": "MINU==0 ? 0 : (MINU<<4)|0x0F|(MAXU<<14)|(MINV<<24)|(MAXV<<34)",
+    "legacy_modes": "WMS=WMT=3 REGION_REPEAT",
+    "material_packet": "SCM PACKED A+D CLAMP_1 address 0x08",
+    "common_state_store": "0x14002D80E -> CLAMP_1 state slot 0x1405D9210",
+    "status": "EXE_CONFIRMED"
+  },
+  "retail_corpus": {
+    "scm_meshes": 481,
+    "all_four_fields_zero": true,
+    "interpretation": "The retail corpus does not exercise non-zero REGION_REPEAT masks/fixes, but executable support is live and must remain authorable/preservable.",
+    "status": "CORPUS_CONFIRMED"
+  },
+  "hd_sampler_projection": {
+    "consumer": "0x14002BC30 -> 0x1400469C0 -> 0x14004C1D0 PSSetSamplers",
+    "mode_projection": {
+      "WMS_or_WMT_1_or_2": "D3D11_TEXTURE_ADDRESS_CLAMP",
+      "WMS_or_WMT_0_or_3": "D3D11_TEXTURE_ADDRESS_WRAP"
+    },
+    "region_repeat_result": "For SCM WMS=WMT=3, the generic D3D11 sampler bridge leaves AddressU/AddressV as WRAP. It does not project MINU/MAXU/MINV/MAXV into D3D11_SAMPLER_DESC.",
+    "status": "EXE_CONFIRMED_BOUNDED_D3D11_PROJECTION"
+  },
+  "research_corpus_consumer_census": {
+    "result": "Existing canonical SCM receipts and repository research record the four serialized fields as inputs to 0x1402F9890 legacy CLAMP packing and retain the packed CLAMP compatibility state. No separately recorded source-proven HD consumer of the MIN/MAX subfields beyond that compatibility state is present in the current research corpus.",
+    "scope_boundary": "This is a research-corpus/known-path closure, not a fresh whole-image xref proof. The complete canonical executable bytes are not currently available in connected artifacts for a new exhaustive census.",
+    "status": "BOUNDED_NEGATIVE_EVIDENCE"
+  },
+  "authoring_policy": {
+    "raw_width": "u16 source values",
+    "hardware_field_width": "10-bit legacy GS field domain",
+    "validation": "warn when a source value exceeds 0x03FF; do not silently mask",
+    "preservation": "preserve exact raw values and regenerate the compatibility CLAMP qword with the canonical no-mask shift behavior",
+    "new_records": "zero is a safe retail-observed default only for genuinely new authored records, not a normalization rule for parsed source"
+  },
+  "semantic_status": "EXE_CONFIRMED_COMPATIBILITY_SEMANTIC_WITH_BOUNDED_HD_CONSUMER_CLOSURE",
+  "remaining_reopen_condition": "Reopen only if complete canonical EXE analysis finds an additional provenance-clean consumer of CLAMP MINU/MAXU/MINV/MAXV outside the recovered compatibility/sampler path, or if a non-zero canonical retail specimen is found.",
+  "evidence_status": [
+    "EXE_CONFIRMED",
+    "CORPUS_CONFIRMED",
+    "BOUNDED_NEGATIVE_EVIDENCE"
+  ]
+}

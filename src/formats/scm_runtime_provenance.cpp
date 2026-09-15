@@ -47,8 +47,8 @@ inline constexpr std::string_view evidence_id =
         "SCM+0x12 is a serialized texture-slot mirror. Live count comes from manager+0x110 external companion into manager+0xEC.",
         {"EXE_AND_CORPUS_CONFIRMED","runtime-provenance","external-companion","mirror"}) &&
     add(d, "scm-prov-header-13", 0x13U, 1U,
-        "EXE-confirmed draw reference node index: SCM+0x13 -> manager+0xFA. 0x1402F1DB0 installs scene-node matrices at manager+0x188 with 0x40 stride; CDrawSCM 0x1402FD040 indexes that array by manager+0xFA, reads selected matrix lane +0x30 and passes the spatial float4 to 0x1402EE560. High-level producer/artistic label remains open.",
-        {"EXE_CONFIRMED","runtime-provenance","scene-node","draw-reference","matrix-selector"}) &&
+        "SCM+0x13 lighting_reference_node_index -> manager+0xFA. 0x1402F1DB0 installs scene-node matrices at manager+0x188 with 0x40 stride; CDrawSCM 0x1402FD040 indexes that array, takes the selected world-position lane +0x30 and feeds 0x1402EE560 -> MDL_LIGHT_MAT {Lc,Lv} consumed by the stage vertex shader.",
+        {"EXE_CONFIRMED","runtime-provenance","scene-node","lighting-reference","matrix-selector","shader-visible"}) &&
     add(d, "scm-prov-header-resource-code", 0x14U, 4U,
         "SCM+0x14 decimal structural code -> 0x1402F9570 -> manager+0xE4. Expanded retail authority observes family classes 3/4/7/8; no type-proven downstream manager+0xE4 role is promoted.",
         {"EXE_AND_CORPUS_CONFIRMED","runtime-provenance","structural-code","PRESERVED_UNDECODED_HIGH_LEVEL_ROLE"}) &&
@@ -103,10 +103,10 @@ inline constexpr std::string_view evidence_id =
         tex1_text
             << "object+0x10 flag 0x00004000 -> 0x1402F9890 legacy GS TEX1 state "
             << (nearest ? "0x00 nearest" : "0x60 linear")
-            << " -> SCM material PACKED A+D packet register 0x14 (TEX1_1).";
+            << " -> SCM material PACKED A+D packet register 0x14 (TEX1_1) -> common compatibility GS-state store. The live D3D11 sampler bridge is separately driven from active CLAMP/context state; no direct TEX1-to-D3D11 filter projection is promoted.";
         if (!add(d,p+"-tex1-filter",o.record_offset+0x10U,4U,
             tex1_text.str(),
-            {"EXE_CONFIRMED","runtime-provenance","legacy-gs","TEX1_1","texture-filter","material-packet"})) return false;
+            {"EXE_CONFIRMED","runtime-provenance","legacy-gs","TEX1_1","texture-filter","material-packet","compatibility-state"})) return false;
 
         if ((o.flags & runtime::source_mask_00200000)!=0U &&
             !add(d,p+"-bit21-negative",o.record_offset+0x10U,4U,
@@ -117,11 +117,11 @@ inline constexpr std::string_view evidence_id =
             const auto& m=o.meshes[mi];
             const auto q=index_id("scm-prov-mesh",oi,mi);
             if (!add(d,q+"-texture",m.record_offset+2U,2U,
-                "mesh+0x02 -> 0x1402F9890 -> runtime texture table index*0x40. Descriptor+0x20 supplies TEX0_1 and descriptor+0x28 supplies MIPTBP1_1 to the exact SCM material GIF packet built by 0x1402F99B0/0x1402F9AC0 (tag 0x4000000000008001, REGS 0x000000000020EEEE; A+D 0x06 TEX0_1 and 0x34 MIPTBP1_1). The packet reaches the canonical compatibility interpreter. Backend SRV/sampler wrappers 0x14003F7A0/0x14003F580 are confirmed as renderer infrastructure, but the exact SCM texture-state-to-D3D11 resource-slot provenance is still intentionally unpromoted.",
-                {"EXE_CONFIRMED","runtime-provenance","texture-binding","external-companion","TEX0_1","MIPTBP1_1","material-packet","SRV_SAMPLER_SOURCE_BINDING_OPEN"}) ||
+                "mesh+0x02 -> 0x1402F9890 selects external companion record index*0x40; record+0x20 supplies TEX0 to the SCM PACKED A+D TEX0_1 packet. 0x14002CD60 stores TEX0_1 in active compatibility GS state 0x1405D9200; 0x14002BC30 selects TEX0_1/TEX0_2 and 0x14002CC10 extracts TEX0.TBP0 low14 as the resource key. Companion texture resources are registered in the same 0x1405E1830 table by record+0x06 gs_base_pointer_units/TBP0 via 0x140331970 -> 0x140033370. Lookup 0x140033350 returns the texture object; virtual slot +0x08 is 0x140046900 -> 0x140046910 -> 0x14004C290 PSSetShaderResources, followed by 0x1400469C0 -> 0x14004C1D0 PSSetSamplers. Missing lookup clears PS SRV slot 0.",
+                {"EXE_CONFIRMED","runtime-provenance","texture-binding","external-companion","TEX0_1","TEX0_TBP0","resource-registry","PSSetShaderResources","PSSetSamplers","d3d11"}) ||
                 !add(d,q+"-gs-clamp",m.record_offset+4U,8U,
-                "mesh+0x04..+0x0B -> 0x1402F9890 -> legacy GS CLAMP REGION_REPEAT packing -> SCM material PACKED A+D register 0x08 (CLAMP_1).",
-                {"EXE_CONFIRMED","runtime-provenance","legacy-gs","REGION_REPEAT","CLAMP_1","material-packet"}) ||
+                "mesh+0x04..+0x0B -> 0x1402F9890 -> legacy GS CLAMP REGION_REPEAT -> SCM PACKED A+D CLAMP_1 -> common compatibility GS-state slot 0x1405D9210. 0x14002BC30 reads active CLAMP_1/2 WMS/WMT and projects modes 1/2 to D3D11 AddressU/V=CLAMP (3), while modes 0/3 retain WRAP (1); 0x1400469C0 writes D3D11_SAMPLER_DESC and 0x14004C1D0 calls PSSetSamplers. REGION_REPEAT mode 3 therefore has no direct native D3D11 address-mode equivalent in this bridge; serialized MIN/MAX remain preserved and no global-unused claim is made.",
+                {"EXE_CONFIRMED","runtime-provenance","legacy-gs","REGION_REPEAT","CLAMP_1","material-packet","D3D11_SAMPLER_DESC","PSSetSamplers","bounded-projection"}) ||
                 !add(d,q+"-reserved0c-negative",m.record_offset+0x0CU,4U,
                 "mesh+0x0C is corpus-zero. Deep canonical chain 0x1402F9BB0 -> 0x140308C00 -> 0x1402F9890 -> 0x1402F9A80 plus SCM-specific 0x1402F9F20 exposes no provenance-clean read. Preserve exactly; not global padding.",
                 {"RESERVED_OBSERVED_ZERO","PRESERVED_UNDECODED","DEEP_NEGATIVE_EVIDENCE","runtime-provenance"}) ||
