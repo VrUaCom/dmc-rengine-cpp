@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "runtime_tree_self_test": "PASS",
+  "runtime_tree_census": "PASS",
+  "byte_identical_existing_artifacts": [
+    "types.tsv",
+    "inheritance.tsv",
+    "inheritance_evidence.tsv",
+    "vtable_anchors.tsv",
+    "locators.tsv",
+    "runtime_ranges.tsv",
+    "scene_dispatch.tsv"
+  ],
+  "direct_startup_edges_verified": 8,
+  "crt_bound_arguments_verified": 4,
+  "source_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082"
+}

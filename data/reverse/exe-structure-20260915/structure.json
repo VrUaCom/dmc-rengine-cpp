@@ -1,0 +1,172 @@
+{
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "status": "STRUCTURAL_CONFIRMED",
+  "entry": "0x14034615c",
+  "sections": [
+    {
+      "name": ".text",
+      "rva": 4096,
+      "virtual_size": 3464526,
+      "raw_size": 3464704,
+      "raw_offset": 1024,
+      "zero_fill": 0
+    },
+    {
+      "name": ".rdata",
+      "rva": 3469312,
+      "virtual_size": 2110312,
+      "raw_size": 2110464,
+      "raw_offset": 3465728,
+      "zero_fill": 0
+    },
+    {
+      "name": ".data",
+      "rva": 5582848,
+      "virtual_size": 8516024,
+      "raw_size": 548864,
+      "raw_offset": 5576192,
+      "zero_fill": 7967160
+    },
+    {
+      "name": ".pdata",
+      "rva": 14102528,
+      "virtual_size": 146820,
+      "raw_size": 146944,
+      "raw_offset": 6125056,
+      "zero_fill": 0
+    },
+    {
+      "name": ".gfids",
+      "rva": 14249984,
+      "virtual_size": 80,
+      "raw_size": 512,
+      "raw_offset": 6272000,
+      "zero_fill": 0
+    },
+    {
+      "name": ".tls",
+      "rva": 14254080,
+      "virtual_size": 9,
+      "raw_size": 512,
+      "raw_offset": 6272512,
+      "zero_fill": 0
+    },
+    {
+      "name": ".rsrc",
+      "rva": 14258176,
+      "virtual_size": 3888,
+      "raw_size": 4096,
+      "raw_offset": 6273024,
+      "zero_fill": 0
+    },
+    {
+      "name": ".reloc",
+      "rva": 14262272,
+      "virtual_size": 73136,
+      "raw_size": 73216,
+      "raw_offset": 6277120,
+      "zero_fill": 0
+    }
+  ],
+  "crt": [
+    {
+      "name": "initterm",
+      "start": "0x14034f808",
+      "end_exclusive": "0x14035d250",
+      "slots": 6985,
+      "nulls": 1,
+      "nonnull": 6984,
+      "unique_nonnull": 6984
+    },
+    {
+      "name": "initterm_e",
+      "start": "0x14035d258",
+      "end_exclusive": "0x14035d278",
+      "slots": 4,
+      "nulls": 1,
+      "nonnull": 3,
+      "unique_nonnull": 3
+    }
+  ],
+  "tls": {
+    "directory_va": "0x14050cee8",
+    "template_start": "0x140d98000",
+    "template_end": "0x140d98008",
+    "index_slot": "0x140d71c08",
+    "callback_array": "0x14035d288",
+    "callbacks": []
+  },
+  "startup_edges": [
+    {
+      "site": "0x140346160",
+      "target": "0x14034673c",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x140346169",
+      "target": "0x140345ff0",
+      "kind": "tail_jump",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x140346102",
+      "target": "0x1402c5dc0",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x1402c5ddf",
+      "target": "0x1402c5df0",
+      "kind": "tail_jump",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x1402c5e03",
+      "target": "0x140030190",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x140030199",
+      "target": "0x1400490d0",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x140346053",
+      "target": "0x140346cb6",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    },
+    {
+      "site": "0x140346074",
+      "target": "0x140346cb0",
+      "kind": "call",
+      "status": "EXE_CONFIRMED"
+    }
+  ],
+  "arena": {
+    "initializer": "0x140030190",
+    "allocator": "0x1400490d0",
+    "bytes": 272629760,
+    "base_global": "0x1405d9ea8",
+    "end_global": "0x1405d9ef0"
+  },
+  "application_object": {
+    "drive_name": "CMcAppli",
+    "initializer": "0x140023e10",
+    "global_va": "0x140cf3310",
+    "zeroed_bytes": 832,
+    "vtable": "0x140508728"
+  },
+  "unresolved_rip_slot": {
+    "va": "0x14034f7f8",
+    "on_disk_pointer": "0x14024ea30"
+  },
+  "limitations": [
+    "CRT tables use end-exclusive bounds from argument instructions. Initializer counts are not counts of C++ classes.",
+    "TLS metadata identifies callbacks, not their full semantics.",
+    "Subsystem ownership labels require additional constructor/caller evidence."
+  ]
+}
