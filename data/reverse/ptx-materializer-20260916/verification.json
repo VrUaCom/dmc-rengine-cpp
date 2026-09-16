@@ -1,0 +1,2672 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "cases": 71,
+  "case_results": [
+    {
+      "name": "count--32768",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 0,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "count--1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 0,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "count-0",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 0,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "count-1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "count-2",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "count-3",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "count-4",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          9049761094839473712,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "dimension-shifts-(0, 0, 0)",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          9746201922754992567,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          12090638768728104806,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          5961146845851938116,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          17111390089588024384,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "dimension-shifts-(1, 1, 1)",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          7908697413315243342,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          12090638768728104806,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          5961146845851938116,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          17111390089588024384,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "dimension-shifts-(3, 15, 7)",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          8423148031448675384,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          9059926828739316834,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          18007434050138986786,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8574399059926937573,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "dimension-shifts-(65535, 65535, 32768)",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          405053636367100531,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          5121661187503898979,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          13386785562697578325,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          13715262199052203433,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "dimension-shifts-(64, 1024, 512)",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          936309171568777305,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          5300602625381527830,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3668487145540710126,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          454091566322506629,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "sparse-pool-and-unsigned-source-deltas",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        5,
+        126,
+        127
+      ],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          14351931321396808377,
+          0
+        ],
+        [
+          2,
+          5382733056,
+          0,
+          17370186527842613979,
+          1
+        ],
+        [
+          2,
+          5382742736,
+          0,
+          9109236757520686988,
+          2
+        ],
+        [
+          2,
+          5382742816,
+          0,
+          17553684560068242204,
+          3
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-0-selector--1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-0-selector-0",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-0-selector-305419896",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-123456789abcdef0-selector--1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-123456789abcdef0-selector-0",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-False-argument-123456789abcdef0-selector-305419896",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-0-selector--1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-0-selector-0",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          730673318603612411,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-0-selector-305419896",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          12830288112149627593,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-123456789abcdef0-selector--1",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          1311768467463790320,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          2376064738171215774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-123456789abcdef0-selector-0",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          1311768467463790320,
+          9314853549936965138,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          2376064738171215774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-True-argument-123456789abcdef0-selector-305419896",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          1311768467463790320,
+          6464630380098041364,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          2376064738171215774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-low-byte-result-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-low-byte-result-100",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-low-byte-result-101",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          2376064738171215774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "palette-low-byte-result-ff",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          2376064738171215774,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "allocation-failure-after-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 0,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "allocation-failure-after-1",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "allocation-failure-after-2",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "allocation-failure-after-3",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "placement-failure-0-return-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70"
+      ]
+    },
+    {
+      "name": "placement-failure-0-return-100",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70"
+      ]
+    },
+    {
+      "name": "placement-failure-1-return-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "placement-failure-1-return-100",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "placement-failure-2-return-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0",
+        "0x140d5fc10"
+      ]
+    },
+    {
+      "name": "placement-failure-2-return-100",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0",
+        "0x140d5fc10"
+      ]
+    },
+    {
+      "name": "placement-failure-3-return-0",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          1540472320111898605,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0",
+        "0x140d5fc10",
+        "0x140d5fc60"
+      ]
+    },
+    {
+      "name": "placement-failure-3-return-100",
+      "entry": "0x1403366e0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 4,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11934269951770353774,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          1540472320111898605,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0",
+        "0x140d5fc10",
+        "0x140d5fc60"
+      ]
+    },
+    {
+      "name": "placement-low-byte-nonzero",
+      "entry": "0x1403366e0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2
+      ],
+      "scratch_count": 3,
+      "service_events": [
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          3330976622639330359,
+          2
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-gate-1c",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-gate-18",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-gate-44",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-gate-46",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-base-4160",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-base-4095",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-base-4065",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "mark-span-base--5",
+      "entry": "0x1403310f0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 3887124037,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "outer-2-success",
+      "entry": "0x140336bb0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11147948791343183299,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          17601905206577340404,
+          3
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732976,
+          0,
+          2240885094780723069,
+          4
+        ],
+        [
+          2,
+          5382733056,
+          0,
+          13166674688117019074,
+          5
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-2-pool-exhaustion-leaves-current-prefix",
+      "entry": "0x140336bb0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        2
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-2-placement-failure-cleans-all",
+      "entry": "0x140336bb0",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8190298376849437277,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fc10",
+        "0x140d5fc60",
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-2-palette-failure-retains-first-record",
+      "entry": "0x140336bb0",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          4,
+          1,
+          2,
+          3162556379117584822,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-3-success",
+      "entry": "0x140336a70",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          4261405155878358067,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8043699992978202404,
+          3
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          39168,
+          3577475701732111444,
+          0
+        ],
+        [
+          2,
+          5382732976,
+          0,
+          2649804891621349321,
+          4
+        ],
+        [
+          2,
+          5382733056,
+          0,
+          3608469474517881074,
+          5
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-3-pool-exhaustion-leaves-current-prefix",
+      "entry": "0x140336a70",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        2
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-3-placement-failure-cleans-all",
+      "entry": "0x140336a70",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8190298376849437277,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fc10",
+        "0x140d5fc60",
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-3-palette-failure-retains-first-record",
+      "entry": "0x140336a70",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-4-success",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11147948791343183299,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          17601905206577340404,
+          3
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732976,
+          0,
+          2240885094780723069,
+          4
+        ],
+        [
+          2,
+          5382733056,
+          0,
+          13166674688117019074,
+          5
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-4-pool-exhaustion-leaves-current-prefix",
+      "entry": "0x140314e00",
+      "result": -1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        2
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-4-placement-failure-cleans-all",
+      "entry": "0x140314e00",
+      "result": -1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8190298376849437277,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fc10",
+        "0x140d5fc60",
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-4-palette-failure-retains-first-record",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          4,
+          1,
+          2,
+          3162556379117584822,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-5-success",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          4261405155878358067,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8043699992978202404,
+          3
+        ],
+        [
+          3,
+          1358962752,
+          2,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732976,
+          39168,
+          3577475701732111444,
+          0
+        ],
+        [
+          2,
+          5382732976,
+          0,
+          2649804891621349321,
+          4
+        ],
+        [
+          2,
+          5382733056,
+          0,
+          3608469474517881074,
+          5
+        ],
+        [
+          4,
+          3,
+          2,
+          5201274969966466627,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "outer-5-pool-exhaustion-leaves-current-prefix",
+      "entry": "0x140314fa0",
+      "result": -1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        2
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-5-placement-failure-cleans-all",
+      "entry": "0x140314fa0",
+      "result": -1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          2851959965825863648,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          13634293992792204667,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          932503645300597330,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8190298376849437277,
+          3
+        ]
+      ],
+      "record_clears": [
+        "0x140d5fc10",
+        "0x140d5fc60",
+        "0x140d5fb70",
+        "0x140d5fbc0"
+      ]
+    },
+    {
+      "name": "outer-5-palette-failure-retains-first-record",
+      "entry": "0x140314fa0",
+      "result": -1,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0
+      ],
+      "scratch_count": 1,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "cache-real-materializer-lifecycle-0",
+      "entry": "0x140314e00",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          5817611685992035833,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          7684532008651760214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          11147948791343183299,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          17601905206577340404,
+          3
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "record_clears": []
+    },
+    {
+      "name": "cache-real-materializer-lifecycle-1",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "cache-real-materializer-lifecycle-2",
+      "entry": "0x140315180",
+      "result": 0,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [],
+      "record_clears": []
+    },
+    {
+      "name": "cache-real-materializer-lifecycle-3",
+      "entry": "0x140315180",
+      "result": 1,
+      "byte_equal": true,
+      "newly_reserved_records": [],
+      "scratch_count": 2,
+      "service_events": [],
+      "record_clears": [
+        "0x140d5fb70",
+        "0x140d5fbc0",
+        "0x140d5fc10",
+        "0x140d5fc60"
+      ]
+    },
+    {
+      "name": "cache-real-materializer-lifecycle-4",
+      "entry": "0x140314fa0",
+      "result": 24,
+      "byte_equal": true,
+      "newly_reserved_records": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "scratch_count": 2,
+      "service_events": [
+        [
+          3,
+          1358956608,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732656,
+          39168,
+          8683602539058035376,
+          0
+        ],
+        [
+          2,
+          5382732656,
+          0,
+          9505301516770677965,
+          0
+        ],
+        [
+          2,
+          5382732736,
+          0,
+          17242737222250898214,
+          1
+        ],
+        [
+          3,
+          1358958656,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          5382732816,
+          39168,
+          6283643864209949562,
+          0
+        ],
+        [
+          2,
+          5382732816,
+          0,
+          4261405155878358067,
+          2
+        ],
+        [
+          2,
+          5382732896,
+          0,
+          8043699992978202404,
+          3
+        ],
+        [
+          4,
+          2,
+          2,
+          15272647061462757637,
+          0
+        ]
+      ],
+      "record_clears": []
+    }
+  ],
+  "host_guards": [
+    {
+      "levels": 5,
+      "status": "HOST_GUARD_ONLY"
+    },
+    {
+      "mark_span_length": 0,
+      "status": "HOST_GUARD_ONLY"
+    },
+    {
+      "mark_span_length": -1,
+      "status": "HOST_GUARD_ONLY"
+    }
+  ],
+  "unicorn_version": "2.1.4",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "source_sha256": {
+    "src/reverse/ptx_manager_state.cpp": "05a95d7c35bd2a9302388573dce36233af284d69afb9de892be2adc8b4ca563a",
+    "src/reverse/ptx_payload_state.cpp": "6e2c82b98e33b454838a4db6d0561fad0590d8550cbfd49a09f46529e0196441",
+    "src/reverse/ptx_record_materializer.cpp": "cf9180b58fdf2350ace81b691a42fb08df1cc3a4234f901efd0fc8ea22b1b313",
+    "tests/reverse/ptx_materializer_bridge.cpp": "303c21d44b747f2f93dda58d04c59edcb597a5e8b991988f5009955d23cb4884",
+    "include/dmc_rengine/reverse/ptx_record_materializer.hpp": "5e7e2459fb86715e0e7ecad46eee02e7c925c887d6d91266704822e8771a45f8",
+    "include/dmc_rengine/reverse/ptx_payload_state.hpp": "b5d0dc1d9078edfe37b9241fd7129df518cf557ae52320816993d4606edfdd7b",
+    "include/dmc_rengine/reverse/ptx_manager_state.hpp": "27e43e38c4cc14e0819bf0ebc71c74201e6c078cb6f62dd0631effc36af3b798",
+    "scripts/reverse/verify_ptx_materializer.py": "1f29ded930f0a095754f92b2fd876396a202ac0b2a4dd12e14ea2064a975b1ee",
+    "scripts/reverse/verify_ptx_payload.py": "597619c9cc0692913e2858c31fbce038e44fe319d52dcc569e4dfddda7222b87",
+    "scripts/reverse/canonical_image.py": "e409af8ba41756c6f36dca1096cc5c0f1da11cb189f4b7858003e904cdfa22ba",
+    "scripts/reverse/verify_crt_lifecycle.py": "a08a960fcc170c30d7cb313bd6ad2f0f0c512145cfa5716c5b15880d12b8a037"
+  },
+  "real_internal_entries": [
+    "0x140314e00",
+    "0x140314fa0",
+    "0x140315180",
+    "0x14032d3c0",
+    "0x140330f60",
+    "0x1403310f0",
+    "0x1403313f0",
+    "0x140331420",
+    "0x1403317d0",
+    "0x1403366e0",
+    "0x140336a70",
+    "0x140336bb0"
+  ],
+  "limitations": [
+    "Palette helper 0x140331bd0 and placement helper 0x140331520 have explicit synthetic return/state contracts.",
+    "Outer integration also intercepts parser 0x1403365b0, render finalizer 0x140331a80 and checked 80-byte CRT memset.",
+    "Actual pool exhaustion needs no injected allocation failure; real allocator, marker, rollback and caller run.",
+    "Synthetic dimensions/palette responses test caller behavior, not full resource validity or backend acceptance.",
+    "Failure residue is bounded to these functions; no claim that a later scene/global reset cannot recover it.",
+    "No Windows SEH, GPU runtime, aliasing, concurrency or reentrant callback parity."
+  ]
+}
