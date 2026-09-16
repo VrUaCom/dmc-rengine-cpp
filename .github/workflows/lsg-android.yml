@@ -25,17 +25,19 @@ jobs:
 
   android-arm64-apk:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_HOME: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - name: Install Android 37, CMake and NDK r30
         run: |
-          yes | sdkmanager --licenses >/dev/null
-          sdkmanager 'platforms;android-37' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;30.0.16248370'
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'platforms;android-37' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;30.0.16248370'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
