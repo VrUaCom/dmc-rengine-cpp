@@ -22,6 +22,15 @@ vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
     return clip_position;
 }
 
+// Vulkan uses a positive-height viewport in this prototype, so framebuffer Y
+// grows downward. LSG logical coordinates keep +Y up; convert once here before
+// the surface pre-rotation. Keeping this explicit avoids baking Android-specific
+// orientation fixes into the human mesh or genome.
+vec2 logical_to_vulkan_clip(vec2 logical_clip, uint rotation_code) {
+    vec2 vulkan_clip = vec2(logical_clip.x, -logical_clip.y);
+    return prerotate_clip(vulkan_clip, rotation_code);
+}
+
 void emit_ui_vertex() {
     const vec2 corners[6] = vec2[](
         vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0),
@@ -33,7 +42,7 @@ void emit_ui_vertex() {
                 : button == 1u ? vec2( 0.00, -0.82)
                                : vec2( 0.55, -0.82);
     vec2 logical_clip = center + corner * vec2(0.22, 0.11);
-    gl_Position = vec4(prerotate_clip(logical_clip, pc.flags.z), 0.01, 1.0);
+    gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.01, 1.0);
     surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
     surface_normal = vec3(0.0, 0.0, 1.0);
     body_region = 100u + button;
@@ -70,7 +79,7 @@ void main() {
     float aspect = max(pc.render_params.x, 0.01);
     vec2 logical_clip = vec2(shaped.x * scale / aspect,
                              shaped.y * scale);
-    gl_Position = vec4(prerotate_clip(logical_clip, pc.flags.z),
+    gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z),
                        0.50 - shaped.z * scale * 0.12,
                        1.0);
 
