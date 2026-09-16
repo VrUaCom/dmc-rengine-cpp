@@ -19,6 +19,7 @@ add_library(rengine_lsg_core STATIC
 
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
+set_target_properties(rengine_lsg_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
   target_compile_options(rengine_lsg_core PRIVATE /W4 /permissive-)
 else()
@@ -37,6 +38,7 @@ if(ANDROID)
       ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
   target_include_directories(android_native_app_glue PUBLIC
       ${ANDROID_NDK}/sources/android/native_app_glue)
+  set_target_properties(android_native_app_glue PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
   add_library(rengine_lsg SHARED
       viewer/android/app/src/main/cpp/native_main.cpp
@@ -44,6 +46,7 @@ if(ANDROID)
   target_include_directories(rengine_lsg PRIVATE renderer include)
   target_compile_features(rengine_lsg PRIVATE cxx_std_23)
   target_compile_definitions(rengine_lsg PRIVATE VK_USE_PLATFORM_ANDROID_KHR=1)
+  target_link_options(rengine_lsg PRIVATE "-uANativeActivity_onCreate")
   target_link_libraries(rengine_lsg PRIVATE
       rengine_lsg_core android_native_app_glue android log vulkan)
 else()
