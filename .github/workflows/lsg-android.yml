@@ -11,17 +11,28 @@ on:
       - 'labs/lsg/**'
       - '.github/workflows/lsg-android.yml'
 
+env:
+  LSG_BASE_HUMAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj
+  LSG_BASE_HUMAN_GIT_BLOB: d26635e9326e3cca30778fd7b9c00062b03cce09
+
 jobs:
   host-contract-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Configure LSG C++23 core
+      - name: Configure LSG C++23 core and tools
         run: cmake -S labs/lsg -B build-lsg -G Ninja -DRENGINE_LSG_BUILD_VIEWER=OFF
-      - name: Build LSG core
+      - name: Build LSG core and mesh preparer
         run: cmake --build build-lsg --parallel 2
       - name: Test LSG deterministic contract
         run: ctest --test-dir build-lsg --output-on-failure
+      - name: Validate pinned CC0 Base Human OBJ to RMS0
+        run: |
+          curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
+          test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
+          build-lsg/lsg_prepare_mesh /tmp/lsg-base-human.obj /tmp/human_base.rmesh | tee /tmp/lsg-mesh-report.txt
+          test -s /tmp/human_base.rmesh
+          grep 'RMS0 PASS' /tmp/lsg-mesh-report.txt
 
   android-arm64-apk:
     runs-on: ubuntu-latest
