@@ -190,6 +190,61 @@
           "note": "RVA 0x2E7CA0, the callee of 86 of the 183 stores of a returned value into the first argument; bound into no vtable and storing none."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-pointer-store-callee-is-a-factory",
+      "claim_id": "claim-dmc3-pointer-stores-are-allocations",
+      "title": "The callee whose result goes into a pointer field is a factory taking a selector, not an allocator",
+      "summary": "The function at RVA 0x2E7CA0, whose result 86 of the 187 pointer stores file into an object, was called an allocator. That was inferred from its size and from its having no vtable binding, and it is wrong. Its call sites pass a small constant in the first argument and it returns an object ready to store: at RVA 0x8D361 the caller computes the selector with lea ecx from r9 minus seven, having set r9d to eight, and stores the result into its object at offset 168 on the very next instruction, with no constructor running in between. The function itself takes four arguments, copies a sixty-four byte block out of read-only data at RVA 0x35D580 when its third argument is null, and otherwise passes that argument to RVA 0x30D00. A call with a constant selector is what types the field, and reaching it means reading what the factory returns for that selector rather than looking for a constructor that is not there.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "methodology",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-pointer-stores-are-allocations"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3046048,
+          "size": 270,
+          "symbol": "factory returning an object for a selector",
+          "note": "RVA 0x2E7CA0, four arguments, with a default sixty-four byte block at RVA 0x35D580 used when the third is null."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 578913,
+          "size": 13,
+          "symbol": "call site passing a constant selector",
+          "note": "RVA 0x8D361 calls it with the selector one and stores the result at offset 168 of its own object at RVA 0x8D366."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-register-copy-propagation",
+      "claim_id": "claim-dmc3-register-copy-propagation",
+      "title": "A register-to-register move carries whatever the source held",
+      "summary": "The analysis propagated only one fact across a register copy, the one it was built for: a method moving `this` out of rcx into a register that survives calls. Carrying whatever the source held instead is the same rule stated generally, and it costs nothing. Indexed reads with a nameable base rise from 1,963 to 1,966, consistent array walks from 531 to 534, recovered arrays from 278 to 281, and stores of a returned value into an object from 183 to 187. The code graph is unchanged, as it must be: this is the register analysis alone.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section walked with copy propagation",
+          "note": "Register copies carry every tracked fact rather than only the first argument's."
+        }
+      ]
     }
   ]
 }

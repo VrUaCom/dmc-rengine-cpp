@@ -111,6 +111,10 @@ struct RegisterFact final {
         /// The value a direct call returned. Under the Microsoft x64
         /// convention that is rax, and for a constructor it is the object.
         call_result,
+        /// Memory a call has since been run on as its first argument. Where
+        /// that call is a constructor the register holds an object of the class
+        /// it builds, which is what types a field the pointer is stored in.
+        constructed_object,
     };
 
     Kind kind{Kind::unknown};
@@ -173,15 +177,19 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         }
     }
 
-    // A method usually moves `this` out of rcx into a register that survives
-    // calls, and every dispatch after that goes through the copy.
-    std::uint8_t entry_copy_destination = X86Instruction::kNoRegister;
+    // A register-to-register move carries whatever the source held. A method
+    // moving `this` out of rcx into a register that survives calls is the
+    // commonest case, and an allocation moved out of rax before the
+    // constructor runs on it is the one that types a pointer field.
+    std::uint8_t copy_destination = X86Instruction::kNoRegister;
+    RegisterFact copied;
     if (!decoded.two_byte_opcode && decoded.modrm_mod == 3U &&
         (decoded.opcode == 0x89U || decoded.opcode == 0x8BU)) {
         const auto source = decoded.opcode == 0x8BU ? decoded.rm_operand : decoded.reg_operand;
         const auto destination = decoded.opcode == 0x8BU ? decoded.reg_operand : decoded.rm_operand;
-        if (source < state.size() && state[source].kind == RegisterFact::Kind::entry_value) {
-            entry_copy_destination = destination;
+        if (source < state.size() && state[source].kind != RegisterFact::Kind::unknown) {
+            copy_destination = destination;
+            copied = state[source];
         }
     }
 
@@ -232,7 +240,8 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             decoded.memory_base < state.size() && decoded.displacement >= 0 &&
             decoded.reg_operand < state.size() &&
             state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
-            state[decoded.reg_operand].kind == RegisterFact::Kind::call_result) {
+            (state[decoded.reg_operand].kind == RegisterFact::Kind::call_result ||
+             state[decoded.reg_operand].kind == RegisterFact::Kind::constructed_object)) {
             emit->pointer_stores_into_this.push_back(
                 FunctionWalk::PointerStore{rva, static_cast<std::uint32_t>(decoded.displacement),
                                            state[decoded.reg_operand].rva});
@@ -305,16 +314,35 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
     // is what lets a `this` pointer copied into a saved register at entry still
     // be `this` after the method has called something.
     if (decoded.flow == X86Flow::call_direct || decoded.flow == X86Flow::call_indirect) {
+        constexpr std::uint8_t kFirstArgument = 1U;  // rcx
+        constexpr std::uint8_t kReturnRegister = 0U;  // rax
+        const auto receiver = state[kFirstArgument];
+
         for (const auto reg : {0U, 1U, 2U, 8U, 9U, 10U, 11U}) {
             state[reg] = RegisterFact{};
         }
-        // The convention returns in rax, and a direct call names its callee.
+
         if (decoded.flow == X86Flow::call_direct) {
-            constexpr std::uint8_t kReturnRegister = 0U;  // rax
-            state[kReturnRegister] = RegisterFact{
-                .kind = RegisterFact::Kind::call_result,
-                .rva = static_cast<std::uint32_t>(static_cast<std::int64_t>(rva) + decoded.length +
-                                                  decoded.branch_displacement)};
+            const auto callee = static_cast<std::uint32_t>(
+                static_cast<std::int64_t>(rva) + decoded.length + decoded.branch_displacement);
+
+            // Whatever was passed as the first argument has now had this call
+            // run on it. If the callee turns out to be a constructor, every
+            // register still holding that same value holds an object of its
+            // class — which is how a freshly allocated pointer acquires a type
+            // between the allocation and the store that files it away.
+            if (receiver.kind == RegisterFact::Kind::call_result ||
+                receiver.kind == RegisterFact::Kind::constructed_object) {
+                for (auto& fact : state) {
+                    if (fact == receiver) {
+                        fact = RegisterFact{.kind = RegisterFact::Kind::constructed_object,
+                                            .rva = callee};
+                    }
+                }
+            }
+
+            state[kReturnRegister] =
+                RegisterFact{.kind = RegisterFact::Kind::call_result, .rva = callee};
         }
     }
 
@@ -325,8 +353,8 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         state[decoded.reg_operand] =
             RegisterFact{.kind = RegisterFact::Kind::image_address, .rva = target};
     }
-    if (entry_copy_destination < state.size()) {
-        state[entry_copy_destination] = RegisterFact{.kind = RegisterFact::Kind::entry_value};
+    if (copy_destination < state.size()) {
+        state[copy_destination] = copied;
     }
     if (load_destination < state.size()) {
         state[load_destination] = loaded;

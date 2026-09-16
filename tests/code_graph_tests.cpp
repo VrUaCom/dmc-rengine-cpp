@@ -500,6 +500,32 @@ void a_fact_both_paths_agree_on_survives_the_join() {
     assert(graph.functions[0].indexed_accesses[0].base_rva == 0x2000U);
 }
 
+void a_register_copy_carries_whatever_the_source_held() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // An address taken into one register, copied into another, and indexed
+    // through the copy. The rule used to carry only the first argument, so the
+    // base was lost here for no reason the encoding gives.
+    //   48 8d 1d <rel>    lea rbx,[rip -> 0x2000]
+    //   48 8b c3          mov rax,rbx
+    //   8b 0c 90          mov ecx,[rax+rdx*4]
+    put(bytes, 0x300U, {0x48, 0x8D, 0x1D});
+    put_i32(bytes, 0x303U, static_cast<std::int32_t>(0x2000) - static_cast<std::int32_t>(0x1107));
+    put(bytes, 0x307U, {0x48, 0x8B, 0xC3});
+    put(bytes, 0x30AU, {0x8B, 0x0C, 0x90});
+    put(bytes, 0x30DU, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions[0].indexed_accesses.size() == 1U);
+    assert(graph.functions[0].indexed_accesses[0].base_rva == 0x2000U);
+    assert(graph.functions[0].indexed_accesses[0].element_bytes == 4U);
+}
+
 } // namespace
 
 int main() {
@@ -518,5 +544,6 @@ int main() {
     a_shift_multiplies_the_index();
     a_fact_that_differs_between_paths_does_not_survive_the_join();
     a_fact_both_paths_agree_on_survives_the_join();
+    a_register_copy_carries_whatever_the_source_held();
     return 0;
 }

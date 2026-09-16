@@ -163,18 +163,38 @@ alone rather than resolved against the wrong class.
 > 1,134 with *zero* at depth two was what gave it away. The constructions now
 > name their fields.
 
-## What a pointer field holds is memory, not yet an object
+## What a pointer field holds comes from a factory
 
 Typing those fields looked like a short step: follow what a call returned into
 the store that puts it in the object, and the callee names the type.
 
-**183 such stores exist. Not one callee is a constructor.** The most common by
-far — `0x2E7CA0`, 86 of them — is an allocator: small, bound into no vtable,
-constructing nothing.
+**187 such stores exist. Not one callee is a constructor.** The commonest by
+far — `0x2E7CA0`, 86 of them.
 
-The class is established by the constructor that runs on that memory
-*afterwards*, between the allocation and the store. Typing the field needs that
-call followed too, and that is the next step rather than a result of this one.
+I first called that an allocator, from its size and its lack of any vtable
+binding. **It is not.** Its call sites pass a small constant and it hands back
+an object ready to file away:
+
+```asm
+mov  r9d,8
+xor  r8d,r8d
+lea  ecx,[r9-7]            ; the selector: 1
+call 0x2e7ca0
+mov  [rbx+0xa8],rax        ; straight into this+168 — no constructor between
+test rax,rax
+```
+
+The function takes four arguments and, when its third is null, copies a 64-byte
+block out of read-only data at `0x35D580` — a default transform — before going
+on. It is a **factory keyed by a selector**.
+
+So the field's type is whatever that factory returns for *that* selector, and
+reaching it means reading the factory's own body rather than hunting for a
+constructor that is not there. Tracking the constant selector at each call site
+is the next step.
+
+> Correcting the record: "allocator" was an inference from weak signals,
+> published as if it were read. The call site is what settles it.
 
 ## The calling convention is evidence
 
@@ -206,8 +226,8 @@ not.
 - **stack slots.** The analysis tracks registers only, so a `this` spilled to
   the frame and reloaded is lost. Tracking frame offsets while the frame pointer
   is fixed would recover those;
-- **the 782 through a pointer member**, which need the constructor that runs
-  between the allocation and the store;
+- **the 782 through a pointer member**, which need the factory's own body read,
+  keyed by the constant selector its call sites pass;
 - **the 100 member dispatches at offsets nothing describes.** Their class is
   known and the offset is not a base subobject or a recovered member, so what
   sits there is a field whose type nothing in the file states. The constructor
