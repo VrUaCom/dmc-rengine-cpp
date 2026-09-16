@@ -520,6 +520,11 @@ struct FunctionMapSummary final {
     /// has the slot.
     std::size_t dispatch_sites{};
     std::size_t dispatch_sites_on_this{};
+    /// Sites whose receiver came out of the second, third or fourth argument
+    /// rather than out of `this`. The convention names those registers, so this
+    /// is a classification the file supports rather than a guess; what the
+    /// argument points at still takes a caller to say.
+    std::size_t dispatch_sites_on_an_argument{};
     std::size_t dispatch_sites_in_a_bound_function{};
     std::size_t dispatch_sites_resolved{};
     /// Of those, the ones whose receiver is a member of the enclosing object

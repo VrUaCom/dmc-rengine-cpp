@@ -704,8 +704,10 @@ void a_dispatch_on_something_other_than_this_is_not_resolved() {
     Fixture fixture;
 
     // The same call, but the vtable pointer comes from rdx rather than from the
-    // register the convention puts the first argument in. Nothing here says
-    // what rdx points at, so the site is counted and left unresolved.
+    // register the convention puts the first argument in. rdx is the second
+    // argument, so the site is classified as being on an argument rather than
+    // on `this` — and still left unresolved, because what a caller passes there
+    // is not something this function says.
     //   48 8b 02          mov rax,[rdx]
     //   ff 10             call QWORD PTR [rax]
     const auto body = fixture.image.rva_to_file_offset(0x1040U);
@@ -729,6 +731,7 @@ void a_dispatch_on_something_other_than_this_is_not_resolved() {
 
     assert(map.summary.dispatch_sites == 1U);
     assert(map.summary.dispatch_sites_on_this == 0U);
+    assert(map.summary.dispatch_sites_on_an_argument == 1U);
     assert(map.resolved_dispatches.empty());
 }
 
@@ -1480,6 +1483,86 @@ void a_callee_with_another_caller_lends_its_reach_to_nobody() {
     assert(map.summary.global_block_sites_with_other_callers == 1U);
 }
 
+void an_interior_address_of_this_is_still_this() {
+    Fixture fixture;
+    // A second vtable sixteen bytes into the object, as multiple inheritance
+    // lays one out, and a method that takes the address of that subobject
+    // before dispatching through it:
+    //   48 8d 41 10       lea rax,[rcx+0x10]     ; the subobject's address
+    //   48 8b 10          mov rdx,[rax]          ; its vtable
+    //   ff 12             call QWORD PTR [rdx]   ; slot 0
+    fixture.rtti.classes[0].vtables.push_back(RttiVtable{0x2160U, 0x21A0U, 1U, 16U, 0U});
+    put_u64(fixture.bytes, 0x5A0U, kImageBase + 0x1000U);
+
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x41, 0x10});
+    put(fixture.bytes, at + 4U, {0x48, 0x8B, 0x10});
+    put(fixture.bytes, at + 7U, {0xFF, 0x12});
+    put(fixture.bytes, at + 9U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // Taking the address of something inside the object does not stop it being
+    // the object, so the site is on `this` at offset sixteen and resolves into
+    // the vtable sitting there.
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.summary.dispatch_sites_on_a_member == 1U);
+    assert(map.resolved_dispatches.size() == 1U);
+    assert(map.resolved_dispatches[0].receiver_field_offset == 16U);
+    assert(map.resolved_dispatches[0].target_rva == 0x1000U);
+}
+
+void a_store_through_an_interior_address_lands_at_its_own_offset() {
+    Fixture fixture;
+    // `lea rax,[rcx+0x20]` then a vtable stored through rax is a store at
+    // offset 32, not at offset 0. Reading it as 0 would name the function a
+    // constructor of whatever class that vtable belongs to.
+    //   48 8d 41 20       lea rax,[rcx+0x20]
+    //   48 8d 0d ...      lea rcx,[rip+...]      ; the CThing vtable at 0x2180
+    //   48 89 08          mov [rax],rcx
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x41, 0x20});
+    put(fixture.bytes, at + 4U, {0x48, 0x8D, 0x0D});
+    // The lea ends at rva 0x104B, so 0x1135 reaches the CThing vtable at 0x2180.
+    put_i32(fixture.bytes, at + 7U, 0x1135);
+    put(fixture.bytes, at + 11U, {0x48, 0x89, 0x08});
+    put(fixture.bytes, at + 14U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.stores_into_this == 1U);
+    // The stored address really is a vtable, so the only thing deciding whether
+    // this function is a constructor is the offset the store landed at.
+    assert(map.summary.stores_of_a_vtable == 1U);
+    // It landed at 32, so it names a member rather than the object itself.
+    assert(map.functions[0].constructs_class.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1550,6 +1633,8 @@ int main() {
     an_address_passed_first_marks_a_block_the_code_operates_on();
     a_callee_serving_one_block_lends_it_the_reach();
     a_callee_with_another_caller_lends_its_reach_to_nobody();
+    an_interior_address_of_this_is_still_this();
+    a_store_through_an_interior_address_lands_at_its_own_offset();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

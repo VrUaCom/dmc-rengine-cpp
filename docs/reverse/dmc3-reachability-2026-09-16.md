@@ -109,7 +109,8 @@ than the image.
   but nothing in the file names the mechanism;
 - the bound counts a slot as reachable image-wide once any reachable function
   dispatches through it. Pairing a dispatch site with its receiver's *class
-  family* would tighten it considerably, and the receiver analysis resolves only
-  47 of 11,434 sites today;
+  family* would tighten it considerably, and the receiver analysis resolves
+  105 of 11,434 sites (47 when this was written — see
+  [the receiver note](dmc3-receiver-analysis-2026-09-16.md));
 - COM receivers are not image classes, so D3D11 dispatch is outside the bound
   entirely — it adds no image functions, but it is not covered by it either.

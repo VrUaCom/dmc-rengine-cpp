@@ -39,10 +39,14 @@ functions independently reach at least half of it.
 
 | Support | Classes | Floors |
 | --- | ---: | --- |
-| two or more functions agree | **177** | 9 – 61,305 |
-| a lone outlier among several | 124 | 8 – 48,405 |
-| one function speaks at all | 39 | 8 – 41,411 |
+| two or more functions agree | **189** | 9 – 61,305 |
+| a lone outlier among several | 114 | 8 – 48,405 |
+| one function speaks at all | 37 | 8 – 41,411 |
 | only the type information | 56 | 8 |
+
+> Raised again by the interior-address fix in
+> [the receiver note](dmc3-receiver-analysis-2026-09-16.md): 177 → 189
+> corroborated, 124 → 114 lone outliers.
 
 The largest floors are the well-supported ones, not the fragile ones:
 

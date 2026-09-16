@@ -1545,7 +1545,14 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
 
         for (const auto& site : walk.resolved_dispatch_sites) {
             ++map.summary.dispatch_sites;
-            if (!site.through_this) {
+            if (!site.through_an_argument) {
+                continue;
+            }
+            if (site.receiver_argument != 0U) {
+                // The receiver is something the function was handed, not the
+                // object it belongs to. Which argument it is says where to look
+                // next; the enclosing class says nothing about it.
+                ++map.summary.dispatch_sites_on_an_argument;
                 continue;
             }
             ++map.summary.dispatch_sites_on_this;

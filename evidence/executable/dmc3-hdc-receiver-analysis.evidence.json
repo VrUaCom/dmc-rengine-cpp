@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-receiver-analysis",
+  "title": "DMC3 HD dispatch receivers: where they come from, and what naming them costs",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-receiver-producer-census",
+      "claim_id": "claim-dmc3-receiver-producer-census",
+      "title": "Eighty-six per cent of dispatch receivers are a field of something",
+      "summary": "Asking what instruction produced the register each of the 11,434 dispatch sites reads its vtable through settles where the analysis was actually losing them. 9,878 sites, 86.4 per cent, read the vtable out of a memory operand off another register. Only 116 read it from a stack slot and 24 from a global, which rules out the obvious suspicion that the Microsoft x64 home-space spill was the obstacle. Walking one step further back, 2,529 of those bases were produced by a `lea` rather than by a load, which is the address of something inside another object rather than the object itself.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the census is measured over",
+          "note": "11,434 dispatch sites; 9,878 read the vtable through a field load, 116 through a stack slot, 24 through a global."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-interior-address-is-still-this",
+      "claim_id": "claim-dmc3-interior-address-is-still-this",
+      "title": "Taking the address of something inside an object does not stop it being the object",
+      "summary": "A method reaching an embedded member writes `lea rax, [rcx + k]` and then dispatches through what that points at. The register analysis dropped `this` at that `lea`, because taking an address was not modelled as carrying the value. Carrying it, with the offset accumulated, more than doubles what the receiver analysis can name: dispatch sites on `this` rise from 1,135 to 1,855, sites inside a function bound to a class from 258 to 767, and fully resolved virtual calls from 47 to 105 across 32 classes. Sites whose receiver is a member of the enclosing object rather than the object itself rise from 17 to 75. The accumulated offset had to reach the store consumers too, or a vtable written through an interior address would have been read as a store at offset zero and named the function a constructor of the wrong class; a test pins that distinction.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the gain is measured over",
+          "note": "Dispatch on this 1,135 to 1,855; resolved 47 to 105; member receivers 17 to 75."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-store-ratio-holds",
+      "claim_id": "claim-dmc3-store-ratio-holds",
+      "title": "The check that vouched for the old stores vouches for the new ones",
+      "summary": "Stores of a taken address into the object a function was given were published at 265 of 270 landing on a known vtable — ninety-eight per cent, which is what says the following is sound rather than accidental, since an address written into an object at a fixed offset is overwhelmingly a vtable. The interior-address change adds nine such stores, and the ratio comes out at 274 of 279: 98.2 per cent against 98.1 before. The new stores are the same kind of thing as the old ones, and the field layout recovered from them rises from 44 entries to 47 with the count confirmed independently by the type information unchanged at 29.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the ratio is measured over",
+          "note": "274 of 279 stores into the first argument land on a known vtable, against 265 of 270 before."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-argument-receivers-are-rare",
+      "claim_id": "claim-dmc3-argument-receivers-are-rare",
+      "title": "Negative result: virtual calls are almost never made on a parameter",
+      "summary": "The convention passes the first four arguments in rcx, rdx, r8 and r9, so naming all four rather than only the first should let a dispatch on something a method was handed be told apart from one on `this`. It buys 12 sites out of 11,434. The engine dispatches on the object a method belongs to, or on something reached through it, and hardly ever on a parameter. The classification is kept because it is free and because a site on argument two is a different thing from an unnamed one, but it is recorded here as a measurement that did not pay rather than as a result.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the count is measured over",
+          "note": "12 of 11,434 dispatch sites take their receiver from the second, third or fourth argument."
+        }
+      ]
+    }
+  ]
+}

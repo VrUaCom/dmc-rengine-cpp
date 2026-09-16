@@ -97,9 +97,11 @@ struct RegisterFact final {
         unknown,
         /// An address a RIP-relative `lea` put here.
         image_address,
-        /// The value the register held on entry to the function. For rcx under
-        /// the Microsoft x64 convention that is the first argument, and in a
-        /// method that is `this`.
+        /// The value the register held on entry to the function, plus a byte
+        /// offset held in `rva`. For rcx under the Microsoft x64 convention
+        /// that is the first argument, and in a method that is `this`; an
+        /// offset arrives when the code takes the address of something inside
+        /// it with a `lea`, which is how an embedded member is reached.
         entry_value,
         /// Loaded through the entry value at some offset. At offset zero that
         /// is the object's own vtable pointer; at the offset of an embedded
@@ -131,6 +133,11 @@ struct RegisterFact final {
     /// What an index in this register has been multiplied by. A scale field
     /// encodes only 1, 2, 4 and 8, so any other element size arrives here.
     std::uint32_t multiplier{1U};
+    /// Which argument an entry value is, and which one a value loaded through
+    /// an entry value came out of: 0 for rcx, 1 for rdx, 2 for r8, 3 for r9.
+    /// Zero is `this` in a method, which is why every consumer that means
+    /// `this` tests this field rather than the kind alone.
+    std::uint8_t argument{};
 
     friend bool operator==(const RegisterFact&, const RegisterFact&) = default;
 };
@@ -209,9 +216,11 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_from, .rva = base.rva};
             load_destination = decoded.reg_operand;
         } else if (base.kind == RegisterFact::Kind::entry_value) {
-            loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_through_entry,
-                                  .rva = static_cast<std::uint32_t>(decoded.displacement),
-                                  .depth = 1U};
+            loaded = RegisterFact{
+                .kind = RegisterFact::Kind::loaded_through_entry,
+                .rva = base.rva + static_cast<std::uint32_t>(decoded.displacement),
+                .depth = 1U,
+                .argument = base.argument};
             load_destination = decoded.reg_operand;
         } else if (base.kind == RegisterFact::Kind::loaded_through_entry && base.depth == 1U &&
                    decoded.displacement == 0) {
@@ -219,8 +228,29 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             // a pointer, and this is the pointee's vtable pointer.
             loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_through_entry,
                                   .rva = base.rva,
-                                  .depth = 2U};
+                                  .depth = 2U,
+                                  .argument = base.argument};
             load_destination = decoded.reg_operand;
+        }
+    }
+
+    // `lea reg, [entry + disp]`: the address of something inside the object the
+    // function was given. Still the same object, just further in — which is how
+    // a method reaches an embedded member before calling through it.
+    std::uint8_t interior_destination = X86Instruction::kNoRegister;
+    RegisterFact interior;
+    if (!decoded.two_byte_opcode && decoded.opcode == 0x8DU && !decoded.rip_relative &&
+        decoded.memory_index == X86Instruction::kNoRegister &&
+        decoded.memory_base < state.size() && decoded.displacement >= 0 &&
+        state[decoded.memory_base].kind == RegisterFact::Kind::entry_value) {
+        const auto& base = state[decoded.memory_base];
+        const auto offset = static_cast<std::uint64_t>(base.rva) +
+                            static_cast<std::uint64_t>(decoded.displacement);
+        if (offset <= std::numeric_limits<std::uint32_t>::max()) {
+            interior_destination = decoded.reg_operand;
+            interior = RegisterFact{.kind = RegisterFact::Kind::entry_value,
+                                    .rva = static_cast<std::uint32_t>(offset),
+                                    .argument = base.argument};
         }
     }
 
@@ -278,8 +308,10 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         if (decoded.has_modrm && decoded.modrm_mod != 3U && !decoded.rip_relative &&
             !(!decoded.two_byte_opcode && decoded.opcode == 0x8DU) &&
             decoded.memory_base < state.size() && decoded.displacement >= 0 &&
-            state[decoded.memory_base].kind == RegisterFact::Kind::entry_value) {
+            state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
+            state[decoded.memory_base].argument == 0U) {
             emit->entry_field_offsets.push_back(
+                state[decoded.memory_base].rva +
                 static_cast<std::uint32_t>(decoded.displacement));
         }
 
@@ -291,11 +323,13 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             decoded.memory_base < state.size() && decoded.displacement >= 0 &&
             decoded.reg_operand < state.size() &&
             state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
+            state[decoded.memory_base].argument == 0U &&
             (state[decoded.reg_operand].kind == RegisterFact::Kind::call_result ||
              state[decoded.reg_operand].kind == RegisterFact::Kind::constructed_object)) {
-            emit->pointer_stores_into_this.push_back(
-                FunctionWalk::PointerStore{rva, static_cast<std::uint32_t>(decoded.displacement),
-                                           state[decoded.reg_operand].rva});
+            emit->pointer_stores_into_this.push_back(FunctionWalk::PointerStore{
+                rva,
+                state[decoded.memory_base].rva + static_cast<std::uint32_t>(decoded.displacement),
+                state[decoded.reg_operand].rva});
         }
 
         // `mov [this + offset], reg` with the register holding an address the
@@ -306,10 +340,12 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             decoded.memory_base < state.size() && decoded.displacement >= 0 &&
             decoded.reg_operand < state.size() &&
             state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
+            state[decoded.memory_base].argument == 0U &&
             state[decoded.reg_operand].kind == RegisterFact::Kind::image_address) {
-            emit->stores_into_this.push_back(
-                FunctionWalk::VtableStore{rva, static_cast<std::uint32_t>(decoded.displacement),
-                                          state[decoded.reg_operand].rva});
+            emit->stores_into_this.push_back(FunctionWalk::VtableStore{
+                rva,
+                state[decoded.memory_base].rva + static_cast<std::uint32_t>(decoded.displacement),
+                state[decoded.reg_operand].rva});
         }
 
         // A virtual call in tail position is `jmp [reg + slot]` rather than
@@ -318,22 +354,25 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             decoded.has_modrm && !decoded.register_indirect() && !decoded.rip_relative &&
             decoded.displacement >= 0 && decoded.displacement % 8 == 0) {
             std::uint32_t receiver = 0U;
-            bool through_this = false;
+            bool through_an_argument = false;
             std::uint32_t field_offset = 0U;
             std::uint8_t receiver_depth = 0U;
+            std::uint8_t receiver_argument = 0U;
             if (decoded.memory_base < state.size()) {
                 const auto& through = state[decoded.memory_base];
                 if (through.kind == RegisterFact::Kind::loaded_from) {
                     receiver = through.rva;
                 } else if (through.kind == RegisterFact::Kind::loaded_through_entry) {
-                    through_this = true;
+                    through_an_argument = true;
                     field_offset = through.rva;
                     receiver_depth = through.depth;
+                    receiver_argument = through.argument;
                 }
             }
             emit->resolved_dispatch_sites.push_back(
                 FunctionWalk::DispatchSite{rva, static_cast<std::uint32_t>(decoded.displacement),
-                                           receiver, through_this, field_offset, receiver_depth});
+                                           receiver, through_an_argument, field_offset, receiver_depth,
+                                           receiver_argument});
         }
     }
 
@@ -425,6 +464,9 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
     }
     if (load_destination < state.size()) {
         state[load_destination] = loaded;
+    }
+    if (interior_destination < state.size()) {
+        state[interior_destination] = interior;
     }
     if (produced_multiplier > 1U && produced_multiplier <= kMaxMultiplier &&
         multiplier_destination < state.size()) {
@@ -749,7 +791,15 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
     const auto entry = index_of(walk.begin_rva);
     if (entry < starts.size()) {
         constexpr std::uint8_t kFirstArgument = 1U;  // rcx
-        incoming[entry][kFirstArgument] = RegisterFact{.kind = RegisterFact::Kind::entry_value};
+        // The convention passes the first four arguments in rcx, rdx, r8 and r9.
+        // Naming all four costs nothing and is what lets a dispatch on
+        // something the method was handed be told apart from one on `this`.
+        constexpr std::uint8_t kArgumentRegisters[] = {1U, 2U, 8U, 9U};
+        for (std::uint8_t index = 0U; index < 4U; ++index) {
+            incoming[entry][kArgumentRegisters[index]] =
+                RegisterFact{.kind = RegisterFact::Kind::entry_value, .argument = index};
+        }
+        static_cast<void>(kFirstArgument);
         reached[entry] = 1U;
         pending.push_back(entry);
     }

@@ -66,7 +66,9 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("image_base_groups_corroborating",
                   static_cast<std::uint64_t>(summary.image_base_groups_corroborating));
     writer.member("dispatch_sites", static_cast<std::uint64_t>(summary.dispatch_sites));
-    writer.member("dispatch_sites_on_this",
+    writer.member("dispatch_sites_on_an_argument",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_on_an_argument));
+        writer.member("dispatch_sites_on_this",
                   static_cast<std::uint64_t>(summary.dispatch_sites_on_this));
     writer.member("dispatch_sites_in_a_bound_function",
                   static_cast<std::uint64_t>(summary.dispatch_sites_in_a_bound_function));

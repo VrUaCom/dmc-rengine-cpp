@@ -95,9 +95,10 @@ struct FunctionWalk final {
         /// Address the dispatched-through pointer was loaded from, or zero when
         /// the walk could not follow it there.
         std::uint32_t receiver_object_rva{};
-        /// The pointer was loaded through the register holding the function's
-        /// first argument: a call on `this` or on something inside it.
-        bool through_this{false};
+        /// The pointer was loaded through a register holding one of the
+        /// arguments the convention passes in registers. Which one is
+        /// `receiver_argument`, and only argument zero is `this`.
+        bool through_an_argument{false};
         /// Offset within that object the pointer was read from. Zero is the
         /// object's own vtable pointer, so the receiver is the object itself; a
         /// non-zero offset is the vtable pointer of whatever sits there, so the
@@ -107,6 +108,10 @@ struct FunctionWalk final {
         /// is an embedded subobject at that offset; two when it came through a
         /// pointer stored there, which is a pointer member.
         std::uint8_t receiver_depth{};
+        /// Which argument the receiver was read out of: 0 for `this`, then 1,
+        /// 2 and 3 for the next three the convention passes in registers.
+        /// Meaningful only when `through_an_argument` holds.
+        std::uint8_t receiver_argument{};
 
         friend bool operator==(const DispatchSite&, const DispatchSite&) = default;
     };
