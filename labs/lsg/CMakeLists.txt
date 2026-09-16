@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(RengineLSGPrototype VERSION 0.1.0 LANGUAGES C CXX)
+project(RengineLSGPrototype VERSION 0.2.0 LANGUAGES C CXX)
 
 option(RENGINE_LSG_BUILD_TESTS "Build LSG unit tests" ON)
 option(RENGINE_LSG_BUILD_VIEWER "Build desktop Vulkan viewer when Vulkan is available" ON)
+option(RENGINE_LSG_BUILD_MESH_TOOL "Build GLB/glTF to experimental RMS0 mesh preparation tool" ON)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -15,7 +16,8 @@ add_library(rengine_lsg_core STATIC
     src/detail_scheduler.cpp
     src/physiology.cpp
     src/surface.cpp
-    src/runtime.cpp)
+    src/runtime.cpp
+    src/rmesh.cpp)
 
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
@@ -31,6 +33,22 @@ if(RENGINE_LSG_BUILD_TESTS AND NOT ANDROID)
   add_executable(rengine_lsg_tests tests/lsg_tests.cpp)
   target_link_libraries(rengine_lsg_tests PRIVATE rengine_lsg_core)
   add_test(NAME rengine_lsg_tests COMMAND rengine_lsg_tests)
+endif()
+
+if(RENGINE_LSG_BUILD_MESH_TOOL AND NOT ANDROID)
+  include(FetchContent)
+  set(FASTGLTF_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+  set(FASTGLTF_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(FASTGLTF_ENABLE_DOCS OFF CACHE BOOL "" FORCE)
+  set(FASTGLTF_COMPILE_AS_CPP20 ON CACHE BOOL "" FORCE)
+  FetchContent_Declare(fastgltf
+      GIT_REPOSITORY https://github.com/spnda/fastgltf.git
+      GIT_TAG v0.9.0
+      GIT_SHALLOW TRUE)
+  FetchContent_MakeAvailable(fastgltf)
+  add_executable(lsg_prepare_mesh tools/lsg_prepare_mesh/main.cpp)
+  target_link_libraries(lsg_prepare_mesh PRIVATE rengine_lsg_core fastgltf::fastgltf)
+  target_compile_features(lsg_prepare_mesh PRIVATE cxx_std_23)
 endif()
 
 if(ANDROID)
