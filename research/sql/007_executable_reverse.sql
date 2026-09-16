@@ -63,6 +63,18 @@ CREATE TABLE IF NOT EXISTS exe_class (
     UNIQUE(image_id, display_name)
 );
 
+-- The class hierarchy the compiler declared, one row per base a class names.
+-- Read from the MSVC class hierarchy descriptors, not inferred from code.
+CREATE TABLE IF NOT EXISTS exe_class_base (
+    id INTEGER PRIMARY KEY,
+    class_id INTEGER NOT NULL REFERENCES exe_class(id) ON DELETE CASCADE,
+    base_id INTEGER NOT NULL REFERENCES exe_class(id) ON DELETE CASCADE,
+    member_displacement INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(class_id, base_id, member_displacement)
+);
+
+CREATE INDEX IF NOT EXISTS idx_exe_class_base_base ON exe_class_base(base_id);
+
 CREATE TABLE IF NOT EXISTS exe_vtable_binding (
     id INTEGER PRIMARY KEY,
     function_id INTEGER NOT NULL REFERENCES exe_function(id) ON DELETE CASCADE,
@@ -381,3 +393,18 @@ LEFT JOIN exe_function f ON f.id = c.callee_id
 LEFT JOIN exe_constant_argument a ON a.callee_id = c.id
 GROUP BY c.id
 ORDER BY c.call_sites DESC;
+
+-- How widely each base is implemented: the engine's own design map, since an
+-- interface is exactly a base many classes name.
+CREATE VIEW IF NOT EXISTS v_exe_base_reach AS
+SELECT b.display_name AS base_name,
+       COUNT(DISTINCT c.id) AS implementors,
+       -- An interface here is just a base whose name the compiler recorded with
+       -- the project's own I-prefix; nothing structural marks one.
+       CASE WHEN b.display_name GLOB 'I[A-Z]*' THEN 1 ELSE 0 END AS named_as_interface
+FROM exe_class_base e
+JOIN exe_class b ON b.id = e.base_id
+JOIN exe_class c ON c.id = e.class_id
+WHERE b.display_name <> c.display_name
+GROUP BY b.id
+ORDER BY implementors DESC;

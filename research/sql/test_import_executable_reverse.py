@@ -31,6 +31,17 @@ def make_analysis() -> dict:
         "schema": "dmc-rengine.executable-analysis.v1",
         "artifact": dict(ARTIFACT),
         "image": {"image_base": "0x140000000", "entry_point_rva": "0x1000", "machine": "x86-64"},
+        "rtti": {
+            "class_graph": [
+                {
+                    "display_name": "CCameraRail",
+                    "bases": [
+                        {"display_name": "CCameraRail", "member_displacement": 0},
+                        {"display_name": "IActor", "member_displacement": 0},
+                    ],
+                }
+            ]
+        },
         "name_tables": {
             "candidate_names": 3,
             "runs": 3,
@@ -220,6 +231,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
             "SELECT begin_rva, id FROM exe_function WHERE image_id=?", (image_id,)
         )
     }
+    importer.load_class_bases(con, image_id, analysis, classes)
     importer.load_class_fields(con, image_id, mapping, classes)
     importer.load_constant_arguments(con, image_id, mapping, function_ids)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
@@ -277,6 +289,17 @@ class ImporterTests(unittest.TestCase):
             " FROM v_exe_class_layout WHERE class_name='CCameraRail'"
         ).fetchone()
         self.assertEqual(row, (96, "CCameraRail", "BASE", 1))
+
+    def test_a_base_with_no_vtable_of_its_own_is_still_recorded(self) -> None:
+        # IActor carries no vtable in the map's class coverage, so it has no row
+        # until the hierarchy needs one. Creating it there is what keeps the
+        # hierarchy from being silently truncated at exactly the interfaces that
+        # make it worth having.
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT base_name, implementors, named_as_interface FROM v_exe_base_reach"
+        ).fetchone()
+        self.assertEqual(row, ("IActor", 1, 1))
 
     def test_constant_arguments_are_listed_without_interpretation(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

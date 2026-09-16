@@ -290,6 +290,20 @@ names something the object holds, and `BASE` when it belongs to the same class,
 so the offset names a base subobject. `offset_confirmed_by_rtti` marks the
 entries where the RTTI's own recorded subobject offset agrees with the store.
 
+### Class hierarchy
+
+`exe_class_base` holds the hierarchy the compiler declared, one row per base a
+class names, read from the MSVC class hierarchy descriptors rather than inferred
+from code.
+
+```sql
+SELECT * FROM v_exe_base_reach LIMIT 20;
+```
+
+A base named by many classes is an interface in practice, whatever it is called.
+Bases carrying no vtable of their own are created here so the hierarchy is not
+truncated at exactly the interfaces that make it worth having.
+
 ### Functions parameterised by a constant
 
 `exe_constant_argument_callee` and `exe_constant_argument` record which

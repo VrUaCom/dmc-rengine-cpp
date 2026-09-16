@@ -311,6 +311,46 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     return imported
 
 
+def load_class_bases(con: sqlite3.Connection, image_id: int, analysis: dict,
+                     classes: dict) -> int:
+    """Stores the hierarchy the compiler declared, from the analysis report.
+
+    A class the graph names as a base but that carries no vtable of its own has
+    no row in `exe_class`, which is built from vtable coverage; such a base is
+    created here so the hierarchy is not silently truncated.
+    """
+    imported = 0
+    image_classes = analysis.get("rtti", {}).get("class_graph", [])
+
+    def class_id(name: str) -> int:
+        existing = classes.get(name)
+        if existing is not None:
+            return existing
+        con.execute(
+            "INSERT OR IGNORE INTO exe_class(image_id, display_name) VALUES(?,?)",
+            (image_id, name),
+        )
+        row = con.execute(
+            "SELECT id FROM exe_class WHERE image_id=? AND display_name=?", (image_id, name)
+        ).fetchone()
+        classes[name] = int(row[0])
+        return classes[name]
+
+    for entry in image_classes:
+        name = entry["display_name"]
+        for base in entry.get("bases", []):
+            base_name = base["display_name"]
+            if base_name == name:
+                continue
+            con.execute(
+                """INSERT OR IGNORE INTO exe_class_base(class_id, base_id, member_displacement)
+                   VALUES(?,?,?)""",
+                (class_id(name), class_id(base_name), base.get("member_displacement", 0)),
+            )
+            imported += 1
+    return imported
+
+
 def load_classes(con: sqlite3.Connection, image_id: int, mapping: dict) -> dict:
     ids: dict[str, int] = {}
     for entry in mapping.get("class_coverage", []):
@@ -488,6 +528,7 @@ def main() -> int:
     apply_indexed_sites(con, image_id, mapping)
     load_indexed_arrays(con, image_id, mapping)
     classes = load_classes(con, image_id, mapping)
+    load_class_bases(con, image_id, analysis, classes)
     functions = load_functions(con, image_id, mapping, classes, tables)
 
     # Dispatches name functions by address, so they are stored once every
@@ -508,6 +549,7 @@ def main() -> int:
         for name in (
             "exe_function",
             "exe_class",
+            "exe_class_base",
             "exe_vtable_binding",
             "exe_vtable_install",
             "exe_import_call",

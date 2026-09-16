@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-architecture",
+  "title": "DMC3 HD platform surface and the layers behind it",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-platform-surface",
+      "claim_id": "claim-dmc3-platform-surface",
+      "title": "The platform a port has to provide, named symbol by symbol",
+      "summary": "26 modules are imported and the shape of each says what it is for. Rendering enters through exactly two symbols, D3D11CreateDeviceAndSwapChain and CreateDXGIFactory, each called from one function: everything after device creation goes through COM interfaces rather than imports, which is also why so many indirect calls exist. Audio is FMOD, 33 symbols across 17 functions with three more from the Studio library. Video is Media Foundation, seven symbols including MFStartup and MFCreateSourceReaderFromURL. Input is XInputGetState and XInputSetState across six functions, with a single DirectInput8Create beside them. Platform services are seven Steam symbols across twelve functions. The heaviest module by callers is the C runtime's maths library at 228 functions, ahead of the compiler runtime at 201 and KERNEL32 at 123.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "imports",
+        "porting"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the import calls",
+          "note": "221 distinct imported symbols over 26 modules; 870 call edges from 7,389 functions."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-layers-by-naming",
+      "claim_id": "claim-dmc3-layers-by-naming",
+      "title": "Three naming conventions, three layers, and the platform boundary is not polymorphic",
+      "summary": "The 407 classes the type information names fall into conventions that line up with layers. 360 carry a C prefix and are the engine; 21 carry an I prefix and are its interfaces; five sit in a DMC3 namespace and are, every one of them, the PC port's video and audio shim: FullMotionVideo, FullMotionVideoManager, PCFullMotionVideo, PCFullMotionVideoManager and PlaySoundStreamVoiceContext, with the abstract and PC-prefixed pairs being the abstraction and its implementation. The boundary itself is not built out of classes: of the functions calling FMOD, Direct3D, DXGI, XInput or DirectInput, not one is a virtual method or a constructor. Only Media Foundation reaches classes at all, and they are the shim's own, which is what a port added rather than what the game is. DMC3::PCFullMotionVideo names IUnknown among its bases, as a Media Foundation callback must.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "imports",
+        "porting"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the class layers",
+          "note": "360 C-prefixed engine classes, 21 I-prefixed interfaces, 5 in the DMC3 namespace."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-hierarchy-reach",
+      "claim_id": "claim-dmc3-hierarchy-reach",
+      "title": "The engine's design map, from the hierarchy descriptors",
+      "summary": "The class hierarchy descriptors declare 1,341 base relationships, and how widely each base is named is the design. CWork is the root of the engine with 264 of the 407 classes naming it. ICollisionHandle reaches 188 and IActor 182, so taking part in collision is declared even more widely than being an actor. CShell gathers 87 beneath it. Enemies are INonPlayer with 46, and their command layer is ICom, IComAction and IComActionState at 29, 29 and 30, one set per enemy type. IPlayer has exactly five implementors: CPlDante, CPlLady, CPlNewVergil, CPlVergil and one more. Eleven of the bases named carry no vtable of their own and would be absent from a class list built from vtable coverage alone, which is why the hierarchy is read from the descriptors rather than assembled from what has vtables.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5296000,
+          "size": 4096,
+          "symbol": "class hierarchy descriptors",
+          "note": "1,341 declared base relationships over 407 classes; CWork named by 264, ICollisionHandle by 188, IActor by 182."
+        }
+      ]
+    }
+  ]
+}
