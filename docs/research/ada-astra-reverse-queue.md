@@ -12,7 +12,8 @@
 | Реалізовано, частково | [PTX loaders / pool](dmc3-ptx-payload-state-2026-09-15.md) | 79 сценаріїв EXE/C++; 3 host guards рахуються окремо |
 | Реалізовано, частково | [Матеріалізація `0x1403366E0`](dmc3-ptx-materializer-2026-09-16.md) | 71 сценарій; три failure paths; різний rollback і залишок після вичерпання пулу |
 | Реалізовано, частково | [Placement та pool setup](dmc3-ptx-placement-2026-09-16.md) | 134 сценарії; обидва виходи 17 conditional sites; initializer/configure, збереження payload при reset keys |
-| Наступна | Palette helper `0x140331BD0` | Структура аргументу, лічильники, копіювання, результати AL |
+| Реалізовано, частково | [Palette helper `0x140331BD0`](dmc3-ptx-palette-2026-09-16.md) | 232 сценарії; 10/10 conditional sites; memmove, signed tables, home-slot залежність, counter/destination після rollback |
+| Наступна | Palette context `0x140331180 / 0x140331460` | C++ initialize/cleanup, allocation helpers, partial failures; глобальний `0x140CF1030`, embedded `this+0x5E0` |
 | Відкрита | Graphics config `0x140D6D300` і pool lifecycle | Тип, живі значення, callers initializer/configure, ресурсне очищення перед reset keys |
 | Відкрита | Відновлення після partial allocation | Знайти scene/global cleanup для залишку поточної невдалої текстури |
 | Відкрита | Finalizer `0x140331A80` | Поведінка render descriptor, зовнішні виклики, зв'язок із draw/shutdown |

@@ -12,8 +12,11 @@ Canonical SHA-256: `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbd
 відновив завантажувачі bundle та очищення пулу;
 [матеріалізатор](dmc3-ptx-materializer-2026-09-16.md) додав побудову записів,
 mark-span і перевірку трьох failure paths. [Placement і pool setup](dmc3-ptx-placement-2026-09-16.md)
-додали пошук ділянок, ініціалізацію та зміну резерву. Parser, palette helper
-і render finalizer залишаються зовнішніми межами. [Черга гілки](ada-astra-reverse-queue.md)
+додали пошук ділянок, ініціалізацію та зміну резерву.
+[Palette helper](dmc3-ptx-palette-2026-09-16.md) відновив копіювання з банків,
+лічильники та залежність від стану стеку; визначено глобальний palette context
+і caller його initialize/cleanup. Parser, render finalizer та lifecycle
+allocation helpers залишаються зовнішніми межами. [Черга гілки](ada-astra-reverse-queue.md)
 фіксує наступні ділянки й відкриті структурні прогалини.
 
 Загальна карта охоплює запуск і глобальну
