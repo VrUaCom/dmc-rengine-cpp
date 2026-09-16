@@ -109,7 +109,17 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("vtables_located", static_cast<std::uint64_t>(summary.vtables_located));
     writer.member("vtables_instantiated_by_reachable_code",
                   static_cast<std::uint64_t>(summary.vtables_instantiated_by_reachable_code));
-    writer.member("function_pointer_runs",
+    writer.member("class_size_floors",
+                  static_cast<std::uint64_t>(summary.class_size_floors));
+    writer.member("size_floors_above_a_vtable_pointer",
+                  static_cast<std::uint64_t>(summary.size_floors_above_a_vtable_pointer));
+    writer.member("size_floors_corroborated",
+                  static_cast<std::uint64_t>(summary.size_floors_corroborated));
+    writer.member("size_floors_on_a_lone_outlier",
+                  static_cast<std::uint64_t>(summary.size_floors_on_a_lone_outlier));
+    writer.member("size_floors_where_bases_say_more",
+                  static_cast<std::uint64_t>(summary.size_floors_where_bases_say_more));
+        writer.member("function_pointer_runs",
                   static_cast<std::uint64_t>(summary.function_pointer_runs));
     writer.member("function_pointer_run_entries",
                   static_cast<std::uint64_t>(summary.function_pointer_run_entries));
@@ -239,6 +249,24 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
     writer.member("receiver_field_offset",
                   static_cast<std::uint64_t>(dispatch.receiver_field_offset));
         writer.hex_member("target_rva", dispatch.target_rva);
+        writer.end_object();
+    }
+    writer.end_array();
+
+    writer.key("class_size_floors");
+    writer.begin_array();
+    // A floor, not a size, and no field's contents are read to produce it.
+    for (const auto& floor : map.class_size_floors) {
+        writer.begin_object();
+        writer.member("class", floor.class_display_name);
+        writer.member("floor_bytes", static_cast<std::uint64_t>(floor.floor_bytes));
+        writer.member("floor_from_bases", static_cast<std::uint64_t>(floor.floor_from_bases));
+        writer.member("deepest_base", floor.deepest_base_display_name);
+        writer.member("floor_from_field_access",
+                      static_cast<std::uint64_t>(floor.floor_from_field_access));
+        writer.member("functions_speaking", static_cast<std::uint64_t>(floor.functions_speaking));
+        writer.member("functions_reaching_half",
+                      static_cast<std::uint64_t>(floor.functions_reaching_half));
         writer.end_object();
     }
     writer.end_array();

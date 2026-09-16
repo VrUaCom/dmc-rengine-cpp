@@ -1287,6 +1287,125 @@ void the_same_addresses_outside_a_vtable_are_a_table() {
     assert(run.referencing_functions == 0U);
 }
 
+void a_bound_method_reaching_into_this_floors_the_class_size() {
+    Fixture fixture;
+    // Function B is slot 0 of CThing's vtable. Replace its body so it touches
+    // offset 0x40 of whatever it was given and returns:
+    //   48 8b 41 40   mov rax,[rcx+0x40]
+    //   c3            ret
+    put(fixture.bytes, 0x240U, {0x48, 0x8B, 0x41, 0x40, 0xC3});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image,
+                                fixture.table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.class_size_floors.size() == 1U);
+    const auto& floor = map.class_size_floors[0];
+    assert(floor.class_display_name == "CThing");
+    // The first argument to a method the compiler bound into the vtable is the
+    // object, so reaching offset 0x40 means at least 0x41 bytes.
+    assert(floor.floor_from_field_access == 0x41U);
+    // Only its own vtable pointer, since the fixture's class has no bases.
+    assert(floor.floor_from_bases == 8U);
+    assert(floor.floor_bytes == 0x41U);
+    assert(floor.functions_speaking == 1U);
+}
+
+void a_base_at_a_displacement_floors_the_class_size() {
+    Fixture fixture;
+    // A second vtable 128 bytes into the object, and a hierarchy that records
+    // a base sitting there. A base carrying a vtable occupies at least its
+    // eight bytes, so the object reaches 136 whatever the code does.
+    fixture.rtti.classes[0].vtables.push_back(RttiVtable{0x2160U, 0x21A0U, 1U, 128U, 0U});
+    put_u64(fixture.bytes, 0x5A0U, kImageBase + 0x1000U);
+    fixture.rtti.classes[0].hierarchy.push_back(
+        RttiBaseClass{".?AVCThing@@", "CThing", 0, 0, 0, 0U});
+    fixture.rtti.classes[0].hierarchy.push_back(
+        RttiBaseClass{".?AVCUnder@@", "CUnder", 128, 0, 0, 0U});
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    const auto& floor = map.class_size_floors[0];
+    assert(floor.class_display_name == "CThing");
+    assert(floor.floor_from_bases == 136U);
+    assert(floor.deepest_base_display_name == "CUnder");
+    assert(floor.floor_bytes == 136U);
+}
+
+void a_base_the_class_carries_no_vtable_for_does_not_floor_it() {
+    Fixture fixture;
+    // The hierarchy records a base at 128 but the class has no vtable there,
+    // so nothing says the subobject occupies anything. An empty base at a
+    // recorded displacement takes no room, and assuming eight bytes would
+    // invent them.
+    fixture.rtti.classes[0].hierarchy.push_back(
+        RttiBaseClass{".?AVCThing@@", "CThing", 0, 0, 0, 0U});
+    fixture.rtti.classes[0].hierarchy.push_back(
+        RttiBaseClass{".?AVCUnder@@", "CUnder", 128, 0, 0, 0U});
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.class_size_floors[0].floor_from_bases == 8U);
+}
+
+void a_method_bound_into_a_subobject_reaches_further_into_the_object() {
+    Fixture fixture;
+    // Bind function B at subobject offset 128. It is handed a pointer to the
+    // subobject, so an access at 0x40 inside it lands at 128 + 0x40 of the
+    // complete object.
+    fixture.rtti.classes[0].vtables.clear();
+    fixture.rtti.classes[0].vtables.push_back(RttiVtable{0x2160U, 0x2180U, 1U, 128U, 0U});
+    put(fixture.bytes, 0x240U, {0x48, 0x8B, 0x41, 0x40, 0xC3});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image,
+                                fixture.table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.class_size_floors[0].floor_from_field_access == 128U + 0x41U);
+}
+
+void an_address_computed_off_this_is_not_a_field_access() {
+    Fixture fixture;
+    // `lea rax,[rcx+0x40]` computes an address without touching what is there,
+    // and a one-past-the-end pointer is an ordinary thing to compute.
+    put(fixture.bytes, 0x240U, {0x48, 0x8D, 0x41, 0x40, 0xC3});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image,
+                                fixture.table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.class_size_floors[0].floor_from_field_access == 0U);
+    assert(map.class_size_floors[0].floor_bytes == 8U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1349,6 +1468,11 @@ int main() {
     a_slot_declared_pure_is_not_a_candidate_target();
     a_run_inside_a_vtable_is_not_a_table();
     the_same_addresses_outside_a_vtable_are_a_table();
+    a_bound_method_reaching_into_this_floors_the_class_size();
+    a_base_at_a_displacement_floors_the_class_size();
+    a_base_the_class_carries_no_vtable_for_does_not_floor_it();
+    a_method_bound_into_a_subobject_reaches_further_into_the_object();
+    an_address_computed_off_this_is_not_a_field_access();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

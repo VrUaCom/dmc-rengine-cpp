@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-class-size",
+  "title": "DMC3 HD object size floors for 396 classes, from two sources that read no field",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-size-floor-from-two-sources",
+      "claim_id": "claim-dmc3-size-floor-from-two-sources",
+      "title": "Every polymorphic class gets a floor on its object size without reading a field",
+      "summary": "The reverse has known 396 classes, their hierarchies and their vtables for some time, and has known how large a single object is for none of them. Two sources give a floor. The class hierarchy descriptor places each base subobject at a recorded displacement, and a base carrying a vtable occupies at least the eight bytes of that pointer, so the deepest such base plus eight is a floor: 200 classes get one above eight this way. Separately, a method the compiler bound into a class's vtable is handed the object as its first argument, so a memory operand at offset K inside it means the object reaches at least K+1 bytes; where the binding sits at a non-zero subobject offset the reach is that much further into the complete object. 320 of the 396 end with a floor above their own vtable pointer, and the median is 1,307 bytes. Neither source reads what is at any offset.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2797568,
+          "size": 8,
+          "symbol": "a field access that floors a class",
+          "note": "RVA 0x2AAE22, mov byte [rcx+0xD125], 0 in a method bound into CUIDStatusFileSec, flooring it at 53,542 bytes."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-size-floor-support",
+      "claim_id": "claim-dmc3-size-floor-support",
+      "title": "A floor one function reaches is a different claim from one eleven agree on",
+      "summary": "A deep field access could be a single mistaken reading, so each floor carries how many functions independently reach at least half of it. 171 classes are corroborated by two or more, 121 rest on a lone outlier among several functions that speak, 32 have a single function speaking at all, and 72 have only the type information. The support is a column rather than a filter applied before anyone sees the number. The largest floors are well supported rather than fragile: CEm035 at 61,305 bytes has 11 of its 27 speaking functions reaching half of it, and CPlDante at 46,625 has 5 of 13. A fifth check comes free: the four playable-character classes CPlDante, CPlVergil, CPlNewVergil and CPlLady all derive from IPlayer and land between 32,721 and 47,273 bytes, four separately compiled classes of one family agreeing on a size band nothing asked them to agree on.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2797568,
+          "size": 8,
+          "symbol": "the size band of the player classes",
+          "note": "CPlDante 46,625, CPlVergil 45,865, CPlNewVergil 47,273, CPlLady 32,721, all derived from IPlayer."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-size-floor-is-a-floor",
+      "claim_id": "claim-dmc3-size-floor-is-a-floor",
+      "title": "Three separate reasons the number is a floor and not a size",
+      "summary": "First, only offsets some method actually touches are counted, and a class with fields nothing reads is understated. Second, a function whose code sits in several ranges is analysed with each range's start knowing nothing, because a range can be entered by a branch the analysis cannot see, so a field touched only in such a range does not count. Third, `lea` is excluded: computing an address is not touching what is at it, and a one-past-the-end pointer is an ordinary thing to compute. A fourth point is not a limitation but a check on the pair: MSVC lays base subobjects before members, so the field-access floor exceeds the base-placement floor for every class that has a member, which is what 200 of 200 comparisons show. The four exceptions are classes whose methods only ever read the vtable pointer at offset zero, which floors them at one against their own eight.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the floors are measured over",
+          "note": "396 classes, 320 with a floor above eight, median 1,307 bytes."
+        }
+      ]
+    }
+  ]
+}

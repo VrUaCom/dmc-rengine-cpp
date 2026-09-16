@@ -251,6 +251,27 @@ def make_map() -> dict:
                 "outside_every_closure": True,
             },
         ],
+        "class_size_floors": [
+            {
+                "class": "CCameraRail",
+                "floor_bytes": 4096,
+                "floor_from_bases": 104,
+                "deepest_base": "IActor",
+                "floor_from_field_access": 4096,
+                "functions_speaking": 9,
+                "functions_reaching_half": 4,
+            },
+            {
+                # Only its own vtable pointer, and nothing reaches into it.
+                "class": "CQuiet",
+                "floor_bytes": 8,
+                "floor_from_bases": 8,
+                "deepest_base": "CQuiet",
+                "floor_from_field_access": 0,
+                "functions_speaking": 0,
+                "functions_reaching_half": 0,
+            },
+        ],
         "function_pointer_runs": [
             {
                 "base_rva": "0x35a3f0",
@@ -285,6 +306,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     importer.load_base_slot_overrides(con, image_id, mapping, classes)
     importer.load_function_pointer_runs(con, image_id, mapping)
+    importer.load_class_size_floors(con, image_id, mapping, classes)
     con.commit()
     return con
 
@@ -523,6 +545,29 @@ class ImporterTests(unittest.TestCase):
         image_id = importer.load_image(con, make_analysis())
         with self.assertRaises(sqlite3.IntegrityError):
             importer.load_function_pointer_runs(con, image_id, mapping)
+
+    def test_a_size_floor_carries_how_well_supported_it_is(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        rows = con.execute(
+            "SELECT class_name, floor_bytes, deepest_base, functions_reaching_half, support"
+            " FROM v_exe_class_size ORDER BY floor_bytes DESC"
+        ).fetchall()
+        self.assertEqual(rows[0], ("CCameraRail", 4096, "IActor", 4, "CORROBORATED"))
+        # Nothing reaches into it, so only the type information speaks.
+        self.assertEqual(rows[1], ("CQuiet", 8, "CQuiet", 0, "BASES_ONLY"))
+
+    def test_a_floor_below_its_own_sources_is_refused(self) -> None:
+        # The floor is the larger of the two sources by construction. One below
+        # either of them did not come from this measurement, and storing it
+        # would understate a class's size — the one direction a floor must
+        # never be wrong in.
+        mapping = make_map()
+        mapping["class_size_floors"][0]["floor_bytes"] = 100
+        con = sqlite3.connect(self.directory / "floor.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(SystemExit):
+            importer.load_class_size_floors(con, image_id, mapping, {})
 
     def test_the_importer_refuses_mismatched_reports_end_to_end(self) -> None:
         import subprocess

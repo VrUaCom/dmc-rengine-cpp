@@ -557,3 +557,49 @@ SELECT printf('0x%x', f.begin_rva) AS begin_rva,
 FROM exe_function f
 WHERE f.outside_every_closure = 1
 ORDER BY f.size_bytes DESC;
+
+-- ---------------------------------------------------------------------------
+-- Class size floors
+-- ---------------------------------------------------------------------------
+-- A floor on how large one class's objects are, from two sources and without
+-- reading any field's contents: where the hierarchy descriptor places each base
+-- subobject carrying a vtable, and how far into the object the class's own
+-- bound methods reach. Never a size; always a floor.
+CREATE TABLE IF NOT EXISTS exe_class_size_floor (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    class_id INTEGER NOT NULL REFERENCES exe_class(id) ON DELETE CASCADE,
+    floor_bytes INTEGER NOT NULL CHECK (floor_bytes > 0),
+    floor_from_bases INTEGER NOT NULL CHECK (floor_from_bases >= 0),
+    deepest_base_id INTEGER REFERENCES exe_class(id) ON DELETE SET NULL,
+    floor_from_field_access INTEGER NOT NULL CHECK (floor_from_field_access >= 0),
+    functions_speaking INTEGER NOT NULL CHECK (functions_speaking >= 0),
+    functions_reaching_half INTEGER NOT NULL CHECK (functions_reaching_half >= 0),
+    -- The floor is the larger of its two sources, by construction.
+    CHECK (floor_bytes >= floor_from_bases),
+    CHECK (floor_bytes >= floor_from_field_access),
+    CHECK (functions_reaching_half <= functions_speaking),
+    UNIQUE (image_id, class_id)
+);
+
+-- Size floors with how well supported each one is. A floor one function alone
+-- reaches is a weaker claim than one a dozen independently agree on, and the
+-- support is a column rather than a filter applied before you see it.
+CREATE VIEW IF NOT EXISTS v_exe_class_size AS
+SELECT c.display_name AS class_name,
+       f.floor_bytes,
+       f.floor_from_bases,
+       b.display_name AS deepest_base,
+       f.floor_from_field_access,
+       f.functions_speaking,
+       f.functions_reaching_half,
+       CASE
+           WHEN f.functions_reaching_half >= 2 THEN 'CORROBORATED'
+           WHEN f.functions_speaking > 1 THEN 'LONE_OUTLIER'
+           WHEN f.functions_speaking = 1 THEN 'SINGLE_SOURCE'
+           ELSE 'BASES_ONLY'
+       END AS support
+FROM exe_class_size_floor f
+JOIN exe_class c ON c.id = f.class_id
+LEFT JOIN exe_class b ON b.id = f.deepest_base_id
+ORDER BY f.floor_bytes DESC;

@@ -337,6 +337,46 @@ struct BaseSlotOverride final {
     friend bool operator==(const BaseSlotOverride&, const BaseSlotOverride&) = default;
 };
 
+/// A floor on how large one class's objects are.
+///
+/// Two independent sources, and neither reads a field's contents. The class
+/// hierarchy descriptor places each base subobject at a recorded displacement,
+/// and a base carrying a vtable occupies at least the eight bytes of that
+/// pointer, so the deepest such base plus eight is a floor. Separately, a
+/// method the compiler bound into the class's vtable receives the object as its
+/// first argument, so a memory operand at offset K within it means the object
+/// reaches at least K+1 bytes.
+///
+/// A function whose code sits in several ranges is
+/// analysed with each range's start knowing nothing, because a range can be
+/// entered by a branch the analysis cannot see; a field touched only in such a
+/// range therefore does not count. That is one more reason this is a floor.
+///
+/// The code source is all but guaranteed to be the larger of the two, because
+/// MSVC lays base subobjects before members: the deepest member sits past the
+/// deepest base whenever a class has any member at all. Agreement is therefore
+/// not evidence; what the two together give is a floor plus a check that the
+/// pair is ordered the way the layout rule requires.
+struct ClassSizeFloor final {
+    std::string class_display_name;
+    /// The larger of the two sources.
+    std::uint32_t floor_bytes{};
+    /// Deepest base subobject carrying a vtable, plus its eight bytes.
+    std::uint32_t floor_from_bases{};
+    std::string deepest_base_display_name;
+    /// Deepest offset any bound method reaches inside the object, plus one.
+    std::uint32_t floor_from_field_access{};
+
+    /// Functions that say anything about this class's extent, and how many of
+    /// them independently reach at least half the floor. A floor one function
+    /// alone supports is a different kind of claim from one a dozen agree on,
+    /// and this is the difference rather than a filter applied to it.
+    std::uint32_t functions_speaking{};
+    std::uint32_t functions_reaching_half{};
+
+    friend bool operator==(const ClassSizeFloor&, const ClassSizeFloor&) = default;
+};
+
 /// A run of consecutive function addresses sitting in data, outside every
 /// vtable the type information locates.
 ///
@@ -493,6 +533,16 @@ struct FunctionMapSummary final {
     /// behind dispatch.
     std::size_t vtables_instantiated_by_reachable_code{};
     std::size_t vtables_located{};
+    /// Classes given a size floor, and how well supported each is.
+    std::size_t class_size_floors{};
+    std::size_t size_floors_above_a_vtable_pointer{};
+    std::size_t size_floors_corroborated{};
+    std::size_t size_floors_on_a_lone_outlier{};
+    /// Classes where the base-placement floor is the deeper of the two. Not a
+    /// contradiction — both are floors and the larger stands — but it marks
+    /// where the code source said less than the type information did, which is
+    /// the case for a class whose methods only ever read its vtable pointer.
+    std::size_t size_floors_where_bases_say_more{};
     std::size_t function_pointer_runs{};
     std::size_t function_pointer_run_entries{};
     std::size_t base_slots_measured{};
@@ -536,6 +586,8 @@ struct FunctionMap final {
     std::vector<BaseSlotOverride> base_slot_overrides;
     /// Function-address runs in data outside every located vtable.
     std::vector<FunctionPointerRun> function_pointer_runs;
+    /// Size floors by class, largest first.
+    std::vector<ClassSizeFloor> class_size_floors;
     std::vector<std::string> warnings;
 };
 

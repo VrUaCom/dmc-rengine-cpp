@@ -361,6 +361,22 @@ functions and the bracket's percentages describe that subset, not the image.
 that fall outside every located vtable's whole extent — excluding vtables by
 base alone reports each fragment of a split vtable as a table of its own.
 
+### Class size floors
+
+`exe_class_size_floor` holds a floor on each class's object size, never a size.
+Two sources: where the hierarchy descriptor places base subobjects carrying a
+vtable, and how far into the object the class's own bound methods reach. Neither
+reads what is at any offset.
+
+```sql
+SELECT class_name, floor_bytes, deepest_base, functions_reaching_half, support
+FROM v_exe_class_size WHERE support = 'CORROBORATED' LIMIT 20;
+```
+
+`support` says how many functions independently reach at least half the floor,
+so a number one function alone supports is visibly a weaker claim than one a
+dozen agree on.
+
 ### Vtable slot census
 
 `exe_base_slot_override` holds one row per base class and slot: how many classes

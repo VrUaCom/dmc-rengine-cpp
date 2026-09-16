@@ -132,6 +132,17 @@ struct FunctionWalk final {
     /// Stores into `this`, in address order.
     std::vector<VtableStore> stores_into_this;
 
+    /// Offsets of memory operands read or written through the register the
+    /// Microsoft x64 convention puts the first argument in, sorted and unique.
+    ///
+    /// Where that argument is `this` — which a vtable binding or a constructor
+    /// store establishes and nothing else does — an access at offset K means
+    /// the object extends at least K+1 bytes. That is a floor on the class's
+    /// size read from code, independent of anything the type information says.
+    /// `lea` is excluded: computing an address is not touching what is there,
+    /// and a one-past-the-end pointer is an ordinary thing to compute.
+    std::vector<std::uint32_t> entry_field_offsets;
+
     /// A store into the object of a value a call returned: `call F` then
     /// `mov [this + offset], rax`. Where F is a constructor, the field holds a
     /// pointer to an object of the class F builds, which is what a dispatch

@@ -270,6 +270,19 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                                             decoded.displacement, decoded.memory_index});
         }
 
+        // Any memory operand off the first argument. The offset is what the
+        // code reached inside whatever it was given, and says nothing about
+        // what is there. `lea` is excluded: computing an address is not
+        // touching what is at it, and a one-past-the-end pointer is an
+        // ordinary thing to compute.
+        if (decoded.has_modrm && decoded.modrm_mod != 3U && !decoded.rip_relative &&
+            !(!decoded.two_byte_opcode && decoded.opcode == 0x8DU) &&
+            decoded.memory_base < state.size() && decoded.displacement >= 0 &&
+            state[decoded.memory_base].kind == RegisterFact::Kind::entry_value) {
+            emit->entry_field_offsets.push_back(
+                static_cast<std::uint32_t>(decoded.displacement));
+        }
+
     // `mov [this + offset], rax` with rax holding what a call returned. In a
         // constructor that is a member being built and stored, so the field
         // holds a pointer to whatever the callee constructs.
@@ -808,6 +821,10 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
               [](const FunctionWalk::DispatchSite& left, const FunctionWalk::DispatchSite& right) {
                   return left.site_rva < right.site_rva;
               });
+    std::sort(walk.entry_field_offsets.begin(), walk.entry_field_offsets.end());
+    walk.entry_field_offsets.erase(
+        std::unique(walk.entry_field_offsets.begin(), walk.entry_field_offsets.end()),
+        walk.entry_field_offsets.end());
 }
 
 } // namespace

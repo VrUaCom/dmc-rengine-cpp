@@ -336,6 +336,38 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     return imported
 
 
+def load_class_size_floors(con: sqlite3.Connection, image_id: int, mapping: dict,
+                           classes: dict) -> int:
+    """Stores a floor on each class's object size, never a size."""
+    imported = 0
+    for entry in mapping.get("class_size_floors", []):
+        floor = entry["floor_bytes"]
+        if floor < entry["floor_from_bases"] or floor < entry["floor_from_field_access"]:
+            raise SystemExit(
+                f"size floor for {entry['class']} is below one of its own sources"
+            )
+        deepest = entry.get("deepest_base")
+        con.execute(
+            """INSERT INTO exe_class_size_floor(
+                   image_id, class_id, floor_bytes, floor_from_bases, deepest_base_id,
+                   floor_from_field_access, functions_speaking, functions_reaching_half)
+               VALUES(?,?,?,?,?,?,?,?)
+               ON CONFLICT(image_id, class_id) DO NOTHING""",
+            (
+                image_id,
+                class_id_for(con, image_id, classes, entry["class"]),
+                floor,
+                entry["floor_from_bases"],
+                class_id_for(con, image_id, classes, deepest) if deepest else None,
+                entry["floor_from_field_access"],
+                entry["functions_speaking"],
+                entry["functions_reaching_half"],
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_function_pointer_runs(con: sqlite3.Connection, image_id: int, mapping: dict) -> int:
     """Stores runs of function addresses in data that are not a located vtable."""
     imported = 0
@@ -645,6 +677,7 @@ def main() -> int:
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     load_base_slot_overrides(con, image_id, mapping, classes)
     load_function_pointer_runs(con, image_id, mapping)
+    load_class_size_floors(con, image_id, mapping, classes)
     con.commit()
 
     counts = {
@@ -668,6 +701,7 @@ def main() -> int:
             "exe_constant_argument",
             "exe_base_slot_override",
             "exe_function_pointer_run",
+            "exe_class_size_floor",
         )
     }
     con.close()

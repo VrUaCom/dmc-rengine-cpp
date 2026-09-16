@@ -996,6 +996,110 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         map.summary.vtables_instantiated_by_reachable_code = instantiated.size();
     }
 
+    // ----- class size floors -----------------------------------------------
+    // Nothing here reads a field. One source is where the hierarchy descriptor
+    // places each base subobject; the other is how far into the object the
+    // class's own methods reach, the first argument to such a method being the
+    // object by the Microsoft x64 convention.
+    if (inputs.rtti != nullptr) {
+        struct Floor final {
+            std::uint32_t from_bases{};
+            std::string deepest_base;
+            std::uint32_t from_access{};
+            std::vector<std::uint32_t> per_function;
+        };
+        std::map<std::string, Floor> floors;
+
+        for (const auto& entry : inputs.rtti->classes) {
+            std::set<std::uint32_t> offsets_with_a_vtable;
+            for (const auto& vtable : entry.vtables) {
+                if (vtable.vtable_rva != 0U) {
+                    offsets_with_a_vtable.insert(vtable.subobject_offset);
+                }
+            }
+            auto& floor = floors[entry.display_name];
+            // The class's own vtable pointer sits at offset zero, so eight
+            // bytes is the floor every polymorphic class starts from.
+            floor.from_bases = 8U;
+            floor.deepest_base = entry.display_name;
+            for (const auto& base : entry.hierarchy) {
+                if (base.member_displacement < 0) {
+                    continue;
+                }
+                const auto displacement = static_cast<std::uint32_t>(base.member_displacement);
+                if (offsets_with_a_vtable.count(displacement) == 0U) {
+                    continue;
+                }
+                if (displacement + 8U > floor.from_bases) {
+                    floor.from_bases = displacement + 8U;
+                    floor.deepest_base = base.display_name;
+                }
+            }
+        }
+
+        for (std::size_t position = 0; position < map.functions.size(); ++position) {
+            const auto& walk = graph.functions[position];
+            if (walk.entry_field_offsets.empty()) {
+                continue;
+            }
+            const auto deepest = walk.entry_field_offsets.back();
+            const auto& facts = map.functions[position];
+
+            // A method bound at a non-zero subobject offset is handed a pointer
+            // to that subobject, so an offset inside it sits that much further
+            // into the complete object.
+            std::map<std::string, std::uint32_t> reach;
+            for (const auto& binding : facts.virtual_bindings) {
+                auto& value = reach[binding.class_display_name];
+                value = std::max(value, binding.subobject_offset + deepest + 1U);
+            }
+            if (!facts.constructs_class.empty()) {
+                auto& value = reach[facts.constructs_class];
+                value = std::max(value, deepest + 1U);
+            }
+            for (const auto& [name, value] : reach) {
+                auto& floor = floors[name];
+                floor.from_access = std::max(floor.from_access, value);
+                floor.per_function.push_back(value);
+            }
+        }
+
+        for (auto& [name, floor] : floors) {
+            ClassSizeFloor record;
+            record.class_display_name = name;
+            record.floor_from_bases = floor.from_bases;
+            record.deepest_base_display_name = floor.deepest_base;
+            record.floor_from_field_access = floor.from_access;
+            record.floor_bytes = std::max(floor.from_bases, floor.from_access);
+            record.functions_speaking = static_cast<std::uint32_t>(floor.per_function.size());
+            for (const auto value : floor.per_function) {
+                if (value * 2U >= record.floor_bytes) {
+                    ++record.functions_reaching_half;
+                }
+            }
+            if (floor.from_access != 0U && floor.from_bases > floor.from_access) {
+                ++map.summary.size_floors_where_bases_say_more;
+            }
+            if (record.floor_bytes > 8U) {
+                ++map.summary.size_floors_above_a_vtable_pointer;
+            }
+            if (record.functions_reaching_half >= 2U) {
+                ++map.summary.size_floors_corroborated;
+            } else if (record.functions_speaking > 1U) {
+                ++map.summary.size_floors_on_a_lone_outlier;
+            }
+            map.class_size_floors.push_back(std::move(record));
+        }
+        std::sort(map.class_size_floors.begin(), map.class_size_floors.end(),
+                  [](const ClassSizeFloor& left, const ClassSizeFloor& right) {
+                      if (left.floor_bytes != right.floor_bytes) {
+                          return left.floor_bytes > right.floor_bytes;
+                      }
+                      return left.class_display_name < right.class_display_name;
+                  });
+        map.summary.class_size_floors = map.class_size_floors.size();
+    }
+
     // ----- function-address runs in data ------------------------------------
     // Every located vtable's whole extent is excluded, not merely its base:
     // otherwise a slot the inventory does not cover splits a vtable into
