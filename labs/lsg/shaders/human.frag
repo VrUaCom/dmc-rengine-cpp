@@ -36,9 +36,47 @@ float region_pore_density(uint region) {
     return 0.43;
 }
 
+bool inside_box(vec2 uv, vec2 lo, vec2 hi) {
+    return all(greaterThanEqual(uv, lo)) && all(lessThanEqual(uv, hi));
+}
+
+bool hud_glyph(uint button, vec2 uv) {
+    vec2 q = abs(uv - vec2(0.5));
+    if (button == 0u) {
+        bool outer = q.x <= 0.16 && q.y <= 0.28;
+        bool inner = q.x <= 0.075 && q.y <= 0.18;
+        return outer && !inner;
+    }
+    if (button == 1u) {
+        return inside_box(uv, vec2(0.47, 0.22), vec2(0.55, 0.78)) ||
+               inside_box(uv, vec2(0.39, 0.70), vec2(0.53, 0.79)) ||
+               inside_box(uv, vec2(0.37, 0.20), vec2(0.65, 0.29));
+    }
+    bool left = inside_box(uv, vec2(0.34, 0.22), vec2(0.42, 0.78));
+    bool top = inside_box(uv, vec2(0.39, 0.70), vec2(0.58, 0.78));
+    bool bottom = inside_box(uv, vec2(0.39, 0.22), vec2(0.58, 0.30));
+    bool right = inside_box(uv, vec2(0.56, 0.30), vec2(0.64, 0.70));
+    return left || top || bottom || right;
+}
+
 void main() {
     uint character_index = pc.flags.x & 1u;
     bool detail_enabled = pc.flags.y != 0u;
+
+    if (pc.flags.w != 0u) {
+        uint button = body_region >= 100u ? body_region - 100u : 0u;
+        vec2 uv = surface_position_m.xy;
+        bool active = (button == 0u && character_index == 0u) ||
+                      (button == 1u && character_index == 1u) ||
+                      (button == 2u && detail_enabled);
+        float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+        vec3 panel = active ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
+        if (edge < 0.055) panel = active ? vec3(0.45, 0.78, 1.00) : vec3(0.38, 0.43, 0.50);
+        if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
+        out_colour = vec4(panel, 1.0);
+        return;
+    }
+
     vec3 base_skin = character_index == 0u ? vec3(0.56, 0.31, 0.22) : vec3(0.49, 0.29, 0.24);
     uvec2 seed = character_index == 0u ? uvec2(0xFFEE1234u, 0x000000C0u) : uvec2(0xADBEEF42u, 0x000000DEu);
 
