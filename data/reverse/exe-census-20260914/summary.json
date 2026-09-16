@@ -1,0 +1,97 @@
+{
+  "schema": "dmc3-exe-census-v1",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "file_size": 6356432,
+  "status": "STRUCTURAL_CONFIRMED",
+  "semantic_completion_claim": false,
+  "image_base": "0x140000000",
+  "entry_va": "0x14034615C",
+  "objdump_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+  "sections": [
+    {
+      "name": ".text",
+      "rva": 4096,
+      "virtual_size": 3464526,
+      "raw_size": 3464704,
+      "raw_offset": 1024,
+      "flags": 1610612768
+    },
+    {
+      "name": ".rdata",
+      "rva": 3469312,
+      "virtual_size": 2110312,
+      "raw_size": 2110464,
+      "raw_offset": 3465728,
+      "flags": 1073741888
+    },
+    {
+      "name": ".data",
+      "rva": 5582848,
+      "virtual_size": 8516024,
+      "raw_size": 548864,
+      "raw_offset": 5576192,
+      "flags": 3221225536
+    },
+    {
+      "name": ".pdata",
+      "rva": 14102528,
+      "virtual_size": 146820,
+      "raw_size": 146944,
+      "raw_offset": 6125056,
+      "flags": 1073741888
+    },
+    {
+      "name": ".gfids",
+      "rva": 14249984,
+      "virtual_size": 80,
+      "raw_size": 512,
+      "raw_offset": 6272000,
+      "flags": 1073741888
+    },
+    {
+      "name": ".tls",
+      "rva": 14254080,
+      "virtual_size": 9,
+      "raw_size": 512,
+      "raw_offset": 6272512,
+      "flags": 3221225536
+    },
+    {
+      "name": ".rsrc",
+      "rva": 14258176,
+      "virtual_size": 3888,
+      "raw_size": 4096,
+      "raw_offset": 6273024,
+      "flags": 1073741888
+    },
+    {
+      "name": ".reloc",
+      "rva": 14262272,
+      "virtual_size": 73136,
+      "raw_size": 73216,
+      "raw_offset": 6277120,
+      "flags": 1107296320
+    }
+  ],
+  "runtime_function_ranges": 12235,
+  "import_slots": 229,
+  "disassembled_instruction_starts": 880446,
+  "instruction_starts_outside_runtime_ranges": 180553,
+  "bad_decodes": 3651,
+  "bad_decodes_inside_runtime_ranges": 3292,
+  "transfer_counts": {
+    "call:direct": 44407,
+    "call:import_slot": 651,
+    "call:indirect_unresolved": 10308,
+    "jmp:direct": 21297,
+    "jmp:import_slot": 96,
+    "jmp:indirect_unresolved": 699
+  },
+  "ranges_without_instruction_starts": 0,
+  "limitations": [
+    "Unwind ranges are not a complete function list: leaf functions may have no entry; fragments may be separate entries.",
+    "Linear disassembly is not proof of reachability or code/data separation.",
+    "Indirect register/vtable transfers, delay imports, callback and exception edges are not resolved.",
+    "No semantic coverage percentage is inferred from instruction or range counts."
+  ]
+}

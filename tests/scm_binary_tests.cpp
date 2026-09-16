@@ -130,6 +130,36 @@ int main() {
                      static_cast<std::uint8_t>(0x7DU)) ==
            scm_material_ad_registers.end());
 
+    // Active TEX0 is the HD resource-registry bridge: TBP0 low14 selects the
+    // companion-created texture object; bits 36..37 become the base PS key.
+    constexpr std::uint64_t tex0_probe =
+        0x1234ULL | (0x2ULL << legacy_gs_tex0_ps_base_key_shift);
+    static_assert(legacy_gs_tex0_resource_key(tex0_probe) == 0x1234U);
+    static_assert(legacy_gs_tex0_ps_base_key(tex0_probe) == 2U);
+
+    // Normal compatibility sampler projection. Legacy REGION_REPEAT WMS/WMT=3
+    // remains WRAP in the native D3D11 address-mode bridge; modes 1/2 map to
+    // D3D11 CLAMP. The baseline SCM sampler filter resolves to anisotropic.
+    constexpr auto region_repeat_qword =
+        pack_legacy_gs_clamp_region_repeat({1U, 2U, 3U, 4U});
+    constexpr auto region_repeat_flags =
+        hd_sampler_flags_from_legacy_clamp(region_repeat_qword);
+    static_assert(region_repeat_flags == hd_sampler_flag_filter);
+    constexpr auto region_repeat_d3d =
+        project_hd_sampler_flags_to_d3d11(region_repeat_flags);
+    static_assert(region_repeat_d3d.filter == d3d11_filter_anisotropic);
+    static_assert(region_repeat_d3d.address_u == d3d11_texture_address_wrap);
+    static_assert(region_repeat_d3d.address_v == d3d11_texture_address_wrap);
+
+    constexpr std::uint64_t clamp_modes_1_2 = 1ULL | (2ULL << 2U);
+    constexpr auto clamp_flags =
+        hd_sampler_flags_from_legacy_clamp(clamp_modes_1_2);
+    static_assert((clamp_flags & hd_sampler_flag_address_u_clamp) != 0U);
+    static_assert((clamp_flags & hd_sampler_flag_address_v_clamp) != 0U);
+    constexpr auto clamp_d3d = project_hd_sampler_flags_to_d3d11(clamp_flags);
+    static_assert(clamp_d3d.address_u == d3d11_texture_address_clamp);
+    static_assert(clamp_d3d.address_v == d3d11_texture_address_clamp);
+
     const auto bytes = fixture();
     const auto parsed = Parser::parse(std::span<const std::byte>{bytes});
     assert(parsed.recognized);
@@ -205,6 +235,7 @@ int main() {
     assert(has_tag(*tex1, "TEX1_1"));
     assert(tex1->text.find("0x60 linear") != std::string::npos);
     assert(tex1->text.find("register 0x14") != std::string::npos);
+    assert(tex1->text.find("no direct TEX1-to-D3D11") != std::string::npos);
 
     const auto* bit21 =
         document.find_annotation("scm-prov-object-000-bit21-negative");
@@ -218,15 +249,23 @@ int main() {
     assert(texture != nullptr);
     assert(texture->text.find("index*0x40") != std::string::npos);
     assert(texture->text.find("TEX0_1") != std::string::npos);
-    assert(texture->text.find("MIPTBP1_1") != std::string::npos);
-    assert(texture->text.find("0x14003F7A0/0x14003F580") != std::string::npos);
-    assert(has_tag(*texture, "SRV_SAMPLER_SOURCE_BINDING_OPEN"));
+    assert(texture->text.find("TEX0.TBP0") != std::string::npos);
+    assert(texture->text.find("0x140033350") != std::string::npos);
+    assert(texture->text.find("PSSetShaderResources") != std::string::npos);
+    assert(texture->text.find("PSSetSamplers") != std::string::npos);
+    assert(has_tag(*texture, "resource-registry"));
+    assert(has_tag(*texture, "d3d11"));
+    assert(!has_tag(*texture, "SRV_SAMPLER_SOURCE_BINDING_OPEN"));
 
     const auto* clamp =
         document.find_annotation("scm-prov-mesh-000-000-gs-clamp");
     assert(clamp != nullptr);
     assert(has_tag(*clamp, "CLAMP_1"));
-    assert(clamp->text.find("register 0x08") != std::string::npos);
+    assert(has_tag(*clamp, "D3D11_SAMPLER_DESC"));
+    assert(has_tag(*clamp, "PSSetSamplers"));
+    assert(clamp->text.find("0x1405D9210") != std::string::npos);
+    assert(clamp->text.find("AddressU/V=CLAMP") != std::string::npos);
+    assert(clamp->text.find("WRAP") != std::string::npos);
 
     const auto* scene_shell =
         document.find_annotation("scm-prov-scene-shell-negative");
@@ -255,9 +294,11 @@ int main() {
     const auto* lighting = document.find_annotation("scm-prov-header-13");
     assert(lighting != nullptr);
     assert(has_tag(*lighting, "EXE_CONFIRMED"));
+    assert(has_tag(*lighting, "lighting-reference"));
     assert(!has_tag(*lighting, "PRESERVED_UNDECODED"));
     assert(lighting->text.find("manager+0xFA") != std::string::npos);
     assert(lighting->text.find("0x1402FD040") != std::string::npos);
+    assert(lighting->text.find("MDL_LIGHT_MAT") != std::string::npos);
 
     const auto* rotation =
         document.find_annotation("scm-prov-transform-000-rotation");
