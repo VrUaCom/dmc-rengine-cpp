@@ -66,12 +66,12 @@ void main() {
     if (pc.flags.w != 0u) {
         uint button = body_region >= 100u ? body_region - 100u : 0u;
         vec2 uv = surface_position_m.xy;
-        bool active = (button == 0u && character_index == 0u) ||
-                      (button == 1u && character_index == 1u) ||
-                      (button == 2u && detail_enabled);
+        bool selected = (button == 0u && character_index == 0u) ||
+                        (button == 1u && character_index == 1u) ||
+                        (button == 2u && detail_enabled);
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-        vec3 panel = active ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
-        if (edge < 0.055) panel = active ? vec3(0.45, 0.78, 1.00) : vec3(0.38, 0.43, 0.50);
+        vec3 panel = selected ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
+        if (edge < 0.055) panel = selected ? vec3(0.45, 0.78, 1.00) : vec3(0.38, 0.43, 0.50);
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
         return;
