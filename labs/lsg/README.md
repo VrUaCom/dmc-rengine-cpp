@@ -7,6 +7,7 @@ Experimental C++23/Vulkan lab. It is deliberately isolated from the canonical DM
 The prototype now establishes the deterministic LSG contract and one shared Windows/Android Vulkan rendering lane:
 
 - `LSG0` little-endian binary genome with version, generator revision, size and CRC32.
+- generator revision `2` is the first revision for the stable cell-based pore field. Pre-v0 revision `1` files are rejected explicitly instead of silently producing a different surface; a future migration layer can convert archived revisions when real persisted profile assets exist.
 - two built-in character profiles; current encoded profile size is below 512 bytes and the hard limit is 4096 bytes.
 - shared PCG-style integer hash contract in C++ and GLSL. The 64-bit genome seed is folded deterministically into the 32-bit Vulkan seed key so the high half is not silently discarded.
 - body-region aware procedural surface reference sampler and matching shader logic.

@@ -20,6 +20,8 @@ int main() {
   DecodedGenome d{}; std::string err;
   assert(decode_genome(bytes, d, err)); assert(d.generator_revision == kGeneratorRevision); assert(d.value.surface_seed == g0.surface_seed);
   auto corrupt = bytes; corrupt.back() ^= std::byte{1}; assert(!decode_genome(corrupt, d, err));
+  const auto legacy_revision = encode_genome(g0, 1u); assert(!legacy_revision.empty());
+  assert(!decode_genome(legacy_revision, d, err)); assert(err.find("generator revision") != std::string::npos);
 
   constexpr auto h1 = hash5(123,2,10,20,30); constexpr auto h2 = hash5(123,2,10,20,30); constexpr auto h3 = hash5(124,2,10,20,30);
   static_assert(h1 == h2); static_assert(h1 != h3);
@@ -82,7 +84,8 @@ int main() {
   RMeshV0 decoded{}; assert(decode_rmesh(rbytes, decoded, err)); assert(decoded.vertices.size() == 3); assert(decoded.indices == mesh.indices);
   auto bad_rmesh = rbytes; bad_rmesh.back() ^= std::byte{1}; assert(!decode_rmesh(bad_rmesh, decoded, err));
 
-  std::cout << "LSG tests PASS; genome bytes=" << bytes.size() << "; rmesh bytes=" << rbytes.size()
-            << "; camera full=" << full_distance << "m portrait=" << portrait_distance << "m close=" << close_distance << "m\n";
+  std::cout << "LSG tests PASS; generator revision=" << kGeneratorRevision << "; genome bytes=" << bytes.size()
+            << "; rmesh bytes=" << rbytes.size() << "; camera full=" << full_distance
+            << "m portrait=" << portrait_distance << "m close=" << close_distance << "m\n";
   return 0;
 }

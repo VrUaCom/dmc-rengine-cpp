@@ -7,7 +7,7 @@
 
 namespace rengine::lsg {
 inline constexpr std::uint16_t kGenomeVersion = 0;
-inline constexpr std::uint32_t kGeneratorRevision = 1;
+inline constexpr std::uint32_t kGeneratorRevision = 2;
 inline constexpr std::size_t kGenomeHardLimit = 4096;
 
 struct GeometryGenome {

@@ -42,6 +42,7 @@ bool decode_genome(std::span<const std::byte> b,DecodedGenome& out,std::string& 
   for(std::size_t i=0;i<4;++i) if(std::to_integer<char>(b[i])!=kMagic[i]){err="bad LSG magic";return false;}
   std::size_t o=4; std::uint16_t ver{},size{}; std::uint32_t rev{},flags{},sum{}; if(!get_le(b,o,ver)||!get_le(b,o,size)||!get_le(b,o,rev)||!get_le(b,o,flags)||!get_le(b,o,sum)){err="truncated header";return false;}
   if(ver!=kGenomeVersion){err="unsupported genome version";return false;} if(size!=b.size()){err="declared size mismatch";return false;} if(crc32(b.subspan(kHeaderSize))!=sum){err="checksum mismatch";return false;}
+  if(rev!=kGeneratorRevision){err="unsupported generator revision; explicit migration required";return false;}
   CharacterGenomeV0 g{}; if(!get_geometry(b,o,g.geometry)||!get_bytes(b,o,&g.skin,sizeof(g.skin))||!get_bytes(b,o,&g.eyes,sizeof(g.eyes))||!get_bytes(b,o,&g.micro,sizeof(g.micro))||!get_bytes(b,o,&g.physiology,sizeof(g.physiology))||!get_le(b,o,g.identity_seed)||!get_le(b,o,g.surface_seed)||!get_le(b,o,g.eye_seed)){err="truncated payload";return false;} if(o!=b.size()){err="unexpected trailing payload";return false;}
   out={g,rev,flags}; err.clear(); return true;
 }
