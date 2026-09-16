@@ -25,7 +25,7 @@ jobs:
           "VULKAN_SDK=$($sdk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "$($sdk.FullName)\Bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Configure C++23 Win32 Vulkan viewer
-        run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 17 2022" -A x64 -DRENGINE_LSG_BUILD_MESH_TOOL=OFF
+        run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64 -DRENGINE_LSG_BUILD_MESH_TOOL=OFF
       - name: Build tests and viewer
         run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests rengine_lsg_viewer --parallel 2
       - name: Run deterministic contract tests
