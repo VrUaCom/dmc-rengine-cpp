@@ -1,0 +1,46 @@
+name: LSG Windows Prototype
+
+on:
+  push:
+    branches: [rengine-living-surface-genome]
+    paths:
+      - 'labs/lsg/**'
+      - '.github/workflows/lsg-windows.yml'
+  pull_request:
+    paths:
+      - 'labs/lsg/**'
+      - '.github/workflows/lsg-windows.yml'
+
+jobs:
+  windows-x64-vulkan:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vulkan SDK 1.4.350
+        shell: pwsh
+        run: |
+          choco install vulkan-sdk --version=1.4.350 -y --no-progress
+          $sdk = Get-ChildItem 'C:\VulkanSDK' -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $sdk) { throw 'Vulkan SDK installation directory not found' }
+          "VULKAN_SDK=$($sdk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "$($sdk.FullName)\Bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Configure C++23 Win32 Vulkan viewer
+        run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 17 2022" -A x64 -DRENGINE_LSG_BUILD_MESH_TOOL=OFF
+      - name: Build tests and viewer
+        run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests rengine_lsg_viewer --parallel 2
+      - name: Run deterministic contract tests
+        run: ctest --test-dir build-lsg-win -C Release --output-on-failure
+      - name: Verify Windows executable and SPIR-V
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'build-lsg-win\Release\rengine_lsg_viewer.exe')) { throw 'viewer exe missing' }
+          if (!(Test-Path 'build-lsg-win\shaders\human.vert.spv')) { throw 'vertex SPIR-V missing' }
+          if (!(Test-Path 'build-lsg-win\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rengine-lsg-windows-x64-${{ github.sha }}
+          path: |
+            build-lsg-win/Release/rengine_lsg_viewer.exe
+            build-lsg-win/shaders/human.vert.spv
+            build-lsg-win/shaders/human.frag.spv
+          if-no-files-found: error
