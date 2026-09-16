@@ -342,6 +342,25 @@ Only calls on `this` in a method bound into exactly one vtable are here. Every
 other dispatch site is counted in the report's summary and left unresolved:
 nothing in the file says what an argument or a heap pointer points at.
 
+### Reachability as a bracket
+
+`exe_function.outside_every_closure` marks a function the entry point cannot
+reach even when every virtual call is assumed to reach whatever sits at its slot
+in any vtable the image carries. That assumption is unsound as an answer and
+sound as a bound, so the column is a statement about what is *not* reachable.
+
+```sql
+SELECT * FROM v_exe_reachability_bracket;
+SELECT * FROM v_exe_unreachable_function LIMIT 20;
+```
+
+Build with `map-functions --all`. Without it the report carries a subset of the
+functions and the bracket's percentages describe that subset, not the image.
+
+`exe_function_pointer_run` holds runs of consecutive function addresses in data
+that fall outside every located vtable's whole extent — excluding vtables by
+base alone reports each fragment of a split vtable as a table of its own.
+
 ### Vtable slot census
 
 `exe_base_slot_override` holds one row per base class and slot: how many classes
@@ -368,6 +387,10 @@ distinct count is a lower bound on distinct behaviour.
 
 Layout and linkage only. No slot is named, and the ratio is not evidence of what
 a slot is for.
+
+Every table carrying a CHECK is inserted with a conflict clause scoped to its
+own unique key rather than `INSERT OR IGNORE`, which suppresses CHECK failures
+as well as uniqueness conflicts and would drop a malformed row silently.
 
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

@@ -35,6 +35,11 @@ CREATE TABLE IF NOT EXISTS exe_function (
     export_name TEXT,
     reachable_from_entry INTEGER NOT NULL DEFAULT 0,
     reachable_from_export INTEGER NOT NULL DEFAULT 0,
+    -- True when the function is not reachable from the entry point even under
+    -- the loosest sound assumption: that every virtual call reaches whatever
+    -- sits at its slot in any vtable the image carries. Nothing in the file
+    -- says the entry point can get here.
+    outside_every_closure INTEGER NOT NULL DEFAULT 0,
     -- Prologue facts read from the unwind record.
     prolog_size INTEGER,
     stack_allocation INTEGER,
@@ -508,3 +513,47 @@ FROM exe_base_slot_override o
 JOIN exe_class b ON b.id = o.base_id
 GROUP BY o.base_id
 ORDER BY inheritors DESC, slots DESC;
+
+-- ---------------------------------------------------------------------------
+-- Function-address runs in data
+-- ---------------------------------------------------------------------------
+-- Consecutive function addresses sitting in a non-executable section, outside
+-- every located vtable's whole extent. A vtable is one of these, so excluding
+-- vtables by base alone would report each fragment of a split vtable as a
+-- table of its own.
+CREATE TABLE IF NOT EXISTS exe_function_pointer_run (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    base_rva INTEGER NOT NULL,
+    entries INTEGER NOT NULL CHECK (entries >= 3),
+    entries_reaching_nothing_else INTEGER NOT NULL CHECK (entries_reaching_nothing_else >= 0),
+    referencing_functions INTEGER NOT NULL CHECK (referencing_functions >= 0),
+    CHECK (entries_reaching_nothing_else <= entries),
+    UNIQUE (image_id, base_rva)
+);
+
+-- Reachability as a bracket. The lower bound follows direct calls only; the
+-- upper bound assumes a virtual call reaches every vtable's slot. How wide the
+-- gap is measures how much of the image's control flow is decided at run time.
+CREATE VIEW IF NOT EXISTS v_exe_reachability_bracket AS
+SELECT COUNT(*) AS functions,
+       SUM(reachable_from_entry) AS direct_calls_only,
+       SUM(CASE WHEN outside_every_closure = 0 THEN 1 ELSE 0 END) AS through_any_dispatch,
+       SUM(outside_every_closure) AS outside_every_closure,
+       ROUND(100.0 * SUM(reachable_from_entry) / COUNT(*), 1) AS lower_bound_percent,
+       ROUND(100.0 * SUM(CASE WHEN outside_every_closure = 0 THEN 1 ELSE 0 END) / COUNT(*), 1)
+           AS upper_bound_percent
+FROM exe_function;
+
+-- What sits outside the bound, and whether anything else refers to it. A
+-- function here is not reachable from the entry point by any route the file
+-- describes, and is not exported or bound to a vtable either.
+CREATE VIEW IF NOT EXISTS v_exe_unreachable_function AS
+SELECT printf('0x%x', f.begin_rva) AS begin_rva,
+       f.size_bytes,
+       f.caller_count,
+       f.export_name,
+       (SELECT COUNT(*) FROM exe_vtable_binding b WHERE b.function_id = f.id) AS vtable_slots
+FROM exe_function f
+WHERE f.outside_every_closure = 1
+ORDER BY f.size_bytes DESC;

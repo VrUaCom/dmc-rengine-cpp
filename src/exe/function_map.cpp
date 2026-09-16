@@ -29,6 +29,9 @@ constexpr std::size_t kMinStringLength = 4U;
 constexpr std::size_t kMaxStringLength = 200U;
 constexpr std::size_t kMaxStringsPerFunction = 8U;
 constexpr std::size_t kMaxVtableSlotsRead = 4096U;
+/// Shorter than this and a run of addresses in data is as likely to be two
+/// unrelated pointers side by side as a table.
+constexpr std::size_t kMinFunctionPointerRun = 3U;
 
 [[nodiscard]] bool is_read_only_data(const PeSection& section) noexcept {
     constexpr std::uint32_t initialized_data = 0x00000040U;
@@ -434,6 +437,13 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                   });
     }
 
+    // Candidate targets per slot index, over every vtable the type information
+    // locates, and each vtable's extent. Filled by the census below and used by
+    // the reachability bound further down.
+    std::map<std::uint32_t, std::vector<std::uint32_t>> slot_candidates;
+    std::vector<std::pair<std::uint32_t, std::uint32_t>> vtable_extents;
+    std::map<std::uint32_t, std::uint32_t> vtable_slot_count;
+
     // ----- vtable slot census ----------------------------------------------
     // What a slot's target *is* is readable from its first instruction alone,
     // and the three cases it separates are the ones that matter for reading an
@@ -520,12 +530,20 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 if (!counted_vtables.insert(vtable.vtable_rva).second) {
                     continue;
                 }
+                vtable_extents.emplace_back(vtable.vtable_rva,
+                                            vtable.vtable_rva + slots * 8U);
+                vtable_slot_count.emplace(vtable.vtable_rva, slots);
                 for (std::uint32_t slot = 0U; slot < slots; ++slot) {
                     const auto target = target_at(vtable.vtable_rva, slot);
                     if (!target.has_value()) {
                         continue;
                     }
                     ++map.summary.vtable_slots_classified;
+                    // A slot declared but not defined reaches the CRT's abort
+                    // path, not the program, so it is not a candidate target.
+                    if (classify(*target) != VtableSlotKind::pure_virtual) {
+                        slot_candidates[slot].push_back(*target);
+                    }
                     switch (classify(*target)) {
                     case VtableSlotKind::pure_virtual:
                         ++map.summary.vtable_slots_pure_virtual;
@@ -620,6 +638,13 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
         }
         map.summary.base_slots_measured = map.base_slot_overrides.size();
+        map.summary.vtables_located = vtable_extents.size();
+        for (auto& [slot, targets] : slot_candidates) {
+            static_cast<void>(slot);
+            std::sort(targets.begin(), targets.end());
+            targets.erase(std::unique(targets.begin(), targets.end()), targets.end());
+        }
+        std::sort(vtable_extents.begin(), vtable_extents.end());
     }
 
     // ----- import thunks ---------------------------------------------------
@@ -858,6 +883,195 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
     }
 
+    // ----- the upper bound on reachability ---------------------------------
+    // Direct calls reach a fraction of this image, because almost everything
+    // the engine does it does through a vtable. Assuming a virtual call can
+    // reach whatever sits at its slot in *any* located vtable is unsound as an
+    // answer and sound as a bound: whatever this does not reach, nothing in the
+    // file says the entry point can.
+    {
+        // Dispatch slots each function uses, decoded from its own instructions.
+        // A call or tail jump through a memory operand off a register is the
+        // dispatch; a RIP-relative one is an import, and a register operand is
+        // a computed jump, neither of which reads a vtable.
+        std::vector<std::vector<std::uint32_t>> slots_used(map.functions.size());
+        for (std::size_t position = 0; position < map.functions.size(); ++position) {
+            auto& slots = slots_used[position];
+            for (const auto rva : graph.functions[position].instruction_starts) {
+                const auto offset = image.rva_to_file_offset(rva);
+                if (!offset.has_value()) {
+                    continue;
+                }
+                const auto decoded =
+                    X86LengthDecoder::decode(bytes, static_cast<std::size_t>(*offset));
+                if (!decoded.has_value()) {
+                    continue;
+                }
+                if (decoded->flow != X86Flow::call_indirect &&
+                    decoded->flow != X86Flow::jump_indirect) {
+                    continue;
+                }
+                if (decoded->rip_relative || decoded->register_indirect() ||
+                    decoded->memory_base == X86Instruction::kNoRegister) {
+                    continue;
+                }
+                if (decoded->displacement < 0 || decoded->displacement % 8 != 0) {
+                    continue;
+                }
+                slots.push_back(static_cast<std::uint32_t>(decoded->displacement) / 8U);
+            }
+            std::sort(slots.begin(), slots.end());
+            slots.erase(std::unique(slots.begin(), slots.end()), slots.end());
+        }
+
+        std::deque<std::size_t> queue;
+        std::set<std::uint32_t> slots_reached;
+        const auto push = [&](std::size_t position) {
+            if (!map.functions[position].reachable_through_dispatch) {
+                map.functions[position].reachable_through_dispatch = true;
+                queue.push_back(position);
+            }
+        };
+        if (const auto root = index.containing(image.entry_point_rva); root.has_value()) {
+            push(*root);
+        }
+
+        // A slot reached later can pull in targets already passed over, so the
+        // two halves alternate until neither adds anything.
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            while (!queue.empty()) {
+                const auto position = queue.front();
+                queue.pop_front();
+                const auto& walk = graph.functions[position];
+                for (const auto target : walk.call_targets) {
+                    if (const auto callee = index.containing(target); callee.has_value()) {
+                        push(*callee);
+                    }
+                }
+                for (const auto target : walk.external_jump_targets) {
+                    if (const auto callee = index.containing(target); callee.has_value()) {
+                        push(*callee);
+                    }
+                }
+                for (const auto slot : slots_used[position]) {
+                    if (slots_reached.insert(slot).second) {
+                        changed = true;
+                    }
+                }
+            }
+            for (const auto slot : slots_reached) {
+                const auto candidates = slot_candidates.find(slot);
+                if (candidates == slot_candidates.end()) {
+                    continue;
+                }
+                for (const auto target : candidates->second) {
+                    const auto callee = index.containing(target);
+                    if (callee.has_value() &&
+                        !map.functions[*callee].reachable_through_dispatch) {
+                        push(*callee);
+                        changed = true;
+                    }
+                }
+            }
+        }
+        map.summary.dispatch_slots_reached = slots_reached.size();
+
+        // Tightening the bound the usual way: only classes some reachable
+        // function installs can be receivers. Measured, not applied, because on
+        // this image it barely moves — construction is itself behind dispatch,
+        // so the analysis starves before it starts.
+        std::set<std::uint32_t> instantiated;
+        for (std::size_t position = 0; position < map.functions.size(); ++position) {
+            if (!map.functions[position].reachable_from_entry_point) {
+                continue;
+            }
+            for (const auto& install : map.functions[position].installs_vtables) {
+                if (vtable_slot_count.find(install.vtable_rva) != vtable_slot_count.end()) {
+                    instantiated.insert(install.vtable_rva);
+                }
+            }
+        }
+        map.summary.vtables_instantiated_by_reachable_code = instantiated.size();
+    }
+
+    // ----- function-address runs in data ------------------------------------
+    // Every located vtable's whole extent is excluded, not merely its base:
+    // otherwise a slot the inventory does not cover splits a vtable into
+    // fragments and each fragment counts as a table of its own.
+    {
+        const auto overlaps_a_vtable = [&](std::uint32_t begin, std::uint32_t end) {
+            auto position = std::upper_bound(vtable_extents.begin(), vtable_extents.end(),
+                                             std::pair{begin, std::numeric_limits<std::uint32_t>::max()});
+            if (position != vtable_extents.begin()) {
+                auto previous = std::prev(position);
+                if (previous->second > begin) {
+                    return true;
+                }
+            }
+            return position != vtable_extents.end() && position->first < end;
+        };
+
+        for (const auto& section : image.sections) {
+            if ((section.characteristics & 0x20000000U) != 0U) {
+                continue;
+            }
+            const auto begin = static_cast<std::size_t>(section.raw_offset);
+            const auto size = static_cast<std::size_t>(section.raw_size);
+            std::size_t cursor = 0;
+            while (cursor + 8U <= size) {
+                const auto start = cursor;
+                std::vector<std::uint32_t> run;
+                while (cursor + 8U <= size) {
+                    const auto value = read_u64(bytes, begin + cursor);
+                    if (!value.has_value() || *value <= image.image_base) {
+                        break;
+                    }
+                    const auto delta = *value - image.image_base;
+                    if (delta > std::numeric_limits<std::uint32_t>::max() ||
+                        !index.containing(static_cast<std::uint32_t>(delta)).has_value()) {
+                        break;
+                    }
+                    run.push_back(static_cast<std::uint32_t>(delta));
+                    cursor += 8U;
+                }
+                if (run.size() >= kMinFunctionPointerRun) {
+                    const auto base = static_cast<std::uint32_t>(section.virtual_address + start);
+                    const auto end = base + static_cast<std::uint32_t>(run.size() * 8U);
+                    if (!overlaps_a_vtable(base, end)) {
+                        FunctionPointerRun record;
+                        record.base_rva = base;
+                        record.entries = static_cast<std::uint32_t>(run.size());
+                        for (const auto target : run) {
+                            const auto owner = index.containing(target);
+                            if (owner.has_value() &&
+                                !map.functions[*owner].reachable_through_dispatch) {
+                                ++record.entries_reaching_nothing_else;
+                            }
+                        }
+                        for (const auto& walk : graph.functions) {
+                            for (const auto reference : walk.data_references) {
+                                if (reference >= base && reference < end) {
+                                    ++record.referencing_functions;
+                                    break;
+                                }
+                            }
+                        }
+                        map.function_pointer_runs.push_back(std::move(record));
+                    }
+                }
+                if (cursor == start) {
+                    cursor += 8U;
+                }
+            }
+        }
+        map.summary.function_pointer_runs = map.function_pointer_runs.size();
+        for (const auto& run : map.function_pointer_runs) {
+            map.summary.function_pointer_run_entries += run.entries;
+        }
+    }
+
     // ----- aggregates ------------------------------------------------------
     std::map<std::pair<std::string, std::string>, std::uint32_t> usage;
     std::map<std::string, std::uint32_t> family_functions;
@@ -889,6 +1103,11 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         if (facts.reachable_from_export) {
             ++map.summary.reachable_from_export;
+        }
+        if (facts.reachable_through_dispatch) {
+            ++map.summary.reachable_through_dispatch;
+        } else {
+            ++map.summary.outside_every_closure;
         }
         if (facts.structurally_unreferenced()) {
             ++map.summary.structurally_unreferenced;

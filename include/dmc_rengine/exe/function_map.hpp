@@ -106,6 +106,13 @@ struct FunctionFacts final {
     std::vector<std::uint32_t> calls;
 
     bool reachable_from_entry_point{false};
+    /// Reachable from the entry point once every virtual call is assumed to
+    /// reach whatever sits at its slot in *any* vtable the image carries.
+    /// Nothing says what a receiver's type is, so this is a sound
+    /// over-approximation — an upper bound on reachability, not a second
+    /// answer. A function this does not reach is not reachable from the entry
+    /// point under any assumption this file supports.
+    bool reachable_through_dispatch{false};
     bool reachable_from_export{false};
     bool exported{false};
     std::string export_name;
@@ -330,6 +337,26 @@ struct BaseSlotOverride final {
     friend bool operator==(const BaseSlotOverride&, const BaseSlotOverride&) = default;
 };
 
+/// A run of consecutive function addresses sitting in data, outside every
+/// vtable the type information locates.
+///
+/// A vtable is one of these, so the interesting ones are what is left after
+/// every located vtable's whole extent is excluded — not merely its base. A
+/// slot holding something the function inventory does not cover splits a
+/// vtable into fragments whose bases are not the vtable's, and counting those
+/// as tables invents a dispatch mechanism out of a gap in the inventory.
+struct FunctionPointerRun final {
+    std::uint32_t base_rva{};
+    std::uint32_t entries{};
+    /// Entries naming a function that nothing else in the image reaches.
+    std::uint32_t entries_reaching_nothing_else{};
+    /// Functions whose code takes the run's address. Zero means the run is
+    /// reached from outside the inventory, if at all.
+    std::uint32_t referencing_functions{};
+
+    friend bool operator==(const FunctionPointerRun&, const FunctionPointerRun&) = default;
+};
+
 /// A function the code calls with a constant first argument, and the constants
 /// it is called with.
 ///
@@ -452,6 +479,22 @@ struct FunctionMapSummary final {
     /// Base-and-slot pairs measured, and the base-to-derived pairings that
     /// could not be measured because the class carries no vtable at the offset
     /// its own hierarchy descriptor records for that base.
+    /// Reachability as a bracket rather than a single number. The lower bound
+    /// is `reachable_from_entry_point`, which follows direct calls only; the
+    /// upper bound assumes every virtual call reaches every vtable's slot.
+    /// The truth is between, and how wide the gap is measures how much of the
+    /// image's control flow is decided at run time.
+    std::size_t reachable_through_dispatch{};
+    std::size_t outside_every_closure{};
+    std::size_t dispatch_slots_reached{};
+    /// Vtables installed by code the direct-call closure reaches. Restricting
+    /// dispatch to those is the standard way to tighten the upper bound; on
+    /// this image it does almost nothing, because construction is itself
+    /// behind dispatch.
+    std::size_t vtables_instantiated_by_reachable_code{};
+    std::size_t vtables_located{};
+    std::size_t function_pointer_runs{};
+    std::size_t function_pointer_run_entries{};
     std::size_t base_slots_measured{};
     std::size_t base_pairings_without_a_vtable{};
     std::size_t field_layout_entries{};
@@ -491,6 +534,8 @@ struct FunctionMap final {
     std::vector<ResolvedDispatch> resolved_dispatches;
     /// Per-base, per-slot override census, by base then slot.
     std::vector<BaseSlotOverride> base_slot_overrides;
+    /// Function-address runs in data outside every located vtable.
+    std::vector<FunctionPointerRun> function_pointer_runs;
     std::vector<std::string> warnings;
 };
 

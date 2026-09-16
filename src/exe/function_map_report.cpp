@@ -100,7 +100,20 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.vtable_slots_implemented));
     writer.member("vtable_slot_implementations",
                   static_cast<std::uint64_t>(summary.vtable_slot_implementations));
-    writer.member("base_slots_measured",
+    writer.member("reachable_through_dispatch",
+                  static_cast<std::uint64_t>(summary.reachable_through_dispatch));
+    writer.member("outside_every_closure",
+                  static_cast<std::uint64_t>(summary.outside_every_closure));
+    writer.member("dispatch_slots_reached",
+                  static_cast<std::uint64_t>(summary.dispatch_slots_reached));
+    writer.member("vtables_located", static_cast<std::uint64_t>(summary.vtables_located));
+    writer.member("vtables_instantiated_by_reachable_code",
+                  static_cast<std::uint64_t>(summary.vtables_instantiated_by_reachable_code));
+    writer.member("function_pointer_runs",
+                  static_cast<std::uint64_t>(summary.function_pointer_runs));
+    writer.member("function_pointer_run_entries",
+                  static_cast<std::uint64_t>(summary.function_pointer_run_entries));
+        writer.member("base_slots_measured",
                   static_cast<std::uint64_t>(summary.base_slots_measured));
     writer.member("base_pairings_without_a_vtable",
                   static_cast<std::uint64_t>(summary.base_pairings_without_a_vtable));
@@ -226,6 +239,20 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
     writer.member("receiver_field_offset",
                   static_cast<std::uint64_t>(dispatch.receiver_field_offset));
         writer.hex_member("target_rva", dispatch.target_rva);
+        writer.end_object();
+    }
+    writer.end_array();
+
+    writer.key("function_pointer_runs");
+    writer.begin_array();
+    for (const auto& run : map.function_pointer_runs) {
+        writer.begin_object();
+        writer.hex_member("base_rva", run.base_rva);
+        writer.member("entries", static_cast<std::uint64_t>(run.entries));
+        writer.member("entries_reaching_nothing_else",
+                      static_cast<std::uint64_t>(run.entries_reaching_nothing_else));
+        writer.member("referencing_functions",
+                      static_cast<std::uint64_t>(run.referencing_functions));
         writer.end_object();
     }
     writer.end_array();
@@ -376,6 +403,11 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     }
     if (facts.reachable_from_export) {
         writer.member("reachable_from_export", true);
+    }
+    // The interesting minority is what the bound does *not* reach, so that is
+    // what gets a member; emitting the majority flag would say nothing.
+    if (!facts.reachable_through_dispatch) {
+        writer.member("outside_every_closure", true);
     }
 
     if (!facts.virtual_bindings.empty()) {

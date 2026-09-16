@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-reachability",
+  "title": "DMC3 HD reachability bracketed between direct calls and the loosest sound dispatch bound",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-reachability-bracket",
+      "claim_id": "claim-dmc3-reachability-bracket",
+      "title": "Reachability is 5 per cent by direct calls and at most 78 per cent in total",
+      "summary": "Following direct calls from the entry point reaches 370 of the 7,389 inventoried functions. Every figure resting on that has been published as a lower bound, with no upper bound beside it. Assuming instead that a virtual call reaches whatever sits at its slot in any vtable the image carries gives one: 5,748 functions, or 78 per cent. That assumption is false as an answer and sound as a bound, because nothing in the file says what a receiver's type is, so the set of things it could be is the set of vtables that have the slot. The truth is between 370 and 5,748, and the width of that gap is the measurement: five per cent of this image's control flow is decided at compile time and the rest at run time.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the entry point",
+          "note": "RVA 0x1000; direct calls from here reach 370 functions, dispatch-inclusive closure 5,748 of 7,389."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-outside-every-closure",
+      "claim_id": "claim-dmc3-outside-every-closure",
+      "title": "1,641 functions the entry point cannot reach under any assumption the file supports",
+      "summary": "What the bound does not reach is a stronger statement than what it does. 1,641 functions sit outside it, and none of them is exported, an import thunk, or bound to any vtable slot, so no other mechanism the file describes reaches them either. 794 are called by something, which is itself outside the bound: closed islands of code calling each other with no way in. The remaining 847 have nothing in the image referring to them at all. Together they are 587,983 bytes of the 3,085,665 the inventory covers, or nineteen per cent of the code by size. This is not a claim that the code is dead. It is the precise statement that every route into it is one the file does not record, and it replaces a vaguer earlier figure of 848 structurally unreferenced functions, which counted only what nothing pointed at rather than what nothing could reach.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3257040,
+          "size": 11744,
+          "symbol": "the largest function outside the bound",
+          "note": "RVA 0x31B2D0, 11,744 bytes, one caller, in no vtable, not exported."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-rapid-type-analysis-starves",
+      "claim_id": "claim-dmc3-rapid-type-analysis-starves",
+      "title": "The standard way to tighten the bound does nothing here, and that is a fact about the engine",
+      "summary": "A virtual call can only reach a class something actually builds, so restricting the candidate vtables to those a reachable function installs is the usual way to narrow a bound like this. On this image it collapses: of the 915 vtables the type information locates, code reachable by direct calls installs exactly 4. Construction is itself behind dispatch, so the analysis starves before it can start. The bound is reported unrestricted for that reason rather than out of caution, and the 4 is the evidence that a tighter one is not available from structure alone.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the entry point",
+          "note": "Direct-call closure from RVA 0x1000 installs 4 of the image's 915 located vtables."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-function-pointer-runs",
+      "claim_id": "claim-dmc3-function-pointer-runs",
+      "title": "Correction: 210 apparent dispatch tables in data were 10",
+      "summary": "Runs of consecutive function addresses in read-only data are a dispatch mechanism beside the vtables, and scanning for them first reported 210 runs holding 1,617 entries. That was wrong. A vtable is such a run, and the scan excluded vtables by their base address only; a slot holding something the function inventory does not cover splits a vtable into fragments whose bases are not the vtable's, so each fragment counted as a table of its own. The three largest supposed tables each sat exactly 376 bytes — 47 slots — inside a located CComEm vtable. Excluding each vtable's whole extent instead leaves 10 runs holding 45 entries, 97 per cent of the original entry count having been an artefact of a gap in the inventory. What survives is uniform in a way the inflated figure hid: all 45 entries name functions the reachability bound does not reach, and only one of the 10 runs has its address taken by any inventoried function.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3515376,
+          "size": 96,
+          "symbol": "the largest surviving run",
+          "note": "RVA 0x35A3F0, 12 function addresses, none of them reachable, no inventoried function taking its address."
+        }
+      ]
+    }
+  ]
+}

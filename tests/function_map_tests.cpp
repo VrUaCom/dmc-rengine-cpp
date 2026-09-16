@@ -1126,6 +1126,167 @@ void a_purecall_thunk_is_named_by_the_import_table_not_its_shape() {
            dmc::rengine::exe::VtableSlotKind::implemented);
 }
 
+// A third function at rva 0x10C0 that nothing calls, plus the function table
+// covering it. Everything that follows is about how it can be reached.
+[[nodiscard]] PeFunctionTable table_with_a_third_function(Fixture& fixture) {
+    put(fixture.bytes, 0x2C0U, {0xC3});
+    auto table = fixture.table;
+    table.functions.push_back(PeFunctionRange{0x10C0U, 0x10D0U, 0U, false, 0x10C0U});
+    return table;
+}
+
+// Make function B dispatch through slot 2 of whatever it was given:
+//   ff 50 10   call QWORD PTR [rax+0x10]
+// It replaces the second `lea` in B's body, so the padding keeps the walk
+// landing on B's closing return.
+void make_b_dispatch_through_slot_two(Fixture& fixture) {
+    put(fixture.bytes, 0x257U, {0xFF, 0x50, 0x10, 0x90, 0x90, 0x90, 0x90});
+}
+
+void the_dispatch_bound_reaches_what_direct_calls_cannot() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    const auto table = table_with_a_third_function(fixture);
+    make_b_dispatch_through_slot_two(fixture);
+    // CBase slot 2 now names the third function.
+    put_u64(fixture.bytes, 0x598U, kImageBase + 0x10C0U);
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.functions.size() == 3U);
+    // Direct calls reach the entry point and what it calls, and stop there.
+    assert(map.summary.reachable_from_entry_point == 2U);
+    // The dispatch in B reads slot 2 of something, and slot 2 of a vtable in
+    // the image holds the third function. Nothing says the receiver is a
+    // CBase; the bound assumes it could be.
+    assert(map.summary.reachable_through_dispatch == 3U);
+    assert(map.summary.outside_every_closure == 0U);
+    assert(map.summary.dispatch_slots_reached == 1U);
+}
+
+void without_a_dispatch_the_bound_is_the_direct_closure() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    const auto table = table_with_a_third_function(fixture);
+    put_u64(fixture.bytes, 0x598U, kImageBase + 0x10C0U);
+    // Same vtable, same third function, but nothing dispatches. The bound must
+    // not reach it: sitting in a vtable is not by itself a path from the entry
+    // point.
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.reachable_through_dispatch == 2U);
+    assert(map.summary.outside_every_closure == 1U);
+    assert(map.summary.dispatch_slots_reached == 0U);
+}
+
+void a_slot_declared_pure_is_not_a_candidate_target() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    const auto table = table_with_a_third_function(fixture);
+    make_b_dispatch_through_slot_two(fixture);
+
+    // Slot 2 of CBase now reaches the _purecall thunk instead. A pure slot
+    // reaches the runtime's abort path, not the program, so the bound must not
+    // treat it as somewhere control can go.
+    put_u64(fixture.bytes, 0x598U, kImageBase + 0x10A0U);
+    // And slot 2 of CDerived is the third function, so there is still something
+    // at that slot for the bound to find if it looked past the pure one.
+    put_u64(fixture.bytes, 0x5D0U, kImageBase + 0x10C0U);
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // CDerived's slot 2 still names it, so it is reached — through the vtable
+    // that defines the slot, not through the one that only declares it.
+    assert(map.summary.reachable_through_dispatch == 3U);
+    // CBase now declares both slot 1 and slot 2 pure.
+    assert(map.summary.vtable_slots_pure_virtual == 2U);
+}
+
+// Lay three consecutive function addresses at rva 0x21D0 and give CDerived a
+// vtable whose declared extent covers them.
+void put_addresses_at_21d0(Fixture& fixture, std::uint32_t slot_count) {
+    put_u64(fixture.bytes, 0x5C0U, kImageBase + 0x1040U);
+    put_u64(fixture.bytes, 0x5C8U, kImageBase + 0x1090U);  // not in the inventory
+    put_u64(fixture.bytes, 0x5D0U, kImageBase + 0x1000U);
+    put_u64(fixture.bytes, 0x5D8U, kImageBase + 0x1040U);
+    put_u64(fixture.bytes, 0x5E0U, kImageBase + 0x10C0U);
+    fixture.rtti.classes.back().vtables[0].slot_count = slot_count;
+}
+
+void a_run_inside_a_vtable_is_not_a_table() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    const auto table = table_with_a_third_function(fixture);
+    // Five slots: rva 0x21C0 through 0x21E8. Slot 1 holds something the
+    // inventory does not cover, which splits the table into fragments, and the
+    // second fragment starts at 0x21D0 — not at the vtable's base. Excluding
+    // vtables by base alone would call that fragment a table of its own.
+    put_addresses_at_21d0(fixture, 5U);
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.function_pointer_runs.empty());
+    assert(map.summary.function_pointer_runs == 0U);
+}
+
+void the_same_addresses_outside_a_vtable_are_a_table() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    const auto table = table_with_a_third_function(fixture);
+    // Identical bytes; only the declared extent changes. One slot means the
+    // vtable ends at 0x21C8 and the addresses at 0x21D0 are outside it.
+    put_addresses_at_21d0(fixture, 1U);
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.function_pointer_runs.size() == 1U);
+    const auto& run = map.function_pointer_runs[0];
+    assert(run.base_rva == 0x21D0U);
+    assert(run.entries == 3U);
+    // Nothing in the fixture's code takes the run's address.
+    assert(run.referencing_functions == 0U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1183,6 +1344,11 @@ int main() {
     a_base_is_compared_through_its_own_subobject_vtable();
     a_base_with_no_vtable_at_its_recorded_offset_is_not_measured();
     a_purecall_thunk_is_named_by_the_import_table_not_its_shape();
+    the_dispatch_bound_reaches_what_direct_calls_cannot();
+    without_a_dispatch_the_bound_is_the_direct_closure();
+    a_slot_declared_pure_is_not_a_candidate_target();
+    a_run_inside_a_vtable_is_not_a_table();
+    the_same_addresses_outside_a_vtable_are_a_table();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

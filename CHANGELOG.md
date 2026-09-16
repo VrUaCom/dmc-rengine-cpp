@@ -8,6 +8,24 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Reachability bracketed, instead of a lower bound with nothing beside it
+
+- every reachability figure so far has been published as a lower bound. Direct calls from the entry point reach **370** of the 7,389 inventoried functions — **5%**. Assuming instead that a virtual call reaches whatever sits at its slot in any vtable the image carries gives the other end: **5,748**, or **78%**. That assumption is false as an answer and sound as a bound, because nothing in the file says a receiver's type, so what it could be is the set of vtables carrying the slot. The truth is between, and **the width of the gap is the measurement**: a twentieth of this image's control flow is fixed at compile time and the rest is decided at run time;
+- **the standard tightening does nothing here, and that is a fact about the engine.** Restricting candidates to vtables that reachable code installs normally narrows such a bound sharply; of the image's **915** located vtables, directly-reachable code installs **4**. Construction is itself behind dispatch, so the analysis starves before it starts. The bound is reported unrestricted for that reason, not out of caution;
+- **1,641 functions sit outside the bound**, and none is exported, an import thunk, or bound to any vtable slot, so no mechanism the file describes reaches them either. 794 are called by something itself outside the bound — closed islands with no way in — and 847 have nothing referring to them at all. That is 587,983 of 3,085,665 bytes, **19% of the code by size**. It replaces the vaguer figure of 848 structurally unreferenced functions, which counted what nothing *pointed at* rather than what nothing could *reach*;
+- `exe_function.outside_every_closure`, `v_exe_reachability_bracket` and `v_exe_unreachable_function` carry it into SQL. Build the database with `map-functions --all`, or the percentages describe the exported subset rather than the image.
+
+#### Correction: 210 apparent dispatch tables in data were 10
+
+- runs of consecutive function addresses in read-only data are a dispatch mechanism beside the vtables, and the scan first reported **210 runs holding 1,617 entries**. Wrong. A vtable *is* such a run, and the scan excluded vtables **by base address only**; a slot holding something the function inventory does not cover splits a vtable into fragments whose bases are not the vtable's, so every fragment counted as a table. The three largest supposed tables each sat exactly **376 bytes — 47 slots — inside** a located `CComEm` vtable, which is what gave it away;
+- excluding each vtable's **whole extent** leaves **10 runs holding 45 entries**: 97% of the entries were an artefact of a gap in the function inventory. A test pins the distinction — the same bytes inside a vtable's declared extent are not a table, and outside it they are;
+- what survives is uniform in a way the inflated figure hid: **all 45 entries name functions the reachability bound does not reach**, and only one of the 10 runs has its address taken by any inventoried function.
+
+#### Correction: `INSERT OR IGNORE` was hiding CHECK failures
+
+- a test written to prove the schema refuses a run shorter than three entries failed to raise, because `INSERT OR IGNORE` suppresses **CHECK** violations and not merely uniqueness conflicts. A malformed row would have vanished silently rather than been refused, in all three tables carrying CHECKs (`exe_name_table`, `exe_base_slot_override`, `exe_function_pointer_run`);
+- each now uses a conflict clause scoped to its own unique key, so idempotent re-import still works and a contradiction still raises. The real reports reload clean under the stricter inserts, which is itself a check on the counts they carry.
+
 #### Every vtable slot classified, and each base measured against its inheritors
 
 - a vtable slot is a code address, and decoding only the **first instruction** at that address sorts every one of the image's **13,894 slots** three ways: **276** reach the `_purecall` import, **4,246** start with a return, and 9,372 reach 3,313 distinct functions with code in them;

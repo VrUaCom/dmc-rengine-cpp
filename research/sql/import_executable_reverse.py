@@ -62,13 +62,14 @@ def load_name_tables(con: sqlite3.Connection, image_id: int, analysis: dict) -> 
         interior = run.get("interior_of_record_rva")
         interior = parse_rva(interior) if interior is not None else None
         con.execute(
-            """INSERT OR IGNORE INTO exe_name_table(
+            """INSERT INTO exe_name_table(
                    image_id, base_rva, layout, element_bytes, entries, longest_name,
                    pure_name_array, records_with_payload, text_payload_records,
                    payload_offset_consistent, content_period, sample_name,
                    absorbed_elements, interior_of_record_rva, interior_field_index,
                    overrun_elements, extent_status)
-               VALUES(?,?, 'STRIDE', ?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               VALUES(?,?, 'STRIDE', ?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(image_id, base_rva, layout) DO NOTHING""",
             (
                 image_id,
                 base,
@@ -111,10 +112,11 @@ def load_name_tables(con: sqlite3.Connection, image_id: int, analysis: dict) -> 
     for run in tables.get("records", []):
         base = parse_rva(run["base_rva"])
         con.execute(
-            """INSERT OR IGNORE INTO exe_name_table(
+            """INSERT INTO exe_name_table(
                    image_id, base_rva, layout, element_bytes, entries,
                    fields_per_record, sample_name, extent_status)
-               VALUES(?,?, 'RECORD', ?,?,?,?, 'STRUCTURAL_CONFIRMED')""",
+               VALUES(?,?, 'RECORD', ?,?,?,?, 'STRUCTURAL_CONFIRMED')
+               ON CONFLICT(image_id, base_rva, layout) DO NOTHING""",
             (
                 image_id,
                 base,
@@ -159,10 +161,11 @@ def load_referenced_tables(con: sqlite3.Connection, image_id: int, mapping: dict
             continue
 
         con.execute(
-            """INSERT OR IGNORE INTO exe_name_table(
+            """INSERT INTO exe_name_table(
                    image_id, base_rva, layout, element_bytes, entries,
                    indexed_sites, extent_status, known_from)
-               VALUES(?,?,?,?,?,?, 'EXTENT_UNCLASSIFIED', 'MAP')""",
+               VALUES(?,?,?,?,?,?, 'EXTENT_UNCLASSIFIED', 'MAP')
+               ON CONFLICT(image_id, base_rva, layout) DO NOTHING""",
             (image_id, base, layout, entry["element_bytes"], entry["entries"],
              entry.get("indexed_sites", 0)),
         )
@@ -333,6 +336,35 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     return imported
 
 
+def load_function_pointer_runs(con: sqlite3.Connection, image_id: int, mapping: dict) -> int:
+    """Stores runs of function addresses in data that are not a located vtable."""
+    imported = 0
+    for entry in mapping.get("function_pointer_runs", []):
+        if entry["entries_reaching_nothing_else"] > entry["entries"]:
+            raise SystemExit(
+                f"run at {entry['base_rva']} claims more unreachable entries than entries"
+            )
+        con.execute(
+            # Scoped to the uniqueness conflict on purpose: `INSERT OR IGNORE`
+            # would also swallow a CHECK failure, turning a malformed row into a
+            # silently missing one.
+            """INSERT INTO exe_function_pointer_run(
+                   image_id, base_rva, entries, entries_reaching_nothing_else,
+                   referencing_functions)
+               VALUES(?,?,?,?,?)
+               ON CONFLICT(image_id, base_rva) DO NOTHING""",
+            (
+                image_id,
+                parse_rva(entry["base_rva"]),
+                entry["entries"],
+                entry["entries_reaching_nothing_else"],
+                entry["referencing_functions"],
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_base_slot_overrides(con: sqlite3.Connection, image_id: int, mapping: dict,
                              classes: dict) -> int:
     """Stores, per base class and slot, what its inheritors put in that slot.
@@ -354,10 +386,13 @@ def load_base_slot_overrides(con: sqlite3.Connection, image_id: int, mapping: di
                 "counts more outcomes than classes"
             )
         con.execute(
-            """INSERT OR IGNORE INTO exe_base_slot_override(
+            # Scoped to the uniqueness conflict, so the table's CHECKs still
+            # raise rather than dropping the row.
+            """INSERT INTO exe_base_slot_override(
                    image_id, base_id, slot, base_kind, base_target_rva, derived_classes,
                    keep_base_target, empty_bodies, pure_virtual, distinct_implementations)
-               VALUES(?,?,?,?,?,?,?,?,?,?)""",
+               VALUES(?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(image_id, base_id, slot) DO NOTHING""",
             (
                 image_id,
                 class_id_for(con, image_id, classes, entry["base_class"]),
@@ -468,9 +503,9 @@ def load_functions(
             """INSERT INTO exe_function(
                    image_id, begin_rva, end_rva, size_bytes, instruction_count, walk_complete,
                    caller_count, callee_count, export_name, reachable_from_entry,
-                   reachable_from_export, prolog_size, stack_allocation, pushed_registers,
-                   frame_register, exception_handler)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   reachable_from_export, outside_every_closure, prolog_size, stack_allocation,
+                   pushed_registers, frame_register, exception_handler)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(image_id, begin_rva) DO UPDATE SET
                    caller_count=excluded.caller_count,
                    callee_count=excluded.callee_count""",
@@ -486,6 +521,7 @@ def load_functions(
                 entry.get("export_name"),
                 1 if entry.get("reachable_from_entry_point") else 0,
                 1 if entry.get("reachable_from_export") else 0,
+                1 if entry.get("outside_every_closure") else 0,
                 frame.get("prolog_size"),
                 frame.get("stack_allocation"),
                 frame.get("pushed_registers"),
@@ -608,6 +644,7 @@ def main() -> int:
     load_constant_arguments(con, image_id, mapping, function_ids)
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     load_base_slot_overrides(con, image_id, mapping, classes)
+    load_function_pointer_runs(con, image_id, mapping)
     con.commit()
 
     counts = {
@@ -630,6 +667,7 @@ def main() -> int:
             "exe_constant_argument_callee",
             "exe_constant_argument",
             "exe_base_slot_override",
+            "exe_function_pointer_run",
         )
     }
     con.close()

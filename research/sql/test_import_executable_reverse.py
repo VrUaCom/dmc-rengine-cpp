@@ -237,6 +237,26 @@ def make_map() -> dict:
                         "element_index": 1,
                     },
                 ],
+            },
+            {
+                # Nothing calls it, it is in no vtable, and the loosest
+                # dispatch bound does not reach it.
+                "begin_rva": "0x31b2d0",
+                "end_rva": "0x31e0b0",
+                "size": 11744,
+                "instructions": 2400,
+                "walk_complete": True,
+                "callers": 1,
+                "callees": 0,
+                "outside_every_closure": True,
+            },
+        ],
+        "function_pointer_runs": [
+            {
+                "base_rva": "0x35a3f0",
+                "entries": 12,
+                "entries_reaching_nothing_else": 12,
+                "referencing_functions": 0,
             }
         ],
         "functions_emitted": 1,
@@ -264,6 +284,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     importer.load_constant_arguments(con, image_id, mapping, function_ids)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     importer.load_base_slot_overrides(con, image_id, mapping, classes)
+    importer.load_function_pointer_runs(con, image_id, mapping)
     con.commit()
     return con
 
@@ -389,7 +410,7 @@ class ImporterTests(unittest.TestCase):
 
     def test_no_reference_is_dropped(self) -> None:
         mapping = make_map()
-        expected = sum(len(f["name_tables"]) for f in mapping["functions"])
+        expected = sum(len(f.get("name_tables", [])) for f in mapping["functions"])
         con = build(make_analysis(), mapping, self.directory)
         stored = con.execute("SELECT COUNT(*) FROM exe_table_reference").fetchone()[0]
         self.assertEqual(stored, expected)
@@ -461,6 +482,47 @@ class ImporterTests(unittest.TestCase):
             ).fetchone()[0],
             1,
         )
+
+    def test_reachability_is_reported_as_a_bracket(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT functions, direct_calls_only, through_any_dispatch, outside_every_closure"
+            " FROM v_exe_reachability_bracket"
+        ).fetchone()
+        # Two functions, neither directly reachable from the entry point in the
+        # fixture; one of them the dispatch bound does not reach either.
+        self.assertEqual(row, (2, 0, 1, 1))
+
+    def test_only_flagged_functions_are_listed_as_unreachable(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        rows = con.execute(
+            "SELECT begin_rva, size_bytes, vtable_slots FROM v_exe_unreachable_function"
+        ).fetchall()
+        self.assertEqual(rows, [("0x31b2d0", 11744, 0)])
+
+    def test_a_run_claiming_more_unreachable_entries_than_entries_is_refused(self) -> None:
+        # entries_reaching_nothing_else counts a subset of the run, so it can
+        # never exceed it. A report that says otherwise miscounted, and storing
+        # it would make the unreachable figure look better than it is.
+        mapping = make_map()
+        mapping["function_pointer_runs"][0]["entries_reaching_nothing_else"] = 13
+        con = sqlite3.connect(self.directory / "run.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(SystemExit):
+            importer.load_function_pointer_runs(con, image_id, mapping)
+
+    def test_a_run_shorter_than_three_is_refused_by_the_schema(self) -> None:
+        # Two addresses side by side are as likely to be unrelated pointers as
+        # a table, which is why the scan has a minimum; the schema states it.
+        mapping = make_map()
+        mapping["function_pointer_runs"][0]["entries"] = 2
+        mapping["function_pointer_runs"][0]["entries_reaching_nothing_else"] = 2
+        con = sqlite3.connect(self.directory / "short.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(sqlite3.IntegrityError):
+            importer.load_function_pointer_runs(con, image_id, mapping)
 
     def test_the_importer_refuses_mismatched_reports_end_to_end(self) -> None:
         import subprocess
