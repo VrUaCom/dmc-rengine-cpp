@@ -176,6 +176,11 @@ struct FunctionWalk final {
     /// Indirect jumps for which no table could be validated. These remain
     /// genuine holes in the graph rather than assumed-empty ones.
     std::uint32_t unresolved_indirect_jumps{};
+    /// Jumps through a memory operand off a register: a virtual call in tail
+    /// position, not a switch whose table went missing. Counted apart because
+    /// lumping the two together makes a dispatch site look like a failure of
+    /// the switch recovery.
+    std::uint32_t tail_dispatch_jumps{};
     /// Sorted, unique block addresses reached only through a switch table.
     std::vector<std::uint32_t> switch_targets;
 
@@ -213,6 +218,7 @@ struct CodeGraph final {
     std::size_t switch_tables_recovered{};
     std::size_t switch_targets_recovered{};
     std::size_t unresolved_indirect_jumps{};
+    std::size_t tail_dispatch_jumps{};
 
     std::vector<std::string> warnings;
 };

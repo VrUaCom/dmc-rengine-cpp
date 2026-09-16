@@ -22,7 +22,13 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - asking which functions reach a module's imports within three calls sizes each layer: audio **70** functions over 17 direct callers, Steam 28 over 12, input 21 over 6, the video shim 14 over 9, and **rendering 4** over a single direct caller for Direct3D and DXGI alike. That last figure is the import list's two symbols saying the same thing a second way — after device creation the renderer is a COM surface and almost nothing funnels into the entry point;
 - against those, 3,036 functions reach `KERNEL32` and 2,212 the CRT maths library: two fifths of the image is within three calls of an operating-system service;
 - the classes behind the audio layer are **scene** classes (`CSceneGame`, `CSceneDemo`, `CSceneMisStart`, `CSceneStartMenu`), not an audio hierarchy — which agrees with the platform boundary being made of free functions;
-- `exe_call_edge` and `v_exe_import_reach` carry this into SQL. The figures are lower bounds: 1,177 indirect jumps remain unresolved and are holes in the graph.
+- `exe_call_edge` and `v_exe_import_reach` carry this into SQL. The figures are lower bounds — see below for why, which is not the reason first given.
+
+#### Correction: the unresolved indirect jumps were mostly dispatch
+
+- the reachability figures were published noting 1,177 unresolved indirect jumps as holes in the graph. Classifying them shows the caveat was right for the wrong reason. Of **1,814** indirect jumps, **644** are the register-direct form a compiled switch uses and **637 of those have their table recovered — 98.9%**; only 7 register-direct jumps and 10 through a RIP-relative slot are genuinely unresolved, so the true figure is **17, not 1,177**;
+- the other **1,160** jump through a memory operand off a register: a virtual call **in tail position**, not a switch whose table went missing. Counting them together made a dispatch site look like a failure of the recovery, and made the recovery look far worse than it is;
+- read as dispatch they belong with the call sites, and the census rises from 10,274 to **11,434**. Almost none is on `this` — the receiver analysis gains exactly one — so the reachability figures stay lower bounds because a tail call's target is still unknown. The caveat stands; its cause was misnamed.
 
 #### Platform surface, layers, and the engine's design map
 

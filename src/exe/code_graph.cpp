@@ -299,9 +299,11 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                                           state[decoded.reg_operand].rva});
         }
 
-        if (decoded.flow == X86Flow::call_indirect && decoded.has_modrm &&
-            !decoded.register_indirect() && !decoded.rip_relative && decoded.displacement >= 0 &&
-            decoded.displacement % 8 == 0) {
+        // A virtual call in tail position is `jmp [reg + slot]` rather than
+        // `call [reg + slot]`, and is the same dispatch by another instruction.
+        if ((decoded.flow == X86Flow::call_indirect || decoded.flow == X86Flow::jump_indirect) &&
+            decoded.has_modrm && !decoded.register_indirect() && !decoded.rip_relative &&
+            decoded.displacement >= 0 && decoded.displacement % 8 == 0) {
             std::uint32_t receiver = 0U;
             bool through_this = false;
             std::uint32_t field_offset = 0U;
@@ -569,10 +571,16 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
                 fall_through = false;
 
                 // A register-direct `jmp reg` is the compiled switch form. A
-                // memory-indirect jump is a thunk or a virtual dispatch and has
-                // no table to read.
+                // memory-indirect jump is a thunk or a virtual dispatch in tail
+                // position and has no table to read — a different thing, and
+                // counting it as an unresolved switch made the recovery look
+                // far worse than it is.
                 if (!decoded->register_indirect()) {
-                    ++walk.unresolved_indirect_jumps;
+                    if (decoded->rip_relative) {
+                        ++walk.unresolved_indirect_jumps;
+                    } else {
+                        ++walk.tail_dispatch_jumps;
+                    }
                     break;
                 }
 
@@ -859,6 +867,7 @@ CodeGraph CodeGraphBuilder::build(std::span<const std::byte> bytes, const PeImag
         graph.switch_tables_recovered += walk.switch_tables;
         graph.switch_targets_recovered += walk.switch_targets.size();
         graph.unresolved_indirect_jumps += walk.unresolved_indirect_jumps;
+        graph.tail_dispatch_jumps += walk.tail_dispatch_jumps;
     }
 
     return graph;

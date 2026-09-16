@@ -101,6 +101,31 @@
           "note": "19,420 direct call edges between inventory functions; self-calls and calls to import thunks are not edges."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-tail-dispatch-not-a-hole",
+      "claim_id": "claim-dmc3-subsystem-reach",
+      "title": "The 1,177 unresolved indirect jumps were mostly dispatch, and the switch recovery was never the problem",
+      "summary": "The reachability figures were published with a caveat naming 1,177 unresolved indirect jumps as holes in the call graph. Classifying them shows the caveat was right for the wrong reason. Of 1,814 indirect jumps, 644 are the register-direct form a compiled switch uses and 637 of those have their table recovered, which is 98.9 per cent; only seven register-direct jumps and ten through a RIP-relative slot are genuinely unresolved, so the true figure is 17. The other 1,160 jump through a memory operand off a register, which is a virtual call in tail position rather than a switch whose table went missing. Counting them together made a dispatch site look like a failure of the recovery and made the recovery look far worse than it is. Read as dispatch, they belong with the call sites: the census rises from 10,274 to 11,434. Almost none is on `this`, which the receiver analysis puts at one more, so the reachability figures stay lower bounds — a tail call's target is still unknown — but the reason is virtual dispatch, not a gap in reading switches.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [
+        "ev-dmc3-subsystem-reach"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the indirect jumps",
+          "note": "1,814 indirect jumps: 644 register-direct with 637 tables recovered, 1,160 through a memory operand off a register, 10 through a RIP-relative slot."
+        }
+      ]
     }
   ]
 }

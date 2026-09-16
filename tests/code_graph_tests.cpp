@@ -561,6 +561,28 @@ void a_constant_first_argument_is_recorded_with_its_callee() {
     assert(calls[1].argument == 1U);
 }
 
+void a_tail_dispatch_is_not_an_unresolved_switch() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // `jmp [rax+0x48]` is a virtual call in tail position. It has no table to
+    // read because it never was a switch, and counting it as an unresolved one
+    // made the switch recovery look like it had failed 1,160 times over.
+    put(bytes, 0x300U, {0xFF, 0x60, 0x48});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1110U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    assert(graph.functions[0].indirect_jumps == 1U);
+    assert(graph.functions[0].tail_dispatch_jumps == 1U);
+    assert(graph.functions[0].unresolved_indirect_jumps == 0U);
+    // And it is a dispatch site, counted with the calls rather than lost.
+    assert(graph.functions[0].resolved_dispatch_sites.size() == 1U);
+    assert(graph.functions[0].resolved_dispatch_sites[0].displacement == 0x48U);
+}
+
 } // namespace
 
 int main() {
@@ -581,5 +603,6 @@ int main() {
     a_fact_both_paths_agree_on_survives_the_join();
     a_register_copy_carries_whatever_the_source_held();
     a_constant_first_argument_is_recorded_with_its_callee();
+    a_tail_dispatch_is_not_an_unresolved_switch();
     return 0;
 }

@@ -128,6 +128,8 @@ void write_graph(JsonWriter& writer, const CodeGraph& graph) {
                   static_cast<std::uint64_t>(graph.switch_targets_recovered));
     writer.member("unresolved_indirect_jumps",
                   static_cast<std::uint64_t>(graph.unresolved_indirect_jumps));
+    writer.member("tail_dispatch_jumps",
+                  static_cast<std::uint64_t>(graph.tail_dispatch_jumps));
     writer.end_object();
 }
 

@@ -113,6 +113,27 @@ call that creates it.
 At the other end, two fifths of the image sits within three calls of an
 operating-system service.
 
+### The caveat was right for the wrong reason
+
+These figures were first published with a note that 1,177 unresolved indirect
+jumps left holes in the call graph. Classifying them shows what they actually
+are:
+
+| Form | Count | What it is |
+| --- | --- | --- |
+| `jmp reg` | 644 | a compiled switch — **637 tables recovered, 98.9%** |
+| `jmp [reg+slot]` | **1,160** | a virtual call *in tail position* |
+| `jmp [rip+slot]` | 10 | an import thunk |
+
+So the switch recovery was never the problem: **17** jumps are genuinely
+unresolved, not 1,177. The rest are dispatch, and lumping them together made a
+dispatch site look like a failure to read a table.
+
+Read as dispatch, they belong with the call sites — the census rises from
+10,274 to **11,434**. Almost none is on `this` (the receiver analysis gains
+exactly one), so the reachability figures remain lower bounds, because a tail
+call's target is still unknown. The caveat stands; its cause was misnamed.
+
 And the classes behind the audio layer are **scene** classes — `CSceneGame`,
 `CSceneDemo`, `CSceneMisStart`, `CSceneStartMenu` — not an audio hierarchy.
 Audio is driven from scene code, which agrees with the platform boundary being
@@ -124,7 +145,8 @@ made of free functions.
   through published interface layouts; resolving them uses public API knowledge
   rather than anything read from the file, which is a different kind of claim
   and should be labelled as one if it is made;
-- **the 1,177 unresolved indirect jumps**, which are holes in the call graph and
-  therefore in every reachability figure above: the numbers are lower bounds;
+- **the 1,160 tail dispatches**, whose targets are unknown for the same reason
+  every other virtual call's is, and which keep the reachability figures lower
+  bounds;
 - **`CWork` itself** — 264 classes derive from it and its layout is the engine's
   universal object header.
