@@ -603,6 +603,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
 
             ++facts.callee_count;
             ++map.functions[*callee].caller_count;
+            facts.calls.push_back(map.functions[*callee].begin_rva);
 
             // Calling a thunk is calling the import behind it.
             if (const auto thunk = thunk_imports.find(*callee); thunk != thunk_imports.end()) {
@@ -612,6 +613,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     }
 
     for (auto& facts : map.functions) {
+        std::sort(facts.calls.begin(), facts.calls.end());
+        facts.calls.erase(std::unique(facts.calls.begin(), facts.calls.end()), facts.calls.end());
         std::sort(facts.imports_called.begin(), facts.imports_called.end(),
                   [](const ImportCall& left, const ImportCall& right) {
                       if (left.module != right.module) {

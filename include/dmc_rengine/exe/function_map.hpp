@@ -98,6 +98,11 @@ struct FunctionFacts final {
 
     std::uint32_t caller_count{};
     std::uint32_t callee_count{};
+    /// Functions this one calls directly, sorted and unique. Carried through
+    /// so the call graph can be queried rather than only counted: bounding a
+    /// subsystem means asking what reaches an import, which is a question about
+    /// edges.
+    std::vector<std::uint32_t> calls;
 
     bool reachable_from_entry_point{false};
     bool reachable_from_export{false};

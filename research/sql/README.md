@@ -290,6 +290,18 @@ names something the object holds, and `BASE` when it belongs to the same class,
 so the offset names a base subobject. `offset_confirmed_by_rtti` marks the
 entries where the RTTI's own recorded subobject offset agrees with the store.
 
+### Call graph and subsystem reach
+
+`exe_call_edge` holds the direct call edges between functions in the inventory.
+`v_exe_import_reach` uses them to size a subsystem: which functions reach a
+module's imports within three calls.
+
+```sql
+SELECT * FROM v_exe_import_reach;
+```
+
+The figures are lower bounds — unresolved indirect jumps are holes in the graph.
+
 ### Class hierarchy
 
 `exe_class_base` holds the hierarchy the compiler declared, one row per base a

@@ -257,6 +257,28 @@ def load_class_fields(con: sqlite3.Connection, image_id: int, mapping: dict,
     return imported
 
 
+def load_call_edges(con: sqlite3.Connection, mapping: dict, functions: dict) -> int:
+    """Stores the direct call edges between functions in the inventory."""
+    imported = 0
+    rows = []
+    for entry in mapping.get("functions", []):
+        caller = functions.get(parse_rva(entry["begin_rva"]))
+        if caller is None:
+            continue
+        for target in entry.get("calls", []):
+            callee = functions.get(parse_rva(target))
+            if callee is None or callee == caller:
+                # A function calling itself says nothing about who reaches what,
+                # and the schema promises the table holds no such row.
+                continue
+            rows.append((caller, callee))
+            imported += 1
+    con.executemany(
+        "INSERT OR IGNORE INTO exe_call_edge(caller_id, callee_id) VALUES(?,?)", rows
+    )
+    return imported
+
+
 def load_constant_arguments(con: sqlite3.Connection, image_id: int, mapping: dict,
                             functions: dict) -> int:
     """Stores which functions take a constant first argument, and which values."""
@@ -540,6 +562,7 @@ def main() -> int:
         )
     }
     load_class_fields(con, image_id, mapping, classes)
+    load_call_edges(con, mapping, function_ids)
     load_constant_arguments(con, image_id, mapping, function_ids)
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
@@ -552,6 +575,7 @@ def main() -> int:
             "exe_class_base",
             "exe_vtable_binding",
             "exe_vtable_install",
+            "exe_call_edge",
             "exe_import_call",
             "exe_dispatch_site",
             "exe_name_table",

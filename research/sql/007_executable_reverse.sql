@@ -96,6 +96,18 @@ CREATE TABLE IF NOT EXISTS exe_vtable_install (
     UNIQUE(function_id, class_id, vtable_index)
 );
 
+-- Direct call edges between functions in the inventory, deduplicated. Calls to
+-- an import thunk are recorded as import calls instead, and a function calling
+-- itself is not an edge.
+CREATE TABLE IF NOT EXISTS exe_call_edge (
+    id INTEGER PRIMARY KEY,
+    caller_id INTEGER NOT NULL REFERENCES exe_function(id) ON DELETE CASCADE,
+    callee_id INTEGER NOT NULL REFERENCES exe_function(id) ON DELETE CASCADE,
+    UNIQUE(caller_id, callee_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_exe_call_edge_callee ON exe_call_edge(callee_id);
+
 CREATE TABLE IF NOT EXISTS exe_import_call (
     id INTEGER PRIMARY KEY,
     function_id INTEGER NOT NULL REFERENCES exe_function(id) ON DELETE CASCADE,
@@ -408,3 +420,22 @@ JOIN exe_class c ON c.id = e.class_id
 WHERE b.display_name <> c.display_name
 GROUP BY b.id
 ORDER BY implementors DESC;
+
+-- Functions that can reach a given module's imports, and how far away they are.
+-- Bounding a subsystem is a question about edges: who, directly or through a
+-- few steps, ends up calling it.
+CREATE VIEW IF NOT EXISTS v_exe_import_reach AS
+WITH RECURSIVE seed(module, function_id, depth) AS (
+    SELECT module, function_id, 0 FROM exe_import_call
+    UNION
+    SELECT s.module, e.caller_id, s.depth + 1
+    FROM seed s
+    JOIN exe_call_edge e ON e.callee_id = s.function_id
+    WHERE s.depth < 3
+)
+SELECT module,
+       COUNT(DISTINCT function_id) AS functions,
+       SUM(CASE WHEN depth = 0 THEN 1 ELSE 0 END) AS direct_callers
+FROM (SELECT module, function_id, MIN(depth) AS depth FROM seed GROUP BY module, function_id)
+GROUP BY module
+ORDER BY functions DESC;

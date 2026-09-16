@@ -78,6 +78,29 @@
           "note": "1,341 declared base relationships over 407 classes; CWork named by 264, ICollisionHandle by 188, IActor by 182."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-subsystem-reach",
+      "claim_id": "claim-dmc3-subsystem-reach",
+      "title": "Each subsystem's size, measured by what reaches its imports",
+      "summary": "Bounding a subsystem is a question about edges, so the 19,420 direct call edges between inventory functions are now carried through rather than only counted. Asking which functions reach a module's imports within three calls sizes each layer. Audio is 70 functions over 17 direct callers. Steam is 28 over 12, input 21 over 6, the video shim 14 over 9. Rendering is 4 over a single direct caller, for Direct3D and DXGI alike, which is the same fact the import list already implied said a second way: after device creation the renderer is COM interfaces, and almost no code funnels into the entry point itself. Against those, 3,036 functions reach KERNEL32 and 2,212 the C runtime's maths, so two fifths of the image is within three calls of an operating-system service. The classes behind the audio layer are scene classes, CSceneGame and CSceneDemo among them, rather than any audio hierarchy, which agrees with the platform boundary being made of free functions.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "imports",
+        "porting"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the call graph",
+          "note": "19,420 direct call edges between inventory functions; self-calls and calls to import thunks are not edges."
+        }
+      ]
     }
   ]
 }

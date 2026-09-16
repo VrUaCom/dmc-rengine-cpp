@@ -184,6 +184,7 @@ def make_map() -> dict:
                 "walk_complete": True,
                 "callers": 2,
                 "callees": 3,
+                "calls": ["0x2d7210"],
                 "name_tables": [
                     {
                         "table_base_rva": "0x506f68",
@@ -233,6 +234,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     }
     importer.load_class_bases(con, image_id, analysis, classes)
     importer.load_class_fields(con, image_id, mapping, classes)
+    importer.load_call_edges(con, mapping, function_ids)
     importer.load_constant_arguments(con, image_id, mapping, function_ids)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
@@ -289,6 +291,17 @@ class ImporterTests(unittest.TestCase):
             " FROM v_exe_class_layout WHERE class_name='CCameraRail'"
         ).fetchone()
         self.assertEqual(row, (96, "CCameraRail", "BASE", 1))
+
+    def test_a_self_call_is_not_an_edge(self) -> None:
+        # The fixture's one function lists itself; an edge from a function to
+        # itself says nothing about who reaches what, and the map does not
+        # produce one. Whatever reaches the importer, the table refuses it.
+        con = build(make_analysis(), make_map(), self.directory)
+        self.assertEqual(
+            con.execute("SELECT COUNT(*) FROM exe_call_edge WHERE caller_id=callee_id")
+            .fetchone()[0],
+            0,
+        )
 
     def test_a_base_with_no_vtable_of_its_own_is_still_recorded(self) -> None:
         # IActor carries no vtable in the map's class coverage, so it has no row

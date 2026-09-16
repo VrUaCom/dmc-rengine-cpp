@@ -89,14 +89,42 @@ missing.
 > **On content.** Type names and hierarchy the compiler emitted, and imported
 > symbol names. No game data.
 
+## How big is each subsystem
+
+Bounding a layer is a question about **edges**, so the 19,420 direct call edges
+between inventory functions are now carried through rather than only counted.
+Asking which functions reach a module's imports within three calls sizes it:
+
+| Subsystem | Functions within 3 calls | Direct callers |
+| --- | --- | --- |
+| Audio (`fmod64`) | **70** | 17 |
+| Steam | 28 | 12 |
+| Input (`XINPUT`) | 21 | 6 |
+| Video shim (`MFPlat`) | 14 | 9 |
+| **Render (`d3d11`, `dxgi`)** | **4** each | 1 each |
+| `KERNEL32` | 3,036 | 65 |
+| CRT maths | 2,212 | 171 |
+
+**Four functions.** The renderer's entry point is an island — which is the
+import list's two symbols saying the same thing a second way: after device
+creation the renderer is a COM surface, and almost nothing funnels into the
+call that creates it.
+
+At the other end, two fifths of the image sits within three calls of an
+operating-system service.
+
+And the classes behind the audio layer are **scene** classes — `CSceneGame`,
+`CSceneDemo`, `CSceneMisStart`, `CSceneStartMenu` — not an audio hierarchy.
+Audio is driven from scene code, which agrees with the platform boundary being
+made of free functions.
+
 ## Open work
 
 - **the COM vtable surface behind D3D11.** Those calls are indirect dispatch
   through published interface layouts; resolving them uses public API knowledge
   rather than anything read from the file, which is a different kind of claim
   and should be labelled as one if it is made;
-- **which functions form each subsystem.** The import edges name 17 FMOD
-  callers and 9 Media Foundation callers; walking the call graph outward from
-  those would bound the audio and video layers by reachability;
+- **the 1,177 unresolved indirect jumps**, which are holes in the call graph and
+  therefore in every reachability figure above: the numbers are lower bounds;
 - **`CWork` itself** — 264 classes derive from it and its layout is the engine's
   universal object header.

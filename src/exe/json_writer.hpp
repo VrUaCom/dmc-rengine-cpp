@@ -145,6 +145,11 @@ public:
 
     void hex_member(std::string_view name, std::uint64_t value) {
         key(name);
+        hex(value);
+    }
+
+    /// An address as a hex string, for use inside an array.
+    void hex(std::uint64_t value) {
         string(hex_u64(value));
     }
 

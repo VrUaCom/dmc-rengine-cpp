@@ -16,6 +16,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### Subsystem sizes, measured by reachability
+
+- the **19,420 direct call edges** between inventory functions are now carried through the report and into SQL rather than only counted, because bounding a subsystem is a question about edges. Self-calls and calls to import thunks are not edges, and the importer refuses a self-edge as the schema promises;
+- asking which functions reach a module's imports within three calls sizes each layer: audio **70** functions over 17 direct callers, Steam 28 over 12, input 21 over 6, the video shim 14 over 9, and **rendering 4** over a single direct caller for Direct3D and DXGI alike. That last figure is the import list's two symbols saying the same thing a second way — after device creation the renderer is a COM surface and almost nothing funnels into the entry point;
+- against those, 3,036 functions reach `KERNEL32` and 2,212 the CRT maths library: two fifths of the image is within three calls of an operating-system service;
+- the classes behind the audio layer are **scene** classes (`CSceneGame`, `CSceneDemo`, `CSceneMisStart`, `CSceneStartMenu`), not an audio hierarchy — which agrees with the platform boundary being made of free functions;
+- `exe_call_edge` and `v_exe_import_reach` carry this into SQL. The figures are lower bounds: 1,177 indirect jumps remain unresolved and are holes in the graph.
+
 #### Platform surface, layers, and the engine's design map
 
 - **what a port has to provide, symbol by symbol.** 26 modules, 221 symbols, 870 call edges. Rendering enters through exactly **two** symbols — `D3D11CreateDeviceAndSwapChain` and `CreateDXGIFactory`, one calling function each — and everything after device creation goes through COM interfaces rather than imports, which is also why the image carries so many indirect calls. Audio is FMOD (36 symbols), video Media Foundation (8), input `XInputGetState`/`XInputSetState` plus a single `DirectInput8Create`, platform services Steam (7). The heaviest module by callers is not the graphics stack but the CRT **maths** library, at 228 functions;

@@ -319,6 +319,14 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     }
     writer.end_object();
     writer.member("callers", static_cast<std::uint64_t>(facts.caller_count));
+    if (!facts.calls.empty()) {
+        writer.key("calls");
+        writer.begin_array();
+        for (const auto target : facts.calls) {
+            writer.hex(target);
+        }
+        writer.end_array();
+    }
     writer.member("callees", static_cast<std::uint64_t>(facts.callee_count));
     if (facts.exported) {
         writer.member("export_name", facts.export_name);
