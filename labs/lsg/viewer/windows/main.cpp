@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
   const HINSTANCE instance = GetModuleHandleW(nullptr);
   constexpr wchar_t kClassName[] = L"RengineLSGPrototypeWindow";
   WNDCLASSW window_class{}; window_class.lpfnWndProc = window_proc; window_class.hInstance = instance;
-  window_class.lpszClassName = kClassName; window_class.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+  window_class.lpszClassName = kClassName; window_class.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512));
   if (RegisterClassW(&window_class) == 0) { std::cerr << "RegisterClassW failed\n"; return 3; }
   RECT rectangle{0, 0, 1280, 720};
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
