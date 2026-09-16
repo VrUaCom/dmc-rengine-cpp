@@ -28,6 +28,7 @@ jobs:
     env:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
       ANDROID_HOME: /usr/local/lib/android/sdk
+      LSG_NDK_VERSION: 30.0.16248370
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
@@ -37,16 +38,27 @@ jobs:
       - name: Install stable Android 36, CMake and NDK r30
         run: |
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;30.0.16248370'
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' "ndk;$LSG_NDK_VERSION"
+      - name: Compile Vulkan 1.2 shaders
+        run: |
+          GLSLC="$ANDROID_SDK_ROOT/ndk/$LSG_NDK_VERSION/shader-tools/linux-x86_64/glslc"
+          test -x "$GLSLC"
+          mkdir -p labs/lsg/viewer/android/app/src/main/assets/shaders
+          "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.vert -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv
+          "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.frag -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv
+          test -s labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv
+          test -s labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
       - name: Build arm64-v8a debug APK
         run: gradle -p labs/lsg/viewer/android :app:assembleDebug --stacktrace
-      - name: Verify native library packaged
+      - name: Verify native library and shaders packaged
         run: |
           unzip -l labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk | tee /tmp/apk-files.txt
           grep 'lib/arm64-v8a/librengine_lsg.so' /tmp/apk-files.txt
+          grep 'assets/shaders/human.vert.spv' /tmp/apk-files.txt
+          grep 'assets/shaders/human.frag.spv' /tmp/apk-files.txt
       - uses: actions/upload-artifact@v4
         with:
           name: rengine-lsg-android-arm64-${{ github.sha }}

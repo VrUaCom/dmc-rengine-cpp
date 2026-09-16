@@ -4,11 +4,14 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
+#include <iterator>
 #include <limits>
 #include <string_view>
 #include <vector>
 
 #if defined(__ANDROID__)
+#include <android/asset_manager.h>
 #include <android/native_window.h>
 #include <vulkan/vulkan_android.h>
 #endif
@@ -29,6 +32,8 @@ struct VulkanRenderer::Impl {
   std::vector<VkImageView> views;
   VkRenderPass render_pass{VK_NULL_HANDLE};
   std::vector<VkFramebuffer> framebuffers;
+  VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};
+  VkPipeline pipeline{VK_NULL_HANDLE};
   VkCommandPool command_pool{VK_NULL_HANDLE};
   std::vector<VkCommandBuffer> command_buffers;
   VkSemaphore image_available{VK_NULL_HANDLE};
@@ -39,6 +44,14 @@ struct VulkanRenderer::Impl {
 };
 
 namespace {
+
+struct PushConstants {
+  std::uint32_t character_index{};
+  std::uint32_t detail_enabled{};
+  float time_seconds{};
+  float reserved{};
+};
+static_assert(sizeof(PushConstants) == 16);
 
 bool has_extension(VkPhysicalDevice physical, const char* wanted) {
   std::uint32_t count = 0;
@@ -294,6 +307,154 @@ bool create_render_targets(VulkanRenderer::Impl& state) {
   return vkAllocateCommandBuffers(state.device, &allocate_info, state.command_buffers.data()) == VK_SUCCESS;
 }
 
+#if defined(__ANDROID__)
+std::vector<std::uint32_t> load_spirv(AAssetManager* manager, const char* path) {
+  if (manager == nullptr) {
+    return {};
+  }
+  AAsset* asset = AAssetManager_open(manager, path, AASSET_MODE_BUFFER);
+  if (asset == nullptr) {
+    return {};
+  }
+  const auto length = AAsset_getLength64(asset);
+  if (length <= 0 || (length % 4) != 0) {
+    AAsset_close(asset);
+    return {};
+  }
+  std::vector<std::uint32_t> words(static_cast<std::size_t>(length) / sizeof(std::uint32_t));
+  const int read = AAsset_read(asset, words.data(), static_cast<std::size_t>(length));
+  AAsset_close(asset);
+  if (read != length) {
+    return {};
+  }
+  return words;
+}
+#endif
+
+bool create_shader_module(VulkanRenderer::Impl& state,
+                          const std::vector<std::uint32_t>& code,
+                          VkShaderModule& module) {
+  if (code.empty()) {
+    return false;
+  }
+  VkShaderModuleCreateInfo create_info{};
+  create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+  create_info.codeSize = code.size() * sizeof(std::uint32_t);
+  create_info.pCode = code.data();
+  return vkCreateShaderModule(state.device, &create_info, nullptr, &module) == VK_SUCCESS;
+}
+
+bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
+#if defined(__ANDROID__)
+  auto* manager = static_cast<AAssetManager*>(asset_manager);
+  const auto vertex_code = load_spirv(manager, "shaders/human.vert.spv");
+  const auto fragment_code = load_spirv(manager, "shaders/human.frag.spv");
+#else
+  (void)asset_manager;
+  const std::vector<std::uint32_t> vertex_code;
+  const std::vector<std::uint32_t> fragment_code;
+#endif
+
+  VkShaderModule vertex_module = VK_NULL_HANDLE;
+  VkShaderModule fragment_module = VK_NULL_HANDLE;
+  if (!create_shader_module(state, vertex_code, vertex_module) ||
+      !create_shader_module(state, fragment_code, fragment_module)) {
+    if (vertex_module != VK_NULL_HANDLE) {
+      vkDestroyShaderModule(state.device, vertex_module, nullptr);
+    }
+    if (fragment_module != VK_NULL_HANDLE) {
+      vkDestroyShaderModule(state.device, fragment_module, nullptr);
+    }
+    return false;
+  }
+
+  VkPipelineShaderStageCreateInfo stages[2]{};
+  stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+  stages[0].module = vertex_module;
+  stages[0].pName = "main";
+  stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+  stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  stages[1].module = fragment_module;
+  stages[1].pName = "main";
+
+  VkPipelineVertexInputStateCreateInfo vertex_input{};
+  vertex_input.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+  VkPipelineInputAssemblyStateCreateInfo input_assembly{};
+  input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+  input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+  VkViewport viewport{};
+  viewport.x = 0.0f;
+  viewport.y = 0.0f;
+  viewport.width = static_cast<float>(state.extent.width);
+  viewport.height = static_cast<float>(state.extent.height);
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  VkRect2D scissor{};
+  scissor.extent = state.extent;
+
+  VkPipelineViewportStateCreateInfo viewport_state{};
+  viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewport_state.viewportCount = 1;
+  viewport_state.pViewports = &viewport;
+  viewport_state.scissorCount = 1;
+  viewport_state.pScissors = &scissor;
+
+  VkPipelineRasterizationStateCreateInfo rasterization{};
+  rasterization.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+  rasterization.polygonMode = VK_POLYGON_MODE_FILL;
+  rasterization.cullMode = VK_CULL_MODE_NONE;
+  rasterization.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  rasterization.lineWidth = 1.0f;
+
+  VkPipelineMultisampleStateCreateInfo multisample{};
+  multisample.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+  multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+  VkPipelineColorBlendAttachmentState blend_attachment{};
+  blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  VkPipelineColorBlendStateCreateInfo blend{};
+  blend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+  blend.attachmentCount = 1;
+  blend.pAttachments = &blend_attachment;
+
+  VkPushConstantRange push_range{};
+  push_range.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+  push_range.size = sizeof(PushConstants);
+  VkPipelineLayoutCreateInfo layout_info{};
+  layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+  layout_info.pushConstantRangeCount = 1;
+  layout_info.pPushConstantRanges = &push_range;
+  if (vkCreatePipelineLayout(state.device, &layout_info, nullptr, &state.pipeline_layout) != VK_SUCCESS) {
+    vkDestroyShaderModule(state.device, fragment_module, nullptr);
+    vkDestroyShaderModule(state.device, vertex_module, nullptr);
+    return false;
+  }
+
+  VkGraphicsPipelineCreateInfo pipeline_info{};
+  pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+  pipeline_info.stageCount = 2;
+  pipeline_info.pStages = stages;
+  pipeline_info.pVertexInputState = &vertex_input;
+  pipeline_info.pInputAssemblyState = &input_assembly;
+  pipeline_info.pViewportState = &viewport_state;
+  pipeline_info.pRasterizationState = &rasterization;
+  pipeline_info.pMultisampleState = &multisample;
+  pipeline_info.pColorBlendState = &blend;
+  pipeline_info.layout = state.pipeline_layout;
+  pipeline_info.renderPass = state.render_pass;
+  pipeline_info.subpass = 0;
+  const VkResult result = vkCreateGraphicsPipelines(
+      state.device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &state.pipeline);
+
+  vkDestroyShaderModule(state.device, fragment_module, nullptr);
+  vkDestroyShaderModule(state.device, vertex_module, nullptr);
+  return result == VK_SUCCESS;
+}
+
 bool create_sync(VulkanRenderer::Impl& state) {
   VkSemaphoreCreateInfo semaphore_info{};
   semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -321,7 +482,7 @@ std::uint64_t VulkanRenderer::estimated_gpu_bytes() const noexcept {
   return impl_ ? impl_->estimated_bytes : 0;
 }
 
-bool VulkanRenderer::initialize(void* native_window) {
+bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
   shutdown();
   impl_ = std::make_unique<Impl>();
   auto& state = *impl_;
@@ -367,7 +528,7 @@ bool VulkanRenderer::initialize(void* native_window) {
 #endif
 
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) ||
-      !create_render_targets(state) || !create_sync(state)) {
+      !create_render_targets(state) || !create_pipeline(state, asset_manager) || !create_sync(state)) {
     shutdown();
     return false;
   }
@@ -375,7 +536,9 @@ bool VulkanRenderer::initialize(void* native_window) {
   return true;
 }
 
-bool VulkanRenderer::draw_frame(float time_seconds) noexcept {
+bool VulkanRenderer::draw_frame(float time_seconds,
+                                std::uint32_t character_index,
+                                bool detail_enabled) noexcept {
   if (!ready()) {
     return false;
   }
@@ -405,11 +568,10 @@ bool VulkanRenderer::draw_frame(float time_seconds) noexcept {
     return false;
   }
 
-  const float pulse = 0.02f * static_cast<float>(static_cast<int>(time_seconds * 2.0f) & 1);
   VkClearValue clear{};
-  clear.color.float32[0] = 0.055f + pulse;
-  clear.color.float32[1] = 0.085f + pulse;
-  clear.color.float32[2] = 0.125f + pulse;
+  clear.color.float32[0] = 0.025f;
+  clear.color.float32[1] = 0.035f;
+  clear.color.float32[2] = 0.055f;
   clear.color.float32[3] = 1.0f;
 
   VkRenderPassBeginInfo render_info{};
@@ -420,6 +582,15 @@ bool VulkanRenderer::draw_frame(float time_seconds) noexcept {
   render_info.clearValueCount = 1;
   render_info.pClearValues = &clear;
   vkCmdBeginRenderPass(command_buffer, &render_info, VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
+  const PushConstants push{character_index & 1u, detail_enabled ? 1u : 0u, time_seconds, 0.0f};
+  vkCmdPushConstants(command_buffer,
+                     state.pipeline_layout,
+                     VK_SHADER_STAGE_FRAGMENT_BIT,
+                     0,
+                     sizeof(push),
+                     &push);
+  vkCmdDraw(command_buffer, 3, 1, 0, 0);
   vkCmdEndRenderPass(command_buffer);
   if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
     return false;
@@ -468,6 +639,12 @@ void VulkanRenderer::shutdown() noexcept {
     }
     if (state.command_pool != VK_NULL_HANDLE) {
       vkDestroyCommandPool(state.device, state.command_pool, nullptr);
+    }
+    if (state.pipeline != VK_NULL_HANDLE) {
+      vkDestroyPipeline(state.device, state.pipeline, nullptr);
+    }
+    if (state.pipeline_layout != VK_NULL_HANDLE) {
+      vkDestroyPipelineLayout(state.device, state.pipeline_layout, nullptr);
     }
     for (const auto framebuffer : state.framebuffers) {
       vkDestroyFramebuffer(state.device, framebuffer, nullptr);
