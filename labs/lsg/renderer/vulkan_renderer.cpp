@@ -43,6 +43,7 @@ struct VulkanRenderer::Impl {
   VkSwapchainKHR swapchain{VK_NULL_HANDLE};
   VkFormat format{VK_FORMAT_UNDEFINED};
   VkExtent2D extent{};
+  std::uint32_t surface_rotation{};
   std::vector<VkImage> images;
   std::vector<VkImageView> views;
   VkFormat depth_format{VK_FORMAT_UNDEFINED};
@@ -94,6 +95,13 @@ const char* platform_surface_extension() noexcept {
 #else
   return nullptr;
 #endif
+}
+
+std::uint32_t surface_rotation_code(VkSurfaceTransformFlagBitsKHR transform) noexcept {
+  if ((transform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR) != 0u) return 1u;
+  if ((transform & VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR) != 0u) return 2u;
+  if ((transform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) != 0u) return 3u;
+  return 0u;
 }
 
 bool create_platform_surface(VkInstance instance, void* native_window, VkSurfaceKHR& surface) {
@@ -193,12 +201,14 @@ VkCompositeAlphaFlagBitsKHR choose_composite_alpha(VkCompositeAlphaFlagsKHR supp
 
 bool create_swapchain(VulkanRenderer::Impl& state, void* native_window) {
   VkSurfaceCapabilitiesKHR capabilities{}; if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(state.physical, state.surface, &capabilities) != VK_SUCCESS) return false;
+  state.surface_rotation = surface_rotation_code(capabilities.currentTransform);
   std::uint32_t format_count{}; if (vkGetPhysicalDeviceSurfaceFormatsKHR(state.physical, state.surface, &format_count, nullptr) != VK_SUCCESS || format_count == 0) return false;
   std::vector<VkSurfaceFormatKHR> formats(format_count); if (vkGetPhysicalDeviceSurfaceFormatsKHR(state.physical, state.surface, &format_count, formats.data()) != VK_SUCCESS) return false;
   VkSurfaceFormatKHR chosen = formats.front(); for (const auto& format : formats) if ((format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB) && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) { chosen = format; break; }
   state.format = chosen.format;
   if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) state.extent = capabilities.currentExtent;
   else { const auto wanted = native_window_extent(native_window); state.extent.width = std::clamp(wanted.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width); state.extent.height = std::clamp(wanted.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height); }
+  if (state.surface_rotation == 1u || state.surface_rotation == 3u) std::swap(state.extent.width, state.extent.height);
   std::uint32_t image_count = capabilities.minImageCount + 1; if (capabilities.maxImageCount > 0) image_count = std::min(image_count, capabilities.maxImageCount);
   VkSwapchainCreateInfoKHR info{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR}; info.surface = state.surface; info.minImageCount = image_count; info.imageFormat = state.format; info.imageColorSpace = chosen.colorSpace; info.imageExtent = state.extent; info.imageArrayLayers = 1; info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE; info.preTransform = capabilities.currentTransform; info.compositeAlpha = choose_composite_alpha(capabilities.supportedCompositeAlpha); info.presentMode = VK_PRESENT_MODE_FIFO_KHR; info.clipped = VK_TRUE;
   if (vkCreateSwapchainKHR(state.device, &info, nullptr, &state.swapchain) != VK_SUCCESS) return false; if (vkGetSwapchainImagesKHR(state.device, state.swapchain, &image_count, nullptr) != VK_SUCCESS || image_count == 0) return false;
@@ -281,7 +291,7 @@ std::uint64_t VulkanRenderer::estimated_gpu_bytes() const noexcept { return impl
 
 bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
   shutdown(); impl_ = std::make_unique<Impl>(); auto& state = *impl_; const char* platform_extension = platform_surface_extension(); if (platform_extension == nullptr) return false;
-  const char* instance_extensions[] = {VK_KHR_SURFACE_EXTENSION_NAME, platform_extension}; VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = "Rengine LSG Prototype"; app.applicationVersion = VK_MAKE_VERSION(0, 3, 0); app.pEngineName = "DMC Rengine"; app.engineVersion = VK_MAKE_VERSION(0, 3, 0); app.apiVersion = VK_API_VERSION_1_2;
+  const char* instance_extensions[] = {VK_KHR_SURFACE_EXTENSION_NAME, platform_extension}; VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = "Rengine LSG Prototype"; app.applicationVersion = VK_MAKE_VERSION(0, 4, 0); app.pEngineName = "DMC Rengine"; app.engineVersion = VK_MAKE_VERSION(0, 4, 0); app.apiVersion = VK_API_VERSION_1_2;
   VkInstanceCreateInfo instance{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}; instance.pApplicationInfo = &app; instance.enabledExtensionCount = static_cast<std::uint32_t>(std::size(instance_extensions)); instance.ppEnabledExtensionNames = instance_extensions;
   if (vkCreateInstance(&instance, nullptr, &state.instance) != VK_SUCCESS || !create_platform_surface(state.instance, native_window, state.surface)) { shutdown(); return false; }
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) || !create_render_targets(state) || !create_mesh_buffers(state, asset_manager) || !create_pipeline(state, asset_manager) || !create_sync(state)) { shutdown(); return false; }
@@ -295,8 +305,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   VkClearValue clears[2]{}; clears[0].color.float32[0] = 0.025f; clears[0].color.float32[1] = 0.035f; clears[0].color.float32[2] = 0.055f; clears[0].color.float32[3] = 1.0f; clears[1].depthStencil = {1.0f, 0u};
   VkRenderPassBeginInfo render{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO}; render.renderPass = state.render_pass; render.framebuffer = state.framebuffers[image_index]; render.renderArea.extent = state.extent; render.clearValueCount = 2; render.pClearValues = clears; vkCmdBeginRenderPass(command, &render, VK_SUBPASS_CONTENTS_INLINE); vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
   const VkDeviceSize offset = 0; vkCmdBindVertexBuffers(command, 0, 1, &state.vertex_buffer, &offset); vkCmdBindIndexBuffer(command, state.index_buffer, 0, VK_INDEX_TYPE_UINT32);
-  PushConstants push{}; push.center_scale[0] = state.mesh_center[0]; push.center_scale[1] = state.mesh_center[1]; push.center_scale[2] = state.mesh_center[2]; push.center_scale[3] = state.mesh_scale; push.render_params[0] = state.extent.height == 0 ? 1.0f : static_cast<float>(state.extent.width) / static_cast<float>(state.extent.height); push.render_params[1] = state.meters_per_unit; push.render_params[2] = time_seconds; push.flags[0] = character_index & 1u; push.flags[1] = detail_enabled ? 1u : 0u;
-  vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push); vkCmdDrawIndexed(command, state.index_count, 1, 0, 0, 0); vkCmdEndRenderPass(command); if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
+  PushConstants push{}; push.center_scale[0] = state.mesh_center[0]; push.center_scale[1] = state.mesh_center[1]; push.center_scale[2] = state.mesh_center[2]; push.center_scale[3] = state.mesh_scale; push.render_params[0] = state.extent.height == 0 ? 1.0f : static_cast<float>(state.extent.width) / static_cast<float>(state.extent.height); push.render_params[1] = state.meters_per_unit; push.render_params[2] = time_seconds; push.flags[0] = character_index & 1u; push.flags[1] = detail_enabled ? 1u : 0u; push.flags[2] = state.surface_rotation; push.flags[3] = 0u;
+  vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push); vkCmdDrawIndexed(command, state.index_count, 1, 0, 0, 0);
+  push.flags[3] = 1u; vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push); vkCmdDraw(command, 18u, 1u, 0u, 0u);
+  vkCmdEndRenderPass(command); if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
   const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO}; submit.waitSemaphoreCount = 1; submit.pWaitSemaphores = &state.image_available; submit.pWaitDstStageMask = &wait_stage; submit.commandBufferCount = 1; submit.pCommandBuffers = &command; submit.signalSemaphoreCount = 1; submit.pSignalSemaphores = &state.render_finished; if (vkQueueSubmit(state.queue, 1, &submit, state.in_flight) != VK_SUCCESS) return false;
   VkPresentInfoKHR present{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR}; present.waitSemaphoreCount = 1; present.pWaitSemaphores = &state.render_finished; present.swapchainCount = 1; present.pSwapchains = &state.swapchain; present.pImageIndices = &image_index; const auto result = vkQueuePresentKHR(state.queue, &present); return result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR;
 }
