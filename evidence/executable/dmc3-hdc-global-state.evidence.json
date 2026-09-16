@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-global-state",
+  "title": "DMC3 HD global state: 200 fixed addresses the code operates on",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-global-blocks",
+      "claim_id": "claim-dmc3-global-blocks",
+      "title": "3,582 calls hand a fixed address to a callee, and they name 200 places",
+      "summary": "The Microsoft x64 convention puts the first argument in rcx, which is also where `this` goes, so an address the code takes with a RIP-relative lea and leaves there is something the callee operates on. There are 3,582 such calls and they name 200 distinct addresses. 3,562 of them point into .data rather than the read-only section, which is the opposite of what passing string literals would produce and is the reason this is a measurement of state rather than of arguments. The distribution has a steep head: 17 addresses are reached from twenty or more distinct functions, while 112 are passed exactly once. Nothing here says any of them is a C++ object — a free function's first argument is just an argument — and no byte at any of these addresses is read.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14081680,
+          "size": 412,
+          "symbol": "the most widely used block",
+          "note": "RVA 0xD6DC90 in .data: 600 calls from 347 distinct functions into 34 distinct entry points."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-global-block-reach",
+      "claim_id": "claim-dmc3-global-block-reach",
+      "title": "Two unrelated measurements of a block's extent agree in 21 of 26 cases",
+      "summary": "How far into a block the code reaches, and how far away the next block is, are measured from entirely different things: the first from instruction displacements inside a callee, the second from the sorted set of addresses the code takes. A callee only lends its reach to a block it has to itself — every image address it is given is that block, and it has no callers beyond those sites — which drops 575 call sites whose callee serves several blocks and 1,044 whose callee is reached some other way. 26 blocks survive with a reach. In 21 the reach fits inside the gap to the next block. In 5 it runs past it, which is not a disagreement but a reading: the next address the code takes is a field inside this block. The clearest is RVA 0xC99D30, reaching 26,465 bytes against a gap of 26,432 — thirty-three bytes past an address that is therefore part of it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 13212464,
+          "size": 26465,
+          "symbol": "a block containing the next address the code takes",
+          "note": "RVA 0xC99D30: reach 26,465 bytes, next addressed block 26,432 bytes away."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-global-state-is-untyped",
+      "claim_id": "claim-dmc3-global-state-is-untyped",
+      "title": "The engine's global state carries no run-time type, and its heap objects do",
+      "summary": "Of the 200 blocks, exactly one is reached by a function the constructor identification names: DMC3::FullMotionVideoManager at RVA 0xBEAFA0. The other 199 have no class the type information can attach to them, because nothing writes a vtable into them. Against that stand 396 polymorphic classes with 915 vtables, none of which is a global instance. So the engine splits cleanly in two: what it allocates is C++ with run-time type information, and what it keeps at fixed addresses is plain blocks reached through free functions. A port can read the second half only through the code that touches it, which is what makes the reach measurement the only handle on it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "architecture"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 12496800,
+          "size": 8,
+          "symbol": "the only global block with a class",
+          "note": "RVA 0xBEAFA0, constructed by a function that writes the DMC3::FullMotionVideoManager vtable."
+        }
+      ]
+    }
+  ]
+}

@@ -1406,6 +1406,80 @@ void an_address_computed_off_this_is_not_a_field_access() {
     assert(map.class_size_floors[0].floor_bytes == 8U);
 }
 
+void an_address_passed_first_marks_a_block_the_code_operates_on() {
+    Fixture fixture;
+    // Function A takes the address of the literal at rva 0x2000 into rcx and
+    // calls function B with it. The convention puts the first argument there,
+    // so B operates on whatever sits at that address.
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.global_state_blocks.size() == 1U);
+    const auto& block = map.global_state_blocks[0];
+    assert(block.base_rva == 0x2000U);
+    assert(block.section == ".rdata");
+    assert(block.call_sites == 1U);
+    assert(block.distinct_callees == 1U);
+    assert(block.distinct_callers == 1U);
+    // Nothing else is addressed this way, so there is no next block.
+    assert(block.bytes_to_next_block == 0U);
+    assert(!block.reach_runs_past_the_next_block);
+}
+
+void a_callee_serving_one_block_lends_it_the_reach() {
+    Fixture fixture;
+    // Give B a body that reaches offset 0x20 of what it was given and returns.
+    // B is called once, by A, with the address at rva 0x2000 — so every call
+    // that reaches B passes that block, and the reach is the block's.
+    put(fixture.bytes, 0x240U, {0x48, 0x8B, 0x41, 0x20, 0xC3});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image,
+                                fixture.table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.global_state_blocks.size() == 1U);
+    assert(map.global_state_blocks[0].field_reach == 0x21U);
+    assert(map.summary.global_blocks_with_a_field_reach == 1U);
+}
+
+void a_callee_with_another_caller_lends_its_reach_to_nobody() {
+    Fixture fixture;
+    put(fixture.bytes, 0x240U, {0x48, 0x8B, 0x41, 0x20, 0xC3});
+    // A second call to B, from the third function, with something the walk
+    // cannot name. B now serves two first arguments, so its deepest offset
+    // belongs to neither and lending it to the block would overstate the block.
+    //   e8 rel32   call B
+    //   c3         ret
+    put(fixture.bytes, 0x2C0U, {0xE8});
+    put_i32(fixture.bytes, 0x2C1U, -0x85);  // 0x10C5 - 0x85 = 0x1040
+    put(fixture.bytes, 0x2C5U, {0xC3});
+    auto table = fixture.table;
+    table.functions.push_back(PeFunctionRange{0x10C0U, 0x10D0U, 0U, false, 0x10C0U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.global_state_blocks.size() == 1U);
+    assert(map.global_state_blocks[0].field_reach == 0U);
+    assert(map.summary.global_block_sites_with_other_callers == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1473,6 +1547,9 @@ int main() {
     a_base_the_class_carries_no_vtable_for_does_not_floor_it();
     a_method_bound_into_a_subobject_reaches_further_into_the_object();
     an_address_computed_off_this_is_not_a_field_access();
+    an_address_passed_first_marks_a_block_the_code_operates_on();
+    a_callee_serving_one_block_lends_it_the_reach();
+    a_callee_with_another_caller_lends_its_reach_to_nobody();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

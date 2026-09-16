@@ -251,6 +251,31 @@ def make_map() -> dict:
                 "outside_every_closure": True,
             },
         ],
+        "global_state_blocks": [
+            {
+                "base_rva": "0xd6dc90",
+                "section": ".data",
+                "call_sites": 600,
+                "distinct_callees": 34,
+                "distinct_callers": 347,
+                "field_reach": 412,
+                "bytes_to_next_block": 832,
+                "reach_runs_past_the_next_block": False,
+                "constructed_class": "",
+            },
+            {
+                # The next address the code takes lies inside this block.
+                "base_rva": "0xc99d30",
+                "section": ".data",
+                "call_sites": 323,
+                "distinct_callees": 25,
+                "distinct_callers": 115,
+                "field_reach": 26465,
+                "bytes_to_next_block": 26432,
+                "reach_runs_past_the_next_block": True,
+                "constructed_class": "",
+            },
+        ],
         "class_size_floors": [
             {
                 "class": "CCameraRail",
@@ -307,6 +332,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     importer.load_base_slot_overrides(con, image_id, mapping, classes)
     importer.load_function_pointer_runs(con, image_id, mapping)
     importer.load_class_size_floors(con, image_id, mapping, classes)
+    importer.load_global_blocks(con, image_id, mapping, classes)
     con.commit()
     return con
 
@@ -568,6 +594,37 @@ class ImporterTests(unittest.TestCase):
         image_id = importer.load_image(con, make_analysis())
         with self.assertRaises(SystemExit):
             importer.load_class_size_floors(con, image_id, mapping, {})
+
+    def test_a_global_block_says_whether_its_two_measurements_agree(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        rows = con.execute(
+            "SELECT base_rva, distinct_callers, field_reach, bytes_to_next_block, agreement"
+            " FROM v_exe_global_block"
+        ).fetchall()
+        self.assertEqual(rows[0], ("0xd6dc90", 347, 412, 832, "REACH_FITS_THE_GAP"))
+        self.assertEqual(rows[1], ("0xc99d30", 115, 26465, 26432, "NEXT_ADDRESS_IS_INSIDE"))
+
+    def test_an_overrun_flag_its_own_numbers_deny_is_refused(self) -> None:
+        # The flag is exactly the comparison of reach against gap. One that
+        # disagrees with them came from somewhere else, and the view's whole
+        # point is that the two measurements are independent.
+        mapping = make_map()
+        mapping["global_state_blocks"][0]["reach_runs_past_the_next_block"] = True
+        con = sqlite3.connect(self.directory / "block.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(SystemExit):
+            importer.load_global_blocks(con, image_id, mapping, {})
+
+    def test_a_block_with_more_callees_than_call_sites_is_refused(self) -> None:
+        # Each call site has one callee, so the distinct count cannot exceed it.
+        mapping = make_map()
+        mapping["global_state_blocks"][0]["distinct_callees"] = 601
+        con = sqlite3.connect(self.directory / "callees.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(sqlite3.IntegrityError):
+            importer.load_global_blocks(con, image_id, mapping, {})
 
     def test_the_importer_refuses_mismatched_reports_end_to_end(self) -> None:
         import subprocess

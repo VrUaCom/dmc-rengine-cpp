@@ -109,7 +109,23 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("vtables_located", static_cast<std::uint64_t>(summary.vtables_located));
     writer.member("vtables_instantiated_by_reachable_code",
                   static_cast<std::uint64_t>(summary.vtables_instantiated_by_reachable_code));
-    writer.member("class_size_floors",
+    writer.member("global_state_blocks",
+                  static_cast<std::uint64_t>(summary.global_state_blocks));
+    writer.member("global_block_call_sites",
+                  static_cast<std::uint64_t>(summary.global_block_call_sites));
+    writer.member("global_blocks_with_a_field_reach",
+                  static_cast<std::uint64_t>(summary.global_blocks_with_a_field_reach));
+    writer.member("global_blocks_reach_within_the_gap",
+                  static_cast<std::uint64_t>(summary.global_blocks_reach_within_the_gap));
+    writer.member("global_blocks_reach_past_the_gap",
+                  static_cast<std::uint64_t>(summary.global_blocks_reach_past_the_gap));
+    writer.member("global_blocks_with_a_class",
+                  static_cast<std::uint64_t>(summary.global_blocks_with_a_class));
+    writer.member("global_block_sites_pooled",
+                  static_cast<std::uint64_t>(summary.global_block_sites_pooled));
+    writer.member("global_block_sites_with_other_callers",
+                  static_cast<std::uint64_t>(summary.global_block_sites_with_other_callers));
+        writer.member("class_size_floors",
                   static_cast<std::uint64_t>(summary.class_size_floors));
     writer.member("size_floors_above_a_vtable_pointer",
                   static_cast<std::uint64_t>(summary.size_floors_above_a_vtable_pointer));
@@ -249,6 +265,26 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
     writer.member("receiver_field_offset",
                   static_cast<std::uint64_t>(dispatch.receiver_field_offset));
         writer.hex_member("target_rva", dispatch.target_rva);
+        writer.end_object();
+    }
+    writer.end_array();
+
+    writer.key("global_state_blocks");
+    writer.begin_array();
+    // Addresses and how much code operates on them. No byte at any of these
+    // addresses is read.
+    for (const auto& block : map.global_state_blocks) {
+        writer.begin_object();
+        writer.hex_member("base_rva", block.base_rva);
+        writer.member("section", block.section);
+        writer.member("call_sites", static_cast<std::uint64_t>(block.call_sites));
+        writer.member("distinct_callees", static_cast<std::uint64_t>(block.distinct_callees));
+        writer.member("distinct_callers", static_cast<std::uint64_t>(block.distinct_callers));
+        writer.member("field_reach", static_cast<std::uint64_t>(block.field_reach));
+        writer.member("bytes_to_next_block",
+                      static_cast<std::uint64_t>(block.bytes_to_next_block));
+        writer.member("reach_runs_past_the_next_block", block.reach_runs_past_the_next_block);
+        writer.member("constructed_class", block.constructed_class);
         writer.end_object();
     }
     writer.end_array();

@@ -603,3 +603,58 @@ FROM exe_class_size_floor f
 JOIN exe_class c ON c.id = f.class_id
 LEFT JOIN exe_class b ON b.id = f.deepest_base_id
 ORDER BY f.floor_bytes DESC;
+
+-- ---------------------------------------------------------------------------
+-- Fixed addresses the code operates on
+-- ---------------------------------------------------------------------------
+-- An address handed to a direct call in the register the Microsoft x64
+-- convention reserves for the first argument. Nothing here says it is a C++
+-- object: a free function's first argument is just an argument. What is stored
+-- is the shape — one address, many callees, many callers — and no byte at any
+-- of these addresses is read.
+CREATE TABLE IF NOT EXISTS exe_global_block (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    base_rva INTEGER NOT NULL,
+    section TEXT,
+    call_sites INTEGER NOT NULL CHECK (call_sites > 0),
+    distinct_callees INTEGER NOT NULL CHECK (distinct_callees > 0),
+    distinct_callers INTEGER NOT NULL CHECK (distinct_callers > 0),
+    -- Deepest offset a callee dedicated to this block reaches, plus one; 0 when
+    -- no callee qualified. A callee serving several blocks lends its reach to
+    -- none of them.
+    field_reach INTEGER NOT NULL CHECK (field_reach >= 0),
+    bytes_to_next_block INTEGER NOT NULL CHECK (bytes_to_next_block >= 0),
+    reach_runs_past_the_next_block INTEGER NOT NULL DEFAULT 0,
+    constructed_class_id INTEGER REFERENCES exe_class(id) ON DELETE SET NULL,
+    -- A block cannot have more callees or callers than it has call sites.
+    CHECK (distinct_callees <= call_sites),
+    CHECK (distinct_callers <= call_sites),
+    -- The flag is exactly the comparison, so it cannot disagree with it.
+    CHECK (reach_runs_past_the_next_block =
+           (CASE WHEN bytes_to_next_block > 0 AND field_reach > bytes_to_next_block
+                 THEN 1 ELSE 0 END)),
+    UNIQUE (image_id, base_rva)
+);
+
+-- Blocks ranked by how much code operates on them, with the two independent
+-- measurements side by side: how far a dedicated callee reaches inside a block,
+-- and how far away the next block the code addresses is. Where the reach runs
+-- past the gap, that next address is a field inside this block.
+CREATE VIEW IF NOT EXISTS v_exe_global_block AS
+SELECT printf('0x%x', g.base_rva) AS base_rva,
+       g.section,
+       g.distinct_callers,
+       g.distinct_callees,
+       g.call_sites,
+       g.field_reach,
+       g.bytes_to_next_block,
+       CASE
+           WHEN g.field_reach = 0 THEN 'NO_DEDICATED_CALLEE'
+           WHEN g.reach_runs_past_the_next_block = 1 THEN 'NEXT_ADDRESS_IS_INSIDE'
+           ELSE 'REACH_FITS_THE_GAP'
+       END AS agreement,
+       c.display_name AS constructed_class
+FROM exe_global_block g
+LEFT JOIN exe_class c ON c.id = g.constructed_class_id
+ORDER BY g.distinct_callers DESC, g.base_rva;

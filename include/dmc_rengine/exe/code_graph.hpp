@@ -172,6 +172,25 @@ struct FunctionWalk final {
     /// Calls with a constant first argument, in address order.
     std::vector<ConstantArgumentCall> constant_argument_calls;
 
+    /// A direct call whose first argument is an address the code took with a
+    /// RIP-relative `lea`: a call on something that lives at a fixed place in
+    /// the image rather than on the heap or the stack.
+    ///
+    /// Most such calls pass a literal. The ones that matter are those whose
+    /// callee turns out to be a constructor, because then the address is a
+    /// global object of that class — which is the only route this file offers
+    /// to where an object of a known type actually sits.
+    struct ObjectArgumentCall final {
+        std::uint32_t site_rva{};
+        std::uint32_t callee_rva{};
+        std::uint32_t object_rva{};
+
+        friend bool operator==(const ObjectArgumentCall&, const ObjectArgumentCall&) = default;
+    };
+
+    /// Calls with an image address as their first argument, in address order.
+    std::vector<ObjectArgumentCall> object_argument_calls;
+
     /// Addresses of the instructions the walk decoded, in order. The register
     /// analysis runs over these rather than re-discovering the code, so it
     /// inherits the walk's guarantee that every one of them is a real

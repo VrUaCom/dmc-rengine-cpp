@@ -996,110 +996,6 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         map.summary.vtables_instantiated_by_reachable_code = instantiated.size();
     }
 
-    // ----- class size floors -----------------------------------------------
-    // Nothing here reads a field. One source is where the hierarchy descriptor
-    // places each base subobject; the other is how far into the object the
-    // class's own methods reach, the first argument to such a method being the
-    // object by the Microsoft x64 convention.
-    if (inputs.rtti != nullptr) {
-        struct Floor final {
-            std::uint32_t from_bases{};
-            std::string deepest_base;
-            std::uint32_t from_access{};
-            std::vector<std::uint32_t> per_function;
-        };
-        std::map<std::string, Floor> floors;
-
-        for (const auto& entry : inputs.rtti->classes) {
-            std::set<std::uint32_t> offsets_with_a_vtable;
-            for (const auto& vtable : entry.vtables) {
-                if (vtable.vtable_rva != 0U) {
-                    offsets_with_a_vtable.insert(vtable.subobject_offset);
-                }
-            }
-            auto& floor = floors[entry.display_name];
-            // The class's own vtable pointer sits at offset zero, so eight
-            // bytes is the floor every polymorphic class starts from.
-            floor.from_bases = 8U;
-            floor.deepest_base = entry.display_name;
-            for (const auto& base : entry.hierarchy) {
-                if (base.member_displacement < 0) {
-                    continue;
-                }
-                const auto displacement = static_cast<std::uint32_t>(base.member_displacement);
-                if (offsets_with_a_vtable.count(displacement) == 0U) {
-                    continue;
-                }
-                if (displacement + 8U > floor.from_bases) {
-                    floor.from_bases = displacement + 8U;
-                    floor.deepest_base = base.display_name;
-                }
-            }
-        }
-
-        for (std::size_t position = 0; position < map.functions.size(); ++position) {
-            const auto& walk = graph.functions[position];
-            if (walk.entry_field_offsets.empty()) {
-                continue;
-            }
-            const auto deepest = walk.entry_field_offsets.back();
-            const auto& facts = map.functions[position];
-
-            // A method bound at a non-zero subobject offset is handed a pointer
-            // to that subobject, so an offset inside it sits that much further
-            // into the complete object.
-            std::map<std::string, std::uint32_t> reach;
-            for (const auto& binding : facts.virtual_bindings) {
-                auto& value = reach[binding.class_display_name];
-                value = std::max(value, binding.subobject_offset + deepest + 1U);
-            }
-            if (!facts.constructs_class.empty()) {
-                auto& value = reach[facts.constructs_class];
-                value = std::max(value, deepest + 1U);
-            }
-            for (const auto& [name, value] : reach) {
-                auto& floor = floors[name];
-                floor.from_access = std::max(floor.from_access, value);
-                floor.per_function.push_back(value);
-            }
-        }
-
-        for (auto& [name, floor] : floors) {
-            ClassSizeFloor record;
-            record.class_display_name = name;
-            record.floor_from_bases = floor.from_bases;
-            record.deepest_base_display_name = floor.deepest_base;
-            record.floor_from_field_access = floor.from_access;
-            record.floor_bytes = std::max(floor.from_bases, floor.from_access);
-            record.functions_speaking = static_cast<std::uint32_t>(floor.per_function.size());
-            for (const auto value : floor.per_function) {
-                if (value * 2U >= record.floor_bytes) {
-                    ++record.functions_reaching_half;
-                }
-            }
-            if (floor.from_access != 0U && floor.from_bases > floor.from_access) {
-                ++map.summary.size_floors_where_bases_say_more;
-            }
-            if (record.floor_bytes > 8U) {
-                ++map.summary.size_floors_above_a_vtable_pointer;
-            }
-            if (record.functions_reaching_half >= 2U) {
-                ++map.summary.size_floors_corroborated;
-            } else if (record.functions_speaking > 1U) {
-                ++map.summary.size_floors_on_a_lone_outlier;
-            }
-            map.class_size_floors.push_back(std::move(record));
-        }
-        std::sort(map.class_size_floors.begin(), map.class_size_floors.end(),
-                  [](const ClassSizeFloor& left, const ClassSizeFloor& right) {
-                      if (left.floor_bytes != right.floor_bytes) {
-                          return left.floor_bytes > right.floor_bytes;
-                      }
-                      return left.class_display_name < right.class_display_name;
-                  });
-        map.summary.class_size_floors = map.class_size_floors.size();
-    }
-
     // ----- function-address runs in data ------------------------------------
     // Every located vtable's whole extent is excluded, not merely its base:
     // otherwise a slot the inventory does not cover splits a vtable into
@@ -1766,6 +1662,221 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     for (auto& entry : map.class_coverage) {
         const auto sites = install_sites.find(entry.class_display_name);
         entry.install_sites = sites == install_sites.end() ? 0U : sites->second;
+    }
+
+    // Both of the following read `constructs_class`, which the constructor
+    // identification above is what fills in. They ran before it once, and the
+    // constructor half of each measurement silently contributed nothing.
+    // ----- fixed addresses the code operates on -----------------------------
+    // An address handed to a call in the register the convention reserves for
+    // the first argument is something the callee works on. What makes a block
+    // interesting is not one such call but many, from many places, into many
+    // entry points.
+    {
+        std::map<std::uint32_t, std::set<std::uint32_t>> arguments_of_callee;
+        std::map<std::uint32_t, std::uint32_t> image_calls_to_callee;
+        for (const auto& walk : graph.functions) {
+            for (const auto& call : walk.object_argument_calls) {
+                arguments_of_callee[call.callee_rva].insert(call.object_rva);
+                ++image_calls_to_callee[call.callee_rva];
+            }
+        }
+
+        struct Block final {
+            std::uint32_t call_sites{};
+            std::set<std::uint32_t> callees;
+            std::set<std::uint32_t> callers;
+            std::uint32_t reach{};
+            std::string constructed_class;
+        };
+        std::map<std::uint32_t, Block> blocks;
+        for (std::size_t position = 0; position < graph.functions.size(); ++position) {
+            for (const auto& call : graph.functions[position].object_argument_calls) {
+                auto& block = blocks[call.object_rva];
+                ++block.call_sites;
+                block.callees.insert(call.callee_rva);
+                block.callers.insert(map.functions[position].begin_rva);
+                ++map.summary.global_block_call_sites;
+
+                const auto callee = index.containing(call.callee_rva);
+                if (!callee.has_value() ||
+                    map.functions[*callee].begin_rva != call.callee_rva) {
+                    continue;
+                }
+                if (block.constructed_class.empty()) {
+                    block.constructed_class = map.functions[*callee].constructs_class;
+                }
+                // Only a callee this block has to itself can lend its reach.
+                if (arguments_of_callee[call.callee_rva].size() != 1U) {
+                    ++map.summary.global_block_sites_pooled;
+                    continue;
+                }
+                if (map.functions[*callee].caller_count !=
+                    image_calls_to_callee[call.callee_rva]) {
+                    ++map.summary.global_block_sites_with_other_callers;
+                    continue;
+                }
+                const auto& offsets = graph.functions[*callee].entry_field_offsets;
+                if (!offsets.empty()) {
+                    block.reach = std::max(block.reach, offsets.back() + 1U);
+                }
+            }
+        }
+
+        std::vector<std::uint32_t> addresses;
+        addresses.reserve(blocks.size());
+        for (const auto& [address, block] : blocks) {
+            static_cast<void>(block);
+            addresses.push_back(address);
+        }
+
+        for (std::size_t position = 0; position < addresses.size(); ++position) {
+            const auto address = addresses[position];
+            const auto& block = blocks[address];
+            GlobalStateBlock record;
+            record.base_rva = address;
+            for (const auto& section : image.sections) {
+                if (section.contains_rva(address)) {
+                    record.section = section.name;
+                    break;
+                }
+            }
+            record.call_sites = block.call_sites;
+            record.distinct_callees = static_cast<std::uint32_t>(block.callees.size());
+            record.distinct_callers = static_cast<std::uint32_t>(block.callers.size());
+            record.field_reach = block.reach;
+            record.constructed_class = block.constructed_class;
+            if (position + 1U < addresses.size()) {
+                record.bytes_to_next_block = addresses[position + 1U] - address;
+                if (block.reach != 0U) {
+                    ++map.summary.global_blocks_with_a_field_reach;
+                    if (block.reach > record.bytes_to_next_block) {
+                        record.reach_runs_past_the_next_block = true;
+                        ++map.summary.global_blocks_reach_past_the_gap;
+                    } else {
+                        ++map.summary.global_blocks_reach_within_the_gap;
+                    }
+                }
+            } else if (block.reach != 0U) {
+                ++map.summary.global_blocks_with_a_field_reach;
+            }
+            if (!record.constructed_class.empty()) {
+                ++map.summary.global_blocks_with_a_class;
+            }
+            map.global_state_blocks.push_back(std::move(record));
+        }
+        std::sort(map.global_state_blocks.begin(), map.global_state_blocks.end(),
+                  [](const GlobalStateBlock& left, const GlobalStateBlock& right) {
+                      if (left.distinct_callers != right.distinct_callers) {
+                          return left.distinct_callers > right.distinct_callers;
+                      }
+                      return left.base_rva < right.base_rva;
+                  });
+        map.summary.global_state_blocks = map.global_state_blocks.size();
+    }
+
+    // ----- class size floors -----------------------------------------------
+    // Nothing here reads a field. One source is where the hierarchy descriptor
+    // places each base subobject; the other is how far into the object the
+    // class's own methods reach, the first argument to such a method being the
+    // object by the Microsoft x64 convention.
+    if (inputs.rtti != nullptr) {
+        struct Floor final {
+            std::uint32_t from_bases{};
+            std::string deepest_base;
+            std::uint32_t from_access{};
+            std::vector<std::uint32_t> per_function;
+        };
+        std::map<std::string, Floor> floors;
+
+        for (const auto& entry : inputs.rtti->classes) {
+            std::set<std::uint32_t> offsets_with_a_vtable;
+            for (const auto& vtable : entry.vtables) {
+                if (vtable.vtable_rva != 0U) {
+                    offsets_with_a_vtable.insert(vtable.subobject_offset);
+                }
+            }
+            auto& floor = floors[entry.display_name];
+            // The class's own vtable pointer sits at offset zero, so eight
+            // bytes is the floor every polymorphic class starts from.
+            floor.from_bases = 8U;
+            floor.deepest_base = entry.display_name;
+            for (const auto& base : entry.hierarchy) {
+                if (base.member_displacement < 0) {
+                    continue;
+                }
+                const auto displacement = static_cast<std::uint32_t>(base.member_displacement);
+                if (offsets_with_a_vtable.count(displacement) == 0U) {
+                    continue;
+                }
+                if (displacement + 8U > floor.from_bases) {
+                    floor.from_bases = displacement + 8U;
+                    floor.deepest_base = base.display_name;
+                }
+            }
+        }
+
+        for (std::size_t position = 0; position < map.functions.size(); ++position) {
+            const auto& walk = graph.functions[position];
+            if (walk.entry_field_offsets.empty()) {
+                continue;
+            }
+            const auto deepest = walk.entry_field_offsets.back();
+            const auto& facts = map.functions[position];
+
+            // A method bound at a non-zero subobject offset is handed a pointer
+            // to that subobject, so an offset inside it sits that much further
+            // into the complete object.
+            std::map<std::string, std::uint32_t> reach;
+            for (const auto& binding : facts.virtual_bindings) {
+                auto& value = reach[binding.class_display_name];
+                value = std::max(value, binding.subobject_offset + deepest + 1U);
+            }
+            if (!facts.constructs_class.empty()) {
+                auto& value = reach[facts.constructs_class];
+                value = std::max(value, deepest + 1U);
+            }
+            for (const auto& [name, value] : reach) {
+                auto& floor = floors[name];
+                floor.from_access = std::max(floor.from_access, value);
+                floor.per_function.push_back(value);
+            }
+        }
+
+        for (auto& [name, floor] : floors) {
+            ClassSizeFloor record;
+            record.class_display_name = name;
+            record.floor_from_bases = floor.from_bases;
+            record.deepest_base_display_name = floor.deepest_base;
+            record.floor_from_field_access = floor.from_access;
+            record.floor_bytes = std::max(floor.from_bases, floor.from_access);
+            record.functions_speaking = static_cast<std::uint32_t>(floor.per_function.size());
+            for (const auto value : floor.per_function) {
+                if (value * 2U >= record.floor_bytes) {
+                    ++record.functions_reaching_half;
+                }
+            }
+            if (floor.from_access != 0U && floor.from_bases > floor.from_access) {
+                ++map.summary.size_floors_where_bases_say_more;
+            }
+            if (record.floor_bytes > 8U) {
+                ++map.summary.size_floors_above_a_vtable_pointer;
+            }
+            if (record.functions_reaching_half >= 2U) {
+                ++map.summary.size_floors_corroborated;
+            } else if (record.functions_speaking > 1U) {
+                ++map.summary.size_floors_on_a_lone_outlier;
+            }
+            map.class_size_floors.push_back(std::move(record));
+        }
+        std::sort(map.class_size_floors.begin(), map.class_size_floors.end(),
+                  [](const ClassSizeFloor& left, const ClassSizeFloor& right) {
+                      if (left.floor_bytes != right.floor_bytes) {
+                          return left.floor_bytes > right.floor_bytes;
+                      }
+                      return left.class_display_name < right.class_display_name;
+                  });
+        map.summary.class_size_floors = map.class_size_floors.size();
     }
 
     map.import_usage.reserve(usage.size());

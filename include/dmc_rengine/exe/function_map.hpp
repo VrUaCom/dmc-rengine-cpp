@@ -337,6 +337,43 @@ struct BaseSlotOverride final {
     friend bool operator==(const BaseSlotOverride&, const BaseSlotOverride&) = default;
 };
 
+/// A fixed address the code hands to a direct call as its first argument.
+///
+/// The Microsoft x64 convention puts the first argument in rcx, which is also
+/// where `this` goes, so an address passed there is something the callee
+/// operates on. Nothing here says it is a C++ object: a free function's first
+/// argument is just an argument. What is measured is the shape — one address,
+/// many distinct callees, many distinct callers — which is the shape of an
+/// interface over shared state whatever the construct behind it.
+///
+/// `field_reach` counts only callees dedicated to this block: every image
+/// address they are given is this one, and they have no callers beyond those
+/// sites, so no other first argument reaches them. Without that restriction a
+/// function serving several blocks would lend its deepest offset to all of
+/// them.
+struct GlobalStateBlock final {
+    std::uint32_t base_rva{};
+    std::string section;
+    std::uint32_t call_sites{};
+    std::uint32_t distinct_callees{};
+    std::uint32_t distinct_callers{};
+    /// Deepest offset a dedicated callee reaches inside it, plus one. Zero when
+    /// no callee qualified.
+    std::uint32_t field_reach{};
+    /// Distance to the next address the code addresses this way, or zero for
+    /// the last. Not a size: two addresses can be parts of one thing, which is
+    /// exactly what the flag below records.
+    std::uint32_t bytes_to_next_block{};
+    /// The reach runs past the next block's address, so that address is a field
+    /// inside this one. Two measurements from unrelated sources disagreeing
+    /// this way is informative rather than wrong.
+    bool reach_runs_past_the_next_block{false};
+    /// Class of the constructor seen running on it, where one was.
+    std::string constructed_class;
+
+    friend bool operator==(const GlobalStateBlock&, const GlobalStateBlock&) = default;
+};
+
 /// A floor on how large one class's objects are.
 ///
 /// Two independent sources, and neither reads a field's contents. The class
@@ -533,6 +570,18 @@ struct FunctionMapSummary final {
     /// behind dispatch.
     std::size_t vtables_instantiated_by_reachable_code{};
     std::size_t vtables_located{};
+    /// Fixed addresses handed to a call as its first argument, and how the
+    /// measurement was narrowed to make each reach sound.
+    std::size_t global_state_blocks{};
+    std::size_t global_block_call_sites{};
+    std::size_t global_blocks_with_a_field_reach{};
+    std::size_t global_blocks_reach_within_the_gap{};
+    std::size_t global_blocks_reach_past_the_gap{};
+    std::size_t global_blocks_with_a_class{};
+    /// Call sites whose callee serves more than one block, or has callers
+    /// beyond these sites, so its reach belongs to no one block.
+    std::size_t global_block_sites_pooled{};
+    std::size_t global_block_sites_with_other_callers{};
     /// Classes given a size floor, and how well supported each is.
     std::size_t class_size_floors{};
     std::size_t size_floors_above_a_vtable_pointer{};
@@ -588,6 +637,8 @@ struct FunctionMap final {
     std::vector<FunctionPointerRun> function_pointer_runs;
     /// Size floors by class, largest first.
     std::vector<ClassSizeFloor> class_size_floors;
+    /// Fixed addresses the code operates on, most-referenced first.
+    std::vector<GlobalStateBlock> global_state_blocks;
     std::vector<std::string> warnings;
 };
 

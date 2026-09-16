@@ -399,6 +399,11 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                     FunctionWalk::ConstantArgumentCall{rva, callee, receiver.rva});
             }
 
+            if (emit != nullptr && receiver.kind == RegisterFact::Kind::image_address) {
+                emit->object_argument_calls.push_back(
+                    FunctionWalk::ObjectArgumentCall{rva, callee, receiver.rva});
+            }
+
             state[kReturnRegister] =
                 RegisterFact{.kind = RegisterFact::Kind::call_result, .rva = callee};
         }
@@ -819,6 +824,11 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
               });
     std::sort(walk.resolved_dispatch_sites.begin(), walk.resolved_dispatch_sites.end(),
               [](const FunctionWalk::DispatchSite& left, const FunctionWalk::DispatchSite& right) {
+                  return left.site_rva < right.site_rva;
+              });
+    std::sort(walk.object_argument_calls.begin(), walk.object_argument_calls.end(),
+              [](const FunctionWalk::ObjectArgumentCall& left,
+                 const FunctionWalk::ObjectArgumentCall& right) {
                   return left.site_rva < right.site_rva;
               });
     std::sort(walk.entry_field_offsets.begin(), walk.entry_field_offsets.end());

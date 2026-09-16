@@ -361,6 +361,24 @@ functions and the bracket's percentages describe that subset, not the image.
 that fall outside every located vtable's whole extent — excluding vtables by
 base alone reports each fragment of a split vtable as a table of its own.
 
+### Fixed addresses the code operates on
+
+`exe_global_block` holds addresses the code hands to a direct call as its first
+argument — the register the Microsoft x64 convention also uses for `this`.
+Nothing here says a block is a C++ object; what is stored is the shape, and no
+byte at any of these addresses is read.
+
+```sql
+SELECT * FROM v_exe_global_block LIMIT 20;
+SELECT * FROM v_exe_global_block WHERE agreement = 'NEXT_ADDRESS_IS_INSIDE';
+```
+
+`field_reach` counts only callees the block has to itself, so a function serving
+several blocks lends its deepest offset to none of them. `agreement` compares
+that reach against the distance to the next addressed block: the two come from
+unrelated sources, and where the reach runs past the gap, that next address is a
+field inside this block.
+
 ### Class size floors
 
 `exe_class_size_floor` holds a floor on each class's object size, never a size.

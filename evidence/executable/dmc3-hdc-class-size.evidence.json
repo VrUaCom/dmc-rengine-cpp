@@ -79,6 +79,32 @@
           "note": "396 classes, 320 with a floor above eight, median 1,307 bytes."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-size-floor-counts-corrected",
+      "claim_id": "claim-dmc3-size-floor-support",
+      "title": "Correction: the constructor half of the size measurement never ran",
+      "summary": "The floors were published as coming from two kinds of function: methods the compiler bound into a class's vtable, and constructors identified by the vtable they store at offset zero of their first argument. Only the first ever contributed. The measurement read each function's identified class from a field the constructor identification fills in further down the same build, so at the point it ran that field was empty for every function and the constructor branch was dead. Nothing published was unsound \u2014 a floor from bindings alone is still a floor, and the largest floors are unchanged, CEm035 still at 61,305 bytes and CPlDante at 46,625. The support counts move: 326 classes now carry a floor above their own vtable pointer rather than 320, 177 are corroborated rather than 171, 124 rest on a lone outlier rather than 121, 39 have a single source rather than 32, and 56 have only the type information rather than 72. The classes where base placement gives the deeper floor rise from 4 to 14. The same ordering mistake made the global-block census find no class at all where it should find one.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-size-floor-support",
+        "ev-dmc3-size-floor-from-two-sources"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the corrected counts are measured over",
+          "note": "396 classes, 326 with a floor above eight, median still 1,307 bytes."
+        }
+      ]
     }
   ]
 }

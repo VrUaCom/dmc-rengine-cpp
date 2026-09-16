@@ -336,6 +336,43 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     return imported
 
 
+def load_global_blocks(con: sqlite3.Connection, image_id: int, mapping: dict,
+                       classes: dict) -> int:
+    """Stores fixed addresses the code hands to a call as its first argument."""
+    imported = 0
+    for entry in mapping.get("global_state_blocks", []):
+        gap = entry["bytes_to_next_block"]
+        reach = entry["field_reach"]
+        expected = 1 if gap > 0 and reach > gap else 0
+        if int(bool(entry["reach_runs_past_the_next_block"])) != expected:
+            raise SystemExit(
+                f"block at {entry['base_rva']} flags an overrun its own numbers do not show"
+            )
+        owner = entry.get("constructed_class") or None
+        con.execute(
+            """INSERT INTO exe_global_block(
+                   image_id, base_rva, section, call_sites, distinct_callees, distinct_callers,
+                   field_reach, bytes_to_next_block, reach_runs_past_the_next_block,
+                   constructed_class_id)
+               VALUES(?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(image_id, base_rva) DO NOTHING""",
+            (
+                image_id,
+                parse_rva(entry["base_rva"]),
+                entry.get("section") or None,
+                entry["call_sites"],
+                entry["distinct_callees"],
+                entry["distinct_callers"],
+                reach,
+                gap,
+                expected,
+                class_id_for(con, image_id, classes, owner) if owner else None,
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_class_size_floors(con: sqlite3.Connection, image_id: int, mapping: dict,
                            classes: dict) -> int:
     """Stores a floor on each class's object size, never a size."""
@@ -678,6 +715,7 @@ def main() -> int:
     load_base_slot_overrides(con, image_id, mapping, classes)
     load_function_pointer_runs(con, image_id, mapping)
     load_class_size_floors(con, image_id, mapping, classes)
+    load_global_blocks(con, image_id, mapping, classes)
     con.commit()
 
     counts = {
@@ -702,6 +740,7 @@ def main() -> int:
             "exe_base_slot_override",
             "exe_function_pointer_run",
             "exe_class_size_floor",
+            "exe_global_block",
         )
     }
     con.close()

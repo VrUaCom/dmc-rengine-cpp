@@ -21,8 +21,14 @@ further into the complete object.
 | | |
 | --- | ---: |
 | classes | 396 |
-| with a floor above their own vtable pointer | **320** |
+| with a floor above their own vtable pointer | **326** |
 | median floor | **1,307 bytes** |
+
+> **Corrected 2026-09-16.** As first published, the constructor half of this
+> measurement never ran — it read a field the constructor identification fills
+> in further down the same build. Nothing was unsound and the largest floors are
+> unchanged; the counts below are the corrected ones. See
+> [the global-state note](dmc3-global-state-2026-09-16.md#correction-the-constructor-half-of-the-size-measurement-never-ran).
 
 Neither source reads what is *at* any offset.
 
@@ -33,10 +39,10 @@ functions independently reach at least half of it.
 
 | Support | Classes | Floors |
 | --- | ---: | --- |
-| two or more functions agree | **171** | 9 – 61,305 |
-| a lone outlier among several | 121 | 8 – 48,405 |
-| one function speaks at all | 32 | 8 – 41,411 |
-| only the type information | 72 | 8 |
+| two or more functions agree | **177** | 9 – 61,305 |
+| a lone outlier among several | 124 | 8 – 48,405 |
+| one function speaks at all | 39 | 8 – 41,411 |
+| only the type information | 56 | 8 |
 
 The largest floors are the well-supported ones, not the fragile ones:
 
@@ -80,7 +86,7 @@ opposite: MSVC lays base subobjects *before* members, so the deepest member sits
 past the deepest base whenever a class has any member at all. The ordering is
 what the layout rule requires, and the four exceptions are classes whose methods
 only ever read the vtable pointer at offset 0 — flooring them at 1 against their
-own 8.
+own 8. There are 14 such classes once constructors are counted, 4 before.
 
 Chasing it was still worth it. It sent me through the register analysis looking
 for a missing invalidation, and the invalidation is there and correct: every
