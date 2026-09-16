@@ -2,13 +2,13 @@ plugins { id("com.android.application") }
 
 android {
     namespace = "com.vruacom.rengine.lsg"
-    compileSdk = 37
+    compileSdk = 36
     ndkVersion = "30.0.16248370"
 
     defaultConfig {
         applicationId = "com.vruacom.rengine.lsg"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
         ndk { abiFilters += "arm64-v8a" }

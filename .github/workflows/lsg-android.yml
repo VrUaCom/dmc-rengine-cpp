@@ -34,10 +34,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Install Android 37, CMake and NDK r30
+      - name: Install stable Android 36, CMake and NDK r30
         run: |
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'platforms;android-37' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;30.0.16248370'
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" 'platform-tools' 'platforms;android-36' 'build-tools;36.0.0' 'cmake;3.22.1' 'ndk;30.0.16248370'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
