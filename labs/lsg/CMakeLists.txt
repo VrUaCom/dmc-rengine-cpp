@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(RengineLSGPrototype VERSION 0.3.0 LANGUAGES C CXX)
+project(RengineLSGPrototype VERSION 0.6.0 LANGUAGES C CXX)
 
 option(RENGINE_LSG_BUILD_TESTS "Build LSG unit tests" ON)
 option(RENGINE_LSG_BUILD_VIEWER "Build Windows Vulkan viewer when Vulkan is available" ON)
@@ -11,7 +11,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(rengine_lsg_core STATIC src/genome.cpp src/detail_scheduler.cpp src/physiology.cpp src/surface.cpp src/runtime.cpp src/rmesh.cpp)
+add_library(rengine_lsg_core STATIC
+  src/genome.cpp
+  src/detail_scheduler.cpp
+  src/physiology.cpp
+  src/surface.cpp
+  src/runtime.cpp
+  src/rmesh.cpp
+  src/camera.cpp
+  src/derived_character.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
 set_target_properties(rengine_lsg_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

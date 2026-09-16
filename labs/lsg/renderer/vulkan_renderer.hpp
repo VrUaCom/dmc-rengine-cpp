@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rengine/lsg/camera.hpp"
+
 #include <cstdint>
 #include <memory>
 
@@ -22,8 +24,13 @@ public:
   [[nodiscard]] bool ready() const noexcept;
   [[nodiscard]] std::uint64_t estimated_gpu_bytes() const noexcept;
 
+  void orbit_camera(float normalized_dx, float normalized_dy) noexcept;
+  void zoom_camera(float scale) noexcept;
+  void set_camera_preset(CameraPreset preset) noexcept;
+  [[nodiscard]] CameraState camera_state() const noexcept;
+
 private:
   std::unique_ptr<Impl> impl_;
 };
 
-}  // namespace rengine::lsg
+} // namespace rengine::lsg
