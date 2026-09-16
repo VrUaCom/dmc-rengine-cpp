@@ -26,11 +26,15 @@ struct AppState {
   bool has_window{};
   bool dragging{};
   bool hud_candidate{};
+  bool moved{};
   float down_x{};
   float down_y{};
   float last_x{};
   float last_y{};
   float last_pinch_distance{};
+  std::int64_t last_tap_ms{-1000};
+  float last_tap_x{};
+  float last_tap_y{};
 };
 
 void log_info(const char* message) { __android_log_write(ANDROID_LOG_INFO, kTag, message); }
@@ -44,6 +48,18 @@ void select_character(AppState& state, std::uint32_t index) {
 void toggle_detail(AppState& state) {
   state.detail_enabled = !state.detail_enabled;
   log_info(state.detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
+}
+
+void cycle_camera_preset(AppState& state) {
+  using rengine::lsg::CameraPreset;
+  const auto current = state.renderer.camera_state().preset;
+  const auto next = current == CameraPreset::full_body ? CameraPreset::portrait
+                  : current == CameraPreset::portrait ? CameraPreset::extreme_close_up
+                                                     : CameraPreset::full_body;
+  state.renderer.set_camera_preset(next);
+  log_info(next == CameraPreset::full_body ? "Camera Full Body"
+           : next == CameraPreset::portrait ? "Camera Portrait"
+                                           : "Camera Extreme Close-up");
 }
 
 void on_command(android_app* app, std::int32_t command) {
@@ -103,12 +119,13 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
     state->hud_candidate = state->down_y >= height * 0.70f;
     state->dragging = !state->hud_candidate;
+    state->moved = false;
     state->last_pinch_distance = 0.0f;
     return 1;
   }
 
   if (masked == AMOTION_EVENT_ACTION_POINTER_DOWN && count >= 2) {
-    state->hud_candidate = false; state->dragging = false;
+    state->hud_candidate = false; state->dragging = false; state->moved = true;
     state->last_pinch_distance = pointer_distance(event); return 1;
   }
 
@@ -116,11 +133,13 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     if (count >= 2) {
       const float current = pointer_distance(event);
       if (state->last_pinch_distance > 1.0f && current > 1.0f) state->renderer.zoom_camera(current / state->last_pinch_distance);
-      state->last_pinch_distance = current; state->hud_candidate = false; return 1;
+      state->last_pinch_distance = current; state->hud_candidate = false; state->moved = true; return 1;
     }
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     const float movement = std::hypot(x - state->down_x, y - state->down_y);
-    if (state->hud_candidate && movement > 0.025f * std::min(width, height)) state->hud_candidate = false;
+    const float threshold = 0.025f * std::min(width, height);
+    if (movement > threshold) state->moved = true;
+    if (state->hud_candidate && movement > threshold) state->hud_candidate = false;
     if (!state->hud_candidate) {
       if (!state->dragging) { state->dragging = true; state->last_x = x; state->last_y = y; }
       else {
@@ -132,7 +151,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   }
 
   if (masked == AMOTION_EVENT_ACTION_POINTER_UP) {
-    state->last_pinch_distance = 0.0f;
+    state->last_pinch_distance = 0.0f; state->moved = true;
     if (count > 1) {
       const std::size_t action_index = static_cast<std::size_t>((action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
       const std::size_t remaining = action_index == 0 ? 1u : 0u;
@@ -144,8 +163,20 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
 
   if (masked == AMOTION_EVENT_ACTION_UP || masked == AMOTION_EVENT_ACTION_CANCEL) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
-    if (masked == AMOTION_EVENT_ACTION_UP && state->hud_candidate && y >= height * 0.70f) handle_hud_tap(*state, x, width);
-    state->dragging = false; state->hud_candidate = false; state->last_pinch_distance = 0.0f; return 1;
+    if (masked == AMOTION_EVENT_ACTION_UP) {
+      if (state->hud_candidate && y >= height * 0.70f) {
+        handle_hud_tap(*state, x, width);
+      } else if (!state->moved) {
+        const std::int64_t now_ms = AMotionEvent_getEventTime(event);
+        const float tap_distance = std::hypot(x - state->last_tap_x, y - state->last_tap_y);
+        if (now_ms - state->last_tap_ms <= 350 && tap_distance < 0.10f * std::min(width, height)) {
+          cycle_camera_preset(*state); state->last_tap_ms = -1000;
+        } else {
+          state->last_tap_ms = now_ms; state->last_tap_x = x; state->last_tap_y = y;
+        }
+      }
+    }
+    state->dragging = false; state->hud_candidate = false; state->moved = false; state->last_pinch_distance = 0.0f; return 1;
   }
   return 0;
 }
