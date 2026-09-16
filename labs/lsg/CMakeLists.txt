@@ -65,6 +65,7 @@ if(RENGINE_LSG_BUILD_PROFILE_TOOL AND NOT ANDROID)
   target_link_libraries(lsg_compile PRIVATE rengine_lsg_core nlohmann_json::nlohmann_json)
   target_compile_features(lsg_compile PRIVATE cxx_std_23)
   if(RENGINE_LSG_BUILD_TESTS)
+    add_dependencies(rengine_lsg_tests lsg_compile)
     add_test(NAME lsg_compile_character_0
       COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_0.lsg.json
                           ${CMAKE_CURRENT_BINARY_DIR}/character_0.lsg)
