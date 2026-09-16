@@ -3,13 +3,13 @@ name: LSG Windows Prototype
 on:
   push:
     branches: [rengine-living-surface-genome]
-    paths:
-      - 'labs/lsg/**'
-      - '.github/workflows/lsg-windows.yml'
+    paths: ['labs/lsg/**', '.github/workflows/lsg-windows.yml']
   pull_request:
-    paths:
-      - 'labs/lsg/**'
-      - '.github/workflows/lsg-windows.yml'
+    paths: ['labs/lsg/**', '.github/workflows/lsg-windows.yml']
+
+env:
+  LSG_BASE_HUMAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj
+  LSG_BASE_HUMAN_GIT_BLOB: d26635e9326e3cca30778fd7b9c00062b03cce09
 
 jobs:
   windows-x64-vulkan:
@@ -24,23 +24,35 @@ jobs:
           if (-not $sdk) { throw 'Vulkan SDK installation directory not found' }
           "VULKAN_SDK=$($sdk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "$($sdk.FullName)\Bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Configure C++23 Win32 Vulkan viewer
-        run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64 -DRENGINE_LSG_BUILD_MESH_TOOL=OFF
+      - name: Configure C++23 Win32 Vulkan viewer and tools
+        run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64
+      - name: Build mesh preparer
+        run: cmake --build build-lsg-win --config Release --target lsg_prepare_mesh --parallel 2
+      - name: Prepare pinned Base Human RMS0
+        shell: pwsh
+        run: |
+          curl.exe -L --fail --retry 3 $env:LSG_BASE_HUMAN_URL -o build-lsg-win\base.obj
+          $blob = (git hash-object build-lsg-win\base.obj).Trim()
+          if ($blob -ne $env:LSG_BASE_HUMAN_GIT_BLOB) { throw "Base Human blob mismatch: $blob" }
+          New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
+          & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\base.obj build-lsg-win\Release\meshes\human_base.rmesh
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'RMS0 missing' }
       - name: Build tests and viewer
         run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests rengine_lsg_viewer --parallel 2
       - name: Run deterministic contract tests
         run: ctest --test-dir build-lsg-win -C Release --output-on-failure
-      - name: Verify Windows executable and SPIR-V
+      - name: Verify runnable Windows package
         shell: pwsh
         run: |
           if (!(Test-Path 'build-lsg-win\Release\rengine_lsg_viewer.exe')) { throw 'viewer exe missing' }
-          if (!(Test-Path 'build-lsg-win\shaders\human.vert.spv')) { throw 'vertex SPIR-V missing' }
-          if (!(Test-Path 'build-lsg-win\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing' }
+          if (!(Test-Path 'build-lsg-win\Release\shaders\human.vert.spv')) { throw 'vertex SPIR-V missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'human RMS0 missing beside EXE' }
       - uses: actions/upload-artifact@v4
         with:
-          name: rengine-lsg-windows-x64-${{ github.sha }}
+          name: rengine-lsg-windows-human-${{ github.sha }}
           path: |
             build-lsg-win/Release/rengine_lsg_viewer.exe
-            build-lsg-win/shaders/human.vert.spv
-            build-lsg-win/shaders/human.frag.spv
+            build-lsg-win/Release/shaders
+            build-lsg-win/Release/meshes
           if-no-files-found: error

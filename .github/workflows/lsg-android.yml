@@ -3,13 +3,9 @@ name: LSG Android Prototype
 on:
   push:
     branches: [rengine-living-surface-genome]
-    paths:
-      - 'labs/lsg/**'
-      - '.github/workflows/lsg-android.yml'
+    paths: ['labs/lsg/**', '.github/workflows/lsg-android.yml']
   pull_request:
-    paths:
-      - 'labs/lsg/**'
-      - '.github/workflows/lsg-android.yml'
+    paths: ['labs/lsg/**', '.github/workflows/lsg-android.yml']
 
 env:
   LSG_BASE_HUMAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj
@@ -46,6 +42,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Prepare pinned Base Human RMS0 asset
+        run: |
+          cmake -S labs/lsg -B build-lsg-host -G Ninja -DRENGINE_LSG_BUILD_VIEWER=OFF -DRENGINE_LSG_BUILD_TESTS=OFF
+          cmake --build build-lsg-host --target lsg_prepare_mesh --parallel 2
+          curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
+          test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
+          mkdir -p labs/lsg/viewer/android/app/src/main/assets/meshes
+          build-lsg-host/lsg_prepare_mesh /tmp/lsg-base-human.obj labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh
+          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh
       - name: Install stable Android 36, CMake and NDK r30
         run: |
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
@@ -57,21 +62,20 @@ jobs:
           mkdir -p labs/lsg/viewer/android/app/src/main/assets/shaders
           "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.vert -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv
           "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.frag -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv
-          test -s labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv
-          test -s labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
       - name: Build arm64-v8a debug APK
         run: gradle -p labs/lsg/viewer/android :app:assembleDebug --stacktrace
-      - name: Verify native library and shaders packaged
+      - name: Verify native library, shaders and human mesh packaged
         run: |
           unzip -l labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk | tee /tmp/apk-files.txt
           grep 'lib/arm64-v8a/librengine_lsg.so' /tmp/apk-files.txt
           grep 'assets/shaders/human.vert.spv' /tmp/apk-files.txt
           grep 'assets/shaders/human.frag.spv' /tmp/apk-files.txt
+          grep 'assets/meshes/human_base.rmesh' /tmp/apk-files.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: rengine-lsg-android-arm64-${{ github.sha }}
+          name: rengine-lsg-android-human-${{ github.sha }}
           path: labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error

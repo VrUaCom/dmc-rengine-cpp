@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(RengineLSGPrototype VERSION 0.2.0 LANGUAGES C CXX)
+project(RengineLSGPrototype VERSION 0.3.0 LANGUAGES C CXX)
 
 option(RENGINE_LSG_BUILD_TESTS "Build LSG unit tests" ON)
 option(RENGINE_LSG_BUILD_VIEWER "Build Windows Vulkan viewer when Vulkan is available" ON)
-option(RENGINE_LSG_BUILD_MESH_TOOL "Build GLB/glTF to experimental RMS0 mesh preparation tool" ON)
+option(RENGINE_LSG_BUILD_MESH_TOOL "Build OBJ/GLB/glTF to experimental RMS0 mesh preparation tool" ON)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -11,13 +11,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(rengine_lsg_core STATIC
-    src/genome.cpp
-    src/detail_scheduler.cpp
-    src/physiology.cpp
-    src/surface.cpp
-    src/runtime.cpp
-    src/rmesh.cpp)
+add_library(rengine_lsg_core STATIC src/genome.cpp src/detail_scheduler.cpp src/physiology.cpp src/surface.cpp src/runtime.cpp src/rmesh.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
 set_target_properties(rengine_lsg_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -69,16 +63,18 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
       COMMAND ${CMAKE_COMMAND} -E make_directory ${LSG_SHADER_BUILD_DIR}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.vert -o ${LSG_VERTEX_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.frag -o ${LSG_FRAGMENT_SPV}
-      DEPENDS shaders/human.vert shaders/human.frag
-      VERBATIM)
+      DEPENDS shaders/human.vert shaders/human.frag VERBATIM)
   add_custom_target(rengine_lsg_shaders DEPENDS ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV})
   add_executable(rengine_lsg_viewer viewer/windows/main.cpp renderer/vulkan_renderer.cpp)
   add_dependencies(rengine_lsg_viewer rengine_lsg_shaders)
-  file(TO_CMAKE_PATH "${LSG_SHADER_BUILD_DIR}" LSG_SHADER_BUILD_DIR_CMAKE)
-  target_compile_definitions(rengine_lsg_viewer PRIVATE VK_USE_PLATFORM_WIN32_KHR=1 RENGINE_LSG_SHADER_DIR="${LSG_SHADER_BUILD_DIR_CMAKE}")
+  target_compile_definitions(rengine_lsg_viewer PRIVATE VK_USE_PLATFORM_WIN32_KHR=1)
   target_include_directories(rengine_lsg_viewer PRIVATE renderer include)
   target_link_libraries(rengine_lsg_viewer PRIVATE rengine_lsg_core Vulkan::Vulkan user32)
   target_compile_features(rengine_lsg_viewer PRIVATE cxx_std_23)
+  add_custom_command(TARGET rengine_lsg_viewer POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_VERTEX_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.vert.spv"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.frag.spv")
 elseif(RENGINE_LSG_BUILD_VIEWER)
   message(STATUS "LSG desktop viewer currently targets Win32; non-Windows viewer skipped")
 endif()
