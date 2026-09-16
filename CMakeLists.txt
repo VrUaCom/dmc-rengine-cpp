@@ -373,6 +373,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-architecture.evidence.json)
     add_test(
+        NAME dmc_rengine_vtable_slots_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-vtable-slots.evidence.json)
+    add_test(
         NAME dmc_rengine_constant_arguments_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-constant-arguments.evidence.json)

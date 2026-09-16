@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-vtable-slots",
+  "title": "DMC3 HD vtable slots classified, and each base's slots measured across its inheritors",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-purecall-names-the-undefined-slots",
+      "claim_id": "claim-dmc3-purecall-names-the-undefined-slots",
+      "title": "The import table names the image's declared-but-undefined vtable slots",
+      "summary": "276 vtable slots across the image hold one address, RVA 0x346BF0, whose whole body is a jump through the import-address-table slot at RVA 0x34F3B8. The import directory names that slot VCRUNTIME140.dll!_purecall, which is the compiler's own marker for a virtual function declared without a definition. Those 276 slots are therefore pure-virtual declarations, named by a table the linker wrote rather than recognised from the shape of a thunk: the same encoding pointed at any other import would mean nothing. Three further slots reach KERNEL32 critical-section entries directly and are not this.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "imports",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3435504,
+          "size": 6,
+          "symbol": "the _purecall thunk",
+          "note": "RVA 0x346BF0: jmp [rip+0x87C2], reaching the IAT slot at RVA 0x34F3B8 that the import directory names VCRUNTIME140.dll!_purecall."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-vtable-slot-census",
+      "claim_id": "claim-dmc3-vtable-slot-census",
+      "title": "Thirty-one per cent of the image's polymorphic surface does nothing",
+      "summary": "Every vtable the type information locates carries 13,894 slots in total. Decoding only the first instruction of each target splits them three ways. 276 reach the _purecall import and are declarations. 4,246 reach a single address, RVA 0x24EA30, whose three bytes are a return and nothing else: thirty-one per cent of the whole polymorphic surface resolves to one body that does nothing. The remaining 9,372 reach 3,313 distinct functions with code in them. The linker folds identical functions, so slots sharing a target need not have been written once; 3,313 is a lower bound on how many distinct implementations exist, and the empty count is correspondingly an upper bound on how much of the surface is genuinely inert.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2419760,
+          "size": 3,
+          "symbol": "the empty virtual body",
+          "note": "RVA 0x24EA30: C2 00 00, a return, reached by 4,246 vtable slots."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-base-slot-override",
+      "claim_id": "claim-dmc3-base-slot-override",
+      "title": "702 base-and-slot pairs measured against the classes that inherit them",
+      "summary": "For each of 53 base classes and each slot of its own vtable, the classes that inherit it are compared through the vtable of the base's own subobject, at the offset the class hierarchy descriptor records for that base. That matters: IActor sits 96 bytes into a CActor, so comparing primary vtables would compare unrelated interfaces, and doing so changes IActor's numbers beyond recognition. 702 base-and-slot pairs come out of it; exactly one base-to-class pairing in the image records an offset the class carries no vtable at, and it is reported rather than guessed at. The measure is the ratio of distinct targets to classes carrying the slot. It reproduces a fact it was never given: slot zero scores 0.96 to 1.00 for every base with more than twenty inheritors, which is what MSVC's per-class scalar deleting destructor at slot zero requires.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5004056,
+          "size": 56,
+          "symbol": "the CWork vtable",
+          "note": "RVA 0x4C5D18, seven slots: a body at 0x4C960, four _purecall, then the empty body twice."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-interface-and-implementation-bases",
+      "claim_id": "claim-dmc3-interface-and-implementation-bases",
+      "title": "An I-named base never supplies a default body, in 21 of 21 cases",
+      "summary": "Of the 53 measured bases, 21 carry the project's I-prefix. Not one of them defaults a slot to the empty body, and 19 of the 21 declare at least one slot pure. The two that do not, INonPlayerDeath and IPlayer, carry exactly one slot each \u2014 the destructor \u2014 so they have no other slot to declare; among the bases with a slot to declare it is 19 of 19. Each is paired with a C-named base that supplies bodies for the same slots: IActor with 30 declared slots against CActor with 8 defaulted ones, INonPlayer with 22 against CNonPlayer's 14, ICom with 24 against CCom's 44. The prefix is only a name, but what the vtables do splits along it exactly in one direction. It does not split exactly in the other: nine C-named bases declare a slot pure, CWork among them, which declares four of its seven and is therefore abstract despite the prefix. So the reading is that an I-name means abstract, while a C-name means nothing on its own.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "architecture"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5004056,
+          "size": 56,
+          "symbol": "CWork, a C-named base that is abstract",
+          "note": "RVA 0x4C5D18: four of its seven slots are _purecall, and 264 classes inherit them."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-inherited-versus-per-class-slots",
+      "claim_id": "claim-dmc3-inherited-versus-per-class-slots",
+      "title": "The override ratio separates per-class behaviour from inherited behaviour",
+      "summary": "Within one base the ratio spreads across its whole range, and the spread is the result. CWork's seven slots run 0.96, 0.89, 0.53, 0.52, 0.39, 0.19, 0.13 over the same 264 classes: the first slots are where each class does its own thing, the last two are kept as the empty body by 200 and 216 of the 264. IActor's slots 1 through 16 sit between 0.011 and 0.187 across 182 classes, so a wide declared interface is implemented by a handful of classes and left empty by the rest. ICollisionHandle's two non-destructor slots score 0.011: 188 classes reach two addresses between them, which is one implementation shared through adjustor thunks rather than 188 behaviours. What any slot does remains unknown; only how widely it varies is measured.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "rtti",
+        "architecture",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5004056,
+          "size": 56,
+          "symbol": "CWork's seven slots over 264 classes",
+          "note": "RVA 0x4C5D18, ratios 0.96 0.89 0.53 0.52 0.39 0.19 0.13 from slot 0 to slot 6."
+        }
+      ]
+    }
+  ]
+}

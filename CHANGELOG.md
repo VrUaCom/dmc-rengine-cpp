@@ -8,6 +8,18 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### Every vtable slot classified, and each base measured against its inheritors
+
+- a vtable slot is a code address, and decoding only the **first instruction** at that address sorts every one of the image's **13,894 slots** three ways: **276** reach the `_purecall` import, **4,246** start with a return, and 9,372 reach 3,313 distinct functions with code in them;
+- the first split is named, not guessed. RVA 0x346BF0 is `jmp [rip+0x87C2]` reaching the import-address-table slot at 0x34F3B8, which the **import directory** names `VCRUNTIME140.dll!_purecall`. The same encoding pointed at any other import means nothing, and the test for it asserts exactly that;
+- the second is blunter than expected: all 4,246 slots hold **one address**, 0x24EA30, whose whole body is three bytes — `C2 00 00`, a return. **Thirty-one per cent of the polymorphic surface resolves to a function that does nothing.** The linker folds identical functions, so 3,313 is a lower bound on distinct implementations and 4,246 an upper bound on inert surface;
+- **702 base-and-slot pairs** over 53 bases are now measured: for each slot of a base's vtable, how many classes inherit it and how many distinct targets they put there. The comparison runs against the vtable of the base's **own subobject**, at the offset its class hierarchy descriptor records — `IActor` sits 96 bytes into a `CActor`, and comparing primary vtables instead reads an unrelated interface, turning `IActor` slot 1 from **11** implementations into 165. Exactly one base-to-class pairing in the image names an offset with no vtable at it, and it is reported rather than guessed at;
+- **the check that found nothing wrong:** slot 0 scores **0.96 to 1.00** for every base with more than twenty inheritors. Nothing told the measurement that MSVC puts a per-class scalar deleting destructor there, so reproducing it is the measure validating itself;
+- the spread within one base is the result. `CWork`'s seven slots run **0.96, 0.89, 0.53, 0.52, 0.39, 0.19, 0.13** over the same 264 classes: early slots are per-class behaviour, and the last two are left as the empty body by 200 and 216 of them. `ICollisionHandle`'s two non-destructor slots score **0.011** — 188 classes reach two addresses between them, which is one implementation shared through adjustor thunks;
+- **`I` means abstract; `C` means nothing.** Of 53 bases, 21 carry the `I` prefix and **not one defaults a slot to the empty body** — 21 of 21. 19 of 21 declare a slot pure, and the two that do not carry only the destructor slot, so among bases with anything to declare it is 19 of 19. The converse fails: **nine** `C`-named bases declare a slot pure, `CWork` among them;
+- this answers the architecture note's open item. `CWork` is an **abstract base with two optional hooks**, not the universal object header it was assumed to be;
+- `exe_base_slot_override`, `v_exe_slot_override` and `v_exe_base_interface_shape` carry it into SQL, with CHECKs asserting that a slot's outcomes cannot outnumber the classes carrying it. Slot *semantics* remain unestablished: nothing in the file names a slot, and an override ratio is not evidence of what a slot is for.
+
 #### Table extents corrected against absorbed string pools
 
 - **blind spot closed.** The limitation recorded below is not a pool that resembles a table; it is a real table whose extent ran past its own end into the pool that follows it. A pool of short names is padded to the alignment the grid uses, and because its strings fall at a fixed sub-multiple of the stride the payload offsets stay consistent, so the pool rejection never fires;

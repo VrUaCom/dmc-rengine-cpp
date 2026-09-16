@@ -342,5 +342,32 @@ Only calls on `this` in a method bound into exactly one vtable are here. Every
 other dispatch site is counted in the report's summary and left unresolved:
 nothing in the file says what an argument or a heap pointer points at.
 
+### Vtable slot census
+
+`exe_base_slot_override` holds one row per base class and slot: how many classes
+inherit that slot and what they put there. The comparison runs against the
+vtable of the base's own subobject, at the offset the class hierarchy descriptor
+records for it, so both sides describe the same interface — a base at a non-zero
+displacement has a different vtable from the derived class's primary one.
+
+`base_kind` says what the base itself puts in the slot, read from the first
+instruction of its target: `pure-virtual` reaches the import named `_purecall`,
+`empty-body` starts with a return, `implemented` is anything else.
+
+```sql
+SELECT base_name, slot, derived_classes, distinct_implementations, override_ratio
+FROM v_exe_slot_override WHERE base_name = 'CWork' ORDER BY slot;
+
+SELECT * FROM v_exe_base_interface_shape WHERE inheritors >= 15;
+```
+
+`override_ratio` is distinct implementations per class carrying the slot. Near 1
+means per-class behaviour lives there; near 0 means the slot is inherited and
+only a few bodies exist for it. The linker folds identical functions, so the
+distinct count is a lower bound on distinct behaviour.
+
+Layout and linkage only. No slot is named, and the ratio is not evidence of what
+a slot is for.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

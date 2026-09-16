@@ -16,6 +16,8 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <unordered_set>
+#include <optional>
 
 namespace dmc::rengine::exe {
 namespace {
@@ -430,6 +432,194 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                       }
                       return left.class_display_name < right.class_display_name;
                   });
+    }
+
+    // ----- vtable slot census ----------------------------------------------
+    // What a slot's target *is* is readable from its first instruction alone,
+    // and the three cases it separates are the ones that matter for reading an
+    // interface: a declaration with no definition, a body that does nothing,
+    // and code. The first is named outright by the import directory rather than
+    // recognised by shape, which is why it is a fact and not a guess.
+    if (inputs.rtti != nullptr) {
+        struct VtableAtOffset final {
+            std::uint32_t rva{};
+            std::uint32_t slots{};
+        };
+
+        std::unordered_map<std::uint32_t, std::string> purecall_slots;
+        if (inputs.directories != nullptr) {
+            for (const auto& module : inputs.directories->imports) {
+                for (const auto& function : module.functions) {
+                    if (function.name == "_purecall") {
+                        purecall_slots.emplace(function.iat_rva, module.name);
+                    }
+                }
+            }
+        }
+
+        std::unordered_map<std::uint32_t, VtableSlotKind> slot_kind;
+        const auto classify = [&](std::uint32_t target) -> VtableSlotKind {
+            if (const auto known = slot_kind.find(target); known != slot_kind.end()) {
+                return known->second;
+            }
+            auto kind = VtableSlotKind::implemented;
+            if (const auto offset = image.rva_to_file_offset(target); offset.has_value()) {
+                const auto decoded =
+                    X86LengthDecoder::decode(bytes, static_cast<std::size_t>(*offset));
+                if (decoded.has_value()) {
+                    if (decoded->flow == X86Flow::return_) {
+                        kind = VtableSlotKind::empty_body;
+                    } else if (decoded->flow == X86Flow::jump_indirect && decoded->rip_relative) {
+                        const auto reached = target + decoded->length +
+                                             static_cast<std::uint32_t>(decoded->displacement);
+                        if (purecall_slots.find(reached) != purecall_slots.end()) {
+                            kind = VtableSlotKind::pure_virtual;
+                        }
+                    }
+                }
+            }
+            slot_kind.emplace(target, kind);
+            return kind;
+        };
+
+        const auto target_at = [&](std::uint32_t vtable_rva,
+                                   std::uint32_t slot) -> std::optional<std::uint32_t> {
+            const auto offset = image.rva_to_file_offset(vtable_rva);
+            if (!offset.has_value()) {
+                return std::nullopt;
+            }
+            const auto pointer =
+                read_u64(bytes, static_cast<std::size_t>(*offset) + slot * 8U);
+            if (!pointer.has_value() || *pointer <= image.image_base) {
+                return std::nullopt;
+            }
+            const auto delta = *pointer - image.image_base;
+            if (delta > std::numeric_limits<std::uint32_t>::max()) {
+                return std::nullopt;
+            }
+            return static_cast<std::uint32_t>(delta);
+        };
+
+        // Every vtable of every class, keyed by the class and the subobject
+        // offset its locator records. A class under multiple inheritance has
+        // one per base subobject and they are different tables.
+        std::map<std::pair<std::string, std::uint32_t>, VtableAtOffset> vtable_at;
+        std::unordered_set<std::uint32_t> counted_vtables;
+        for (const auto& entry : inputs.rtti->classes) {
+            for (const auto& vtable : entry.vtables) {
+                if (vtable.vtable_rva == 0U) {
+                    continue;
+                }
+                const auto slots = std::min<std::uint32_t>(
+                    vtable.slot_count, static_cast<std::uint32_t>(kMaxVtableSlotsRead));
+                vtable_at.emplace(std::pair{entry.display_name, vtable.subobject_offset},
+                                  VtableAtOffset{vtable.vtable_rva, slots});
+
+                // One vtable can be reached through more than one class entry;
+                // the census counts each table once.
+                if (!counted_vtables.insert(vtable.vtable_rva).second) {
+                    continue;
+                }
+                for (std::uint32_t slot = 0U; slot < slots; ++slot) {
+                    const auto target = target_at(vtable.vtable_rva, slot);
+                    if (!target.has_value()) {
+                        continue;
+                    }
+                    ++map.summary.vtable_slots_classified;
+                    switch (classify(*target)) {
+                    case VtableSlotKind::pure_virtual:
+                        ++map.summary.vtable_slots_pure_virtual;
+                        break;
+                    case VtableSlotKind::empty_body:
+                        ++map.summary.vtable_slots_empty_body;
+                        break;
+                    case VtableSlotKind::implemented:
+                        ++map.summary.vtable_slots_implemented;
+                        break;
+                    }
+                }
+            }
+        }
+
+        std::unordered_set<std::uint32_t> distinct_implementations;
+        for (const auto& [target, kind] : slot_kind) {
+            if (kind == VtableSlotKind::implemented) {
+                distinct_implementations.insert(target);
+            }
+        }
+        map.summary.vtable_slot_implementations = distinct_implementations.size();
+
+        // Pair each class with each of its bases at the offset the hierarchy
+        // descriptor records, so the comparison runs table against table.
+        std::map<std::string, std::vector<std::pair<std::string, std::uint32_t>>> inheritors;
+        for (const auto& entry : inputs.rtti->classes) {
+            for (std::size_t position = 1; position < entry.hierarchy.size(); ++position) {
+                const auto& base = entry.hierarchy[position];
+                if (base.member_displacement < 0) {
+                    ++map.summary.base_pairings_without_a_vtable;
+                    continue;
+                }
+                const auto offset = static_cast<std::uint32_t>(base.member_displacement);
+                if (vtable_at.find({entry.display_name, offset}) == vtable_at.end()) {
+                    ++map.summary.base_pairings_without_a_vtable;
+                    continue;
+                }
+                inheritors[base.display_name].emplace_back(entry.display_name, offset);
+            }
+        }
+
+        for (const auto& [base_name, classes] : inheritors) {
+            const auto base_table = vtable_at.find({base_name, 0U});
+            if (base_table == vtable_at.end()) {
+                continue;
+            }
+            for (std::uint32_t slot = 0U; slot < base_table->second.slots; ++slot) {
+                const auto base_target = target_at(base_table->second.rva, slot);
+                if (!base_target.has_value()) {
+                    continue;
+                }
+
+                BaseSlotOverride record;
+                record.base_display_name = base_name;
+                record.slot = slot;
+                record.base_kind = classify(*base_target);
+                record.base_target_rva = *base_target;
+
+                std::unordered_set<std::uint32_t> implementations;
+                for (const auto& [derived_name, offset] : classes) {
+                    const auto table = vtable_at.find({derived_name, offset});
+                    if (table == vtable_at.end() || slot >= table->second.slots) {
+                        continue;
+                    }
+                    const auto target = target_at(table->second.rva, slot);
+                    if (!target.has_value()) {
+                        continue;
+                    }
+                    ++record.derived_classes;
+                    if (*target == *base_target) {
+                        ++record.keep_base_target;
+                    }
+                    switch (classify(*target)) {
+                    case VtableSlotKind::pure_virtual:
+                        ++record.pure_virtual;
+                        break;
+                    case VtableSlotKind::empty_body:
+                        ++record.empty_bodies;
+                        break;
+                    case VtableSlotKind::implemented:
+                        implementations.insert(*target);
+                        break;
+                    }
+                }
+                if (record.derived_classes == 0U) {
+                    continue;
+                }
+                record.distinct_implementations =
+                    static_cast<std::uint32_t>(implementations.size());
+                map.base_slot_overrides.push_back(std::move(record));
+            }
+        }
+        map.summary.base_slots_measured = map.base_slot_overrides.size();
     }
 
     // ----- import thunks ---------------------------------------------------

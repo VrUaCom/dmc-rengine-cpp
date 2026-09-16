@@ -126,6 +126,32 @@ def make_map() -> dict:
                 "offset_confirmed_by_rtti": True,
             }
         ],
+        "base_slot_overrides": [
+            {
+                # A slot nearly every inheritor implements for itself.
+                "base_class": "IActor",
+                "slot": 0,
+                "base_kind": "implemented",
+                "base_target_rva": "0x4c9b0",
+                "derived_classes": 10,
+                "keep_base_target": 0,
+                "empty_bodies": 0,
+                "pure_virtual": 0,
+                "distinct_implementations": 10,
+            },
+            {
+                # One the base declares and almost nobody defines.
+                "base_class": "IActor",
+                "slot": 1,
+                "base_kind": "pure-virtual",
+                "base_target_rva": "0x346bf0",
+                "derived_classes": 10,
+                "keep_base_target": 0,
+                "empty_bodies": 8,
+                "pure_virtual": 0,
+                "distinct_implementations": 2,
+            },
+        ],
         "resolved_dispatches": [
             {
                 "site_rva": "0x58cc3",
@@ -237,6 +263,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
     importer.load_call_edges(con, mapping, function_ids)
     importer.load_constant_arguments(con, image_id, mapping, function_ids)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
+    importer.load_base_slot_overrides(con, image_id, mapping, classes)
     con.commit()
     return con
 
@@ -389,6 +416,51 @@ class ImporterTests(unittest.TestCase):
             " FROM v_exe_table_coverage WHERE base_rva='0x506f68'"
         ).fetchone()
         self.assertEqual(row, (16, 2, 0, 6))
+
+    def test_the_override_ratio_is_computed_from_the_counts(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        rows = con.execute(
+            "SELECT slot, base_kind, derived_classes, distinct_implementations,"
+            " override_ratio, implementing_classes"
+            " FROM v_exe_slot_override WHERE base_name='IActor' ORDER BY slot"
+        ).fetchall()
+        self.assertEqual(rows[0], (0, "implemented", 10, 10, 1.0, 10))
+        # Eight of the ten leave the slot empty, so two carry the two bodies.
+        self.assertEqual(rows[1], (1, "pure-virtual", 10, 2, 0.2, 2))
+
+    def test_a_slot_counting_more_outcomes_than_classes_is_refused(self) -> None:
+        # A class puts exactly one thing in a slot, so the outcomes cannot
+        # outnumber the classes. A row that says otherwise is a counting error
+        # upstream, and storing it would launder the error into a ratio.
+        mapping = make_map()
+        mapping["base_slot_overrides"][1]["empty_bodies"] = 11
+        con = sqlite3.connect(self.directory / "overcount.sqlite3")
+        con.executescript(importer.DEFAULT_SCHEMA.read_text(encoding="utf-8"))
+        image_id = importer.load_image(con, make_analysis())
+        with self.assertRaises(SystemExit):
+            importer.load_base_slot_overrides(con, image_id, mapping, {})
+
+    def test_the_interface_shape_view_separates_declared_from_defaulted(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT inheritors, slots, slots_declared_pure, slots_defaulted_empty,"
+            " slots_with_a_body FROM v_exe_base_interface_shape WHERE base_name='IActor'"
+        ).fetchone()
+        self.assertEqual(row, (10, 2, 1, 0, 1))
+
+    def test_a_base_named_only_by_the_slot_census_is_still_a_class(self) -> None:
+        # The census can name a base the map's own class list never mentions.
+        # It becomes a class row rather than being dropped, which is what keeps
+        # the ratio joinable to the rest of the schema.
+        mapping = make_map()
+        mapping["base_slot_overrides"][0]["base_class"] = "CUnlisted"
+        con = build(make_analysis(), mapping, self.directory)
+        self.assertEqual(
+            con.execute(
+                "SELECT COUNT(*) FROM v_exe_slot_override WHERE base_name='CUnlisted'"
+            ).fetchone()[0],
+            1,
+        )
 
     def test_the_importer_refuses_mismatched_reports_end_to_end(self) -> None:
         import subprocess

@@ -439,3 +439,72 @@ SELECT module,
 FROM (SELECT module, function_id, MIN(depth) AS depth FROM seed GROUP BY module, function_id)
 GROUP BY module
 ORDER BY functions DESC;
+
+-- ---------------------------------------------------------------------------
+-- Vtable slot census
+-- ---------------------------------------------------------------------------
+-- One row per base class and slot: how many classes inherit that slot and what
+-- they put in it. The comparison runs against the vtable of the base's own
+-- subobject, at the offset the class hierarchy descriptor records, so the two
+-- sides describe the same interface.
+--
+-- `base_kind` is read from the first instruction of the base's own target:
+-- 'pure-virtual' reaches the import named _purecall, 'empty-body' starts with a
+-- return, 'implemented' is anything else. No slot is named and no body is
+-- described; this is layout and linkage only.
+CREATE TABLE IF NOT EXISTS exe_base_slot_override (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    base_id INTEGER NOT NULL REFERENCES exe_class(id) ON DELETE CASCADE,
+    slot INTEGER NOT NULL,
+    base_kind TEXT NOT NULL
+        CHECK (base_kind IN ('pure-virtual', 'empty-body', 'implemented')),
+    base_target_rva INTEGER NOT NULL,
+    derived_classes INTEGER NOT NULL CHECK (derived_classes > 0),
+    keep_base_target INTEGER NOT NULL CHECK (keep_base_target >= 0),
+    empty_bodies INTEGER NOT NULL CHECK (empty_bodies >= 0),
+    pure_virtual INTEGER NOT NULL CHECK (pure_virtual >= 0),
+    distinct_implementations INTEGER NOT NULL CHECK (distinct_implementations >= 0),
+    -- A class can only put one thing in a slot, so the four outcomes partition
+    -- the classes carrying it. A row that breaks this is a counting error.
+    CHECK (empty_bodies + pure_virtual <= derived_classes),
+    CHECK (distinct_implementations <= derived_classes),
+    CHECK (keep_base_target <= derived_classes),
+    UNIQUE (image_id, base_id, slot)
+);
+
+CREATE INDEX IF NOT EXISTS idx_exe_base_slot_override_base
+    ON exe_base_slot_override(base_id, slot);
+
+-- The override ratio, which is the measurement: distinct implementations per
+-- class carrying the slot. Near 1 means per-class behaviour lives here; near 0
+-- means the slot is inherited and only a handful of bodies exist for it.
+CREATE VIEW IF NOT EXISTS v_exe_slot_override AS
+SELECT b.display_name AS base_name,
+       o.slot,
+       o.base_kind,
+       o.derived_classes,
+       o.distinct_implementations,
+       o.empty_bodies,
+       o.keep_base_target,
+       ROUND(CAST(o.distinct_implementations AS REAL) / o.derived_classes, 3) AS override_ratio,
+       -- Classes that put real code in the slot, whether or not they share it.
+       o.derived_classes - o.empty_bodies - o.pure_virtual AS implementing_classes
+FROM exe_base_slot_override o
+JOIN exe_class b ON b.id = o.base_id
+ORDER BY o.derived_classes DESC, b.display_name, o.slot;
+
+-- How each base's own interface is declared: how much of it is left pure, how
+-- much is a default body, and how wide it is. An abstract interface and a
+-- concrete base look different here without anyone naming either.
+CREATE VIEW IF NOT EXISTS v_exe_base_interface_shape AS
+SELECT b.display_name AS base_name,
+       MAX(o.derived_classes) AS inheritors,
+       COUNT(*) AS slots,
+       SUM(CASE WHEN o.base_kind = 'pure-virtual' THEN 1 ELSE 0 END) AS slots_declared_pure,
+       SUM(CASE WHEN o.base_kind = 'empty-body' THEN 1 ELSE 0 END) AS slots_defaulted_empty,
+       SUM(CASE WHEN o.base_kind = 'implemented' THEN 1 ELSE 0 END) AS slots_with_a_body
+FROM exe_base_slot_override o
+JOIN exe_class b ON b.id = o.base_id
+GROUP BY o.base_id
+ORDER BY inheritors DESC, slots DESC;

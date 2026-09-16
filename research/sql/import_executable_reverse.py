@@ -333,6 +333,48 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     return imported
 
 
+def load_base_slot_overrides(con: sqlite3.Connection, image_id: int, mapping: dict,
+                             classes: dict) -> int:
+    """Stores, per base class and slot, what its inheritors put in that slot.
+
+    Layout and linkage only: counts of classes and of distinct targets, plus the
+    address the base itself names. No slot is given a meaning here, and no body
+    is described beyond the three-way split the report already carries.
+    """
+    imported = 0
+    for entry in mapping.get("base_slot_overrides", []):
+        derived = entry["derived_classes"]
+        empty = entry["empty_bodies"]
+        pure = entry["pure_virtual"]
+        # The schema states these as CHECKs; refusing here names the offending
+        # row instead of failing on an opaque constraint.
+        if empty + pure > derived or entry["distinct_implementations"] > derived:
+            raise SystemExit(
+                f"slot census for {entry['base_class']} slot {entry['slot']} "
+                "counts more outcomes than classes"
+            )
+        con.execute(
+            """INSERT OR IGNORE INTO exe_base_slot_override(
+                   image_id, base_id, slot, base_kind, base_target_rva, derived_classes,
+                   keep_base_target, empty_bodies, pure_virtual, distinct_implementations)
+               VALUES(?,?,?,?,?,?,?,?,?,?)""",
+            (
+                image_id,
+                class_id_for(con, image_id, classes, entry["base_class"]),
+                entry["slot"],
+                entry["base_kind"],
+                parse_rva(entry["base_target_rva"]),
+                derived,
+                entry["keep_base_target"],
+                empty,
+                pure,
+                entry["distinct_implementations"],
+            ),
+        )
+        imported += 1
+    return imported
+
+
 def load_class_bases(con: sqlite3.Connection, image_id: int, analysis: dict,
                      classes: dict) -> int:
     """Stores the hierarchy the compiler declared, from the analysis report.
@@ -565,6 +607,7 @@ def main() -> int:
     load_call_edges(con, mapping, function_ids)
     load_constant_arguments(con, image_id, mapping, function_ids)
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
+    load_base_slot_overrides(con, image_id, mapping, classes)
     con.commit()
 
     counts = {
@@ -586,6 +629,7 @@ def main() -> int:
             "exe_class_field",
             "exe_constant_argument_callee",
             "exe_constant_argument",
+            "exe_base_slot_override",
         )
     }
     con.close()

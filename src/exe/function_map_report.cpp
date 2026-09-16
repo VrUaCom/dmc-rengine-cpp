@@ -90,6 +90,20 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.constructors_identified));
     writer.member("field_layout_entries",
                   static_cast<std::uint64_t>(summary.field_layout_entries));
+    writer.member("vtable_slots_classified",
+                  static_cast<std::uint64_t>(summary.vtable_slots_classified));
+    writer.member("vtable_slots_pure_virtual",
+                  static_cast<std::uint64_t>(summary.vtable_slots_pure_virtual));
+    writer.member("vtable_slots_empty_body",
+                  static_cast<std::uint64_t>(summary.vtable_slots_empty_body));
+    writer.member("vtable_slots_implemented",
+                  static_cast<std::uint64_t>(summary.vtable_slots_implemented));
+    writer.member("vtable_slot_implementations",
+                  static_cast<std::uint64_t>(summary.vtable_slot_implementations));
+    writer.member("base_slots_measured",
+                  static_cast<std::uint64_t>(summary.base_slots_measured));
+    writer.member("base_pairings_without_a_vtable",
+                  static_cast<std::uint64_t>(summary.base_pairings_without_a_vtable));
     writer.member("field_offsets_confirmed_by_rtti",
                   static_cast<std::uint64_t>(summary.field_offsets_confirmed_by_rtti));
     writer.member("name_tables_unreferenced",
@@ -212,6 +226,27 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
     writer.member("receiver_field_offset",
                   static_cast<std::uint64_t>(dispatch.receiver_field_offset));
         writer.hex_member("target_rva", dispatch.target_rva);
+        writer.end_object();
+    }
+    writer.end_array();
+
+    writer.key("base_slot_overrides");
+    writer.begin_array();
+    // Layout and linkage only: which base declares a slot, how many classes
+    // inherit it, and how many different targets they put there. No slot is
+    // named and no body is described.
+    for (const auto& record : map.base_slot_overrides) {
+        writer.begin_object();
+        writer.member("base_class", record.base_display_name);
+        writer.member("slot", static_cast<std::uint64_t>(record.slot));
+        writer.member("base_kind", std::string{to_string(record.base_kind)});
+        writer.hex_member("base_target_rva", record.base_target_rva);
+        writer.member("derived_classes", static_cast<std::uint64_t>(record.derived_classes));
+        writer.member("keep_base_target", static_cast<std::uint64_t>(record.keep_base_target));
+        writer.member("empty_bodies", static_cast<std::uint64_t>(record.empty_bodies));
+        writer.member("pure_virtual", static_cast<std::uint64_t>(record.pure_virtual));
+        writer.member("distinct_implementations",
+                      static_cast<std::uint64_t>(record.distinct_implementations));
         writer.end_object();
     }
     writer.end_array();

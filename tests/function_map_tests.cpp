@@ -25,6 +25,7 @@ using dmc::rengine::exe::PeImportedModule;
 using dmc::rengine::exe::PeKind;
 using dmc::rengine::exe::PeMachine;
 using dmc::rengine::exe::PeSection;
+using dmc::rengine::exe::RttiBaseClass;
 using dmc::rengine::exe::RttiClass;
 using dmc::rengine::exe::RttiScanResult;
 using dmc::rengine::exe::RttiVtable;
@@ -944,6 +945,187 @@ void a_pointer_stored_into_this_records_its_callee() {
     assert(map.summary.pointer_stores_from_a_constructor == 0U);
 }
 
+// Lay a base and a derived class over the fixture so the slot census has
+// something to compare. `.text` gets two bodies the census must recognise
+// without reading them: a bare return, and a jump through the import slot the
+// import directory names `_purecall`.
+void add_slot_census_shapes(Fixture& fixture) {
+    put(fixture.bytes, 0x290U, {0xC3});          // rva 0x1090: an empty body
+    put(fixture.bytes, 0x2A0U, {0xFF, 0x25});    // rva 0x10A0: jmp [rip+disp]
+    put_i32(fixture.bytes, 0x2A2U, 0x106A);      // -> IAT slot at rva 0x2110
+
+    fixture.directories.imports[0].functions.push_back(
+        PeImportedFunction{"_purecall", 0x2110U, 0U, 0U, false});
+
+    // CBase's vtable at rva 0x2188: code, pure, empty.
+    put_u64(fixture.bytes, 0x588U, kImageBase + 0x1000U);
+    put_u64(fixture.bytes, 0x590U, kImageBase + 0x10A0U);
+    put_u64(fixture.bytes, 0x598U, kImageBase + 0x1090U);
+
+    // CDerived's vtable at rva 0x21C0: its own code, then the empty body
+    // twice. Slot 1 fills in what the base declared pure; slot 2 is the base's
+    // own target left in place.
+    put_u64(fixture.bytes, 0x5C0U, kImageBase + 0x1040U);
+    put_u64(fixture.bytes, 0x5C8U, kImageBase + 0x1090U);
+    put_u64(fixture.bytes, 0x5D0U, kImageBase + 0x1090U);
+
+    RttiClass base;
+    base.decorated_name = ".?AVCBase@@";
+    base.display_name = "CBase";
+    base.vtables.push_back(RttiVtable{0x2168U, 0x2188U, 3U, 0U, 0U});
+    base.hierarchy.push_back(RttiBaseClass{".?AVCBase@@", "CBase", 0, 0, 0, 0U});
+    fixture.rtti.classes.push_back(std::move(base));
+
+    RttiClass derived;
+    derived.decorated_name = ".?AVCDerived@@";
+    derived.display_name = "CDerived";
+    derived.vtables.push_back(RttiVtable{0x21A0U, 0x21C0U, 3U, 0U, 0U});
+    derived.hierarchy.push_back(RttiBaseClass{".?AVCDerived@@", "CDerived", 0, 0, 0, 1U});
+    derived.hierarchy.push_back(RttiBaseClass{".?AVCBase@@", "CBase", 0, 0, 0, 0U});
+    fixture.rtti.classes.push_back(std::move(derived));
+}
+
+void a_slot_is_classified_by_what_its_target_starts_with() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // One slot from CThing, three each from CBase and CDerived.
+    assert(map.summary.vtable_slots_classified == 7U);
+    // Only CBase slot 1 reaches the import; CDerived fills that slot in.
+    assert(map.summary.vtable_slots_pure_virtual == 1U);
+    // CBase slot 2 and both of CDerived's tail slots.
+    assert(map.summary.vtable_slots_empty_body == 3U);
+    assert(map.summary.vtable_slots_implemented == 3U);
+    // Those three reach two addresses: CThing and CDerived share one.
+    assert(map.summary.vtable_slot_implementations == 2U);
+}
+
+void a_base_slot_records_what_its_inheritors_put_there() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // CThing has no inheritors, so only CBase's three slots are measured.
+    assert(map.summary.base_slots_measured == 3U);
+    assert(map.base_slot_overrides.size() == 3U);
+    assert(map.summary.base_pairings_without_a_vtable == 0U);
+
+    const auto& code = map.base_slot_overrides[0];
+    assert(code.base_display_name == "CBase");
+    assert(code.slot == 0U);
+    assert(code.base_kind == dmc::rengine::exe::VtableSlotKind::implemented);
+    assert(code.base_target_rva == 0x1000U);
+    assert(code.derived_classes == 1U);
+    assert(code.keep_base_target == 0U);
+    assert(code.distinct_implementations == 1U);
+
+    // A slot the base declares pure is never kept: there is nothing to keep.
+    const auto& pure = map.base_slot_overrides[1];
+    assert(pure.slot == 1U);
+    assert(pure.base_kind == dmc::rengine::exe::VtableSlotKind::pure_virtual);
+    assert(pure.keep_base_target == 0U);
+    assert(pure.empty_bodies == 1U);
+    assert(pure.pure_virtual == 0U);
+    assert(pure.distinct_implementations == 0U);
+
+    const auto& inherited = map.base_slot_overrides[2];
+    assert(inherited.slot == 2U);
+    assert(inherited.base_kind == dmc::rengine::exe::VtableSlotKind::empty_body);
+    assert(inherited.base_target_rva == 0x1090U);
+    assert(inherited.keep_base_target == 1U);
+    assert(inherited.empty_bodies == 1U);
+    assert(inherited.distinct_implementations == 0U);
+}
+
+void a_base_is_compared_through_its_own_subobject_vtable() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+
+    // Move CDerived's CBase subobject sixteen bytes in, as a second base would
+    // put it, and give the class a primary vtable of its own holding something
+    // else entirely. Comparing primary tables would read that unrelated table;
+    // the hierarchy's own recorded displacement is what says which one to use.
+    fixture.rtti.classes.back().hierarchy[1].member_displacement = 16;
+    fixture.rtti.classes.back().vtables[0].subobject_offset = 16U;
+    fixture.rtti.classes.back().vtables.push_back(
+        RttiVtable{0x21A8U, 0x21E0U, 1U, 0U, 0U});
+    put_u64(fixture.bytes, 0x5E0U, kImageBase + 0x1090U);  // rva 0x21E0
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.base_slot_overrides.size() == 3U);
+    // Slot 0 still reads CDerived's own function out of the subobject table at
+    // rva 0x21C0, not the empty body sitting in the primary one.
+    const auto& code = map.base_slot_overrides[0];
+    assert(code.derived_classes == 1U);
+    assert(code.distinct_implementations == 1U);
+    assert(code.empty_bodies == 0U);
+}
+
+void a_base_with_no_vtable_at_its_recorded_offset_is_not_measured() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+
+    // The hierarchy says the base sits at +32 but no vtable is recorded there,
+    // so there is no table to compare against. Reported rather than guessed at.
+    fixture.rtti.classes.back().hierarchy[1].member_displacement = 32;
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.base_pairings_without_a_vtable == 1U);
+    assert(map.base_slot_overrides.empty());
+    // The classification is a property of the tables alone, so it is unmoved.
+    assert(map.summary.vtable_slots_classified == 7U);
+}
+
+void a_purecall_thunk_is_named_by_the_import_table_not_its_shape() {
+    Fixture fixture;
+    add_slot_census_shapes(fixture);
+    // Same jump, same encoding, different import. Nothing about the shape of a
+    // thunk says pure-virtual; only the name on the other end does.
+    fixture.directories.imports[0].functions.back().name = "alpha_other";
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &fixture.directories;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.vtable_slots_pure_virtual == 0U);
+    assert(map.summary.vtable_slots_implemented == 4U);
+    assert(map.base_slot_overrides[1].base_kind ==
+           dmc::rengine::exe::VtableSlotKind::implemented);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -996,6 +1178,11 @@ int main() {
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();
+    a_slot_is_classified_by_what_its_target_starts_with();
+    a_base_slot_records_what_its_inheritors_put_there();
+    a_base_is_compared_through_its_own_subobject_vtable();
+    a_base_with_no_vtable_at_its_recorded_offset_is_not_measured();
+    a_purecall_thunk_is_named_by_the_import_table_not_its_shape();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

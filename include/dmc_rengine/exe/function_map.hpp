@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dmc::rengine::exe {
@@ -270,6 +271,65 @@ struct ClassFieldLayout final {
     friend bool operator==(const ClassFieldLayout&, const ClassFieldLayout&) = default;
 };
 
+/// What sits at the far end of a vtable slot.
+///
+/// Decided by decoding the target's first instruction, which is enough to
+/// separate three cases without reading a body. A jump through the import slot
+/// the import directory names `_purecall` is the compiler's own marker for a
+/// declaration with no definition. A return as the first instruction is a body
+/// that does nothing. Everything else has code in it, and this says nothing
+/// about what that code does.
+enum class VtableSlotKind : std::uint8_t {
+    /// Reaches the `_purecall` import: the slot is declared, not defined.
+    pure_virtual,
+    /// The target's first instruction is a return.
+    empty_body,
+    implemented,
+};
+
+[[nodiscard]] constexpr std::string_view to_string(VtableSlotKind kind) noexcept {
+    switch (kind) {
+    case VtableSlotKind::pure_virtual: return "pure-virtual";
+    case VtableSlotKind::empty_body: return "empty-body";
+    case VtableSlotKind::implemented: return "implemented";
+    }
+    return "implemented";
+}
+
+/// One slot of one base class, measured across everything that inherits it.
+///
+/// A derived class is compared against the base through the vtable of the
+/// base's own subobject, at the offset the class hierarchy descriptor records
+/// for it — not through the derived class's primary vtable. Those are
+/// different tables whenever the base does not sit at offset zero, and
+/// comparing them would compare unrelated interfaces.
+///
+/// The ratio of distinct implementations to classes carrying the slot is the
+/// measurement: a slot nearly every class implements differently is where
+/// per-class behaviour lives, and a slot they nearly all leave alone is
+/// inherited behaviour. Nothing here names what the slot does.
+struct BaseSlotOverride final {
+    std::string base_display_name;
+    std::uint32_t slot{};
+    /// What the base itself puts in this slot, and where.
+    VtableSlotKind base_kind{VtableSlotKind::implemented};
+    std::uint32_t base_target_rva{};
+
+    /// Classes whose subobject vtable for this base reaches this slot.
+    std::uint32_t derived_classes{};
+    /// Of those, how many leave the base's own target in place. A slot the
+    /// base declares pure is never kept, because there is nothing to keep.
+    std::uint32_t keep_base_target{};
+    std::uint32_t empty_bodies{};
+    std::uint32_t pure_virtual{};
+    /// Distinct targets with code in them. The linker folds identical
+    /// functions, so two classes reaching one target need not have been
+    /// written once: this is a lower bound on distinct behaviour.
+    std::uint32_t distinct_implementations{};
+
+    friend bool operator==(const BaseSlotOverride&, const BaseSlotOverride&) = default;
+};
+
 /// A function the code calls with a constant first argument, and the constants
 /// it is called with.
 ///
@@ -381,6 +441,19 @@ struct FunctionMapSummary final {
     std::size_t stores_into_this{};
     std::size_t stores_of_a_vtable{};
     std::size_t constructors_identified{};
+    /// Every slot of every vtable in the image, split by what its target is.
+    /// The pure count is the size of the image's declared-but-undefined
+    /// surface; the empty count is how much of its polymorphism does nothing.
+    std::size_t vtable_slots_classified{};
+    std::size_t vtable_slots_pure_virtual{};
+    std::size_t vtable_slots_empty_body{};
+    std::size_t vtable_slots_implemented{};
+    std::size_t vtable_slot_implementations{};
+    /// Base-and-slot pairs measured, and the base-to-derived pairings that
+    /// could not be measured because the class carries no vtable at the offset
+    /// its own hierarchy descriptor records for that base.
+    std::size_t base_slots_measured{};
+    std::size_t base_pairings_without_a_vtable{};
     std::size_t field_layout_entries{};
     std::size_t field_offsets_confirmed_by_rtti{};
     std::size_t name_tables_unreferenced{};
@@ -416,6 +489,8 @@ struct FunctionMap final {
     std::vector<ConstantArgumentCallee> constant_argument_callees;
     /// Virtual calls resolved to a class and a target, in address order.
     std::vector<ResolvedDispatch> resolved_dispatches;
+    /// Per-base, per-slot override census, by base then slot.
+    std::vector<BaseSlotOverride> base_slot_overrides;
     std::vector<std::string> warnings;
 };
 

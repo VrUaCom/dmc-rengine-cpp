@@ -148,5 +148,7 @@ made of free functions.
 - **the 1,160 tail dispatches**, whose targets are unknown for the same reason
   every other virtual call's is, and which keep the reachability figures lower
   bounds;
-- **`CWork` itself** — 264 classes derive from it and its layout is the engine's
-  universal object header.
+- ~~**`CWork` itself**~~ — answered in
+  [the vtable-slot note](dmc3-vtable-slots-2026-09-16.md): `CWork` is an
+  abstract base with seven slots, four declared pure and two empty hooks that
+  200 and 216 of its 264 inheritors leave alone. Not an object header.
