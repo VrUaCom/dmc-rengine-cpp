@@ -244,6 +244,28 @@ Base Surface
 
 Для світу окремо планується realtime destruction / persistent damage system: сліди куль, мечів, вибухів, маски прозорості, локальна деформація та збереження стану між відвідуваннями локації.
 
+### 9.1 Living Surface Genome
+
+Окремий R&D-напрям Rengine — компактно описувати гіперреалістичні поверхні персонажів через genome/seed/parameter model замість прямого зберігання всіх мікродеталей у великих texture sets.
+
+Повний концепт зафіксований у:
+
+`docs/vision/RENGINE_LIVING_SURFACE_GENOME.md`
+
+Ключовий принцип:
+
+```text
+identity data
++ compact genome
++ deterministic procedural generation
++ shared decoder
++ detail-on-demand
+        ↓
+living adaptive surface
+```
+
+Ціль — щоб збільшення візуального реалізму не вимагало пропорційного збільшення per-character storage.
+
 ## 10. Asset Migration Pipeline
 
 Legacy formats не повинні диктувати внутрішню архітектуру Rengine.
