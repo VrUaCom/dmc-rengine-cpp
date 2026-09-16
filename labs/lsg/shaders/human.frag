@@ -23,11 +23,12 @@ uint pcg_hash(uint input_value) {
     return (word >> 22u) ^ word;
 }
 
-uint hash_cell(ivec3 cell, uint seed) {
-    uint h = pcg_hash(seed ^ uint(cell.x) * 0x9E3779B9u);
-    h = pcg_hash(h ^ uint(cell.y) * 0x85EBCA6Bu);
-    h = pcg_hash(h ^ uint(cell.z) * 0xC2B2AE35u);
-    h = pcg_hash(h ^ body_region * 0x27D4EB2Du);
+uint hash_cell(ivec3 cell, uint seed_key) {
+    uint h = pcg_hash(seed_key);
+    h = pcg_hash(h ^ body_region * 0x9E3779B9u);
+    h = pcg_hash(h ^ uint(cell.x));
+    h = pcg_hash(h ^ uint(cell.y));
+    h = pcg_hash(h ^ uint(cell.z));
     return h;
 }
 
@@ -64,6 +65,49 @@ float region_density_scale(uint region) {
     if (region == 1u || region == 2u) return 0.98;
     if (region == 9u || region == 10u) return 0.78;
     return 0.88;
+}
+
+vec2 pore_field(vec3 p, uint seed, float cell_m, float density, float depth_m) {
+    ivec3 base = ivec3(floor(p / cell_m));
+    float pore_height = 0.0;
+    float pore_influence = 0.0;
+    for (int z = -1; z <= 1; ++z) {
+        for (int y = -1; y <= 1; ++y) {
+            for (int x = -1; x <= 1; ++x) {
+                ivec3 cell = base + ivec3(x, y, z);
+                uint h = hash_cell(cell, seed ^ 0xB5297A4Du);
+                if (hash01(pcg_hash(h ^ 0xD1B54A35u)) >= density) continue;
+
+                vec3 jitter = vec3(
+                    0.15 + 0.70 * hash01(pcg_hash(h ^ 0x68E31DA4u)),
+                    0.15 + 0.70 * hash01(pcg_hash(h ^ 0xB5297A4Du)),
+                    0.15 + 0.70 * hash01(pcg_hash(h ^ 0x1B56C4E9u)));
+                vec3 center = (vec3(cell) + jitter) * cell_m;
+
+                vec3 axis = vec3(
+                    hash01(pcg_hash(h ^ 0x9E3779B9u)) * 2.0 - 1.0,
+                    hash01(pcg_hash(h ^ 0x85EBCA6Bu)) * 2.0 - 1.0,
+                    hash01(pcg_hash(h ^ 0xC2B2AE35u)) * 2.0 - 1.0);
+                float axis_length = length(axis);
+                axis = axis_length > 1e-6 ? axis / axis_length : vec3(0.0, 1.0, 0.0);
+
+                vec3 delta = p - center;
+                float axial = dot(delta, axis);
+                vec3 tangential = delta - axis * axial;
+                float axial_scale = 0.85 + 0.30 * hash01(pcg_hash(h ^ 0x27D4EB2Du));
+                float distance_to_pore = length(vec4(tangential, axial / axial_scale));
+                float radius = cell_m * mix(0.16, 0.34, hash01(pcg_hash(h ^ 0x165667B1u)));
+                if (distance_to_pore >= radius) continue;
+
+                float t = clamp(1.0 - distance_to_pore / radius, 0.0, 1.0);
+                float shape = smooth01(t);
+                float local_depth = depth_m * mix(0.55, 1.0, hash01(pcg_hash(h ^ 0xA511E9B3u)));
+                pore_height = min(pore_height, -local_depth * shape);
+                pore_influence = max(pore_influence, shape);
+            }
+        }
+    }
+    return vec2(pore_height, pore_influence);
 }
 
 bool inside_box(vec2 uv, vec2 lo, vec2 hi) {
@@ -152,7 +196,7 @@ void main() {
     base_colour += vec3(0.08, 0.010, 0.005) * (haemoglobin - 0.45);
 
     float meso = 0.0;
-    float pore_mask = 0.0;
+    float pore_influence = 0.0;
     float height_field = 0.0;
     float roughness = clamp(0.62 + (pc.micro0.x - 0.5) * 0.26 - oiliness * 0.16 - hydration * 0.05,
                             0.28, 0.86);
@@ -168,13 +212,12 @@ void main() {
 
     if (detail_enabled && band >= 2) {
         float cell_m = mix(0.00052, 0.00024, clamp(pc.micro0.z, 0.0, 1.0));
-        float pore_noise = value_noise(surface_position_m / cell_m, seed ^ 0xB5297A4Du);
         float density = clamp(pc.micro0.y * region_density_scale(body_region), 0.05, 0.95);
-        float threshold = mix(0.96, 0.72, density);
-        pore_mask = smoothstep(threshold, min(0.995, threshold + 0.16), pore_noise);
-        float depth = mix(0.000010, 0.000050, clamp(pc.micro0.w, 0.0, 1.0));
-        height_field -= pore_mask * depth;
-        roughness = clamp(roughness + pore_mask * 0.10, 0.25, 0.95);
+        float depth_m = mix(0.000010, 0.000050, clamp(pc.micro0.w, 0.0, 1.0));
+        vec2 pore = pore_field(surface_position_m, seed, cell_m, density, depth_m);
+        height_field += pore.x;
+        pore_influence = pore.y;
+        roughness = clamp(roughness + pore_influence * 0.10, 0.25, 0.95);
     }
 
     vec3 n = normalize(view_normal);

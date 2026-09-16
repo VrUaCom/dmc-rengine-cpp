@@ -4,16 +4,22 @@ Experimental C++23/Vulkan lab. It is deliberately isolated from the canonical DM
 
 ## Current executable slice
 
-The first slice establishes the deterministic contract and an Android arm64 Vulkan runtime lane:
+The prototype now establishes the deterministic LSG contract and one shared Windows/Android Vulkan rendering lane:
 
 - `LSG0` little-endian binary genome with version, generator revision, size and CRC32.
 - two built-in character profiles; current encoded profile size is below 512 bytes and the hard limit is 4096 bytes.
-- shared PCG-style integer hash in C++ and GLSL.
-- body-region aware procedural surface reference sampler (meso, pore gate, roughness, redness/specular physiology response).
-- pixel-footprint detail scheduler (`MACRO`, `MESO`, `MICRO`, `MICRO_HIGH`).
-- physiology presets: Normal, Exercise, Cold, Hot.
+- shared PCG-style integer hash contract in C++ and GLSL. The 64-bit genome seed is folded deterministically into the 32-bit Vulkan seed key so the high half is not silently discarded.
+- body-region aware procedural surface reference sampler and matching shader logic.
+- stable object-space cell/Worley-like pore field with deterministic position, radius, depth and orientation bias; no pore texture is stored on disk.
+- pixel-footprint detail scheduler (`MACRO`, `MESO`, `MICRO`, `MICRO_HIGH`) driven from world/object-space derivatives rather than camera distance alone.
+- band-limited meso variation, roughness response and low-frequency vascular variation.
+- genome-driven skin controls and a dielectric GGX + wrapped/preintegrated-style subsurface approximation.
+- interactive perspective camera with full-body, portrait and extreme-close-up presets.
+- physiology presets exist in the C++ reference runtime: Normal, Exercise, Cold, Hot. Full GPU/UI physiology wiring remains open.
 - Android `NativeActivity`, arm64-v8a only, thin shell; rendering/character logic remains native C++.
-- Vulkan 1.2 device gate and swapchain/render-pass bootstrap. The current APK renders a deterministic diagnostic clear surface; human geometry is intentionally not faked before a licensed base mesh is selected.
+- Vulkan 1.2 device gate and one rendering core for Windows and Android.
+
+The repository intentionally does not claim final hyperrealism, performance acceptance, shimmer acceptance, or complete human/eye rendering until those are measured on final licensed base assets and physical devices.
 
 ## Build host tests
 
@@ -35,4 +41,4 @@ Output: `labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Evidence policy
 
-Do not mark hyperrealism, FPS, GPU-memory budget, shimmer stability or device acceptance PASS until measured on a real build/device. `NativeActivity` APK launch + Vulkan initialization is Phase 0 evidence only; surface quality gates remain open.
+Do not mark hyperrealism, FPS, GPU-memory budget, shimmer stability or final device acceptance PASS until measured on a real build/device. Automated C++/shader/APK build evidence is necessary but does not replace physical-device visual and performance evidence.

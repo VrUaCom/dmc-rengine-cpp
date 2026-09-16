@@ -1,4 +1,5 @@
 #include "rengine/lsg/derived_character.hpp"
+#include "rengine/lsg/deterministic_hash.hpp"
 
 #include <algorithm>
 
@@ -30,7 +31,9 @@ DerivedCharacterParameters derive_character_parameters(const CharacterGenomeV0& 
   out.pore_scale = byte01(genome.skin.pore_scale);
   out.pore_depth = byte01(genome.skin.pore_depth);
   out.meso_strength = byte01(genome.micro.meso_strength);
-  out.surface_seed_low = static_cast<std::uint32_t>(genome.surface_seed & 0xFFFFFFFFull);
+  // The Vulkan push constant budget is kept at the Vulkan 1.2 guaranteed 128-byte minimum.
+  // Fold the 64-bit genome seed deterministically instead of silently discarding its high half.
+  out.surface_seed_low = fold_seed64(genome.surface_seed);
   return out;
 }
 

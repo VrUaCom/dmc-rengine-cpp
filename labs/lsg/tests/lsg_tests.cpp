@@ -23,20 +23,42 @@ int main() {
 
   constexpr auto h1 = hash5(123,2,10,20,30); constexpr auto h2 = hash5(123,2,10,20,30); constexpr auto h3 = hash5(124,2,10,20,30);
   static_assert(h1 == h2); static_assert(h1 != h3);
+  static_assert(hash5(0x1122334455667788ull, 4, -2, 7, 11) ==
+                hash5_32(fold_seed64(0x1122334455667788ull), 4, -2, 7, 11));
   assert(select_detail_band(4.0f) == DetailBand::macro_only); assert(select_detail_band(2.0f) == DetailBand::meso);
   assert(select_detail_band(0.5f) == DetailBand::micro); assert(select_detail_band(0.05f) == DetailBand::micro_high);
 
   const auto a = sample_surface(g0, BodyRegion::head, {0.1f,1.7f,0.05f}, 0.05f, physiology_for(PhysiologyPreset::normal));
   const auto b = sample_surface(g0, BodyRegion::head, {0.1f,1.7f,0.05f}, 0.05f, physiology_for(PhysiologyPreset::normal));
   assert(a.pore_height == b.pore_height); assert(std::isfinite(a.roughness));
+  const auto macro = sample_surface(g0, BodyRegion::head, {0.1f,1.7f,0.05f}, 4.0f, physiology_for(PhysiologyPreset::normal));
+  assert(macro.pore_height == 0.0f && macro.meso_variation == 0.0f);
   const auto ex = sample_surface(g1, BodyRegion::head, {0.2f,1.6f,0.03f}, 0.05f, physiology_for(PhysiologyPreset::exercise));
   const auto normal = sample_surface(g1, BodyRegion::head, {0.2f,1.6f,0.03f}, 0.05f, physiology_for(PhysiologyPreset::normal));
   assert(ex.redness > normal.redness); assert(ex.roughness < normal.roughness);
+
+  auto dense = g0; dense.skin.pore_density = 255; dense.skin.pore_depth = 255; dense.skin.pore_scale = 128;
+  const float cell_m = 0.00052f + (0.00024f - 0.00052f) * (128.0f / 255.0f);
+  bool found_active_cell = false;
+  for (std::int32_t x = 0; x < 64 && !found_active_cell; ++x) {
+    const std::uint32_t h = hash5(dense.surface_seed ^ 0xB5297A4Dull, static_cast<std::uint32_t>(BodyRegion::head), x, 0, 0);
+    if (hash01(pcg_hash(h ^ 0xD1B54A35u)) >= 0.95f) continue;
+    const float jx = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0x68E31DA4u));
+    const float jy = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0xB5297A4Du));
+    const float jz = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0x1B56C4E9u));
+    const Vec3 center{(static_cast<float>(x) + jx) * cell_m, jy * cell_m, jz * cell_m};
+    const auto pore_center = sample_surface(dense, BodyRegion::head, center, 0.05f, physiology_for(PhysiologyPreset::normal));
+    assert(pore_center.pore_height < 0.0f); assert(pore_center.pore_height >= -0.0000501f);
+    found_active_cell = true;
+  }
+  assert(found_active_cell);
 
   const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);
   assert(p0.melanin >= 0.0f && p0.melanin <= 1.0f); assert(p1.pore_density >= 0.0f && p1.pore_density <= 1.0f);
   assert(p0.height_scale >= 0.80f && p0.height_scale <= 1.20f); assert(p1.head_scale >= 0.80f && p1.head_scale <= 1.20f);
+  assert(p0.surface_seed_low == fold_seed64(g0.surface_seed));
+  assert(p1.surface_seed_low == fold_seed64(g1.surface_seed));
   assert(p0.surface_seed_low != p1.surface_seed_low);
 
   CameraController camera; camera.set_subject_height(1.75f);
