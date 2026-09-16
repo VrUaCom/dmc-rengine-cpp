@@ -963,6 +963,18 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
         }
 
+        // Counted over every function, since a function can store a pointer
+        // into its object without storing any vtable at all.
+        for (const auto& walk : graph.functions) {
+            for (const auto& store : walk.pointer_stores_into_this) {
+                ++map.summary.pointer_stores_into_this;
+                const auto callee = index.containing(store.callee_rva);
+                if (callee.has_value() && !map.functions[*callee].constructs_class.empty()) {
+                    ++map.summary.pointer_stores_from_a_constructor;
+                }
+            }
+        }
+
         for (std::size_t position = 0; position < graph.functions.size(); ++position) {
             const auto& walk = graph.functions[position];
             if (walk.stores_into_this.empty()) {
@@ -1088,6 +1100,14 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 continue;
             }
             ++map.summary.dispatch_sites_on_this;
+            if (site.receiver_depth > 1U) {
+                // The vtable came out of a pointer the object holds, so it is
+                // the pointee's. What the enclosing class has at that offset is
+                // the pointer, not the object, and nothing here says what it
+                // points at.
+                ++map.summary.dispatch_sites_through_a_pointer_member;
+                continue;
+            }
             if (facts.virtual_bindings.empty() && facts.constructs_class.empty()) {
                 continue;
             }

@@ -866,6 +866,84 @@ void a_dispatch_through_a_base_subobject_uses_that_subobject_vtable() {
     assert(dispatch.target_rva == 0x1000U);
 }
 
+void a_dispatch_through_a_pointer_member_is_counted_not_resolved() {
+    Fixture fixture;
+
+    // Two loads: the field holds a pointer, and the vtable comes from what it
+    // points at. The enclosing class's layout describes the pointer, not the
+    // object, so nothing here says what is on the other end.
+    //   48 8b 41 10       mov rax,[rcx+0x10]     ; the pointer
+    //   48 8b 10          mov rdx,[rax]          ; the pointee's vtable
+    //   ff 12             call QWORD PTR [rdx]
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x41, 0x10});
+    put(fixture.bytes, at + 4U, {0x48, 0x8B, 0x10});
+    put(fixture.bytes, at + 7U, {0xFF, 0x12});
+    put(fixture.bytes, at + 9U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.summary.dispatch_sites_through_a_pointer_member == 1U);
+    assert(map.summary.dispatch_sites_resolved == 0U);
+    assert(map.resolved_dispatches.empty());
+}
+
+void a_pointer_stored_into_this_records_its_callee() {
+    Fixture fixture;
+
+    // `call` then a store of what it returned into the object. Where the callee
+    // constructs something the field's type would follow; where it is an
+    // allocator, as it is throughout the retail image, the store types nothing
+    // and is counted rather than believed.
+    // `this` goes into a saved register first, because rcx is volatile and the
+    // call would take it — which is what real constructors do and why the
+    // pattern is visible at all.
+    //   48 8b d9          mov rbx,rcx
+    //   e8 <rel>          call 0x1000
+    //   48 89 43 20       mov [rbx+0x20],rax
+    //   c3                ret
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0xD9});
+    put(fixture.bytes, at + 3U, {0xE8});
+    put_i32(fixture.bytes, at + 4U,
+            static_cast<std::int32_t>(0x1000) - static_cast<std::int32_t>(0x1048));
+    put(fixture.bytes, at + 8U, {0x48, 0x89, 0x43, 0x20});
+    put(fixture.bytes, at + 12U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    assert(graph.functions[0].pointer_stores_into_this.size() == 1U);
+    assert(graph.functions[0].pointer_stores_into_this[0].offset == 32U);
+    assert(graph.functions[0].pointer_stores_into_this[0].callee_rva == 0x1000U);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+    assert(map.summary.pointer_stores_into_this == 1U);
+    assert(map.summary.pointer_stores_from_a_constructor == 0U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -913,6 +991,8 @@ int main() {
     a_constructor_store_names_the_class_and_its_layout();
     a_store_of_something_that_is_not_a_vtable_is_not_layout();
     a_dispatch_through_a_base_subobject_uses_that_subobject_vtable();
+    a_dispatch_through_a_pointer_member_is_counted_not_resolved();
+    a_pointer_stored_into_this_records_its_callee();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();

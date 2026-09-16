@@ -103,6 +103,10 @@ struct FunctionWalk final {
         /// non-zero offset is the vtable pointer of whatever sits there, so the
         /// receiver is that member.
         std::uint32_t receiver_field_offset{};
+        /// One when the vtable pointer came straight out of the object, which
+        /// is an embedded subobject at that offset; two when it came through a
+        /// pointer stored there, which is a pointer member.
+        std::uint8_t receiver_depth{};
 
         friend bool operator==(const DispatchSite&, const DispatchSite&) = default;
     };
@@ -127,6 +131,21 @@ struct FunctionWalk final {
 
     /// Stores into `this`, in address order.
     std::vector<VtableStore> stores_into_this;
+
+    /// A store into the object of a value a call returned: `call F` then
+    /// `mov [this + offset], rax`. Where F is a constructor, the field holds a
+    /// pointer to an object of the class F builds, which is what a dispatch
+    /// through that field reads its vtable from.
+    struct PointerStore final {
+        std::uint32_t site_rva{};
+        std::uint32_t offset{};
+        std::uint32_t callee_rva{};
+
+        friend bool operator==(const PointerStore&, const PointerStore&) = default;
+    };
+
+    /// Pointer stores into `this`, in address order.
+    std::vector<PointerStore> pointer_stores_into_this;
 
     /// Addresses of the instructions the walk decoded, in order. The register
     /// analysis runs over these rather than re-discovering the code, so it

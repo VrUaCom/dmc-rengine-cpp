@@ -108,10 +108,18 @@ struct RegisterFact final {
         loaded_through_entry,
         /// Loaded from a known address.
         loaded_from,
+        /// The value a direct call returned. Under the Microsoft x64
+        /// convention that is rax, and for a constructor it is the object.
+        call_result,
     };
 
     Kind kind{Kind::unknown};
     std::uint32_t rva{};
+    /// How many loads deep the value is. One is the quadword at `this + k`,
+    /// which for an embedded subobject is its vtable pointer. Two is the
+    /// quadword that points to, which for a pointer member is the pointee's
+    /// vtable pointer.
+    std::uint8_t depth{};
     /// What an index in this register has been multiplied by. A scale field
     /// encodes only 1, 2, 4 and 8, so any other element size arrives here.
     std::uint32_t multiplier{1U};
@@ -186,11 +194,20 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         decoded.memory_base < state.size() && decoded.displacement >= 0) {
         const auto& base = state[decoded.memory_base];
         if (base.kind == RegisterFact::Kind::image_address && decoded.displacement == 0) {
-            loaded = RegisterFact{RegisterFact::Kind::loaded_from, base.rva, 1U};
+            loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_from, .rva = base.rva};
             load_destination = decoded.reg_operand;
         } else if (base.kind == RegisterFact::Kind::entry_value) {
-            loaded = RegisterFact{RegisterFact::Kind::loaded_through_entry,
-                                  static_cast<std::uint32_t>(decoded.displacement), 1U};
+            loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_through_entry,
+                                  .rva = static_cast<std::uint32_t>(decoded.displacement),
+                                  .depth = 1U};
+            load_destination = decoded.reg_operand;
+        } else if (base.kind == RegisterFact::Kind::loaded_through_entry && base.depth == 1U &&
+                   decoded.displacement == 0) {
+            // A second load off a value read out of the object: the field held
+            // a pointer, and this is the pointee's vtable pointer.
+            loaded = RegisterFact{.kind = RegisterFact::Kind::loaded_through_entry,
+                                  .rva = base.rva,
+                                  .depth = 2U};
             load_destination = decoded.reg_operand;
         }
     }
@@ -205,6 +222,20 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                 FunctionWalk::IndexedAccess{rva, state[decoded.memory_base].rva,
                                             static_cast<std::uint32_t>(element),
                                             decoded.displacement, decoded.memory_index});
+        }
+
+        // `mov [this + offset], rax` with rax holding what a call returned. In a
+        // constructor that is a member being built and stored, so the field
+        // holds a pointer to whatever the callee constructs.
+        if (!decoded.two_byte_opcode && decoded.opcode == 0x89U && decoded.modrm_mod != 3U &&
+            !decoded.rip_relative && decoded.memory_index == X86Instruction::kNoRegister &&
+            decoded.memory_base < state.size() && decoded.displacement >= 0 &&
+            decoded.reg_operand < state.size() &&
+            state[decoded.memory_base].kind == RegisterFact::Kind::entry_value &&
+            state[decoded.reg_operand].kind == RegisterFact::Kind::call_result) {
+            emit->pointer_stores_into_this.push_back(
+                FunctionWalk::PointerStore{rva, static_cast<std::uint32_t>(decoded.displacement),
+                                           state[decoded.reg_operand].rva});
         }
 
         // `mov [this + offset], reg` with the register holding an address the
@@ -227,6 +258,7 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             std::uint32_t receiver = 0U;
             bool through_this = false;
             std::uint32_t field_offset = 0U;
+            std::uint8_t receiver_depth = 0U;
             if (decoded.memory_base < state.size()) {
                 const auto& through = state[decoded.memory_base];
                 if (through.kind == RegisterFact::Kind::loaded_from) {
@@ -234,11 +266,12 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                 } else if (through.kind == RegisterFact::Kind::loaded_through_entry) {
                     through_this = true;
                     field_offset = through.rva;
+                    receiver_depth = through.depth;
                 }
             }
             emit->resolved_dispatch_sites.push_back(
                 FunctionWalk::DispatchSite{rva, static_cast<std::uint32_t>(decoded.displacement),
-                                           receiver, through_this, field_offset});
+                                           receiver, through_this, field_offset, receiver_depth});
         }
     }
 
@@ -275,16 +308,25 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         for (const auto reg : {0U, 1U, 2U, 8U, 9U, 10U, 11U}) {
             state[reg] = RegisterFact{};
         }
+        // The convention returns in rax, and a direct call names its callee.
+        if (decoded.flow == X86Flow::call_direct) {
+            constexpr std::uint8_t kReturnRegister = 0U;  // rax
+            state[kReturnRegister] = RegisterFact{
+                .kind = RegisterFact::Kind::call_result,
+                .rva = static_cast<std::uint32_t>(static_cast<std::int64_t>(rva) + decoded.length +
+                                                  decoded.branch_displacement)};
+        }
     }
 
     // ----- what the instruction produces -----------------------------------
     if (decoded.rip_relative_lea() && decoded.reg_operand < state.size()) {
         const auto target = static_cast<std::uint32_t>(static_cast<std::int64_t>(rva) +
                                                        decoded.length + decoded.displacement);
-        state[decoded.reg_operand] = RegisterFact{RegisterFact::Kind::image_address, target, 1U};
+        state[decoded.reg_operand] =
+            RegisterFact{.kind = RegisterFact::Kind::image_address, .rva = target};
     }
     if (entry_copy_destination < state.size()) {
-        state[entry_copy_destination] = RegisterFact{RegisterFact::Kind::entry_value, 0U, 1U};
+        state[entry_copy_destination] = RegisterFact{.kind = RegisterFact::Kind::entry_value};
     }
     if (load_destination < state.size()) {
         state[load_destination] = loaded;
@@ -606,7 +648,7 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
     const auto entry = index_of(walk.begin_rva);
     if (entry < starts.size()) {
         constexpr std::uint8_t kFirstArgument = 1U;  // rcx
-        incoming[entry][kFirstArgument] = RegisterFact{RegisterFact::Kind::entry_value, 0U, 1U};
+        incoming[entry][kFirstArgument] = RegisterFact{.kind = RegisterFact::Kind::entry_value};
         reached[entry] = 1U;
         pending.push_back(entry);
     }
@@ -664,6 +706,10 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
     std::sort(walk.indexed_accesses.begin(), walk.indexed_accesses.end(),
               [](const FunctionWalk::IndexedAccess& left,
                  const FunctionWalk::IndexedAccess& right) {
+                  return left.site_rva < right.site_rva;
+              });
+    std::sort(walk.pointer_stores_into_this.begin(), walk.pointer_stores_into_this.end(),
+              [](const FunctionWalk::PointerStore& left, const FunctionWalk::PointerStore& right) {
                   return left.site_rva < right.site_rva;
               });
     std::sort(walk.stores_into_this.begin(), walk.stores_into_this.end(),

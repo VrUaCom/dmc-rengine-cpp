@@ -143,6 +143,53 @@
           "note": "RVA 0xB1979 in the CEm007 method at RVA 0xB1810, offset 272, slot 16, target RVA 0x1C3130."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-pointer-member-dispatch",
+      "claim_id": "claim-dmc3-pointer-member-dispatch",
+      "title": "Most calls on something inside the object go through a pointer, not a subobject",
+      "summary": "A load out of the object at a non-zero offset was read as the vtable pointer of whatever sits there, which is right for an embedded subobject and wrong for a pointer. Counting how many loads deep the value is separates them: of 1,134 dispatches in the `this` family, 352 read the vtable straight out of the object and 782 read it through a pointer the object holds. 485 of those 782 go through one offset, 224, which is a pointer at a fixed place in a widely shared base. A pointer member's vtable is the pointee's, and the enclosing class's layout describes the pointer rather than the object, so these are counted and left alone rather than resolved against the wrong class. The distinction was very nearly lost: the field carrying the depth was written into the wrong slot of an aggregate initialiser, which set the multiplier instead and reported all 782 as direct subobject loads. The constructions now name their fields.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 3495936,
+          "symbol": "executable section carrying the dispatch sites",
+          "note": "1,134 dispatches on the object or something inside it: 352 at one load deep, 782 at two, of which 485 at offset 224."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-pointer-stores-are-allocations",
+      "claim_id": "claim-dmc3-pointer-stores-are-allocations",
+      "title": "What a constructor stores in a pointer field is memory, not yet an object",
+      "summary": "Typing a pointer field looked like a short step: follow the value a call returned into the store that puts it in the object, and the callee names the type. 183 such stores exist, and not one callee is a constructor. The most common by far, at RVA 0x2E7CA0 with 86 of them, is an allocator: a small function bound into no vtable and constructing nothing. The object's class is established by the constructor that runs on that memory afterwards, between the allocation and the store, so typing the field needs that call followed too. Recording the stores and saying plainly that none of them types anything is worth more than a number that assumed the callee was a constructor.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "methodology"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3046048,
+          "size": 270,
+          "symbol": "allocator whose result is stored into objects",
+          "note": "RVA 0x2E7CA0, the callee of 86 of the 183 stores of a returned value into the first argument; bound into no vtable and storing none."
+        }
+      ]
     }
   ]
 }

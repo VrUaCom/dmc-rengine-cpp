@@ -47,9 +47,9 @@ inferred.
 | | count |
 | --- | --- |
 | dispatch sites | 10,274 |
-| dispatched on `this`, or on something inside it | 352 |
-| …on the object itself (offset 0) | 175 |
-| …on something at a non-zero offset | 177 |
+| dispatched on `this`, or on something inside it | 1,134 |
+| …the vtable read straight out of the object (one load) | 352 |
+| …the vtable read through a pointer the object holds (two loads) | **782** |
 | resolved to a class, slot and target | **47** |
 | …of those, through a subobject rather than the object | 17 |
 
@@ -132,6 +132,50 @@ would have resolved none of them.
 And it must be that subobject's vtable, not the class's primary one: at the
 same slot they hold different functions, and the subobject's is what runs.
 
+## One load or two
+
+A load out of the object at a non-zero offset is *not* always the vtable of
+what sits there. It is, for an **embedded subobject** — its vtable pointer is
+at its own offset zero. It is not, for a **pointer member**, where the value is
+an address and the vtable is a second load away.
+
+Counting how many loads deep the value is separates them:
+
+```asm
+mov rax,[rbx+0x60]     ; one load  -> the subobject's vtable
+call [rax+0xe8]
+
+mov rax,[rbx+0xe0]     ; one load  -> a pointer
+mov rdx,[rax]          ; two loads -> the pointee's vtable
+call [rdx+0x30]
+```
+
+**782 of the 1,134 are the second kind**, and 485 of those go through a single
+offset — **+224** — a pointer at a fixed place in some widely shared base.
+
+A pointer member's vtable belongs to the pointee, and the enclosing class's
+layout describes the *pointer*, not the object. So these are counted and left
+alone rather than resolved against the wrong class.
+
+> This distinction was nearly lost. The field carrying the depth went into the
+> wrong slot of an aggregate initialiser — it set the multiplier instead — and
+> all 782 came out labelled as direct subobject loads. The jump from 352 to
+> 1,134 with *zero* at depth two was what gave it away. The constructions now
+> name their fields.
+
+## What a pointer field holds is memory, not yet an object
+
+Typing those fields looked like a short step: follow what a call returned into
+the store that puts it in the object, and the callee names the type.
+
+**183 such stores exist. Not one callee is a constructor.** The most common by
+far — `0x2E7CA0`, 86 of them — is an allocator: small, bound into no vtable,
+constructing nothing.
+
+The class is established by the constructor that runs on that memory
+*afterwards*, between the allocation and the store. Typing the field needs that
+call followed too, and that is the next step rather than a result of this one.
+
 ## The calling convention is evidence
 
 The walk used to give up **every** register at a call, on the grounds that
@@ -162,6 +206,8 @@ not.
 - **stack slots.** The analysis tracks registers only, so a `this` spilled to
   the frame and reloaded is lost. Tracking frame offsets while the frame pointer
   is fixed would recover those;
+- **the 782 through a pointer member**, which need the constructor that runs
+  between the allocation and the store;
 - **the 100 member dispatches at offsets nothing describes.** Their class is
   known and the offset is not a base subobject or a recovered member, so what
   sits there is a field whose type nothing in the file states. The constructor

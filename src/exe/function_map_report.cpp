@@ -74,6 +74,12 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.dispatch_sites_resolved));
     writer.member("dispatch_sites_on_a_member",
                   static_cast<std::uint64_t>(summary.dispatch_sites_on_a_member));
+    writer.member("dispatch_sites_through_a_pointer_member",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_through_a_pointer_member));
+    writer.member("pointer_stores_into_this",
+                  static_cast<std::uint64_t>(summary.pointer_stores_into_this));
+    writer.member("pointer_stores_from_a_constructor",
+                  static_cast<std::uint64_t>(summary.pointer_stores_from_a_constructor));
     writer.member("stores_into_this", static_cast<std::uint64_t>(summary.stores_into_this));
     writer.member("stores_of_a_vtable", static_cast<std::uint64_t>(summary.stores_of_a_vtable));
     writer.member("constructors_identified",

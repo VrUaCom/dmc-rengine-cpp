@@ -16,6 +16,13 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### One load or two: pointer members separated from subobjects
+
+- a load out of the object at a non-zero offset is the vtable of what sits there only for an **embedded subobject**, whose vtable pointer is at its own offset zero. For a **pointer member** the value is an address and the vtable is a second load away. Counting the load depth separates them: of **1,134** dispatches in the `this` family, 352 read the vtable straight out of the object and **782 read it through a pointer**, 485 of those through a single offset — `+224`, a pointer at a fixed place in a widely shared base;
+- a pointer member's vtable belongs to the pointee and the enclosing class's layout describes the pointer, so those sites are counted and **left unresolved** rather than resolved against the wrong class;
+- **the distinction was nearly lost.** The field carrying the depth went into the wrong slot of an aggregate initialiser — setting the multiplier instead — so all 782 came out labelled as direct subobject loads. The jump from 352 to 1,134 with *zero* at depth two gave it away. Every construction now names its fields;
+- **what a pointer field holds is memory, not yet an object.** 183 stores of a returned value into the object exist and **not one callee is a constructor**; the commonest by far (RVA 0x2E7CA0, 86 stores) is an allocator. The class is established by the constructor that runs on that memory between the allocation and the store, so typing the field needs that call followed too.
+
 #### Calls on a subobject resolve through that subobject's vtable
 
 - a load through the first argument at a **non-zero** offset is the vtable pointer of whatever sits there, since a subobject's vtable pointer is at its own offset zero. Reading the offset as well as the fact of the load takes dispatches on `this` from 175 to **352**, of which 177 are on something inside the object;

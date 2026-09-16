@@ -339,6 +339,15 @@ struct FunctionMapSummary final {
     /// Of those, the ones whose receiver is a member of the enclosing object
     /// rather than the object itself.
     std::size_t dispatch_sites_on_a_member{};
+    /// Sites whose receiver came out of a pointer stored in the object rather
+    /// than out of the object itself. The vtable read is the pointee's, so the
+    /// enclosing class's layout says nothing about it and these are left alone.
+    std::size_t dispatch_sites_through_a_pointer_member{};
+    /// Stores into the object of a value a call returned, and how many of those
+    /// callees are constructors. A store of freshly allocated memory types
+    /// nothing until the constructor that runs on it is followed too.
+    std::size_t pointer_stores_into_this{};
+    std::size_t pointer_stores_from_a_constructor{};
     /// Stores of an address the code took with a `lea` into the object a
     /// function was given, and how many of those land on a known vtable. A
     /// store at offset zero identifies the function as a constructor or
