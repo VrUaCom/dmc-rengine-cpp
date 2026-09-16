@@ -36,6 +36,11 @@ void select_character(AppState& state, std::uint32_t index) {
   log_info(state.character_index == 0 ? "Character 0 selected" : "Character 1 selected");
 }
 
+void toggle_detail(AppState& state) {
+  state.detail_enabled = !state.detail_enabled;
+  log_info(state.detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
+}
+
 void on_command(android_app* app, std::int32_t command) {
   auto* state = static_cast<AppState*>(app->userData);
   switch (command) {
@@ -70,8 +75,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
         select_character(*state, 1);
         return 1;
       case AKEYCODE_D:
-        state->detail_enabled = !state->detail_enabled;
-        log_info(state->detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
+        toggle_detail(*state);
         return 1;
       default:
         return 0;
@@ -85,16 +89,16 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     const float y = AMotionEvent_getY(event, 0);
     const float width = static_cast<float>(ANativeWindow_getWidth(app->window));
     const float height = static_cast<float>(ANativeWindow_getHeight(app->window));
-    if (width <= 0.0f || height <= 0.0f) {
-      return 0;
+    if (width <= 0.0f || height <= 0.0f) return 0;
+
+    // The Vulkan HUD occupies the lower band: [0] [1] [D]. Keep the hitboxes
+    // identical to the visible controls instead of using invisible full-screen zones.
+    if (y >= height * 0.70f) {
+      if (x < width / 3.0f) select_character(*state, 0);
+      else if (x < (width * 2.0f) / 3.0f) select_character(*state, 1);
+      else toggle_detail(*state);
+      return 1;
     }
-    if (y < height * 0.22f) {
-      state->detail_enabled = !state->detail_enabled;
-      log_info(state->detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
-    } else {
-      select_character(*state, x < width * 0.5f ? 0u : 1u);
-    }
-    return 1;
   }
   return 0;
 }
@@ -117,9 +121,7 @@ void android_main(android_app* app) {
                             nullptr,
                             &events,
                             reinterpret_cast<void**>(&source)) >= 0) {
-      if (source != nullptr) {
-        source->process(app, source);
-      }
+      if (source != nullptr) source->process(app, source);
       if (app->destroyRequested != 0) {
         state.renderer.shutdown();
         return;
