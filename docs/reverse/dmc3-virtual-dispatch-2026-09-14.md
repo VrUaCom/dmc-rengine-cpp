@@ -186,15 +186,52 @@ test rax,rax
 
 The function takes four arguments and, when its third is null, copies a 64-byte
 block out of read-only data at `0x35D580` — a default transform — before going
-on. It is a **factory keyed by a selector**.
+on.
 
-So the field's type is whatever that factory returns for *that* selector, and
-reaching it means reading the factory's own body rather than hunting for a
-constructor that is not there. Tracking the constant selector at each call site
-is the next step.
+### Reading the chain instead of guessing at it
 
-> Correcting the record: "allocator" was an inference from weak signals,
-> published as if it were read. The call site is what settles it.
+I called it an allocator first, then a factory keyed by a selector. Both were
+inferences. Its own body settles it — from `0x2E7D20`:
+
+```asm
+je   0x2e7d74          ; argument == 0
+sub  ebx,1
+je   0x2e7d5f          ; == 1  -> call 0x2e3b10
+sub  ebx,1
+je   0x2e7d4a          ; == 2  -> call 0x2eba10
+cmp  ebx,1
+jne  0x2e7d46          ; anything else -> xor eax,eax, return null
+                       ; == 3  -> call 0x324460
+```
+
+A compare chain on the first argument, one arm per value. And the arms are
+**125 bytes each and identical in shape**, differing only in the address each
+loads into its own first argument — `0xCAB230` for one, `0xCAE7D0` for two,
+both in writable data.
+
+So the argument selects which of several identical routines runs, and what
+distinguishes them is **a data address, not a type**. The class of what comes
+back still does not follow. That is the honest end of this thread: the chain is
+read, the meaning is not.
+
+## Functions parameterised by a constant
+
+Tracking constants generally — an immediate move, a register cleared against
+itself, an address computation over one — makes any constant first argument
+readable. **1,311 call sites pass one, reaching 179 functions.**
+
+| Callee | Call sites | Distinct values | Shape |
+| --- | --- | --- | --- |
+| `0x2C6D90` | 202 | 59 | scattered, 6 to beyond 40 |
+| `0x2E7CA0` | 180 | 7 | 0–3, then 8, 16, 64 |
+| `0x1B82C0` | 93 | 20 | dense, 1 to 21 |
+| `0x8BF30` | 59 | 49 | sparse, 10 to beyond 135 |
+
+What the constants *mean* is not stated by any of this. What is stated is which
+functions are parameterised by a small value and which values exist — which
+bounds an enumeration without naming it, and the shapes differ enough to be
+worth having: a dense 1–21 and a sparse scatter over 135 are not the same kind
+of thing.
 
 ## The calling convention is evidence
 

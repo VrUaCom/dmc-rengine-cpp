@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-constant-arguments",
+  "title": "DMC3 HD functions parameterised by a constant, and the selector dispatch behind a pointer field",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-constant-argument-census",
+      "claim_id": "claim-dmc3-constant-argument-census",
+      "title": "1,311 calls pass a constant first argument, over 179 functions",
+      "summary": "Tracking the constants the code puts in a register — an immediate move, a register cleared against itself, an address computation over a constant — makes the first argument readable wherever it is one. 1,311 call sites pass a constant, reaching 179 distinct functions. What the constant means is not stated by any of this; what is stated is which functions are parameterised by a small value and which values exist, which bounds an enumeration without naming it. The shapes differ and the difference is itself informative: the function at RVA 0x2C6D90 is called 202 times with 59 distinct values, RVA 0x1B82C0 93 times with 20 values densely filling one to twenty-one,, RVA 0x8BF30 59 times with 49 values scattered from 10 to beyond 135, and RVA 0x2E7CA0 180 times with only seven.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2911632,
+          "size": 579,
+          "symbol": "function called with 59 distinct constants",
+          "note": "RVA 0x2C6D90, 202 call sites, 231 callers in all."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3046048,
+          "size": 270,
+          "symbol": "function called with seven distinct constants",
+          "note": "RVA 0x2E7CA0, 180 call sites passing zero through three and eight, sixteen and sixty-four."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-selector-dispatch-read",
+      "claim_id": "claim-dmc3-pointer-stores-are-allocations",
+      "title": "The function behind a pointer field dispatches on its first argument, read from the compare chain",
+      "summary": "The function at RVA 0x2E7CA0, whose result 86 stores file into an object, was first called an allocator on weak signals and then a factory keyed by a selector. The second reading is now read rather than inferred. From RVA 0x2E7D20 it compares its first argument against zero, one, two and three in a chain of subtract-and-branch, calls a different function in each arm with the same four-argument shape, and returns null for anything else. The arms at RVA 0x2E3B10, 0x2EBA10 and 0x324460 are 125 bytes each and identical in shape, differing only in the address each loads into its own first argument: RVA 0xCAB230, 0xCAE7D0 and one more, all in writable data. So the first argument selects which of several identical routines runs, and what distinguishes them is a data address rather than a type. The 180 call sites pass seven distinct values, zero through three and eight, sixteen and sixty-four; only the first four reach an arm. The class of what comes back still does not follow from any of this, and saying so is the point: the chain is read, the meaning is not.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "validation",
+        "methodology"
+      ],
+      "supersedes": [
+        "ev-dmc3-pointer-store-callee-is-a-factory"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3046176,
+          "size": 40,
+          "symbol": "compare chain on the first argument",
+          "note": "RVA 0x2E7D20 onwards: zero, one, two and three each reach a different arm; anything else returns null."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3029776,
+          "size": 125,
+          "symbol": "arm selected by the value one",
+          "note": "RVA 0x2E3B10, loading RVA 0xCAB230 into its first argument; the arm for two at RVA 0x2EBA10 is identical but for loading RVA 0xCAE7D0."
+        }
+      ]
+    }
+  ]
+}

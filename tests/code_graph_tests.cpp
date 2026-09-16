@@ -526,6 +526,41 @@ void a_register_copy_carries_whatever_the_source_held() {
     assert(graph.functions[0].indexed_accesses[0].element_bytes == 4U);
 }
 
+void a_constant_first_argument_is_recorded_with_its_callee() {
+    const auto image = make_image();
+    std::vector<std::byte> bytes(0x600U, std::byte{0xCC});
+
+    // The forms a selector arrives in: an immediate, and an address
+    // computation over one.
+    //   b9 07 00 00 00    mov ecx,7
+    //   e8 <rel>          call 0x1000
+    //   8d 49 f9          lea ecx,[rcx-7]      -- rcx is clobbered by the call,
+    //   b9 08 00 00 00    mov ecx,8            so set it again
+    //   8d 49 f9          lea ecx,[rcx-7]      ; 1
+    //   e8 <rel>          call 0x1000
+    //   c3                ret
+    put(bytes, 0x300U, {0xB9, 0x07, 0x00, 0x00, 0x00});
+    put(bytes, 0x305U, {0xE8});
+    put_i32(bytes, 0x306U, static_cast<std::int32_t>(0x1000) - static_cast<std::int32_t>(0x110A));
+    put(bytes, 0x30AU, {0xB9, 0x08, 0x00, 0x00, 0x00});
+    put(bytes, 0x30FU, {0x8D, 0x49, 0xF9});
+    put(bytes, 0x312U, {0xE8});
+    put_i32(bytes, 0x313U, static_cast<std::int32_t>(0x1000) - static_cast<std::int32_t>(0x1117));
+    put(bytes, 0x317U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1100U, 0x1120U, 0U, false, 0x1100U});
+
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{bytes}, image, table);
+    const auto& calls = graph.functions[0].constant_argument_calls;
+    assert(calls.size() == 2U);
+    assert(calls[0].callee_rva == 0x1000U);
+    assert(calls[0].argument == 7U);
+    // Eight, less seven, computed the way the retail image computes a selector.
+    assert(calls[1].argument == 1U);
+}
+
 } // namespace
 
 int main() {
@@ -545,5 +580,6 @@ int main() {
     a_fact_that_differs_between_paths_does_not_survive_the_join();
     a_fact_both_paths_agree_on_survives_the_join();
     a_register_copy_carries_whatever_the_source_held();
+    a_constant_first_argument_is_recorded_with_its_callee();
     return 0;
 }

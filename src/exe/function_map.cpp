@@ -1045,6 +1045,43 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
     }
 
+    // ----- functions parameterised by a constant ---------------------------
+    {
+        std::map<std::uint32_t, std::pair<std::uint32_t, std::set<std::uint32_t>>> by_callee;
+        for (const auto& walk : graph.functions) {
+            for (const auto& call : walk.constant_argument_calls) {
+                ++map.summary.constant_argument_calls;
+                auto& entry = by_callee[call.callee_rva];
+                ++entry.first;
+                entry.second.insert(call.argument);
+            }
+        }
+
+        constexpr std::size_t kMaxArgumentsListed = 24U;
+        map.constant_argument_callees.reserve(by_callee.size());
+        for (const auto& [callee, facts] : by_callee) {
+            ConstantArgumentCallee entry;
+            entry.callee_rva = callee;
+            entry.call_sites = facts.first;
+            entry.distinct_arguments = static_cast<std::uint32_t>(facts.second.size());
+            for (const auto argument : facts.second) {
+                if (entry.arguments.size() >= kMaxArgumentsListed) {
+                    break;
+                }
+                entry.arguments.push_back(argument);
+            }
+            map.constant_argument_callees.push_back(std::move(entry));
+        }
+        map.summary.constant_argument_callees = map.constant_argument_callees.size();
+        std::sort(map.constant_argument_callees.begin(), map.constant_argument_callees.end(),
+                  [](const ConstantArgumentCallee& left, const ConstantArgumentCallee& right) {
+                      if (left.call_sites != right.call_sites) {
+                          return left.call_sites > right.call_sites;
+                      }
+                      return left.callee_rva < right.callee_rva;
+                  });
+    }
+
     // ----- virtual dispatch resolved through `this` ------------------------
     // What each class holds at each offset, so a call on a member can be given
     // the member's class.

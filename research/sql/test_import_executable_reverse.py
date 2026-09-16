@@ -96,6 +96,14 @@ def make_map() -> dict:
                 "install_sites": 1,
             }
         ],
+        "constant_argument_callees": [
+            {
+                "callee_rva": "0x2e7ca0",
+                "call_sites": 180,
+                "distinct_arguments": 7,
+                "arguments": [0, 1, 2, 3, 8, 16, 64],
+            }
+        ],
         "class_field_layout": [
             {
                 "class": "CCameraRail",
@@ -213,6 +221,7 @@ def build(analysis: dict, mapping: dict, directory: Path) -> sqlite3.Connection:
         )
     }
     importer.load_class_fields(con, image_id, mapping, classes)
+    importer.load_constant_arguments(con, image_id, mapping, function_ids)
     importer.load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
     return con
@@ -268,6 +277,13 @@ class ImporterTests(unittest.TestCase):
             " FROM v_exe_class_layout WHERE class_name='CCameraRail'"
         ).fetchone()
         self.assertEqual(row, (96, "CCameraRail", "BASE", 1))
+
+    def test_constant_arguments_are_listed_without_interpretation(self) -> None:
+        con = build(make_analysis(), make_map(), self.directory)
+        row = con.execute(
+            "SELECT call_sites, distinct_arguments, arguments FROM v_exe_constant_argument"
+        ).fetchone()
+        self.assertEqual(row, (180, 7, "0,1,2,3,8,16,64"))
 
     def test_a_resolved_dispatch_becomes_a_virtual_call_edge(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

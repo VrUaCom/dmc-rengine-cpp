@@ -257,6 +257,35 @@ def load_class_fields(con: sqlite3.Connection, image_id: int, mapping: dict,
     return imported
 
 
+def load_constant_arguments(con: sqlite3.Connection, image_id: int, mapping: dict,
+                            functions: dict) -> int:
+    """Stores which functions take a constant first argument, and which values."""
+    imported = 0
+    for entry in mapping.get("constant_argument_callees", []):
+        rva = parse_rva(entry["callee_rva"])
+        con.execute(
+            """INSERT INTO exe_constant_argument_callee(
+                   image_id, callee_id, callee_rva, call_sites, distinct_arguments)
+               VALUES(?,?,?,?,?)
+               ON CONFLICT(image_id, callee_rva) DO UPDATE SET
+                   call_sites=excluded.call_sites,
+                   distinct_arguments=excluded.distinct_arguments""",
+            (image_id, functions.get(rva), rva, entry.get("call_sites", 0),
+             entry.get("distinct_arguments", 0)),
+        )
+        row = con.execute(
+            "SELECT id FROM exe_constant_argument_callee WHERE image_id=? AND callee_rva=?",
+            (image_id, rva),
+        ).fetchone()
+        for argument in entry.get("arguments", []):
+            con.execute(
+                "INSERT OR IGNORE INTO exe_constant_argument(callee_id, argument) VALUES(?,?)",
+                (int(row[0]), argument),
+            )
+        imported += 1
+    return imported
+
+
 def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: dict,
                              functions: dict, classes: dict) -> int:
     """Stores virtual calls resolved to a class, a slot and a target."""
@@ -470,6 +499,7 @@ def main() -> int:
         )
     }
     load_class_fields(con, image_id, mapping, classes)
+    load_constant_arguments(con, image_id, mapping, function_ids)
     load_resolved_dispatches(con, image_id, mapping, function_ids, classes)
     con.commit()
 
@@ -488,6 +518,8 @@ def main() -> int:
             "exe_indexed_array_field",
             "exe_resolved_dispatch",
             "exe_class_field",
+            "exe_constant_argument_callee",
+            "exe_constant_argument",
         )
     }
     con.close()

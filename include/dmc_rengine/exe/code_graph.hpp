@@ -147,6 +147,20 @@ struct FunctionWalk final {
     /// Pointer stores into `this`, in address order.
     std::vector<PointerStore> pointer_stores_into_this;
 
+    /// A direct call whose first argument is a constant the code put there.
+    /// A factory keyed by a selector is reached this way, and the selector is
+    /// what distinguishes one kind of returned object from another.
+    struct ConstantArgumentCall final {
+        std::uint32_t site_rva{};
+        std::uint32_t callee_rva{};
+        std::uint32_t argument{};
+
+        friend bool operator==(const ConstantArgumentCall&, const ConstantArgumentCall&) = default;
+    };
+
+    /// Calls with a constant first argument, in address order.
+    std::vector<ConstantArgumentCall> constant_argument_calls;
+
     /// Addresses of the instructions the walk decoded, in order. The register
     /// analysis runs over these rather than re-discovering the code, so it
     /// inherits the walk's guarantee that every one of them is a real

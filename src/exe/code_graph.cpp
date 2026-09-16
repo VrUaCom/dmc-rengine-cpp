@@ -111,6 +111,10 @@ struct RegisterFact final {
         /// The value a direct call returned. Under the Microsoft x64
         /// convention that is rax, and for a constructor it is the object.
         call_result,
+        /// A constant the code put in the register. A factory keyed by a small
+        /// selector is reached this way, and the selector is what says which
+        /// kind of thing it returns.
+        constant,
         /// Memory a call has since been run on as its first argument. Where
         /// that call is a constructor the register holds an object of the class
         /// it builds, which is what types a field the pointer is stored in.
@@ -220,6 +224,40 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         }
     }
 
+    // Constants the code puts in a register: an immediate move, a register
+    // exclusive-ored with itself, or an address computation over a constant.
+    std::uint8_t constant_destination = X86Instruction::kNoRegister;
+    std::uint32_t constant_value = 0U;
+    bool produces_constant = false;
+    if (!decoded.two_byte_opcode) {
+        if (decoded.opcode >= 0xB8U && decoded.opcode <= 0xBFU && decoded.immediate >= 0) {
+            constant_destination = static_cast<std::uint8_t>(decoded.opcode & 0x07U);
+            constant_value = static_cast<std::uint32_t>(decoded.immediate);
+            produces_constant = true;
+        } else if (decoded.opcode == 0xC7U && decoded.modrm_mod == 3U && decoded.modrm_reg == 0U &&
+                   decoded.immediate >= 0) {
+            constant_destination = decoded.rm_operand;
+            constant_value = static_cast<std::uint32_t>(decoded.immediate);
+            produces_constant = true;
+        } else if ((decoded.opcode == 0x31U || decoded.opcode == 0x33U) &&
+                   decoded.modrm_mod == 3U && decoded.reg_operand == decoded.rm_operand) {
+            constant_destination = decoded.reg_operand;
+            constant_value = 0U;
+            produces_constant = true;
+        } else if (decoded.opcode == 0x8DU && decoded.memory_base < state.size() &&
+                   decoded.memory_index == X86Instruction::kNoRegister &&
+                   state[decoded.memory_base].kind == RegisterFact::Kind::constant) {
+            const auto sum = static_cast<std::int64_t>(state[decoded.memory_base].rva) +
+                             decoded.displacement;
+            if (sum >= 0 && sum <= 0xFFFF) {
+                constant_destination = decoded.reg_operand;
+                constant_value = static_cast<std::uint32_t>(sum);
+                produces_constant = true;
+            }
+        }
+    }
+
+
     // ----- what the instruction says about data ----------------------------
     if (emit != nullptr) {
         if (decoded.indexed_memory() && decoded.memory_base < state.size() &&
@@ -232,7 +270,7 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                                             decoded.displacement, decoded.memory_index});
         }
 
-        // `mov [this + offset], rax` with rax holding what a call returned. In a
+    // `mov [this + offset], rax` with rax holding what a call returned. In a
         // constructor that is a member being built and stored, so the field
         // holds a pointer to whatever the callee constructs.
         if (!decoded.two_byte_opcode && decoded.opcode == 0x89U && decoded.modrm_mod != 3U &&
@@ -341,6 +379,11 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
                 }
             }
 
+            if (emit != nullptr && receiver.kind == RegisterFact::Kind::constant) {
+                emit->constant_argument_calls.push_back(
+                    FunctionWalk::ConstantArgumentCall{rva, callee, receiver.rva});
+            }
+
             state[kReturnRegister] =
                 RegisterFact{.kind = RegisterFact::Kind::call_result, .rva = callee};
         }
@@ -355,6 +398,10 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
     }
     if (copy_destination < state.size()) {
         state[copy_destination] = copied;
+    }
+    if (produces_constant && constant_destination < state.size()) {
+        state[constant_destination] =
+            RegisterFact{.kind = RegisterFact::Kind::constant, .rva = constant_value};
     }
     if (load_destination < state.size()) {
         state[load_destination] = loaded;
@@ -734,6 +781,11 @@ void analyse_registers(std::span<const std::byte> bytes, const PeImage& image,
     std::sort(walk.indexed_accesses.begin(), walk.indexed_accesses.end(),
               [](const FunctionWalk::IndexedAccess& left,
                  const FunctionWalk::IndexedAccess& right) {
+                  return left.site_rva < right.site_rva;
+              });
+    std::sort(walk.constant_argument_calls.begin(), walk.constant_argument_calls.end(),
+              [](const FunctionWalk::ConstantArgumentCall& left,
+                 const FunctionWalk::ConstantArgumentCall& right) {
                   return left.site_rva < right.site_rva;
               });
     std::sort(walk.pointer_stores_into_this.begin(), walk.pointer_stores_into_this.end(),

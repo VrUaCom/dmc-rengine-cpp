@@ -221,6 +221,26 @@ CREATE TABLE IF NOT EXISTS exe_class_field (
     UNIQUE(image_id, class_id, field_offset, member_class_id)
 );
 
+-- Functions the code calls with a constant first argument, and the constants
+-- that reach them. What the constant means is not stated: this bounds an
+-- enumeration without naming it.
+CREATE TABLE IF NOT EXISTS exe_constant_argument_callee (
+    id INTEGER PRIMARY KEY,
+    image_id INTEGER NOT NULL REFERENCES exe_image(id) ON DELETE CASCADE,
+    callee_id INTEGER REFERENCES exe_function(id) ON DELETE CASCADE,
+    callee_rva INTEGER NOT NULL,
+    call_sites INTEGER NOT NULL DEFAULT 0,
+    distinct_arguments INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(image_id, callee_rva)
+);
+
+CREATE TABLE IF NOT EXISTS exe_constant_argument (
+    id INTEGER PRIMARY KEY,
+    callee_id INTEGER NOT NULL REFERENCES exe_constant_argument_callee(id) ON DELETE CASCADE,
+    argument INTEGER NOT NULL,
+    UNIQUE(callee_id, argument)
+);
+
 -- Virtual calls resolved to a class, a slot and a target function.
 --
 -- The receiver is `this`: the dispatch reads the vtable pointer out of the
@@ -347,3 +367,17 @@ FROM exe_class_field f
 JOIN exe_class c ON c.id = f.class_id
 LEFT JOIN exe_class m ON m.id = f.member_class_id
 ORDER BY c.display_name, f.field_offset;
+
+-- Functions parameterised by a small constant, with the values seen.
+CREATE VIEW IF NOT EXISTS v_exe_constant_argument AS
+SELECT printf('0x%x', c.callee_rva) AS callee_rva,
+       f.size_bytes AS callee_size,
+       f.caller_count,
+       c.call_sites,
+       c.distinct_arguments,
+       GROUP_CONCAT(a.argument, ',') AS arguments
+FROM exe_constant_argument_callee c
+LEFT JOIN exe_function f ON f.id = c.callee_id
+LEFT JOIN exe_constant_argument a ON a.callee_id = c.id
+GROUP BY c.id
+ORDER BY c.call_sites DESC;

@@ -80,6 +80,10 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.pointer_stores_into_this));
     writer.member("pointer_stores_from_a_constructor",
                   static_cast<std::uint64_t>(summary.pointer_stores_from_a_constructor));
+    writer.member("constant_argument_calls",
+                  static_cast<std::uint64_t>(summary.constant_argument_calls));
+    writer.member("constant_argument_callees",
+                  static_cast<std::uint64_t>(summary.constant_argument_callees));
     writer.member("stores_into_this", static_cast<std::uint64_t>(summary.stores_into_this));
     writer.member("stores_of_a_vtable", static_cast<std::uint64_t>(summary.stores_of_a_vtable));
     writer.member("constructors_identified",
@@ -155,6 +159,30 @@ void write_resource_families(JsonWriter& writer, const FunctionMap& map) {
 }
 
 void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
+    writer.key("constant_argument_callees");
+    writer.begin_array();
+    // Which functions take a constant first argument and what constants
+    // reach them. What the constant means is not stated here.
+    constexpr std::size_t kReportedCallees = 64U;
+    for (std::size_t index = 0; index < map.constant_argument_callees.size() &&
+                                index < kReportedCallees;
+         ++index) {
+        const auto& callee = map.constant_argument_callees[index];
+        writer.begin_object();
+        writer.hex_member("callee_rva", callee.callee_rva);
+        writer.member("call_sites", static_cast<std::uint64_t>(callee.call_sites));
+        writer.member("distinct_arguments",
+                      static_cast<std::uint64_t>(callee.distinct_arguments));
+        writer.key("arguments");
+        writer.begin_array();
+        for (const auto argument : callee.arguments) {
+            writer.number(static_cast<std::uint64_t>(argument));
+        }
+        writer.end_array();
+        writer.end_object();
+    }
+    writer.end_array();
+
     writer.key("class_field_layout");
     writer.begin_array();
     for (const auto& field : map.class_field_layout) {

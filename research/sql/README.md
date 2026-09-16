@@ -290,6 +290,19 @@ names something the object holds, and `BASE` when it belongs to the same class,
 so the offset names a base subobject. `offset_confirmed_by_rtti` marks the
 entries where the RTTI's own recorded subobject offset agrees with the store.
 
+### Functions parameterised by a constant
+
+`exe_constant_argument_callee` and `exe_constant_argument` record which
+functions are called with a constant first argument and which values reach them.
+
+```sql
+SELECT * FROM v_exe_constant_argument LIMIT 20;
+```
+
+The meaning of a constant is not stored, because nothing in the file states it.
+`callee_id` is NULL where the address is not a function in the exception
+directory.
+
 ### Virtual call edges
 
 `exe_resolved_dispatch` holds virtual calls whose receiver is `this`, resolved

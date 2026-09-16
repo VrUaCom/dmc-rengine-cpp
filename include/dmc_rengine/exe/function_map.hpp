@@ -265,6 +265,23 @@ struct ClassFieldLayout final {
     friend bool operator==(const ClassFieldLayout&, const ClassFieldLayout&) = default;
 };
 
+/// A function the code calls with a constant first argument, and the constants
+/// it is called with.
+///
+/// Says nothing about what the constant means. It is a measurement of which
+/// functions are parameterised by a small value and what values exist, which
+/// bounds an enumeration without naming it.
+struct ConstantArgumentCallee final {
+    std::uint32_t callee_rva{};
+    std::uint32_t call_sites{};
+    std::uint32_t distinct_arguments{};
+    /// The constants seen, ascending, capped so one callee cannot fill the
+    /// report.
+    std::vector<std::uint32_t> arguments;
+
+    friend bool operator==(const ConstantArgumentCallee&, const ConstantArgumentCallee&) = default;
+};
+
 struct ImportUsage final {
     std::string module;
     std::string function;
@@ -348,6 +365,10 @@ struct FunctionMapSummary final {
     /// nothing until the constructor that runs on it is followed too.
     std::size_t pointer_stores_into_this{};
     std::size_t pointer_stores_from_a_constructor{};
+    /// Calls whose first argument is a constant the code put there, and how
+    /// many distinct functions they reach.
+    std::size_t constant_argument_calls{};
+    std::size_t constant_argument_callees{};
     /// Stores of an address the code took with a `lea` into the object a
     /// function was given, and how many of those land on a known vtable. A
     /// store at offset zero identifies the function as a constructor or
@@ -386,6 +407,8 @@ struct FunctionMap final {
     std::vector<IndexedArray> indexed_arrays;
     /// Class layout read out of constructor stores, by class then offset.
     std::vector<ClassFieldLayout> class_field_layout;
+    /// Functions called with a constant first argument, most-called first.
+    std::vector<ConstantArgumentCallee> constant_argument_callees;
     /// Virtual calls resolved to a class and a target, in address order.
     std::vector<ResolvedDispatch> resolved_dispatches;
     std::vector<std::string> warnings;
