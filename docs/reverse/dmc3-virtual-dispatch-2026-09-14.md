@@ -47,9 +47,11 @@ inferred.
 | | count |
 | --- | --- |
 | dispatch sites | 10,274 |
-| dispatched on `this` | 175 |
-| …inside a method the RTTI binds into a vtable | 158 |
-| …bound into exactly one vtable, so the class is unambiguous | **30** |
+| dispatched on `this`, or on something inside it | 352 |
+| …on the object itself (offset 0) | 175 |
+| …on something at a non-zero offset | 177 |
+| resolved to a class, slot and target | **47** |
+| …of those, through a subobject rather than the object | 17 |
 
 Those 19 resolve to a class, a slot and a target across 15 classes:
 
@@ -103,6 +105,33 @@ built at run time. Most dispatch sites are that shape, so the 2,487
 displacements in single-vtable methods were never reachable by following `this`,
 and no amount of dataflow gets there.
 
+## Calls on a subobject
+
+A load through the first argument at a **non-zero** offset is the vtable
+pointer of whatever sits there — a subobject's vtable pointer is at its own
+offset zero, so `[this + k]` is the vtable of the thing at `k`.
+
+```asm
+mov rbx,rcx                 ; this
+ ...
+mov rax,[rbx+0x60]          ; the vtable of the subobject at +96
+lea rcx,[rbx+0x60]          ; and its own `this`, adjusted
+call [rax+0xe8]             ; slot 29
+```
+
+That `lea rcx,[rbx+0x60]` is the giveaway: the receiver gets an **adjusted
+this**, which is exactly how a call on a base subobject is made.
+
+Which vtable to read comes from the **RTTI**, which records where each of a
+class's vtables sits. That matters more than it sounds: a derived class
+inherits its layout from a base whose constructor did the storing, so the
+classes making these calls — `CEm025`, `CEm002`, `CEm007` — are *not* the
+classes whose constructors write the vtables. Waiting for a constructor store
+would have resolved none of them.
+
+And it must be that subobject's vtable, not the class's primary one: at the
+same slot they hold different functions, and the subobject's is what runs.
+
 ## The calling convention is evidence
 
 The walk used to give up **every** register at a call, on the grounds that
@@ -133,7 +162,11 @@ not.
 - **stack slots.** The analysis tracks registers only, so a `this` spilled to
   the frame and reloaded is lost. Tracking frame offsets while the frame pointer
   is fixed would recover those;
-- **receivers from fields.** A dispatch on `this->member` is one step further
-  than `this`, and the member's type would come from what the constructor stores
-  there. This is where the bulk of the sites are, and it is the only route to
-  them that does not require running the game.
+- **the 100 member dispatches at offsets nothing describes.** Their class is
+  known and the offset is not a base subobject or a recovered member, so what
+  sits there is a field whose type nothing in the file states. The constructor
+  store route reaches only polymorphic members;
+- **the 77 whose enclosing class is unknown** — a function neither bound into a
+  vtable nor storing one, so `this` has no type;
+- **receivers from containers**, which is the remaining bulk and needs what the
+  container holds at run time.

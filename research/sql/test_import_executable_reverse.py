@@ -101,6 +101,7 @@ def make_map() -> dict:
                 "class": "CCameraRail",
                 "offset": 96,
                 "member_class": "CCameraRail",
+                "member_vtable_rva": "0x2180",
                 "site_rva": "0x23f7f7",
                 "embedded_member": False,
                 "offset_confirmed_by_rtti": True,
@@ -113,6 +114,7 @@ def make_map() -> dict:
                 "displacement": 24,
                 "slot": 3,
                 "class": "CCameraRail",
+                "receiver_field_offset": 96,
                 "target_rva": "0x2d7210",
             }
         ],
@@ -270,9 +272,10 @@ class ImporterTests(unittest.TestCase):
     def test_a_resolved_dispatch_becomes_a_virtual_call_edge(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)
         row = con.execute(
-            "SELECT caller_rva, class_name, slot, target_rva FROM v_exe_virtual_call_edge"
+            "SELECT caller_rva, class_name, receiver_field_offset, slot, target_rva"
+            " FROM v_exe_virtual_call_edge"
         ).fetchone()
-        self.assertEqual(row, ("0x2d7210", "CCameraRail", 3, "0x2d7210"))
+        self.assertEqual(row, ("0x2d7210", "CCameraRail", 96, 3, "0x2d7210"))
 
     def test_a_record_interior_is_marked_as_one(self) -> None:
         con = build(make_analysis(), make_map(), self.directory)

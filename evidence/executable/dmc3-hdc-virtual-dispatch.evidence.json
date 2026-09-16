@@ -113,6 +113,36 @@
           "note": "RVA 0x2A9A0, a method of DMC3::FullMotionVideoManager: it reads a field of `this` at +8, indexes it, loads the element's vtable pointer and dispatches on slot 4 at RVA 0x2A9DB."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-dispatch-through-a-subobject",
+      "claim_id": "claim-dmc3-dispatch-through-a-subobject",
+      "title": "A call on a base subobject resolves through that subobject's vtable",
+      "summary": "A load through the first argument at a non-zero offset is the vtable pointer of whatever sits there, because a subobject's vtable pointer is at its own offset zero. Reading the offset as well as the fact of the load takes dispatches on `this` from 175 to 352, of which 177 are on something inside the object rather than on the object. Where that offset is one the RTTI records for one of the class's own vtables, the receiver is a base subobject and the call goes into that vtable — not the class's primary one, which holds a different function at the same slot. The RTTI settles this without any constructor store, which matters because a derived class inherits its layout from a base whose constructor did the storing: the classes doing these dispatches, CEm025 and CEm002 among them, are not the classes whose constructors write the vtables. Resolved dispatches rise from 30 to 47, 17 of them through a subobject. The method at RVA 0x116900 shows the whole form: it loads the vtable at this plus 96, passes this plus 96 as the receiver's own first argument, and calls slot 29 out of it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "rtti",
+        "data-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1140578,
+          "size": 6,
+          "symbol": "call through a base subobject",
+          "note": "RVA 0x116962 in the CEm025Shl00 method at RVA 0x116900: mov rax from this plus 96, lea rcx to this plus 96, call slot 29, target RVA 0x116570."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 727417,
+          "size": 6,
+          "symbol": "call through a base subobject",
+          "note": "RVA 0xB1979 in the CEm007 method at RVA 0xB1810, offset 272, slot 16, target RVA 0x1C3130."
+        }
+      ]
     }
   ]
 }

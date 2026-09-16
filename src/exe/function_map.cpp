@@ -355,7 +355,12 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     }
 
     // ----- virtual method bindings -----------------------------------------
-    std::map<std::tuple<std::string, std::uint32_t, std::uint32_t>, std::uint32_t> slot_targets;
+    // Keyed by the vtable's own address, because that is what the code reads:
+    // a call through a base subobject goes into that subobject's vtable, not
+    // into the class's primary one.
+    std::map<std::pair<std::uint32_t, std::uint32_t>, std::uint32_t> slot_targets;
+    std::map<std::pair<std::string, std::uint32_t>, std::uint32_t> class_vtable_rva;
+    std::map<std::pair<std::string, std::uint32_t>, std::uint32_t> class_vtable_at_offset;
     if (inputs.rtti != nullptr) {
         std::map<std::string, ClassCodeCoverage> coverage;
         for (const auto& entry : inputs.rtti->classes) {
@@ -395,9 +400,16 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                     map.functions[*owner].virtual_bindings.push_back(VirtualMethodBinding{
                         entry.display_name, vtable_index, static_cast<std::uint32_t>(slot),
                         vtable.subobject_offset});
-                    slot_targets[{entry.display_name, vtable_index,
-                                  static_cast<std::uint32_t>(slot)}] =
+                    slot_targets[{vtable.vtable_rva, static_cast<std::uint32_t>(slot)}] =
                         static_cast<std::uint32_t>(delta);
+                    class_vtable_rva[{entry.display_name, vtable_index}] = vtable.vtable_rva;
+                    // Where a base subobject sits inside the complete object is
+                    // recorded by the RTTI itself, so a call through that offset
+                    // needs no constructor store to find its vtable — and it
+                    // finds the most derived class's override, which is what
+                    // actually runs.
+                    class_vtable_at_offset[{entry.display_name, vtable.subobject_offset}] =
+                        vtable.vtable_rva;
                 }
             }
 
@@ -987,6 +999,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 field.class_display_name = owner;
                 field.offset = store.offset;
                 field.member_class_display_name = found->second.first;
+                field.member_vtable_rva = store.stored_rva;
                 field.site_rva = store.site_rva;
                 field.embedded_member = found->second.first != owner;
                 field.offset_confirmed_by_rtti = found->second.second == store.offset;
@@ -1009,8 +1022,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                         [](const ClassFieldLayout& left, const ClassFieldLayout& right) {
                             return left.class_display_name == right.class_display_name &&
                                    left.offset == right.offset &&
-                                   left.member_class_display_name ==
-                                       right.member_class_display_name;
+                                   left.member_vtable_rva == right.member_vtable_rva;
                         }),
             map.class_field_layout.end());
         map.summary.field_layout_entries = map.class_field_layout.size();
@@ -1022,9 +1034,53 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     }
 
     // ----- virtual dispatch resolved through `this` ------------------------
+    // What each class holds at each offset, so a call on a member can be given
+    // the member's class.
+    std::map<std::pair<std::string, std::uint32_t>, std::pair<std::string, std::uint32_t>>
+        field_at;
+    for (const auto& field : map.class_field_layout) {
+        const auto key = std::pair{field.class_display_name, field.offset};
+        const auto existing = field_at.find(key);
+        if (existing == field_at.end()) {
+            field_at.emplace(key, std::pair{field.member_class_display_name,
+                                            field.member_vtable_rva});
+        } else if (existing->second.second != field.member_vtable_rva) {
+            // Two vtables at one offset: a member with a base of its own, or a
+            // reading that is wrong. Either way the offset does not name one
+            // thing, so it names none.
+            existing->second = {};
+        }
+    }
+
     for (std::size_t position = 0; position < graph.functions.size(); ++position) {
         const auto& walk = graph.functions[position];
         const auto& facts = map.functions[position];
+
+        // The class the enclosing function works on: the one whose vtable it
+        // writes if it is a constructor, otherwise the one whose vtable it is
+        // bound into. A method bound into more than one vtable is inherited,
+        // and `this` then does not say which, so it says nothing.
+        std::string enclosing;
+        std::uint32_t enclosing_vtable_rva = 0U;
+        if (!facts.constructs_class.empty()) {
+            enclosing = facts.constructs_class;
+            const auto primary = class_vtable_rva.find({enclosing, 0U});
+            if (primary != class_vtable_rva.end()) {
+                enclosing_vtable_rva = primary->second;
+            }
+        } else if (!facts.virtual_bindings.empty()) {
+            std::set<std::pair<std::string, std::uint32_t>> vtables;
+            for (const auto& binding : facts.virtual_bindings) {
+                vtables.insert({binding.class_display_name, binding.vtable_index});
+            }
+            if (vtables.size() == 1U) {
+                enclosing = vtables.begin()->first;
+                const auto found = class_vtable_rva.find(*vtables.begin());
+                if (found != class_vtable_rva.end()) {
+                    enclosing_vtable_rva = found->second;
+                }
+            }
+        }
 
         for (const auto& site : walk.resolved_dispatch_sites) {
             ++map.summary.dispatch_sites;
@@ -1032,35 +1088,56 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                 continue;
             }
             ++map.summary.dispatch_sites_on_this;
-            if (facts.virtual_bindings.empty()) {
+            if (facts.virtual_bindings.empty() && facts.constructs_class.empty()) {
                 continue;
             }
             ++map.summary.dispatch_sites_in_a_bound_function;
-
-            // A method bound into more than one vtable is inherited, and `this`
-            // then does not say which one the call dispatches through. Where
-            // there is exactly one, that vtable is the receiver's: a method
-            // reached through a secondary vtable gets a `this` adjusted to that
-            // subobject, so the secondary vtable is the right one to read.
-            std::set<std::pair<std::string, std::uint32_t>> vtables;
-            for (const auto& binding : facts.virtual_bindings) {
-                vtables.insert({binding.class_display_name, binding.vtable_index});
-            }
-            if (vtables.size() != 1U) {
+            if (enclosing.empty()) {
                 continue;
             }
 
-            const auto& [class_name, vtable_index] = *vtables.begin();
+            // At offset zero the receiver is the object itself, through the
+            // vtable the enclosing function belongs to. At any other offset it
+            // is the member sitting there, through that member's own primary
+            // vtable — the member's vtable pointer is at its own offset zero,
+            // which is what the load read.
+            std::string receiver = enclosing;
+            std::uint32_t receiver_vtable_rva = enclosing_vtable_rva;
+            if (site.receiver_field_offset != 0U) {
+                // A base subobject first: the RTTI says where each of a class's
+                // own vtables sits, and a class that inherits a layout inherits
+                // the offset with it, so this covers classes whose constructors
+                // store nothing because a base constructor did it for them.
+                const auto base = class_vtable_at_offset.find(
+                    {enclosing, site.receiver_field_offset});
+                if (base != class_vtable_at_offset.end()) {
+                    receiver_vtable_rva = base->second;
+                } else {
+                    const auto member = field_at.find({enclosing, site.receiver_field_offset});
+                    if (member == field_at.end() || member->second.first.empty()) {
+                        continue;
+                    }
+                    receiver = member->second.first;
+                    receiver_vtable_rva = member->second.second;
+                }
+            }
+            if (receiver_vtable_rva == 0U) {
+                continue;
+            }
+
             const auto slot = site.displacement / 8U;
-            const auto target = slot_targets.find({class_name, vtable_index, slot});
+            const auto target = slot_targets.find({receiver_vtable_rva, slot});
             if (target == slot_targets.end()) {
                 continue;
             }
 
             ++map.summary.dispatch_sites_resolved;
-            map.resolved_dispatches.push_back(ResolvedDispatch{site.site_rva, walk.begin_rva,
-                                                               site.displacement, slot, class_name,
-                                                               target->second});
+            if (site.receiver_field_offset != 0U) {
+                ++map.summary.dispatch_sites_on_a_member;
+            }
+            map.resolved_dispatches.push_back(
+                ResolvedDispatch{site.site_rva, walk.begin_rva, site.displacement, slot, receiver,
+                                 target->second, site.receiver_field_offset});
         }
     }
     std::sort(map.resolved_dispatches.begin(), map.resolved_dispatches.end(),

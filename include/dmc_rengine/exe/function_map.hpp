@@ -230,6 +230,10 @@ struct ResolvedDispatch final {
     std::uint32_t slot{};
     std::string class_display_name;
     std::uint32_t target_rva{};
+    /// Offset within the enclosing object the receiver was read from. Zero is a
+    /// call on the object itself; anything else is a call on the member sitting
+    /// there, whose class the constructor's own stores named.
+    std::uint32_t receiver_field_offset{};
 
     friend bool operator==(const ResolvedDispatch&, const ResolvedDispatch&) = default;
 };
@@ -246,6 +250,10 @@ struct ClassFieldLayout final {
     std::string class_display_name;
     std::uint32_t offset{};
     std::string member_class_display_name;
+    /// The vtable the constructor actually wrote here. For a base subobject
+    /// that is a secondary vtable of the class itself, which is the one a call
+    /// through this offset dispatches into — not the class's primary vtable.
+    std::uint32_t member_vtable_rva{};
     std::uint32_t site_rva{};
     /// The member's class differs from the constructor's, so the offset names
     /// something the object contains rather than something it is.
@@ -328,6 +336,9 @@ struct FunctionMapSummary final {
     std::size_t dispatch_sites_on_this{};
     std::size_t dispatch_sites_in_a_bound_function{};
     std::size_t dispatch_sites_resolved{};
+    /// Of those, the ones whose receiver is a member of the enclosing object
+    /// rather than the object itself.
+    std::size_t dispatch_sites_on_a_member{};
     /// Stores of an address the code took with a `lea` into the object a
     /// function was given, and how many of those land on a known vtable. A
     /// store at offset zero identifies the function as a constructor or

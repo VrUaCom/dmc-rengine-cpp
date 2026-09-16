@@ -96,9 +96,13 @@ struct FunctionWalk final {
         /// the walk could not follow it there.
         std::uint32_t receiver_object_rva{};
         /// The pointer was loaded through the register holding the function's
-        /// first argument: a call on `this`, so the receiver is the enclosing
-        /// method's own class.
+        /// first argument: a call on `this` or on something inside it.
         bool through_this{false};
+        /// Offset within that object the pointer was read from. Zero is the
+        /// object's own vtable pointer, so the receiver is the object itself; a
+        /// non-zero offset is the vtable pointer of whatever sits there, so the
+        /// receiver is that member.
+        std::uint32_t receiver_field_offset{};
 
         friend bool operator==(const DispatchSite&, const DispatchSite&) = default;
     };

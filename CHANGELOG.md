@@ -16,6 +16,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 - trimmed elements are not consumed, so the tail is read again on its own terms: the tail of 0x506F68 comes back as a separate run at RVA 0x507068 with a stride of 8 and 11 entries, all 11 named by a constant index;
 - **the check that found it:** a constant index is folded into its displacement, so the spacing of a table's references measures its element size independently of anything read from the bytes. Both corrected runs were indexed at a pitch of 8 under a declared stride of 16. Across the image, references the scan could only place inside an element fall from 16 to 7 while total references rise from 202 to 206; the 7 that remain sit at offsets of 13, 16 and 20, which is not the sub-multiple pitch of an absorbed pool.
 
+#### Calls on a subobject resolve through that subobject's vtable
+
+- a load through the first argument at a **non-zero** offset is the vtable pointer of whatever sits there, since a subobject's vtable pointer is at its own offset zero. Reading the offset as well as the fact of the load takes dispatches on `this` from 175 to **352**, of which 177 are on something inside the object;
+- where the offset is one the **RTTI** records for one of the class's own vtables, the receiver is a base subobject and the call goes into *that* vtable — not the class's primary one, which holds a different function at the same slot. Resolved dispatches rise 30 → **47**, 17 of them through a subobject;
+- **the RTTI settles it without any constructor store**, which is what makes it work: a derived class inherits its layout from a base whose constructor did the storing, so the classes making these calls (`CEm025`, `CEm002`, `CEm007`) are not the classes whose constructors write the vtables. Waiting for a store would have resolved none of them;
+- confirmed against the instructions: the `CEm025Shl00` method at RVA 0x116900 loads the vtable at `this+96`, passes `this+96` as the receiver's own first argument with a `lea`, and calls slot 29 — the adjusted `this` of a base-subobject call;
+- `exe_class_field.member_vtable_rva` and `exe_resolved_dispatch.receiver_field_offset` carry this into SQL.
+
 #### Class layout from constructor stores
 
 - a constructor writes its class's vtable into the object at offset zero, which names the function without reading a symbol, and everything it writes at a non-zero offset names what sits there. The register analysis already knows which register holds the first argument and which holds an address a `lea` produced, so both fall out of it;

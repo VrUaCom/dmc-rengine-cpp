@@ -101,8 +101,10 @@ struct RegisterFact final {
         /// the Microsoft x64 convention that is the first argument, and in a
         /// method that is `this`.
         entry_value,
-        /// Loaded through the entry value: for `this` that is the vtable
-        /// pointer, which a virtual call reads a slot out of.
+        /// Loaded through the entry value at some offset. At offset zero that
+        /// is the object's own vtable pointer; at the offset of an embedded
+        /// polymorphic member it is that member's, because a member's vtable
+        /// pointer sits at its own offset zero.
         loaded_through_entry,
         /// Loaded from a known address.
         loaded_from,
@@ -181,13 +183,14 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
     std::uint8_t load_destination = X86Instruction::kNoRegister;
     if (!decoded.two_byte_opcode && decoded.opcode == 0x8BU && decoded.modrm_mod != 3U &&
         !decoded.rip_relative && decoded.memory_index == X86Instruction::kNoRegister &&
-        decoded.memory_base < state.size() && decoded.displacement == 0) {
+        decoded.memory_base < state.size() && decoded.displacement >= 0) {
         const auto& base = state[decoded.memory_base];
-        if (base.kind == RegisterFact::Kind::image_address) {
+        if (base.kind == RegisterFact::Kind::image_address && decoded.displacement == 0) {
             loaded = RegisterFact{RegisterFact::Kind::loaded_from, base.rva, 1U};
             load_destination = decoded.reg_operand;
         } else if (base.kind == RegisterFact::Kind::entry_value) {
-            loaded = RegisterFact{RegisterFact::Kind::loaded_through_entry, 0U, 1U};
+            loaded = RegisterFact{RegisterFact::Kind::loaded_through_entry,
+                                  static_cast<std::uint32_t>(decoded.displacement), 1U};
             load_destination = decoded.reg_operand;
         }
     }
@@ -223,16 +226,19 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             decoded.displacement % 8 == 0) {
             std::uint32_t receiver = 0U;
             bool through_this = false;
+            std::uint32_t field_offset = 0U;
             if (decoded.memory_base < state.size()) {
                 const auto& through = state[decoded.memory_base];
                 if (through.kind == RegisterFact::Kind::loaded_from) {
                     receiver = through.rva;
                 } else if (through.kind == RegisterFact::Kind::loaded_through_entry) {
                     through_this = true;
+                    field_offset = through.rva;
                 }
             }
-            emit->resolved_dispatch_sites.push_back(FunctionWalk::DispatchSite{
-                rva, static_cast<std::uint32_t>(decoded.displacement), receiver, through_this});
+            emit->resolved_dispatch_sites.push_back(
+                FunctionWalk::DispatchSite{rva, static_cast<std::uint32_t>(decoded.displacement),
+                                           receiver, through_this, field_offset});
         }
     }
 

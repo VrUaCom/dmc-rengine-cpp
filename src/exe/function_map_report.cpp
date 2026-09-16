@@ -72,6 +72,8 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.dispatch_sites_in_a_bound_function));
     writer.member("dispatch_sites_resolved",
                   static_cast<std::uint64_t>(summary.dispatch_sites_resolved));
+    writer.member("dispatch_sites_on_a_member",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_on_a_member));
     writer.member("stores_into_this", static_cast<std::uint64_t>(summary.stores_into_this));
     writer.member("stores_of_a_vtable", static_cast<std::uint64_t>(summary.stores_of_a_vtable));
     writer.member("constructors_identified",
@@ -154,6 +156,7 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("class", field.class_display_name);
         writer.member("offset", static_cast<std::uint64_t>(field.offset));
         writer.member("member_class", field.member_class_display_name);
+    writer.hex_member("member_vtable_rva", field.member_vtable_rva);
         writer.hex_member("site_rva", field.site_rva);
         writer.member("embedded_member", field.embedded_member);
         writer.member("offset_confirmed_by_rtti", field.offset_confirmed_by_rtti);
@@ -170,6 +173,8 @@ void write_name_table_usage(JsonWriter& writer, const FunctionMap& map) {
         writer.member("displacement", static_cast<std::uint64_t>(dispatch.displacement));
         writer.member("slot", static_cast<std::uint64_t>(dispatch.slot));
         writer.member("class", dispatch.class_display_name);
+    writer.member("receiver_field_offset",
+                  static_cast<std::uint64_t>(dispatch.receiver_field_offset));
         writer.hex_member("target_rva", dispatch.target_rva);
         writer.end_object();
     }

@@ -239,14 +239,15 @@ def load_class_fields(con: sqlite3.Connection, image_id: int, mapping: dict,
     for entry in mapping.get("class_field_layout", []):
         con.execute(
             """INSERT OR IGNORE INTO exe_class_field(
-                   image_id, class_id, member_class_id, field_offset, site_rva,
-                   embedded_member, offset_confirmed_by_rtti)
-               VALUES(?,?,?,?,?,?,?)""",
+                   image_id, class_id, member_class_id, field_offset, member_vtable_rva,
+                   site_rva, embedded_member, offset_confirmed_by_rtti)
+               VALUES(?,?,?,?,?,?,?,?)""",
             (
                 image_id,
                 classes.get(entry["class"]),
                 classes.get(entry["member_class"]),
                 entry["offset"],
+                parse_rva(entry.get("member_vtable_rva", 0)),
                 parse_rva(entry["site_rva"]),
                 1 if entry.get("embedded_member") else 0,
                 1 if entry.get("offset_confirmed_by_rtti") else 0,
@@ -263,8 +264,9 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
     for entry in mapping.get("resolved_dispatches", []):
         con.execute(
             """INSERT OR IGNORE INTO exe_resolved_dispatch(
-                   image_id, site_rva, caller_id, target_id, class_id, displacement, slot)
-               VALUES(?,?,?,?,?,?,?)""",
+                   image_id, site_rva, caller_id, target_id, class_id, displacement, slot,
+                   receiver_field_offset)
+               VALUES(?,?,?,?,?,?,?,?)""",
             (
                 image_id,
                 parse_rva(entry["site_rva"]),
@@ -273,6 +275,7 @@ def load_resolved_dispatches(con: sqlite3.Connection, image_id: int, mapping: di
                 classes.get(entry["class"]),
                 entry["displacement"],
                 entry["slot"],
+                entry.get("receiver_field_offset", 0),
             ),
         )
         imported += 1

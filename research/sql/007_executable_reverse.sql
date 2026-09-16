@@ -207,6 +207,10 @@ CREATE TABLE IF NOT EXISTS exe_class_field (
     class_id INTEGER REFERENCES exe_class(id) ON DELETE CASCADE,
     member_class_id INTEGER REFERENCES exe_class(id) ON DELETE CASCADE,
     field_offset INTEGER NOT NULL,
+    -- The vtable actually written here. For a base subobject that is a
+    -- secondary vtable of the class itself, which is what a call through this
+    -- offset dispatches into.
+    member_vtable_rva INTEGER,
     site_rva INTEGER NOT NULL,
     -- The member's class differs from the constructor's, so the offset names
     -- something the object contains rather than a base it is.
@@ -232,6 +236,9 @@ CREATE TABLE IF NOT EXISTS exe_resolved_dispatch (
     class_id INTEGER REFERENCES exe_class(id) ON DELETE SET NULL,
     displacement INTEGER NOT NULL,
     slot INTEGER NOT NULL,
+    -- Offset within the enclosing object the receiver was read from: zero is a
+    -- call on the object, anything else a call on what sits there.
+    receiver_field_offset INTEGER NOT NULL DEFAULT 0,
     UNIQUE(image_id, site_rva)
 );
 
@@ -319,6 +326,7 @@ CREATE VIEW IF NOT EXISTS v_exe_virtual_call_edge AS
 SELECT printf('0x%x', d.site_rva) AS site_rva,
        printf('0x%x', caller.begin_rva) AS caller_rva,
        c.display_name AS class_name,
+       d.receiver_field_offset,
        d.slot,
        printf('0x%x', target.begin_rva) AS target_rva,
        target.size_bytes AS target_size

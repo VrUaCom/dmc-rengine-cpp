@@ -817,6 +817,55 @@ void a_store_of_something_that_is_not_a_vtable_is_not_layout() {
     assert(map.class_field_layout.empty());
 }
 
+void a_dispatch_through_a_base_subobject_uses_that_subobject_vtable() {
+    Fixture fixture;
+
+    // Give the fixture's class a second vtable sitting 16 bytes into the
+    // object, as multiple inheritance does, and have its method dispatch
+    // through that offset. The RTTI records where each vtable sits, so the call
+    // resolves into the subobject's vtable rather than the class's primary one
+    // — which is the whole point: at that offset a different function runs.
+    fixture.rtti.classes[0].vtables.push_back(
+        RttiVtable{0x2160U, 0x21A0U, 1U, 16U, 0U});
+
+    // rva 0x21A0 lives at file offset 0x5A0; point its one slot at function A.
+    put_u64(fixture.bytes, 0x5A0U, kImageBase + 0x1000U);
+
+    //   48 8b 41 10       mov rax,[rcx+0x10]     ; the subobject's vtable
+    //   ff 10             call QWORD PTR [rax]   ; slot 0
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x41, 0x10});
+    put(fixture.bytes, at + 4U, {0xFF, 0x10});
+    put(fixture.bytes, at + 6U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.summary.dispatch_sites_resolved == 1U);
+    assert(map.summary.dispatch_sites_on_a_member == 1U);
+
+    assert(map.resolved_dispatches.size() == 1U);
+    const auto& dispatch = map.resolved_dispatches[0];
+    assert(dispatch.receiver_field_offset == 16U);
+    assert(dispatch.slot == 0U);
+    // Function A, from the subobject's vtable — not function B, which slot 0 of
+    // the primary vtable holds.
+    assert(dispatch.target_rva == 0x1000U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -863,6 +912,7 @@ int main() {
     a_dispatch_on_something_other_than_this_is_not_resolved();
     a_constructor_store_names_the_class_and_its_layout();
     a_store_of_something_that_is_not_a_vtable_is_not_layout();
+    a_dispatch_through_a_base_subobject_uses_that_subobject_vtable();
     referencing_a_vtable_marks_a_construction_site();
     resource_families_are_read_from_literal_text();
     literal_families_reach_the_summary_and_the_census();
