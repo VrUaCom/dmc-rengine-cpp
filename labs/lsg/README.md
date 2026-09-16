@@ -8,7 +8,8 @@ The prototype now establishes the deterministic LSG contract and one shared Wind
 
 - `LSG0` little-endian binary genome with version, generator revision, size and CRC32.
 - generator revision `2` is the first revision for the stable cell-based pore field. Pre-v0 revision `1` files are rejected explicitly instead of silently producing a different surface; a future migration layer can convert archived revisions when real persisted profile assets exist.
-- two built-in character profiles; current encoded profile size is below 512 bytes and the hard limit is 4096 bytes.
+- strict `lsg_compile <profile.lsg.json> <profile.lsg>` authoring path with range checking, unknown-field rejection, uint64 seed parsing and post-encode binary self-verification.
+- two checked-in development JSON profiles compile to compact canonical binary genomes; generated microdetail remains zero bytes on disk.
 - shared PCG-style integer hash contract in C++ and GLSL. The 64-bit genome seed is folded deterministically into the 32-bit Vulkan seed key so the high half is not silently discarded.
 - body-region aware procedural surface reference sampler and matching shader logic.
 - stable object-space cell/Worley-like pore field with deterministic position, radius, depth and orientation bias; no pore texture is stored on disk.
@@ -30,9 +31,15 @@ cmake --build build-lsg
 ctest --test-dir build-lsg --output-on-failure
 ```
 
+Compile a development profile explicitly with:
+
+```sh
+build-lsg/lsg_compile labs/lsg/assets/profiles/character_0.lsg.json build-lsg/character_0.lsg
+```
+
 ## Android build
 
-Pinned baseline (September 2026): AGP 9.4.0, Gradle 9.6, Android API 37, NDK r30 `30.0.16248370`, CMake 3.22.1.
+Current stable build baseline (September 2026): AGP 9.4.0, Gradle 9.6, compile/target SDK 36, NDK r30 `30.0.16248370`, CMake 3.22.1. API 37 is not claimed as the runtime baseline while Android 17 remains a preview platform.
 
 ```sh
 gradle -p labs/lsg/viewer/android :app:assembleDebug

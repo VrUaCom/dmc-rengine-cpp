@@ -1,0 +1,49 @@
+{
+  "generator_revision": 2,
+  "flags": 0,
+  "geometry": {
+    "height": 3200,
+    "shoulder_width": 19000,
+    "pelvis_width": -9000,
+    "chest_volume": 8500,
+    "waist": -2200,
+    "limb_length": 1800,
+    "muscle": 11000,
+    "body_fat": 1200,
+    "neck": 2300,
+    "head_scale": 0,
+    "jaw": 5200,
+    "facial_softness": -1800
+  },
+  "skin": {
+    "melanin": 82,
+    "haemoglobin": 112,
+    "carotene": 64,
+    "oiliness": 118,
+    "hydration": 140,
+    "roughness_bias": 136,
+    "pore_density": 152,
+    "pore_scale": 118,
+    "pore_depth": 92,
+    "follicle_density": 126,
+    "freckle_density": 32,
+    "age_profile": 52
+  },
+  "eyes": {
+    "iris_r": 42,
+    "iris_g": 34,
+    "iris_b": 25,
+    "iris2_r": 78,
+    "iris2_g": 54,
+    "iris2_b": 31,
+    "pupil_bias": 118,
+    "sclera_tint": 112,
+    "vascularity": 64,
+    "reserved": 0
+  },
+  "micro": {"meso_strength": 146, "micro_strength": 170, "wrinkle_bias": 48, "reserved": 0},
+  "physiology": {"resting_pulse": 62, "perfusion": 116, "sweat_bias": 26, "temperature_bias": 128},
+  "identity_seed": "0xA771E3D52C09",
+  "surface_seed": "0xC0FFEE1234",
+  "eye_seed": "0x123456789ABC"
+}

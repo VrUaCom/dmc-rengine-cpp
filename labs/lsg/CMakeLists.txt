@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(RengineLSGPrototype VERSION 0.7.0 LANGUAGES C CXX)
+project(RengineLSGPrototype VERSION 0.8.0 LANGUAGES C CXX)
 
 option(RENGINE_LSG_BUILD_TESTS "Build LSG unit tests" ON)
 option(RENGINE_LSG_BUILD_VIEWER "Build Windows Vulkan viewer when Vulkan is available" ON)
 option(RENGINE_LSG_BUILD_MESH_TOOL "Build OBJ/GLB/glTF to experimental RMS0 mesh preparation tool" ON)
+option(RENGINE_LSG_BUILD_PROFILE_TOOL "Build strict JSON to LSG0 profile compiler" ON)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -36,8 +37,11 @@ if(RENGINE_LSG_BUILD_TESTS AND NOT ANDROID)
   add_test(NAME rengine_lsg_tests COMMAND rengine_lsg_tests)
 endif()
 
-if(RENGINE_LSG_BUILD_MESH_TOOL AND NOT ANDROID)
+if((RENGINE_LSG_BUILD_MESH_TOOL OR RENGINE_LSG_BUILD_PROFILE_TOOL) AND NOT ANDROID)
   include(FetchContent)
+endif()
+
+if(RENGINE_LSG_BUILD_MESH_TOOL AND NOT ANDROID)
   set(FASTGLTF_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
   set(FASTGLTF_ENABLE_EXAMPLES OFF CACHE BOOL "" FORCE)
   set(FASTGLTF_ENABLE_DOCS OFF CACHE BOOL "" FORCE)
@@ -47,6 +51,27 @@ if(RENGINE_LSG_BUILD_MESH_TOOL AND NOT ANDROID)
   add_executable(lsg_prepare_mesh tools/lsg_prepare_mesh/main.cpp)
   target_link_libraries(lsg_prepare_mesh PRIVATE rengine_lsg_core fastgltf::fastgltf)
   target_compile_features(lsg_prepare_mesh PRIVATE cxx_std_23)
+endif()
+
+if(RENGINE_LSG_BUILD_PROFILE_TOOL AND NOT ANDROID)
+  set(JSON_BuildTests OFF CACHE INTERNAL "")
+  set(JSON_Install OFF CACHE INTERNAL "")
+  FetchContent_Declare(nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG 55f93686c01528224f448c19128836e7df245f72
+    GIT_SHALLOW FALSE)
+  FetchContent_MakeAvailable(nlohmann_json)
+  add_executable(lsg_compile tools/lsg_compile/main.cpp)
+  target_link_libraries(lsg_compile PRIVATE rengine_lsg_core nlohmann_json::nlohmann_json)
+  target_compile_features(lsg_compile PRIVATE cxx_std_23)
+  if(RENGINE_LSG_BUILD_TESTS)
+    add_test(NAME lsg_compile_character_0
+      COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_0.lsg.json
+                          ${CMAKE_CURRENT_BINARY_DIR}/character_0.lsg)
+    add_test(NAME lsg_compile_character_1
+      COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_1.lsg.json
+                          ${CMAKE_CURRENT_BINARY_DIR}/character_1.lsg)
+  endif()
 endif()
 
 if(ANDROID)

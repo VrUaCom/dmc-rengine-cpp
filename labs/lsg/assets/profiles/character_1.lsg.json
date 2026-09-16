@@ -1,0 +1,49 @@
+{
+  "generator_revision": 2,
+  "flags": 0,
+  "geometry": {
+    "height": -1200,
+    "shoulder_width": -6200,
+    "pelvis_width": 13100,
+    "chest_volume": 1700,
+    "waist": -1400,
+    "limb_length": 400,
+    "muscle": 1200,
+    "body_fat": 4700,
+    "neck": -900,
+    "head_scale": -700,
+    "jaw": -2600,
+    "facial_softness": 14200
+  },
+  "skin": {
+    "melanin": 104,
+    "haemoglobin": 126,
+    "carotene": 72,
+    "oiliness": 86,
+    "hydration": 154,
+    "roughness_bias": 148,
+    "pore_density": 132,
+    "pore_scale": 92,
+    "pore_depth": 70,
+    "follicle_density": 98,
+    "freckle_density": 58,
+    "age_profile": 48
+  },
+  "eyes": {
+    "iris_r": 78,
+    "iris_g": 92,
+    "iris_b": 74,
+    "iris2_r": 36,
+    "iris2_g": 54,
+    "iris2_b": 44,
+    "pupil_bias": 126,
+    "sclera_tint": 118,
+    "vascularity": 52,
+    "reserved": 0
+  },
+  "micro": {"meso_strength": 132, "micro_strength": 148, "wrinkle_bias": 40, "reserved": 0},
+  "physiology": {"resting_pulse": 64, "perfusion": 122, "sweat_bias": 22, "temperature_bias": 128},
+  "identity_seed": "0xB55D001234",
+  "surface_seed": "0xDEADBEEF42",
+  "eye_seed": "0xCAFEBABE77"
+}
