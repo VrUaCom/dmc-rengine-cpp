@@ -14,6 +14,8 @@ enum class DiagnosticRenderMode : std::uint8_t {
 };
 
 struct RendererDiagnostics {
+  std::uint32_t window_width{};
+  std::uint32_t window_height{};
   std::uint32_t swapchain_width{};
   std::uint32_t swapchain_height{};
   std::uint32_t logical_width{};
