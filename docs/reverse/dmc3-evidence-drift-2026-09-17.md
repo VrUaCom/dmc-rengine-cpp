@@ -81,7 +81,7 @@ in CI.
 
 ## Binding the rest
 
-**102 figures across 26 records** are now bound, up from 20. The method was to
+**102 figures across 33 records** are now bound, up from 20. The method was to
 propose a binding wherever a record's text contains the *current* value of a
 counter, then read every proposal.
 
