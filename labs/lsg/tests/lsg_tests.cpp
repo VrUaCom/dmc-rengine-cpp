@@ -96,13 +96,20 @@ int main() {
   }
   assert(worst_local_stretch < 1.25f);
 
-  // Surface pre-rotation and camera projection have different extents. For a portrait-native
-  // 1080x2340 swapchain rotated 90 degrees, the logical camera must see landscape 2340x1080.
-  constexpr Extent2u native_portrait{1080u, 2340u};
-  constexpr auto logical_landscape = logical_extent_for_surface_rotation(native_portrait, 1u);
-  static_assert(logical_landscape.width == 2340u && logical_landscape.height == 1080u);
-  static_assert(logical_extent_for_surface_rotation({2340u,1080u}, 0u).width == 2340u);
-  assert(std::abs(extent_aspect(logical_landscape) - (2340.0f / 1080.0f)) < 0.0001f);
+  // The visible viewport aspect must not be inverted by Vulkan pre-rotation. The Samsung
+  // landscape device evidence showed a 2340x1080 viewport with ROTATE_90; camera projection
+  // must stay landscape while clip-space alone is pre-rotated for presentation.
+  constexpr Extent2u landscape_viewport{2340u, 1080u};
+  constexpr auto landscape_rotate90 = logical_extent_for_surface_rotation(landscape_viewport, 1u);
+  constexpr auto landscape_rotate270 = logical_extent_for_surface_rotation(landscape_viewport, 3u);
+  static_assert(landscape_rotate90.width == 2340u && landscape_rotate90.height == 1080u);
+  static_assert(landscape_rotate270.width == 2340u && landscape_rotate270.height == 1080u);
+  assert(std::abs(extent_aspect(landscape_rotate90) - (2340.0f / 1080.0f)) < 0.0001f);
+
+  constexpr Extent2u portrait_viewport{1080u, 2340u};
+  constexpr auto portrait_rotate90 = logical_extent_for_surface_rotation(portrait_viewport, 1u);
+  static_assert(portrait_rotate90.width == 1080u && portrait_rotate90.height == 2340u);
+  assert(std::abs(extent_aspect(portrait_rotate90) - (1080.0f / 2340.0f)) < 0.0001f);
 
   CameraController camera; camera.set_subject_height(1.75f);
   const float full_distance = camera.state().distance_m;
