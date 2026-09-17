@@ -67,7 +67,11 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("image_base_groups", static_cast<std::uint64_t>(summary.image_base_groups));
     writer.member("image_base_groups_with_several_reads",
                   static_cast<std::uint64_t>(summary.image_base_groups_with_several_reads));
-    writer.member("image_base_groups_spanning_elements",
+    writer.member("image_base_groups_reads_in_several_sections",
+                  static_cast<std::uint64_t>(summary.image_base_groups_reads_in_several_sections));
+    writer.member("image_base_groups_undecided",
+                  static_cast<std::uint64_t>(summary.image_base_groups_undecided));
+        writer.member("image_base_groups_spanning_elements",
                   static_cast<std::uint64_t>(summary.image_base_groups_spanning_elements));
     writer.member("image_base_groups_corroborating",
                   static_cast<std::uint64_t>(summary.image_base_groups_corroborating));

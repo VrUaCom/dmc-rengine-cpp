@@ -8,6 +8,14 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### The last two unread caveats: one holds, one does not
+
+- **the negative displacements hold.** "A negative displacement is the inlined character scan over a string" was published without reading one. All **361** carry displacement exactly **−1**, element size 1, scale 1, and opcode **`3A`** — `cmp r8, r/m8` — across 60 distinct functions. `cmp reg8, byte [base + index*1 - 1]` is a byte-by-byte comparison indexed from one. The reading was right, and the uniformity is far stronger than the claim, which said only that the displacement was negative. Reading a caveat sometimes confirms it;
+- **the spanning groups do not.** Image-base groups were dropped when their span exceeded one element, "**meaning the register was reused for a different array**". The spans run from one element to **7.5 MB**; the largest cannot be one array since the image is 6.3 MB, but the smallest is **two bytes**, and **93.1%** have every read a whole multiple of the element from the lowest — which is what one array read at a few constant indices looks like;
+- the only provable case is reads that do not all fall inside one section. There are **9** of those, not 102. The remaining **93** are still dropped, but as **undecided** rather than as reuse, and the counts are now reported apart with tests pinning both. Dropping a group is conservative either way; saying *why* is not, and only "nothing here decides it" was supported;
+- the separate finding that the image base is held in a register and indexed against — 1,303 indexed reads, 749 at RVA zero — is untouched and stands;
+- **method, four rounds on:** 167 sites reading through a constant → a decoder bug; 28 accesses outside their element → resolvable, error bar halved; 361 negative displacements → confirmed and sharpened; 102 spanning groups → reading wrong, 9 not 102. Three corrections and one confirmation, none needing new machinery.
+
 #### The element-size conflicts were resolvable, and reading them halved the error bar
 
 - bases read at more than one element size were published as "a contradiction: at least one of the readings is wrong… **reported rather than resolved, since nothing here says which**". That was honest and it was wrong — the structure does say which;

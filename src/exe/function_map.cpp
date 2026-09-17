@@ -1319,9 +1319,14 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     // Image-base reads: the array's start is folded into the displacement, so a
     // single read cannot separate base from field. Two reads that share a
     // function, an index register and an element size are walking one array, and
-    // that is measured rather than guessed from how close their addresses are —
-    // which matters, because most such groups turn out to span more than one
-    // element, meaning the register was reused for a different array.
+    // that is measured rather than guessed from how close their addresses are.
+    //
+    // A group whose reads span more than one element is dropped. The reason is
+    // not that the register was demonstrably reused: only where the reads fall
+    // in different sections is that provable, and that is the minority. For the
+    // rest nothing in the encoding separates one array read at several constant
+    // indices from a register reused for another array, so they are dropped as
+    // undecided. Both counts are reported.
     std::set<std::pair<std::uint32_t, std::uint32_t>> image_base_derived;
     {
         std::map<std::tuple<std::uint32_t, std::uint8_t, std::uint32_t>,
@@ -1350,6 +1355,26 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             const auto highest = *displacements.rbegin();
             if (static_cast<std::uint32_t>(highest - lowest) >= element) {
                 ++map.summary.image_base_groups_spanning_elements;
+                const PeSection* home = nullptr;
+                for (const auto& section : image.sections) {
+                    if (section.contains_rva(static_cast<std::uint32_t>(lowest))) {
+                        home = &section;
+                        break;
+                    }
+                }
+                bool all_in_one_section = home != nullptr;
+                if (home != nullptr) {
+                    for (const auto displacement : displacements) {
+                        if (!home->contains_rva(static_cast<std::uint32_t>(displacement))) {
+                            all_in_one_section = false;
+                        }
+                    }
+                }
+                if (all_in_one_section) {
+                    ++map.summary.image_base_groups_undecided;
+                } else {
+                    ++map.summary.image_base_groups_reads_in_several_sections;
+                }
                 continue;
             }
 

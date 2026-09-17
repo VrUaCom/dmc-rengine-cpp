@@ -1717,6 +1717,76 @@ void a_base_whose_sizes_do_not_divide_is_left_out_of_the_layout() {
     assert(map.indexed_arrays.empty());
 }
 
+void image_base_reads_straddling_a_section_cannot_be_one_array() {
+    Fixture fixture;
+    // Two reads off the image base — a RIP-relative `lea` resolving to rva 0 —
+    // sharing one index register and element size, at addresses in different
+    // sections. Whatever else is true they are not one array, which is the only
+    // case where "the register was reused" is provable rather than assumed.
+    //   48 8d 05 ..            lea rax,[rip-0x1047]        ; rva 0
+    //   8b 8c 90 08 10 00 00   mov ecx,[rax+rdx*4+0x1008]  ; in .text
+    //   8b 8c 90 00 20 00 00   mov ecx,[rax+rdx*4+0x2000]  ; in .rdata
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U, -0x1047);
+    put(fixture.bytes, at + 7U, {0x8B, 0x8C, 0x90});
+    put_i32(fixture.bytes, at + 10U, 0x1008);
+    put(fixture.bytes, at + 14U, {0x8B, 0x8C, 0x90});
+    put_i32(fixture.bytes, at + 17U, 0x2000);
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.image_base_groups_with_several_reads == 1U);
+    assert(map.summary.image_base_groups_spanning_elements == 1U);
+    assert(map.summary.image_base_groups_reads_in_several_sections == 1U);
+    assert(map.summary.image_base_groups_undecided == 0U);
+}
+
+void image_base_reads_far_apart_in_one_section_are_left_undecided() {
+    Fixture fixture;
+    // The same shape with both reads inside `.rdata`. They span more than an
+    // element, so the group is still dropped — but nothing says whether this is
+    // one array read at two constant indices or a register reused for another,
+    // and calling it reuse would be a claim the encoding does not support.
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U, -0x1047);
+    put(fixture.bytes, at + 7U, {0x8B, 0x8C, 0x90});
+    put_i32(fixture.bytes, at + 10U, 0x2000);
+    put(fixture.bytes, at + 14U, {0x8B, 0x8C, 0x90});
+    put_i32(fixture.bytes, at + 17U, 0x2100);
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.image_base_groups_spanning_elements == 1U);
+    assert(map.summary.image_base_groups_reads_in_several_sections == 0U);
+    assert(map.summary.image_base_groups_undecided == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1793,6 +1863,8 @@ int main() {
     a_constant_in_an_extended_register_is_not_a_constant_first_argument();
     a_base_read_at_two_sizes_is_one_array_when_the_smaller_is_the_bare_scale();
     a_base_whose_sizes_do_not_divide_is_left_out_of_the_layout();
+    image_base_reads_straddling_a_section_cannot_be_one_array();
+    image_base_reads_far_apart_in_one_section_are_left_undecided();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

@@ -522,6 +522,13 @@ struct FunctionMapSummary final {
     std::size_t image_base_groups{};
     std::size_t image_base_groups_with_several_reads{};
     std::size_t image_base_groups_spanning_elements{};
+    /// Of those, the ones whose reads do not all fall in one section, which
+    /// cannot be one array whatever else is true. The rest span more than an
+    /// element and still sit in one section, so nothing in the encoding decides
+    /// between one array read at several constant indices and a register reused
+    /// for another: they are dropped as undecided rather than as reuse.
+    std::size_t image_base_groups_reads_in_several_sections{};
+    std::size_t image_base_groups_undecided{};
     /// Groups that reproduce a base and element size a register was also seen
     /// holding: two routes to the same array, which is corroboration rather
     /// than a second array.

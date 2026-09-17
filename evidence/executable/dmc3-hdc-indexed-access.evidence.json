@@ -262,6 +262,52 @@
           "note": "RVA 0x580D20: element 24, fields at 0, 4, 8, 12, 16 and 20, read at both 8 and 24 before the resolution."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-negative-displacements-read",
+      "claim_id": "claim-dmc3-negative-displacement-reading",
+      "title": "The negative displacements are a byte compare at index minus one, all 361 of them",
+      "summary": "A negative displacement on a held base was read as an inlined character scan over a string rather than an array walk, and that reading was published without being checked against the instructions. Checking it: all 361 such accesses carry displacement exactly minus one, element size one and scale one, and every one of them is opcode 3A, which is cmp r8 against a byte in memory. They sit in 60 distinct functions. The shape is cmp reg8, byte [base + index*1 - 1], which is a byte-by-byte comparison indexed from one. The published reading was right, and is now read off the encodings rather than asserted; the uniformity is stronger than the original claim, which said only that the displacement was negative.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 173543,
+          "size": 5,
+          "symbol": "one of the 361",
+          "note": "RVA 0x2A5E7, 41 3A 44 08 FF: cmp r8b, byte [rax+rcx-1]."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-spanning-groups-corrected",
+      "claim_id": "claim-dmc3-image-base-groups",
+      "title": "Correction: only 9 of the 102 spanning groups are demonstrably a reused register",
+      "summary": "Image-base reads grouped by function, index register and element size were dropped when their span exceeded one element, on the stated grounds that the register had been reused for a different array. Reading them does not support that. The spans run from a single element to seven and a half megabytes: the largest cannot be one array, because the image itself is six and a third, but the smallest are two bytes apart and 93 per cent of the groups have every read a whole multiple of the element from the lowest, which is what one array read at a few constant indices looks like. The only provable case is reads that do not all fall inside one section, and there are 9 of those. The remaining 93 span more than an element, sit inside one section, and are not separable by anything in the encoding: they are still dropped, but as undecided rather than as reuse, and the two counts are now reported apart. The record superseded here also reported 60 groups with several reads of which 53 spanned; those figures moved to 126 and 102 as the register analysis improved, and the correction is to the reading rather than to the counting. The separate finding that the image base is held in a register and indexed against stands untouched.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-image-base-grouping"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 1976688,
+          "size": 8,
+          "symbol": "the smallest spanning group",
+          "note": "RVA 0x1E2B70: three reads at element size two spanning two bytes, one element, and dropped as a reused register."
+        }
+      ]
     }
   ]
 }
