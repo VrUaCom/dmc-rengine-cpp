@@ -572,9 +572,9 @@ def load_functions(
             """INSERT INTO exe_function(
                    image_id, begin_rva, end_rva, size_bytes, instruction_count, walk_complete,
                    caller_count, callee_count, export_name, reachable_from_entry,
-                   reachable_from_export, outside_every_closure, prolog_size, stack_allocation,
-                   pushed_registers, frame_register, exception_handler)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                   reachable_from_export, outside_every_closure, depth_from_entry, prolog_size,
+                   stack_allocation, pushed_registers, frame_register, exception_handler)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(image_id, begin_rva) DO UPDATE SET
                    caller_count=excluded.caller_count,
                    callee_count=excluded.callee_count""",
@@ -591,6 +591,7 @@ def load_functions(
                 1 if entry.get("reachable_from_entry_point") else 0,
                 1 if entry.get("reachable_from_export") else 0,
                 1 if entry.get("outside_every_closure") else 0,
+                entry.get("depth_from_entry"),
                 frame.get("prolog_size"),
                 frame.get("stack_allocation"),
                 frame.get("pushed_registers"),

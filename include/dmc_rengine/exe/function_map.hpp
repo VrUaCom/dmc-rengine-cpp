@@ -106,6 +106,11 @@ struct FunctionFacts final {
     std::vector<std::uint32_t> calls;
 
     bool reachable_from_entry_point{false};
+    /// Shortest chain of direct calls from the entry point, or `kUnreached`.
+    /// A depth is not an execution order: it says how few calls can reach the
+    /// function, not when it runs.
+    static constexpr std::uint16_t kUnreached = 0xFFFFU;
+    std::uint16_t depth_from_entry{kUnreached};
     /// Reachable from the entry point once every virtual call is assumed to
     /// reach whatever sits at its slot in *any* vtable the image carries.
     /// Nothing says what a receiver's type is, so this is a sound
@@ -585,6 +590,16 @@ struct FunctionMapSummary final {
     /// upper bound assumes every virtual call reaches every vtable's slot.
     /// The truth is between, and how wide the gap is measures how much of the
     /// image's control flow is decided at run time.
+    /// The startup path: what direct calls alone reach from the entry point.
+    /// Sound throughout, since it assumes nothing about dispatch.
+    std::size_t startup_path_functions{};
+    std::uint16_t startup_path_deepest{};
+    std::size_t startup_path_modules{};
+    std::size_t startup_path_import_symbols{};
+    /// Functions on the path that construct a class, and dispatch sites on it.
+    /// Both say where the sound path stops being able to follow the program.
+    std::size_t startup_path_constructors{};
+    std::size_t startup_path_dispatch_sites{};
     std::size_t reachable_through_dispatch{};
     std::size_t outside_every_closure{};
     std::size_t dispatch_slots_reached{};

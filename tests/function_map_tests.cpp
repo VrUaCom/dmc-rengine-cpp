@@ -13,6 +13,7 @@ namespace {
 
 using dmc::rengine::exe::CodeGraphBuilder;
 using dmc::rengine::exe::FunctionMapBuilder;
+using dmc::rengine::exe::FunctionFacts;
 using dmc::rengine::exe::FunctionMapInputs;
 using dmc::rengine::exe::PeDirectories;
 using dmc::rengine::exe::PeExportedSymbol;
@@ -1787,6 +1788,64 @@ void image_base_reads_far_apart_in_one_section_are_left_undecided() {
     assert(map.summary.image_base_groups_undecided == 1U);
 }
 
+void depth_from_the_entry_point_counts_transfers_not_calls() {
+    Fixture fixture;
+    // The fixture's entry point A calls B directly and reaches a third function
+    // only by a tail jump out of B. An entry stub handing off to the runtime's
+    // startup is exactly that shape, so following calls alone would stop short.
+    //   B: e9 rel32   jmp the third function
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0xE9});
+    put_i32(fixture.bytes, at + 1U, 0x7B);  // 0x1045 + 0x7b = 0x10c0
+    put(fixture.bytes, 0x2C0U, {0xC3});
+
+    auto table = fixture.table;
+    table.functions.push_back(PeFunctionRange{0x10C0U, 0x10D0U, 0U, false, 0x10C0U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.startup_path_functions == 3U);
+    assert(map.summary.startup_path_deepest == 2U);
+    // The depth closure and the reachability flag must agree; they are computed
+    // separately and one is a check on the other.
+    assert(map.summary.reachable_from_entry_point == map.summary.startup_path_functions);
+
+    for (const auto& facts : map.functions) {
+        if (facts.begin_rva == 0x1000U) {
+            assert(facts.depth_from_entry == 0U);
+        } else if (facts.begin_rva == 0x1040U) {
+            assert(facts.depth_from_entry == 1U);
+        } else if (facts.begin_rva == 0x10C0U) {
+            assert(facts.depth_from_entry == 2U);
+        }
+    }
+}
+
+void a_function_nothing_reaches_carries_no_depth() {
+    Fixture fixture;
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &fixture.graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    for (const auto& facts : map.functions) {
+        if (!facts.reachable_from_entry_point) {
+            assert(facts.depth_from_entry == FunctionFacts::kUnreached);
+        } else {
+            assert(facts.depth_from_entry != FunctionFacts::kUnreached);
+        }
+    }
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1865,6 +1924,8 @@ int main() {
     a_base_whose_sizes_do_not_divide_is_left_out_of_the_layout();
     image_base_reads_straddling_a_section_cannot_be_one_array();
     image_base_reads_far_apart_in_one_section_are_left_undecided();
+    depth_from_the_entry_point_counts_transfers_not_calls();
+    a_function_nothing_reaches_carries_no_depth();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

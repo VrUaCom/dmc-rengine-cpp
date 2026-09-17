@@ -875,6 +875,38 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     };
 
     propagate(image.entry_point_rva, &FunctionFacts::reachable_from_entry_point);
+
+    // The same closure again, by depth. Kept apart from `propagate` because a
+    // depth is a different kind of fact from a flag: it says how few calls can
+    // reach a function, which is not when it runs.
+    if (const auto root = index.containing(image.entry_point_rva); root.has_value()) {
+        map.functions[*root].depth_from_entry = 0U;
+        std::deque<std::size_t> queue{*root};
+        while (!queue.empty()) {
+            const auto position = queue.front();
+            queue.pop_front();
+            const auto next = static_cast<std::uint16_t>(
+                map.functions[position].depth_from_entry + 1U);
+            // Both a call and a tail jump out of the function are steps away
+            // from the entry point. The entry stub reaches the runtime's own
+            // startup by a tail jump, so following calls alone stops at it.
+            const auto step = [&](std::uint32_t target) {
+                const auto callee = index.containing(target);
+                if (!callee.has_value() ||
+                    map.functions[*callee].depth_from_entry != FunctionFacts::kUnreached) {
+                    return;
+                }
+                map.functions[*callee].depth_from_entry = next;
+                queue.push_back(*callee);
+            };
+            for (const auto target : graph.functions[position].call_targets) {
+                step(target);
+            }
+            for (const auto target : graph.functions[position].external_jump_targets) {
+                step(target);
+            }
+        }
+    }
     if (inputs.directories != nullptr && inputs.directories->exports.has_value()) {
         for (const auto& symbol : inputs.directories->exports->symbols) {
             if (!symbol.forwarded()) {
@@ -1103,6 +1135,15 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         if (facts.reachable_from_export) {
             ++map.summary.reachable_from_export;
+        }
+        if (facts.depth_from_entry != FunctionFacts::kUnreached) {
+            ++map.summary.startup_path_functions;
+            map.summary.startup_path_deepest =
+                std::max(map.summary.startup_path_deepest, facts.depth_from_entry);
+            if (!facts.constructs_class.empty()) {
+                ++map.summary.startup_path_constructors;
+            }
+            map.summary.startup_path_dispatch_sites += facts.indirect_call_displacements.size();
         }
         if (facts.reachable_through_dispatch) {
             ++map.summary.reachable_through_dispatch;
@@ -1959,6 +2000,22 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
                       return left.class_display_name < right.class_display_name;
                   });
         map.summary.class_size_floors = map.class_size_floors.size();
+    }
+
+    {
+        std::set<std::string> modules;
+        std::set<std::pair<std::string, std::string>> symbols;
+        for (const auto& facts : map.functions) {
+            if (facts.depth_from_entry == FunctionFacts::kUnreached) {
+                continue;
+            }
+            for (const auto& call : facts.imports_called) {
+                modules.insert(call.module);
+                symbols.emplace(call.module, call.function);
+            }
+        }
+        map.summary.startup_path_modules = modules.size();
+        map.summary.startup_path_import_symbols = symbols.size();
     }
 
     map.import_usage.reserve(usage.size());

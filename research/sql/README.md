@@ -367,6 +367,22 @@ functions and the bracket's percentages describe that subset, not the image.
 that fall outside every located vtable's whole extent — excluding vtables by
 base alone reports each fragment of a split vtable as a table of its own.
 
+### The startup path
+
+`exe_function.depth_from_entry` is the shortest chain of direct calls and tail
+jumps from the entry point, NULL when nothing reaches the function that way. The
+closure assumes nothing about dispatch, which makes it the only route through the
+image that is sound end to end. A depth is not an execution order.
+
+```sql
+SELECT * FROM v_exe_startup_path;
+SELECT * FROM v_exe_startup_module;
+```
+
+The entry stub reaches the runtime's startup by a tail jump rather than a call,
+so a closure following calls alone stops almost immediately — which is why the
+depth counts transfers.
+
 ### Fixed addresses the code operates on
 
 `exe_global_block` holds addresses the code hands to a direct call as its first

@@ -112,7 +112,19 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.vtable_slots_implemented));
     writer.member("vtable_slot_implementations",
                   static_cast<std::uint64_t>(summary.vtable_slot_implementations));
-    writer.member("reachable_through_dispatch",
+    writer.member("startup_path_functions",
+                  static_cast<std::uint64_t>(summary.startup_path_functions));
+    writer.member("startup_path_deepest",
+                  static_cast<std::uint64_t>(summary.startup_path_deepest));
+    writer.member("startup_path_modules",
+                  static_cast<std::uint64_t>(summary.startup_path_modules));
+    writer.member("startup_path_import_symbols",
+                  static_cast<std::uint64_t>(summary.startup_path_import_symbols));
+    writer.member("startup_path_constructors",
+                  static_cast<std::uint64_t>(summary.startup_path_constructors));
+    writer.member("startup_path_dispatch_sites",
+                  static_cast<std::uint64_t>(summary.startup_path_dispatch_sites));
+        writer.member("reachable_through_dispatch",
                   static_cast<std::uint64_t>(summary.reachable_through_dispatch));
     writer.member("outside_every_closure",
                   static_cast<std::uint64_t>(summary.outside_every_closure));
@@ -479,6 +491,9 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     }
     if (facts.reachable_from_export) {
         writer.member("reachable_from_export", true);
+    }
+    if (facts.depth_from_entry != dmc::rengine::exe::FunctionFacts::kUnreached) {
+        writer.member("depth_from_entry", static_cast<std::uint64_t>(facts.depth_from_entry));
     }
     // The interesting minority is what the bound does *not* reach, so that is
     // what gets a member; emitting the majority flag would say nothing.

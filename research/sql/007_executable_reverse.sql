@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS exe_function (
     -- sits at its slot in any vtable the image carries. Nothing in the file
     -- says the entry point can get here.
     outside_every_closure INTEGER NOT NULL DEFAULT 0,
+    -- Shortest chain of transfers from the entry point, NULL when nothing
+    -- reaches the function that way. A depth is not an execution order.
+    depth_from_entry INTEGER,
     -- Prologue facts read from the unwind record.
     prolog_size INTEGER,
     stack_allocation INTEGER,
@@ -658,3 +661,31 @@ SELECT printf('0x%x', g.base_rva) AS base_rva,
 FROM exe_global_block g
 LEFT JOIN exe_class c ON c.id = g.constructed_class_id
 ORDER BY g.distinct_callers DESC, g.base_rva;
+
+-- The startup path: what direct calls and tail jumps alone reach from the entry
+-- point. Sound throughout, because it assumes nothing about dispatch, and it is
+-- where every platform subsystem is brought up.
+CREATE VIEW IF NOT EXISTS v_exe_startup_path AS
+SELECT f.depth_from_entry AS depth,
+       COUNT(*) AS functions,
+       SUM(f.size_bytes) AS bytes,
+       COUNT(DISTINCT i.module) AS modules_called
+FROM exe_function f
+LEFT JOIN exe_import_call i ON i.function_id = f.id
+WHERE f.depth_from_entry IS NOT NULL
+GROUP BY f.depth_from_entry
+ORDER BY f.depth_from_entry;
+
+-- Where each module is first reached on the startup path, and by how many
+-- functions there. A module reached by exactly one is a single point a port has
+-- to replace.
+CREATE VIEW IF NOT EXISTS v_exe_startup_module AS
+SELECT i.module,
+       MIN(f.depth_from_entry) AS first_depth,
+       COUNT(DISTINCT f.id) AS calling_functions,
+       COUNT(DISTINCT i.symbol) AS symbols
+FROM exe_import_call i
+JOIN exe_function f ON f.id = i.function_id
+WHERE f.depth_from_entry IS NOT NULL
+GROUP BY i.module
+ORDER BY first_depth, symbols DESC;
