@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 
 namespace {
@@ -39,6 +40,31 @@ struct AppState {
 
 void log_info(const char* message) { __android_log_write(ANDROID_LOG_INFO, kTag, message); }
 
+const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
+  using rengine::lsg::DiagnosticRenderMode;
+  switch (mode) {
+    case DiagnosticRenderMode::genome_perspective: return "GENOME_PERSPECTIVE";
+    case DiagnosticRenderMode::raw_perspective: return "RAW_PERSPECTIVE";
+    case DiagnosticRenderMode::raw_orthographic: return "RAW_ORTHOGRAPHIC";
+  }
+  return "UNKNOWN";
+}
+
+void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0.0f, float cpu_ms = 0.0f) {
+  const auto d = state.renderer.diagnostics();
+  char message[640]{};
+  std::snprintf(message, sizeof(message),
+      "%s mode=%s window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
+      reason, mode_name(d.mode),
+      d.window_width, d.window_height,
+      d.swapchain_width, d.swapchain_height,
+      d.logical_width, d.logical_height,
+      d.surface_rotation, d.logical_aspect, d.fov_y_radians, d.camera_distance_m,
+      d.near_plane_m, d.far_plane_m,
+      static_cast<unsigned long long>(d.estimated_gpu_bytes), fps, cpu_ms);
+  log_info(message);
+}
+
 void select_character(AppState& state, std::uint32_t index) {
   state.character_index = index & 1u;
   state.character = std::make_unique<rengine::lsg::CharacterRuntime>(rengine::lsg::builtin_profile(state.character_index));
@@ -48,6 +74,16 @@ void select_character(AppState& state, std::uint32_t index) {
 void toggle_detail(AppState& state) {
   state.detail_enabled = !state.detail_enabled;
   log_info(state.detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
+}
+
+void cycle_diagnostic_mode(AppState& state) {
+  using rengine::lsg::DiagnosticRenderMode;
+  const auto current = state.renderer.diagnostic_mode();
+  const auto next = current == DiagnosticRenderMode::genome_perspective ? DiagnosticRenderMode::raw_perspective
+                  : current == DiagnosticRenderMode::raw_perspective ? DiagnosticRenderMode::raw_orthographic
+                                                                    : DiagnosticRenderMode::genome_perspective;
+  state.renderer.set_diagnostic_mode(next);
+  log_renderer_diagnostics(state, "Diagnostic mode changed");
 }
 
 void cycle_camera_preset(AppState& state) {
@@ -68,8 +104,12 @@ void on_command(android_app* app, std::int32_t command) {
     case APP_CMD_INIT_WINDOW:
       state->has_window = app->window != nullptr;
       if (state->has_window) {
-        if (state->renderer.initialize(app->window, app->activity->assetManager)) log_info("Vulkan LSG viewer initialized");
-        else __android_log_write(ANDROID_LOG_ERROR, kTag, "Vulkan initialization failed");
+        if (state->renderer.initialize(app->window, app->activity->assetManager)) {
+          log_info("Vulkan LSG viewer initialized");
+          log_renderer_diagnostics(*state, "Renderer init");
+        } else {
+          __android_log_write(ANDROID_LOG_ERROR, kTag, "Vulkan initialization failed");
+        }
       }
       break;
     case APP_CMD_TERM_WINDOW:
@@ -86,9 +126,11 @@ float pointer_distance(AInputEvent* event) {
 }
 
 void handle_hud_tap(AppState& state, float x, float width) {
-  if (x < width / 3.0f) select_character(state, 0);
-  else if (x < (width * 2.0f) / 3.0f) select_character(state, 1);
-  else toggle_detail(state);
+  const float quarter = width * 0.25f;
+  if (x < quarter) select_character(state, 0);
+  else if (x < quarter * 2.0f) select_character(state, 1);
+  else if (x < quarter * 3.0f) toggle_detail(state);
+  else cycle_diagnostic_mode(state);
 }
 
 std::int32_t on_input(android_app* app, AInputEvent* event) {
@@ -99,6 +141,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
       case AKEYCODE_0: select_character(*state, 0); return 1;
       case AKEYCODE_1: select_character(*state, 1); return 1;
       case AKEYCODE_D: toggle_detail(*state); return 1;
+      case AKEYCODE_M: cycle_diagnostic_mode(*state); return 1;
       case AKEYCODE_F: state->renderer.set_camera_preset(rengine::lsg::CameraPreset::full_body); return 1;
       case AKEYCODE_P: state->renderer.set_camera_preset(rengine::lsg::CameraPreset::portrait); return 1;
       case AKEYCODE_C: state->renderer.set_camera_preset(rengine::lsg::CameraPreset::extreme_close_up); return 1;
@@ -186,6 +229,9 @@ void android_main(android_app* app) {
   AppState state{}; state.app = app; select_character(state, 0);
   app->userData = &state; app->onAppCmd = on_command; app->onInputEvent = on_input;
   const auto start = std::chrono::steady_clock::now();
+  auto telemetry_start = start;
+  std::uint32_t telemetry_frames = 0;
+
   while (true) {
     int events = 0; android_poll_source* source = nullptr;
     while (ALooper_pollOnce(state.renderer.ready() ? 0 : -1, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) {
@@ -193,9 +239,21 @@ void android_main(android_app* app) {
       if (app->destroyRequested != 0) { state.renderer.shutdown(); return; }
     }
     if (state.renderer.ready()) {
-      const float seconds = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
+      const auto frame_begin = std::chrono::steady_clock::now();
+      const float seconds = std::chrono::duration<float>(frame_begin - start).count();
       if (!state.renderer.draw_frame(seconds, state.character_index, state.detail_enabled)) {
         __android_log_write(ANDROID_LOG_WARN, kTag, "Frame failed or swapchain needs recreation");
+      } else {
+        ++telemetry_frames;
+      }
+      const auto now = std::chrono::steady_clock::now();
+      const float interval = std::chrono::duration<float>(now - telemetry_start).count();
+      if (interval >= 1.0f) {
+        const float fps = static_cast<float>(telemetry_frames) / interval;
+        const float cpu_ms = telemetry_frames == 0 ? 0.0f : interval * 1000.0f / static_cast<float>(telemetry_frames);
+        log_renderer_diagnostics(state, "Frame telemetry", fps, cpu_ms);
+        telemetry_start = now;
+        telemetry_frames = 0;
       }
     }
   }
