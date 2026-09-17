@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice16-stage-cfg-transform-source-provenance-plan-2026-08-15",
+  "date": "2026-08-15",
+  "status": "RESEARCH_REQUIRED_EVIDENCE_REACQUISITION_ACTIVE",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "known_contracts": {
+    "entry_transform_selector_offset": "0x01",
+    "entry_descriptor_index_offset": "0x02",
+    "descriptor_stride": "0x50",
+    "runtime_transform_pointer_offset": "0x20",
+    "runtime_descriptor_pointer_offset": "0x118",
+    "c8d0_transform_pointer_arg_index": 5,
+    "stage_cfg_transform_bounds_available": false
+  },
+  "builder_variants": [
+    {
+      "va": "0x14005C630",
+      "end_va": "0x14005C731",
+      "body_sha256": "97dbb8f5e6cace93530a30c936796a35fca80235467a3a0885f71c8593990d1a",
+      "bounded_contract": "entry+0x01 selects an indirect external source; selected source object +0x110 supplies transform source to C8D0",
+      "stage_cfg_route_proven": false
+    },
+    {
+      "va": "0x14005C740",
+      "end_va": "0x14005C83D",
+      "body_sha256": "0778fa7ecce7855712b1d0bd5cb8ef5b32998e1d4629ee0d5d35e951318e06b6",
+      "bounded_contract": "entry+0x01 indexes an external/direct transform table with 0x40 stride and supplies the selected transform to C8D0",
+      "stage_cfg_route_proven": false
+    }
+  ],
+  "runtime_bridge": {
+    "va": "0x14005C8D0",
+    "end_va": "0x14005C99D",
+    "body_sha256": "f779db92f9fee9d1492ef7208eb9950784d782e51542dd65d551ecdf6b950bfe",
+    "entry_arg_index": 2,
+    "descriptor_arg_index": 3,
+    "runtime_object_arg_index": 4,
+    "transform_pointer_arg_index": 5
+  },
+  "stage_cfg_known_sources": {
+    "resource_pattern": "room\\stXXXcfg.pac",
+    "modern": {
+      "related_source_slot": 38,
+      "entry_table_slot": 39,
+      "descriptor_table_slot": 40,
+      "representative_c260_callsite_va": "0x14009823F"
+    },
+    "legacy_observed": {
+      "related_source_slot": 21,
+      "entry_table_slot": 22,
+      "descriptor_table_slot": 23,
+      "representative_c260_callsite_va": "0x1400B6483"
+    }
+  },
+  "stage_cfg_slot38_boundary": {
+    "consumer_va": "0x1400594B0",
+    "payload_has_u16_relative_offset_structure": true,
+    "proven_0x40_transform_table": false,
+    "semantic_role": "RESEARCH_REQUIRED"
+  },
+  "rejected_shortcuts": [
+    "stage_cfg_slot38_equals_transform_table_by_adjacency",
+    "matching_pac_slot_numbers_imply_matching_schema",
+    "entry_plus_0x01_is_primitive_type",
+    "c740_0x40_support_proves_stage_cfg_uses_c740",
+    "synthetic_selector_values_prove_real_stage_cfg_bounds"
+  ],
+  "acquisition_targets": [
+    {
+      "id": "594b0-full-body-and-callers",
+      "va": "0x1400594B0",
+      "required": [
+        "complete_body",
+        "caller_register_and_stack_setup",
+        "slot38_reads",
+        "u16_relative_offset_consumption",
+        "writes_to_owner_manager_fields",
+        "produced_pointer_count_lifetime",
+        "callee_chain"
+      ]
+    },
+    {
+      "id": "modern-stage-cfg-route",
+      "anchor_va": "0x14009823F",
+      "required": [
+        "slot38_destination",
+        "slot39_40_c260_setup",
+        "downstream_builder_identity",
+        "transform_source_base_or_object",
+        "selector_count_bounds",
+        "c8d0_stack_arg5_producer"
+      ]
+    },
+    {
+      "id": "legacy-stage-cfg-route",
+      "anchor_va": "0x1400B6483",
+      "required": [
+        "slot21_destination",
+        "slot22_23_c260_setup",
+        "downstream_builder_identity",
+        "transform_source_base_or_object",
+        "selector_count_bounds",
+        "c8d0_stack_arg5_producer"
+      ]
+    },
+    {
+      "id": "c630-c740-caller-census",
+      "required": [
+        "all_direct_callers",
+        "manager_source_identity",
+        "stage_cfg_classification",
+        "transform_source_argument_or_base",
+        "selector_bounds_source",
+        "c8d0_transform_nullability"
+      ]
+    }
+  ],
+  "promotion_gates": {
+    "builder_route_closed": false,
+    "transform_source_identity_closed": false,
+    "selector_bounds_count_closed": false,
+    "stage_cfg_three_span_adapter_allowed": false,
+    "transform_lifecycle_closed_if_constructed": false
+  },
+  "implementation_freeze": [
+    "keep_transform_selector_bounds_available_false",
+    "no_stage_cfg_slot38_transform_parser",
+    "no_stage_cfg_three_table_adapter",
+    "no_original_runtime_transform_construction_in_gdspaces"
+  ],
+  "acceptable_next_evidence": [
+    "canonical_exe_bytes_or_verified_byte_identical_target_windows",
+    "sanitized_disassembly_windows_with_artifact_provenance",
+    "exact_sha_observation_only_runtime_trace",
+    "private_raw_stage_cfg_data_with_public_hash_offset_count_reports"
+  ],
+  "major_hits_subsystem_complete": false,
+  "proprietary_bytes_committed": false
+}

@@ -51,7 +51,7 @@ void add_diagnostic(
     const Header& candidate) noexcept {
     return same_vec3(original.bounds_min, candidate.bounds_min) &&
            same_vec3(original.bounds_max, candidate.bounds_max) &&
-           same_vec3(original.cell_size, candidate.cell_size) &&
+           original.cell_size == candidate.cell_size &&
            original.grid_count_x == candidate.grid_count_x &&
            original.grid_count_y == candidate.grid_count_y &&
            original.grid_count_z == candidate.grid_count_z;
@@ -367,7 +367,7 @@ SpatialComparisonReport compare(
             report,
             ParseSeverity::error,
             "hits.spatial_compare.incompatible_grid",
-            "Spatial-list comparison requires bit-identical bounds/cell size and identical grid dimensions.");
+            "Spatial-list comparison requires bit-identical bounds/cell extents and identical grid dimensions.");
         return report;
     }
 

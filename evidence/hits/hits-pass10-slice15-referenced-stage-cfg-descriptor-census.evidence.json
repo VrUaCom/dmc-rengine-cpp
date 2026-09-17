@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "id": "hits-pass10-slice15-referenced-stage-cfg-descriptor-census-2026-08-15",
+  "date": "2026-08-15",
+  "status": "IMPLEMENTED_SYNTHETICALLY_VALIDATED_REAL_STAGE_CFG_CORPUS_PENDING",
+  "canonical_executable_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "excluded_packed_sha256": "81c7e61983564113b5105e931d9f185accc14e44ae147d27f720c2d50935c7d6",
+  "depends_on": [
+    "hits-pass10-slice12-stage-cfg-pac",
+    "hits-pass10-slice14-stage-cfg-collision-view"
+  ],
+  "stage_cfg_slot_generations": {
+    "modern_observed": {
+      "entry_table_slot": 39,
+      "primitive_descriptor_table_slot": 40
+    },
+    "legacy_observed": {
+      "entry_table_slot": 22,
+      "primitive_descriptor_table_slot": 23
+    }
+  },
+  "serialized_contract": {
+    "entry_stride": "0x04",
+    "descriptor_index_offset": "0x02",
+    "descriptor_index_type": "u16_le",
+    "primitive_descriptor_stride": "0x50",
+    "primitive_type_offset": "0x00"
+  },
+  "census_contract": {
+    "input_authority": "existing SHA-gated Slice-14 Stage-CFG entry/descriptor View",
+    "walks_only_bounded_entries": true,
+    "descriptor_reference_bounds_checked": true,
+    "counts_only_actually_referenced_descriptors": true,
+    "raw_primitive_type_preserved": true,
+    "reference_count_preserved": true,
+    "invalid_entry_indices_reported": true,
+    "output_order": "ascending_descriptor_index",
+    "transform_selector_bounds_checked": false,
+    "transform_selector_reason": "Stage-CFG transform-provider provenance remains unresolved; Slice 15 does not change the Slice-14 boundary."
+  },
+  "type5_boundary": {
+    "raw_observation_meaning": "a bounded Stage-CFG entry references a 0x50 primitive descriptor whose byte +0x00 equals 5",
+    "three_vertex_face_structural_semantics_already_promoted": true,
+    "authored_source_token_resolved": false,
+    "gameplay_name_resolved": false,
+    "producer_identity_resolved_by_this_slice": false,
+    "runtime_activation_proven_by_this_slice": false,
+    "behavioral_equivalence_proven_by_this_slice": false
+  },
+  "synthetic_regression": {
+    "modern_39_40_layout": true,
+    "legacy_22_23_layout": true,
+    "repeated_descriptor_references": true,
+    "deterministic_aggregation": true,
+    "synthetic_raw_type5_observation": true,
+    "invalid_descriptor_reference_reporting": true,
+    "canonical_sha_gate": true,
+    "packed_sha_rejected": true,
+    "malformed_descriptor_stride_rejected": true,
+    "synthetic_type5_is_real_game_evidence": false
+  },
+  "real_corpus_state": {
+    "raw_stage_cfg_pac_available_in_current_connected_file_library": false,
+    "raw_stage_cfg_pac_available_in_current_drive_search": false,
+    "complete_sanitized_real_stage_cfg_referenced_descriptor_census_found": false,
+    "real_type5_presence_claimed": false,
+    "real_type5_absence_claimed": false,
+    "next_gate": "run the referenced-only census through the canonical production GDSpaces/container path across representative catalog-selected Stage-CFG resources and preserve resource-set/numeric-stage/source provenance"
+  },
+  "architecture": {
+    "private_pac_parser_added": false,
+    "second_resource_resolver_added": false,
+    "real_execution_requires_canonical_gdspaces_container_path": true,
+    "stage_cfg_slot38_promoted_as_transform_table": false
+  },
+  "coordination_correction": {
+    "temporary_conflicting_pr": 95,
+    "temporary_label": "Slice 13",
+    "correct_slice": 15,
+    "canonical_pr": 96,
+    "temporary_pr_merged": false,
+    "reason": "full PR #85 tree readback showed existing validated Slice 13 and Slice 14; numbering was corrected without rejecting the census implementation"
+  },
+  "implementation": {
+    "header": "include/dmc_rengine/profiles/dmc3/hits_stage_cfg_collision_tables.hpp",
+    "test": "tests/hits_stage_cfg_collision_tables_tests.cpp",
+    "ctest": "hits_stage_cfg_collision_tables",
+    "validated_code_head": "70b54f57d98b60845a6ad5e1072aa31c470ff5c0",
+    "ci_run_id": 31886442850,
+    "ci_state": "PASSED",
+    "ubuntu": "success",
+    "windows": "success"
+  },
+  "proprietary_bytes_committed": false,
+  "major_hits_subsystem_complete": false
+}

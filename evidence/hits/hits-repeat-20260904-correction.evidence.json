@@ -1,0 +1,58 @@
+{
+  "schema": "dmc-rengine.evidence.hits-repeat-correction.v1",
+  "date": "2026-09-04",
+  "target_sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "claims": [
+    {
+      "id": "hits.header.cell-extent-u32",
+      "status": "EXE CONFIRMED",
+      "statement": "Serialized +0x20/+0x24/+0x28 are little-endian DWORD integer cell extents, not f32 values.",
+      "exe_functions": ["0x1402D2F50", "0x1402D2A10", "0x1402D2E80"],
+      "corpus_instances": 16
+    },
+    {
+      "id": "hits.grid.flatten.xyz",
+      "status": "EXE CONFIRMED",
+      "statement": "Flatten order is ((x * grid_count_y) + y) * grid_count_z + z.",
+      "exe_functions": ["0x1402D2F50", "0x1402D2E00"],
+      "corpus_reference_crosscheck": 40789
+    },
+    {
+      "id": "hits.relative-base.plus8",
+      "status": "EXE CONFIRMED",
+      "statement": "Spatial and triangle serialized relative offsets resolve from file base + 8.",
+      "exe_functions": ["0x1402D29F0", "0x1402D3060", "0x1402D3050"]
+    },
+    {
+      "id": "hits.spatial.triangle-box-sat",
+      "status": "RESEARCH REQUIRED",
+      "statement": "The tested stock file corpus is reproduced exactly by boundary-inclusive closed-cell candidates followed by triangle-box SAT; original offline writer identity remains unresolved.",
+      "corpus_triangles_exact": 4420,
+      "corpus_triangles_total": 4420,
+      "corpus_reference_count": 40789,
+      "runtime_support_function": "0x1402D2670",
+      "boundary_cases_missed_by_old_clean_writer": 192
+    },
+    {
+      "id": "hits.writer.grid-fit",
+      "status": "RESEARCH REQUIRED",
+      "statement": "All tested stock headers match floor(global vertex min), ceil extent count, then bounds_max = bounds_min + extent*count; original Capcom authoring writer provenance is not yet recovered.",
+      "corpus_instances_exact": 16
+    },
+    {
+      "id": "hits.triangle.original-normal-arithmetic",
+      "status": "RESEARCH REQUIRED",
+      "statement": "Stored normal orientation is corpus-consistent with cross(B-A,C-A), but exact original arithmetic/precision is not bit-closed across all 4420 triangles."
+    },
+    {
+      "id": "hits.flags.semantic-map",
+      "status": "RESEARCH REQUIRED",
+      "statement": "24 raw flag values are observed in the repeat corpus; no new gameplay/material names are promoted from frequency alone."
+    }
+  ],
+  "superseded": [
+    "Header +0x20 vec3f cell_size model.",
+    "Writer serialization of +0x20/+0x24/+0x28 as f32.",
+    "Triangle min/max point-cell range as a sufficient SAT candidate set on closed cell boundaries."
+  ]
+}
