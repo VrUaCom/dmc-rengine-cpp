@@ -11,6 +11,7 @@ enum class DiagnosticRenderMode : std::uint8_t {
   genome_perspective = 0,
   raw_perspective = 1,
   raw_orthographic = 2,
+  genome_joint_debug = 3,
 };
 
 struct RendererDiagnostics {
