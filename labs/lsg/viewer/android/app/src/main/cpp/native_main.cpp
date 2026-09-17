@@ -24,6 +24,7 @@ struct AppState {
   android_app* app{};
   std::uint32_t character_index{};
   bool detail_enabled{true};
+  bool skeleton_enabled{};
   bool has_window{};
   bool dragging{};
   bool hud_candidate{};
@@ -46,16 +47,17 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
     case DiagnosticRenderMode::genome_perspective: return "GENOME_PERSPECTIVE";
     case DiagnosticRenderMode::raw_perspective: return "RAW_PERSPECTIVE";
     case DiagnosticRenderMode::raw_orthographic: return "RAW_ORTHOGRAPHIC";
+    case DiagnosticRenderMode::genome_joint_debug: return "GENOME_JOINT_DEBUG";
   }
   return "UNKNOWN";
 }
 
 void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0.0f, float cpu_ms = 0.0f) {
   const auto d = state.renderer.diagnostics();
-  char message[640]{};
+  char message[700]{};
   std::snprintf(message, sizeof(message),
-      "%s mode=%s window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
-      reason, mode_name(d.mode),
+      "%s mode=%s skeleton=%s window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
+      reason, mode_name(d.mode), state.skeleton_enabled ? "ON" : "OFF",
       d.window_width, d.window_height,
       d.swapchain_width, d.swapchain_height,
       d.logical_width, d.logical_height,
@@ -76,8 +78,19 @@ void toggle_detail(AppState& state) {
   log_info(state.detail_enabled ? "Procedural detail ON" : "Procedural detail OFF");
 }
 
+void toggle_skeleton(AppState& state) {
+  using rengine::lsg::DiagnosticRenderMode;
+  state.skeleton_enabled = !state.skeleton_enabled;
+  state.renderer.set_diagnostic_mode(state.skeleton_enabled
+      ? DiagnosticRenderMode::genome_joint_debug
+      : DiagnosticRenderMode::genome_perspective);
+  log_info(state.skeleton_enabled ? "Joint Debug / Skeleton ON" : "Joint Debug / Skeleton OFF");
+  log_renderer_diagnostics(state, "Skeleton toggle");
+}
+
 void cycle_diagnostic_mode(AppState& state) {
   using rengine::lsg::DiagnosticRenderMode;
+  state.skeleton_enabled = false;
   const auto current = state.renderer.diagnostic_mode();
   const auto next = current == DiagnosticRenderMode::genome_perspective ? DiagnosticRenderMode::raw_perspective
                   : current == DiagnosticRenderMode::raw_perspective ? DiagnosticRenderMode::raw_orthographic
@@ -130,7 +143,7 @@ void handle_hud_tap(AppState& state, float x, float width) {
   if (x < quarter) select_character(state, 0);
   else if (x < quarter * 2.0f) select_character(state, 1);
   else if (x < quarter * 3.0f) toggle_detail(state);
-  else cycle_diagnostic_mode(state);
+  else toggle_skeleton(state);
 }
 
 std::int32_t on_input(android_app* app, AInputEvent* event) {
@@ -141,6 +154,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
       case AKEYCODE_0: select_character(*state, 0); return 1;
       case AKEYCODE_1: select_character(*state, 1); return 1;
       case AKEYCODE_D: toggle_detail(*state); return 1;
+      case AKEYCODE_S: toggle_skeleton(*state); return 1;
       case AKEYCODE_M: cycle_diagnostic_mode(*state); return 1;
       case AKEYCODE_F: state->renderer.set_camera_preset(rengine::lsg::CameraPreset::full_body); return 1;
       case AKEYCODE_P: state->renderer.set_camera_preset(rengine::lsg::CameraPreset::portrait); return 1;
