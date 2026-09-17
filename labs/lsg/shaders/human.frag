@@ -17,6 +17,9 @@ layout(push_constant) uniform LsgPush {
     uvec4 flags;
 } pc;
 
+uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
+bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
+
 uint pcg_hash(uint input_value) {
     uint state = input_value * 747796405u + 2891336453u;
     uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
@@ -126,11 +129,17 @@ bool hud_glyph(uint button, vec2 uv) {
                inside_box(uv, vec2(0.39, 0.70), vec2(0.53, 0.79)) ||
                inside_box(uv, vec2(0.37, 0.20), vec2(0.65, 0.29));
     }
-    bool left = inside_box(uv, vec2(0.34, 0.22), vec2(0.42, 0.78));
-    bool top = inside_box(uv, vec2(0.39, 0.70), vec2(0.58, 0.78));
-    bool bottom = inside_box(uv, vec2(0.39, 0.22), vec2(0.58, 0.30));
-    bool right = inside_box(uv, vec2(0.56, 0.30), vec2(0.64, 0.70));
-    return left || top || bottom || right;
+    if (button == 2u) {
+        bool left = inside_box(uv, vec2(0.34, 0.22), vec2(0.42, 0.78));
+        bool top = inside_box(uv, vec2(0.39, 0.70), vec2(0.58, 0.78));
+        bool bottom = inside_box(uv, vec2(0.39, 0.22), vec2(0.58, 0.30));
+        bool right = inside_box(uv, vec2(0.56, 0.30), vec2(0.64, 0.70));
+        return left || top || bottom || right;
+    }
+    // Diagnostic mode icon: three horizontal bars.
+    return inside_box(uv, vec2(0.30, 0.68), vec2(0.70, 0.76)) ||
+           inside_box(uv, vec2(0.36, 0.46), vec2(0.64, 0.54)) ||
+           inside_box(uv, vec2(0.42, 0.24), vec2(0.58, 0.32));
 }
 
 vec3 perturb_normal(vec3 n, vec3 view_pos, float height_field, float strength) {
@@ -173,7 +182,6 @@ vec3 rotate_x(vec3 v, float a) {
     return vec3(v.x, c * v.y - s * v.z, s * v.y + c * v.z);
 }
 
-// Controlled display transform; this is an ACES-fitted approximation, not an ACES reference transform.
 vec3 aces_fitted(vec3 x) {
     const float a = 2.51;
     const float b = 0.03;
@@ -184,8 +192,6 @@ vec3 aces_fitted(vec3 x) {
 }
 
 vec3 sun_world_direction() {
-    // Approximately 55 degrees above the horizon. This is a controlled R&D default,
-    // not a claim about a specific location, date or spectral solar model.
     return normalize(vec3(-0.30, 0.82, 0.47));
 }
 
@@ -193,8 +199,6 @@ vec3 sun_view_direction() {
     return normalize(rotate_x(rotate_y(sun_world_direction(), -pc.camera.x), -pc.camera.y));
 }
 
-// Physically motivated compact sky approximation: Rayleigh-like phase, a forward Mie-like
-// lobe and an explicit solar disk. It is intentionally not a full spectral atmosphere model.
 vec3 procedural_environment(vec2 logical_ndc) {
     float tan_half_fov = tan(max(pc.render.y, 0.10) * 0.5);
     vec3 ray_view = normalize(vec3(logical_ndc.x * max(pc.render.x, 0.01) * tan_half_fov,
@@ -222,7 +226,6 @@ vec3 procedural_environment(vec2 logical_ndc) {
     float sun_disk = smoothstep(sun_outer, sun_inner, mu);
     sky += vec3(8.0, 6.8, 5.2) * sun_disk;
 
-    // Matte neutral floor/ground hemisphere; 0.18 is the requested reference albedo.
     if (ray_world.y < 0.0) {
         float ndotl = max(sun_world.y, 0.0);
         vec3 ground = vec3(0.18) * (0.22 + 0.78 * ndotl) + vec3(0.035, 0.055, 0.085);
@@ -233,8 +236,6 @@ vec3 procedural_environment(vec2 logical_ndc) {
     return aces_fitted(max(sky, vec3(0.0)));
 }
 
-// Compact daylight irradiance used by the skin material. It tracks the same world-space sun
-// as the background but remains an approximation rather than a generated cubemap/IBL solution.
 vec3 sky_irradiance(vec3 n) {
     float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
     vec3 horizon = vec3(0.36, 0.48, 0.62);
@@ -245,25 +246,44 @@ vec3 sky_irradiance(vec3 n) {
 void main() {
     uint profile_index = pc.flags.x & 1u;
     bool detail_enabled = pc.flags.y != 0u;
+    uint mode = diagnostic_mode();
 
-    if (pc.flags.w != 0u) {
+    if (ui_environment_pass()) {
         if (body_region == 200u) {
             out_colour = vec4(procedural_environment(surface_position_m.xy), 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 102u) discard;
+        if (body_region < 100u || body_region > 103u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
         if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
         bool selected = (button == 0u && profile_index == 0u) ||
                         (button == 1u && profile_index == 1u) ||
-                        (button == 2u && detail_enabled);
+                        (button == 2u && detail_enabled) ||
+                        (button == 3u);
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
         vec3 panel = selected ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
-        if (edge < 0.055) panel = selected ? vec3(0.45, 0.78, 1.00) : vec3(0.38, 0.43, 0.50);
+        if (button == 3u) {
+            panel = mode == 0u ? vec3(0.16, 0.56, 0.92)
+                  : mode == 1u ? vec3(0.92, 0.47, 0.14)
+                               : vec3(0.18, 0.72, 0.42);
+        }
+        if (edge < 0.055) panel = min(panel + vec3(0.24), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
+        return;
+    }
+
+    // RAW diagnostic modes deliberately bypass the entire LSG surface function.
+    // This isolates mesh/projection faults from genome/material faults on a physical device.
+    if (mode != 0u) {
+        vec3 n = normalize(view_normal);
+        vec3 l = sun_view_direction();
+        float ndotl = max(dot(n, l), 0.0);
+        vec3 neutral = vec3(0.48, 0.43, 0.39);
+        vec3 colour = neutral * (0.24 + 0.76 * ndotl) + neutral * sky_irradiance(n) * 0.22;
+        out_colour = vec4(aces_fitted(colour * 1.15), 1.0);
         return;
     }
 
@@ -306,7 +326,6 @@ void main() {
         roughness = clamp(roughness + pore_influence * 0.10, 0.25, 0.95);
     }
 
-    // Highest band uses a filtered statistical micro-BRDF perturbation instead of geometric tessellation.
     if (detail_enabled && band >= 3) {
         float subpixel = value_noise(surface_position_m / 0.00012, seed ^ 0xC2B2AE35u) - 0.5;
         float filter_weight = clamp((0.00010 - footprint_m) / 0.00010, 0.0, 1.0);
@@ -325,7 +344,7 @@ void main() {
     float ndoth = max(dot(n, h), 0.0);
     float hdotv = max(dot(h, v), 0.0);
 
-    const float skin_f0_scalar = 0.0277778; // ((1.4 - 1) / (1.4 + 1))^2
+    const float skin_f0_scalar = 0.0277778;
     vec3 f0 = vec3(skin_f0_scalar);
     vec3 fresnel = fresnel_schlick(hdotv, f0);
     float d = distribution_ggx(ndoth, roughness);
@@ -342,7 +361,6 @@ void main() {
     vec3 colour = ambient + diffuse * sun_radiance + specular * sun_radiance * (1.2 + oiliness * 0.75) +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
-    // Fixed exposure keeps A/B captures comparable and prevents beauty-LUT style masking.
     colour *= 1.05;
     out_colour = vec4(aces_fitted(max(colour, vec3(0.0))), 1.0);
 }
