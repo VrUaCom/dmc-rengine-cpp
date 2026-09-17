@@ -17,9 +17,17 @@ layout(push_constant) uniform LsgPush {
     vec4 geometry1;    // waist, muscle, body fat, head
     vec4 skin0;        // melanin, haemoglobin, oiliness, hydration
     vec4 micro0;       // roughness bias, pore density, pore scale, pore depth
-    vec4 render;       // aspect, vertical FOV radians, time, surface seed bits
-    uvec4 flags;       // selected profile, detail enabled, surface rotation, UI/environment pass
+    vec4 render;       // logical aspect, vertical FOV radians, time, surface seed bits
+    uvec4 flags;       // profile, detail, surface rotation, packed pass/mode
 } pc;
+
+// flags.w bit 0: UI/environment pass.
+// flags.w bits 1..2: diagnostic render mode.
+//   0 = genome + perspective
+//   1 = raw mesh + perspective
+//   2 = raw mesh + orthographic
+uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
+bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
     if (rotation_code == 1u) return vec2(-clip_position.y, clip_position.x);
@@ -42,9 +50,75 @@ vec3 rotate_x(vec3 v, float a) {
     return vec3(v.x, c * v.y - s * v.z, s * v.y + c * v.z);
 }
 
-// The renderer already submits 18 non-indexed UI vertices after the human. We reserve
-// the first triangle for a far-depth procedural environment and use one oversized,
-// clipped triangle per button. This adds atmosphere without a second pipeline or ABI change.
+float smooth01(float x) {
+    x = clamp(x, 0.0, 1.0);
+    return x * x * (3.0 - 2.0 * x);
+}
+
+float smooth_range(float value, float lo, float hi) {
+    return smooth01((value - lo) / max(hi - lo, 1e-6));
+}
+
+float smooth_band(float value, float rise0, float rise1, float fall0, float fall1) {
+    return smooth_range(value, rise0, rise1) * (1.0 - smooth_range(value, fall0, fall1));
+}
+
+struct AnatomyField {
+    float shoulder;
+    float chest;
+    float waist;
+    float pelvis;
+    float head;
+};
+
+AnatomyField anatomy_field(float body_y01) {
+    float y = clamp(body_y01, 0.0, 1.0);
+    AnatomyField w;
+    w.shoulder = smooth_band(y, 0.55, 0.64, 0.78, 0.87);
+    w.chest = smooth_band(y, 0.50, 0.58, 0.70, 0.79);
+    w.waist = smooth_band(y, 0.39, 0.46, 0.55, 0.63);
+    w.pelvis = smooth_band(y, 0.29, 0.36, 0.47, 0.55);
+    w.head = smooth_range(y, 0.78, 0.89);
+    return w;
+}
+
+vec2 anatomy_xz_scales(AnatomyField w) {
+    float fat_delta = pc.geometry1.z - 1.0;
+    float muscle_delta = pc.geometry1.y - 1.0;
+
+    float width_scale = 1.0 + 0.55 * fat_delta;
+    float depth_scale = 1.0 + 0.70 * fat_delta;
+
+    width_scale += w.shoulder * ((pc.geometry0.y - 1.0) + 0.55 * muscle_delta);
+    width_scale += w.waist * (pc.geometry1.x - 1.0);
+    width_scale += w.pelvis * (pc.geometry0.z - 1.0);
+    width_scale += w.head * (pc.geometry1.w - 1.0);
+
+    depth_scale += w.chest * ((pc.geometry0.w - 1.0) + 0.35 * muscle_delta);
+    depth_scale += w.waist * 0.50 * (pc.geometry1.x - 1.0);
+    depth_scale += w.pelvis * 0.50 * (pc.geometry0.z - 1.0);
+    depth_scale += w.head * (pc.geometry1.w - 1.0);
+
+    return clamp(vec2(width_scale, depth_scale), vec2(0.75), vec2(1.25));
+}
+
+vec3 apply_head_idle(vec3 p, float head_weight, float t) {
+    const float neck_pivot_y = 0.525; // centred metres for a 1.75 m reference human
+    vec3 relative = p - vec3(0.0, neck_pivot_y, 0.0);
+    vec3 rotated = rotate_y(relative, 0.0040 * sin(t * 0.37));
+    rotated = rotate_x(rotated, 0.0025 * sin(t * 0.29 + 0.7));
+    rotated += vec3(0.0, neck_pivot_y, 0.0);
+    return mix(p, rotated, head_weight);
+}
+
+vec3 apply_head_idle_normal(vec3 n, float head_weight, float t) {
+    vec3 rotated = rotate_y(n, 0.0040 * sin(t * 0.37));
+    rotated = rotate_x(rotated, 0.0025 * sin(t * 0.29 + 0.7));
+    return normalize(mix(n, rotated, head_weight));
+}
+
+// One far-depth procedural environment triangle plus four compact R&D controls:
+// Character 0, Character 1, Detail, Diagnostic mode.
 void emit_ui_environment_vertex() {
     const vec2 full_triangle[3] = vec2[](
         vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
@@ -55,19 +129,17 @@ void emit_ui_environment_vertex() {
         gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.999, 1.0);
         surface_position_m = vec3(logical_clip, 0.0);
         view_normal = vec3(0.0, 1.0, 0.0);
-        body_region = 200u; // procedural environment sentinel
+        body_region = 200u;
         view_position_m = vec3(0.0, 0.0, -1.0);
         return;
     }
 
     uint local_vertex = vertex - 3u;
     uint button = local_vertex / 3u;
-    if (button < 3u) {
+    if (button < 4u) {
         vec2 corner = full_triangle[local_vertex % 3u];
-        vec2 center = button == 0u ? vec2(-0.55, -0.82)
-                    : button == 1u ? vec2( 0.00, -0.82)
-                                   : vec2( 0.55, -0.82);
-        vec2 logical_clip = center + corner * vec2(0.22, 0.11);
+        float center_x = -0.72 + float(button) * 0.48;
+        vec2 logical_clip = vec2(center_x, -0.82) + corner * vec2(0.175, 0.10);
         gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.01, 1.0);
         surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
         view_normal = vec3(0.0, 0.0, 1.0);
@@ -84,72 +156,74 @@ void emit_ui_environment_vertex() {
 }
 
 void main() {
-    if (pc.flags.w != 0u) {
+    if (ui_environment_pass()) {
         emit_ui_environment_vertex();
         return;
     }
 
-    vec3 local = in_position - pc.center_units.xyz;
+    uint mode = diagnostic_mode();
+    bool genome_mode = mode == 0u;
+    bool orthographic_mode = mode == 2u;
 
-    float width_scale = pc.geometry1.z; // body-fat field applies softly everywhere.
-    float depth_scale = pc.geometry1.z;
-    if (in_region == 2u || in_region == 3u || in_region == 5u) {
-        width_scale *= pc.geometry0.y * pc.geometry1.y;
-        depth_scale *= pc.geometry0.w * pc.geometry1.y;
-    } else if (in_region == 4u) {
-        width_scale *= pc.geometry1.x;
-    } else if (in_region == 8u || in_region == 9u) {
-        width_scale *= pc.geometry0.z;
-    } else if (in_region == 0u || in_region == 1u) {
-        width_scale *= pc.geometry1.w;
-        depth_scale *= pc.geometry1.w;
+    vec3 raw_centered_m = (in_position - pc.center_units.xyz) * pc.center_units.w;
+    vec3 object_m = raw_centered_m;
+    vec3 n_object = normalize(in_normal);
+
+    if (genome_mode) {
+        float body_y01 = raw_centered_m.y / 1.75 + 0.5;
+        AnatomyField weights = anatomy_field(body_y01);
+        vec2 xz_scale = anatomy_xz_scales(weights);
+
+        object_m.x *= xz_scale.x;
+        object_m.y *= pc.geometry0.x;
+        object_m.z *= xz_scale.y;
+
+        float t = pc.render.z;
+        float breath_phase = t * 1.18 + 0.16 * sin(t * 0.31);
+        float breath = sin(breath_phase);
+        float abdomen_weight = smooth_band(body_y01, 0.38, 0.45, 0.56, 0.64);
+        float breath_width = 1.0 + breath * (weights.chest * 0.0035 + abdomen_weight * 0.0018);
+        float breath_depth = 1.0 + breath * (weights.chest * 0.0070 + abdomen_weight * 0.0040);
+        object_m.x *= breath_width;
+        object_m.z *= breath_depth;
+
+        object_m = apply_head_idle(object_m, weights.head, t);
+        object_m.x += 0.0018 * sin(t * 0.43);
+        object_m.y += 0.0007 * sin(t * 0.61 + 1.3);
+
+        n_object = normalize(vec3(
+            in_normal.x / max(xz_scale.x * breath_width, 0.001),
+            in_normal.y / max(pc.geometry0.x, 0.001),
+            in_normal.z / max(xz_scale.y * breath_depth, 0.001)));
+        n_object = apply_head_idle_normal(n_object, weights.head, t);
     }
-
-    // Asset-free idle: deterministic breathing plus tiny posture/head motion.
-    // The amplitudes are intentionally small so this remains a neutral R&D viewer.
-    float t = pc.render.z;
-    float breath_phase = t * 1.18 + 0.16 * sin(t * 0.31);
-    float breath = sin(breath_phase);
-    float chest_breath = (in_region == 2u || in_region == 3u || in_region == 5u) ? breath : 0.0;
-    float abdomen_breath = in_region == 4u ? breath : 0.0;
-    width_scale *= 1.0 + chest_breath * 0.0035 + abdomen_breath * 0.0018;
-    depth_scale *= 1.0 + chest_breath * 0.0070 + abdomen_breath * 0.0040;
-
-    if (in_region == 0u || in_region == 1u) {
-        local = rotate_y(local, 0.0040 * sin(t * 0.37));
-        local = rotate_x(local, 0.0025 * sin(t * 0.29 + 0.7));
-    }
-
-    vec3 shaped = local;
-    shaped.x *= width_scale;
-    shaped.y *= pc.geometry0.x;
-    shaped.z *= depth_scale;
-    vec3 object_m = shaped * pc.center_units.w;
-    object_m.x += 0.0018 * sin(t * 0.43);
-    object_m.y += 0.0007 * sin(t * 0.61 + 1.3);
 
     vec3 target_relative = object_m - vec3(0.0, pc.camera.w, 0.0);
     vec3 view = rotate_x(rotate_y(target_relative, -pc.camera.x), -pc.camera.y);
     view.z -= pc.camera.z;
-
-    vec3 n = normalize(vec3(in_normal.x / max(width_scale, 0.001),
-                            in_normal.y / max(pc.geometry0.x, 0.001),
-                            in_normal.z / max(depth_scale, 0.001)));
-    if (in_region == 0u || in_region == 1u) {
-        n = normalize(rotate_x(rotate_y(n, 0.0040 * sin(t * 0.37)),
-                               0.0025 * sin(t * 0.29 + 0.7)));
-    }
-    n = normalize(rotate_x(rotate_y(n, -pc.camera.x), -pc.camera.y));
+    vec3 n = normalize(rotate_x(rotate_y(n_object, -pc.camera.x), -pc.camera.y));
 
     float aspect = max(pc.render.x, 0.01);
-    float f = 1.0 / tan(max(pc.render.y, 0.10) * 0.5);
+    float fov = max(pc.render.y, 0.10);
     const float near_z = 0.03;
     const float far_z = 30.0;
     vec4 clip;
-    clip.x = view.x * f / aspect;
-    clip.y = view.y * f;
-    clip.z = (far_z / (near_z - far_z)) * view.z + (far_z * near_z / (near_z - far_z));
-    clip.w = -view.z;
+
+    if (orthographic_mode) {
+        float half_height = max(0.08, pc.camera.z * tan(fov * 0.5));
+        clip.x = view.x / max(half_height * aspect, 0.001);
+        clip.y = view.y / max(half_height, 0.001);
+        clip.z = ((-view.z) - near_z) / (far_z - near_z);
+        clip.w = 1.0;
+    } else {
+        float f = 1.0 / tan(fov * 0.5);
+        clip.x = view.x * f / aspect;
+        clip.y = view.y * f;
+        clip.z = (far_z / (near_z - far_z)) * view.z +
+                 (far_z * near_z / (near_z - far_z));
+        clip.w = -view.z;
+    }
+
     clip.xy = logical_to_vulkan_clip(clip.xy, pc.flags.z);
     gl_Position = clip;
 
