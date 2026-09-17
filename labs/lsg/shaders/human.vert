@@ -26,6 +26,7 @@ layout(push_constant) uniform LsgPush {
 //   0 = genome + perspective
 //   1 = raw mesh + perspective
 //   2 = raw mesh + orthographic
+//   3 = genome + MakeHuman joint debug geometry
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
@@ -103,7 +104,7 @@ vec2 anatomy_xz_scales(AnatomyField w) {
 }
 
 vec3 apply_head_idle(vec3 p, float head_weight, float t) {
-    const float neck_pivot_y = 0.525; // centred metres for a 1.75 m reference human
+    const float neck_pivot_y = 0.525;
     vec3 relative = p - vec3(0.0, neck_pivot_y, 0.0);
     vec3 rotated = rotate_y(relative, 0.0040 * sin(t * 0.37));
     rotated = rotate_x(rotated, 0.0025 * sin(t * 0.29 + 0.7));
@@ -118,7 +119,7 @@ vec3 apply_head_idle_normal(vec3 n, float head_weight, float t) {
 }
 
 // One far-depth procedural environment triangle plus four compact R&D controls:
-// Character 0, Character 1, Detail, Diagnostic mode.
+// Character 0, Character 1, Detail, Skeleton/Joint Debug.
 void emit_ui_environment_vertex() {
     const vec2 full_triangle[3] = vec2[](
         vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
@@ -162,7 +163,20 @@ void main() {
     }
 
     uint mode = diagnostic_mode();
-    bool genome_mode = mode == 0u;
+    bool joint_debug_mode = mode == 3u;
+
+    // Region 255 is reserved by the debug merge tool for MakeHuman joint markers.
+    // Hide those vertices before projection unless the explicit Skeleton toggle is active.
+    if (in_region == 255u && !joint_debug_mode) {
+        gl_Position = vec4(2.0, 2.0, 1.0, 1.0);
+        surface_position_m = vec3(0.0);
+        view_normal = vec3(0.0, 1.0, 0.0);
+        body_region = 255u;
+        view_position_m = vec3(0.0, 0.0, -1.0);
+        return;
+    }
+
+    bool genome_mode = mode == 0u || joint_debug_mode;
     bool orthographic_mode = mode == 2u;
 
     vec3 raw_centered_m = (in_position - pc.center_units.xyz) * pc.center_units.w;
