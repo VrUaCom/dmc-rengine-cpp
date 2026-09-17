@@ -1,6 +1,7 @@
 #include "vulkan_renderer.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/genome.hpp"
+#include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
 
 #if defined(_WIN32)
@@ -23,6 +24,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -45,7 +47,9 @@ struct VulkanRenderer::Impl {
   std::uint32_t queue_family{};
   VkSwapchainKHR swapchain{VK_NULL_HANDLE};
   VkFormat format{VK_FORMAT_UNDEFINED};
-  VkExtent2D extent{};
+  VkExtent2D window_extent{};
+  VkExtent2D swapchain_extent{};
+  Extent2u logical_extent{};
   std::uint32_t surface_rotation{};
   std::vector<VkImage> images;
   std::vector<VkImageView> views;
@@ -65,6 +69,7 @@ struct VulkanRenderer::Impl {
   std::array<float, 3> mesh_center{};
   float meters_per_unit{1.0f};
   CameraController camera{};
+  DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   VkCommandPool command_pool{VK_NULL_HANDLE};
   std::vector<VkCommandBuffer> command_buffers;
   VkSemaphore image_available{VK_NULL_HANDLE};
@@ -255,6 +260,8 @@ bool create_swapchain(VulkanRenderer::Impl& state, void* native_window) {
   VkSurfaceCapabilitiesKHR capabilities{};
   if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(state.physical, state.surface, &capabilities) != VK_SUCCESS) return false;
   state.surface_rotation = surface_rotation_code(capabilities.currentTransform);
+  state.window_extent = native_window_extent(native_window);
+
   std::uint32_t format_count{};
   if (vkGetPhysicalDeviceSurfaceFormatsKHR(state.physical, state.surface, &format_count, nullptr) != VK_SUCCESS || format_count == 0) return false;
   std::vector<VkSurfaceFormatKHR> formats(format_count);
@@ -265,18 +272,29 @@ bool create_swapchain(VulkanRenderer::Impl& state, void* native_window) {
         format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) { chosen = format; break; }
   }
   state.format = chosen.format;
-  if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) state.extent = capabilities.currentExtent;
-  else {
-    const auto wanted = native_window_extent(native_window);
-    state.extent.width = std::clamp(wanted.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-    state.extent.height = std::clamp(wanted.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+  if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) {
+    state.swapchain_extent = capabilities.currentExtent;
+  } else {
+    state.swapchain_extent.width = std::clamp(state.window_extent.width,
+                                              capabilities.minImageExtent.width,
+                                              capabilities.maxImageExtent.width);
+    state.swapchain_extent.height = std::clamp(state.window_extent.height,
+                                               capabilities.minImageExtent.height,
+                                               capabilities.maxImageExtent.height);
   }
-  if (state.surface_rotation == 1u || state.surface_rotation == 3u) std::swap(state.extent.width, state.extent.height);
+
+  // The swapchain must match the surface extent. Camera projection is a separate logical
+  // coordinate system: a 90/270 degree pre-rotation swaps logical width/height, but must not
+  // silently resize the presentable images.
+  state.logical_extent = logical_extent_for_surface_rotation(
+      {state.swapchain_extent.width, state.swapchain_extent.height}, state.surface_rotation);
+
   std::uint32_t image_count = capabilities.minImageCount + 1;
   if (capabilities.maxImageCount > 0) image_count = std::min(image_count, capabilities.maxImageCount);
   VkSwapchainCreateInfoKHR info{VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR};
   info.surface = state.surface; info.minImageCount = image_count; info.imageFormat = state.format;
-  info.imageColorSpace = chosen.colorSpace; info.imageExtent = state.extent; info.imageArrayLayers = 1;
+  info.imageColorSpace = chosen.colorSpace; info.imageExtent = state.swapchain_extent; info.imageArrayLayers = 1;
   info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT; info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
   info.preTransform = capabilities.currentTransform; info.compositeAlpha = choose_composite_alpha(capabilities.supportedCompositeAlpha);
   info.presentMode = VK_PRESENT_MODE_FIFO_KHR; info.clipped = VK_TRUE;
@@ -284,7 +302,8 @@ bool create_swapchain(VulkanRenderer::Impl& state, void* native_window) {
   if (vkGetSwapchainImagesKHR(state.device, state.swapchain, &image_count, nullptr) != VK_SUCCESS || image_count == 0) return false;
   state.images.resize(image_count);
   if (vkGetSwapchainImagesKHR(state.device, state.swapchain, &image_count, state.images.data()) != VK_SUCCESS) return false;
-  state.estimated_bytes = static_cast<std::uint64_t>(state.extent.width) * state.extent.height * 4ull * state.images.size();
+  state.estimated_bytes = static_cast<std::uint64_t>(state.swapchain_extent.width) *
+                          state.swapchain_extent.height * 4ull * state.images.size();
   return true;
 }
 
@@ -300,7 +319,7 @@ bool create_depth(VulkanRenderer::Impl& state) {
   state.depth_format = choose_depth_format(state.physical); if (state.depth_format == VK_FORMAT_UNDEFINED) return false;
   VkImageCreateInfo image{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
   image.imageType = VK_IMAGE_TYPE_2D; image.format = state.depth_format;
-  image.extent = {state.extent.width, state.extent.height, 1u}; image.mipLevels = 1; image.arrayLayers = 1;
+  image.extent = {state.swapchain_extent.width, state.swapchain_extent.height, 1u}; image.mipLevels = 1; image.arrayLayers = 1;
   image.samples = VK_SAMPLE_COUNT_1_BIT; image.tiling = VK_IMAGE_TILING_OPTIMAL;
   image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT; image.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -315,7 +334,7 @@ bool create_depth(VulkanRenderer::Impl& state) {
   view.image = state.depth_image; view.viewType = VK_IMAGE_VIEW_TYPE_2D; view.format = state.depth_format;
   view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT; view.subresourceRange.levelCount = 1; view.subresourceRange.layerCount = 1;
   if (vkCreateImageView(state.device, &view, nullptr, &state.depth_view) != VK_SUCCESS) return false;
-  state.estimated_bytes += static_cast<std::uint64_t>(state.extent.width) * state.extent.height * 4ull;
+  state.estimated_bytes += static_cast<std::uint64_t>(state.swapchain_extent.width) * state.swapchain_extent.height * 4ull;
   return true;
 }
 
@@ -354,8 +373,8 @@ bool create_render_targets(VulkanRenderer::Impl& state) {
     const VkImageView framebuffer_attachments[] = {state.views[i], state.depth_view};
     VkFramebufferCreateInfo framebuffer{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     framebuffer.renderPass = state.render_pass; framebuffer.attachmentCount = 2;
-    framebuffer.pAttachments = framebuffer_attachments; framebuffer.width = state.extent.width;
-    framebuffer.height = state.extent.height; framebuffer.layers = 1;
+    framebuffer.pAttachments = framebuffer_attachments; framebuffer.width = state.swapchain_extent.width;
+    framebuffer.height = state.swapchain_extent.height; framebuffer.layers = 1;
     if (vkCreateFramebuffer(state.device, &framebuffer, nullptr, &state.framebuffers[i]) != VK_SUCCESS) return false;
   }
   VkCommandPoolCreateInfo pool{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
@@ -450,8 +469,9 @@ bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   vertex_input.pVertexAttributeDescriptions = attributes.data();
   VkPipelineInputAssemblyStateCreateInfo assembly{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
   assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-  VkViewport viewport{0.0f, 0.0f, static_cast<float>(state.extent.width), static_cast<float>(state.extent.height), 0.0f, 1.0f};
-  VkRect2D scissor{}; scissor.extent = state.extent;
+  VkViewport viewport{0.0f, 0.0f, static_cast<float>(state.swapchain_extent.width),
+                      static_cast<float>(state.swapchain_extent.height), 0.0f, 1.0f};
+  VkRect2D scissor{}; scissor.extent = state.swapchain_extent;
   VkPipelineViewportStateCreateInfo viewport_state{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
   viewport_state.viewportCount = 1; viewport_state.pViewports = &viewport; viewport_state.scissorCount = 1; viewport_state.pScissors = &scissor;
   VkPipelineRasterizationStateCreateInfo raster{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
@@ -504,13 +524,39 @@ void VulkanRenderer::zoom_camera(float scale) noexcept { if (impl_) impl_->camer
 void VulkanRenderer::set_camera_preset(CameraPreset preset) noexcept { if (impl_) impl_->camera.set_preset(preset); }
 CameraState VulkanRenderer::camera_state() const noexcept { return impl_ ? impl_->camera.state() : CameraState{}; }
 
+void VulkanRenderer::set_diagnostic_mode(DiagnosticRenderMode mode) noexcept {
+  if (impl_) impl_->diagnostic_mode = mode;
+}
+DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
+  return impl_ ? impl_->diagnostic_mode : DiagnosticRenderMode::genome_perspective;
+}
+RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
+  RendererDiagnostics out{};
+  if (!impl_) return out;
+  const auto& state = *impl_;
+  const auto camera = state.camera.state();
+  out.window_width = state.window_extent.width;
+  out.window_height = state.window_extent.height;
+  out.swapchain_width = state.swapchain_extent.width;
+  out.swapchain_height = state.swapchain_extent.height;
+  out.logical_width = state.logical_extent.width;
+  out.logical_height = state.logical_extent.height;
+  out.surface_rotation = state.surface_rotation;
+  out.logical_aspect = extent_aspect(state.logical_extent);
+  out.fov_y_radians = camera.fov_y_radians;
+  out.camera_distance_m = camera.distance_m;
+  out.estimated_gpu_bytes = state.estimated_bytes;
+  out.mode = state.diagnostic_mode;
+  return out;
+}
+
 bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
   shutdown(); impl_ = std::make_unique<Impl>(); auto& state = *impl_;
   const char* platform_extension = platform_surface_extension(); if (platform_extension == nullptr) return false;
   const char* instance_extensions[] = {VK_KHR_SURFACE_EXTENSION_NAME, platform_extension};
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-  app.pApplicationName = "Rengine LSG Prototype"; app.applicationVersion = VK_MAKE_VERSION(0, 6, 0);
-  app.pEngineName = "DMC Rengine"; app.engineVersion = VK_MAKE_VERSION(0, 6, 0); app.apiVersion = VK_API_VERSION_1_2;
+  app.pApplicationName = "Rengine LSG Prototype"; app.applicationVersion = VK_MAKE_VERSION(0, 7, 0);
+  app.pEngineName = "DMC Rengine"; app.engineVersion = VK_MAKE_VERSION(0, 7, 0); app.apiVersion = VK_API_VERSION_1_2;
   VkInstanceCreateInfo instance{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   instance.pApplicationInfo = &app; instance.enabledExtensionCount = static_cast<std::uint32_t>(std::size(instance_extensions));
   instance.ppEnabledExtensionNames = instance_extensions;
@@ -540,7 +586,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   clears[1].depthStencil = {1.0f, 0u};
   VkRenderPassBeginInfo render_pass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
   render_pass.renderPass = state.render_pass; render_pass.framebuffer = state.framebuffers[image_index];
-  render_pass.renderArea.extent = state.extent; render_pass.clearValueCount = 2; render_pass.pClearValues = clears;
+  render_pass.renderArea.extent = state.swapchain_extent; render_pass.clearValueCount = 2; render_pass.pClearValues = clears;
   vkCmdBeginRenderPass(command, &render_pass, VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
   const VkDeviceSize offset = 0; vkCmdBindVertexBuffers(command, 0, 1, &state.vertex_buffer, &offset);
@@ -562,18 +608,21 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   push.skin0[2] = derived.oiliness; push.skin0[3] = derived.hydration;
   push.micro0[0] = derived.roughness_bias; push.micro0[1] = derived.pore_density;
   push.micro0[2] = derived.pore_scale; push.micro0[3] = derived.pore_depth;
-  push.render[0] = state.extent.height == 0 ? 1.0f : static_cast<float>(state.extent.width) / static_cast<float>(state.extent.height);
+  push.render[0] = extent_aspect(state.logical_extent);
   push.render[1] = camera.fov_y_radians; push.render[2] = time_seconds;
   push.render[3] = std::bit_cast<float>(derived.surface_seed_low);
   push.flags[0] = character_index & 1u; push.flags[1] = detail_enabled ? 1u : 0u;
-  push.flags[2] = state.surface_rotation; push.flags[3] = 0u;
+  push.flags[2] = state.surface_rotation;
+  const auto mode_bits = static_cast<std::uint32_t>(state.diagnostic_mode) << 1u;
+  push.flags[3] = mode_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, state.index_count, 1, 0, 0, 0);
-  push.flags[3] = 1u;
+
+  push.flags[3] = mode_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 18u, 1u, 0u, 0u);
+  vkCmdDraw(command, 15u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
