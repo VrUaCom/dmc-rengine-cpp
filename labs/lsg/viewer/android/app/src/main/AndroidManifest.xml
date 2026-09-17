@@ -3,7 +3,13 @@
     <uses-feature android:name="android.hardware.vulkan.level" android:version="1" android:required="true" />
     <uses-feature android:name="android.hardware.vulkan.version" android:version="0x00402000" android:required="true" />
     <application android:allowBackup="false" android:label="Rengine LSG Prototype" android:theme="@android:style/Theme.Material.NoActionBar.Fullscreen" android:hasCode="false">
-        <activity android:name="android.app.NativeActivity" android:configChanges="orientation|keyboardHidden|screenSize" android:screenOrientation="sensorLandscape" android:exported="true">
+        <!--
+          Diagnostic builds deliberately accept all four sensor orientations. Orientation and
+          screen-size changes are not claimed in configChanges, so Android recreates NativeActivity
+          and therefore rebuilds the Vulkan surface/swapchain with the new physical extent instead
+          of reusing stale landscape projection state.
+        -->
+        <activity android:name="android.app.NativeActivity" android:screenOrientation="fullSensor" android:exported="true">
             <meta-data android:name="android.app.lib_name" android:value="rengine_lsg" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
