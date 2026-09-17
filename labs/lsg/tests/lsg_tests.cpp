@@ -1,9 +1,11 @@
+#include "rengine/lsg/anatomical_field.hpp"
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/detail_scheduler.hpp"
 #include "rengine/lsg/genome.hpp"
 #include "rengine/lsg/physiology.hpp"
+#include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
 #include "rengine/lsg/surface.hpp"
 
@@ -12,6 +14,13 @@
 #include <iostream>
 
 using namespace rengine::lsg;
+
+namespace {
+float point_distance(AnatomicalPoint a, AnatomicalPoint b) {
+  const float dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+  return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+}
 
 int main() {
   const auto g0 = builtin_profile(0), g1 = builtin_profile(1);
@@ -63,6 +72,38 @@ int main() {
   assert(p1.surface_seed_low == fold_seed64(g1.surface_seed));
   assert(p0.surface_seed_low != p1.surface_seed_low);
 
+  // Continuous anatomy must never create the old region-boundary discontinuity. Probe the
+  // entire body height with a short representative mesh edge at an off-axis position.
+  float worst_local_stretch = 1.0f;
+  for (int i = 0; i < 1750; ++i) {
+    const float y0 = -0.875f + static_cast<float>(i) * 0.001f;
+    const AnatomicalPoint raw0{0.28f, y0, 0.12f};
+    const AnatomicalPoint raw1{0.28f, y0 + 0.001f, 0.12f};
+    const float raw_length = point_distance(raw0, raw1);
+    for (const auto* parameters : {&p0, &p1}) {
+      const auto shaped0 = deform_anatomy_rest(raw0, *parameters);
+      const auto shaped1 = deform_anatomy_rest(raw1, *parameters);
+      const float stretch = point_distance(shaped0, shaped1) / raw_length;
+      assert(std::isfinite(stretch));
+      worst_local_stretch = std::max(worst_local_stretch, stretch);
+    }
+    const auto weights = sample_anatomical_weights(y0 / 1.75f + 0.5f);
+    assert(weights.shoulder >= 0.0f && weights.shoulder <= 1.0f);
+    assert(weights.chest >= 0.0f && weights.chest <= 1.0f);
+    assert(weights.waist >= 0.0f && weights.waist <= 1.0f);
+    assert(weights.pelvis >= 0.0f && weights.pelvis <= 1.0f);
+    assert(weights.head >= 0.0f && weights.head <= 1.0f);
+  }
+  assert(worst_local_stretch < 1.25f);
+
+  // Surface pre-rotation and camera projection have different extents. For a portrait-native
+  // 1080x2340 swapchain rotated 90 degrees, the logical camera must see landscape 2340x1080.
+  constexpr Extent2u native_portrait{1080u, 2340u};
+  constexpr auto logical_landscape = logical_extent_for_surface_rotation(native_portrait, 1u);
+  static_assert(logical_landscape.width == 2340u && logical_landscape.height == 1080u);
+  static_assert(logical_extent_for_surface_rotation({2340u,1080u}, 0u).width == 2340u);
+  assert(std::abs(extent_aspect(logical_landscape) - (2340.0f / 1080.0f)) < 0.0001f);
+
   CameraController camera; camera.set_subject_height(1.75f);
   const float full_distance = camera.state().distance_m;
   assert(camera.state().preset == CameraPreset::full_body); assert(full_distance > 3.0f && full_distance < 8.0f);
@@ -86,6 +127,7 @@ int main() {
 
   std::cout << "LSG tests PASS; generator revision=" << kGeneratorRevision << "; genome bytes=" << bytes.size()
             << "; rmesh bytes=" << rbytes.size() << "; camera full=" << full_distance
-            << "m portrait=" << portrait_distance << "m close=" << close_distance << "m\n";
+            << "m portrait=" << portrait_distance << "m close=" << close_distance
+            << "m; anatomy worst local stretch=" << worst_local_stretch << "\n";
   return 0;
 }
