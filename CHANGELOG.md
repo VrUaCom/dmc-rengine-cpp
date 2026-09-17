@@ -8,6 +8,13 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### The handoff is total: the sound path extends by exactly zero functions
+
+- the dispatch sites the startup path makes were called "the handoff"; reading all of them settles what that means. Of the **99** sites, **88** have nothing known about the receiver, **10** read it through one of the argument registers and **1** through an address the code took. **Not one resolves** to a class and a target, so the number of functions the sound closure gains by following a determined dispatch is **zero** — not few, none;
+- the reason is structural rather than a shortfall of the analysis. Resolving a dispatch needs the enclosing function to be one the compiler bound into a vtable, and of the 370 functions on the path **exactly none is**. The platform is brought up by free functions, and the first virtual call is the last thing the file lets anyone follow;
+- **correction: 99 dispatch sites on the path, not 68.** The published 68 came from a narrower list than the image-wide census of 11,434 printed beside it — it counts only call-position dispatches and omits tail-position ones, which are the same dispatch by another instruction and which the census does count. Counting from the same list gives 99, of which **31** are in tail position. The figure of 30 functions containing a dispatch is unaffected, and so is everything else the path was said to contain;
+- `startup_path_dispatch_sites` now counts from the same list as `dispatch_sites`, with `startup_path_dispatch_sites_in_tail_position`, `startup_path_functions_bound_to_a_class` and `startup_path_extended_by_resolved_dispatch` beside it. A test pins that the startup count and the census agree on a tail-position call, which is the disagreement that produced the wrong figure.
+
 #### The startup path, the one route through the image that is sound end to end
 
 - every caveat flagged in this reverse has now been read, so: the closure of direct calls and tail jumps from the entry point, which assumes nothing about dispatch and which I had never looked at. It reaches **370 of 7,389** functions, runs **17** steps deep and bulges at depths 5–8, where 290 of the 370 functions and 117 KB of code sit;

@@ -122,7 +122,13 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.startup_path_import_symbols));
     writer.member("startup_path_constructors",
                   static_cast<std::uint64_t>(summary.startup_path_constructors));
-    writer.member("startup_path_dispatch_sites",
+    writer.member("startup_path_dispatch_sites_in_tail_position",
+                  static_cast<std::uint64_t>(summary.startup_path_dispatch_sites_in_tail_position));
+    writer.member("startup_path_functions_bound_to_a_class",
+                  static_cast<std::uint64_t>(summary.startup_path_functions_bound_to_a_class));
+    writer.member("startup_path_extended_by_resolved_dispatch",
+                  static_cast<std::uint64_t>(summary.startup_path_extended_by_resolved_dispatch));
+        writer.member("startup_path_dispatch_sites",
                   static_cast<std::uint64_t>(summary.startup_path_dispatch_sites));
         writer.member("reachable_through_dispatch",
                   static_cast<std::uint64_t>(summary.reachable_through_dispatch));

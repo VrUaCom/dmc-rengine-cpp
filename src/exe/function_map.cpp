@@ -1143,7 +1143,14 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             if (!facts.constructs_class.empty()) {
                 ++map.summary.startup_path_constructors;
             }
-            map.summary.startup_path_dispatch_sites += facts.indirect_call_displacements.size();
+            map.summary.startup_path_dispatch_sites +=
+                graph.functions[&facts - map.functions.data()].resolved_dispatch_sites.size();
+            map.summary.startup_path_dispatch_sites_in_tail_position +=
+                graph.functions[&facts - map.functions.data()].resolved_dispatch_sites.size() -
+                facts.indirect_call_displacements.size();
+            if (!facts.virtual_bindings.empty()) {
+                ++map.summary.startup_path_functions_bound_to_a_class;
+            }
         }
         if (facts.reachable_through_dispatch) {
             ++map.summary.reachable_through_dispatch;
@@ -2016,6 +2023,26 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         map.summary.startup_path_modules = modules.size();
         map.summary.startup_path_import_symbols = symbols.size();
+    }
+
+    // Does any dispatch the startup path makes reach somewhere the path does not
+    // already hold? Each such target would extend the sound closure by an
+    // argued step. Measured after the dispatches are resolved.
+    {
+        std::set<std::uint32_t> on_the_path;
+        for (const auto& facts : map.functions) {
+            if (facts.depth_from_entry != FunctionFacts::kUnreached) {
+                on_the_path.insert(facts.begin_rva);
+            }
+        }
+        std::set<std::uint32_t> reached;
+        for (const auto& dispatch : map.resolved_dispatches) {
+            if (on_the_path.count(dispatch.caller_rva) != 0U &&
+                on_the_path.count(dispatch.target_rva) == 0U) {
+                reached.insert(dispatch.target_rva);
+            }
+        }
+        map.summary.startup_path_extended_by_resolved_dispatch = reached.size();
     }
 
     map.import_usage.reserve(usage.size());

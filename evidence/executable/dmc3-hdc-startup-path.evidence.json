@@ -16,7 +16,7 @@
       "id": "ev-dmc3-startup-path-shape",
       "claim_id": "claim-dmc3-startup-path-shape",
       "title": "370 functions, seventeen deep, and every platform subsystem brought up inside them",
-      "summary": "Direct calls and tail jumps from the entry point reach 370 of the image's 7,389 functions, and that closure assumes nothing about dispatch, which makes it the only route through the image that is sound end to end. It runs seventeen steps deep and bulges between five and eight, where 290 of the 370 functions and 116 kilobytes of code sit. Inside it the programme calls 97 symbols across 18 modules, and that set is the whole platform: Direct3D and DXGI, DirectInput, XInput, FMOD, Steam, USER32, KERNEL32 and the C runtime. The entry stub reaches the runtime's own startup by a tail jump rather than a call, so a closure following calls alone stops at two functions instead of 370 — which is why the depth counts transfers.",
+      "summary": "Direct calls and tail jumps from the entry point reach 370 of the image's 7,389 functions, and that closure assumes nothing about dispatch, which makes it the only route through the image that is sound end to end. It runs seventeen steps deep and bulges between five and eight, where 290 of the 370 functions and 116 kilobytes of code sit. Inside it the programme calls 97 symbols across 18 modules, and that set is the whole platform: Direct3D and DXGI, DirectInput, XInput, FMOD, Steam, USER32, KERNEL32 and the C runtime. The entry stub reaches the runtime's own startup by a tail jump rather than a call, so a closure following calls alone stops at two functions instead of 370 \u2014 which is why the depth counts transfers.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -106,6 +106,53 @@
           "size": 157,
           "symbol": "the message loop body",
           "note": "RVA 0x48970: PeekMessageW at 0x48998, the mask 0x50004 tested at 0x489B0, the FMOD thunk called at 0x489CA."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-handoff-is-total",
+      "claim_id": "claim-dmc3-handoff-is-total",
+      "title": "The sound path extends by exactly zero functions through dispatch",
+      "summary": "The dispatches the startup path makes were described as the handoff; reading all of them shows the handoff is total. Of the 99 sites, 88 have nothing known about the receiver, 10 read it through one of the argument registers and one through an address the code took. Not one resolves to a class and a target, so the number of functions the sound closure gains by following a determined dispatch is zero. The reason is structural rather than a shortfall of the analysis: resolving a dispatch needs the enclosing function to be one the compiler bound into a vtable, and of the 370 functions on the path exactly none is. The platform is brought up by free functions, and the first virtual call is the last thing the file lets anyone follow.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "architecture",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3432796,
+          "size": 18,
+          "symbol": "the entry point the closure starts from",
+          "note": "99 dispatch sites on the path, 0 resolved, 0 functions on it bound to a class, closure extended by 0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-startup-dispatch-count-corrected",
+      "claim_id": "claim-dmc3-startup-builds-no-objects",
+      "title": "Correction: 99 dispatch sites on the startup path, not 68",
+      "summary": "The startup path was published as carrying 68 dispatch sites. That figure came from a narrower list than the image-wide census of 11,434 printed beside it: it counts only the call-position dispatches and omits the tail-position ones, which are the same dispatch by another instruction and which the census does count. Counting from the same list gives 99, of which 31 are in tail position. The figure of 30 functions containing a dispatch is unaffected, and so is everything the path was said to contain; only the site count moves.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-startup-builds-no-objects"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3432796,
+          "size": 18,
+          "symbol": "the entry point the count is measured from",
+          "note": "99 dispatch sites across the 370 functions, 31 of them tail-position virtual calls."
         }
       ]
     }

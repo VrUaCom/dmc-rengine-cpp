@@ -49,7 +49,7 @@ says how few steps can reach a function, not when it runs.
 | functions on the path | 370 |
 | **constructors among them** | **0** |
 | functions containing a dispatch | 30 |
-| dispatch sites | 68 |
+| dispatch sites | **99** (31 in tail position) |
 | fixed addresses operated on | 67 |
 
 The boundary is sharp. The sound path brings the platform up and hands off;
@@ -110,11 +110,37 @@ turned a puzzle into a reading.
 > `WM_QUIT`. That naming is **public interface knowledge, not read from this
 > file**. The values are what the file gives.
 
+## The handoff is total
+
+I called the dispatch sites "the handoff" and then read all 99 of them:
+
+| Receiver | Sites |
+| --- | ---: |
+| nothing known | 88 |
+| through an argument register | 10 |
+| a taken address | 1 |
+| **resolved to a class and a target** | **0** |
+
+So the sound closure gains **zero** functions by following a determined
+dispatch. Not "few" — none.
+
+The reason is structural, not a shortfall of the analysis. Resolving a dispatch
+needs the enclosing function to be one the compiler bound into a vtable, and of
+the 370 functions on the path **exactly none is**. The platform is brought up by
+free functions, and the first virtual call is the last thing the file lets
+anyone follow.
+
+> **Corrected.** This note first said 68 dispatch sites. That came from a
+> narrower list than the image-wide census of 11,434 printed beside it — it
+> counts only call-position dispatches and omits tail-position ones, which are
+> the same dispatch by another instruction. Counting from the same list gives
+> **99**, of which 31 are in tail position. Nothing else moves.
+
 ## Open work
 
-- the 68 dispatch sites on the path are the handoff. Six of them are in the
-  device-creation function and are COM calls on D3D11 interfaces, which would
-  need published interface layouts to resolve — a different kind of claim;
+- six of the 99 sites are in the device-creation function and are COM calls on
+  D3D11 interfaces, which would need published interface layouts to resolve — a
+  different kind of claim;
 - depth is not order. Within one function the call sites are in address order,
   which for straight-line code is execution order, but nothing here establishes
   that across functions;

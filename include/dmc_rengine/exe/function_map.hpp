@@ -599,7 +599,19 @@ struct FunctionMapSummary final {
     /// Functions on the path that construct a class, and dispatch sites on it.
     /// Both say where the sound path stops being able to follow the program.
     std::size_t startup_path_constructors{};
+    /// Counted from the same list as `dispatch_sites`, so the two agree. A
+    /// narrower count of only the call-position ones misses the tail-position
+    /// virtual calls, which are dispatch by another instruction.
     std::size_t startup_path_dispatch_sites{};
+    std::size_t startup_path_dispatch_sites_in_tail_position{};
+    /// Functions on the path the compiler bound into a vtable. Resolving a
+    /// dispatch needs the enclosing function to belong to a class, so a zero
+    /// here is why none of the path's dispatches resolves.
+    std::size_t startup_path_functions_bound_to_a_class{};
+    /// Functions the path reaches only through a dispatch whose target is
+    /// determined. Each one extends the sound closure by an argued step rather
+    /// than by an assumption.
+    std::size_t startup_path_extended_by_resolved_dispatch{};
     std::size_t reachable_through_dispatch{};
     std::size_t outside_every_closure{};
     std::size_t dispatch_slots_reached{};

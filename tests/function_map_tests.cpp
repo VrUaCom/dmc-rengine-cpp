@@ -1846,6 +1846,76 @@ void a_function_nothing_reaches_carries_no_depth() {
     }
 }
 
+void a_resolved_dispatch_on_the_path_extends_the_sound_closure() {
+    Fixture fixture;
+    // CThing gains a second slot naming a function nothing calls. Function B is
+    // slot 0, so it belongs to CThing, and it dispatches on `this` at slot 1 —
+    // which resolves, and reaches somewhere the direct-call closure does not.
+    fixture.rtti.classes[0].vtables[0].slot_count = 2U;
+    put_u64(fixture.bytes, 0x588U, kImageBase + 0x10C0U);
+    put(fixture.bytes, 0x2C0U, {0xC3});
+
+    //   48 8b 01    mov rax,[rcx]
+    //   ff 50 08    call QWORD PTR [rax+8]
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x01});
+    put(fixture.bytes, at + 3U, {0xFF, 0x50, 0x08});
+    put(fixture.bytes, at + 6U, {0xC3});
+
+    auto table = fixture.table;
+    table.functions.push_back(PeFunctionRange{0x10C0U, 0x10D0U, 0U, false, 0x10C0U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // Direct calls reach A and B only; the third function is off the path.
+    assert(map.summary.startup_path_functions == 2U);
+    assert(map.summary.startup_path_functions_bound_to_a_class == 1U);
+    assert(map.resolved_dispatches.size() == 1U);
+    assert(map.resolved_dispatches[0].target_rva == 0x10C0U);
+    // So the dispatch extends the sound closure by exactly that one function.
+    assert(map.summary.startup_path_extended_by_resolved_dispatch == 1U);
+}
+
+void the_startup_dispatch_count_matches_the_census_it_sits_beside() {
+    Fixture fixture;
+    // A tail-position virtual call is dispatch by another instruction, and the
+    // census counts it. A startup figure counting only the call-position ones
+    // would disagree with the census printed next to it.
+    //   48 8b 01    mov rax,[rcx]
+    //   ff 60 08    jmp QWORD PTR [rax+8]
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x01});
+    put(fixture.bytes, at + 3U, {0xFF, 0x60, 0x08});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.dispatch_sites == 1U);
+    assert(map.summary.startup_path_dispatch_sites == 1U);
+    assert(map.summary.startup_path_dispatch_sites_in_tail_position == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1926,6 +1996,8 @@ int main() {
     image_base_reads_far_apart_in_one_section_are_left_undecided();
     depth_from_the_entry_point_counts_transfers_not_calls();
     a_function_nothing_reaches_carries_no_depth();
+    a_resolved_dispatch_on_the_path_extends_the_sound_closure();
+    the_startup_dispatch_count_matches_the_census_it_sits_beside();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;
