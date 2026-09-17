@@ -1,5 +1,6 @@
 #include "rengine/lsg/rmesh.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
