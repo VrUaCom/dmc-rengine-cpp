@@ -1226,6 +1226,48 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
     };
     std::map<std::pair<std::uint32_t, std::uint32_t>, ArrayFacts> arrays;
 
+    // A base read at two element sizes was reported as a contradiction with
+    // nothing to say which reading was wrong. The structure does say. A
+    // multiplier can only be missed, never invented: it is recorded off a
+    // definite `lea a+a*k`, `imul` or `shl`, so an element size equal to the raw
+    // SIB scale is one read with no multiplier seen. Where the smaller size is
+    // exactly that, and divides the larger, the two are one array whose
+    // multiplier one read missed — and the larger is the element size. Where
+    // that does not hold, the conflict is real and stays reported.
+    std::map<std::uint32_t, std::map<std::uint32_t, bool>> sizes_of_base;
+    for (const auto& walk : graph.functions) {
+        for (const auto& access : walk.indexed_accesses) {
+            if (access.base_rva == 0U || access.element_bytes == 0U) {
+                continue;
+            }
+            auto& entry = sizes_of_base[access.base_rva][access.element_bytes];
+            entry = entry || access.element_bytes == access.scale;
+        }
+    }
+    std::map<std::uint32_t, std::uint32_t> element_of_base;
+    for (const auto& [base, sizes] : sizes_of_base) {
+        const auto largest = sizes.rbegin()->first;
+        bool every_smaller_is_a_missed_multiplier = true;
+        for (const auto& [size, read_off_the_scale] : sizes) {
+            if (size == largest) {
+                continue;
+            }
+            if (largest % size != 0U || !read_off_the_scale) {
+                every_smaller_is_a_missed_multiplier = false;
+            }
+        }
+        if (sizes.size() == 1U) {
+            element_of_base[base] = largest;
+        } else if (every_smaller_is_a_missed_multiplier) {
+            element_of_base[base] = largest;
+            ++map.summary.arrays_resolved_by_a_missed_multiplier;
+        } else {
+            // Nothing says which reading is right, so the base is left out of
+            // the layout entirely rather than given a size it may not have.
+            ++map.summary.arrays_with_a_real_size_conflict;
+        }
+    }
+
     for (const auto& walk : graph.functions) {
         for (const auto& access : walk.indexed_accesses) {
             ++map.summary.indexed_accesses;
@@ -1247,19 +1289,27 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             }
 
             // On a held base the displacement is a field offset within the
-            // element, so it has to land inside it.
+            // element, so it has to land inside it — measured against the
+            // base's resolved element size rather than against whatever this
+            // one read saw.
             ++map.summary.held_base_accesses;
+            const auto resolved = element_of_base.find(access.base_rva);
+            if (resolved == element_of_base.end()) {
+                ++map.summary.accesses_on_a_conflicted_base;
+                continue;
+            }
+            const auto element_bytes = resolved->second;
             if (access.displacement < 0) {
                 ++map.summary.string_scan_accesses;
                 continue;
             }
-            if (static_cast<std::uint32_t>(access.displacement) >= access.element_bytes) {
+            if (static_cast<std::uint32_t>(access.displacement) >= element_bytes) {
                 ++map.summary.inconsistent_array_accesses;
                 continue;
             }
 
             ++map.summary.consistent_array_accesses;
-            auto& facts = arrays[{access.base_rva, access.element_bytes}];
+            auto& facts = arrays[{access.base_rva, element_bytes}];
             facts.fields.insert(static_cast<std::uint32_t>(access.displacement));
             facts.functions.insert(walk.begin_rva);
             ++facts.sites;

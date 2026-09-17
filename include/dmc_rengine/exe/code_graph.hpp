@@ -73,6 +73,10 @@ struct FunctionWalk final {
         std::uint32_t base_rva{};
         /// Scale applied to the index: the element size the code assumes.
         std::uint32_t element_bytes{};
+        /// The scale the SIB byte encodes, before any multiplier. An element
+        /// size equal to this is one read straight off the encoding with no
+        /// multiplier seen — which is what a missed multiplier looks like.
+        std::uint8_t scale{1U};
         /// Constant added on top of the base, which picks a field.
         std::int32_t displacement{};
         /// Register holding the index. Two reads in one trace that share it and

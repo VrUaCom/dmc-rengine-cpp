@@ -1,3 +1,8 @@
+> **Corrected 2026-09-17.** The element-size conflicts this note reported as
+> unresolvable are resolvable, and reading them halved the count of accesses
+> falling outside their element (28 → 14). See
+> [the element-size note](dmc3-element-size-2026-09-17.md).
+
 # DMC3 HD: which tables the code actually indexes (2026-09-14)
 
 The question left open three times over: is a recovered name run a table the

@@ -1634,6 +1634,89 @@ void a_constant_in_an_extended_register_is_not_a_constant_first_argument() {
     assert(map.constant_argument_callees.empty());
 }
 
+void a_base_read_at_two_sizes_is_one_array_when_the_smaller_is_the_bare_scale() {
+    Fixture fixture;
+    // Two reads off the same held base. The first multiplies its index by three
+    // before the scale of eight, so the element is 24; the second sees no
+    // multiplier, so it reads 8 straight off the encoding. A multiplier can be
+    // missed but not invented, so these are one array of 24-byte elements — and
+    // the second read's displacement of 16, which would be past an 8-byte
+    // element, lands inside a 24-byte one.
+    //   48 8d 05 ..       lea rax,[rip+..]        ; the array base at 0x2000
+    //   48 8d 14 52       lea rdx,[rdx+rdx*2]     ; index times three
+    //   8b 0c d0          mov ecx,[rax+rdx*8]     ; element 24, field 0
+    //   8b 4c c8 10       mov ecx,[rax+rcx*8+16]  ; element 8 read, field 16
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U, 0x0FB9);  // 0x1047 + 0xFB9 = 0x2000
+    put(fixture.bytes, at + 7U, {0x48, 0x8D, 0x14, 0x52});
+    put(fixture.bytes, at + 11U, {0x8B, 0x0C, 0xD0});
+    put(fixture.bytes, at + 14U, {0x8B, 0x4C, 0xC8, 0x10});
+    put(fixture.bytes, at + 18U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.arrays_resolved_by_a_missed_multiplier == 1U);
+    assert(map.summary.arrays_with_a_real_size_conflict == 0U);
+    // Both reads are consistent with the resolved element size, and neither is
+    // reported as landing outside its element.
+    assert(map.summary.consistent_array_accesses == 2U);
+    assert(map.summary.inconsistent_array_accesses == 0U);
+    assert(map.indexed_arrays.size() == 1U);
+    assert(map.indexed_arrays[0].element_bytes == 24U);
+    const std::vector<std::uint32_t> expected_fields{0U, 16U};
+    assert(map.indexed_arrays[0].field_offsets == expected_fields);
+}
+
+void a_base_whose_sizes_do_not_divide_is_left_out_of_the_layout() {
+    Fixture fixture;
+    // Elements of 24 and 16 off one base. Neither divides the other and both
+    // carry a multiplier, so nothing says which reading is right. The base is
+    // left out rather than given a size it may not have.
+    //   48 8d 05 ..       lea rax,[rip+..]
+    //   48 8d 14 52       lea rdx,[rdx+rdx*2]     ; times three, scale 8 -> 24
+    //   8b 0c d0          mov ecx,[rax+rdx*8]
+    //   48 8d 0c 49       lea rcx,[rcx+rcx*2]     ; times three
+    //   8b 14 88          mov edx,[rax+rcx*4]     ; times three, scale 4 -> 12
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8D, 0x05});
+    put_i32(fixture.bytes, at + 3U, 0x0FB9);
+    put(fixture.bytes, at + 7U, {0x48, 0x8D, 0x14, 0x52});
+    put(fixture.bytes, at + 11U, {0x8B, 0x0C, 0xD0});
+    put(fixture.bytes, at + 14U, {0x48, 0x8D, 0x0C, 0x49});
+    put(fixture.bytes, at + 18U, {0x8B, 0x14, 0x88});
+    put(fixture.bytes, at + 21U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.arrays_with_a_real_size_conflict == 1U);
+    assert(map.summary.arrays_resolved_by_a_missed_multiplier == 0U);
+    assert(map.summary.accesses_on_a_conflicted_base == 2U);
+    assert(map.indexed_arrays.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1708,6 +1791,8 @@ int main() {
     a_store_through_an_interior_address_lands_at_its_own_offset();
     a_constant_moved_into_an_extended_register_leaves_the_others_alone();
     a_constant_in_an_extended_register_is_not_a_constant_first_argument();
+    a_base_read_at_two_sizes_is_one_array_when_the_smaller_is_the_bare_scale();
+    a_base_whose_sizes_do_not_divide_is_left_out_of_the_layout();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

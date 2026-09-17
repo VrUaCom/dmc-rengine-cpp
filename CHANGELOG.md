@@ -8,6 +8,15 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### The element-size conflicts were resolvable, and reading them halved the error bar
+
+- bases read at more than one element size were published as "a contradiction: at least one of the readings is wrong… **reported rather than resolved, since nothing here says which**". That was honest and it was wrong — the structure does say which;
+- an index multiplier is recorded only off a definite `lea a+a*k`, `imul` or `shl`, so it can be **missed but never invented**, and an element size equal to the raw SIB scale is one read with no multiplier seen. Across all **11** such bases in the image the smaller reading both divides the larger and equals its own scale — **11 of 11, no exceptions** — which is a missed multiplier, not a second array;
+- resolving to the larger reading halves the accesses whose displacement falls outside its element, **28 → 14**, and raises consistent accesses **541 → 555** by exactly those 14. RVA 0x580D20 now reads as a 24-byte record with fields at 0, 4, 8, 12, 16 and 20, where it was an 8-byte reading plus accesses reported as inconsistent;
+- a base whose sizes do **not** divide, or whose smaller reading carries a multiplier of its own, is a real conflict and is now **left out of the layout** rather than given a size it may not have. There are none in this image; a test covers the case with `{24, 12}`, and removing the raw-scale requirement from the rule makes it fail;
+- two entries remain doubled in the finished table, at 8 and 48. Both are image-base derived, where the base is only an upper bound and grouping runs per function and index register, so one base can legitimately appear twice. The held-base reasoning does not transfer there, and the counter's scope now says so;
+- **method note:** three findings running have come from the same move — take a number published as a caveat and read it. The REX.B bug came from 167 sites in a category that cannot exist; this came from 28 accesses labelled an error bar. Neither needed new machinery.
+
 #### An impossible reading in the receiver census found a decoder bug
 
 - recording the register analysis's **own verdict** at each of the 11,434 dispatch sites, instead of guessing at it with a backward scan, put 167 sites in a category that cannot exist: the register the vtable is read through held a **constant**. A vtable pointer is never a small constant;

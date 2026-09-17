@@ -56,7 +56,13 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("inconsistent_array_accesses",
                   static_cast<std::uint64_t>(summary.inconsistent_array_accesses));
     writer.member("indexed_arrays", static_cast<std::uint64_t>(summary.indexed_arrays));
-    writer.member("arrays_with_conflicting_element_size",
+    writer.member("arrays_resolved_by_a_missed_multiplier",
+                  static_cast<std::uint64_t>(summary.arrays_resolved_by_a_missed_multiplier));
+    writer.member("arrays_with_a_real_size_conflict",
+                  static_cast<std::uint64_t>(summary.arrays_with_a_real_size_conflict));
+    writer.member("accesses_on_a_conflicted_base",
+                  static_cast<std::uint64_t>(summary.accesses_on_a_conflicted_base));
+        writer.member("arrays_with_conflicting_element_size",
                   static_cast<std::uint64_t>(summary.arrays_with_conflicting_element_size));
     writer.member("image_base_groups", static_cast<std::uint64_t>(summary.image_base_groups));
     writer.member("image_base_groups_with_several_reads",

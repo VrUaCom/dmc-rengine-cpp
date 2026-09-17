@@ -256,6 +256,12 @@ table.
 
 ### Indexed data arrays
 
+A base read at more than one element size is resolved to the largest where every
+smaller reading is the raw SIB scale and divides it: a multiplier is recorded off
+a definite instruction, so it can be missed but never invented. A base where that
+does not hold is a real conflict and is left out of `exe_indexed_array`
+altogether rather than stored with a size it may not have.
+
 `exe_indexed_array` holds arrays the code walks with a scaled index, and
 `exe_indexed_array_field` the offsets read inside their elements. Element sizes
 above eight come from the index multiplier, not the scale field.

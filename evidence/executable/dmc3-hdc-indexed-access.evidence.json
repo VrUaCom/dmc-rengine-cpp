@@ -213,7 +213,7 @@
       "id": "ev-dmc3-image-base-grouping",
       "claim_id": "claim-dmc3-image-base-grouping",
       "title": "Grouping image-base reads by address proximity would have invented layouts",
-      "summary": "An image-base read folds the array's start into the displacement, so one read cannot separate base from field. Grouping reads whose addresses lie within one element of each other looked like the way to recover those layouts, and would have produced eighteen arrays. Grouping instead by what is actually shared — one function, one index register, one element size — shows why that is unsound: of the 60 such groups holding more than one read, 53 span more than one element, meaning the register was reused for a different array. Only 7 are one array's fields, and two of those reproduce a base and element size a register was separately seen holding, which corroborates both routes. The measurement of the false-merge rate is the result here; the seven layouts are recorded with their base marked as an upper bound, since the array may begin before the lowest address observed.",
+      "summary": "An image-base read folds the array's start into the displacement, so one read cannot separate base from field. Grouping reads whose addresses lie within one element of each other looked like the way to recover those layouts, and would have produced eighteen arrays. Grouping instead by what is actually shared \u2014 one function, one index register, one element size \u2014 shows why that is unsound: of the 60 such groups holding more than one read, 53 span more than one element, meaning the register was reused for a different array. Only 7 are one array's fields, and two of those reproduce a base and element size a register was separately seen holding, which corroborates both routes. The measurement of the false-merge rate is the result here; the seven layouts are recorded with their base marked as an upper bound, since the array may begin before the lowest address observed.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -236,6 +236,30 @@
           "size": 24,
           "symbol": "layout from image-base reads alone",
           "note": "RVA 0xD6CB54, element 24 bytes, fields at +0, +4 and +12 relative to the lowest address observed, which bounds the array's start from above."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-element-size-conflicts-resolved",
+      "claim_id": "claim-dmc3-element-size-conflicts",
+      "title": "Correction: the element-size conflicts were resolvable, and reading them halved the error bar",
+      "summary": "Bases read at more than one element size were published as a contradiction with nothing to say which reading was wrong, and reported rather than resolved. Reading them shows the structure does say which. A multiplier is recorded only off a definite lea, imul or shl, so it can be missed but never invented, and an element size equal to the raw SIB scale is one read with no multiplier seen. Across all eleven such bases in the image the smaller reading both divides the larger and equals its own scale \u2014 eleven of eleven, no exceptions \u2014 which is a missed multiplier rather than a second array. Resolving to the larger reading halves the count of accesses whose displacement falls outside its element, from 28 to 14, and raises consistent accesses from 541 to 555 by exactly those 14. The base at RVA 0x580D20 reads as a 24-byte record with fields at 0, 4, 8, 12, 16 and 20 where it was previously an 8-byte reading plus accesses reported as inconsistent. A base whose sizes do not divide is still a real conflict and is now left out of the layout entirely rather than given a size it may not have; there are none in this image, and a test covers the case.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-array-element-size-conflicts"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5771040,
+          "size": 24,
+          "symbol": "a base that read as two arrays and is one",
+          "note": "RVA 0x580D20: element 24, fields at 0, 4, 8, 12, 16 and 20, read at both 8 and 24 before the resolution."
         }
       ]
     }

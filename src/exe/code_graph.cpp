@@ -301,7 +301,8 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             emit->indexed_accesses.push_back(
                 FunctionWalk::IndexedAccess{rva, state[decoded.memory_base].rva,
                                             static_cast<std::uint32_t>(element),
-                                            decoded.displacement, decoded.memory_index});
+                                            decoded.memory_scale, decoded.displacement,
+                                            decoded.memory_index});
         }
 
         // Any memory operand off the first argument. The offset is what the

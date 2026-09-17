@@ -499,10 +499,22 @@ struct FunctionMapSummary final {
     std::size_t string_scan_accesses{};
     std::size_t inconsistent_array_accesses{};
     std::size_t indexed_arrays{};
-    /// Bases read at more than one element size, which is a contradiction: at
-    /// least one of the readings is wrong. Reported rather than resolved, since
-    /// nothing here says which.
+    /// Entries of the finished table sharing a base at different element sizes.
+    /// Held bases are resolved before they reach it — see below — so a non-zero
+    /// value here now means image-base groups, whose base is only an upper bound
+    /// and which are grouped per function and index register, so one base can
+    /// legitimately appear twice.
     std::size_t arrays_with_conflicting_element_size{};
+    /// Bases read at more than one element size where every smaller reading is
+    /// the raw SIB scale and divides the largest. A multiplier can be missed but
+    /// not invented, so those readings are one array and the largest is its
+    /// element size.
+    std::size_t arrays_resolved_by_a_missed_multiplier{};
+    /// Bases where that does not hold, so nothing says which reading is right.
+    /// Such a base is left out of the layout rather than given a size it may
+    /// not have, and its accesses are counted below.
+    std::size_t arrays_with_a_real_size_conflict{};
+    std::size_t accesses_on_a_conflicted_base{};
     /// Image-base reads grouped by function, index register and element size.
     /// A group whose reads span more than one element means the index register
     /// was reused for another array, which is what makes grouping by address
