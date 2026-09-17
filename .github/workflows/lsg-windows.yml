@@ -27,7 +27,7 @@ jobs:
       - name: Configure C++23 Win32 Vulkan viewer and tools
         run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64
       - name: Build mesh/profile/report tools
-        run: cmake --build build-lsg-win --config Release --target lsg_prepare_mesh lsg_compile lsg_report --parallel 2
+        run: cmake --build build-lsg-win --config Release --target lsg_prepare_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
       - name: Prepare pinned Base Human RMS0 and canonical genomes
         shell: pwsh
         run: |
@@ -36,6 +36,13 @@ jobs:
           if ($blob -ne $env:LSG_BASE_HUMAN_GIT_BLOB) { throw "Base Human blob mismatch: $blob" }
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\base.obj build-lsg-win\Release\meshes\human_base.rmesh
+          if ($LASTEXITCODE -ne 0) { throw 'RMS0 preparation failed' }
+          & build-lsg-win\Release\lsg_mesh_audit.exe build-lsg-win\Release\meshes\human_base.rmesh `
+            | Tee-Object -FilePath build-lsg-win\Release\lsg-mesh-audit.txt
+          if ($LASTEXITCODE -ne 0) { throw 'RMS0 continuity audit failed' }
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-mesh-audit.txt -Pattern 'LSG MESH CONTINUITY PASS' -Quiet)) {
+            throw 'RMS0 continuity PASS marker missing'
+          }
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\character_0.lsg
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\character_1.lsg
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'RMS0 missing' }
@@ -67,6 +74,7 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'human RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
+          if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit.txt')) { throw 'mesh continuity report missing' }
       - uses: actions/upload-artifact@v4
         with:
           name: rengine-lsg-windows-human-${{ github.sha }}
@@ -75,4 +83,5 @@ jobs:
             build-lsg-win/Release/shaders
             build-lsg-win/Release/meshes
             build-lsg-win/Release/lsg-acceptance-report.txt
+            build-lsg-win/Release/lsg-mesh-audit.txt
           if-no-files-found: error
