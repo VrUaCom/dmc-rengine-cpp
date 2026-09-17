@@ -144,6 +144,11 @@ struct FunctionFacts final {
     std::vector<std::string> resource_families;
     /// Dispatch offsets of `call [reg + disp]` sites within this function.
     std::vector<std::uint32_t> indirect_call_displacements;
+    /// Dispatch instructions in this function, counted from the same list the
+    /// image-wide census uses. The vector above holds only the call-position
+    /// offsets and deduplicates them, so it is neither a count nor the same
+    /// population — which is exactly the confusion this field exists to end.
+    std::uint32_t dispatch_sites{};
 
     [[nodiscard]] std::uint32_t size() const noexcept {
         return end_rva > begin_rva ? end_rva - begin_rva : 0U;
@@ -549,6 +554,13 @@ struct FunctionMapSummary final {
     /// is a classification the file supports rather than a guess; what the
     /// argument points at still takes a caller to say.
     std::size_t dispatch_sites_on_an_argument{};
+    /// Sites where the analysis has nothing for the register the vtable is read
+    /// through, and sites where it came from an address the code took or a
+    /// fixed one it loaded. With the two above, these four partition
+    /// `dispatch_sites` exactly — which is the point of emitting them: a census
+    /// that does not add up to its own total is a census with a bug in it.
+    std::size_t dispatch_sites_with_an_unnamed_receiver{};
+    std::size_t dispatch_sites_on_a_fixed_or_taken_address{};
     std::size_t dispatch_sites_in_a_bound_function{};
     std::size_t dispatch_sites_resolved{};
     /// Of those, the ones whose receiver is a member of the enclosing object

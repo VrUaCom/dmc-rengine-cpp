@@ -76,7 +76,11 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
     writer.member("image_base_groups_corroborating",
                   static_cast<std::uint64_t>(summary.image_base_groups_corroborating));
     writer.member("dispatch_sites", static_cast<std::uint64_t>(summary.dispatch_sites));
-    writer.member("dispatch_sites_on_an_argument",
+    writer.member("dispatch_sites_with_an_unnamed_receiver",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_with_an_unnamed_receiver));
+    writer.member("dispatch_sites_on_a_fixed_or_taken_address",
+                  static_cast<std::uint64_t>(summary.dispatch_sites_on_a_fixed_or_taken_address));
+        writer.member("dispatch_sites_on_an_argument",
                   static_cast<std::uint64_t>(summary.dispatch_sites_on_an_argument));
         writer.member("dispatch_sites_on_this",
                   static_cast<std::uint64_t>(summary.dispatch_sites_on_this));
@@ -500,6 +504,13 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     }
     if (facts.depth_from_entry != dmc::rengine::exe::FunctionFacts::kUnreached) {
         writer.member("depth_from_entry", static_cast<std::uint64_t>(facts.depth_from_entry));
+    }
+    // The count the image-wide census is made of, per function, so a consumer
+    // can add the detail up and check the summary against it. A counter that
+    // measures something other than its name is not caught by any arithmetic
+    // identity; it is caught by measuring the same thing twice.
+    if (facts.dispatch_sites != 0U) {
+        writer.member("dispatch_sites", static_cast<std::uint64_t>(facts.dispatch_sites));
     }
     // The interesting minority is what the bound does *not* reach, so that is
     // what gets a member; emitting the majority flag would say nothing.

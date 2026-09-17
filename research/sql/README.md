@@ -448,5 +448,11 @@ Every table carrying a CHECK is inserted with a conflict clause scoped to its
 own unique key rather than `INSERT OR IGNORE`, which suppresses CHECK failures
 as well as uniqueness conflicts and would drop a malformed row silently.
 
+The importer refuses a map report whose own counters contradict each other: six
+partitions must add up, eleven subset relations must hold, and the per-function
+dispatch counts must sum to the summary's. That last check is the one that
+catches a counter measuring a different population from its name, which no
+arithmetic identity can find.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

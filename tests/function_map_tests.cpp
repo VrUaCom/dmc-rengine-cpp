@@ -1916,6 +1916,88 @@ void the_startup_dispatch_count_matches_the_census_it_sits_beside() {
     assert(map.summary.startup_path_dispatch_sites_in_tail_position == 1U);
 }
 
+void the_receiver_categories_partition_the_dispatch_census() {
+    // Every dispatch site falls in exactly one of four categories, so they add
+    // up to the census. A census that does not add up to its own total has a
+    // bug in it, and the library is where that has to hold first.
+    //
+    // One dispatch per function on purpose: a call clobbers the volatile
+    // registers, the argument registers among them, so a second dispatch in the
+    // same function could not still be reading an argument.
+    Fixture fixture;
+    const auto put_body = [&](std::uint32_t rva, std::initializer_list<int> code) {
+        const auto at = fixture.image.rva_to_file_offset(rva);
+        assert(at.has_value());
+        put(fixture.bytes, static_cast<std::size_t>(*at), code);
+    };
+    //   A: 48 8b 01  ff 50 08     mov rax,[rcx]; call [rax+8]      -> on `this`
+    //   B: 48 8b 02  ff 50 10     mov rax,[rdx]; call [rax+0x10]   -> on argument 2
+    //   C: ff 50 18                            call [rax+0x18]     -> unnamed
+    put_body(0x1000U, {0x48, 0x8B, 0x01, 0xFF, 0x50, 0x08, 0xC3});
+    put_body(0x1040U, {0x48, 0x8B, 0x02, 0xFF, 0x50, 0x10, 0xC3});
+    put_body(0x10C0U, {0xFF, 0x50, 0x18, 0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1030U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    table.functions.push_back(PeFunctionRange{0x10C0U, 0x10D0U, 0U, false, 0x10C0U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    const auto parts = map.summary.dispatch_sites_on_this +
+                       map.summary.dispatch_sites_on_an_argument +
+                       map.summary.dispatch_sites_with_an_unnamed_receiver +
+                       map.summary.dispatch_sites_on_a_fixed_or_taken_address;
+    assert(parts == map.summary.dispatch_sites);
+    assert(map.summary.dispatch_sites == 3U);
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.summary.dispatch_sites_on_an_argument == 1U);
+    assert(map.summary.dispatch_sites_with_an_unnamed_receiver == 1U);
+}
+
+void a_function_carries_the_count_the_census_is_made_of() {
+    // The per-function count and the census must be the same population, or a
+    // consumer adding the detail up will disagree with the summary. That
+    // disagreement is the one no arithmetic identity finds.
+    Fixture fixture;
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    //   ff 50 08    call [rax+8]           ; call position
+    //   ff 60 10    jmp  [rax+0x10]        ; tail position — dispatch too
+    put(fixture.bytes, at, {0xFF, 0x50, 0x08});
+    put(fixture.bytes, at + 3U, {0xFF, 0x60, 0x10});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    std::size_t detail = 0;
+    for (const auto& facts : map.functions) {
+        detail += facts.dispatch_sites;
+    }
+    assert(detail == map.summary.dispatch_sites);
+    assert(detail == 2U);
+    // The older per-function list holds only the call-position one, which is
+    // why it must never be mistaken for this count.
+    assert(map.functions[0].indirect_call_displacements.size() == 1U);
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1998,6 +2080,8 @@ int main() {
     a_function_nothing_reaches_carries_no_depth();
     a_resolved_dispatch_on_the_path_extends_the_sound_closure();
     the_startup_dispatch_count_matches_the_census_it_sits_beside();
+    the_receiver_categories_partition_the_dispatch_census();
+    a_function_carries_the_count_the_census_is_made_of();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

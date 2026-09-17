@@ -126,7 +126,12 @@ CREATE TABLE IF NOT EXISTS exe_import_call (
 
 CREATE INDEX IF NOT EXISTS idx_exe_import_call_symbol ON exe_import_call(module, symbol);
 
-CREATE TABLE IF NOT EXISTS exe_dispatch_site (
+-- One row per function and distinct dispatch offset -- NOT one per dispatch
+-- instruction. The UNIQUE below is what makes that so, and the difference is
+-- large: the image has 11,434 dispatch instructions and 5,395 distinct
+-- (function, offset) pairs among the call-position ones. The table was called
+-- exe_dispatch_site, which promised the first and held the second.
+CREATE TABLE IF NOT EXISTS exe_dispatch_offset (
     id INTEGER PRIMARY KEY,
     function_id INTEGER NOT NULL REFERENCES exe_function(id) ON DELETE CASCADE,
     displacement INTEGER NOT NULL,

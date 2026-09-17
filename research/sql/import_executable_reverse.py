@@ -33,6 +33,103 @@ def parse_rva(value) -> int:
     return int(value, 16)
 
 
+def verify_summary_identities(mapping: dict) -> None:
+    """Refuses a map report whose own counters contradict each other.
+
+    Several counters partition a total, and several are subsets of another. A
+    census that does not add up to its own total has a bug in it, and the point
+    of checking here is that it is checked against the real image's numbers on
+    every import rather than only against a fixture. The checks that found
+    something were the ones nobody had written: two counters with similar names,
+    printed side by side, counting different things.
+    """
+    s = mapping.get("summary")
+    if not s:
+        return
+
+    def has(*keys: str) -> bool:
+        return all(k in s for k in keys)
+
+    partitions = [
+        ("functions", ["reachable_through_dispatch", "outside_every_closure"]),
+        ("vtable_slots_classified",
+         ["vtable_slots_pure_virtual", "vtable_slots_empty_body", "vtable_slots_implemented"]),
+        ("indexed_accesses", ["image_base_indexed_accesses", "held_base_accesses"]),
+        ("held_base_accesses",
+         ["consistent_array_accesses", "string_scan_accesses", "inconsistent_array_accesses",
+          "accesses_on_a_conflicted_base"]),
+        ("image_base_groups_spanning_elements",
+         ["image_base_groups_reads_in_several_sections", "image_base_groups_undecided"]),
+        ("dispatch_sites",
+         ["dispatch_sites_on_this", "dispatch_sites_on_an_argument",
+          "dispatch_sites_with_an_unnamed_receiver",
+          "dispatch_sites_on_a_fixed_or_taken_address"]),
+    ]
+    for total, parts in partitions:
+        if not has(total, *parts):
+            continue
+        summed = sum(s[p] for p in parts)
+        if summed != s[total]:
+            raise SystemExit(
+                f"summary contradicts itself: {total}={s[total]} but "
+                + " + ".join(f"{p}={s[p]}" for p in parts)
+                + f" = {summed}"
+            )
+
+    subsets = [
+        ("startup_path_dispatch_sites_in_tail_position", "startup_path_dispatch_sites"),
+        ("startup_path_dispatch_sites", "dispatch_sites"),
+        ("startup_path_functions", "functions"),
+        ("dispatch_sites_resolved", "dispatch_sites_in_a_bound_function"),
+        ("dispatch_sites_in_a_bound_function", "dispatch_sites_on_this"),
+        ("stores_of_a_vtable", "stores_into_this"),
+        ("constructors_identified", "stores_of_a_vtable"),
+        ("field_offsets_confirmed_by_rtti", "field_layout_entries"),
+        ("image_base_groups_spanning_elements", "image_base_groups_with_several_reads"),
+        ("size_floors_above_a_vtable_pointer", "class_size_floors"),
+        ("walks_complete", "functions"),
+    ]
+    for smaller, larger in subsets:
+        if not has(smaller, larger):
+            continue
+        if s[smaller] > s[larger]:
+            raise SystemExit(
+                f"summary contradicts itself: {smaller}={s[smaller]} exceeds {larger}={s[larger]}"
+            )
+
+    # Summary against detail. No arithmetic identity catches a counter that
+    # measures something other than its name — 68 of one population sits happily
+    # inside 99 of another and inside the census above it. What catches it is
+    # adding the per-function numbers up and comparing, which needs the report to
+    # carry them.
+    functions = mapping.get("functions")
+    if functions and "dispatch_sites" in s:
+        detail = sum(f.get("dispatch_sites", 0) for f in functions)
+        if detail != s["dispatch_sites"]:
+            raise SystemExit(
+                f"summary says dispatch_sites={s['dispatch_sites']} but the functions it "
+                f"carries add up to {detail}"
+            )
+    if functions and "startup_path_dispatch_sites" in s:
+        detail = sum(f.get("dispatch_sites", 0) for f in functions
+                     if f.get("depth_from_entry") is not None)
+        if detail != s["startup_path_dispatch_sites"]:
+            raise SystemExit(
+                f"summary says startup_path_dispatch_sites={s['startup_path_dispatch_sites']} "
+                f"but the functions on the path add up to {detail}"
+            )
+
+    # The startup path is the direct-call closure, computed twice by different
+    # code. They agreeing is one checking the other.
+    if has("startup_path_functions", "reachable_from_entry_point"):
+        if s["startup_path_functions"] != s["reachable_from_entry_point"]:
+            raise SystemExit(
+                "summary contradicts itself: the depth closure reaches "
+                f"{s['startup_path_functions']} functions but the reachability flag marks "
+                f"{s['reachable_from_entry_point']}"
+            )
+
+
 def load_image(con: sqlite3.Connection, analysis: dict) -> int:
     artifact = analysis["artifact"]
     image = analysis.get("image", {})
@@ -640,7 +737,7 @@ def load_functions(
 
         for displacement in entry.get("dispatch_displacements", []):
             con.execute(
-                """INSERT OR IGNORE INTO exe_dispatch_site(function_id, displacement, slot)
+                """INSERT OR IGNORE INTO exe_dispatch_offset(function_id, displacement, slot)
                    VALUES(?,?,?)""",
                 (function_id, displacement, displacement // 8),
             )
@@ -684,6 +781,8 @@ def main() -> int:
 
     analysis = json.loads(args.analysis.read_text(encoding="utf-8"))
     mapping = json.loads(args.map.read_text(encoding="utf-8"))
+
+    verify_summary_identities(mapping)
 
     if analysis["artifact"]["sha256"] != mapping["artifact"]["sha256"]:
         raise SystemExit("analysis and map reports describe different artifacts")
@@ -729,7 +828,7 @@ def main() -> int:
             "exe_vtable_install",
             "exe_call_edge",
             "exe_import_call",
-            "exe_dispatch_site",
+            "exe_dispatch_offset",
             "exe_name_table",
             "exe_table_reference",
             "exe_indexed_array",

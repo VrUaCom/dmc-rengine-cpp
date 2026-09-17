@@ -710,6 +710,7 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         auto& facts = map.functions[position];
 
         facts.indirect_call_displacements = walk.indirect_call_displacements;
+        facts.dispatch_sites = static_cast<std::uint32_t>(walk.resolved_dispatch_sites.size());
 
         for (const auto target : walk.data_references) {
             if (const auto slot = iat_slots.find(target); slot != iat_slots.end()) {
@@ -1669,6 +1670,15 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         for (const auto& site : walk.resolved_dispatch_sites) {
             ++map.summary.dispatch_sites;
             if (!site.through_an_argument) {
+                switch (site.receiver_source) {
+                case FunctionWalk::ReceiverSource::from_a_fixed_address:
+                case FunctionWalk::ReceiverSource::a_taken_address:
+                    ++map.summary.dispatch_sites_on_a_fixed_or_taken_address;
+                    break;
+                default:
+                    ++map.summary.dispatch_sites_with_an_unnamed_receiver;
+                    break;
+                }
                 continue;
             }
             if (site.receiver_argument != 0U) {

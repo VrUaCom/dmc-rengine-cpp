@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-summary-identities",
+  "title": "DMC3 HD reverse: the counters are now checked against each other and against their own detail",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-summary-partitions-hold",
+      "claim_id": "claim-dmc3-summary-partitions",
+      "title": "Nineteen arithmetic identities over the summary, all holding",
+      "summary": "A counter measuring a different population from its name is a class of fault this reverse has now produced three times, so the relationships between counters are checked rather than assumed. Six of them are partitions: the function inventory splits into what the dispatch closure reaches and what it does not; the 13,894 vtable slots split into pure, empty and implemented; the 2,023 indexed accesses split by whether the base is the image base or a held one; the 930 held-base accesses split into consistent, string-scan, outside-the-element and on-a-conflicted-base; the 102 spanning groups split into the provable and the undecided; and the 11,434 dispatch sites split into on `this`, on another argument, unnamed, and on an address the code took or loaded. Eleven more are subset relations, and one is the same quantity computed twice by different code: the depth closure and the reachability flag both reach 370 functions. All nineteen hold on the real image.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "validation",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the identities are checked over",
+          "note": "Six partitions, eleven subset relations and one double computation, all holding."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-identities-miss-the-fault-that-motivated-them",
+      "claim_id": "claim-dmc3-identities-miss-naming-faults",
+      "title": "No arithmetic identity catches the fault that prompted writing them",
+      "summary": "The startup path was published as carrying 68 dispatch sites when the population the census counts gives 99. Checking that against every identity available finds nothing: 68 is a perfectly good number of a different population and sits happily inside 99, inside the census of 11,434, and inside every total above it. An identity set is blind to a counter that is internally consistent and simply measures the wrong thing. What finds it is measuring the same quantity twice and comparing — which needs the report to carry the per-function counts the census is made of, so it now does. Adding those up and comparing catches the original fault by name: the summary says 68 and the functions on the path add up to 99. Two further instances of the same fault were found while writing this: `indirect_call_sites` at 10,958 and `dispatch_sites` at 11,434 count different populations, and the SQL table called `exe_dispatch_site` held 5,395 rows of distinct offsets per function rather than a count of sites at all, and is now `exe_dispatch_offset`.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3432796,
+          "size": 18,
+          "symbol": "the entry point the miscounted path starts from",
+          "note": "99 dispatch sites across the 370 functions; the published 68 counted only the call-position ones."
+        }
+      ]
+    }
+  ]
+}

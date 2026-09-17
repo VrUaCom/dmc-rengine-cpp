@@ -626,6 +626,58 @@ class ImporterTests(unittest.TestCase):
         with self.assertRaises(sqlite3.IntegrityError):
             importer.load_global_blocks(con, image_id, mapping, {})
 
+    def test_a_summary_that_does_not_add_up_is_refused(self) -> None:
+        # The four receiver categories partition the dispatch census. A census
+        # that does not add up to its own total has a bug in it.
+        mapping = make_map()
+        mapping["summary"] = {
+            "dispatch_sites": 100,
+            "dispatch_sites_on_this": 40,
+            "dispatch_sites_on_an_argument": 5,
+            "dispatch_sites_with_an_unnamed_receiver": 50,
+            "dispatch_sites_on_a_fixed_or_taken_address": 6,
+        }
+        with self.assertRaises(SystemExit):
+            importer.verify_summary_identities(mapping)
+
+    def test_a_counter_measuring_the_wrong_population_is_caught_by_the_detail(self) -> None:
+        # This is the one no arithmetic identity catches: a count that is a
+        # perfectly good number of a different population sits happily inside
+        # every total above it. Only adding the per-function numbers up finds it.
+        mapping = make_map()
+        mapping["summary"] = {"dispatch_sites": 9, "startup_path_dispatch_sites": 4}
+        mapping["functions"] = [
+            {"begin_rva": "0x1000", "end_rva": "0x1010", "dispatch_sites": 6,
+             "depth_from_entry": 0},
+            {"begin_rva": "0x2000", "end_rva": "0x2010", "dispatch_sites": 3},
+        ]
+        # The census total is fine: 6 + 3 = 9.
+        with self.assertRaises(SystemExit) as raised:
+            importer.verify_summary_identities(mapping)
+        self.assertIn("add up to 6", str(raised.exception))
+
+    def test_a_consistent_summary_passes(self) -> None:
+        mapping = make_map()
+        mapping["summary"] = {
+            "dispatch_sites": 9,
+            "startup_path_dispatch_sites": 6,
+            "functions": 2,
+            "reachable_through_dispatch": 1,
+            "outside_every_closure": 1,
+        }
+        mapping["functions"] = [
+            {"begin_rva": "0x1000", "end_rva": "0x1010", "dispatch_sites": 6,
+             "depth_from_entry": 0},
+            {"begin_rva": "0x2000", "end_rva": "0x2010", "dispatch_sites": 3},
+        ]
+        importer.verify_summary_identities(mapping)
+
+    def test_a_subset_counter_exceeding_its_superset_is_refused(self) -> None:
+        mapping = make_map()
+        mapping["summary"] = {"stores_of_a_vtable": 300, "stores_into_this": 279}
+        with self.assertRaises(SystemExit):
+            importer.verify_summary_identities(mapping)
+
     def test_the_importer_refuses_mismatched_reports_end_to_end(self) -> None:
         import subprocess
         import sys
