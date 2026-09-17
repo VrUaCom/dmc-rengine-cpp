@@ -136,10 +136,12 @@ bool hud_glyph(uint button, vec2 uv) {
         bool right = inside_box(uv, vec2(0.56, 0.30), vec2(0.64, 0.70));
         return left || top || bottom || right;
     }
-    // Diagnostic mode icon: three horizontal bars.
-    return inside_box(uv, vec2(0.30, 0.68), vec2(0.70, 0.76)) ||
-           inside_box(uv, vec2(0.36, 0.46), vec2(0.64, 0.54)) ||
-           inside_box(uv, vec2(0.42, 0.24), vec2(0.58, 0.32));
+    // Skeleton icon: head, spine, shoulders and pelvis.
+    float head = length(uv - vec2(0.50, 0.76));
+    bool spine = inside_box(uv, vec2(0.47, 0.27), vec2(0.53, 0.67));
+    bool shoulders = inside_box(uv, vec2(0.28, 0.54), vec2(0.72, 0.60));
+    bool pelvis = inside_box(uv, vec2(0.36, 0.28), vec2(0.64, 0.34));
+    return head <= 0.095 || spine || shoulders || pelvis;
 }
 
 vec3 perturb_normal(vec3 n, vec3 view_pos, float height_field, float strength) {
@@ -261,23 +263,29 @@ void main() {
         bool selected = (button == 0u && profile_index == 0u) ||
                         (button == 1u && profile_index == 1u) ||
                         (button == 2u && detail_enabled) ||
-                        (button == 3u);
+                        (button == 3u && mode == 3u);
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
         vec3 panel = selected ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
-        if (button == 3u) {
-            panel = mode == 0u ? vec3(0.16, 0.56, 0.92)
-                  : mode == 1u ? vec3(0.92, 0.47, 0.14)
-                               : vec3(0.18, 0.72, 0.42);
-        }
+        if (button == 3u && mode == 3u) panel = vec3(0.18, 0.72, 0.42);
         if (edge < 0.055) panel = min(panel + vec3(0.24), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
         return;
     }
 
+    // Region 255 is reserved for MakeHuman joint-marker geometry. It is only visible
+    // in explicit Skeleton/Joint Debug mode and is not treated as skin.
+    if (body_region == 255u) {
+        if (mode != 3u) discard;
+        vec3 n = normalize(view_normal);
+        float ndotl = max(dot(n, sun_view_direction()), 0.0);
+        vec3 joint_colour = vec3(0.04, 0.92, 0.52) * (0.55 + 0.45 * ndotl);
+        out_colour = vec4(aces_fitted(joint_colour * 1.35), 1.0);
+        return;
+    }
+
     // RAW diagnostic modes deliberately bypass the entire LSG surface function.
-    // This isolates mesh/projection faults from genome/material faults on a physical device.
-    if (mode != 0u) {
+    if (mode == 1u || mode == 2u) {
         vec3 n = normalize(view_normal);
         vec3 l = sun_view_direction();
         float ndotl = max(dot(n, l), 0.0);
