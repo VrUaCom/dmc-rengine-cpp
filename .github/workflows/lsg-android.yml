@@ -22,11 +22,14 @@ jobs:
         run: cmake --build build-lsg --parallel 2
       - name: Test LSG deterministic contract
         run: ctest --test-dir build-lsg --output-on-failure
-      - name: Validate pinned CC0 Base Human OBJ to RMS0
+      - name: Validate pinned CC0 Base Human body-only OBJ to RMS0
         run: |
           curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
           test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
-          build-lsg/lsg_prepare_mesh /tmp/lsg-base-human.obj /tmp/human_base.rmesh | tee /tmp/lsg-mesh-report.txt
+          build-lsg/lsg_extract_obj_group /tmp/lsg-base-human.obj body /tmp/lsg-body.obj | tee /tmp/lsg-obj-filter-report.txt
+          grep 'OBJ GROUP FILTER PASS: group=body' /tmp/lsg-obj-filter-report.txt
+          ! grep -Eq '^g (joint-|helper-)' /tmp/lsg-body.obj
+          build-lsg/lsg_prepare_mesh /tmp/lsg-body.obj /tmp/human_base.rmesh | tee /tmp/lsg-mesh-report.txt
           test -s /tmp/human_base.rmesh
           grep 'RMS0 PASS' /tmp/lsg-mesh-report.txt
           build-lsg/lsg_mesh_audit /tmp/human_base.rmesh | tee /tmp/lsg-mesh-audit.txt
@@ -44,15 +47,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Prepare pinned Base Human RMS0 asset and canonical genomes
+      - name: Prepare pinned body-only RMS0 asset and canonical genomes
         run: |
           cmake -S labs/lsg -B build-lsg-host -G Ninja -DRENGINE_LSG_BUILD_VIEWER=OFF -DRENGINE_LSG_BUILD_TESTS=OFF
-          cmake --build build-lsg-host --target lsg_prepare_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+          cmake --build build-lsg-host --target lsg_extract_obj_group lsg_prepare_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
           curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
           test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
+          build-lsg-host/lsg_extract_obj_group /tmp/lsg-base-human.obj body /tmp/lsg-body.obj \
+            | tee /tmp/lsg-obj-filter-report.txt
+          grep 'OBJ GROUP FILTER PASS: group=body' /tmp/lsg-obj-filter-report.txt
+          ! grep -Eq '^g (joint-|helper-)' /tmp/lsg-body.obj
           mkdir -p labs/lsg/viewer/android/app/src/main/assets/meshes
           mkdir -p labs/lsg/viewer/android/app/build/outputs
-          build-lsg-host/lsg_prepare_mesh /tmp/lsg-base-human.obj labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh
+          cp /tmp/lsg-obj-filter-report.txt labs/lsg/viewer/android/app/build/outputs/lsg-obj-filter-report.txt
+          build-lsg-host/lsg_prepare_mesh /tmp/lsg-body.obj labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh
           build-lsg-host/lsg_mesh_audit labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh \
             | tee labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit.txt
           grep 'LSG MESH CONTINUITY PASS' labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit.txt
@@ -89,7 +97,7 @@ jobs:
           gradle-version: '9.6.0'
       - name: Build arm64-v8a debug APK
         run: gradle -p labs/lsg/viewer/android :app:assembleDebug --stacktrace
-      - name: Verify native library, shaders, human mesh and zero baked character textures
+      - name: Verify native library, shaders, clean human mesh and zero baked character textures
         run: |
           unzip -l labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk | tee /tmp/apk-files.txt
           grep 'lib/arm64-v8a/librengine_lsg.so' /tmp/apk-files.txt
@@ -107,4 +115,5 @@ jobs:
             labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk
             labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
             labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-obj-filter-report.txt
           if-no-files-found: error
