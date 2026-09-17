@@ -31,12 +31,50 @@ struct ViewerState {
   int last_y{};
 };
 
+const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
+  using rengine::lsg::DiagnosticRenderMode;
+  switch (mode) {
+    case DiagnosticRenderMode::genome_perspective: return "GENOME_PERSPECTIVE";
+    case DiagnosticRenderMode::raw_perspective: return "RAW_PERSPECTIVE";
+    case DiagnosticRenderMode::raw_orthographic: return "RAW_ORTHOGRAPHIC";
+  }
+  return "UNKNOWN";
+}
+
+void print_diagnostics(const ViewerState& state, const char* reason, float fps = 0.0f, float cpu_ms = 0.0f) {
+  if (state.renderer == nullptr) return;
+  const auto d = state.renderer->diagnostics();
+  std::cout << reason << " mode=" << mode_name(d.mode)
+            << " window=" << d.window_width << 'x' << d.window_height
+            << " swapchain=" << d.swapchain_width << 'x' << d.swapchain_height
+            << " logical=" << d.logical_width << 'x' << d.logical_height
+            << " rotation=" << d.surface_rotation
+            << " aspect=" << d.logical_aspect
+            << " fov=" << d.fov_y_radians
+            << " distance=" << d.camera_distance_m
+            << "m gpu_est=" << d.estimated_gpu_bytes
+            << " fps=" << fps << " cpu_frame_ms=" << cpu_ms << '\n';
+}
+
+void cycle_mode(ViewerState& state) {
+  if (state.renderer == nullptr) return;
+  using rengine::lsg::DiagnosticRenderMode;
+  const auto current = state.renderer->diagnostic_mode();
+  const auto next = current == DiagnosticRenderMode::genome_perspective ? DiagnosticRenderMode::raw_perspective
+                  : current == DiagnosticRenderMode::raw_perspective ? DiagnosticRenderMode::raw_orthographic
+                                                                    : DiagnosticRenderMode::genome_perspective;
+  state.renderer->set_diagnostic_mode(next);
+  print_diagnostics(state, "Diagnostic mode changed");
+}
+
 void handle_hud(ViewerState& state, HWND window, int x) {
   RECT rect{}; GetClientRect(window, &rect);
   const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
-  if (x < width / 3) state.character_index = 0;
-  else if (x < (width * 2) / 3) state.character_index = 1;
-  else state.detail_enabled = !state.detail_enabled;
+  const int quarter = std::max(1, width / 4);
+  if (x < quarter) state.character_index = 0;
+  else if (x < quarter * 2) state.character_index = 1;
+  else if (x < quarter * 3) state.detail_enabled = !state.detail_enabled;
+  else cycle_mode(state);
 }
 
 LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
@@ -51,6 +89,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
       if (state != nullptr && wparam == '0') { state->character_index = 0; return 0; }
       if (state != nullptr && wparam == '1') { state->character_index = 1; return 0; }
       if (state != nullptr && wparam == 'D') { state->detail_enabled = !state->detail_enabled; return 0; }
+      if (state != nullptr && wparam == 'M') { cycle_mode(*state); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'F') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::full_body); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'P') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::portrait); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'C') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::extreme_close_up); return 0; }
@@ -123,7 +162,7 @@ int main(int argc, char** argv) {
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
   AdjustWindowRect(&rectangle, style, FALSE);
   HWND window = CreateWindowExW(0, kClassName,
-      L"Rengine LSG - drag orbit, wheel zoom, F/P/C camera, 0/1 profile, D detail",
+      L"Rengine LSG - drag orbit, wheel zoom, F/P/C camera, 0/1 profile, D detail, M diagnostics",
       style, CW_USEDEFAULT, CW_USEDEFAULT, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
       nullptr, nullptr, instance, &state);
   if (window == nullptr) { std::cerr << "CreateWindowExW failed\n"; return 4; }
@@ -132,8 +171,11 @@ int main(int argc, char** argv) {
   if (!renderer.initialize(window)) { std::cerr << "Vulkan 1.2 Win32 initialization failed\n"; DestroyWindow(window); return 5; }
   std::cout << "Rengine LSG Windows interactive viewer PASS bootstrap; genome=" << genome.size()
             << " bytes; estimated GPU bytes=" << renderer.estimated_gpu_bytes() << "\n";
+  print_diagnostics(state, "Renderer init");
 
   const auto start = std::chrono::steady_clock::now();
+  auto telemetry_start = start;
+  std::uint32_t telemetry_frames = 0;
   bool running = true;
   while (running) {
     MSG message{};
@@ -142,9 +184,19 @@ int main(int argc, char** argv) {
       TranslateMessage(&message); DispatchMessageW(&message);
     }
     if (!running) break;
-    const float seconds = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
+    const auto now = std::chrono::steady_clock::now();
+    const float seconds = std::chrono::duration<float>(now - start).count();
     if (!renderer.draw_frame(seconds, state.character_index, state.detail_enabled)) {
       std::cerr << "Vulkan frame failed\n"; running = false; break;
+    }
+    ++telemetry_frames;
+    const auto after = std::chrono::steady_clock::now();
+    const float interval = std::chrono::duration<float>(after - telemetry_start).count();
+    if (interval >= 1.0f) {
+      const float fps = static_cast<float>(telemetry_frames) / interval;
+      const float cpu_ms = interval * 1000.0f / static_cast<float>(telemetry_frames);
+      print_diagnostics(state, "Frame telemetry", fps, cpu_ms);
+      telemetry_start = after; telemetry_frames = 0;
     }
     Sleep(1);
   }
