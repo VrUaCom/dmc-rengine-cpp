@@ -16,7 +16,7 @@
       "id": "ev-dmc3-constant-argument-census",
       "claim_id": "claim-dmc3-constant-argument-census",
       "title": "1,311 calls pass a constant first argument, over 179 functions",
-      "summary": "Tracking the constants the code puts in a register — an immediate move, a register cleared against itself, an address computation over a constant — makes the first argument readable wherever it is one. 1,311 call sites pass a constant, reaching 179 distinct functions. What the constant means is not stated by any of this; what is stated is which functions are parameterised by a small value and which values exist, which bounds an enumeration without naming it. The shapes differ and the difference is itself informative: the function at RVA 0x2C6D90 is called 202 times with 59 distinct values, RVA 0x1B82C0 93 times with 20 values densely filling one to twenty-one,, RVA 0x8BF30 59 times with 49 values scattered from 10 to beyond 135, and RVA 0x2E7CA0 180 times with only seven.",
+      "summary": "Tracking the constants the code puts in a register \u2014 an immediate move, a register cleared against itself, an address computation over a constant \u2014 makes the first argument readable wherever it is one. 1,311 call sites pass a constant, reaching 179 distinct functions. What the constant means is not stated by any of this; what is stated is which functions are parameterised by a small value and which values exist, which bounds an enumeration without naming it. The shapes differ and the difference is itself informative: the function at RVA 0x2C6D90 is called 202 times with 59 distinct values, RVA 0x1B82C0 93 times with 20 values densely filling one to twenty-one,, RVA 0x8BF30 59 times with 49 values scattered from 10 to beyond 135, and RVA 0x2E7CA0 180 times with only seven.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -71,6 +71,30 @@
           "size": 125,
           "symbol": "arm selected by the value one",
           "note": "RVA 0x2E3B10, loading RVA 0xCAB230 into its first argument; the arm for two at RVA 0x2EBA10 is identical but for loading RVA 0xCAE7D0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-constant-argument-count-corrected",
+      "claim_id": "claim-dmc3-constant-first-arguments",
+      "title": "Correction: 130 functions take a constant first argument, not 179",
+      "summary": "The figure of 1,311 calls over 179 functions was inflated by a decoder-level mistake. The x86-64 forms that carry their register inside the opcode \u2014 mov reg, immediate at B8 through BF among them \u2014 have no ModRM field to extend, so REX.B is the only thing distinguishing rax from r8 and rcx from r9. The register tracking read the low three bits without it, so `mov r9d, imm` recorded a constant in rcx, and the next call was reported as taking a constant first argument when it took nothing of the kind. Reading REX.B leaves 1,319 calls over 130 functions: the call count barely moves and the function count falls by 49, a twenty-seven per cent overstatement. The separate reading of the function at RVA 0x2E7CA0 is unaffected, because that one was read off its own compare chain rather than inferred from this census \u2014 which is the whole reason the compare chain was read.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-constant-argument-census"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 312273,
+          "size": 6,
+          "symbol": "the encoding that exposed it",
+          "note": "RVA 0x4C3D1, 41 B8 7C 02 00 00: mov r8d, 0x27C, read as a write to rax without REX.B."
         }
       ]
     }

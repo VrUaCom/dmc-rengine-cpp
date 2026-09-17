@@ -8,6 +8,18 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ### Added
 
+#### An impossible reading in the receiver census found a decoder bug
+
+- recording the register analysis's **own verdict** at each of the 11,434 dispatch sites, instead of guessing at it with a backward scan, put 167 sites in a category that cannot exist: the register the vtable is read through held a **constant**. A vtable pointer is never a small constant;
+- the cause was two layers down, in the decoder. The x86-64 forms that carry their register **inside the opcode** — `mov reg, imm` at `B8`–`BF`, `push`, `pop`, `xchg` — have no ModRM field to extend, so **REX.B is the only thing that distinguishes `rax` from `r8`**. Nothing surfaced it, and the register tracking read the low three bits alone. `mov r8d, imm` sitting between a vtable load and the dispatch through it, a shape the image is full of, was recorded as a write to `rax` — destroying the vtable fact and inventing the constant. The invalidation block had the same blind spot and conservatively forgot *both* halves of the register file, which did most of the damage;
+- after surfacing REX.B the impossible category is **empty**, which is the check on the fix, and 21 measured figures move towards more facts recovered: dispatch sites on `this` **1,855 → 1,880**, in a class-bound function **767 → 785**, pointer stores into `this` **187 → 207**, indexed accesses **1,966 → 2,023**, global-block call sites **3,582 → 3,753**, size floors corroborated **189 → 192**;
+- **the census itself is the corrected result.** Of the 11,434 sites: **9,535 (83.4%)** with nothing known about the register, **1,892 (16.5%)** read through one of the arguments the convention passes in registers, 7 through a taken address, **0** a constant. Of those through an argument, 1,085 are one load deep — the object's own vtable, the resolvable case — and 782 two loads deep, a pointer member's pointee that the enclosing class's layout cannot describe. Naming a receiver is not resolving a call: 1,880 on `this`, 785 of them in a class-bound function, **105 resolved** across 32 classes. This supersedes the earlier breakdown into `field of a copied register` and `field of a field`, which were artefacts of the backward scan rather than statements about the analysis.
+
+#### Correction: 130 functions take a constant first argument, not 179
+
+- the same REX.B blind spot inflated a published census. `41 b9 imm32` is `mov r9d, imm`, and it was recorded as putting a constant in **`rcx`** — inventing a constant first argument for the following call. "1,311 calls over 179 functions" becomes **1,319 over 130**: the call count barely moves and the function count was overstated by **27%**;
+- the separate reading of the function at RVA 0x2E7CA0 is unaffected, because that one was read off its own compare chain rather than inferred from this census. Which is the whole reason the compare chain was read.
+
 #### One instruction was hiding most of the dispatch receivers
 
 - 11,434 virtual call sites and the receiver analysis could name 1,135. Before changing anything, I asked what instruction produced the register each site reads its vtable through: **9,878 (86.4%)** a field load, 116 a stack slot, 24 a global. That kills the obvious suspicion — MSVC spills `rcx`–`r9` to home space in many prologues and I expected the losses there, but it is **1%** of sites. Walking one step further back, **2,529** of those bases were produced by a `lea`;

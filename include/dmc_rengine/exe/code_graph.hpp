@@ -89,6 +89,29 @@ struct FunctionWalk final {
     /// A `call [reg + disp]` whose receiver the walk could follow back to a
     /// static object: `lea reg,[rip+object]`, then a load of the object's first
     /// quadword, which for a polymorphic C++ object is its vtable pointer.
+    /// What the register analysis knew about the register a dispatch reads its
+    /// vtable through. This is the analysis's own verdict per site, which is
+    /// what says where the unresolved mass actually sits rather than where a
+    /// backward scan guesses it does.
+    enum class ReceiverSource : std::uint8_t {
+        /// The analysis has nothing for the register.
+        unknown,
+        /// Read out of one of the arguments the convention passes in registers,
+        /// at some offset. This is the resolvable case.
+        through_an_argument,
+        /// Read from a fixed address the code took with a RIP-relative `lea`.
+        from_a_fixed_address,
+        /// An address the code took, used directly as the vtable pointer.
+        a_taken_address,
+        /// Whatever a direct call returned.
+        a_call_result,
+        /// Memory a constructor has been run on.
+        a_constructed_object,
+        /// A constant the code put there, which for a vtable pointer means the
+        /// register was reused and the reading is not a dispatch at all.
+        a_constant,
+    };
+
     struct DispatchSite final {
         std::uint32_t site_rva{};
         std::uint32_t displacement{};
@@ -108,6 +131,8 @@ struct FunctionWalk final {
         /// is an embedded subobject at that offset; two when it came through a
         /// pointer stored there, which is a pointer member.
         std::uint8_t receiver_depth{};
+        /// The analysis's verdict on the register the vtable came through.
+        ReceiverSource receiver_source{ReceiverSource::unknown};
         /// Which argument the receiver was read out of: 0 for `this`, then 1,
         /// 2 and 3 for the next three the convention passes in registers.
         /// Meaningful only when `through_an_argument` holds.

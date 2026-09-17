@@ -1563,6 +1563,77 @@ void a_store_through_an_interior_address_lands_at_its_own_offset() {
     assert(map.functions[0].constructs_class.empty());
 }
 
+void a_constant_moved_into_an_extended_register_leaves_the_others_alone() {
+    Fixture fixture;
+    // The shape the image is full of, and the one that exposed the bug:
+    //   48 8b 01          mov rax,[rcx]          ; the vtable
+    //   41 b8 7c 02 00 00 mov r8d,0x27c          ; a third argument
+    //   ff 50 08          call QWORD PTR [rax+8] ; slot 1
+    // `b8 +r` carries its register in the opcode, so reading it without REX.B
+    // records a write to rax and destroys the vtable fact sitting there.
+    fixture.rtti.classes[0].vtables[0].slot_count = 2U;
+    put_u64(fixture.bytes, 0x588U, kImageBase + 0x1000U);  // slot 1 -> function A
+
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x48, 0x8B, 0x01});
+    put(fixture.bytes, at + 3U, {0x41, 0xB8, 0x7C, 0x02, 0x00, 0x00});
+    put(fixture.bytes, at + 9U, {0xFF, 0x50, 0x08});
+    put(fixture.bytes, at + 12U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    // rax still holds the vtable, so the dispatch is on `this` and resolves.
+    assert(map.summary.dispatch_sites_on_this == 1U);
+    assert(map.resolved_dispatches.size() == 1U);
+    assert(map.resolved_dispatches[0].slot == 1U);
+    assert(map.resolved_dispatches[0].target_rva == 0x1000U);
+}
+
+void a_constant_in_an_extended_register_is_not_a_constant_first_argument() {
+    Fixture fixture;
+    // `41 b9 imm32` is `mov r9d, imm`, not `mov ecx, imm`. Reading the opcode
+    // without REX.B puts the constant in rcx and reports the following call as
+    // taking a constant first argument, which it does not.
+    //   41 b9 05 00 00 00 mov r9d,5
+    //   e8 rel32          call function A
+    const auto body = fixture.image.rva_to_file_offset(0x1040U);
+    assert(body.has_value());
+    const auto at = static_cast<std::size_t>(*body);
+    put(fixture.bytes, at, {0x41, 0xB9, 0x05, 0x00, 0x00, 0x00});
+    put(fixture.bytes, at + 6U, {0xE8});
+    put_i32(fixture.bytes, at + 7U, -0x4B);  // 0x104B - 0x4B = 0x1000
+    put(fixture.bytes, at + 11U, {0xC3});
+
+    PeFunctionTable table;
+    table.functions.push_back(PeFunctionRange{0x1000U, 0x1040U, 0U, false, 0x1000U});
+    table.functions.push_back(PeFunctionRange{0x1040U, 0x1060U, 0U, false, 0x1040U});
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.graph = &graph;
+    const auto map =
+        FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+
+    assert(map.summary.constant_argument_calls == 0U);
+    assert(map.constant_argument_callees.empty());
+}
+
 void a_missing_graph_is_refused() {
     const Fixture fixture;
     FunctionMapInputs inputs;
@@ -1635,6 +1706,8 @@ int main() {
     a_callee_with_another_caller_lends_its_reach_to_nobody();
     an_interior_address_of_this_is_still_this();
     a_store_through_an_interior_address_lands_at_its_own_offset();
+    a_constant_moved_into_an_extended_register_leaves_the_others_alone();
+    a_constant_in_an_extended_register_is_not_a_constant_first_argument();
     a_missing_graph_is_refused();
     a_map_without_rtti_or_imports_still_counts_functions();
     return 0;

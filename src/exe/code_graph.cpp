@@ -261,7 +261,11 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
     bool produces_constant = false;
     if (!decoded.two_byte_opcode) {
         if (decoded.opcode >= 0xB8U && decoded.opcode <= 0xBFU && decoded.immediate >= 0) {
-            constant_destination = static_cast<std::uint8_t>(decoded.opcode & 0x07U);
+            // The register is in the opcode, so REX.B is the only thing that
+            // says which half of the file it names. Without it `mov r8d, imm`
+            // records a write to rax and destroys whatever was known about rax.
+            constant_destination = static_cast<std::uint8_t>((decoded.opcode & 0x07U) |
+                                                            (decoded.rex_b ? 0x08U : 0x00U));
             constant_value = static_cast<std::uint32_t>(decoded.immediate);
             produces_constant = true;
         } else if (decoded.opcode == 0xC7U && decoded.modrm_mod == 3U && decoded.modrm_reg == 0U &&
@@ -358,21 +362,49 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
             std::uint32_t field_offset = 0U;
             std::uint8_t receiver_depth = 0U;
             std::uint8_t receiver_argument = 0U;
+            auto source = FunctionWalk::ReceiverSource::unknown;
             if (decoded.memory_base < state.size()) {
                 const auto& through = state[decoded.memory_base];
-                if (through.kind == RegisterFact::Kind::loaded_from) {
+                switch (through.kind) {
+                case RegisterFact::Kind::loaded_from:
                     receiver = through.rva;
-                } else if (through.kind == RegisterFact::Kind::loaded_through_entry) {
+                    source = FunctionWalk::ReceiverSource::from_a_fixed_address;
+                    break;
+                case RegisterFact::Kind::loaded_through_entry:
                     through_an_argument = true;
                     field_offset = through.rva;
                     receiver_depth = through.depth;
                     receiver_argument = through.argument;
+                    source = FunctionWalk::ReceiverSource::through_an_argument;
+                    break;
+                case RegisterFact::Kind::entry_value:
+                    // The register holds the object itself, not a vtable read
+                    // out of it, so this dispatches through a field of it.
+                    through_an_argument = true;
+                    field_offset = through.rva;
+                    receiver_argument = through.argument;
+                    source = FunctionWalk::ReceiverSource::through_an_argument;
+                    break;
+                case RegisterFact::Kind::image_address:
+                    receiver = through.rva;
+                    source = FunctionWalk::ReceiverSource::a_taken_address;
+                    break;
+                case RegisterFact::Kind::call_result:
+                    source = FunctionWalk::ReceiverSource::a_call_result;
+                    break;
+                case RegisterFact::Kind::constructed_object:
+                    source = FunctionWalk::ReceiverSource::a_constructed_object;
+                    break;
+                case RegisterFact::Kind::constant:
+                    source = FunctionWalk::ReceiverSource::a_constant;
+                    break;
+                case RegisterFact::Kind::unknown:
+                    break;
                 }
             }
-            emit->resolved_dispatch_sites.push_back(
-                FunctionWalk::DispatchSite{rva, static_cast<std::uint32_t>(decoded.displacement),
-                                           receiver, through_an_argument, field_offset, receiver_depth,
-                                           receiver_argument});
+            emit->resolved_dispatch_sites.push_back(FunctionWalk::DispatchSite{
+                rva, static_cast<std::uint32_t>(decoded.displacement), receiver,
+                through_an_argument, field_offset, receiver_depth, source, receiver_argument});
         }
     }
 
@@ -388,17 +420,24 @@ void apply(const X86Instruction& decoded, std::uint32_t rva, RegisterState& stat
         if (decoded.modrm_mod == 3U) {
             forget(decoded.rm_operand);
         }
-    } else {
-        const auto low = static_cast<std::uint8_t>(decoded.opcode & 0x07U);
-        const bool writes_encoded_register =
-            !decoded.two_byte_opcode &&
-            ((decoded.opcode >= 0x50U && decoded.opcode <= 0x5FU) ||
-             (decoded.opcode >= 0x90U && decoded.opcode <= 0x97U) ||
-             (decoded.opcode >= 0xB0U && decoded.opcode <= 0xBFU));
-        if (writes_encoded_register) {
-            forget(low);
-            forget(static_cast<std::uint8_t>(low | 8U));
+    } else if (!decoded.two_byte_opcode) {
+        // These forms carry their register in the opcode, and REX.B says which
+        // half of the file it names. Forgetting both halves is safe but loses a
+        // fact about a register the instruction never touched — and `mov r8d,
+        // imm` sitting between a vtable load and the dispatch through it is
+        // common enough that the loss was most of what the receiver analysis
+        // could not name.
+        const auto encoded = static_cast<std::uint8_t>((decoded.opcode & 0x07U) |
+                                                       (decoded.rex_b ? 0x08U : 0x00U));
+        if (decoded.opcode >= 0x58U && decoded.opcode <= 0x5FU) {
+            forget(encoded);  // pop
+        } else if (decoded.opcode >= 0x90U && decoded.opcode <= 0x97U) {
+            forget(encoded);  // xchg with rax, which writes both
+            forget(0U);
+        } else if (decoded.opcode >= 0xB0U && decoded.opcode <= 0xBFU) {
+            forget(encoded);  // mov reg, immediate
         }
+        // push at 0x50 through 0x57 writes no register at all.
     }
 
     // A call clobbers the volatile registers and leaves the rest. That is the

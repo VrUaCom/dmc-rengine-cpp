@@ -72,6 +72,13 @@ struct X86Instruction final {
     /// ModRM rm field, without the REX.B extension bit.
     std::uint8_t modrm_rm{};
 
+    /// REX.B as encoded. The forms that carry their register in the opcode
+    /// itself — `mov reg, imm` at B8 through BF, `push`, `pop`, `xchg` — have no
+    /// ModRM to extend, so this is the only thing that says whether such an
+    /// instruction names rax or r8. Reading `opcode & 7` without it attributes
+    /// a write to the wrong half of the register file.
+    bool rex_b{false};
+
     /// Sentinel for a register role the encoding leaves empty.
     static constexpr std::uint8_t kNoRegister = 16U;
 

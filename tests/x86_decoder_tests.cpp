@@ -311,6 +311,28 @@ void addressing_registers_and_scale_are_reported() {
     }
 }
 
+void an_opcode_embedded_register_carries_its_extension_bit() {
+    // `b8 +r` puts its register in the opcode, so REX.B is the only thing that
+    // says whether it names rax or r8. A consumer reading `opcode & 7` without
+    // it attributes the write to the wrong half of the register file.
+    {
+        // b8 7c 02 00 00   mov eax, 0x27c
+        const auto decoded = decode_ok({0xB8, 0x7C, 0x02, 0x00, 0x00});
+        assert(decoded.length == 5U);
+        assert(!decoded.rex_b);
+        assert(decoded.immediate == 0x27C);
+    }
+    {
+        // 41 b8 7c 02 00 00   mov r8d, 0x27c — the same opcode, a different
+        // register, and nothing but REX.B to tell them apart.
+        const auto decoded = decode_ok({0x41, 0xB8, 0x7C, 0x02, 0x00, 0x00});
+        assert(decoded.length == 6U);
+        assert(decoded.rex_b);
+        assert(decoded.opcode == 0xB8U);
+        assert(decoded.immediate == 0x27C);
+    }
+}
+
 } // namespace
 
 int main() {
@@ -323,6 +345,7 @@ int main() {
     displacement_width_and_operand_shape_are_reported();
     addressing_registers_and_scale_are_reported();
     unmodelled_and_truncated_encodings_fail_closed();
+    an_opcode_embedded_register_carries_its_extension_bit();
     decoding_respects_the_starting_offset();
     return 0;
 }

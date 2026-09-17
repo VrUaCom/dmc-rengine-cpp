@@ -61,7 +61,7 @@
       "id": "ev-dmc3-store-ratio-holds",
       "claim_id": "claim-dmc3-store-ratio-holds",
       "title": "The check that vouched for the old stores vouches for the new ones",
-      "summary": "Stores of a taken address into the object a function was given were published at 265 of 270 landing on a known vtable — ninety-eight per cent, which is what says the following is sound rather than accidental, since an address written into an object at a fixed offset is overwhelmingly a vtable. The interior-address change adds nine such stores, and the ratio comes out at 274 of 279: 98.2 per cent against 98.1 before. The new stores are the same kind of thing as the old ones, and the field layout recovered from them rises from 44 entries to 47 with the count confirmed independently by the type information unchanged at 29.",
+      "summary": "Stores of a taken address into the object a function was given were published at 265 of 270 landing on a known vtable \u2014 ninety-eight per cent, which is what says the following is sound rather than accidental, since an address written into an object at a fixed offset is overwhelmingly a vtable. The interior-address change adds nine such stores, and the ratio comes out at 274 of 279: 98.2 per cent against 98.1 before. The new stores are the same kind of thing as the old ones, and the field layout recovered from them rises from 44 entries to 47 with the count confirmed independently by the type information unchanged at 29.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -97,6 +97,52 @@
           "size": 48,
           "symbol": "the image the count is measured over",
           "note": "12 of 11,434 dispatch sites take their receiver from the second, third or fourth argument."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-receiver-source-census",
+      "claim_id": "claim-dmc3-receiver-source-census",
+      "title": "An impossible reading in the receiver census found a decoder bug",
+      "summary": "Recording the register analysis's own verdict at each of the 11,434 dispatch sites, rather than guessing at it with a backward scan, put 167 sites in a category that cannot exist: the register the vtable is read through held a constant. A vtable pointer is never a small constant. Chasing those 167 found the cause two layers down, in the decoder. The x86-64 forms that carry their register inside the opcode have no ModRM field to extend, so REX.B is the only thing that distinguishes rax from r8; nothing surfaced it, and the register tracking read the low three bits alone. `mov r8d, imm` sitting between a vtable load and the dispatch through it \u2014 which the image is full of \u2014 was therefore recorded as a write to rax, destroying the vtable fact and inventing a constant. After surfacing REX.B the impossible category is empty, which is the check on the fix.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 312291,
+          "size": 3,
+          "symbol": "a site the bug hid",
+          "note": "RVA 0x4C3E3, call [rax+0x60], with rax holding the vtable loaded at 0x4C3CE until mov r8d at 0x4C3D1 was misread as writing it."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-receiver-census-final",
+      "claim_id": "claim-dmc3-receiver-producer-census",
+      "title": "Where the 11,434 dispatch sites actually stand",
+      "summary": "With the decoder reading REX.B and the interior-address rule in place, the analysis's verdict on each site is: 9,535 sites, 83.4 per cent, with nothing known about the register at all; 1,892, 16.5 per cent, read through one of the arguments the convention passes in registers; and 7 through an address the code took. Of those read through an argument, 1,085 are one load deep, which is the object's own vtable and the resolvable case, and 782 are two loads deep, which is a pointer member's pointee and something the enclosing class's layout cannot describe. The category for a constant is now empty. Naming the receiver is not the same as resolving the call: 1,880 sites are on `this`, 785 of those sit in a function bound to a class, and 105 resolve to a target across 32 classes.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "census"
+      ],
+      "supersedes": [
+        "ev-dmc3-receiver-producer-census"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the census is measured over",
+          "note": "11,434 sites: 9,535 unknown, 1,892 through an argument, 7 a taken address, 0 a constant."
         }
       ]
     }

@@ -378,6 +378,7 @@ std::optional<X86Instruction> X86LengthDecoder::decode(std::span<const std::byte
     }
 
     X86Instruction instruction;
+    instruction.rex_b = rex_b;
     auto opcode = cursor.take();
     OpcodeTraits traits{};
 

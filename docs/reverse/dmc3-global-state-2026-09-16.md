@@ -13,10 +13,14 @@ leaves there is something the callee **operates on**.
 
 | | |
 | --- | ---: |
-| such calls | **3,582** |
+| such calls | **3,753** |
 | distinct addresses they name | **200** |
-| of those calls, landing in `.data` | **3,562** |
+| of those calls, landing in `.data` | 3,562+ |
 | landing in `.rdata` | 15 |
+
+> Call sites rose from 3,582 after the REX.B fix in
+> [the receiver note](dmc3-receiver-analysis-2026-09-16.md); the 200 addresses
+> and the section split are unchanged.
 
 That split is the reason this is a measurement of state and not of arguments:
 passing string literals would put almost everything in `.rdata`, and almost
@@ -53,11 +57,11 @@ deepest offset to all of them.
 | Dropped | Sites |
 | --- | ---: |
 | callee serves several blocks | 575 |
-| callee is reached some other way | 1,044 |
+| callee is reached some other way | 1,130 |
 
-26 blocks survive with a reach:
+27 blocks survive with a reach:
 
-- **21** — the reach fits inside the gap to the next block;
+- **22** — the reach fits inside the gap to the next block;
 - **5** — it runs past it.
 
 The 5 are not a disagreement. They are a reading: *the next address the code
