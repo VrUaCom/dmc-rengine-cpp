@@ -659,6 +659,9 @@ SELECT printf('0x%x', g.base_rva) AS base_rva,
        g.bytes_to_next_block,
        CASE
            WHEN g.field_reach = 0 THEN 'NO_DEDICATED_CALLEE'
+           -- The highest block has nothing after it, so there is no gap for its
+           -- reach to fit inside and no second measurement to agree with.
+           WHEN g.bytes_to_next_block = 0 THEN 'NO_NEXT_BLOCK'
            WHEN g.reach_runs_past_the_next_block = 1 THEN 'NEXT_ADDRESS_IS_INSIDE'
            ELSE 'REACH_FITS_THE_GAP'
        END AS agreement,

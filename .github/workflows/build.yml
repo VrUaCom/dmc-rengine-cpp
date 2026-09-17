@@ -35,6 +35,8 @@ jobs:
         run: python scripts/reverse/test_verify_l2_original_selection_evidence.py
       - name: Test executable-reverse SQL importer guardrails
         run: python research/sql/test_import_executable_reverse.py
+      - name: Evidence figure checker guardrails
+        run: python research/sql/test_check_evidence_figures.py
       - name: Configure
         run: cmake -S . -B build -DDMC_RENGINE_BUILD_TESTS=ON
       - name: Build

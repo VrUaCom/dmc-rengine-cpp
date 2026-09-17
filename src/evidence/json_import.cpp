@@ -180,7 +180,7 @@ private:
             validate_keys(
                 *object,
                 {"id", "claim_id", "title", "summary", "confidence",
-                 "tags", "supersedes", "locations"},
+                 "tags", "supersedes", "locations", "figures"},
                 path);
 
             const auto id = required_string(
@@ -234,6 +234,16 @@ private:
                 continue;
             }
 
+            // Optional: a record claiming no countable quantity carries none.
+            std::vector<EvidenceFigure> figures;
+            if (const auto found = object->find("figures"); found != object->end()) {
+                auto parsed = parse_figures(found->second, path + ".figures");
+                if (!parsed.has_value()) {
+                    continue;
+                }
+                figures = std::move(*parsed);
+            }
+
             EvidenceRecord record{
                 .id = *id,
                 .claim_id = *claim_id,
@@ -243,6 +253,7 @@ private:
                 .locations = std::move(*locations),
                 .tags = std::move(*tags),
                 .supersedes = std::move(*supersedes),
+                .figures = std::move(figures),
             };
             if (!record.valid()) {
                 fail(path, "Evidence record is structurally invalid.");
@@ -251,6 +262,40 @@ private:
 
             packet.records.push_back(std::move(record));
         }
+    }
+
+    /// Figures are a map from a counter's name to the value the record states.
+    /// A negative or fractional value is not a count, and an empty name binds
+    /// the figure to nothing, so both are refused.
+    [[nodiscard]] std::optional<std::vector<EvidenceFigure>> parse_figures(
+        const core::json::Value& value, const std::string& path) {
+        const auto* object = value.as_object();
+        if (object == nullptr) {
+            fail(path, "Figures must be a JSON object mapping counters to values.");
+            return std::nullopt;
+        }
+        std::vector<EvidenceFigure> figures;
+        for (const auto& [counter, entry] : *object) {
+            if (counter.empty()) {
+                fail(path, "A figure must name the counter it comes from.");
+                return std::nullopt;
+            }
+            // A whole number arrives as an unsigned or signed integer; a real
+            // one is not a count and neither is a negative.
+            std::optional<std::uint64_t> value;
+            if (const auto* unsigned_value = entry.as_u64(); unsigned_value != nullptr) {
+                value = *unsigned_value;
+            } else if (const auto* signed_value = entry.as_i64();
+                       signed_value != nullptr && *signed_value >= 0) {
+                value = static_cast<std::uint64_t>(*signed_value);
+            }
+            if (!value.has_value()) {
+                fail(path + "." + counter, "A figure must be a non-negative whole number.");
+                return std::nullopt;
+            }
+            figures.push_back(EvidenceFigure{counter, *value});
+        }
+        return figures;
     }
 
     [[nodiscard]] std::optional<std::vector<EvidenceLocation>> parse_locations(

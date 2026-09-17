@@ -105,6 +105,37 @@
           "note": "396 classes, 326 with a floor above eight, median still 1,307 bytes."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-size-floor-counts-restated",
+      "claim_id": "claim-dmc3-size-floor-support",
+      "title": "Restated: the support counts moved twice more after they were corrected",
+      "summary": "The corrected support counts were published as 326 classes with a floor above their own vtable pointer, 177 corroborated, 124 on a lone outlier, 39 single-source and 56 from the type information alone. Two later fixes to the register analysis moved them again, and the record stating them was not updated: carrying `this` through an interior address, and reading REX.B so that a move into an extended register no longer clobbers an unrelated one. Both recover facts rather than change the method, so the direction is the one more evidence should produce. The figures now are 329, 192, 112, 36 and 56. The largest floors are unchanged again: CEm035 at 61,305 bytes and CPlDante at 46,625, median 1,307.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "rtti",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-size-floor-counts-corrected"
+      ],
+      "figures": {
+        "size_floors_above_a_vtable_pointer": 329,
+        "size_floors_corroborated": 192,
+        "size_floors_on_a_lone_outlier": 112,
+        "class_size_floors": 396
+      },
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the restated counts are measured over",
+          "note": "396 classes, 329 with a floor above eight, 192 corroborated, 112 on a lone outlier."
+        }
+      ]
     }
   ]
 }

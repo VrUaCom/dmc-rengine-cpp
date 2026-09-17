@@ -16,7 +16,7 @@
       "id": "ev-dmc3-global-blocks",
       "claim_id": "claim-dmc3-global-blocks",
       "title": "3,582 calls hand a fixed address to a callee, and they name 200 places",
-      "summary": "The Microsoft x64 convention puts the first argument in rcx, which is also where `this` goes, so an address the code takes with a RIP-relative lea and leaves there is something the callee operates on. There are 3,582 such calls and they name 200 distinct addresses. 3,562 of them point into .data rather than the read-only section, which is the opposite of what passing string literals would produce and is the reason this is a measurement of state rather than of arguments. The distribution has a steep head: 17 addresses are reached from twenty or more distinct functions, while 112 are passed exactly once. Nothing here says any of them is a C++ object — a free function's first argument is just an argument — and no byte at any of these addresses is read.",
+      "summary": "The Microsoft x64 convention puts the first argument in rcx, which is also where `this` goes, so an address the code takes with a RIP-relative lea and leaves there is something the callee operates on. There are 3,582 such calls and they name 200 distinct addresses. 3,562 of them point into .data rather than the read-only section, which is the opposite of what passing string literals would produce and is the reason this is a measurement of state rather than of arguments. The distribution has a steep head: 17 addresses are reached from twenty or more distinct functions, while 112 are passed exactly once. Nothing here says any of them is a C++ object \u2014 a free function's first argument is just an argument \u2014 and no byte at any of these addresses is read.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -39,7 +39,7 @@
       "id": "ev-dmc3-global-block-reach",
       "claim_id": "claim-dmc3-global-block-reach",
       "title": "Two unrelated measurements of a block's extent agree in 21 of 26 cases",
-      "summary": "How far into a block the code reaches, and how far away the next block is, are measured from entirely different things: the first from instruction displacements inside a callee, the second from the sorted set of addresses the code takes. A callee only lends its reach to a block it has to itself — every image address it is given is that block, and it has no callers beyond those sites — which drops 575 call sites whose callee serves several blocks and 1,044 whose callee is reached some other way. 26 blocks survive with a reach. In 21 the reach fits inside the gap to the next block. In 5 it runs past it, which is not a disagreement but a reading: the next address the code takes is a field inside this block. The clearest is RVA 0xC99D30, reaching 26,465 bytes against a gap of 26,432 — thirty-three bytes past an address that is therefore part of it.",
+      "summary": "How far into a block the code reaches, and how far away the next block is, are measured from entirely different things: the first from instruction displacements inside a callee, the second from the sorted set of addresses the code takes. A callee only lends its reach to a block it has to itself \u2014 every image address it is given is that block, and it has no callers beyond those sites \u2014 which drops 575 call sites whose callee serves several blocks and 1,044 whose callee is reached some other way. 26 blocks survive with a reach. In 21 the reach fits inside the gap to the next block. In 5 it runs past it, which is not a disagreement but a reading: the next address the code takes is a field inside this block. The clearest is RVA 0xC99D30, reaching 26,465 bytes against a gap of 26,432 \u2014 thirty-three bytes past an address that is therefore part of it.",
       "confidence": "confirmed",
       "tags": [
         "exe",
@@ -76,6 +76,41 @@
           "size": 8,
           "symbol": "the only global block with a class",
           "note": "RVA 0xBEAFA0, constructed by a function that writes the DMC3::FullMotionVideoManager vtable."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-global-blocks-restated",
+      "claim_id": "claim-dmc3-global-blocks",
+      "title": "Restated: the call-site counts moved with the REX.B fix",
+      "summary": "The global-block census was published at 3,582 calls handing a fixed address to a callee, with 575 sites dropped because the callee serves several blocks and 1,044 because it is reached some other way, leaving 26 blocks with a measured reach of which 21 fit inside the gap to the next block. Reading REX.B recovered facts the register analysis had been destroying, and the counts moved: 3,753 calls, 575 and 1,130 dropped, 27 blocks with a reach. The 200 distinct addresses are unchanged, and so is the split between the 5 whose reach runs past the next block and the rest. A separate mistake is corrected here too: the SQL view counted the highest block, which has nothing after it, among those whose reach fits the gap. There is no gap for it to fit, it is now reported as having no next block, and the view and the summary agree at 21 where they differed by one.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "data-layout",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-global-blocks",
+        "ev-dmc3-global-block-reach"
+      ],
+      "figures": {
+        "global_state_blocks": 200,
+        "global_block_call_sites": 3753,
+        "global_block_sites_pooled": 575,
+        "global_block_sites_with_other_callers": 1130,
+        "global_blocks_with_a_field_reach": 27,
+        "global_blocks_reach_within_the_gap": 21,
+        "global_blocks_reach_past_the_gap": 5
+      },
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 14097072,
+          "size": 249,
+          "symbol": "the block the view miscounted",
+          "note": "RVA 0xD71CB0, a reach of 249 bytes and nothing after it, read as fitting a gap that does not exist."
         }
       ]
     }

@@ -454,5 +454,17 @@ dispatch counts must sum to the summary's. That last check is the one that
 catches a counter measuring a different population from its name, which no
 arithmetic identity can find.
 
+`check_evidence_figures.py` verifies the figures evidence records declare
+against a fresh map report, so a published number cannot age silently when a
+later fix moves the counter behind it:
+
+```sh
+python research/sql/check_evidence_figures.py --map map.json
+```
+
+A record binds a figure by naming the counter it comes from. Records a
+correction supersedes are skipped, and a figure naming no counter is a failure
+rather than a silent pass.
+
 Guardrails for the importer are in `test_import_executable_reverse.py` and run
 in CI.

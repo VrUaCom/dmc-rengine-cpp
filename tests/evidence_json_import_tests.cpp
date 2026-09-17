@@ -2,6 +2,7 @@
 #include "dmc_rengine/evidence/json_import.hpp"
 
 #include <cassert>
+#include <cstdint>
 #include <string>
 
 namespace {
@@ -138,6 +139,59 @@ int main() {
     assert(uppercase_hash.packet->artifacts[0].sha256 ==
         "ba7816bf8f01cfea414140de5dae2223"
         "b00361a396177a9cb410ff61f20015ad");
+
+
+    // A record may bind figures it states to the counters they come from, so a
+    // later fix moving a count can be caught instead of ageing silently in
+    // prose. The map is optional; a value that is not a count is refused.
+    const auto with_figures = evidence_packet_from_json(R"({
+        "schema_version":1,
+        "id":"p",
+        "title":"t",
+        "project":"DMC Rengine",
+        "artifacts":[],
+        "records":[{
+            "id":"r",
+            "claim_id":"c",
+            "title":"t",
+            "summary":"s",
+            "confidence":"confirmed",
+            "tags":[],
+            "supersedes":[],
+            "locations":[],
+            "figures":{"dispatch_sites":11434,"dispatch_sites_resolved":105}
+        }]
+    })");
+    assert(with_figures.ok());
+    assert(with_figures.packet->records[0].figures.size() == 2U);
+    {
+        std::uint64_t census = 0U;
+        for (const auto& figure : with_figures.packet->records[0].figures) {
+            if (figure.counter == "dispatch_sites") {
+                census = figure.value;
+            }
+        }
+        assert(census == 11434U);
+    }
+
+    const auto figures_are_optional = evidence_packet_from_json(R"({
+        "schema_version":1,"id":"p","title":"t","project":"DMC Rengine",
+        "artifacts":[],
+        "records":[{"id":"r","claim_id":"c","title":"t","summary":"s",
+                    "confidence":"confirmed","tags":[],"supersedes":[],"locations":[]}]
+    })");
+    assert(figures_are_optional.ok());
+    assert(figures_are_optional.packet->records[0].figures.empty());
+
+    for (const auto* bad : {R"("a string")", "-1", "2.5", "{\"nested\":1}"}) {
+        const std::string json_text =
+            std::string(R"({"schema_version":1,"id":"p","title":"t","project":"DMC Rengine",
+            "artifacts":[],"records":[{"id":"r","claim_id":"c","title":"t","summary":"s",
+            "confidence":"confirmed","tags":[],"supersedes":[],"locations":[],
+            "figures":{"dispatch_sites":)") + bad + R"(}}]})";
+        const auto refused = evidence_packet_from_json(json_text);
+        assert(!refused.ok());
+    }
 
     return 0;
 }

@@ -64,6 +64,39 @@
           "note": "CEm021, CEm029Cart and CNonPlayer carry base subobjects at offsets 96, 208, 272, 384 and 592, each offset also recorded by the RTTI for that vtable."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-constructor-store-counts-restated",
+      "claim_id": "claim-dmc3-constructor-stores",
+      "title": "Restated: the constructor-store counts, with a pointer to where they were raised",
+      "summary": "The constructor stores were published at 270 stores of a taken address into the first argument, 265 of them landing on a known vtable, and 44 field-layout entries of which 29 are confirmed independently by the type information. Carrying `this` through an interior address added nine stores and three layout entries: 279, 274 and 47, with the independent confirmation unchanged at 29 and the ratio holding at 98.2 per cent against 98.1. That was stated in a separate packet about the receiver analysis and never linked back to here, which is the drift this record closes. The reading is untouched \u2014 an address written into an object at a fixed offset is overwhelmingly a vtable, and 146 functions still store one at offset zero.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "data-layout",
+        "rtti",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-constructor-stores",
+        "ev-dmc3-class-field-layout"
+      ],
+      "figures": {
+        "stores_into_this": 279,
+        "stores_of_a_vtable": 274,
+        "field_layout_entries": 47,
+        "field_offsets_confirmed_by_rtti": 29,
+        "constructors_identified": 146
+      },
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2357239,
+          "size": 8,
+          "symbol": "a constructor store naming an embedded member",
+          "note": "RVA 0x23F7F7, storing the CGameLoader vtable at offset 2688 of a CScene."
+        }
+      ]
     }
   ]
 }

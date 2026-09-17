@@ -145,6 +145,36 @@
           "note": "11,434 sites: 9,535 unknown, 1,892 through an argument, 7 a taken address, 0 a constant."
         }
       ]
+    },
+    {
+      "id": "ev-dmc3-interior-address-figures-restated",
+      "claim_id": "claim-dmc3-interior-address-is-still-this",
+      "title": "Restated: two of the interior-address figures moved again with the REX.B fix",
+      "summary": "Carrying `this` through an interior address was published as raising dispatch sites on `this` from 1,135 to 1,855 and sites inside a class-bound function from 258 to 767. Reading REX.B, in the very next change, moved both again to 1,880 and 785, and the record stating the first pair was not updated. The other two figures in it are still current: fully resolved virtual calls at 105 across 32 classes, and member receivers at 75. The gain attributed to the interior-address rule is unaffected \u2014 it is the figures after it that a later fix raised further.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "call-graph",
+        "validation"
+      ],
+      "supersedes": [
+        "ev-dmc3-interior-address-is-still-this"
+      ],
+      "figures": {
+        "dispatch_sites_on_this": 1880,
+        "dispatch_sites_in_a_bound_function": 785,
+        "dispatch_sites_resolved": 105,
+        "dispatch_sites_on_a_member": 75
+      },
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 4096,
+          "size": 48,
+          "symbol": "the image the restated figures are measured over",
+          "note": "1,880 dispatch sites on this, 785 in a class-bound function, 105 resolved, 75 on a member."
+        }
+      ]
     }
   ]
 }
