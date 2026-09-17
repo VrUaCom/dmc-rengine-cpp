@@ -18,7 +18,7 @@ layout(push_constant) uniform LsgPush {
     vec4 skin0;        // melanin, haemoglobin, oiliness, hydration
     vec4 micro0;       // roughness bias, pore density, pore scale, pore depth
     vec4 render;       // aspect, vertical FOV radians, time, surface seed bits
-    uvec4 flags;       // selected profile, detail enabled, surface rotation, UI pass
+    uvec4 flags;       // selected profile, detail enabled, surface rotation, UI/environment pass
 } pc;
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
@@ -42,27 +42,50 @@ vec3 rotate_x(vec3 v, float a) {
     return vec3(v.x, c * v.y - s * v.z, s * v.y + c * v.z);
 }
 
-void emit_ui_vertex() {
-    const vec2 corners[6] = vec2[](
-        vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0),
-        vec2(-1.0, -1.0), vec2( 1.0,  1.0), vec2(-1.0,  1.0));
+// The renderer already submits 18 non-indexed UI vertices after the human. We reserve
+// the first triangle for a far-depth procedural environment and use one oversized,
+// clipped triangle per button. This adds atmosphere without a second pipeline or ABI change.
+void emit_ui_environment_vertex() {
+    const vec2 full_triangle[3] = vec2[](
+        vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
     uint vertex = uint(gl_VertexIndex);
-    uint button = min(vertex / 6u, 2u);
-    vec2 corner = corners[vertex % 6u];
-    vec2 center = button == 0u ? vec2(-0.55, -0.82)
-                : button == 1u ? vec2( 0.00, -0.82)
-                               : vec2( 0.55, -0.82);
-    vec2 logical_clip = center + corner * vec2(0.22, 0.11);
-    gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.01, 1.0);
-    surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
-    view_normal = vec3(0.0, 0.0, 1.0);
-    body_region = 100u + button;
+
+    if (vertex < 3u) {
+        vec2 logical_clip = full_triangle[vertex];
+        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.999, 1.0);
+        surface_position_m = vec3(logical_clip, 0.0);
+        view_normal = vec3(0.0, 1.0, 0.0);
+        body_region = 200u; // procedural environment sentinel
+        view_position_m = vec3(0.0, 0.0, -1.0);
+        return;
+    }
+
+    uint local_vertex = vertex - 3u;
+    uint button = local_vertex / 3u;
+    if (button < 3u) {
+        vec2 corner = full_triangle[local_vertex % 3u];
+        vec2 center = button == 0u ? vec2(-0.55, -0.82)
+                    : button == 1u ? vec2( 0.00, -0.82)
+                                   : vec2( 0.55, -0.82);
+        vec2 logical_clip = center + corner * vec2(0.22, 0.11);
+        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.01, 1.0);
+        surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
+        view_normal = vec3(0.0, 0.0, 1.0);
+        body_region = 100u + button;
+        view_position_m = vec3(0.0, 0.0, -1.0);
+        return;
+    }
+
+    gl_Position = vec4(2.0, 2.0, 1.0, 1.0);
+    surface_position_m = vec3(2.0);
+    view_normal = vec3(0.0, 1.0, 0.0);
+    body_region = 255u;
     view_position_m = vec3(0.0, 0.0, -1.0);
 }
 
 void main() {
     if (pc.flags.w != 0u) {
-        emit_ui_vertex();
+        emit_ui_environment_vertex();
         return;
     }
 

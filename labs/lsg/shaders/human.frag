@@ -163,6 +163,16 @@ vec3 fresnel_schlick(float cos_theta, vec3 f0) {
     return f0 + (1.0 - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 }
 
+vec3 rotate_y(vec3 v, float a) {
+    float c = cos(a), s = sin(a);
+    return vec3(c * v.x + s * v.z, v.y, -s * v.x + c * v.z);
+}
+
+vec3 rotate_x(vec3 v, float a) {
+    float c = cos(a), s = sin(a);
+    return vec3(v.x, c * v.y - s * v.z, s * v.y + c * v.z);
+}
+
 // Controlled display transform; this is an ACES-fitted approximation, not an ACES reference transform.
 vec3 aces_fitted(vec3 x) {
     const float a = 2.51;
@@ -173,8 +183,58 @@ vec3 aces_fitted(vec3 x) {
     return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
 }
 
-// Compact daylight model for the material lane. It approximates a 55-degree sun plus
-// Rayleigh-dominant sky irradiance and intentionally does not claim spectral accuracy.
+vec3 sun_world_direction() {
+    // Approximately 55 degrees above the horizon. This is a controlled R&D default,
+    // not a claim about a specific location, date or spectral solar model.
+    return normalize(vec3(-0.30, 0.82, 0.47));
+}
+
+vec3 sun_view_direction() {
+    return normalize(rotate_x(rotate_y(sun_world_direction(), -pc.camera.x), -pc.camera.y));
+}
+
+// Physically motivated compact sky approximation: Rayleigh-like phase, a forward Mie-like
+// lobe and an explicit solar disk. It is intentionally not a full spectral atmosphere model.
+vec3 procedural_environment(vec2 logical_ndc) {
+    float tan_half_fov = tan(max(pc.render.y, 0.10) * 0.5);
+    vec3 ray_view = normalize(vec3(logical_ndc.x * max(pc.render.x, 0.01) * tan_half_fov,
+                                   logical_ndc.y * tan_half_fov,
+                                   -1.0));
+    vec3 ray_world = normalize(rotate_y(rotate_x(ray_view, pc.camera.y), pc.camera.x));
+    vec3 sun_world = sun_world_direction();
+
+    float mu = clamp(dot(ray_world, sun_world), -1.0, 1.0);
+    float rayleigh_phase = 0.75 * (1.0 + mu * mu);
+    const float g = 0.76;
+    float mie_denom = max(1.0 + g * g - 2.0 * g * mu, 0.025);
+    float mie_phase = (1.0 - g * g) / pow(mie_denom, 1.5);
+
+    float elevation = clamp(ray_world.y, 0.0, 1.0);
+    float horizon = pow(1.0 - elevation, 2.2);
+    vec3 zenith = vec3(0.055, 0.16, 0.42);
+    vec3 horizon_colour = vec3(0.34, 0.48, 0.68);
+    vec3 sky = mix(zenith, horizon_colour, horizon);
+    sky += vec3(0.10, 0.20, 0.46) * rayleigh_phase * (0.28 + 0.72 * elevation);
+    sky += vec3(1.00, 0.70, 0.42) * mie_phase * 0.012 * (0.35 + 0.65 * horizon);
+
+    const float sun_inner = 0.999965;
+    const float sun_outer = 0.99982;
+    float sun_disk = smoothstep(sun_outer, sun_inner, mu);
+    sky += vec3(8.0, 6.8, 5.2) * sun_disk;
+
+    // Matte neutral floor/ground hemisphere; 0.18 is the requested reference albedo.
+    if (ray_world.y < 0.0) {
+        float ndotl = max(sun_world.y, 0.0);
+        vec3 ground = vec3(0.18) * (0.22 + 0.78 * ndotl) + vec3(0.035, 0.055, 0.085);
+        float horizon_blend = smoothstep(-0.035, 0.025, ray_world.y);
+        sky = mix(ground, sky, horizon_blend);
+    }
+
+    return aces_fitted(max(sky, vec3(0.0)));
+}
+
+// Compact daylight irradiance used by the skin material. It tracks the same world-space sun
+// as the background but remains an approximation rather than a generated cubemap/IBL solution.
 vec3 sky_irradiance(vec3 n) {
     float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
     vec3 horizon = vec3(0.36, 0.48, 0.62);
@@ -187,8 +247,15 @@ void main() {
     bool detail_enabled = pc.flags.y != 0u;
 
     if (pc.flags.w != 0u) {
-        uint button = body_region >= 100u ? body_region - 100u : 0u;
+        if (body_region == 200u) {
+            out_colour = vec4(procedural_environment(surface_position_m.xy), 1.0);
+            return;
+        }
+        if (body_region < 100u || body_region > 102u) discard;
+
+        uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
+        if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
         bool selected = (button == 0u && profile_index == 0u) ||
                         (button == 1u && profile_index == 1u) ||
                         (button == 2u && detail_enabled);
@@ -251,8 +318,7 @@ void main() {
     if (detail_enabled && band >= 1) n = perturb_normal(n, view_position_m, height_field, 2.2);
     vec3 v = normalize(-view_position_m);
 
-    // 55-degree solar elevation in the current view-space approximation.
-    vec3 l = normalize(vec3(-0.30, 0.82, 0.47));
+    vec3 l = sun_view_direction();
     vec3 h = normalize(v + l);
     float ndotl = max(dot(n, l), 0.0);
     float ndotv = max(dot(n, v), 0.001);
