@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(RengineLSGPrototype VERSION 0.8.0 LANGUAGES C CXX)
+project(RengineLSGPrototype VERSION 0.9.0 LANGUAGES C CXX)
 
 option(RENGINE_LSG_BUILD_TESTS "Build LSG unit tests" ON)
 option(RENGINE_LSG_BUILD_VIEWER "Build Windows Vulkan viewer when Vulkan is available" ON)
 option(RENGINE_LSG_BUILD_MESH_TOOL "Build OBJ/GLB/glTF to experimental RMS0 mesh preparation tool" ON)
 option(RENGINE_LSG_BUILD_PROFILE_TOOL "Build strict JSON to LSG0 profile compiler" ON)
+option(RENGINE_LSG_BUILD_REPORT_TOOL "Build measurable LSG storage-contract reporter" ON)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -20,7 +21,8 @@ add_library(rengine_lsg_core STATIC
   src/runtime.cpp
   src/rmesh.cpp
   src/camera.cpp
-  src/derived_character.cpp)
+  src/derived_character.cpp
+  src/extension_contract.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
 set_target_properties(rengine_lsg_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -73,6 +75,12 @@ if(RENGINE_LSG_BUILD_PROFILE_TOOL AND NOT ANDROID)
       COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_1.lsg.json
                           ${CMAKE_CURRENT_BINARY_DIR}/character_1.lsg)
   endif()
+endif()
+
+if(RENGINE_LSG_BUILD_REPORT_TOOL AND NOT ANDROID)
+  add_executable(lsg_report tools/lsg_report/main.cpp)
+  target_link_libraries(lsg_report PRIVATE rengine_lsg_core)
+  target_compile_features(lsg_report PRIVATE cxx_std_23)
 endif()
 
 if(ANDROID)

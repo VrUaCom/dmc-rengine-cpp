@@ -82,11 +82,28 @@ void main() {
         depth_scale *= pc.geometry1.w;
     }
 
+    // Asset-free idle: deterministic breathing plus tiny posture/head motion.
+    // The amplitudes are intentionally small so this remains a neutral R&D viewer.
+    float t = pc.render.z;
+    float breath_phase = t * 1.18 + 0.16 * sin(t * 0.31);
+    float breath = sin(breath_phase);
+    float chest_breath = (in_region == 2u || in_region == 3u || in_region == 5u) ? breath : 0.0;
+    float abdomen_breath = in_region == 4u ? breath : 0.0;
+    width_scale *= 1.0 + chest_breath * 0.0035 + abdomen_breath * 0.0018;
+    depth_scale *= 1.0 + chest_breath * 0.0070 + abdomen_breath * 0.0040;
+
+    if (in_region == 0u || in_region == 1u) {
+        local = rotate_y(local, 0.0040 * sin(t * 0.37));
+        local = rotate_x(local, 0.0025 * sin(t * 0.29 + 0.7));
+    }
+
     vec3 shaped = local;
     shaped.x *= width_scale;
     shaped.y *= pc.geometry0.x;
     shaped.z *= depth_scale;
     vec3 object_m = shaped * pc.center_units.w;
+    object_m.x += 0.0018 * sin(t * 0.43);
+    object_m.y += 0.0007 * sin(t * 0.61 + 1.3);
 
     vec3 target_relative = object_m - vec3(0.0, pc.camera.w, 0.0);
     vec3 view = rotate_x(rotate_y(target_relative, -pc.camera.x), -pc.camera.y);
@@ -95,6 +112,10 @@ void main() {
     vec3 n = normalize(vec3(in_normal.x / max(width_scale, 0.001),
                             in_normal.y / max(pc.geometry0.x, 0.001),
                             in_normal.z / max(depth_scale, 0.001)));
+    if (in_region == 0u || in_region == 1u) {
+        n = normalize(rotate_x(rotate_y(n, 0.0040 * sin(t * 0.37)),
+                               0.0025 * sin(t * 0.29 + 0.7)));
+    }
     n = normalize(rotate_x(rotate_y(n, -pc.camera.x), -pc.camera.y));
 
     float aspect = max(pc.render.x, 0.01);

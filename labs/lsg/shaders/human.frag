@@ -163,6 +163,25 @@ vec3 fresnel_schlick(float cos_theta, vec3 f0) {
     return f0 + (1.0 - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 }
 
+// Controlled display transform; this is an ACES-fitted approximation, not an ACES reference transform.
+vec3 aces_fitted(vec3 x) {
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// Compact daylight model for the material lane. It approximates a 55-degree sun plus
+// Rayleigh-dominant sky irradiance and intentionally does not claim spectral accuracy.
+vec3 sky_irradiance(vec3 n) {
+    float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
+    vec3 horizon = vec3(0.36, 0.48, 0.62);
+    vec3 zenith = vec3(0.16, 0.32, 0.58);
+    return mix(horizon, zenith, pow(up, 0.65));
+}
+
 void main() {
     uint profile_index = pc.flags.x & 1u;
     bool detail_enabled = pc.flags.y != 0u;
@@ -220,10 +239,20 @@ void main() {
         roughness = clamp(roughness + pore_influence * 0.10, 0.25, 0.95);
     }
 
+    // Highest band uses a filtered statistical micro-BRDF perturbation instead of geometric tessellation.
+    if (detail_enabled && band >= 3) {
+        float subpixel = value_noise(surface_position_m / 0.00012, seed ^ 0xC2B2AE35u) - 0.5;
+        float filter_weight = clamp((0.00010 - footprint_m) / 0.00010, 0.0, 1.0);
+        height_field += subpixel * 0.000004 * filter_weight;
+        roughness = clamp(roughness + subpixel * 0.035 * filter_weight, 0.24, 0.95);
+    }
+
     vec3 n = normalize(view_normal);
     if (detail_enabled && band >= 1) n = perturb_normal(n, view_position_m, height_field, 2.2);
     vec3 v = normalize(-view_position_m);
-    vec3 l = normalize(vec3(-0.30, 0.62, 0.72));
+
+    // 55-degree solar elevation in the current view-space approximation.
+    vec3 l = normalize(vec3(-0.30, 0.82, 0.47));
     vec3 h = normalize(v + l);
     float ndotl = max(dot(n, l), 0.0);
     float ndotv = max(dot(n, v), 0.001);
@@ -240,7 +269,14 @@ void main() {
     float wrapped = clamp((ndotl + 0.22) / 1.22, 0.0, 1.0);
     vec3 diffuse = base_colour * wrapped * (1.0 - fresnel) / 3.14159265;
     vec3 subsurface_approx = base_colour * vec3(1.05, 0.45, 0.32) * pow(1.0 - ndotl, 2.0) * 0.045;
-    vec3 ambient = base_colour * 0.15;
-    vec3 colour = ambient + diffuse * 2.6 + specular * (1.2 + oiliness * 0.75) + subsurface_approx;
-    out_colour = vec4(max(colour, vec3(0.0)), 1.0);
+
+    vec3 sky = sky_irradiance(n);
+    vec3 ambient = base_colour * sky * 0.28;
+    vec3 sun_radiance = vec3(1.0, 0.95, 0.86) * 3.1;
+    vec3 colour = ambient + diffuse * sun_radiance + specular * sun_radiance * (1.2 + oiliness * 0.75) +
+                  subsurface_approx * (0.55 + 0.45 * sky);
+
+    // Fixed exposure keeps A/B captures comparable and prevents beauty-LUT style masking.
+    colour *= 1.05;
+    out_colour = vec4(aces_fitted(max(colour, vec3(0.0))), 1.0);
 }
