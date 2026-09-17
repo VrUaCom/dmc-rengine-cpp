@@ -22,6 +22,7 @@ add_library(rengine_lsg_core STATIC
   src/rmesh.cpp
   src/camera.cpp
   src/derived_character.cpp
+  src/anatomical_field.cpp
   src/extension_contract.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
