@@ -59,7 +59,11 @@
           "symbol": ".text",
           "note": "Regenerate with: dmc-rengine map-functions <exe> --out map.json"
         }
-      ]
+      ],
+      "figures": {
+        "functions": 7389,
+        "walks_complete": 7381
+      }
     },
     {
       "id": "ev-dmc3-reachability-bound-v2",
@@ -84,7 +88,13 @@
           "symbol": "dmc3_main",
           "note": "Reachability root for the game-side traversal."
         }
-      ]
+      ],
+      "figures": {
+        "reachable_from_entry_point": 370,
+        "reachable_from_export": 357,
+        "structurally_reachable": 2249,
+        "structurally_unreferenced": 848
+      }
     },
     {
       "id": "ev-dmc3-prologue-frames",
@@ -107,7 +117,14 @@
           "symbol": "UNWIND_INFO records",
           "note": "Example: dmc3_main has a 19-byte prologue reserving 88 bytes and declares an exception handler."
         }
-      ]
+      ],
+      "figures": {
+        "functions": 7389,
+        "with_frame_pointer": 308,
+        "with_exception_handler": 2210,
+        "largest_stack_allocation": 13544,
+        "total_stack_allocation": 694008
+      }
     },
     {
       "id": "ev-dmc3-unwind-entry-criterion",

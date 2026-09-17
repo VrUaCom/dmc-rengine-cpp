@@ -33,7 +33,10 @@
           "symbol": ".rdata vtables",
           "note": "A function's RIP-relative data references are matched against the vtable addresses recovered from RTTI."
         }
-      ]
+      ],
+      "figures": {
+        "with_vtable_install": 710
+      }
     },
     {
       "id": "ev-dmc3-dispatch-census",
@@ -56,7 +59,11 @@
           "symbol": ".text",
           "note": "Displacements are taken from memory-indirect call sites with a register base; register-direct and RIP-relative calls carry none."
         }
-      ]
+      ],
+      "figures": {
+        "indirect_call_sites": 10958,
+        "with_indirect_dispatch": 2070
+      }
     },
     {
       "id": "ev-dmc3-resource-literal-locality",
@@ -148,7 +155,11 @@
           "symbol": "whole image",
           "note": "Regenerate with: dmc-rengine map-functions <exe> --out map.json"
         }
-      ]
+      ],
+      "figures": {
+        "functions": 7389,
+        "attributed": 2889
+      }
     }
   ]
 }

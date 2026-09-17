@@ -33,7 +33,14 @@
           "symbol": "the entry point",
           "note": "RVA 0x34615C, eighteen bytes, reaching the runtime's startup by a tail jump."
         }
-      ]
+      ],
+      "figures": {
+        "startup_path_functions": 370,
+        "functions": 7389,
+        "startup_path_import_symbols": 97,
+        "startup_path_modules": 18,
+        "startup_path_deepest": 17
+      }
     },
     {
       "id": "ev-dmc3-startup-builds-no-objects",
@@ -130,7 +137,12 @@
           "symbol": "the entry point the closure starts from",
           "note": "99 dispatch sites on the path, 0 resolved, 0 functions on it bound to a class, closure extended by 0."
         }
-      ]
+      ],
+      "figures": {
+        "startup_path_dispatch_sites": 99,
+        "startup_path_functions_bound_to_a_class": 0,
+        "startup_path_extended_by_resolved_dispatch": 0
+      }
     },
     {
       "id": "ev-dmc3-startup-dispatch-count-corrected",
@@ -154,7 +166,12 @@
           "symbol": "the entry point the count is measured from",
           "note": "99 dispatch sites across the 370 functions, 31 of them tail-position virtual calls."
         }
-      ]
+      ],
+      "figures": {
+        "startup_path_dispatch_sites": 99,
+        "startup_path_dispatch_sites_in_tail_position": 31,
+        "dispatch_sites": 11434
+      }
     }
   ]
 }

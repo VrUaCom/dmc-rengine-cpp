@@ -77,7 +77,12 @@
           "symbol": "the only global block with a class",
           "note": "RVA 0xBEAFA0, constructed by a function that writes the DMC3::FullMotionVideoManager vtable."
         }
-      ]
+      ],
+      "figures": {
+        "global_state_blocks": 200,
+        "vtables_located": 915,
+        "global_blocks_with_a_class": 1
+      }
     },
     {
       "id": "ev-dmc3-global-blocks-restated",

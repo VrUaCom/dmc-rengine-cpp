@@ -33,7 +33,10 @@
           "symbol": "the _purecall thunk",
           "note": "RVA 0x346BF0: jmp [rip+0x87C2], reaching the IAT slot at RVA 0x34F3B8 that the import directory names VCRUNTIME140.dll!_purecall."
         }
-      ]
+      ],
+      "figures": {
+        "vtable_slots_pure_virtual": 276
+      }
     },
     {
       "id": "ev-dmc3-vtable-slot-census",
@@ -55,7 +58,14 @@
           "symbol": "the empty virtual body",
           "note": "RVA 0x24EA30: C2 00 00, a return, reached by 4,246 vtable slots."
         }
-      ]
+      ],
+      "figures": {
+        "vtable_slots_classified": 13894,
+        "vtable_slots_pure_virtual": 276,
+        "vtable_slots_empty_body": 4246,
+        "vtable_slots_implemented": 9372,
+        "vtable_slot_implementations": 3313
+      }
     },
     {
       "id": "ev-dmc3-base-slot-override",
@@ -78,7 +88,11 @@
           "symbol": "the CWork vtable",
           "note": "RVA 0x4C5D18, seven slots: a body at 0x4C960, four _purecall, then the empty body twice."
         }
-      ]
+      ],
+      "figures": {
+        "base_slots_measured": 702,
+        "base_pairings_without_a_vtable": 1
+      }
     },
     {
       "id": "ev-dmc3-interface-and-implementation-bases",

@@ -33,7 +33,12 @@
           "symbol": "the entry point",
           "note": "RVA 0x1000; direct calls from here reach 370 functions, dispatch-inclusive closure 5,748 of 7,389."
         }
-      ]
+      ],
+      "figures": {
+        "functions": 7389,
+        "reachable_from_entry_point": 370,
+        "reachable_through_dispatch": 5748
+      }
     },
     {
       "id": "ev-dmc3-outside-every-closure",
@@ -55,7 +60,10 @@
           "symbol": "the largest function outside the bound",
           "note": "RVA 0x31B2D0, 11,744 bytes, one caller, in no vtable, not exported."
         }
-      ]
+      ],
+      "figures": {
+        "outside_every_closure": 1641
+      }
     },
     {
       "id": "ev-dmc3-rapid-type-analysis-starves",
@@ -78,13 +86,17 @@
           "symbol": "the entry point",
           "note": "Direct-call closure from RVA 0x1000 installs 4 of the image's 915 located vtables."
         }
-      ]
+      ],
+      "figures": {
+        "vtables_located": 915,
+        "vtables_instantiated_by_reachable_code": 4
+      }
     },
     {
       "id": "ev-dmc3-function-pointer-runs",
       "claim_id": "claim-dmc3-function-pointer-runs",
       "title": "Correction: 210 apparent dispatch tables in data were 10",
-      "summary": "Runs of consecutive function addresses in read-only data are a dispatch mechanism beside the vtables, and scanning for them first reported 210 runs holding 1,617 entries. That was wrong. A vtable is such a run, and the scan excluded vtables by their base address only; a slot holding something the function inventory does not cover splits a vtable into fragments whose bases are not the vtable's, so each fragment counted as a table of its own. The three largest supposed tables each sat exactly 376 bytes — 47 slots — inside a located CComEm vtable. Excluding each vtable's whole extent instead leaves 10 runs holding 45 entries, 97 per cent of the original entry count having been an artefact of a gap in the inventory. What survives is uniform in a way the inflated figure hid: all 45 entries name functions the reachability bound does not reach, and only one of the 10 runs has its address taken by any inventoried function.",
+      "summary": "Runs of consecutive function addresses in read-only data are a dispatch mechanism beside the vtables, and scanning for them first reported 210 runs holding 1,617 entries. That was wrong. A vtable is such a run, and the scan excluded vtables by their base address only; a slot holding something the function inventory does not cover splits a vtable into fragments whose bases are not the vtable's, so each fragment counted as a table of its own. The three largest supposed tables each sat exactly 376 bytes \u2014 47 slots \u2014 inside a located CComEm vtable. Excluding each vtable's whole extent instead leaves 10 runs holding 45 entries, 97 per cent of the original entry count having been an artefact of a gap in the inventory. What survives is uniform in a way the inflated figure hid: all 45 entries name functions the reachability bound does not reach, and only one of the 10 runs has its address taken by any inventoried function.",
       "confidence": "corrected",
       "tags": [
         "exe",
@@ -100,7 +112,11 @@
           "symbol": "the largest surviving run",
           "note": "RVA 0x35A3F0, 12 function addresses, none of them reachable, no inventoried function taking its address."
         }
-      ]
+      ],
+      "figures": {
+        "function_pointer_runs": 10,
+        "function_pointer_run_entries": 45
+      }
     }
   ]
 }

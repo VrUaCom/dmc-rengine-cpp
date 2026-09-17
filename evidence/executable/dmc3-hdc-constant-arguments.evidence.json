@@ -96,7 +96,11 @@
           "symbol": "the encoding that exposed it",
           "note": "RVA 0x4C3D1, 41 B8 7C 02 00 00: mov r8d, 0x27C, read as a write to rax without REX.B."
         }
-      ]
+      ],
+      "figures": {
+        "constant_argument_calls": 1319,
+        "constant_argument_callees": 130
+      }
     }
   ]
 }

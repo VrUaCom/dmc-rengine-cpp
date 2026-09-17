@@ -77,7 +77,13 @@
           "symbol": "the image the ratio is measured over",
           "note": "274 of 279 stores into the first argument land on a known vtable, against 265 of 270 before."
         }
-      ]
+      ],
+      "figures": {
+        "stores_into_this": 279,
+        "stores_of_a_vtable": 274,
+        "field_layout_entries": 47,
+        "field_offsets_confirmed_by_rtti": 29
+      }
     },
     {
       "id": "ev-dmc3-argument-receivers-are-rare",
@@ -98,7 +104,11 @@
           "symbol": "the image the count is measured over",
           "note": "12 of 11,434 dispatch sites take their receiver from the second, third or fourth argument."
         }
-      ]
+      ],
+      "figures": {
+        "dispatch_sites_on_an_argument": 12,
+        "dispatch_sites": 11434
+      }
     },
     {
       "id": "ev-dmc3-receiver-source-census",
@@ -120,7 +130,10 @@
           "symbol": "a site the bug hid",
           "note": "RVA 0x4C3E3, call [rax+0x60], with rax holding the vtable loaded at 0x4C3CE until mov r8d at 0x4C3D1 was misread as writing it."
         }
-      ]
+      ],
+      "figures": {
+        "dispatch_sites": 11434
+      }
     },
     {
       "id": "ev-dmc3-receiver-census-final",
@@ -144,7 +157,15 @@
           "symbol": "the image the census is measured over",
           "note": "11,434 sites: 9,535 unknown, 1,892 through an argument, 7 a taken address, 0 a constant."
         }
-      ]
+      ],
+      "figures": {
+        "dispatch_sites": 11434,
+        "dispatch_sites_with_an_unnamed_receiver": 9535,
+        "dispatch_sites_on_this": 1880,
+        "dispatch_sites_in_a_bound_function": 785,
+        "dispatch_sites_resolved": 105,
+        "dispatch_sites_through_a_pointer_member": 782
+      }
     },
     {
       "id": "ev-dmc3-interior-address-figures-restated",

@@ -79,8 +79,41 @@ correction says no longer hold — and it **fails on a figure naming no counter*
 because a check that silently checks nothing is worse than no check. Five tests,
 in CI.
 
-## What is still only prose
+## Binding the rest
 
-20 figures across 4 records are bound. Every other number in every other packet
-is still prose, and will still age silently. Binding them is mechanical work, not
-a discovery, and the mechanism is there when it is wanted.
+**102 figures across 26 records** are now bound, up from 20. The method was to
+propose a binding wherever a record's text contains the *current* value of a
+counter, then read every proposal.
+
+That reading mattered. Roughly half the proposals were coincidences and had to be
+rejected:
+
+| Text | Coincides with | Actually |
+| --- | --- | --- |
+| "200 of 200 comparisons" | `global_state_blocks` = 200 | a ratio |
+| "sinf (51)" | `name_tables_unreferenced` = 51 | a call count |
+| "376 bytes — 47 slots" | `field_layout_entries` = 47 | a slot count |
+| "32 of its 503 bytes" | `dispatch_sites_on_a_member` = 75 | a byte range |
+| "recovered arrays from 278 to 281" | `indexed_arrays` = 278 | a *historical* value |
+
+That last row is the subtle one: a number that was true in the past and happens
+to equal a counter's value now. Binding it would make the check pass for entirely
+the wrong reason.
+
+**Binding 82 more figures found no new drift.** All 102 agree. That is worth
+stating plainly rather than dressing up: the four found by hand were the whole of
+it, for the counters that exist.
+
+## Where the check runs
+
+The checker needs a report, which needs the executable, so it runs where the
+artifact is rather than in CI. What runs in CI is the checker's own guardrails —
+five tests that a contradicted figure fails, a superseded record is skipped, and
+a figure naming no counter is an error.
+
+## Still only prose
+
+Numbers with no counter behind them — RVAs, byte offsets, ratios, per-class
+figures — remain unbound, and always will be: there is nothing to bind them to.
+The mechanism covers what the report counts, which is the part that moves when
+the analysis changes.

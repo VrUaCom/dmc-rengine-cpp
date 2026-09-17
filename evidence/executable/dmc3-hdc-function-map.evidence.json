@@ -111,7 +111,11 @@
           "symbol": ".rdata vtables",
           "note": "Slot pointers are read as image-base-relative 64-bit values and mapped back to the function inventory."
         }
-      ]
+      ],
+      "figures": {
+        "with_virtual_binding": 1879,
+        "vtable_slots_classified": 13894
+      }
     },
     {
       "id": "ev-dmc3-import-call-surface",

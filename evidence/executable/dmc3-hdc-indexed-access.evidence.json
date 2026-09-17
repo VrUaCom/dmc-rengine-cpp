@@ -261,7 +261,13 @@
           "symbol": "a base that read as two arrays and is one",
           "note": "RVA 0x580D20: element 24, fields at 0, 4, 8, 12, 16 and 20, read at both 8 and 24 before the resolution."
         }
-      ]
+      ],
+      "figures": {
+        "consistent_array_accesses": 555,
+        "inconsistent_array_accesses": 14,
+        "arrays_resolved_by_a_missed_multiplier": 11,
+        "arrays_with_a_real_size_conflict": 0
+      }
     },
     {
       "id": "ev-dmc3-negative-displacements-read",
@@ -283,7 +289,10 @@
           "symbol": "one of the 361",
           "note": "RVA 0x2A5E7, 41 3A 44 08 FF: cmp r8b, byte [rax+rcx-1]."
         }
-      ]
+      ],
+      "figures": {
+        "string_scan_accesses": 361
+      }
     },
     {
       "id": "ev-dmc3-spanning-groups-corrected",
@@ -307,7 +316,13 @@
           "symbol": "the smallest spanning group",
           "note": "RVA 0x1E2B70: three reads at element size two spanning two bytes, one element, and dropped as a reused register."
         }
-      ]
+      ],
+      "figures": {
+        "image_base_groups_spanning_elements": 102,
+        "image_base_groups_reads_in_several_sections": 9,
+        "image_base_groups_undecided": 93,
+        "image_base_groups_with_several_reads": 126
+      }
     }
   ]
 }
