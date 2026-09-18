@@ -10,6 +10,18 @@ on:
 env:
   LSG_BASE_HUMAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj
   LSG_BASE_HUMAN_GIT_BLOB: d26635e9326e3cca30778fd7b9c00062b03cce09
+  LSG_MALE_AFRICAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/african-male-young.target
+  LSG_MALE_AFRICAN_BLOB: dd5743e48700267d76596f575bf17b4b5cc3b3e0
+  LSG_MALE_ASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/asian-male-young.target
+  LSG_MALE_ASIAN_BLOB: 8cd3ef3e9ddb06ee2d166f75f9ac10871251f938
+  LSG_MALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-male-young.target
+  LSG_MALE_CAUCASIAN_BLOB: c3b82f92c5ced85599199cd184b0faf3b3fc6881
+  LSG_FEMALE_AFRICAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/african-female-young.target
+  LSG_FEMALE_AFRICAN_BLOB: a7d2b130667cc81ecd1ca0598da9be27bec1864a
+  LSG_FEMALE_ASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/asian-female-young.target
+  LSG_FEMALE_ASIAN_BLOB: f862c96add11c31ab1ca75c69e1c67ae5e0e3d5f
+  LSG_FEMALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-female-young.target
+  LSG_FEMALE_CAUCASIAN_BLOB: 9d1f0cbeedc9a6a51abe33f1ebb5fa7c5a7edbf1
 
 jobs:
   host-contract-tests:
@@ -57,43 +69,75 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Prepare clean body plus gated joint-debug runtime mesh
+      - name: Prepare male/female macro meshes plus gated joint-debug geometry
         run: |
           cmake -S labs/lsg -B build-lsg-host -G Ninja -DRENGINE_LSG_BUILD_VIEWER=OFF -DRENGINE_LSG_BUILD_TESTS=OFF
-          cmake --build build-lsg-host --target lsg_extract_obj_group lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+          cmake --build build-lsg-host --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
           curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
           test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
 
-          build-lsg-host/lsg_extract_obj_group /tmp/lsg-base-human.obj body /tmp/lsg-body.obj \
-            | tee /tmp/lsg-body-filter-report.txt
-          grep 'OBJ GROUP FILTER PASS: selector=body' /tmp/lsg-body-filter-report.txt
-          ! grep -Eq '^g (joint-|helper-)' /tmp/lsg-body.obj
-          build-lsg-host/lsg_prepare_mesh /tmp/lsg-body.obj /tmp/human_body.rmesh
-          build-lsg-host/lsg_mesh_audit /tmp/human_body.rmesh \
-            | tee labs/lsg-mesh-audit.txt
-          grep 'LSG MESH CONTINUITY PASS' labs/lsg-mesh-audit.txt
+          curl --fail --location --retry 3 "$LSG_MALE_AFRICAN_URL" -o /tmp/male-african.target
+          curl --fail --location --retry 3 "$LSG_MALE_ASIAN_URL" -o /tmp/male-asian.target
+          curl --fail --location --retry 3 "$LSG_MALE_CAUCASIAN_URL" -o /tmp/male-caucasian.target
+          curl --fail --location --retry 3 "$LSG_FEMALE_AFRICAN_URL" -o /tmp/female-african.target
+          curl --fail --location --retry 3 "$LSG_FEMALE_ASIAN_URL" -o /tmp/female-asian.target
+          curl --fail --location --retry 3 "$LSG_FEMALE_CAUCASIAN_URL" -o /tmp/female-caucasian.target
+          test "$(git hash-object /tmp/male-african.target)" = "$LSG_MALE_AFRICAN_BLOB"
+          test "$(git hash-object /tmp/male-asian.target)" = "$LSG_MALE_ASIAN_BLOB"
+          test "$(git hash-object /tmp/male-caucasian.target)" = "$LSG_MALE_CAUCASIAN_BLOB"
+          test "$(git hash-object /tmp/female-african.target)" = "$LSG_FEMALE_AFRICAN_BLOB"
+          test "$(git hash-object /tmp/female-asian.target)" = "$LSG_FEMALE_ASIAN_BLOB"
+          test "$(git hash-object /tmp/female-caucasian.target)" = "$LSG_FEMALE_CAUCASIAN_BLOB"
 
-          build-lsg-host/lsg_extract_obj_group /tmp/lsg-base-human.obj prefix:joint- /tmp/lsg-joints.obj \
-            | tee /tmp/lsg-joint-filter-report.txt
-          grep 'OBJ GROUP FILTER PASS: selector=prefix:joint-' /tmp/lsg-joint-filter-report.txt
-          ! grep -Eq '^g helper-' /tmp/lsg-joints.obj
-          build-lsg-host/lsg_prepare_mesh /tmp/lsg-joints.obj /tmp/human_joints.rmesh
+          build-lsg-host/lsg_apply_makehuman_targets /tmp/lsg-base-human.obj /tmp/profile-0.obj \
+            /tmp/male-african.target 0.333333333333 \
+            /tmp/male-asian.target 0.333333333333 \
+            /tmp/male-caucasian.target 0.333333333334 \
+            | tee /tmp/lsg-profile-0-target-report.txt
+          grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-0-target-report.txt
+
+          build-lsg-host/lsg_apply_makehuman_targets /tmp/lsg-base-human.obj /tmp/profile-1.obj \
+            /tmp/female-african.target 0.333333333333 \
+            /tmp/female-asian.target 0.333333333333 \
+            /tmp/female-caucasian.target 0.333333333334 \
+            | tee /tmp/lsg-profile-1-target-report.txt
+          grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-1-target-report.txt
 
           mkdir -p labs/lsg/viewer/android/app/src/main/assets/meshes
           mkdir -p labs/lsg/viewer/android/app/build/outputs
-          build-lsg-host/lsg_merge_debug_mesh /tmp/human_body.rmesh /tmp/human_joints.rmesh \
-            labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh \
-            | tee labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-report.txt
-          grep 'RMS0 DEBUG MERGE PASS' labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-report.txt
-          cp labs/lsg-mesh-audit.txt labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit.txt
-          cp /tmp/lsg-body-filter-report.txt labs/lsg/viewer/android/app/build/outputs/lsg-obj-filter-report.txt
-          cp /tmp/lsg-joint-filter-report.txt labs/lsg/viewer/android/app/build/outputs/lsg-joint-filter-report.txt
+
+          for PROFILE in 0 1; do
+            build-lsg-host/lsg_extract_obj_group /tmp/profile-$PROFILE.obj body /tmp/profile-$PROFILE-body.obj \
+              | tee /tmp/lsg-profile-$PROFILE-body-filter-report.txt
+            ! grep -Eq '^g (joint-|helper-)' /tmp/profile-$PROFILE-body.obj
+            build-lsg-host/lsg_prepare_mesh /tmp/profile-$PROFILE-body.obj /tmp/profile-$PROFILE-body.rmesh
+            build-lsg-host/lsg_mesh_audit /tmp/profile-$PROFILE-body.rmesh \
+              | tee labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit-profile-$PROFILE.txt
+            grep 'LSG MESH CONTINUITY PASS' labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit-profile-$PROFILE.txt
+
+            build-lsg-host/lsg_extract_obj_group /tmp/profile-$PROFILE.obj prefix:joint- /tmp/profile-$PROFILE-joints.obj \
+              | tee /tmp/lsg-profile-$PROFILE-joint-filter-report.txt
+            ! grep -Eq '^g helper-' /tmp/profile-$PROFILE-joints.obj
+            build-lsg-host/lsg_prepare_mesh /tmp/profile-$PROFILE-joints.obj /tmp/profile-$PROFILE-joints.rmesh
+
+            build-lsg-host/lsg_merge_debug_mesh /tmp/profile-$PROFILE-body.rmesh /tmp/profile-$PROFILE-joints.rmesh \
+              labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_$PROFILE.rmesh \
+              | tee labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-$PROFILE.txt
+            grep 'RMS0 DEBUG MERGE PASS' labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-$PROFILE.txt
+          done
 
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_0.lsg.json /tmp/character_0.lsg
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_1.lsg.json /tmp/character_1.lsg
-          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh
+          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh
+          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh
           test -s /tmp/character_0.lsg
           test -s /tmp/character_1.lsg
+          cmp -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
+                 labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh && {
+            echo 'macro profile meshes are unexpectedly identical'
+            exit 1
+          } || true
+
       - name: Install stable Android 36, CMake and NDK r30
         run: |
           yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
@@ -110,7 +154,8 @@ jobs:
           build-lsg-host/lsg_report \
             /tmp/character_0.lsg \
             /tmp/character_1.lsg \
-            labs/lsg/viewer/android/app/src/main/assets/meshes/human_base.rmesh \
+            labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
+            labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh \
             labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv \
             labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv \
             | tee labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
@@ -127,19 +172,20 @@ jobs:
           grep 'lib/arm64-v8a/librengine_lsg.so' /tmp/apk-files.txt
           grep 'assets/shaders/human.vert.spv' /tmp/apk-files.txt
           grep 'assets/shaders/human.frag.spv' /tmp/apk-files.txt
-          grep 'assets/meshes/human_base.rmesh' /tmp/apk-files.txt
+          grep 'assets/meshes/human_profile_0.rmesh' /tmp/apk-files.txt
+          grep 'assets/meshes/human_profile_1.rmesh' /tmp/apk-files.txt
           if grep -Eiq 'assets/.*\.(png|jpe?g|dds|ktx2?|basis)' /tmp/apk-files.txt; then
             echo 'unexpected baked texture asset found in LSG APK'
             exit 1
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: rengine-lsg-android-skeleton-${{ github.sha }}
+          name: rengine-lsg-android-macro-human-${{ github.sha }}
           path: |
             labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk
             labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
-            labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit.txt
-            labs/lsg/viewer/android/app/build/outputs/lsg-obj-filter-report.txt
-            labs/lsg/viewer/android/app/build/outputs/lsg-joint-filter-report.txt
-            labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-report.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit-profile-0.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-mesh-audit-profile-1.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-0.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-1.txt
           if-no-files-found: error
