@@ -88,6 +88,7 @@ jobs:
             build-lsg-win\female-bust.target 1.0
           if ($LASTEXITCODE -ne 0) { throw 'female bust target application failed' }
 
+          New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           foreach ($profile in 0,1) {
             & build-lsg-win\Release\lsg_fit_mhclo.exe build-lsg-win\profile-$profile.obj build-lsg-win\eye-high.obj build-lsg-win\eye-high.mhclo build-lsg-win\profile-$profile-eyes.obj `
               | Tee-Object -FilePath build-lsg-win\lsg-profile-$profile-eye-fit-report.txt
@@ -105,6 +106,13 @@ jobs:
             $uvCount = (Select-String -Path build-lsg-win\profile-$profile-eyes.obj -Pattern '^vt ').Count
             if ($vertexCount -ne 1064) { throw "profile $profile fitted eye vertex count mismatch: $vertexCount" }
             if ($uvCount -ne 808) { throw "profile $profile fitted eye UV count mismatch: $uvCount" }
+
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-eyes.obj build-lsg-win\Release\meshes\eye_profile_$profile.rmesh --component-regions `
+              | Tee-Object -FilePath build-lsg-win\lsg-eye-components-profile-$profile.txt
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile eye RMS0 preparation failed" }
+            if (-not (Select-String -Path build-lsg-win\lsg-eye-components-profile-$profile.txt -Pattern 'components=4' -Quiet)) {
+              throw "profile $profile eye component count is not 4"
+            }
           }
           if ((Get-FileHash build-lsg-win\profile-0-eyes.obj).Hash -eq (Get-FileHash build-lsg-win\profile-1-eyes.obj).Hash) {
             throw 'fitted eye outputs are unexpectedly identical across macro profiles'
@@ -157,8 +165,12 @@ jobs:
             build-lsg-win\Release\character_1.lsg `
             build-lsg-win\Release\meshes\human_profile_0.rmesh `
             build-lsg-win\Release\meshes\human_profile_1.rmesh `
+            build-lsg-win\Release\meshes\eye_profile_0.rmesh `
+            build-lsg-win\Release\meshes\eye_profile_1.rmesh `
             build-lsg-win\Release\shaders\human.vert.spv `
             build-lsg-win\Release\shaders\human.frag.spv `
+            build-lsg-win\Release\shaders\eye.vert.spv `
+            build-lsg-win\Release\shaders\eye.frag.spv `
             | Tee-Object -FilePath build-lsg-win\Release\lsg-acceptance-report.txt
           if ($LASTEXITCODE -ne 0) { throw 'LSG storage contract failed' }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'LSG STORAGE CONTRACT PASS' -Quiet)) {
@@ -172,6 +184,10 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\shaders\eye.vert.spv')) { throw 'eye vertex SPIR-V missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\shaders\eye.frag.spv')) { throw 'eye fragment SPIR-V missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_0.rmesh')) { throw 'Character 0 eye RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_1.rmesh')) { throw 'Character 1 eye RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-0.txt')) { throw 'Character 0 mesh continuity report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-1.txt')) { throw 'Character 1 mesh continuity report missing' }
@@ -188,4 +204,6 @@ jobs:
             build-lsg-win/lsg-eye-fit-sha256.txt
             build-lsg-win/lsg-profile-0-eye-fit-report.txt
             build-lsg-win/lsg-profile-1-eye-fit-report.txt
+            build-lsg-win/lsg-eye-components-profile-0.txt
+            build-lsg-win/lsg-eye-components-profile-1.txt
           if-no-files-found: error
