@@ -73,7 +73,7 @@ int ui_row_from_point(int x, int y, int width, int height) {
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 7; ++row) {
+  for (int row = 0; row < 8; ++row) {
     const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
     if (std::abs(ny - center_y) <= 0.033f) return row;
   }
@@ -84,7 +84,7 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.635f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.715f;
 }
 
 void handle_ui_row(ViewerState& state, int row) {
@@ -111,6 +111,16 @@ void handle_ui_row(ViewerState& state, int row) {
     }
     case 5: cycle_mode(state); break;
     case 6: state.renderer->reset_camera_view(); break;
+    case 7: {
+      using rengine::lsg::PhysiologyPreset;
+      const auto current = state.renderer->physiology_preset();
+      const auto next = current == PhysiologyPreset::normal ? PhysiologyPreset::exercise
+                      : current == PhysiologyPreset::exercise ? PhysiologyPreset::cold
+                      : current == PhysiologyPreset::cold ? PhysiologyPreset::hot
+                                                          : PhysiologyPreset::normal;
+      state.renderer->set_physiology_preset(next);
+      break;
+    }
     default: break;
   }
 }
