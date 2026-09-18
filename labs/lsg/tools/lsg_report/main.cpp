@@ -49,8 +49,8 @@ bool decode_checked(const std::filesystem::path& path,
 } // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 6) {
-    std::cerr << "usage: lsg_report <character0.lsg> <character1.lsg> <human_base.rmesh> <human.vert.spv> <human.frag.spv>\n";
+  if (argc != 7) {
+    std::cerr << "usage: lsg_report <character0.lsg> <character1.lsg> <profile0.rmesh> <profile1.rmesh> <human.vert.spv> <human.frag.spv>\n";
     return 2;
   }
 
@@ -63,11 +63,12 @@ int main(int argc, char** argv) {
     return 3;
   }
 
-  const auto mesh_bytes = read_binary(argv[3]);
-  const auto vertex_shader_bytes = read_binary(argv[4]);
-  const auto fragment_shader_bytes = read_binary(argv[5]);
-  if (mesh_bytes.empty() || vertex_shader_bytes.empty() || fragment_shader_bytes.empty()) {
-    std::cerr << "shared base mesh or shader payload is missing\n";
+  const auto mesh0_bytes = read_binary(argv[3]);
+  const auto mesh1_bytes = read_binary(argv[4]);
+  const auto vertex_shader_bytes = read_binary(argv[5]);
+  const auto fragment_shader_bytes = read_binary(argv[6]);
+  if (mesh0_bytes.empty() || mesh1_bytes.empty() || vertex_shader_bytes.empty() || fragment_shader_bytes.empty()) {
+    std::cerr << "shared macro mesh or shader payload is missing\n";
     return 4;
   }
 
@@ -82,6 +83,9 @@ int main(int argc, char** argv) {
     return 5;
   }
 
+  const std::uint64_t mesh_bytes =
+      static_cast<std::uint64_t>(mesh0_bytes.size()) +
+      static_cast<std::uint64_t>(mesh1_bytes.size());
   const std::uint64_t shader_bytes =
       static_cast<std::uint64_t>(vertex_shader_bytes.size()) +
       static_cast<std::uint64_t>(fragment_shader_bytes.size());
@@ -91,8 +95,11 @@ int main(int argc, char** argv) {
             << "Character 1 genome: " << genome1_bytes.size() << " bytes\n"
             << "Genome hard limit: " << rengine::lsg::kGenomeHardLimit << " bytes\n"
             << "Generator revision: " << rengine::lsg::kGeneratorRevision << '\n'
-            << "Shared body asset: " << mesh_bytes.size() << " bytes\n"
-            << "Base mesh revision FNV1a64: 0x" << std::hex << fnv1a64(mesh_bytes) << std::dec << '\n'
+            << "Shared macro body assets: " << mesh_bytes << " bytes\n"
+            << "Character 0 macro mesh: " << mesh0_bytes.size() << " bytes\n"
+            << "Character 1 macro mesh: " << mesh1_bytes.size() << " bytes\n"
+            << "Character 0 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh0_bytes) << std::dec << '\n'
+            << "Character 1 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh1_bytes) << std::dec << '\n'
             << "Shared Vulkan shader payload: " << shader_bytes << " bytes\n"
             << "Mandatory character texture bytes: 0\n"
             << "Character-specific generated microdetail stored on disk: 0 bytes\n";
