@@ -138,12 +138,40 @@ float pointer_distance(AInputEvent* event) {
   return std::sqrt(dx * dx + dy * dy);
 }
 
-void handle_hud_tap(AppState& state, float x, float width) {
-  const float quarter = width * 0.25f;
-  if (x < quarter) select_character(state, 0);
-  else if (x < quarter * 2.0f) select_character(state, 1);
-  else if (x < quarter * 3.0f) toggle_detail(state);
-  else toggle_skeleton(state);
+int ui_row_from_point(float x, float y, float width, float height) {
+  if (width <= 0.0f || height <= 0.0f) return -1;
+  const float nx = x / width;
+  const float ny = y / height;
+  if (nx < 0.035f || nx > 0.295f) return -1;
+  for (int row = 0; row < 7; ++row) {
+    const float center_y = 0.11f + static_cast<float>(row) * 0.11f;
+    if (std::abs(ny - center_y) <= 0.045f) return row;
+  }
+  return -1;
+}
+
+bool point_in_ui_panel(float x, float y, float width, float height) {
+  if (width <= 0.0f || height <= 0.0f) return false;
+  const float nx = x / width;
+  const float ny = y / height;
+  return nx >= 0.015f && nx <= 0.325f && ny >= 0.04f && ny <= 0.84f;
+}
+
+void handle_ui_row(AppState& state, int row) {
+  switch (row) {
+    case 0: select_character(state, 0); break;
+    case 1: select_character(state, 1); break;
+    case 2: toggle_detail(state); break;
+    case 3: toggle_skeleton(state); break;
+    case 4: cycle_camera_preset(state); break;
+    case 5: cycle_diagnostic_mode(state); break;
+    case 6:
+      state.renderer.reset_camera_view();
+      log_info("Camera view reset");
+      log_renderer_diagnostics(state, "Camera reset");
+      break;
+    default: break;
+  }
 }
 
 std::int32_t on_input(android_app* app, AInputEvent* event) {
@@ -174,7 +202,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_DOWN) {
     state->down_x = state->last_x = AMotionEvent_getX(event, 0);
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
-    state->hud_candidate = state->down_y >= height * 0.70f;
+    state->hud_candidate = point_in_ui_panel(state->down_x, state->down_y, width, height);
     state->dragging = !state->hud_candidate;
     state->moved = false;
     state->last_pinch_distance = 0.0f;
@@ -221,8 +249,8 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_UP || masked == AMOTION_EVENT_ACTION_CANCEL) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     if (masked == AMOTION_EVENT_ACTION_UP) {
-      if (state->hud_candidate && y >= height * 0.70f) {
-        handle_hud_tap(*state, x, width);
+      if (state->hud_candidate) {
+        handle_ui_row(*state, ui_row_from_point(x, y, width, height));
       } else if (!state->moved) {
         const std::int64_t now_ms = AMotionEvent_getEventTime(event);
         const float tap_distance = std::hypot(x - state->last_tap_x, y - state->last_tap_y);
