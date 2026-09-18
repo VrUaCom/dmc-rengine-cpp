@@ -22,6 +22,8 @@ env:
   LSG_FEMALE_ASIAN_BLOB: f862c96add11c31ab1ca75c69e1c67ae5e0e3d5f
   LSG_FEMALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-female-young.target
   LSG_FEMALE_CAUCASIAN_BLOB: 9d1f0cbeedc9a6a51abe33f1ebb5fa7c5a7edbf1
+  LSG_FEMALE_BUST_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/breast/female-young-averagemuscle-averageweight-maxcup-averagefirmness.target
+  LSG_FEMALE_BUST_BLOB: 2ff890c95741f40211408ea507c15bec00051798
 
 jobs:
   host-contract-tests:
@@ -82,12 +84,14 @@ jobs:
           curl --fail --location --retry 3 "$LSG_FEMALE_AFRICAN_URL" -o /tmp/female-african.target
           curl --fail --location --retry 3 "$LSG_FEMALE_ASIAN_URL" -o /tmp/female-asian.target
           curl --fail --location --retry 3 "$LSG_FEMALE_CAUCASIAN_URL" -o /tmp/female-caucasian.target
+          curl --fail --location --retry 3 "$LSG_FEMALE_BUST_URL" -o /tmp/female-bust.target
           test "$(git hash-object /tmp/male-african.target)" = "$LSG_MALE_AFRICAN_BLOB"
           test "$(git hash-object /tmp/male-asian.target)" = "$LSG_MALE_ASIAN_BLOB"
           test "$(git hash-object /tmp/male-caucasian.target)" = "$LSG_MALE_CAUCASIAN_BLOB"
           test "$(git hash-object /tmp/female-african.target)" = "$LSG_FEMALE_AFRICAN_BLOB"
           test "$(git hash-object /tmp/female-asian.target)" = "$LSG_FEMALE_ASIAN_BLOB"
           test "$(git hash-object /tmp/female-caucasian.target)" = "$LSG_FEMALE_CAUCASIAN_BLOB"
+          test "$(git hash-object /tmp/female-bust.target)" = "$LSG_FEMALE_BUST_BLOB"
 
           build-lsg-host/lsg_apply_makehuman_targets /tmp/lsg-base-human.obj /tmp/profile-0.obj \
             /tmp/male-african.target 0.333333333333 \
@@ -96,12 +100,17 @@ jobs:
             | tee /tmp/lsg-profile-0-target-report.txt
           grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-0-target-report.txt
 
-          build-lsg-host/lsg_apply_makehuman_targets /tmp/lsg-base-human.obj /tmp/profile-1.obj \
+          build-lsg-host/lsg_apply_makehuman_targets /tmp/lsg-base-human.obj /tmp/profile-1-base.obj \
             /tmp/female-african.target 0.333333333333 \
             /tmp/female-asian.target 0.333333333333 \
             /tmp/female-caucasian.target 0.333333333334 \
             | tee /tmp/lsg-profile-1-target-report.txt
           grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-1-target-report.txt
+
+          build-lsg-host/lsg_apply_makehuman_targets /tmp/profile-1-base.obj /tmp/profile-1.obj \
+            /tmp/female-bust.target 1.0 \
+            | tee /tmp/lsg-profile-1-bust-report.txt
+          grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-1-bust-report.txt
 
           mkdir -p labs/lsg/viewer/android/app/src/main/assets/meshes
           mkdir -p labs/lsg/viewer/android/app/build/outputs
