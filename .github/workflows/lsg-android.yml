@@ -132,11 +132,11 @@ jobs:
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh
           test -s /tmp/character_0.lsg
           test -s /tmp/character_1.lsg
-          cmp -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
-                 labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh && {
+          if cmp -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
+                    labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh; then
             echo 'macro profile meshes are unexpectedly identical'
             exit 1
-          } || true
+          fi
 
       - name: Install stable Android 36, CMake and NDK r30
         run: |
@@ -166,7 +166,7 @@ jobs:
           gradle-version: '9.6.0'
       - name: Build arm64-v8a debug APK
         run: gradle -p labs/lsg/viewer/android :app:assembleDebug --stacktrace
-      - name: Verify Skeleton-gated runtime mesh and zero baked character textures
+      - name: Verify dual macro meshes, Skeleton gating and zero baked character textures
         run: |
           unzip -l labs/lsg/viewer/android/app/build/outputs/apk/debug/app-debug.apk | tee /tmp/apk-files.txt
           grep 'lib/arm64-v8a/librengine_lsg.so' /tmp/apk-files.txt
