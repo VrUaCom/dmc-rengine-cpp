@@ -152,7 +152,7 @@ int ui_row_from_point(float x, float y, float width, float height) {
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 8; ++row) {
+  for (int row = 0; row < 9; ++row) {
     const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
     if (std::abs(ny - center_y) <= 0.033f) return row;
   }
@@ -163,7 +163,7 @@ bool point_in_ui_panel(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return false;
   const float nx = x / width;
   const float ny = y / height;
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.715f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.795f;
 }
 
 void clear_tooltip(AppState& state) {
@@ -195,6 +195,20 @@ void cycle_physiology(AppState& state) {
                                              : "Physiology Hot");
 }
 
+void cycle_eye_mode(AppState& state) {
+  using rengine::lsg::EyeDiagnosticMode;
+  const auto current = state.renderer.eye_diagnostic_mode();
+  const auto next = current == EyeDiagnosticMode::normal ? EyeDiagnosticMode::components
+                  : current == EyeDiagnosticMode::components ? EyeDiagnosticMode::iris_only
+                  : current == EyeDiagnosticMode::iris_only ? EyeDiagnosticMode::cornea_only
+                                                            : EyeDiagnosticMode::normal;
+  state.renderer.set_eye_diagnostic_mode(next);
+  log_info(next == EyeDiagnosticMode::normal ? "Eyes Normal"
+           : next == EyeDiagnosticMode::components ? "Eyes Components"
+           : next == EyeDiagnosticMode::iris_only ? "Eyes Iris Only"
+                                                   : "Eyes Cornea Only");
+}
+
 void handle_ui_row(AppState& state, int row) {
   switch (row) {
     case 0: select_character(state, 0); break;
@@ -209,6 +223,7 @@ void handle_ui_row(AppState& state, int row) {
       log_renderer_diagnostics(state, "Camera reset");
       break;
     case 7: cycle_physiology(state); break;
+    case 8: cycle_eye_mode(state); break;
     default: break;
   }
 }
