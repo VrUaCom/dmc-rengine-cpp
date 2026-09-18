@@ -3,6 +3,7 @@
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/genome.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
+#include "rengine/lsg/lighting_runtime.hpp"
 #include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
 
@@ -81,6 +82,7 @@ struct VulkanRenderer::Impl {
   int ui_tooltip_row{-1};
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
+  LightingRuntimeState lighting{lighting_for(LightingPreset::noon, OpticalFilterPreset::clear)};
   std::array<EyeRuntimeState, 2> eye_runtime{};
   float last_eye_time_seconds{};
   VkCommandPool command_pool{VK_NULL_HANDLE};
@@ -718,6 +720,30 @@ void VulkanRenderer::set_eye_diagnostic_mode(EyeDiagnosticMode mode) noexcept {
 EyeDiagnosticMode VulkanRenderer::eye_diagnostic_mode() const noexcept {
   return impl_ ? impl_->eye_diagnostic_mode : EyeDiagnosticMode::normal;
 }
+
+void VulkanRenderer::set_lighting_preset(LightingPreset preset) noexcept {
+  if (!impl_) return;
+  impl_->lighting = lighting_for(preset, impl_->lighting.filter);
+}
+
+LightingPreset VulkanRenderer::lighting_preset() const noexcept {
+  return impl_ ? impl_->lighting.preset : LightingPreset::noon;
+}
+
+void VulkanRenderer::set_optical_filter_preset(OpticalFilterPreset preset) noexcept {
+  if (!impl_) return;
+  impl_->lighting = lighting_for(impl_->lighting.preset, preset);
+}
+
+OpticalFilterPreset VulkanRenderer::optical_filter_preset() const noexcept {
+  return impl_ ? impl_->lighting.filter : OpticalFilterPreset::clear;
+}
+
+LightingRuntimeState VulkanRenderer::lighting_state() const noexcept {
+  return impl_ ? impl_->lighting
+               : lighting_for(LightingPreset::noon, OpticalFilterPreset::clear);
+}
+
 RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   RendererDiagnostics out{};
   if (!impl_) return out;
@@ -793,9 +819,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
       ? std::clamp(time_seconds - state.last_eye_time_seconds, 0.0f, 0.25f)
       : (1.0f / 60.0f);
   state.last_eye_time_seconds = time_seconds;
-  constexpr float kDaylightSceneLuminance = 1.8f;
   update_eye_runtime(state.eye_runtime[profile_index],
-                     kDaylightSceneLuminance,
+                     state.lighting.effective_eye_luminance,
                      derived_eye.pupil_bias,
                      eye_dt);
   PushConstants push{};
