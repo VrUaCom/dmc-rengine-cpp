@@ -15,7 +15,9 @@ layout(push_constant) uniform EyePush {
     vec4 geometry0;    // height, shoulders, pelvis, chest depth
     vec4 geometry1;    // waist, muscle, body fat, head
     vec4 render;       // logical aspect, vertical FOV radians, time, reserved
-    uvec4 flags;       // surface rotation, profile, diagnostic flags, reserved
+    vec4 eye0;         // primary iris rgb, pupil bias
+    vec4 eye1;         // secondary iris rgb, sclera tint
+    uvec4 flags;       // surface rotation, profile, vascularity byte, eye seed low
 } pc;
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
