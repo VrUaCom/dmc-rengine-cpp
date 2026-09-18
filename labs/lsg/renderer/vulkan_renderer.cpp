@@ -696,7 +696,7 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
 
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
-  impl_->ui_tooltip_row = (row >= 0 && row < 8) ? row : -1;
+  impl_->ui_tooltip_row = (row >= 0 && row < 9) ? row : -1;
 }
 
 int VulkanRenderer::ui_tooltip_row() const noexcept {
@@ -821,7 +821,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto tooltip_bits =
       static_cast<std::uint32_t>(state.ui_tooltip_row >= 0 ? state.ui_tooltip_row : 15) << 5u;
   const auto physiology_bits = static_cast<std::uint32_t>(state.physiology_preset) << 9u;
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits;
+  const auto eye_mode_bits = static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 11u;
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | eye_mode_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
@@ -872,10 +873,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   vkCmdDrawIndexed(command, eye_mesh.index_count, 1, 0, 0, 0);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | 1u;
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | eye_mode_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 63u, 1u, 0u, 0u);
+  vkCmdDraw(command, 69u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
