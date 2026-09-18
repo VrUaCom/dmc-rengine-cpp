@@ -3,6 +3,7 @@
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
+#include "rengine/lsg/lighting_runtime.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/detail_scheduler.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -81,10 +82,43 @@ int main() {
   assert(iris_a != iris_other_side);
   assert(iris_a != iris_other_seed);
 
+  const auto morning_clear = lighting_for(LightingPreset::morning, OpticalFilterPreset::clear);
+  const auto noon_clear = lighting_for(LightingPreset::noon, OpticalFilterPreset::clear);
+  const auto evening_clear = lighting_for(LightingPreset::evening, OpticalFilterPreset::clear);
+  const auto night_clear = lighting_for(LightingPreset::night, OpticalFilterPreset::clear);
+  const auto noon_tinted = lighting_for(LightingPreset::noon, OpticalFilterPreset::tinted);
+  const auto noon_polarized = lighting_for(LightingPreset::noon, OpticalFilterPreset::polarized_approx);
+
+  for (const auto* state : {&morning_clear, &noon_clear, &evening_clear, &night_clear,
+                            &noon_tinted, &noon_polarized}) {
+    assert(valid_lighting_state(*state));
+    const float sun_len = std::sqrt(
+        state->sun_direction[0] * state->sun_direction[0] +
+        state->sun_direction[1] * state->sun_direction[1] +
+        state->sun_direction[2] * state->sun_direction[2]);
+    assert(std::abs(sun_len - 1.0f) < 0.0005f);
+  }
+
+  assert(noon_clear.effective_eye_luminance > morning_clear.effective_eye_luminance);
+  assert(noon_clear.effective_eye_luminance > evening_clear.effective_eye_luminance);
+  assert(morning_clear.effective_eye_luminance > night_clear.effective_eye_luminance);
+  assert(evening_clear.effective_eye_luminance > night_clear.effective_eye_luminance);
+  assert(night_clear.direct_sun_intensity < 0.05f);
+
+  assert(noon_tinted.filter_transmission < noon_clear.filter_transmission);
+  assert(noon_polarized.filter_transmission <= noon_clear.filter_transmission);
+  assert(noon_tinted.effective_eye_luminance < noon_clear.effective_eye_luminance);
+  assert(noon_polarized.polarization_strength > 0.0f);
+
   EyeRuntimeState eye_state{};
   const float dark_target = pupil_target_from_luminance(0.01f, eye0.pupil_bias);
   const float bright_target = pupil_target_from_luminance(4.0f, eye0.pupil_bias);
   assert(dark_target > bright_target);
+  const float noon_clear_target = pupil_target_from_luminance(noon_clear.effective_eye_luminance, eye0.pupil_bias);
+  const float noon_tinted_target = pupil_target_from_luminance(noon_tinted.effective_eye_luminance, eye0.pupil_bias);
+  const float night_target = pupil_target_from_luminance(night_clear.effective_eye_luminance, eye0.pupil_bias);
+  assert(noon_tinted_target >= noon_clear_target);
+  assert(night_target > noon_clear_target);
   float previous_radius = eye_state.pupil_radius;
   for (int i = 0; i < 120; ++i) update_eye_runtime(eye_state, 4.0f, eye0.pupil_bias, 1.0f / 60.0f);
   assert(std::isfinite(eye_state.pupil_radius));
