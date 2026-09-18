@@ -2,6 +2,7 @@
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/genome.hpp"
+#include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
 
@@ -79,6 +80,9 @@ struct VulkanRenderer::Impl {
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   int ui_tooltip_row{-1};
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
+  EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
+  std::array<EyeRuntimeState, 2> eye_runtime{};
+  float last_eye_time_seconds{};
   VkCommandPool command_pool{VK_NULL_HANDLE};
   std::vector<VkCommandBuffer> command_buffers;
   VkSemaphore image_available{VK_NULL_HANDLE};
@@ -706,6 +710,14 @@ void VulkanRenderer::set_physiology_preset(PhysiologyPreset preset) noexcept {
 PhysiologyPreset VulkanRenderer::physiology_preset() const noexcept {
   return impl_ ? impl_->physiology_preset : PhysiologyPreset::normal;
 }
+
+void VulkanRenderer::set_eye_diagnostic_mode(EyeDiagnosticMode mode) noexcept {
+  if (impl_) impl_->eye_diagnostic_mode = mode;
+}
+
+EyeDiagnosticMode VulkanRenderer::eye_diagnostic_mode() const noexcept {
+  return impl_ ? impl_->eye_diagnostic_mode : EyeDiagnosticMode::normal;
+}
 RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   RendererDiagnostics out{};
   if (!impl_) return out;
@@ -776,6 +788,16 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
   const DerivedEyeParameters derived_eye = derive_eye_parameters(genome);
   const CameraState camera = state.camera.state();
+
+  float eye_dt = state.last_eye_time_seconds > 0.0f
+      ? std::clamp(time_seconds - state.last_eye_time_seconds, 0.0f, 0.25f)
+      : (1.0f / 60.0f);
+  state.last_eye_time_seconds = time_seconds;
+  constexpr float kDaylightSceneLuminance = 1.8f;
+  update_eye_runtime(state.eye_runtime[profile_index],
+                     kDaylightSceneLuminance,
+                     derived_eye.pupil_bias,
+                     eye_dt);
   PushConstants push{};
   push.center_units[0] = profile_mesh.mesh_center[0]; push.center_units[1] = profile_mesh.mesh_center[1];
   push.center_units[2] = profile_mesh.mesh_center[2]; push.center_units[3] = profile_mesh.meters_per_unit;
@@ -833,14 +855,16 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   eye_push.eye0[0] = derived_eye.iris_primary[0];
   eye_push.eye0[1] = derived_eye.iris_primary[1];
   eye_push.eye0[2] = derived_eye.iris_primary[2];
-  eye_push.eye0[3] = derived_eye.pupil_bias;
+  eye_push.eye0[3] = state.eye_runtime[profile_index].pupil_radius;
   eye_push.eye1[0] = derived_eye.iris_secondary[0];
   eye_push.eye1[1] = derived_eye.iris_secondary[1];
   eye_push.eye1[2] = derived_eye.iris_secondary[2];
   eye_push.eye1[3] = derived_eye.sclera_tint;
   eye_push.flags[0] = state.surface_rotation;
   eye_push.flags[1] = profile_index;
-  eye_push.flags[2] = static_cast<std::uint32_t>(genome.eyes.vascularity);
+  eye_push.flags[2] =
+      static_cast<std::uint32_t>(genome.eyes.vascularity) |
+      (static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 8u);
   eye_push.flags[3] = derived_eye.eye_seed_low;
   vkCmdPushConstants(command, state.eye_pipeline_layout,
                      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
