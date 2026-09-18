@@ -39,6 +39,12 @@ struct RendererDiagnostics {
   float far_plane_m{30.0f};
   std::uint64_t estimated_gpu_bytes{};
   DiagnosticRenderMode mode{DiagnosticRenderMode::genome_perspective};
+  LightingPreset lighting_preset{LightingPreset::noon};
+  OpticalFilterPreset optical_filter{OpticalFilterPreset::clear};
+  float scene_luminance{};
+  float effective_eye_luminance{};
+  float pupil_target_radius{};
+  float pupil_current_radius{};
 };
 
 class VulkanRenderer {
