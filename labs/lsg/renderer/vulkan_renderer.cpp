@@ -855,7 +855,7 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
 
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
-  impl_->ui_tooltip_row = (row >= 0 && row < 10) ? row : -1;
+  impl_->ui_tooltip_row = (row >= 0 && row < 11) ? row : -1;
 }
 
 int VulkanRenderer::ui_tooltip_row() const noexcept {
@@ -922,6 +922,8 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.optical_filter = state.lighting.filter;
   out.scene_luminance = state.lighting.scene_luminance;
   out.effective_eye_luminance = state.lighting.effective_eye_luminance;
+  out.filter_transmission = state.lighting.filter_transmission;
+  out.polarization_strength = state.lighting.polarization_strength;
   const auto profile = state.last_profile_index & 1u;
   out.pupil_target_radius = state.eye_runtime[profile].target_pupil_radius;
   out.pupil_current_radius = state.eye_runtime[profile].pupil_radius;
@@ -1078,7 +1080,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                   eye_mode_bits | lighting_bits | filter_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 75u, 1u, 0u, 0u);
+  vkCmdDraw(command, 81u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
