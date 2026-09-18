@@ -3,6 +3,7 @@
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/physiology.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
+#include "rengine/lsg/lighting_runtime.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -74,6 +75,12 @@ public:
 
   void set_eye_diagnostic_mode(EyeDiagnosticMode mode) noexcept;
   [[nodiscard]] EyeDiagnosticMode eye_diagnostic_mode() const noexcept;
+
+  void set_lighting_preset(LightingPreset preset) noexcept;
+  [[nodiscard]] LightingPreset lighting_preset() const noexcept;
+  void set_optical_filter_preset(OpticalFilterPreset preset) noexcept;
+  [[nodiscard]] OpticalFilterPreset optical_filter_preset() const noexcept;
+  [[nodiscard]] LightingRuntimeState lighting_state() const noexcept;
 
   [[nodiscard]] RendererDiagnostics diagnostics() const noexcept;
 
