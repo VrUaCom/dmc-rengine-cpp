@@ -4,6 +4,7 @@
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/lighting_runtime.hpp"
+#include "rengine/lsg/polarization_approx.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/detail_scheduler.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -120,6 +121,55 @@ int main() {
   assert(noon_polarized.filter_transmission <= noon_clear.filter_transmission);
   assert(noon_tinted.effective_eye_luminance < noon_clear.effective_eye_luminance);
   assert(noon_polarized.polarization_strength > 0.0f);
+
+  // Pass 3 optical-filter matrix: all four times x three filters.
+  for (const auto time : {LightingPreset::morning, LightingPreset::noon,
+                          LightingPreset::evening, LightingPreset::night}) {
+    const auto clear = lighting_for(time, OpticalFilterPreset::clear);
+    const auto polarized = lighting_for(time, OpticalFilterPreset::polarized_approx);
+    const auto tinted = lighting_for(time, OpticalFilterPreset::tinted);
+    for (const auto* state : {&clear, &polarized, &tinted}) {
+      assert(valid_lighting_state(*state));
+      assert(state->filter_transmission > 0.0f && state->filter_transmission <= 1.0f);
+      assert(state->polarization_strength >= 0.0f && state->polarization_strength <= 1.0f);
+      assert(state->effective_eye_luminance >= 0.0f);
+      for (float value : state->filter_tint) assert(value >= 0.0f && value <= 1.0f);
+    }
+    assert(clear.effective_eye_luminance > polarized.effective_eye_luminance);
+    assert(polarized.effective_eye_luminance > tinted.effective_eye_luminance);
+
+    const float clear_target =
+        pupil_target_from_luminance(clear.effective_eye_luminance, eye0.pupil_bias);
+    const float polarized_target =
+        pupil_target_from_luminance(polarized.effective_eye_luminance, eye0.pupil_bias);
+    const float tinted_target =
+        pupil_target_from_luminance(tinted.effective_eye_luminance, eye0.pupil_bias);
+    assert(clear_target <= polarized_target + 1e-6f);
+    assert(polarized_target <= tinted_target + 1e-6f);
+  }
+
+  assert(std::abs(rayleigh_dolp_from_mu(0.0f) - 1.0f) < 1e-6f);
+  assert(std::abs(rayleigh_dolp_from_mu(1.0f)) < 1e-6f);
+  assert(std::abs(rayleigh_dolp_from_mu(-1.0f)) < 1e-6f);
+  assert(std::abs(rayleigh_dolp_from_mu(0.5f) - rayleigh_dolp_from_mu(-0.5f)) < 1e-6f);
+  const float dolp_half = rayleigh_dolp_from_mu(0.5f);
+  assert(dolp_half > 0.0f && dolp_half < 1.0f);
+
+  assert(std::abs(polarized_attenuation(1.0f, 0.0f, 0.0f) - 1.0f) < 1e-6f);
+  assert(std::abs(polarized_attenuation(0.0f, 0.0f, 1.0f) - 1.0f) < 1e-6f);
+  assert(std::abs(polarized_attenuation(1.0f, 1.0f, 1.0f) - 1.0f) < 1e-6f);
+  const float cross_attenuation = polarized_attenuation(1.0f, 0.0f, 1.0f);
+  assert(cross_attenuation < 1.0f);
+  assert(cross_attenuation >= 0.45f);
+  for (float d : {0.0f, 0.25f, 0.5f, 1.0f}) {
+    for (float a : {0.0f, 0.4f, 1.0f}) {
+      for (float strength : {0.0f, 0.68f, 1.0f}) {
+        const float attenuation = polarized_attenuation(d, a, strength);
+        assert(std::isfinite(attenuation));
+        assert(attenuation >= 0.45f && attenuation <= 1.0f);
+      }
+    }
+  }
 
   EyeRuntimeState eye_state{};
   const float dark_target = pupil_target_from_luminance(0.01f, eye0.pupil_bias);
