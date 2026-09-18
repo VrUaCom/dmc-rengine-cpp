@@ -42,6 +42,27 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
   return "UNKNOWN";
 }
 
+const char* lighting_name(rengine::lsg::LightingPreset preset) {
+  using rengine::lsg::LightingPreset;
+  switch (preset) {
+    case LightingPreset::morning: return "MORNING";
+    case LightingPreset::noon: return "NOON";
+    case LightingPreset::evening: return "EVENING";
+    case LightingPreset::night: return "NIGHT";
+  }
+  return "UNKNOWN";
+}
+
+const char* filter_name(rengine::lsg::OpticalFilterPreset preset) {
+  using rengine::lsg::OpticalFilterPreset;
+  switch (preset) {
+    case OpticalFilterPreset::clear: return "CLEAR";
+    case OpticalFilterPreset::tinted: return "TINTED";
+    case OpticalFilterPreset::polarized_approx: return "POLARIZED_APPROX";
+  }
+  return "UNKNOWN";
+}
+
 void print_diagnostics(const ViewerState& state, const char* reason, float fps = 0.0f, float cpu_ms = 0.0f) {
   if (state.renderer == nullptr) return;
   const auto d = state.renderer->diagnostics();
@@ -53,7 +74,13 @@ void print_diagnostics(const ViewerState& state, const char* reason, float fps =
             << " aspect=" << d.logical_aspect
             << " fov=" << d.fov_y_radians
             << " distance=" << d.camera_distance_m
-            << "m gpu_est=" << d.estimated_gpu_bytes
+            << "m time=" << lighting_name(d.lighting_preset)
+            << " filter=" << filter_name(d.optical_filter)
+            << " scene_lum=" << d.scene_luminance
+            << " eye_lum=" << d.effective_eye_luminance
+            << " pupil_target=" << d.pupil_target_radius
+            << " pupil=" << d.pupil_current_radius
+            << " gpu_est=" << d.estimated_gpu_bytes
             << " fps=" << fps << " cpu_frame_ms=" << cpu_ms << '\n';
 }
 
@@ -73,9 +100,9 @@ int ui_row_from_point(int x, int y, int width, int height) {
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 9; ++row) {
-    const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
-    if (std::abs(ny - center_y) <= 0.033f) return row;
+  for (int row = 0; row < 10; ++row) {
+    const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
+    if (std::abs(ny - center_y) <= 0.029f) return row;
   }
   return -1;
 }
@@ -84,7 +111,7 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.795f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.820f;
 }
 
 void handle_ui_row(ViewerState& state, int row) {
@@ -129,6 +156,17 @@ void handle_ui_row(ViewerState& state, int row) {
                       : current == EyeDiagnosticMode::iris_only ? EyeDiagnosticMode::cornea_only
                                                                 : EyeDiagnosticMode::normal;
       state.renderer->set_eye_diagnostic_mode(next);
+      break;
+    }
+    case 9: {
+      using rengine::lsg::LightingPreset;
+      const auto current = state.renderer->lighting_preset();
+      const auto next = current == LightingPreset::morning ? LightingPreset::noon
+                      : current == LightingPreset::noon ? LightingPreset::evening
+                      : current == LightingPreset::evening ? LightingPreset::night
+                                                           : LightingPreset::morning;
+      state.renderer->set_lighting_preset(next);
+      print_diagnostics(state, "Time preset changed");
       break;
     }
     default: break;
