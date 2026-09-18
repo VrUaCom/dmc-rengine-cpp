@@ -74,6 +74,7 @@ struct VulkanRenderer::Impl {
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   int ui_tooltip_row{-1};
+  PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   VkCommandPool command_pool{VK_NULL_HANDLE};
   std::vector<VkCommandBuffer> command_buffers;
   VkSemaphore image_available{VK_NULL_HANDLE};
@@ -555,11 +556,19 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
 
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
-  impl_->ui_tooltip_row = (row >= 0 && row < 7) ? row : -1;
+  impl_->ui_tooltip_row = (row >= 0 && row < 8) ? row : -1;
 }
 
 int VulkanRenderer::ui_tooltip_row() const noexcept {
   return impl_ ? impl_->ui_tooltip_row : -1;
+}
+
+void VulkanRenderer::set_physiology_preset(PhysiologyPreset preset) noexcept {
+  if (impl_) impl_->physiology_preset = preset;
+}
+
+PhysiologyPreset VulkanRenderer::physiology_preset() const noexcept {
+  return impl_ ? impl_->physiology_preset : PhysiologyPreset::normal;
 }
 RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   RendererDiagnostics out{};
@@ -651,15 +660,16 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto camera_bits = static_cast<std::uint32_t>(camera.preset) << 3u;
   const auto tooltip_bits =
       static_cast<std::uint32_t>(state.ui_tooltip_row >= 0 ? state.ui_tooltip_row : 15) << 5u;
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits;
+  const auto physiology_bits = static_cast<std::uint32_t>(state.physiology_preset) << 9u;
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
 
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits | 1u;
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 57u, 1u, 0u, 0u);
+  vkCmdDraw(command, 63u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
