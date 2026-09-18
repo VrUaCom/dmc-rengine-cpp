@@ -86,9 +86,10 @@ void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0
   const auto d = state.renderer.diagnostics();
   char message[900]{};
   std::snprintf(message, sizeof(message),
-      "%s mode=%s skeleton=%s time=%s filter=%s scene_lum=%.3f eye_lum=%.3f pupil_target=%.4f pupil=%.4f window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
+      "%s mode=%s skeleton=%s time=%s filter=%s transmission=%.3f polar_strength=%.3f scene_lum=%.3f eye_lum=%.3f pupil_target=%.4f pupil=%.4f window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
       reason, mode_name(d.mode), state.skeleton_enabled ? "ON" : "OFF",
       lighting_name(d.lighting_preset), filter_name(d.optical_filter),
+      d.filter_transmission, d.polarization_strength,
       d.scene_luminance, d.effective_eye_luminance,
       d.pupil_target_radius, d.pupil_current_radius,
       d.window_width, d.window_height,
@@ -176,7 +177,7 @@ int ui_row_from_point(float x, float y, float width, float height) {
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 10; ++row) {
+  for (int row = 0; row < 11; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.029f) return row;
   }
@@ -248,6 +249,19 @@ void cycle_lighting_time(AppState& state) {
   log_renderer_diagnostics(state, "Time preset changed");
 }
 
+void cycle_optical_filter(AppState& state) {
+  using rengine::lsg::OpticalFilterPreset;
+  const auto current = state.renderer.optical_filter_preset();
+  const auto next = current == OpticalFilterPreset::clear ? OpticalFilterPreset::tinted
+                  : current == OpticalFilterPreset::tinted ? OpticalFilterPreset::polarized_approx
+                                                           : OpticalFilterPreset::clear;
+  state.renderer.set_optical_filter_preset(next);
+  log_info(next == OpticalFilterPreset::clear ? "Filter Clear"
+           : next == OpticalFilterPreset::tinted ? "Filter Tinted"
+                                                 : "Filter Polarized Approx");
+  log_renderer_diagnostics(state, "Optical filter changed");
+}
+
 void handle_ui_row(AppState& state, int row) {
   switch (row) {
     case 0: select_character(state, 0); break;
@@ -264,6 +278,7 @@ void handle_ui_row(AppState& state, int row) {
     case 7: cycle_physiology(state); break;
     case 8: cycle_eye_mode(state); break;
     case 9: cycle_lighting_time(state); break;
+    case 10: cycle_optical_filter(state); break;
     default: break;
   }
 }
