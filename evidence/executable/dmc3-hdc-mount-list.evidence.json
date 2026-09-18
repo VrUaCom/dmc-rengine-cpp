@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-mount-list",
+  "title": "DMC3 HD resource resolution: a mount list, a sixteen-byte polymorphic stream, and a lazily opened entry",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-stream-is-a-tagged-union",
+      "claim_id": "claim-dmc3-stream-is-a-tagged-union",
+      "title": "Sixteen bytes, two pointers, exactly one set, and nine instructions of dispatch",
+      "summary": "0x327430 opens with calloc(1, 0x10) and everything after it fills one of two fields: an archive entry at 0x00 or a buffered reader at 0x08, never both. Two functions in the .pdata hole at 0x3275BD do all the dispatching and each is three instructions and a tail jump - load 0x00, test it, and either jump to the archive path with that pointer or load 0x08 and jump to the file path. Read goes to 0x328F50 or 0x327910; seek goes to 0x329160 or 0x327B60. It is a hand-rolled tagged union discriminated by a null test, with the tail jump making the indirection free, and no vtable anywhere near it. What a port replaces here is two functions of nine instructions, not a class hierarchy, and that is worth knowing before designing one.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "architecture",
+        "struct-layout",
+        "dispatch"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306544,
+          "size": 67,
+          "symbol": "the stream allocation",
+          "note": "RVA 0x327430, 'calloc(1, 0x10)' at 0x327461 with the size built as 0x10 and 0x10-0xF."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306944,
+          "size": 25,
+          "symbol": "the read dispatcher",
+          "note": "RVA 0x3275C0, no .pdata entry, tail-jumping to 0x328F50 or 0x327910."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306976,
+          "size": 25,
+          "symbol": "the seek dispatcher",
+          "note": "RVA 0x3275E0, no .pdata entry, tail-jumping to 0x329160 or 0x327B60."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-mount-list-resolution",
+      "claim_id": "claim-dmc3-mount-list-resolution",
+      "title": "A name is resolved by walking a mount list where a directory and an archive are interchangeable",
+      "summary": "A global at 0xCF3180 heads a singly linked list linked at +0x50, and 0x327473 walks it taking the first mount that produces something, freeing the stream and failing when the list runs out. Each mount carries a kind at +0x00: zero is a directory, one is an archive, and any other value is skipped entirely. For an archive the requested name goes to 0x328160 against the mount's index at +0x10 and a hit is turned into an entry by 0x328290 using the mount's +0x08. For a directory the name is normalised by 0x327160 with the mount's own flags from +0x04, joined against the base path at +0x08 into a 1,024-byte buffer by 0x3272C0, and opened by 0x327800. The caller's flags can exclude either kind - bit 1 skips archives, bit 0 skips directories - so one resolver serves look-anywhere, packed-only and loose-only without a second code path, and the ordering of the list is the whole of the override policy.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "architecture",
+        "resource-loading"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306611,
+          "size": 275,
+          "symbol": "the mount walk",
+          "note": "RVA 0x327473, a .pdata continuation of 0x327430; the list head is loaded from 0xCF3180 at 0x32747B and advanced at 0x327565."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 13578624,
+          "size": 8,
+          "symbol": "the mount list head",
+          "note": "RVA 0xCF3180, the global holding the first mount."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-archive-index-is-a-bsearch",
+      "claim_id": "claim-dmc3-archive-index-is-a-bsearch",
+      "title": "The lookup is a bsearch over sixteen-byte pairs, which accounts for the two archive fields left zeroed",
+      "summary": "0x328160 copies the requested name into a 0x400 buffer with a bounded copy that fails on truncation, normalises it with flag word 0x0E, and calls bsearch with the key a pair holding the normalised name, the base at index+0x30, the count at index+0x38, a width of 0x10 and a comparison function at 0x3291D0. The matched pair's second field at +0x08 is the central-directory node. That accounts for something the archive note left open: the archive object is zeroed across 0x40 bytes at 0x328320 and the directory walk writes only up to +0x28, leaving +0x30 and +0x38 zeroed and unexplained. They are the sorted array and its count. What sorts the linked list into the array is not read, but the two ends meet - 0x3289F0 builds the list, 0x328160 searches the array. For a port the consequence is sharp: the lookup is logarithmic and depends on the array being sorted under exactly the normalisation the query goes through, and a mismatch there does not degrade the search, it misses.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "struct-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3309920,
+          "size": 168,
+          "symbol": "the archive lookup",
+          "note": "RVA 0x328160, bsearch at 0x3281E0 with base [rbx+0x30], count [rbx+0x38], width 0x10 and comparison 0x3291D0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-entry-embeds-the-record-at-eight",
+      "claim_id": "claim-dmc3-entry-embeds-the-record-at-eight",
+      "title": "Eighty bytes carrying the directory record at +8, and four later uses agree on the shift",
+      "summary": "0x328290 is calloc(1, 0x50) followed by three sixteen-byte moves copying 0x30 bytes of the central-directory node into [entry+0x08], then a _strdup of the mount's +0x08 into [entry+0x00], freeing the entry and failing if the duplicate fails. The eight-byte shift is confirmed four times by functions that decode nothing and merely read displacements: the compression method at entry 0x12 against record 0x0A, the compressed size at 0x1C against 0x14, the uncompressed size at 0x20 against 0x18, and the local record's offset at 0x34 against 0x2C. Each lands exactly on the archive note's field map shifted by eight. Four independent agreements from three other functions is a stronger check on that map than the decoder that produced it could give on its own, because none of the four had any way to be consistent with it by construction.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "struct-layout",
+        "cross-check",
+        "archive"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310224,
+          "size": 129,
+          "symbol": "the entry constructor",
+          "note": "RVA 0x328290, calloc(1, 0x50) at 0x3282AD, the three moves at 0x3282BB-0x3282D4, _strdup at 0x3282D5."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-lazy-entry-costs-a-handle",
+      "claim_id": "claim-dmc3-lazy-entry-costs-a-handle",
+      "title": "Every open entry opens the archive again: its own descriptor and its own 16 KiB",
+      "summary": "[entry+0x00] is a private copy of the archive's path, which is what makes the entry openable later without holding anything. On the first read 0x328540 passes that string to 0x327800 - so CreateFileA runs again on the same archive file, with its own calloc(1, 0x28) and its own malloc(0x4001) - then frees the copy and nulls the field. Every entry a caller holds open therefore costs a descriptor and a sixteen-kilobyte buffer of its own, however many entries come from the same archive, and nothing on this path reopens or shares an existing handle. Before realisation the entry reports itself open if either 0x38 or 0x40 is set, so the three states, pending and stored and inflating, are readable from the object without a tag. This is read from the calls rather than inferred from behaviour, and it is the kind of thing a port either reproduces deliberately or fixes deliberately.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "allocation",
+        "portability"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310912,
+          "size": 189,
+          "symbol": "the lazy realisation",
+          "note": "RVA 0x328540 through 0x3285FD, the reopen at 0x32858F and the free at 0x328599."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-local-record-is-skipped-not-parsed",
+      "claim_id": "claim-dmc3-local-record-is-skipped-not-parsed",
+      "title": "The local record's name is consumed, never compared, and two realisations follow from one field",
+      "summary": "0x328360 reads the 30-byte local record, decodes it, and then skips the name and extra field rather than parsing them: a loop reading min(remaining, 0x200) bytes into a scratch buffer until name_length plus extra_length are gone. The local name is never compared against the central directory's, so a disagreement between them is invisible to this reader. The data offset is computed as [entry+0x34] plus 0x1E plus those two lengths, taking the lengths from the local record and the base from the central one. The compression method at [entry+0x12] then decides between two realisations: zero gives calloc(1, 0x18), a stored substream at [entry+0x38] holding the reader at 0x00, the data offset at 0x08, the position at 0x0C and the size at 0x10, twenty bytes used of twenty-four, with [entry+0x40] nulled; anything else gives an inflater at [entry+0x40]. 0x328F50 reads from whichever is set, clamping a stored request to size minus position and returning zero rather than failing when that clamps to nothing.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "struct-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310432,
+          "size": 375,
+          "symbol": "the local record read and the realisation",
+          "note": "RVA 0x328360 through 0x328517, the skip loop at 0x328410, the data offset at 0x328434 and the method test at 0x328482."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3313488,
+          "size": 144,
+          "symbol": "the read that branches on the realisation",
+          "note": "RVA 0x328F50, the inflater at 0x328F91 and the stored clamp at 0x328F9C."
+        }
+      ]
+    }
+  ]
+}
