@@ -72,10 +72,10 @@ int ui_row_from_point(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return -1;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  if (nx < 0.035f || nx > 0.295f) return -1;
+  if (nx < 0.020f || nx > 0.185f) return -1;
   for (int row = 0; row < 7; ++row) {
-    const float center_y = 0.11f + static_cast<float>(row) * 0.11f;
-    if (std::abs(ny - center_y) <= 0.045f) return row;
+    const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
+    if (std::abs(ny - center_y) <= 0.033f) return row;
   }
   return -1;
 }
@@ -84,7 +84,7 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  return nx >= 0.015f && nx <= 0.325f && ny >= 0.04f && ny <= 0.84f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.635f;
 }
 
 void handle_ui_row(ViewerState& state, int row) {
@@ -145,11 +145,19 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
       }
       break;
     case WM_MOUSEMOVE:
-      if (state != nullptr && state->renderer != nullptr && (wparam & MK_LBUTTON) != 0u) {
+      if (state != nullptr && state->renderer != nullptr) {
         const int x = GET_X_LPARAM(lparam), y = GET_Y_LPARAM(lparam);
         RECT rect{}; GetClientRect(window, &rect);
         const float width = static_cast<float>(std::max<LONG>(1, rect.right - rect.left));
         const float height = static_cast<float>(std::max<LONG>(1, rect.bottom - rect.top));
+
+        if ((wparam & MK_LBUTTON) == 0u) {
+          state->renderer->set_ui_tooltip_row(
+              ui_row_from_point(x, y, static_cast<int>(width), static_cast<int>(height)));
+          return 0;
+        }
+
+        state->renderer->set_ui_tooltip_row(-1);
         const float movement = std::hypot(static_cast<float>(x - state->down_x), static_cast<float>(y - state->down_y));
         if (state->hud_candidate && movement > 0.025f * std::min(width, height)) state->hud_candidate = false;
         if (!state->hud_candidate) {
