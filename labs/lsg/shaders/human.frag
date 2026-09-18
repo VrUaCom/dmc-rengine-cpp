@@ -194,15 +194,26 @@ bool hud_glyph(uint button, vec2 uv) {
         return eye_outline || pupil;
     }
 
-    // Time: compact sun disk with four rays.
-    float r = length(uv - vec2(0.50));
-    bool disk = r < 0.14;
-    bool ring = r > 0.20 && r < 0.25;
-    bool rays = inside_box(uv, vec2(0.47, 0.18), vec2(0.53, 0.31)) ||
-                inside_box(uv, vec2(0.47, 0.69), vec2(0.53, 0.82)) ||
-                inside_box(uv, vec2(0.18, 0.47), vec2(0.31, 0.53)) ||
-                inside_box(uv, vec2(0.69, 0.47), vec2(0.82, 0.53));
-    return disk || ring || rays;
+    if (button == 9u) {
+        // Time: compact sun disk with four rays.
+        float r = length(uv - vec2(0.50));
+        bool disk = r < 0.14;
+        bool ring = r > 0.20 && r < 0.25;
+        bool rays = inside_box(uv, vec2(0.47, 0.18), vec2(0.53, 0.31)) ||
+                    inside_box(uv, vec2(0.47, 0.69), vec2(0.53, 0.82)) ||
+                    inside_box(uv, vec2(0.18, 0.47), vec2(0.31, 0.53)) ||
+                    inside_box(uv, vec2(0.69, 0.47), vec2(0.82, 0.53));
+        return disk || ring || rays;
+    }
+
+    // Filter: optical pane with diagonal polarization marks.
+    bool pane = (q.x > 0.20 && q.x < 0.27 && q.y < 0.30) ||
+                (q.y > 0.23 && q.y < 0.30 && q.x < 0.27);
+    bool slash0 = abs((uv.y - 0.30) - (uv.x - 0.30)) < 0.045 &&
+                  uv.x > 0.28 && uv.x < 0.58 && uv.y > 0.28 && uv.y < 0.58;
+    bool slash1 = abs((uv.y - 0.45) - (uv.x - 0.45)) < 0.045 &&
+                  uv.x > 0.43 && uv.x < 0.72 && uv.y > 0.43 && uv.y < 0.72;
+    return pane || slash0 || slash1;
 }
 
 uint font_bits(uint c) {
@@ -257,6 +268,7 @@ uint tooltip_length(uint tooltip) {
     if (tooltip == 7u) return 22u;
     if (tooltip == 8u) return 16u;
     if (tooltip == 9u) return 20u;
+    if (tooltip == 10u) return 20u;
     return 0u;
 }
 
@@ -271,6 +283,7 @@ uint tooltip_char(uint tooltip, uint index) {
     const uint t7[22] = uint[22](80u,72u,89u,83u,32u,32u,67u,89u,67u,76u,69u,32u,66u,79u,68u,89u,32u,83u,84u,65u,84u,69u);
     const uint t8[16] = uint[16](69u,89u,69u,83u,32u,32u,67u,89u,67u,76u,69u,32u,86u,73u,69u,87u);
     const uint t9[20] = uint[20](84u,73u,77u,69u,32u,32u,67u,89u,67u,76u,69u,32u,68u,65u,89u,76u,73u,71u,72u,84u);
+    const uint t10[20] = uint[20](70u,73u,76u,84u,69u,82u,32u,32u,67u,89u,67u,76u,69u,32u,79u,80u,84u,73u,67u,83u);
     if (tooltip == 0u && index < 20u) return t0[index];
     if (tooltip == 1u && index < 22u) return t1[index];
     if (tooltip == 2u && index < 23u) return t2[index];
@@ -281,6 +294,7 @@ uint tooltip_char(uint tooltip, uint index) {
     if (tooltip == 7u && index < 22u) return t7[index];
     if (tooltip == 8u && index < 16u) return t8[index];
     if (tooltip == 9u && index < 20u) return t9[index];
+    if (tooltip == 10u && index < 20u) return t10[index];
     return 32u;
 }
 
@@ -354,6 +368,44 @@ vec3 aces_fitted(vec3 x) {
     return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
 }
 
+vec3 bulk_filter_rgb() {
+    return clamp(lighting.filter_tint_transmission.rgb, vec3(0.0), vec3(1.0)) *
+           clamp(lighting.filter_tint_transmission.w, 0.0, 1.0);
+}
+
+float rayleigh_dolp_from_mu(float mu) {
+    mu = clamp(mu, -1.0, 1.0);
+    float mu2 = mu * mu;
+    return clamp((1.0 - mu2) / max(1.0 + mu2, 1e-6), 0.0, 1.0);
+}
+
+float polarized_attenuation(float dolp, float axis_alignment_sq, float strength) {
+    dolp = clamp(dolp, 0.0, 1.0);
+    axis_alignment_sq = clamp(axis_alignment_sq, 0.0, 1.0);
+    strength = clamp(strength, 0.0, 1.0);
+    return clamp(1.0 - 0.55 * strength * dolp * (1.0 - axis_alignment_sq),
+                 0.45, 1.0);
+}
+
+float sky_polarization_attenuation(vec3 ray_world, vec3 sun_world) {
+    float strength = clamp(lighting.eye_filter_misc.y, 0.0, 1.0);
+    if (strength <= 0.0) return 1.0;
+
+    vec3 pol = cross(ray_world, sun_world);
+    vec3 axis = vec3(0.0, 1.0, 0.0) -
+                ray_world * dot(vec3(0.0, 1.0, 0.0), ray_world);
+    float pol_len2 = dot(pol, pol);
+    float axis_len2 = dot(axis, axis);
+    if (pol_len2 < 1e-8 || axis_len2 < 1e-8) return 1.0;
+
+    pol *= inversesqrt(pol_len2);
+    axis *= inversesqrt(axis_len2);
+    float alignment_sq = pow(clamp(dot(pol, axis), -1.0, 1.0), 2.0);
+    float mu = clamp(dot(ray_world, sun_world), -1.0, 1.0);
+    return polarized_attenuation(rayleigh_dolp_from_mu(mu),
+                                 alignment_sq, strength);
+}
+
 vec3 sun_world_direction() {
     return normalize(lighting.sun_direction_intensity.xyz);
 }
@@ -384,17 +436,18 @@ vec3 procedural_environment(vec2 logical_ndc) {
     vec3 horizon_colour = lighting.sky_horizon_scene_lum.rgb;
     vec3 sun_tint = lighting.sun_tint_sky_intensity.rgb;
 
-    vec3 sky = mix(zenith, horizon_colour, horizon);
-    sky += mix(zenith, horizon_colour, 0.35) * rayleigh_phase *
-           (0.18 + 0.52 * elevation);
-    sky += sun_tint * mie_phase * 0.012 * direct_intensity *
-           (0.35 + 0.65 * horizon);
-    sky *= sky_intensity;
+    float pol_attenuation = sky_polarization_attenuation(ray_world, sun_world);
+    vec3 scattered = mix(zenith, horizon_colour, horizon);
+    scattered += mix(zenith, horizon_colour, 0.35) * rayleigh_phase *
+                 (0.18 + 0.52 * elevation);
+    scattered += sun_tint * mie_phase * 0.012 * direct_intensity *
+                 (0.35 + 0.65 * horizon);
+    scattered *= sky_intensity * pol_attenuation;
 
     const float sun_inner = 0.999965;
     const float sun_outer = 0.99982;
     float sun_disk = smoothstep(sun_outer, sun_inner, mu);
-    sky += sun_tint * 8.0 * sun_disk * direct_intensity;
+    vec3 sky = scattered + sun_tint * 8.0 * sun_disk * direct_intensity;
 
     if (ray_world.y < 0.0) {
         float ndotl = max(sun_world.y, 0.0);
@@ -407,7 +460,7 @@ vec3 procedural_environment(vec2 logical_ndc) {
     }
 
     float exposure = max(lighting.sky_zenith_exposure.w, 0.01);
-    return aces_fitted(max(sky * exposure, vec3(0.0)));
+    return aces_fitted(max(sky * bulk_filter_rgb() * exposure, vec3(0.0)));
 }
 
 vec3 sky_irradiance(vec3 n) {
@@ -426,6 +479,7 @@ void main() {
     uint physiology = (pc.flags.w >> 9u) & 3u;
     uint eye_mode = (pc.flags.w >> 11u) & 3u;
     uint lighting_preset = (pc.flags.w >> 13u) & 3u;
+    uint optical_filter = (pc.flags.w >> 15u) & 3u;
 
     if (ui_environment_pass()) {
         if (body_region == 200u) {
@@ -445,7 +499,7 @@ void main() {
             out_colour = vec4(colour, 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 109u) discard;
+        if (body_region < 100u || body_region > 110u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
@@ -460,6 +514,7 @@ void main() {
                         (button == 7u && physiology != 0u) ||
                         (button == 8u && eye_mode != 0u) ||
                         (button == 9u) ||
+                        (button == 10u) ||
                         (button == tooltip);
 
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
@@ -493,6 +548,12 @@ void main() {
                                           : vec3(0.08, 0.14, 0.34);
         }
 
+        if (button == 10u) {
+            panel = optical_filter == 0u ? vec3(0.34, 0.43, 0.50)
+                  : optical_filter == 1u ? vec3(0.13, 0.25, 0.34)
+                                         : vec3(0.22, 0.42, 0.58);
+        }
+
         if (edge < 0.045) panel = min(panel + vec3(0.20), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
@@ -517,7 +578,7 @@ void main() {
         float ndotl = max(dot(n, l), 0.0);
         vec3 neutral = vec3(0.48, 0.43, 0.39);
         vec3 colour = neutral * (0.24 + 0.76 * ndotl) + neutral * sky_irradiance(n) * 0.22;
-        out_colour = vec4(aces_fitted(colour * 1.15 *
+        out_colour = vec4(aces_fitted(colour * bulk_filter_rgb() * 1.15 *
                                       max(lighting.sky_zenith_exposure.w, 0.01)), 1.0);
         return;
     }
@@ -611,6 +672,7 @@ void main() {
                   specular * sun_radiance * (1.2 + oiliness * 0.75 + sweat * 0.35) +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
-    colour *= 1.05 * max(lighting.sky_zenith_exposure.w, 0.01);
+    colour *= bulk_filter_rgb() * 1.05 *
+              max(lighting.sky_zenith_exposure.w, 0.01);
     out_colour = vec4(aces_fitted(max(colour, vec3(0.0))), 1.0);
 }
