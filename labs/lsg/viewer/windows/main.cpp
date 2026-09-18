@@ -73,7 +73,7 @@ int ui_row_from_point(int x, int y, int width, int height) {
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 8; ++row) {
+  for (int row = 0; row < 9; ++row) {
     const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
     if (std::abs(ny - center_y) <= 0.033f) return row;
   }
@@ -84,7 +84,7 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.715f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.795f;
 }
 
 void handle_ui_row(ViewerState& state, int row) {
@@ -119,6 +119,16 @@ void handle_ui_row(ViewerState& state, int row) {
                       : current == PhysiologyPreset::cold ? PhysiologyPreset::hot
                                                           : PhysiologyPreset::normal;
       state.renderer->set_physiology_preset(next);
+      break;
+    }
+    case 8: {
+      using rengine::lsg::EyeDiagnosticMode;
+      const auto current = state.renderer->eye_diagnostic_mode();
+      const auto next = current == EyeDiagnosticMode::normal ? EyeDiagnosticMode::components
+                      : current == EyeDiagnosticMode::components ? EyeDiagnosticMode::iris_only
+                      : current == EyeDiagnosticMode::iris_only ? EyeDiagnosticMode::cornea_only
+                                                                : EyeDiagnosticMode::normal;
+      state.renderer->set_eye_diagnostic_mode(next);
       break;
     }
     default: break;
