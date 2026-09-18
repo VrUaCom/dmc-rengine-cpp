@@ -132,6 +132,13 @@ jobs:
             cmp /tmp/profile-$PROFILE-eyes.obj /tmp/profile-$PROFILE-eyes-repeat.obj
             test "$(grep -c '^v ' /tmp/profile-$PROFILE-eyes.obj)" -eq 1064
             test "$(grep -c '^vt ' /tmp/profile-$PROFILE-eyes.obj)" -eq 808
+
+            build-lsg-host/lsg_prepare_mesh /tmp/profile-$PROFILE-eyes.obj \
+              labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_$PROFILE.rmesh \
+              --component-regions \
+              | tee labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
+            grep 'RMS0 PASS' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
+            grep 'components=4' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
           done
           if cmp -s /tmp/profile-0-eyes.obj /tmp/profile-1-eyes.obj; then
             echo 'fitted eye outputs are unexpectedly identical across macro profiles'
@@ -186,6 +193,8 @@ jobs:
           mkdir -p labs/lsg/viewer/android/app/src/main/assets/shaders
           "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.vert -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv
           "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/human.frag -o labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv
+          "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/eye.vert -o labs/lsg/viewer/android/app/src/main/assets/shaders/eye.vert.spv
+          "$GLSLC" --target-env=vulkan1.2 labs/lsg/shaders/eye.frag -o labs/lsg/viewer/android/app/src/main/assets/shaders/eye.frag.spv
       - name: Measure LSG storage contract
         run: |
           build-lsg-host/lsg_report \
@@ -193,8 +202,12 @@ jobs:
             /tmp/character_1.lsg \
             labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
             labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh \
+            labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_0.rmesh \
+            labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_1.rmesh \
             labs/lsg/viewer/android/app/src/main/assets/shaders/human.vert.spv \
             labs/lsg/viewer/android/app/src/main/assets/shaders/human.frag.spv \
+            labs/lsg/viewer/android/app/src/main/assets/shaders/eye.vert.spv \
+            labs/lsg/viewer/android/app/src/main/assets/shaders/eye.frag.spv \
             | tee labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
           grep 'LSG STORAGE CONTRACT PASS' labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
           grep 'Character-specific generated microdetail stored on disk: 0 bytes' labs/lsg/viewer/android/app/build/outputs/lsg-acceptance-report.txt
@@ -211,6 +224,10 @@ jobs:
           grep 'assets/shaders/human.frag.spv' /tmp/apk-files.txt
           grep 'assets/meshes/human_profile_0.rmesh' /tmp/apk-files.txt
           grep 'assets/meshes/human_profile_1.rmesh' /tmp/apk-files.txt
+          grep 'assets/shaders/eye.vert.spv' /tmp/apk-files.txt
+          grep 'assets/shaders/eye.frag.spv' /tmp/apk-files.txt
+          grep 'assets/meshes/eye_profile_0.rmesh' /tmp/apk-files.txt
+          grep 'assets/meshes/eye_profile_1.rmesh' /tmp/apk-files.txt
           if grep -Eiq 'assets/.*\.(png|jpe?g|dds|ktx2?|basis)' /tmp/apk-files.txt; then
             echo 'unexpected baked texture asset found in LSG APK'
             exit 1
@@ -226,4 +243,6 @@ jobs:
             labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-0.txt
             labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-1.txt
             labs/lsg/viewer/android/app/build/outputs/lsg-eye-fit-sha256.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-0.txt
+            labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-1.txt
           if-no-files-found: error
