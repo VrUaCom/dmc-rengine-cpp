@@ -542,6 +542,7 @@ void VulkanRenderer::orbit_camera(float normalized_dx, float normalized_dy) noex
 }
 void VulkanRenderer::zoom_camera(float scale) noexcept { if (impl_) impl_->camera.zoom(scale); }
 void VulkanRenderer::set_camera_preset(CameraPreset preset) noexcept { if (impl_) impl_->camera.set_preset(preset); }
+void VulkanRenderer::reset_camera_view() noexcept { if (impl_) impl_->camera.reset_view(); }
 CameraState VulkanRenderer::camera_state() const noexcept { return impl_ ? impl_->camera.state() : CameraState{}; }
 
 void VulkanRenderer::set_diagnostic_mode(DiagnosticRenderMode mode) noexcept {
@@ -637,15 +638,16 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   push.flags[0] = profile_index; push.flags[1] = detail_enabled ? 1u : 0u;
   push.flags[2] = state.surface_rotation;
   const auto mode_bits = static_cast<std::uint32_t>(state.diagnostic_mode) << 1u;
-  push.flags[3] = mode_bits;
+  const auto camera_bits = static_cast<std::uint32_t>(camera.preset) << 3u;
+  push.flags[3] = mode_bits | camera_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
 
-  push.flags[3] = mode_bits | 1u;
+  push.flags[3] = mode_bits | camera_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 15u, 1u, 0u, 0u);
+  vkCmdDraw(command, 51u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
