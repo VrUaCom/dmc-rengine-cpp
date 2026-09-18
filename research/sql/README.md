@@ -367,6 +367,18 @@ functions and the bracket's percentages describe that subset, not the image.
 that fall outside every located vtable's whole extent — excluding vtables by
 base alone reports each fragment of a split vtable as a table of its own.
 
+### Where a module's boundary is
+
+`v_exe_import_owner` lists the functions calling each imported symbol, with their
+size, caller count and depth from the entry point. Every file the image opens
+goes through one of twelve such functions, so the list is the whole of that
+boundary.
+
+`v_exe_range_coupling` measures how many functions outside an address range call
+into it against how many it calls out. A library has many of the first and few of
+the second. The range is chosen by whoever asks, so the view measures a boundary
+rather than discovering one.
+
 ### The startup path
 
 `exe_function.depth_from_entry` is the shortest chain of direct calls and tail

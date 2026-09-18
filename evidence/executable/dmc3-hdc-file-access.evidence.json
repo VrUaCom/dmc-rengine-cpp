@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-file-access",
+  "title": "DMC3 HD file access: two independent layers, and one of them is a library",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-file-import-surface",
+      "claim_id": "claim-dmc3-file-import-surface",
+      "title": "Every file the image opens goes through one of twelve functions",
+      "summary": "A game that ships gigabytes of assets reaches the operating system for them through almost nothing. Across the whole image CreateFileA is called from two functions, CreateFileW from one, ReadFile from four, SetFilePointer from two, GetFileSize from two, and FindFirstFileA with FindClose from one apiece. Twelve functions in total own the entire file surface, the largest 486 bytes and the smallest 60. Listing them is the whole of the boundary a port has to stand in for, and it is listable because the engine wrapped the platform once rather than calling it from everywhere.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "imports",
+        "architecture",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3307280,
+          "size": 353,
+          "symbol": "the read wrapper with the most callers",
+          "note": "RVA 0x327910, 353 bytes, eight callers, at depth ten on the startup path."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-file-layer-is-a-library",
+      "claim_id": "claim-dmc3-file-layer-is-a-library",
+      "title": "One 12.6 kilobyte range is called by 774 functions and calls 17",
+      "summary": "The functions owning most of that surface are not scattered. 57 of them sit in one contiguous range, RVA 0x326000 to 0x32A000, totalling 12,895 bytes, and the shape of their edges is what makes the range a boundary rather than an accident: 774 functions outside it call into it, and it calls 17 functions outside itself. Forty-six users for every dependency. Inside, the layering is three deep \u2014 the Win32 imports, thin wrappers of 43 to 353 bytes around each, and orchestrators that combine them, one of which calls the size, seek and read wrappers together. It allocates heavily, calling free thirteen times, calloc seven and malloc four, and it names nothing: one string reference in 57 functions, and no resource-family literal at all. Callers hand it names; it does not know what it is reading.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "architecture"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3301376,
+          "size": 12895,
+          "symbol": "the file layer",
+          "note": "RVA 0x326000 to 0x32A000, 57 functions, 774 callers from outside, 17 callees outside."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-two-file-layers",
+      "claim_id": "claim-dmc3-two-file-layers",
+      "title": "A second layer calls the same four functions and is used by sixteen",
+      "summary": "A second range, RVA 0x48000 to 0x4B000, holds 33 functions over 11,047 bytes and calls CreateFileA, GetFileSize, ReadFile and SetFilePointer independently of the first. Its coupling is the opposite: 16 callers in and 10 callees out, two users per dependency against forty-six. What separates them is also readable. Only the second touches CreateFileW and the file-time conversions; only the first touches FindFirstFileA and FindClose. Two layers over one platform, of which one is a library and the other is not, and nothing here says why the engine has both. A third function elsewhere, RVA 0x36570, calls SHGetFolderPathW beside CreateDirectoryW and is the only place in the image that asks the system where a per-user directory is.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "imports",
+        "architecture"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 294912,
+          "size": 11047,
+          "symbol": "the second file layer",
+          "note": "RVA 0x48000 to 0x4B000, 33 functions, 16 callers from outside, 10 callees outside."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 222576,
+          "size": 766,
+          "symbol": "the only per-user directory lookup",
+          "note": "RVA 0x36570, calling SHGetFolderPathW and CreateDirectoryW."
+        }
+      ]
+    }
+  ]
+}

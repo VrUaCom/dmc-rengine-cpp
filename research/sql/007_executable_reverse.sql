@@ -697,3 +697,49 @@ JOIN exe_function f ON f.id = i.function_id
 WHERE f.depth_from_entry IS NOT NULL
 GROUP BY i.module
 ORDER BY first_depth, symbols DESC;
+
+-- ---------------------------------------------------------------------------
+-- Coupling of an address range
+-- ---------------------------------------------------------------------------
+-- How many functions outside a range call into it, against how many functions
+-- outside it the range calls. A library has many of the first and few of the
+-- second; a piece of ordinary code has neither. The range itself is chosen by
+-- whoever asks, so this measures a boundary rather than discovering one.
+--
+--   SELECT * FROM v_exe_range_coupling WHERE lo = 0x326000 AND hi = 0x32a000;
+--
+-- A range is passed in by binding `lo` and `hi`, which SQLite does through the
+-- table-valued form below; without them the view reports nothing.
+CREATE VIEW IF NOT EXISTS v_exe_range_coupling AS
+WITH bound(lo, hi) AS (SELECT 0, 0)
+SELECT b.lo,
+       b.hi,
+       (SELECT COUNT(*) FROM exe_function f
+          WHERE f.begin_rva >= b.lo AND f.begin_rva < b.hi) AS functions,
+       (SELECT SUM(f.size_bytes) FROM exe_function f
+          WHERE f.begin_rva >= b.lo AND f.begin_rva < b.hi) AS bytes,
+       (SELECT COUNT(DISTINCT e.caller_id) FROM exe_call_edge e
+          JOIN exe_function callee ON callee.id = e.callee_id
+          JOIN exe_function caller ON caller.id = e.caller_id
+          WHERE callee.begin_rva >= b.lo AND callee.begin_rva < b.hi
+            AND (caller.begin_rva < b.lo OR caller.begin_rva >= b.hi)) AS callers_in,
+       (SELECT COUNT(DISTINCT e.callee_id) FROM exe_call_edge e
+          JOIN exe_function callee ON callee.id = e.callee_id
+          JOIN exe_function caller ON caller.id = e.caller_id
+          WHERE caller.begin_rva >= b.lo AND caller.begin_rva < b.hi
+            AND (callee.begin_rva < b.lo OR callee.begin_rva >= b.hi)) AS callees_out
+FROM bound b;
+
+-- The functions that call a named import, with where each sits. Every file the
+-- image opens goes through one of a handful of these, so listing them is the
+-- whole of the boundary a port has to stand in for.
+CREATE VIEW IF NOT EXISTS v_exe_import_owner AS
+SELECT i.module,
+       i.symbol,
+       printf('0x%x', f.begin_rva) AS function_rva,
+       f.size_bytes,
+       f.caller_count,
+       f.depth_from_entry
+FROM exe_import_call i
+JOIN exe_function f ON f.id = i.function_id
+ORDER BY i.module, i.symbol, f.begin_rva;
