@@ -49,8 +49,8 @@ bool decode_checked(const std::filesystem::path& path,
 } // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 7) {
-    std::cerr << "usage: lsg_report <character0.lsg> <character1.lsg> <profile0.rmesh> <profile1.rmesh> <human.vert.spv> <human.frag.spv>\n";
+  if (argc != 11) {
+    std::cerr << "usage: lsg_report <character0.lsg> <character1.lsg> <profile0.rmesh> <profile1.rmesh> <eye0.rmesh> <eye1.rmesh> <human.vert.spv> <human.frag.spv> <eye.vert.spv> <eye.frag.spv>\n";
     return 2;
   }
 
@@ -65,10 +65,16 @@ int main(int argc, char** argv) {
 
   const auto mesh0_bytes = read_binary(argv[3]);
   const auto mesh1_bytes = read_binary(argv[4]);
-  const auto vertex_shader_bytes = read_binary(argv[5]);
-  const auto fragment_shader_bytes = read_binary(argv[6]);
-  if (mesh0_bytes.empty() || mesh1_bytes.empty() || vertex_shader_bytes.empty() || fragment_shader_bytes.empty()) {
-    std::cerr << "shared macro mesh or shader payload is missing\n";
+  const auto eye0_bytes = read_binary(argv[5]);
+  const auto eye1_bytes = read_binary(argv[6]);
+  const auto vertex_shader_bytes = read_binary(argv[7]);
+  const auto fragment_shader_bytes = read_binary(argv[8]);
+  const auto eye_vertex_shader_bytes = read_binary(argv[9]);
+  const auto eye_fragment_shader_bytes = read_binary(argv[10]);
+  if (mesh0_bytes.empty() || mesh1_bytes.empty() || eye0_bytes.empty() || eye1_bytes.empty() ||
+      vertex_shader_bytes.empty() || fragment_shader_bytes.empty() ||
+      eye_vertex_shader_bytes.empty() || eye_fragment_shader_bytes.empty()) {
+    std::cerr << "shared macro/eye mesh or shader payload is missing\n";
     return 4;
   }
 
@@ -86,9 +92,14 @@ int main(int argc, char** argv) {
   const std::uint64_t mesh_bytes =
       static_cast<std::uint64_t>(mesh0_bytes.size()) +
       static_cast<std::uint64_t>(mesh1_bytes.size());
+  const std::uint64_t eye_mesh_bytes =
+      static_cast<std::uint64_t>(eye0_bytes.size()) +
+      static_cast<std::uint64_t>(eye1_bytes.size());
   const std::uint64_t shader_bytes =
       static_cast<std::uint64_t>(vertex_shader_bytes.size()) +
-      static_cast<std::uint64_t>(fragment_shader_bytes.size());
+      static_cast<std::uint64_t>(fragment_shader_bytes.size()) +
+      static_cast<std::uint64_t>(eye_vertex_shader_bytes.size()) +
+      static_cast<std::uint64_t>(eye_fragment_shader_bytes.size());
 
   std::cout << "LSG STORAGE CONTRACT PASS\n"
             << "Character 0 genome: " << genome0_bytes.size() << " bytes\n"
@@ -100,6 +111,11 @@ int main(int argc, char** argv) {
             << "Character 1 macro mesh: " << mesh1_bytes.size() << " bytes\n"
             << "Character 0 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh0_bytes) << std::dec << '\n'
             << "Character 1 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh1_bytes) << std::dec << '\n'
+            << "Shared fitted eye assets: " << eye_mesh_bytes << " bytes\n"
+            << "Character 0 eye mesh: " << eye0_bytes.size() << " bytes\n"
+            << "Character 1 eye mesh: " << eye1_bytes.size() << " bytes\n"
+            << "Character 0 eye FNV1a64: 0x" << std::hex << fnv1a64(eye0_bytes) << std::dec << '\n'
+            << "Character 1 eye FNV1a64: 0x" << std::hex << fnv1a64(eye1_bytes) << std::dec << '\n'
             << "Shared Vulkan shader payload: " << shader_bytes << " bytes\n"
             << "Mandatory character texture bytes: 0\n"
             << "Character-specific generated microdetail stored on disk: 0 bytes\n";
