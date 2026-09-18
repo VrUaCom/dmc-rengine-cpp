@@ -120,6 +120,7 @@ jobs:
             | tee /tmp/lsg-profile-1-bust-report.txt
           grep 'MAKEHUMAN TARGET PASS' /tmp/lsg-profile-1-bust-report.txt
 
+          mkdir -p labs/lsg/viewer/android/app/src/main/assets/meshes
           mkdir -p labs/lsg/viewer/android/app/build/outputs
           for PROFILE in 0 1; do
             build-lsg-host/lsg_fit_mhclo /tmp/profile-$PROFILE.obj /tmp/lsg-eye-high.obj /tmp/lsg-eye-high.mhclo \
