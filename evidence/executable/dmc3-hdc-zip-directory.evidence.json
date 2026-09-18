@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-zip-directory",
+  "title": "DMC3 HD archive directory: the record layouts read out of the code that reads them",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-eocd-locator",
+      "claim_id": "claim-dmc3-eocd-locator",
+      "title": "The directory is found by scanning the file backwards in 256-byte windows that overlap by 22",
+      "summary": "RVA 0x328C30 asks the size wrapper at 0x3277C0 for the file length, refuses anything shorter than 22 bytes, and sets a candidate offset to size minus 22. It then loops: read min(size - candidate, 256) bytes at the candidate via the seek wrapper at 0x327B60 and the read wrapper at 0x327910, walk that buffer forward comparing four bytes at a time against 'P', 'K', 5, 6 at 0x328CE0 through 0x328CF9, and on no match step the candidate back by 234 and clamp at zero. 234 is 256 minus 22, so consecutive windows overlap by exactly the length of the record being looked for and a record straddling a window boundary cannot be missed. The scan is not bounded by a constant: it walks back to offset zero. On a match it computes the absolute offset, writes it through its second argument, reads a 16-bit little-endian value from bytes 20 and 21 of the record, and accepts only if offset plus 22 plus that value equals the file size. The whole of that is read out of the instruction stream; nothing is inferred from a name.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "file-format"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3312688,
+          "size": 305,
+          "symbol": "the backwards directory scan",
+          "note": "RVA 0x328C30, running to 0x328D61 across two .pdata entries; the byte comparisons are at 0x328CE0-0x328CF9 and the step back is 'lea eax,[rbx-0xEA]' at 0x328D30."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-record-decoders-are-leaves",
+      "claim_id": "claim-dmc3-record-decoders-are-leaves",
+      "title": "Two decoders turn a 46-byte and a 30-byte record into a struct, byte by byte, and return whether the signature matched",
+      "summary": "RVA 0x327E40 and RVA 0x328020 are the same function written twice for two record sizes. Each takes a raw buffer in rcx and an output struct in rdx, assembles every field from individual movzx loads shifted and or-ed together low byte first, stores it at a fixed offset in the output, and ends with a single compare of the assembled first dword against a constant followed by sete al and ret: 0x02014B50 at 0x32800E for the 46-byte record, 0x04034B50 at 0x328151 for the 30-byte one. Neither has a .pdata entry, which is legitimate for a function with no prolog and is why a scan that enumerates functions from .pdata does not see them at all. Both output structs mirror the record offsets exactly until the first 32-bit field that would land unaligned, where the destination shifts forward by two and stays shifted: record 0x26 goes to struct 0x28 in the 46-byte decoder, record 0x0E goes to struct 0x10 in the 30-byte one. The decoders make the layouts legible without any guess about what the fields mean, because every source offset and every destination offset is an immediate in the encoding.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "file-format",
+        "struct-layout"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3309120,
+          "size": 476,
+          "symbol": "the 46-byte record decoder",
+          "note": "RVA 0x327E40 to 0x32801C, no .pdata entry, final store 'mov [rdx+0x2C],ecx' from source bytes 0x2A-0x2D."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3309600,
+          "size": 316,
+          "symbol": "the 30-byte record decoder",
+          "note": "RVA 0x328020 to 0x32815C, no .pdata entry, final store 'mov [rdx+0x1E],cx' from source bytes 0x1C-0x1D."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-archive-object-layout",
+      "claim_id": "claim-dmc3-archive-object-layout",
+      "title": "One 0x50-byte node per entry, three heap strings and a next pointer, and the allocation is the proof of the size",
+      "summary": "RVA 0x3289F0 walks the directory: read 46 bytes, and if the first four assemble to 0x06054B50 stop and succeed; otherwise demand exactly 46, decode them with 0x327E40, and read three variable-length parts whose lengths are the 16-bit fields the decoder wrote at struct 0x1C, 0x1E and 0x20. Each part is read by 0x327650, which mallocs length plus one, reads exactly length bytes and writes a zero at the end, so all three are NUL-terminated whatever the archive says. The entry is then calloc(1, 0x50) at 0x328AF5, filled with three 16-byte moves covering struct bytes 0 to 0x2F, the three pointers at 0x30, 0x38 and 0x40, and the old list head at 0x48 before the node becomes the new head at owner+0x28. The teardown at 0x328B60 walks that same chain freeing 0x30, 0x38, 0x40 and the node, which confirms the linkage from the other direction. The owner is the struct the 22-byte reader at 0x328D80 filled: located offset at 0, the record's own fields from 4 to 0x18, a malloc'd trailing blob at 0x20 read without a terminator, and the entry list at 0x28. Every offset here is an encoded displacement and every size an encoded immediate.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "struct-layout",
+        "allocation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3312112,
+          "size": 568,
+          "symbol": "the directory walk",
+          "note": "RVA 0x3289F0 to 0x328C28, reading 46 bytes per iteration via 'lea r8d,[r9+0x2D]' at 0x328A2D and allocating 0x50 per entry at 0x328AF5."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3313024,
+          "size": 451,
+          "symbol": "the 22-byte record reader",
+          "note": "RVA 0x328D80 to 0x328F43, reading 22 bytes via 'lea r8d,[r9+0x15]' at 0x328DBF and tail-calling the directory walk at 0x328F1D."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3307088,
+          "size": 155,
+          "symbol": "the counted-string reader",
+          "note": "RVA 0x327650, malloc(n+1) with an overflow clamp, exact-length read, explicit NUL at [n]."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-zip-signature-census-corrected",
+      "claim_id": "claim-dmc3-zip-signature-census",
+      "title": "Three signature constants, not one; the two I missed are in functions .pdata does not list",
+      "summary": "A raw scan of all 6,356,432 bytes for the seven four-byte constants the format defines finds exactly four occurrences of three of them and none of the other four: 0x02014B50 once at RVA 0x328011, 0x04034B50 once at 0x328154, and 0x06054B50 twice, at 0x328A69 and 0x328EAF. All four are compare immediates in code, all four are inside the file layer, and no 64-bit-extension or data-descriptor constant appears anywhere. This corrects a count I had reached earlier by scanning compare immediates function by function, which found only the two occurrences of 0x06054B50 and led me to say that was the only such constant in the image. It was not wrong about what it saw; it was wrong about what it could see, because the two decoders holding the other constants have no .pdata entry and so were never enumerated. The absence of the 64-bit-extension constants is a real constraint on a port and is worth more than the miscount was: this reader cannot address an archive that needs them.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "archive",
+        "census",
+        "method"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3309582,
+          "size": 7,
+          "symbol": "the 46-byte record signature test",
+          "note": "RVA 0x32800E, 'cmp r9d,0x02014B50'."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3309905,
+          "size": 7,
+          "symbol": "the 30-byte record signature test",
+          "note": "RVA 0x328151, 'cmp r9d,0x04034B50'."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-archive-chain-is-linear",
+      "claim_id": "claim-dmc3-archive-chain-is-linear",
+      "title": "Six of the seven functions have exactly one direct caller, and the seventh has three",
+      "summary": "Scanning every E8 and E9 displacement in .text for these seven targets gives one direct caller apiece for six of them: 0x328C30 from 0x328345, 0x328D80 from 0x328D48, 0x3289F0 from 0x328F1D, 0x327E40 from 0x328A85, 0x328360 from 0x3285B4, and 0x328020 from 0x3283CB. The seventh, the counted-string reader at 0x327650, has three, and its three are the three variable-length parts of one entry. So the directory side of this reader is a straight line with a single entry point at 0x328345 and no sharing with anything else in the image. That is worth recording separately from the layouts because it is what made reading the whole pipeline end to end feasible, and because it bounds the replacement surface for a port exactly: one entry point, no other callers to satisfy.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "call-graph",
+        "archive"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310405,
+          "size": 5,
+          "symbol": "the only entry point into the directory reader",
+          "note": "RVA 0x328345, the single direct call to 0x328C30, inside the function at 0x328320."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-record-sizes-measured-twice",
+      "claim_id": "claim-dmc3-record-sizes-measured-twice",
+      "title": "46 and 30 are each measured twice from unrelated encodings and agree",
+      "summary": "The size of each record is established two ways that share no instruction. At the call sites it is an immediate in the read length: 'lea r8d,[r9+0x2D]' at 0x328A2D with r9d already 1, and 'lea r8d,[r9+0x1D]' at 0x3283A3, giving 46 and 30, each confirmed by the exact-length test the caller applies to the result. In the decoders it is the span of the source displacements, which are unrelated immediates in different functions: the 46-byte decoder's last source byte is 0x2D and the 30-byte decoder's is 0x1D. Both pairs agree. This matters more than either figure because a field map recovered from displacements has no way of knowing how many bytes the caller actually read, so agreement is a real cross-check rather than a restatement. The recovery is mechanised in research/exe/extract_record_decoders.py, which is fail-closed on any instruction form it does not recognise and whose every guard is mutation-killed, so the tables in the note are regenerated rather than transcribed.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "method",
+        "cross-check"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3312173,
+          "size": 4,
+          "symbol": "the 46-byte read length",
+          "note": "RVA 0x328A2D, 'lea r8d,[r9+0x2D]', checked against 'cmp rdx,0x2E' at 0x328A73."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310499,
+          "size": 4,
+          "symbol": "the 30-byte read length",
+          "note": "RVA 0x3283A3, 'lea r8d,[r9+0x1D]', checked against 'cmp rax,0x1E' at 0x3283AC."
+        }
+      ]
+    }
+  ]
+}
