@@ -105,6 +105,17 @@ int main() {
   assert(evening_clear.effective_eye_luminance > night_clear.effective_eye_luminance);
   assert(night_clear.direct_sun_intensity < 0.05f);
 
+  auto warmth = [](const std::array<float, 3>& rgb) {
+    return rgb[0] - rgb[2];
+  };
+  assert(warmth(morning_clear.sun_tint) > warmth(noon_clear.sun_tint));
+  assert(warmth(evening_clear.sun_tint) > warmth(noon_clear.sun_tint));
+  for (const auto* state : {&morning_clear, &noon_clear, &evening_clear, &night_clear}) {
+    for (float v : state->sun_tint) assert(v >= 0.0f && v <= 1.0f);
+    for (float v : state->sky_zenith_tint) assert(v >= 0.0f && v <= 1.0f);
+    for (float v : state->sky_horizon_tint) assert(v >= 0.0f && v <= 1.0f);
+  }
+
   assert(noon_tinted.filter_transmission < noon_clear.filter_transmission);
   assert(noon_polarized.filter_transmission <= noon_clear.filter_transmission);
   assert(noon_tinted.effective_eye_luminance < noon_clear.effective_eye_luminance);
