@@ -50,7 +50,9 @@ void CameraController::apply_preset(CameraPreset preset) noexcept {
 void CameraController::set_preset(CameraPreset preset) noexcept { apply_preset(preset); }
 
 void CameraController::orbit(float normalized_dx, float normalized_dy) noexcept {
-  state_.yaw_radians = std::remainder(state_.yaw_radians + normalized_dx * kOrbitYawPerScreen, 6.28318531f);
+  // Drag-content semantics: moving the pointer/finger right should rotate the visible
+  // character to the right, not make the camera feel inverted.
+  state_.yaw_radians = std::remainder(state_.yaw_radians - normalized_dx * kOrbitYawPerScreen, 6.28318531f);
   state_.pitch_radians = std::clamp(state_.pitch_radians + normalized_dy * kOrbitPitchPerScreen,
                                     kMinPitch, kMaxPitch);
 }
@@ -58,6 +60,13 @@ void CameraController::orbit(float normalized_dx, float normalized_dy) noexcept 
 void CameraController::zoom(float scale) noexcept {
   if (!std::isfinite(scale) || scale <= 0.01f) return;
   state_.distance_m = std::clamp(state_.distance_m / scale, kMinDistance, kMaxDistance);
+}
+
+void CameraController::reset_view() noexcept {
+  const auto preset = state_.preset;
+  state_.yaw_radians = 0.0f;
+  state_.pitch_radians = 0.0f;
+  apply_preset(preset);
 }
 
 } // namespace rengine::lsg
