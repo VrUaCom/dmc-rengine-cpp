@@ -17,6 +17,12 @@
 
 namespace {
 constexpr const char* kTag = "RengineLSG";
+constexpr std::int64_t kLongPressMs = 600;
+
+std::int64_t monotonic_ms() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now().time_since_epoch()).count();
+}
 
 struct AppState {
   rengine::lsg::VulkanRenderer renderer;
@@ -29,6 +35,9 @@ struct AppState {
   bool dragging{};
   bool hud_candidate{};
   bool moved{};
+  bool tooltip_visible{};
+  int pressed_ui_row{-1};
+  std::int64_t press_start_ms{};
   float down_x{};
   float down_y{};
   float last_x{};
@@ -142,10 +151,10 @@ int ui_row_from_point(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return -1;
   const float nx = x / width;
   const float ny = y / height;
-  if (nx < 0.035f || nx > 0.295f) return -1;
+  if (nx < 0.020f || nx > 0.185f) return -1;
   for (int row = 0; row < 7; ++row) {
-    const float center_y = 0.11f + static_cast<float>(row) * 0.11f;
-    if (std::abs(ny - center_y) <= 0.045f) return row;
+    const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
+    if (std::abs(ny - center_y) <= 0.033f) return row;
   }
   return -1;
 }
@@ -154,7 +163,22 @@ bool point_in_ui_panel(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return false;
   const float nx = x / width;
   const float ny = y / height;
-  return nx >= 0.015f && nx <= 0.325f && ny >= 0.04f && ny <= 0.84f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.635f;
+}
+
+void clear_tooltip(AppState& state) {
+  state.tooltip_visible = false;
+  state.pressed_ui_row = -1;
+  state.press_start_ms = 0;
+  state.renderer.set_ui_tooltip_row(-1);
+}
+
+void update_long_press(AppState& state) {
+  if (!state.hud_candidate || state.moved || state.tooltip_visible || state.pressed_ui_row < 0) return;
+  if (monotonic_ms() - state.press_start_ms < kLongPressMs) return;
+  state.tooltip_visible = true;
+  state.renderer.set_ui_tooltip_row(state.pressed_ui_row);
+  log_info("R&D tooltip shown");
 }
 
 void handle_ui_row(AppState& state, int row) {
@@ -202,14 +226,19 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_DOWN) {
     state->down_x = state->last_x = AMotionEvent_getX(event, 0);
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
-    state->hud_candidate = point_in_ui_panel(state->down_x, state->down_y, width, height);
+    state->pressed_ui_row = ui_row_from_point(state->down_x, state->down_y, width, height);
+    state->hud_candidate = state->pressed_ui_row >= 0;
     state->dragging = !state->hud_candidate;
     state->moved = false;
+    state->tooltip_visible = false;
+    state->renderer.set_ui_tooltip_row(-1);
+    state->press_start_ms = state->hud_candidate ? monotonic_ms() : 0;
     state->last_pinch_distance = 0.0f;
     return 1;
   }
 
   if (masked == AMOTION_EVENT_ACTION_POINTER_DOWN && count >= 2) {
+    clear_tooltip(*state);
     state->hud_candidate = false; state->dragging = false; state->moved = true;
     state->last_pinch_distance = pointer_distance(event); return 1;
   }
@@ -224,7 +253,10 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     const float movement = std::hypot(x - state->down_x, y - state->down_y);
     const float threshold = 0.025f * std::min(width, height);
     if (movement > threshold) state->moved = true;
-    if (state->hud_candidate && movement > threshold) state->hud_candidate = false;
+    if (state->hud_candidate && movement > threshold) {
+      state->hud_candidate = false;
+      clear_tooltip(*state);
+    }
     if (!state->hud_candidate) {
       if (!state->dragging) { state->dragging = true; state->last_x = x; state->last_y = y; }
       else {
@@ -250,7 +282,10 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     if (masked == AMOTION_EVENT_ACTION_UP) {
       if (state->hud_candidate) {
-        handle_ui_row(*state, ui_row_from_point(x, y, width, height));
+        const int row = ui_row_from_point(x, y, width, height);
+        if (!state->tooltip_visible && row >= 0 && row == state->pressed_ui_row) {
+          handle_ui_row(*state, row);
+        }
       } else if (!state->moved) {
         const std::int64_t now_ms = AMotionEvent_getEventTime(event);
         const float tap_distance = std::hypot(x - state->last_tap_x, y - state->last_tap_y);
@@ -261,6 +296,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
         }
       }
     }
+    clear_tooltip(*state);
     state->dragging = false; state->hud_candidate = false; state->moved = false; state->last_pinch_distance = 0.0f; return 1;
   }
   return 0;
@@ -281,6 +317,7 @@ void android_main(android_app* app) {
       if (app->destroyRequested != 0) { state.renderer.shutdown(); return; }
     }
     if (state.renderer.ready()) {
+      update_long_press(state);
       const auto frame_begin = std::chrono::steady_clock::now();
       const float seconds = std::chrono::duration<float>(frame_begin - start).count();
       if (!state.renderer.draw_frame(seconds, state.character_index, state.detail_enabled)) {
