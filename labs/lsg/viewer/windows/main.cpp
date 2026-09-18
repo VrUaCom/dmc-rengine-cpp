@@ -37,6 +37,7 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
     case DiagnosticRenderMode::genome_perspective: return "GENOME_PERSPECTIVE";
     case DiagnosticRenderMode::raw_perspective: return "RAW_PERSPECTIVE";
     case DiagnosticRenderMode::raw_orthographic: return "RAW_ORTHOGRAPHIC";
+    case DiagnosticRenderMode::genome_joint_debug: return "GENOME_JOINT_DEBUG";
   }
   return "UNKNOWN";
 }
@@ -67,14 +68,51 @@ void cycle_mode(ViewerState& state) {
   print_diagnostics(state, "Diagnostic mode changed");
 }
 
-void handle_hud(ViewerState& state, HWND window, int x) {
-  RECT rect{}; GetClientRect(window, &rect);
-  const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
-  const int quarter = std::max(1, width / 4);
-  if (x < quarter) state.character_index = 0;
-  else if (x < quarter * 2) state.character_index = 1;
-  else if (x < quarter * 3) state.detail_enabled = !state.detail_enabled;
-  else cycle_mode(state);
+int ui_row_from_point(int x, int y, int width, int height) {
+  if (width <= 0 || height <= 0) return -1;
+  const float nx = static_cast<float>(x) / static_cast<float>(width);
+  const float ny = static_cast<float>(y) / static_cast<float>(height);
+  if (nx < 0.035f || nx > 0.295f) return -1;
+  for (int row = 0; row < 7; ++row) {
+    const float center_y = 0.11f + static_cast<float>(row) * 0.11f;
+    if (std::abs(ny - center_y) <= 0.045f) return row;
+  }
+  return -1;
+}
+
+bool point_in_ui_panel(int x, int y, int width, int height) {
+  if (width <= 0 || height <= 0) return false;
+  const float nx = static_cast<float>(x) / static_cast<float>(width);
+  const float ny = static_cast<float>(y) / static_cast<float>(height);
+  return nx >= 0.015f && nx <= 0.325f && ny >= 0.04f && ny <= 0.84f;
+}
+
+void handle_ui_row(ViewerState& state, int row) {
+  if (state.renderer == nullptr) return;
+  using rengine::lsg::CameraPreset;
+  switch (row) {
+    case 0: state.character_index = 0; break;
+    case 1: state.character_index = 1; break;
+    case 2: state.detail_enabled = !state.detail_enabled; break;
+    case 3: {
+      using rengine::lsg::DiagnosticRenderMode;
+      const bool enable = state.renderer->diagnostic_mode() != DiagnosticRenderMode::genome_joint_debug;
+      state.renderer->set_diagnostic_mode(enable ? DiagnosticRenderMode::genome_joint_debug
+                                                : DiagnosticRenderMode::genome_perspective);
+      break;
+    }
+    case 4: {
+      const auto current = state.renderer->camera_state().preset;
+      const auto next = current == CameraPreset::full_body ? CameraPreset::portrait
+                      : current == CameraPreset::portrait ? CameraPreset::extreme_close_up
+                                                         : CameraPreset::full_body;
+      state.renderer->set_camera_preset(next);
+      break;
+    }
+    case 5: cycle_mode(state); break;
+    case 6: state.renderer->reset_camera_view(); break;
+    default: break;
+  }
 }
 
 LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lparam) {
@@ -99,7 +137,9 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         RECT rect{}; GetClientRect(window, &rect);
         state->down_x = state->last_x = GET_X_LPARAM(lparam);
         state->down_y = state->last_y = GET_Y_LPARAM(lparam);
-        state->hud_candidate = state->down_y >= static_cast<int>(static_cast<float>(rect.bottom - rect.top) * 0.70f);
+        const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
+        const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
+        state->hud_candidate = point_in_ui_panel(state->down_x, state->down_y, width, height);
         state->dragging = !state->hud_candidate;
         SetCapture(window); return 0;
       }
@@ -127,7 +167,9 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
       if (state != nullptr) {
         RECT rect{}; GetClientRect(window, &rect);
         const int x = GET_X_LPARAM(lparam), y = GET_Y_LPARAM(lparam);
-        if (state->hud_candidate && y >= static_cast<int>(static_cast<float>(rect.bottom - rect.top) * 0.70f)) handle_hud(*state, window, x);
+        const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
+        const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
+        if (state->hud_candidate) handle_ui_row(*state, ui_row_from_point(x, y, width, height));
         state->dragging = false; state->hud_candidate = false; ReleaseCapture(); return 0;
       }
       break;
@@ -162,7 +204,7 @@ int main(int argc, char** argv) {
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
   AdjustWindowRect(&rectangle, style, FALSE);
   HWND window = CreateWindowExW(0, kClassName,
-      L"Rengine LSG - drag orbit, wheel zoom, F/P/C camera, 0/1 profile, D detail, M diagnostics",
+      L"Rengine LSG - left R&D panel, drag orbit, wheel zoom, F/P/C camera, 0/1 profile",
       style, CW_USEDEFAULT, CW_USEDEFAULT, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
       nullptr, nullptr, instance, &state);
   if (window == nullptr) { std::cerr << "CreateWindowExW failed\n"; return 4; }
