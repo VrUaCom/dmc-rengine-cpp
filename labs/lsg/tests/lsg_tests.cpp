@@ -1,6 +1,7 @@
 #include "rengine/lsg/anatomical_field.hpp"
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
+#include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/detail_scheduler.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -63,6 +64,21 @@ int main() {
     found_active_cell = true;
   }
   assert(found_active_cell);
+
+  const auto eye0 = derive_eye_parameters(g0), eye1 = derive_eye_parameters(g1);
+  assert(eye0.eye_seed_low == fold_seed64(g0.eye_seed));
+  assert(eye1.eye_seed_low == fold_seed64(g1.eye_seed));
+  assert(eye0.eye_seed_low != eye1.eye_seed_low);
+  for (float c : eye0.iris_primary) assert(c >= 0.0f && c <= 1.0f);
+  for (float c : eye1.iris_secondary) assert(c >= 0.0f && c <= 1.0f);
+  const float iris_a = sample_iris_variation(eye0.eye_seed_low, 0u, 17, 3);
+  const float iris_b = sample_iris_variation(eye0.eye_seed_low, 0u, 17, 3);
+  const float iris_other_side = sample_iris_variation(eye0.eye_seed_low, 1u, 17, 3);
+  const float iris_other_seed = sample_iris_variation(eye1.eye_seed_low, 0u, 17, 3);
+  assert(iris_a == iris_b);
+  assert(iris_a >= 0.0f && iris_a < 1.0f);
+  assert(iris_a != iris_other_side);
+  assert(iris_a != iris_other_seed);
 
   const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);
