@@ -76,6 +76,8 @@ void print_diagnostics(const ViewerState& state, const char* reason, float fps =
             << " distance=" << d.camera_distance_m
             << "m time=" << lighting_name(d.lighting_preset)
             << " filter=" << filter_name(d.optical_filter)
+            << " transmission=" << d.filter_transmission
+            << " polar_strength=" << d.polarization_strength
             << " scene_lum=" << d.scene_luminance
             << " eye_lum=" << d.effective_eye_luminance
             << " pupil_target=" << d.pupil_target_radius
@@ -100,7 +102,7 @@ int ui_row_from_point(int x, int y, int width, int height) {
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 10; ++row) {
+  for (int row = 0; row < 11; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.029f) return row;
   }
@@ -167,6 +169,16 @@ void handle_ui_row(ViewerState& state, int row) {
                                                            : LightingPreset::morning;
       state.renderer->set_lighting_preset(next);
       print_diagnostics(state, "Time preset changed");
+      break;
+    }
+    case 10: {
+      using rengine::lsg::OpticalFilterPreset;
+      const auto current = state.renderer->optical_filter_preset();
+      const auto next = current == OpticalFilterPreset::clear ? OpticalFilterPreset::tinted
+                      : current == OpticalFilterPreset::tinted ? OpticalFilterPreset::polarized_approx
+                                                               : OpticalFilterPreset::clear;
+      state.renderer->set_optical_filter_preset(next);
+      print_diagnostics(state, "Optical filter changed");
       break;
     }
     default: break;
