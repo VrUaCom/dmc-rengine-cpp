@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rengine/lsg/camera.hpp"
+#include "rengine/lsg/physiology.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -59,6 +60,9 @@ public:
 
   void set_ui_tooltip_row(int row) noexcept;
   [[nodiscard]] int ui_tooltip_row() const noexcept;
+
+  void set_physiology_preset(PhysiologyPreset preset) noexcept;
+  [[nodiscard]] PhysiologyPreset physiology_preset() const noexcept;
   [[nodiscard]] RendererDiagnostics diagnostics() const noexcept;
 
 private:
