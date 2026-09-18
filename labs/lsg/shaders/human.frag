@@ -17,6 +17,16 @@ layout(push_constant) uniform LsgPush {
     uvec4 flags;
 } pc;
 
+layout(set = 0, binding = 0, std140) uniform FrameLighting {
+    vec4 sun_direction_intensity;
+    vec4 sun_tint_sky_intensity;
+    vec4 sky_zenith_exposure;
+    vec4 sky_horizon_scene_lum;
+    vec4 filter_tint_transmission;
+    vec4 eye_filter_misc;
+    uvec4 modes;
+} lighting;
+
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
@@ -175,12 +185,24 @@ bool hud_glyph(uint button, vec2 uv) {
         return left_lobe || right_lobe || lower || pulse;
     }
 
-    // Eyes: almond/ring outline plus pupil.
-    vec2 e = (uv - vec2(0.50)) / vec2(0.34, 0.20);
-    float ellipse = dot(e, e);
-    bool eye_outline = ellipse > 0.72 && ellipse < 1.08;
-    bool pupil = length(uv - vec2(0.50)) < 0.085;
-    return eye_outline || pupil;
+    if (button == 8u) {
+        // Eyes: almond/ring outline plus pupil.
+        vec2 e = (uv - vec2(0.50)) / vec2(0.34, 0.20);
+        float ellipse = dot(e, e);
+        bool eye_outline = ellipse > 0.72 && ellipse < 1.08;
+        bool pupil = length(uv - vec2(0.50)) < 0.085;
+        return eye_outline || pupil;
+    }
+
+    // Time: compact sun disk with four rays.
+    float r = length(uv - vec2(0.50));
+    bool disk = r < 0.14;
+    bool ring = r > 0.20 && r < 0.25;
+    bool rays = inside_box(uv, vec2(0.47, 0.18), vec2(0.53, 0.31)) ||
+                inside_box(uv, vec2(0.47, 0.69), vec2(0.53, 0.82)) ||
+                inside_box(uv, vec2(0.18, 0.47), vec2(0.31, 0.53)) ||
+                inside_box(uv, vec2(0.69, 0.47), vec2(0.82, 0.53));
+    return disk || ring || rays;
 }
 
 uint font_bits(uint c) {
@@ -234,6 +256,7 @@ uint tooltip_length(uint tooltip) {
     if (tooltip == 6u) return 20u;
     if (tooltip == 7u) return 22u;
     if (tooltip == 8u) return 16u;
+    if (tooltip == 9u) return 20u;
     return 0u;
 }
 
@@ -247,6 +270,7 @@ uint tooltip_char(uint tooltip, uint index) {
     const uint t6[20] = uint[20](82u,69u,83u,69u,84u,32u,32u,67u,69u,78u,84u,69u,82u,32u,67u,65u,77u,69u,82u,65u);
     const uint t7[22] = uint[22](80u,72u,89u,83u,32u,32u,67u,89u,67u,76u,69u,32u,66u,79u,68u,89u,32u,83u,84u,65u,84u,69u);
     const uint t8[16] = uint[16](69u,89u,69u,83u,32u,32u,67u,89u,67u,76u,69u,32u,86u,73u,69u,87u);
+    const uint t9[20] = uint[20](84u,73u,77u,69u,32u,32u,67u,89u,67u,76u,69u,32u,68u,65u,89u,76u,73u,71u,72u,84u);
     if (tooltip == 0u && index < 20u) return t0[index];
     if (tooltip == 1u && index < 22u) return t1[index];
     if (tooltip == 2u && index < 23u) return t2[index];
@@ -256,6 +280,7 @@ uint tooltip_char(uint tooltip, uint index) {
     if (tooltip == 6u && index < 20u) return t6[index];
     if (tooltip == 7u && index < 22u) return t7[index];
     if (tooltip == 8u && index < 16u) return t8[index];
+    if (tooltip == 9u && index < 20u) return t9[index];
     return 32u;
 }
 
@@ -330,7 +355,7 @@ vec3 aces_fitted(vec3 x) {
 }
 
 vec3 sun_world_direction() {
-    return normalize(vec3(-0.30, 0.82, 0.47));
+    return normalize(lighting.sun_direction_intensity.xyz);
 }
 
 vec3 sun_view_direction() {
@@ -353,32 +378,44 @@ vec3 procedural_environment(vec2 logical_ndc) {
 
     float elevation = clamp(ray_world.y, 0.0, 1.0);
     float horizon = pow(1.0 - elevation, 2.2);
-    vec3 zenith = vec3(0.055, 0.16, 0.42);
-    vec3 horizon_colour = vec3(0.34, 0.48, 0.68);
+    float sky_intensity = max(lighting.sun_tint_sky_intensity.w, 0.0);
+    float direct_intensity = max(lighting.sun_direction_intensity.w, 0.0);
+    vec3 zenith = lighting.sky_zenith_exposure.rgb;
+    vec3 horizon_colour = lighting.sky_horizon_scene_lum.rgb;
+    vec3 sun_tint = lighting.sun_tint_sky_intensity.rgb;
+
     vec3 sky = mix(zenith, horizon_colour, horizon);
-    sky += vec3(0.10, 0.20, 0.46) * rayleigh_phase * (0.28 + 0.72 * elevation);
-    sky += vec3(1.00, 0.70, 0.42) * mie_phase * 0.012 * (0.35 + 0.65 * horizon);
+    sky += mix(zenith, horizon_colour, 0.35) * rayleigh_phase *
+           (0.18 + 0.52 * elevation);
+    sky += sun_tint * mie_phase * 0.012 * direct_intensity *
+           (0.35 + 0.65 * horizon);
+    sky *= sky_intensity;
 
     const float sun_inner = 0.999965;
     const float sun_outer = 0.99982;
     float sun_disk = smoothstep(sun_outer, sun_inner, mu);
-    sky += vec3(8.0, 6.8, 5.2) * sun_disk;
+    sky += sun_tint * 8.0 * sun_disk * direct_intensity;
 
     if (ray_world.y < 0.0) {
         float ndotl = max(sun_world.y, 0.0);
-        vec3 ground = vec3(0.18) * (0.22 + 0.78 * ndotl) + vec3(0.035, 0.055, 0.085);
+        vec3 ground = vec3(0.18) * horizon_colour *
+                      (0.45 + 0.55 * sky_intensity) *
+                      (0.30 + 0.70 * ndotl * direct_intensity);
+        ground += zenith * 0.08 * sky_intensity;
         float horizon_blend = smoothstep(-0.035, 0.025, ray_world.y);
         sky = mix(ground, sky, horizon_blend);
     }
 
-    return aces_fitted(max(sky, vec3(0.0)));
+    float exposure = max(lighting.sky_zenith_exposure.w, 0.01);
+    return aces_fitted(max(sky * exposure, vec3(0.0)));
 }
 
 vec3 sky_irradiance(vec3 n) {
     float up = clamp(n.y * 0.5 + 0.5, 0.0, 1.0);
-    vec3 horizon = vec3(0.36, 0.48, 0.62);
-    vec3 zenith = vec3(0.16, 0.32, 0.58);
-    return mix(horizon, zenith, pow(up, 0.65));
+    vec3 horizon = lighting.sky_horizon_scene_lum.rgb;
+    vec3 zenith = lighting.sky_zenith_exposure.rgb;
+    return mix(horizon, zenith, pow(up, 0.65)) *
+           max(lighting.sun_tint_sky_intensity.w, 0.0);
 }
 
 void main() {
@@ -388,6 +425,7 @@ void main() {
     uint tooltip = (pc.flags.w >> 5u) & 15u;
     uint physiology = (pc.flags.w >> 9u) & 3u;
     uint eye_mode = (pc.flags.w >> 11u) & 3u;
+    uint lighting_preset = (pc.flags.w >> 13u) & 3u;
 
     if (ui_environment_pass()) {
         if (body_region == 200u) {
@@ -407,7 +445,7 @@ void main() {
             out_colour = vec4(colour, 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 108u) discard;
+        if (body_region < 100u || body_region > 109u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
@@ -421,6 +459,7 @@ void main() {
                         (button == 5u && mode != 0u) ||
                         (button == 7u && physiology != 0u) ||
                         (button == 8u && eye_mode != 0u) ||
+                        (button == 9u) ||
                         (button == tooltip);
 
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
@@ -447,6 +486,13 @@ void main() {
                                    : vec3(0.14, 0.42, 0.72);
         }
 
+        if (button == 9u) {
+            panel = lighting_preset == 0u ? vec3(0.68, 0.42, 0.16)
+                  : lighting_preset == 1u ? vec3(0.62, 0.66, 0.58)
+                  : lighting_preset == 2u ? vec3(0.72, 0.28, 0.10)
+                                          : vec3(0.08, 0.14, 0.34);
+        }
+
         if (edge < 0.045) panel = min(panel + vec3(0.20), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
@@ -471,7 +517,8 @@ void main() {
         float ndotl = max(dot(n, l), 0.0);
         vec3 neutral = vec3(0.48, 0.43, 0.39);
         vec3 colour = neutral * (0.24 + 0.76 * ndotl) + neutral * sky_irradiance(n) * 0.22;
-        out_colour = vec4(aces_fitted(colour * 1.15), 1.0);
+        out_colour = vec4(aces_fitted(colour * 1.15 *
+                                      max(lighting.sky_zenith_exposure.w, 0.01)), 1.0);
         return;
     }
 
@@ -558,11 +605,12 @@ void main() {
 
     vec3 sky = sky_irradiance(n);
     vec3 ambient = base_colour * sky * 0.28;
-    vec3 sun_radiance = vec3(1.0, 0.95, 0.86) * 3.1;
+    vec3 sun_radiance = lighting.sun_tint_sky_intensity.rgb *
+                        (3.1 * max(lighting.sun_direction_intensity.w, 0.0));
     vec3 colour = ambient + diffuse * sun_radiance +
                   specular * sun_radiance * (1.2 + oiliness * 0.75 + sweat * 0.35) +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
-    colour *= 1.05;
+    colour *= 1.05 * max(lighting.sky_zenith_exposure.w, 0.01);
     out_colour = vec4(aces_fitted(max(colour, vec3(0.0))), 1.0);
 }
