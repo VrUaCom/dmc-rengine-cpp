@@ -4,6 +4,12 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-bootstrap-confirmation`.
 
+> **Corrected the same day** by
+> `docs/reverse/dmc3-trivial-function-caveat-2026-09-18.md`. This note says the
+> size dispatcher's target lives outside the file layer as though that were an
+> architectural fact. `0x0629C0` is two bytes long and is also a vtable slot in
+> 17 unrelated classes, so its reference set says nothing about where it belongs.
+
 I set out to read who registers the mounts and in what order. I read it, and
 then found the answer already in the repository — recorded on 2026-09-05, in
 more detail than I had reached. The useful part of this pass is therefore not a

@@ -397,6 +397,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-bootstrap-confirmation.evidence.json)
     add_test(
+        NAME dmc_rengine_trivial_function_caveat_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-trivial-function-caveat.evidence.json)
+    add_test(
         NAME dmc_rengine_summary_identities_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-summary-identities.evidence.json)

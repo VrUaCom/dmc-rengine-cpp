@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-trivial-function-caveat",
+  "title": "DMC3 HD: a two-byte function in seventeen vtables, and what that costs a call-graph argument",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-archive-size-is-two-bytes",
+      "claim_id": "claim-dmc3-stream-is-a-tagged-union",
+      "title": "The size outside the layer is two bytes, and saying it lives elsewhere implied a fact there is none of",
+      "summary": "The correction note observed that read and seek keep their archive branch inside the file layer while the size dispatcher tail-jumps to 0x0629C0 outside it, and said that whatever computes an archive entry's size does not live with the rest of the archive code. 0x0629C0 is mov eax,[rcx+0x20] followed by ret: two bytes of body. Against the entry layout that offset is decoded struct 0x18, record 0x18, the uncompressed size, so the jump is semantically exact. Searching the image for its address as a qword finds it in 17 pointer tables in .rdata, and two of those dumped in context show an .rdata pointer followed by a run of .text pointers - a complete-object locator and a vtable - agreeing on every slot but the first, so it is also a virtual accessor shared by a class family that overrides only slot zero. It cannot be the same thing in both places: the archive entry is calloc(1, 0x50) whose offset zero holds a _strdup of the archive path, so it has no vtable pointer and is not an instance of that family, and the dispatcher reaches the function by a direct tail jump rather than through any table. Whether the linker folded two identical bodies or the compiler reused one is not decidable from the bytes and does not matter. The earlier sentence inferred subsystem membership from a reference set, which is the thing that cannot be done here.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "method",
+        "call-graph",
+        "archive"
+      ],
+      "supersedes": [
+        "ev-dmc3-three-dispatchers-not-two"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 403904,
+          "size": 4,
+          "symbol": "the two-byte size accessor",
+          "note": "RVA 0x0629C0, 'mov eax,[rcx+0x20]; ret', no .pdata entry, reached by a tail jump from 0x3272AB and present in 17 .rdata tables."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5007544,
+          "size": 104,
+          "symbol": "one vtable holding it",
+          "note": "RVA 0x4C68B8, a complete-object locator then twelve slots; 0x4CDCC8 is a second whose slots differ only in the first."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-trivial-callers-carry-no-meaning",
+      "claim_id": "claim-dmc3-trivial-callers-carry-no-meaning",
+      "title": "At least 33 one-instruction getters, all 33 invisible to a .pdata census",
+      "summary": "This reverse leans on the call graph: the file-access claim was a coupling ratio of 774 callers in against 17 callees out, and the reachability work brackets the image with caller sets and dispatch closures and reports 1,641 functions no path reaches. Those measures are not in question, because they concern functions with real bodies. They carry no semantic weight over a function whose body is one instruction, because its callers are not the users of a concept but whoever needed that offset, so any argument of the form X is called from here therefore X belongs to this subsystem is unsound at that size. To size the exposure, a scan of .text for one-instruction rcx-relative getters immediately followed by ret, over six encodings and requiring the preceding byte to be padding or a return, finds 33: fifteen mov eax, eight movss, five movzx from a byte, three mov rax, one movzx from a word and one lea. Every one of the 33 is outside .pdata. The 33 is a lower bound rather than a count, since the padding requirement misses a getter following something else and only six encodings were scanned; what is exact is that none of them is enumerable from .pdata, which is the third instance of that blind spot in one day after the two missing signature decoders and the third dispatcher.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "method",
+        "census",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 403904,
+          "size": 64,
+          "symbol": "the getter run",
+          "note": "RVA 0x0629C0 through 0x0629F3, four getters at sixteen-byte stride returning +0x20, +0x2C, +0x28 and +0x34, none with a .pdata entry."
+        }
+      ]
+    }
+  ]
+}
