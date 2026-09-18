@@ -66,6 +66,12 @@ struct VulkanRenderer::Impl {
   VkPipeline pipeline{VK_NULL_HANDLE};
   VkPipelineLayout eye_pipeline_layout{VK_NULL_HANDLE};
   VkPipeline eye_pipeline{VK_NULL_HANDLE};
+  VkDescriptorSetLayout frame_lighting_set_layout{VK_NULL_HANDLE};
+  VkDescriptorPool frame_lighting_descriptor_pool{VK_NULL_HANDLE};
+  VkDescriptorSet frame_lighting_descriptor_set{VK_NULL_HANDLE};
+  VkBuffer frame_lighting_buffer{VK_NULL_HANDLE};
+  VkDeviceMemory frame_lighting_memory{VK_NULL_HANDLE};
+  void* frame_lighting_mapped{};
   struct ProfileMeshGpu {
     VkBuffer vertex_buffer{VK_NULL_HANDLE};
     VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
@@ -85,6 +91,7 @@ struct VulkanRenderer::Impl {
   LightingRuntimeState lighting{lighting_for(LightingPreset::noon, OpticalFilterPreset::clear)};
   std::array<EyeRuntimeState, 2> eye_runtime{};
   float last_eye_time_seconds{};
+  std::uint32_t last_profile_index{};
   VkCommandPool command_pool{VK_NULL_HANDLE};
   std::vector<VkCommandBuffer> command_buffers;
   VkSemaphore image_available{VK_NULL_HANDLE};
@@ -126,6 +133,59 @@ struct EyePushConstants {
   std::uint32_t flags[4]{}; // rotation, profile, vascularity byte, eye seed low
 };
 static_assert(sizeof(EyePushConstants) == 128);
+
+struct alignas(16) FrameLightingGpu {
+  float sun_direction_intensity[4]{};
+  float sun_tint_sky_intensity[4]{};
+  float sky_zenith_exposure[4]{};
+  float sky_horizon_scene_lum[4]{};
+  float filter_tint_transmission[4]{};
+  float eye_filter_misc[4]{};
+  std::uint32_t modes[4]{};
+};
+static_assert(alignof(FrameLightingGpu) == 16);
+static_assert(sizeof(FrameLightingGpu) == 112);
+static_assert(offsetof(FrameLightingGpu, sun_direction_intensity) == 0);
+static_assert(offsetof(FrameLightingGpu, sun_tint_sky_intensity) == 16);
+static_assert(offsetof(FrameLightingGpu, sky_zenith_exposure) == 32);
+static_assert(offsetof(FrameLightingGpu, sky_horizon_scene_lum) == 48);
+static_assert(offsetof(FrameLightingGpu, filter_tint_transmission) == 64);
+static_assert(offsetof(FrameLightingGpu, eye_filter_misc) == 80);
+static_assert(offsetof(FrameLightingGpu, modes) == 96);
+
+FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting) noexcept {
+  FrameLightingGpu gpu{};
+  gpu.sun_direction_intensity[0] = lighting.sun_direction[0];
+  gpu.sun_direction_intensity[1] = lighting.sun_direction[1];
+  gpu.sun_direction_intensity[2] = lighting.sun_direction[2];
+  gpu.sun_direction_intensity[3] = lighting.direct_sun_intensity;
+
+  gpu.sun_tint_sky_intensity[0] = lighting.sun_tint[0];
+  gpu.sun_tint_sky_intensity[1] = lighting.sun_tint[1];
+  gpu.sun_tint_sky_intensity[2] = lighting.sun_tint[2];
+  gpu.sun_tint_sky_intensity[3] = lighting.sky_intensity;
+
+  gpu.sky_zenith_exposure[0] = lighting.sky_zenith_tint[0];
+  gpu.sky_zenith_exposure[1] = lighting.sky_zenith_tint[1];
+  gpu.sky_zenith_exposure[2] = lighting.sky_zenith_tint[2];
+  gpu.sky_zenith_exposure[3] = lighting.exposure;
+
+  gpu.sky_horizon_scene_lum[0] = lighting.sky_horizon_tint[0];
+  gpu.sky_horizon_scene_lum[1] = lighting.sky_horizon_tint[1];
+  gpu.sky_horizon_scene_lum[2] = lighting.sky_horizon_tint[2];
+  gpu.sky_horizon_scene_lum[3] = lighting.scene_luminance;
+
+  gpu.filter_tint_transmission[0] = lighting.filter_tint[0];
+  gpu.filter_tint_transmission[1] = lighting.filter_tint[1];
+  gpu.filter_tint_transmission[2] = lighting.filter_tint[2];
+  gpu.filter_tint_transmission[3] = lighting.filter_transmission;
+
+  gpu.eye_filter_misc[0] = lighting.effective_eye_luminance;
+  gpu.eye_filter_misc[1] = lighting.polarization_strength;
+  gpu.modes[0] = static_cast<std::uint32_t>(lighting.preset);
+  gpu.modes[1] = static_cast<std::uint32_t>(lighting.filter);
+  return gpu;
+}
 
 const char* platform_surface_extension() noexcept {
 #if defined(__ANDROID__)
@@ -434,6 +494,99 @@ bool create_host_buffer(VulkanRenderer::Impl& state, const void* source, VkDevic
   return true;
 }
 
+bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
+  VkDescriptorSetLayoutBinding binding{};
+  binding.binding = 0;
+  binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  binding.descriptorCount = 1;
+  binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+  VkDescriptorSetLayoutCreateInfo layout{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+  layout.bindingCount = 1;
+  layout.pBindings = &binding;
+  if (vkCreateDescriptorSetLayout(state.device, &layout, nullptr,
+                                  &state.frame_lighting_set_layout) != VK_SUCCESS) {
+    return false;
+  }
+
+  VkBufferCreateInfo buffer{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+  buffer.size = sizeof(FrameLightingGpu);
+  buffer.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+  buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  if (vkCreateBuffer(state.device, &buffer, nullptr, &state.frame_lighting_buffer) != VK_SUCCESS) {
+    return false;
+  }
+
+  VkMemoryRequirements requirements{};
+  vkGetBufferMemoryRequirements(state.device, state.frame_lighting_buffer, &requirements);
+  std::uint32_t type{};
+  if (!find_memory_type(state.physical, requirements.memoryTypeBits,
+                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                        type)) {
+    return false;
+  }
+
+  VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+  allocation.allocationSize = requirements.size;
+  allocation.memoryTypeIndex = type;
+  if (vkAllocateMemory(state.device, &allocation, nullptr,
+                       &state.frame_lighting_memory) != VK_SUCCESS ||
+      vkBindBufferMemory(state.device, state.frame_lighting_buffer,
+                         state.frame_lighting_memory, 0) != VK_SUCCESS) {
+    return false;
+  }
+
+  if (vkMapMemory(state.device, state.frame_lighting_memory, 0,
+                  sizeof(FrameLightingGpu), 0,
+                  &state.frame_lighting_mapped) != VK_SUCCESS) {
+    return false;
+  }
+
+  VkDescriptorPoolSize pool_size{};
+  pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  pool_size.descriptorCount = 1;
+  VkDescriptorPoolCreateInfo pool{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+  pool.maxSets = 1;
+  pool.poolSizeCount = 1;
+  pool.pPoolSizes = &pool_size;
+  if (vkCreateDescriptorPool(state.device, &pool, nullptr,
+                             &state.frame_lighting_descriptor_pool) != VK_SUCCESS) {
+    return false;
+  }
+
+  VkDescriptorSetAllocateInfo set_alloc{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+  set_alloc.descriptorPool = state.frame_lighting_descriptor_pool;
+  set_alloc.descriptorSetCount = 1;
+  set_alloc.pSetLayouts = &state.frame_lighting_set_layout;
+  if (vkAllocateDescriptorSets(state.device, &set_alloc,
+                               &state.frame_lighting_descriptor_set) != VK_SUCCESS) {
+    return false;
+  }
+
+  VkDescriptorBufferInfo buffer_info{};
+  buffer_info.buffer = state.frame_lighting_buffer;
+  buffer_info.offset = 0;
+  buffer_info.range = sizeof(FrameLightingGpu);
+  VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+  write.dstSet = state.frame_lighting_descriptor_set;
+  write.dstBinding = 0;
+  write.descriptorCount = 1;
+  write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  write.pBufferInfo = &buffer_info;
+  vkUpdateDescriptorSets(state.device, 1, &write, 0, nullptr);
+
+  const auto initial = make_frame_lighting_gpu(state.lighting);
+  std::memcpy(state.frame_lighting_mapped, &initial, sizeof(initial));
+  state.estimated_bytes += sizeof(FrameLightingGpu);
+  return true;
+}
+
+void update_frame_lighting_buffer(VulkanRenderer::Impl& state) noexcept {
+  if (state.frame_lighting_mapped == nullptr) return;
+  const auto gpu = make_frame_lighting_gpu(state.lighting);
+  std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
+}
+
 bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
                          std::string_view path, VulkanRenderer::Impl::ProfileMeshGpu& gpu_mesh) {
   const auto bytes = load_asset_bytes(asset_manager, path);
@@ -537,6 +690,8 @@ bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   VkPushConstantRange push_range{};
   push_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT; push_range.size = sizeof(PushConstants);
   VkPipelineLayoutCreateInfo layout{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+  layout.setLayoutCount = 1;
+  layout.pSetLayouts = &state.frame_lighting_set_layout;
   layout.pushConstantRangeCount = 1; layout.pPushConstantRanges = &push_range;
   if (vkCreatePipelineLayout(state.device, &layout, nullptr, &state.pipeline_layout) != VK_SUCCESS) {
     vkDestroyShaderModule(state.device, fragment_module, nullptr); vkDestroyShaderModule(state.device, vertex_module, nullptr); return false;
@@ -639,6 +794,8 @@ bool create_eye_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   push_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
   push_range.size = sizeof(EyePushConstants);
   VkPipelineLayoutCreateInfo layout{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+  layout.setLayoutCount = 1;
+  layout.pSetLayouts = &state.frame_lighting_set_layout;
   layout.pushConstantRangeCount = 1;
   layout.pPushConstantRanges = &push_range;
   if (vkCreatePipelineLayout(state.device, &layout, nullptr, &state.eye_pipeline_layout) != VK_SUCCESS) {
@@ -761,6 +918,13 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.camera_distance_m = camera.distance_m;
   out.estimated_gpu_bytes = state.estimated_bytes;
   out.mode = state.diagnostic_mode;
+  out.lighting_preset = state.lighting.preset;
+  out.optical_filter = state.lighting.filter;
+  out.scene_luminance = state.lighting.scene_luminance;
+  out.effective_eye_luminance = state.lighting.effective_eye_luminance;
+  const auto profile = state.last_profile_index & 1u;
+  out.pupil_target_radius = state.eye_runtime[profile].target_pupil_radius;
+  out.pupil_current_radius = state.eye_runtime[profile].pupil_radius;
   return out;
 }
 
@@ -778,6 +942,7 @@ bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
       !create_platform_surface(state.instance, native_window, state.surface)) { shutdown(); return false; }
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) ||
       !create_render_targets(state) || !create_mesh_buffers(state, asset_manager) ||
+      !create_frame_lighting_resources(state) ||
       !create_pipeline(state, asset_manager) || !create_eye_pipeline(state, asset_manager) ||
       !create_sync(state)) { shutdown(); return false; }
   state.initialized = true; return true;
@@ -787,6 +952,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   if (!ready()) return false;
   auto& state = *impl_;
   if (vkWaitForFences(state.device, 1, &state.in_flight, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
+  update_frame_lighting_buffer(state);
+  state.last_profile_index = character_index & 1u;
   std::uint32_t image_index{};
   const auto acquire = vkAcquireNextImageKHR(state.device, state.swapchain, UINT64_MAX, state.image_available, VK_NULL_HANDLE, &image_index);
   if (acquire == VK_ERROR_OUT_OF_DATE_KHR || (acquire != VK_SUCCESS && acquire != VK_SUBOPTIMAL_KHR)) return false;
@@ -804,6 +971,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   render_pass.renderArea.extent = state.swapchain_extent; render_pass.clearValueCount = 2; render_pass.pClearValues = clears;
   vkCmdBeginRenderPass(command, &render_pass, VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
+  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline_layout,
+                          0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   const auto profile_index = character_index & 1u;
   const auto& profile_mesh = state.profile_meshes[profile_index];
   const VkDeviceSize offset = 0;
@@ -847,7 +1016,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
       static_cast<std::uint32_t>(state.ui_tooltip_row >= 0 ? state.ui_tooltip_row : 15) << 5u;
   const auto physiology_bits = static_cast<std::uint32_t>(state.physiology_preset) << 9u;
   const auto eye_mode_bits = static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 11u;
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | eye_mode_bits;
+  const auto lighting_bits = static_cast<std::uint32_t>(state.lighting.preset) << 13u;
+  const auto filter_bits = static_cast<std::uint32_t>(state.lighting.filter) << 15u;
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
+                  eye_mode_bits | lighting_bits | filter_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
@@ -855,6 +1027,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   // Slice B diagnostic eye pass: fitted eye geometry, 4 connected components.
   const auto& eye_mesh = state.eye_meshes[profile_index];
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.eye_pipeline);
+  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.eye_pipeline_layout,
+                          0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   vkCmdBindVertexBuffers(command, 0, 1, &eye_mesh.vertex_buffer, &offset);
   vkCmdBindIndexBuffer(command, eye_mesh.index_buffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -898,10 +1072,13 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   vkCmdDrawIndexed(command, eye_mesh.index_count, 1, 0, 0, 0);
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
-  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | eye_mode_bits | 1u;
+  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline_layout,
+                          0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
+  push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
+                  eye_mode_bits | lighting_bits | filter_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 69u, 1u, 0u, 0u);
+  vkCmdDraw(command, 75u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
@@ -929,6 +1106,18 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.command_pool) vkDestroyCommandPool(state.device, state.command_pool, nullptr);
     if (state.eye_pipeline) vkDestroyPipeline(state.device, state.eye_pipeline, nullptr);
     if (state.eye_pipeline_layout) vkDestroyPipelineLayout(state.device, state.eye_pipeline_layout, nullptr);
+    if (state.frame_lighting_mapped && state.frame_lighting_memory) {
+      vkUnmapMemory(state.device, state.frame_lighting_memory);
+      state.frame_lighting_mapped = nullptr;
+    }
+    if (state.frame_lighting_descriptor_pool) {
+      vkDestroyDescriptorPool(state.device, state.frame_lighting_descriptor_pool, nullptr);
+    }
+    if (state.frame_lighting_set_layout) {
+      vkDestroyDescriptorSetLayout(state.device, state.frame_lighting_set_layout, nullptr);
+    }
+    if (state.frame_lighting_buffer) vkDestroyBuffer(state.device, state.frame_lighting_buffer, nullptr);
+    if (state.frame_lighting_memory) vkFreeMemory(state.device, state.frame_lighting_memory, nullptr);
     if (state.pipeline) vkDestroyPipeline(state.device, state.pipeline, nullptr);
     if (state.pipeline_layout) vkDestroyPipelineLayout(state.device, state.pipeline_layout, nullptr);
     for (const auto framebuffer : state.framebuffers) vkDestroyFramebuffer(state.device, framebuffer, nullptr);
