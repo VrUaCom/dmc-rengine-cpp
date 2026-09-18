@@ -91,32 +91,49 @@ void regenerate_tangents(RMeshV0& mesh) {
   }
 }
 
-bool assign_component_regions(RMeshV0& mesh, std::size_t& component_count, std::string& error) {
-  if (mesh.vertices.empty() || mesh.indices.empty()) {
-    error = "component tagging requires non-empty geometry";
+bool assign_component_regions(RMeshV0& mesh,
+                              const std::vector<std::uint32_t>& source_position_by_vertex,
+                              std::size_t source_position_count,
+                              std::size_t& component_count,
+                              std::string& error) {
+  if (mesh.vertices.empty() || mesh.indices.empty() ||
+      source_position_by_vertex.size() != mesh.vertices.size() ||
+      source_position_count == 0u) {
+    error = "component tagging requires OBJ source-position provenance";
     return false;
   }
 
-  std::vector<std::vector<std::uint32_t>> adjacency(mesh.vertices.size());
+  std::vector<std::vector<std::uint32_t>> adjacency(source_position_count);
+  std::vector<bool> used(source_position_count, false);
   for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3) {
     const std::uint32_t tri[3] = {mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]};
-    for (int edge = 0; edge < 3; ++edge) {
-      const auto a = tri[edge];
-      const auto b = tri[(edge + 1) % 3];
-      if (a >= mesh.vertices.size() || b >= mesh.vertices.size()) {
-        error = "component tagging saw an out-of-range index";
+    std::uint32_t source[3]{};
+    for (int corner = 0; corner < 3; ++corner) {
+      if (tri[corner] >= source_position_by_vertex.size()) {
+        error = "component tagging saw an out-of-range render index";
         return false;
       }
+      source[corner] = source_position_by_vertex[tri[corner]];
+      if (source[corner] >= source_position_count) {
+        error = "component tagging saw an out-of-range source position index";
+        return false;
+      }
+      used[source[corner]] = true;
+    }
+    for (int edge = 0; edge < 3; ++edge) {
+      const auto a = source[edge];
+      const auto b = source[(edge + 1) % 3];
+      if (a == b) continue;
       adjacency[a].push_back(b);
       adjacency[b].push_back(a);
     }
   }
 
-  std::vector<int> component(mesh.vertices.size(), -1);
+  std::vector<int> component(source_position_count, -1);
   component_count = 0;
   std::vector<std::uint32_t> stack;
-  for (std::uint32_t root = 0; root < mesh.vertices.size(); ++root) {
-    if (component[root] >= 0) continue;
+  for (std::uint32_t root = 0; root < source_position_count; ++root) {
+    if (!used[root] || component[root] >= 0) continue;
     if (component_count > 10u) {
       error = "RMS0 v0 component tagging supports at most 11 diagnostic components";
       return false;
@@ -138,7 +155,12 @@ bool assign_component_regions(RMeshV0& mesh, std::size_t& component_count, std::
   }
 
   for (std::size_t i = 0; i < mesh.vertices.size(); ++i) {
-    mesh.vertices[i].region_id = static_cast<std::uint8_t>(component[i]);
+    const auto source = source_position_by_vertex[i];
+    if (source >= component.size() || component[source] < 0) {
+      error = "render vertex has no connected source component";
+      return false;
+    }
+    mesh.vertices[i].region_id = static_cast<std::uint8_t>(component[source]);
   }
   return true;
 }
@@ -244,7 +266,10 @@ bool parse_obj_corner(std::string_view token, std::size_t position_count, std::s
   return resolve_obj_index(raw_position, position_count, out.position) && resolve_obj_index(raw_uv, uv_count, out.uv);
 }
 
-bool load_obj(const std::filesystem::path& input, RMeshV0& mesh, std::string& error) {
+bool load_obj(const std::filesystem::path& input, RMeshV0& mesh,
+              std::vector<std::uint32_t>* source_position_by_vertex,
+              std::size_t* source_position_count,
+              std::string& error) {
   std::ifstream stream(input); if (!stream) { error = "failed to open OBJ"; return false; }
   std::vector<std::array<float, 3>> positions; std::vector<std::array<float, 2>> uvs;
   std::unordered_map<ObjKey, std::uint32_t, ObjKeyHash> vertex_map;
@@ -252,7 +277,13 @@ bool load_obj(const std::filesystem::path& input, RMeshV0& mesh, std::string& er
   auto materialize = [&](const ObjKey& key) -> std::uint32_t {
     if (const auto found = vertex_map.find(key); found != vertex_map.end()) return found->second;
     RMeshVertexV0 vertex{}; vertex.position = positions[static_cast<std::size_t>(key.position)]; vertex.uv = uvs[static_cast<std::size_t>(key.uv)];
-    const auto index = static_cast<std::uint32_t>(mesh.vertices.size()); mesh.vertices.push_back(vertex); vertex_map.emplace(key, index); return index;
+    const auto index = static_cast<std::uint32_t>(mesh.vertices.size());
+    mesh.vertices.push_back(vertex);
+    if (source_position_by_vertex != nullptr) {
+      source_position_by_vertex->push_back(static_cast<std::uint32_t>(key.position));
+    }
+    vertex_map.emplace(key, index);
+    return index;
   };
   while (std::getline(stream, line)) {
     ++line_number; if (line.empty() || line[0] == '#') continue;
@@ -271,6 +302,7 @@ bool load_obj(const std::filesystem::path& input, RMeshV0& mesh, std::string& er
     }
   }
   if (positions.empty() || uvs.empty() || mesh.vertices.empty() || mesh.indices.empty()) { error = "OBJ produced no renderable UV-mapped geometry"; return false; }
+  if (source_position_count != nullptr) *source_position_count = positions.size();
   return true;
 }
 
@@ -295,14 +327,26 @@ int main(int argc, char** argv) {
   RMeshV0 mesh{}; mesh.flags = rengine::lsg::rmesh_has_uv | rengine::lsg::rmesh_has_tangents | rengine::lsg::rmesh_has_regions;
   std::string extension = input.extension().string(); std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   std::string error;
-  const bool loaded = extension == ".obj" ? load_obj(input, mesh, error) : (extension == ".glb" || extension == ".gltf") ? load_gltf(input, mesh, error) : false;
+  std::vector<std::uint32_t> source_position_by_vertex;
+  std::size_t source_position_count = 0;
+  const bool loaded = extension == ".obj"
+      ? load_obj(input, mesh,
+                 component_regions ? &source_position_by_vertex : nullptr,
+                 component_regions ? &source_position_count : nullptr,
+                 error)
+      : (extension == ".glb" || extension == ".gltf") ? load_gltf(input, mesh, error) : false;
+  if (component_regions && extension != ".obj") {
+    std::cerr << "mesh preparation failed: --component-regions currently requires OBJ input\n";
+    return 3;
+  }
   if (!loaded) { if (error.empty()) error = "unsupported mesh extension"; std::cerr << "mesh preparation failed: " << error << '\n'; return 3; }
 
   regenerate_normals(mesh);
   regenerate_tangents(mesh);
   std::size_t component_count = 0;
   if (component_regions) {
-    if (!assign_component_regions(mesh, component_count, error)) {
+    if (!assign_component_regions(mesh, source_position_by_vertex, source_position_count,
+                                  component_count, error)) {
       std::cerr << "mesh preparation failed: " << error << '\n';
       return 4;
     }
