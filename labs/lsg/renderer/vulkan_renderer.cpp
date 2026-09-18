@@ -1,5 +1,6 @@
 #include "vulkan_renderer.hpp"
 #include "rengine/lsg/derived_character.hpp"
+#include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/genome.hpp"
 #include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
@@ -114,9 +115,11 @@ struct EyePushConstants {
   float geometry0[4]{};
   float geometry1[4]{};
   float render[4]{};
-  std::uint32_t flags[4]{};
+  float eye0[4]{}; // primary iris rgb, pupil bias
+  float eye1[4]{}; // secondary iris rgb, sclera tint
+  std::uint32_t flags[4]{}; // rotation, profile, vascularity byte, eye seed low
 };
-static_assert(sizeof(EyePushConstants) == 96);
+static_assert(sizeof(EyePushConstants) == 128);
 
 const char* platform_surface_extension() noexcept {
 #if defined(__ANDROID__)
@@ -771,6 +774,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
 
   const CharacterGenomeV0 genome = builtin_profile(profile_index);
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
+  const DerivedEyeParameters derived_eye = derive_eye_parameters(genome);
   const CameraState camera = state.camera.state();
   PushConstants push{};
   push.center_units[0] = profile_mesh.mesh_center[0]; push.center_units[1] = profile_mesh.mesh_center[1];
@@ -826,9 +830,18 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   eye_push.render[0] = extent_aspect(state.logical_extent);
   eye_push.render[1] = camera.fov_y_radians;
   eye_push.render[2] = time_seconds;
+  eye_push.eye0[0] = derived_eye.iris_primary[0];
+  eye_push.eye0[1] = derived_eye.iris_primary[1];
+  eye_push.eye0[2] = derived_eye.iris_primary[2];
+  eye_push.eye0[3] = derived_eye.pupil_bias;
+  eye_push.eye1[0] = derived_eye.iris_secondary[0];
+  eye_push.eye1[1] = derived_eye.iris_secondary[1];
+  eye_push.eye1[2] = derived_eye.iris_secondary[2];
+  eye_push.eye1[3] = derived_eye.sclera_tint;
   eye_push.flags[0] = state.surface_rotation;
   eye_push.flags[1] = profile_index;
-  eye_push.flags[2] = 1u;
+  eye_push.flags[2] = static_cast<std::uint32_t>(genome.eyes.vascularity);
+  eye_push.flags[3] = derived_eye.eye_seed_low;
   vkCmdPushConstants(command, state.eye_pipeline_layout,
                      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(eye_push), &eye_push);
