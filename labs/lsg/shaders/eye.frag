@@ -18,6 +18,31 @@ layout(push_constant) uniform EyePush {
     uvec4 flags;       // rotation, profile, vascularity byte, eye seed low
 } pc;
 
+layout(set = 0, binding = 0, std140) uniform FrameLighting {
+    vec4 sun_direction_intensity;
+    vec4 sun_tint_sky_intensity;
+    vec4 sky_zenith_exposure;
+    vec4 sky_horizon_scene_lum;
+    vec4 filter_tint_transmission;
+    vec4 eye_filter_misc;
+    uvec4 modes;
+} lighting;
+
+vec3 rotate_y(vec3 v, float a) {
+    float cs = cos(a), sn = sin(a);
+    return vec3(cs * v.x + sn * v.z, v.y, -sn * v.x + cs * v.z);
+}
+
+vec3 rotate_x(vec3 v, float a) {
+    float cs = cos(a), sn = sin(a);
+    return vec3(v.x, cs * v.y - sn * v.z, sn * v.y + cs * v.z);
+}
+
+vec3 sun_view_direction() {
+    vec3 sun_world = normalize(lighting.sun_direction_intensity.xyz);
+    return normalize(rotate_x(rotate_y(sun_world, -pc.camera.x), -pc.camera.y));
+}
+
 uint pcg_hash(uint input_value) {
     uint state = input_value * 747796405u + 2891336453u;
     uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
@@ -113,9 +138,13 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
     colour = mix(colour, pupil, pupil_mask);
 
     vec3 n = normalize(view_normal);
-    vec3 light_dir = normalize(vec3(0.35, 0.70, 0.55));
+    vec3 light_dir = sun_view_direction();
     float ndotl = max(dot(n, light_dir), 0.0);
-    colour *= 0.62 + 0.38 * ndotl;
+    float direct = max(lighting.sun_direction_intensity.w, 0.0);
+    float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
+    vec3 illumination = vec3(0.42 * sky) +
+                        lighting.sun_tint_sky_intensity.rgb * (0.58 * ndotl * direct);
+    colour *= illumination * max(lighting.sky_zenith_exposure.w, 0.01);
     return colour;
 }
 
@@ -135,15 +164,20 @@ vec4 cornea_response() {
     float nv = max(dot(n, v), 0.0);
     float fresnel = f0_scalar + (1.0 - f0_scalar) * pow(1.0 - nv, 5.0);
 
-    vec3 sun_dir = normalize(vec3(0.35, 0.70, 0.55));
+    vec3 sun_dir = sun_view_direction();
     vec3 h = normalize(sun_dir + v);
-    float sun_spec = pow(max(dot(n, h), 0.0), 220.0);
+    float direct = max(lighting.sun_direction_intensity.w, 0.0);
+    float sun_spec = pow(max(dot(n, h), 0.0), 220.0) * direct;
 
     vec3 reflected = reflect(-v, n);
     float sky_factor = clamp(reflected.y * 0.5 + 0.5, 0.0, 1.0);
-    vec3 sky = mix(vec3(0.17, 0.24, 0.34), vec3(0.56, 0.72, 0.92), sky_factor);
+    vec3 sky = mix(lighting.sky_horizon_scene_lum.rgb,
+                   lighting.sky_zenith_exposure.rgb,
+                   sky_factor) * max(lighting.sun_tint_sky_intensity.w, 0.0);
 
-    vec3 colour = sky * (0.08 + fresnel * 1.55) + vec3(1.0, 0.94, 0.84) * sun_spec * 2.8;
+    vec3 colour = sky * (0.08 + fresnel * 1.55) +
+                  lighting.sun_tint_sky_intensity.rgb * sun_spec * 2.8;
+    colour *= max(lighting.sky_zenith_exposure.w, 0.01);
     float alpha = clamp(0.055 + fresnel * 0.62 + sun_spec * 0.52, 0.045, 0.72);
     return vec4(colour, alpha);
 }
@@ -155,9 +189,12 @@ void main() {
 
     if (eye_mode == 1u) {
         vec3 n = normalize(view_normal);
-        vec3 light_dir = normalize(vec3(0.35, 0.70, 0.55));
+        vec3 light_dir = sun_view_direction();
         float ndotl = max(dot(n, light_dir), 0.0);
-        vec3 c = diagnostic_component_colour(component_id) * (0.45 + 0.55 * ndotl);
+        float direct = max(lighting.sun_direction_intensity.w, 0.0);
+        float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
+        vec3 c = diagnostic_component_colour(component_id) *
+                 (0.35 + 0.35 * sky + 0.30 * ndotl * direct);
         out_colour = vec4(c, 0.78);
         return;
     }
