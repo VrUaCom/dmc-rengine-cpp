@@ -25,6 +25,7 @@ add_library(rengine_lsg_core STATIC
   src/derived_eye.cpp
   src/eye_runtime.cpp
   src/lighting_runtime.cpp
+  src/polarization_approx.cpp
   src/anatomical_field.cpp
   src/extension_contract.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
