@@ -61,6 +61,8 @@ struct VulkanRenderer::Impl {
   std::vector<VkFramebuffer> framebuffers;
   VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};
   VkPipeline pipeline{VK_NULL_HANDLE};
+  VkPipelineLayout eye_pipeline_layout{VK_NULL_HANDLE};
+  VkPipeline eye_pipeline{VK_NULL_HANDLE};
   struct ProfileMeshGpu {
     VkBuffer vertex_buffer{VK_NULL_HANDLE};
     VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
@@ -71,6 +73,7 @@ struct VulkanRenderer::Impl {
     float meters_per_unit{1.0f};
   };
   std::array<ProfileMeshGpu, 2> profile_meshes{};
+  std::array<ProfileMeshGpu, 2> eye_meshes{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   int ui_tooltip_row{-1};
@@ -104,6 +107,16 @@ struct PushConstants {
   std::uint32_t flags[4]{};
 };
 static_assert(sizeof(PushConstants) == 128);
+
+struct EyePushConstants {
+  float center_units[4]{};
+  float camera[4]{};
+  float geometry0[4]{};
+  float geometry1[4]{};
+  float render[4]{};
+  std::uint32_t flags[4]{};
+};
+static_assert(sizeof(EyePushConstants) == 96);
 
 const char* platform_surface_extension() noexcept {
 #if defined(__ANDROID__)
@@ -449,11 +462,16 @@ bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
 }
 
 bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  constexpr std::array<std::string_view, 2> paths{
+  constexpr std::array<std::string_view, 2> body_paths{
       "meshes/human_profile_0.rmesh",
       "meshes/human_profile_1.rmesh"};
-  for (std::size_t i = 0; i < paths.size(); ++i) {
-    if (!create_profile_mesh(state, asset_manager, paths[i], state.profile_meshes[i])) return false;
+  constexpr std::array<std::string_view, 2> eye_paths{
+      "meshes/eye_profile_0.rmesh",
+      "meshes/eye_profile_1.rmesh"};
+
+  for (std::size_t i = 0; i < body_paths.size(); ++i) {
+    if (!create_profile_mesh(state, asset_manager, body_paths[i], state.profile_meshes[i])) return false;
+    if (!create_profile_mesh(state, asset_manager, eye_paths[i], state.eye_meshes[i])) return false;
   }
   state.camera.set_subject_height(1.75f);
   return true;
@@ -522,6 +540,121 @@ bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   pipeline.layout = state.pipeline_layout; pipeline.renderPass = state.render_pass;
   const auto result = vkCreateGraphicsPipelines(state.device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &state.pipeline);
   vkDestroyShaderModule(state.device, fragment_module, nullptr); vkDestroyShaderModule(state.device, vertex_module, nullptr);
+  return result == VK_SUCCESS;
+}
+
+bool create_eye_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
+  const auto vertex_code = load_spirv(asset_manager, "eye.vert.spv");
+  const auto fragment_code = load_spirv(asset_manager, "eye.frag.spv");
+  auto make_module = [&](const std::vector<std::uint32_t>& code, VkShaderModule& module) {
+    if (code.empty()) return false;
+    VkShaderModuleCreateInfo info{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
+    info.codeSize = code.size() * sizeof(std::uint32_t);
+    info.pCode = code.data();
+    return vkCreateShaderModule(state.device, &info, nullptr, &module) == VK_SUCCESS;
+  };
+
+  VkShaderModule vertex_module = VK_NULL_HANDLE;
+  VkShaderModule fragment_module = VK_NULL_HANDLE;
+  if (!make_module(vertex_code, vertex_module) || !make_module(fragment_code, fragment_module)) {
+    if (vertex_module) vkDestroyShaderModule(state.device, vertex_module, nullptr);
+    if (fragment_module) vkDestroyShaderModule(state.device, fragment_module, nullptr);
+    return false;
+  }
+
+  VkPipelineShaderStageCreateInfo stages[2]{};
+  stages[0] = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+  stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+  stages[0].module = vertex_module;
+  stages[0].pName = "main";
+  stages[1] = {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+  stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+  stages[1].module = fragment_module;
+  stages[1].pName = "main";
+
+  VkVertexInputBindingDescription binding{0, sizeof(GpuVertex), VK_VERTEX_INPUT_RATE_VERTEX};
+  std::array<VkVertexInputAttributeDescription, 4> attributes{{
+      {0,0,VK_FORMAT_R32G32B32_SFLOAT,offsetof(GpuVertex,position)},
+      {1,0,VK_FORMAT_R32G32B32_SFLOAT,offsetof(GpuVertex,normal)},
+      {2,0,VK_FORMAT_R32G32_SFLOAT,offsetof(GpuVertex,uv)},
+      {3,0,VK_FORMAT_R32_UINT,offsetof(GpuVertex,region)}}};
+  VkPipelineVertexInputStateCreateInfo vertex_input{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+  vertex_input.vertexBindingDescriptionCount = 1;
+  vertex_input.pVertexBindingDescriptions = &binding;
+  vertex_input.vertexAttributeDescriptionCount = static_cast<std::uint32_t>(attributes.size());
+  vertex_input.pVertexAttributeDescriptions = attributes.data();
+
+  VkPipelineInputAssemblyStateCreateInfo assembly{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+  assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+  VkViewport viewport{0.0f, 0.0f, static_cast<float>(state.swapchain_extent.width),
+                      static_cast<float>(state.swapchain_extent.height), 0.0f, 1.0f};
+  VkRect2D scissor{};
+  scissor.extent = state.swapchain_extent;
+  VkPipelineViewportStateCreateInfo viewport_state{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
+  viewport_state.viewportCount = 1;
+  viewport_state.pViewports = &viewport;
+  viewport_state.scissorCount = 1;
+  viewport_state.pScissors = &scissor;
+
+  VkPipelineRasterizationStateCreateInfo raster{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
+  raster.polygonMode = VK_POLYGON_MODE_FILL;
+  raster.cullMode = VK_CULL_MODE_NONE;
+  raster.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  raster.lineWidth = 1.0f;
+
+  VkPipelineMultisampleStateCreateInfo multisample{VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+  multisample.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+  VkPipelineDepthStencilStateCreateInfo depth{VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+  depth.depthTestEnable = VK_TRUE;
+  depth.depthWriteEnable = VK_FALSE;
+  depth.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+  VkPipelineColorBlendAttachmentState blend_attachment{};
+  blend_attachment.blendEnable = VK_TRUE;
+  blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
+  blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+  blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+  blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+  blend_attachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+      VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  VkPipelineColorBlendStateCreateInfo blend{VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
+  blend.attachmentCount = 1;
+  blend.pAttachments = &blend_attachment;
+
+  VkPushConstantRange push_range{};
+  push_range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+  push_range.size = sizeof(EyePushConstants);
+  VkPipelineLayoutCreateInfo layout{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+  layout.pushConstantRangeCount = 1;
+  layout.pPushConstantRanges = &push_range;
+  if (vkCreatePipelineLayout(state.device, &layout, nullptr, &state.eye_pipeline_layout) != VK_SUCCESS) {
+    vkDestroyShaderModule(state.device, fragment_module, nullptr);
+    vkDestroyShaderModule(state.device, vertex_module, nullptr);
+    return false;
+  }
+
+  VkGraphicsPipelineCreateInfo pipeline{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
+  pipeline.stageCount = 2;
+  pipeline.pStages = stages;
+  pipeline.pVertexInputState = &vertex_input;
+  pipeline.pInputAssemblyState = &assembly;
+  pipeline.pViewportState = &viewport_state;
+  pipeline.pRasterizationState = &raster;
+  pipeline.pMultisampleState = &multisample;
+  pipeline.pDepthStencilState = &depth;
+  pipeline.pColorBlendState = &blend;
+  pipeline.layout = state.eye_pipeline_layout;
+  pipeline.renderPass = state.render_pass;
+
+  const auto result = vkCreateGraphicsPipelines(
+      state.device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &state.eye_pipeline);
+  vkDestroyShaderModule(state.device, fragment_module, nullptr);
+  vkDestroyShaderModule(state.device, vertex_module, nullptr);
   return result == VK_SUCCESS;
 }
 
@@ -604,7 +737,8 @@ bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
       !create_platform_surface(state.instance, native_window, state.surface)) { shutdown(); return false; }
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) ||
       !create_render_targets(state) || !create_mesh_buffers(state, asset_manager) ||
-      !create_pipeline(state, asset_manager) || !create_sync(state)) { shutdown(); return false; }
+      !create_pipeline(state, asset_manager) || !create_eye_pipeline(state, asset_manager) ||
+      !create_sync(state)) { shutdown(); return false; }
   state.initialized = true; return true;
 }
 
@@ -666,6 +800,41 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
 
+  // Slice B diagnostic eye pass: fitted eye geometry, 4 connected components.
+  const auto& eye_mesh = state.eye_meshes[profile_index];
+  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.eye_pipeline);
+  vkCmdBindVertexBuffers(command, 0, 1, &eye_mesh.vertex_buffer, &offset);
+  vkCmdBindIndexBuffer(command, eye_mesh.index_buffer, 0, VK_INDEX_TYPE_UINT32);
+
+  EyePushConstants eye_push{};
+  eye_push.center_units[0] = profile_mesh.mesh_center[0];
+  eye_push.center_units[1] = profile_mesh.mesh_center[1];
+  eye_push.center_units[2] = profile_mesh.mesh_center[2];
+  eye_push.center_units[3] = profile_mesh.meters_per_unit;
+  eye_push.camera[0] = camera.yaw_radians;
+  eye_push.camera[1] = camera.pitch_radians;
+  eye_push.camera[2] = camera.distance_m;
+  eye_push.camera[3] = camera.target_y_m;
+  eye_push.geometry0[0] = derived.height_scale;
+  eye_push.geometry0[1] = derived.shoulder_scale;
+  eye_push.geometry0[2] = derived.pelvis_scale;
+  eye_push.geometry0[3] = derived.chest_depth_scale;
+  eye_push.geometry1[0] = derived.waist_scale;
+  eye_push.geometry1[1] = derived.muscle_scale;
+  eye_push.geometry1[2] = derived.body_fat_scale;
+  eye_push.geometry1[3] = derived.head_scale;
+  eye_push.render[0] = extent_aspect(state.logical_extent);
+  eye_push.render[1] = camera.fov_y_radians;
+  eye_push.render[2] = time_seconds;
+  eye_push.flags[0] = state.surface_rotation;
+  eye_push.flags[1] = profile_index;
+  eye_push.flags[2] = 1u;
+  vkCmdPushConstants(command, state.eye_pipeline_layout,
+                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                     0, sizeof(eye_push), &eye_push);
+  vkCmdDrawIndexed(command, eye_mesh.index_count, 1, 0, 0, 0);
+
+  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
@@ -695,6 +864,8 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.render_finished) vkDestroySemaphore(state.device, state.render_finished, nullptr);
     if (state.image_available) vkDestroySemaphore(state.device, state.image_available, nullptr);
     if (state.command_pool) vkDestroyCommandPool(state.device, state.command_pool, nullptr);
+    if (state.eye_pipeline) vkDestroyPipeline(state.device, state.eye_pipeline, nullptr);
+    if (state.eye_pipeline_layout) vkDestroyPipelineLayout(state.device, state.eye_pipeline_layout, nullptr);
     if (state.pipeline) vkDestroyPipeline(state.device, state.pipeline, nullptr);
     if (state.pipeline_layout) vkDestroyPipelineLayout(state.device, state.pipeline_layout, nullptr);
     for (const auto framebuffer : state.framebuffers) vkDestroyFramebuffer(state.device, framebuffer, nullptr);
@@ -708,6 +879,12 @@ void VulkanRenderer::shutdown() noexcept {
       if (profile_mesh.vertex_memory) vkFreeMemory(state.device, profile_mesh.vertex_memory, nullptr);
       if (profile_mesh.index_buffer) vkDestroyBuffer(state.device, profile_mesh.index_buffer, nullptr);
       if (profile_mesh.index_memory) vkFreeMemory(state.device, profile_mesh.index_memory, nullptr);
+    }
+    for (auto& eye_mesh : state.eye_meshes) {
+      if (eye_mesh.vertex_buffer) vkDestroyBuffer(state.device, eye_mesh.vertex_buffer, nullptr);
+      if (eye_mesh.vertex_memory) vkFreeMemory(state.device, eye_mesh.vertex_memory, nullptr);
+      if (eye_mesh.index_buffer) vkDestroyBuffer(state.device, eye_mesh.index_buffer, nullptr);
+      if (eye_mesh.index_memory) vkFreeMemory(state.device, eye_mesh.index_memory, nullptr);
     }
     if (state.swapchain) vkDestroySwapchainKHR(state.device, state.swapchain, nullptr);
     vkDestroyDevice(state.device, nullptr);
