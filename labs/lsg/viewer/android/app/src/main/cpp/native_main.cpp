@@ -61,12 +61,36 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
   return "UNKNOWN";
 }
 
+const char* lighting_name(rengine::lsg::LightingPreset preset) {
+  using rengine::lsg::LightingPreset;
+  switch (preset) {
+    case LightingPreset::morning: return "MORNING";
+    case LightingPreset::noon: return "NOON";
+    case LightingPreset::evening: return "EVENING";
+    case LightingPreset::night: return "NIGHT";
+  }
+  return "UNKNOWN";
+}
+
+const char* filter_name(rengine::lsg::OpticalFilterPreset preset) {
+  using rengine::lsg::OpticalFilterPreset;
+  switch (preset) {
+    case OpticalFilterPreset::clear: return "CLEAR";
+    case OpticalFilterPreset::tinted: return "TINTED";
+    case OpticalFilterPreset::polarized_approx: return "POLARIZED_APPROX";
+  }
+  return "UNKNOWN";
+}
+
 void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0.0f, float cpu_ms = 0.0f) {
   const auto d = state.renderer.diagnostics();
-  char message[700]{};
+  char message[900]{};
   std::snprintf(message, sizeof(message),
-      "%s mode=%s skeleton=%s window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
+      "%s mode=%s skeleton=%s time=%s filter=%s scene_lum=%.3f eye_lum=%.3f pupil_target=%.4f pupil=%.4f window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
       reason, mode_name(d.mode), state.skeleton_enabled ? "ON" : "OFF",
+      lighting_name(d.lighting_preset), filter_name(d.optical_filter),
+      d.scene_luminance, d.effective_eye_luminance,
+      d.pupil_target_radius, d.pupil_current_radius,
       d.window_width, d.window_height,
       d.swapchain_width, d.swapchain_height,
       d.logical_width, d.logical_height,
@@ -152,9 +176,9 @@ int ui_row_from_point(float x, float y, float width, float height) {
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 9; ++row) {
-    const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
-    if (std::abs(ny - center_y) <= 0.033f) return row;
+  for (int row = 0; row < 10; ++row) {
+    const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
+    if (std::abs(ny - center_y) <= 0.029f) return row;
   }
   return -1;
 }
@@ -163,7 +187,7 @@ bool point_in_ui_panel(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return false;
   const float nx = x / width;
   const float ny = y / height;
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.795f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.820f;
 }
 
 void clear_tooltip(AppState& state) {
@@ -209,6 +233,21 @@ void cycle_eye_mode(AppState& state) {
                                                    : "Eyes Cornea Only");
 }
 
+void cycle_lighting_time(AppState& state) {
+  using rengine::lsg::LightingPreset;
+  const auto current = state.renderer.lighting_preset();
+  const auto next = current == LightingPreset::morning ? LightingPreset::noon
+                  : current == LightingPreset::noon ? LightingPreset::evening
+                  : current == LightingPreset::evening ? LightingPreset::night
+                                                       : LightingPreset::morning;
+  state.renderer.set_lighting_preset(next);
+  log_info(next == LightingPreset::morning ? "Time Morning"
+           : next == LightingPreset::noon ? "Time Noon"
+           : next == LightingPreset::evening ? "Time Evening"
+                                             : "Time Night");
+  log_renderer_diagnostics(state, "Time preset changed");
+}
+
 void handle_ui_row(AppState& state, int row) {
   switch (row) {
     case 0: select_character(state, 0); break;
@@ -224,6 +263,7 @@ void handle_ui_row(AppState& state, int row) {
       break;
     case 7: cycle_physiology(state); break;
     case 8: cycle_eye_mode(state); break;
+    case 9: cycle_lighting_time(state); break;
     default: break;
   }
 }
