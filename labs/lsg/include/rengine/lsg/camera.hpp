@@ -22,6 +22,7 @@ public:
   void set_preset(CameraPreset preset) noexcept;
   void orbit(float normalized_dx, float normalized_dy) noexcept;
   void zoom(float scale) noexcept;
+  void reset_view() noexcept;
   [[nodiscard]] const CameraState& state() const noexcept { return state_; }
 
 private:
