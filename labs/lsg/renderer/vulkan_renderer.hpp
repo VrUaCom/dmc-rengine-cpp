@@ -43,6 +43,8 @@ struct RendererDiagnostics {
   OpticalFilterPreset optical_filter{OpticalFilterPreset::clear};
   float scene_luminance{};
   float effective_eye_luminance{};
+  float filter_transmission{};
+  float polarization_strength{};
   float pupil_target_radius{};
   float pupil_current_radius{};
 };
