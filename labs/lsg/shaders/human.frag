@@ -162,6 +162,97 @@ bool hud_glyph(uint button, vec2 uv) {
     return arc || arrow;
 }
 
+uint font_bits(uint c) {
+    if (c == 48u) return 0x69BD96u;
+    if (c == 49u) return 0xF66676u;
+    if (c == 65u) return 0x99F996u;
+    if (c == 66u) return 0x799797u;
+    if (c == 67u) return 0xE1111Eu;
+    if (c == 68u) return 0x799997u;
+    if (c == 69u) return 0xF1171Fu;
+    if (c == 70u) return 0x11171Fu;
+    if (c == 71u) return 0xE99D1Eu;
+    if (c == 72u) return 0x999F99u;
+    if (c == 73u) return 0xF6666Fu;
+    if (c == 74u) return 0x69888Cu;
+    if (c == 75u) return 0x995359u;
+    if (c == 76u) return 0xF11111u;
+    if (c == 77u) return 0x999FF9u;
+    if (c == 78u) return 0x999DB9u;
+    if (c == 79u) return 0x699996u;
+    if (c == 80u) return 0x111797u;
+    if (c == 81u) return 0xED9996u;
+    if (c == 82u) return 0x995797u;
+    if (c == 83u) return 0x78861Eu;
+    if (c == 84u) return 0x66666Fu;
+    if (c == 85u) return 0x699999u;
+    if (c == 86u) return 0x669999u;
+    if (c == 87u) return 0x9FF999u;
+    if (c == 88u) return 0x996699u;
+    if (c == 89u) return 0x666699u;
+    if (c == 90u) return 0xF1248Fu;
+    return 0u;
+}
+
+bool font_pixel(uint c, vec2 uv) {
+    if (c == 32u) return false;
+    if (any(lessThan(uv, vec2(0.0))) || any(greaterThanEqual(uv, vec2(1.0)))) return false;
+    uint col = min(uint(floor(uv.x * 4.0)), 3u);
+    uint row = min(uint(floor((1.0 - uv.y) * 6.0)), 5u);
+    uint bit_index = row * 4u + col;
+    return ((font_bits(c) >> bit_index) & 1u) != 0u;
+}
+
+uint tooltip_length(uint tooltip) {
+    if (tooltip == 0u) return 20u;
+    if (tooltip == 1u) return 22u;
+    if (tooltip == 2u) return 23u;
+    if (tooltip == 3u) return 21u;
+    if (tooltip == 4u) return 21u;
+    if (tooltip == 5u) return 20u;
+    if (tooltip == 6u) return 20u;
+    return 0u;
+}
+
+uint tooltip_char(uint tooltip, uint index) {
+    const uint t0[20] = uint[20](67u,72u,65u,82u,32u,48u,32u,32u,77u,65u,76u,69u,32u,80u,82u,79u,70u,73u,76u,69u);
+    const uint t1[22] = uint[22](67u,72u,65u,82u,32u,49u,32u,32u,70u,69u,77u,65u,76u,69u,32u,80u,82u,79u,70u,73u,76u,69u);
+    const uint t2[23] = uint[23](68u,69u,84u,65u,73u,76u,32u,32u,80u,82u,79u,67u,69u,68u,85u,82u,65u,76u,32u,83u,75u,73u,78u);
+    const uint t3[21] = uint[21](83u,75u,69u,76u,69u,84u,79u,78u,32u,32u,74u,79u,73u,78u,84u,32u,68u,69u,66u,85u,71u);
+    const uint t4[21] = uint[21](67u,65u,77u,69u,82u,65u,32u,32u,67u,89u,67u,76u,69u,32u,80u,82u,69u,83u,69u,84u,83u);
+    const uint t5[20] = uint[20](68u,73u,65u,71u,32u,32u,82u,65u,87u,32u,86u,73u,69u,87u,32u,77u,79u,68u,69u,83u);
+    const uint t6[20] = uint[20](82u,69u,83u,69u,84u,32u,32u,67u,69u,78u,84u,69u,82u,32u,67u,65u,77u,69u,82u,65u);
+    if (tooltip == 0u && index < 20u) return t0[index];
+    if (tooltip == 1u && index < 22u) return t1[index];
+    if (tooltip == 2u && index < 23u) return t2[index];
+    if (tooltip == 3u && index < 21u) return t3[index];
+    if (tooltip == 4u && index < 21u) return t4[index];
+    if (tooltip == 5u && index < 20u) return t5[index];
+    if (tooltip == 6u && index < 20u) return t6[index];
+    return 32u;
+}
+
+bool tooltip_text_pixel(uint tooltip, vec2 uv) {
+    uint length = tooltip_length(tooltip);
+    if (length == 0u) return false;
+
+    const float advance = 0.0410;
+    const float glyph_width = 0.0320;
+    const float glyph_y0 = 0.24;
+    const float glyph_height = 0.52;
+    float text_width = float(length) * advance;
+    float start_x = 0.5 - text_width * 0.5;
+    if (uv.x < start_x || uv.x >= start_x + text_width ||
+        uv.y < glyph_y0 || uv.y >= glyph_y0 + glyph_height) return false;
+
+    uint index = uint(floor((uv.x - start_x) / advance));
+    if (index >= length) return false;
+    float char_start = start_x + float(index) * advance;
+    vec2 glyph_uv = vec2((uv.x - char_start) / glyph_width,
+                         (uv.y - glyph_y0) / glyph_height);
+    return font_pixel(tooltip_char(tooltip, index), glyph_uv);
+}
+
 vec3 perturb_normal(vec3 n, vec3 view_pos, float height_field, float strength) {
     vec3 dpdx = dFdx(view_pos);
     vec3 dpdy = dFdy(view_pos);
@@ -267,6 +358,7 @@ void main() {
     uint profile_index = pc.flags.x & 1u;
     bool detail_enabled = pc.flags.y != 0u;
     uint mode = diagnostic_mode();
+    uint tooltip = (pc.flags.w >> 5u) & 15u;
 
     if (ui_environment_pass()) {
         if (body_region == 200u) {
@@ -275,6 +367,15 @@ void main() {
         }
         if (body_region == 190u) {
             out_colour = vec4(0.055, 0.070, 0.095, 1.0);
+            return;
+        }
+        if (body_region == 180u) {
+            vec2 uv = surface_position_m.xy;
+            vec3 colour = vec3(0.035, 0.045, 0.065);
+            float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+            if (edge < 0.035) colour = vec3(0.20, 0.44, 0.72);
+            if (tooltip_text_pixel(tooltip, uv)) colour = vec3(0.97, 0.985, 1.0);
+            out_colour = vec4(colour, 1.0);
             return;
         }
         if (body_region < 100u || body_region > 106u) discard;
@@ -288,7 +389,8 @@ void main() {
                         (button == 1u && profile_index == 1u) ||
                         (button == 2u && detail_enabled) ||
                         (button == 3u && mode == 3u) ||
-                        (button == 5u && mode != 0u);
+                        (button == 5u && mode != 0u) ||
+                        (button == tooltip);
 
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
         vec3 panel = selected ? vec3(0.12, 0.46, 0.78) : vec3(0.095, 0.12, 0.17);
