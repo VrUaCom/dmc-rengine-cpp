@@ -10,6 +10,18 @@ on:
 env:
   LSG_BASE_HUMAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/3dobjs/base.obj
   LSG_BASE_HUMAN_GIT_BLOB: d26635e9326e3cca30778fd7b9c00062b03cce09
+  LSG_MALE_AFRICAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/african-male-young.target
+  LSG_MALE_AFRICAN_BLOB: dd5743e48700267d76596f575bf17b4b5cc3b3e0
+  LSG_MALE_ASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/asian-male-young.target
+  LSG_MALE_ASIAN_BLOB: 8cd3ef3e9ddb06ee2d166f75f9ac10871251f938
+  LSG_MALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-male-young.target
+  LSG_MALE_CAUCASIAN_BLOB: c3b82f92c5ced85599199cd184b0faf3b3fc6881
+  LSG_FEMALE_AFRICAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/african-female-young.target
+  LSG_FEMALE_AFRICAN_BLOB: a7d2b130667cc81ecd1ca0598da9be27bec1864a
+  LSG_FEMALE_ASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/asian-female-young.target
+  LSG_FEMALE_ASIAN_BLOB: f862c96add11c31ab1ca75c69e1c67ae5e0e3d5f
+  LSG_FEMALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-female-young.target
+  LSG_FEMALE_CAUCASIAN_BLOB: 9d1f0cbeedc9a6a51abe33f1ebb5fa7c5a7edbf1
 
 jobs:
   windows-x64-vulkan:
@@ -27,27 +39,70 @@ jobs:
       - name: Configure C++23 Win32 Vulkan viewer and tools
         run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64
       - name: Build mesh/profile/report tools
-        run: cmake --build build-lsg-win --config Release --target lsg_prepare_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
-      - name: Prepare pinned Base Human RMS0 and canonical genomes
+        run: cmake --build build-lsg-win --config Release --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+      - name: Prepare pinned male/female macro RMS0 assets and canonical genomes
         shell: pwsh
         run: |
           curl.exe -L --fail --retry 3 $env:LSG_BASE_HUMAN_URL -o build-lsg-win\base.obj
-          $blob = (git hash-object build-lsg-win\base.obj).Trim()
-          if ($blob -ne $env:LSG_BASE_HUMAN_GIT_BLOB) { throw "Base Human blob mismatch: $blob" }
+          if ((git hash-object build-lsg-win\base.obj).Trim() -ne $env:LSG_BASE_HUMAN_GIT_BLOB) { throw 'Base Human blob mismatch' }
+
+          curl.exe -L --fail --retry 3 $env:LSG_MALE_AFRICAN_URL -o build-lsg-win\male-african.target
+          curl.exe -L --fail --retry 3 $env:LSG_MALE_ASIAN_URL -o build-lsg-win\male-asian.target
+          curl.exe -L --fail --retry 3 $env:LSG_MALE_CAUCASIAN_URL -o build-lsg-win\male-caucasian.target
+          curl.exe -L --fail --retry 3 $env:LSG_FEMALE_AFRICAN_URL -o build-lsg-win\female-african.target
+          curl.exe -L --fail --retry 3 $env:LSG_FEMALE_ASIAN_URL -o build-lsg-win\female-asian.target
+          curl.exe -L --fail --retry 3 $env:LSG_FEMALE_CAUCASIAN_URL -o build-lsg-win\female-caucasian.target
+
+          if ((git hash-object build-lsg-win\male-african.target).Trim() -ne $env:LSG_MALE_AFRICAN_BLOB) { throw 'male African target mismatch' }
+          if ((git hash-object build-lsg-win\male-asian.target).Trim() -ne $env:LSG_MALE_ASIAN_BLOB) { throw 'male Asian target mismatch' }
+          if ((git hash-object build-lsg-win\male-caucasian.target).Trim() -ne $env:LSG_MALE_CAUCASIAN_BLOB) { throw 'male Caucasian target mismatch' }
+          if ((git hash-object build-lsg-win\female-african.target).Trim() -ne $env:LSG_FEMALE_AFRICAN_BLOB) { throw 'female African target mismatch' }
+          if ((git hash-object build-lsg-win\female-asian.target).Trim() -ne $env:LSG_FEMALE_ASIAN_BLOB) { throw 'female Asian target mismatch' }
+          if ((git hash-object build-lsg-win\female-caucasian.target).Trim() -ne $env:LSG_FEMALE_CAUCASIAN_BLOB) { throw 'female Caucasian target mismatch' }
+
+          & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-0.obj `
+            build-lsg-win\male-african.target 0.333333333333 `
+            build-lsg-win\male-asian.target 0.333333333333 `
+            build-lsg-win\male-caucasian.target 0.333333333334
+          if ($LASTEXITCODE -ne 0) { throw 'male macro target application failed' }
+
+          & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-1.obj `
+            build-lsg-win\female-african.target 0.333333333333 `
+            build-lsg-win\female-asian.target 0.333333333333 `
+            build-lsg-win\female-caucasian.target 0.333333333334
+          if ($LASTEXITCODE -ne 0) { throw 'female macro target application failed' }
+
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
-          & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\base.obj build-lsg-win\Release\meshes\human_base.rmesh
-          if ($LASTEXITCODE -ne 0) { throw 'RMS0 preparation failed' }
-          & build-lsg-win\Release\lsg_mesh_audit.exe build-lsg-win\Release\meshes\human_base.rmesh `
-            | Tee-Object -FilePath build-lsg-win\Release\lsg-mesh-audit.txt
-          if ($LASTEXITCODE -ne 0) { throw 'RMS0 continuity audit failed' }
-          if (-not (Select-String -Path build-lsg-win\Release\lsg-mesh-audit.txt -Pattern 'LSG MESH CONTINUITY PASS' -Quiet)) {
-            throw 'RMS0 continuity PASS marker missing'
+          foreach ($profile in 0,1) {
+            & build-lsg-win\Release\lsg_extract_obj_group.exe build-lsg-win\profile-$profile.obj body build-lsg-win\profile-$profile-body.obj
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile body extraction failed" }
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-body.obj build-lsg-win\profile-$profile-body.rmesh
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile body RMS0 preparation failed" }
+            & build-lsg-win\Release\lsg_mesh_audit.exe build-lsg-win\profile-$profile-body.rmesh `
+              | Tee-Object -FilePath build-lsg-win\Release\lsg-mesh-audit-profile-$profile.txt
+            if ($LASTEXITCODE -ne 0 -or -not (Select-String -Path build-lsg-win\Release\lsg-mesh-audit-profile-$profile.txt -Pattern 'LSG MESH CONTINUITY PASS' -Quiet)) {
+              throw "profile $profile continuity audit failed"
+            }
+
+            & build-lsg-win\Release\lsg_extract_obj_group.exe build-lsg-win\profile-$profile.obj prefix:joint- build-lsg-win\profile-$profile-joints.obj
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile joint extraction failed" }
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-joints.obj build-lsg-win\profile-$profile-joints.rmesh
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile joint RMS0 preparation failed" }
+            & build-lsg-win\Release\lsg_merge_debug_mesh.exe build-lsg-win\profile-$profile-body.rmesh build-lsg-win\profile-$profile-joints.rmesh `
+              build-lsg-win\Release\meshes\human_profile_$profile.rmesh
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile debug merge failed" }
           }
+
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\character_0.lsg
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\character_1.lsg
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing' }
+          if ((Get-FileHash build-lsg-win\Release\meshes\human_profile_0.rmesh).Hash -eq (Get-FileHash build-lsg-win\Release\meshes\human_profile_1.rmesh).Hash) {
+            throw 'macro profile meshes are unexpectedly identical'
+          }
           if (!(Test-Path 'build-lsg-win\Release\character_0.lsg')) { throw 'Character 0 genome missing' }
           if (!(Test-Path 'build-lsg-win\Release\character_1.lsg')) { throw 'Character 1 genome missing' }
+
       - name: Build tests and viewer
         run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests rengine_lsg_viewer --parallel 2
       - name: Run deterministic contract tests
@@ -58,7 +113,8 @@ jobs:
           & build-lsg-win\Release\lsg_report.exe `
             build-lsg-win\Release\character_0.lsg `
             build-lsg-win\Release\character_1.lsg `
-            build-lsg-win\Release\meshes\human_base.rmesh `
+            build-lsg-win\Release\meshes\human_profile_0.rmesh `
+            build-lsg-win\Release\meshes\human_profile_1.rmesh `
             build-lsg-win\Release\shaders\human.vert.spv `
             build-lsg-win\Release\shaders\human.frag.spv `
             | Tee-Object -FilePath build-lsg-win\Release\lsg-acceptance-report.txt
@@ -72,9 +128,11 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\rengine_lsg_viewer.exe')) { throw 'viewer exe missing' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.vert.spv')) { throw 'vertex SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_base.rmesh')) { throw 'human RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
-          if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit.txt')) { throw 'mesh continuity report missing' }
+          if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-0.txt')) { throw 'Character 0 mesh continuity report missing' }
+          if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-1.txt')) { throw 'Character 1 mesh continuity report missing' }
       - uses: actions/upload-artifact@v4
         with:
           name: rengine-lsg-windows-human-${{ github.sha }}
@@ -83,5 +141,6 @@ jobs:
             build-lsg-win/Release/shaders
             build-lsg-win/Release/meshes
             build-lsg-win/Release/lsg-acceptance-report.txt
-            build-lsg-win/Release/lsg-mesh-audit.txt
+            build-lsg-win/Release/lsg-mesh-audit-profile-0.txt
+            build-lsg-win/Release/lsg-mesh-audit-profile-1.txt
           if-no-files-found: error
