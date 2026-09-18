@@ -152,7 +152,7 @@ int ui_row_from_point(float x, float y, float width, float height) {
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 7; ++row) {
+  for (int row = 0; row < 8; ++row) {
     const float center_y = 0.10f + static_cast<float>(row) * 0.08f;
     if (std::abs(ny - center_y) <= 0.033f) return row;
   }
@@ -163,7 +163,7 @@ bool point_in_ui_panel(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return false;
   const float nx = x / width;
   const float ny = y / height;
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.635f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.045f && ny <= 0.715f;
 }
 
 void clear_tooltip(AppState& state) {
@@ -181,6 +181,20 @@ void update_long_press(AppState& state) {
   log_info("R&D tooltip shown");
 }
 
+void cycle_physiology(AppState& state) {
+  using rengine::lsg::PhysiologyPreset;
+  const auto current = state.renderer.physiology_preset();
+  const auto next = current == PhysiologyPreset::normal ? PhysiologyPreset::exercise
+                  : current == PhysiologyPreset::exercise ? PhysiologyPreset::cold
+                  : current == PhysiologyPreset::cold ? PhysiologyPreset::hot
+                                                      : PhysiologyPreset::normal;
+  state.renderer.set_physiology_preset(next);
+  log_info(next == PhysiologyPreset::normal ? "Physiology Normal"
+           : next == PhysiologyPreset::exercise ? "Physiology Exercise"
+           : next == PhysiologyPreset::cold ? "Physiology Cold"
+                                             : "Physiology Hot");
+}
+
 void handle_ui_row(AppState& state, int row) {
   switch (row) {
     case 0: select_character(state, 0); break;
@@ -194,6 +208,7 @@ void handle_ui_row(AppState& state, int row) {
       log_info("Camera view reset");
       log_renderer_diagnostics(state, "Camera reset");
       break;
+    case 7: cycle_physiology(state); break;
     default: break;
   }
 }
