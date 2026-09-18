@@ -61,13 +61,16 @@ struct VulkanRenderer::Impl {
   std::vector<VkFramebuffer> framebuffers;
   VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};
   VkPipeline pipeline{VK_NULL_HANDLE};
-  VkBuffer vertex_buffer{VK_NULL_HANDLE};
-  VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
-  VkBuffer index_buffer{VK_NULL_HANDLE};
-  VkDeviceMemory index_memory{VK_NULL_HANDLE};
-  std::uint32_t index_count{};
-  std::array<float, 3> mesh_center{};
-  float meters_per_unit{1.0f};
+  struct ProfileMeshGpu {
+    VkBuffer vertex_buffer{VK_NULL_HANDLE};
+    VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
+    VkBuffer index_buffer{VK_NULL_HANDLE};
+    VkDeviceMemory index_memory{VK_NULL_HANDLE};
+    std::uint32_t index_count{};
+    std::array<float, 3> mesh_center{};
+    float meters_per_unit{1.0f};
+  };
+  std::array<ProfileMeshGpu, 2> profile_meshes{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   VkCommandPool command_pool{VK_NULL_HANDLE};
@@ -407,11 +410,13 @@ bool create_host_buffer(VulkanRenderer::Impl& state, const void* source, VkDevic
   return true;
 }
 
-bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  const auto bytes = load_asset_bytes(asset_manager, "meshes/human_base.rmesh");
+bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
+                         std::string_view path, VulkanRenderer::Impl::ProfileMeshGpu& gpu_mesh) {
+  const auto bytes = load_asset_bytes(asset_manager, path);
   if (bytes.empty()) return false;
   RMeshV0 mesh{}; std::string error;
   if (!decode_rmesh(bytes, mesh, error) || mesh.vertices.empty() || mesh.indices.empty()) return false;
+
   std::vector<GpuVertex> vertices(mesh.vertices.size());
   std::array<float, 3> minimum = mesh.vertices.front().position;
   std::array<float, 3> maximum = mesh.vertices.front().position;
@@ -420,21 +425,36 @@ bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
     std::copy(source.position.begin(), source.position.end(), target.position);
     std::copy(source.normal.begin(), source.normal.end(), target.normal);
     std::copy(source.uv.begin(), source.uv.end(), target.uv); target.region = source.region_id;
-    for (std::size_t c = 0; c < 3; ++c) {
-      minimum[c] = std::min(minimum[c], source.position[c]);
-      maximum[c] = std::max(maximum[c], source.position[c]);
+    for (std::size_t component = 0; component < 3; ++component) {
+      minimum[component] = std::min(minimum[component], source.position[component]);
+      maximum[component] = std::max(maximum[component], source.position[component]);
     }
   }
-  const float height = maximum[1] - minimum[1]; if (!(height > 1.0e-5f)) return false;
-  for (std::size_t c = 0; c < 3; ++c) state.mesh_center[c] = 0.5f * (minimum[c] + maximum[c]);
-  state.meters_per_unit = 1.75f / height;
-  state.camera.set_subject_height(1.75f);
+
+  const float height = maximum[1] - minimum[1];
+  if (!(height > 1.0e-5f)) return false;
+  for (std::size_t component = 0; component < 3; ++component) {
+    gpu_mesh.mesh_center[component] = 0.5f * (minimum[component] + maximum[component]);
+  }
+  gpu_mesh.meters_per_unit = 1.75f / height;
   if (mesh.indices.size() > std::numeric_limits<std::uint32_t>::max()) return false;
-  state.index_count = static_cast<std::uint32_t>(mesh.indices.size());
+  gpu_mesh.index_count = static_cast<std::uint32_t>(mesh.indices.size());
+
   return create_host_buffer(state, vertices.data(), vertices.size() * sizeof(GpuVertex),
-                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, state.vertex_buffer, state.vertex_memory) &&
+                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, gpu_mesh.vertex_buffer, gpu_mesh.vertex_memory) &&
          create_host_buffer(state, mesh.indices.data(), mesh.indices.size() * sizeof(std::uint32_t),
-                            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, state.index_buffer, state.index_memory);
+                            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, gpu_mesh.index_buffer, gpu_mesh.index_memory);
+}
+
+bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
+  constexpr std::array<std::string_view, 2> paths{
+      "meshes/human_profile_0.rmesh",
+      "meshes/human_profile_1.rmesh"};
+  for (std::size_t i = 0; i < paths.size(); ++i) {
+    if (!create_profile_mesh(state, asset_manager, paths[i], state.profile_meshes[i])) return false;
+  }
+  state.camera.set_subject_height(1.75f);
+  return true;
 }
 
 bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
@@ -589,15 +609,18 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   render_pass.renderArea.extent = state.swapchain_extent; render_pass.clearValueCount = 2; render_pass.pClearValues = clears;
   vkCmdBeginRenderPass(command, &render_pass, VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
-  const VkDeviceSize offset = 0; vkCmdBindVertexBuffers(command, 0, 1, &state.vertex_buffer, &offset);
-  vkCmdBindIndexBuffer(command, state.index_buffer, 0, VK_INDEX_TYPE_UINT32);
+  const auto profile_index = character_index & 1u;
+  const auto& profile_mesh = state.profile_meshes[profile_index];
+  const VkDeviceSize offset = 0;
+  vkCmdBindVertexBuffers(command, 0, 1, &profile_mesh.vertex_buffer, &offset);
+  vkCmdBindIndexBuffer(command, profile_mesh.index_buffer, 0, VK_INDEX_TYPE_UINT32);
 
-  const CharacterGenomeV0 genome = builtin_profile(character_index);
+  const CharacterGenomeV0 genome = builtin_profile(profile_index);
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
   const CameraState camera = state.camera.state();
   PushConstants push{};
-  push.center_units[0] = state.mesh_center[0]; push.center_units[1] = state.mesh_center[1];
-  push.center_units[2] = state.mesh_center[2]; push.center_units[3] = state.meters_per_unit;
+  push.center_units[0] = profile_mesh.mesh_center[0]; push.center_units[1] = profile_mesh.mesh_center[1];
+  push.center_units[2] = profile_mesh.mesh_center[2]; push.center_units[3] = profile_mesh.meters_per_unit;
   push.camera[0] = camera.yaw_radians; push.camera[1] = camera.pitch_radians;
   push.camera[2] = camera.distance_m; push.camera[3] = camera.target_y_m;
   push.geometry0[0] = derived.height_scale; push.geometry0[1] = derived.shoulder_scale;
@@ -611,13 +634,13 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   push.render[0] = extent_aspect(state.logical_extent);
   push.render[1] = camera.fov_y_radians; push.render[2] = time_seconds;
   push.render[3] = std::bit_cast<float>(derived.surface_seed_low);
-  push.flags[0] = character_index & 1u; push.flags[1] = detail_enabled ? 1u : 0u;
+  push.flags[0] = profile_index; push.flags[1] = detail_enabled ? 1u : 0u;
   push.flags[2] = state.surface_rotation;
   const auto mode_bits = static_cast<std::uint32_t>(state.diagnostic_mode) << 1u;
   push.flags[3] = mode_bits;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDrawIndexed(command, state.index_count, 1, 0, 0, 0);
+  vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
 
   push.flags[3] = mode_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -656,10 +679,12 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.depth_image) vkDestroyImage(state.device, state.depth_image, nullptr);
     if (state.depth_memory) vkFreeMemory(state.device, state.depth_memory, nullptr);
     for (const auto view : state.views) vkDestroyImageView(state.device, view, nullptr);
-    if (state.vertex_buffer) vkDestroyBuffer(state.device, state.vertex_buffer, nullptr);
-    if (state.vertex_memory) vkFreeMemory(state.device, state.vertex_memory, nullptr);
-    if (state.index_buffer) vkDestroyBuffer(state.device, state.index_buffer, nullptr);
-    if (state.index_memory) vkFreeMemory(state.device, state.index_memory, nullptr);
+    for (auto& profile_mesh : state.profile_meshes) {
+      if (profile_mesh.vertex_buffer) vkDestroyBuffer(state.device, profile_mesh.vertex_buffer, nullptr);
+      if (profile_mesh.vertex_memory) vkFreeMemory(state.device, profile_mesh.vertex_memory, nullptr);
+      if (profile_mesh.index_buffer) vkDestroyBuffer(state.device, profile_mesh.index_buffer, nullptr);
+      if (profile_mesh.index_memory) vkFreeMemory(state.device, profile_mesh.index_memory, nullptr);
+    }
     if (state.swapchain) vkDestroySwapchainKHR(state.device, state.swapchain, nullptr);
     vkDestroyDevice(state.device, nullptr);
   }
