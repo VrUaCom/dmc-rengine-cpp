@@ -120,13 +120,13 @@ bool inside_box(vec2 uv, vec2 lo, vec2 hi) {
 bool hud_glyph(uint button, vec2 uv) {
     vec2 q = abs(uv - vec2(0.5));
     if (button == 0u) {
-        bool outer = q.x <= 0.16 && q.y <= 0.28;
-        bool inner = q.x <= 0.075 && q.y <= 0.18;
+        bool outer = q.x <= 0.15 && q.y <= 0.27;
+        bool inner = q.x <= 0.065 && q.y <= 0.17;
         return outer && !inner;
     }
     if (button == 1u) {
         return inside_box(uv, vec2(0.47, 0.22), vec2(0.55, 0.78)) ||
-               inside_box(uv, vec2(0.39, 0.70), vec2(0.53, 0.79)) ||
+               inside_box(uv, vec2(0.39, 0.69), vec2(0.53, 0.79)) ||
                inside_box(uv, vec2(0.37, 0.20), vec2(0.65, 0.29));
     }
     if (button == 2u) {
@@ -136,12 +136,30 @@ bool hud_glyph(uint button, vec2 uv) {
         bool right = inside_box(uv, vec2(0.56, 0.30), vec2(0.64, 0.70));
         return left || top || bottom || right;
     }
-    // Skeleton icon: head, spine, shoulders and pelvis.
-    float head = length(uv - vec2(0.50, 0.76));
-    bool spine = inside_box(uv, vec2(0.47, 0.27), vec2(0.53, 0.67));
-    bool shoulders = inside_box(uv, vec2(0.28, 0.54), vec2(0.72, 0.60));
-    bool pelvis = inside_box(uv, vec2(0.36, 0.28), vec2(0.64, 0.34));
-    return head <= 0.095 || spine || shoulders || pelvis;
+    if (button == 3u) {
+        float head = length(uv - vec2(0.50, 0.76));
+        bool spine = inside_box(uv, vec2(0.47, 0.27), vec2(0.53, 0.67));
+        bool shoulders = inside_box(uv, vec2(0.28, 0.54), vec2(0.72, 0.60));
+        bool pelvis = inside_box(uv, vec2(0.36, 0.28), vec2(0.64, 0.34));
+        return head <= 0.095 || spine || shoulders || pelvis;
+    }
+    if (button == 4u) {
+        bool body = inside_box(uv, vec2(0.27, 0.33), vec2(0.67, 0.67));
+        float lens = length(uv - vec2(0.70, 0.50));
+        bool grip = inside_box(uv, vec2(0.38, 0.65), vec2(0.52, 0.74));
+        return body || lens <= 0.16 || grip;
+    }
+    if (button == 5u) {
+        bool horizontal = inside_box(uv, vec2(0.22, 0.47), vec2(0.78, 0.53));
+        bool vertical = inside_box(uv, vec2(0.47, 0.22), vec2(0.53, 0.78));
+        float center = length(uv - vec2(0.5));
+        return horizontal || vertical || (center > 0.22 && center < 0.28);
+    }
+    float ring = length(uv - vec2(0.50, 0.50));
+    bool arc = ring > 0.22 && ring < 0.30 && !(uv.x > 0.56 && uv.y > 0.58);
+    bool arrow = inside_box(uv, vec2(0.60, 0.58), vec2(0.78, 0.66)) ||
+                 inside_box(uv, vec2(0.70, 0.50), vec2(0.78, 0.66));
+    return arc || arrow;
 }
 
 vec3 perturb_normal(vec3 n, vec3 view_pos, float height_field, float strength) {
@@ -255,19 +273,35 @@ void main() {
             out_colour = vec4(procedural_environment(surface_position_m.xy), 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 103u) discard;
+        if (body_region == 190u) {
+            out_colour = vec4(0.055, 0.070, 0.095, 1.0);
+            return;
+        }
+        if (body_region < 100u || body_region > 106u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
         if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
+
+        uint camera_preset = (pc.flags.w >> 3u) & 3u;
         bool selected = (button == 0u && profile_index == 0u) ||
                         (button == 1u && profile_index == 1u) ||
                         (button == 2u && detail_enabled) ||
-                        (button == 3u && mode == 3u);
+                        (button == 3u && mode == 3u) ||
+                        (button == 5u && mode != 0u);
+
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-        vec3 panel = selected ? vec3(0.16, 0.56, 0.92) : vec3(0.12, 0.16, 0.22);
-        if (button == 3u && mode == 3u) panel = vec3(0.18, 0.72, 0.42);
-        if (edge < 0.055) panel = min(panel + vec3(0.24), vec3(1.0));
+        vec3 panel = selected ? vec3(0.12, 0.46, 0.78) : vec3(0.095, 0.12, 0.17);
+        if (button == 3u && mode == 3u) panel = vec3(0.12, 0.60, 0.36);
+        if (button == 4u) {
+            panel = camera_preset == 0u ? vec3(0.16, 0.26, 0.48)
+                  : camera_preset == 1u ? vec3(0.16, 0.42, 0.55)
+                                        : vec3(0.50, 0.28, 0.12);
+        }
+        if (button == 5u && mode != 0u) panel = vec3(0.48, 0.26, 0.62);
+        if (button == 6u) panel = vec3(0.16, 0.18, 0.22);
+
+        if (edge < 0.045) panel = min(panel + vec3(0.20), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
         out_colour = vec4(panel, 1.0);
         return;
