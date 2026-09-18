@@ -2,6 +2,7 @@
 
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/physiology.hpp"
+#include "rengine/lsg/eye_runtime.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -13,6 +14,13 @@ enum class DiagnosticRenderMode : std::uint8_t {
   raw_perspective = 1,
   raw_orthographic = 2,
   genome_joint_debug = 3,
+};
+
+enum class EyeDiagnosticMode : std::uint8_t {
+  normal = 0,
+  components = 1,
+  iris_only = 2,
+  cornea_only = 3,
 };
 
 struct RendererDiagnostics {
@@ -63,6 +71,10 @@ public:
 
   void set_physiology_preset(PhysiologyPreset preset) noexcept;
   [[nodiscard]] PhysiologyPreset physiology_preset() const noexcept;
+
+  void set_eye_diagnostic_mode(EyeDiagnosticMode mode) noexcept;
+  [[nodiscard]] EyeDiagnosticMode eye_diagnostic_mode() const noexcept;
+
   [[nodiscard]] RendererDiagnostics diagnostics() const noexcept;
 
 private:
