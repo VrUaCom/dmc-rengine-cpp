@@ -114,12 +114,16 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
   set(LSG_SHADER_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/shaders")
   set(LSG_VERTEX_SPV "${LSG_SHADER_BUILD_DIR}/human.vert.spv")
   set(LSG_FRAGMENT_SPV "${LSG_SHADER_BUILD_DIR}/human.frag.spv")
-  add_custom_command(OUTPUT ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV}
+  set(LSG_EYE_VERTEX_SPV "${LSG_SHADER_BUILD_DIR}/eye.vert.spv")
+  set(LSG_EYE_FRAGMENT_SPV "${LSG_SHADER_BUILD_DIR}/eye.frag.spv")
+  add_custom_command(OUTPUT ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV} ${LSG_EYE_VERTEX_SPV} ${LSG_EYE_FRAGMENT_SPV}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${LSG_SHADER_BUILD_DIR}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.vert -o ${LSG_VERTEX_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.frag -o ${LSG_FRAGMENT_SPV}
-      DEPENDS shaders/human.vert shaders/human.frag VERBATIM)
-  add_custom_target(rengine_lsg_shaders DEPENDS ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV})
+      COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.vert -o ${LSG_EYE_VERTEX_SPV}
+      COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.frag -o ${LSG_EYE_FRAGMENT_SPV}
+      DEPENDS shaders/human.vert shaders/human.frag shaders/eye.vert shaders/eye.frag VERBATIM)
+  add_custom_target(rengine_lsg_shaders DEPENDS ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV} ${LSG_EYE_VERTEX_SPV} ${LSG_EYE_FRAGMENT_SPV})
   add_executable(rengine_lsg_viewer viewer/windows/main.cpp renderer/vulkan_renderer.cpp)
   add_dependencies(rengine_lsg_viewer rengine_lsg_shaders)
   target_compile_definitions(rengine_lsg_viewer PRIVATE VK_USE_PLATFORM_WIN32_KHR=1)
@@ -129,7 +133,9 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
   add_custom_command(TARGET rengine_lsg_viewer POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_VERTEX_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.vert.spv"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.frag.spv")
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.frag.spv"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_EYE_VERTEX_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/eye.vert.spv"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_EYE_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/eye.frag.spv")
 elseif(RENGINE_LSG_BUILD_VIEWER)
   message(STATUS "LSG desktop viewer currently targets Win32; non-Windows viewer skipped")
 endif()
