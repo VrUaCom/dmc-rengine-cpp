@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-buffered-reader",
+  "title": "DMC3 HD file layer: the handle is a 40-byte buffered reader, and five wrappers retry forever",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-buffered-reader-object",
+      "claim_id": "claim-dmc3-buffered-reader-object",
+      "title": "Forty bytes, a 16 KiB window and one guard byte past its end",
+      "summary": "What the archive reader passes around as a handle is built by 0x327800: CreateFileA for read access shared for reading, opening existing, then calloc(1, 0x28) with the handle at offset 0, then malloc(0x4001) - 16,385 bytes, not 16,384 - and a guard byte 0x4D written at buffer + 0x4000, the one extra byte. The remaining fields account for the 40 exactly: the buffer at 0x08, buffer + 0x4000 at 0x10, and the current position and the end of valid data at 0x18 and 0x20, both starting at the buffer base. Its three users agree on that reading: 0x327910 refills when 0x18 equals 0x20 and bypasses the buffer entirely for requests of 0x4000 or more, 0x327A80 memmoves the unconsumed bytes to the front and advances 0x20 by what arrived, and 0x327B60 resets both to the base after adding 0x18 minus 0x20 to a FILE_CURRENT displacement, which is minus the unconsumed bytes and exactly the correction the operating system's file pointer needs. Neither allocation is tested before use; the guard byte is written into whatever malloc returned.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "file-io",
+        "struct-layout",
+        "allocation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3307520,
+          "size": 261,
+          "symbol": "the open and the reader construction",
+          "note": "RVA 0x327800, calloc at 0x3278AB, malloc(0x4001) at 0x3278BC, guard byte at 0x3278C6."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308160,
+          "size": 218,
+          "symbol": "the refill",
+          "note": "RVA 0x327A80, memmove of the unconsumed bytes at 0x327AB8, ReadFile at 0x327AFA."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-unbounded-retry-idiom",
+      "claim_id": "claim-dmc3-unbounded-retry-idiom",
+      "title": "Five wrappers share one retry idiom and three of them cannot leave it",
+      "summary": "Every Win32 call in the file layer is wrapped the same way: call, test the failure value, ask GetLastError, compare it against the errors worth giving up on, otherwise rebuild the arguments and do it again. There is no counter, no delay and no backoff anywhere in it. 0x327800 gives up on ERROR_FILE_NOT_FOUND and ERROR_PATH_NOT_FOUND, 0x327720 on those two and ERROR_NO_MORE_FILES, and 0x3277C0, 0x327B60 and 0x327A80 give up on nothing at all: the only exit from their loops is the API succeeding, so a closed handle or a disk that has gone away spins the calling thread between two imports indefinitely. Two details mark this as one piece of source rather than five coincidences: each of the five calls GetLastError once per comparison plus once more whose result is never read, and each retry rebuilds its arguments rather than reusing the first attempt's. End of file is not caught by this, correctly - ReadFile returning true with zero bytes is stored as zero and checked by the caller at 0x327985 - so the unbounded case is a genuine failure.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "file-io",
+        "error-handling",
+        "portability"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3307456,
+          "size": 60,
+          "symbol": "the size wrapper's unbounded loop",
+          "note": "RVA 0x3277C0, 'je 0x3277E0' at 0x3277F4 with no other exit."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308384,
+          "size": 115,
+          "symbol": "the seek wrapper's unbounded loop",
+          "note": "RVA 0x327B60, 'je 0x327BA7' at 0x327BC1 with no other exit."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308160,
+          "size": 218,
+          "symbol": "the refill's unbounded loop",
+          "note": "RVA 0x327A80, 'je 0x327B04' at 0x327B2B with no other exit."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-file-layer-is-32-bit",
+      "claim_id": "claim-dmc3-file-layer-is-32-bit",
+      "title": "Four gigabytes is the ceiling, and two independent readings say so",
+      "summary": "SetFilePointer is called with lpDistanceToMoveHigh null - r8d is zeroed at 0x327B90 - and the FILE_CURRENT correction is computed in 32-bit registers. The size wrapper compares a 32-bit result. Nothing in the layer carries a 64-bit file offset. That converges with the archive reading from the other direction, where every size and offset field the record decoders write is 32 bits and none of the format's 64-bit extension constants appears anywhere in the image. Two readings that share no instruction - one of the platform calls, one of the record decoders - reach the same ceiling. One consequence is readable although unreachable: GetFileSize returns 0xFFFFFFFF both on failure and for a file of exactly 4,294,967,295 bytes, distinguished only by GetLastError, and 0x3277C0 discards it, so such a file would loop forever.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "file-io",
+        "portability",
+        "cross-check"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308432,
+          "size": 3,
+          "symbol": "the null high dword",
+          "note": "RVA 0x327B90, 'xor r8d,r8d' immediately before the SetFilePointer call at 0x327B9C."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-two-layers-differ-on-errors",
+      "claim_id": "claim-dmc3-two-layers-differ-on-errors",
+      "title": "One layer retries every failure and the other never asks what went wrong",
+      "summary": "The file-access note separated the two file layers by coupling, forty-six users per dependency against two. They separate on error handling as well, and more sharply. In layer A each of CreateFileA, GetFileSize and SetFilePointer is called from exactly one function and twice from it, the attempt and the retry, and GetLastError appears 15 times across 7 of its functions. In layer B, CreateFileA and GetFileSize are called once each from 0x049120 and SetFilePointer once from 0x049290, and neither function calls GetLastError at all - the layer's single call site is elsewhere, at 0x04ACAC. Nothing here says which layer is older or why the engine has both, which is still open, but the question is now about two independent differences rather than one, and two make an accident a poorer explanation than one did.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "file-io",
+        "architecture",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 299296,
+          "size": 4,
+          "symbol": "layer B's single open and size site",
+          "note": "RVA 0x049120, the only function outside layer A calling CreateFileA and GetFileSize, and it never calls GetLastError."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-wrappers-are-not-thin",
+      "claim_id": "claim-dmc3-file-layer-is-a-library",
+      "title": "Calling them thin wrappers understated what a port replaces",
+      "summary": "The file-access note described layer A as the Win32 imports, thin wrappers of 43 to 353 bytes around each, and orchestrators combining them. The bottom of that range is right and the top is not. 0x327910 at 353 bytes is a buffered reader with a refill path, a bypass for requests of 0x4000 or more and an end-of-file case; 0x327A80 at 218 bytes does the memmove and the refill; 0x327800 at 261 bytes opens a file and constructs the reader object, which is two jobs rather than a wrapper's one. The census in that note - which imports, from how many functions, with what coupling - stands unchanged and was measured rather than described. What did not stand was the sentence describing what sits between the imports and the orchestrators, which was an impression stated with the same confidence as the counts beside it.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "file-io",
+        "architecture"
+      ],
+      "supersedes": [
+        "ev-dmc3-file-layer-is-a-library"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3307792,
+          "size": 353,
+          "symbol": "the read wrapper that is not thin",
+          "note": "RVA 0x327910, the 0x4000 bypass test at 0x327954 and the refill call at 0x327978."
+        }
+      ]
+    }
+  ]
+}
