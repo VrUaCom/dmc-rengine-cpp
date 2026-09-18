@@ -56,6 +56,9 @@ public:
 
   void set_diagnostic_mode(DiagnosticRenderMode mode) noexcept;
   [[nodiscard]] DiagnosticRenderMode diagnostic_mode() const noexcept;
+
+  void set_ui_tooltip_row(int row) noexcept;
+  [[nodiscard]] int ui_tooltip_row() const noexcept;
   [[nodiscard]] RendererDiagnostics diagnostics() const noexcept;
 
 private:
