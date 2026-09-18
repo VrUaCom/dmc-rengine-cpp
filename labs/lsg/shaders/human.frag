@@ -155,11 +155,23 @@ bool hud_glyph(uint button, vec2 uv) {
         float center = length(uv - vec2(0.5));
         return horizontal || vertical || (center > 0.22 && center < 0.28);
     }
-    float ring = length(uv - vec2(0.50, 0.50));
-    bool arc = ring > 0.22 && ring < 0.30 && !(uv.x > 0.56 && uv.y > 0.58);
-    bool arrow = inside_box(uv, vec2(0.60, 0.58), vec2(0.78, 0.66)) ||
-                 inside_box(uv, vec2(0.70, 0.50), vec2(0.78, 0.66));
-    return arc || arrow;
+    if (button == 6u) {
+        float ring = length(uv - vec2(0.50, 0.50));
+        bool arc = ring > 0.22 && ring < 0.30 && !(uv.x > 0.56 && uv.y > 0.58);
+        bool arrow = inside_box(uv, vec2(0.60, 0.58), vec2(0.78, 0.66)) ||
+                     inside_box(uv, vec2(0.70, 0.50), vec2(0.78, 0.66));
+        return arc || arrow;
+    }
+    // Physiology: compact heart/pulse icon.
+    bool left_lobe = length(uv - vec2(0.40, 0.60)) < 0.15;
+    bool right_lobe = length(uv - vec2(0.60, 0.60)) < 0.15;
+    bool lower = uv.y < 0.62 && abs(uv.x - 0.50) < (0.34 - 0.42 * (0.62 - uv.y));
+    bool pulse = inside_box(uv, vec2(0.23, 0.45), vec2(0.40, 0.50)) ||
+                 inside_box(uv, vec2(0.39, 0.36), vec2(0.45, 0.58)) ||
+                 inside_box(uv, vec2(0.44, 0.47), vec2(0.58, 0.52)) ||
+                 inside_box(uv, vec2(0.57, 0.42), vec2(0.63, 0.58)) ||
+                 inside_box(uv, vec2(0.62, 0.47), vec2(0.78, 0.52));
+    return left_lobe || right_lobe || lower || pulse;
 }
 
 uint font_bits(uint c) {
@@ -211,6 +223,7 @@ uint tooltip_length(uint tooltip) {
     if (tooltip == 4u) return 21u;
     if (tooltip == 5u) return 20u;
     if (tooltip == 6u) return 20u;
+    if (tooltip == 7u) return 22u;
     return 0u;
 }
 
@@ -222,6 +235,7 @@ uint tooltip_char(uint tooltip, uint index) {
     const uint t4[21] = uint[21](67u,65u,77u,69u,82u,65u,32u,32u,67u,89u,67u,76u,69u,32u,80u,82u,69u,83u,69u,84u,83u);
     const uint t5[20] = uint[20](68u,73u,65u,71u,32u,32u,82u,65u,87u,32u,86u,73u,69u,87u,32u,77u,79u,68u,69u,83u);
     const uint t6[20] = uint[20](82u,69u,83u,69u,84u,32u,32u,67u,69u,78u,84u,69u,82u,32u,67u,65u,77u,69u,82u,65u);
+    const uint t7[22] = uint[22](80u,72u,89u,83u,32u,32u,67u,89u,67u,76u,69u,32u,66u,79u,68u,89u,32u,83u,84u,65u,84u,69u);
     if (tooltip == 0u && index < 20u) return t0[index];
     if (tooltip == 1u && index < 22u) return t1[index];
     if (tooltip == 2u && index < 23u) return t2[index];
@@ -229,6 +243,7 @@ uint tooltip_char(uint tooltip, uint index) {
     if (tooltip == 4u && index < 21u) return t4[index];
     if (tooltip == 5u && index < 20u) return t5[index];
     if (tooltip == 6u && index < 20u) return t6[index];
+    if (tooltip == 7u && index < 22u) return t7[index];
     return 32u;
 }
 
@@ -359,6 +374,7 @@ void main() {
     bool detail_enabled = pc.flags.y != 0u;
     uint mode = diagnostic_mode();
     uint tooltip = (pc.flags.w >> 5u) & 15u;
+    uint physiology = (pc.flags.w >> 9u) & 3u;
 
     if (ui_environment_pass()) {
         if (body_region == 200u) {
@@ -378,7 +394,7 @@ void main() {
             out_colour = vec4(colour, 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 106u) discard;
+        if (body_region < 100u || body_region > 107u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
@@ -390,6 +406,7 @@ void main() {
                         (button == 2u && detail_enabled) ||
                         (button == 3u && mode == 3u) ||
                         (button == 5u && mode != 0u) ||
+                        (button == 7u && physiology != 0u) ||
                         (button == tooltip);
 
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
@@ -402,6 +419,12 @@ void main() {
         }
         if (button == 5u && mode != 0u) panel = vec3(0.48, 0.26, 0.62);
         if (button == 6u) panel = vec3(0.16, 0.18, 0.22);
+        if (button == 7u) {
+            panel = physiology == 0u ? vec3(0.12, 0.20, 0.22)
+                  : physiology == 1u ? vec3(0.62, 0.18, 0.14)
+                  : physiology == 2u ? vec3(0.12, 0.34, 0.62)
+                                     : vec3(0.72, 0.32, 0.10);
+        }
 
         if (edge < 0.045) panel = min(panel + vec3(0.20), vec3(1.0));
         if (hud_glyph(button, uv)) panel = vec3(0.96, 0.98, 1.00);
@@ -440,16 +463,29 @@ void main() {
     float oiliness = clamp(pc.skin0.z, 0.0, 1.0);
     float hydration = clamp(pc.skin0.w, 0.0, 1.0);
 
+    // Render-control physiology approximation from the v0 contract.
+    // 0 normal, 1 exercise, 2 cold, 3 hot.
+    float perfusion = physiology == 1u ? 0.84
+                    : physiology == 2u ? 0.22
+                    : physiology == 3u ? 0.66 : 0.45;
+    float sweat = physiology == 1u ? 0.72
+                : physiology == 2u ? 0.03
+                : physiology == 3u ? 0.88 : 0.08;
+    haemoglobin = clamp(haemoglobin + (perfusion - 0.45) * 0.36, 0.0, 1.0);
+
     vec3 light_skin = vec3(0.66, 0.39, 0.29);
     vec3 dark_skin = vec3(0.12, 0.050, 0.030);
     vec3 base_colour = mix(light_skin, dark_skin, pow(melanin, 0.82) * 0.90);
     base_colour += vec3(0.08, 0.010, 0.005) * (haemoglobin - 0.45);
+    if (physiology == 2u) base_colour += vec3(-0.010, 0.006, 0.028);
+    if (physiology == 3u) base_colour += vec3(0.030, 0.004, -0.008);
 
     float meso = 0.0;
     float pore_influence = 0.0;
     float height_field = 0.0;
-    float roughness = clamp(0.62 + (pc.micro0.x - 0.5) * 0.26 - oiliness * 0.16 - hydration * 0.05,
-                            0.28, 0.86);
+    float roughness = clamp(0.62 + (pc.micro0.x - 0.5) * 0.26 - oiliness * 0.16 - hydration * 0.05
+                            - sweat * 0.10,
+                            0.24, 0.86);
 
     if (detail_enabled && band >= 1) {
         meso = value_noise(surface_position_m / 0.0065, seed ^ 0xA511E9B3u) - 0.5;
@@ -502,7 +538,8 @@ void main() {
     vec3 sky = sky_irradiance(n);
     vec3 ambient = base_colour * sky * 0.28;
     vec3 sun_radiance = vec3(1.0, 0.95, 0.86) * 3.1;
-    vec3 colour = ambient + diffuse * sun_radiance + specular * sun_radiance * (1.2 + oiliness * 0.75) +
+    vec3 colour = ambient + diffuse * sun_radiance +
+                  specular * sun_radiance * (1.2 + oiliness * 0.75 + sweat * 0.35) +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
     colour *= 1.05;
