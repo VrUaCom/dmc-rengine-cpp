@@ -117,8 +117,14 @@ int main() {
   camera.set_preset(CameraPreset::portrait); const float portrait_distance = camera.state().distance_m;
   camera.set_preset(CameraPreset::extreme_close_up); const float close_distance = camera.state().distance_m;
   assert(close_distance < portrait_distance && portrait_distance < full_distance);
-  camera.orbit(0.25f, 100.0f); assert(camera.state().pitch_radians <= 1.10f);
+  const float yaw_before_drag = camera.state().yaw_radians;
+  camera.orbit(0.25f, 100.0f);
+  assert(camera.state().yaw_radians < yaw_before_drag);
+  assert(camera.state().pitch_radians <= 1.10f);
   camera.orbit(-0.25f, -100.0f); assert(camera.state().pitch_radians >= -1.10f);
+  camera.reset_view();
+  assert(std::abs(camera.state().yaw_radians) < 0.0001f);
+  assert(std::abs(camera.state().pitch_radians) < 0.0001f);
   camera.zoom(1000.0f); assert(camera.state().distance_m >= 0.32f);
   camera.zoom(0.0001f); assert(camera.state().distance_m <= 12.0f);
 
