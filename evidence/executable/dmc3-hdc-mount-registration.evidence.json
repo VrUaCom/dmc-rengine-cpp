@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-mount-registration",
+  "title": "DMC3 HD mount registration: one struct for two kinds, and both halves of the name invariant",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-mount-struct-embeds-the-archive",
+      "claim_id": "claim-dmc3-mount-struct-embeds-the-archive",
+      "title": "Eighty-eight bytes, two kinds, and the archive object is embedded rather than pointed to",
+      "summary": "0x326D20 mounts a directory and 0x326DFC mounts an archive, and both are calloc(1, 0x58) filled and pushed onto the head at 0xCF3180 through +0x50. The kind is at 0x00, the normalisation flags at 0x04, a _strdup of the base or archive path at 0x08, the archive object embedded across 0x10 to 0x4F, and the next mount at 0x50: 88 bytes with nothing left over. The embedded region is exactly the 0x40 bytes the archive note saw zeroed at 0x328320 without knowing what contained them, so the containing allocation confirms a size that had only been inferred from a zeroing loop. A directory mount leaves that region zero and pays 64 bytes for the uniformity. Registration pushes onto the head and the resolver takes the first hit, so the override policy is last mounted wins, expressed as a pair of moves rather than a priority field. Mounting an archive opens the file, initialises the embedded object, closes the reader, builds the index and only then sets the kind and publishes the mount, so a mount is never visible half built and the archive file is not held open between mounting and use.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "struct-layout",
+        "architecture"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3304736,
+          "size": 126,
+          "symbol": "the directory mount",
+          "note": "RVA 0x326D20, calloc(1, 0x58) at 0x326D3C, kind zero at 0x326D5F, push at 0x326D88."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3304956,
+          "size": 129,
+          "symbol": "the archive mount",
+          "note": "RVA 0x326DFC, 0x328320 at 0x326E01, the index build at 0x326E2A, kind one at 0x326E36, push at 0x326E6D."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-index-build-and-search-agree",
+      "claim_id": "claim-dmc3-index-build-and-search-agree",
+      "title": "The sort and the search call one normaliser with one flag word and one comparator",
+      "summary": "The mount-list note stated a hazard it had not verified: the lookup is a bsearch, so it depends on the array being sorted under exactly the normalisation the query goes through. Both halves are now read. 0x327CC0 nulls the array and count, walks the entry list normalising each stored name in place with 0x327160(name, 0x0E), counts by walking, mallocs count times 0x10 with an overflow guard - mul followed by cmovo rax,-1, so an overflowing product asks for SIZE_MAX and fails rather than under-allocating - fills the array with name and node per sixteen bytes, and qsorts it with the comparison at 0x3291D0. 0x328160 normalises the query with the same function and the same flag word 0x0E and bsearches with the same width and the same comparison. The invariant therefore holds by construction rather than by discipline, which is the version a port should copy. The guard is worth noting beside the rest of this layer: the same code that spins forever on an I/O error in three of its wrappers clamps n plus one in 0x327650 and count times sixteen here, so carefulness about integer arithmetic and carelessness about failure are plainly not the same axis.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "invariant",
+        "cross-check"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308736,
+          "size": 195,
+          "symbol": "the index builder",
+          "note": "RVA 0x327CC0, the in-place normalisation at 0x327CE9, the overflow guard at 0x327D09-0x327D13, qsort at 0x327D6D."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-lookup-case-rule",
+      "claim_id": "claim-dmc3-lookup-case-rule",
+      "title": "Case-insensitive for ASCII, case-sensitive above 0x7F, and the comparator alone says the opposite",
+      "summary": "0x3291D0 is an inlined byte-wise compare on the first field of each pair, returning plus or minus one via sbb and or rather than a difference. Read alone it says the lookup is case-sensitive. It is not, because of what runs first, and reading only the comparator would have produced a confident wrong answer. 0x327160 is a flag-driven normaliser whose bits are now all read: 0x01 upper-cases ASCII a to z, 0x02 lower-cases ASCII A to Z but only when 0x01 is clear, 0x04 strips leading slashes and backslashes by shifting the rest down, 0x08 strips trailing ones, and unconditionally every slash becomes a backslash. The flag word both sides use is 0x0E. So lookup is case-insensitive for ASCII and case-sensitive above 0x7F, because the folding is a range test on A to Z that touches no byte with the high bit set: two names differing only in the case of a non-ASCII byte are two distinct entries and only one is reachable by a query spelled the other way. A port that reaches for a locale-aware or UTF-8-aware case fold here changes which files resolve, and the unconditional slash conversion has to be reproduced in the index rather than only at the boundary.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "portability",
+        "text"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3314128,
+          "size": 41,
+          "symbol": "the name comparator",
+          "note": "RVA 0x3291D0, a byte-wise compare returning plus or minus one."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3305824,
+          "size": 256,
+          "symbol": "the name normaliser",
+          "note": "RVA 0x327160, the flag tests at 0x327166, 0x3271AE, 0x3271EB and 0x327219, and the unconditional conversion at 0x327250."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-separator-set-is-three",
+      "claim_id": "claim-dmc3-separator-set-is-three",
+      "title": "A path is not given a separator when it already ends in one of three, encoded as a bitmask",
+      "summary": "0x326EE0 builds a base path by finding the first directory mount in the list and copying its path, then appends a backslash unless the path already ends in something that ends a path. The test is a 64-bit bitmask, movabs r14 with 0x200000000801, indexed by the last character minus 0x2F and range-checked against 0x2D before the bt. The set bits are 0, 11 and 45, which against that base are the forward slash, the colon and the backslash. So a base path ending in a drive or stream separator is left alone rather than having a backslash appended, and a path already ending in either slash is not doubled. It is a small thing and it is exactly the kind of small thing a port gets wrong silently, because the failure is a path that still opens on one platform and not on another.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "portability"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3305184,
+          "size": 451,
+          "symbol": "the base path builder",
+          "note": "RVA 0x326EE0, the mask loaded at 0x326F1A and tested at 0x326F8B."
+        }
+      ]
+    }
+  ]
+}
