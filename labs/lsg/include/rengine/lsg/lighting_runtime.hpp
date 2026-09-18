@@ -32,6 +32,10 @@ struct LightingRuntimeState {
   float scene_luminance{1.0f};
   float effective_eye_luminance{1.0f};
 
+  std::array<float, 3> sun_tint{1.0f, 0.95f, 0.86f};
+  std::array<float, 3> sky_zenith_tint{0.16f, 0.32f, 0.58f};
+  std::array<float, 3> sky_horizon_tint{0.36f, 0.48f, 0.62f};
+
   float filter_transmission{1.0f};
   float polarization_strength{};
   std::array<float, 3> filter_tint{1.0f, 1.0f, 1.0f};
