@@ -24,6 +24,10 @@ env:
   LSG_FEMALE_CAUCASIAN_BLOB: 9d1f0cbeedc9a6a51abe33f1ebb5fa7c5a7edbf1
   LSG_FEMALE_BUST_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/breast/female-young-averagemuscle-averageweight-maxcup-averagefirmness.target
   LSG_FEMALE_BUST_BLOB: 2ff890c95741f40211408ea507c15bec00051798
+  LSG_EYE_OBJ_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/eyes/high-poly/high-poly.obj
+  LSG_EYE_OBJ_BLOB: 01562a9caf4dca9ebb1fd5c24db083c17e724330
+  LSG_EYE_MHCLO_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/eyes/high-poly/high-poly.mhclo
+  LSG_EYE_MHCLO_BLOB: 22bc5f77f398c59088804f7f4c9bb0e39d38661d
 
 jobs:
   windows-x64-vulkan:
@@ -41,7 +45,7 @@ jobs:
       - name: Configure C++23 Win32 Vulkan viewer and tools
         run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64
       - name: Build mesh/profile/report tools
-        run: cmake --build build-lsg-win --config Release --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+        run: cmake --build build-lsg-win --config Release --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_fit_mhclo lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
       - name: Prepare pinned male/female macro RMS0 assets and canonical genomes
         shell: pwsh
         run: |
@@ -55,6 +59,8 @@ jobs:
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_ASIAN_URL -o build-lsg-win\female-asian.target
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_CAUCASIAN_URL -o build-lsg-win\female-caucasian.target
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_BUST_URL -o build-lsg-win\female-bust.target
+          curl.exe -L --fail --retry 3 $env:LSG_EYE_OBJ_URL -o build-lsg-win\eye-high.obj
+          curl.exe -L --fail --retry 3 $env:LSG_EYE_MHCLO_URL -o build-lsg-win\eye-high.mhclo
 
           if ((git hash-object build-lsg-win\male-african.target).Trim() -ne $env:LSG_MALE_AFRICAN_BLOB) { throw 'male African target mismatch' }
           if ((git hash-object build-lsg-win\male-asian.target).Trim() -ne $env:LSG_MALE_ASIAN_BLOB) { throw 'male Asian target mismatch' }
@@ -63,6 +69,8 @@ jobs:
           if ((git hash-object build-lsg-win\female-asian.target).Trim() -ne $env:LSG_FEMALE_ASIAN_BLOB) { throw 'female Asian target mismatch' }
           if ((git hash-object build-lsg-win\female-caucasian.target).Trim() -ne $env:LSG_FEMALE_CAUCASIAN_BLOB) { throw 'female Caucasian target mismatch' }
           if ((git hash-object build-lsg-win\female-bust.target).Trim() -ne $env:LSG_FEMALE_BUST_BLOB) { throw 'female bust target mismatch' }
+          if ((git hash-object build-lsg-win\eye-high.obj).Trim() -ne $env:LSG_EYE_OBJ_BLOB) { throw 'eye OBJ blob mismatch' }
+          if ((git hash-object build-lsg-win\eye-high.mhclo).Trim() -ne $env:LSG_EYE_MHCLO_BLOB) { throw 'eye MHClO blob mismatch' }
 
           & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-0.obj `
             build-lsg-win\male-african.target 0.333333333333 `
@@ -79,6 +87,32 @@ jobs:
           & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\profile-1-base.obj build-lsg-win\profile-1.obj `
             build-lsg-win\female-bust.target 1.0
           if ($LASTEXITCODE -ne 0) { throw 'female bust target application failed' }
+
+          foreach ($profile in 0,1) {
+            & build-lsg-win\Release\lsg_fit_mhclo.exe build-lsg-win\profile-$profile.obj build-lsg-win\eye-high.obj build-lsg-win\eye-high.mhclo build-lsg-win\profile-$profile-eyes.obj `
+              | Tee-Object -FilePath build-lsg-win\lsg-profile-$profile-eye-fit-report.txt
+            if ($LASTEXITCODE -ne 0 -or -not (Select-String -Path build-lsg-win\lsg-profile-$profile-eye-fit-report.txt -Pattern 'MHCL0 FIT PASS' -Quiet)) {
+              throw "profile $profile eye fitting failed"
+            }
+
+            & build-lsg-win\Release\lsg_fit_mhclo.exe build-lsg-win\profile-$profile.obj build-lsg-win\eye-high.obj build-lsg-win\eye-high.mhclo build-lsg-win\profile-$profile-eyes-repeat.obj | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile repeat eye fitting failed" }
+            if ((Get-FileHash build-lsg-win\profile-$profile-eyes.obj).Hash -ne (Get-FileHash build-lsg-win\profile-$profile-eyes-repeat.obj).Hash) {
+              throw "profile $profile eye fitting is not deterministic"
+            }
+
+            $vertexCount = (Select-String -Path build-lsg-win\profile-$profile-eyes.obj -Pattern '^v ').Count
+            $uvCount = (Select-String -Path build-lsg-win\profile-$profile-eyes.obj -Pattern '^vt ').Count
+            if ($vertexCount -ne 1064) { throw "profile $profile fitted eye vertex count mismatch: $vertexCount" }
+            if ($uvCount -ne 808) { throw "profile $profile fitted eye UV count mismatch: $uvCount" }
+          }
+          if ((Get-FileHash build-lsg-win\profile-0-eyes.obj).Hash -eq (Get-FileHash build-lsg-win\profile-1-eyes.obj).Hash) {
+            throw 'fitted eye outputs are unexpectedly identical across macro profiles'
+          }
+          @(
+            "profile0 $((Get-FileHash build-lsg-win\profile-0-eyes.obj -Algorithm SHA256).Hash)"
+            "profile1 $((Get-FileHash build-lsg-win\profile-1-eyes.obj -Algorithm SHA256).Hash)"
+          ) | Set-Content build-lsg-win\lsg-eye-fit-sha256.txt
 
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           foreach ($profile in 0,1) {
@@ -151,4 +185,7 @@ jobs:
             build-lsg-win/Release/lsg-acceptance-report.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-0.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-1.txt
+            build-lsg-win/lsg-eye-fit-sha256.txt
+            build-lsg-win/lsg-profile-0-eye-fit-report.txt
+            build-lsg-win/lsg-profile-1-eye-fit-report.txt
           if-no-files-found: error
