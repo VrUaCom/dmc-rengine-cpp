@@ -2,6 +2,7 @@
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
+#include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/detail_scheduler.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -79,6 +80,20 @@ int main() {
   assert(iris_a >= 0.0f && iris_a < 1.0f);
   assert(iris_a != iris_other_side);
   assert(iris_a != iris_other_seed);
+
+  EyeRuntimeState eye_state{};
+  const float dark_target = pupil_target_from_luminance(0.01f, eye0.pupil_bias);
+  const float bright_target = pupil_target_from_luminance(4.0f, eye0.pupil_bias);
+  assert(dark_target > bright_target);
+  float previous_radius = eye_state.pupil_radius;
+  for (int i = 0; i < 120; ++i) update_eye_runtime(eye_state, 4.0f, eye0.pupil_bias, 1.0f / 60.0f);
+  assert(std::isfinite(eye_state.pupil_radius));
+  assert(eye_state.pupil_radius < previous_radius);
+  assert(std::abs(eye_state.pupil_radius - eye_state.target_pupil_radius) < 0.002f);
+  const float bright_radius = eye_state.pupil_radius;
+  for (int i = 0; i < 120; ++i) update_eye_runtime(eye_state, 0.01f, eye0.pupil_bias, 1.0f / 60.0f);
+  assert(eye_state.pupil_radius > bright_radius);
+  assert(eye_state.pupil_radius >= 0.070f && eye_state.pupil_radius <= 0.155f);
 
   const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);
