@@ -91,6 +91,58 @@ void regenerate_tangents(RMeshV0& mesh) {
   }
 }
 
+bool assign_component_regions(RMeshV0& mesh, std::size_t& component_count, std::string& error) {
+  if (mesh.vertices.empty() || mesh.indices.empty()) {
+    error = "component tagging requires non-empty geometry";
+    return false;
+  }
+
+  std::vector<std::vector<std::uint32_t>> adjacency(mesh.vertices.size());
+  for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3) {
+    const std::uint32_t tri[3] = {mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]};
+    for (int edge = 0; edge < 3; ++edge) {
+      const auto a = tri[edge];
+      const auto b = tri[(edge + 1) % 3];
+      if (a >= mesh.vertices.size() || b >= mesh.vertices.size()) {
+        error = "component tagging saw an out-of-range index";
+        return false;
+      }
+      adjacency[a].push_back(b);
+      adjacency[b].push_back(a);
+    }
+  }
+
+  std::vector<int> component(mesh.vertices.size(), -1);
+  component_count = 0;
+  std::vector<std::uint32_t> stack;
+  for (std::uint32_t root = 0; root < mesh.vertices.size(); ++root) {
+    if (component[root] >= 0) continue;
+    if (component_count > 10u) {
+      error = "RMS0 v0 component tagging supports at most 11 diagnostic components";
+      return false;
+    }
+
+    stack.clear();
+    stack.push_back(root);
+    component[root] = static_cast<int>(component_count);
+    while (!stack.empty()) {
+      const auto current = stack.back();
+      stack.pop_back();
+      for (const auto neighbour : adjacency[current]) {
+        if (component[neighbour] >= 0) continue;
+        component[neighbour] = static_cast<int>(component_count);
+        stack.push_back(neighbour);
+      }
+    }
+    ++component_count;
+  }
+
+  for (std::size_t i = 0; i < mesh.vertices.size(); ++i) {
+    mesh.vertices[i].region_id = static_cast<std::uint8_t>(component[i]);
+  }
+  return true;
+}
+
 void assign_regions(RMeshV0& mesh) {
   std::array<float, 3> minimum = mesh.vertices.front().position, maximum = mesh.vertices.front().position;
   for (const auto& vertex : mesh.vertices) for (std::size_t i = 0; i < 3; ++i) { minimum[i] = std::min(minimum[i], vertex.position[i]); maximum[i] = std::max(maximum[i], vertex.position[i]); }
@@ -229,18 +281,40 @@ bool write_file(const std::filesystem::path& path, const std::vector<std::byte>&
 }  // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 3) { std::cerr << "usage: lsg_prepare_mesh <human.obj|human.glb|human.gltf> <human.rmesh>\n"; return 2; }
+  if (argc != 3 && argc != 4) {
+    std::cerr << "usage: lsg_prepare_mesh <mesh.obj|mesh.glb|mesh.gltf> <mesh.rmesh> [--component-regions]\n";
+    return 2;
+  }
+  const bool component_regions = argc == 4 && std::string_view{argv[3]} == "--component-regions";
+  if (argc == 4 && !component_regions) {
+    std::cerr << "mesh preparation failed: unknown option " << argv[3] << '\n';
+    return 2;
+  }
+
   const std::filesystem::path input = argv[1], output = argv[2];
   RMeshV0 mesh{}; mesh.flags = rengine::lsg::rmesh_has_uv | rengine::lsg::rmesh_has_tangents | rengine::lsg::rmesh_has_regions;
   std::string extension = input.extension().string(); std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   std::string error;
   const bool loaded = extension == ".obj" ? load_obj(input, mesh, error) : (extension == ".glb" || extension == ".gltf") ? load_gltf(input, mesh, error) : false;
   if (!loaded) { if (error.empty()) error = "unsupported mesh extension"; std::cerr << "mesh preparation failed: " << error << '\n'; return 3; }
-  regenerate_normals(mesh); regenerate_tangents(mesh); assign_regions(mesh);
-  if (!rengine::lsg::validate_rmesh(mesh, error)) { std::cerr << "RMS0 validation failed: " << error << '\n'; return 4; }
+
+  regenerate_normals(mesh);
+  regenerate_tangents(mesh);
+  std::size_t component_count = 0;
+  if (component_regions) {
+    if (!assign_component_regions(mesh, component_count, error)) {
+      std::cerr << "mesh preparation failed: " << error << '\n';
+      return 4;
+    }
+  } else {
+    assign_regions(mesh);
+  }
+
+  if (!rengine::lsg::validate_rmesh(mesh, error)) { std::cerr << "RMS0 validation failed: " << error << '\n'; return 5; }
   const auto bytes = rengine::lsg::encode_rmesh(mesh);
-  if (bytes.empty() || !write_file(output, bytes)) { std::cerr << "failed to write RMS0\n"; return 5; }
+  if (bytes.empty() || !write_file(output, bytes)) { std::cerr << "failed to write RMS0\n"; return 6; }
   std::cout << "RMS0 PASS: vertices=" << mesh.vertices.size() << " indices=" << mesh.indices.size()
-            << " triangles=" << mesh.indices.size() / 3u << " joints=" << mesh.joint_count << " bytes=" << bytes.size() << '\n';
+            << " triangles=" << mesh.indices.size() / 3u << " joints=" << mesh.joint_count
+            << " components=" << component_count << " bytes=" << bytes.size() << '\n';
   return 0;
 }
