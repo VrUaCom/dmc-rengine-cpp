@@ -43,6 +43,48 @@ vec3 sun_view_direction() {
     return normalize(rotate_x(rotate_y(sun_world, -pc.camera.x), -pc.camera.y));
 }
 
+vec3 view_to_world_direction(vec3 view_direction) {
+    return normalize(rotate_y(rotate_x(view_direction, pc.camera.y), pc.camera.x));
+}
+
+vec3 bulk_filter_rgb() {
+    return clamp(lighting.filter_tint_transmission.rgb, vec3(0.0), vec3(1.0)) *
+           clamp(lighting.filter_tint_transmission.w, 0.0, 1.0);
+}
+
+float rayleigh_dolp_from_mu(float mu) {
+    mu = clamp(mu, -1.0, 1.0);
+    float mu2 = mu * mu;
+    return clamp((1.0 - mu2) / max(1.0 + mu2, 1e-6), 0.0, 1.0);
+}
+
+float polarized_attenuation(float dolp, float axis_alignment_sq, float strength) {
+    dolp = clamp(dolp, 0.0, 1.0);
+    axis_alignment_sq = clamp(axis_alignment_sq, 0.0, 1.0);
+    strength = clamp(strength, 0.0, 1.0);
+    return clamp(1.0 - 0.55 * strength * dolp * (1.0 - axis_alignment_sq),
+                 0.45, 1.0);
+}
+
+float reflected_sky_polarization_attenuation(vec3 ray_world, vec3 sun_world) {
+    float strength = clamp(lighting.eye_filter_misc.y, 0.0, 1.0);
+    if (strength <= 0.0) return 1.0;
+
+    vec3 pol = cross(ray_world, sun_world);
+    vec3 axis = vec3(0.0, 1.0, 0.0) -
+                ray_world * dot(vec3(0.0, 1.0, 0.0), ray_world);
+    float pol_len2 = dot(pol, pol);
+    float axis_len2 = dot(axis, axis);
+    if (pol_len2 < 1e-8 || axis_len2 < 1e-8) return 1.0;
+
+    pol *= inversesqrt(pol_len2);
+    axis *= inversesqrt(axis_len2);
+    float alignment_sq = pow(clamp(dot(pol, axis), -1.0, 1.0), 2.0);
+    float mu = clamp(dot(ray_world, sun_world), -1.0, 1.0);
+    return polarized_attenuation(rayleigh_dolp_from_mu(mu),
+                                 alignment_sq, strength);
+}
+
 uint pcg_hash(uint input_value) {
     uint state = input_value * 747796405u + 2891336453u;
     uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
@@ -145,7 +187,7 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
     vec3 illumination = vec3(0.42 * sky) +
                         lighting.sun_tint_sky_intensity.rgb * (0.58 * ndotl * direct);
     colour *= illumination * max(lighting.sky_zenith_exposure.w, 0.01);
-    return colour;
+    return colour * bulk_filter_rgb();
 }
 
 vec3 diagnostic_component_colour(uint id) {
@@ -171,13 +213,21 @@ vec4 cornea_response() {
 
     vec3 reflected = reflect(-v, n);
     float sky_factor = clamp(reflected.y * 0.5 + 0.5, 0.0, 1.0);
+    vec3 reflected_world = view_to_world_direction(reflected);
+    vec3 sun_world = normalize(lighting.sun_direction_intensity.xyz);
+    float pol_attenuation =
+        reflected_sky_polarization_attenuation(reflected_world, sun_world);
+
     vec3 sky = mix(lighting.sky_horizon_scene_lum.rgb,
                    lighting.sky_zenith_exposure.rgb,
-                   sky_factor) * max(lighting.sun_tint_sky_intensity.w, 0.0);
+                   sky_factor) * max(lighting.sun_tint_sky_intensity.w, 0.0) *
+                   pol_attenuation;
 
+    // Polarized Approx intentionally attenuates the sky/glare proxy only.
+    // The sharp sun highlight remains bulk-transmission-only in v0.
     vec3 colour = sky * (0.08 + fresnel * 1.55) +
                   lighting.sun_tint_sky_intensity.rgb * sun_spec * 2.8;
-    colour *= max(lighting.sky_zenith_exposure.w, 0.01);
+    colour *= bulk_filter_rgb() * max(lighting.sky_zenith_exposure.w, 0.01);
     float alpha = clamp(0.055 + fresnel * 0.62 + sun_spec * 0.52, 0.045, 0.72);
     return vec4(colour, alpha);
 }
