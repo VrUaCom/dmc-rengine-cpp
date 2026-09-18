@@ -855,7 +855,7 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
 
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
-  impl_->ui_tooltip_row = (row >= 0 && row < 9) ? row : -1;
+  impl_->ui_tooltip_row = (row >= 0 && row < 10) ? row : -1;
 }
 
 int VulkanRenderer::ui_tooltip_row() const noexcept {
