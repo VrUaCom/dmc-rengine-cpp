@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-inflate-semantics",
+  "title": "DMC3 HD inflate path: seeking re-inflates from zero, truncation reads as a clean end, and nothing checks the CRC",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-compressed-seek-reinflates",
+      "claim_id": "claim-dmc3-compressed-seek-reinflates",
+      "title": "Any seek that is not to the current position or the end re-inflates the member from byte zero",
+      "summary": "0x328FE0 adds the current position for origin 1 and the length for origin 2, returns immediately when the target already equals the current position, clamps a negative target to zero and an over-long one to the length, and when the clamped target equals the length sets the exhausted flag and returns without decompressing anything. Every other target resets the decompressor, re-seeks the compressed substream to the start of the member through 0x327BE0, and reads and discards exactly that many bytes in chunks of at most 0x2000 into a 0x2030-byte stack frame taken through the stack probe. So the cost of a seek is linear in its target and there is no forward path at all: moving one byte ahead of the current position throws the decompressor away and starts from zero. A port that adds the obvious optimisation changes the timing profile of every seek, and because the discard loop drives inflate through a different function than the read path does, it is not guaranteed to reproduce the same byte counts on a damaged member. On failure the function returns -1, clearing 0x58 bytes of the decompressor first if the re-seek failed and not clearing if a discard read came back negative. This is one of the two addresses docs/gdspaces/proof-roadmap-2026-09-05.md names as needed to close the reader's original-equivalence gap; the other, 0x328540, was read earlier the same day.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "inflate",
+        "performance",
+        "portability"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3313632,
+          "size": 264,
+          "symbol": "the compressed seek",
+          "note": "RVA 0x328FE0 through 0x3290E8, the origin handling at 0x32900A, the end-of-stream shortcut at 0x329037, the reset at 0x329054 and the discard loop at 0x329090."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-truncation-is-a-clean-end",
+      "claim_id": "claim-dmc3-truncation-is-a-clean-end",
+      "title": "A member whose compressed bytes run out short reports end of stream, not an error",
+      "summary": "Both inflate drivers return zero immediately when the requested length is zero or the exhausted flag is set, so after a member ends every further read is a zero-length success rather than a failure. The refill clamps its request to the compressed bytes remaining in the substream, and when none remain it sets the input cursor and the input end to the same address, writes a single zero byte into the buffer and calls the inflate step anyway. The step returns -5 and the code then tests whether the input buffer is empty: empty is converted to stream end, the exhausted flag is set and the bytes produced so far are returned; not empty is an error, which sets the same flag and returns -1. Any code above 1 is an error by that path, while 0 and 1 are accepted with 1 meaning end of stream. So a truncated member yields a short read and no error, and a caller cannot distinguish it from a member that was genuinely that long. That -5 and 1 coincide with a widely used library's buffer-error and stream-end conventions is public interface knowledge, noted and not relied on: the behaviour is read from the comparisons themselves. This is the malformed and partial-read semantics the 2026-09-05 proof roadmap lists beside the two addresses.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "inflate",
+        "error-handling"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3311232,
+          "size": 404,
+          "symbol": "the discard-path inflate driver",
+          "note": "RVA 0x328680 through 0x328813, the exhausted test at 0x3286A2, the empty-input refill at 0x3286F8, the -5 handling at 0x328770 and the error exit at 0x3287F0."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3311648,
+          "size": 462,
+          "symbol": "the read-path inflate driver",
+          "note": "RVA 0x328820, the same field offsets with an extra flag parameter in r9d; the inflate step's only two call sites in the image are 0x328769 and 0x328929."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-no-crc-verification",
+      "claim_id": "claim-dmc3-no-crc-verification",
+      "title": "The CRC machinery is live inside the compression library and absent from the archive path",
+      "summary": "A 256-entry CRC-32 table sits at .rdata 0x508A50, with its second entry and its reflected polynomial both present, and 0x340010 is a table-driven routine that returns zero for a null buffer and tails into the body at 0x340020. It is live, with 13 call sites, every one of them inside 0x341000 to 0x343000, the same library that holds the inflate step. None of those call sites is in the archive path, and the CRC the record decoders store at entry 0x18 is never read: grepping the six functions that handle an entry - 0x328360, 0x328540, 0x328680, 0x328820, 0x328F50 and 0x328FE0 - for any access at displacement 0x18 returns only register spills to the stack. So the engine decodes a member's CRC, keeps it in the entry, and never compares anything against it. A corrupted member inflates to whatever it inflates to, which together with truncation reading as a clean end means the read path has no integrity check of any kind.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "integrity",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3407888,
+          "size": 8,
+          "symbol": "the CRC entry point",
+          "note": "RVA 0x340010, a null-buffer test then a five-byte jmp to the body at 0x340020; no .pdata entry, 13 direct callers all within the compression library."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5278288,
+          "size": 1024,
+          "symbol": "the CRC table",
+          "note": "RVA 0x508A50, 256 entries, referenced from 0x340025 only."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-zero-callers-needs-the-bytes-before",
+      "claim_id": "claim-dmc3-zero-callers-needs-the-bytes-before",
+      "title": "A caller count of zero was one step from becoming a published claim of dead code",
+      "summary": "The first pass here asked who calls 0x340018 and 0x340020, got zero and one, and was a step away from concluding that the image carries CRC machinery nothing can reach. That would have been wrong. 0x340018 is a five-byte jmp and the real entry point is 0x340010, eight bytes earlier, with 13 callers, and it has no .pdata entry, so neither the address guessed from the table reference nor any enumeration of functions would have found it. This is the fourth time in one day that .pdata coverage hid something, after the two ZIP signature decoders, the third stream dispatcher and the 33 one-instruction getters, and it is the first where the consequence would have been an assertion of absence rather than an undercount. The habit that caught it costs one command: before trusting a caller count of zero, disassemble the bytes immediately before the address.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "method",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3407896,
+          "size": 5,
+          "symbol": "the jmp that looked like an entry point",
+          "note": "RVA 0x340018, 'jmp 0x340020', with no callers; the entry point is 0x340010."
+        }
+      ]
+    }
+  ]
+}
