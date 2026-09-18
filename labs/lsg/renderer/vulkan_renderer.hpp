@@ -51,6 +51,7 @@ public:
   void orbit_camera(float normalized_dx, float normalized_dy) noexcept;
   void zoom_camera(float scale) noexcept;
   void set_camera_preset(CameraPreset preset) noexcept;
+  void reset_camera_view() noexcept;
   [[nodiscard]] CameraState camera_state() const noexcept;
 
   void set_diagnostic_mode(DiagnosticRenderMode mode) noexcept;
