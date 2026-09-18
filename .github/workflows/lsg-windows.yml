@@ -22,6 +22,8 @@ env:
   LSG_FEMALE_ASIAN_BLOB: f862c96add11c31ab1ca75c69e1c67ae5e0e3d5f
   LSG_FEMALE_CAUCASIAN_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/macrodetails/caucasian-female-young.target
   LSG_FEMALE_CAUCASIAN_BLOB: 9d1f0cbeedc9a6a51abe33f1ebb5fa7c5a7edbf1
+  LSG_FEMALE_BUST_URL: https://raw.githubusercontent.com/makehumancommunity/makehuman/a8bc2d54ff0ac92e78ff71431b1023eda42bf482/makehuman/data/targets/breast/female-young-averagemuscle-averageweight-maxcup-averagefirmness.target
+  LSG_FEMALE_BUST_BLOB: 2ff890c95741f40211408ea507c15bec00051798
 
 jobs:
   windows-x64-vulkan:
@@ -52,6 +54,7 @@ jobs:
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_AFRICAN_URL -o build-lsg-win\female-african.target
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_ASIAN_URL -o build-lsg-win\female-asian.target
           curl.exe -L --fail --retry 3 $env:LSG_FEMALE_CAUCASIAN_URL -o build-lsg-win\female-caucasian.target
+          curl.exe -L --fail --retry 3 $env:LSG_FEMALE_BUST_URL -o build-lsg-win\female-bust.target
 
           if ((git hash-object build-lsg-win\male-african.target).Trim() -ne $env:LSG_MALE_AFRICAN_BLOB) { throw 'male African target mismatch' }
           if ((git hash-object build-lsg-win\male-asian.target).Trim() -ne $env:LSG_MALE_ASIAN_BLOB) { throw 'male Asian target mismatch' }
@@ -59,6 +62,7 @@ jobs:
           if ((git hash-object build-lsg-win\female-african.target).Trim() -ne $env:LSG_FEMALE_AFRICAN_BLOB) { throw 'female African target mismatch' }
           if ((git hash-object build-lsg-win\female-asian.target).Trim() -ne $env:LSG_FEMALE_ASIAN_BLOB) { throw 'female Asian target mismatch' }
           if ((git hash-object build-lsg-win\female-caucasian.target).Trim() -ne $env:LSG_FEMALE_CAUCASIAN_BLOB) { throw 'female Caucasian target mismatch' }
+          if ((git hash-object build-lsg-win\female-bust.target).Trim() -ne $env:LSG_FEMALE_BUST_BLOB) { throw 'female bust target mismatch' }
 
           & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-0.obj `
             build-lsg-win\male-african.target 0.333333333333 `
@@ -66,11 +70,15 @@ jobs:
             build-lsg-win\male-caucasian.target 0.333333333334
           if ($LASTEXITCODE -ne 0) { throw 'male macro target application failed' }
 
-          & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-1.obj `
+          & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\base.obj build-lsg-win\profile-1-base.obj `
             build-lsg-win\female-african.target 0.333333333333 `
             build-lsg-win\female-asian.target 0.333333333333 `
             build-lsg-win\female-caucasian.target 0.333333333334
           if ($LASTEXITCODE -ne 0) { throw 'female macro target application failed' }
+
+          & build-lsg-win\Release\lsg_apply_makehuman_targets.exe build-lsg-win\profile-1-base.obj build-lsg-win\profile-1.obj `
+            build-lsg-win\female-bust.target 1.0
+          if ($LASTEXITCODE -ne 0) { throw 'female bust target application failed' }
 
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           foreach ($profile in 0,1) {
