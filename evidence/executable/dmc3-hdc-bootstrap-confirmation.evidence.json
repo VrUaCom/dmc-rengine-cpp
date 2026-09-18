@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-bootstrap-confirmation",
+  "title": "DMC3 HD bootstrap: a 2026-09-05 caveat discharged from the bytes, and three errors corrected in a note from the same day as this one",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-bootstrap-read-from-bytes",
+      "claim_id": "claim-dmc3-bootstrap-read-from-bytes",
+      "title": "The bootstrap was already established without the executable, and now it is established with it",
+      "summary": "0x02E930 derives the executable's own directory with GetModuleFileNameA and strrchr, appends the twelve bytes at 0x36E920 holding a data path and its terminator as one eight-byte and one four-byte store, registers that as the image's only directory mount with flag word 0x0C, and then from index zero formats the literal at 0x36E930 with that directory and the index, probes it with the FindFirstFileA wrapper, mounts each hit as an archive and stops at the first index that does not exist. Every part of that was already recorded in docs/reverse/dmc3-resource-vertical-proof-reconciliation-2026-09-05.md sections 1A and 1B, together with the prepend topology and the search order that follows from it, and that document states plainly that it does not claim a raw-byte disassembly because the executable was not available during that pass. This record discharges that caveat for sections 1A, 1B and 1D: they are now confirmed instruction by instruction, and nothing in them contradicts the bytes. The contribution is a change in the grounds of an existing claim, not a new claim, and the earlier document remains more careful than this pass on one point it makes and this one did not: a discovered archive whose registration fails is absent from the topology, so discovery does not prove mounting and an absent volume is not a clean lookup miss.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "bootstrap",
+        "resource-loading",
+        "corroboration"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 190768,
+          "size": 261,
+          "symbol": "the bootstrap mount routine",
+          "note": "RVA 0x02E930, the directory mount at 0x02E9A9 and the archive mount inside the probe loop at 0x02E9E8."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-normaliser-collapses-separators",
+      "claim_id": "claim-dmc3-lookup-case-rule",
+      "title": "The normaliser has a second unconditional pass my table left out, and the prior art had it",
+      "summary": "The mount-registration note of this same day lays out the normaliser's bit map and ends it at the unconditional conversion of forward slashes to backslashes. There is a second unconditional pass immediately after, at 0x327260 through 0x327295, which copies the string forward and on each backslash skips every backslash that follows: a repeated-separator collapse. So the full order is optional case fold, optional leading and trailing strip, slash conversion, then run collapse. The omission is not cosmetic, because a query spelled with a doubled separator and an indexed name spelled with a single one are the same key only by virtue of the pass that was missing, and an index built from the published table alone would miss on exactly the inputs the collapse exists to handle. Two further things are owed here. Section 1D of docs/reverse/dmc3-resource-vertical-proof-reconciliation-2026-09-05.md already carried this bit map, the collapse included, and the same 0x0E against 0x0C asymmetry that the note presented as newly established; reading them independently from the bytes has value, but presenting them without that citation claims origination that is not mine, and that is the rule this project applies elsewhere and I did not apply here.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "text",
+        "prior-art"
+      ],
+      "supersedes": [
+        "ev-dmc3-lookup-case-rule"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306080,
+          "size": 56,
+          "symbol": "the repeated separator collapse",
+          "note": "RVA 0x327260 through 0x327295, unconditional, immediately after the slash conversion."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-three-dispatchers-not-two",
+      "claim_id": "claim-dmc3-stream-is-a-tagged-union",
+      "title": "Three dispatchers share that shape, not two, and the third leaves the layer",
+      "summary": "The mount-list note said two functions in the .pdata hole do the dispatching for the two-pointer stream, naming read at 0x3275C0 and seek at 0x3275E0. A byte scan of .text for the twelve-byte prologue those two share finds three: the third is at 0x3272A0, it dispatches size, and it is the odd one out. Read and seek both keep their archive branch inside the file layer, at 0x328F50 and 0x329160; the size dispatcher tail-jumps to 0x0629C0, outside the layer entirely, so whatever computes an archive entry's size does not live with the rest of the archive code. The claim about the shape was right and the count attached to it was not, and it was a count stated without running a census - the scan that corrects it is four lines and should have come first, exactly as it should have for the signature census in the archive note.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "architecture",
+        "dispatch",
+        "census"
+      ],
+      "supersedes": [
+        "ev-dmc3-stream-is-a-tagged-union"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3306144,
+          "size": 25,
+          "symbol": "the size dispatcher",
+          "note": "RVA 0x3272A0, no .pdata entry, tail-jumping to 0x0629C0 for an entry and 0x3277C0 for a reader."
+        }
+      ]
+    }
+  ]
+}

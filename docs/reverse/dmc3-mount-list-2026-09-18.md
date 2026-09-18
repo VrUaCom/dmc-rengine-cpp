@@ -4,6 +4,11 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-mount-list`.
 
+> **Corrected the same day** by
+> `docs/reverse/dmc3-bootstrap-confirmation-2026-09-18.md`: three functions
+> share the dispatch shape below, not two. The third, at `0x3272A0`, dispatches
+> size and its archive branch leaves the file layer.
+
 Two notes today ended on the same question from opposite sides: the archive note
 asked what hands the directory reader a handle, and the buffered-reader note
 asked what the open-entry object is. They have one answer. Nothing hands

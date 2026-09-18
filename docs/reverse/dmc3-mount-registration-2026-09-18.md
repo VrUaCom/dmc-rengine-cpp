@@ -4,6 +4,13 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-mount-registration`.
 
+> **Corrected the same day** by
+> `docs/reverse/dmc3-bootstrap-confirmation-2026-09-18.md`. The normaliser table
+> below is incomplete — it omits an unconditional repeated-separator collapse —
+> and the bit map and the `0x0E`/`0x0C` asymmetry were already recorded in
+> `docs/reverse/dmc3-resource-vertical-proof-reconciliation-2026-09-05.md` §1D,
+> which this note failed to cite.
+
 The mount-list note ended with a hazard stated and not verified: the archive
 lookup is a `bsearch`, so it depends on the array being sorted under exactly the
 normalisation the query goes through, and a mismatch misses rather than
