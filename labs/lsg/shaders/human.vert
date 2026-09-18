@@ -118,11 +118,14 @@ vec3 apply_head_idle_normal(vec3 n, float head_weight, float t) {
     return normalize(mix(n, rotated, head_weight));
 }
 
-// One far-depth procedural environment triangle plus four compact R&D controls:
-// Character 0, Character 1, Detail, Skeleton/Joint Debug.
+// One far-depth procedural environment triangle plus an extensible left-side R&D list.
+// Rows: Character 0, Character 1, Detail, Skeleton, Camera, Diagnostics, Reset View.
 void emit_ui_environment_vertex() {
     const vec2 full_triangle[3] = vec2[](
         vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
+    const vec2 quad[6] = vec2[](
+        vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0),
+        vec2(-1.0, -1.0), vec2( 1.0,  1.0), vec2(-1.0,  1.0));
     uint vertex = uint(gl_VertexIndex);
 
     if (vertex < 3u) {
@@ -135,16 +138,27 @@ void emit_ui_environment_vertex() {
         return;
     }
 
-    uint local_vertex = vertex - 3u;
-    uint button = local_vertex / 3u;
-    if (button < 4u) {
-        vec2 corner = full_triangle[local_vertex % 3u];
-        float center_x = -0.72 + float(button) * 0.48;
-        vec2 logical_clip = vec2(center_x, -0.82) + corner * vec2(0.175, 0.10);
-        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.01, 1.0);
+    if (vertex < 9u) {
+        vec2 corner = quad[vertex - 3u];
+        vec2 logical_clip = vec2(-0.66, 0.10) + corner * vec2(0.31, 0.82);
+        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.012, 1.0);
         surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
         view_normal = vec3(0.0, 0.0, 1.0);
-        body_region = 100u + button;
+        body_region = 190u;
+        view_position_m = vec3(0.0, 0.0, -1.0);
+        return;
+    }
+
+    uint local_vertex = vertex - 9u;
+    uint row = local_vertex / 6u;
+    if (row < 7u) {
+        vec2 corner = quad[local_vertex % 6u];
+        float center_y = 0.78 - float(row) * 0.22;
+        vec2 logical_clip = vec2(-0.66, center_y) + corner * vec2(0.26, 0.085);
+        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.010, 1.0);
+        surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
+        view_normal = vec3(0.0, 0.0, 1.0);
+        body_region = 100u + row;
         view_position_m = vec3(0.0, 0.0, -1.0);
         return;
     }
