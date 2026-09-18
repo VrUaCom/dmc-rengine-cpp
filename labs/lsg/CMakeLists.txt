@@ -23,6 +23,7 @@ add_library(rengine_lsg_core STATIC
   src/camera.cpp
   src/derived_character.cpp
   src/derived_eye.cpp
+  src/eye_runtime.cpp
   src/anatomical_field.cpp
   src/extension_contract.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
