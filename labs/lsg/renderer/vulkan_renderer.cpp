@@ -65,7 +65,8 @@ struct VulkanRenderer::Impl {
   VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};
   VkPipeline pipeline{VK_NULL_HANDLE};
   VkPipelineLayout eye_pipeline_layout{VK_NULL_HANDLE};
-  VkPipeline eye_pipeline{VK_NULL_HANDLE};
+  VkPipeline eye_inner_pipeline{VK_NULL_HANDLE};
+  VkPipeline eye_cornea_pipeline{VK_NULL_HANDLE};
   VkDescriptorSetLayout frame_lighting_set_layout{VK_NULL_HANDLE};
   VkDescriptorPool frame_lighting_descriptor_pool{VK_NULL_HANDLE};
   VkDescriptorSet frame_lighting_descriptor_set{VK_NULL_HANDLE};
@@ -133,6 +134,25 @@ struct EyePushConstants {
   std::uint32_t flags[4]{}; // rotation, profile, vascularity byte, eye seed low
 };
 static_assert(sizeof(EyePushConstants) == 128);
+
+enum class EyeRenderPass : std::uint32_t {
+  inner = 0,
+  cornea = 1,
+};
+static_assert(static_cast<std::uint32_t>(EyeRenderPass::inner) == 0u);
+static_assert(static_cast<std::uint32_t>(EyeRenderPass::cornea) == 1u);
+
+struct EyePipelineStateContract {
+  VkBool32 blend_enable;
+  VkBool32 depth_write_enable;
+};
+
+constexpr EyePipelineStateContract kInnerEyePipelineState{VK_FALSE, VK_TRUE};
+constexpr EyePipelineStateContract kCorneaEyePipelineState{VK_TRUE, VK_FALSE};
+static_assert(kInnerEyePipelineState.blend_enable == VK_FALSE);
+static_assert(kInnerEyePipelineState.depth_write_enable == VK_TRUE);
+static_assert(kCorneaEyePipelineState.blend_enable == VK_TRUE);
+static_assert(kCorneaEyePipelineState.depth_write_enable == VK_FALSE);
 
 struct alignas(16) FrameLightingGpu {
   float sun_direction_intensity[4]{};
@@ -707,7 +727,7 @@ bool create_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   return result == VK_SUCCESS;
 }
 
-bool create_eye_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
+bool create_eye_pipelines(VulkanRenderer::Impl& state, void* asset_manager) {
   const auto vertex_code = load_spirv(asset_manager, "eye.vert.spv");
   const auto fragment_code = load_spirv(asset_manager, "eye.frag.spv");
   auto make_module = [&](const std::vector<std::uint32_t>& code, VkShaderModule& module) {
@@ -817,11 +837,22 @@ bool create_eye_pipeline(VulkanRenderer::Impl& state, void* asset_manager) {
   pipeline.layout = state.eye_pipeline_layout;
   pipeline.renderPass = state.render_pass;
 
-  const auto result = vkCreateGraphicsPipelines(
-      state.device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &state.eye_pipeline);
+  const auto create_variant = [&](const EyePipelineStateContract contract,
+                                  VkPipeline& output) {
+    depth.depthWriteEnable = contract.depth_write_enable;
+    blend_attachment.blendEnable = contract.blend_enable;
+    return vkCreateGraphicsPipelines(
+               state.device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &output) == VK_SUCCESS;
+  };
+
+  const bool inner_ok =
+      create_variant(kInnerEyePipelineState, state.eye_inner_pipeline);
+  const bool cornea_ok =
+      inner_ok && create_variant(kCorneaEyePipelineState, state.eye_cornea_pipeline);
+
   vkDestroyShaderModule(state.device, fragment_module, nullptr);
   vkDestroyShaderModule(state.device, vertex_module, nullptr);
-  return result == VK_SUCCESS;
+  return inner_ok && cornea_ok;
 }
 
 bool create_sync(VulkanRenderer::Impl& state) {
@@ -945,7 +976,7 @@ bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) ||
       !create_render_targets(state) || !create_mesh_buffers(state, asset_manager) ||
       !create_frame_lighting_resources(state) ||
-      !create_pipeline(state, asset_manager) || !create_eye_pipeline(state, asset_manager) ||
+      !create_pipeline(state, asset_manager) || !create_eye_pipelines(state, asset_manager) ||
       !create_sync(state)) { shutdown(); return false; }
   state.initialized = true; return true;
 }
@@ -1026,11 +1057,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                      0, sizeof(push), &push);
   vkCmdDrawIndexed(command, profile_mesh.index_count, 1, 0, 0, 0);
 
-  // Slice B diagnostic eye pass: fitted eye geometry, 4 connected components.
+  // Pass 4B: nested eye rendering is explicit: opaque inner eye, then transparent cornea.
   const auto& eye_mesh = state.eye_meshes[profile_index];
-  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.eye_pipeline);
-  vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.eye_pipeline_layout,
-                          0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   vkCmdBindVertexBuffers(command, 0, 1, &eye_mesh.vertex_buffer, &offset);
   vkCmdBindIndexBuffer(command, eye_mesh.index_buffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -1064,14 +1092,30 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   eye_push.eye1[3] = derived_eye.sclera_tint;
   eye_push.flags[0] = state.surface_rotation;
   eye_push.flags[1] = profile_index;
-  eye_push.flags[2] =
+  const std::uint32_t eye_common_flags =
       static_cast<std::uint32_t>(genome.eyes.vascularity) |
       (static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 8u);
   eye_push.flags[3] = derived_eye.eye_seed_low;
-  vkCmdPushConstants(command, state.eye_pipeline_layout,
-                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                     0, sizeof(eye_push), &eye_push);
-  vkCmdDrawIndexed(command, eye_mesh.index_count, 1, 0, 0, 0);
+
+  const auto draw_eye_pass = [&](EyeRenderPass render_pass, VkPipeline pipeline) {
+    eye_push.flags[2] =
+        eye_common_flags | (static_cast<std::uint32_t>(render_pass) << 10u);
+    vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            state.eye_pipeline_layout, 0, 1,
+                            &state.frame_lighting_descriptor_set, 0, nullptr);
+    vkCmdPushConstants(command, state.eye_pipeline_layout,
+                       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                       0, sizeof(eye_push), &eye_push);
+    vkCmdDrawIndexed(command, eye_mesh.index_count, 1, 0, 0, 0);
+  };
+
+  if (state.eye_diagnostic_mode != EyeDiagnosticMode::cornea_only) {
+    draw_eye_pass(EyeRenderPass::inner, state.eye_inner_pipeline);
+  }
+  if (state.eye_diagnostic_mode != EyeDiagnosticMode::iris_only) {
+    draw_eye_pass(EyeRenderPass::cornea, state.eye_cornea_pipeline);
+  }
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline_layout,
@@ -1106,7 +1150,8 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.render_finished) vkDestroySemaphore(state.device, state.render_finished, nullptr);
     if (state.image_available) vkDestroySemaphore(state.device, state.image_available, nullptr);
     if (state.command_pool) vkDestroyCommandPool(state.device, state.command_pool, nullptr);
-    if (state.eye_pipeline) vkDestroyPipeline(state.device, state.eye_pipeline, nullptr);
+    if (state.eye_inner_pipeline) vkDestroyPipeline(state.device, state.eye_inner_pipeline, nullptr);
+    if (state.eye_cornea_pipeline) vkDestroyPipeline(state.device, state.eye_cornea_pipeline, nullptr);
     if (state.eye_pipeline_layout) vkDestroyPipelineLayout(state.device, state.eye_pipeline_layout, nullptr);
     if (state.frame_lighting_mapped && state.frame_lighting_memory) {
       vkUnmapMemory(state.device, state.frame_lighting_memory);

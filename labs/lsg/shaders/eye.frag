@@ -234,8 +234,17 @@ vec4 cornea_response() {
 
 void main() {
     uint eye_mode = (pc.flags.z >> 8u) & 3u;
+    uint eye_pass = (pc.flags.z >> 10u) & 3u;
     bool inner = component_id == 1u || component_id == 3u;
     bool outer = component_id == 0u || component_id == 2u;
+
+    if (eye_pass == 0u) {
+        if (!inner) discard;
+    } else if (eye_pass == 1u) {
+        if (!outer) discard;
+    } else {
+        discard;
+    }
 
     if (eye_mode == 1u) {
         vec3 n = normalize(view_normal);
