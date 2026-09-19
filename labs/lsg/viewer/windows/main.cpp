@@ -42,6 +42,17 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
   return "UNKNOWN";
 }
 
+const char* surface_diagnostic_name(rengine::lsg::SurfaceDiagnosticMode mode) {
+  using rengine::lsg::SurfaceDiagnosticMode;
+  switch (mode) {
+    case SurfaceDiagnosticMode::none: return "NONE";
+    case SurfaceDiagnosticMode::shadow_visibility: return "SHADOW_VISIBILITY";
+    case SurfaceDiagnosticMode::normals: return "NORMALS";
+    case SurfaceDiagnosticMode::regions: return "REGIONS";
+  }
+  return "UNKNOWN";
+}
+
 const char* lighting_name(rengine::lsg::LightingPreset preset) {
   using rengine::lsg::LightingPreset;
   switch (preset) {
@@ -67,6 +78,7 @@ void print_diagnostics(const ViewerState& state, const char* reason, float fps =
   if (state.renderer == nullptr) return;
   const auto d = state.renderer->diagnostics();
   std::cout << reason << " mode=" << mode_name(d.mode)
+            << " surface_diag=" << surface_diagnostic_name(d.surface_diagnostic)
             << " window=" << d.window_width << 'x' << d.window_height
             << " swapchain=" << d.swapchain_width << 'x' << d.swapchain_height
             << " logical=" << d.logical_width << 'x' << d.logical_height
@@ -89,11 +101,27 @@ void print_diagnostics(const ViewerState& state, const char* reason, float fps =
 void cycle_mode(ViewerState& state) {
   if (state.renderer == nullptr) return;
   using rengine::lsg::DiagnosticRenderMode;
-  const auto current = state.renderer->diagnostic_mode();
-  const auto next = current == DiagnosticRenderMode::genome_perspective ? DiagnosticRenderMode::raw_perspective
-                  : current == DiagnosticRenderMode::raw_perspective ? DiagnosticRenderMode::raw_orthographic
-                                                                    : DiagnosticRenderMode::genome_perspective;
-  state.renderer->set_diagnostic_mode(next);
+  using rengine::lsg::SurfaceDiagnosticMode;
+  const auto mode = state.renderer->diagnostic_mode();
+  const auto surface = state.renderer->surface_diagnostic_mode();
+
+  if (mode == DiagnosticRenderMode::genome_joint_debug) {
+    state.renderer->set_surface_diagnostic_mode(SurfaceDiagnosticMode::none);
+    state.renderer->set_diagnostic_mode(DiagnosticRenderMode::genome_perspective);
+  } else if (mode == DiagnosticRenderMode::raw_perspective) {
+    state.renderer->set_diagnostic_mode(DiagnosticRenderMode::raw_orthographic);
+  } else if (mode == DiagnosticRenderMode::raw_orthographic) {
+    state.renderer->set_diagnostic_mode(DiagnosticRenderMode::genome_perspective);
+  } else if (surface == SurfaceDiagnosticMode::none) {
+    state.renderer->set_surface_diagnostic_mode(SurfaceDiagnosticMode::shadow_visibility);
+  } else if (surface == SurfaceDiagnosticMode::shadow_visibility) {
+    state.renderer->set_surface_diagnostic_mode(SurfaceDiagnosticMode::normals);
+  } else if (surface == SurfaceDiagnosticMode::normals) {
+    state.renderer->set_surface_diagnostic_mode(SurfaceDiagnosticMode::regions);
+  } else {
+    state.renderer->set_surface_diagnostic_mode(SurfaceDiagnosticMode::none);
+    state.renderer->set_diagnostic_mode(DiagnosticRenderMode::raw_perspective);
+  }
   print_diagnostics(state, "Diagnostic mode changed");
 }
 
@@ -126,6 +154,7 @@ void handle_ui_row(ViewerState& state, int row) {
     case 3: {
       using rengine::lsg::DiagnosticRenderMode;
       const bool enable = state.renderer->diagnostic_mode() != DiagnosticRenderMode::genome_joint_debug;
+      state.renderer->set_surface_diagnostic_mode(rengine::lsg::SurfaceDiagnosticMode::none);
       state.renderer->set_diagnostic_mode(enable ? DiagnosticRenderMode::genome_joint_debug
                                                 : DiagnosticRenderMode::genome_perspective);
       break;

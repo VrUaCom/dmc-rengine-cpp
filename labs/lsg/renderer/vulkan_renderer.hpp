@@ -24,6 +24,13 @@ enum class EyeDiagnosticMode : std::uint8_t {
   cornea_only = 3,
 };
 
+enum class SurfaceDiagnosticMode : std::uint8_t {
+  none = 0,
+  shadow_visibility = 1,
+  normals = 2,
+  regions = 3,
+};
+
 struct RendererDiagnostics {
   std::uint32_t window_width{};
   std::uint32_t window_height{};
@@ -40,6 +47,7 @@ struct RendererDiagnostics {
   std::uint64_t estimated_gpu_bytes{};
   std::uint32_t shadow_map_size{};
   DiagnosticRenderMode mode{DiagnosticRenderMode::genome_perspective};
+  SurfaceDiagnosticMode surface_diagnostic{SurfaceDiagnosticMode::none};
   LightingPreset lighting_preset{LightingPreset::noon};
   OpticalFilterPreset optical_filter{OpticalFilterPreset::clear};
   float scene_luminance{};
@@ -75,6 +83,8 @@ public:
 
   void set_diagnostic_mode(DiagnosticRenderMode mode) noexcept;
   [[nodiscard]] DiagnosticRenderMode diagnostic_mode() const noexcept;
+  void set_surface_diagnostic_mode(SurfaceDiagnosticMode mode) noexcept;
+  [[nodiscard]] SurfaceDiagnosticMode surface_diagnostic_mode() const noexcept;
 
   void set_ui_tooltip_row(int row) noexcept;
   [[nodiscard]] int ui_tooltip_row() const noexcept;

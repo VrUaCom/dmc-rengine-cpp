@@ -31,6 +31,7 @@ layout(set = 0, binding = 1) uniform sampler2D shadow_depth;
 layout(set = 0, binding = 2) uniform sampler2D self_shadow_depth;
 
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
+uint surface_diagnostic_mode() { return (pc.flags.w >> 20u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
 uint pcg_hash(uint input_value) {
@@ -565,6 +566,7 @@ void main() {
     uint eye_mode = (pc.flags.w >> 11u) & 3u;
     uint lighting_preset = (pc.flags.w >> 13u) & 3u;
     uint optical_filter = (pc.flags.w >> 15u) & 3u;
+    uint surface_debug = surface_diagnostic_mode();
 
     if (ui_environment_pass()) {
         if (body_region == 200u) {
@@ -595,7 +597,7 @@ void main() {
                         (button == 1u && profile_index == 1u) ||
                         (button == 2u && detail_enabled) ||
                         (button == 3u && mode == 3u) ||
-                        (button == 5u && mode != 0u) ||
+                        (button == 5u && (mode != 0u || surface_debug != 0u)) ||
                         (button == 7u && physiology != 0u) ||
                         (button == 8u && eye_mode != 0u) ||
                         (button == 9u) ||
@@ -610,7 +612,13 @@ void main() {
                   : camera_preset == 1u ? vec3(0.16, 0.42, 0.55)
                                         : vec3(0.50, 0.28, 0.12);
         }
-        if (button == 5u && mode != 0u) panel = vec3(0.48, 0.26, 0.62);
+        if (button == 5u) {
+            panel = surface_debug == 1u ? vec3(0.12, 0.56, 0.30)
+                  : surface_debug == 2u ? vec3(0.12, 0.38, 0.72)
+                  : surface_debug == 3u ? vec3(0.68, 0.34, 0.12)
+                  : mode != 0u ? vec3(0.48, 0.26, 0.62)
+                               : vec3(0.095, 0.12, 0.17);
+        }
         if (button == 6u) panel = vec3(0.16, 0.18, 0.22);
         if (button == 7u) {
             panel = physiology == 0u ? vec3(0.12, 0.20, 0.22)
@@ -671,6 +679,31 @@ void main() {
         float ndotl = max(dot(n, sun_view_direction()), 0.0);
         vec3 joint_colour = vec3(0.04, 0.92, 0.52) * (0.55 + 0.45 * ndotl);
         out_colour = vec4(aces_fitted(joint_colour * 1.35), 1.0);
+        return;
+    }
+
+    // Corrective-pass surface diagnostics. These are deliberately unlit
+    // signal views so seams can be attributed to shadows, normals, or region tags.
+    if (surface_debug != 0u) {
+        vec3 n = normalize(view_normal);
+        if (surface_debug == 1u) {
+            vec3 l = sun_view_direction();
+            float visibility = self_shadow_visibility(surface_position_m, n, l);
+            out_colour = vec4(vec3(visibility), 1.0);
+            return;
+        }
+        if (surface_debug == 2u) {
+            out_colour = vec4(n * 0.5 + 0.5, 1.0);
+            return;
+        }
+
+        const vec3 palette[11] = vec3[11](
+            vec3(0.92,0.22,0.20), vec3(0.95,0.58,0.16), vec3(0.86,0.80,0.18),
+            vec3(0.30,0.74,0.28), vec3(0.14,0.72,0.62), vec3(0.18,0.52,0.88),
+            vec3(0.38,0.34,0.88), vec3(0.70,0.30,0.86), vec3(0.86,0.28,0.58),
+            vec3(0.62,0.52,0.40), vec3(0.62,0.68,0.76));
+        uint region = min(body_region, 10u);
+        out_colour = vec4(palette[region], 1.0);
         return;
     }
 

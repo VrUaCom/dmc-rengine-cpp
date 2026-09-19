@@ -61,6 +61,17 @@ const char* mode_name(rengine::lsg::DiagnosticRenderMode mode) {
   return "UNKNOWN";
 }
 
+const char* surface_diagnostic_name(rengine::lsg::SurfaceDiagnosticMode mode) {
+  using rengine::lsg::SurfaceDiagnosticMode;
+  switch (mode) {
+    case SurfaceDiagnosticMode::none: return "NONE";
+    case SurfaceDiagnosticMode::shadow_visibility: return "SHADOW_VISIBILITY";
+    case SurfaceDiagnosticMode::normals: return "NORMALS";
+    case SurfaceDiagnosticMode::regions: return "REGIONS";
+  }
+  return "UNKNOWN";
+}
+
 const char* lighting_name(rengine::lsg::LightingPreset preset) {
   using rengine::lsg::LightingPreset;
   switch (preset) {
@@ -86,8 +97,9 @@ void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0
   const auto d = state.renderer.diagnostics();
   char message[900]{};
   std::snprintf(message, sizeof(message),
-      "%s mode=%s skeleton=%s time=%s filter=%s transmission=%.3f polar_strength=%.3f scene_lum=%.3f eye_lum=%.3f pupil_target=%.4f pupil=%.4f window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
-      reason, mode_name(d.mode), state.skeleton_enabled ? "ON" : "OFF",
+      "%s mode=%s surface_diag=%s skeleton=%s time=%s filter=%s transmission=%.3f polar_strength=%.3f scene_lum=%.3f eye_lum=%.3f pupil_target=%.4f pupil=%.4f window=%ux%u swapchain=%ux%u logical=%ux%u rotation=%u aspect=%.4f fov=%.3f distance=%.3fm near=%.3fm far=%.1fm gpu_est=%llu fps=%.1f cpu_frame=%.2fms",
+      reason, mode_name(d.mode), surface_diagnostic_name(d.surface_diagnostic),
+      state.skeleton_enabled ? "ON" : "OFF",
       lighting_name(d.lighting_preset), filter_name(d.optical_filter),
       d.filter_transmission, d.polarization_strength,
       d.scene_luminance, d.effective_eye_luminance,
@@ -115,6 +127,8 @@ void toggle_detail(AppState& state) {
 void toggle_skeleton(AppState& state) {
   using rengine::lsg::DiagnosticRenderMode;
   state.skeleton_enabled = !state.skeleton_enabled;
+  state.renderer.set_surface_diagnostic_mode(
+      rengine::lsg::SurfaceDiagnosticMode::none);
   state.renderer.set_diagnostic_mode(state.skeleton_enabled
       ? DiagnosticRenderMode::genome_joint_debug
       : DiagnosticRenderMode::genome_perspective);
@@ -124,12 +138,28 @@ void toggle_skeleton(AppState& state) {
 
 void cycle_diagnostic_mode(AppState& state) {
   using rengine::lsg::DiagnosticRenderMode;
+  using rengine::lsg::SurfaceDiagnosticMode;
   state.skeleton_enabled = false;
-  const auto current = state.renderer.diagnostic_mode();
-  const auto next = current == DiagnosticRenderMode::genome_perspective ? DiagnosticRenderMode::raw_perspective
-                  : current == DiagnosticRenderMode::raw_perspective ? DiagnosticRenderMode::raw_orthographic
-                                                                    : DiagnosticRenderMode::genome_perspective;
-  state.renderer.set_diagnostic_mode(next);
+
+  const auto mode = state.renderer.diagnostic_mode();
+  const auto surface = state.renderer.surface_diagnostic_mode();
+  if (mode == DiagnosticRenderMode::genome_joint_debug) {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::none);
+    state.renderer.set_diagnostic_mode(DiagnosticRenderMode::genome_perspective);
+  } else if (mode == DiagnosticRenderMode::raw_perspective) {
+    state.renderer.set_diagnostic_mode(DiagnosticRenderMode::raw_orthographic);
+  } else if (mode == DiagnosticRenderMode::raw_orthographic) {
+    state.renderer.set_diagnostic_mode(DiagnosticRenderMode::genome_perspective);
+  } else if (surface == SurfaceDiagnosticMode::none) {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::shadow_visibility);
+  } else if (surface == SurfaceDiagnosticMode::shadow_visibility) {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::normals);
+  } else if (surface == SurfaceDiagnosticMode::normals) {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::regions);
+  } else {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::none);
+    state.renderer.set_diagnostic_mode(DiagnosticRenderMode::raw_perspective);
+  }
   log_renderer_diagnostics(state, "Diagnostic mode changed");
 }
 

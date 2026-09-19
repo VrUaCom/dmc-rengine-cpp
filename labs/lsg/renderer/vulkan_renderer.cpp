@@ -100,6 +100,7 @@ struct VulkanRenderer::Impl {
   std::array<ProfileMeshGpu, 2> eye_meshes{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
+  SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
   int ui_tooltip_row{-1};
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
@@ -984,6 +985,13 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
   return impl_ ? impl_->diagnostic_mode : DiagnosticRenderMode::genome_perspective;
 }
 
+void VulkanRenderer::set_surface_diagnostic_mode(SurfaceDiagnosticMode mode) noexcept {
+  if (impl_) impl_->surface_diagnostic_mode = mode;
+}
+SurfaceDiagnosticMode VulkanRenderer::surface_diagnostic_mode() const noexcept {
+  return impl_ ? impl_->surface_diagnostic_mode : SurfaceDiagnosticMode::none;
+}
+
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
   impl_->ui_tooltip_row = (row >= 0 && row < 11) ? row : -1;
@@ -1050,6 +1058,7 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.estimated_gpu_bytes = state.estimated_bytes;
   out.shadow_map_size = kShadowMapSize;
   out.mode = state.diagnostic_mode;
+  out.surface_diagnostic = state.surface_diagnostic_mode;
   out.lighting_preset = state.lighting.preset;
   out.optical_filter = state.lighting.filter;
   out.scene_luminance = state.lighting.scene_luminance;
@@ -1134,7 +1143,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto eye_mode_bits=static_cast<std::uint32_t>(state.eye_diagnostic_mode)<<11u;
   const auto lighting_bits=static_cast<std::uint32_t>(state.lighting.preset)<<13u;
   const auto filter_bits=static_cast<std::uint32_t>(state.lighting.filter)<<15u;
-  push.flags[3]=mode_bits|camera_bits|tooltip_bits|physiology_bits|eye_mode_bits|lighting_bits|filter_bits;
+  const auto surface_debug_bits=
+      static_cast<std::uint32_t>(state.surface_diagnostic_mode)<<20u;
+  push.flags[3]=mode_bits|camera_bits|tooltip_bits|physiology_bits|eye_mode_bits|
+                lighting_bits|filter_bits|surface_debug_bits;
 
   VkClearValue shadow_clear{}; shadow_clear.depthStencil={1.0f,0u};
   VkRenderPassBeginInfo spass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -1252,7 +1264,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline_layout,
                           0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
-                  eye_mode_bits | lighting_bits | filter_bits | 1u;
+                  eye_mode_bits | lighting_bits | filter_bits |
+                  surface_debug_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDraw(command, 81u, 1u, 0u, 0u);
