@@ -50,17 +50,51 @@ vec3 view_to_world_direction(vec3 view_direction) {
     return normalize(rotate_y(rotate_x(view_direction, pc.camera.y), pc.camera.x));
 }
 
+uint close_shadow_level() {
+    return (pc.flags.z >> 12u) & 3u;
+}
+
+float focused_shadow_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 0.55 : level == 1u ? 0.85 : 1.20;
+}
+
+float focused_shadow_depth_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 1.10 : level == 1u ? 1.50 : 2.00;
+}
+
+float snap_shadow_axis(float value, float texel_size) {
+    return floor(value / max(texel_size, 1e-7) + 0.5) * texel_size;
+}
+
 vec3 shadow_coord_from_world(vec3 world_position) {
     vec3 sun_world = normalize(lighting.sun_direction_intensity.xyz);
     vec3 forward = normalize(-sun_world);
-    vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0,0.0,1.0) : vec3(0.0,1.0,0.0);
+    vec3 reference_up = abs(forward.y) > 0.95
+        ? vec3(0.0,0.0,1.0) : vec3(0.0,1.0,0.0);
     vec3 right = normalize(cross(reference_up, forward));
     vec3 up = normalize(cross(forward, right));
-    const float half_extent = 1.20;
-    const float depth_half_extent = 2.00;
-    return vec3(dot(world_position,right)/half_extent*0.5+0.5,
-                dot(world_position,up)/half_extent*0.5+0.5,
-                (dot(world_position,forward)+depth_half_extent)/(2.0*depth_half_extent));
+
+    float half_extent = focused_shadow_half_extent();
+    float depth_half_extent = focused_shadow_depth_half_extent();
+    vec3 focus_center = vec3(0.0, pc.camera.w, 0.0);
+
+    float center_right = dot(focus_center, right);
+    float center_up = dot(focus_center, up);
+    float center_forward = dot(focus_center, forward);
+    const float shadow_map_size = 2048.0;
+    float world_texel = (2.0 * half_extent) / shadow_map_size;
+    center_right = snap_shadow_axis(center_right, world_texel);
+    center_up = snap_shadow_axis(center_up, world_texel);
+
+    return vec3(
+        (dot(world_position,right) - center_right) /
+            half_extent * 0.5 + 0.5,
+        (dot(world_position,up) - center_up) /
+            half_extent * 0.5 + 0.5,
+        ((dot(world_position,forward) - center_forward) +
+         depth_half_extent) / (2.0 * depth_half_extent));
 }
 
 float eye_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_view) {

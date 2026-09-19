@@ -31,7 +31,22 @@ layout(set = 0, binding = 1) uniform sampler2D shadow_depth;
 layout(set = 0, binding = 2) uniform sampler2D self_shadow_depth;
 
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
-uint surface_diagnostic_mode() { return (pc.flags.w >> 20u) & 3u; }
+uint surface_diagnostic_mode() { return (pc.flags.w >> 20u) & 7u; }
+uint close_shadow_level() { return (pc.flags.w >> 23u) & 3u; }
+
+float focused_shadow_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 0.55 : level == 1u ? 0.85 : 1.20;
+}
+
+float focused_shadow_depth_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 1.10 : level == 1u ? 1.50 : 2.00;
+}
+
+float snap_shadow_axis(float value, float texel_size) {
+    return floor(value / max(texel_size, 1e-7) + 0.5) * texel_size;
+}
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
 uint pcg_hash(uint input_value) {
@@ -448,13 +463,30 @@ vec3 shadow_coord_from_world(vec3 world_position, bool focused) {
                                               : vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(reference_up, forward));
     vec3 up = normalize(cross(forward, right));
-    float half_extent = focused ? 1.20 : 5.50;
-    float depth_half_extent = focused ? 2.00 : 6.00;
+
+    float half_extent = focused ? focused_shadow_half_extent() : 5.50;
+    float depth_half_extent =
+        focused ? focused_shadow_depth_half_extent() : 6.00;
+
+    vec3 focus_center = focused ? vec3(0.0, pc.camera.w, 0.0) : vec3(0.0);
+    float center_right = dot(focus_center, right);
+    float center_up = dot(focus_center, up);
+    float center_forward = dot(focus_center, forward);
+
+    if (focused) {
+        const float shadow_map_size = 2048.0;
+        float world_texel = (2.0 * half_extent) / shadow_map_size;
+        center_right = snap_shadow_axis(center_right, world_texel);
+        center_up = snap_shadow_axis(center_up, world_texel);
+    }
+
     vec3 coord;
-    coord.x = dot(world_position, right) / half_extent * 0.5 + 0.5;
-    coord.y = dot(world_position, up) / half_extent * 0.5 + 0.5;
-    coord.z = (dot(world_position, forward) + depth_half_extent) /
-              (2.0 * depth_half_extent);
+    coord.x = (dot(world_position, right) - center_right) /
+              half_extent * 0.5 + 0.5;
+    coord.y = (dot(world_position, up) - center_up) /
+              half_extent * 0.5 + 0.5;
+    coord.z = ((dot(world_position, forward) - center_forward) +
+               depth_half_extent) / (2.0 * depth_half_extent);
     return coord;
 }
 
@@ -494,6 +526,23 @@ float self_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_v
         visible += (coord.z - bias <= d) ? 1.0 : 0.0;
     }
     return visible / 9.0;
+}
+
+float self_shadow_compare_margin(vec3 world_position, vec3 normal_view,
+                                 vec3 light_view) {
+    vec3 n_world = view_to_world_direction(normalize(normal_view));
+    vec3 coord = shadow_coord_from_world(
+        world_position + n_world * 0.0010, true);
+    if (coord.x <= 0.0 || coord.x >= 1.0 ||
+        coord.y <= 0.0 || coord.y >= 1.0 ||
+        coord.z <= 0.0 || coord.z >= 1.0) {
+        return 1.0;
+    }
+    float ndotl = max(dot(normalize(normal_view),
+                          normalize(light_view)), 0.0);
+    float bias = max(0.00018, 0.00065 * (1.0 - ndotl));
+    float stored_depth = texture(self_shadow_depth, coord.xy).r;
+    return stored_depth - (coord.z - bias);
 }
 
 vec3 sun_view_direction() {
@@ -616,6 +665,7 @@ void main() {
             panel = surface_debug == 1u ? vec3(0.12, 0.56, 0.30)
                   : surface_debug == 2u ? vec3(0.12, 0.38, 0.72)
                   : surface_debug == 3u ? vec3(0.68, 0.34, 0.12)
+                  : surface_debug == 4u ? vec3(0.82, 0.22, 0.18)
                   : mode != 0u ? vec3(0.48, 0.26, 0.62)
                                : vec3(0.095, 0.12, 0.17);
         }
@@ -690,6 +740,18 @@ void main() {
             vec3 l = sun_view_direction();
             float visibility = self_shadow_visibility(surface_position_m, n, l);
             out_colour = vec4(vec3(visibility), 1.0);
+            return;
+        }
+        if (surface_debug == 4u) {
+            vec3 l = sun_view_direction();
+            float margin =
+                self_shadow_compare_margin(surface_position_m, n, l);
+            const float warning_band = 0.00075;
+            vec3 compare_colour =
+                margin > warning_band ? vec3(0.78)
+              : margin < -warning_band ? vec3(0.055)
+              : vec3(1.00, 0.24, 0.035);
+            out_colour = vec4(compare_colour, 1.0);
             return;
         }
         if (surface_debug == 2u) {

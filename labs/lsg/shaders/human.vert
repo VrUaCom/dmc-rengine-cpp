@@ -32,6 +32,21 @@ bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 bool shadow_pass() { return (pc.flags.w & (1u << 17u)) != 0u; }
 bool ground_pass() { return (pc.flags.w & (1u << 18u)) != 0u; }
 bool focused_self_shadow_pass() { return (pc.flags.w & (1u << 19u)) != 0u; }
+uint close_shadow_level() { return (pc.flags.w >> 23u) & 3u; }
+
+float focused_shadow_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 0.55 : level == 1u ? 0.85 : 1.20;
+}
+
+float focused_shadow_depth_half_extent() {
+    uint level = close_shadow_level();
+    return level == 2u ? 1.10 : level == 1u ? 1.50 : 2.00;
+}
+
+float snap_shadow_axis(float value, float texel_size) {
+    return floor(value / max(texel_size, 1e-7) + 0.5) * texel_size;
+}
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
     if (rotation_code == 1u) return vec2(-clip_position.y, clip_position.x);
@@ -193,12 +208,28 @@ vec4 shadow_clip_from_world(vec3 world_position, vec3 sun_direction,
                                               : vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(reference_up, forward));
     vec3 up = normalize(cross(forward, right));
-    float half_extent = focused ? 1.20 : 5.50;
-    float depth_half_extent = focused ? 2.00 : 6.00;
-    return vec4(dot(world_position, right) / half_extent,
-                dot(world_position, up) / half_extent,
-                (dot(world_position, forward) + depth_half_extent) /
-                    (2.0 * depth_half_extent), 1.0);
+
+    float half_extent = focused ? focused_shadow_half_extent() : 5.50;
+    float depth_half_extent =
+        focused ? focused_shadow_depth_half_extent() : 6.00;
+
+    vec3 focus_center = focused ? vec3(0.0, pc.camera.w, 0.0) : vec3(0.0);
+    float center_right = dot(focus_center, right);
+    float center_up = dot(focus_center, up);
+    float center_forward = dot(focus_center, forward);
+
+    if (focused) {
+        const float shadow_map_size = 2048.0;
+        float world_texel = (2.0 * half_extent) / shadow_map_size;
+        center_right = snap_shadow_axis(center_right, world_texel);
+        center_up = snap_shadow_axis(center_up, world_texel);
+    }
+
+    return vec4((dot(world_position, right) - center_right) / half_extent,
+                (dot(world_position, up) - center_up) / half_extent,
+                ((dot(world_position, forward) - center_forward) +
+                 depth_half_extent) / (2.0 * depth_half_extent),
+                1.0);
 }
 
 void emit_diagnostic_ground_vertex() {

@@ -1057,6 +1057,11 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.camera_distance_m = camera.distance_m;
   out.estimated_gpu_bytes = state.estimated_bytes;
   out.shadow_map_size = kShadowMapSize;
+  const auto close_shadow =
+      close_shadow_config(camera.preset, camera.distance_m, kShadowMapSize);
+  out.close_shadow_level = close_shadow.level;
+  out.close_shadow_half_extent_m = close_shadow.half_extent_m;
+  out.close_shadow_texel_mm = close_shadow.texel_size_m * 1000.0f;
   out.mode = state.diagnostic_mode;
   out.surface_diagnostic = state.surface_diagnostic_mode;
   out.lighting_preset = state.lighting.preset;
@@ -1115,6 +1120,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
   const DerivedEyeParameters derived_eye = derive_eye_parameters(genome);
   const CameraState camera = state.camera.state();
+  const auto close_shadow =
+      close_shadow_config(camera.preset, camera.distance_m, kShadowMapSize);
   float eye_dt = state.last_eye_time_seconds > 0.0f ? std::clamp(time_seconds - state.last_eye_time_seconds, 0.0f, 0.25f) : (1.0f / 60.0f);
   state.last_eye_time_seconds = time_seconds;
   update_eye_runtime(state.eye_runtime[profile_index], state.lighting.effective_eye_luminance,
@@ -1145,8 +1152,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto filter_bits=static_cast<std::uint32_t>(state.lighting.filter)<<15u;
   const auto surface_debug_bits=
       static_cast<std::uint32_t>(state.surface_diagnostic_mode)<<20u;
+  const auto close_shadow_bits=
+      static_cast<std::uint32_t>(close_shadow.level)<<23u;
   push.flags[3]=mode_bits|camera_bits|tooltip_bits|physiology_bits|eye_mode_bits|
-                lighting_bits|filter_bits|surface_debug_bits;
+                lighting_bits|filter_bits|surface_debug_bits|close_shadow_bits;
 
   VkClearValue shadow_clear{}; shadow_clear.depthStencil={1.0f,0u};
   VkRenderPassBeginInfo spass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -1160,7 +1169,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   shadow_push.camera[0]=state.lighting.sun_direction[0];
   shadow_push.camera[1]=state.lighting.sun_direction[1];
   shadow_push.camera[2]=state.lighting.sun_direction[2];
-  shadow_push.camera[3]=0.0f;
+  shadow_push.camera[3]=camera.target_y_m;
   shadow_push.flags[3]|=(1u<<17u);
   vkCmdPushConstants(command,state.pipeline_layout,VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(shadow_push),&shadow_push);
   vkCmdDrawIndexed(command,profile_mesh.index_count,1,0,0,0);
@@ -1237,7 +1246,8 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   eye_push.flags[1] = profile_index;
   const std::uint32_t eye_common_flags =
       static_cast<std::uint32_t>(genome.eyes.vascularity) |
-      (static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 8u);
+      (static_cast<std::uint32_t>(state.eye_diagnostic_mode) << 8u) |
+      (static_cast<std::uint32_t>(close_shadow.level) << 12u);
   eye_push.flags[3] = derived_eye.eye_seed_low;
 
   const auto draw_eye_pass = [&](EyeRenderPass render_pass, VkPipeline pipeline) {
@@ -1265,7 +1275,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                           0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
                   eye_mode_bits | lighting_bits | filter_bits |
-                  surface_debug_bits | 1u;
+                  surface_debug_bits | close_shadow_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
   vkCmdDraw(command, 81u, 1u, 0u, 0u);

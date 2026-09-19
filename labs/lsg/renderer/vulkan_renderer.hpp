@@ -4,6 +4,7 @@
 #include "rengine/lsg/physiology.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/lighting_runtime.hpp"
+#include "rengine/lsg/shadow_quality.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -29,6 +30,7 @@ enum class SurfaceDiagnosticMode : std::uint8_t {
   shadow_visibility = 1,
   normals = 2,
   regions = 3,
+  shadow_compare = 4,
 };
 
 struct RendererDiagnostics {
@@ -46,6 +48,9 @@ struct RendererDiagnostics {
   float far_plane_m{30.0f};
   std::uint64_t estimated_gpu_bytes{};
   std::uint32_t shadow_map_size{};
+  CloseShadowLevel close_shadow_level{CloseShadowLevel::baseline};
+  float close_shadow_half_extent_m{1.20f};
+  float close_shadow_texel_mm{};
   DiagnosticRenderMode mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic{SurfaceDiagnosticMode::none};
   LightingPreset lighting_preset{LightingPreset::noon};

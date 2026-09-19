@@ -66,6 +66,7 @@ const char* surface_diagnostic_name(rengine::lsg::SurfaceDiagnosticMode mode) {
   switch (mode) {
     case SurfaceDiagnosticMode::none: return "NONE";
     case SurfaceDiagnosticMode::shadow_visibility: return "SHADOW_VISIBILITY";
+    case SurfaceDiagnosticMode::shadow_compare: return "SHADOW_COMPARE";
     case SurfaceDiagnosticMode::normals: return "NORMALS";
     case SurfaceDiagnosticMode::regions: return "REGIONS";
   }
@@ -153,6 +154,8 @@ void cycle_diagnostic_mode(AppState& state) {
   } else if (surface == SurfaceDiagnosticMode::none) {
     state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::shadow_visibility);
   } else if (surface == SurfaceDiagnosticMode::shadow_visibility) {
+    state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::shadow_compare);
+  } else if (surface == SurfaceDiagnosticMode::shadow_compare) {
     state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::normals);
   } else if (surface == SurfaceDiagnosticMode::normals) {
     state.renderer.set_surface_diagnostic_mode(SurfaceDiagnosticMode::regions);
