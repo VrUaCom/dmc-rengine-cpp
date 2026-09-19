@@ -660,16 +660,19 @@ void main() {
     float g = geometry_schlick(ndotv, roughness) * geometry_schlick(max(ndotl, 0.001), roughness);
     vec3 specular = fresnel * (d * g / max(4.0 * ndotv * max(ndotl, 0.001), 0.001));
 
-    float wrapped = clamp((ndotl + 0.22) / 1.22, 0.0, 1.0);
-    vec3 diffuse = base_colour * wrapped * (1.0 - fresnel) / 3.14159265;
-    vec3 subsurface_approx = base_colour * vec3(1.05, 0.45, 0.32) * pow(1.0 - ndotl, 2.0) * 0.045;
+    // Direct-light energy must vanish when the sun is behind the surface.
+    // Keep the intentionally bounded SSS/back-scatter approximation separate.
+    vec3 diffuse = base_colour * ndotl * (1.0 - fresnel) / 3.14159265;
+    vec3 subsurface_approx = base_colour * vec3(1.05, 0.45, 0.32) *
+                             pow(1.0 - ndotl, 2.0) * 0.045;
 
     vec3 sky = sky_irradiance(n);
     vec3 ambient = base_colour * sky * 0.28;
     vec3 sun_radiance = lighting.sun_tint_sky_intensity.rgb *
                         (3.1 * max(lighting.sun_direction_intensity.w, 0.0));
+    float direct_specular_scale = (1.2 + oiliness * 0.75 + sweat * 0.35) * ndotl;
     vec3 colour = ambient + diffuse * sun_radiance +
-                  specular * sun_radiance * (1.2 + oiliness * 0.75 + sweat * 0.35) +
+                  specular * sun_radiance * direct_specular_scale +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
     colour *= bulk_filter_rgb() * 1.05 *
