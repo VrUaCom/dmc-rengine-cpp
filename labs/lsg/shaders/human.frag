@@ -720,8 +720,16 @@ void main() {
     // Direct-light energy must vanish when the sun is behind the surface.
     // Keep the intentionally bounded SSS/back-scatter approximation separate.
     vec3 diffuse = base_colour * ndotl * (1.0 - fresnel) / 3.14159265;
-    vec3 subsurface_approx = base_colour * vec3(1.05, 0.45, 0.32) *
-                             pow(1.0 - ndotl, 2.0) * 0.045;
+    // Bounded v0 skin-transmission approximation. The previous term peaked when
+    // NdotL approached zero and produced an inverted bright band at the terminator.
+    // This replacement keeps a restrained contribution near the lit terminator and
+    // fades it before the back-facing side.
+    float signed_ndotl = dot(n, l);
+    float sss_wrap = smoothstep(-0.04, 0.28, signed_ndotl);
+    float sss_terminator = (1.0 - ndotl) * sss_wrap;
+    vec3 subsurface_approx =
+        base_colour * vec3(1.05, 0.45, 0.32) *
+        sss_terminator * 0.016;
 
     vec3 sky = sky_irradiance(n);
     vec3 ambient = base_colour * sky * 0.28;

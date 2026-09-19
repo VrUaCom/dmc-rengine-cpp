@@ -435,10 +435,11 @@ int main(int argc, char** argv) {
   std::string error;
   std::vector<std::uint32_t> source_position_by_vertex;
   std::size_t source_position_count = 0;
-  const bool loaded = extension == ".obj"
+  const bool obj_input = extension == ".obj";
+  const bool loaded = obj_input
       ? load_obj(input, mesh,
-                 component_regions ? &source_position_by_vertex : nullptr,
-                 component_regions ? &source_position_count : nullptr,
+                 &source_position_by_vertex,
+                 &source_position_count,
                  error)
       : (extension == ".glb" || extension == ".gltf") ? load_gltf(input, mesh, error) : false;
   if (component_regions && extension != ".obj") {
@@ -448,7 +449,7 @@ int main(int argc, char** argv) {
   if (!loaded) { if (error.empty()) error = "unsupported mesh extension"; std::cerr << "mesh preparation failed: " << error << '\n'; return 3; }
 
   SourceNormalSeamReport source_normal_report{};
-  if (component_regions) {
+  if (obj_input) {
     if (!regenerate_normals_by_source_position(
             mesh, source_position_by_vertex, source_position_count,
             source_normal_report, error)) {
@@ -473,7 +474,7 @@ int main(int argc, char** argv) {
   if (!rengine::lsg::validate_rmesh(mesh, error)) { std::cerr << "RMS0 validation failed: " << error << '\n'; return 5; }
   const auto bytes = rengine::lsg::encode_rmesh(mesh);
   if (bytes.empty() || !write_file(output, bytes)) { std::cerr << "failed to write RMS0\n"; return 6; }
-  if (component_regions) {
+  if (obj_input) {
     std::cout << "SOURCE NORMAL SEAMS PASS: source_positions=" << source_position_count
               << " max_duplicate_normal_delta=" << source_normal_report.max_duplicate_normal_delta
               << " normal_length_min=" << source_normal_report.normal_length_min
