@@ -70,30 +70,29 @@ Final proportion acceptance remains visual/tuning-sensitive rather than a biolog
 
 ## Corrective findings
 
-### Wet rim — FAIL
+### Wet rim — FAIL (not visibly present)
 
-The lower/peripheral wet-eye contribution is not subtle enough.
+User physical-device observation supersedes the earlier frame interpretation: the intended wet-rim cue is not visibly present on the real display.
 
-In close-up and side/front views it becomes a bright white line along the lower eye boundary. This directly violates the Pass 4D requirement:
+The bright lower-eye line previously interpreted from compressed video frames is **not accepted as wet-rim evidence**.
 
-- no bright white outline,
-- wet response should be only a subtle specular cue.
-
-This is the primary visual blocker found by this recording.
+The current issue is therefore the opposite of overbrightness:
+- the wet-rim approximation is too weak or spatially misplaced to read as a subtle wet contact cue,
+- it must become visible without turning into a bright white outline.
 
 Recommended next bounded correction:
-- narrow the active edge band,
-- substantially reduce constant/sky wet contribution,
-- reduce direct-sun wet coefficient,
-- reduce grazing contribution,
-- clamp the wet contribution before adding it to inner-eye radiance,
-- preserve the current opaque inner-eye pipeline and do not reintroduce fake alpha.
+- preserve the current opaque inner-eye pipeline,
+- increase wet response only in the intended exposed lower/peripheral contact zone,
+- keep the active band thin,
+- prefer directional/specular response over constant brightness,
+- cap the contribution so it remains subtle,
+- do not reintroduce fake alpha or full tear-meniscus geometry.
 
 ### Sclera — CORRECTIVE CANDIDATE
 
 The sclera is no longer technically pure white in the shader, but in the physical recording it still reads visually very bright and relatively flat in several daylight close-ups.
 
-A small additional warm/dim correction may be justified, but it should be tuned only after the wet-rim overbrightness is reduced because the current white rim contaminates perception of the sclera boundary.
+A small additional warm/dim correction may be justified, but it should be tuned independently from the wet-rim correction because the intended wet-rim cue is currently not visible on the physical display.
 
 ## Missing evidence in this recording
 
@@ -111,7 +110,7 @@ These three modes were previously code/CI validated, but final Pass 5 requires p
 Do not mark the Eye/Lighting Corrective block DEVICE PASS yet.
 
 Required before final closure:
-1. apply a bounded wet-rim corrective slice,
+1. apply a bounded wet-rim visibility corrective slice,
 2. rebuild Android/Windows and keep all existing CI gates green,
 3. run a short physical-device retest,
 4. include at least:
