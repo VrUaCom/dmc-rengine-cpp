@@ -238,12 +238,28 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
 
     vec3 n = normalize(view_normal);
     vec3 light_dir = sun_view_direction();
+    vec3 v = normalize(-view_position);
+    vec3 h = normalize(light_dir + v);
     float ndotl = max(dot(n, light_dir), 0.0);
     float direct = max(lighting.sun_direction_intensity.w, 0.0);
     float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
     vec3 illumination = vec3(0.42 * sky) +
                         lighting.sun_tint_sky_intensity.rgb * (0.58 * ndotl * direct);
     colour *= illumination * max(lighting.sky_zenith_exposure.w, 0.01);
+
+    // Pass 4D wet-eye approximation. The inner-eye pipeline is intentionally opaque,
+    // so this is a restrained radiance/specular contribution rather than fake alpha.
+    // It is strongest near the exposed peripheral sclera and biased toward the lower edge.
+    float wet_edge = smoothstep(0.76, 0.98, radius);
+    float lower_bias = smoothstep(0.05, 0.82, -local.y);
+    float sclera_gate = 1.0 - iris_mask * 0.92;
+    float wet_weight = wet_edge * mix(0.28, 1.0, lower_bias) * sclera_gate;
+    float wet_sun = pow(max(dot(n, h), 0.0), 180.0) * direct;
+    float wet_grazing = pow(1.0 - max(dot(n, v), 0.0), 4.0) * sky;
+    float wet_intensity = wet_weight *
+                          (0.010 * sky + 0.095 * wet_sun + 0.024 * wet_grazing);
+    colour += vec3(0.985, 0.995, 1.0) * wet_intensity;
+
     return colour * bulk_filter_rgb();
 }
 
@@ -280,12 +296,22 @@ vec4 cornea_response() {
                    sky_factor) * max(lighting.sun_tint_sky_intensity.w, 0.0) *
                    pol_attenuation;
 
-    // Polarized Approx intentionally attenuates the sky/glare proxy only.
-    // The sharp sun highlight remains bulk-transmission-only in v0.
-    vec3 colour = sky * (0.08 + fresnel * 1.55) +
-                  lighting.sun_tint_sky_intensity.rgb * sun_spec * 2.8;
+    // Keep the wet shell nearly colourless. The environment still drives intensity,
+    // but only a restrained fraction of its chroma is allowed into the cornea.
+    float sky_luminance = dot(sky, vec3(0.2126, 0.7152, 0.0722));
+    vec3 neutral_sky = vec3(sky_luminance);
+    vec3 restrained_sky = mix(neutral_sky, sky, 0.16);
+
+    // Polarized Approx intentionally attenuates the reflected-sky/glare proxy only.
+    // The sharp direct-sun highlight remains bulk-transmission-only in v0.
+    float environment_reflectance = 0.018 + fresnel * 0.52;
+    vec3 colour = restrained_sky * environment_reflectance +
+                  lighting.sun_tint_sky_intensity.rgb * sun_spec * 1.85;
     colour *= bulk_filter_rgb() * max(lighting.sky_zenith_exposure.w, 0.01);
-    float alpha = clamp(0.055 + fresnel * 0.62 + sun_spec * 0.52, 0.045, 0.72);
+
+    // Bounded transparent shell: enough Fresnel to read as a wet cornea without
+    // recreating the previous blue/plastic sphere.
+    float alpha = clamp(0.025 + fresnel * 0.255 + sun_spec * 0.18, 0.025, 0.38);
     return vec4(colour, alpha);
 }
 
