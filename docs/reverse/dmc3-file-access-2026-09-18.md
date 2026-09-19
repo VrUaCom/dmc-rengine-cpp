@@ -1,5 +1,11 @@
 # DMC3 HD: how the engine reads files (2026-09-18)
 
+> **Answered** by `docs/reverse/dmc3-layer-b-purpose-2026-09-19.md`. This note
+> closes on "nothing here says why the engine has both." Layer B is the back end
+> of two `OpenGameResource` modes that require mode bit 1, which no caller in the
+> image sets — so its open is unreachable from the shipped call surface, and that
+> is why its coupling looked like a library nobody used.
+
 Back to the subject matter after several rounds on verification. The biggest
 uncovered thing a port needs: where the bytes come from.
 

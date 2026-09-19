@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-layer-b-purpose",
+  "title": "DMC3 HD: the second file layer is the back end of two open modes nothing selects, and it is id-based where the first is pointer-based",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-layer-b-is-the-other-two-modes",
+      "claim_id": "claim-dmc3-two-file-layers",
+      "title": "Both alternative open modes end in layer B, and no caller selects either",
+      "summary": "The file-access note found two independent file layers over one platform and closed on nothing here saying why the engine has both, and the mount-registration note added a second separating axis and left the question open. The resource open has three resolution paths: the prefixed mount search when mode bit 1 is clear, and with bit 1 set, two more chosen by bit 9. A set bit 9 derives the executable's directory, builds a path and calls 0x49120; a clear bit 9 builds a descriptor, fails out if its field at 0x10 is null, and calls 0x49120 as well. 0x49120 is the function the earlier import census named as the second layer's owner of the platform open and size calls, its only two callers in the image are those two sites, and its address appears as a qword nowhere in the file, so there is no indirect path in either. Both modes require bit 1, and every one of the resource open's three direct callers loads 1 into the mode register, so bit 1 is never set anywhere in the image and the second layer's open is unreachable from the shipped call surface. That also explains the shape the earlier note measured: sixteen callers in against ten callees out, two users per dependency where the first layer had forty-six, because the entry point is the back end of a mode the game never asks for.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "architecture",
+        "reachability",
+        "resource-loading"
+      ],
+      "supersedes": [
+        "ev-dmc3-two-file-layers"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 196370,
+          "size": 80,
+          "symbol": "the third resolution path",
+          "note": "RVA 0x2FF12, the descriptor build at 0x2FF1A, the null check at 0x2FF1F and the open at 0x2FF4C."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 196346,
+          "size": 5,
+          "symbol": "the second resolution path's open",
+          "note": "RVA 0x2FEFA, reached after the executable-directory derivation on the bit-9-set branch."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 299296,
+          "size": 4,
+          "symbol": "the second layer's open",
+          "note": "RVA 0x49120, exactly two callers, both inside the resource open, and no qword reference anywhere in the image."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-layer-b-not-dead-but-unestablished",
+      "claim_id": "claim-dmc3-layer-b-not-dead-but-unestablished",
+      "title": "Its read and seek have callers, and whether those are reachable is not established here",
+      "summary": "The second layer's other entry points do have direct callers. Its read at 0x49200 is called from 0x2F989 and from a thunk at 0x2FF70 that 0x33820E reaches, and 0x33820E lies inside one of the resource open's three callers; its seek at 0x49290 is called from 0x2F953 and 0x2FC90. Whether those callers are themselves reachable is not established by this pass, and the obvious instrument cannot settle it: the function-map report committed under evidence is a partial artefact of 2,889 functions whose depth and reachability fields are absent, so it answers nothing here and no guess was substituted for it. What can be said is narrower and still useful. The open is unreachable from the shipped call surface, so any live use of the second layer's read or seek must obtain its handle by a route this pass did not find, and finding that route is the next question rather than an assumption to make now.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "method"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 299520,
+          "size": 4,
+          "symbol": "the second layer's read",
+          "note": "RVA 0x49200, callers 0x2F989 and the thunk at 0x2FF70."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 299664,
+          "size": 4,
+          "symbol": "the second layer's seek",
+          "note": "RVA 0x49290, callers 0x2F953 and 0x2FC90."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-layer-b-is-id-based",
+      "claim_id": "claim-dmc3-layer-b-is-id-based",
+      "title": "One layer takes pointers and the other takes integers, which is why neither wraps the other",
+      "summary": "The read and seek call sites settle what kind of interface the second layer has. Both load a 32-bit value from the transfer descriptor at offset 0x30 into the first argument register - not a pointer - before calling. The first layer's read, seek and size all take a pointer, to a buffered reader or to an archive entry through the tagged-union dispatchers. So the second layer is an id-based API over a handle table while the first is pointer-based, which is a sharper distinction than the coupling ratio the earlier note used and explains how two layers can coexist without either wrapping the other: their calling conventions are not compatible enough to wrap. The transfer loop itself is the shape a port has to match - read the count at descriptor 0x20 into the buffer at descriptor 0x18, advance both by what came back, stop when the count reaches zero, treat a negative return as failure and a zero return as the end.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "architecture",
+        "abi"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 194864,
+          "size": 66,
+          "symbol": "the seek caller",
+          "note": "RVA 0x2F930, loading the id from descriptor 0x30 at 0x2F94B before the call at 0x2F953."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 194930,
+          "size": 57,
+          "symbol": "the read loop",
+          "note": "RVA 0x2F972, loading the id from descriptor 0x30 at 0x2F980 and looping on the remaining count."
+        }
+      ]
+    }
+  ]
+}
