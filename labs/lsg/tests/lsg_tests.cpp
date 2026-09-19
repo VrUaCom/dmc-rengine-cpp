@@ -144,6 +144,10 @@ int main() {
         pupil_target_from_luminance(polarized.effective_eye_luminance, eye0.pupil_bias);
     const float tinted_target =
         pupil_target_from_luminance(tinted.effective_eye_luminance, eye0.pupil_bias);
+    for (const float target : {clear_target, polarized_target, tinted_target}) {
+      assert(std::isfinite(target));
+      assert(target >= kPupilRadiusMin && target <= kPupilRadiusMax);
+    }
     assert(clear_target <= polarized_target + 1e-6f);
     assert(polarized_target <= tinted_target + 1e-6f);
   }
@@ -172,9 +176,17 @@ int main() {
   }
 
   EyeRuntimeState eye_state{};
+  assert(std::abs(eye_state.pupil_radius - kPupilInitialRadius) < 1e-6f);
+  assert(std::abs(eye_state.target_pupil_radius - kPupilInitialRadius) < 1e-6f);
   const float dark_target = pupil_target_from_luminance(0.01f, eye0.pupil_bias);
   const float bright_target = pupil_target_from_luminance(4.0f, eye0.pupil_bias);
   assert(dark_target > bright_target);
+  assert(dark_target >= kPupilRadiusMin && dark_target <= kPupilRadiusMax);
+  assert(bright_target >= kPupilRadiusMin && bright_target <= kPupilRadiusMax);
+  const float darkest_endpoint = pupil_target_from_luminance(0.0f, 0.5f);
+  const float brightest_endpoint = pupil_target_from_luminance(1.0e6f, 0.5f);
+  assert(std::abs(darkest_endpoint - kPupilDarkRadius) < 0.0001f);
+  assert(std::abs(brightest_endpoint - kPupilBrightRadius) < 0.0001f);
   const float noon_clear_target = pupil_target_from_luminance(noon_clear.effective_eye_luminance, eye0.pupil_bias);
   const float noon_tinted_target = pupil_target_from_luminance(noon_tinted.effective_eye_luminance, eye0.pupil_bias);
   const float night_target = pupil_target_from_luminance(night_clear.effective_eye_luminance, eye0.pupil_bias);
@@ -188,7 +200,8 @@ int main() {
   const float bright_radius = eye_state.pupil_radius;
   for (int i = 0; i < 120; ++i) update_eye_runtime(eye_state, 0.01f, eye0.pupil_bias, 1.0f / 60.0f);
   assert(eye_state.pupil_radius > bright_radius);
-  assert(eye_state.pupil_radius >= 0.070f && eye_state.pupil_radius <= 0.155f);
+  assert(eye_state.pupil_radius >= kPupilRadiusMin &&
+         eye_state.pupil_radius <= kPupilRadiusMax);
 
   const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);

@@ -114,6 +114,24 @@ float iris_variation(uint side, float sector_f, int radial_band) {
     return mix(a, b, t);
 }
 
+float eye_local_hash(uint side, ivec2 cell, uint salt) {
+    uint h = pcg_hash(pc.flags.w ^ (side == 0u ? 0xA511E9B3u : 0x63D83595u) ^ salt);
+    h = pcg_hash(h ^ uint(cell.x) * 0x9e3779b9u);
+    h = pcg_hash(h ^ uint(cell.y) * 0x85ebca6bu);
+    return hash01(h);
+}
+
+float eye_local_value_noise(uint side, vec2 p, uint salt) {
+    ivec2 cell = ivec2(floor(p));
+    vec2 local = fract(p);
+    vec2 w = local * local * (3.0 - 2.0 * local);
+    float a = eye_local_hash(side, cell, salt);
+    float b = eye_local_hash(side, cell + ivec2(1, 0), salt);
+    float c = eye_local_hash(side, cell + ivec2(0, 1), salt);
+    float d = eye_local_hash(side, cell + ivec2(1, 1), salt);
+    return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
+}
+
 vec2 inner_eye_local_uv(uint component, vec2 uv) {
     if (component == 1u) {
         const vec2 center = vec2(0.29870, 0.29435);
@@ -133,15 +151,30 @@ vec3 sclera_colour(vec2 local_uv, uint side) {
     vec3 neutral = vec3(0.965, 0.955, 0.935);
     vec3 base = mix(warm, neutral, tint);
 
-    ivec2 cell = ivec2(floor((local_uv + vec2(1.25)) * 18.0));
-    uint h = pcg_hash(pc.flags.w ^ (side == 0u ? 0x4A39B70Du : 0xC13FA9A9u));
-    h = pcg_hash(h ^ uint(cell.x));
-    h = pcg_hash(h ^ uint(cell.y) * 0x9e3779b9u);
-    float vessel = hash01(h);
-    float sparse = smoothstep(0.90, 0.985, vessel);
-    float edge_weight = smoothstep(0.28, 0.95, length(local_uv));
-    base += vec3(0.075, -0.012, -0.018) * sparse * vascularity * edge_weight * 0.55;
-    return base;
+    // Eye-local, deterministic low-frequency variation. The luminance swing stays
+    // deliberately restrained to avoid a blotchy or dirty sclera.
+    float low = eye_local_value_noise(side, local_uv * 3.25 + vec2(7.0, 11.0), 0x51C3A11u);
+    float low_signed = (low - 0.5) * 2.0;
+    base *= 1.0 + low_signed * 0.012;
+    base += vec3(0.0020, -0.0005, -0.0015) * low_signed;
+
+    // Sparse directional vascular hints: a softly warped ridge field, gated by
+    // peripheral distance and a low-frequency deterministic mask.
+    float radius = length(local_uv);
+    float edge_weight = smoothstep(0.34, 0.96, radius);
+    float vessel_mask = eye_local_value_noise(
+        side, local_uv * vec2(2.4, 3.2) + vec2(19.0, 5.0), 0xB10D5EEDu);
+    float phase = eye_local_hash(side, ivec2(3, 7), 0x7E5511u) * 6.28318530718;
+    float directional =
+        local_uv.y * 5.2 + local_uv.x * 1.35 +
+        0.32 * sin(local_uv.y * 7.0 + phase);
+    float ridge = 1.0 - abs(fract(directional) * 2.0 - 1.0);
+    ridge = pow(clamp(ridge, 0.0, 1.0), 18.0);
+    float sparse = smoothstep(0.72, 0.92, vessel_mask);
+    float vessel = ridge * sparse * edge_weight * vascularity;
+    base += vec3(0.050, -0.009, -0.013) * vessel * 0.22;
+
+    return clamp(base, vec3(0.0), vec3(1.0));
 }
 
 vec3 procedural_inner_eye(uint component, vec2 uv) {
@@ -151,29 +184,53 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
     float angle = atan(local.y, local.x);
     float angle01 = angle * (0.5 / 3.141592653589793) + 0.5;
 
-    const float iris_radius = 0.345;
-    float pupil_radius = clamp(pc.eye0.a, 0.070, 0.155);
-    float iris_mask = 1.0 - smoothstep(iris_radius - 0.020, iris_radius + 0.012, radius);
-    float pupil_mask = 1.0 - smoothstep(pupil_radius - 0.010, pupil_radius + 0.008, radius);
+    const float iris_radius = 0.295;
+    float pupil_radius = clamp(pc.eye0.a, 0.045, 0.135);
+    float iris_mask = 1.0 - smoothstep(iris_radius - 0.017, iris_radius + 0.010, radius);
+    float pupil_mask = 1.0 - smoothstep(pupil_radius - 0.008, pupil_radius + 0.006, radius);
 
     vec3 sclera = sclera_colour(local, side);
 
     float radial01 = clamp(radius / iris_radius, 0.0, 1.0);
-    float sectors = angle01 * 192.0;
-    int radial_band = int(floor(radial01 * 14.0));
-    float fibre = iris_variation(side, sectors, radial_band);
-    float fibre2 = iris_variation(side, sectors * 0.5 + 13.0, radial_band + 7);
-    float fibre_mix = clamp(0.18 + fibre * 0.58 + fibre2 * 0.24, 0.0, 1.0);
+
+    // Stable low-frequency angular phase warp breaks the perfect radial regularity
+    // without introducing screen-space noise.
+    float warp_coarse = iris_variation(side, angle01 * 24.0 + 5.0, 29) - 0.5;
+    float warp_radial = iris_variation(
+        side, angle01 * 40.0 + radial01 * 7.0 + 17.0,
+        int(floor(radial01 * 6.0)) + 37) - 0.5;
+    float warped_angle = angle01 + warp_coarse * 0.020 + warp_radial * radial01 * 0.008;
+
+    int coarse_band = int(floor(radial01 * 6.0));
+    int medium_band = int(floor(radial01 * 12.0));
+    int fine_band = int(floor(radial01 * 18.0));
+    float coarse = iris_variation(side, warped_angle * 48.0 + 3.0, coarse_band);
+    float medium = iris_variation(side, warped_angle * 144.0 + 11.0, medium_band + 9);
+    float fine = iris_variation(side, warped_angle * 288.0 + 23.0, fine_band + 21);
+
+    // Attenuate the finest field as the fragment footprint grows.
+    float footprint = max(fwidth(local.x), fwidth(local.y));
+    float fine_visibility = 1.0 - smoothstep(0.010, 0.035, footprint);
+    float fibre_mix = clamp(
+        0.25 * coarse + 0.45 * medium + 0.30 * mix(0.5, fine, fine_visibility),
+        0.0, 1.0);
 
     vec3 iris = mix(pc.eye0.rgb, pc.eye1.rgb, fibre_mix);
     float radial_darkening = mix(1.08, 0.72, smoothstep(0.0, 1.0, radial01));
     iris *= radial_darkening;
 
-    float collarette = exp(-pow((radial01 - 0.48) / 0.12, 2.0));
-    iris += pc.eye1.rgb * collarette * (0.08 + 0.08 * fibre);
+    float collarette_noise =
+        iris_variation(side, warped_angle * 32.0 + 7.0, 41) - 0.5;
+    float collarette_radius = 0.47 + collarette_noise * 0.070;
+    float collarette = exp(-pow((radial01 - collarette_radius) / 0.10, 2.0));
+    iris += pc.eye1.rgb * collarette * (0.065 + 0.090 * medium);
 
-    float limbal = smoothstep(0.76, 1.0, radial01);
-    iris *= mix(1.0, 0.38, limbal);
+    float limbal_noise =
+        iris_variation(side, warped_angle * 36.0 + 31.0, 53) - 0.5;
+    float limbal_start = 0.785 + limbal_noise * 0.055;
+    float limbal = smoothstep(limbal_start, 1.0, radial01);
+    float limbal_strength = 0.57 + limbal_noise * 0.10;
+    iris *= mix(1.0, clamp(limbal_strength, 0.48, 0.66), limbal);
 
     vec3 pupil = vec3(0.008, 0.010, 0.012);
     vec3 colour = mix(sclera, iris, iris_mask);
@@ -261,7 +318,7 @@ void main() {
     if (eye_mode == 2u) {
         if (!inner) discard;
         vec2 local = inner_eye_local_uv(component_id, eye_uv);
-        if (length(local) > 0.365) discard;
+        if (length(local) > 0.320) discard;
         out_colour = vec4(procedural_inner_eye(component_id, eye_uv), 1.0);
         return;
     }

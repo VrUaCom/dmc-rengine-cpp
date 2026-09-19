@@ -15,10 +15,10 @@ float pupil_target_from_luminance(float scene_luminance,
   const float light_response = std::clamp(log_luminance / 3.0f, 0.0f, 1.0f);
   const float bias = std::clamp(pupil_bias, 0.0f, 1.0f);
 
-  const float dark_radius = 0.145f;
-  const float bright_radius = 0.082f;
   const float biased = std::clamp(light_response + (0.5f - bias) * 0.22f, 0.0f, 1.0f);
-  return dark_radius + (bright_radius - dark_radius) * biased;
+  return std::clamp(
+      kPupilDarkRadius + (kPupilBrightRadius - kPupilDarkRadius) * biased,
+      kPupilRadiusMin, kPupilRadiusMax);
 }
 
 void update_eye_runtime(EyeRuntimeState& state,
@@ -34,7 +34,8 @@ void update_eye_runtime(EyeRuntimeState& state,
   constexpr float response_rate = 3.2f;
   const float alpha = 1.0f - std::exp(-response_rate * delta_seconds);
   state.pupil_radius += (state.target_pupil_radius - state.pupil_radius) * alpha;
-  state.pupil_radius = std::clamp(state.pupil_radius, 0.070f, 0.155f);
+  state.pupil_radius =
+      std::clamp(state.pupil_radius, kPupilRadiusMin, kPupilRadiusMax);
 }
 
 }  // namespace rengine::lsg
