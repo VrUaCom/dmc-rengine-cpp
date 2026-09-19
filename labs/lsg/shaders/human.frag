@@ -40,8 +40,10 @@ uint pcg_hash(uint input_value) {
 }
 
 uint hash_cell(ivec3 cell, uint seed_key) {
+    // Surface noise is anchored only in deterministic object-space cells.
+    // BodyRegion is intentionally excluded so semantic region boundaries cannot
+    // introduce a discontinuous phase jump in meso/micro detail.
     uint h = pcg_hash(seed_key);
-    h = pcg_hash(h ^ body_region * 0x9E3779B9u);
     h = pcg_hash(h ^ uint(cell.x));
     h = pcg_hash(h ^ uint(cell.y));
     h = pcg_hash(h ^ uint(cell.z));
@@ -75,12 +77,38 @@ int detail_band(float mm_per_pixel) {
     return 0;
 }
 
-float region_density_scale(uint region) {
-    if (region == 0u) return 1.18;
-    if (region == 7u) return 1.08;
-    if (region == 1u || region == 2u) return 0.98;
-    if (region == 9u || region == 10u) return 0.78;
-    return 0.88;
+float smooth_range(float value, float lo, float hi) {
+    return smoothstep(lo, hi, value);
+}
+
+float smooth_band(float value, float rise0, float rise1,
+                  float fall0, float fall1) {
+    return smooth_range(value, rise0, rise1) *
+           (1.0 - smooth_range(value, fall0, fall1));
+}
+
+float anatomical_pore_density_scale(vec3 p) {
+    // Continuous v0 field replacing hard BodyRegion material jumps.
+    // Coordinates are deformed object-space metres around the body centre.
+    float y01 = clamp(p.y / 1.75 + 0.5, 0.0, 1.0);
+    float lateral = clamp(abs(p.x) / 0.52, 0.0, 1.0);
+
+    float head = smooth_range(y01, 0.80, 0.90);
+    float neck = smooth_band(y01, 0.75, 0.81, 0.86, 0.91);
+    float upper_torso = smooth_band(y01, 0.56, 0.64, 0.76, 0.83);
+    float arms = smooth_band(y01, 0.47, 0.57, 0.76, 0.85) *
+                 smooth_range(lateral, 0.44, 0.76);
+    float lower_leg = smooth_band(y01, 0.06, 0.12, 0.27, 0.34);
+    float foot = 1.0 - smooth_range(y01, 0.05, 0.11);
+
+    float scale = 0.88;
+    scale += head * 0.30;
+    scale += neck * 0.08;
+    scale += upper_torso * 0.05;
+    scale -= arms * 0.05;
+    scale -= lower_leg * 0.07;
+    scale -= foot * 0.10;
+    return clamp(scale, 0.76, 1.20);
 }
 
 vec2 pore_field(vec3 p, uint seed, float cell_m, float density, float depth_m) {
@@ -702,7 +730,9 @@ void main() {
 
     if (detail_enabled && band >= 2) {
         float cell_m = mix(0.00052, 0.00024, clamp(pc.micro0.z, 0.0, 1.0));
-        float density = clamp(pc.micro0.y * region_density_scale(body_region), 0.05, 0.95);
+        float density = clamp(
+            pc.micro0.y * anatomical_pore_density_scale(surface_position_m),
+            0.05, 0.95);
         float depth_m = mix(0.000010, 0.000050, clamp(pc.micro0.w, 0.0, 1.0));
         vec2 pore = pore_field(surface_position_m, seed, cell_m, density, depth_m);
         height_field += pore.x;
