@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-zlib-identification",
+  "title": "DMC3 HD: the decompressor is zlib 1.2.5 in raw mode, the inflater object is exact, and a layout I called non-standard is standard",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-zlib-125-raw",
+      "claim_id": "claim-dmc3-zlib-125-raw",
+      "title": "inflateInit2_ with window bits -15 and a version string of 1.2.5",
+      "summary": "0x327BE0 clears 0x58 bytes at inf+0x1010, zeroes three pointers inside that region, loads -15 into edx, the address 0x5086F8 into r8 and 0x58 into r9d, and calls 0x343170. The bytes at 0x5086F8 are the string 1.2.5. That is the version-checked raw-inflate initialiser, and negative window bits select deflate with no wrapper, so the project's existing description of this path as raw DEFLATE in decompilation-layer-classification.md is now backed by the constant that selects it rather than by the shape of the stream. The rest of the library is present and agrees: .rdata holds a deflate 1.2.5 string at 0x50AA51 and an inflate 1.2.5 string at 0x50BEA1, with the standard message set including incorrect header check, invalid distance too far back and need dictionary. Both halves are compiled in although only inflate is reached from the archive path. With the version fixed, the four functions the path calls identify themselves by their call shapes: 0x343170 is inflateInit2_, 0x341900 is inflate, 0x343110 is inflateEnd and 0x340010 is crc32. 0x343110 is the clearest: it loads the state from strm+0x28 and the deallocator from strm+0x38, frees the window at state+0x38 and then the state, nulls strm+0x28, and returns -2 on a null argument.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "inflate",
+        "third-party",
+        "identification"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308512,
+          "size": 224,
+          "symbol": "the inflater arming",
+          "note": "RVA 0x327BE0, the window bits at 0x327C58, the version pointer at 0x327C4A and the call at 0x327C76."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5277432,
+          "size": 6,
+          "symbol": "the version string",
+          "note": "RVA 0x5086F8, the string passed to the initialiser."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3420432,
+          "size": 86,
+          "symbol": "inflateEnd",
+          "note": "RVA 0x343110, freeing the window then the state and nulling strm+0x28."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-stream-layout-is-llp64-stock",
+      "claim_id": "claim-dmc3-truncation-is-a-clean-end",
+      "title": "The descriptor I called non-standard is the standard one computed for the wrong data model",
+      "summary": "Yesterday's note said the four fields at inf+0x1010 through inf+0x1028 are the shape of a streaming decompressor's descriptor but not any particular published one, because the common library puts a total-input counter between available-input and next-output and this does not. That is wrong. The library does put it there, as a long, and on Windows x64 a long is four bytes, so it occupies 0x0C inside what would otherwise be padding and next-output lands at 0x10. Every other offset then follows: next-input 0x00, available-input 0x08, total-input 0x0C, next-output 0x10, available-output 0x18, total-output 0x1C, message 0x20, state 0x28, allocator 0x30, deallocator 0x38, opaque 0x40, data type 0x48, checksum 0x4C, reserved 0x50, size 0x58. The 0x58 is the size the code passes to the initialiser, and the state, allocator, deallocator and opaque offsets are exactly what 0x343110 and 0x327BE0 read and write. It is the stock structure. I computed the offsets for the wrong data model and then reported the mismatch as a property of the image, which is the kind of error that produces a confident negative rather than an undercount.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "method",
+        "struct-layout",
+        "abi"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3311232,
+          "size": 404,
+          "symbol": "the reader that writes the descriptor",
+          "note": "RVA 0x328680, writing next-output at inf+0x1020 and available-output at inf+0x1028, which are 0x10 and 0x18 into the descriptor."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-inflater-object-exact",
+      "claim_id": "claim-dmc3-inflater-object-exact",
+      "title": "0x1080 bytes with nothing left over, and a member of zero length is born exhausted",
+      "summary": "The constructor is the branch of 0x328360 taken when the compression method is not zero: calloc(1, 0x1080), the compressed substream at 0x00, the uncompressed size from entry 0x20 at 0x08, then 0x327BE0 to arm it. The layout is the substream at 0x00, the uncompressed length at 0x08, the produced count at 0x0C, a 0x1000-byte input buffer at 0x10, the 0x58-byte descriptor at 0x1010, the exhausted flag at 0x1068, the input cursor at 0x1070 and the end of valid input at 0x1078, which with its eight bytes reaches 0x1080 exactly. The 0x58 that the arming clears and that the initialiser is told is precisely the descriptor region, with the exhausted flag beginning where it ends. The arming also rewinds: it zeroes the substream position, seeks the reader to the member's data offset and requires the seek to land exactly, clears the descriptor, initialises raw inflate, points the cursor and the end at the empty input buffer, zeroes the produced count, and sets the exhausted flag from whether the uncompressed length is zero - so a member of zero uncompressed length is exhausted from birth and its first read returns zero without touching the decompressor.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "inflate",
+        "struct-layout",
+        "allocation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310735,
+          "size": 137,
+          "symbol": "the inflater constructor",
+          "note": "RVA 0x32848F, calloc(1, 0x1080) at 0x32849C and the arming call at 0x3284B3."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308704,
+          "size": 6,
+          "symbol": "the born-exhausted case",
+          "note": "RVA 0x327C7F sets the flag from a comparison of the uncompressed length against zero, stored at 0x327CA0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-entry-ownership-and-no-leak",
+      "claim_id": "claim-dmc3-entry-ownership-and-no-leak",
+      "title": "Exactly one of the two realisations is ever set, and the suspected leak is not there",
+      "summary": "The pairing of entry 0x38 and entry 0x40 is enforced rather than assumed. When the inflater is built and armed successfully the code sets entry 0x38 to null and the substream belongs to the inflater; when the allocation or the arming fails it closes and frees the substream and its reader and nulls entry 0x38 as well. So exactly one of the two is ever non-null, which is what makes the destructor's two independent frees safe and what the open test in 0x328540 and the branch in 0x328F50 both rely on. I suspected a leak because one function served both the seek's reset and the teardown, and there is none: that function is inflateEnd, the seek calls it and then re-initialises through 0x327BE0, and the destructor 0x327DB0 calls it before freeing, so the window and the state that the library allocates are released on both paths. The destructor, in order: inflateEnd if the inflater exists, then close and free the compressed substream's reader and the substream and the inflater and null entry 0x40; then close and free the stored substream if it exists and null entry 0x38; then free entry 0x00, which realisation has normally already freed and nulled. Its two callers are a 29-byte wrapper at 0x327D90 and the failure path inside 0x328540. Yesterday's note guessed that 0x327DB0 was where the object is built; it is where it is destroyed.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "inflate",
+        "lifetime",
+        "allocation"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308976,
+          "size": 142,
+          "symbol": "the entry destructor",
+          "note": "RVA 0x327DB0, inflateEnd at 0x327DD2, the inflater frees at 0x327DE5 and 0x327DEE, the stored substream at 0x327E10 and the path at 0x327E21."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310792,
+          "size": 46,
+          "symbol": "the ownership transfer",
+          "note": "RVA 0x3284C8 stores the inflater and 0x3284EE nulls entry 0x38 on success, while 0x3284D1 frees the substream when it is null."
+        }
+      ]
+    }
+  ]
+}

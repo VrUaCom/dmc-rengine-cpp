@@ -4,6 +4,13 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-inflate-semantics`.
 
+> **Corrected** by `docs/reverse/dmc3-zlib-identification-2026-09-19.md` in
+> two places. `0x327DB0` is the entry **destructor**, not the constructor — the
+> constructor is a branch of `0x328360`. And the stream descriptor *is* a
+> published layout: `z_stream` under LLP64, where `unsigned long` is four bytes,
+> which is why `next_out` lands at `0x10`. The behavioural claims below — the
+> seek, the truncation semantics, the absent CRC check — are unaffected.
+
 ## Why these two functions
 
 `docs/gdspaces/proof-roadmap-2026-09-05.md` marks the NBZ STORE and raw-DEFLATE
