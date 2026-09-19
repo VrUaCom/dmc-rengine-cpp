@@ -12,6 +12,7 @@
 #include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
 #include "rengine/lsg/surface.hpp"
+#include "rengine/lsg/shadow_quality.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -266,6 +267,35 @@ int main() {
   assert(std::abs(camera.state().pitch_radians) < 0.0001f);
   camera.zoom(1000.0f); assert(camera.state().distance_m >= 0.32f);
   camera.zoom(0.0001f); assert(camera.state().distance_m <= 12.0f);
+
+  const auto shadow_full =
+      close_shadow_config(CameraPreset::full_body, full_distance);
+  const auto shadow_portrait =
+      close_shadow_config(CameraPreset::portrait, portrait_distance);
+  const auto shadow_close =
+      close_shadow_config(CameraPreset::extreme_close_up, close_distance);
+  assert(shadow_full.level == CloseShadowLevel::baseline);
+  assert(shadow_portrait.level == CloseShadowLevel::portrait);
+  assert(shadow_close.level == CloseShadowLevel::cinematic);
+  assert(shadow_close.half_extent_m < shadow_portrait.half_extent_m);
+  assert(shadow_portrait.half_extent_m < shadow_full.half_extent_m);
+  assert(shadow_close.texel_size_m < shadow_portrait.texel_size_m);
+  assert(shadow_portrait.texel_size_m < shadow_full.texel_size_m);
+  assert(std::isfinite(shadow_close.texel_size_m));
+  assert(shadow_close.texel_size_m > 0.0f);
+  assert(select_close_shadow_level(CameraPreset::full_body, 1.20f) ==
+         CloseShadowLevel::cinematic);
+  assert(select_close_shadow_level(CameraPreset::full_body, 2.00f) ==
+         CloseShadowLevel::portrait);
+  assert(select_close_shadow_level(CameraPreset::full_body, 3.00f) ==
+         CloseShadowLevel::baseline);
+
+  const float snap_texel = shadow_close.texel_size_m;
+  const float snap_base = 10.25f * snap_texel;
+  const float snapped_a = snap_shadow_axis(snap_base, snap_texel);
+  const float snapped_b =
+      snap_shadow_axis(snap_base + 0.10f * snap_texel, snap_texel);
+  assert(snapped_a == snapped_b);
 
   RMeshV0 mesh{}; mesh.flags = rmesh_has_uv | rmesh_has_tangents | rmesh_has_regions; mesh.vertices.resize(3);
   mesh.vertices[0].position = {-1.0f,0.0f,0.0f}; mesh.vertices[1].position = {1.0f,0.0f,0.0f}; mesh.vertices[2].position = {0.0f,1.0f,0.0f};

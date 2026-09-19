@@ -27,7 +27,8 @@ add_library(rengine_lsg_core STATIC
   src/lighting_runtime.cpp
   src/polarization_approx.cpp
   src/anatomical_field.cpp
-  src/extension_contract.cpp)
+  src/extension_contract.cpp
+  src/shadow_quality.cpp)
 target_include_directories(rengine_lsg_core PUBLIC include)
 target_compile_features(rengine_lsg_core PUBLIC cxx_std_23)
 set_target_properties(rengine_lsg_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
