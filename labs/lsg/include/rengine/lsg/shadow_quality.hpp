@@ -3,6 +3,7 @@
 #include "rengine/lsg/camera.hpp"
 
 #include <cstdint>
+#include <array>
 
 namespace rengine::lsg {
 
@@ -29,5 +30,15 @@ struct CloseShadowConfig {
 
 [[nodiscard]] float snap_shadow_axis(float value_m,
                                      float texel_size_m) noexcept;
+
+// CPU reference for the cinematic GLSL filter, used with synthetic depth fields.
+// dx/dy contain screen derivatives of normalized shadow UV and depth.
+[[nodiscard]] std::array<float, 2> receiver_depth_gradient(
+    std::array<float, 3> dx, std::array<float, 3> dy) noexcept;
+
+[[nodiscard]] float cinematic_shadow_visibility_reference(
+    const std::array<float, 25>& depths, std::array<float, 2> pixel_fraction,
+    float receiver_depth, std::array<float, 2> depth_gradient,
+    std::uint32_t map_size, float bias, float max_correction) noexcept;
 
 } // namespace rengine::lsg

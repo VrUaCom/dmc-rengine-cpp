@@ -58,4 +58,37 @@ float snap_shadow_axis(float value_m, float texel_size_m) noexcept {
   return std::round(value_m / texel_size_m) * texel_size_m;
 }
 
+std::array<float, 2> receiver_depth_gradient(
+    std::array<float, 3> dx, std::array<float, 3> dy) noexcept {
+  const float det = dx[0] * dy[1] - dx[1] * dy[0];
+  const float scale = std::max(std::hypot(dx[0], dx[1]) *
+                               std::hypot(dy[0], dy[1]), 1e-20f);
+  if (std::abs(det) <= 1e-5f * scale) return {};
+  const float u = (dy[1] * dx[2] - dx[1] * dy[2]) / det;
+  const float v = (dx[0] * dy[2] - dy[0] * dx[2]) / det;
+  if (!std::isfinite(u) || !std::isfinite(v)) return {};
+  return {std::clamp(u, -64.0f, 64.0f), std::clamp(v, -64.0f, 64.0f)};
+}
+
+float cinematic_shadow_visibility_reference(
+    const std::array<float, 25>& depths, std::array<float, 2> pixel_fraction,
+    float receiver_depth, std::array<float, 2> depth_gradient,
+    std::uint32_t map_size, float bias, float max_correction) noexcept {
+  if (map_size == 0u) return 1.0f;
+  float visible = 0.0f, total = 0.0f;
+  for (int y = -2; y <= 2; ++y) for (int x = -2; x <= 2; ++x) {
+    const float du = static_cast<float>(x) + 0.5f - pixel_fraction[0];
+    const float dv = static_cast<float>(y) + 0.5f - pixel_fraction[1];
+    const float weight = std::max(2.5f - std::abs(du), 0.0f) *
+                         std::max(2.5f - std::abs(dv), 0.0f);
+    const float correction = std::clamp(
+        (depth_gradient[0] * du + depth_gradient[1] * dv) /
+          static_cast<float>(map_size), -max_correction, max_correction);
+    const auto i = static_cast<std::size_t>((y + 2) * 5 + x + 2);
+    if (receiver_depth + correction - bias <= depths[i]) visible += weight;
+    total += weight;
+  }
+  return visible / std::max(total, 1e-6f);
+}
+
 } // namespace rengine::lsg

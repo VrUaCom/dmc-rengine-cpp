@@ -1,4 +1,6 @@
 #version 450
+#extension GL_GOOGLE_include_directive : require
+#include "focused_shadow.glsl"
 
 layout(location = 0) in vec3 view_normal;
 layout(location = 1) in vec2 eye_uv;
@@ -99,6 +101,17 @@ vec3 shadow_coord_from_world(vec3 world_position) {
 
 float eye_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_view) {
     vec3 normal_world = normalize(rotate_y(rotate_x(normal_view, pc.camera.y), pc.camera.x));
+    if (close_shadow_level() == 2u) {
+        float depth_span = 2.0 * focused_shadow_depth_half_extent();
+        float texel_m = 2.0 * focused_shadow_half_extent() /
+                        float(textureSize(self_shadow_depth, 0).x);
+        vec3 coord = shadow_coord_from_world(
+            world_position + normal_world * min(0.0007, 0.7 * texel_m));
+        float ndotl = clamp(dot(normalize(normal_view), normalize(light_view)), 0.0, 1.0);
+        float bias = (0.00015 + 0.00030 * (1.0 - ndotl)) / depth_span;
+        return lsg_cinematic_shadow_visibility(self_shadow_depth, coord,
+                                               bias, 0.0010 / depth_span);
+    }
     vec3 coord = shadow_coord_from_world(world_position + normal_world * 0.0007);
     if (coord.x<=0.0 || coord.x>=1.0 || coord.y<=0.0 || coord.y>=1.0 ||
         coord.z<=0.0 || coord.z>=1.0) return 1.0;

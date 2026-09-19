@@ -43,6 +43,9 @@ if(RENGINE_LSG_BUILD_TESTS AND NOT ANDROID)
   add_executable(rengine_lsg_tests tests/lsg_tests.cpp)
   target_link_libraries(rengine_lsg_tests PRIVATE rengine_lsg_core)
   add_test(NAME rengine_lsg_tests COMMAND rengine_lsg_tests)
+  add_executable(lsg_shadow_filter_tests tests/shadow_filter_tests.cpp)
+  target_link_libraries(lsg_shadow_filter_tests PRIVATE rengine_lsg_core)
+  add_test(NAME lsg_shadow_filter_tests COMMAND lsg_shadow_filter_tests)
 endif()
 
 if((RENGINE_LSG_BUILD_MESH_TOOL OR RENGINE_LSG_BUILD_PROFILE_TOOL) AND NOT ANDROID)
@@ -127,7 +130,7 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.frag -o ${LSG_FRAGMENT_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.vert -o ${LSG_EYE_VERTEX_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.frag -o ${LSG_EYE_FRAGMENT_SPV}
-      DEPENDS shaders/human.vert shaders/human.frag shaders/eye.vert shaders/eye.frag VERBATIM)
+      DEPENDS shaders/human.vert shaders/human.frag shaders/eye.vert shaders/eye.frag shaders/focused_shadow.glsl VERBATIM)
   add_custom_target(rengine_lsg_shaders DEPENDS ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV} ${LSG_EYE_VERTEX_SPV} ${LSG_EYE_FRAGMENT_SPV})
   add_executable(rengine_lsg_viewer viewer/windows/main.cpp renderer/vulkan_renderer.cpp)
   add_dependencies(rengine_lsg_viewer rengine_lsg_shaders)
