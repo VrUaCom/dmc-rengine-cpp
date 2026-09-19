@@ -138,8 +138,14 @@ jobs:
           foreach ($profile in 0,1) {
             & build-lsg-win\Release\lsg_extract_obj_group.exe build-lsg-win\profile-$profile.obj body build-lsg-win\profile-$profile-body.obj
             if ($LASTEXITCODE -ne 0) { throw "profile $profile body extraction failed" }
-            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-body.obj build-lsg-win\profile-$profile-body.rmesh
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-body.obj build-lsg-win\profile-$profile-body.rmesh | Tee-Object -FilePath build-lsg-win\Release\lsg-body-normal-seams-profile-$profile.txt
             if ($LASTEXITCODE -ne 0) { throw "profile $profile body RMS0 preparation failed" }
+            if (-not (Select-String -Path build-lsg-win\Release\lsg-body-normal-seams-profile-$profile.txt -Pattern 'SOURCE NORMAL SEAMS PASS' -Quiet)) {
+              throw "profile $profile body source-position normal seam gate missing"
+            }
+            if (-not (Select-String -Path build-lsg-win\Release\lsg-body-normal-seams-profile-$profile.txt -Pattern 'max_duplicate_normal_delta=0' -Quiet)) {
+              throw "profile $profile body duplicate normal delta is non-zero"
+            }
             & build-lsg-win\Release\lsg_mesh_audit.exe build-lsg-win\profile-$profile-body.rmesh `
               | Tee-Object -FilePath build-lsg-win\Release\lsg-mesh-audit-profile-$profile.txt
             if ($LASTEXITCODE -ne 0 -or -not (Select-String -Path build-lsg-win\Release\lsg-mesh-audit-profile-$profile.txt -Pattern 'LSG MESH CONTINUITY PASS' -Quiet)) {
@@ -213,6 +219,8 @@ jobs:
             build-lsg-win/Release/lsg-acceptance-report.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-0.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-1.txt
+            build-lsg-win/Release/lsg-body-normal-seams-profile-0.txt
+            build-lsg-win/Release/lsg-body-normal-seams-profile-1.txt
             build-lsg-win/lsg-eye-fit-sha256.txt
             build-lsg-win/lsg-profile-0-eye-fit-report.txt
             build-lsg-win/lsg-profile-1-eye-fit-report.txt
