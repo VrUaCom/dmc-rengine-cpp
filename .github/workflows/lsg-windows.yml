@@ -172,7 +172,7 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\character_1.lsg')) { throw 'Character 1 genome missing' }
 
       - name: Build tests and viewer
-        run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests rengine_lsg_viewer --parallel 2
+        run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests lsg_shadow_filter_tests rengine_lsg_viewer --parallel 2
       - name: Run deterministic contract tests
         run: ctest --test-dir build-lsg-win -C Release --output-on-failure
       - name: Measure LSG storage contract

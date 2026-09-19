@@ -82,6 +82,15 @@ validate the CPU reference mathematics, not rendered GPU/device equivalence.
 Android/Windows shader compilation and packaging are separate CI gates.
 No FPS/GPU-time improvement is claimed: cinematic taps increase from 9 to 25.
 
+First CI revision: `8e76fce42487ab5c5e719268b25846ec6021bbf0`.
+[Android run 35472802130](https://github.com/VrUaCom/dmc-rengine-cpp/actions/runs/35472802130)
+passed all core/geometry/shader/APK gates. Windows compiled the viewer and
+shaders, but CTest could not run the new shadow test because its executable
+was omitted from the workflow's explicit build-target list. The follow-up
+adds that target; it does not change the runtime. Both workflows must pass
+on the follow-up commit before delivery. Local `-O2 -DNDEBUG` shadow tests
+also passed, so these regression checks are confirmed active in Release.
+
 ## Physical retest / stop gate
 
 Use Character 0, **Noon / Clear**, same rear head -> neck close-up. Capture
