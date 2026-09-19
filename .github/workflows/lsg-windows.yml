@@ -113,6 +113,18 @@ jobs:
             if (-not (Select-String -Path build-lsg-win\lsg-eye-components-profile-$profile.txt -Pattern 'components=4' -Quiet)) {
               throw "profile $profile eye component count is not 4"
             }
+            if (-not (Select-String -Path build-lsg-win\lsg-eye-components-profile-$profile.txt -Pattern 'SOURCE NORMAL SEAMS PASS' -Quiet)) {
+              throw "profile $profile source-position normal seam gate missing"
+            }
+            if (-not (Select-String -Path build-lsg-win\lsg-eye-components-profile-$profile.txt -Pattern 'source_positions=1064' -Quiet)) {
+              throw "profile $profile source-position count is not 1064"
+            }
+
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-eyes.obj build-lsg-win\eye_profile_$profile-repeat.rmesh --component-regions | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "profile $profile repeat eye RMS0 preparation failed" }
+            if ((Get-FileHash build-lsg-win\Release\meshes\eye_profile_$profile.rmesh).Hash -ne (Get-FileHash build-lsg-win\eye_profile_$profile-repeat.rmesh).Hash) {
+              throw "profile $profile eye RMS0 preparation is not deterministic"
+            }
           }
           if ((Get-FileHash build-lsg-win\profile-0-eyes.obj).Hash -eq (Get-FileHash build-lsg-win\profile-1-eyes.obj).Hash) {
             throw 'fitted eye outputs are unexpectedly identical across macro profiles'

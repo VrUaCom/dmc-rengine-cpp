@@ -140,6 +140,14 @@ jobs:
               | tee labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
             grep 'RMS0 PASS' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
             grep 'components=4' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
+            grep 'SOURCE NORMAL SEAMS PASS' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
+            grep 'source_positions=1064' labs/lsg/viewer/android/app/build/outputs/lsg-eye-components-profile-$PROFILE.txt
+
+            build-lsg-host/lsg_prepare_mesh /tmp/profile-$PROFILE-eyes.obj \
+              /tmp/eye_profile_$PROFILE-repeat.rmesh \
+              --component-regions >/tmp/lsg-eye-components-profile-$PROFILE-repeat.txt
+            cmp labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_$PROFILE.rmesh \
+                /tmp/eye_profile_$PROFILE-repeat.rmesh
           done
           if cmp -s /tmp/profile-0-eyes.obj /tmp/profile-1-eyes.obj; then
             echo 'fitted eye outputs are unexpectedly identical across macro profiles'

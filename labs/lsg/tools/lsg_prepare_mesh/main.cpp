@@ -68,6 +68,112 @@ void regenerate_normals(RMeshV0& mesh) {
   }
 }
 
+struct SourceNormalSeamReport {
+  float max_duplicate_normal_delta{0.0f};
+  float normal_length_min{std::numeric_limits<float>::infinity()};
+  float normal_length_max{0.0f};
+};
+
+float length(Vec3 v) {
+  const float len2 = dot(v, v);
+  return len2 > 0.0f && std::isfinite(len2) ? std::sqrt(len2) : 0.0f;
+}
+
+bool regenerate_normals_by_source_position(
+    RMeshV0& mesh,
+    const std::vector<std::uint32_t>& source_position_by_vertex,
+    std::size_t source_position_count,
+    SourceNormalSeamReport& report,
+    std::string& error) {
+  if (mesh.vertices.empty() || mesh.indices.empty() ||
+      source_position_by_vertex.size() != mesh.vertices.size() ||
+      source_position_count == 0u) {
+    error = "source-position normal smoothing requires OBJ provenance";
+    return false;
+  }
+
+  std::vector<Vec3> sums(source_position_count);
+  std::vector<bool> used(source_position_count, false);
+  for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3) {
+    const std::uint32_t render[3] = {
+        mesh.indices[i], mesh.indices[i + 1], mesh.indices[i + 2]};
+    std::uint32_t source[3]{};
+    for (int corner = 0; corner < 3; ++corner) {
+      if (render[corner] >= mesh.vertices.size()) {
+        error = "source-position normal smoothing saw an out-of-range render index";
+        return false;
+      }
+      source[corner] = source_position_by_vertex[render[corner]];
+      if (source[corner] >= source_position_count) {
+        error = "source-position normal smoothing saw an out-of-range source index";
+        return false;
+      }
+      used[source[corner]] = true;
+    }
+
+    const Vec3 face = cross(
+        sub(position_of(mesh.vertices[render[1]]), position_of(mesh.vertices[render[0]])),
+        sub(position_of(mesh.vertices[render[2]]), position_of(mesh.vertices[render[0]])));
+    if (!std::isfinite(face.x) || !std::isfinite(face.y) || !std::isfinite(face.z)) {
+      error = "source-position normal smoothing produced a non-finite face normal";
+      return false;
+    }
+    for (const auto source_index : source) {
+      sums[source_index] = add(sums[source_index], face);
+    }
+  }
+
+  std::vector<Vec3> source_normals(source_position_count);
+  for (std::size_t source = 0; source < source_position_count; ++source) {
+    if (!used[source]) continue;
+    const float len2 = dot(sums[source], sums[source]);
+    if (!(len2 > 1.0e-20f) || !std::isfinite(len2)) {
+      error = "source-position normal smoothing found a degenerate source normal";
+      return false;
+    }
+    source_normals[source] = mul(sums[source], 1.0f / std::sqrt(len2));
+  }
+
+  std::vector<Vec3> first_normal(source_position_count);
+  std::vector<bool> seen(source_position_count, false);
+  for (std::size_t i = 0; i < mesh.vertices.size(); ++i) {
+    const auto source = source_position_by_vertex[i];
+    if (source >= source_position_count || !used[source]) {
+      error = "render vertex has no valid source-position normal";
+      return false;
+    }
+
+    const Vec3 normal = source_normals[source];
+    mesh.vertices[i].normal = {normal.x, normal.y, normal.z};
+
+    const float normal_length = length(normal);
+    if (!std::isfinite(normal_length)) {
+      error = "source-position normal smoothing produced a non-finite normal length";
+      return false;
+    }
+    report.normal_length_min = std::min(report.normal_length_min, normal_length);
+    report.normal_length_max = std::max(report.normal_length_max, normal_length);
+
+    if (seen[source]) {
+      report.max_duplicate_normal_delta =
+          std::max(report.max_duplicate_normal_delta,
+                   length(sub(normal, first_normal[source])));
+    } else {
+      first_normal[source] = normal;
+      seen[source] = true;
+    }
+  }
+
+  if (!std::isfinite(report.normal_length_min) ||
+      report.normal_length_min < 0.99f ||
+      report.normal_length_max > 1.01f ||
+      report.max_duplicate_normal_delta > 1.0e-5f) {
+    error = "source-position normal smoothing failed seam/length validation";
+    return false;
+  }
+  return true;
+}
+
 void regenerate_tangents(RMeshV0& mesh) {
   std::vector<Vec3> tangent_sum(mesh.vertices.size()), bitangent_sum(mesh.vertices.size());
   for (std::size_t i = 0; i + 2 < mesh.indices.size(); i += 3) {
@@ -341,7 +447,17 @@ int main(int argc, char** argv) {
   }
   if (!loaded) { if (error.empty()) error = "unsupported mesh extension"; std::cerr << "mesh preparation failed: " << error << '\n'; return 3; }
 
-  regenerate_normals(mesh);
+  SourceNormalSeamReport source_normal_report{};
+  if (component_regions) {
+    if (!regenerate_normals_by_source_position(
+            mesh, source_position_by_vertex, source_position_count,
+            source_normal_report, error)) {
+      std::cerr << "mesh preparation failed: " << error << '\n';
+      return 4;
+    }
+  } else {
+    regenerate_normals(mesh);
+  }
   regenerate_tangents(mesh);
   std::size_t component_count = 0;
   if (component_regions) {
@@ -357,6 +473,12 @@ int main(int argc, char** argv) {
   if (!rengine::lsg::validate_rmesh(mesh, error)) { std::cerr << "RMS0 validation failed: " << error << '\n'; return 5; }
   const auto bytes = rengine::lsg::encode_rmesh(mesh);
   if (bytes.empty() || !write_file(output, bytes)) { std::cerr << "failed to write RMS0\n"; return 6; }
+  if (component_regions) {
+    std::cout << "SOURCE NORMAL SEAMS PASS: source_positions=" << source_position_count
+              << " max_duplicate_normal_delta=" << source_normal_report.max_duplicate_normal_delta
+              << " normal_length_min=" << source_normal_report.normal_length_min
+              << " normal_length_max=" << source_normal_report.normal_length_max << '\n';
+  }
   std::cout << "RMS0 PASS: vertices=" << mesh.vertices.size() << " indices=" << mesh.indices.size()
             << " triangles=" << mesh.indices.size() / 3u << " joints=" << mesh.joint_count
             << " components=" << component_count << " bytes=" << bytes.size() << '\n';
