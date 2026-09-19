@@ -27,6 +27,8 @@ layout(set = 0, binding = 0, std140) uniform FrameLighting {
     uvec4 modes;
 } lighting;
 
+layout(set = 0, binding = 1) uniform sampler2D shadow_depth;
+
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 
@@ -410,6 +412,43 @@ vec3 sun_world_direction() {
     return normalize(lighting.sun_direction_intensity.xyz);
 }
 
+vec3 shadow_coord_from_world(vec3 world_position) {
+    vec3 forward = normalize(-sun_world_direction());
+    vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0, 0.0, 1.0)
+                                              : vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(reference_up, forward));
+    vec3 up = normalize(cross(forward, right));
+    const float half_extent = 5.5;
+    const float depth_half_extent = 6.0;
+    vec3 coord;
+    coord.x = dot(world_position, right) / half_extent * 0.5 + 0.5;
+    coord.y = dot(world_position, up) / half_extent * 0.5 + 0.5;
+    coord.z = (dot(world_position, forward) + depth_half_extent) /
+              (2.0 * depth_half_extent);
+    return coord;
+}
+
+float directional_shadow_visibility(vec3 world_position, vec3 normal_view,
+                                    vec3 light_view) {
+    vec3 coord = shadow_coord_from_world(world_position);
+    if (coord.x <= 0.0 || coord.x >= 1.0 ||
+        coord.y <= 0.0 || coord.y >= 1.0 ||
+        coord.z <= 0.0 || coord.z >= 1.0) return 1.0;
+    ivec2 size_px = textureSize(shadow_depth, 0);
+    vec2 texel = 1.0 / max(vec2(size_px), vec2(1.0));
+    float ndotl = max(dot(normalize(normal_view), normalize(light_view)), 0.0);
+    float bias = max(0.00045, 0.00145 * (1.0 - ndotl));
+    float visible = 0.0;
+    for (int y = -1; y <= 1; ++y) {
+        for (int x = -1; x <= 1; ++x) {
+            float stored_depth = texture(shadow_depth,
+                coord.xy + vec2(x, y) * texel).r;
+            visible += (coord.z - bias <= stored_depth) ? 1.0 : 0.0;
+        }
+    }
+    return visible / 9.0;
+}
+
 vec3 sun_view_direction() {
     return normalize(rotate_x(rotate_y(sun_world_direction(), -pc.camera.x), -pc.camera.y));
 }
@@ -560,6 +599,24 @@ void main() {
         return;
     }
 
+    if (body_region == 201u) {
+        vec3 n = normalize(view_normal);
+        vec3 l = sun_view_direction();
+        float ndotl = max(dot(n, l), 0.0);
+        float visibility = directional_shadow_visibility(surface_position_m, n, l);
+        float direct = max(lighting.sun_direction_intensity.w, 0.0);
+        float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
+        float checker = mod(floor(surface_position_m.x) + floor(surface_position_m.z), 2.0);
+        vec3 base = mix(vec3(0.155), vec3(0.175), checker);
+        vec3 ambient = base * (0.24 + 0.24 * sky);
+        vec3 sun = base * lighting.sun_tint_sky_intensity.rgb *
+                   (0.82 * ndotl * direct * visibility);
+        vec3 colour = (ambient + sun) * bulk_filter_rgb() *
+                      max(lighting.sky_zenith_exposure.w, 0.01);
+        out_colour = vec4(aces_fitted(max(colour, vec3(0.0))), 1.0);
+        return;
+    }
+
     // Region 255 is reserved for MakeHuman joint-marker geometry. It is only visible
     // in explicit Skeleton/Joint Debug mode and is not treated as skin.
     if (body_region == 255u) {
@@ -670,9 +727,14 @@ void main() {
     vec3 ambient = base_colour * sky * 0.28;
     vec3 sun_radiance = lighting.sun_tint_sky_intensity.rgb *
                         (3.1 * max(lighting.sun_direction_intensity.w, 0.0));
-    float direct_specular_scale = (1.2 + oiliness * 0.75 + sweat * 0.35) * ndotl;
-    vec3 colour = ambient + diffuse * sun_radiance +
-                  specular * sun_radiance * direct_specular_scale +
+    float direct_visibility =
+        directional_shadow_visibility(surface_position_m, n, l);
+    float direct_specular_scale =
+        (1.2 + oiliness * 0.75 + sweat * 0.35) * ndotl;
+    vec3 direct_colour =
+        diffuse * sun_radiance +
+        specular * sun_radiance * direct_specular_scale;
+    vec3 colour = ambient + direct_colour * direct_visibility +
                   subsurface_approx * (0.55 + 0.45 * sky);
 
     colour *= bulk_filter_rgb() * 1.05 *

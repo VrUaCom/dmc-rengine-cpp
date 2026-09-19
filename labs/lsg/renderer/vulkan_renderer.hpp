@@ -38,6 +38,7 @@ struct RendererDiagnostics {
   float near_plane_m{0.03f};
   float far_plane_m{30.0f};
   std::uint64_t estimated_gpu_bytes{};
+  std::uint32_t shadow_map_size{};
   DiagnosticRenderMode mode{DiagnosticRenderMode::genome_perspective};
   LightingPreset lighting_preset{LightingPreset::noon};
   OpticalFilterPreset optical_filter{OpticalFilterPreset::clear};

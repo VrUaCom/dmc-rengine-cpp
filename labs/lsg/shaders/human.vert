@@ -29,6 +29,8 @@ layout(push_constant) uniform LsgPush {
 //   3 = genome + MakeHuman joint debug geometry
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
+bool shadow_pass() { return (pc.flags.w & (1u << 17u)) != 0u; }
+bool ground_pass() { return (pc.flags.w & (1u << 18u)) != 0u; }
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
     if (rotation_code == 1u) return vec2(-clip_position.y, clip_position.x);
@@ -183,9 +185,59 @@ void emit_ui_environment_vertex() {
     view_position_m = vec3(0.0, 0.0, -1.0);
 }
 
+vec4 shadow_clip_from_world(vec3 world_position, vec3 sun_direction) {
+    vec3 forward = normalize(-sun_direction);
+    vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0, 0.0, 1.0)
+                                              : vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(reference_up, forward));
+    vec3 up = normalize(cross(forward, right));
+    const float half_extent = 5.5;
+    const float depth_half_extent = 6.0;
+    return vec4(dot(world_position, right) / half_extent,
+                dot(world_position, up) / half_extent,
+                (dot(world_position, forward) + depth_half_extent) /
+                    (2.0 * depth_half_extent),
+                1.0);
+}
+
+void emit_diagnostic_ground_vertex() {
+    const vec2 corners[6] = vec2[](
+        vec2(-1.0, -1.0), vec2( 1.0, -1.0), vec2( 1.0,  1.0),
+        vec2(-1.0, -1.0), vec2( 1.0,  1.0), vec2(-1.0,  1.0));
+    vec2 xz = corners[uint(gl_VertexIndex) % 6u] * 5.0;
+    float ground_y = -0.875 * pc.geometry0.x;
+    vec3 object_m = vec3(xz.x, ground_y, xz.y);
+    vec3 target_relative = object_m - vec3(0.0, pc.camera.w, 0.0);
+    vec3 view = rotate_x(rotate_y(target_relative, -pc.camera.x), -pc.camera.y);
+    view.z -= pc.camera.z;
+    vec3 n = normalize(rotate_x(rotate_y(vec3(0.0, 1.0, 0.0), -pc.camera.x),
+                                -pc.camera.y));
+    float aspect = max(pc.render.x, 0.01);
+    float fov = max(pc.render.y, 0.10);
+    const float near_z = 0.03;
+    const float far_z = 30.0;
+    float f = 1.0 / tan(fov * 0.5);
+    vec4 clip;
+    clip.x = view.x * f / aspect;
+    clip.y = view.y * f;
+    clip.z = (far_z / (near_z - far_z)) * view.z +
+             (far_z * near_z / (near_z - far_z));
+    clip.w = -view.z;
+    clip.xy = logical_to_vulkan_clip(clip.xy, pc.flags.z);
+    gl_Position = clip;
+    surface_position_m = object_m;
+    view_normal = n;
+    body_region = 201u;
+    view_position_m = view;
+}
+
 void main() {
     if (ui_environment_pass()) {
         emit_ui_environment_vertex();
+        return;
+    }
+    if (ground_pass()) {
+        emit_diagnostic_ground_vertex();
         return;
     }
 
@@ -237,6 +289,16 @@ void main() {
             in_normal.y / max(pc.geometry0.x, 0.001),
             in_normal.z / max(xz_scale.y * breath_depth, 0.001)));
         n_object = apply_head_idle_normal(n_object, weights.head, t);
+    }
+
+    if (shadow_pass()) {
+        vec3 sun_direction = normalize(pc.camera.xyz);
+        gl_Position = shadow_clip_from_world(object_m, sun_direction);
+        surface_position_m = object_m;
+        view_normal = n_object;
+        body_region = in_region;
+        view_position_m = object_m;
+        return;
     }
 
     vec3 target_relative = object_m - vec3(0.0, pc.camera.w, 0.0);
