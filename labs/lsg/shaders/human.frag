@@ -28,6 +28,7 @@ layout(set = 0, binding = 0, std140) uniform FrameLighting {
 } lighting;
 
 layout(set = 0, binding = 1) uniform sampler2D shadow_depth;
+layout(set = 0, binding = 2) uniform sampler2D self_shadow_depth;
 
 uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
@@ -412,14 +413,14 @@ vec3 sun_world_direction() {
     return normalize(lighting.sun_direction_intensity.xyz);
 }
 
-vec3 shadow_coord_from_world(vec3 world_position) {
+vec3 shadow_coord_from_world(vec3 world_position, bool focused) {
     vec3 forward = normalize(-sun_world_direction());
     vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0, 0.0, 1.0)
                                               : vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(reference_up, forward));
     vec3 up = normalize(cross(forward, right));
-    const float half_extent = 5.5;
-    const float depth_half_extent = 6.0;
+    float half_extent = focused ? 1.20 : 5.50;
+    float depth_half_extent = focused ? 2.00 : 6.00;
     vec3 coord;
     coord.x = dot(world_position, right) / half_extent * 0.5 + 0.5;
     coord.y = dot(world_position, up) / half_extent * 0.5 + 0.5;
@@ -428,23 +429,40 @@ vec3 shadow_coord_from_world(vec3 world_position) {
     return coord;
 }
 
-float directional_shadow_visibility(vec3 world_position, vec3 normal_view,
-                                    vec3 light_view) {
-    vec3 coord = shadow_coord_from_world(world_position);
-    if (coord.x <= 0.0 || coord.x >= 1.0 ||
-        coord.y <= 0.0 || coord.y >= 1.0 ||
+vec3 view_to_world_direction(vec3 view_direction) {
+    return normalize(rotate_y(rotate_x(view_direction, pc.camera.y), pc.camera.x));
+}
+
+float coarse_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_view) {
+    vec3 n_world = view_to_world_direction(normalize(normal_view));
+    vec3 coord = shadow_coord_from_world(world_position + n_world * 0.0025, false);
+    if (coord.x <= 0.0 || coord.x >= 1.0 || coord.y <= 0.0 || coord.y >= 1.0 ||
         coord.z <= 0.0 || coord.z >= 1.0) return 1.0;
     ivec2 size_px = textureSize(shadow_depth, 0);
     vec2 texel = 1.0 / max(vec2(size_px), vec2(1.0));
     float ndotl = max(dot(normalize(normal_view), normalize(light_view)), 0.0);
-    float bias = max(0.00045, 0.00145 * (1.0 - ndotl));
+    float bias = max(0.00030, 0.00090 * (1.0 - ndotl));
     float visible = 0.0;
-    for (int y = -1; y <= 1; ++y) {
-        for (int x = -1; x <= 1; ++x) {
-            float stored_depth = texture(shadow_depth,
-                coord.xy + vec2(x, y) * texel).r;
-            visible += (coord.z - bias <= stored_depth) ? 1.0 : 0.0;
-        }
+    for (int y=-1;y<=1;++y) for (int x=-1;x<=1;++x) {
+        float d = texture(shadow_depth, coord.xy + vec2(x,y)*texel).r;
+        visible += (coord.z - bias <= d) ? 1.0 : 0.0;
+    }
+    return visible / 9.0;
+}
+
+float self_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_view) {
+    vec3 n_world = view_to_world_direction(normalize(normal_view));
+    vec3 coord = shadow_coord_from_world(world_position + n_world * 0.0010, true);
+    if (coord.x <= 0.0 || coord.x >= 1.0 || coord.y <= 0.0 || coord.y >= 1.0 ||
+        coord.z <= 0.0 || coord.z >= 1.0) return 1.0;
+    ivec2 size_px = textureSize(self_shadow_depth, 0);
+    vec2 texel = 1.0 / max(vec2(size_px), vec2(1.0));
+    float ndotl = max(dot(normalize(normal_view), normalize(light_view)), 0.0);
+    float bias = max(0.00018, 0.00065 * (1.0 - ndotl));
+    float visible = 0.0;
+    for (int y=-1;y<=1;++y) for (int x=-1;x<=1;++x) {
+        float d = texture(self_shadow_depth, coord.xy + vec2(x,y)*texel).r;
+        visible += (coord.z - bias <= d) ? 1.0 : 0.0;
     }
     return visible / 9.0;
 }
@@ -603,7 +621,7 @@ void main() {
         vec3 n = normalize(view_normal);
         vec3 l = sun_view_direction();
         float ndotl = max(dot(n, l), 0.0);
-        float visibility = directional_shadow_visibility(surface_position_m, n, l);
+        float visibility = coarse_shadow_visibility(surface_position_m, n, l);
         float direct = max(lighting.sun_direction_intensity.w, 0.0);
         float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
         float checker = mod(floor(surface_position_m.x) + floor(surface_position_m.z), 2.0);
@@ -736,7 +754,7 @@ void main() {
     vec3 sun_radiance = lighting.sun_tint_sky_intensity.rgb *
                         (3.1 * max(lighting.sun_direction_intensity.w, 0.0));
     float direct_visibility =
-        directional_shadow_visibility(surface_position_m, n, l);
+        self_shadow_visibility(surface_position_m, n, l);
     float direct_specular_scale =
         (1.2 + oiliness * 0.75 + sweat * 0.35) * ndotl;
     vec3 direct_colour =

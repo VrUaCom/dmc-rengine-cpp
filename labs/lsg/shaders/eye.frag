@@ -4,6 +4,7 @@ layout(location = 0) in vec3 view_normal;
 layout(location = 1) in vec2 eye_uv;
 layout(location = 2) flat in uint component_id;
 layout(location = 3) in vec3 view_position;
+layout(location = 4) in vec3 object_position_m;
 
 layout(location = 0) out vec4 out_colour;
 
@@ -28,6 +29,8 @@ layout(set = 0, binding = 0, std140) uniform FrameLighting {
     uvec4 modes;
 } lighting;
 
+layout(set = 0, binding = 2) uniform sampler2D self_shadow_depth;
+
 vec3 rotate_y(vec3 v, float a) {
     float cs = cos(a), sn = sin(a);
     return vec3(cs * v.x + sn * v.z, v.y, -sn * v.x + cs * v.z);
@@ -45,6 +48,36 @@ vec3 sun_view_direction() {
 
 vec3 view_to_world_direction(vec3 view_direction) {
     return normalize(rotate_y(rotate_x(view_direction, pc.camera.y), pc.camera.x));
+}
+
+vec3 shadow_coord_from_world(vec3 world_position) {
+    vec3 sun_world = normalize(lighting.sun_direction_intensity.xyz);
+    vec3 forward = normalize(-sun_world);
+    vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0,0.0,1.0) : vec3(0.0,1.0,0.0);
+    vec3 right = normalize(cross(reference_up, forward));
+    vec3 up = normalize(cross(forward, right));
+    const float half_extent = 1.20;
+    const float depth_half_extent = 2.00;
+    return vec3(dot(world_position,right)/half_extent*0.5+0.5,
+                dot(world_position,up)/half_extent*0.5+0.5,
+                (dot(world_position,forward)+depth_half_extent)/(2.0*depth_half_extent));
+}
+
+float eye_shadow_visibility(vec3 world_position, vec3 normal_view, vec3 light_view) {
+    vec3 normal_world = normalize(rotate_y(rotate_x(normal_view, pc.camera.y), pc.camera.x));
+    vec3 coord = shadow_coord_from_world(world_position + normal_world * 0.0007);
+    if (coord.x<=0.0 || coord.x>=1.0 || coord.y<=0.0 || coord.y>=1.0 ||
+        coord.z<=0.0 || coord.z>=1.0) return 1.0;
+    ivec2 size_px = textureSize(self_shadow_depth, 0);
+    vec2 texel = 1.0 / max(vec2(size_px), vec2(1.0));
+    float ndotl = max(dot(normalize(normal_view), normalize(light_view)), 0.0);
+    float bias = max(0.00014, 0.00050 * (1.0 - ndotl));
+    float visible = 0.0;
+    for (int y=-1;y<=1;++y) for (int x=-1;x<=1;++x) {
+        float d = texture(self_shadow_depth, coord.xy + vec2(x,y)*texel).r;
+        visible += (coord.z - bias <= d) ? 1.0 : 0.0;
+    }
+    return visible / 9.0;
 }
 
 vec3 bulk_filter_rgb() {
@@ -243,8 +276,10 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
     float ndotl = max(dot(n, light_dir), 0.0);
     float direct = max(lighting.sun_direction_intensity.w, 0.0);
     float sky = max(lighting.sun_tint_sky_intensity.w, 0.0);
+    float direct_visibility = eye_shadow_visibility(object_position_m, n, light_dir);
     vec3 illumination = vec3(0.42 * sky) +
-                        lighting.sun_tint_sky_intensity.rgb * (0.58 * ndotl * direct);
+                        lighting.sun_tint_sky_intensity.rgb *
+                            (0.58 * ndotl * direct * direct_visibility);
     colour *= illumination * max(lighting.sky_zenith_exposure.w, 0.01);
 
     // Pass 4D wet-eye approximation. The inner-eye pipeline is intentionally opaque,
@@ -254,7 +289,7 @@ vec3 procedural_inner_eye(uint component, vec2 uv) {
     float lower_bias = smoothstep(0.05, 0.82, -local.y);
     float sclera_gate = 1.0 - iris_mask * 0.92;
     float wet_weight = wet_edge * mix(0.28, 1.0, lower_bias) * sclera_gate;
-    float wet_sun = pow(max(dot(n, h), 0.0), 180.0) * direct;
+    float wet_sun = pow(max(dot(n, h), 0.0), 180.0) * direct * direct_visibility;
     float wet_grazing = pow(1.0 - max(dot(n, v), 0.0), 4.0) * sky;
     float wet_intensity = wet_weight *
                           (0.010 * sky + 0.095 * wet_sun + 0.024 * wet_grazing);
@@ -282,7 +317,8 @@ vec4 cornea_response() {
     vec3 sun_dir = sun_view_direction();
     vec3 h = normalize(sun_dir + v);
     float direct = max(lighting.sun_direction_intensity.w, 0.0);
-    float sun_spec = pow(max(dot(n, h), 0.0), 220.0) * direct;
+    float direct_visibility = eye_shadow_visibility(object_position_m, n, sun_dir);
+    float sun_spec = pow(max(dot(n, h), 0.0), 220.0) * direct * direct_visibility;
 
     vec3 reflected = reflect(-v, n);
     float sky_factor = clamp(reflected.y * 0.5 + 0.5, 0.0, 1.0);

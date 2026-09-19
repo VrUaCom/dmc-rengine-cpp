@@ -71,6 +71,10 @@ struct VulkanRenderer::Impl {
   VkSampler shadow_sampler{VK_NULL_HANDLE};
   VkRenderPass shadow_render_pass{VK_NULL_HANDLE};
   VkFramebuffer shadow_framebuffer{VK_NULL_HANDLE};
+  VkImage self_shadow_depth_image{VK_NULL_HANDLE};
+  VkDeviceMemory self_shadow_depth_memory{VK_NULL_HANDLE};
+  VkImageView self_shadow_depth_view{VK_NULL_HANDLE};
+  VkFramebuffer self_shadow_framebuffer{VK_NULL_HANDLE};
   VkPipeline shadow_pipeline{VK_NULL_HANDLE};
   VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};
   VkPipeline pipeline{VK_NULL_HANDLE};
@@ -470,84 +474,63 @@ VkFormat choose_shadow_depth_format(VkPhysicalDevice physical) {
 bool create_shadow_resources(VulkanRenderer::Impl& state) {
   state.shadow_depth_format = choose_shadow_depth_format(state.physical);
   if (state.shadow_depth_format == VK_FORMAT_UNDEFINED) return false;
-  VkImageCreateInfo image{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
-  image.imageType = VK_IMAGE_TYPE_2D;
-  image.format = state.shadow_depth_format;
-  image.extent = {kShadowMapSize, kShadowMapSize, 1u};
-  image.mipLevels = 1;
-  image.arrayLayers = 1;
-  image.samples = VK_SAMPLE_COUNT_1_BIT;
-  image.tiling = VK_IMAGE_TILING_OPTIMAL;
-  image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-  image.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  image.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  if (vkCreateImage(state.device, &image, nullptr, &state.shadow_depth_image) != VK_SUCCESS) return false;
-  VkMemoryRequirements requirements{};
-  vkGetImageMemoryRequirements(state.device, state.shadow_depth_image, &requirements);
-  std::uint32_t type{};
-  if (!find_memory_type(state.physical, requirements.memoryTypeBits,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, type)) return false;
-  VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-  allocation.allocationSize = requirements.size;
-  allocation.memoryTypeIndex = type;
-  if (vkAllocateMemory(state.device, &allocation, nullptr, &state.shadow_depth_memory) != VK_SUCCESS ||
-      vkBindImageMemory(state.device, state.shadow_depth_image, state.shadow_depth_memory, 0) != VK_SUCCESS) return false;
-  state.estimated_bytes += requirements.size;
-  VkImageViewCreateInfo view{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-  view.image = state.shadow_depth_image;
-  view.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  view.format = state.shadow_depth_format;
-  view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-  view.subresourceRange.levelCount = 1;
-  view.subresourceRange.layerCount = 1;
-  if (vkCreateImageView(state.device, &view, nullptr, &state.shadow_depth_view) != VK_SUCCESS) return false;
+
+  auto create_depth_target = [&](VkImage& image, VkDeviceMemory& memory, VkImageView& view) {
+    VkImageCreateInfo info{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
+    info.imageType=VK_IMAGE_TYPE_2D; info.format=state.shadow_depth_format;
+    info.extent={kShadowMapSize,kShadowMapSize,1u}; info.mipLevels=1; info.arrayLayers=1;
+    info.samples=VK_SAMPLE_COUNT_1_BIT; info.tiling=VK_IMAGE_TILING_OPTIMAL;
+    info.usage=VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT|VK_IMAGE_USAGE_SAMPLED_BIT;
+    info.sharingMode=VK_SHARING_MODE_EXCLUSIVE; info.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED;
+    if(vkCreateImage(state.device,&info,nullptr,&image)!=VK_SUCCESS) return false;
+    VkMemoryRequirements req{}; vkGetImageMemoryRequirements(state.device,image,&req);
+    std::uint32_t type{};
+    if(!find_memory_type(state.physical,req.memoryTypeBits,VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,type)) return false;
+    VkMemoryAllocateInfo alloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+    alloc.allocationSize=req.size; alloc.memoryTypeIndex=type;
+    if(vkAllocateMemory(state.device,&alloc,nullptr,&memory)!=VK_SUCCESS ||
+       vkBindImageMemory(state.device,image,memory,0)!=VK_SUCCESS) return false;
+    state.estimated_bytes += req.size;
+    VkImageViewCreateInfo vi{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    vi.image=image; vi.viewType=VK_IMAGE_VIEW_TYPE_2D; vi.format=state.shadow_depth_format;
+    vi.subresourceRange.aspectMask=VK_IMAGE_ASPECT_DEPTH_BIT;
+    vi.subresourceRange.levelCount=1; vi.subresourceRange.layerCount=1;
+    return vkCreateImageView(state.device,&vi,nullptr,&view)==VK_SUCCESS;
+  };
+
+  if(!create_depth_target(state.shadow_depth_image,state.shadow_depth_memory,state.shadow_depth_view) ||
+     !create_depth_target(state.self_shadow_depth_image,state.self_shadow_depth_memory,state.self_shadow_depth_view)) return false;
+
   VkSamplerCreateInfo sampler{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-  sampler.magFilter = VK_FILTER_NEAREST;
-  sampler.minFilter = VK_FILTER_NEAREST;
-  sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
-  sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-  sampler.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-  sampler.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-  sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-  sampler.minLod = 0.0f;
-  sampler.maxLod = 0.0f;
-  if (vkCreateSampler(state.device, &sampler, nullptr, &state.shadow_sampler) != VK_SUCCESS) return false;
-  VkAttachmentDescription attachment{};
-  attachment.format = state.shadow_depth_format;
-  attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-  attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-  attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-  attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-  attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-  attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-  VkAttachmentReference depth_ref{0u, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
-  VkSubpassDescription subpass{};
-  subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-  subpass.pDepthStencilAttachment = &depth_ref;
-  VkSubpassDependency dep{};
-  dep.srcSubpass = 0;
-  dep.dstSubpass = VK_SUBPASS_EXTERNAL;
-  dep.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-  dep.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-  dep.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-  dep.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-  VkRenderPassCreateInfo pass{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
-  pass.attachmentCount = 1;
-  pass.pAttachments = &attachment;
-  pass.subpassCount = 1;
-  pass.pSubpasses = &subpass;
-  pass.dependencyCount = 1;
-  pass.pDependencies = &dep;
-  if (vkCreateRenderPass(state.device, &pass, nullptr, &state.shadow_render_pass) != VK_SUCCESS) return false;
-  VkFramebufferCreateInfo fb{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
-  fb.renderPass = state.shadow_render_pass;
-  fb.attachmentCount = 1;
-  fb.pAttachments = &state.shadow_depth_view;
-  fb.width = kShadowMapSize;
-  fb.height = kShadowMapSize;
-  fb.layers = 1;
-  return vkCreateFramebuffer(state.device, &fb, nullptr, &state.shadow_framebuffer) == VK_SUCCESS;
+  sampler.magFilter=VK_FILTER_NEAREST; sampler.minFilter=VK_FILTER_NEAREST;
+  sampler.mipmapMode=VK_SAMPLER_MIPMAP_MODE_NEAREST;
+  sampler.addressModeU=VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  sampler.addressModeV=VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  sampler.addressModeW=VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+  sampler.borderColor=VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+  if(vkCreateSampler(state.device,&sampler,nullptr,&state.shadow_sampler)!=VK_SUCCESS) return false;
+
+  VkAttachmentDescription a{}; a.format=state.shadow_depth_format; a.samples=VK_SAMPLE_COUNT_1_BIT;
+  a.loadOp=VK_ATTACHMENT_LOAD_OP_CLEAR; a.storeOp=VK_ATTACHMENT_STORE_OP_STORE;
+  a.stencilLoadOp=VK_ATTACHMENT_LOAD_OP_DONT_CARE; a.stencilStoreOp=VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  a.initialLayout=VK_IMAGE_LAYOUT_UNDEFINED; a.finalLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+  VkAttachmentReference dr{0u,VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+  VkSubpassDescription sub{}; sub.pipelineBindPoint=VK_PIPELINE_BIND_POINT_GRAPHICS; sub.pDepthStencilAttachment=&dr;
+  VkSubpassDependency dep{}; dep.srcSubpass=0; dep.dstSubpass=VK_SUBPASS_EXTERNAL;
+  dep.srcStageMask=VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; dep.dstStageMask=VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  dep.srcAccessMask=VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; dep.dstAccessMask=VK_ACCESS_SHADER_READ_BIT;
+  VkRenderPassCreateInfo pi{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+  pi.attachmentCount=1; pi.pAttachments=&a; pi.subpassCount=1; pi.pSubpasses=&sub; pi.dependencyCount=1; pi.pDependencies=&dep;
+  if(vkCreateRenderPass(state.device,&pi,nullptr,&state.shadow_render_pass)!=VK_SUCCESS) return false;
+
+  auto make_fb=[&](VkImageView view,VkFramebuffer& fb){
+    VkFramebufferCreateInfo fi{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+    fi.renderPass=state.shadow_render_pass; fi.attachmentCount=1; fi.pAttachments=&view;
+    fi.width=kShadowMapSize; fi.height=kShadowMapSize; fi.layers=1;
+    return vkCreateFramebuffer(state.device,&fi,nullptr,&fb)==VK_SUCCESS;
+  };
+  return make_fb(state.shadow_depth_view,state.shadow_framebuffer) &&
+         make_fb(state.self_shadow_depth_view,state.self_shadow_framebuffer);
 }
 
 bool create_render_targets(VulkanRenderer::Impl& state) {
@@ -620,74 +603,53 @@ bool create_host_buffer(VulkanRenderer::Impl& state, const void* source, VkDevic
 }
 
 bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
-  VkDescriptorSetLayoutBinding bindings[2]{};
-  bindings[0].binding = 0;
-  bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[0].descriptorCount = 1;
-  bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  bindings[1].binding = 1;
-  bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  bindings[1].descriptorCount = 1;
-  bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-  VkDescriptorSetLayoutCreateInfo layout{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-  layout.bindingCount = 2;
-  layout.pBindings = bindings;
-  if (vkCreateDescriptorSetLayout(state.device, &layout, nullptr, &state.frame_lighting_set_layout) != VK_SUCCESS) return false;
-  VkBufferCreateInfo buffer{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-  buffer.size = sizeof(FrameLightingGpu);
-  buffer.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-  buffer.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-  if (vkCreateBuffer(state.device, &buffer, nullptr, &state.frame_lighting_buffer) != VK_SUCCESS) return false;
-  VkMemoryRequirements requirements{};
-  vkGetBufferMemoryRequirements(state.device, state.frame_lighting_buffer, &requirements);
+  VkDescriptorSetLayoutBinding bindings[3]{};
+  bindings[0].binding=0; bindings[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  for(std::uint32_t i=1;i<=2;++i){
+    bindings[i].binding=i; bindings[i].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[i].descriptorCount=1; bindings[i].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  }
+  VkDescriptorSetLayoutCreateInfo li{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+  li.bindingCount=3; li.pBindings=bindings;
+  if(vkCreateDescriptorSetLayout(state.device,&li,nullptr,&state.frame_lighting_set_layout)!=VK_SUCCESS) return false;
+
+  VkBufferCreateInfo bi{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+  bi.size=sizeof(FrameLightingGpu); bi.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; bi.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
+  if(vkCreateBuffer(state.device,&bi,nullptr,&state.frame_lighting_buffer)!=VK_SUCCESS) return false;
+  VkMemoryRequirements req{}; vkGetBufferMemoryRequirements(state.device,state.frame_lighting_buffer,&req);
   std::uint32_t type{};
-  if (!find_memory_type(state.physical, requirements.memoryTypeBits,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, type)) return false;
-  VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-  allocation.allocationSize = requirements.size;
-  allocation.memoryTypeIndex = type;
-  if (vkAllocateMemory(state.device, &allocation, nullptr, &state.frame_lighting_memory) != VK_SUCCESS ||
-      vkBindBufferMemory(state.device, state.frame_lighting_buffer, state.frame_lighting_memory, 0) != VK_SUCCESS) return false;
-  if (vkMapMemory(state.device, state.frame_lighting_memory, 0, sizeof(FrameLightingGpu), 0,
-                  &state.frame_lighting_mapped) != VK_SUCCESS) return false;
-  VkDescriptorPoolSize pool_sizes[2]{};
-  pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  pool_sizes[0].descriptorCount = 1;
-  pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  pool_sizes[1].descriptorCount = 1;
-  VkDescriptorPoolCreateInfo pool{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-  pool.maxSets = 1;
-  pool.poolSizeCount = 2;
-  pool.pPoolSizes = pool_sizes;
-  if (vkCreateDescriptorPool(state.device, &pool, nullptr, &state.frame_lighting_descriptor_pool) != VK_SUCCESS) return false;
-  VkDescriptorSetAllocateInfo set_alloc{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-  set_alloc.descriptorPool = state.frame_lighting_descriptor_pool;
-  set_alloc.descriptorSetCount = 1;
-  set_alloc.pSetLayouts = &state.frame_lighting_set_layout;
-  if (vkAllocateDescriptorSets(state.device, &set_alloc, &state.frame_lighting_descriptor_set) != VK_SUCCESS) return false;
-  VkDescriptorBufferInfo buffer_info{};
-  buffer_info.buffer = state.frame_lighting_buffer;
-  buffer_info.range = sizeof(FrameLightingGpu);
-  VkDescriptorImageInfo shadow_info{};
-  shadow_info.sampler = state.shadow_sampler;
-  shadow_info.imageView = state.shadow_depth_view;
-  shadow_info.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-  VkWriteDescriptorSet writes[2]{};
-  writes[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
-  writes[0].dstSet = state.frame_lighting_descriptor_set;
-  writes[0].dstBinding = 0;
-  writes[0].descriptorCount = 1;
-  writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  writes[0].pBufferInfo = &buffer_info;
-  writes[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
-  writes[1].dstSet = state.frame_lighting_descriptor_set;
-  writes[1].dstBinding = 1;
-  writes[1].descriptorCount = 1;
-  writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-  writes[1].pImageInfo = &shadow_info;
-  vkUpdateDescriptorSets(state.device, 2, writes, 0, nullptr);
-  const auto initial = make_frame_lighting_gpu(state.lighting);
-  std::memcpy(state.frame_lighting_mapped, &initial, sizeof(initial));
+  if(!find_memory_type(state.physical,req.memoryTypeBits,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,type)) return false;
+  VkMemoryAllocateInfo ai{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO}; ai.allocationSize=req.size; ai.memoryTypeIndex=type;
+  if(vkAllocateMemory(state.device,&ai,nullptr,&state.frame_lighting_memory)!=VK_SUCCESS ||
+     vkBindBufferMemory(state.device,state.frame_lighting_buffer,state.frame_lighting_memory,0)!=VK_SUCCESS) return false;
+  if(vkMapMemory(state.device,state.frame_lighting_memory,0,sizeof(FrameLightingGpu),0,&state.frame_lighting_mapped)!=VK_SUCCESS) return false;
+
+  VkDescriptorPoolSize ps[2]{};
+  ps[0].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; ps[0].descriptorCount=1;
+  ps[1].type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; ps[1].descriptorCount=2;
+  VkDescriptorPoolCreateInfo pci{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+  pci.maxSets=1; pci.poolSizeCount=2; pci.pPoolSizes=ps;
+  if(vkCreateDescriptorPool(state.device,&pci,nullptr,&state.frame_lighting_descriptor_pool)!=VK_SUCCESS) return false;
+  VkDescriptorSetAllocateInfo si{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+  si.descriptorPool=state.frame_lighting_descriptor_pool; si.descriptorSetCount=1; si.pSetLayouts=&state.frame_lighting_set_layout;
+  if(vkAllocateDescriptorSets(state.device,&si,&state.frame_lighting_descriptor_set)!=VK_SUCCESS) return false;
+
+  VkDescriptorBufferInfo db{}; db.buffer=state.frame_lighting_buffer; db.range=sizeof(FrameLightingGpu);
+  VkDescriptorImageInfo coarse{}; coarse.sampler=state.shadow_sampler; coarse.imageView=state.shadow_depth_view;
+  coarse.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+  VkDescriptorImageInfo focused{}; focused.sampler=state.shadow_sampler; focused.imageView=state.self_shadow_depth_view;
+  focused.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+  VkWriteDescriptorSet writes[3]{};
+  writes[0]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[0].dstSet=state.frame_lighting_descriptor_set;
+  writes[0].dstBinding=0; writes[0].descriptorCount=1; writes[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[0].pBufferInfo=&db;
+  writes[1]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[1].dstSet=state.frame_lighting_descriptor_set;
+  writes[1].dstBinding=1; writes[1].descriptorCount=1; writes[1].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[1].pImageInfo=&coarse;
+  writes[2]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[2].dstSet=state.frame_lighting_descriptor_set;
+  writes[2].dstBinding=2; writes[2].descriptorCount=1; writes[2].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[2].pImageInfo=&focused;
+  vkUpdateDescriptorSets(state.device,3,writes,0,nullptr);
+  const auto initial=make_frame_lighting_gpu(state.lighting);
+  std::memcpy(state.frame_lighting_mapped,&initial,sizeof(initial));
   state.estimated_bytes += sizeof(FrameLightingGpu);
   return true;
 }
@@ -1192,6 +1154,22 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   vkCmdDrawIndexed(command,profile_mesh.index_count,1,0,0,0);
   vkCmdEndRenderPass(command);
 
+  VkRenderPassBeginInfo self_spass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+  self_spass.renderPass=state.shadow_render_pass;
+  self_spass.framebuffer=state.self_shadow_framebuffer;
+  self_spass.renderArea.extent={kShadowMapSize,kShadowMapSize};
+  self_spass.clearValueCount=1;
+  self_spass.pClearValues=&shadow_clear;
+  vkCmdBeginRenderPass(command,&self_spass,VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.shadow_pipeline);
+  vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
+  vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
+  PushConstants self_shadow_push=shadow_push;
+  self_shadow_push.flags[3]|=(1u<<19u);
+  vkCmdPushConstants(command,state.pipeline_layout,VK_SHADER_STAGE_VERTEX_BIT,0,sizeof(self_shadow_push),&self_shadow_push);
+  vkCmdDrawIndexed(command,profile_mesh.index_count,1,0,0,0);
+  vkCmdEndRenderPass(command);
+
   VkClearValue clears[2]{};
   clears[0].color.float32[0]=0.025f; clears[0].color.float32[1]=0.035f;
   clears[0].color.float32[2]=0.055f; clears[0].color.float32[3]=1.0f;
@@ -1315,8 +1293,12 @@ void VulkanRenderer::shutdown() noexcept {
       vkDestroyDescriptorPool(state.device, state.frame_lighting_descriptor_pool, nullptr);
     }
     if (state.shadow_sampler) vkDestroySampler(state.device, state.shadow_sampler, nullptr);
+    if (state.self_shadow_framebuffer) vkDestroyFramebuffer(state.device, state.self_shadow_framebuffer, nullptr);
     if (state.shadow_framebuffer) vkDestroyFramebuffer(state.device, state.shadow_framebuffer, nullptr);
     if (state.shadow_render_pass) vkDestroyRenderPass(state.device, state.shadow_render_pass, nullptr);
+    if (state.self_shadow_depth_view) vkDestroyImageView(state.device, state.self_shadow_depth_view, nullptr);
+    if (state.self_shadow_depth_image) vkDestroyImage(state.device, state.self_shadow_depth_image, nullptr);
+    if (state.self_shadow_depth_memory) vkFreeMemory(state.device, state.self_shadow_depth_memory, nullptr);
     if (state.shadow_depth_view) vkDestroyImageView(state.device, state.shadow_depth_view, nullptr);
     if (state.shadow_depth_image) vkDestroyImage(state.device, state.shadow_depth_image, nullptr);
     if (state.shadow_depth_memory) vkFreeMemory(state.device, state.shadow_depth_memory, nullptr);

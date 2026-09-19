@@ -31,6 +31,7 @@ uint diagnostic_mode() { return (pc.flags.w >> 1u) & 3u; }
 bool ui_environment_pass() { return (pc.flags.w & 1u) != 0u; }
 bool shadow_pass() { return (pc.flags.w & (1u << 17u)) != 0u; }
 bool ground_pass() { return (pc.flags.w & (1u << 18u)) != 0u; }
+bool focused_self_shadow_pass() { return (pc.flags.w & (1u << 19u)) != 0u; }
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
     if (rotation_code == 1u) return vec2(-clip_position.y, clip_position.x);
@@ -185,19 +186,19 @@ void emit_ui_environment_vertex() {
     view_position_m = vec3(0.0, 0.0, -1.0);
 }
 
-vec4 shadow_clip_from_world(vec3 world_position, vec3 sun_direction) {
+vec4 shadow_clip_from_world(vec3 world_position, vec3 sun_direction,
+                            bool focused) {
     vec3 forward = normalize(-sun_direction);
     vec3 reference_up = abs(forward.y) > 0.95 ? vec3(0.0, 0.0, 1.0)
                                               : vec3(0.0, 1.0, 0.0);
     vec3 right = normalize(cross(reference_up, forward));
     vec3 up = normalize(cross(forward, right));
-    const float half_extent = 5.5;
-    const float depth_half_extent = 6.0;
+    float half_extent = focused ? 1.20 : 5.50;
+    float depth_half_extent = focused ? 2.00 : 6.00;
     return vec4(dot(world_position, right) / half_extent,
                 dot(world_position, up) / half_extent,
                 (dot(world_position, forward) + depth_half_extent) /
-                    (2.0 * depth_half_extent),
-                1.0);
+                    (2.0 * depth_half_extent), 1.0);
 }
 
 void emit_diagnostic_ground_vertex() {
@@ -293,7 +294,8 @@ void main() {
 
     if (shadow_pass()) {
         vec3 sun_direction = normalize(pc.camera.xyz);
-        gl_Position = shadow_clip_from_world(object_m, sun_direction);
+        gl_Position = shadow_clip_from_world(
+            object_m, sun_direction, focused_self_shadow_pass());
         surface_position_m = object_m;
         view_normal = n_object;
         body_region = in_region;

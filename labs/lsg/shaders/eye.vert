@@ -9,6 +9,7 @@ layout(location = 0) out vec3 view_normal;
 layout(location = 1) out vec2 eye_uv;
 layout(location = 2) flat out uint component_id;
 layout(location = 3) out vec3 view_position;
+layout(location = 4) out vec3 object_position_m;
 
 layout(push_constant) uniform EyePush {
     vec4 center_units; // body source-space center.xyz, metres-per-source-unit
@@ -157,4 +158,5 @@ void main() {
     eye_uv = in_uv;
     component_id = in_component;
     view_position = view;
+    object_position_m = object_m;
 }
