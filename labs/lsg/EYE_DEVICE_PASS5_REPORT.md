@@ -123,3 +123,130 @@ Required before final closure:
    - one fixed-Time Filter sequence.
 
 Only after those items pass should work advance to Living Skin / Detail-on-Demand refinement.
+
+
+## Additional physical-device observations from user review
+
+These observations supersede any interpretation based only on compressed video frames.
+
+### Eyelid highlight clarification
+
+The bright horizontal/light line visible near the eye is not wet-rim evidence.
+
+The user identified it on the physical display as a specular reflection from the relatively flat/horizontal eyelid surface. The current character does not yet have:
+- eyelid-specific texture/surface variation,
+- eyelashes,
+- a visibly readable tear-film/wet-eye gloss layer.
+
+Therefore:
+- do not use that eyelid highlight as evidence for tear-film response,
+- wet-eye gloss remains visually absent in the current device test,
+- eyelid material response must be treated separately from cornea/tear-film response.
+
+### Missing local/self shadowing — major lighting finding
+
+The user reports that direct-light/time-of-day changes are clearly visible, but local self-shadowing is not convincing.
+
+Observed symptoms:
+- little/no readable head shadow falling across the torso,
+- little/no arm shadow falling across the body,
+- when the sun moves behind the character, the body can become broadly glossy/bright instead of reading as backlit with strong front-side occlusion.
+
+This indicates that the current shared sun/sky shading path is not equivalent to a real shadowing solution.
+
+The distinction is architectural:
+
+1. **Character material shading**
+   - BRDF,
+   - skin roughness/specular,
+   - subsurface approximation,
+   - region-dependent procedural surface variation.
+
+2. **Lighting / visibility**
+   - cast shadows,
+   - self-shadowing,
+   - occlusion between body parts,
+   - ground/contact shadows,
+   - shadow bias/filtering.
+
+Self-shadowing belongs to the renderer/lighting system, not to the genome identity and not to a fake baked character texture.
+
+### Diagnostic ground plane requested
+
+Add a simple temporary diagnostic ground receiver around the character, approximately 10 m in useful visible extent, for physical-device validation.
+
+Purpose:
+- verify whether the character casts a coherent shadow,
+- verify sun direction,
+- reveal missing contact shadowing,
+- distinguish material brightness problems from visibility/shadow problems.
+
+This is a diagnostic environment feature, not final scene content.
+
+### Living Skin / shader-surface refinement requested
+
+The user explicitly wants further procedural shader refinement of the body rather than baked character textures.
+
+Target variation should include, by anatomical/semantic region:
+- lighter/darker skin response,
+- smoother/rougher areas,
+- pore density/scale variation,
+- local redness/perfusion tendencies,
+- less uniform body-wide specular response.
+
+Examples:
+- eyelid/lid margin should read warmer/pinker than surrounding skin,
+- different body regions should not share identical roughness and pore character,
+- current procedural surface should become anatomically differentiated while preserving the zero mandatory per-character high-resolution texture goal.
+
+This belongs to the Living Skin / Detail-on-Demand system.
+
+### Current subsystem split after device test
+
+**Eye Surface**
+- tear-film / wet-eye gloss,
+- cornea response,
+- iris/pupil/sclera,
+- eyelid-eye contact cue.
+
+**Eyelid / Periocular Skin**
+- lid-margin colour,
+- local roughness,
+- local microstructure,
+- later eyelashes.
+
+**Living Skin**
+- anatomical procedural roughness,
+- pore and meso variation,
+- regional colour/perfusion variation,
+- region-aware specular response.
+
+**Renderer Lighting**
+- direct/sky illumination,
+- cast shadows,
+- self-shadowing,
+- contact shadows,
+- diagnostic ground receiver.
+
+These systems should remain separate even though they are reviewed together visually.
+
+## Revised next-step recommendation
+
+Do not treat the next work item as only a wet-rim correction.
+
+Use two bounded technical slices:
+
+### Slice A — Shadow/visibility diagnostic foundation
+- temporary diagnostic ground plane,
+- first real directional-sun shadow path,
+- body self-shadowing,
+- ground/contact shadow visibility,
+- validate backlit view.
+
+### Slice B — Living Skin + periocular refinement
+- region-aware procedural roughness/pore/redness,
+- eyelid/lid-margin warm tint,
+- reduce uniform body-wide gloss,
+- make tear-film/wet-eye specular actually readable.
+
+Hair/eyelashes may remain later work unless they become necessary for the current visual gate.
