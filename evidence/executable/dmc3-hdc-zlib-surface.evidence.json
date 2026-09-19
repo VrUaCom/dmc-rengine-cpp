@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-zlib-surface",
+  "title": "DMC3 HD: the engine uses three zlib functions, the deflate half is dead, and the archive teardown is not idempotent",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-zlib-surface-is-three",
+      "claim_id": "claim-dmc3-zlib-surface-is-three",
+      "title": "Three functions cross into the library, and the deflate half is linked but dead",
+      "summary": "A census of every direct call or jump displacement in .text whose target lies in 0x340000 to 0x344000 and whose source lies outside it finds three: inflate at 0x341900 from the two drivers, inflateEnd at 0x343110 from the entry destructor and the seek, and inflateInit2_ at 0x343170 from the arming. Forty-one further targets in that range are called only from within it, and the only qwords anywhere in the image pointing into the range are the ten entries of the compressor configuration table. So the engine's entire use of the library is three functions, all on the inflate side, which states a port's replacement surface exactly. The compression half is nonetheless compiled in: the table at .rdata 0x50AAA8 holds ten sixteen-byte entries whose function pointers fall into three groups, 0x340320 once, 0x3405E0 three times and 0x340A50 six times, which is that library's exact one-for-level-zero, one-for-three, one-for-six shape, and the copyright string at 0x50AA51 names the file it came from. Nothing calls it: the table is reachable only from the compressor entry point, that point is not among the three edges, and there is no indirect path in.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "third-party",
+        "census",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3414272,
+          "size": 6,
+          "symbol": "inflate",
+          "note": "RVA 0x341900, two inbound edges from 0x328680 and 0x328820."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5286568,
+          "size": 160,
+          "symbol": "the compressor configuration table",
+          "note": "RVA 0x50AAA8, ten sixteen-byte entries pointing at 0x340320, 0x3405E0 and 0x340A50 in a one-three-six split."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-crc-live-in-module-dead-in-use",
+      "claim_id": "claim-dmc3-no-crc-verification",
+      "title": "The check function is live in the module and unreachable in this mode",
+      "summary": "Yesterday's record states that the check routine at 0x340010 is live with 13 call sites, every one inside 0x341000 to 0x343000. That stands and can be said more precisely. The stream is armed with window bits -15, which selects the wrapperless format, and the library computes a check value only while parsing a wrapper, so those thirteen sites lie on wrapper handling that this mode never enters: live in the module, unreachable in this engine's use of it. That last step is an inference from the mode constant and the library's structure rather than a trace of each of the thirteen sites, and it is flagged as such. What the port-relevant claim rests on is unchanged and read: no call site is in the archive path, and the check value the record decoders store at entry 0x18 is never loaded.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "integrity",
+        "inference"
+      ],
+      "supersedes": [
+        "ev-dmc3-no-crc-verification"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3308632,
+          "size": 3,
+          "symbol": "the mode constant",
+          "note": "RVA 0x327C58, loading -15 as the window bits immediately before the initialiser call."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-archive-teardown",
+      "claim_id": "claim-dmc3-archive-teardown",
+      "title": "The archive object's lifecycle closes, and its teardown cannot be called twice",
+      "summary": "0x328210 walks the entry list from archive 0x28 through node 0x48, freeing each node's three strings at 0x30, 0x38 and 0x40 and then the node, frees the sorted array at archive 0x30 and nulls it, and tail-jumps to free for the trailing comment at archive 0x20. Four frees per node and then three, the same shape as the inline cleanup inside 0x3289F0 that the first archive note read at 0x328B60, written twice. With it the object's lifecycle is complete: 0x328320 zeroes the 0x40 bytes and locates the trailer, 0x328D80 fills 0x00 through 0x18 and allocates the comment into 0x20, 0x3289F0 builds the list at 0x28, 0x327CC0 builds the sorted array at 0x30 with its count at 0x38, and 0x328210 releases all three. It nulls only 0x30, leaving the list head, the count and the comment pointer as they were, so the function is not idempotent and a second call would walk a freed list. Its one caller is the failure path in 0x326DFC, which frees the containing mount immediately afterwards, so nothing in the image calls it twice.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "archive",
+        "lifetime"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3310096,
+          "size": 128,
+          "symbol": "the archive teardown",
+          "note": "RVA 0x328210 through 0x32828F, the node loop at 0x328230, the array free at 0x32826C and the tail jump at 0x328288."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-false-edge-from-a-jump-table",
+      "claim_id": "claim-dmc3-false-edge-from-a-jump-table",
+      "title": "A brute-force scanner invented a call from the middle of the image into the middle of inflate",
+      "summary": "The first run of the census showed a fourth inbound edge, 0x24479A reaching 0x3430FF. Neither address is code. The bytes from 0x3430F0 to 0x343107 are a switch jump table - little-endian dwords 0x342E0C, 0x342E39, 0x342F18, 0x342F9F, 0x342FAA and 0x342178, every one a target inside inflate - and the scanner had disassembled the table as instructions; the source end is data as well. Yesterday's habit was to disassemble the bytes before an address before trusting a caller count of zero. This is its counterpart and it earned itself today: before trusting a surprising edge, disassemble the bytes at both ends. A brute-force byte scanner reports edges that do not exist, and this one would have put a call from the middle of the image into the middle of a library function.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "method",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3420400,
+          "size": 24,
+          "symbol": "the jump table read as code",
+          "note": "RVA 0x3430F0 through 0x343107, six RVAs into inflate, immediately before inflateEnd at 0x343110."
+        }
+      ]
+    }
+  ]
+}
