@@ -413,6 +413,10 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-zlib-surface.evidence.json)
     add_test(
+        NAME dmc_rengine_open_resource_cap_evidence_validation
+        COMMAND dmc-rengine validate-evidence
+                ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-open-resource-cap.evidence.json)
+    add_test(
         NAME dmc_rengine_summary_identities_evidence_validation
         COMMAND dmc-rengine validate-evidence
                 ${CMAKE_CURRENT_SOURCE_DIR}/evidence/executable/dmc3-hdc-summary-identities.evidence.json)

@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-open-resource-cap",
+  "title": "DMC3 HD: one hundred open-resource slots, where a resource's size comes from, and two modes nothing selects",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-open-resource-cap-is-one-hundred",
+      "claim_id": "claim-dmc3-open-resource-cap-is-one-hundred",
+      "title": "A hundred records of 0x20 bytes, a linear scan under one lock, and failure when they are all taken",
+      "summary": "Before any of the prefix search, the resource open calls 0x48B20, and a null result makes it return -1 at once. 0x48B20 enters a critical section at 0xC19AE0, scans from 0xC18E78 in steps of 0x20 for the first record whose in-use byte is zero, stops at index 0x64, and on a hit computes the record as 0xC18E60 plus the index times 0x20, marks the in-use byte, zeroes the two fields at 0x08 and 0x10 and sets the field at 0x00 to -1 before leaving the section. So the open-resource table is a hundred records of 0x20 bytes at 0xC18E60 with the in-use marker at 0x18, and when all hundred are taken the allocator returns null and the request fails: no wait, no growth, no eviction. The record fills out from its users - an identifier at 0x00 initialised to -1, the resolved stream at 0x08, the size at 0x10, the in-use byte at 0x18 and a flag at 0x19 that the success path reads and nothing here writes. The release at 0x48DF0 takes the same lock, clears the in-use byte and tail-jumps out, and that is all it does: it does not close the stream at 0x08 or reset 0x00 and 0x10. On the single path that calls it here, the candidate-construction failure, no stream has been assigned yet, so nothing leaks, but the release itself offers no guarantee about that. A hundred is a hard number a port has to decide about and it is enforced in one place by one scan.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "limits",
+        "concurrency"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 297760,
+          "size": 112,
+          "symbol": "the open-resource slot allocator",
+          "note": "RVA 0x48B20, the scan limit 0x64 at 0x48B50 and the record base 0xC18E60 at 0x48B59."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 298480,
+          "size": 46,
+          "symbol": "the slot release",
+          "note": "RVA 0x48DF0, clearing only the in-use byte at 0x48E0D."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 12684896,
+          "size": 3200,
+          "symbol": "the open-resource table",
+          "note": "RVA 0xC18E60, a hundred records of 0x20 bytes, guarded by the critical section at 0xC19AE0."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-size-comes-through-the-third-dispatcher",
+      "claim_id": "claim-dmc3-stream-is-a-tagged-union",
+      "title": "A resource's size is read through the dispatcher a byte scan found and the two-byte getter behind it",
+      "summary": "On success the resource open passes the resolved stream to 0x3272A0, sign-extends the result and stores it in the slot at 0x10. 0x3272A0 is the third stream dispatcher, the one a byte scan found after the mount-list note had claimed there were two, and its archive branch is the two-byte accessor at 0x0629C0 returning the entry field at 0x20, the uncompressed size. So the chain closes from both ends: a caller learns a resource's size through a tagged-union dispatch into a two-instruction getter, which is why a size accessor exists outside the file layer at all. The earlier note asked that question and answered it with an observation about where the function lives; this is the answer from the other direction, which is who needs it.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "dispatch"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 196107,
+          "size": 19,
+          "symbol": "the size read on success",
+          "note": "RVA 0x2FE0B, calling 0x3272A0 and storing the result at slot 0x10."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-two-unselected-open-modes",
+      "claim_id": "claim-dmc3-two-unselected-open-modes",
+      "title": "The prefixed search is gated on one bit, and two other paths no caller reaches",
+      "summary": "The prefixed search runs only when bit 1 of the mode is clear. The gate is written as two tests - whether the low two bits are not 3 and whether bit 1 is clear - but the second implies the first, so the first can never decide anything and the gate reduces to the single bit. With bit 1 set, control reaches 0x2FE2A, which tests bit 9 and on a set bit derives the executable's own directory with GetModuleFileNameA and a search for the last backslash, the same derivation the bootstrap uses, while a clear bit 9 goes elsewhere again to 0x2FF12. Every one of the three direct callers loads 1 into the mode register, which is prior art from the August reconciliation and still holds, so bits 1 and 9 are never set anywhere in the image and both alternative resolution paths are unreachable from the shipped call surface. They are in the binary and nothing selects them, which is worth recording because a port that reproduces only the reachable path is reproducing everything the game can actually do.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "resource-loading",
+        "reachability"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 195885,
+          "size": 16,
+          "symbol": "the redundant gate",
+          "note": "RVA 0x2FD2D through 0x2FD3D, two tests of which one cannot decide."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 196138,
+          "size": 8,
+          "symbol": "the bit-9 branch",
+          "note": "RVA 0x2FE2A, testing bit 9 and choosing between the executable-directory derivation and 0x2FF12."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-sections-1c-and-1e-were-closed",
+      "claim_id": "claim-dmc3-sections-1c-and-1e-were-closed",
+      "title": "The two sections I set out to check had been read from raw instructions in August",
+      "summary": "I set out to check sections 1C and 1E of the 2026-09-05 reconciliation against the bytes, having found 1A, 1B and 1D sound. They hold, and they were not open: docs/gdspaces/l2-exe-reconciliation-2026-08-26.md section 1.1 states that inside the resource open the raw instructions confirm basename extraction after the last separator, the 0x400 candidate buffer, the six prefixes from the table, provider phase one before phase two, the resolver address and early failure when candidate construction fails, while sections 1.2 and 1.3 add the mask-bit gating per provider type and the literal normalisation flags, and that document marks the static reverse closed. My re-read agrees with every point and adds nothing to them. What it can add is detail beside them rather than in place of them: the prefix is the inner loop index over six and the provider pass the outer over two; the mask handed to the resolver is literally the pass index plus one, built from the counter rather than from two constants; and a join failure exits both loops rather than skipping one prefix. For section 1E the distinction is visible as two different jump destinations in 0x327473 - a lookup miss to the next mount, a construction failure to the cleanup that frees the stream and returns zero.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "corroboration",
+        "prior-art"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 195952,
+          "size": 82,
+          "symbol": "the double loop",
+          "note": "RVA 0x2FD70 through 0x2FDC8, the prefix index inner over six and the provider pass outer over two, with the mask built as the pass plus one."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 5615352,
+          "size": 48,
+          "symbol": "the prefix table",
+          "note": "RVA 0x55AEF8, six pointers of which the sixth is an empty string."
+        }
+      ]
+    }
+  ]
+}
