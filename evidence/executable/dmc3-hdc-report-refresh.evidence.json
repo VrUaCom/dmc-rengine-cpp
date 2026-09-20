@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-report-refresh",
+  "title": "DMC3 HD: the committed function map was never partial, the instrument takes a second, and layer B sits inside the loose closure",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-report-was-not-partial",
+      "claim_id": "claim-dmc3-layer-b-not-dead-but-unestablished",
+      "title": "I called an instrument unavailable without running it, and it runs in one second",
+      "summary": "Yesterday's note said the committed function-map report is a partial artefact of 2,889 functions with its depth fields absent and so cannot answer a reachability question. Both halves are wrong. The report's own summary says 7,389 functions and its top level says 2,889 emitted, and those differ because the tool emits per-function records only for the attributed subset unless it is given a flag, while the walk and every counter cover all 7,389; the report states both numbers. Running the tool today against the same image gives 7,389 walked and 7,381 complete, identical to the committed report, with every shared counter matching exactly except six that this session's own analysis changed. The real limitation is narrower: the committed report predates the counters later work added, among them the one that produces the 1,641 figure several notes cite. What matters more than the miscount is that regenerating takes one second and I asserted unavailability without trying. Two days earlier I recorded a habit after nearly publishing that the check machinery was unreachable - before trusting a caller count of zero, read the bytes before the address. This is the same failure one level up, and unlike that one it was published rather than caught.",
+      "confidence": "corrected",
+      "tags": [
+        "method",
+        "tooling",
+        "evidence-drift"
+      ],
+      "supersedes": [
+        "ev-dmc3-layer-b-not-dead-but-unestablished"
+      ],
+      "locations": []
+    },
+    {
+      "id": "ev-dmc3-committed-report-refreshed",
+      "claim_id": "claim-dmc3-committed-report-refreshed",
+      "title": "The committed artefact is current again, and the figure checker could never have caught that it was not",
+      "summary": "The committed report has been regenerated with the same emission policy as before, no all-functions flag, giving 2,889 records of 7,389 walked and growing from 2.08 to 2.76 megabytes. All 102 figures declared across the evidence packets verify against it with none stale and none unknown, and the full test suite passes. The drift it carried was invisible to the checker built for exactly this family of problem, and that is by design rather than by defect: the checker regenerates a report and compares published figures against that fresh one, which answers whether the numbers have moved and says nothing about whether the committed artefact is current. Those are two different questions and only one of them had an answer. Anyone reading the committed report between its generation and now would have found counters the notes cite simply absent, with nothing to indicate why.",
+      "confidence": "confirmed",
+      "tags": [
+        "tooling",
+        "evidence-drift",
+        "method"
+      ],
+      "locations": [],
+      "supersedes": []
+    },
+    {
+      "id": "ev-dmc3-layer-b-inside-the-loose-closure",
+      "claim_id": "claim-dmc3-layer-b-not-dead-but-unestablished",
+      "title": "Layer B's read and seek are inside the loose closure, and one way into the resource open is a way nothing takes",
+      "summary": "With the fresh report the question can be answered as a bracket rather than left open. The resource open sits at depth 11 with three callers and is reachable from an export; layer B's open sits at depth 12 with one caller and is reachable from an export too. Layer B's read and seek are not flagged outside every closure, so they are reachable under the loosest sound assumption, that every virtual call reaches whatever sits at its slot, and their calling functions have no direct callers at all, so whatever reaches them does so through dispatch. That is an over-approximation and not a proof: being inside the closure does not establish that any execution arrives. Against that, one of the resource open's own three callers, 0x338140, is itself outside every closure, so at least one of the three ways into the resource open is a way nothing takes. A convention worth recording beside this: the report's caller field counts distinct calling functions rather than call sites, which is why layer B's open shows one caller where a byte census found two sites, both inside the same continuation.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3375424,
+          "size": 260,
+          "symbol": "a resource-open caller nothing reaches",
+          "note": "RVA 0x338140, zero callers and flagged outside every closure in the current report."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 299296,
+          "size": 4,
+          "symbol": "layer B's open",
+          "note": "RVA 0x49120, depth 12, one calling function holding both call sites."
+        }
+      ]
+    }
+  ]
+}

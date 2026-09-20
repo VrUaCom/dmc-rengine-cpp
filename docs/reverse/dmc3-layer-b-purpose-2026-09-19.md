@@ -4,6 +4,13 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-layer-b-purpose`.
 
+> **Corrected** by `docs/reverse/dmc3-report-was-not-partial-2026-09-20.md`.
+> The committed function-map report is **not** partial — it walks all 7,389
+> functions and emits records for 2,889 because it was generated without
+> `--all` — and regenerating it takes one second, which I did not try before
+> calling the instrument unusable. The layer-B reachability question is
+> answered there.
+
 The file-access note of 2026-09-18 found two independent file layers over one
 platform and closed on "nothing here says why the engine has both." The
 mount-registration note added a second axis separating them and left the question
