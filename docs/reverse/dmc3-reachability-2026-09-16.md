@@ -1,5 +1,11 @@
 # DMC3 HD: how much of the image can the entry point reach? (2026-09-16)
 
+> **Corrected** by `docs/reverse/dmc3-unreached-population-2026-09-20.md`.
+> The row below reading "nothing in the image refers to them at all — 847" counts
+> functions with **no call edge**, not functions nothing refers to. A raw scan finds
+> **972 of the 1,641 referenced outside `.pdata`**, and of those 847, **597 are
+> referenced** and 250 are not.
+
 Every reachability figure in this reverse has been published as a lower bound
 with nothing beside it. This puts a number on the other end.
 

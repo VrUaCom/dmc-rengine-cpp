@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-unreached-population",
+  "title": "DMC3 HD: the unreached population is pointed at by data, 332 of them are funclets, and it is not library residue",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-847-was-call-edges-not-references",
+      "claim_id": "claim-dmc3-outside-every-closure",
+      "title": "847 counted functions with no call edge, not functions nothing refers to",
+      "summary": "The reachability note tabulates, of the 1,641 functions outside every closure, 847 as nothing in the image refers to them at all. That is the count with no call edge, which is what the report's caller field measures and says it measures; the prose turned it into a claim about references, which is a different claim about a different instrument. Scanning the whole file for each function's start as a 32-bit value or a 64-bit address, excluding the begin and end fields of the unwind directory itself, finds 972 of the 1,641 referenced somewhere, and of the 847 with no caller, 597 are referenced and 250 are not. The population that nothing in the image mentions is roughly a quarter of what was published, and the difference is not a rounding of the same measurement but a different one.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "reachability",
+        "census",
+        "method"
+      ],
+      "supersedes": [
+        "ev-dmc3-outside-every-closure"
+      ],
+      "locations": [],
+      "figures": {
+        "outside_every_closure": 1641
+      }
+    },
+    {
+      "id": "ev-dmc3-reference-scan-has-a-control",
+      "claim_id": "claim-dmc3-reference-scan-has-a-control",
+      "title": "Fifty-nine per cent against an eight per cent background, measured rather than argued",
+      "summary": "A raw scan for an address as a four-byte value finds coincidences, so the same scan was run against a control: 1,641 sixteen-byte-aligned addresses drawn from the same span, none of them a function start. The real starts come back 972 referenced, 59.2 per cent; the control comes back 133, 8.1 per cent. Seven times the background, so the effect is real and its coincidence rate is measured instead of being waved away. Subtracting a uniform background would put the genuine figure near 840, but the background is not uniform across sections, so the defensible statement is the pair of rates and the separation between them rather than a corrected count carrying more precision than the method supports.",
+      "confidence": "confirmed",
+      "tags": [
+        "method",
+        "census",
+        "statistics"
+      ],
+      "supersedes": [],
+      "locations": []
+    },
+    {
+      "id": "ev-dmc3-funclets-are-one-entry-mechanism",
+      "claim_id": "claim-dmc3-funclets-are-one-entry-mechanism",
+      "title": "At least 332 are entered by the unwind machinery, which is not a call",
+      "summary": "Splitting the references by where they live gives 526 functions referenced from ordinary read-only data, 332 from exception-handling data, 43 from writable data, 13 from code and the rest from combinations. The 332 are catch and unwind funclets: the runtime enters them from the handler data using an address, never by a call instruction, so no call graph can record the route - not because this graph is incomplete but because the mechanism is not a call. The reachability note's statement that every route into this population is one the file does not record is exactly right, and this names one of the routes. The 332 is a lower bound, because the extent computed for each unwind structure covers its fixed part and its handler pointer but not the variable handler data that follows, so references sitting deeper in that data are attributed to read-only data instead. The 526 in read-only data are the next question and the one most likely to name a second mechanism, since they are neither vtables nor among the ten function-pointer runs an earlier correction retained.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "exception-handling"
+      ],
+      "supersedes": [],
+      "locations": []
+    },
+    {
+      "id": "ev-dmc3-unreached-is-game-code-not-residue",
+      "claim_id": "claim-dmc3-unreached-is-game-code-not-residue",
+      "title": "Ninety-two per cent of the library tail is unreached, and it is seven per cent of the unreached mass",
+      "summary": "Taking the library tail as everything at or above 0x33F000, where the compression library begins and below which no runtime stub code was found, 405 of the 442 functions there are outside every closure - 92 per cent, which is what statically linked library code looks like when a program uses three functions of it. But that tail is 39,362 bytes against 548,621 below the line, so it is 6.7 per cent of the unreached mass and ninety-three per cent of that mass is game code. The largest run of consecutive unreached functions is the runtime stub region at 0x346808 to 0x34EC00, 360 functions averaging 47 bytes; the largest by mass is 0x1FED40 to 0x2118F0, 119 functions over 76,769 bytes, which is not library code. So the population cannot be explained away as the residue of static linking, which was the obvious hypothesis and is wrong by mass even though it is right by count in one region.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3434504,
+          "size": 16824,
+          "symbol": "the runtime stub region",
+          "note": "RVA 0x346808 to 0x34EC00, 360 consecutive unreached functions averaging 47 bytes."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2092352,
+          "size": 76769,
+          "symbol": "the largest unreached run by mass",
+          "note": "RVA 0x1FED40 to 0x2118F0, 119 consecutive unreached functions."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-unreached-talks-to-the-platform",
+      "claim_id": "claim-dmc3-unreached-talks-to-the-platform",
+      "title": "It calls the operating system twice as often as the code that is reached",
+      "summary": "Against the 5,748 functions inside the closure, the 1,641 outside it call an import 11.1 per cent of the time against 6.1, reference a string 3.7 per cent against 1.4, contain a dispatch site 14.3 against 33.6, install a vtable 4.7 against 11.0, are bound to a vtable slot 0 against 32.7, and have a median size of 191 bytes against 227. Restricted to the game-code part below the library tail the first two gaps widen to 12.5 and 4.7 per cent. Code that calls the platform nearly twice as often as the reached code and names things nearly three times as often is not stubs and not compiler residue. Seventy-seven of them install a vtable, which is to say seventy-seven are constructors for classes nothing in the recorded graph ever builds - the same wall the earlier finding about rapid type analysis starving describes, approached from the other side. The zero bound to a vtable slot reproduces exactly and is a consistency check rather than a finding, since a slot-bound function is inside the closure by construction.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "census"
+      ],
+      "supersedes": [],
+      "locations": [],
+      "figures": {
+        "outside_every_closure": 1641,
+        "reachable_through_dispatch": 5748
+      }
+    }
+  ]
+}
