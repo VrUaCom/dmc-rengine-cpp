@@ -210,7 +210,7 @@ int ui_row_from_point(float x, float y, float width, float height) {
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 11; ++row) {
+  for (int row = 0; row < 12; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.029f) return row;
   }
@@ -221,7 +221,7 @@ bool point_in_ui_panel(float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return false;
   const float nx = x / width;
   const float ny = y / height;
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.820f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.890f;
 }
 
 void clear_tooltip(AppState& state) {
@@ -296,6 +296,7 @@ void cycle_optical_filter(AppState& state) {
 }
 
 void handle_ui_row(AppState& state, int row) {
+  if (row != 11) state.renderer.cancel_shadow_probe();
   switch (row) {
     case 0: select_character(state, 0); break;
     case 1: select_character(state, 1); break;
@@ -312,6 +313,7 @@ void handle_ui_row(AppState& state, int row) {
     case 8: cycle_eye_mode(state); break;
     case 9: cycle_lighting_time(state); break;
     case 10: cycle_optical_filter(state); break;
+    case 11: state.renderer.toggle_shadow_probe(); break;
     default: break;
   }
 }

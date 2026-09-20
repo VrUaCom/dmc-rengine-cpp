@@ -91,6 +91,10 @@ public:
   void set_surface_diagnostic_mode(SurfaceDiagnosticMode mode) noexcept;
   [[nodiscard]] SurfaceDiagnosticMode surface_diagnostic_mode() const noexcept;
 
+  void toggle_shadow_probe() noexcept;
+  void cancel_shadow_probe() noexcept;
+  [[nodiscard]] bool shadow_probe_active() const noexcept;
+
   void set_ui_tooltip_row(int row) noexcept;
   [[nodiscard]] int ui_tooltip_row() const noexcept;
 

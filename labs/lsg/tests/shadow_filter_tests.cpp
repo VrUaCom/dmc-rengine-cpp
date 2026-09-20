@@ -1,4 +1,5 @@
 #include "rengine/lsg/shadow_quality.hpp"
+#include "rengine/lsg/shadow_probe.hpp"
 
 #include <algorithm>
 #include <array>
@@ -38,6 +39,32 @@ float edge_visibility(float pixel) {
 }
 
 int main() {
+  ShadowProbe probe;
+  require(!probe.active(), "probe must be opt-in");
+  probe.start();
+  probe.advance(100.0f);
+  for (unsigned frame = 0; frame < 60; ++frame) {
+    probe.advance(100.0f + static_cast<float>(frame) * 0.25f);
+    require(probe.active() && probe.stage() == frame / 12u, "five ordered three-second views");
+    require(probe.pose_time() == 100.0f, "capture animation must remain fixed");
+  }
+  probe.advance(115.0f);
+  require(!probe.active(), "probe must finish after five views");
+  probe.start();
+  probe.advance(200.0f);
+  probe.advance(900.0f);
+  require(probe.active() && probe.stage() == 0u, "suspend must not skip views");
+  probe.advance(std::numeric_limits<float>::quiet_NaN());
+  probe.advance(800.0f);
+  require(probe.stage() == 0u && probe.pose_time() == 200.0f, "invalid or backwards clock");
+  probe.cancel();
+  probe.advance(801.0f);
+  require(!probe.active(), "cancel must remain cancelled");
+  probe.start();
+  probe.advance(1000.0f);
+  require(probe.stage() == 0u && probe.pose_time() == 1000.0f, "restart captures new pose");
+  std::cout << "SHADOW PROBE PASS: five views, fixed pose, completion, stall, cancellation, restart\n";
+
   // Derivatives of the same analytic plane in a rotated/skew screen basis.
   const auto gradient = receiver_depth_gradient(
       {0.003f, -0.001f, 0.0014f}, {0.002f, 0.004f, 0.0f});

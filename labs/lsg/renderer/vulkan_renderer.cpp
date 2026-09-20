@@ -6,6 +6,7 @@
 #include "rengine/lsg/lighting_runtime.hpp"
 #include "rengine/lsg/projection.hpp"
 #include "rengine/lsg/rmesh.hpp"
+#include "rengine/lsg/shadow_probe.hpp"
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -101,6 +102,13 @@ struct VulkanRenderer::Impl {
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
+  ShadowProbe shadow_probe{};
+  DiagnosticRenderMode saved_diagnostic{};
+  SurfaceDiagnosticMode saved_surface{};
+  EyeDiagnosticMode saved_eye{};
+  LightingRuntimeState saved_lighting{};
+  bool probe_snapshot{}, probe_detail{}, last_detail{true};
+  std::uint32_t probe_profile{};
   int ui_tooltip_row{-1};
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
@@ -971,14 +979,19 @@ bool VulkanRenderer::ready() const noexcept { return impl_ && impl_->initialized
 std::uint64_t VulkanRenderer::estimated_gpu_bytes() const noexcept { return impl_ ? impl_->estimated_bytes : 0; }
 
 void VulkanRenderer::orbit_camera(float normalized_dx, float normalized_dy) noexcept {
+  cancel_shadow_probe();
   if (impl_) impl_->camera.orbit(normalized_dx, normalized_dy);
 }
-void VulkanRenderer::zoom_camera(float scale) noexcept { if (impl_) impl_->camera.zoom(scale); }
-void VulkanRenderer::set_camera_preset(CameraPreset preset) noexcept { if (impl_) impl_->camera.set_preset(preset); }
-void VulkanRenderer::reset_camera_view() noexcept { if (impl_) impl_->camera.reset_view(); }
+void VulkanRenderer::zoom_camera(float scale) noexcept {
+  cancel_shadow_probe(); if (impl_) impl_->camera.zoom(scale); }
+void VulkanRenderer::set_camera_preset(CameraPreset preset) noexcept {
+  cancel_shadow_probe(); if (impl_) impl_->camera.set_preset(preset); }
+void VulkanRenderer::reset_camera_view() noexcept {
+  cancel_shadow_probe(); if (impl_) impl_->camera.reset_view(); }
 CameraState VulkanRenderer::camera_state() const noexcept { return impl_ ? impl_->camera.state() : CameraState{}; }
 
 void VulkanRenderer::set_diagnostic_mode(DiagnosticRenderMode mode) noexcept {
+  cancel_shadow_probe();
   if (impl_) impl_->diagnostic_mode = mode;
 }
 DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
@@ -986,15 +999,51 @@ DiagnosticRenderMode VulkanRenderer::diagnostic_mode() const noexcept {
 }
 
 void VulkanRenderer::set_surface_diagnostic_mode(SurfaceDiagnosticMode mode) noexcept {
+  cancel_shadow_probe();
   if (impl_) impl_->surface_diagnostic_mode = mode;
 }
 SurfaceDiagnosticMode VulkanRenderer::surface_diagnostic_mode() const noexcept {
   return impl_ ? impl_->surface_diagnostic_mode : SurfaceDiagnosticMode::none;
 }
 
+void VulkanRenderer::cancel_shadow_probe() noexcept {
+  if (!impl_) return;
+  auto& state = *impl_;
+  if (state.probe_snapshot) {
+    state.diagnostic_mode = state.saved_diagnostic;
+    state.surface_diagnostic_mode = state.saved_surface;
+    state.eye_diagnostic_mode = state.saved_eye;
+    state.lighting = state.saved_lighting;
+    state.probe_snapshot = false;
+  }
+  state.shadow_probe.cancel();
+}
+
+void VulkanRenderer::toggle_shadow_probe() noexcept {
+  if (!ready()) return;
+  auto& state = *impl_;
+  if (state.shadow_probe.active()) { cancel_shadow_probe(); return; }
+  state.saved_diagnostic = state.diagnostic_mode;
+  state.saved_surface = state.surface_diagnostic_mode;
+  state.saved_eye = state.eye_diagnostic_mode;
+  state.saved_lighting = state.lighting;
+  state.probe_profile = state.last_profile_index;
+  state.probe_detail = state.last_detail;
+  state.probe_snapshot = true;
+  state.diagnostic_mode = DiagnosticRenderMode::genome_perspective;
+  state.surface_diagnostic_mode = SurfaceDiagnosticMode::none;
+  state.eye_diagnostic_mode = EyeDiagnosticMode::normal;
+  state.lighting = lighting_for(LightingPreset::noon, OpticalFilterPreset::clear);
+  state.shadow_probe.start();
+}
+
+bool VulkanRenderer::shadow_probe_active() const noexcept {
+  return impl_ && impl_->shadow_probe.active();
+}
+
 void VulkanRenderer::set_ui_tooltip_row(int row) noexcept {
   if (!impl_) return;
-  impl_->ui_tooltip_row = (row >= 0 && row < 11) ? row : -1;
+  impl_->ui_tooltip_row = (row >= 0 && row < 12) ? row : -1;
 }
 
 int VulkanRenderer::ui_tooltip_row() const noexcept {
@@ -1002,6 +1051,7 @@ int VulkanRenderer::ui_tooltip_row() const noexcept {
 }
 
 void VulkanRenderer::set_physiology_preset(PhysiologyPreset preset) noexcept {
+  cancel_shadow_probe();
   if (impl_) impl_->physiology_preset = preset;
 }
 
@@ -1010,6 +1060,7 @@ PhysiologyPreset VulkanRenderer::physiology_preset() const noexcept {
 }
 
 void VulkanRenderer::set_eye_diagnostic_mode(EyeDiagnosticMode mode) noexcept {
+  cancel_shadow_probe();
   if (impl_) impl_->eye_diagnostic_mode = mode;
 }
 
@@ -1018,6 +1069,7 @@ EyeDiagnosticMode VulkanRenderer::eye_diagnostic_mode() const noexcept {
 }
 
 void VulkanRenderer::set_lighting_preset(LightingPreset preset) noexcept {
+  cancel_shadow_probe();
   if (!impl_) return;
   impl_->lighting = lighting_for(preset, impl_->lighting.filter);
 }
@@ -1027,6 +1079,7 @@ LightingPreset VulkanRenderer::lighting_preset() const noexcept {
 }
 
 void VulkanRenderer::set_optical_filter_preset(OpticalFilterPreset preset) noexcept {
+  cancel_shadow_probe();
   if (!impl_) return;
   impl_->lighting = lighting_for(impl_->lighting.preset, preset);
 }
@@ -1102,6 +1155,19 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   if (!ready()) return false;
   auto& state = *impl_;
   if (vkWaitForFences(state.device, 1, &state.in_flight, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
+  if (state.shadow_probe.active() &&
+      ((character_index & 1u) != state.probe_profile || detail_enabled != state.probe_detail))
+    cancel_shadow_probe();
+  state.shadow_probe.advance(time_seconds);
+  if (state.probe_snapshot && !state.shadow_probe.active()) cancel_shadow_probe();
+  if (state.shadow_probe.active()) {
+    constexpr std::array stages{SurfaceDiagnosticMode::none,
+        SurfaceDiagnosticMode::shadow_visibility, SurfaceDiagnosticMode::shadow_compare,
+        SurfaceDiagnosticMode::normals, SurfaceDiagnosticMode::regions};
+    state.surface_diagnostic_mode = stages[state.shadow_probe.stage()];
+  }
+  const float pose_time = state.shadow_probe.active() ? state.shadow_probe.pose_time() : time_seconds;
+  state.last_detail = detail_enabled;
   update_frame_lighting_buffer(state);
   state.last_profile_index = character_index & 1u;
   std::uint32_t image_index{};
@@ -1141,11 +1207,13 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   push.micro0[0]=derived.roughness_bias; push.micro0[1]=derived.pore_density;
   push.micro0[2]=derived.pore_scale; push.micro0[3]=derived.pore_depth;
   push.render[0]=extent_aspect(state.logical_extent); push.render[1]=camera.fov_y_radians;
-  push.render[2]=time_seconds; push.render[3]=std::bit_cast<float>(derived.surface_seed_low);
+  push.render[2]=pose_time; push.render[3]=std::bit_cast<float>(derived.surface_seed_low);
   push.flags[0]=profile_index; push.flags[1]=detail_enabled?1u:0u; push.flags[2]=state.surface_rotation;
   const auto mode_bits=static_cast<std::uint32_t>(state.diagnostic_mode)<<1u;
   const auto camera_bits=static_cast<std::uint32_t>(camera.preset)<<3u;
-  const auto tooltip_bits=static_cast<std::uint32_t>(state.ui_tooltip_row>=0?state.ui_tooltip_row:15)<<5u;
+  const auto probe_bits = state.shadow_probe.active() ? (1u << 25u) : 0u;
+  const auto tooltip_bits=static_cast<std::uint32_t>(state.shadow_probe.active() ? 11 :
+      (state.ui_tooltip_row>=0?state.ui_tooltip_row:15))<<5u;
   const auto physiology_bits=static_cast<std::uint32_t>(state.physiology_preset)<<9u;
   const auto eye_mode_bits=static_cast<std::uint32_t>(state.eye_diagnostic_mode)<<11u;
   const auto lighting_bits=static_cast<std::uint32_t>(state.lighting.preset)<<13u;
@@ -1155,7 +1223,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto close_shadow_bits=
       static_cast<std::uint32_t>(close_shadow.level)<<23u;
   push.flags[3]=mode_bits|camera_bits|tooltip_bits|physiology_bits|eye_mode_bits|
-                lighting_bits|filter_bits|surface_debug_bits|close_shadow_bits;
+                lighting_bits|filter_bits|surface_debug_bits|close_shadow_bits|probe_bits;
 
   VkClearValue shadow_clear{}; shadow_clear.depthStencil={1.0f,0u};
   VkRenderPassBeginInfo spass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -1233,7 +1301,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   eye_push.geometry1[3] = derived.head_scale;
   eye_push.render[0] = extent_aspect(state.logical_extent);
   eye_push.render[1] = camera.fov_y_radians;
-  eye_push.render[2] = time_seconds;
+  eye_push.render[2] = pose_time;
   eye_push.eye0[0] = derived_eye.iris_primary[0];
   eye_push.eye0[1] = derived_eye.iris_primary[1];
   eye_push.eye0[2] = derived_eye.iris_primary[2];
@@ -1275,10 +1343,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                           0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
                   eye_mode_bits | lighting_bits | filter_bits |
-                  surface_debug_bits | close_shadow_bits | 1u;
+                  surface_debug_bits | close_shadow_bits | probe_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 81u, 1u, 0u, 0u);
+  vkCmdDraw(command, 87u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 

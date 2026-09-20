@@ -255,6 +255,10 @@ bool hud_glyph(uint button, vec2 uv) {
         return disk || ring || rays;
     }
 
+    if (button == 11u) {
+        return inside_box(uv, vec2(0.28, 0.68), vec2(0.72, 0.78)) ||
+               inside_box(uv, vec2(0.45, 0.22), vec2(0.55, 0.73));
+    }
     // Filter: optical pane with diagonal polarization marks.
     bool pane = (q.x > 0.20 && q.x < 0.27 && q.y < 0.30) ||
                 (q.y > 0.23 && q.y < 0.30 && q.x < 0.27);
@@ -306,7 +310,35 @@ bool font_pixel(uint c, vec2 uv) {
     return ((font_bits(c) >> bit_index) & 1u) != 0u;
 }
 
+bool shadow_probe_active() { return (pc.flags.w & (1u << 25u)) != 0u; }
+uint probe_label() { return shadow_probe_active() ? 1u + ((pc.flags.w >> 20u) & 7u) : 0u; }
+uint probe_label_char(uint index) {
+    const uint p0[22] = uint[22](84u,69u,83u,84u,32u,32u,70u,73u,86u,69u,32u,70u,73u,88u,69u,68u,32u,86u,73u,69u,87u,83u);
+    if (probe_label() == 0u && index < 22u) return p0[index];
+    const uint p1[12] = uint[12](84u,69u,83u,84u,32u,32u,78u,79u,82u,77u,65u,76u);
+    if (probe_label() == 1u && index < 12u) return p1[index];
+    const uint p2[16] = uint[16](84u,69u,83u,84u,32u,32u,86u,73u,83u,73u,66u,73u,76u,73u,84u,89u);
+    if (probe_label() == 2u && index < 16u) return p2[index];
+    const uint p3[13] = uint[13](84u,69u,83u,84u,32u,32u,78u,79u,82u,77u,65u,76u,83u);
+    if (probe_label() == 3u && index < 13u) return p3[index];
+    const uint p4[13] = uint[13](84u,69u,83u,84u,32u,32u,82u,69u,71u,73u,79u,78u,83u);
+    if (probe_label() == 4u && index < 13u) return p4[index];
+    const uint p5[13] = uint[13](84u,69u,83u,84u,32u,32u,67u,79u,77u,80u,65u,82u,69u);
+    if (probe_label() == 5u && index < 13u) return p5[index];
+    return 32u;
+}
+uint probe_label_length() {
+    if (probe_label() == 0u) return 22u;
+    if (probe_label() == 1u) return 12u;
+    if (probe_label() == 2u) return 16u;
+    if (probe_label() == 3u) return 13u;
+    if (probe_label() == 4u) return 13u;
+    if (probe_label() == 5u) return 13u;
+    return 0u;
+}
+
 uint tooltip_length(uint tooltip) {
+    if (tooltip == 11u) return probe_label_length();
     if (tooltip == 0u) return 20u;
     if (tooltip == 1u) return 22u;
     if (tooltip == 2u) return 23u;
@@ -322,6 +354,7 @@ uint tooltip_length(uint tooltip) {
 }
 
 uint tooltip_char(uint tooltip, uint index) {
+    if (tooltip == 11u) return probe_label_char(index);
     const uint t0[20] = uint[20](67u,72u,65u,82u,32u,48u,32u,32u,77u,65u,76u,69u,32u,80u,82u,79u,70u,73u,76u,69u);
     const uint t1[22] = uint[22](67u,72u,65u,82u,32u,49u,32u,32u,70u,69u,77u,65u,76u,69u,32u,80u,82u,79u,70u,73u,76u,69u);
     const uint t2[23] = uint[23](68u,69u,84u,65u,73u,76u,32u,32u,80u,82u,79u,67u,69u,68u,85u,82u,65u,76u,32u,83u,75u,73u,78u);
@@ -659,7 +692,7 @@ void main() {
             out_colour = vec4(colour, 1.0);
             return;
         }
-        if (body_region < 100u || body_region > 110u) discard;
+        if (body_region < 100u || body_region > 111u) discard;
 
         uint button = body_region - 100u;
         vec2 uv = surface_position_m.xy;
@@ -675,6 +708,7 @@ void main() {
                         (button == 8u && eye_mode != 0u) ||
                         (button == 9u) ||
                         (button == 10u) ||
+                        (button == 11u && shadow_probe_active()) ||
                         (button == tooltip);
 
         float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));

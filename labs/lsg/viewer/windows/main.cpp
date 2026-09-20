@@ -133,7 +133,7 @@ int ui_row_from_point(int x, int y, int width, int height) {
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.020f || nx > 0.185f) return -1;
-  for (int row = 0; row < 11; ++row) {
+  for (int row = 0; row < 12; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.029f) return row;
   }
@@ -144,12 +144,13 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
-  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.820f;
+  return nx >= 0.010f && nx <= 0.195f && ny >= 0.035f && ny <= 0.890f;
 }
 
 void handle_ui_row(ViewerState& state, int row) {
   if (state.renderer == nullptr) return;
   using rengine::lsg::CameraPreset;
+  if (row != 11) state.renderer->cancel_shadow_probe();
   switch (row) {
     case 0: state.character_index = 0; break;
     case 1: state.character_index = 1; break;
@@ -213,6 +214,7 @@ void handle_ui_row(ViewerState& state, int row) {
       print_diagnostics(state, "Optical filter changed");
       break;
     }
+    case 11: state.renderer->toggle_shadow_probe(); break;
     default: break;
   }
 }

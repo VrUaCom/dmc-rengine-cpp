@@ -159,7 +159,7 @@ void emit_ui_environment_vertex() {
 
     if (vertex < 9u) {
         vec2 corner = quad[vertex - 3u];
-        vec2 logical_clip = vec2(-0.81, 0.20) + corner * vec2(0.17, 0.76);
+        vec2 logical_clip = vec2(-0.81, 0.11) + corner * vec2(0.17, 0.85);
         gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.012, 1.0);
         surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
         view_normal = vec3(0.0, 0.0, 1.0);
@@ -170,7 +170,7 @@ void emit_ui_environment_vertex() {
 
     uint local_vertex = vertex - 9u;
     uint row = local_vertex / 6u;
-    if (row < 11u) {
+    if (row < 12u) {
         vec2 corner = quad[local_vertex % 6u];
         float center_y = 0.86 - float(row) * 0.14;
         vec2 logical_clip = vec2(-0.81, center_y) + corner * vec2(0.13, 0.050);
@@ -183,8 +183,8 @@ void emit_ui_environment_vertex() {
     }
 
     uint tooltip = (pc.flags.w >> 5u) & 15u;
-    if (vertex < 81u && tooltip < 11u) {
-        vec2 corner = quad[vertex - 75u];
+    if (vertex < 87u && tooltip < 12u) {
+        vec2 corner = quad[vertex - 81u];
         vec2 logical_clip = vec2(0.08, -0.82) + corner * vec2(0.74, 0.075);
         gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.008, 1.0);
         surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
