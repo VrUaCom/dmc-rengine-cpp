@@ -15,8 +15,10 @@ mark-span і перевірку трьох failure paths. [Placement і pool set
 додали пошук ділянок, ініціалізацію та зміну резерву.
 [Palette helper](dmc3-ptx-palette-2026-09-16.md) відновив копіювання з банків,
 лічильники та залежність від стану стеку; визначено глобальний palette context
-і caller його initialize/cleanup. Parser, render finalizer та lifecycle
-allocation helpers залишаються зовнішніми межами. [Черга гілки](ada-astra-reverse-queue.md)
+і caller його initialize/cleanup. [Lifecycle та block allocator](dmc3-ptx-palette-lifecycle-2026-09-21.md)
+додали створення/очищення банків і route/search/allocate/free арен із перевіркою
+залишкового стану при відмовах. Parser, render finalizer, callback drain
+та production arena setup залишаються відкритими. [Черга гілки](ada-astra-reverse-queue.md)
 фіксує наступні ділянки й відкриті структурні прогалини.
 
 Загальна карта охоплює запуск і глобальну
