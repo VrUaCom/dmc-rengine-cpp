@@ -1,5 +1,9 @@
 # DMC3 HD: how much of the image can the entry point reach? (2026-09-16)
 
+> **Corrected again** by `docs/reverse/dmc3-closure-gaps-2026-09-22.md`: the
+> closure behind `outside_every_closure` follows calls and dispatch only, and 362
+> of the 1,641 are reachable by funclet and taken-address edges the file records.
+>
 > **Corrected** by `docs/reverse/dmc3-unreached-population-2026-09-20.md`.
 > The row below reading "nothing in the image refers to them at all — 847" counts
 > functions with **no call edge**, not functions nothing refers to. A raw scan finds

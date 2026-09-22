@@ -39,6 +39,8 @@ jobs:
         run: python research/sql/test_check_evidence_figures.py
       - name: Record decoder extractor guardrails
         run: python research/exe/test_extract_record_decoders.py
+      - name: Closure gap measurement guardrails
+        run: python research/exe/test_measure_closure_gaps.py
       - name: Configure
         run: cmake -S . -B build -DDMC_RENGINE_BUILD_TESTS=ON
       - name: Build

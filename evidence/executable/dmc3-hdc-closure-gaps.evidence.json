@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-closure-gaps",
+  "title": "DMC3 HD: the widest closure misses funclets and taken addresses, and the engine has five catch clauses",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-closure-misses-two-edge-kinds",
+      "claim_id": "claim-dmc3-outside-every-closure",
+      "title": "362 of the 1,641 are reachable by edges the file records and the closure does not follow",
+      "summary": "The function map flags 1,641 functions outside every closure and the reachability note describes them as unreachable under any assumption the file supports. The closure follows direct calls and virtual dispatch only. The file records two more kinds of edge. A funclet named in a C++ FuncInfo or an SEH scope table is entered by the runtime while its parent is on the stack, so a funclet of a reachable parent is reachable; and a function whose start is loaded by a rip-relative lea inside reachable code can be called by whatever receives the address. Starting from the tool's 5,748 and closing over its own call edges reproduces exactly 5,748, confirming the reconstruction. Adding funclets absorbs 314 of the 1,641, adding taken addresses absorbs 48, and both together 362, leaving 1,279 over 557,004 bytes. By count that is 22 per cent of the flagged population; by mass it barely moves, from 587,983 bytes, because funclets are small. The substance of the population note survives - the unreached mass is game code entered by routes the file does not record - but the guarantee attached to the flag should read over calls and dispatch, not under any assumption the file supports.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "reachability",
+        "method"
+      ],
+      "supersedes": [
+        "ev-dmc3-847-was-call-edges-not-references"
+      ],
+      "locations": [],
+      "figures": {
+        "outside_every_closure": 1641,
+        "reachable_through_dispatch": 5748
+      }
+    },
+    {
+      "id": "ev-dmc3-eh-metadata-parsed",
+      "claim_id": "claim-dmc3-funclets-are-one-entry-mechanism",
+      "title": "The unwind references were exact once the handler data was parsed, and the .rdata question dissolved",
+      "summary": "The previous note found 332 unreached functions referenced from unwind data, called it a lower bound because each structure was measured only to its handler pointer, and called 526 references in ordinary read-only data the likeliest home of a second entry mechanism. Parsing the handler data shows the second statement was wrong. Every handler is one of four routines: the stack-cookie check with no funclets on 1,408 entries, the C++ frame handler through a thunk on 518, the cookie-checking C++ variant on 279, and the SEH handler on 5. All 797 FuncInfo pointers land on a valid magic number, which identifies the variant by behaviour rather than by address. With the full FuncInfo, unwind-map and IP-map extents, most of the 526 read-only references were exception metadata beyond the short extents used before, and the whole population partitions exactly: 794 called by another unreached function, 383 with no caller that are exception targets - 327 unwind actions, 49 IP-map entries only, 5 catch handlers and 5 SEH filters or handlers - 108 named only as the parent of their own split fragment, 99 referenced by other data or code, and 257 referenced nowhere outside the unwind directory.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "exception-handling",
+        "census"
+      ],
+      "supersedes": [
+        "ev-dmc3-funclets-are-one-entry-mechanism"
+      ],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3435486,
+          "size": 6,
+          "symbol": "the C++ frame handler thunk",
+          "note": "RVA 0x346BDE, jmp through the __CxxFrameHandler3 import slot, named by 518 unwind records."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3430632,
+          "size": 64,
+          "symbol": "the cookie-checking C++ handler",
+          "note": "RVA 0x3458E8, named by 279 unwind records whose data all begins with a valid FuncInfo."
+        }
+      ]
+    },
+    {
+      "id": "ev-dmc3-five-catch-clauses",
+      "claim_id": "claim-dmc3-five-catch-clauses",
+      "title": "792 FuncInfo, 2,240 unwind states, and five catch clauses in the entire image",
+      "summary": "Parsing every FuncInfo gives 792 distinct structures, 2,240 unwind states and 4,150 IP-to-state entries, and five try blocks holding five catch clauses between them. The engine uses C++ exceptions almost exclusively to run destructors during unwinding and almost never to catch anything. For a port that is a strong simplification: the observable exception semantics reduce to RAII on the handful of paths that can throw, with five catch sites to reproduce.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "exception-handling",
+        "portability"
+      ],
+      "supersedes": [],
+      "locations": []
+    },
+    {
+      "id": "ev-dmc3-taken-addresses-are-array-iterators",
+      "claim_id": "claim-dmc3-taken-addresses-are-array-iterators",
+      "title": "The second route is MSVC's array iterators taking element constructors and destructors by pointer",
+      "summary": "Verified instruction by instruction, reached code at 0x254BB3 loads the addresses of 0x254C40 and 0x254D00 with lea and passes them with an element size of 0xE00 and a count of 0x27 to 0x345B24, and at 0x254CCA passes 0x254D00 with the same size and count to 0x345B94. Those are the runtime's array constructor iterator, taking constructor and destructor, and array destructor iterator, taking destructor; they have 145 and 360 callers respectively. The element destructor is only ever called by the helper through the pointer it was given, so a closure that does not follow taken addresses calls it unreachable. The census behind it has a control: 13,225 rip-relative lea patterns in .text hit 49 unreached function starts, 23 from inside reached code, and none of 1,641 aligned non-start addresses from the same span. The 260 raw-dword matches in .text the previous scan counted are coincidences, since x64 code does not take a function's address as an absolute 32-bit value.",
+      "confidence": "confirmed",
+      "tags": [
+        "exe",
+        "reachability",
+        "call-graph"
+      ],
+      "supersedes": [],
+      "locations": [
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 2444211,
+          "size": 37,
+          "symbol": "an array constructor call",
+          "note": "RVA 0x254BB3, constructor 0x254C40 and destructor 0x254D00 passed to 0x345B24."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3431204,
+          "size": 112,
+          "symbol": "the array constructor iterator",
+          "note": "RVA 0x345B24, 145 calling functions."
+        },
+        {
+          "artifact_id": "dmc3-hdc-exe-e454272e",
+          "rva": 3431316,
+          "size": 108,
+          "symbol": "the array destructor iterator",
+          "note": "RVA 0x345B94, 360 calling functions."
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,12 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-unreached-population`.
 
+> **Corrected** by `docs/reverse/dmc3-closure-gaps-2026-09-22.md`. The 332
+> unwind-data figure is superseded by an exact parse (383 no-caller exception
+> targets), and the 526 "ordinary `.rdata`" references were mostly exception
+> metadata beyond the short extents used here, not a second mechanism. The second
+> mechanism is in code: taken addresses passed to the runtime's array iterators.
+
 The reachability note of 2026-09-16 established the bracket and counted the
 population outside it. It listed what those functions are *not* — none exported,
 none bound to a vtable slot, none an import thunk — and left what they *are*

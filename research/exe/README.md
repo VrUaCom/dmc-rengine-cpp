@@ -38,3 +38,25 @@ python3 research/exe/test_extract_record_decoders.py
 
 Cited by `docs/reverse/dmc3-zip-directory-2026-09-18.md` and evidence packet
 `dmc3-hdc-zip-directory`.
+
+## `measure_closure_gaps.py`
+
+Re-closes the function map's reachable set over two edge kinds its
+`outside_every_closure` flag does not follow — exception funclets of reachable
+parents, and addresses taken by `lea` inside reachable code — and reports how much
+of the flagged population each absorbs.
+
+```sh
+dmc-rengine map-functions /path/to/dmc3.exe --all --out map.json
+python3 research/exe/measure_closure_gaps.py /path/to/dmc3.exe map.json
+```
+
+Handlers are identified by the import they jump through and `FuncInfo` by its
+magic number, not by address. Tests need no executable:
+
+```sh
+python3 research/exe/test_measure_closure_gaps.py
+```
+
+Cited by `docs/reverse/dmc3-closure-gaps-2026-09-22.md` and evidence packet
+`dmc3-hdc-closure-gaps`.
