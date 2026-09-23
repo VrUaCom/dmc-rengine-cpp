@@ -97,4 +97,26 @@ inline constexpr std::array<WeaponSecondPart, 1> weapon_state0_second_parts{{
     return std::nullopt;
 }
 
+// Weapon ids. Factory 0x1401DED20 switches on the melee slots (player
+// +0x6498, jump table 0x1401DEF64) and gun slots (+0x649A, table 0x1401DEFA4);
+// LadyGun is created with dl = id. Dante's loader 0x1401DF6BE loads
+// motion\\pl000\\pl000_00_N.pac with N = byte 0x14058ABC8[id * 4] through
+// 0x1401B90B0 (per-character path lists at 0x1405B0F30).
+struct WeaponId final {
+    std::uint8_t id;
+    std::string_view class_name;
+    std::uint8_t pl000_motion_file;
+};
+
+inline constexpr std::array<WeaponId, 15> weapon_ids{{
+    {0U, "CPlWpSword", 3U},        {1U, "CPlWpNunchaku", 4U},
+    {2U, "CPlWp2Sword", 5U},       {3U, "CPlWpGuitar", 6U},
+    {4U, "CPlWpFight", 7U},        {5U, "CPlWpGun", 8U},
+    {6U, "CPlWpShotGun", 9U},      {7U, "CPlWpLaser", 10U},
+    {8U, "CPlWpRifle", 11U},       {9U, "CPlWpLadyGun", 12U},
+    {10U, "CPlWpLadyGun", 27U},    {11U, "CPlWpNewVergilSword", 28U},
+    {12U, "CPlWpFight", 29U},      {13U, "CPlWpFoeceEdge", 30U},
+    {14U, "CPlWpVergilSword", 31U},
+}};
+
 } // namespace dmc::rengine::profiles::dmc3::player_attachment

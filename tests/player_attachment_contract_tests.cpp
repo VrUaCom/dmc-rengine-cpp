@@ -23,6 +23,10 @@ int main() {
     static_assert(pair->joint == 3U && pair->translation[0] == -13.0F);
     static_assert(!pa::second_part_for_class("CPlWpSword").has_value());
 
+    static_assert(pa::weapon_ids[2].class_name == "CPlWp2Sword");
+    static_assert(pa::weapon_ids[2].pl000_motion_file == 5U);
+    static_assert(pa::weapon_ids[13].class_name == "CPlWpFoeceEdge");
+
     for (const auto& record : pa::weapon_state0_records) {
         assert(record.pac_stem.starts_with("plwp_"));
         assert(record.attach_table_va >= 0x140553000ULL);   // .data

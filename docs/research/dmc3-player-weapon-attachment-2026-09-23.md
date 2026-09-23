@@ -94,3 +94,33 @@ only the root puts both blades in one place, so Rudra hides inside Agni.
 CPlWpNewVergilSword uses the same two parts for two separate models
 (`+0xE80` sword, `+0x1600` sheath with chain simulation, update
 `0x14022DDD0`, pose `0x14022DC60`); not tabled yet.
+
+## Weapon ids and motion banks
+
+Factory `0x1401DED20` builds the melee weapons from player `+0x6498` (two
+slots, jump table `0x1401DEF64`) and the guns from `+0x649A` (three slots,
+table `0x1401DEFA4`):
+
+| id | class | common name | `pl000_00_N.pac` |
+| --- | --- | --- | --- |
+| 0 | CPlWpSword | Rebellion | 3 |
+| 1 | CPlWpNunchaku | Cerberus | 4 |
+| 2 | CPlWp2Sword | Agni & Rudra | 5 |
+| 3 | CPlWpGuitar | Nevan | 6 |
+| 4 | CPlWpFight | Beowulf | 7 |
+| 5 | CPlWpGun | Ebony & Ivory | 8 |
+| 6 | CPlWpShotGun | Shotgun | 9 |
+| 7 | CPlWpLaser | Artemis | 10 |
+| 8 | CPlWpRifle | Spiral | 11 |
+| 9 | CPlWpLadyGun (dl = 9) | Kalina Ann | 12 |
+| 10 | CPlWpLadyGun (dl = 10) | - | 27 |
+| 11 | CPlWpNewVergilSword | Yamato | 28 |
+| 12 | CPlWpFight | Beowulf | 29 |
+| 13 | CPlWpFoeceEdge | Force Edge | 30 |
+| 14 | CPlWpVergilSword | Yamato | 31 |
+
+Dante's motion loader `0x1401DF6BE` loads, for every equipped id, file
+`motion\\pl000\\pl000_00_N.pac` with `N = byte 0x14058ABC8[id * 4]` through
+`0x1401B90B0(res, character 0, N)`; the per-character path lists are at
+`0x1405B0F30` (pl000, pl001, pl002, pl021; 34 entries each). Class names come
+from RTTI; the common names are the usual English names of those classes.
