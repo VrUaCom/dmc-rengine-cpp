@@ -149,7 +149,9 @@ branch outcomes і SHA-256 вихідних файлів; `evidence.json` — а
 ## Наступна ділянка
 
 `0x140331BD0`: структура palette argument, копіювання й лічильники.
-Далі — `0x140331A80` та повний тип graphics config за `0x140D6D300`.
-Окрема lifecycle-задача: встановити callers initializer/configure і знайти
-фактичне очищення ресурсів перед скиданням ключів кешу.
+Подальші висновки про config і reservation callers є в
+[graphics profile report](dmc3-ptx-graphics-config-2026-09-23.md); bounded
+finalizer path описаний у [render finalizer report](dmc3-ptx-render-finalizer-2026-09-23.md).
+Повний тип config, звільнення GPU resources перед reset keys і draw/shutdown
+зв'язки залишаються окремими lifecycle-задачами.
 [Загальна черга](ada-astra-reverse-queue.md) зберігає решту відкритих задач.

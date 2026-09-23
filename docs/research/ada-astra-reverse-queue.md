@@ -18,8 +18,8 @@
 | Підтверджено в межах звіту | [Backing allocator `0x140337920`](dmc3-ptx-temporary-backing-2026-09-23.md) | 25 EXE/C++ сценаріїв; nested lease і caller `0x14004F49F`; відносний runtime-порядок глобального `0x140CF1030` та embedded `this+0x5E0` залишається відкритим |
 | Реалізовано, частково | [Graphics profile і pool lifecycle](dmc3-ptx-graphics-config-2026-09-23.md) | Підтверджено `0xB0` zero-init, canonical preset index 1, writes `+0x4A/+0x4C/+0x4E` і 14 pool callsites; повний тип та release-власник відкриті |
 | Відкрита | Відновлення після partial allocation | Context cleanup прибирає published allocation failures; непов'язані placement failures і поточна невдала текстура потребують дослідження scene/global cleanup |
-| Наступна | Finalizer `0x140331A80` | Поведінка render descriptor, зовнішні виклики, зв'язок із draw/shutdown |
-| Відкрита | Parser/backend `0x1403365B0` | Докази для TM2 і descriptor+DDS без повторення вже закритого corpus framing |
+| Реалізовано, частково | [Finalizer `0x140331A80`](dmc3-ptx-render-finalizer-2026-09-23.md) | Підтверджені два матеріалізаторні callers, зміни record і publication у registry `0x1405E1830`; читачі registry й shutdown-власник відкриті |
+| Наступна | Parser/backend `0x1403365B0` | Докази для TM2 і descriptor+DDS без повторення вже закритого corpus framing |
 | Відкрита | 899 неохоплених vtable-кандидатів | Класифікувати код/дані/дублікати/хибні кандидати; не додавати всі адреси як функції автоматично |
 | Відкрита | Семантичні межі virtual tables | Підтвердити consumers і сигнатури, не прирівнювати фізичні pointer-runs до методів |
 | Відкрита | CMcAppli та scene lifecycle | Шляхи initialize/update/draw/shutdown, володіння й teardown за доказами EXE |

@@ -203,8 +203,9 @@ SEH і графічне виконання. Host guards для нульовог�
 python scripts/reverse/verify_ptx_palette_lifecycle.py /path/to/dmc3.exe . data/reverse/ptx-palette-lifecycle-20260921
 ```
 
-Наступний пріоритет: callback-список `0x1403292A0` та створення арен;
-потім підтвердити реальний initialize/cleanup порядок глобального
-контексту `0x140CF1030` й embedded контексту `this+0x5E0`. Тип власника,
-finalizer `0x140331A80`, parser і зв'язки з draw/shutdown ще відкриті.
+Callback queue, backing allocator та їхні окремі звіти додані після цього
+історичного проходу. Реальний initialize/cleanup порядок глобального контексту
+`0x140CF1030` й embedded `this+0x5E0` ще не з'єднаний спільним runtime trace.
+Bounded static pass для finalizer `0x140331A80` є в окремому звіті; registry
+consumers, parser і зв'язки з draw/shutdown ще відкриті.
 Структурні прогалини CRT/vtable залишаються в [черзі гілки](ada-astra-reverse-queue.md).
