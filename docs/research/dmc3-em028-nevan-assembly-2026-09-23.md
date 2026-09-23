@@ -73,7 +73,23 @@ joint 3 (0, 124.4, 0) equals body joint 4 (0, 149.3, -4.9); sleeve node 1 rest
 - The chains (hair strands, dress) keep their rest locals without
   `0x1402C9DC0`; the dress hangs straight down.
 
-## 5. Open
+## 5. Dress changes in play
+
+- None of the 25 MOTs in slots 2/3 carries non-unit scale on any body joint
+  (checked by evaluating every second frame), so the dress does not resize
+  through the body motion.
+- `0x14012F790` counts the live bat objects (16 pointers at `this+0x64F0`,
+  `+0x6580` alive, `+0x6584` flagged) and, through the dress model's MOD
+  document (`model+0x80`, `0x140089DE0`), toggles bit 0 of outer objects 2
+  and 3 (`0x1402F74E0` sets it, `0x1402F7350` path clears it via
+  `0x1402F7400`; records of 0x380 bytes at `document+0x100`). In the sample
+  those objects are the small front strip (42 and 40 vertices, the lightning
+  seam), not the dress body.
+- The dress body (objects 0 and 1, nodes 4-13) is the chain simulated by
+  `0x1402C9DC0` from `this+0x4CF0`; its lengthening and shortening is the
+  remaining candidate for the size change seen in game.
+
+## 6. Open
 
 - Constraint enable byte `+0x20` (set outside init) and when mode 2 is used.
 - Chain simulation parameters (`0x1402C9F40`, `0x1402CA1D0`, `0x1402CA0A0`) and
