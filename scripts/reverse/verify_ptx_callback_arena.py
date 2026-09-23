@@ -242,7 +242,7 @@ def run(exe, repo, out):
         'limitations': [
             'Callback target bodies are intercepted at a synthetic RET stub; their own semantics are outside this pass.',
             'Operator-new allocation failure and callback reentrancy/concurrency are not modeled.',
-            'Global arena owner initialization through 0x140337920 and caller ordering remain open.',
+            'Global backing ownership is checked separately by verify_ptx_temporary_backing.py; cross-owner runtime ordering is not established.',
             'Arena overlap/invalid-pointer CPU-fault behavior is not modeled; the fixtures use disjoint bounded spans.',
         ],
     }

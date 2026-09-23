@@ -1,0 +1,161 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "cases": 25,
+  "case_results": [
+    {
+      "name": "arena-init-shift-6",
+      "status": "PASS",
+      "base": "0x64000000",
+      "bytes": 4096,
+      "alignment_shift": 6
+    },
+    {
+      "name": "lease-acquire-shift-6",
+      "status": "PASS",
+      "lease_depth": 1
+    },
+    {
+      "name": "alloc-shift-6-0",
+      "status": "PASS",
+      "requested": 1,
+      "returned": "0x64000000"
+    },
+    {
+      "name": "alloc-shift-6-1",
+      "status": "PASS",
+      "requested": 64,
+      "returned": "0x64000040"
+    },
+    {
+      "name": "alloc-shift-6-2",
+      "status": "PASS",
+      "requested": 65,
+      "returned": "0x64000080"
+    },
+    {
+      "name": "alloc-shift-6-3",
+      "status": "PASS",
+      "requested": 4096,
+      "returned": "0x0"
+    },
+    {
+      "name": "alloc-shift-6-4",
+      "status": "PASS",
+      "requested": 4294967295,
+      "returned": "0x0"
+    },
+    {
+      "name": "lease-release-shift-6",
+      "status": "PASS",
+      "cursor_restored": true
+    },
+    {
+      "name": "arena-init-shift-4",
+      "status": "PASS",
+      "base": "0x64000003",
+      "bytes": 1024,
+      "alignment_shift": 4
+    },
+    {
+      "name": "lease-acquire-shift-4",
+      "status": "PASS",
+      "lease_depth": 1
+    },
+    {
+      "name": "alloc-shift-4-0",
+      "status": "PASS",
+      "requested": 1,
+      "returned": "0x64000010"
+    },
+    {
+      "name": "alloc-shift-4-1",
+      "status": "PASS",
+      "requested": 16,
+      "returned": "0x64000020"
+    },
+    {
+      "name": "alloc-shift-4-2",
+      "status": "PASS",
+      "requested": 17,
+      "returned": "0x64000030"
+    },
+    {
+      "name": "alloc-shift-4-3",
+      "status": "PASS",
+      "requested": 1024,
+      "returned": "0x0"
+    },
+    {
+      "name": "alloc-shift-4-4",
+      "status": "PASS",
+      "requested": 4294967295,
+      "returned": "0x0"
+    },
+    {
+      "name": "lease-release-shift-4",
+      "status": "PASS",
+      "cursor_restored": true
+    },
+    {
+      "name": "arena-init-shift-0",
+      "status": "PASS",
+      "base": "0x64000800",
+      "bytes": 256,
+      "alignment_shift": 0
+    },
+    {
+      "name": "lease-acquire-shift-0",
+      "status": "PASS",
+      "lease_depth": 1
+    },
+    {
+      "name": "alloc-shift-0-0",
+      "status": "PASS",
+      "requested": 1,
+      "returned": "0x64000800"
+    },
+    {
+      "name": "alloc-shift-0-1",
+      "status": "PASS",
+      "requested": 1,
+      "returned": "0x64000801"
+    },
+    {
+      "name": "alloc-shift-0-2",
+      "status": "PASS",
+      "requested": 2,
+      "returned": "0x64000802"
+    },
+    {
+      "name": "alloc-shift-0-3",
+      "status": "PASS",
+      "requested": 256,
+      "returned": "0x0"
+    },
+    {
+      "name": "alloc-shift-0-4",
+      "status": "PASS",
+      "requested": 4294967295,
+      "returned": "0x0"
+    },
+    {
+      "name": "lease-release-shift-0",
+      "status": "PASS",
+      "cursor_restored": true
+    },
+    {
+      "name": "nested-leases-lifo",
+      "status": "PASS",
+      "outer_release_blocked_while_nested": true,
+      "inner_release_restores_snapshot": true
+    }
+  ],
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "limitations": [
+    "Host spans are not dereferenced by the allocator fixture; returned virtual addresses and descriptor bytes are compared.",
+    "Concurrent calls, reentrant acquisition and non-LIFO lease recovery are outside the model.",
+    "Constructor reachability is established by a direct callsite; process runtime ordering is not traced.",
+    "Global and embedded PTX context paths are each statically identified, but their relative lifetime order remains unproven."
+  ]
+}

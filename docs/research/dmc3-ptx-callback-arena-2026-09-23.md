@@ -72,8 +72,8 @@ backing spans from `0x140337920`:
 | `0x140CA8960` | `0x00400000` | `0x200` | 6 |
 
 The C++ slice implements and differentially checks the per-state initializer.
-It does not yet model the `0x140337920` backing allocator or the full caller
-that triggers one-time setup.
+The backing allocator and its setup caller are recovered in
+[`dmc3-ptx-temporary-backing-2026-09-23.md`](dmc3-ptx-temporary-backing-2026-09-23.md).
 
 ## Artifacts and verification
 
@@ -98,7 +98,8 @@ Arena overlap and invalid-pointer CPU-fault behavior are also outside the
 fixture domain. These checks do not establish that a real game callback leaks
 or that a production caller violates initialization order.
 
-Next: recover the backing allocator at `0x140337920` and prove the real call
-order for global context `0x140CF1030` and embedded context `this+0x5E0`.
-Then continue the previously queued graphics configuration and finalizer
-links.
+Next: continue the previously queued graphics configuration and finalizer
+links. The relative runtime order between global context `0x140CF1030` and
+embedded context `this+0x5E0` remains open; available evidence identifies their
+separate initialization and cleanup callsites but does not connect their
+lifetimes in one runtime trace.
