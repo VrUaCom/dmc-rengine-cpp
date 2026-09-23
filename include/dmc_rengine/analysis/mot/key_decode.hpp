@@ -177,4 +177,71 @@ select_cached_segment3(
         0};
 }
 
+// 0x1402E8FB0: compression-2 key search. Its instruction stream equals the
+// compression-3 search 0x1402E8C80 except for the 4-byte key stride, so the
+// selection contract is identical. Key times are the low 15 bits.
+[[nodiscard]] inline std::optional<CachedSegmentSelection>
+select_cached_segment2(
+    const formats::mot::TrackRecord& track,
+    float local_time,
+    std::int32_t cached_index) noexcept {
+    if (track.compression != 2U ||
+        track.quantization_float_count != 2U ||
+        track.key_count == 0U ||
+        track.key_count > static_cast<std::uint16_t>(
+            std::numeric_limits<std::int16_t>::max()) ||
+        track.keys2.size() < static_cast<std::size_t>(track.key_count) ||
+        !std::isfinite(local_time) ||
+        cached_index < 0 ||
+        cached_index >= static_cast<std::int32_t>(track.key_count)) {
+        return std::nullopt;
+    }
+
+    const auto count = static_cast<std::size_t>(track.key_count);
+    const auto key_time = [&track](std::size_t index) noexcept {
+        return static_cast<float>(track.keys2[index].time_control & 0x7FFFU);
+    };
+
+    for (std::size_t index = 1U; index < count; ++index) {
+        if (key_time(index) < key_time(index - 1U)) return std::nullopt;
+    }
+
+    std::size_t index = static_cast<std::size_t>(cached_index);
+    if (local_time >= key_time(index)) {
+        while (index < count - 1U) {
+            if (key_time(index + 1U) > local_time) {
+                return CachedSegmentSelection{
+                    SegmentSelectionKind::segment, index, index + 1U,
+                    static_cast<std::int32_t>(index)};
+            }
+            if (key_time(index) == local_time) {
+                return CachedSegmentSelection{
+                    SegmentSelectionKind::single_key, index, index,
+                    static_cast<std::int32_t>(index)};
+            }
+            ++index;
+        }
+        return CachedSegmentSelection{
+            SegmentSelectionKind::single_key, index, index,
+            static_cast<std::int32_t>(count - 1U)};
+    }
+
+    while (index >= 1U) {
+        const auto previous = index - 1U;
+        if (local_time > key_time(previous)) {
+            return CachedSegmentSelection{
+                SegmentSelectionKind::segment, previous, index,
+                static_cast<std::int32_t>(previous)};
+        }
+        if (local_time == key_time(previous)) {
+            return CachedSegmentSelection{
+                SegmentSelectionKind::single_key, previous, previous,
+                static_cast<std::int32_t>(previous)};
+        }
+        index = previous;
+    }
+
+    return CachedSegmentSelection{SegmentSelectionKind::single_key, 0U, 0U, 0};
+}
+
 } // namespace dmc::rengine::analysis::mot

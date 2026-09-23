@@ -74,4 +74,45 @@ evaluate_compression3_track(
         selection->right_index};
 }
 
+// 0x1402E9170 case 2 (0x1402E9338): select through 0x1402E8FB0, then
+// v = (1 - u) * left + u * right with u measured in the track-local time
+// domain. Compression 2 has no Hermite branch.
+[[nodiscard]] inline std::optional<EvaluatedCompression3Sample>
+evaluate_compression2_track(
+    const formats::mot::TrackRecord& track,
+    float evaluation_time,
+    std::int32_t cached_index) noexcept {
+    if (!std::isfinite(evaluation_time)) return std::nullopt;
+
+    const auto offset = signed_track_time_offset(track.start_time_raw);
+    const auto local_time = evaluation_time - static_cast<float>(offset);
+    const auto selection =
+        select_cached_segment2(track, local_time, cached_index);
+    if (!selection.has_value()) return std::nullopt;
+
+    const auto left = decode_key(track, selection->left_index);
+    if (!left.has_value()) return std::nullopt;
+
+    float value = left->value;
+    if (selection->is_segment()) {
+        const auto right = decode_key(track, selection->right_index);
+        if (!right.has_value()) return std::nullopt;
+        const auto t0 = static_cast<float>(
+            track.keys2[selection->left_index].time_control & 0x7FFFU);
+        const auto t1 = static_cast<float>(
+            track.keys2[selection->right_index].time_control & 0x7FFFU);
+        if (!(t1 > t0)) return std::nullopt;
+        const float u = (local_time - t0) / (t1 - t0);
+        value = (1.0F - u) * left->value + u * right->value;
+    }
+    if (!std::isfinite(value)) return std::nullopt;
+
+    return EvaluatedCompression3Sample{
+        value,
+        selection->cached_index,
+        selection->kind,
+        selection->left_index,
+        selection->right_index};
+}
+
 } // namespace dmc::rengine::analysis::mot

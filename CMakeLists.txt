@@ -172,6 +172,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         scm_transform_inverse
         mot
         mot_key_decode
+        mot_animated_local
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats
