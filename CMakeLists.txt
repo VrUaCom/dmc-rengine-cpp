@@ -173,6 +173,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mot
         mot_key_decode
         mot_animated_local
+        player_attachment_contract
         stage_txt
         resource_analyzer
         resource_analyzer_structural_formats
