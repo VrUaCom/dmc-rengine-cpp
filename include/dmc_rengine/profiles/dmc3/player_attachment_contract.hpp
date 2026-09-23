@@ -69,4 +69,32 @@ inline constexpr std::array<WeaponAttachRecord, 8> weapon_state0_records{{
     return std::nullopt;
 }
 
+// Records are 0x60 bytes: part 0 (+0x03 joint, +0x10 T, +0x20 R) and part 1
+// (+0x31 joint, +0x40 T, +0x50 R); 0x1401FDA80 builds both locals, while
+// 0x1401FD8F0 builds one of them. CPlWp2Sword (Agni & Rudra) is one MOD:
+// pose 0x140227CF0 sets node 2 = local(part 0) x joint(+0x114), node 1 =
+// local(part 1) x joint(+0x115) and node 0 = player world (player +0x180).
+struct WeaponSecondPart final {
+    std::string_view class_name;
+    std::uint64_t pose_function_va;
+    std::uint8_t first_node;
+    std::uint8_t second_node;
+    std::uint8_t joint;
+    std::array<float, 3> translation;
+    std::array<float, 3> rotation_xyz_radians;
+};
+
+inline constexpr std::array<WeaponSecondPart, 1> weapon_state0_second_parts{{
+    {"CPlWp2Sword", 0x140227CF0ULL, 2U, 1U, 3U, {-13.0F, 32.0F, -14.0F},
+     {-1.6580626964569092F, 0.0F, 3.4033920764923096F}},
+}};
+
+[[nodiscard]] constexpr std::optional<WeaponSecondPart> second_part_for_class(
+    std::string_view class_name) noexcept {
+    for (const auto& part : weapon_state0_second_parts) {
+        if (part.class_name == class_name) return part;
+    }
+    return std::nullopt;
+}
+
 } // namespace dmc::rengine::profiles::dmc3::player_attachment

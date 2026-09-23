@@ -66,3 +66,31 @@ vtable[1]. They are not catalogued.
 - State 0 is taken as the idle/sheathed pose; the state machine that selects
   hand records (e.g. Rebellion joint 9 / joint 13 records) is not reversed.
 - Joint-table index = MOD node index is assumed (see the coat note).
+
+## Two-part records (Agni & Rudra)
+
+Every attach record is 0x60 bytes. `0x1401FDA80` builds two locals from it:
+part 0 from `+0x03` (joint), `+0x10` (T), `+0x20` (XYZ Euler) and part 1 from
+`+0x31` (joint), `+0x40` (T), `+0x50` (XYZ Euler); `0x1401FD8F0` builds one of
+them (selected by `r9b`). Byte `+0x00` goes to `+0x11A` (an alternate pose
+branch in `0x140227CF0`), `+0x02`/`+0x30` to `+0x116`/`+0x117`.
+
+`plwp_2sword.pac` (sample SHA-256
+`f8e8adb48a06184ce1eb82f954cf28d7441c9a666fde4639502531df5470adad`) holds one
+weapon MOD with three nodes: primitives 0-1 are skinned to node 2 (Agni),
+primitives 2-3 to node 1 (Rudra), both in the same rest place. CPlWp2Sword's
+pose `0x140227CF0` (vtable `0x1404E0830`, entry 5) writes
+
+- node 2 world = `+0xA40` (part 0 local) x player.joint(`+0x114`),
+- node 1 world = `+0xA80` (part 1 local) x player.joint(`+0x115`),
+- node 0 world = player world (`player + 0x180`).
+
+`+0xA40`/`+0xA80` are rebuilt every frame (`0x140227FFE`, `0x140228495`) from
+the record plus spin offsets at `+0xB74`/`+0xB78`. State-0 record
+`0x14058C1A0`: part 0 joint 3, T(16, -43, -15), R(-1.6057, 0, 0.2618);
+part 1 joint 3, T(-13, 32, -14), R(-1.6581, 0, 3.4034). A viewer that drives
+only the root puts both blades in one place, so Rudra hides inside Agni.
+
+CPlWpNewVergilSword uses the same two parts for two separate models
+(`+0xE80` sword, `+0x1600` sheath with chain simulation, update
+`0x14022DDD0`, pose `0x14022DC60`); not tabled yet.

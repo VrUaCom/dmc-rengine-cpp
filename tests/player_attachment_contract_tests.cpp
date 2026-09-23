@@ -18,6 +18,11 @@ int main() {
     static_assert(yamato.has_value() && yamato->joint == 13U);
     static_assert(!pa::weapon_record_for_stem("plwp_gun").has_value());
 
+    constexpr auto pair = pa::second_part_for_class("CPlWp2Sword");
+    static_assert(pair.has_value() && pair->first_node == 2U && pair->second_node == 1U);
+    static_assert(pair->joint == 3U && pair->translation[0] == -13.0F);
+    static_assert(!pa::second_part_for_class("CPlWpSword").has_value());
+
     for (const auto& record : pa::weapon_state0_records) {
         assert(record.pac_stem.starts_with("plwp_"));
         assert(record.attach_table_va >= 0x140553000ULL);   // .data
