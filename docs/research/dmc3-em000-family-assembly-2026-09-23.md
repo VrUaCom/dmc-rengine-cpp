@@ -9,8 +9,8 @@ SHA-256 `10ab4cd0cc83abe4ca4b5ee98e9cc97f953db6f86dac7fddcb4aed540ba1a87c`
 
 ## 1. Classes
 
-CEm000-CEm004 share the base vtable entries (update `0x1401C2460` family,
-draw `0x1401C6FB0`) and differ in their init, reached through the secondary
+CEm000-CEm004 share most base vtable entries (entries 2 and 3: `0x1401C07E0`,
+`0x1401C6FB0`) and differ in their init, reached through the secondary
 vtable at `this+0x60`, entry `+0xE8` (`r15`/`r13` = `this+0x60` inside):
 
 | Class | vtable | init | body | cloth (model <- .clt, joint) | weapon v0-1 / v2-3 | weapon PTX |
