@@ -92,6 +92,6 @@ joint 3 (0, 124.4, 0) equals body joint 4 (0, 149.3, -4.9); sleeve node 1 rest
 ## 6. Open
 
 - Constraint enable byte `+0x20` (set outside init) and when mode 2 is used.
-- Chain simulation parameters (`0x1402C9F40`, `0x1402CA1D0`, `0x1402CA0A0`) and
-  slot 13.
+- Chain simulation: solved in `dmc3-cloth-chain-solver-2026-09-23.md` (slots
+  7/8 are the `.clt` texts for slots 4/5). Slot 13 is still open.
 - Other enemies: the constraint pattern is per class; only CEm028 is tabled.
