@@ -175,6 +175,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mot_animated_local
         player_attachment_contract
         enemy_node_constraint_contract
+        em000_family_contract
         mod_euler_order
         stage_txt
         resource_analyzer
