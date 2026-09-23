@@ -79,21 +79,28 @@ Matrix4f build_local_matrix(
     const auto cz = std::cos(transform.rotation_xyz_radians.z);
     const auto sz = std::sin(transform.rotation_xyz_radians.z);
 
-    // Exact row-major expansion of Rz * Ry * Rx for the axis sequence used by
-    // 0x140330450 in the canonical MOD/EFM initializer.
+    // 0x140330450 starts from the caller's matrix and calls 0x140030F10 (X),
+    // 0x140030FC0 (Y), 0x140031080 (Z) in that order. Each helper builds the
+    // D3D-style row-vector rotation (X: rows (0,c,s),(0,-s,c); Y: rows
+    // (c,0,-s),(s,0,c); Z: rows (c,s,0),(-s,c,0); sinf/cosf imports) and
+    // multiplies through 0x14002FFE0, which returns B x A for (out, A, B) =
+    // (rcx, rdx, r8) = (dest, rotation, source): dest = source x R. From
+    // identity the result is therefore Rx x Ry x Rz (X applied first to a row
+    // vector). The earlier Rz x Ry x Rx expansion matched only single-axis
+    // rotations; see docs/research/dmc3-euler-order-correction-2026-09-23.md.
     Matrix4f result{{
         cy * cz,
-        cx * sz + cz * sx * sy,
-        -cx * cz * sy + sx * sz,
+        cy * sz,
+        -sy,
         0.0F,
 
-        -cy * sz,
-        cx * cz - sx * sy * sz,
-        cx * sy * sz + cz * sx,
+        sx * sy * cz - cx * sz,
+        sx * sy * sz + cx * cz,
+        sx * cy,
         0.0F,
 
-        sy,
-        -cy * sx,
+        cx * sy * cz + sx * sz,
+        cx * sy * sz - sx * cz,
         cx * cy,
         0.0F,
 
