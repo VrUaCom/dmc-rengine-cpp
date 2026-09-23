@@ -4,6 +4,10 @@
 `e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082`,
 6,356,432 bytes. Evidence packet `dmc3-hdc-closure-gaps`.
 
+> **Applied** in the tool by `docs/reverse/dmc3-closure-fixed-in-the-tool-2026-09-23.md`:
+> `map-functions` now follows funclets and taken addresses itself, and
+> `outside_every_closure` is 1,279.
+
 The function map flags 1,641 functions `outside_every_closure`, and the
 reachability note describes them as the ones "the entry point cannot reach under
 any assumption the file supports." That guarantee is too strong. The closure

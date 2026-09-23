@@ -6,6 +6,17 @@ The project is pre-1.0 and may change APIs rapidly. Historical research is recor
 
 ## [Unreleased]
 
+### Changed
+
+#### `map-functions` follows funclets and taken addresses; `outside_every_closure` is 1,279
+
+- **the fix the closure-gaps note left for its own increment.** `read_unwind` now records a handler's RVA and its language-specific data; the code graph records every RIP-relative `lea` target as a `taken_addresses` list; the function map runs one closure twice — calls, tail jumps and dispatch as before (`reachable_through_dispatch`, still **5,748**), then again adding **funclet** edges (C++ `FuncInfo` recognised by magic and bounded; SEH scope tables accepted only when every entry's range lies inside the owning function) and **taken-address** edges to exact function starts (`reachable_through_recorded_edges`). Both runs let a newly reached function contribute its own dispatch slots;
+- **`outside_every_closure` falls from 1,641 to 1,279**, with the difference in a new counter, `reached_only_through_funclets_or_taken_addresses` = **362**, so the three partition the 7,389 functions. New counters: `funcinfo_structures` 792, `scope_tables` 5 (found by structure alone — exactly the five the Python measurement found by import name), `funclet_edges` 693, `taken_address_edges` 472. The report emits a per-function flag for the middle group; the SQL schema gains `reached_only_through_recorded_edges`, the bracket view a `through_funclets_or_taken_addresses` column, and the importer's identity becomes a three-way partition;
+- **two implementations, one set.** The Python script (byte-pattern `lea` scan, handlers by import name) now starts from the tool's dispatch-only complement and re-derives the split independently: `agrees_with_the_tool: true` — **the same 1,279 functions, not just the same count**;
+- **the population, restated.** The 362 moved out look like funclets (median 49 bytes, 92% caller-less). What remains is *more* distinctive: imports **13.1% vs 6.1%**, strings **4.1% vs 1.4%**, 71 constructors, median 268 bytes. Only 92 runtime-tail functions remain outside (405 before), so **95.5% of the unreached mass is game code**;
+- **a checker bug surfaced by the move.** `check_evidence_figures.py` honoured `supersedes` only within one packet, so a correction filed in a later packet never silenced its target — those records merely looked healthy while their old values still matched. It now decides supersession across all packets; a test pins it and the old checker fails that test;
+- tests: six new C++ cases (taken address followed; interior address not; `FuncInfo` funclet followed; wrong magic not; scope table inside its owner accepted; covering another function rejected) with **all 8 mutations killed**; two importer tests with **3 of 3 mutations killed**; one checker test. 112 declared figures check clean, 225/225 suite.
+
 ### Added
 
 #### The widest closure is not the widest: 362 of the 1,641 are reachable by edges the file records

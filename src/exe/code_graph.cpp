@@ -619,6 +619,7 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
                 if (decoded->rip_relative_lea()) {
                     remember_candidate(target);
+                    walk.taken_addresses.push_back(target);
                 }
             } else if (decoded->displacement_size == 4U && decoded->displacement > 0) {
                 // A non-RIP disp32 can be an absolute table RVA: MSVC keeps the
@@ -741,6 +742,7 @@ void walk_function(std::span<const std::byte> bytes, const PeImage& image, Funct
 
     sort_unique(walk.call_targets);
     sort_unique(walk.data_references);
+    sort_unique(walk.taken_addresses);
     sort_unique(walk.external_jump_targets);
     sort_unique(walk.switch_targets);
     sort_unique(walk.indirect_call_displacements);

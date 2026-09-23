@@ -66,6 +66,18 @@ class CheckerTests(unittest.TestCase):
             {"dispatch_sites": 99})
         self.assertEqual(checker.check(d, r), 0)
 
+    def test_a_correction_in_another_packet_supersedes_too(self) -> None:
+        # Corrections routinely land in a later packet than the record they
+        # correct. Honouring supersession only within one packet reported the
+        # correction's targets as stale the moment the counter moved.
+        (self.dir / "a.evidence.json").write_text(
+            json.dumps(packet([record("old", {"dispatch_sites": 68})])))
+        (self.dir / "b.evidence.json").write_text(
+            json.dumps(packet([record("new", {"dispatch_sites": 99}, supersedes=["old"])])))
+        report = self.dir / "map.json"
+        report.write_text(json.dumps({"summary": {"dispatch_sites": 99}}))
+        self.assertEqual(checker.check(self.dir, report), 0)
+
     def test_a_figure_naming_no_counter_fails(self) -> None:
         # A binding to a counter that does not exist checks nothing, and a check
         # that silently checks nothing is worse than no check.

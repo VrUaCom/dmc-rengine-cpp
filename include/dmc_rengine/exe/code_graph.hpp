@@ -48,6 +48,10 @@ struct FunctionWalk final {
     /// Sorted, unique targets of RIP-relative memory operands: string
     /// literals, import-address-table slots, statics and jump tables alike.
     std::vector<std::uint32_t> data_references;
+    /// Sorted, unique targets of RIP-relative `lea`: addresses the function
+    /// takes rather than reads. When one is a function start, whatever receives
+    /// it can call that function, which is an edge no call instruction records.
+    std::vector<std::uint32_t> taken_addresses;
     /// Direct branch targets that leave the function's own range, which is how
     /// MSVC emits tail calls and shared epilogues.
     std::vector<std::uint32_t> external_jump_targets;

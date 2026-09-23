@@ -51,7 +51,9 @@ def verify_summary_identities(mapping: dict) -> None:
         return all(k in s for k in keys)
 
     partitions = [
-        ("functions", ["reachable_through_dispatch", "outside_every_closure"]),
+        ("functions", ["reachable_through_dispatch",
+                       "reached_only_through_funclets_or_taken_addresses",
+                       "outside_every_closure"]),
         ("vtable_slots_classified",
          ["vtable_slots_pure_virtual", "vtable_slots_empty_body", "vtable_slots_implemented"]),
         ("indexed_accesses", ["image_base_indexed_accesses", "held_base_accesses"]),
@@ -669,9 +671,10 @@ def load_functions(
             """INSERT INTO exe_function(
                    image_id, begin_rva, end_rva, size_bytes, instruction_count, walk_complete,
                    caller_count, callee_count, export_name, reachable_from_entry,
-                   reachable_from_export, outside_every_closure, depth_from_entry, prolog_size,
+                   reachable_from_export, outside_every_closure,
+                   reached_only_through_recorded_edges, depth_from_entry, prolog_size,
                    stack_allocation, pushed_registers, frame_register, exception_handler)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(image_id, begin_rva) DO UPDATE SET
                    caller_count=excluded.caller_count,
                    callee_count=excluded.callee_count""",
@@ -688,6 +691,7 @@ def load_functions(
                 1 if entry.get("reachable_from_entry_point") else 0,
                 1 if entry.get("reachable_from_export") else 0,
                 1 if entry.get("outside_every_closure") else 0,
+                1 if entry.get("reached_only_through_funclets_or_taken_addresses") else 0,
                 entry.get("depth_from_entry"),
                 frame.get("prolog_size"),
                 frame.get("stack_allocation"),

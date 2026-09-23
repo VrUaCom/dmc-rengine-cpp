@@ -138,6 +138,15 @@ void write_summary(JsonWriter& writer, const FunctionMap& map) {
                   static_cast<std::uint64_t>(summary.reachable_through_dispatch));
     writer.member("outside_every_closure",
                   static_cast<std::uint64_t>(summary.outside_every_closure));
+    writer.member("reached_only_through_funclets_or_taken_addresses",
+                  static_cast<std::uint64_t>(
+                      summary.reached_only_through_funclets_or_taken_addresses));
+    writer.member("funclet_edges", static_cast<std::uint64_t>(summary.funclet_edges));
+    writer.member("funcinfo_structures",
+                  static_cast<std::uint64_t>(summary.funcinfo_structures));
+    writer.member("scope_tables", static_cast<std::uint64_t>(summary.scope_tables));
+    writer.member("taken_address_edges",
+                  static_cast<std::uint64_t>(summary.taken_address_edges));
     writer.member("dispatch_slots_reached",
                   static_cast<std::uint64_t>(summary.dispatch_slots_reached));
     writer.member("vtables_located", static_cast<std::uint64_t>(summary.vtables_located));
@@ -514,7 +523,12 @@ void write_function(JsonWriter& writer, const FunctionFacts& facts,
     }
     // The interesting minority is what the bound does *not* reach, so that is
     // what gets a member; emitting the majority flag would say nothing.
-    if (!facts.reachable_through_dispatch) {
+    // Two minorities: reached only once funclets and taken addresses are
+    // followed, and reached by nothing the file records at all.
+    if (!facts.reachable_through_dispatch && facts.reachable_through_recorded_edges) {
+        writer.member("reached_only_through_funclets_or_taken_addresses", true);
+    }
+    if (!facts.reachable_through_recorded_edges) {
         writer.member("outside_every_closure", true);
     }
 

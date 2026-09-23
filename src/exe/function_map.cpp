@@ -957,59 +957,243 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
             slots.erase(std::unique(slots.begin(), slots.end()), slots.end());
         }
 
-        std::deque<std::size_t> queue;
-        std::set<std::uint32_t> slots_reached;
-        const auto push = [&](std::size_t position) {
-            if (!map.functions[position].reachable_through_dispatch) {
-                map.functions[position].reachable_through_dispatch = true;
-                queue.push_back(position);
-            }
-        };
-        if (const auto root = index.containing(image.entry_point_rva); root.has_value()) {
-            push(*root);
-        }
+        // One closure, run twice: over calls and dispatch alone, and again
+        // over the two further edge kinds the file records. Both runs let a
+        // newly reached function contribute its own dispatch slots.
+        const auto close_from_entry =
+            [&](bool FunctionFacts::*reached,
+                const std::vector<std::vector<std::size_t>>* extra_edges) {
+                std::deque<std::size_t> queue;
+                std::set<std::uint32_t> slots_reached;
+                const auto push = [&](std::size_t position) {
+                    if (!(map.functions[position].*reached)) {
+                        map.functions[position].*reached = true;
+                        queue.push_back(position);
+                    }
+                };
+                if (const auto root = index.containing(image.entry_point_rva);
+                    root.has_value()) {
+                    push(*root);
+                }
 
-        // A slot reached later can pull in targets already passed over, so the
-        // two halves alternate until neither adds anything.
-        bool changed = true;
-        while (changed) {
-            changed = false;
-            while (!queue.empty()) {
-                const auto position = queue.front();
-                queue.pop_front();
-                const auto& walk = graph.functions[position];
-                for (const auto target : walk.call_targets) {
-                    if (const auto callee = index.containing(target); callee.has_value()) {
-                        push(*callee);
+                // A slot reached later can pull in targets already passed
+                // over, so the two halves alternate until neither adds anything.
+                bool changed = true;
+                while (changed) {
+                    changed = false;
+                    while (!queue.empty()) {
+                        const auto position = queue.front();
+                        queue.pop_front();
+                        const auto& walk = graph.functions[position];
+                        for (const auto target : walk.call_targets) {
+                            if (const auto callee = index.containing(target); callee.has_value()) {
+                                push(*callee);
+                            }
+                        }
+                        for (const auto target : walk.external_jump_targets) {
+                            if (const auto callee = index.containing(target); callee.has_value()) {
+                                push(*callee);
+                            }
+                        }
+                        if (extra_edges != nullptr) {
+                            for (const auto successor : (*extra_edges)[position]) {
+                                push(successor);
+                            }
+                        }
+                        for (const auto slot : slots_used[position]) {
+                            if (slots_reached.insert(slot).second) {
+                                changed = true;
+                            }
+                        }
+                    }
+                    for (const auto slot : slots_reached) {
+                        const auto candidates = slot_candidates.find(slot);
+                        if (candidates == slot_candidates.end()) {
+                            continue;
+                        }
+                        for (const auto target : candidates->second) {
+                            const auto callee = index.containing(target);
+                            if (callee.has_value() && !(map.functions[*callee].*reached)) {
+                                push(*callee);
+                                changed = true;
+                            }
+                        }
                     }
                 }
-                for (const auto target : walk.external_jump_targets) {
-                    if (const auto callee = index.containing(target); callee.has_value()) {
-                        push(*callee);
-                    }
-                }
-                for (const auto slot : slots_used[position]) {
-                    if (slots_reached.insert(slot).second) {
-                        changed = true;
-                    }
+                return slots_reached.size();
+            };
+        map.summary.dispatch_slots_reached =
+            close_from_entry(&FunctionFacts::reachable_through_dispatch, nullptr);
+
+        // ----- edges the call graph cannot see ------------------------------
+        // A funclet is entered by the runtime from the parent's handler data,
+        // never by a call; a taken function address is called by whoever
+        // receives it. Both are recorded in the file, so a closure that claims
+        // to be the widest has to follow them.
+        std::vector<std::vector<std::size_t>> recorded_edges(map.functions.size());
+        const auto add_edge = [&](std::size_t from, std::uint32_t target_rva) -> bool {
+            const auto to = index.containing(target_rva);
+            if (!to.has_value() || *to == from) {
+                return false;
+            }
+            auto& edges = recorded_edges[from];
+            if (std::find(edges.begin(), edges.end(), *to) != edges.end()) {
+                return false;
+            }
+            edges.push_back(*to);
+            return true;
+        };
+        const auto u32_at = [&](std::uint32_t rva) -> std::optional<std::uint32_t> {
+            const auto offset = image.rva_to_file_offset(rva);
+            if (!offset.has_value()) {
+                return std::nullopt;
+            }
+            return detail::read_u32(bytes, static_cast<std::size_t>(*offset));
+        };
+        const auto i32_of = [](std::uint32_t value) {
+            return static_cast<std::int32_t>(value);
+        };
+        // Bounds that no compiler-emitted FuncInfo approaches; a structure
+        // exceeding one is not a FuncInfo and contributes nothing.
+        constexpr std::int32_t kMaxUnwindStates = 1 << 16;
+        constexpr std::uint32_t kMaxTryBlocks = 1U << 12;
+        constexpr std::uint32_t kMaxCatchesPerTry = 1U << 8;
+        constexpr std::uint32_t kMaxIpMapEntries = 1U << 16;
+        constexpr std::uint32_t kMaxScopeEntries = 64U;
+
+        // FuncInfo: magic, maxState, pUnwindMap, nTryBlocks, pTryBlockMap,
+        // nIPMapEntries, pIPtoStateMap. Unwind-map entries are {toState,
+        // action}; try-map entries are {tryLow, tryHigh, catchHigh, nCatches,
+        // pHandlerArray}; handler entries hold the handler at +12; IP-map
+        // entries are {ip, state}.
+        const auto funcinfo_targets =
+            [&](std::uint32_t funcinfo) -> std::optional<std::vector<std::uint32_t>> {
+            const auto magic = u32_at(funcinfo);
+            if (!magic.has_value() ||
+                (*magic != 0x19930520U && *magic != 0x19930521U && *magic != 0x19930522U)) {
+                return std::nullopt;
+            }
+            const auto states = u32_at(funcinfo + 4U);
+            const auto unwind_map = u32_at(funcinfo + 8U);
+            const auto try_count = u32_at(funcinfo + 12U);
+            const auto try_map = u32_at(funcinfo + 16U);
+            const auto ip_count = u32_at(funcinfo + 20U);
+            const auto ip_map = u32_at(funcinfo + 24U);
+            if (!states || !unwind_map || !try_count || !try_map || !ip_count || !ip_map ||
+                i32_of(*states) > kMaxUnwindStates || *try_count > kMaxTryBlocks ||
+                *ip_count > kMaxIpMapEntries) {
+                return std::nullopt;
+            }
+            std::vector<std::uint32_t> targets;
+            for (std::int32_t state = 0; state < i32_of(*states); ++state) {
+                const auto action =
+                    u32_at(*unwind_map + static_cast<std::uint32_t>(state) * 8U + 4U);
+                if (action.has_value() && *action != 0U) {
+                    targets.push_back(*action);
                 }
             }
-            for (const auto slot : slots_reached) {
-                const auto candidates = slot_candidates.find(slot);
-                if (candidates == slot_candidates.end()) {
+            for (std::uint32_t block = 0; block < *try_count; ++block) {
+                const auto entry = *try_map + block * 20U;
+                const auto catches = u32_at(entry + 12U);
+                const auto handlers = u32_at(entry + 16U);
+                if (!catches || !handlers || i32_of(*catches) <= 0 ||
+                    *catches > kMaxCatchesPerTry) {
                     continue;
                 }
-                for (const auto target : candidates->second) {
-                    const auto callee = index.containing(target);
-                    if (callee.has_value() &&
-                        !map.functions[*callee].reachable_through_dispatch) {
-                        push(*callee);
-                        changed = true;
+                for (std::uint32_t index_in_try = 0; index_in_try < *catches; ++index_in_try) {
+                    const auto handler = u32_at(*handlers + index_in_try * 20U + 12U);
+                    if (handler.has_value() && *handler != 0U) {
+                        targets.push_back(*handler);
                     }
                 }
             }
+            for (std::uint32_t entry = 0; entry < *ip_count; ++entry) {
+                if (const auto ip = u32_at(*ip_map + entry * 8U); ip.has_value()) {
+                    targets.push_back(*ip);
+                }
+            }
+            return targets;
+        };
+
+        // An SEH scope table: a count, then {begin, end, handler, target}. It is
+        // accepted only when every entry's range lies inside the function that
+        // owns the handler, which a stack-cookie offset or a stray pointer
+        // cannot arrange by accident. Handler values 0 and 1 are the filter
+        // constants, not addresses.
+        const auto scope_table_targets =
+            [&](std::uint32_t table, std::size_t owner) -> std::optional<std::vector<std::uint32_t>> {
+            const auto count = u32_at(table);
+            if (!count.has_value() || *count == 0U || *count > kMaxScopeEntries) {
+                return std::nullopt;
+            }
+            std::vector<std::uint32_t> targets;
+            for (std::uint32_t entry = 0; entry < *count; ++entry) {
+                const auto at = table + 4U + entry * 16U;
+                const auto begin = u32_at(at);
+                const auto end = u32_at(at + 4U);
+                const auto handler = u32_at(at + 8U);
+                const auto target = u32_at(at + 12U);
+                if (!begin || !end || !handler || !target || *begin >= *end ||
+                    index.containing(*begin) != std::optional<std::size_t>{owner} ||
+                    index.containing(*end - 1U) != std::optional<std::size_t>{owner}) {
+                    return std::nullopt;
+                }
+                if (*handler > 1U) {
+                    targets.push_back(*handler);
+                }
+                if (*target != 0U) {
+                    targets.push_back(*target);
+                }
+            }
+            return targets;
+        };
+
+        if (inputs.directories != nullptr && inputs.directories->functions.has_value()) {
+            std::set<std::uint32_t> funcinfos_seen;
+            for (const auto& range : inputs.directories->functions->functions) {
+                if (range.chained || !range.frame.has_exception_handler ||
+                    range.frame.handler_data_rva == 0U) {
+                    continue;
+                }
+                const auto owner = index.containing(range.begin_rva);
+                if (!owner.has_value()) {
+                    continue;
+                }
+                std::optional<std::vector<std::uint32_t>> targets;
+                if (const auto funcinfo = u32_at(range.frame.handler_data_rva);
+                    funcinfo.has_value()) {
+                    targets = funcinfo_targets(*funcinfo);
+                    if (targets.has_value()) {
+                        funcinfos_seen.insert(*funcinfo);
+                    }
+                }
+                if (!targets.has_value()) {
+                    targets = scope_table_targets(range.frame.handler_data_rva, *owner);
+                    if (targets.has_value()) {
+                        ++map.summary.scope_tables;
+                    }
+                }
+                if (!targets.has_value()) {
+                    continue;
+                }
+                for (const auto target : *targets) {
+                    if (add_edge(*owner, target)) {
+                        ++map.summary.funclet_edges;
+                    }
+                }
+            }
+            map.summary.funcinfo_structures = funcinfos_seen.size();
         }
-        map.summary.dispatch_slots_reached = slots_reached.size();
+        for (std::size_t position = 0; position < map.functions.size(); ++position) {
+            for (const auto target : graph.functions[position].taken_addresses) {
+                const auto taken = index.containing(target);
+                if (taken.has_value() && map.functions[*taken].begin_rva == target &&
+                    add_edge(position, target)) {
+                    ++map.summary.taken_address_edges;
+                }
+            }
+        }
+        close_from_entry(&FunctionFacts::reachable_through_recorded_edges, &recorded_edges);
 
         // Tightening the bound the usual way: only classes some reachable
         // function installs can be receivers. Measured, not applied, because on
@@ -1155,6 +1339,8 @@ FunctionMap FunctionMapBuilder::build(std::span<const std::byte> bytes,
         }
         if (facts.reachable_through_dispatch) {
             ++map.summary.reachable_through_dispatch;
+        } else if (facts.reachable_through_recorded_edges) {
+            ++map.summary.reached_only_through_funclets_or_taken_addresses;
         } else {
             ++map.summary.outside_every_closure;
         }

@@ -27,11 +27,20 @@ def check(evidence_dir: Path, report: Path) -> int:
     checked = 0
     stale: list[str] = []
     unknown: list[str] = []
-    for path in sorted(evidence_dir.glob("*.evidence.json")):
-        packet = json.loads(path.read_text(encoding="utf-8"))
-        records = packet.get("records", [])
-        superseded = {i for r in records for i in r.get("supersedes", [])}
-        for record in records:
+    packets = [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in sorted(evidence_dir.glob("*.evidence.json"))
+    ]
+    # A correction may live in a different packet from the record it corrects,
+    # so what is superseded is decided across all of them, not per packet.
+    superseded = {
+        target
+        for packet in packets
+        for record in packet.get("records", [])
+        for target in record.get("supersedes", [])
+    }
+    for packet in packets:
+        for record in packet.get("records", []):
             if record["id"] in superseded:
                 continue
             for counter, claimed in record.get("figures", {}).items():

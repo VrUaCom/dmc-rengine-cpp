@@ -73,7 +73,12 @@
     "startup_path_extended_by_resolved_dispatch": 0,
     "startup_path_dispatch_sites": 99,
     "reachable_through_dispatch": 5748,
-    "outside_every_closure": 1641,
+    "outside_every_closure": 1279,
+    "reached_only_through_funclets_or_taken_addresses": 362,
+    "funclet_edges": 693,
+    "funcinfo_structures": 792,
+    "scope_tables": 5,
+    "taken_address_edges": 472,
     "dispatch_slots_reached": 265,
     "vtables_located": 915,
     "vtables_instantiated_by_reachable_code": 4,
@@ -24769,7 +24774,7 @@
       },
       "callers": 1,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "VCRUNTIME140.dll",
@@ -24790,7 +24795,7 @@
       },
       "callers": 1,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "VCRUNTIME140.dll",
@@ -25035,7 +25040,7 @@
         "0x345510"
       ],
       "callees": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "MSVCP140.dll",
@@ -27286,7 +27291,7 @@
       "callers": 1,
       "callees": 0,
       "dispatch_sites": 2,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "KERNEL32.dll",
@@ -27320,7 +27325,7 @@
       "callers": 1,
       "callees": 0,
       "dispatch_sites": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "KERNEL32.dll",
@@ -27889,7 +27894,7 @@
       ],
       "callees": 1,
       "dispatch_sites": 2,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "KERNEL32.dll",
@@ -30266,7 +30271,7 @@
         "0x3455f0"
       ],
       "callees": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "KERNEL32.dll",
@@ -30317,7 +30322,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "USER32.dll",
@@ -30345,7 +30350,7 @@
         "0x3455f0"
       ],
       "callees": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "XINPUT9_1_0.dll",
@@ -30647,7 +30652,7 @@
         "0x47af0"
       ],
       "callees": 3,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "USER32.dll",
@@ -30725,7 +30730,7 @@
       },
       "callers": 1,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "KERNEL32.dll",
@@ -59174,7 +59179,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CConstraint",
@@ -60840,7 +60845,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CConstraint",
@@ -62173,7 +62178,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CConstraint",
@@ -62777,7 +62782,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CConstraint",
@@ -65247,7 +65252,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CConstraint",
@@ -100710,7 +100715,7 @@
         "0x89270"
       ],
       "callees": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "installs_vtables": [
         {
           "class": "CDrawBreak",
@@ -125066,7 +125071,7 @@
         "0x3455f0"
       ],
       "callees": 3,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/*"
@@ -125091,7 +125096,7 @@
         "0x3455f0"
       ],
       "callees": 3,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/*"
@@ -125118,7 +125123,7 @@
         "0x3455f0"
       ],
       "callees": 5,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/%s"
@@ -125146,7 +125151,7 @@
         "0x3455f0"
       ],
       "callees": 6,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/%s"
@@ -125173,7 +125178,7 @@
         "0x3455f0"
       ],
       "callees": 6,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/%s"
@@ -125225,7 +125230,7 @@
         "0x3455f0"
       ],
       "callees": 6,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "string_references": 1,
       "referenced_strings": [
         "/%s/%s"
@@ -126394,7 +126399,7 @@
         "0x2a030"
       ],
       "callees": 1,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "VCRUNTIME140.dll",
@@ -126415,7 +126420,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "VCRUNTIME140.dll",
@@ -126439,7 +126444,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "api-ms-win-crt-runtime-l1-1-0.dll",
@@ -126459,7 +126464,7 @@
       },
       "callers": 0,
       "callees": 0,
-      "outside_every_closure": true,
+      "reached_only_through_funclets_or_taken_addresses": true,
       "imports_called": [
         {
           "module": "api-ms-win-crt-runtime-l1-1-0.dll",

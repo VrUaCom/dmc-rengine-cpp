@@ -663,6 +663,7 @@ class ImporterTests(unittest.TestCase):
             "startup_path_dispatch_sites": 6,
             "functions": 2,
             "reachable_through_dispatch": 1,
+            "reached_only_through_funclets_or_taken_addresses": 0,
             "outside_every_closure": 1,
         }
         mapping["functions"] = [
@@ -671,6 +672,34 @@ class ImporterTests(unittest.TestCase):
             {"begin_rva": "0x2000", "end_rva": "0x2010", "dispatch_sites": 3},
         ]
         importer.verify_summary_identities(mapping)
+
+    def test_the_reachability_partition_has_three_parts(self) -> None:
+        # Dispatch-reached, reached only through funclets or taken addresses,
+        # and outside every closure partition the functions. A report that
+        # counts the middle part twice - once in each neighbour - is refused.
+        mapping = make_map()
+        mapping["summary"] = {
+            "functions": 10,
+            "reachable_through_dispatch": 6,
+            "reached_only_through_funclets_or_taken_addresses": 1,
+            "outside_every_closure": 4,
+        }
+        with self.assertRaises(SystemExit):
+            importer.verify_summary_identities(mapping)
+        mapping["summary"]["outside_every_closure"] = 3
+        importer.verify_summary_identities(mapping)
+
+    def test_a_function_reached_only_by_a_recorded_edge_is_its_own_column(self) -> None:
+        mapping = make_map()
+        mapping["functions"][-1].pop("outside_every_closure")
+        mapping["functions"][-1]["reached_only_through_funclets_or_taken_addresses"] = True
+        con = build(make_analysis(), mapping, self.directory)
+        row = con.execute(
+            "SELECT functions, through_any_dispatch, through_funclets_or_taken_addresses,"
+            " outside_every_closure FROM v_exe_reachability_bracket"
+        ).fetchone()
+        # It is neither dispatch-reached nor outside: the middle column.
+        self.assertEqual(row, (2, 1, 1, 0))
 
     def test_a_subset_counter_exceeding_its_superset_is_refused(self) -> None:
         mapping = make_map()

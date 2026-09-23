@@ -78,6 +78,13 @@ struct PeUnwindFrame final {
     std::uint8_t saved_xmm{};
 
     bool has_exception_handler{false};
+    /// When `has_exception_handler`: the handler routine, and the RVA of the
+    /// language-specific data that follows it. Both zero otherwise. The data's
+    /// shape depends on the handler - a C++ `FuncInfo` pointer, an SEH scope
+    /// table, a stack-cookie offset - so it is recorded raw and interpreted by
+    /// whoever knows which handler it is.
+    std::uint32_t handler_rva{};
+    std::uint32_t handler_data_rva{};
     bool machine_frame{false};
     /// False when the code array could not be walked to its end; the counts
     /// gathered so far remain valid but are incomplete.

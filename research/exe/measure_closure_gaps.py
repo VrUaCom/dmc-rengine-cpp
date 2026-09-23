@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Measure what the function map's widest closure leaves out.
 
-``map-functions`` flags a function ``outside_every_closure`` when neither direct
-calls nor virtual dispatch can reach it from the entry point. Two routes the file
-records are not followed by that closure:
+``map-functions`` once flagged a function ``outside_every_closure`` when neither
+direct calls nor virtual dispatch could reach it from the entry point. Two routes
+the file records were not followed by that closure, and since 2026-09-23 the tool
+follows them itself; this script remains as an independent second measurement:
 
 * **funclets** - catch and unwind handlers named in C++ ``FuncInfo`` and SEH scope
   tables. The runtime enters them while their parent function is on the stack,
@@ -209,7 +210,17 @@ def main() -> int:
             return begins[index]
         return None
 
-    flagged = {b for b, f in by_begin.items() if f.get("outside_every_closure")}
+    # Since the tool itself follows funclets and taken addresses, the population
+    # this script starts from is the dispatch-only complement: what the tool now
+    # reaches only through those edges, plus what it still reaches not at all.
+    # Re-deriving the split independently is the point - it is a second
+    # measurement of the tool's own counters, not a copy of them.
+    tool_outside = {b for b, f in by_begin.items() if f.get("outside_every_closure")}
+    tool_middle = {
+        b for b, f in by_begin.items()
+        if f.get("reached_only_through_funclets_or_taken_addresses")
+    }
+    flagged = tool_outside | tool_middle
     reached = set(by_begin) - flagged
     calls = {b: {as_int(c) for c in f.get("calls", ())} for b, f in by_begin.items()}
 
@@ -264,7 +275,7 @@ def main() -> int:
                 taken[container].add(target)
 
     summary = {
-        "flagged_outside_every_closure": len(flagged),
+        "outside_calls_and_dispatch": len(flagged),
         "tool_closure": len(reached),
         "tool_closure_reclosed_over_calls": len(close_over(reached, calls)),
     }
@@ -276,6 +287,7 @@ def main() -> int:
         summary[label] = len(close_over(reached, *maps) & flagged)
     remaining = flagged - close_over(reached, calls, funclets, taken)
     summary["remaining_outside"] = len(remaining)
+    summary["agrees_with_the_tool"] = remaining == tool_outside
     summary["remaining_outside_bytes"] = sum(by_begin[r]["size"] for r in remaining)
     summary["handler_data_kinds"] = dict(handler_kinds)
     json.dump(summary, sys.stdout, indent=2)

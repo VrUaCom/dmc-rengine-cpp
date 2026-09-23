@@ -35,11 +35,15 @@ CREATE TABLE IF NOT EXISTS exe_function (
     export_name TEXT,
     reachable_from_entry INTEGER NOT NULL DEFAULT 0,
     reachable_from_export INTEGER NOT NULL DEFAULT 0,
-    -- True when the function is not reachable from the entry point even under
-    -- the loosest sound assumption: that every virtual call reaches whatever
-    -- sits at its slot in any vtable the image carries. Nothing in the file
-    -- says the entry point can get here.
+    -- True when the function is not reachable from the entry point by any
+    -- edge the file records: direct calls, a virtual call assumed to reach
+    -- whatever sits at its slot in any vtable, an exception funclet of a
+    -- reached parent, or a function start whose address reached code takes.
     outside_every_closure INTEGER NOT NULL DEFAULT 0,
+    -- True when calls and dispatch alone do not reach the function but a
+    -- funclet or taken-address edge does. Kept apart so the dispatch-only
+    -- bound stays measurable.
+    reached_only_through_recorded_edges INTEGER NOT NULL DEFAULT 0,
     -- Shortest chain of transfers from the entry point, NULL when nothing
     -- reaches the function that way. A depth is not an execution order.
     depth_from_entry INTEGER,
@@ -546,7 +550,9 @@ CREATE TABLE IF NOT EXISTS exe_function_pointer_run (
 CREATE VIEW IF NOT EXISTS v_exe_reachability_bracket AS
 SELECT COUNT(*) AS functions,
        SUM(reachable_from_entry) AS direct_calls_only,
-       SUM(CASE WHEN outside_every_closure = 0 THEN 1 ELSE 0 END) AS through_any_dispatch,
+       SUM(CASE WHEN outside_every_closure = 0 AND reached_only_through_recorded_edges = 0
+                THEN 1 ELSE 0 END) AS through_any_dispatch,
+       SUM(reached_only_through_recorded_edges) AS through_funclets_or_taken_addresses,
        SUM(outside_every_closure) AS outside_every_closure,
        ROUND(100.0 * SUM(reachable_from_entry) / COUNT(*), 1) AS lower_bound_percent,
        ROUND(100.0 * SUM(CASE WHEN outside_every_closure = 0 THEN 1 ELSE 0 END) / COUNT(*), 1)

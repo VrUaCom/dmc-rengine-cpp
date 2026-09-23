@@ -41,10 +41,11 @@ Cited by `docs/reverse/dmc3-zip-directory-2026-09-18.md` and evidence packet
 
 ## `measure_closure_gaps.py`
 
-Re-closes the function map's reachable set over two edge kinds its
-`outside_every_closure` flag does not follow — exception funclets of reachable
-parents, and addresses taken by `lea` inside reachable code — and reports how much
-of the flagged population each absorbs.
+Re-closes the function map's dispatch-only reachable set over exception funclets
+of reachable parents and addresses taken by `lea` inside reachable code, and
+reports how much of the dispatch-only complement each absorbs. The tool has
+followed both edge kinds itself since 2026-09-23; this script is kept as an
+independent second implementation and reports whether it arrives at the same set.
 
 ```sh
 dmc-rengine map-functions /path/to/dmc3.exe --all --out map.json

@@ -118,6 +118,12 @@ struct FunctionFacts final {
     /// answer. A function this does not reach is not reachable from the entry
     /// point under any assumption this file supports.
     bool reachable_through_dispatch{false};
+    /// Reachable when the closure also follows the two edge kinds the file
+    /// records besides calls and dispatch: exception funclets of a reached
+    /// parent, and function starts whose address a reached function takes.
+    /// A superset of `reachable_through_dispatch`; its complement is what
+    /// `outside_every_closure` counts.
+    bool reachable_through_recorded_edges{false};
     bool reachable_from_export{false};
     bool exported{false};
     std::string export_name;
@@ -626,6 +632,16 @@ struct FunctionMapSummary final {
     std::size_t startup_path_extended_by_resolved_dispatch{};
     std::size_t reachable_through_dispatch{};
     std::size_t outside_every_closure{};
+    /// Reached by the widest closure but not by calls and dispatch alone.
+    std::size_t reached_only_through_funclets_or_taken_addresses{};
+    /// Parent-to-funclet edges read from C++ FuncInfo and SEH scope tables.
+    std::size_t funclet_edges{};
+    /// C++ FuncInfo structures recognised by their magic number.
+    std::size_t funcinfo_structures{};
+    /// SEH scope tables accepted after every entry validated against its owner.
+    std::size_t scope_tables{};
+    /// Function-to-function edges from a RIP-relative `lea` of a function start.
+    std::size_t taken_address_edges{};
     std::size_t dispatch_slots_reached{};
     /// Vtables installed by code the direct-call closure reaches. Restricting
     /// dispatch to those is the standard way to tighten the upper bound; on

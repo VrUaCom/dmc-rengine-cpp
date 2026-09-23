@@ -1199,6 +1199,123 @@ void without_a_dispatch_the_bound_is_the_direct_closure() {
     assert(map.summary.dispatch_slots_reached == 0U);
 }
 
+// The third function, reachable only by an edge the call graph cannot see.
+// `handler_data_rva` of zero leaves the entry function without a handler.
+[[nodiscard]] dmc::rengine::exe::FunctionMap build_with_third_function(
+    Fixture& fixture, std::uint32_t handler_data_rva) {
+    auto table = table_with_a_third_function(fixture);
+    if (handler_data_rva != 0U) {
+        table.functions[0].frame.has_exception_handler = true;
+        table.functions[0].frame.handler_data_rva = handler_data_rva;
+    }
+    auto directories = fixture.directories;
+    directories.functions = table;
+    const auto graph =
+        CodeGraphBuilder::build(std::span<const std::byte>{fixture.bytes}, fixture.image, table);
+    FunctionMapInputs inputs;
+    inputs.image = &fixture.image;
+    inputs.rtti = &fixture.rtti;
+    inputs.directories = &directories;
+    inputs.graph = &graph;
+    return FunctionMapBuilder::build(std::span<const std::byte>{fixture.bytes}, inputs);
+}
+
+// B's first `lea` (rva 0x1050, seven bytes) retargeted to rva `target`.
+void make_b_take_the_address_of(Fixture& fixture, std::uint32_t target) {
+    put_i32(fixture.bytes, 0x253U, static_cast<std::int32_t>(target - 0x1057U));
+}
+
+void a_taken_function_address_is_an_edge_the_widest_closure_follows() {
+    Fixture fixture;
+    make_b_take_the_address_of(fixture, 0x10C0U);
+    const auto map = build_with_third_function(fixture, 0U);
+
+    assert(map.functions.size() == 3U);
+    // Calls and dispatch alone do not reach it; the taken address does.
+    assert(map.summary.reachable_through_dispatch == 2U);
+    assert(map.summary.reached_only_through_funclets_or_taken_addresses == 1U);
+    assert(map.summary.outside_every_closure == 0U);
+    assert(map.summary.taken_address_edges == 1U);
+    assert(map.functions[2].reachable_through_recorded_edges);
+    assert(!map.functions[2].reachable_through_dispatch);
+}
+
+void an_address_inside_a_function_is_not_a_taken_function() {
+    Fixture fixture;
+    // Four bytes past the third function's start: a pointer into its body is
+    // not something a caller can call.
+    make_b_take_the_address_of(fixture, 0x10C4U);
+    const auto map = build_with_third_function(fixture, 0U);
+
+    assert(map.summary.taken_address_edges == 0U);
+    assert(map.summary.outside_every_closure == 1U);
+}
+
+// Handler data at rva 0x2040 (file 0x440) pointing at a FuncInfo at 0x2050
+// (file 0x450) whose one unwind action is the third function.
+void put_funcinfo_naming_the_third_function(Fixture& fixture, std::uint32_t magic) {
+    put_i32(fixture.bytes, 0x440U, 0x2050);
+    put_i32(fixture.bytes, 0x450U, static_cast<std::int32_t>(magic));
+    put_i32(fixture.bytes, 0x454U, 1);           // maxState
+    put_i32(fixture.bytes, 0x458U, 0x2080);      // pUnwindMap
+    put_i32(fixture.bytes, 0x480U, -1);          // toState
+    put_i32(fixture.bytes, 0x484U, 0x10C0);      // action: the funclet
+}
+
+void an_unwind_funclet_of_a_reached_parent_is_reached() {
+    Fixture fixture;
+    put_funcinfo_naming_the_third_function(fixture, 0x19930522U);
+    const auto map = build_with_third_function(fixture, 0x2040U);
+
+    assert(map.summary.funcinfo_structures == 1U);
+    assert(map.summary.funclet_edges == 1U);
+    assert(map.summary.reachable_through_dispatch == 2U);
+    assert(map.summary.reached_only_through_funclets_or_taken_addresses == 1U);
+    assert(map.summary.outside_every_closure == 0U);
+}
+
+void a_structure_without_the_funcinfo_magic_names_no_funclets() {
+    Fixture fixture;
+    put_funcinfo_naming_the_third_function(fixture, 0x12345678U);
+    const auto map = build_with_third_function(fixture, 0x2040U);
+
+    assert(map.summary.funcinfo_structures == 0U);
+    assert(map.summary.scope_tables == 0U);
+    assert(map.summary.funclet_edges == 0U);
+    assert(map.summary.outside_every_closure == 1U);
+}
+
+// An SEH scope table at rva 0x2040: one entry covering [begin, begin+0x10)
+// with the third function as its handler.
+void put_scope_table(Fixture& fixture, std::uint32_t begin) {
+    put_i32(fixture.bytes, 0x440U, 1);
+    put_i32(fixture.bytes, 0x444U, static_cast<std::int32_t>(begin));
+    put_i32(fixture.bytes, 0x448U, static_cast<std::int32_t>(begin + 0x10U));
+    put_i32(fixture.bytes, 0x44CU, 0x10C0);
+    put_i32(fixture.bytes, 0x450U, 0);
+}
+
+void a_scope_table_inside_its_owner_names_its_handler() {
+    Fixture fixture;
+    put_scope_table(fixture, 0x1000U);
+    const auto map = build_with_third_function(fixture, 0x2040U);
+
+    assert(map.summary.scope_tables == 1U);
+    assert(map.summary.funclet_edges == 1U);
+    assert(map.summary.outside_every_closure == 0U);
+}
+
+void a_scope_table_covering_another_function_is_rejected() {
+    Fixture fixture;
+    // The handler belongs to the entry function, but the scope covers B.
+    put_scope_table(fixture, 0x1040U);
+    const auto map = build_with_third_function(fixture, 0x2040U);
+
+    assert(map.summary.scope_tables == 0U);
+    assert(map.summary.funclet_edges == 0U);
+    assert(map.summary.outside_every_closure == 1U);
+}
+
 void a_slot_declared_pure_is_not_a_candidate_target() {
     Fixture fixture;
     add_slot_census_shapes(fixture);
@@ -2057,6 +2174,12 @@ int main() {
     a_purecall_thunk_is_named_by_the_import_table_not_its_shape();
     the_dispatch_bound_reaches_what_direct_calls_cannot();
     without_a_dispatch_the_bound_is_the_direct_closure();
+    a_taken_function_address_is_an_edge_the_widest_closure_follows();
+    an_address_inside_a_function_is_not_a_taken_function();
+    an_unwind_funclet_of_a_reached_parent_is_reached();
+    a_structure_without_the_funcinfo_magic_names_no_funclets();
+    a_scope_table_inside_its_owner_names_its_handler();
+    a_scope_table_covering_another_function_is_rejected();
     a_slot_declared_pure_is_not_a_candidate_target();
     a_run_inside_a_vtable_is_not_a_table();
     the_same_addresses_outside_a_vtable_are_a_table();

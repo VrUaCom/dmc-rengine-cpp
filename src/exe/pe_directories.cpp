@@ -442,12 +442,22 @@ void read_exports(std::span<const std::byte> bytes, const PeImage& image,
 
     frame.decoded = walked && slot == frame.code_count;
 
+    const std::size_t padded_codes =
+        (static_cast<std::size_t>(frame.code_count) + 1U) & ~std::size_t{1U};
+
     if ((frame.flags & chain_info) == 0U) {
+        // The handler follows the padded code array; its data follows it.
+        if (frame.has_exception_handler) {
+            const auto handler = read_u32(bytes, *offset + 4U + padded_codes * 2U);
+            if (handler.has_value()) {
+                frame.handler_rva = *handler;
+                frame.handler_data_rva =
+                    unwind_rva + 4U + static_cast<std::uint32_t>(padded_codes * 2U) + 4U;
+            }
+        }
         return std::nullopt;
     }
 
-    const std::size_t padded_codes =
-        (static_cast<std::size_t>(frame.code_count) + 1U) & ~std::size_t{1U};
     const auto parent_begin = read_u32(bytes, *offset + 4U + padded_codes * 2U);
     if (!parent_begin.has_value()) {
         return std::nullopt;

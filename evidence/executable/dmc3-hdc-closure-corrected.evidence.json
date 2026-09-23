@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "dmc3-hdc-closure-corrected",
+  "title": "DMC3 HD: the function map follows funclets and taken addresses, outside_every_closure is 1,279, and two implementations agree set for set",
+  "project": "DMC Rengine",
+  "artifacts": [
+    {
+      "id": "dmc3-hdc-exe-e454272e",
+      "role": "canonical-research-target",
+      "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+      "size": 6356432
+    }
+  ],
+  "records": [
+    {
+      "id": "ev-dmc3-tool-follows-recorded-edges",
+      "claim_id": "claim-dmc3-outside-every-closure",
+      "title": "The widest closure now follows every edge kind this reverse can prove the file records",
+      "summary": "The function map runs its closure twice. The first follows calls, tail jumps and dispatch as before and still reaches 5,748 functions. The second adds a funclet edge from any function whose handler data is a C++ FuncInfo, recognised by magic number and bounded, to each unwind action, catch handler and IP-map entry it names, or an SEH scope table accepted only when every entry's range lies inside the owning function; and a taken-address edge to any function whose exact start a function loads with lea. Both runs let a newly reached function contribute its own dispatch slots. The second reaches 362 more, so outside_every_closure falls from 1,641 to 1,279, with the difference held in its own counter so the three form a partition of the 7,389 functions. The tool parses 792 FuncInfo structures and accepts five scope tables by structure alone, exactly the five an earlier measurement found by import name, and records 693 funclet edges and 472 taken-address edges.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "reachability",
+        "tooling"
+      ],
+      "supersedes": [
+        "ev-dmc3-closure-misses-two-edge-kinds"
+      ],
+      "locations": [],
+      "figures": {
+        "functions": 7389,
+        "reachable_through_dispatch": 5748,
+        "reached_only_through_funclets_or_taken_addresses": 362,
+        "outside_every_closure": 1279,
+        "funcinfo_structures": 792,
+        "scope_tables": 5,
+        "funclet_edges": 693,
+        "taken_address_edges": 472
+      }
+    },
+    {
+      "id": "ev-dmc3-two-implementations-agree",
+      "claim_id": "claim-dmc3-two-implementations-agree",
+      "title": "A byte-pattern script and a decoder walk produce the same 1,279 functions",
+      "summary": "The research script decides a taken address by a byte pattern over all of the code section and parses handler data in Python, identifying SEH tables by the import their handler jumps through; the tool decides a taken address from instructions its decoder actually walked and identifies SEH tables by structure. Starting from the tool's dispatch-only complement, the script re-derives the split independently and reports agreement: the same 1,279 functions, not merely the same count. Neither implementation was checked against the other's code, only against the other's answer, which is what makes the agreement worth more than either result alone.",
+      "confidence": "confirmed",
+      "tags": [
+        "method",
+        "cross-check",
+        "reachability"
+      ],
+      "supersedes": [],
+      "locations": [],
+      "figures": {
+        "outside_every_closure": 1279
+      }
+    },
+    {
+      "id": "ev-dmc3-unreached-population-restated",
+      "claim_id": "claim-dmc3-unreached-talks-to-the-platform",
+      "title": "Without the funclets the unreached population is more distinctive, and 95.5 per cent of it is game code",
+      "summary": "Restated for the corrected 1,279: they call an import 13.1 per cent of the time against 6.1 for dispatch-reached code, reference a string 4.1 against 1.4, contain a dispatch site 18.0 against 33.6, install a vtable 5.6 against 11.0 - 71 constructors - and have a median size of 268 bytes against 227. The 362 moved out look like funclets: median 49 bytes, 92.3 per cent with no caller, 4.1 per cent calling an import and 1.4 containing a dispatch site. Removing them makes what remains more distinctive rather than less. The library-tail split changes most: at or above 0x33F000 only 92 functions over 24,816 bytes remain outside, against 405 before, since most of the runtime stubs were exception-handling support now reached; below it 1,187 functions over 532,188 bytes remain, so 95.5 per cent of the unreached mass is game code.",
+      "confidence": "corrected",
+      "tags": [
+        "exe",
+        "reachability",
+        "census"
+      ],
+      "supersedes": [
+        "ev-dmc3-unreached-talks-to-the-platform"
+      ],
+      "locations": [],
+      "figures": {
+        "outside_every_closure": 1279,
+        "reachable_through_dispatch": 5748
+      }
+    },
+    {
+      "id": "ev-dmc3-checker-supersession-was-per-packet",
+      "claim_id": "claim-dmc3-checker-supersession-was-per-packet",
+      "title": "The figure checker honoured corrections only within their own packet",
+      "summary": "Moving the counter made the figure checker report four stale records, two of which had already been superseded by records in other packets. The checker computed supersession per packet, so a correction filed in a later packet never silenced the record it corrected; those records had only looked healthy while their old values still happened to match the report. It now decides supersession across all packets, a test pins the cross-packet case, and the checker as it stood before fails that test. With the fix, exactly the two live records that bound the old value are reported, and both are superseded here.",
+      "confidence": "confirmed",
+      "tags": [
+        "tooling",
+        "evidence-drift",
+        "method"
+      ],
+      "supersedes": [],
+      "locations": []
+    }
+  ]
+}
