@@ -31,8 +31,9 @@ any init (candidates for death/sand models). The factory (CEm000:
 ## 2. Variant
 
 `[this+0x670]` selects the weapon inside a class (`0x140097EF6`: 0-1 load the
-second slot of the pair, 2-3 the first, other values none) and whether the
-first cloth model exists (`0x140097980`: only for 0-1).
+second slot of the pair, 2-3 the first, other values none). Only CEm000's code
+also tests it for the cloth model (`0x140097980`, `0x140094AE0`, `0x140096249`:
+cloth drawn for 0-1 only); no `+0x670` test was found in CEm001-CEm004.
 
 ## 3. Attachment (per frame)
 
