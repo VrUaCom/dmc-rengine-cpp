@@ -19,7 +19,8 @@ test `tests/enemy_node_constraint_contract_tests.cpp`.
 | 5 | MOD, 14 nodes | bat dress (model `this+0x1E00`) |
 | 6 | MOD, 11 nodes | bat sleeves (model `this+0x2580`) |
 | 9 | PNST (slot 0 table, slot 1 PNST of PTX/MOD/BIN) | effect bank |
-| 13 | small BIN | cloth setup for the dress |
+| 7, 8 | `.clt` text | chain parameters of slots 4 and 5 (`dmc3-cloth-chain-solver-2026-09-23.md`) |
+| 13 | `.tsc` text | texture scroll of slots 5 and 6 (`dmc3-tsc-uv-scroll-2026-09-23.md`) |
 
 ## 2. Code path
 
@@ -93,5 +94,6 @@ joint 3 (0, 124.4, 0) equals body joint 4 (0, 149.3, -4.9); sleeve node 1 rest
 
 - Constraint enable byte `+0x20` (set outside init) and when mode 2 is used.
 - Chain simulation: solved in `dmc3-cloth-chain-solver-2026-09-23.md` (slots
-  7/8 are the `.clt` texts for slots 4/5). Slot 13 is still open.
+  7/8 are the `.clt` texts for slots 4/5). Slot 13 is the `.tsc` texture
+  scroll (`dmc3-tsc-uv-scroll-2026-09-23.md`).
 - Other enemies: the constraint pattern is per class; only CEm028 is tabled.

@@ -177,6 +177,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         enemy_node_constraint_contract
         em000_family_contract
         cloth_chain_contract
+        tsc_uv_scroll_contract
         mod_euler_order
         stage_txt
         resource_analyzer
