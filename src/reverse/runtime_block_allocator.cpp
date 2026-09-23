@@ -1,4 +1,5 @@
 #include "dmc_rengine/reverse/runtime_block_allocator.hpp"
+#include <algorithm>
 #include <bit>
 #include <cstring>
 #include <stdexcept>
@@ -56,12 +57,49 @@ std::int32_t find_runtime_block_run(const BlockArenaView& arena, std::uint32_t b
     return -1;
 }
 
+bool initialize_runtime_block_arena(BlockArenaState& arena, std::span<std::byte> backing,
+                                    std::uint64_t backing_address,
+                                    std::uint32_t block_bytes,
+                                    std::uint32_t backing_bytes,
+                                    std::uint32_t alignment_shift) {
+    const auto shift = alignment_shift & 31U;
+    const auto alignment = std::uint32_t{1} << shift;
+    arena.backing_bytes = backing_bytes;
+    const auto minimum = static_cast<std::uint64_t>(alignment) + block_bytes;
+    if (static_cast<std::uint64_t>(backing_bytes) < minimum) {
+        arena.backing_bytes = 0;
+        return false;
+    }
+    if (backing.size() < backing_bytes || block_bytes == UINT32_MAX)
+        throw std::out_of_range("runtime block arena backing span");
+
+    const auto aligned_block_bytes = static_cast<std::uint32_t>(
+        (static_cast<std::uint64_t>(block_bytes) + alignment - 1U) &
+        ~static_cast<std::uint64_t>(alignment - 1U));
+    const auto denominator = static_cast<std::uint64_t>(aligned_block_bytes) + 1U;
+    const auto capacity = static_cast<std::uint32_t>(
+        (static_cast<std::uint64_t>(backing_bytes) - alignment) / denominator);
+    const auto data_unaligned = backing_address + capacity;
+    const auto data = (data_unaligned + alignment - 1U) &
+                      ~static_cast<std::uint64_t>(alignment - 1U);
+
+    arena.occupancy = backing_address;
+    arena.data = data;
+    arena.capacity = std::bit_cast<std::int32_t>(capacity);
+    arena.block_bytes = aligned_block_bytes;
+    arena.alignment_shift = alignment_shift;
+    arena.live_allocations = 0;
+    std::fill_n(backing.begin(), backing_bytes, std::byte{0xff});
+    std::fill_n(backing.begin(), capacity, std::byte{0});
+    return true;
+}
+
 std::uint64_t allocate_runtime_blocks(BlockAllocationState& node, std::uint64_t address,
                                      std::uint32_t bytes, BlockAllocatorView& memory) {
     if (bytes == 0 || address == 0) return 0;
     auto& arena = arena_at(memory, address);
     auto& state = *arena.state;
-    if (state.data == 0 || state.availability_gate == 0 || node.arena != 0) return 0;
+    if (state.data == 0 || state.backing_bytes == 0 || node.arena != 0) return 0;
     if (state.block_bytes == 0) throw std::domain_error("original runtime division by zero");
     const auto blocks = bytes / state.block_bytes + static_cast<std::uint32_t>(bytes % state.block_bytes != 0);
     node.arena = address;

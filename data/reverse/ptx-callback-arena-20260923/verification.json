@@ -1,0 +1,94 @@
+{
+  "status": "PASS",
+  "sha256": "e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "cases": 10,
+  "case_results": [
+    {
+      "name": "enqueue-0",
+      "status": "PASS",
+      "node": "0x620003e0",
+      "free_head": "0x620003c0",
+      "queue_head": "0x620003e0"
+    },
+    {
+      "name": "enqueue-1",
+      "status": "PASS",
+      "node": "0x620003c0",
+      "free_head": "0x620003a0",
+      "queue_head": "0x620003c0"
+    },
+    {
+      "name": "enqueue-2",
+      "status": "PASS",
+      "node": "0x620003a0",
+      "free_head": "0x62000380",
+      "queue_head": "0x620003a0"
+    },
+    {
+      "name": "drain-three-records",
+      "status": "PASS",
+      "callback_order": [
+        "0x333",
+        "0x222",
+        "0x111"
+      ],
+      "free_head": "0x620003e0"
+    },
+    {
+      "name": "arena-init-0",
+      "status": "PASS",
+      "block_bytes": 512,
+      "backing_bytes": 4096,
+      "alignment_shift": 6,
+      "return": 1
+    },
+    {
+      "name": "arena-init-1",
+      "status": "PASS",
+      "block_bytes": 513,
+      "backing_bytes": 4096,
+      "alignment_shift": 6,
+      "return": 1
+    },
+    {
+      "name": "arena-init-2",
+      "status": "PASS",
+      "block_bytes": 2048,
+      "backing_bytes": 4096,
+      "alignment_shift": 6,
+      "return": 1
+    },
+    {
+      "name": "arena-init-3",
+      "status": "PASS",
+      "block_bytes": 512,
+      "backing_bytes": 4096,
+      "alignment_shift": 4,
+      "return": 1
+    },
+    {
+      "name": "arena-init-4",
+      "status": "PASS",
+      "block_bytes": 2048,
+      "backing_bytes": 2111,
+      "alignment_shift": 6,
+      "return": 0
+    },
+    {
+      "name": "arena-init-5",
+      "status": "PASS",
+      "block_bytes": 512,
+      "backing_bytes": 15,
+      "alignment_shift": 6,
+      "return": 0
+    }
+  ],
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "conditional_sites": 18,
+  "limitations": [
+    "Callback target bodies are intercepted at a synthetic RET stub; their own semantics are outside this pass.",
+    "Operator-new allocation failure and callback reentrancy/concurrency are not modeled.",
+    "Global arena owner initialization through 0x140337920 and caller ordering remain open.",
+    "Arena overlap/invalid-pointer CPU-fault behavior is not modeled; the fixtures use disjoint bounded spans."
+  ]
+}

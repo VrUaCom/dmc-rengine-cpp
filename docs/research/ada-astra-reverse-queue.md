@@ -14,7 +14,8 @@
 | Реалізовано, частково | [Placement та pool setup](dmc3-ptx-placement-2026-09-16.md) | 134 сценарії; обидва виходи 17 conditional sites; initializer/configure, збереження payload при reset keys |
 | Реалізовано, частково | [Palette helper `0x140331BD0`](dmc3-ptx-palette-2026-09-16.md) | 232 сценарії; 10/10 conditional sites; memmove, signed tables, home-slot залежність, counter/destination після rollback |
 | Реалізовано, частково | [Palette context і block allocator](dmc3-ptx-palette-lifecycle-2026-09-21.md) | 310 сценаріїв; initialize/cleanup, route/search/allocate/free; 44/49 умов з обома виходами, п'ять site-ів constant-format dispatch пояснено |
-| Наступна | Callback drain `0x1403292A0` та arena setup | Відновити callback dispatch/recycling, створення арен, потім caller ordering глобального `0x140CF1030` та embedded `this+0x5E0` |
+| Реалізовано, частково | [Callback queue та arena initializer](dmc3-ptx-callback-arena-2026-09-23.md) | 10 сценаріїв; callback acquire/enqueue/drain/recycle та `0x140337780`; три arena profiles із setup routine відновлено |
+| Наступна | Backing allocator `0x140337920` та context callers | Підтвердити повний виклик one-time setup, а також порядок глобального `0x140CF1030` й embedded `this+0x5E0` |
 | Відкрита | Graphics config `0x140D6D300` і pool lifecycle | Тип, живі значення, callers initializer/configure, ресурсне очищення перед reset keys |
 | Відкрита | Відновлення після partial allocation | Context cleanup прибирає published allocation failures; непов'язані placement failures і поточна невдала текстура потребують дослідження scene/global cleanup |
 | Відкрита | Finalizer `0x140331A80` | Поведінка render descriptor, зовнішні виклики, зв'язок із draw/shutdown |

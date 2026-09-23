@@ -6,7 +6,7 @@
 
 namespace dmc::rengine::reverse {
 
-// Recovered views; original class names and arena initialization remain open.
+// Recovered memory views; original class names and owning type remain open.
 struct BlockAllocationState {
     std::uint64_t callback_head;
     std::uint64_t arena;
@@ -19,8 +19,8 @@ struct BlockArenaState {
     std::uint64_t data;
     std::int32_t capacity;
     std::uint32_t block_bytes;
-    std::uint32_t availability_gate;
-    std::uint32_t preserved_1c;
+    std::uint32_t backing_bytes;
+    std::uint32_t alignment_shift;
     std::uint32_t live_allocations;
     std::uint32_t preserved_24;
 };
@@ -51,6 +51,13 @@ struct BlockRoutingFlags { std::uint8_t fallback; std::uint8_t force_arena2; };
 // 0x1403374A0..0x1403375F1, including its chained .pdata fragments.
 // Nonbinary occupancy has deliberately inconsistent treatment in the EXE.
 std::int32_t find_runtime_block_run(const BlockArenaView&, std::uint32_t blocks);
+// 0x140337780. Initializes one occupancy map and its aligned data region.
+// backing_address names the start of the backing span supplied by the caller.
+bool initialize_runtime_block_arena(BlockArenaState&, std::span<std::byte> backing,
+                                    std::uint64_t backing_address,
+                                    std::uint32_t block_bytes,
+                                    std::uint32_t backing_bytes,
+                                    std::uint32_t alignment_shift);
 // 0x140337600. Size/product arithmetic retains original uint32 truncation.
 std::uint64_t allocate_runtime_blocks(BlockAllocationState&, std::uint64_t arena,
                                      std::uint32_t bytes, BlockAllocatorView&);
