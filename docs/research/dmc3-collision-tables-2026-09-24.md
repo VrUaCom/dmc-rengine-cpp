@@ -51,7 +51,7 @@ Byte 0 is the type, dispatched 0–6 (`0x1402CC579`), with zero padding up to
 | Type | Fields | Code |
 | --- | --- | --- |
 | 2 sphere | centre +0x10 (vec4, w = 1), radius +0x20 | `0x1402CC3F0` (centre) |
-| 3 box | centre +0x10; rotation in degrees +0x1C / +0x20 / +0x24 (X, Y, Z); size +0x28 / +0x2C / +0x30 | `0x1402CC115`: 8 corners of the unit cube `0x1405CEC60` |
+| 3 box | centre +0x10; rotation in degrees +0x1C / +0x20 / +0x24 (X, Y, Z); half size +0x28 / +0x2C / +0x30 | `0x1402CC115`: 8 corners (±1) of the cube `0x1405CEC60`, scaled by the half size |
 | 4 capsule | a +0x10, b +0x20 (vec4), radius +0x30 | `0x1402CC300` |
 
 In the samples:
@@ -61,6 +61,40 @@ In the samples:
 The sphere radius (+0x20) and the capsule radius (+0x30) are confirmed by
 the data (40/50 and 120/95 on body-sized models). They are not yet confirmed
 by a read in the hit test.
+
+Per-type setup dispatches on byte 0 through the table `0x1402CC5F0`, with 7
+entries:
+
+| Type | Function |
+| --- | --- |
+| 0 | `0x1402CCA30` |
+| 1 | `0x1402CCA70` |
+| 2 | `0x1402CCB50` |
+| 3 | `0x1402CC610` |
+| 4 | `0x1402CC890` |
+| 5 | `0x1402CCCB0` (three points) |
+| 6 | `0x1402CC9A0` (centre, +0x20 → +0x140, +0x24 × scale → +0x144) |
+
+Types 0, 1, 5 and 6 do not occur in the samples.
+
+### Debug meshes `obj\debug\at000–at003.mod`
+
+The system resource list `0x1405B0860` (loader `0x1402EA333`) names four
+debug meshes and their texture `obj\debug\at.ptx`. The list also holds
+`font\i001_90.tm2`, `basic.ptz`, `basic.ptx` and `scr\ss900_t.pac`. The
+build keeps a second, short-name list at `0x140553880`.
+
+The user's samples:
+
+| File | SHA-256 prefix | Mesh | Shape type |
+| --- | --- | --- | --- |
+| `at000` | `afbaefa0c6414490` | UV sphere, radius 1 (83 vertices) | sphere (2), scaled by the radius |
+| `at001` | `9fea695a508cf64e` | cube ±1 (24 vertices), the same corners as `0x1405CEC60` | box (3), scaled by the half size |
+| `at002` | `7f72c15557c980aa` | capsule, radius 1, segment y ±0.5, caps to ±1.5 | capsule (4) |
+| `at003` | `9cb1ac281ae79928` | octagonal prism, y ±1 | probably type 6 (radius +0x20, height +0x24) |
+
+No retail code has been found yet that draws them. The mapping in the last
+column comes from the shapes and the record layouts; it is not a read.
 
 ## 4. Player parameter blocks
 
