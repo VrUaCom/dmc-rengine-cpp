@@ -93,7 +93,20 @@ The user's samples:
 | `at002` | `7f72c15557c980aa` | capsule, radius 1, segment y ±0.5, caps to ±1.5 | capsule (4) |
 | `at003` | `9cb1ac281ae79928` | octagonal prism, y ±1 | probably type 6 (radius +0x20, height +0x24) |
 
-No retail code has been found yet that draws them. The mapping in the last
+Textures from the same list (the user's samples, 12288 bytes each, one DDS
+texture):
+
+- **`at.ptx`** (SHA-256 `4c18c6cd4816ca1a608a12efd9eb1bd1467408152f7c31f8079c3c4aff3ce5ce`):
+  128×64, flat grey 0x7B–0x83. That is the PS2 neutral 0x80, a ×1 modulation.
+  The debug meshes take their colour from material or vertex colour, not
+  from this texture.
+- **`basic.ptx`** (SHA-256 `a4479f843e3859465102315ebf9be6783a47a7802a0c96b18ada0d810b897ff1`):
+  the debug font, 128×64 with 16×8 cells of 8×8 pixels.
+  - Row 0: hex digits `0–F`.
+  - Rows 1–6: ASCII `0x20–0x7E`, with `¥` in place of `\`.
+  - The PS2 button glyphs ×, □, △ and ○ stand in for the control codes.
+
+No retail code has been found yet that draws the meshes. The mapping in the last
 column comes from the shapes and the record layouts; it is not a read.
 
 ## 4. Player parameter blocks
