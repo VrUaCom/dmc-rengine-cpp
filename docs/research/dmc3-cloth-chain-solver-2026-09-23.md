@@ -108,6 +108,38 @@ samples, the rest Y axis points at the parent (dot product 1.000).
 In em000, each cloth model is the slot after its `.clt` slot, as listed in the
 class inits of the em000 family doc. em000 adds `Wind (0, -0.01, 0)`.
 
+### 3.1 Several blocks (`ClothNum`)
+
+`0x1402C9F40` reads the `ClothNum` count. `0x1402CA1D0(chain, joints, text,
+n)` then fills one chain from block `ClothNo n` only. The player coat init
+`0x140214D50` loads the `.clt` from slot 13 (`0x140215177`, `r9d = 0xD`). It
+calls `0x1402CA1D0` once for each block, and each block fills its own 0xF0-byte
+chain: `+0xA210`, `+0xA300`, and so on. After the loop, the init calls the
+capsule setter `0x1402CA2F0` with the six-entry table `0x14058B380`
+(`0x1402151E7`), but only on the first chain `+0xA210`. The other player init
+paths (`0x140212BE0`, `0x140219260`) follow the same pattern: a loop over
+`ClothNum`, then capsules on the first chain of the set.
+
+`pl001_02.clt` (pl001.pac, SHA-256
+`10f560abbd98f92e95fd180ccf71f6906803d8c267bc3562552ceb5facf0919f`) is the
+only sample with `ClothNum 2`:
+
+| Block | Bones | Gravity y | Spring | Stiffness | Collides |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 2-7, 9-13, 27-31, 33-38 (front and side panels) | -0.02 | 0.02 | 0.3 | yes |
+| 1 | 15-19, 21-25 (back panel) | -0.01 | 0.02 | 0.3 | no |
+
+Up to v59, the viewer read only block 0. The back panel then stayed rigid on
+the rest pose, while the side panels moved around it.
+
+The step also stores `W` straight into the joint world (`[j+0x110]`,
+`0x1402C9D6A`), and it clamps the floor on that world. Children therefore take
+their rest target `T = local × P` from the simulated parent. The trail angle of
+each link adds to its parent's, so a coat trails a long way behind at walking
+speed. For example, the pl001 walk moves the root 3.5 units per frame. This is
+how the game behaves, not a defect of the port. `dt` is `c+0xE0`, which is 1.0
+from the defaults `0x1402CA086`.
+
 ## 4. Nevan's dress
 
 The dress body (slot 5, nodes 5-13) is a chain that pulls down with gravity
@@ -120,7 +152,8 @@ the bat strip toggle (objects 2-3, bit 0).
 Native Reader (`motion/cloth_chain.cpp`) runs this step with `dt = 1` for
 every elapsed motion frame (at most 6 per update). When a motion starts, the
 chains restart from the rest pose and settle for 30 frames; they settle for 60
-frames when the model is attached. The player coat collides with the six body
+frames when the model is attached. Every `ClothNo` block is simulated with its
+own parameters (section 3.1). Only nodes of block 0 collide with the six body
 capsules in section 6. The `+0x48` object list and the enemy capsule tables are
 not ported.
 
