@@ -14,5 +14,8 @@ int main() {
     for (const auto& b : cc::bindings) {
         if (b.archive_stem == "em000") assert(b.clt_slot + 1U == b.model_slot);
     }
+    static_assert(cc::player_coat_capsules.size() == 6U);
+    static_assert(cc::player_coat_capsules[0].body_joint == 3U &&
+                  cc::player_coat_capsules[1].radius == 18.0F);
     return 0;
 }

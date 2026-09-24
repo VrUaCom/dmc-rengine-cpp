@@ -76,8 +76,8 @@ hierarchy order. In the steps below, `c` is the constraint, `j` is the joint,
    - `z = s·T.row2 + (1−s)·S.row2`
    - `y` is blended the same way from row 1, and `t` from the translation.
    - `W` is then Z-aligned to `z`, with `y` as the reference.
-6. Collide against the capsule lists at `c+0x48` and `c+0x58`. This step is not
-   ported.
+6. Collide (section 6): push `W.t` out of every capsule it is inside. Any hit
+   zeroes the x and z velocity (`j+0x250`, `j+0x258`).
 7. Apply wind:
    - `w = Wind`. When WindLocal is set, `w` is rotated by the world of joint
      WindParent.
@@ -120,11 +120,46 @@ the bat strip toggle (objects 2-3, bit 0).
 Native Reader (`motion/cloth_chain.cpp`) runs this step with `dt = 1` for
 every elapsed motion frame (at most 6 per update). When a motion starts, the
 chains restart from the rest pose and settle for 30 frames; they settle for 60
-frames when the model is attached. Collisions (step 6) are not ported.
+frames when the model is attached. The player coat collides with the six body
+capsules in section 6. The `+0x48` object list and the enemy capsule tables are
+not ported.
 
-## 6. Open
+## 6. Collision
 
-- Capsule collision lists (`c+0x48` / `c+0x58`) and where they are filled.
+`0x1402CA2F0(chain, joints, entries, shapes, count)` stores the data the
+collision step reads:
+
+| Offset | Content |
+| --- | --- |
+| `+0x30` | Host joint pointer table. Each joint's world is at `+0x110`. |
+| `+0x48` | Collision objects. The setter clears this list. |
+| `+0x50` | Entry count. |
+| `+0x58` | Entries of 4 bytes: flags (bit `8` enables the entry), the host joint, then the shape index as u16. |
+| `+0x60` | Shapes of 0x50 bytes: point A at `+0x10`, point B at `+0x20` (both in joint space), radius at `+0x30`. |
+
+For each enabled entry, the step (`0x1402C97F0`) transforms A and B by the
+joint world (`0x14032DB90`). It then calls `0x1402D0630`:
+
+1. Find the closest point on the segment A-B (`0x1402CE760`).
+2. If the node is closer to it than the radius, move the node onto the capsule
+   surface along that direction (`0x14032ED80`).
+
+**Dante's coat.** Every Dante coat setup (for example `0x140213E6E`,
+`0x140214A32`, `0x1402151E7` and `0x1402210A4`) passes the entry table
+`0x14058B380` with a count of 6, the joint table of the body model, and the
+shapes at `player+0xB630`. `0x140214E17` fills those shapes from `.rdata`
+`0x14058B260`:
+
+| Body joint | A | B | Radius |
+| --- | --- | --- | --- |
+| 3 (chest) | (0, 20, 10) | (0, -40, 10) | 15 |
+| 2 | (0, -5, 0) | (0, -15, 0) | 18 |
+| 15, 16, 19, 20 (legs) | (0, 0, 0) | (0, -50, 0) | 10 |
+
+## 7. Open
+
+- The `c+0x48` collision objects, and the enemy capsule tables (other callers
+  of `0x1402CA2F0`, such as `0x140130D9A` in CEm028).
 - WindType semantics.
 - Whether the world of WindParent is taken from the chain's own model or from
   its host.

@@ -63,6 +63,28 @@ inline constexpr Defaults defaults{0.3F, 0.3F, 50.0F, 0.05F, {0.0F, -0.2F, 0.0F}
 
 inline constexpr float wind_gain = 10.0F;  // w *= 10 * (1 - |cos(w, d)|)
 
+// Collision (0x1402CA2F0 setter, test 0x1402D0630): capsules on host joints.
+inline constexpr std::uint64_t set_collision_va = 0x1402CA2F0ULL;
+inline constexpr std::uint64_t capsule_test_va = 0x1402D0630ULL;
+inline constexpr std::uint64_t player_coat_entries_va = 0x14058B380ULL;
+inline constexpr std::uint64_t player_coat_shapes_va = 0x14058B260ULL;
+
+struct Capsule final {
+    std::uint8_t body_joint;
+    std::array<float, 3> a;
+    std::array<float, 3> b;
+    float radius;
+};
+
+inline constexpr std::array<Capsule, 6> player_coat_capsules{{
+    {3U, {0.0F, 20.0F, 10.0F}, {0.0F, -40.0F, 10.0F}, 15.0F},
+    {2U, {0.0F, -5.0F, 0.0F}, {0.0F, -15.0F, 0.0F}, 18.0F},
+    {15U, {0.0F, 0.0F, 0.0F}, {0.0F, -50.0F, 0.0F}, 10.0F},
+    {16U, {0.0F, 0.0F, 0.0F}, {0.0F, -50.0F, 0.0F}, 10.0F},
+    {19U, {0.0F, 0.0F, 0.0F}, {0.0F, -50.0F, 0.0F}, 10.0F},
+    {20U, {0.0F, 0.0F, 0.0F}, {0.0F, -50.0F, 0.0F}, 10.0F},
+}};
+
 // Sample archives: .clt slot -> simulated model slot.
 struct Binding final {
     std::string_view archive_stem;
