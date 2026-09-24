@@ -97,8 +97,23 @@ and returns early when dt ≤ 0. Otherwise it jumps through the table at
   second phase that grows by `dir · MinimumUV` per step is added.
 - The result is stored as `value · 4096`.
 
-**Types 4, 5 and 10** (`0x14030B820`, `0x14030B980`, `0x14030BB50`) use
-TurnTimeUV and are not decoded yet.
+**Types 4 and 5** (`0x14030B820`, `0x14030B980`) are types 1 and 3 with a
+turn:
+- After every step that moved, the turn counter (`+0x44` for u, `+0x4C` for
+  v) drops by dt.
+- At 0 or below, it reloads with TurnTimeUV (`+0x34` / `+0x3C`, default 1)
+  and DirUV (`+0x58` / `+0x5A`) is negated.
+- The counters start at 0 unless TurnTimeUV is given, in which case the parser
+  primes them with its values. The texture therefore ping-pongs.
+
+**Type 10** (`0x14030BB50`) depends on the view:
+- `d` = the Z row of the JntNo joint world (`model+0x188 + joint·0x40`,
+  rotated by `0x140330390`) dotted with model `+0xA0`. Model `+0xA0` is the
+  camera direction that `0x14030BDD0` writes each frame when model flag `2`
+  is set (`ScrlType 10` sets that flag).
+- `s = (d + 1)·0.5`, then folded to `1 − s`.
+- Offset = `s · RateUV · DirUV`, written directly and not accumulated. It is
+  0 when RateUV is 0 or DirUV is `stay`.
 
 **RndUV.** When the RndUV flag is set, `rand · (b − a) + a` is added
 (`0x140059390`).
@@ -143,6 +158,6 @@ to the EFM model of `CEm005Shl01`.
 
 ## 6. Open
 
-- Types 4, 5 and 10, which use TurnTimeUV.
+- The exact camera vector for type 10 in a viewer without a stage camera.
 - JntNo, which is stored but not used by the offset path.
 - The EFM layout (see the `.efm` task).

@@ -75,17 +75,45 @@ its last byte ends exactly where the transform table starts:
 loads (bat and lightning effects). They are single-node, single-object models
 with vertex colours.
 
-## 3. Viewer rule
+## 3. Blend state
+
+The model's object builders (`0x1403029E0`, `0x140302F10`, `0x1403058F0` and
+`0x140305B90`) are reached from the model manager (`0x1402FDED0..0x1402FDF70`).
+They call `0x140302640` with the source object flags. For a low nibble
+`mode = flags & 0xF` other than 0, `0x1402F17C0(mode)` loads a PS2 GS ALPHA
+value from `.rdata 0x1405D0550 + mode·8`. The GS computes
+`(A − B)·C >> 7 + D`, where A, B and D select Cs (0), Cd (1) or 0 (2), and C
+selects As (0):
+
+| Mode | ALPHA | Result |
+| --- | --- | --- |
+| 1, 4 | `0x44` | `(Cs − Cd)·As + Cd`: normal alpha blending |
+| 2 | `0x48` | `Cs·As + Cd`: additive |
+| 3 | `0x42` | `Cd − Cs·As`: subtractive |
+
+Mode 4 also selects the depth state `0x50007`, and flag `0x100000` selects
+`0x5010D` over `0x5000D`.
+
+In the samples, most MOD objects use mode 1. The em000 EFM uses mode 2 (a
+glowing shell). The em028 EFMs use mode 3 (darkening effects). One em000 MOD
+object also uses mode 2.
+
+**COLOR0 modulation.** The PS2 texture function multiplies the texel by the
+vertex colour and divides by `0x80` (`Ct·Cf >> 7`). This applies to both
+colour and alpha.
+
+## 4. Viewer rule
 
 - Identify EFM by its `EFM ` magic.
 - Project it through the MOD path: copy the bytes and replace the magic with
   `MOD `; all offsets stay the same.
-- COLOR0 is present, but vertex colour modulation and blend modes are still
-  open.
+- Apply COLOR0 as `texel·colour / 0x80`.
+- Apply the object's GS ALPHA mode. Additive and subtractive pixels do not
+  write depth.
 
-## 4. Open
+## 5. Open
 
-- The shader or blend state that EFM objects use (additive or alpha), and how
-  COLOR0 combines with the texture.
+- How the PC port's D3D11 path translates the depth states `0x50007`,
+  `0x5000D` and `0x5010D`.
 - The rest of CEm005: the owner class that spawns Shl01, and the em000.pac
   slots 33 onward.

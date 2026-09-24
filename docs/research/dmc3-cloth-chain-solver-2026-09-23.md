@@ -156,10 +156,26 @@ shapes at `player+0xB630`. `0x140214E17` fills those shapes from `.rdata`
 | 2 | (0, -5, 0) | (0, -15, 0) | 18 |
 | 15, 16, 19, 20 (legs) | (0, 0, 0) | (0, -50, 0) | 10 |
 
+**Nevan's hair.** CEm028 calls `0x140130D9A` on the hair chain (`this+0x3A30`,
+slot 4 with `.clt` 7). It passes the body joint table (`this+0xC70`), the
+entry table `0x140576110` with a count of 3, and shapes built at
+`this+0x5FB0` from `.rdata 0x140576120`:
+
+| Body joint | A | B | Radius |
+| --- | --- | --- | --- |
+| 5 | (0, 4.65, 0) | (0, −4.65, 0) | 9.3 |
+| 4 | (0, 6, 0) | (0, −6, 0) | 12 |
+| 3 | (0, 9.5, 0) | (0, −9.5, 0) | 19 |
+
+The dress chain (`this+0x4CF0`, slot 5 with `.clt` 8) only goes through the
+reset `0x1402CA0A0`, which clears velocities and copies worlds. It gets no
+collision. No CEm000–CEm004 init calls `0x1402CA2F0`, so the em000 cloaks have
+no collision either.
+
 ## 7. Open
 
-- The `c+0x48` collision objects, and the enemy capsule tables (other callers
-  of `0x1402CA2F0`, such as `0x140130D9A` in CEm028).
+- The `c+0x48` collision objects, and the capsule tables of the other
+  `0x1402CA2F0` callers in the `0x140182…` and `0x1402DD…` classes.
 - WindType semantics.
 - Whether the world of WindParent is taken from the chain's own model or from
   its host.
