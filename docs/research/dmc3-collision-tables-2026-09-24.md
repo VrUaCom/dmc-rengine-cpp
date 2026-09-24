@@ -21,8 +21,8 @@ handle (class derived from `ICollisionHandle`, vtable `0x1404C65A0`):
 | em028 | 11 (16 B) | 12 (160 B) | `0x140130FA8` |
 | em000 family | 39 (96 B, 24 ids) | 40 (1840 B, 23 records) | `0x14009823F` |
 
-(em006 and em007 use slots 13/14 and 9/10: the same pair, just before their
-effect bank.)
+(em006 and em007 also use slots 39/40, just before their effect bank in slot
+41.)
 
 ## 2. Attack index — EXE_CONFIRMED
 
