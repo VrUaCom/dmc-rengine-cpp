@@ -196,7 +196,15 @@ struct EffectPackContract final {
     static constexpr std::uint32_t texture_observed_square_small = 128U;
     static constexpr std::uint32_t texture_observed_square_large = 256U;
 
-    static constexpr bool manifest_read_site_found = false;
+    // Read site: 0x1402C04C0(bank, mode) tokenizes slot 0 with the text
+    // tokenizer 0x140322AB0, reads `<kind> <id>` pairs until a `#` token and
+    // hands record k of slot 1 to the kind's registrar (jump table on
+    // kind - 'A': A 0x140322990, C 0x1402D3BE0, E 0x1402E87A0,
+    // G 0x1402ECBD0, M 0x1402E35D0 (record + companion), P 0x140314B80,
+    // T 0x140322F20, V 0x140325030). See
+    // docs/research/dmc3-effect-bank-loader-2026-09-24.md.
+    static constexpr bool manifest_read_site_found = true;
+    static constexpr std::uint64_t manifest_read_site = 0x1402C04C0ULL;
 
     [[nodiscard]] static constexpr std::size_t extent_for(char kind) noexcept {
         for (const auto& entry : kinds) {
