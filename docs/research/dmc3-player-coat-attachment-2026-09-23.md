@@ -46,8 +46,10 @@ CPlVergil load (`0x140225D70`):
 ```
 
 The same `slot 0` texture / `slot 12` model pair is loaded by CPlDante
-(`0x1402152C6`, `0x1402193E7`) and CPlNewVergil (`0x140222242`,
-`0x140222727`).
+(`0x1402152C6`), CPlLady (`0x1402193E7`; RTTI `.?AVCPlLady@@`, vtable
+`0x1404DFDC0`, coat table `+0x7FD0`, root on body joint 5 at `0x14021920A`)
+and CPlNewVergil (`0x140222242`, `0x140222727`). The coat object is class
+CDraw (vtable `0x1404C9010`).
 
 So the coat has no texture of its own: it uses the body texture in slot 0.
 

@@ -143,3 +143,84 @@ subroutines sit in `int3` padding at `0x140346CF2` and `0x1403455D5`.
     `82bc2581b951f2d6f6ac8e1dd3f8f1fad34eb7bd7433a863d9ddaa70e080a9e1`.
   - Pelvis-rooted skirt PAC: SHA-256
     `3b588304437c39a6c9d4bf01f456d58ba04b4d6e52761f043e5392bd08eac947`.
+
+## 7. Costume cloth: coat node constraints
+
+**Correction to section 5.** CPlDante holds one cloth chain (see
+`dmc3-cloth-chain-solver-2026-09-23.md` §3.1). The `ClothNum 2` skirt from
+section 5 would overwrite the `+0xA300` joint table. The builder now writes
+one block and keeps the front chains rigid.
+
+### Engine pieces reused
+
+Nevan's sleeves already work this way: CEm028 init `0x140130480` gives
+nodes of other models a constraint that follows a body joint. A player coat
+can use the same pieces:
+
+- **Constraint object.** It is 0xC0 bytes with vtable `0x1404CC1F8`,
+  built by constructor `0x1400F7AC0` over base `0x1402D3640`. The base
+  only fills fields and registers nothing. The fields are:
+  - `+0x20` enabled flag;
+  - `+0x28` mode;
+  - `+0x30` host world pointer;
+  - `+0x40` mode-2 matrix;
+  - `+0x80` offset.
+- **Evaluation.** `vtbl[0]` is `0x1402CBBE0`.
+  - Mode 1 computes `0x140030E40(out, host, offset)`, which calls
+    `0x1400312B0(out, offset, host)`. Row `i` of the result is
+    `Σ offset[i][k]·host[k]`, so world = offset × host.
+  - Mode 2 uses the matrix at `+0x40` in place of the host.
+- **Skeleton update.** `0x14030E680` (reached through CDraw `vtbl+0x190`
+  and `0x140089FC0`) walks the joints in order. A joint with an enabled
+  constraint at `+0x100` calls that constraint instead of `0x14030E9B0`.
+- **Joint binding.** `0x14030F850` sets `+0x110` (world), `+0x108`
+  (local), `+0xF0` (parent) and `+0x100 = 0` for every coat joint. The
+  joint objects themselves are pre-allocated by `0x1401DD140`, 0x260 bytes
+  each.
+- **Slot getter.** `0x1401B82C0(table 0x140C99D30, 0, word player+0x78,
+  slot)`:
+  - the entry is `table + (word[0x140581A20] + id)·0x48`;
+  - `+4 == 3` means loaded, and `+0x20` is the PAC;
+  - it returns null past the slot count or for a zero offset.
+
+### The patch
+
+Native Reader `tools/mod_fix/coat_patch.py` adds section `.dmcx` (VA
+`0x140DAC000`, RWX) with `coat_constraints.s`. It hooks `0x140215373`, in
+CPlDante's coat load, where `lea rdx,[r14+0x1880]` sits after the joint
+binding and the cloth parse.
+
+The hook works like this:
+
+1. It reads player PAC slot 15, `'CCNS'` version 1: `count × {coat node,
+   body joint, offset}`.
+2. For each record it builds a mode-1 constraint.
+3. It stores the constraint in the coat joint's `+0x100`.
+
+Limits: at most 16 records, coat node < 39, body joint < 96, and 4
+per-player pools.
+
+The retail game never reads slot 15. The patch was emulated with unicorn
+on the patched image:
+
+- the constraints from the costume PAC install;
+- the game's `0x1402CBBE0` yields offset × host;
+- PACs without slot 15 install nothing.
+
+The costume then works as follows:
+
+- **Root.** The coat hangs from the pelvis (section 6).
+- **Sleeves.** Each sleeve has three anchors on body joints 6/7/8
+  (10/11/12), with identity offsets, placed at the joints' rest positions.
+  The sleeve keeps its own body weights on those joints, and a cloth chain
+  from the elbow anchor carries the lower half of the bell.
+- **Skirt.** 8 chains.
+- **Totals.** 37 coat nodes, 16 cloth bones and 6 constraints.
+
+| File | SHA-256 |
+| --- | --- |
+| `dmc3_coat.exe` | `1e018ab3ef47a5b3547c43b1c13affaa697110179fe81efe79bd3f73c08b0c79` |
+| Costume PAC | `34d9b477d6e8e52239cc912bbc840bb31347322259c98d64f469796361deed59` |
+
+The costume PAC has 16 slots. Every MOD and SHW slot parses with no
+diagnostics, and the cloth stays finite in all 40 motions.

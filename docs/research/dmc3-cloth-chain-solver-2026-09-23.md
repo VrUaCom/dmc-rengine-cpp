@@ -129,6 +129,19 @@ only sample with `ClothNum 2`:
 | 0 | 2-7, 9-13, 27-31, 33-38 (front and side panels) | -0.02 | 0.02 | 0.3 | yes |
 | 1 | 15-19, 21-25 (back panel) | -0.01 | 0.02 | 0.3 | no |
 
+The number of chains a class can hold is fixed by its layout. There is no
+bound check on `ClothNum`. The table below shows where the chains sit and
+the joint tables allocated right after them (by `0x1401DD140` in the
+constructors `0x1401DE820` and friends):
+
+| Class | Coat joints | Chains | Next table | Chains that fit |
+| --- | --- | --- | --- | --- |
+| CPlDante | `+0xA0D0`, 39 | `+0xA210` | `+0xA300` (72 joints) | 1 |
+| CPlVergil | `+0xA0F0`, 39 | `+0xA230` | `+0xA410` (74 joints) | 2 |
+
+A Dante costume CLT with `ClothNum 2` would write its second chain over the
+`+0xA300` joint table.
+
 Up to v59, the viewer read only block 0. The back panel then stayed rigid on
 the rest pose, while the side panels moved around it.
 
