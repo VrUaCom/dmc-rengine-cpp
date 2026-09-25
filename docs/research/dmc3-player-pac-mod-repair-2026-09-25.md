@@ -67,3 +67,37 @@ Dante's own files.
 Tools: Native Reader `tools/mod_fix`. The repaired PAC has SHA-256
 `de580ff960152640cf51f0b86e1c6e1f369a309c1419863db8cc6309ab435596`, 15 slots
 and 1,178,816 bytes.
+
+## 5. A skirt as the coat model
+
+The skirt of `pl011` was moved from the body into slot 12 as cloth (Native
+Reader `tools/mod_fix/skirtcoat.py`). The output has SHA-256
+`1640a0d61a883a73f0ec40ba1865fd9ad25c5b751de427498483d6d5fec69a8e`, 15 slots
+and 1,168,000 bytes. Both MODs parse with no diagnostics, both SHW slots
+parse with no diagnostics, and the viewer reports no non-canonical note.
+
+These constraints come from the EXE:
+
+- **One carrier:**
+  - The coat root takes `joint[+0x1898]->world`, which is body joint 3 (the
+    chest), every frame. The addresses are listed in
+    `dmc3-player-coat-attachment-2026-09-23.md`.
+  - No coat node can follow the arms or the pelvis.
+  - Sleeves and the shirt therefore stay in the body.
+  - A skirt hangs from the chest. Across the 40 motions of `pl011`, the
+    waist point carried by joint 3 and the same point carried by joint 14
+    differ by 2 to 5 units in idle and run, 8 to 12 in many attacks, and up
+    to 25 (`slot_0003.pac/slot_0009.mot`, frame 23).
+- **Capsules on block 0 only (`0x1402151E7`):**
+  - The joint-3 capsule sits at z +10 in front of the hips, with r 15 and a
+    40-unit extent.
+  - It pushes the front of a short skirt forward.
+  - Putting the front chains in a second `ClothNo` block avoids the push.
+    That is the `pl001_02.clt` pattern.
+- **Canonical MOD writer:**
+  - Streams are grouped by kind across an object's meshes.
+  - Each mesh has a generated-topology workspace of `align16(6 · (n − 2))`
+    bytes filled with 0x12.
+  - The file's last two bytes are zero.
+  - Nine retail MODs (pl000/pl001 body and coat, em028, weapons) round-trip
+    byte for byte.
