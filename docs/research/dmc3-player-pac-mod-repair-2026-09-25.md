@@ -224,3 +224,49 @@ The costume then works as follows:
 
 The costume PAC has 16 slots. Every MOD and SHW slot parses with no
 diagnostics, and the cloth stays finite in all 40 motions.
+
+### Two coat setups and the collision capsules
+
+**Two setups.** CPlDante's load builds the coat in one of two ways,
+depending on the costume byte `+0x3E9E`:
+
+| Costume byte | Setup | Capsule call |
+| --- | --- | --- |
+| 1 or 4 | `0x14021526F` | `0x140215397` (entries `0x14058B054`, count 1) |
+| any other | `0x140214F74` | `0x1402151E7` (entries `0x14058B380`, count 6) |
+
+The costume-1/4 setup is at `0x140214F65`/`0x140214F6E`. Both setups end in
+`lea rdx,[r14+0x1880]` just before the capsule setter, at `0x1402151C3` and
+`0x140215373`. The patch hooks both.
+
+**Capsule shapes.** Each setup writes its shapes to player `+0xB630`:
+records of 0x50 bytes, type 4 at `+0`, A at `+0x10`, B at `+0x20` and the
+radius at `+0x30`. The six-capsule setup takes them from `.rdata
+0x14058B260..0x14058B370`, as listed in `dmc3-cloth-chain-solver`. The
+setter `0x1402CA2F0` stores only pointers, and the step `0x1402C97F0` reads
+the shapes every frame. The hook can therefore replace them for a single
+costume.
+
+`'CCNS'` `+0x0C` holds a capsule count (at most 6). Records of 0x40 bytes
+follow the node records: shape index, then A, B and radius as `f32[4]`
+each.
+
+**The pl011 costume** replaces the shapes to fit its body:
+
+| Joint | A | B | Radius |
+| --- | --- | --- | --- |
+| 3 | (0, 20, 1) | (0, −12, 1) | 11 |
+| 2 | (0, −4, 0) | (0, −14, 0) | 12 |
+| legs | (0, 0, 0) | (0, −50, 0) | 9 |
+
+With these shapes all eight skirt chains simulate, and the thighs lift the
+front of the skirt instead of passing through it.
+
+**Checks.** Emulation shows the hook writes the six shapes and installs the
+six constraints. The cloth stays finite in all 40 motions, and the SHW and
+MOD slots parse with no diagnostics.
+
+| File | SHA-256 |
+| --- | --- |
+| Patched executable | `bfa4f84d9b6879aef48a95e57a9bc8c38f706e186f5af379564bb494549311bd` |
+| Costume PAC | `f4fcaa75334541bb93ff85cebf0de7d4b16a92d77e109afef5e99c1fd95755cb` |
