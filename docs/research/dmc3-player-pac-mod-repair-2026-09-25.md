@@ -101,3 +101,45 @@ These constraints come from the EXE:
   - The file's last two bytes are zero.
   - Nine retail MODs (pl000/pl001 body and coat, em028, weapons) round-trip
     byte for byte.
+
+## 6. Coat root joint patch
+
+The coat joint is hard-coded in three places in CPlDante:
+
+| Site | Instruction | What follows |
+| --- | --- | --- |
+| `0x1402120C4` (file `0x2114C4`) | `mov rdx,[rsi+0x1898]` | `call [coat vtbl+0x190](joint->world)` |
+| `0x140218EFD` (file `0x2182FD`) | `mov rdx,[rdi+0x1898]` | `call [vtbl+0x198]` |
+| `0x140218F67` (file `0x218367`) | `mov rdx,[rdi+0x1898]` | `call [vtbl+0x198]` |
+
+The last two sites are in the CPlDante virtual `0x140218960`, vtable slot
+`0x1404DFA38`.
+
+Supporting facts:
+
+- **Joint pointers:** player `+0x1880 + 8·j`, indexed by joint number all
+  through the player code.
+- **Model objects:** an array at `+0x7540` with a stride of `0x780`. The coat
+  is element 0.
+- **Coat object:** its vtable is `0x1404C9010`, set by the constructor at
+  `0x140089270`. Its `+0x50` entry is `0x140089960`, which loads through
+  `0x1402FDF00` and `0x140303AE0` into `0x1402F9570`.
+- **MOD manager:** the coat object's manager sits at object `+0x80`.
+  `0x1402F960E..0x1402F9616` copies MOD header `+0x13` into the manager at
+  `+0xFA` (u16). The byte is therefore at player `+0x76BA`.
+- **`0x1402FD040`:** reads only the world translation of the joint named by
+  `+0xFA`.
+
+Native Reader's `tools/mod_fix/coatjoint_patch.py` sends each site through a
+16-byte subroutine that computes joint `3 + byte [player+0x76BA]`. The
+subroutines sit in `int3` padding at `0x140346CF2` and `0x1403455D5`.
+
+- **Retail coats:** pl000 and pl001 carry `+0x13 = 0`, so their behaviour is
+  unchanged.
+- **The pl011 skirt:** it carries 11, so it hangs from joint 14 (the pelvis).
+  Its waist then stays on the hips in all 40 motions of `pl011`.
+- **Output hashes:**
+  - Patched executable: SHA-256
+    `82bc2581b951f2d6f6ac8e1dd3f8f1fad34eb7bd7433a863d9ddaa70e080a9e1`.
+  - Pelvis-rooted skirt PAC: SHA-256
+    `3b588304437c39a6c9d4bf01f456d58ba04b4d6e52761f043e5392bd08eac947`.
