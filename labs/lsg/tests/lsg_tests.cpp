@@ -28,11 +28,16 @@ float point_distance(AnatomicalPoint a, AnatomicalPoint b) {
 }
 
 int main() {
-  const auto g0 = builtin_profile(0), g1 = builtin_profile(1);
+  static_assert(kBuiltinProfileCount == 3u); static_assert(kAdaProfileIndex == 2u);
+  const auto g0 = builtin_profile(0), g1 = builtin_profile(1), g2 = builtin_profile(kAdaProfileIndex);
   const auto bytes = encode_genome(g0);
   assert(!bytes.empty()); assert(bytes.size() < 512); assert(bytes.size() <= kGenomeHardLimit);
   DecodedGenome d{}; std::string err;
   assert(decode_genome(bytes, d, err)); assert(d.generator_revision == kGeneratorRevision); assert(d.value.surface_seed == g0.surface_seed);
+  const auto ada_bytes = encode_genome(g2); assert(!ada_bytes.empty());
+  DecodedGenome ada_decoded{}; assert(decode_genome(ada_bytes, ada_decoded, err));
+  assert(ada_decoded.value.identity_seed == g2.identity_seed);
+  assert(g2.identity_seed != g1.identity_seed); assert(g2.surface_seed != g1.surface_seed); assert(g2.eye_seed != g1.eye_seed);
   auto corrupt = bytes; corrupt.back() ^= std::byte{1}; assert(!decode_genome(corrupt, d, err));
   const auto legacy_revision = encode_genome(g0, 1u); assert(!legacy_revision.empty());
   assert(!decode_genome(legacy_revision, d, err)); assert(err.find("generator revision") != std::string::npos);
@@ -204,13 +209,15 @@ int main() {
   assert(eye_state.pupil_radius >= kPupilRadiusMin &&
          eye_state.pupil_radius <= kPupilRadiusMax);
 
-  const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1);
+  const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1), p2 = derive_character_parameters(g2);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);
   assert(p0.melanin >= 0.0f && p0.melanin <= 1.0f); assert(p1.pore_density >= 0.0f && p1.pore_density <= 1.0f);
   assert(p0.height_scale >= 0.80f && p0.height_scale <= 1.20f); assert(p1.head_scale >= 0.80f && p1.head_scale <= 1.20f);
   assert(p0.surface_seed_low == fold_seed64(g0.surface_seed));
   assert(p1.surface_seed_low == fold_seed64(g1.surface_seed));
   assert(p0.surface_seed_low != p1.surface_seed_low);
+  assert(p2.surface_seed_low == fold_seed64(g2.surface_seed)); assert(p2.surface_seed_low != p1.surface_seed_low);
+  assert(p2.pelvis_scale != p1.pelvis_scale || p2.chest_depth_scale != p1.chest_depth_scale);
 
   // Continuous anatomy must never create the old region-boundary discontinuity. Probe the
   // entire body height with a short representative mesh edge at an off-axis position.
