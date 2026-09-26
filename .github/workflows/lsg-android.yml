@@ -186,12 +186,22 @@ jobs:
             grep 'RMS0 DEBUG MERGE PASS' labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-$PROFILE.txt
           done
 
+          # Character 2 / Ada uses the female development RMS0 carrier until a measured Face DNA fit exists.
+          cp labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh \
+             labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_2.rmesh
+          cp labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_1.rmesh \
+             labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_2.rmesh
+
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_0.lsg.json /tmp/character_0.lsg
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_1.lsg.json /tmp/character_1.lsg
+          build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_2_ada.lsg.json /tmp/character_2.lsg
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh
+          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_2.rmesh
+          test -s labs/lsg/viewer/android/app/src/main/assets/meshes/eye_profile_2.rmesh
           test -s /tmp/character_0.lsg
           test -s /tmp/character_1.lsg
+          test -s /tmp/character_2.lsg
           if cmp -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_0.rmesh \
                     labs/lsg/viewer/android/app/src/main/assets/meshes/human_profile_1.rmesh; then
             echo 'macro profile meshes are unexpectedly identical'
@@ -240,10 +250,12 @@ jobs:
           grep 'assets/shaders/human.frag.spv' /tmp/apk-files.txt
           grep 'assets/meshes/human_profile_0.rmesh' /tmp/apk-files.txt
           grep 'assets/meshes/human_profile_1.rmesh' /tmp/apk-files.txt
+          grep 'assets/meshes/human_profile_2.rmesh' /tmp/apk-files.txt
           grep 'assets/shaders/eye.vert.spv' /tmp/apk-files.txt
           grep 'assets/shaders/eye.frag.spv' /tmp/apk-files.txt
           grep 'assets/meshes/eye_profile_0.rmesh' /tmp/apk-files.txt
           grep 'assets/meshes/eye_profile_1.rmesh' /tmp/apk-files.txt
+          grep 'assets/meshes/eye_profile_2.rmesh' /tmp/apk-files.txt
           if grep -Eiq 'assets/.*\.(png|jpe?g|dds|ktx2?|basis)' /tmp/apk-files.txt; then
             echo 'unexpected baked texture asset found in LSG APK'
             exit 1
