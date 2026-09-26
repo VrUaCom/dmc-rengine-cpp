@@ -104,12 +104,15 @@ int main() {
   assert(std::isfinite(eye_left.x) && std::isfinite(eye_right.x));
   assert(std::abs(eye_left.x + eye_right.x) < 1e-5f);
 
-  FaceGenomeV0 extreme_face{};
-  std::int16_t* extreme_values = reinterpret_cast<std::int16_t*>(&extreme_face);
+  constexpr auto face_max = std::numeric_limits<std::int16_t>::max();
+  constexpr auto face_min = std::numeric_limits<std::int16_t>::min();
   static_assert(sizeof(FaceGenomeV0) == 20u * sizeof(std::int16_t));
-  for (std::size_t i = 0; i < 20u; ++i)
-    extreme_values[i] = (i & 1u) == 0u ? std::numeric_limits<std::int16_t>::max()
-                                       : std::numeric_limits<std::int16_t>::min();
+  const FaceGenomeV0 extreme_face{
+      face_max, face_min, face_max, face_min,
+      face_max, face_min, face_max, face_min,
+      face_max, face_min, face_max, face_min,
+      face_max, face_min, face_max, face_min,
+      face_max, face_min, face_max, face_min};
   const auto extreme = derive_face_field_parameters(extreme_face);
   float previous_activation_x = raw_face.x;
   for (int step = 0; step <= 25; ++step) {
