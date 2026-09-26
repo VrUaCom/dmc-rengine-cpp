@@ -149,6 +149,14 @@ int main() {
   static_assert(h1 == h2); static_assert(h1 != h3);
   static_assert(hash5(0x1122334455667788ull, 4, -2, 7, 11) ==
                 hash5_32(fold_seed64(0x1122334455667788ull), 4, -2, 7, 11));
+  constexpr std::uint64_t cell_seed = 0x1122334455667788ull;
+  constexpr std::uint32_t cell_key = fold_seed64(cell_seed);
+  constexpr std::uint32_t cell_manual =
+      pcg_hash(pcg_hash(pcg_hash(pcg_hash(cell_key) ^ static_cast<std::uint32_t>(-2)) ^
+                                static_cast<std::uint32_t>(7)) ^
+                         static_cast<std::uint32_t>(11));
+  static_assert(hash_cell3(cell_seed, -2, 7, 11) == cell_manual);
+  static_assert(hash_cell3_32(cell_key, -2, 7, 11) == cell_manual);
   assert(select_detail_band(4.0f) == DetailBand::macro_only); assert(select_detail_band(2.0f) == DetailBand::meso);
   assert(select_detail_band(0.5f) == DetailBand::micro); assert(select_detail_band(0.05f) == DetailBand::micro_high);
 

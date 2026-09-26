@@ -46,7 +46,7 @@ float value_noise(std::uint64_t seed, Vec3 p) noexcept {
   const float fy = smooth01(p.y - std::floor(p.y));
   const float fz = smooth01(p.z - std::floor(p.z));
   const auto sample = [&](std::int32_t dx, std::int32_t dy, std::int32_t dz) noexcept {
-    return hash01(hash5(seed, 0u, x0 + dx, y0 + dy, z0 + dz));
+    return hash01(hash_cell3(seed, x0 + dx, y0 + dy, z0 + dz));
   };
 
   const float v000 = sample(0, 0, 0), v100 = sample(1, 0, 0);
@@ -74,7 +74,7 @@ PoreFieldSample sample_pore_field(const CharacterGenomeV0& genome, Vec3 p,
     for (std::int32_t dy = -1; dy <= 1; ++dy) {
       for (std::int32_t dx = -1; dx <= 1; ++dx) {
         const auto cx = bx + dx, cy = by + dy, cz = bz + dz;
-        const std::uint32_t h = hash5(genome.surface_seed ^ 0xB5297A4Dull, 0u, cx, cy, cz);
+        const std::uint32_t h = hash_cell3(genome.surface_seed ^ 0xB5297A4Dull, cx, cy, cz);
         if (hash01(pcg_hash(h ^ 0xD1B54A35u)) >= density) continue;
 
         const float jx = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0x68E31DA4u));

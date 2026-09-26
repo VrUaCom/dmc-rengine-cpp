@@ -12,6 +12,24 @@ namespace rengine::lsg {
   return static_cast<std::uint32_t>(seed) ^ static_cast<std::uint32_t>(seed >> 32u);
 }
 
+[[nodiscard]] constexpr std::uint32_t hash_cell3_32(std::uint32_t seed_key,
+                                                    std::int32_t x,
+                                                    std::int32_t y,
+                                                    std::int32_t z) noexcept {
+  std::uint32_t h = pcg_hash(seed_key);
+  h = pcg_hash(h ^ static_cast<std::uint32_t>(x));
+  h = pcg_hash(h ^ static_cast<std::uint32_t>(y));
+  h = pcg_hash(h ^ static_cast<std::uint32_t>(z));
+  return h;
+}
+
+[[nodiscard]] constexpr std::uint32_t hash_cell3(std::uint64_t seed,
+                                                 std::int32_t x,
+                                                 std::int32_t y,
+                                                 std::int32_t z) noexcept {
+  return hash_cell3_32(fold_seed64(seed), x, y, z);
+}
+
 [[nodiscard]] constexpr std::uint32_t hash5_32(std::uint32_t seed_key, std::uint32_t region,
                                                std::int32_t x, std::int32_t y, std::int32_t z) noexcept {
   std::uint32_t h = pcg_hash(seed_key);
