@@ -115,9 +115,14 @@ void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0
 }
 
 void select_character(AppState& state, std::uint32_t index) {
-  state.character_index = index & 1u;
+  state.character_index = index % rengine::lsg::kBuiltinProfileCount;
   state.character = std::make_unique<rengine::lsg::CharacterRuntime>(rengine::lsg::builtin_profile(state.character_index));
-  log_info(state.character_index == 0 ? "Character 0 selected" : "Character 1 selected");
+  switch (state.character_index) {
+    case 0u: log_info("Character 0 selected"); break;
+    case 1u: log_info("Character 1 selected"); break;
+    case rengine::lsg::kAdaProfileIndex: log_info("Character 2 / Ada reference selected"); break;
+    default: break;
+  }
 }
 
 void toggle_detail(AppState& state) {
@@ -325,6 +330,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     switch (AKeyEvent_getKeyCode(event)) {
       case AKEYCODE_0: select_character(*state, 0); return 1;
       case AKEYCODE_1: select_character(*state, 1); return 1;
+      case AKEYCODE_2: select_character(*state, rengine::lsg::kAdaProfileIndex); return 1;
       case AKEYCODE_D: toggle_detail(*state); return 1;
       case AKEYCODE_S: toggle_skeleton(*state); return 1;
       case AKEYCODE_M: cycle_diagnostic_mode(*state); return 1;
@@ -424,7 +430,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
 } // namespace
 
 void android_main(android_app* app) {
-  AppState state{}; state.app = app; select_character(state, 0);
+  AppState state{}; state.app = app; select_character(state, rengine::lsg::kAdaProfileIndex);
   app->userData = &state; app->onAppCmd = on_command; app->onInputEvent = on_input;
   const auto start = std::chrono::steady_clock::now();
   auto telemetry_start = start;
