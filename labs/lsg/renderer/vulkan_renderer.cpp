@@ -97,8 +97,8 @@ struct VulkanRenderer::Impl {
     std::array<float, 3> mesh_center{};
     float meters_per_unit{1.0f};
   };
-  std::array<ProfileMeshGpu, 2> profile_meshes{};
-  std::array<ProfileMeshGpu, 2> eye_meshes{};
+  std::array<ProfileMeshGpu, kBuiltinProfileCount> profile_meshes{};
+  std::array<ProfileMeshGpu, kBuiltinProfileCount> eye_meshes{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
@@ -113,7 +113,7 @@ struct VulkanRenderer::Impl {
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
   LightingRuntimeState lighting{lighting_for(LightingPreset::noon, OpticalFilterPreset::clear)};
-  std::array<EyeRuntimeState, 2> eye_runtime{};
+  std::array<EyeRuntimeState, kBuiltinProfileCount> eye_runtime{};
   float last_eye_time_seconds{};
   std::uint32_t last_profile_index{};
   VkCommandPool command_pool{VK_NULL_HANDLE};
@@ -706,12 +706,14 @@ bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
 }
 
 bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  constexpr std::array<std::string_view, 2> body_paths{
+  constexpr std::array<std::string_view, kBuiltinProfileCount> body_paths{
       "meshes/human_profile_0.rmesh",
-      "meshes/human_profile_1.rmesh"};
-  constexpr std::array<std::string_view, 2> eye_paths{
+      "meshes/human_profile_1.rmesh",
+      "meshes/human_profile_2.rmesh"};
+  constexpr std::array<std::string_view, kBuiltinProfileCount> eye_paths{
       "meshes/eye_profile_0.rmesh",
-      "meshes/eye_profile_1.rmesh"};
+      "meshes/eye_profile_1.rmesh",
+      "meshes/eye_profile_2.rmesh"};
 
   for (std::size_t i = 0; i < body_paths.size(); ++i) {
     if (!create_profile_mesh(state, asset_manager, body_paths[i], state.profile_meshes[i])) return false;
@@ -1123,7 +1125,7 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.effective_eye_luminance = state.lighting.effective_eye_luminance;
   out.filter_transmission = state.lighting.filter_transmission;
   out.polarization_strength = state.lighting.polarization_strength;
-  const auto profile = state.last_profile_index & 1u;
+  const auto profile = state.last_profile_index % kBuiltinProfileCount;
   out.pupil_target_radius = state.eye_runtime[profile].target_pupil_radius;
   out.pupil_current_radius = state.eye_runtime[profile].pupil_radius;
   return out;
@@ -1156,7 +1158,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   auto& state = *impl_;
   if (vkWaitForFences(state.device, 1, &state.in_flight, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
   if (state.shadow_probe.active() &&
-      ((character_index & 1u) != state.probe_profile || detail_enabled != state.probe_detail))
+      ((character_index % kBuiltinProfileCount) != state.probe_profile || detail_enabled != state.probe_detail))
     cancel_shadow_probe();
   state.shadow_probe.advance(time_seconds);
   if (state.probe_snapshot && !state.shadow_probe.active()) cancel_shadow_probe();
@@ -1169,7 +1171,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const float pose_time = state.shadow_probe.active() ? state.shadow_probe.pose_time() : time_seconds;
   state.last_detail = detail_enabled;
   update_frame_lighting_buffer(state);
-  state.last_profile_index = character_index & 1u;
+  state.last_profile_index = character_index % kBuiltinProfileCount;
   std::uint32_t image_index{};
   const auto acquire = vkAcquireNextImageKHR(state.device, state.swapchain, UINT64_MAX, state.image_available, VK_NULL_HANDLE, &image_index);
   if (acquire == VK_ERROR_OUT_OF_DATE_KHR || (acquire != VK_SUCCESS && acquire != VK_SUBOPTIMAL_KHR)) return false;
@@ -1179,7 +1181,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   VkCommandBufferBeginInfo begin{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
   if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) return false;
 
-  const auto profile_index = character_index & 1u;
+  const auto profile_index = character_index % kBuiltinProfileCount;
   const auto& profile_mesh = state.profile_meshes[profile_index];
   const VkDeviceSize offset = 0;
   const CharacterGenomeV0 genome = builtin_profile(profile_index);
