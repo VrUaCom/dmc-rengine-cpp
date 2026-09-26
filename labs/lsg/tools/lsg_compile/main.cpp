@@ -74,13 +74,14 @@ std::uint64_t parse_seed(const json& root, const char* key) {
 
 CharacterGenomeV0 parse_profile(const json& root) {
   require_keys_only(root,
-                    {"generator_revision", "flags", "geometry", "skin", "eyes", "micro", "physiology",
+                    {"generator_revision", "flags", "geometry", "face", "skin", "eyes", "micro", "physiology",
                      "identity_seed", "surface_seed", "eye_seed"},
                     "root");
   if (!root.contains("generator_revision")) fail("root: missing field 'generator_revision'");
   const auto revision = required_integer<std::uint32_t>(root, "generator_revision", 0,
                                                          std::numeric_limits<std::uint32_t>::max(), "root");
-  if (revision != rengine::lsg::kGeneratorRevision)
+  if (revision != rengine::lsg::kGeneratorRevision &&
+      revision != rengine::lsg::kLegacyGeneratorRevision)
     fail("generator_revision is not supported by this lsg_compile build");
   if (root.contains("flags"))
     (void)required_integer<std::uint32_t>(root, "flags", 0, std::numeric_limits<std::uint32_t>::max(), "root");
@@ -95,6 +96,25 @@ CharacterGenomeV0 parse_profile(const json& root) {
                                           static_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::max()),
                                           "geometry");
   };
+
+  rengine::lsg::FaceGenomeV0 face{};
+  if (root.contains("face")) {
+    const auto& face_json = root.at("face");
+    require_keys_only(face_json,
+      {"skull_width","skull_height","face_length","forehead_height","brow_depth",
+       "eye_spacing","eye_size","eye_tilt","nose_length","nose_width","nose_projection",
+       "cheekbone_width","cheek_fullness","jaw_width","chin_width","chin_projection",
+       "mouth_width","upper_lip_fullness","lower_lip_fullness","lip_projection"}, "face");
+    const auto face_i16 = [&](const char* key) {
+      return required_integer<std::int16_t>(face_json, key, std::numeric_limits<std::int16_t>::min(),
+        static_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::max()), "face");
+    };
+    face = {face_i16("skull_width"),face_i16("skull_height"),face_i16("face_length"),face_i16("forehead_height"),
+            face_i16("brow_depth"),face_i16("eye_spacing"),face_i16("eye_size"),face_i16("eye_tilt"),
+            face_i16("nose_length"),face_i16("nose_width"),face_i16("nose_projection"),face_i16("cheekbone_width"),
+            face_i16("cheek_fullness"),face_i16("jaw_width"),face_i16("chin_width"),face_i16("chin_projection"),
+            face_i16("mouth_width"),face_i16("upper_lip_fullness"),face_i16("lower_lip_fullness"),face_i16("lip_projection")};
+  }
 
   const auto& skin = root.at("skin");
   require_keys_only(skin,
@@ -123,6 +143,7 @@ CharacterGenomeV0 parse_profile(const json& root) {
   genome.geometry = {i16("height"), i16("shoulder_width"), i16("pelvis_width"), i16("chest_volume"),
                      i16("waist"), i16("limb_length"), i16("muscle"), i16("body_fat"), i16("neck"),
                      i16("head_scale"), i16("jaw"), i16("facial_softness")};
+  genome.face = face;
   genome.skin = {skin_u8("melanin"), skin_u8("haemoglobin"), skin_u8("carotene"), skin_u8("oiliness"),
                  skin_u8("hydration"), skin_u8("roughness_bias"), skin_u8("pore_density"),
                  skin_u8("pore_scale"), skin_u8("pore_depth"), skin_u8("follicle_density"),

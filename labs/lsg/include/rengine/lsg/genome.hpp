@@ -7,7 +7,8 @@
 
 namespace rengine::lsg {
 inline constexpr std::uint16_t kGenomeVersion = 0;
-inline constexpr std::uint32_t kGeneratorRevision = 2;
+inline constexpr std::uint32_t kGeneratorRevision = 3;
+inline constexpr std::uint32_t kLegacyGeneratorRevision = 2;
 inline constexpr std::uint32_t kBuiltinProfileCount = 3;
 inline constexpr std::uint32_t kAdaProfileIndex = 2;
 inline constexpr std::size_t kGenomeHardLimit = 4096;
@@ -17,6 +18,13 @@ struct GeometryGenome {
   std::int16_t chest_volume{}; std::int16_t waist{}; std::int16_t limb_length{};
   std::int16_t muscle{}; std::int16_t body_fat{}; std::int16_t neck{};
   std::int16_t head_scale{}; std::int16_t jaw{}; std::int16_t facial_softness{};
+};
+struct FaceGenomeV0 {
+  std::int16_t skull_width{}, skull_height{}, face_length{}, forehead_height{};
+  std::int16_t brow_depth{}, eye_spacing{}, eye_size{}, eye_tilt{};
+  std::int16_t nose_length{}, nose_width{}, nose_projection{}, cheekbone_width{};
+  std::int16_t cheek_fullness{}, jaw_width{}, chin_width{}, chin_projection{};
+  std::int16_t mouth_width{}, upper_lip_fullness{}, lower_lip_fullness{}, lip_projection{};
 };
 struct SkinGenome {
   std::uint8_t melanin{}, haemoglobin{}, carotene{}, oiliness{}, hydration{}, roughness_bias{};
@@ -31,6 +39,7 @@ struct PhysiologyGenome { std::uint8_t resting_pulse{}, perfusion{}, sweat_bias{
 
 struct CharacterGenomeV0 {
   GeometryGenome geometry{};
+  FaceGenomeV0 face{};
   SkinGenome skin{};
   EyeGenome eyes{};
   MicroDetailGenome micro{};

@@ -37,8 +37,15 @@ int main() {
   const auto ada_bytes = encode_genome(g2); assert(!ada_bytes.empty());
   DecodedGenome ada_decoded{}; assert(decode_genome(ada_bytes, ada_decoded, err));
   assert(ada_decoded.value.identity_seed == g2.identity_seed);
+  assert(ada_decoded.value.face.eye_tilt == g2.face.eye_tilt);
+  assert(g2.face.cheekbone_width > 0 && g2.face.jaw_width < 0);
+  assert(g2.face.upper_lip_fullness > 0 && g2.face.lower_lip_fullness > g2.face.upper_lip_fullness);
   assert(g2.identity_seed != g1.identity_seed); assert(g2.surface_seed != g1.surface_seed); assert(g2.eye_seed != g1.eye_seed);
   auto corrupt = bytes; corrupt.back() ^= std::byte{1}; assert(!decode_genome(corrupt, d, err));
+  const auto legacy_v2 = encode_genome(g0, kLegacyGeneratorRevision); assert(!legacy_v2.empty());
+  DecodedGenome migrated_v2{}; assert(decode_genome(legacy_v2, migrated_v2, err));
+  assert(migrated_v2.generator_revision == kLegacyGeneratorRevision);
+  assert(migrated_v2.value.face.skull_width == 0 && migrated_v2.value.face.nose_projection == 0);
   const auto legacy_revision = encode_genome(g0, 1u); assert(!legacy_revision.empty());
   assert(!decode_genome(legacy_revision, d, err)); assert(err.find("generator revision") != std::string::npos);
 

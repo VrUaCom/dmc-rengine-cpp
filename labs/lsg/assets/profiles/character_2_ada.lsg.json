@@ -1,5 +1,5 @@
 {
-  "generator_revision": 2,
+  "generator_revision": 3,
   "flags": 0,
   "geometry": {
     "height": -900,
@@ -41,9 +41,41 @@
     "vascularity": 48,
     "reserved": 0
   },
-  "micro": {"meso_strength": 134, "micro_strength": 150, "wrinkle_bias": 38, "reserved": 0},
-  "physiology": {"resting_pulse": 64, "perfusion": 122, "sweat_bias": 22, "temperature_bias": 128},
+  "micro": {
+    "meso_strength": 134,
+    "micro_strength": 150,
+    "wrinkle_bias": 38,
+    "reserved": 0
+  },
+  "physiology": {
+    "resting_pulse": 64,
+    "perfusion": 122,
+    "sweat_bias": 22,
+    "temperature_bias": 128
+  },
   "identity_seed": "0xADA220260926",
   "surface_seed": "0xA5DAFACE2401",
-  "eye_seed": "0xE1EADA260926"
+  "eye_seed": "0xE1EADA260926",
+  "face": {
+    "skull_width": -3000,
+    "skull_height": 4000,
+    "face_length": 2500,
+    "forehead_height": 1500,
+    "brow_depth": 1500,
+    "eye_spacing": -1000,
+    "eye_size": 4500,
+    "eye_tilt": 5000,
+    "nose_length": 1500,
+    "nose_width": -5500,
+    "nose_projection": 2500,
+    "cheekbone_width": 5000,
+    "cheek_fullness": 2000,
+    "jaw_width": -5000,
+    "chin_width": -3000,
+    "chin_projection": 2500,
+    "mouth_width": 2500,
+    "upper_lip_fullness": 6000,
+    "lower_lip_fullness": 7500,
+    "lip_projection": 2500
+  }
 }
