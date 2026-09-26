@@ -15,15 +15,6 @@ struct DerivedCharacterParameters {
   float body_fat_scale{1.0f};
   float head_scale{1.0f};
 
-  float melanin{};
-  float haemoglobin{};
-  float oiliness{};
-  float hydration{};
-  float roughness_bias{};
-  float pore_density{};
-  float pore_scale{};
-  float pore_depth{};
-  float meso_strength{};
   std::uint32_t surface_seed_low{};
 };
 

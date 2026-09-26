@@ -50,20 +50,16 @@ struct FaceFieldWeights {
   float lower_lip{};
 };
 
-inline constexpr float kCanonicalHeadPivotY = 0.690f;
-inline constexpr float kCanonicalFaceHalfWidthM = 0.100f;
-inline constexpr float kCanonicalFaceHalfHeightM = 0.180f;
-inline constexpr float kCanonicalFaceDepthM = 0.120f;
-
 [[nodiscard]] FaceFieldParameters derive_face_field_parameters(const FaceGenomeV0& face) noexcept;
-[[nodiscard]] FaceFieldWeights sample_face_field_weights(FacePoint raw_point) noexcept;
-[[nodiscard]] FacePoint deform_face_field(FacePoint shaped_point,
-                                          FacePoint raw_point,
-                                          float head_weight,
-                                          const FaceFieldParameters& parameters) noexcept;
-[[nodiscard]] FacePoint deform_eye_socket_field(FacePoint shaped_point,
-                                                FacePoint raw_point,
-                                                float head_weight,
-                                                const FaceFieldParameters& parameters) noexcept;
+[[nodiscard]] FaceFieldWeights sample_face_field_weights(
+    FacePoint raw_point, const CarrierFaceFieldMetadataV0& metadata) noexcept;
+[[nodiscard]] FacePoint deform_face_field(
+    FacePoint shaped_point, FacePoint raw_point, float head_weight,
+    const FaceFieldParameters& parameters,
+    const CarrierFaceFieldMetadataV0& metadata) noexcept;
+[[nodiscard]] FacePoint deform_eye_socket_field(
+    FacePoint shaped_point, FacePoint raw_point, float head_weight,
+    const FaceFieldParameters& parameters,
+    const CarrierFaceFieldMetadataV0& metadata) noexcept;
 
 } // namespace rengine::lsg

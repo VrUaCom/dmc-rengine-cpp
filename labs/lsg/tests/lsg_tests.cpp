@@ -5,6 +5,7 @@
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/face_field.hpp"
+#include "rengine/lsg/face_field_contract.inc"
 #include "rengine/lsg/lighting_runtime.hpp"
 #include "rengine/lsg/polarization_approx.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
@@ -42,6 +43,8 @@ int main() {
   assert(character_profile_definition(0).carrier == CarrierId::male_base);
   assert(character_profile_definition(1).carrier == CarrierId::female_base);
   assert(character_profile_definition(kAdaProfileIndex).carrier == CarrierId::female_base);
+  assert(carrier_definition(CarrierId::male_base).face_field.version == RENGINE_FACE_FIELD_VERSION);
+  assert(carrier_definition(CarrierId::female_base).face_field.version == RENGINE_FACE_FIELD_VERSION);
   assert(carrier_slot(character_profile_definition(kAdaProfileIndex).carrier) ==
          carrier_slot(CarrierId::female_base));
   assert(carrier_definition(CarrierId::male_base).body_asset_path !=
@@ -69,15 +72,15 @@ int main() {
   const auto neutral_face = derive_face_field_parameters(g0.face);
   const FacePoint raw_face{0.035f, 0.735f, 0.080f};
   const FacePoint shaped_face{0.035f, 0.735f, 0.080f};
-  const auto neutral_result = deform_face_field(shaped_face, raw_face, 1.0f, neutral_face);
+  const auto neutral_result = deform_face_field(shaped_face, raw_face, 1.0f, neutral_face, carrier_definition(CarrierId::male_base).face_field);
   assert(std::abs(neutral_result.x - shaped_face.x) < 1e-7f);
   assert(std::abs(neutral_result.y - shaped_face.y) < 1e-7f);
   assert(std::abs(neutral_result.z - shaped_face.z) < 1e-7f);
 
   const auto ada_face = derive_face_field_parameters(g2.face);
-  const auto ada_result = deform_face_field(shaped_face, raw_face, 1.0f, ada_face);
+  const auto ada_result = deform_face_field(shaped_face, raw_face, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
   assert(std::isfinite(ada_result.x) && std::isfinite(ada_result.y) && std::isfinite(ada_result.z));
-  const auto inactive = deform_face_field(shaped_face, raw_face, 0.0f, ada_face);
+  const auto inactive = deform_face_field(shaped_face, raw_face, 0.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
   assert(inactive.x == shaped_face.x && inactive.y == shaped_face.y && inactive.z == shaped_face.z);
 
   FaceGenomeV0 synthetic_face{};
@@ -91,8 +94,8 @@ int main() {
   const auto synthetic = derive_face_field_parameters(synthetic_face);
   const FacePoint left_raw{-0.040f, 0.680f, 0.085f};
   const FacePoint right_raw{0.040f, 0.680f, 0.085f};
-  const auto left = deform_face_field(left_raw, left_raw, 1.0f, synthetic);
-  const auto right = deform_face_field(right_raw, right_raw, 1.0f, synthetic);
+  const auto left = deform_face_field(left_raw, left_raw, 1.0f, synthetic, carrier_definition(CarrierId::male_base).face_field);
+  const auto right = deform_face_field(right_raw, right_raw, 1.0f, synthetic, carrier_definition(CarrierId::male_base).face_field);
   assert(std::isfinite(left.x) && std::isfinite(right.x));
   assert(std::abs(left.x + right.x) < 1e-5f);
   assert(std::abs(left.y - right.y) < 1e-5f);
@@ -100,8 +103,8 @@ int main() {
 
   const FacePoint left_eye{-0.032f, 0.752f, 0.080f};
   const FacePoint right_eye{0.032f, 0.752f, 0.080f};
-  const auto eye_left = deform_eye_socket_field(left_eye, left_eye, 1.0f, ada_face);
-  const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face);
+  const auto eye_left = deform_eye_socket_field(left_eye, left_eye, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
+  const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
   assert(std::isfinite(eye_left.x) && std::isfinite(eye_right.x));
   assert(std::abs(eye_left.x + eye_right.x) < 1e-5f);
 
@@ -118,7 +121,7 @@ int main() {
   float previous_activation_x = raw_face.x;
   for (int step = 0; step <= 25; ++step) {
     const float head_weight = static_cast<float>(step) / 100.0f;
-    const auto point = deform_face_field(shaped_face, raw_face, head_weight, extreme);
+    const auto point = deform_face_field(shaped_face, raw_face, head_weight, extreme, carrier_definition(CarrierId::male_base).face_field);
     assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
     assert(std::abs(point.x - shaped_face.x) < 0.20f);
     assert(std::abs(point.y - shaped_face.y) < 0.20f);
@@ -131,7 +134,7 @@ int main() {
     for (float y : {0.53f, 0.60f, 0.69f, 0.76f, 0.86f}) {
       for (float z : {0.0f, 0.04f, 0.08f, 0.12f}) {
         const FacePoint raw{x, y, z};
-        const auto point = deform_face_field(raw, raw, 1.0f, extreme);
+        const auto point = deform_face_field(raw, raw, 1.0f, extreme, carrier_definition(CarrierId::male_base).face_field);
         assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
       }
     }
@@ -322,7 +325,6 @@ int main() {
 
   const auto p0 = derive_character_parameters(g0), p1 = derive_character_parameters(g1), p2 = derive_character_parameters(g2);
   assert(p0.shoulder_scale != p1.shoulder_scale); assert(p0.pelvis_scale != p1.pelvis_scale);
-  assert(p0.melanin >= 0.0f && p0.melanin <= 1.0f); assert(p1.pore_density >= 0.0f && p1.pore_density <= 1.0f);
   assert(p0.height_scale >= 0.80f && p0.height_scale <= 1.20f); assert(p1.head_scale >= 0.80f && p1.head_scale <= 1.20f);
   assert(p0.surface_seed_low == fold_seed64(g0.surface_seed));
   assert(p1.surface_seed_low == fold_seed64(g1.surface_seed));

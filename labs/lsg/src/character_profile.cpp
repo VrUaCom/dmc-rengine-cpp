@@ -7,9 +7,11 @@ namespace {
 
 constexpr std::array<CarrierDefinition, kBuiltinCarrierCount> kCarriers{{
     {CarrierId::male_base, "male-base", "Male Base",
-     "meshes/human_carrier_male.rmesh", "meshes/eye_carrier_male.rmesh"},
+     "meshes/human_carrier_male.rmesh", "meshes/eye_carrier_male.rmesh",
+     {1u, 0.690f, 0.100f, 0.180f, 0.120f, 0.032f, 0.752f}},
     {CarrierId::female_base, "female-base", "Female Base",
-     "meshes/human_carrier_female.rmesh", "meshes/eye_carrier_female.rmesh"},
+     "meshes/human_carrier_female.rmesh", "meshes/eye_carrier_female.rmesh",
+     {1u, 0.690f, 0.100f, 0.180f, 0.120f, 0.032f, 0.752f}},
 }};
 
 constexpr std::array<CharacterProfileDefinition, kBuiltinProfileCount> kProfiles{{

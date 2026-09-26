@@ -32,11 +32,6 @@ layout(set = 0, binding = 0, std140) uniform FrameLighting {
     vec4 filter_tint_transmission;
     vec4 eye_filter_misc;
     uvec4 modes;
-    vec4 face0; // skull width/height, face length, forehead height
-    vec4 face1; // brow depth, eye spacing/size/tilt
-    vec4 face2; // nose length/width/projection, cheekbone width
-    vec4 face3; // cheek fullness, jaw width, chin width/projection
-    vec4 face4; // mouth width, upper/lower lip fullness, lip projection
 } lighting;
 
 vec2 prerotate_clip(vec2 clip_position, uint rotation_code) {
@@ -140,8 +135,7 @@ void main() {
     object_m.y *= pc.geometry0.x;
     object_m.z *= xz_scale.y;
 
-    object_m = lsg_apply_eye_socket_field(object_m, raw_centered_m, weights.head,
-                                          lighting.face0, lighting.face1);
+    object_m = lsg_apply_eye_socket_field(object_m, raw_centered_m, weights.head);
 
     float t = pc.render.z;
     object_m = apply_head_idle(object_m, weights.head, t);

@@ -15,12 +15,23 @@ inline constexpr std::size_t kBuiltinCarrierCount = 2;
 inline constexpr std::uint32_t kBuiltinProfileCount = 3;
 inline constexpr std::uint32_t kAdaProfileIndex = 2;
 
+struct CarrierFaceFieldMetadataV0 {
+  std::uint32_t version{1};
+  float head_pivot_y{0.690f};
+  float face_half_width_m{0.100f};
+  float face_half_height_m{0.180f};
+  float face_depth_m{0.120f};
+  float eye_center_x_abs_m{0.032f};
+  float eye_center_y_m{0.752f};
+};
+
 struct CarrierDefinition {
   CarrierId id{};
   std::string_view key{};
   std::string_view display_name{};
   std::string_view body_asset_path{};
   std::string_view eye_asset_path{};
+  CarrierFaceFieldMetadataV0 face_field{};
 };
 
 struct CharacterProfileDefinition {
