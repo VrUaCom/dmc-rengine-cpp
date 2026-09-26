@@ -259,6 +259,7 @@ int character_menu_row_from_point(float x, float y, float width, float height) {
 }
 
 void update_long_press(AppState& state) {
+  if (state.character_menu_open) return;
   if (!state.hud_candidate || state.moved || state.tooltip_visible || state.pressed_ui_row < 0) return;
   if (monotonic_ms() - state.press_start_ms < kLongPressMs) return;
   if (state.pressed_ui_row == 0 || state.pressed_ui_row == 1) {
@@ -381,7 +382,8 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     state->down_x = state->last_x = AMotionEvent_getX(event, 0);
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
     if (state->character_menu_open) {
-      state->pressed_ui_row = 100 + character_menu_row_from_point(state->down_x, state->down_y, width, height);
+      const int menu_row = character_menu_row_from_point(state->down_x, state->down_y, width, height);
+      state->pressed_ui_row = menu_row >= 0 ? 100 + menu_row : 99;
       state->hud_candidate = true;
       state->dragging = false;
       state->moved = false;
@@ -445,9 +447,10 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_UP || masked == AMOTION_EVENT_ACTION_CANCEL) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     if (masked == AMOTION_EVENT_ACTION_UP) {
-      if (state->character_menu_open && state->pressed_ui_row >= 100) {
+      if (state->character_menu_open && state->pressed_ui_row >= 99) {
         const int menu_row = character_menu_row_from_point(x, y, width, height);
-        if (menu_row >= 0 && state->pressed_ui_row == 100 + menu_row) {
+        if (state->pressed_ui_row >= 100 && menu_row >= 0 &&
+            state->pressed_ui_row == 100 + menu_row) {
           select_character(*state, static_cast<std::uint32_t>(menu_row));
         }
         set_character_menu_open(*state, false);
