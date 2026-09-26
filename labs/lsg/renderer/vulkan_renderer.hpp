@@ -50,6 +50,9 @@ struct RendererDiagnostics {
   float far_plane_m{30.0f};
   std::uint64_t estimated_gpu_bytes{};
   std::uint32_t resident_carrier_count{};
+  std::uint64_t resident_carrier_bytes{};
+  std::uint64_t peak_resident_carrier_bytes{};
+  std::uint64_t carrier_upload_bytes{};
   std::uint32_t character_profile_count{};
   std::uint32_t shadow_map_size{};
   CloseShadowLevel close_shadow_level{CloseShadowLevel::baseline};

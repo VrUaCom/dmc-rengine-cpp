@@ -106,11 +106,19 @@ struct VulkanRenderer::Impl {
     std::uint32_t index_count{};
     std::array<float, 3> mesh_center{};
     float meters_per_unit{1.0f};
+    std::uint64_t allocation_bytes{};
+    bool resident{};
   };
   std::vector<CarrierMeshGpu> carrier_meshes;
   std::vector<CarrierMeshGpu> carrier_eye_meshes;
+  std::vector<std::uint64_t> carrier_last_use;
   CharacterRegistry registry{};
   void* asset_manager{};
+  std::uint64_t carrier_use_serial{};
+  std::uint64_t resident_carrier_bytes{};
+  std::uint64_t peak_resident_carrier_bytes{};
+  std::uint64_t carrier_upload_bytes{};
+  std::uint32_t resident_carrier_count{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
@@ -373,6 +381,7 @@ bool load_character_registry(VulkanRenderer::Impl& state, void* asset_manager) {
   }
   state.carrier_meshes.resize(state.registry.carrier_count());
   state.carrier_eye_meshes.resize(state.registry.carrier_count());
+  state.carrier_last_use.assign(state.registry.carrier_count(), 0u);
   state.asset_manager = asset_manager;
   return state.registry.complete();
 }
@@ -653,134 +662,141 @@ bool create_render_targets(VulkanRenderer::Impl& state) {
   return vkAllocateCommandBuffers(state.device, &allocation, state.command_buffers.data()) == VK_SUCCESS;
 }
 
-bool create_host_buffer(VulkanRenderer::Impl& state, const void* source, VkDeviceSize size,
-                        VkBufferUsageFlags usage, VkBuffer& buffer, VkDeviceMemory& memory) {
+bool create_buffer_allocation(VulkanRenderer::Impl& state,
+                              VkDeviceSize size,
+                              VkBufferUsageFlags usage,
+                              VkMemoryPropertyFlags properties,
+                              VkBuffer& buffer,
+                              VkDeviceMemory& memory,
+                              VkDeviceSize& allocation_bytes) {
   VkBufferCreateInfo info{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-  info.size = size; info.usage = usage; info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  info.size = size;
+  info.usage = usage;
+  info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
   if (vkCreateBuffer(state.device, &info, nullptr, &buffer) != VK_SUCCESS) return false;
-  VkMemoryRequirements requirements{}; vkGetBufferMemoryRequirements(state.device, buffer, &requirements);
+
+  VkMemoryRequirements requirements{};
+  vkGetBufferMemoryRequirements(state.device, buffer, &requirements);
   std::uint32_t type{};
-  if (!find_memory_type(state.physical, requirements.memoryTypeBits,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, type)) return false;
-  VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-  allocation.allocationSize = requirements.size; allocation.memoryTypeIndex = type;
-  if (vkAllocateMemory(state.device, &allocation, nullptr, &memory) != VK_SUCCESS ||
-      vkBindBufferMemory(state.device, buffer, memory, 0) != VK_SUCCESS) return false;
-  void* mapped = nullptr;
-  if (vkMapMemory(state.device, memory, 0, size, 0, &mapped) != VK_SUCCESS) return false;
-  std::memcpy(mapped, source, static_cast<std::size_t>(size)); vkUnmapMemory(state.device, memory);
-  state.estimated_bytes += static_cast<std::uint64_t>(size);
-  return true;
-}
-
-bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
-  VkDescriptorSetLayoutBinding bindings[5]{};
-  bindings[0].binding=0; bindings[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT;
-  for(std::uint32_t i=1;i<=2;++i){
-    bindings[i].binding=i; bindings[i].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    bindings[i].descriptorCount=1; bindings[i].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  if (!find_memory_type(state.physical, requirements.memoryTypeBits, properties, type)) {
+    vkDestroyBuffer(state.device, buffer, nullptr);
+    buffer = VK_NULL_HANDLE;
+    return false;
   }
-  bindings[3].binding=3; bindings[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[3].descriptorCount=1; bindings[3].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
-  bindings[4].binding=4; bindings[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[4].descriptorCount=1; bindings[4].stageFlags=VK_SHADER_STAGE_VERTEX_BIT;
 
-  VkDescriptorSetLayoutCreateInfo li{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-  li.bindingCount=5; li.pBindings=bindings;
-  if(vkCreateDescriptorSetLayout(state.device,&li,nullptr,&state.frame_lighting_set_layout)!=VK_SUCCESS) return false;
-
-  const auto create_uniform = [&](VkDeviceSize size, VkBuffer& buffer,
-                                  VkDeviceMemory& memory, void*& mapped) -> bool {
-    VkBufferCreateInfo bi{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-    bi.size=size; bi.usage=VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; bi.sharingMode=VK_SHARING_MODE_EXCLUSIVE;
-    if(vkCreateBuffer(state.device,&bi,nullptr,&buffer)!=VK_SUCCESS) return false;
-    VkMemoryRequirements req{}; vkGetBufferMemoryRequirements(state.device,buffer,&req);
-    std::uint32_t type{};
-    if(!find_memory_type(state.physical,req.memoryTypeBits,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,type)) return false;
-    VkMemoryAllocateInfo ai{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-    ai.allocationSize=req.size; ai.memoryTypeIndex=type;
-    if(vkAllocateMemory(state.device,&ai,nullptr,&memory)!=VK_SUCCESS ||
-       vkBindBufferMemory(state.device,buffer,memory,0)!=VK_SUCCESS) return false;
-    return vkMapMemory(state.device,memory,0,size,0,&mapped)==VK_SUCCESS;
-  };
-
-  if(!create_uniform(sizeof(FrameLightingGpu), state.frame_lighting_buffer,
-                     state.frame_lighting_memory, state.frame_lighting_mapped)) return false;
-  if(!create_uniform(sizeof(SkinMaterialGpuV0), state.skin_material_buffer,
-                     state.skin_material_memory, state.skin_material_mapped)) return false;
-  if(!create_uniform(sizeof(CharacterIdentityGpuV0), state.character_identity_buffer,
-                     state.character_identity_memory, state.character_identity_mapped)) return false;
-
-  VkDescriptorPoolSize ps[2]{};
-  ps[0].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; ps[0].descriptorCount=3;
-  ps[1].type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; ps[1].descriptorCount=2;
-  VkDescriptorPoolCreateInfo pci{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-  pci.maxSets=1; pci.poolSizeCount=2; pci.pPoolSizes=ps;
-  if(vkCreateDescriptorPool(state.device,&pci,nullptr,&state.frame_lighting_descriptor_pool)!=VK_SUCCESS) return false;
-  VkDescriptorSetAllocateInfo si{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-  si.descriptorPool=state.frame_lighting_descriptor_pool; si.descriptorSetCount=1; si.pSetLayouts=&state.frame_lighting_set_layout;
-  if(vkAllocateDescriptorSets(state.device,&si,&state.frame_lighting_descriptor_set)!=VK_SUCCESS) return false;
-
-  VkDescriptorBufferInfo lighting_db{}; lighting_db.buffer=state.frame_lighting_buffer; lighting_db.range=sizeof(FrameLightingGpu);
-  VkDescriptorBufferInfo skin_db{}; skin_db.buffer=state.skin_material_buffer; skin_db.range=sizeof(SkinMaterialGpuV0);
-  VkDescriptorBufferInfo identity_db{}; identity_db.buffer=state.character_identity_buffer; identity_db.range=sizeof(CharacterIdentityGpuV0);
-  VkDescriptorImageInfo coarse{}; coarse.sampler=state.shadow_sampler; coarse.imageView=state.shadow_depth_view;
-  coarse.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-  VkDescriptorImageInfo focused{}; focused.sampler=state.shadow_sampler; focused.imageView=state.self_shadow_depth_view;
-  focused.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-
-  VkWriteDescriptorSet writes[5]{};
-  writes[0]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[0].dstSet=state.frame_lighting_descriptor_set;
-  writes[0].dstBinding=0; writes[0].descriptorCount=1; writes[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[0].pBufferInfo=&lighting_db;
-  writes[1]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[1].dstSet=state.frame_lighting_descriptor_set;
-  writes[1].dstBinding=1; writes[1].descriptorCount=1; writes[1].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[1].pImageInfo=&coarse;
-  writes[2]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[2].dstSet=state.frame_lighting_descriptor_set;
-  writes[2].dstBinding=2; writes[2].descriptorCount=1; writes[2].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[2].pImageInfo=&focused;
-  writes[3]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[3].dstSet=state.frame_lighting_descriptor_set;
-  writes[3].dstBinding=3; writes[3].descriptorCount=1; writes[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[3].pBufferInfo=&skin_db;
-  writes[4]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[4].dstSet=state.frame_lighting_descriptor_set;
-  writes[4].dstBinding=4; writes[4].descriptorCount=1; writes[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[4].pBufferInfo=&identity_db;
-  vkUpdateDescriptorSets(state.device,5,writes,0,nullptr);
-
-  const auto* initial_profile = state.registry.profile_by_ordinal(0);
-  if (initial_profile == nullptr || !initial_profile->genome_loaded) return false;
-  const auto* initial_carrier =
-      state.registry.carrier_by_id(initial_profile->definition.carrier_id);
-  if (initial_carrier == nullptr) return false;
-  const auto initial_lighting=make_frame_lighting_gpu(state.lighting);
-  const auto initial_skin=pack_skin_material_gpu(
-      derive_skin_phenotype(initial_profile->genome, physiology_for(PhysiologyPreset::normal)));
-  const auto initial_identity=make_character_identity_gpu(
-      initial_profile->genome.face, initial_carrier->face_field);
-  std::memcpy(state.frame_lighting_mapped,&initial_lighting,sizeof(initial_lighting));
-  std::memcpy(state.skin_material_mapped,&initial_skin,sizeof(initial_skin));
-  std::memcpy(state.character_identity_mapped,&initial_identity,sizeof(initial_identity));
-  state.estimated_bytes += sizeof(FrameLightingGpu) + sizeof(SkinMaterialGpuV0) + sizeof(CharacterIdentityGpuV0);
+  VkMemoryAllocateInfo allocation{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+  allocation.allocationSize = requirements.size;
+  allocation.memoryTypeIndex = type;
+  if (vkAllocateMemory(state.device, &allocation, nullptr, &memory) != VK_SUCCESS ||
+      vkBindBufferMemory(state.device, buffer, memory, 0) != VK_SUCCESS) {
+    if (memory) vkFreeMemory(state.device, memory, nullptr);
+    vkDestroyBuffer(state.device, buffer, nullptr);
+    buffer = VK_NULL_HANDLE;
+    memory = VK_NULL_HANDLE;
+    return false;
+  }
+  allocation_bytes = requirements.size;
   return true;
 }
 
-void update_frame_lighting_buffer(VulkanRenderer::Impl& state) noexcept {
-  if (state.frame_lighting_mapped == nullptr) return;
-  const auto gpu = make_frame_lighting_gpu(state.lighting);
-  std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
+bool upload_device_static_buffer(VulkanRenderer::Impl& state,
+                                 const void* source,
+                                 VkDeviceSize size,
+                                 VkBufferUsageFlags final_usage,
+                                 VkBuffer& buffer,
+                                 VkDeviceMemory& memory,
+                                 std::uint64_t& persistent_allocation_bytes) {
+  if (source == nullptr || size == 0 || state.command_pool == VK_NULL_HANDLE) return false;
+
+  VkBuffer staging = VK_NULL_HANDLE;
+  VkDeviceMemory staging_memory = VK_NULL_HANDLE;
+  VkDeviceSize staging_allocation{};
+  if (!create_buffer_allocation(
+          state, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+          staging, staging_memory, staging_allocation)) {
+    return false;
+  }
+
+  void* mapped = nullptr;
+  if (vkMapMemory(state.device, staging_memory, 0, size, 0, &mapped) != VK_SUCCESS) {
+    vkDestroyBuffer(state.device, staging, nullptr);
+    vkFreeMemory(state.device, staging_memory, nullptr);
+    return false;
+  }
+  std::memcpy(mapped, source, static_cast<std::size_t>(size));
+  vkUnmapMemory(state.device, staging_memory);
+
+  VkDeviceSize device_allocation{};
+  if (!create_buffer_allocation(
+          state, size, final_usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+          buffer, memory, device_allocation)) {
+    vkDestroyBuffer(state.device, staging, nullptr);
+    vkFreeMemory(state.device, staging_memory, nullptr);
+    return false;
+  }
+
+  VkCommandBuffer command = VK_NULL_HANDLE;
+  VkCommandBufferAllocateInfo allocate{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+  allocate.commandPool = state.command_pool;
+  allocate.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+  allocate.commandBufferCount = 1;
+  if (vkAllocateCommandBuffers(state.device, &allocate, &command) != VK_SUCCESS) {
+    vkDestroyBuffer(state.device, buffer, nullptr);
+    vkFreeMemory(state.device, memory, nullptr);
+    buffer = VK_NULL_HANDLE; memory = VK_NULL_HANDLE;
+    vkDestroyBuffer(state.device, staging, nullptr);
+    vkFreeMemory(state.device, staging_memory, nullptr);
+    return false;
+  }
+
+  VkCommandBufferBeginInfo begin{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+  begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+  bool ok = vkBeginCommandBuffer(command, &begin) == VK_SUCCESS;
+  if (ok) {
+    VkBufferCopy copy{};
+    copy.size = size;
+    vkCmdCopyBuffer(command, staging, buffer, 1, &copy);
+    ok = vkEndCommandBuffer(command) == VK_SUCCESS;
+  }
+  if (ok) {
+    VkSubmitInfo submit{VK_STRUCTURE_TYPE_SUBMIT_INFO};
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers = &command;
+    ok = vkQueueSubmit(state.queue, 1, &submit, VK_NULL_HANDLE) == VK_SUCCESS &&
+         vkQueueWaitIdle(state.queue) == VK_SUCCESS;
+  }
+  vkFreeCommandBuffers(state.device, state.command_pool, 1, &command);
+  vkDestroyBuffer(state.device, staging, nullptr);
+  vkFreeMemory(state.device, staging_memory, nullptr);
+
+  if (!ok) {
+    vkDestroyBuffer(state.device, buffer, nullptr);
+    vkFreeMemory(state.device, memory, nullptr);
+    buffer = VK_NULL_HANDLE; memory = VK_NULL_HANDLE;
+    return false;
+  }
+
+  persistent_allocation_bytes += static_cast<std::uint64_t>(device_allocation);
+  state.estimated_bytes += static_cast<std::uint64_t>(device_allocation);
+  state.resident_carrier_bytes += static_cast<std::uint64_t>(device_allocation);
+  state.peak_resident_carrier_bytes =
+      std::max(state.peak_resident_carrier_bytes, state.resident_carrier_bytes);
+  state.carrier_upload_bytes += static_cast<std::uint64_t>(size);
+  return true;
 }
 
-void update_skin_material_buffer(VulkanRenderer::Impl& state,
-                                 const CharacterGenomeV0& genome) noexcept {
-  if (state.skin_material_mapped == nullptr) return;
-  const auto gpu = pack_skin_material_gpu(
-      derive_skin_phenotype(genome, physiology_for(state.character.physiology)));
-  std::memcpy(state.skin_material_mapped, &gpu, sizeof(gpu));
-}
-
-void update_character_identity_buffer(
-    VulkanRenderer::Impl& state, const CharacterGenomeV0& genome,
-    const CarrierFaceFieldMetadataV0& metadata) noexcept {
-  if (state.character_identity_mapped == nullptr) return;
-  const auto gpu = make_character_identity_gpu(genome.face, metadata);
-  std::memcpy(state.character_identity_mapped, &gpu, sizeof(gpu));
+void destroy_carrier_mesh(VulkanRenderer::Impl& state,
+                          VulkanRenderer::Impl::CarrierMeshGpu& mesh) noexcept {
+  if (mesh.vertex_buffer) vkDestroyBuffer(state.device, mesh.vertex_buffer, nullptr);
+  if (mesh.vertex_memory) vkFreeMemory(state.device, mesh.vertex_memory, nullptr);
+  if (mesh.index_buffer) vkDestroyBuffer(state.device, mesh.index_buffer, nullptr);
+  if (mesh.index_memory) vkFreeMemory(state.device, mesh.index_memory, nullptr);
+  if (mesh.allocation_bytes <= state.estimated_bytes) state.estimated_bytes -= mesh.allocation_bytes;
+  if (mesh.allocation_bytes <= state.resident_carrier_bytes)
+    state.resident_carrier_bytes -= mesh.allocation_bytes;
+  mesh = {};
 }
 
 bool create_carrier_mesh(VulkanRenderer::Impl& state, void* asset_manager,
@@ -794,41 +810,87 @@ bool create_carrier_mesh(VulkanRenderer::Impl& state, void* asset_manager,
   std::array<float, 3> minimum = mesh.vertices.front().position;
   std::array<float, 3> maximum = mesh.vertices.front().position;
   for (std::size_t i = 0; i < mesh.vertices.size(); ++i) {
-    const auto& source = mesh.vertices[i]; auto& target = vertices[i];
-    std::copy(source.position.begin(), source.position.end(), target.position);
-    std::copy(source.normal.begin(), source.normal.end(), target.normal);
-    std::copy(source.uv.begin(), source.uv.end(), target.uv); target.region = source.region_id;
+    const auto& source_vertex = mesh.vertices[i];
+    auto& target = vertices[i];
+    std::copy(source_vertex.position.begin(), source_vertex.position.end(), target.position);
+    std::copy(source_vertex.normal.begin(), source_vertex.normal.end(), target.normal);
+    std::copy(source_vertex.uv.begin(), source_vertex.uv.end(), target.uv);
+    target.region = source_vertex.region_id;
     for (std::size_t component = 0; component < 3; ++component) {
-      minimum[component] = std::min(minimum[component], source.position[component]);
-      maximum[component] = std::max(maximum[component], source.position[component]);
+      minimum[component] = std::min(minimum[component], source_vertex.position[component]);
+      maximum[component] = std::max(maximum[component], source_vertex.position[component]);
     }
   }
 
   const float height = maximum[1] - minimum[1];
   if (!(height > 1.0e-5f)) return false;
-  for (std::size_t component = 0; component < 3; ++component) {
+  for (std::size_t component = 0; component < 3; ++component)
     gpu_mesh.mesh_center[component] = 0.5f * (minimum[component] + maximum[component]);
-  }
   gpu_mesh.meters_per_unit = 1.75f / height;
   if (mesh.indices.size() > std::numeric_limits<std::uint32_t>::max()) return false;
   gpu_mesh.index_count = static_cast<std::uint32_t>(mesh.indices.size());
 
-  return create_host_buffer(state, vertices.data(), vertices.size() * sizeof(GpuVertex),
-                            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, gpu_mesh.vertex_buffer, gpu_mesh.vertex_memory) &&
-         create_host_buffer(state, mesh.indices.data(), mesh.indices.size() * sizeof(std::uint32_t),
-                            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, gpu_mesh.index_buffer, gpu_mesh.index_memory);
+  std::uint64_t allocation_bytes{};
+  if (!upload_device_static_buffer(
+          state, vertices.data(), vertices.size() * sizeof(GpuVertex),
+          VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+          gpu_mesh.vertex_buffer, gpu_mesh.vertex_memory, allocation_bytes)) {
+    return false;
+  }
+  if (!upload_device_static_buffer(
+          state, mesh.indices.data(), mesh.indices.size() * sizeof(std::uint32_t),
+          VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+          gpu_mesh.index_buffer, gpu_mesh.index_memory, allocation_bytes)) {
+    if (gpu_mesh.vertex_buffer) vkDestroyBuffer(state.device, gpu_mesh.vertex_buffer, nullptr);
+    if (gpu_mesh.vertex_memory) vkFreeMemory(state.device, gpu_mesh.vertex_memory, nullptr);
+    if (allocation_bytes <= state.estimated_bytes) state.estimated_bytes -= allocation_bytes;
+    if (allocation_bytes <= state.resident_carrier_bytes) state.resident_carrier_bytes -= allocation_bytes;
+    gpu_mesh = {};
+    return false;
+  }
+  gpu_mesh.allocation_bytes = allocation_bytes;
+  gpu_mesh.resident = true;
+  return true;
 }
 
-bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  for (std::size_t slot = 0; slot < state.registry.carrier_count(); ++slot) {
-    const auto* carrier = state.registry.carrier_by_ordinal(slot);
-    if (carrier == nullptr) return false;
-    if (!create_carrier_mesh(state, asset_manager, carrier->body_asset_path,
-                             state.carrier_meshes[slot])) return false;
-    if (!create_carrier_mesh(state, asset_manager, carrier->eye_asset_path,
-                             state.carrier_eye_meshes[slot])) return false;
+bool ensure_carrier_resident(VulkanRenderer::Impl& state, std::size_t slot) {
+  if (slot >= state.registry.carrier_count() ||
+      slot >= state.carrier_meshes.size() ||
+      slot >= state.carrier_eye_meshes.size()) {
+    return false;
   }
-  state.camera.set_subject_height(1.75f);
+
+  ++state.carrier_use_serial;
+  if (state.carrier_meshes[slot].resident && state.carrier_eye_meshes[slot].resident) {
+    state.carrier_last_use[slot] = state.carrier_use_serial;
+    return true;
+  }
+
+  // Prototype cache budget: one carrier family resident at a time. Because draw_frame
+  // waits for the only in-flight fence before this call, old buffers are safe to evict.
+  for (std::size_t i = 0; i < state.carrier_meshes.size(); ++i) {
+    if (i == slot) continue;
+    const bool was_resident =
+        state.carrier_meshes[i].resident || state.carrier_eye_meshes[i].resident;
+    destroy_carrier_mesh(state, state.carrier_meshes[i]);
+    destroy_carrier_mesh(state, state.carrier_eye_meshes[i]);
+    if (was_resident && state.resident_carrier_count > 0u) --state.resident_carrier_count;
+  }
+
+  const auto* carrier = state.registry.carrier_by_ordinal(slot);
+  if (carrier == nullptr) return false;
+  if (!create_carrier_mesh(state, state.asset_manager, carrier->body_asset_path,
+                           state.carrier_meshes[slot])) {
+    return false;
+  }
+  if (!create_carrier_mesh(state, state.asset_manager, carrier->eye_asset_path,
+                           state.carrier_eye_meshes[slot])) {
+    destroy_carrier_mesh(state, state.carrier_meshes[slot]);
+    return false;
+  }
+
+  state.carrier_last_use[slot] = state.carrier_use_serial;
+  state.resident_carrier_count = 1u;
   return true;
 }
 
@@ -1249,7 +1311,10 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.fov_y_radians = camera.fov_y_radians;
   out.camera_distance_m = camera.distance_m;
   out.estimated_gpu_bytes = state.estimated_bytes;
-  out.resident_carrier_count = static_cast<std::uint32_t>(state.registry.carrier_count());
+  out.resident_carrier_count = state.resident_carrier_count;
+  out.resident_carrier_bytes = state.resident_carrier_bytes;
+  out.peak_resident_carrier_bytes = state.peak_resident_carrier_bytes;
+  out.carrier_upload_bytes = state.carrier_upload_bytes;
   out.character_profile_count = static_cast<std::uint32_t>(state.registry.profile_count());
   out.shadow_map_size = kShadowMapSize;
   const auto close_shadow =
@@ -1285,11 +1350,11 @@ bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
       !create_platform_surface(state.instance, native_window, state.surface)) { shutdown(); return false; }
   if (!choose_device(state) || !create_device(state) || !create_swapchain(state, native_window) ||
       !create_render_targets(state) || !create_shadow_resources(state) ||
-      !create_mesh_buffers(state, asset_manager) ||
       !create_frame_lighting_resources(state) ||
       !create_pipeline(state, asset_manager) || !create_shadow_pipeline(state, asset_manager) ||
       !create_eye_pipelines(state, asset_manager) ||
       !create_sync(state)) { shutdown(); return false; }
+  state.camera.set_subject_height(1.75f);
   state.initialized = true; return true;
 }
 
@@ -1335,6 +1400,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto carrier_index =
       state.registry.carrier_ordinal(requested_profile->definition.carrier_id);
   if (carrier_index >= state.registry.carrier_count()) return false;
+  if (!ensure_carrier_resident(state, carrier_index)) return false;
   const auto& profile_mesh = state.carrier_meshes[carrier_index];
   const VkDeviceSize offset = 0;
   const auto& genome = requested_profile->genome;
@@ -1576,18 +1642,8 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.depth_image) vkDestroyImage(state.device, state.depth_image, nullptr);
     if (state.depth_memory) vkFreeMemory(state.device, state.depth_memory, nullptr);
     for (const auto view : state.views) vkDestroyImageView(state.device, view, nullptr);
-    for (auto& profile_mesh : state.carrier_meshes) {
-      if (profile_mesh.vertex_buffer) vkDestroyBuffer(state.device, profile_mesh.vertex_buffer, nullptr);
-      if (profile_mesh.vertex_memory) vkFreeMemory(state.device, profile_mesh.vertex_memory, nullptr);
-      if (profile_mesh.index_buffer) vkDestroyBuffer(state.device, profile_mesh.index_buffer, nullptr);
-      if (profile_mesh.index_memory) vkFreeMemory(state.device, profile_mesh.index_memory, nullptr);
-    }
-    for (auto& eye_mesh : state.carrier_eye_meshes) {
-      if (eye_mesh.vertex_buffer) vkDestroyBuffer(state.device, eye_mesh.vertex_buffer, nullptr);
-      if (eye_mesh.vertex_memory) vkFreeMemory(state.device, eye_mesh.vertex_memory, nullptr);
-      if (eye_mesh.index_buffer) vkDestroyBuffer(state.device, eye_mesh.index_buffer, nullptr);
-      if (eye_mesh.index_memory) vkFreeMemory(state.device, eye_mesh.index_memory, nullptr);
-    }
+    for (auto& profile_mesh : state.carrier_meshes) destroy_carrier_mesh(state, profile_mesh);
+    for (auto& eye_mesh : state.carrier_eye_meshes) destroy_carrier_mesh(state, eye_mesh);
     if (state.swapchain) vkDestroySwapchainKHR(state.device, state.swapchain, nullptr);
     vkDestroyDevice(state.device, nullptr);
   }
