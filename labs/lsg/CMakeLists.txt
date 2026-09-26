@@ -17,6 +17,7 @@ add_library(rengine_lsg_core STATIC
   src/genome.cpp
   src/character_profile.cpp
   src/face_field.cpp
+  src/skin_material.cpp
   src/detail_scheduler.cpp
   src/physiology.cpp
   src/surface.cpp

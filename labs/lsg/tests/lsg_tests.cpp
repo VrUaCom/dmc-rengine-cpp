@@ -15,6 +15,7 @@
 #include "rengine/lsg/rmesh.hpp"
 #include "rengine/lsg/surface.hpp"
 #include "rengine/lsg/shadow_quality.hpp"
+#include "rengine/lsg/skin_material.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -320,6 +321,59 @@ int main() {
   assert(p0.surface_seed_low != p1.surface_seed_low);
   assert(p2.surface_seed_low == fold_seed64(g2.surface_seed)); assert(p2.surface_seed_low != p1.surface_seed_low);
   assert(p2.pelvis_scale != p1.pelvis_scale || p2.chest_depth_scale != p1.chest_depth_scale);
+
+  const auto skin0 = derive_skin_phenotype(g0, physiology_for(PhysiologyPreset::normal));
+  const auto skin1 = derive_skin_phenotype(g1, physiology_for(PhysiologyPreset::normal));
+  const auto skin2 = derive_skin_phenotype(g2, physiology_for(PhysiologyPreset::normal));
+  for (const auto* skin : {&skin0, &skin1, &skin2}) {
+    assert(skin->melanin >= 0.0f && skin->melanin <= 1.0f);
+    assert(skin->carotene >= 0.0f && skin->carotene <= 1.0f);
+    assert(skin->follicle_density >= 0.0f && skin->follicle_density <= 1.0f);
+    assert(skin->freckle_density >= 0.0f && skin->freckle_density <= 1.0f);
+    assert(skin->micro_strength >= 0.0f && skin->micro_strength <= 1.0f);
+    assert(skin->wrinkle_bias >= 0.0f && skin->wrinkle_bias <= 1.0f);
+    assert(skin->coat_strength >= 0.05f && skin->coat_strength <= 1.0f);
+    assert(skin->subsurface_strength >= 0.12f && skin->subsurface_strength <= 0.66f);
+    const auto rgb = skin_base_reflectance(*skin);
+    assert(std::isfinite(rgb.r) && std::isfinite(rgb.g) && std::isfinite(rgb.b));
+    assert(rgb.r > 0.0f && rgb.g > 0.0f && rgb.b > 0.0f);
+    assert(skin_base_roughness(*skin) >= 0.24f && skin_base_roughness(*skin) <= 0.90f);
+  }
+
+  auto light_skin_genome = g0;
+  auto dark_skin_genome = g0;
+  light_skin_genome.skin.melanin = 8;
+  dark_skin_genome.skin.melanin = 245;
+  const auto light_skin = derive_skin_phenotype(light_skin_genome, physiology_for(PhysiologyPreset::normal));
+  const auto dark_skin = derive_skin_phenotype(dark_skin_genome, physiology_for(PhysiologyPreset::normal));
+  const auto light_rgb = skin_base_reflectance(light_skin);
+  const auto dark_rgb = skin_base_reflectance(dark_skin);
+  assert((dark_rgb.r + dark_rgb.g + dark_rgb.b) < (light_rgb.r + light_rgb.g + light_rgb.b));
+
+  auto carotene_low_genome = g0;
+  auto carotene_high_genome = g0;
+  carotene_low_genome.skin.carotene = 0;
+  carotene_high_genome.skin.carotene = 255;
+  const auto carotene_low = skin_base_reflectance(
+      derive_skin_phenotype(carotene_low_genome, physiology_for(PhysiologyPreset::normal)));
+  const auto carotene_high = skin_base_reflectance(
+      derive_skin_phenotype(carotene_high_genome, physiology_for(PhysiologyPreset::normal)));
+  assert(carotene_high.r + carotene_high.g > carotene_low.r + carotene_low.g);
+
+  const auto cold_skin = derive_skin_phenotype(g0, physiology_for(PhysiologyPreset::cold));
+  const auto hot_skin = derive_skin_phenotype(g0, physiology_for(PhysiologyPreset::hot));
+  assert(hot_skin.sweat > cold_skin.sweat);
+  assert(hot_skin.perfusion > cold_skin.perfusion);
+
+  // Semantic BodyRegion labels must not phase-shift the procedural skin field.
+  const Vec3 seam_probe{0.21f, 0.48f, 0.09f};
+  const auto seam_a = sample_surface(g0, BodyRegion::chest, seam_probe, 0.05f,
+                                     physiology_for(PhysiologyPreset::normal));
+  const auto seam_b = sample_surface(g0, BodyRegion::arm, seam_probe, 0.05f,
+                                     physiology_for(PhysiologyPreset::normal));
+  assert(std::abs(seam_a.pore_height - seam_b.pore_height) < 1e-9f);
+  assert(std::abs(seam_a.meso_variation - seam_b.meso_variation) < 1e-9f);
+  assert(std::abs(seam_a.freckle_mask - seam_b.freckle_mask) < 1e-9f);
 
   // Continuous anatomy must never create the old region-boundary discontinuity. Probe the
   // entire body height with a short representative mesh edge at an off-axis position.

@@ -3,6 +3,7 @@
 #include "detail_scheduler.hpp"
 #include "genome.hpp"
 #include "physiology.hpp"
+#include "skin_material.hpp"
 namespace rengine::lsg {
 struct Vec3 { float x{}, y{}, z{}; };
 struct SurfaceSample {
@@ -11,6 +12,9 @@ struct SurfaceSample {
   float meso_variation{};
   float redness{};
   float specular_scale{};
+  float follicle_influence{};
+  float freckle_mask{};
+  float wrinkle_height{};
 };
 [[nodiscard]] SurfaceSample sample_surface(const CharacterGenomeV0& genome, BodyRegion region,
                                            Vec3 rest_position_m, float mm_per_pixel,
