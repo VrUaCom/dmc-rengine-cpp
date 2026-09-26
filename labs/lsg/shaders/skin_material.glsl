@@ -1,6 +1,8 @@
 #ifndef RENGINE_LSG_SKIN_MATERIAL_GLSL
 #define RENGINE_LSG_SKIN_MATERIAL_GLSL
 
+#include "../include/rengine/lsg/skin_contract.inc"
+
 layout(set = 0, binding = 3, std140) uniform SkinMaterial {
     vec4 pigments;   // melanin, haemoglobin, carotene, age profile
     vec4 surface;    // oiliness, hydration, roughness bias, coat strength
@@ -10,32 +12,32 @@ layout(set = 0, binding = 3, std140) uniform SkinMaterial {
 } skin;
 
 vec3 lsg_skin_base_colour() {
-    float melanin_mix = pow(clamp(skin.pigments.x, 0.0, 1.0), 0.82) * 0.90;
-    vec3 colour = mix(vec3(0.66, 0.39, 0.29),
-                      vec3(0.12, 0.050, 0.030), melanin_mix);
+    float melanin_mix = pow(clamp(skin.pigments.x, 0.0, 1.0), RENGINE_SKIN_MELANIN_EXPONENT) * RENGINE_SKIN_MELANIN_MIX_SCALE;
+    vec3 colour = mix(vec3(RENGINE_SKIN_LIGHT_R, RENGINE_SKIN_LIGHT_G, RENGINE_SKIN_LIGHT_B),
+                      vec3(RENGINE_SKIN_DARK_R, RENGINE_SKIN_DARK_G, RENGINE_SKIN_DARK_B), melanin_mix);
 
-    float blood = skin.pigments.y - 0.45;
-    colour += vec3(0.080, 0.010, 0.005) * blood;
+    float blood = skin.pigments.y - RENGINE_SKIN_HAEM_BASELINE;
+    colour += vec3(RENGINE_SKIN_BLOOD_R, RENGINE_SKIN_BLOOD_G, RENGINE_SKIN_BLOOD_B) * blood;
 
-    float carotene = skin.pigments.z - 0.35;
-    colour += vec3(0.040, 0.028, -0.012) * carotene;
+    float carotene = skin.pigments.z - RENGINE_SKIN_CAROTENE_BASELINE;
+    colour += vec3(RENGINE_SKIN_CAROTENE_R, RENGINE_SKIN_CAROTENE_G, RENGINE_SKIN_CAROTENE_B) * carotene;
 
-    float temperature = skin.physiology.z - 0.50;
-    colour += vec3(0.026, 0.004, -0.018) * temperature;
-    return clamp(colour, vec3(0.015, 0.010, 0.008), vec3(0.95, 0.90, 0.85));
+    float temperature = skin.physiology.z - RENGINE_SKIN_TEMP_BASELINE;
+    colour += vec3(RENGINE_SKIN_TEMP_R, RENGINE_SKIN_TEMP_G, RENGINE_SKIN_TEMP_B) * temperature;
+    return clamp(colour, vec3(RENGINE_SKIN_CLAMP_MIN_R, RENGINE_SKIN_CLAMP_MIN_G, RENGINE_SKIN_CLAMP_MIN_B), vec3(RENGINE_SKIN_CLAMP_MAX_R, RENGINE_SKIN_CLAMP_MAX_G, RENGINE_SKIN_CLAMP_MAX_B));
 }
 
 float lsg_skin_base_roughness() {
-    return clamp(0.62 + (skin.surface.z - 0.5) * 0.26
-                     - skin.surface.x * 0.16
-                     - skin.surface.y * 0.05
-                     - skin.physiology.y * 0.10
-                     + skin.pigments.w * 0.035,
-                 0.24, 0.90);
+    return clamp(RENGINE_SKIN_ROUGH_BASE + (skin.surface.z - 0.5) * RENGINE_SKIN_ROUGH_BIAS_GAIN
+                     - skin.surface.x * RENGINE_SKIN_ROUGH_OIL_GAIN
+                     - skin.surface.y * RENGINE_SKIN_ROUGH_HYDRATION_GAIN
+                     - skin.physiology.y * RENGINE_SKIN_ROUGH_SWEAT_GAIN
+                     + skin.pigments.w * RENGINE_SKIN_ROUGH_AGE_GAIN,
+                 RENGINE_SKIN_ROUGH_MIN, RENGINE_SKIN_ROUGH_MAX);
 }
 
 float lsg_skin_specular_scale() {
-    return 0.80 + clamp(skin.surface.w, 0.0, 1.0) * 0.65;
+    return RENGINE_SKIN_SPEC_BASE + clamp(skin.surface.w, 0.0, 1.0) * RENGINE_SKIN_SPEC_COAT_GAIN;
 }
 
 #endif

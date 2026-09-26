@@ -1,4 +1,5 @@
 #include "rengine/lsg/skin_material.hpp"
+#include "rengine/lsg/skin_contract.inc"
 
 #include <algorithm>
 #include <cmath>
@@ -68,63 +69,64 @@ SkinPhenotype derive_skin_phenotype(const CharacterGenomeV0& genome,
   const float genome_sweat = byte01(genome.physiology.sweat_bias);
   const float genome_temperature = byte01(genome.physiology.temperature_bias);
 
-  out.perfusion = std::clamp(physiology.perfusion * 0.75f + genome_perfusion * 0.25f,
+  out.perfusion = std::clamp(physiology.perfusion * RENGINE_SKIN_PHYS_RUNTIME_WEIGHT + genome_perfusion * RENGINE_SKIN_PHYS_GENOME_WEIGHT,
                              0.0f, 1.0f);
   out.sweat = std::clamp(
-      physiology.sweat * lerp(0.70f, 1.30f, genome_sweat), 0.0f, 1.0f);
+      physiology.sweat * lerp(RENGINE_SKIN_SWEAT_MIN_SCALE, RENGINE_SKIN_SWEAT_MAX_SCALE, genome_sweat), 0.0f, 1.0f);
   out.temperature_norm = std::clamp(
-      (physiology.temperature - 35.5f) / 2.2f + (genome_temperature - 0.5f) * 0.18f,
+      (physiology.temperature - RENGINE_SKIN_TEMP_BASE_C) / RENGINE_SKIN_TEMP_RANGE_C + (genome_temperature - 0.5f) * RENGINE_SKIN_TEMP_GENOME_BIAS,
       0.0f, 1.0f);
   out.fatigue = std::clamp(physiology.fatigue, 0.0f, 1.0f);
 
   out.haemoglobin = std::clamp(
-      genome_haemoglobin + (out.perfusion - 0.45f) * 0.36f,
+      genome_haemoglobin + (out.perfusion - RENGINE_SKIN_HAEM_BASELINE) * RENGINE_SKIN_HAEM_PERFUSION_GAIN,
       0.0f, 1.0f);
   out.coat_strength = std::clamp(
-      0.10f + out.oiliness * 0.34f + out.sweat * 0.50f + out.hydration * 0.06f,
-      0.05f, 1.0f);
+      RENGINE_SKIN_COAT_BASE + out.oiliness * RENGINE_SKIN_COAT_OIL_GAIN + out.sweat * RENGINE_SKIN_COAT_SWEAT_GAIN + out.hydration * RENGINE_SKIN_COAT_HYDRATION_GAIN,
+      RENGINE_SKIN_COAT_MIN, RENGINE_SKIN_COAT_MAX);
   out.subsurface_strength = std::clamp(
-      0.18f + out.hydration * 0.22f + (1.0f - out.melanin) * 0.18f +
-          out.haemoglobin * 0.08f,
-      0.12f, 0.66f);
+      RENGINE_SKIN_SSS_BASE + out.hydration * RENGINE_SKIN_SSS_HYDRATION_GAIN +
+          (1.0f - out.melanin) * RENGINE_SKIN_SSS_LOW_MELANIN_GAIN +
+          out.haemoglobin * RENGINE_SKIN_SSS_HAEM_GAIN,
+      RENGINE_SKIN_SSS_MIN, RENGINE_SKIN_SSS_MAX);
   return out;
 }
 
 SkinRgb skin_base_reflectance(const SkinPhenotype& skin) noexcept {
-  const float melanin_mix = std::pow(std::clamp(skin.melanin, 0.0f, 1.0f), 0.82f) * 0.90f;
+  const float melanin_mix = std::pow(std::clamp(skin.melanin, 0.0f, 1.0f), RENGINE_SKIN_MELANIN_EXPONENT) * RENGINE_SKIN_MELANIN_MIX_SCALE;
   SkinRgb out{
-      lerp(0.66f, 0.12f, melanin_mix),
-      lerp(0.39f, 0.050f, melanin_mix),
-      lerp(0.29f, 0.030f, melanin_mix),
+      lerp(RENGINE_SKIN_LIGHT_R, RENGINE_SKIN_DARK_R, melanin_mix),
+      lerp(RENGINE_SKIN_LIGHT_G, RENGINE_SKIN_DARK_G, melanin_mix),
+      lerp(RENGINE_SKIN_LIGHT_B, RENGINE_SKIN_DARK_B, melanin_mix),
   };
 
-  const float blood = skin.haemoglobin - 0.45f;
-  out.r += 0.080f * blood;
-  out.g += 0.010f * blood;
-  out.b += 0.005f * blood;
+  const float blood = skin.haemoglobin - RENGINE_SKIN_HAEM_BASELINE;
+  out.r += RENGINE_SKIN_BLOOD_R * blood;
+  out.g += RENGINE_SKIN_BLOOD_G * blood;
+  out.b += RENGINE_SKIN_BLOOD_B * blood;
 
-  const float carotene = skin.carotene - 0.35f;
-  out.r += 0.040f * carotene;
-  out.g += 0.028f * carotene;
-  out.b -= 0.012f * carotene;
+  const float carotene = skin.carotene - RENGINE_SKIN_CAROTENE_BASELINE;
+  out.r += RENGINE_SKIN_CAROTENE_R * carotene;
+  out.g += RENGINE_SKIN_CAROTENE_G * carotene;
+  out.b -= (-RENGINE_SKIN_CAROTENE_B) * carotene;
 
-  const float temperature = skin.temperature_norm - 0.50f;
-  out.r += 0.026f * temperature;
-  out.g += 0.004f * temperature;
-  out.b -= 0.018f * temperature;
+  const float temperature = skin.temperature_norm - RENGINE_SKIN_TEMP_BASELINE;
+  out.r += RENGINE_SKIN_TEMP_R * temperature;
+  out.g += RENGINE_SKIN_TEMP_G * temperature;
+  out.b -= (-RENGINE_SKIN_TEMP_B) * temperature;
 
-  out.r = std::clamp(out.r, 0.015f, 0.95f);
-  out.g = std::clamp(out.g, 0.010f, 0.90f);
-  out.b = std::clamp(out.b, 0.008f, 0.85f);
+  out.r = std::clamp(out.r, RENGINE_SKIN_CLAMP_MIN_R, RENGINE_SKIN_CLAMP_MAX_R);
+  out.g = std::clamp(out.g, RENGINE_SKIN_CLAMP_MIN_G, RENGINE_SKIN_CLAMP_MAX_G);
+  out.b = std::clamp(out.b, RENGINE_SKIN_CLAMP_MIN_B, RENGINE_SKIN_CLAMP_MAX_B);
   return out;
 }
 
 float skin_base_roughness(const SkinPhenotype& skin) noexcept {
   return std::clamp(
-      0.62f + (skin.roughness_bias - 0.5f) * 0.26f -
-          skin.oiliness * 0.16f - skin.hydration * 0.05f -
-          skin.sweat * 0.10f + skin.age_profile * 0.035f,
-      0.24f, 0.90f);
+      RENGINE_SKIN_ROUGH_BASE + (skin.roughness_bias - 0.5f) * RENGINE_SKIN_ROUGH_BIAS_GAIN -
+          skin.oiliness * RENGINE_SKIN_ROUGH_OIL_GAIN - skin.hydration * RENGINE_SKIN_ROUGH_HYDRATION_GAIN -
+          skin.sweat * RENGINE_SKIN_ROUGH_SWEAT_GAIN + skin.age_profile * RENGINE_SKIN_ROUGH_AGE_GAIN,
+      RENGINE_SKIN_ROUGH_MIN, RENGINE_SKIN_ROUGH_MAX);
 }
 
 } // namespace rengine::lsg

@@ -88,9 +88,9 @@ float value_noise(vec3 p, uint seed) {
 }
 
 int detail_band(float mm_per_pixel) {
-    if (mm_per_pixel < 0.10) return 3;
-    if (mm_per_pixel < 1.00) return 2;
-    if (mm_per_pixel < 3.00) return 1;
+    if (mm_per_pixel < RENGINE_SKIN_DETAIL_HIGH_MM_PER_PX) return 3;
+    if (mm_per_pixel < RENGINE_SKIN_DETAIL_MICRO_MM_PER_PX) return 2;
+    if (mm_per_pixel < RENGINE_SKIN_DETAIL_MESO_MM_PER_PX) return 1;
     return 0;
 }
 
@@ -920,11 +920,11 @@ void main() {
     }
 
     if (detail_enabled && band >= 2) {
-        float cell_m = mix(0.00052, 0.00024, clamp(skin.pores.y, 0.0, 1.0));
+        float cell_m = mix(RENGINE_SKIN_PORE_CELL_MAX_M, RENGINE_SKIN_PORE_CELL_MIN_M, clamp(skin.pores.y, 0.0, 1.0));
         float density = clamp(
             skin.pores.x * anatomical_pore_density_scale(surface_position_m),
             0.05, 0.95);
-        float depth_m = mix(0.000010, 0.000050, clamp(skin.pores.z, 0.0, 1.0));
+        float depth_m = mix(RENGINE_SKIN_PORE_DEPTH_MIN_M, RENGINE_SKIN_PORE_DEPTH_MAX_M, clamp(skin.pores.z, 0.0, 1.0));
         vec2 pore = pore_field(surface_position_m, seed, cell_m, density, depth_m);
         height_field += pore.x;
         pore_influence = pore.y;

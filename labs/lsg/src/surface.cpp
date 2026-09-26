@@ -1,6 +1,7 @@
 #include "rengine/lsg/surface.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
 #include "rengine/lsg/skin_material.hpp"
+#include "rengine/lsg/skin_contract.inc"
 
 #include <algorithm>
 #include <cmath>
@@ -122,10 +123,10 @@ SurfaceSample sample_surface(const CharacterGenomeV0& genome, BodyRegion region,
   (void)region; // semantic labels must not change procedural phase or create seams.
   const DetailBand band = select_detail_band(mm_per_pixel);
   const SkinPhenotype skin = derive_skin_phenotype(genome, physiology);
-  const float cell_m = lerp(0.00052f, 0.00024f, skin.pore_scale);
+  const float cell_m = lerp(RENGINE_SKIN_PORE_CELL_MAX_M, RENGINE_SKIN_PORE_CELL_MIN_M, skin.pore_scale);
   const float density = std::clamp(
       skin.pore_density * anatomical_pore_density_scale(p), 0.05f, 0.95f);
-  const float depth_m = lerp(0.000010f, 0.000050f, skin.pore_depth);
+  const float depth_m = lerp(RENGINE_SKIN_PORE_DEPTH_MIN_M, RENGINE_SKIN_PORE_DEPTH_MAX_M, skin.pore_depth);
 
   const float meso = band >= DetailBand::meso
       ? value_noise(genome.surface_seed ^ 0xA511E9B3ull,
@@ -139,7 +140,7 @@ SurfaceSample sample_surface(const CharacterGenomeV0& genome, BodyRegion region,
       ? value_noise(genome.surface_seed ^ 0xF1357AEAull,
                     {p.x / 0.0045f, p.y / 0.0045f, p.z / 0.0045f})
       : 0.0f;
-  const float freckle_threshold = lerp(0.97f, 0.70f, skin.freckle_density);
+  const float freckle_threshold = lerp(RENGINE_SKIN_FRECKLE_THRESHOLD_SPARSE, RENGINE_SKIN_FRECKLE_THRESHOLD_DENSE, skin.freckle_density);
   const float freckle_mask = band >= DetailBand::meso
       ? smooth_range(freckle_noise, freckle_threshold, 1.0f) : 0.0f;
 
@@ -147,7 +148,7 @@ SurfaceSample sample_surface(const CharacterGenomeV0& genome, BodyRegion region,
       ? value_noise(genome.surface_seed ^ 0x7F4A7C15ull,
                     {p.x / 0.0012f, p.y / 0.0012f, p.z / 0.0012f})
       : 0.0f;
-  const float follicle_threshold = lerp(0.985f, 0.72f, skin.follicle_density);
+  const float follicle_threshold = lerp(RENGINE_SKIN_FOLLICLE_THRESHOLD_SPARSE, RENGINE_SKIN_FOLLICLE_THRESHOLD_DENSE, skin.follicle_density);
   const float follicle_influence = band >= DetailBand::micro
       ? smooth_range(follicle_noise, follicle_threshold, 1.0f) : 0.0f;
 
@@ -156,7 +157,7 @@ SurfaceSample sample_surface(const CharacterGenomeV0& genome, BodyRegion region,
                     {p.x / 0.0018f, p.y / 0.00072f, p.z / 0.0018f}) - 0.5f
       : 0.0f;
   const float wrinkle_height = band >= DetailBand::micro_high
-      ? wrinkle_noise * skin.wrinkle_bias * skin.micro_strength * 0.000018f
+      ? wrinkle_noise * skin.wrinkle_bias * skin.micro_strength * RENGINE_SKIN_WRINKLE_AMPLITUDE_M
       : 0.0f;
 
   SurfaceSample sample{};
