@@ -97,6 +97,8 @@ public:
 
   void set_ui_tooltip_row(int row) noexcept;
   [[nodiscard]] int ui_tooltip_row() const noexcept;
+  void set_character_menu_open(bool open) noexcept;
+  [[nodiscard]] bool character_menu_open() const noexcept;
 
   void set_physiology_preset(PhysiologyPreset preset) noexcept;
   [[nodiscard]] PhysiologyPreset physiology_preset() const noexcept;
