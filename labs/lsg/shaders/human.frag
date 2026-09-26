@@ -1,6 +1,7 @@
 #version 450
 #extension GL_GOOGLE_include_directive : require
 #include "focused_shadow.glsl"
+#include "skin_material.glsl"
 
 layout(location = 0) in vec3 surface_position_m;
 layout(location = 1) in vec3 view_normal;
@@ -176,6 +177,8 @@ vec2 pore_field(vec3 p, uint seed, float cell_m, float density, float depth_m) {
     }
     return vec2(pore_height, pore_influence);
 }
+
+#include "skin_microstructure.glsl"
 
 bool inside_box(vec2 uv, vec2 lo, vec2 hi) {
     return all(greaterThanEqual(uv, lo)) && all(lessThanEqual(uv, hi));
@@ -702,6 +705,8 @@ vec3 sky_irradiance(vec3 n) {
            max(lighting.sun_tint_sky_intensity.w, 0.0);
 }
 
+#include "skin_transport.glsl"
+
 void main() {
     uint profile_index = pc.flags.x % 3u;
     bool detail_enabled = pc.flags.y != 0u;
@@ -895,61 +900,55 @@ void main() {
     float footprint_m = max(length(dFdx(surface_position_m)), length(dFdy(surface_position_m)));
     int band = detail_band(footprint_m * 1000.0);
 
-    float melanin = clamp(pc.skin0.x, 0.0, 1.0);
-    float haemoglobin = clamp(pc.skin0.y, 0.0, 1.0);
-    float oiliness = clamp(pc.skin0.z, 0.0, 1.0);
-    float hydration = clamp(pc.skin0.w, 0.0, 1.0);
-
-    // Render-control physiology approximation from the v0 contract.
-    // 0 normal, 1 exercise, 2 cold, 3 hot.
-    float perfusion = physiology == 1u ? 0.84
-                    : physiology == 2u ? 0.22
-                    : physiology == 3u ? 0.66 : 0.45;
-    float sweat = physiology == 1u ? 0.72
-                : physiology == 2u ? 0.03
-                : physiology == 3u ? 0.88 : 0.08;
-    haemoglobin = clamp(haemoglobin + (perfusion - 0.45) * 0.36, 0.0, 1.0);
-
-    vec3 light_skin = vec3(0.66, 0.39, 0.29);
-    vec3 dark_skin = vec3(0.12, 0.050, 0.030);
-    vec3 base_colour = mix(light_skin, dark_skin, pow(melanin, 0.82) * 0.90);
-    base_colour += vec3(0.08, 0.010, 0.005) * (haemoglobin - 0.45);
-    if (physiology == 2u) base_colour += vec3(-0.010, 0.006, 0.028);
-    if (physiology == 3u) base_colour += vec3(0.030, 0.004, -0.008);
-
+    vec3 base_colour = lsg_skin_base_colour();
     float meso = 0.0;
     float pore_influence = 0.0;
+    float follicle_influence = 0.0;
+    float freckle_mask = 0.0;
     float height_field = 0.0;
-    float roughness = clamp(0.62 + (pc.micro0.x - 0.5) * 0.26 - oiliness * 0.16 - hydration * 0.05
-                            - sweat * 0.10,
-                            0.24, 0.86);
+    float roughness = lsg_skin_base_roughness();
 
     if (detail_enabled && band >= 1) {
-        meso = value_noise(surface_position_m / 0.0065, seed ^ 0xA511E9B3u) - 0.5;
+        meso = (value_noise(surface_position_m / 0.0065, seed ^ 0xA511E9B3u) - 0.5) *
+               clamp(skin.features.y, 0.0, 1.0);
         float vascular = value_noise(surface_position_m / 0.032, seed ^ 0x63D83595u) - 0.5;
-        base_colour += vec3(0.055, -0.005, -0.010) * vascular * haemoglobin;
+        base_colour += vec3(0.055, -0.005, -0.010) * vascular * skin.pigments.y;
+
+        freckle_mask = lsg_skin_freckle_mask(surface_position_m, seed);
+        vec3 freckle_tint = base_colour * vec3(0.62, 0.52, 0.42);
+        base_colour = mix(base_colour, freckle_tint, freckle_mask * 0.58);
+
         base_colour *= 1.0 + meso * 0.055;
         roughness = clamp(roughness + meso * 0.07, 0.24, 0.90);
         height_field += meso * 0.000055;
     }
 
     if (detail_enabled && band >= 2) {
-        float cell_m = mix(0.00052, 0.00024, clamp(pc.micro0.z, 0.0, 1.0));
+        float cell_m = mix(0.00052, 0.00024, clamp(skin.pores.y, 0.0, 1.0));
         float density = clamp(
-            pc.micro0.y * anatomical_pore_density_scale(surface_position_m),
+            skin.pores.x * anatomical_pore_density_scale(surface_position_m),
             0.05, 0.95);
-        float depth_m = mix(0.000010, 0.000050, clamp(pc.micro0.w, 0.0, 1.0));
+        float depth_m = mix(0.000010, 0.000050, clamp(skin.pores.z, 0.0, 1.0));
         vec2 pore = pore_field(surface_position_m, seed, cell_m, density, depth_m);
         height_field += pore.x;
         pore_influence = pore.y;
-        roughness = clamp(roughness + pore_influence * 0.10, 0.25, 0.95);
+
+        follicle_influence = lsg_skin_follicle_influence(surface_position_m, seed);
+        height_field -= follicle_influence * 0.000006 * clamp(skin.features.z, 0.0, 1.0);
+        roughness = clamp(roughness + pore_influence * 0.10 +
+                          follicle_influence * 0.045, 0.24, 0.95);
     }
 
     if (detail_enabled && band >= 3) {
         float subpixel = value_noise(surface_position_m / 0.00012, seed ^ 0xC2B2AE35u) - 0.5;
         float filter_weight = clamp((0.00010 - footprint_m) / 0.00010, 0.0, 1.0);
-        height_field += subpixel * 0.000004 * filter_weight;
-        roughness = clamp(roughness + subpixel * 0.035 * filter_weight, 0.24, 0.95);
+        float micro_strength = clamp(skin.features.z, 0.0, 1.0);
+        height_field += subpixel * 0.000004 * filter_weight * micro_strength;
+        height_field += lsg_skin_wrinkle_height(surface_position_m, seed, footprint_m);
+        roughness = clamp(roughness +
+                          subpixel * 0.035 * filter_weight * micro_strength +
+                          abs(lsg_skin_wrinkle_height(surface_position_m, seed, footprint_m)) * 900.0,
+                          0.24, 0.95);
     }
 
     vec3 n = normalize(view_normal);
@@ -970,21 +969,12 @@ void main() {
     float g = geometry_schlick(ndotv, roughness) * geometry_schlick(max(ndotl, 0.001), roughness);
     vec3 specular = fresnel * (d * g / max(4.0 * ndotv * max(ndotl, 0.001), 0.001));
 
-    // Direct-light energy must vanish when the sun is behind the surface.
-    // Keep the intentionally bounded SSS/back-scatter approximation separate.
+    // Surface BRDF and bounded skin transport are separate library terms.
     vec3 diffuse = base_colour * ndotl * (1.0 - fresnel) / 3.14159265;
-    // Bounded v0 skin-transmission approximation. The previous term peaked when
-    // NdotL approached zero and produced an inverted bright band at the terminator.
-    // This replacement keeps a restrained contribution near the lit terminator and
-    // fades it before the back-facing side.
     float signed_ndotl = dot(n, l);
-    float sss_wrap = smoothstep(-0.04, 0.28, signed_ndotl);
-    float sss_terminator = (1.0 - ndotl) * sss_wrap;
-    vec3 subsurface_approx =
-        base_colour * vec3(1.05, 0.45, 0.32) *
-        sss_terminator * 0.016;
-
     vec3 sky = sky_irradiance(n);
+    vec3 subsurface_approx =
+        lsg_skin_subsurface(base_colour, signed_ndotl, ndotl, sky);
     vec3 ambient = base_colour * sky * 0.28;
     vec3 sun_radiance = lighting.sun_tint_sky_intensity.rgb *
                         (3.1 * max(lighting.sun_direction_intensity.w, 0.0));
@@ -992,8 +982,7 @@ void main() {
         // Micro-normal detail changes the BRDF, not shadow-map geometry/bias.
         // Match Shadow Visibility/Compare, which use the base smooth normal.
         self_shadow_visibility(surface_position_m, normalize(view_normal), l);
-    float direct_specular_scale =
-        (1.2 + oiliness * 0.75 + sweat * 0.35) * ndotl;
+    float direct_specular_scale = lsg_skin_specular_scale() * 1.45 * ndotl;
     vec3 direct_colour =
         diffuse * sun_radiance +
         specular * sun_radiance * direct_specular_scale;
