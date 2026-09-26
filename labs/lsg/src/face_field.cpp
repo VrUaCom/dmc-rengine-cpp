@@ -19,8 +19,18 @@ float smooth_band(float value, float rise0, float rise1, float fall0, float fall
   return smooth_range(value, rise0, rise1) * (1.0f - smooth_range(value, fall0, fall1));
 }
 
-float sign_nonzero(float value) noexcept {
+float sign_symmetric(float value) noexcept {
+  if (value < 0.0f) return -1.0f;
+  if (value > 0.0f) return 1.0f;
+  return 0.0f;
+}
+
+float side_nonzero(float value) noexcept {
   return value < 0.0f ? -1.0f : 1.0f;
+}
+
+float face_activation(float head_weight) noexcept {
+  return smooth01(std::clamp(head_weight / 0.25f, 0.0f, 1.0f));
 }
 
 FacePoint canonical_face_point(FacePoint raw) noexcept {
@@ -68,7 +78,7 @@ FaceFieldWeights sample_face_field_weights(FacePoint raw_point) noexcept {
 
 FacePoint deform_face_field(FacePoint p, FacePoint raw, float head_weight,
                             const FaceFieldParameters& f) noexcept {
-  const float activation = std::clamp(head_weight, 0.0f, 1.0f);
+  const float activation = face_activation(head_weight);
   if (activation <= 0.0f) return p;
   const FaceFieldWeights w = sample_face_field_weights(raw);
 
@@ -79,9 +89,9 @@ FacePoint deform_face_field(FacePoint p, FacePoint raw, float head_weight,
   p.y += 0.014f * f.face_length * (w.jaw + w.chin) * activation;
   p.y += 0.010f * f.forehead_height * w.forehead * activation;
   p.z += 0.010f * f.brow_depth * w.brow * activation;
-  p.x += sign_nonzero(raw.x) * 0.008f * f.eye_spacing * w.eyes * activation;
+  p.x += sign_symmetric(raw.x) * 0.008f * f.eye_spacing * w.eyes * activation;
   p.x *= 1.0f + 0.030f * f.eye_size * w.eyes * activation;
-  p.y += sign_nonzero(raw.x) * 0.006f * f.eye_tilt * w.eyes * activation;
+  p.y += sign_symmetric(raw.x) * 0.006f * f.eye_tilt * w.eyes * activation;
 
   p.y -= 0.009f * f.nose_length * w.nose * activation;
   p.x *= 1.0f + 0.120f * f.nose_width * w.nose * activation;
@@ -100,14 +110,14 @@ FacePoint deform_face_field(FacePoint p, FacePoint raw, float head_weight,
 
 FacePoint deform_eye_socket_field(FacePoint p, FacePoint raw, float head_weight,
                                   const FaceFieldParameters& f) noexcept {
-  const float activation = std::clamp(head_weight, 0.0f, 1.0f);
+  const float activation = face_activation(head_weight);
   if (activation <= 0.0f) return p;
 
   p.x *= 1.0f + 0.060f * f.skull_width * activation;
   p.y = kCanonicalHeadPivotY +
         (p.y - kCanonicalHeadPivotY) * (1.0f + 0.050f * f.skull_height * activation);
 
-  const float side = sign_nonzero(raw.x);
+  const float side = side_nonzero(raw.x);
   p.x += side * 0.008f * f.eye_spacing * activation;
   const float eye_center_x = side * 0.032f;
   constexpr float eye_center_y = 0.752f;

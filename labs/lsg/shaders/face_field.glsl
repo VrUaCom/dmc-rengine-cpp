@@ -20,6 +20,10 @@ float lsg_face_smooth_band(float value, float rise0, float rise1, float fall0, f
            (1.0 - lsg_face_smooth_range(value, fall0, fall1));
 }
 
+float lsg_face_activation(float head_weight) {
+    return lsg_face_smooth01(clamp(head_weight / 0.25, 0.0, 1.0));
+}
+
 vec3 lsg_face_canonical(vec3 raw_p) {
     return vec3(raw_p.x / LSG_FACE_HALF_WIDTH_M,
                 (raw_p.y - LSG_FACE_HEAD_PIVOT_Y) / LSG_FACE_HALF_HEIGHT_M,
@@ -28,7 +32,7 @@ vec3 lsg_face_canonical(vec3 raw_p) {
 
 vec3 lsg_apply_face_field(vec3 p, vec3 raw_p, float head_weight,
                           vec4 face0, vec4 face1, vec4 face2, vec4 face3, vec4 face4) {
-    float activation = clamp(head_weight, 0.0, 1.0);
+    float activation = lsg_face_activation(head_weight);
     if (activation <= 0.0) return p;
 
     vec3 q = lsg_face_canonical(raw_p);
@@ -75,7 +79,7 @@ vec3 lsg_apply_face_field(vec3 p, vec3 raw_p, float head_weight,
 
 vec3 lsg_apply_eye_socket_field(vec3 p, vec3 raw_p, float head_weight,
                                 vec4 face0, vec4 face1) {
-    float activation = clamp(head_weight, 0.0, 1.0);
+    float activation = lsg_face_activation(head_weight);
     if (activation <= 0.0) return p;
 
     p.x *= 1.0 + 0.060 * face0.x * activation;
