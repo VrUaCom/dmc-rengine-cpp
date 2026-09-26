@@ -68,7 +68,7 @@ bool decode_genome(std::span<const std::byte> b,DecodedGenome& out,std::string& 
 
 CharacterGenomeV0 builtin_profile(std::uint32_t i){
   CharacterGenomeV0 g{};
-  switch (i % kBuiltinProfileCount) {
+  switch (normalize_character_profile_index(i)) {
     case 0u:
       g.geometry={3200,19000,-9000,8500,-2200,1800,11000,1200,2300,0,5200,-1800};
       g.skin={82,112,64,118,140,136,152,118,92,126,32,52};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rengine/lsg/camera.hpp"
+#include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/physiology.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
 #include "rengine/lsg/lighting_runtime.hpp"
@@ -47,6 +48,8 @@ struct RendererDiagnostics {
   float near_plane_m{0.03f};
   float far_plane_m{30.0f};
   std::uint64_t estimated_gpu_bytes{};
+  std::uint32_t resident_carrier_count{};
+  std::uint32_t character_profile_count{};
   std::uint32_t shadow_map_size{};
   CloseShadowLevel close_shadow_level{CloseShadowLevel::baseline};
   float close_shadow_half_extent_m{1.20f};

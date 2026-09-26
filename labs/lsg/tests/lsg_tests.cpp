@@ -1,4 +1,5 @@
 #include "rengine/lsg/anatomical_field.hpp"
+#include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
@@ -28,7 +29,22 @@ float point_distance(AnatomicalPoint a, AnatomicalPoint b) {
 }
 
 int main() {
-  static_assert(kBuiltinProfileCount == 3u); static_assert(kAdaProfileIndex == 2u);
+  static_assert(kBuiltinCarrierCount == 2u);
+  static_assert(kBuiltinProfileCount == 3u);
+  static_assert(kAdaProfileIndex == 2u);
+  const auto carriers = builtin_carriers();
+  const auto profiles = builtin_character_profiles();
+  assert(carriers.size() == kBuiltinCarrierCount);
+  assert(profiles.size() == kBuiltinProfileCount);
+  assert(character_profile_definition(0).carrier == CarrierId::male_base);
+  assert(character_profile_definition(1).carrier == CarrierId::female_base);
+  assert(character_profile_definition(kAdaProfileIndex).carrier == CarrierId::female_base);
+  assert(carrier_slot(character_profile_definition(kAdaProfileIndex).carrier) ==
+         carrier_slot(CarrierId::female_base));
+  assert(carrier_definition(CarrierId::male_base).body_asset_path !=
+         carrier_definition(CarrierId::female_base).body_asset_path);
+  assert(character_profile_definition(kBuiltinProfileCount + kAdaProfileIndex).index ==
+         kAdaProfileIndex);
   const auto g0 = builtin_profile(0), g1 = builtin_profile(1), g2 = builtin_profile(kAdaProfileIndex);
   const auto bytes = encode_genome(g0);
   assert(!bytes.empty()); assert(bytes.size() < 512); assert(bytes.size() <= kGenomeHardLimit);

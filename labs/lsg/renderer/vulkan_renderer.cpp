@@ -1,4 +1,5 @@
 #include "vulkan_renderer.hpp"
+#include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -88,7 +89,7 @@ struct VulkanRenderer::Impl {
   VkBuffer frame_lighting_buffer{VK_NULL_HANDLE};
   VkDeviceMemory frame_lighting_memory{VK_NULL_HANDLE};
   void* frame_lighting_mapped{};
-  struct ProfileMeshGpu {
+  struct CarrierMeshGpu {
     VkBuffer vertex_buffer{VK_NULL_HANDLE};
     VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
     VkBuffer index_buffer{VK_NULL_HANDLE};
@@ -97,8 +98,8 @@ struct VulkanRenderer::Impl {
     std::array<float, 3> mesh_center{};
     float meters_per_unit{1.0f};
   };
-  std::array<ProfileMeshGpu, kBuiltinProfileCount> profile_meshes{};
-  std::array<ProfileMeshGpu, kBuiltinProfileCount> eye_meshes{};
+  std::array<CarrierMeshGpu, kBuiltinCarrierCount> carrier_meshes{};
+  std::array<CarrierMeshGpu, kBuiltinCarrierCount> carrier_eye_meshes{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
@@ -690,8 +691,8 @@ void update_frame_lighting_buffer(VulkanRenderer::Impl& state,
   std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
 }
 
-bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
-                         std::string_view path, VulkanRenderer::Impl::ProfileMeshGpu& gpu_mesh) {
+bool create_carrier_mesh(VulkanRenderer::Impl& state, void* asset_manager,
+                         std::string_view path, VulkanRenderer::Impl::CarrierMeshGpu& gpu_mesh) {
   const auto bytes = load_asset_bytes(asset_manager, path);
   if (bytes.empty()) return false;
   RMeshV0 mesh{}; std::string error;
@@ -727,18 +728,12 @@ bool create_profile_mesh(VulkanRenderer::Impl& state, void* asset_manager,
 }
 
 bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  constexpr std::array<std::string_view, kBuiltinProfileCount> body_paths{
-      "meshes/human_profile_0.rmesh",
-      "meshes/human_profile_1.rmesh",
-      "meshes/human_profile_2.rmesh"};
-  constexpr std::array<std::string_view, kBuiltinProfileCount> eye_paths{
-      "meshes/eye_profile_0.rmesh",
-      "meshes/eye_profile_1.rmesh",
-      "meshes/eye_profile_2.rmesh"};
-
-  for (std::size_t i = 0; i < body_paths.size(); ++i) {
-    if (!create_profile_mesh(state, asset_manager, body_paths[i], state.profile_meshes[i])) return false;
-    if (!create_profile_mesh(state, asset_manager, eye_paths[i], state.eye_meshes[i])) return false;
+  for (const auto& carrier : builtin_carriers()) {
+    const auto slot = carrier_slot(carrier.id);
+    if (!create_carrier_mesh(state, asset_manager, carrier.body_asset_path,
+                             state.carrier_meshes[slot])) return false;
+    if (!create_carrier_mesh(state, asset_manager, carrier.eye_asset_path,
+                             state.carrier_eye_meshes[slot])) return false;
   }
   state.camera.set_subject_height(1.75f);
   return true;
@@ -1142,6 +1137,8 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.fov_y_radians = camera.fov_y_radians;
   out.camera_distance_m = camera.distance_m;
   out.estimated_gpu_bytes = state.estimated_bytes;
+  out.resident_carrier_count = static_cast<std::uint32_t>(kBuiltinCarrierCount);
+  out.character_profile_count = kBuiltinProfileCount;
   out.shadow_map_size = kShadowMapSize;
   const auto close_shadow =
       close_shadow_config(camera.preset, camera.distance_m, kShadowMapSize);
@@ -1201,7 +1198,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   }
   const float pose_time = state.shadow_probe.active() ? state.shadow_probe.pose_time() : time_seconds;
   state.last_detail = detail_enabled;
-  state.last_profile_index = character_index % kBuiltinProfileCount;
+  state.last_profile_index = normalize_character_profile_index(character_index);
   const CharacterGenomeV0 frame_genome = builtin_profile(state.last_profile_index);
   update_frame_lighting_buffer(state, frame_genome.face);
   std::uint32_t image_index{};
@@ -1213,8 +1210,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   VkCommandBufferBeginInfo begin{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
   if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) return false;
 
-  const auto profile_index = character_index % kBuiltinProfileCount;
-  const auto& profile_mesh = state.profile_meshes[profile_index];
+  const auto profile_index = normalize_character_profile_index(character_index);
+  const auto& profile_definition = character_profile_definition(profile_index);
+  const auto carrier_index = carrier_slot(profile_definition.carrier);
+  const auto& profile_mesh = state.carrier_meshes[carrier_index];
   const VkDeviceSize offset = 0;
   const CharacterGenomeV0 genome = builtin_profile(profile_index);
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
@@ -1315,7 +1314,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   vkCmdDrawIndexed(command,profile_mesh.index_count,1,0,0,0);
 
   // Pass 4B: nested eye rendering is explicit: opaque inner eye, then transparent cornea.
-  const auto& eye_mesh = state.eye_meshes[profile_index];
+  const auto& eye_mesh = state.carrier_eye_meshes[carrier_index];
   vkCmdBindVertexBuffers(command, 0, 1, &eye_mesh.vertex_buffer, &offset);
   vkCmdBindIndexBuffer(command, eye_mesh.index_buffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -1443,13 +1442,13 @@ void VulkanRenderer::shutdown() noexcept {
     if (state.depth_image) vkDestroyImage(state.device, state.depth_image, nullptr);
     if (state.depth_memory) vkFreeMemory(state.device, state.depth_memory, nullptr);
     for (const auto view : state.views) vkDestroyImageView(state.device, view, nullptr);
-    for (auto& profile_mesh : state.profile_meshes) {
+    for (auto& profile_mesh : state.carrier_meshes) {
       if (profile_mesh.vertex_buffer) vkDestroyBuffer(state.device, profile_mesh.vertex_buffer, nullptr);
       if (profile_mesh.vertex_memory) vkFreeMemory(state.device, profile_mesh.vertex_memory, nullptr);
       if (profile_mesh.index_buffer) vkDestroyBuffer(state.device, profile_mesh.index_buffer, nullptr);
       if (profile_mesh.index_memory) vkFreeMemory(state.device, profile_mesh.index_memory, nullptr);
     }
-    for (auto& eye_mesh : state.eye_meshes) {
+    for (auto& eye_mesh : state.carrier_eye_meshes) {
       if (eye_mesh.vertex_buffer) vkDestroyBuffer(state.device, eye_mesh.vertex_buffer, nullptr);
       if (eye_mesh.vertex_memory) vkFreeMemory(state.device, eye_mesh.vertex_memory, nullptr);
       if (eye_mesh.index_buffer) vkDestroyBuffer(state.device, eye_mesh.index_buffer, nullptr);

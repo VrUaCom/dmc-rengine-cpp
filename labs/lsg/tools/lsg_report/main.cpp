@@ -1,3 +1,4 @@
+#include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/genome.hpp"
 
 #include <cstddef>
@@ -7,6 +8,7 @@
 #include <iostream>
 #include <span>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -49,74 +51,102 @@ bool decode_checked(const std::filesystem::path& path,
 } // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 11) {
-    std::cerr << "usage: lsg_report <character0.lsg> <character1.lsg> <profile0.rmesh> <profile1.rmesh> <eye0.rmesh> <eye1.rmesh> <human.vert.spv> <human.frag.spv> <eye.vert.spv> <eye.frag.spv>\n";
+  using namespace rengine::lsg;
+  const int expected = 2 + static_cast<int>(kBuiltinProfileCount);
+  if (argc != expected) {
+    std::cerr << "usage: lsg_report <runtime-root>";
+    for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i)
+      std::cerr << " <character" << i << ".lsg>";
+    std::cerr << "\n";
     return 2;
   }
 
-  std::vector<std::byte> genome0_bytes;
-  std::vector<std::byte> genome1_bytes;
-  rengine::lsg::DecodedGenome genome0{};
-  rengine::lsg::DecodedGenome genome1{};
-  if (!decode_checked(argv[1], genome0_bytes, genome0) ||
-      !decode_checked(argv[2], genome1_bytes, genome1)) {
-    return 3;
+  const std::filesystem::path runtime_root = argv[1];
+  std::vector<std::vector<std::byte>> genome_bytes(kBuiltinProfileCount);
+  std::vector<DecodedGenome> genomes(kBuiltinProfileCount);
+  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
+    if (!decode_checked(argv[2 + static_cast<int>(i)], genome_bytes[i], genomes[i]))
+      return 3;
+    if (genome_bytes[i].size() > kGenomeHardLimit ||
+        genomes[i].generator_revision != kGeneratorRevision) {
+      std::cerr << "LSG storage contract FAIL: profile " << i
+                << " violates current genome contract\n";
+      return 4;
+    }
   }
 
-  const auto mesh0_bytes = read_binary(argv[3]);
-  const auto mesh1_bytes = read_binary(argv[4]);
-  const auto eye0_bytes = read_binary(argv[5]);
-  const auto eye1_bytes = read_binary(argv[6]);
-  const auto vertex_shader_bytes = read_binary(argv[7]);
-  const auto fragment_shader_bytes = read_binary(argv[8]);
-  const auto eye_vertex_shader_bytes = read_binary(argv[9]);
-  const auto eye_fragment_shader_bytes = read_binary(argv[10]);
-  if (mesh0_bytes.empty() || mesh1_bytes.empty() || eye0_bytes.empty() || eye1_bytes.empty() ||
-      vertex_shader_bytes.empty() || fragment_shader_bytes.empty() ||
-      eye_vertex_shader_bytes.empty() || eye_fragment_shader_bytes.empty()) {
-    std::cerr << "shared macro/eye mesh or shader payload is missing\n";
-    return 4;
+  std::uint64_t carrier_body_bytes = 0;
+  std::uint64_t carrier_eye_bytes = 0;
+  std::unordered_set<std::string> body_paths;
+  std::unordered_set<std::string> eye_paths;
+  struct CarrierMeasured {
+    CarrierDefinition definition{};
+    std::vector<std::byte> body;
+    std::vector<std::byte> eye;
+  };
+  std::vector<CarrierMeasured> measured;
+  measured.reserve(kBuiltinCarrierCount);
+
+  for (const auto& carrier : builtin_carriers()) {
+    const std::string body_path{carrier.body_asset_path};
+    const std::string eye_path{carrier.eye_asset_path};
+    if (!body_paths.insert(body_path).second || !eye_paths.insert(eye_path).second) {
+      std::cerr << "LSG storage contract FAIL: duplicate carrier asset path\n";
+      return 5;
+    }
+    CarrierMeasured item{};
+    item.definition = carrier;
+    item.body = read_binary(runtime_root / body_path);
+    item.eye = read_binary(runtime_root / eye_path);
+    if (item.body.empty() || item.eye.empty()) {
+      std::cerr << "LSG storage contract FAIL: missing carrier assets for " << carrier.key << '\n';
+      return 6;
+    }
+    carrier_body_bytes += static_cast<std::uint64_t>(item.body.size());
+    carrier_eye_bytes += static_cast<std::uint64_t>(item.eye.size());
+    measured.push_back(std::move(item));
   }
 
-  const bool genomes_within_limit =
-      genome0_bytes.size() <= rengine::lsg::kGenomeHardLimit &&
-      genome1_bytes.size() <= rengine::lsg::kGenomeHardLimit;
-  const bool revisions_match =
-      genome0.generator_revision == rengine::lsg::kGeneratorRevision &&
-      genome1.generator_revision == rengine::lsg::kGeneratorRevision;
-  if (!genomes_within_limit || !revisions_match) {
-    std::cerr << "LSG storage contract FAIL\n";
-    return 5;
+  const std::filesystem::path shader_root = runtime_root / "shaders";
+  const auto human_vert = read_binary(shader_root / "human.vert.spv");
+  const auto human_frag = read_binary(shader_root / "human.frag.spv");
+  const auto eye_vert = read_binary(shader_root / "eye.vert.spv");
+  const auto eye_frag = read_binary(shader_root / "eye.frag.spv");
+  if (human_vert.empty() || human_frag.empty() || eye_vert.empty() || eye_frag.empty()) {
+    std::cerr << "LSG storage contract FAIL: shared shader payload missing\n";
+    return 7;
   }
-
-  const std::uint64_t mesh_bytes =
-      static_cast<std::uint64_t>(mesh0_bytes.size()) +
-      static_cast<std::uint64_t>(mesh1_bytes.size());
-  const std::uint64_t eye_mesh_bytes =
-      static_cast<std::uint64_t>(eye0_bytes.size()) +
-      static_cast<std::uint64_t>(eye1_bytes.size());
   const std::uint64_t shader_bytes =
-      static_cast<std::uint64_t>(vertex_shader_bytes.size()) +
-      static_cast<std::uint64_t>(fragment_shader_bytes.size()) +
-      static_cast<std::uint64_t>(eye_vertex_shader_bytes.size()) +
-      static_cast<std::uint64_t>(eye_fragment_shader_bytes.size());
+      static_cast<std::uint64_t>(human_vert.size()) +
+      static_cast<std::uint64_t>(human_frag.size()) +
+      static_cast<std::uint64_t>(eye_vert.size()) +
+      static_cast<std::uint64_t>(eye_frag.size());
 
   std::cout << "LSG STORAGE CONTRACT PASS\n"
-            << "Character 0 genome: " << genome0_bytes.size() << " bytes\n"
-            << "Character 1 genome: " << genome1_bytes.size() << " bytes\n"
-            << "Genome hard limit: " << rengine::lsg::kGenomeHardLimit << " bytes\n"
-            << "Generator revision: " << rengine::lsg::kGeneratorRevision << '\n'
-            << "Shared macro body assets: " << mesh_bytes << " bytes\n"
-            << "Character 0 macro mesh: " << mesh0_bytes.size() << " bytes\n"
-            << "Character 1 macro mesh: " << mesh1_bytes.size() << " bytes\n"
-            << "Character 0 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh0_bytes) << std::dec << '\n'
-            << "Character 1 macro FNV1a64: 0x" << std::hex << fnv1a64(mesh1_bytes) << std::dec << '\n'
-            << "Shared fitted eye assets: " << eye_mesh_bytes << " bytes\n"
-            << "Character 0 eye mesh: " << eye0_bytes.size() << " bytes\n"
-            << "Character 1 eye mesh: " << eye1_bytes.size() << " bytes\n"
-            << "Character 0 eye FNV1a64: 0x" << std::hex << fnv1a64(eye0_bytes) << std::dec << '\n'
-            << "Character 1 eye FNV1a64: 0x" << std::hex << fnv1a64(eye1_bytes) << std::dec << '\n'
+            << "Built-in character profiles: " << kBuiltinProfileCount << '\n'
+            << "Unique shared carriers: " << kBuiltinCarrierCount << '\n'
+            << "Genome hard limit: " << kGenomeHardLimit << " bytes\n"
+            << "Generator revision: " << kGeneratorRevision << '\n';
+
+  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
+    const auto& profile = character_profile_definition(i);
+    const auto& carrier = carrier_definition(profile.carrier);
+    std::cout << "Profile " << i << " (" << profile.display_name << "): "
+              << genome_bytes[i].size() << " bytes; carrier=" << carrier.key << '\n';
+  }
+  for (const auto& item : measured) {
+    std::cout << "Carrier " << item.definition.key
+              << " body: " << item.body.size()
+              << " bytes; FNV1a64=0x" << std::hex << fnv1a64(item.body) << std::dec << '\n'
+              << "Carrier " << item.definition.key
+              << " eyes: " << item.eye.size()
+              << " bytes; FNV1a64=0x" << std::hex << fnv1a64(item.eye) << std::dec << '\n';
+  }
+
+  std::cout << "Unique shared carrier body bytes: " << carrier_body_bytes << '\n'
+            << "Unique shared carrier eye bytes: " << carrier_eye_bytes << '\n'
             << "Shared Vulkan shader payload: " << shader_bytes << " bytes\n"
+            << "Profile-specific carrier duplicate bytes: 0\n"
             << "Mandatory character texture bytes: 0\n"
             << "Character-specific generated microdetail stored on disk: 0 bytes\n";
   return 0;

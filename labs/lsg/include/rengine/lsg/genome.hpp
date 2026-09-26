@@ -1,4 +1,5 @@
 #pragma once
+#include "character_profile.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -9,8 +10,6 @@ namespace rengine::lsg {
 inline constexpr std::uint16_t kGenomeVersion = 0;
 inline constexpr std::uint32_t kGeneratorRevision = 3;
 inline constexpr std::uint32_t kLegacyGeneratorRevision = 2;
-inline constexpr std::uint32_t kBuiltinProfileCount = 3;
-inline constexpr std::uint32_t kAdaProfileIndex = 2;
 inline constexpr std::size_t kGenomeHardLimit = 4096;
 
 struct GeometryGenome {

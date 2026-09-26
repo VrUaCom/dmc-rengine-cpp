@@ -90,6 +90,7 @@ jobs:
 
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           foreach ($profile in 0,1) {
+            $carrier = if ($profile -eq 0) { 'male' } else { 'female' }
             & build-lsg-win\Release\lsg_fit_mhclo.exe build-lsg-win\profile-$profile.obj build-lsg-win\eye-high.obj build-lsg-win\eye-high.mhclo build-lsg-win\profile-$profile-eyes.obj `
               | Tee-Object -FilePath build-lsg-win\lsg-profile-$profile-eye-fit-report.txt
             if ($LASTEXITCODE -ne 0 -or -not (Select-String -Path build-lsg-win\lsg-profile-$profile-eye-fit-report.txt -Pattern 'MHCL0 FIT PASS' -Quiet)) {
@@ -107,7 +108,7 @@ jobs:
             if ($vertexCount -ne 1064) { throw "profile $profile fitted eye vertex count mismatch: $vertexCount" }
             if ($uvCount -ne 808) { throw "profile $profile fitted eye UV count mismatch: $uvCount" }
 
-            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-eyes.obj build-lsg-win\Release\meshes\eye_profile_$profile.rmesh --component-regions `
+            & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-eyes.obj build-lsg-win\Release\meshes\eye_carrier_$carrier.rmesh --component-regions `
               | Tee-Object -FilePath build-lsg-win\lsg-eye-components-profile-$profile.txt
             if ($LASTEXITCODE -ne 0) { throw "profile $profile eye RMS0 preparation failed" }
             if (-not (Select-String -Path build-lsg-win\lsg-eye-components-profile-$profile.txt -Pattern 'components=4' -Quiet)) {
@@ -122,7 +123,7 @@ jobs:
 
             & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-eyes.obj build-lsg-win\eye_profile_$profile-repeat.rmesh --component-regions | Out-Null
             if ($LASTEXITCODE -ne 0) { throw "profile $profile repeat eye RMS0 preparation failed" }
-            if ((Get-FileHash build-lsg-win\Release\meshes\eye_profile_$profile.rmesh).Hash -ne (Get-FileHash build-lsg-win\eye_profile_$profile-repeat.rmesh).Hash) {
+            if ((Get-FileHash build-lsg-win\Release\meshes\eye_carrier_$carrier.rmesh).Hash -ne (Get-FileHash build-lsg-win\eye_profile_$profile-repeat.rmesh).Hash) {
               throw "profile $profile eye RMS0 preparation is not deterministic"
             }
           }
@@ -136,6 +137,7 @@ jobs:
 
           New-Item -ItemType Directory -Force build-lsg-win\Release\meshes | Out-Null
           foreach ($profile in 0,1) {
+            $carrier = if ($profile -eq 0) { 'male' } else { 'female' }
             & build-lsg-win\Release\lsg_extract_obj_group.exe build-lsg-win\profile-$profile.obj body build-lsg-win\profile-$profile-body.obj
             if ($LASTEXITCODE -ne 0) { throw "profile $profile body extraction failed" }
             & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-body.obj build-lsg-win\profile-$profile-body.rmesh | Tee-Object -FilePath build-lsg-win\Release\lsg-body-normal-seams-profile-$profile.txt
@@ -157,23 +159,18 @@ jobs:
             & build-lsg-win\Release\lsg_prepare_mesh.exe build-lsg-win\profile-$profile-joints.obj build-lsg-win\profile-$profile-joints.rmesh
             if ($LASTEXITCODE -ne 0) { throw "profile $profile joint RMS0 preparation failed" }
             & build-lsg-win\Release\lsg_merge_debug_mesh.exe build-lsg-win\profile-$profile-body.rmesh build-lsg-win\profile-$profile-joints.rmesh `
-              build-lsg-win\Release\meshes\human_profile_$profile.rmesh
+              build-lsg-win\Release\meshes\human_carrier_$carrier.rmesh
             if ($LASTEXITCODE -ne 0) { throw "profile $profile debug merge failed" }
           }
-
-          # Character 2 / Ada currently reuses the female development RMS0 carrier.
-          # Identity differences are genome/procedural until Face DNA and measured 3D fitting land.
-          Copy-Item build-lsg-win\Release\meshes\human_profile_1.rmesh build-lsg-win\Release\meshes\human_profile_2.rmesh -Force
-          Copy-Item build-lsg-win\Release\meshes\eye_profile_1.rmesh build-lsg-win\Release\meshes\eye_profile_2.rmesh -Force
 
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\character_0.lsg
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\character_1.lsg
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_2_ada.lsg.json build-lsg-win\Release\character_2.lsg
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_2.rmesh')) { throw 'Character 2 / Ada macro RMS0 carrier missing' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh')) { throw 'Character 2 / Ada eye RMS0 carrier missing' }
-          if ((Get-FileHash build-lsg-win\Release\meshes\human_profile_0.rmesh).Hash -eq (Get-FileHash build-lsg-win\Release\meshes\human_profile_1.rmesh).Hash) {
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_male.rmesh')) { throw 'Male carrier RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_female.rmesh')) { throw 'Female carrier RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_male.rmesh')) { throw 'Male eye carrier RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_female.rmesh')) { throw 'Female eye carrier RMS0 missing' }
+          if ((Get-FileHash build-lsg-win\Release\meshes\human_carrier_male.rmesh).Hash -eq (Get-FileHash build-lsg-win\Release\meshes\human_carrier_female.rmesh).Hash) {
             throw 'macro profile meshes are unexpectedly identical'
           }
           if (!(Test-Path 'build-lsg-win\Release\character_0.lsg')) { throw 'Character 0 genome missing' }
@@ -188,20 +185,17 @@ jobs:
         shell: pwsh
         run: |
           & build-lsg-win\Release\lsg_report.exe `
+            build-lsg-win\Release `
             build-lsg-win\Release\character_0.lsg `
             build-lsg-win\Release\character_1.lsg `
-            build-lsg-win\Release\meshes\human_profile_0.rmesh `
-            build-lsg-win\Release\meshes\human_profile_1.rmesh `
-            build-lsg-win\Release\meshes\eye_profile_0.rmesh `
-            build-lsg-win\Release\meshes\eye_profile_1.rmesh `
-            build-lsg-win\Release\shaders\human.vert.spv `
-            build-lsg-win\Release\shaders\human.frag.spv `
-            build-lsg-win\Release\shaders\eye.vert.spv `
-            build-lsg-win\Release\shaders\eye.frag.spv `
+            build-lsg-win\Release\character_2.lsg `
             | Tee-Object -FilePath build-lsg-win\Release\lsg-acceptance-report.txt
           if ($LASTEXITCODE -ne 0) { throw 'LSG storage contract failed' }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'LSG STORAGE CONTRACT PASS' -Quiet)) {
             throw 'LSG storage PASS marker missing'
+          }
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Profile-specific carrier duplicate bytes: 0' -Quiet)) {
+            throw 'shared-carrier deduplication marker missing'
           }
       - name: Verify runnable Windows package
         shell: pwsh
@@ -209,14 +203,14 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\rengine_lsg_viewer.exe')) { throw 'viewer exe missing' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.vert.spv')) { throw 'vertex SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_2.rmesh')) { throw 'Character 2 / Ada macro RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_male.rmesh')) { throw 'Male carrier RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_female.rmesh')) { throw 'Female carrier RMS0 missing beside EXE' }
+          if (Test-Path 'build-lsg-win\Release\meshes\human_profile_2.rmesh') { throw 'Unexpected Character 2 carrier duplicate beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\eye.vert.spv')) { throw 'eye vertex SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\eye.frag.spv')) { throw 'eye fragment SPIR-V missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_0.rmesh')) { throw 'Character 0 eye RMS0 missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_1.rmesh')) { throw 'Character 1 eye RMS0 missing beside EXE' }
-          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh')) { throw 'Character 2 / Ada eye RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_male.rmesh')) { throw 'Male eye carrier RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_female.rmesh')) { throw 'Female eye carrier RMS0 missing beside EXE' }
+          if (Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh') { throw 'Unexpected Character 2 eye carrier duplicate beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-0.txt')) { throw 'Character 0 mesh continuity report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-1.txt')) { throw 'Character 1 mesh continuity report missing' }
