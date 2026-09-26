@@ -16,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(rengine_lsg_core STATIC
   src/genome.cpp
   src/character_profile.cpp
+  src/character_registry.cpp
   src/face_field.cpp
   src/skin_material.cpp
   src/detail_scheduler.cpp

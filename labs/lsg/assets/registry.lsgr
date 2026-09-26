@@ -1,0 +1,6 @@
+LSGR|1
+C|0|male-base|Male Base|meshes/human_carrier_male.rmesh|meshes/eye_carrier_male.rmesh|1|0.690|0.100|0.180|0.120|0.032|0.752|0
+C|1|female-base|Female Base|meshes/human_carrier_female.rmesh|meshes/eye_carrier_female.rmesh|1|0.690|0.100|0.180|0.120|0.032|0.752|0
+P|0|male-base|Male Base|0|profiles/character_0.lsg|0
+P|1|female-base|Female Base|1|profiles/character_1.lsg|0
+P|2|ada-reference|Ada|1|profiles/character_2.lsg|0
