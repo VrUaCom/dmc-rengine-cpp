@@ -230,6 +230,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
       if (wparam == VK_ESCAPE) { DestroyWindow(window); return 0; }
       if (state != nullptr && wparam == '0') { state->character_index = 0; return 0; }
       if (state != nullptr && wparam == '1') { state->character_index = 1; return 0; }
+      if (state != nullptr && wparam == '2') { state->character_index = rengine::lsg::kAdaProfileIndex; return 0; }
       if (state != nullptr && wparam == 'D') { state->detail_enabled = !state->detail_enabled; return 0; }
       if (state != nullptr && wparam == 'M') { cycle_mode(*state); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'F') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::full_body); return 0; }
@@ -302,7 +303,10 @@ int main(int argc, char** argv) {
   rengine::lsg::VulkanRenderer renderer;
   ViewerState state{}; state.renderer = &renderer;
   for (int i = 1; i + 1 < argc; ++i) {
-    if (std::string_view{argv[i]} == "--character") state.character_index = static_cast<std::uint32_t>(argv[++i][0] == '1');
+    if (std::string_view{argv[i]} == "--character") {
+      const char id = argv[++i][0];
+      state.character_index = id == '2' ? rengine::lsg::kAdaProfileIndex : (id == '1' ? 1u : 0u);
+    }
   }
   const auto genome = rengine::lsg::encode_genome(rengine::lsg::builtin_profile(state.character_index));
   if (genome.empty()) { std::cerr << "failed to create built-in genome\n"; return 2; }
@@ -316,7 +320,7 @@ int main(int argc, char** argv) {
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
   AdjustWindowRect(&rectangle, style, FALSE);
   HWND window = CreateWindowExW(0, kClassName,
-      L"Rengine LSG - left R&D panel, drag orbit, wheel zoom, F/P/C camera, 0/1 profile",
+      L"Rengine LSG - left R&D panel, drag orbit, wheel zoom, F/P/C camera, 0/1/2 profile",
       style, CW_USEDEFAULT, CW_USEDEFAULT, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
       nullptr, nullptr, instance, &state);
   if (window == nullptr) { std::cerr << "CreateWindowExW failed\n"; return 4; }
