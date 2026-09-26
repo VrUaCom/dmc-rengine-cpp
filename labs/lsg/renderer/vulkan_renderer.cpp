@@ -209,49 +209,6 @@ static_assert(offsetof(FrameLightingGpu, modes) == 96);
 static_assert(offsetof(FrameLightingGpu, face0) == 112);
 static_assert(offsetof(FrameLightingGpu, face4) == 176);
 
-struct alignas(16) SkinMaterialGpu {
-  float pigments[4]{};
-  float surface[4]{};
-  float pores[4]{};
-  float features[4]{};
-  float physiology[4]{};
-};
-static_assert(alignof(SkinMaterialGpu) == 16);
-static_assert(sizeof(SkinMaterialGpu) == 80);
-static_assert(offsetof(SkinMaterialGpu, pigments) == 0);
-static_assert(offsetof(SkinMaterialGpu, physiology) == 64);
-
-SkinMaterialGpu make_skin_material_gpu(const CharacterGenomeV0& genome,
-                                       const PhysiologyState& physiology) noexcept {
-  const SkinPhenotype skin = derive_skin_phenotype(genome, physiology);
-  SkinMaterialGpu gpu{};
-  gpu.pigments[0] = skin.melanin;
-  gpu.pigments[1] = skin.haemoglobin;
-  gpu.pigments[2] = skin.carotene;
-  gpu.pigments[3] = skin.age_profile;
-
-  gpu.surface[0] = skin.oiliness;
-  gpu.surface[1] = skin.hydration;
-  gpu.surface[2] = skin.roughness_bias;
-  gpu.surface[3] = skin.coat_strength;
-
-  gpu.pores[0] = skin.pore_density;
-  gpu.pores[1] = skin.pore_scale;
-  gpu.pores[2] = skin.pore_depth;
-  gpu.pores[3] = skin.follicle_density;
-
-  gpu.features[0] = skin.freckle_density;
-  gpu.features[1] = skin.meso_strength;
-  gpu.features[2] = skin.micro_strength;
-  gpu.features[3] = skin.wrinkle_bias;
-
-  gpu.physiology[0] = skin.perfusion;
-  gpu.physiology[1] = skin.sweat;
-  gpu.physiology[2] = skin.temperature_norm;
-  gpu.physiology[3] = skin.subsurface_strength;
-  return gpu;
-}
-
 FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting,
                                          const FaceGenomeV0& face) noexcept {
   FrameLightingGpu gpu{};
@@ -712,7 +669,7 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
 
   if(!create_uniform(sizeof(FrameLightingGpu), state.frame_lighting_buffer,
                      state.frame_lighting_memory, state.frame_lighting_mapped)) return false;
-  if(!create_uniform(sizeof(SkinMaterialGpu), state.skin_material_buffer,
+  if(!create_uniform(sizeof(SkinMaterialGpuV0), state.skin_material_buffer,
                      state.skin_material_memory, state.skin_material_mapped)) return false;
 
   VkDescriptorPoolSize ps[2]{};
@@ -726,7 +683,7 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
   if(vkAllocateDescriptorSets(state.device,&si,&state.frame_lighting_descriptor_set)!=VK_SUCCESS) return false;
 
   VkDescriptorBufferInfo lighting_db{}; lighting_db.buffer=state.frame_lighting_buffer; lighting_db.range=sizeof(FrameLightingGpu);
-  VkDescriptorBufferInfo skin_db{}; skin_db.buffer=state.skin_material_buffer; skin_db.range=sizeof(SkinMaterialGpu);
+  VkDescriptorBufferInfo skin_db{}; skin_db.buffer=state.skin_material_buffer; skin_db.range=sizeof(SkinMaterialGpuV0);
   VkDescriptorImageInfo coarse{}; coarse.sampler=state.shadow_sampler; coarse.imageView=state.shadow_depth_view;
   coarse.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
   VkDescriptorImageInfo focused{}; focused.sampler=state.shadow_sampler; focused.imageView=state.self_shadow_depth_view;
@@ -745,10 +702,11 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
 
   const auto initial_genome=builtin_profile(0);
   const auto initial_lighting=make_frame_lighting_gpu(state.lighting, initial_genome.face);
-  const auto initial_skin=make_skin_material_gpu(initial_genome, physiology_for(PhysiologyPreset::normal));
+  const auto initial_skin=pack_skin_material_gpu(
+      derive_skin_phenotype(initial_genome, physiology_for(PhysiologyPreset::normal)));
   std::memcpy(state.frame_lighting_mapped,&initial_lighting,sizeof(initial_lighting));
   std::memcpy(state.skin_material_mapped,&initial_skin,sizeof(initial_skin));
-  state.estimated_bytes += sizeof(FrameLightingGpu) + sizeof(SkinMaterialGpu);
+  state.estimated_bytes += sizeof(FrameLightingGpu) + sizeof(SkinMaterialGpuV0);
   return true;
 }
 
@@ -762,7 +720,8 @@ void update_frame_lighting_buffer(VulkanRenderer::Impl& state,
 void update_skin_material_buffer(VulkanRenderer::Impl& state,
                                  const CharacterGenomeV0& genome) noexcept {
   if (state.skin_material_mapped == nullptr) return;
-  const auto gpu = make_skin_material_gpu(genome, physiology_for(state.physiology_preset));
+  const auto gpu = pack_skin_material_gpu(
+      derive_skin_phenotype(genome, physiology_for(state.physiology_preset)));
   std::memcpy(state.skin_material_mapped, &gpu, sizeof(gpu));
 }
 

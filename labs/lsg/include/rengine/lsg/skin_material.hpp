@@ -9,6 +9,15 @@ struct SkinRgb {
   float r{}, g{}, b{};
 };
 
+struct alignas(16) SkinMaterialGpuV0 {
+  float pigments[4]{};
+  float surface[4]{};
+  float pores[4]{};
+  float features[4]{};
+  float physiology[4]{};
+};
+static_assert(sizeof(SkinMaterialGpuV0) == 80);
+
 struct SkinPhenotype {
   float melanin{};
   float haemoglobin{};
@@ -35,6 +44,7 @@ struct SkinPhenotype {
   float subsurface_strength{};
 };
 
+[[nodiscard]] SkinMaterialGpuV0 pack_skin_material_gpu(const SkinPhenotype& skin) noexcept;
 [[nodiscard]] SkinPhenotype derive_skin_phenotype(const CharacterGenomeV0& genome,
                                                   const PhysiologyState& physiology) noexcept;
 [[nodiscard]] SkinRgb skin_base_reflectance(const SkinPhenotype& skin) noexcept;

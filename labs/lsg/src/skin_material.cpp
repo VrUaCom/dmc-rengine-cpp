@@ -16,6 +16,35 @@ float lerp(float a, float b, float t) noexcept {
 
 } // namespace
 
+SkinMaterialGpuV0 pack_skin_material_gpu(const SkinPhenotype& skin) noexcept {
+  SkinMaterialGpuV0 gpu{};
+  gpu.pigments[0] = skin.melanin;
+  gpu.pigments[1] = skin.haemoglobin;
+  gpu.pigments[2] = skin.carotene;
+  gpu.pigments[3] = skin.age_profile;
+
+  gpu.surface[0] = skin.oiliness;
+  gpu.surface[1] = skin.hydration;
+  gpu.surface[2] = skin.roughness_bias;
+  gpu.surface[3] = skin.coat_strength;
+
+  gpu.pores[0] = skin.pore_density;
+  gpu.pores[1] = skin.pore_scale;
+  gpu.pores[2] = skin.pore_depth;
+  gpu.pores[3] = skin.follicle_density;
+
+  gpu.features[0] = skin.freckle_density;
+  gpu.features[1] = skin.meso_strength;
+  gpu.features[2] = skin.micro_strength;
+  gpu.features[3] = skin.wrinkle_bias;
+
+  gpu.physiology[0] = skin.perfusion;
+  gpu.physiology[1] = skin.sweat;
+  gpu.physiology[2] = skin.temperature_norm;
+  gpu.physiology[3] = skin.subsurface_strength;
+  return gpu;
+}
+
 SkinPhenotype derive_skin_phenotype(const CharacterGenomeV0& genome,
                                     const PhysiologyState& physiology) noexcept {
   SkinPhenotype out{};

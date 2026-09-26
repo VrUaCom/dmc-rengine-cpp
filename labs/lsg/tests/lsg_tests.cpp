@@ -325,6 +325,7 @@ int main() {
   const auto skin0 = derive_skin_phenotype(g0, physiology_for(PhysiologyPreset::normal));
   const auto skin1 = derive_skin_phenotype(g1, physiology_for(PhysiologyPreset::normal));
   const auto skin2 = derive_skin_phenotype(g2, physiology_for(PhysiologyPreset::normal));
+  static_assert(sizeof(SkinMaterialGpuV0) == 80u);
   for (const auto* skin : {&skin0, &skin1, &skin2}) {
     assert(skin->melanin >= 0.0f && skin->melanin <= 1.0f);
     assert(skin->carotene >= 0.0f && skin->carotene <= 1.0f);
@@ -338,6 +339,11 @@ int main() {
     assert(std::isfinite(rgb.r) && std::isfinite(rgb.g) && std::isfinite(rgb.b));
     assert(rgb.r > 0.0f && rgb.g > 0.0f && rgb.b > 0.0f);
     assert(skin_base_roughness(*skin) >= 0.24f && skin_base_roughness(*skin) <= 0.90f);
+    const auto gpu_skin = pack_skin_material_gpu(*skin);
+    assert(gpu_skin.pigments[0] == skin->melanin);
+    assert(gpu_skin.pores[3] == skin->follicle_density);
+    assert(gpu_skin.features[2] == skin->micro_strength);
+    assert(gpu_skin.physiology[3] == skin->subsurface_strength);
   }
 
   auto light_skin_genome = g0;
@@ -369,7 +375,7 @@ int main() {
   const Vec3 seam_probe{0.21f, 0.48f, 0.09f};
   const auto seam_a = sample_surface(g0, BodyRegion::chest, seam_probe, 0.05f,
                                      physiology_for(PhysiologyPreset::normal));
-  const auto seam_b = sample_surface(g0, BodyRegion::arm, seam_probe, 0.05f,
+  const auto seam_b = sample_surface(g0, BodyRegion::upper_arm, seam_probe, 0.05f,
                                      physiology_for(PhysiologyPreset::normal));
   assert(std::abs(seam_a.pore_height - seam_b.pore_height) < 1e-9f);
   assert(std::abs(seam_a.meso_variation - seam_b.meso_variation) < 1e-9f);
