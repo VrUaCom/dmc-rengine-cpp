@@ -1359,7 +1359,11 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   push.geometry1[2]=derived.body_fat_scale; push.geometry1[3]=derived.head_scale;
   push.render[0]=extent_aspect(state.logical_extent); push.render[1]=camera.fov_y_radians;
   push.render[2]=pose_time; push.render[3]=std::bit_cast<float>(derived.surface_seed_low);
-  push.flags[0]=profile_index; push.flags[1]=detail_enabled?1u:0u; push.flags[2]=state.surface_rotation;
+  push.flags[0]=static_cast<std::uint32_t>(profile_index);
+  const auto ui_profile_count = static_cast<std::uint32_t>(
+      std::min<std::size_t>(state.registry.profile_count(), 8u));
+  push.flags[1]=(detail_enabled?1u:0u) | (ui_profile_count<<8u);
+  push.flags[2]=state.surface_rotation;
   const auto mode_bits=static_cast<std::uint32_t>(state.diagnostic_mode)<<1u;
   const auto camera_bits=static_cast<std::uint32_t>(camera.preset)<<3u;
   const auto probe_bits = state.shadow_probe.active() ? (1u << 25u) : 0u;
@@ -1500,7 +1504,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                   surface_debug_bits | close_shadow_bits | probe_bits | character_menu_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 105u, 1u, 0u, 0u);
+  vkCmdDraw(command, 135u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 

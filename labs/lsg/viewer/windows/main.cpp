@@ -144,12 +144,13 @@ int ui_row_from_point(int x, int y, int width, int height) {
   return -1;
 }
 
-int character_menu_row_from_point(int x, int y, int width, int height) {
+int character_menu_row_from_point(const ViewerState& state, int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return -1;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
   const float ny = static_cast<float>(y) / static_cast<float>(height);
   if (nx < 0.20f || nx > 0.41f) return -1;
-  for (int row = 0; row < 3; ++row) {
+  const int count = state.renderer == nullptr ? 0 : static_cast<int>(std::min<std::uint32_t>(state.renderer->character_profile_count(), 8u));
+  for (int row = 0; row < count; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.030f) return row;
   }
@@ -164,11 +165,14 @@ void set_character_menu_open(ViewerState& state, bool open) {
   }
 }
 
-void select_character(ViewerState& state, std::uint32_t index) {
-  state.character_index = rengine::lsg::normalize_character_profile_index(index);
-  const auto& profile = rengine::lsg::character_profile_definition(state.character_index);
-  std::cout << "Character " << state.character_index << " / "
-            << profile.display_name << " selected\n";
+bool select_character_ordinal(ViewerState& state, std::uint32_t ordinal) {
+  if (state.renderer == nullptr) return false;
+  std::uint32_t id{};
+  if (!state.renderer->character_profile_id_at(ordinal, id)) return false;
+  state.character_index = id;
+  std::cout << "Character id=" << state.character_index << " / "
+            << state.renderer->character_profile_name(id) << " selected\n";
+  return true;
 }
 
 void update_long_press(ViewerState& state) {
@@ -195,8 +199,8 @@ void handle_ui_row(ViewerState& state, int row) {
   using rengine::lsg::CameraPreset;
   if (row != 11) state.renderer->cancel_shadow_probe();
   switch (row) {
-    case 0: select_character(state, 0); break;
-    case 1: select_character(state, 1); break;
+    case 0: select_character_ordinal(state, 0); break;
+    case 1: select_character_ordinal(state, 1); break;
     case 2: state.detail_enabled = !state.detail_enabled; break;
     case 3: {
       using rengine::lsg::DiagnosticRenderMode;
@@ -271,9 +275,9 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
   switch (message) {
     case WM_KEYDOWN:
       if (wparam == VK_ESCAPE) { DestroyWindow(window); return 0; }
-      if (state != nullptr && wparam == '0') { select_character(*state, 0); return 0; }
-      if (state != nullptr && wparam == '1') { select_character(*state, 1); return 0; }
-      if (state != nullptr && wparam == '2') { select_character(*state, rengine::lsg::kAdaProfileIndex); return 0; }
+      if (state != nullptr && wparam == '0') { select_character_ordinal(*state, 0); return 0; }
+      if (state != nullptr && wparam == '1') { select_character_ordinal(*state, 1); return 0; }
+      if (state != nullptr && wparam == '2') { select_character_ordinal(*state, 2); return 0; }
       if (state != nullptr && wparam == 'D') { state->detail_enabled = !state->detail_enabled; return 0; }
       if (state != nullptr && wparam == 'M') { cycle_mode(*state); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'F') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::full_body); return 0; }
@@ -289,7 +293,7 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
         state->moved = false;
         if (state->character_menu_open) {
-          const int menu_row = character_menu_row_from_point(state->down_x, state->down_y, width, height);
+          const int menu_row = character_menu_row_from_point(*state, state->down_x, state->down_y, width, height);
           state->pressed_ui_row = menu_row >= 0 ? 100 + menu_row : 99;
           state->hud_candidate = true;
           state->dragging = false;
@@ -341,10 +345,10 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
         const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
         if (state->character_menu_open && state->pressed_ui_row >= 99) {
-          const int menu_row = character_menu_row_from_point(x, y, width, height);
+          const int menu_row = character_menu_row_from_point(*state, x, y, width, height);
           if (state->pressed_ui_row >= 100 && menu_row >= 0 &&
               state->pressed_ui_row == 100 + menu_row) {
-            select_character(*state, static_cast<std::uint32_t>(menu_row));
+            select_character_ordinal(*state, static_cast<std::uint32_t>(menu_row));
           }
           set_character_menu_open(*state, false);
         } else if (state->hud_candidate && !state->character_menu_open) {
@@ -374,15 +378,14 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
 int main(int argc, char** argv) {
   rengine::lsg::VulkanRenderer renderer;
   ViewerState state{}; state.renderer = &renderer;
+  std::uint32_t requested_profile_ordinal = 0u;
   for (int i = 1; i + 1 < argc; ++i) {
     if (std::string_view{argv[i]} == "--character") {
       const char id = argv[++i][0];
-      state.character_index = id == '2' ? rengine::lsg::kAdaProfileIndex : (id == '1' ? 1u : 0u);
+      requested_profile_ordinal = id >= '0' && id <= '7'
+          ? static_cast<std::uint32_t>(id - '0') : 0u;
     }
   }
-  const auto genome = rengine::lsg::encode_genome(rengine::lsg::builtin_profile(state.character_index));
-  if (genome.empty()) { std::cerr << "failed to create built-in genome\n"; return 2; }
-
   const HINSTANCE instance = GetModuleHandleW(nullptr);
   constexpr wchar_t kClassName[] = L"RengineLSGPrototypeWindow";
   WNDCLASSW window_class{}; window_class.lpfnWndProc = window_proc; window_class.hInstance = instance;
@@ -399,8 +402,14 @@ int main(int argc, char** argv) {
   ShowWindow(window, SW_SHOWDEFAULT);
 
   if (!renderer.initialize(window)) { std::cerr << "Vulkan 1.2 Win32 initialization failed\n"; DestroyWindow(window); return 5; }
-  std::cout << "Rengine LSG Windows interactive viewer PASS bootstrap; genome=" << genome.size()
-            << " bytes; estimated GPU bytes=" << renderer.estimated_gpu_bytes() << "\n";
+  if (!select_character_ordinal(state, requested_profile_ordinal) &&
+      !select_character_ordinal(state, 0u)) {
+    std::cerr << "No character profile available in runtime registry\n";
+    renderer.shutdown(); DestroyWindow(window); return 6;
+  }
+  std::cout << "Rengine LSG Windows interactive viewer PASS bootstrap; profiles="
+            << renderer.character_profile_count()
+            << "; estimated GPU bytes=" << renderer.estimated_gpu_bytes() << "\n";
   print_diagnostics(state, "Renderer init");
 
   const auto start = std::chrono::steady_clock::now();

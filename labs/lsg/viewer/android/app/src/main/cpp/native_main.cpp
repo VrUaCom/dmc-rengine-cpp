@@ -1,6 +1,4 @@
 #include "rengine/lsg/camera.hpp"
-#include "rengine/lsg/genome.hpp"
-#include "rengine/lsg/runtime.hpp"
 #include "vulkan_renderer.hpp"
 
 #include <android/input.h>
@@ -13,7 +11,6 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <memory>
 
 namespace {
 constexpr const char* kTag = "RengineLSG";
@@ -26,7 +23,6 @@ std::int64_t monotonic_ms() {
 
 struct AppState {
   rengine::lsg::VulkanRenderer renderer;
-  std::unique_ptr<rengine::lsg::CharacterRuntime> character;
   android_app* app{};
   std::uint32_t character_index{};
   bool detail_enabled{true};
@@ -124,15 +120,16 @@ void set_character_menu_open(AppState& state, bool open) {
   }
 }
 
-void select_character(AppState& state, std::uint32_t index) {
-  state.character_index = rengine::lsg::normalize_character_profile_index(index);
-  state.character = std::make_unique<rengine::lsg::CharacterRuntime>(rengine::lsg::builtin_profile(state.character_index));
-  const auto& profile = rengine::lsg::character_profile_definition(state.character_index);
-  char message[128]{};
-  std::snprintf(message, sizeof(message), "Character %u / %.*s selected",
-                state.character_index,
-                static_cast<int>(profile.display_name.size()), profile.display_name.data());
+bool select_character_ordinal(AppState& state, std::uint32_t ordinal) {
+  std::uint32_t id{};
+  if (!state.renderer.character_profile_id_at(ordinal, id)) return false;
+  state.character_index = id;
+  const std::string name = state.renderer.character_profile_name(id);
+  char message[160]{};
+  std::snprintf(message, sizeof(message), "Character id=%u / %s selected",
+                state.character_index, name.c_str());
   log_info(message);
+  return true;
 }
 
 void toggle_detail(AppState& state) {
@@ -201,6 +198,7 @@ void on_command(android_app* app, std::int32_t command) {
       if (state->has_window) {
         if (state->renderer.initialize(app->window, app->activity->assetManager)) {
           log_info("Vulkan LSG viewer initialized");
+          select_character_ordinal(*state, 0);
           log_renderer_diagnostics(*state, "Renderer init");
         } else {
           __android_log_write(ANDROID_LOG_ERROR, kTag, "Vulkan initialization failed");
@@ -246,12 +244,13 @@ void clear_tooltip(AppState& state) {
   state.renderer.set_ui_tooltip_row(-1);
 }
 
-int character_menu_row_from_point(float x, float y, float width, float height) {
+int character_menu_row_from_point(const AppState& state, float x, float y, float width, float height) {
   if (width <= 0.0f || height <= 0.0f) return -1;
   const float nx = x / width;
   const float ny = y / height;
   if (nx < 0.20f || nx > 0.41f) return -1;
-  for (int row = 0; row < 3; ++row) {
+  const int count = static_cast<int>(std::min<std::uint32_t>(state.renderer.character_profile_count(), 8u));
+  for (int row = 0; row < count; ++row) {
     const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
     if (std::abs(ny - center_y) <= 0.030f) return row;
   }
@@ -332,8 +331,8 @@ void handle_ui_row(AppState& state, int row) {
   set_character_menu_open(state, false);
   if (row != 11) state.renderer.cancel_shadow_probe();
   switch (row) {
-    case 0: select_character(state, 0); break;
-    case 1: select_character(state, 1); break;
+    case 0: select_character_ordinal(state, 0); break;
+    case 1: select_character_ordinal(state, 1); break;
     case 2: toggle_detail(state); break;
     case 3: toggle_skeleton(state); break;
     case 4: cycle_camera_preset(state); break;
@@ -357,9 +356,9 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   const int type = AInputEvent_getType(event);
   if (type == AINPUT_EVENT_TYPE_KEY && AKeyEvent_getAction(event) == AKEY_EVENT_ACTION_UP) {
     switch (AKeyEvent_getKeyCode(event)) {
-      case AKEYCODE_0: select_character(*state, 0); return 1;
-      case AKEYCODE_1: select_character(*state, 1); return 1;
-      case AKEYCODE_2: select_character(*state, rengine::lsg::kAdaProfileIndex); return 1;
+      case AKEYCODE_0: select_character_ordinal(*state, 0); return 1;
+      case AKEYCODE_1: select_character_ordinal(*state, 1); return 1;
+      case AKEYCODE_2: select_character_ordinal(*state, 2); return 1;
       case AKEYCODE_D: toggle_detail(*state); return 1;
       case AKEYCODE_S: toggle_skeleton(*state); return 1;
       case AKEYCODE_M: cycle_diagnostic_mode(*state); return 1;
@@ -382,7 +381,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     state->down_x = state->last_x = AMotionEvent_getX(event, 0);
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
     if (state->character_menu_open) {
-      const int menu_row = character_menu_row_from_point(state->down_x, state->down_y, width, height);
+      const int menu_row = character_menu_row_from_point(*state, state->down_x, state->down_y, width, height);
       state->pressed_ui_row = menu_row >= 0 ? 100 + menu_row : 99;
       state->hud_candidate = true;
       state->dragging = false;
@@ -448,10 +447,10 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     if (masked == AMOTION_EVENT_ACTION_UP) {
       if (state->character_menu_open && state->pressed_ui_row >= 99) {
-        const int menu_row = character_menu_row_from_point(x, y, width, height);
+        const int menu_row = character_menu_row_from_point(*state, x, y, width, height);
         if (state->pressed_ui_row >= 100 && menu_row >= 0 &&
             state->pressed_ui_row == 100 + menu_row) {
-          select_character(*state, static_cast<std::uint32_t>(menu_row));
+          select_character_ordinal(*state, static_cast<std::uint32_t>(menu_row));
         }
         set_character_menu_open(*state, false);
       } else if (state->hud_candidate) {
@@ -479,7 +478,7 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
 } // namespace
 
 void android_main(android_app* app) {
-  AppState state{}; state.app = app; select_character(state, 0);
+  AppState state{}; state.app = app;
   app->userData = &state; app->onAppCmd = on_command; app->onInputEvent = on_input;
   const auto start = std::chrono::steady_clock::now();
   auto telemetry_start = start;

@@ -384,17 +384,18 @@ uint tooltip_char(uint tooltip, uint index) {
 bool character_menu_open() { return (pc.flags.w & (1u << 26u)) != 0u; }
 
 uint character_menu_char(uint option, uint index) {
-    const uint base_label[4] = uint[4](66u,65u,83u,69u);
-    const uint female_label[6] = uint[6](70u,69u,77u,65u,76u,69u);
-    const uint ada_label[3] = uint[3](65u,68u,65u);
-    if (option == 0u && index < 4u) return base_label[index];
-    if (option == 1u && index < 6u) return female_label[index];
-    if (option == 2u && index < 3u) return ada_label[index];
+    // Registry-driven demo label: "CHAR N". Host UI/logging exposes the full registry name.
+    if (index == 0u) return 67u; // C
+    if (index == 1u) return 72u; // H
+    if (index == 2u) return 65u; // A
+    if (index == 3u) return 82u; // R
+    if (index == 4u) return 32u;
+    if (index == 5u) return 48u + min(option, 9u);
     return 32u;
 }
 
 uint character_menu_length(uint option) {
-    return option == 0u ? 4u : (option == 1u ? 6u : 3u);
+    return option < 10u ? 6u : 0u;
 }
 
 bool character_menu_text_pixel(uint option, vec2 uv) {
@@ -701,8 +702,9 @@ vec3 sky_irradiance(vec3 n) {
 #include "skin_transport.glsl"
 
 void main() {
-    uint profile_index = pc.flags.x % 3u;
-    bool detail_enabled = pc.flags.y != 0u;
+    uint profile_index = pc.flags.x;
+    uint profile_count = min((pc.flags.y >> 8u) & 255u, 8u);
+    bool detail_enabled = (pc.flags.y & 1u) != 0u;
     uint mode = diagnostic_mode();
     uint tooltip = (pc.flags.w >> 5u) & 15u;
     uint physiology = (pc.flags.w >> 9u) & 3u;
@@ -729,9 +731,10 @@ void main() {
             out_colour = vec4(colour, 1.0);
             return;
         }
-        if (body_region >= 210u && body_region <= 212u) {
+        if (body_region >= 210u && body_region < 218u) {
             if (!character_menu_open()) discard;
             uint option = body_region - 210u;
+            if (option >= profile_count) discard;
             vec2 uv = surface_position_m.xy;
             if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
             float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
