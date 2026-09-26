@@ -699,6 +699,114 @@ bool create_buffer_allocation(VulkanRenderer::Impl& state,
   return true;
 }
 
+bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
+  VkDescriptorSetLayoutBinding bindings[5]{};
+  bindings[0].binding=0; bindings[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT;
+  for(std::uint32_t i=1;i<=2;++i){
+    bindings[i].binding=i; bindings[i].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    bindings[i].descriptorCount=1; bindings[i].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  }
+  bindings[3].binding=3; bindings[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[3].descriptorCount=1; bindings[3].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  bindings[4].binding=4; bindings[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  bindings[4].descriptorCount=1; bindings[4].stageFlags=VK_SHADER_STAGE_VERTEX_BIT;
+
+  VkDescriptorSetLayoutCreateInfo li{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+  li.bindingCount=5; li.pBindings=bindings;
+  if(vkCreateDescriptorSetLayout(state.device,&li,nullptr,&state.frame_lighting_set_layout)!=VK_SUCCESS) return false;
+
+  const auto create_uniform = [&](VkDeviceSize size, VkBuffer& buffer,
+                                  VkDeviceMemory& memory, void*& mapped,
+                                  VkDeviceSize& allocation_bytes) -> bool {
+    if (!create_buffer_allocation(
+            state, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT|VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            buffer, memory, allocation_bytes)) return false;
+    return vkMapMemory(state.device,memory,0,size,0,&mapped)==VK_SUCCESS;
+  };
+
+  VkDeviceSize lighting_allocation{}, skin_allocation{}, identity_allocation{};
+  if(!create_uniform(sizeof(FrameLightingGpu), state.frame_lighting_buffer,
+                     state.frame_lighting_memory, state.frame_lighting_mapped,
+                     lighting_allocation)) return false;
+  if(!create_uniform(sizeof(SkinMaterialGpuV0), state.skin_material_buffer,
+                     state.skin_material_memory, state.skin_material_mapped,
+                     skin_allocation)) return false;
+  if(!create_uniform(sizeof(CharacterIdentityGpuV0), state.character_identity_buffer,
+                     state.character_identity_memory, state.character_identity_mapped,
+                     identity_allocation)) return false;
+  state.estimated_bytes += static_cast<std::uint64_t>(
+      lighting_allocation + skin_allocation + identity_allocation);
+
+  VkDescriptorPoolSize ps[2]{};
+  ps[0].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; ps[0].descriptorCount=3;
+  ps[1].type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; ps[1].descriptorCount=2;
+  VkDescriptorPoolCreateInfo pci{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+  pci.maxSets=1; pci.poolSizeCount=2; pci.pPoolSizes=ps;
+  if(vkCreateDescriptorPool(state.device,&pci,nullptr,&state.frame_lighting_descriptor_pool)!=VK_SUCCESS) return false;
+  VkDescriptorSetAllocateInfo si{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+  si.descriptorPool=state.frame_lighting_descriptor_pool; si.descriptorSetCount=1; si.pSetLayouts=&state.frame_lighting_set_layout;
+  if(vkAllocateDescriptorSets(state.device,&si,&state.frame_lighting_descriptor_set)!=VK_SUCCESS) return false;
+
+  VkDescriptorBufferInfo lighting_db{}; lighting_db.buffer=state.frame_lighting_buffer; lighting_db.range=sizeof(FrameLightingGpu);
+  VkDescriptorBufferInfo skin_db{}; skin_db.buffer=state.skin_material_buffer; skin_db.range=sizeof(SkinMaterialGpuV0);
+  VkDescriptorBufferInfo identity_db{}; identity_db.buffer=state.character_identity_buffer; identity_db.range=sizeof(CharacterIdentityGpuV0);
+  VkDescriptorImageInfo coarse{}; coarse.sampler=state.shadow_sampler; coarse.imageView=state.shadow_depth_view;
+  coarse.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+  VkDescriptorImageInfo focused{}; focused.sampler=state.shadow_sampler; focused.imageView=state.self_shadow_depth_view;
+  focused.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+  VkWriteDescriptorSet writes[5]{};
+  writes[0]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[0].dstSet=state.frame_lighting_descriptor_set;
+  writes[0].dstBinding=0; writes[0].descriptorCount=1; writes[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[0].pBufferInfo=&lighting_db;
+  writes[1]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[1].dstSet=state.frame_lighting_descriptor_set;
+  writes[1].dstBinding=1; writes[1].descriptorCount=1; writes[1].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[1].pImageInfo=&coarse;
+  writes[2]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[2].dstSet=state.frame_lighting_descriptor_set;
+  writes[2].dstBinding=2; writes[2].descriptorCount=1; writes[2].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[2].pImageInfo=&focused;
+  writes[3]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[3].dstSet=state.frame_lighting_descriptor_set;
+  writes[3].dstBinding=3; writes[3].descriptorCount=1; writes[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[3].pBufferInfo=&skin_db;
+  writes[4]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[4].dstSet=state.frame_lighting_descriptor_set;
+  writes[4].dstBinding=4; writes[4].descriptorCount=1; writes[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[4].pBufferInfo=&identity_db;
+  vkUpdateDescriptorSets(state.device,5,writes,0,nullptr);
+
+  const auto* initial_profile=state.registry.profile_by_ordinal(0);
+  if(initial_profile==nullptr || !initial_profile->genome_loaded) return false;
+  const auto* initial_carrier=state.registry.carrier_by_id(initial_profile->definition.carrier_id);
+  if(initial_carrier==nullptr) return false;
+  const auto initial_lighting=make_frame_lighting_gpu(state.lighting);
+  const auto initial_skin=pack_skin_material_gpu(
+      derive_skin_phenotype(initial_profile->genome, physiology_for(PhysiologyPreset::normal)));
+  const auto initial_identity=make_character_identity_gpu(
+      initial_profile->genome.face, initial_carrier->face_field);
+  std::memcpy(state.frame_lighting_mapped,&initial_lighting,sizeof(initial_lighting));
+  std::memcpy(state.skin_material_mapped,&initial_skin,sizeof(initial_skin));
+  std::memcpy(state.character_identity_mapped,&initial_identity,sizeof(initial_identity));
+  return true;
+}
+
+void update_frame_lighting_buffer(VulkanRenderer::Impl& state) noexcept {
+  if (state.frame_lighting_mapped == nullptr) return;
+  const auto gpu = make_frame_lighting_gpu(state.lighting);
+  std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
+}
+
+void update_skin_material_buffer(VulkanRenderer::Impl& state,
+                                 const CharacterGenomeV0& genome) noexcept {
+  if (state.skin_material_mapped == nullptr) return;
+  const auto gpu = pack_skin_material_gpu(
+      derive_skin_phenotype(genome, physiology_for(state.character.physiology)));
+  std::memcpy(state.skin_material_mapped, &gpu, sizeof(gpu));
+}
+
+void update_character_identity_buffer(
+    VulkanRenderer::Impl& state, const CharacterGenomeV0& genome,
+    const CarrierFaceFieldMetadataV0& metadata) noexcept {
+  if (state.character_identity_mapped == nullptr) return;
+  const auto gpu = make_character_identity_gpu(genome.face, metadata);
+  std::memcpy(state.character_identity_mapped, &gpu, sizeof(gpu));
+}
+
 bool upload_device_static_buffer(VulkanRenderer::Impl& state,
                                  const void* source,
                                  VkDeviceSize size,
