@@ -380,6 +380,40 @@ uint tooltip_char(uint tooltip, uint index) {
     return 32u;
 }
 
+bool character_menu_open() { return (pc.flags.w & (1u << 26u)) != 0u; }
+
+uint character_menu_char(uint option, uint index) {
+    const uint base_label[4] = uint[4](66u,65u,83u,69u);
+    const uint female_label[6] = uint[6](70u,69u,77u,65u,76u,69u);
+    const uint ada_label[3] = uint[3](65u,68u,65u);
+    if (option == 0u && index < 4u) return base_label[index];
+    if (option == 1u && index < 6u) return female_label[index];
+    if (option == 2u && index < 3u) return ada_label[index];
+    return 32u;
+}
+
+uint character_menu_length(uint option) {
+    return option == 0u ? 4u : (option == 1u ? 6u : 3u);
+}
+
+bool character_menu_text_pixel(uint option, vec2 uv) {
+    uint length = character_menu_length(option);
+    const float advance = 0.110;
+    const float glyph_width = 0.082;
+    const float glyph_y0 = 0.23;
+    const float glyph_height = 0.54;
+    float text_width = float(length) * advance;
+    float start_x = 0.5 - text_width * 0.5;
+    if (uv.x < start_x || uv.x >= start_x + text_width ||
+        uv.y < glyph_y0 || uv.y >= glyph_y0 + glyph_height) return false;
+    uint index = uint(floor((uv.x - start_x) / advance));
+    if (index >= length) return false;
+    float char_start = start_x + float(index) * advance;
+    vec2 glyph_uv = vec2((uv.x - char_start) / glyph_width,
+                         (uv.y - glyph_y0) / glyph_height);
+    return font_pixel(character_menu_char(option, index), glyph_uv);
+}
+
 bool tooltip_text_pixel(uint tooltip, vec2 uv) {
     uint length = tooltip_length(tooltip);
     if (length == 0u) return false;
@@ -690,6 +724,19 @@ void main() {
             if (edge < 0.035) colour = vec3(0.20, 0.44, 0.72);
             if (tooltip_text_pixel(tooltip, uv)) colour = vec3(0.97, 0.985, 1.0);
             out_colour = vec4(colour, 1.0);
+            return;
+        }
+        if (body_region >= 210u && body_region <= 212u) {
+            if (!character_menu_open()) discard;
+            uint option = body_region - 210u;
+            vec2 uv = surface_position_m.xy;
+            if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
+            float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
+            bool active = profile_index == option;
+            vec3 panel = active ? vec3(0.12, 0.46, 0.78) : vec3(0.055, 0.075, 0.11);
+            if (edge < 0.035) panel = min(panel + vec3(0.20), vec3(1.0));
+            if (character_menu_text_pixel(option, uv)) panel = vec3(0.97, 0.985, 1.0);
+            out_colour = vec4(panel, 1.0);
             return;
         }
         if (body_region < 100u || body_region > 111u) discard;
