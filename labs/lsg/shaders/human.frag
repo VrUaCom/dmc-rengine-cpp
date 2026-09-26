@@ -944,10 +944,11 @@ void main() {
         float filter_weight = clamp((0.00010 - footprint_m) / 0.00010, 0.0, 1.0);
         float micro_strength = clamp(skin.features.z, 0.0, 1.0);
         height_field += subpixel * 0.000004 * filter_weight * micro_strength;
-        height_field += lsg_skin_wrinkle_height(surface_position_m, seed, footprint_m);
+        float wrinkle_height = lsg_skin_wrinkle_height(surface_position_m, seed, footprint_m);
+        height_field += wrinkle_height;
         roughness = clamp(roughness +
                           subpixel * 0.035 * filter_weight * micro_strength +
-                          abs(lsg_skin_wrinkle_height(surface_position_m, seed, footprint_m)) * 900.0,
+                          abs(wrinkle_height) * 900.0,
                           0.24, 0.95);
     }
 

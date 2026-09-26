@@ -22,7 +22,7 @@ vec3 lsg_skin_base_colour() {
 
     float temperature = skin.physiology.z - 0.50;
     colour += vec3(0.026, 0.004, -0.018) * temperature;
-    return clamp(colour, vec3(0.008), vec3(0.95));
+    return clamp(colour, vec3(0.015, 0.010, 0.008), vec3(0.95, 0.90, 0.85));
 }
 
 float lsg_skin_base_roughness() {
