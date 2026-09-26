@@ -137,8 +137,8 @@ vec3 apply_head_idle_normal(vec3 n, float head_weight, float t) {
 }
 
 // One far-depth procedural environment triangle plus a compact extensible R&D list.
-// Rows: Character 0, Character 1, Detail, Skeleton, Camera, Diagnostics, Reset View, Physiology, Eyes, Time, Filter.
-// Holding a row exposes an on-screen tooltip encoded in flags.w bits 5..8.
+// Rows: Character 0, Character 1, Detail, Skeleton, Camera, Diagnostics, Reset View, Physiology, Eyes, Time, Filter, Test.
+// Holding either character row opens a three-profile selector on Android; other rows expose tooltips.
 void emit_ui_environment_vertex() {
     const vec2 full_triangle[3] = vec2[](
         vec2(-1.0, -1.0), vec2(3.0, -1.0), vec2(-1.0, 3.0));
@@ -190,6 +190,21 @@ void emit_ui_environment_vertex() {
         surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
         view_normal = vec3(0.0, 0.0, 1.0);
         body_region = 180u;
+        view_position_m = vec3(0.0, 0.0, -1.0);
+        return;
+    }
+
+    bool character_menu = (pc.flags.w & (1u << 26u)) != 0u;
+    if (vertex < 105u && character_menu) {
+        uint menu_vertex = vertex - 87u;
+        uint menu_row = menu_vertex / 6u;
+        vec2 corner = quad[menu_vertex % 6u];
+        float center_y = 0.86 - float(menu_row) * 0.14;
+        vec2 logical_clip = vec2(-0.39, center_y) + corner * vec2(0.21, 0.055);
+        gl_Position = vec4(logical_to_vulkan_clip(logical_clip, pc.flags.z), 0.006, 1.0);
+        surface_position_m = vec3(corner * 0.5 + 0.5, 0.0);
+        view_normal = vec3(0.0, 0.0, 1.0);
+        body_region = 210u + menu_row;
         view_position_m = vec3(0.0, 0.0, -1.0);
         return;
     }
