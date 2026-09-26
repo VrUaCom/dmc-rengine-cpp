@@ -1,4 +1,4 @@
-#include "rengine/lsg/character_profile.hpp"
+#include "rengine/lsg/character_registry.hpp"
 #include "rengine/lsg/genome.hpp"
 #include "rengine/lsg/skin_material.hpp"
 
@@ -25,6 +25,13 @@ std::vector<std::byte> read_binary(const std::filesystem::path& path) {
   return stream ? bytes : std::vector<std::byte>{};
 }
 
+std::string read_text(const std::filesystem::path& path) {
+  std::ifstream stream(path, std::ios::binary);
+  if (!stream) return {};
+  return std::string(std::istreambuf_iterator<char>(stream),
+                     std::istreambuf_iterator<char>());
+}
+
 std::uint64_t fnv1a64(std::span<const std::byte> bytes) noexcept {
   std::uint64_t value = 14695981039346656037ull;
   for (const auto byte : bytes) {
@@ -33,56 +40,39 @@ std::uint64_t fnv1a64(std::span<const std::byte> bytes) noexcept {
   }
   return value;
 }
-
-bool decode_checked(const std::filesystem::path& path,
-                    std::vector<std::byte>& bytes,
-                    rengine::lsg::DecodedGenome& decoded) {
-  bytes = read_binary(path);
-  if (bytes.empty()) {
-    std::cerr << "empty or unreadable genome: " << path << '\n';
-    return false;
-  }
-  std::string error;
-  if (!rengine::lsg::decode_genome(bytes, decoded, error)) {
-    std::cerr << "invalid genome " << path << ": " << error << '\n';
-    return false;
-  }
-  return true;
-}
 } // namespace
 
 int main(int argc, char** argv) {
   using namespace rengine::lsg;
-  const int expected = 2 + static_cast<int>(kBuiltinProfileCount);
-  if (argc != expected) {
-    std::cerr << "usage: lsg_report <runtime-root>";
-    for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i)
-      std::cerr << " <character" << i << ".lsg>";
-    std::cerr << "\n";
+  if (argc != 2) {
+    std::cerr << "usage: lsg_report <runtime-root>\n";
     return 2;
   }
 
   const std::filesystem::path runtime_root = argv[1];
-  std::vector<std::vector<std::byte>> genome_bytes(kBuiltinProfileCount);
-  std::vector<DecodedGenome> genomes(kBuiltinProfileCount);
-  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
-    if (!decode_checked(argv[2 + static_cast<int>(i)], genome_bytes[i], genomes[i]))
-      return 3;
-    if (genome_bytes[i].size() > kGenomeHardLimit ||
-        genomes[i].generator_revision != kGeneratorRevision) {
-      std::cerr << "LSG storage contract FAIL: profile " << i
-                << " violates current genome contract\n";
-      return 4;
-    }
+  const auto manifest = read_text(runtime_root / "registry.lsgr");
+  CharacterRegistry registry{};
+  std::string error;
+  if (manifest.empty() || !registry.parse_manifest(manifest, error)) {
+    std::cerr << "LSG storage contract FAIL: registry: " << error << "\n";
+    return 3;
   }
 
-  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
-    const auto canonical = encode_genome(builtin_profile(i));
-    if (canonical != genome_bytes[i]) {
-      std::cerr << "LSG storage contract FAIL: compiled authoring profile " << i
-                << " differs from built-in runtime profile\n";
+  std::vector<std::vector<std::byte>> genomes(registry.profile_count());
+  for (std::size_t ordinal = 0; ordinal < registry.profile_count(); ++ordinal) {
+    const auto* profile = registry.profile_by_ordinal(ordinal);
+    if (profile == nullptr) return 4;
+    genomes[ordinal] = read_binary(runtime_root / profile->definition.genome_asset_path);
+    if (genomes[ordinal].empty() ||
+        !registry.attach_genome(profile->definition.id, genomes[ordinal], error)) {
+      std::cerr << "LSG storage contract FAIL: profile " << profile->definition.id
+                << ": " << error << "\n";
       return 5;
     }
+  }
+  if (!registry.complete()) {
+    std::cerr << "LSG storage contract FAIL: incomplete registry\n";
+    return 6;
   }
 
   std::uint64_t carrier_body_bytes = 0;
@@ -90,27 +80,29 @@ int main(int argc, char** argv) {
   std::unordered_set<std::string> body_paths;
   std::unordered_set<std::string> eye_paths;
   struct CarrierMeasured {
-    CarrierDefinition definition{};
+    const RuntimeCarrierDefinition* definition{};
     std::vector<std::byte> body;
     std::vector<std::byte> eye;
   };
   std::vector<CarrierMeasured> measured;
-  measured.reserve(kBuiltinCarrierCount);
+  measured.reserve(registry.carrier_count());
 
-  for (const auto& carrier : builtin_carriers()) {
-    const std::string body_path{carrier.body_asset_path};
-    const std::string eye_path{carrier.eye_asset_path};
-    if (!body_paths.insert(body_path).second || !eye_paths.insert(eye_path).second) {
+  for (std::size_t ordinal = 0; ordinal < registry.carrier_count(); ++ordinal) {
+    const auto* carrier = registry.carrier_by_ordinal(ordinal);
+    if (carrier == nullptr) return 7;
+    if (!body_paths.insert(carrier->body_asset_path).second ||
+        !eye_paths.insert(carrier->eye_asset_path).second) {
       std::cerr << "LSG storage contract FAIL: duplicate carrier asset path\n";
-      return 6;
+      return 8;
     }
     CarrierMeasured item{};
     item.definition = carrier;
-    item.body = read_binary(runtime_root / body_path);
-    item.eye = read_binary(runtime_root / eye_path);
+    item.body = read_binary(runtime_root / carrier->body_asset_path);
+    item.eye = read_binary(runtime_root / carrier->eye_asset_path);
     if (item.body.empty() || item.eye.empty()) {
-      std::cerr << "LSG storage contract FAIL: missing carrier assets for " << carrier.key << '\n';
-      return 7;
+      std::cerr << "LSG storage contract FAIL: missing carrier assets for "
+                << carrier->key << "\n";
+      return 9;
     }
     carrier_body_bytes += static_cast<std::uint64_t>(item.body.size());
     carrier_eye_bytes += static_cast<std::uint64_t>(item.eye.size());
@@ -124,7 +116,7 @@ int main(int argc, char** argv) {
   const auto eye_frag = read_binary(shader_root / "eye.frag.spv");
   if (human_vert.empty() || human_frag.empty() || eye_vert.empty() || eye_frag.empty()) {
     std::cerr << "LSG storage contract FAIL: shared shader payload missing\n";
-    return 8;
+    return 10;
   }
   const std::uint64_t shader_bytes =
       static_cast<std::uint64_t>(human_vert.size()) +
@@ -133,23 +125,24 @@ int main(int argc, char** argv) {
       static_cast<std::uint64_t>(eye_frag.size());
 
   std::cout << "LSG STORAGE CONTRACT PASS\n"
-            << "Built-in character profiles: " << kBuiltinProfileCount << '\n'
-            << "Unique shared carriers: " << kBuiltinCarrierCount << '\n'
+            << "Runtime character profiles: " << registry.profile_count() << '\n'
+            << "Unique shared carriers: " << registry.carrier_count() << '\n'
             << "Genome hard limit: " << kGenomeHardLimit << " bytes\n"
             << "Generator revision: " << kGeneratorRevision << '\n'
-            << "Built-in profile source parity: PASS\n";
+            << "Registry source authority: PASS\n";
 
-  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
-    const auto& profile = character_profile_definition(i);
-    const auto& carrier = carrier_definition(profile.carrier);
-    std::cout << "Profile " << i << " (" << profile.display_name << "): "
-              << genome_bytes[i].size() << " bytes; carrier=" << carrier.key << '\n';
+  for (std::size_t ordinal = 0; ordinal < registry.profile_count(); ++ordinal) {
+    const auto* profile = registry.profile_by_ordinal(ordinal);
+    const auto* carrier = profile ? registry.carrier_by_id(profile->definition.carrier_id) : nullptr;
+    if (profile == nullptr || carrier == nullptr) return 11;
+    std::cout << "Profile id=" << profile->definition.id << " (" << profile->definition.display_name
+              << "): " << genomes[ordinal].size() << " bytes; carrier=" << carrier->key << '\n';
   }
   for (const auto& item : measured) {
-    std::cout << "Carrier " << item.definition.key
+    std::cout << "Carrier " << item.definition->key
               << " body: " << item.body.size()
               << " bytes; FNV1a64=0x" << std::hex << fnv1a64(item.body) << std::dec << '\n'
-              << "Carrier " << item.definition.key
+              << "Carrier " << item.definition->key
               << " eyes: " << item.eye.size()
               << " bytes; FNV1a64=0x" << std::hex << fnv1a64(item.eye) << std::dec << '\n';
   }

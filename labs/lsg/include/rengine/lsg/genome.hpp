@@ -1,5 +1,4 @@
 #pragma once
-#include "character_profile.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -57,7 +56,6 @@ struct DecodedGenome { CharacterGenomeV0 value{}; std::uint32_t generator_revisi
                                                    std::uint32_t generator_revision = kGeneratorRevision,
                                                    std::uint32_t flags = 0);
 [[nodiscard]] bool decode_genome(std::span<const std::byte> bytes, DecodedGenome& out, std::string& error);
-[[nodiscard]] CharacterGenomeV0 builtin_profile(std::uint32_t index);
 [[nodiscard]] constexpr float decode_snorm16(std::int16_t v) noexcept {
   return v < 0 ? static_cast<float>(v) / 32768.0f : static_cast<float>(v) / 32767.0f;
 }

@@ -15,7 +15,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(rengine_lsg_core STATIC
   src/genome.cpp
-  src/character_profile.cpp
   src/character_registry.cpp
   src/face_field.cpp
   src/skin_material.cpp
@@ -45,6 +44,7 @@ endif()
 if(RENGINE_LSG_BUILD_TESTS AND NOT ANDROID)
   enable_testing()
   add_executable(rengine_lsg_tests tests/lsg_tests.cpp)
+  target_include_directories(rengine_lsg_tests PRIVATE tests)
   target_link_libraries(rengine_lsg_tests PRIVATE rengine_lsg_core)
   add_test(NAME rengine_lsg_tests COMMAND rengine_lsg_tests)
   add_executable(lsg_shadow_filter_tests tests/shadow_filter_tests.cpp)

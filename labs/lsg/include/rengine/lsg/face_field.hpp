@@ -1,5 +1,6 @@
 #pragma once
 
+#include "character_profile.hpp"
 #include "genome.hpp"
 
 #include <cstdint>

@@ -188,16 +188,13 @@ jobs:
         run: |
           & build-lsg-win\Release\lsg_report.exe `
             build-lsg-win\Release `
-            build-lsg-win\Release\profiles\character_0.lsg `
-            build-lsg-win\Release\profiles\character_1.lsg `
-            build-lsg-win\Release\profiles\character_2.lsg `
             | Tee-Object -FilePath build-lsg-win\Release\lsg-acceptance-report.txt
           if ($LASTEXITCODE -ne 0) { throw 'LSG storage contract failed' }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'LSG STORAGE CONTRACT PASS' -Quiet)) {
             throw 'LSG storage PASS marker missing'
           }
-          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Built-in profile source parity: PASS' -Quiet)) {
-            throw 'built-in/authoring profile parity marker missing'
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Registry source authority: PASS' -Quiet)) {
+            throw 'runtime registry authority marker missing'
           }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Shared skin material runtime bytes: 80' -Quiet)) {
             throw 'shared skin material runtime contract missing'

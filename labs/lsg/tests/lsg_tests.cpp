@@ -1,5 +1,7 @@
 #include "rengine/lsg/anatomical_field.hpp"
 #include "rengine/lsg/character_profile.hpp"
+#include "rengine/lsg/character_registry.hpp"
+#include "profile_fixtures.hpp"
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
@@ -33,25 +35,33 @@ float point_distance(AnatomicalPoint a, AnatomicalPoint b) {
 }
 
 int main() {
-  static_assert(kBuiltinCarrierCount == 2u);
-  static_assert(kBuiltinProfileCount == 3u);
-  static_assert(kAdaProfileIndex == 2u);
-  const auto carriers = builtin_carriers();
-  const auto profiles = builtin_character_profiles();
-  assert(carriers.size() == kBuiltinCarrierCount);
-  assert(profiles.size() == kBuiltinProfileCount);
-  assert(character_profile_definition(0).carrier == CarrierId::male_base);
-  assert(character_profile_definition(1).carrier == CarrierId::female_base);
-  assert(character_profile_definition(kAdaProfileIndex).carrier == CarrierId::female_base);
-  assert(carrier_definition(CarrierId::male_base).face_field.version == RENGINE_FACE_FIELD_VERSION);
-  assert(carrier_definition(CarrierId::female_base).face_field.version == RENGINE_FACE_FIELD_VERSION);
-  assert(carrier_slot(character_profile_definition(kAdaProfileIndex).carrier) ==
-         carrier_slot(CarrierId::female_base));
-  assert(carrier_definition(CarrierId::male_base).body_asset_path !=
-         carrier_definition(CarrierId::female_base).body_asset_path);
-  assert(character_profile_definition(kBuiltinProfileCount + kAdaProfileIndex).index ==
-         kAdaProfileIndex);
-  const auto g0 = builtin_profile(0), g1 = builtin_profile(1), g2 = builtin_profile(kAdaProfileIndex);
+  static_assert(test_fixture::kCarrierCount == 2u);
+  static_assert(test_fixture::kProfileCount == 3u);
+  static_assert(test_fixture::kAdaOrdinal == 2u);
+
+  CharacterRegistry registry{};
+  std::string registry_error;
+  assert(registry.parse_manifest(test_fixture::kRegistryManifest, registry_error));
+  assert(registry.carrier_count() == test_fixture::kCarrierCount);
+  assert(registry.profile_count() == test_fixture::kProfileCount);
+  assert(registry.carrier_by_id(0u) != nullptr);
+  assert(registry.carrier_by_id(1u) != nullptr);
+  assert(registry.carrier_by_id(999u) == nullptr);
+  assert(registry.profile_by_id(0u) != nullptr);
+  assert(registry.profile_by_id(2u) != nullptr);
+  assert(registry.profile_by_id(999u) == nullptr);
+  assert(registry.profile_ordinal(999u) == std::numeric_limits<std::size_t>::max());
+  assert(registry.carrier_ordinal(999u) == std::numeric_limits<std::size_t>::max());
+
+  auto invalid_registry = registry;
+  (void)invalid_registry;
+  CharacterRegistry malformed_registry{};
+  assert(!malformed_registry.parse_manifest(
+      "LSGR|1\nP|7|bad|Bad|999|profiles/bad.lsg|0\n", registry_error));
+
+  const auto g0 = test_fixture::profile(0);
+  const auto g1 = test_fixture::profile(1);
+  const auto g2 = test_fixture::profile(test_fixture::kAdaOrdinal);
   const auto bytes = encode_genome(g0);
   assert(!bytes.empty()); assert(bytes.size() < 512); assert(bytes.size() <= kGenomeHardLimit);
   DecodedGenome d{}; std::string err;
@@ -72,15 +82,15 @@ int main() {
   const auto neutral_face = derive_face_field_parameters(g0.face);
   const FacePoint raw_face{0.035f, 0.735f, 0.080f};
   const FacePoint shaped_face{0.035f, 0.735f, 0.080f};
-  const auto neutral_result = deform_face_field(shaped_face, raw_face, 1.0f, neutral_face, carrier_definition(CarrierId::male_base).face_field);
+  const auto neutral_result = deform_face_field(shaped_face, raw_face, 1.0f, neutral_face, test_fixture::carrier_face(false));
   assert(std::abs(neutral_result.x - shaped_face.x) < 1e-7f);
   assert(std::abs(neutral_result.y - shaped_face.y) < 1e-7f);
   assert(std::abs(neutral_result.z - shaped_face.z) < 1e-7f);
 
   const auto ada_face = derive_face_field_parameters(g2.face);
-  const auto ada_result = deform_face_field(shaped_face, raw_face, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
+  const auto ada_result = deform_face_field(shaped_face, raw_face, 1.0f, ada_face, test_fixture::carrier_face(true));
   assert(std::isfinite(ada_result.x) && std::isfinite(ada_result.y) && std::isfinite(ada_result.z));
-  const auto inactive = deform_face_field(shaped_face, raw_face, 0.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
+  const auto inactive = deform_face_field(shaped_face, raw_face, 0.0f, ada_face, test_fixture::carrier_face(true));
   assert(inactive.x == shaped_face.x && inactive.y == shaped_face.y && inactive.z == shaped_face.z);
 
   FaceGenomeV0 synthetic_face{};
@@ -94,8 +104,8 @@ int main() {
   const auto synthetic = derive_face_field_parameters(synthetic_face);
   const FacePoint left_raw{-0.040f, 0.680f, 0.085f};
   const FacePoint right_raw{0.040f, 0.680f, 0.085f};
-  const auto left = deform_face_field(left_raw, left_raw, 1.0f, synthetic, carrier_definition(CarrierId::male_base).face_field);
-  const auto right = deform_face_field(right_raw, right_raw, 1.0f, synthetic, carrier_definition(CarrierId::male_base).face_field);
+  const auto left = deform_face_field(left_raw, left_raw, 1.0f, synthetic, test_fixture::carrier_face(false));
+  const auto right = deform_face_field(right_raw, right_raw, 1.0f, synthetic, test_fixture::carrier_face(false));
   assert(std::isfinite(left.x) && std::isfinite(right.x));
   assert(std::abs(left.x + right.x) < 1e-5f);
   assert(std::abs(left.y - right.y) < 1e-5f);
@@ -103,8 +113,8 @@ int main() {
 
   const FacePoint left_eye{-0.032f, 0.752f, 0.080f};
   const FacePoint right_eye{0.032f, 0.752f, 0.080f};
-  const auto eye_left = deform_eye_socket_field(left_eye, left_eye, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
-  const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face, carrier_definition(CarrierId::female_base).face_field);
+  const auto eye_left = deform_eye_socket_field(left_eye, left_eye, 1.0f, ada_face, test_fixture::carrier_face(true));
+  const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face, test_fixture::carrier_face(true));
   assert(std::isfinite(eye_left.x) && std::isfinite(eye_right.x));
   assert(std::abs(eye_left.x + eye_right.x) < 1e-5f);
 
@@ -121,7 +131,7 @@ int main() {
   float previous_activation_x = raw_face.x;
   for (int step = 0; step <= 25; ++step) {
     const float head_weight = static_cast<float>(step) / 100.0f;
-    const auto point = deform_face_field(shaped_face, raw_face, head_weight, extreme, carrier_definition(CarrierId::male_base).face_field);
+    const auto point = deform_face_field(shaped_face, raw_face, head_weight, extreme, test_fixture::carrier_face(false));
     assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
     assert(std::abs(point.x - shaped_face.x) < 0.20f);
     assert(std::abs(point.y - shaped_face.y) < 0.20f);
@@ -134,7 +144,7 @@ int main() {
     for (float y : {0.53f, 0.60f, 0.69f, 0.76f, 0.86f}) {
       for (float z : {0.0f, 0.04f, 0.08f, 0.12f}) {
         const FacePoint raw{x, y, z};
-        const auto point = deform_face_field(raw, raw, 1.0f, extreme, carrier_definition(CarrierId::male_base).face_field);
+        const auto point = deform_face_field(raw, raw, 1.0f, extreme, test_fixture::carrier_face(false));
         assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
       }
     }

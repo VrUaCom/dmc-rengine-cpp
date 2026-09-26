@@ -66,37 +66,4 @@ bool decode_genome(std::span<const std::byte> b,DecodedGenome& out,std::string& 
   out={g,rev,flags}; err.clear(); return true;
 }
 
-CharacterGenomeV0 builtin_profile(std::uint32_t i){
-  CharacterGenomeV0 g{};
-  switch (normalize_character_profile_index(i)) {
-    case 0u:
-      g.geometry={3200,19000,-9000,8500,-2200,1800,11000,1200,2300,0,0,0};
-      g.face={};
-      g.skin={82,112,64,118,140,136,152,118,92,126,32,52};
-      g.eyes={42,34,25,78,54,31,118,112,64,0};
-      g.micro={146,170,48,0}; g.physiology={62,116,26,128};
-      g.identity_seed=0xA771E3D52C09ull; g.surface_seed=0xC0FFEE1234ull; g.eye_seed=0x123456789ABCull;
-      break;
-    case 1u:
-      g.geometry={-1200,-6200,13100,1700,-1400,400,1200,4700,-900,-700,0,0};
-      g.face={};
-      g.skin={104,126,72,86,154,148,132,92,70,98,58,48};
-      g.eyes={78,92,74,36,54,44,126,118,52,0};
-      g.micro={132,148,40,0}; g.physiology={64,122,22,128};
-      g.identity_seed=0xB55D001234ull; g.surface_seed=0xDEADBEEF42ull; g.eye_seed=0xCAFEBABE77ull;
-      break;
-    case kAdaProfileIndex:
-    default:
-      // ADA_REFERENCE: provisional visual-fit candidate. Macro topology remains shared;
-      // Face DNA and measured 3D identity fitting are intentionally not claimed yet.
-      g.geometry={-900,-5200,11800,2300,-1800,500,900,4300,-800,-500,0,0};
-      g.face={-3000,4000,2500,1500,1500,-1000,4500,5000,1500,-5500,2500,5000,2000,-5000,-3000,2500,2500,6000,7500,2500};
-      g.skin={100,124,74,90,156,146,130,90,68,96,52,44};
-      g.eyes={82,92,70,38,52,40,124,118,48,0};
-      g.micro={134,150,38,0}; g.physiology={64,122,22,128};
-      g.identity_seed=0xADA220260926ull; g.surface_seed=0xA5DAFACE2401ull; g.eye_seed=0xE1EADA260926ull;
-      break;
-  }
-  return g;
-}
 } // namespace rengine::lsg
