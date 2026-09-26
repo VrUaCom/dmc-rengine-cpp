@@ -7,22 +7,22 @@ Experimental C++23/Vulkan lab. It is deliberately isolated from the canonical DM
 The prototype now establishes the deterministic LSG contract and one shared Windows/Android Vulkan rendering lane:
 
 - `LSG0` little-endian binary genome with version, generator revision, size and CRC32.
-- generator revision `2` is the first revision for the stable cell-based pore field. Pre-v0 revision `1` files are rejected explicitly instead of silently producing a different surface; a future migration layer can convert archived revisions when real persisted profile assets exist.
+- generator revision `3` is the current Human DNA authoring revision. Revision `2` remains an explicit migration input with neutral Face DNA; revision `1` is rejected instead of silently producing a different identity/surface.
 - strict `lsg_compile <profile.lsg.json> <profile.lsg>` authoring path with range checking, unknown-field rejection, uint64 seed parsing and post-encode binary self-verification.
-- three checked-in development JSON profiles compile to compact canonical binary genomes; generated microdetail remains zero bytes on disk. Character 2 is the provisional **Ada / Human DNA reference** profile with distinct genome/seeds. Its macro body and eye RMS0 currently alias the female development base until measured Face DNA / 3D fitting exists; this is explicitly not an ADA_CANONICAL claim.
+- three checked-in development JSON profiles compile to compact canonical binary genomes; generated microdetail remains zero bytes on disk. Male Base and Female Base own the two shared carriers; Character 2 (**Ada**) references the Female carrier and adds only her own Human/Face/Skin DNA. No duplicate Ada body/eye carrier is packaged.
 - shared PCG-style integer hash contract in C++ and GLSL. The 64-bit genome seed is folded deterministically into the 32-bit Vulkan seed key so the high half is not silently discarded.
-- body-region aware procedural surface reference sampler and matching shader logic.
+- shared `SkinPhenotype` decoder consumes Skin/MicroDetail/Physiology DNA for every profile; semantic `BodyRegion` labels no longer phase-shift procedural noise or create material seams.
 - stable object-space cell/Worley-like pore field with deterministic position, radius, depth and orientation bias; no pore texture is stored on disk.
 - pixel-footprint detail scheduler (`MACRO`, `MESO`, `MICRO`, `MICRO_HIGH`) driven from world/object-space derivatives rather than camera distance alone.
 - band-limited meso variation, roughness response and low-frequency vascular variation.
-- genome-driven skin controls and a dielectric GGX + wrapped/preintegrated-style subsurface approximation.
+- shared skin material library: pigment transport (melanin/haemoglobin/carotene), surface coat/oil/hydration, pores/follicles/freckles/wrinkles, physiology response, dielectric GGX and bounded real-time subsurface transport. The active GPU skin state is one 80-byte UBO shared by the renderer path; there are no per-character skin shader binaries.
 - interactive perspective camera with full-body, portrait and extreme-close-up presets.
 - continuous `AnatomicalField` deformation replaces hard per-region geometric scaling. `BodyRegion` remains semantic input for surface rules but no longer creates discontinuous geometry transforms at region boundaries.
 - Android surface pre-rotation keeps swapchain/native extent separate from the logical camera extent; camera aspect is computed from the logical orientation instead of the pre-rotated swapchain dimensions.
 - diagnostic renderer modes: `GENOME_PERSPECTIVE`, `RAW_PERSPECTIVE`, and `RAW_ORTHOGRAPHIC`.
 - runtime diagnostics expose window, swapchain and logical extents, surface rotation, aspect, FOV, near/far planes, camera distance and estimated GPU bytes. Android and Windows viewers emit periodic FPS/CPU-frame telemetry to Logcat/stdout.
 - `lsg_mesh_audit` validates continuous deformation on the same pinned Base Human RMS0 used by CI. The current pinned asset reports max edge stretch 1.20954x for Character 0 and 1.05174x for Character 1, with zero edges above 1.25x/1.50x.
-- physiology presets exist in the C++ reference runtime: Normal, Exercise, Cold, Hot. Full GPU/UI physiology wiring remains open.
+- physiology presets (Normal, Exercise, Cold, Hot) feed the same SkinPhenotype path on CPU and GPU; genome perfusion/sweat/temperature biases remain profile data rather than shader variants.
 - Android `NativeActivity`, arm64-v8a only, thin shell; rendering/character logic remains native C++.
 - Vulkan 1.2 device gate and one rendering core for Windows and Android.
 

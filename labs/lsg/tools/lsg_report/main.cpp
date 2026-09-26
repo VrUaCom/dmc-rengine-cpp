@@ -1,5 +1,6 @@
 #include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/genome.hpp"
+#include "rengine/lsg/skin_material.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -156,6 +157,8 @@ int main(int argc, char** argv) {
   std::cout << "Unique shared carrier body bytes: " << carrier_body_bytes << '\n'
             << "Unique shared carrier eye bytes: " << carrier_eye_bytes << '\n'
             << "Shared Vulkan shader payload: " << shader_bytes << " bytes\n"
+            << "Shared skin material runtime bytes: " << sizeof(SkinMaterialGpuV0) << "\n"
+            << "Skin material shader family: shared\n"
             << "Profile-specific carrier duplicate bytes: 0\n"
             << "Mandatory character texture bytes: 0\n"
             << "Character-specific generated microdetail stored on disk: 0 bytes\n";

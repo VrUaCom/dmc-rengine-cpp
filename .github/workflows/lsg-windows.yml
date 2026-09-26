@@ -197,6 +197,12 @@ jobs:
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Built-in profile source parity: PASS' -Quiet)) {
             throw 'built-in/authoring profile parity marker missing'
           }
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Shared skin material runtime bytes: 80' -Quiet)) {
+            throw 'shared skin material runtime contract missing'
+          }
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Skin material shader family: shared' -Quiet)) {
+            throw 'shared skin shader family marker missing'
+          }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Profile-specific carrier duplicate bytes: 0' -Quiet)) {
             throw 'shared-carrier deduplication marker missing'
           }
