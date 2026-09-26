@@ -25,6 +25,10 @@ struct ViewerState {
   bool detail_enabled{true};
   bool dragging{};
   bool hud_candidate{};
+  bool moved{};
+  bool character_menu_open{};
+  int pressed_ui_row{-1};
+  std::chrono::steady_clock::time_point press_start{};
   int down_x{};
   int down_y{};
   int last_x{};
@@ -140,6 +144,44 @@ int ui_row_from_point(int x, int y, int width, int height) {
   return -1;
 }
 
+int character_menu_row_from_point(int x, int y, int width, int height) {
+  if (width <= 0 || height <= 0) return -1;
+  const float nx = static_cast<float>(x) / static_cast<float>(width);
+  const float ny = static_cast<float>(y) / static_cast<float>(height);
+  if (nx < 0.20f || nx > 0.41f) return -1;
+  for (int row = 0; row < 3; ++row) {
+    const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
+    if (std::abs(ny - center_y) <= 0.030f) return row;
+  }
+  return -1;
+}
+
+void set_character_menu_open(ViewerState& state, bool open) {
+  state.character_menu_open = open;
+  if (state.renderer != nullptr) {
+    state.renderer->set_character_menu_open(open);
+    if (open) state.renderer->set_ui_tooltip_row(-1);
+  }
+}
+
+void select_character(ViewerState& state, std::uint32_t index) {
+  state.character_index = rengine::lsg::normalize_character_profile_index(index);
+  const auto& profile = rengine::lsg::character_profile_definition(state.character_index);
+  std::cout << "Character " << state.character_index << " / "
+            << profile.display_name << " selected\n";
+}
+
+void update_long_press(ViewerState& state) {
+  if (state.renderer == nullptr || state.character_menu_open ||
+      !state.hud_candidate || state.moved || state.pressed_ui_row < 0) return;
+  if (state.pressed_ui_row != 0 && state.pressed_ui_row != 1) return;
+  const auto held = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - state.press_start).count();
+  if (held < 600) return;
+  set_character_menu_open(state, true);
+  std::cout << "Character selector opened\n";
+}
+
 bool point_in_ui_panel(int x, int y, int width, int height) {
   if (width <= 0 || height <= 0) return false;
   const float nx = static_cast<float>(x) / static_cast<float>(width);
@@ -149,11 +191,12 @@ bool point_in_ui_panel(int x, int y, int width, int height) {
 
 void handle_ui_row(ViewerState& state, int row) {
   if (state.renderer == nullptr) return;
+  set_character_menu_open(state, false);
   using rengine::lsg::CameraPreset;
   if (row != 11) state.renderer->cancel_shadow_probe();
   switch (row) {
-    case 0: state.character_index = 0; break;
-    case 1: state.character_index = 1; break;
+    case 0: select_character(state, 0); break;
+    case 1: select_character(state, 1); break;
     case 2: state.detail_enabled = !state.detail_enabled; break;
     case 3: {
       using rengine::lsg::DiagnosticRenderMode;
@@ -228,9 +271,9 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
   switch (message) {
     case WM_KEYDOWN:
       if (wparam == VK_ESCAPE) { DestroyWindow(window); return 0; }
-      if (state != nullptr && wparam == '0') { state->character_index = 0; return 0; }
-      if (state != nullptr && wparam == '1') { state->character_index = 1; return 0; }
-      if (state != nullptr && wparam == '2') { state->character_index = rengine::lsg::kAdaProfileIndex; return 0; }
+      if (state != nullptr && wparam == '0') { select_character(*state, 0); return 0; }
+      if (state != nullptr && wparam == '1') { select_character(*state, 1); return 0; }
+      if (state != nullptr && wparam == '2') { select_character(*state, rengine::lsg::kAdaProfileIndex); return 0; }
       if (state != nullptr && wparam == 'D') { state->detail_enabled = !state->detail_enabled; return 0; }
       if (state != nullptr && wparam == 'M') { cycle_mode(*state); return 0; }
       if (state != nullptr && state->renderer != nullptr && wparam == 'F') { state->renderer->set_camera_preset(rengine::lsg::CameraPreset::full_body); return 0; }
@@ -244,8 +287,19 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         state->down_y = state->last_y = GET_Y_LPARAM(lparam);
         const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
         const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
-        state->hud_candidate = point_in_ui_panel(state->down_x, state->down_y, width, height);
+        state->moved = false;
+        if (state->character_menu_open) {
+          const int menu_row = character_menu_row_from_point(state->down_x, state->down_y, width, height);
+          state->pressed_ui_row = menu_row >= 0 ? 100 + menu_row : 99;
+          state->hud_candidate = true;
+          state->dragging = false;
+          SetCapture(window); return 0;
+        }
+        state->pressed_ui_row = ui_row_from_point(state->down_x, state->down_y, width, height);
+        state->hud_candidate = state->pressed_ui_row >= 0;
         state->dragging = !state->hud_candidate;
+        state->press_start = std::chrono::steady_clock::now();
+        if (state->renderer != nullptr) state->renderer->set_ui_tooltip_row(-1);
         SetCapture(window); return 0;
       }
       break;
@@ -264,7 +318,11 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
 
         state->renderer->set_ui_tooltip_row(-1);
         const float movement = std::hypot(static_cast<float>(x - state->down_x), static_cast<float>(y - state->down_y));
-        if (state->hud_candidate && movement > 0.025f * std::min(width, height)) state->hud_candidate = false;
+        if (movement > 0.025f * std::min(width, height)) state->moved = true;
+        if (state->hud_candidate && movement > 0.025f * std::min(width, height) && !state->character_menu_open) {
+          state->hud_candidate = false;
+          state->pressed_ui_row = -1;
+        }
         if (!state->hud_candidate) {
           if (!state->dragging) { state->dragging = true; state->last_x = x; state->last_y = y; }
           else {
@@ -282,8 +340,22 @@ LRESULT CALLBACK window_proc(HWND window, UINT message, WPARAM wparam, LPARAM lp
         const int x = GET_X_LPARAM(lparam), y = GET_Y_LPARAM(lparam);
         const int width = static_cast<int>(std::max<LONG>(1, rect.right - rect.left));
         const int height = static_cast<int>(std::max<LONG>(1, rect.bottom - rect.top));
-        if (state->hud_candidate) handle_ui_row(*state, ui_row_from_point(x, y, width, height));
-        state->dragging = false; state->hud_candidate = false; ReleaseCapture(); return 0;
+        if (state->character_menu_open && state->pressed_ui_row >= 99) {
+          const int menu_row = character_menu_row_from_point(x, y, width, height);
+          if (state->pressed_ui_row >= 100 && menu_row >= 0 &&
+              state->pressed_ui_row == 100 + menu_row) {
+            select_character(*state, static_cast<std::uint32_t>(menu_row));
+          }
+          set_character_menu_open(*state, false);
+        } else if (state->hud_candidate && !state->character_menu_open) {
+          const int row = ui_row_from_point(x, y, width, height);
+          if (row >= 0 && row == state->pressed_ui_row) handle_ui_row(*state, row);
+        }
+        state->dragging = false;
+        state->hud_candidate = false;
+        state->moved = false;
+        state->pressed_ui_row = -1;
+        ReleaseCapture(); return 0;
       }
       break;
     case WM_MOUSEWHEEL:
@@ -320,7 +392,7 @@ int main(int argc, char** argv) {
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
   AdjustWindowRect(&rectangle, style, FALSE);
   HWND window = CreateWindowExW(0, kClassName,
-      L"Rengine LSG - left R&D panel, drag orbit, wheel zoom, F/P/C camera, 0/1/2 profile",
+      L"Rengine LSG - hold Character button for Base/Female/Ada menu; drag orbit; wheel zoom",
       style, CW_USEDEFAULT, CW_USEDEFAULT, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
       nullptr, nullptr, instance, &state);
   if (window == nullptr) { std::cerr << "CreateWindowExW failed\n"; return 4; }
@@ -344,6 +416,7 @@ int main(int argc, char** argv) {
     if (!running) break;
     const auto now = std::chrono::steady_clock::now();
     const float seconds = std::chrono::duration<float>(now - start).count();
+    update_long_press(state);
     if (!renderer.draw_frame(seconds, state.character_index, state.detail_enabled)) {
       std::cerr << "Vulkan frame failed\n"; running = false; break;
     }
