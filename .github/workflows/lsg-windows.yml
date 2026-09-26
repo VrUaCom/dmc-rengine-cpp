@@ -46,6 +46,8 @@ jobs:
         run: cmake -S labs/lsg -B build-lsg-win -G "Visual Studio 18 2026" -A x64
       - name: Build mesh/profile/report tools
         run: cmake --build build-lsg-win --config Release --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_fit_mhclo lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\audit_character_0.lsg
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\audit_character_1.lsg
       - name: Prepare pinned male/female macro RMS0 assets and canonical genomes
         shell: pwsh
         run: |

@@ -89,8 +89,8 @@ AuditResult audit_profile(const RMeshV0& mesh,
 } // namespace
 
 int main(int argc, char** argv) {
-  if (argc != 2) {
-    std::cerr << "usage: lsg_mesh_audit <human.rmesh>\n";
+  if (argc < 2) {
+    std::cerr << "usage: lsg_mesh_audit <human.rmesh> [profile.lsg ...]\n";
     return 2;
   }
 
@@ -124,14 +124,32 @@ int main(int argc, char** argv) {
   for (std::size_t c = 0; c < 3; ++c) center[c] = 0.5f * (minimum[c] + maximum[c]);
   const float meters_per_unit = 1.75f / source_height;
 
+  std::vector<CharacterGenomeV0> audit_genomes;
+  if (argc == 2) {
+    audit_genomes.emplace_back(); // neutral structural smoke-test
+  } else {
+    for (int argument = 2; argument < argc; ++argument) {
+      const auto genome_bytes = read_file(argv[argument]);
+      DecodedGenome decoded{};
+      std::string genome_error;
+      if (genome_bytes.empty() || !decode_genome(genome_bytes, decoded, genome_error) ||
+          decoded.generator_revision != kGeneratorRevision) {
+        std::cerr << "failed to read current profile genome: " << argv[argument]
+                  << " (" << genome_error << ")\n";
+        return 6;
+      }
+      audit_genomes.push_back(decoded.value);
+    }
+  }
+
   float overall_max_stretch = 1.0f;
   std::uint64_t overall_edges_over_150 = 0;
-  for (std::uint32_t profile = 0; profile < 2; ++profile) {
-    const auto parameters = derive_character_parameters(builtin_profile(profile));
+  for (std::size_t profile = 0; profile < audit_genomes.size(); ++profile) {
+    const auto parameters = derive_character_parameters(audit_genomes[profile]);
     const auto result = audit_profile(mesh, parameters, center, meters_per_unit);
     overall_max_stretch = std::max(overall_max_stretch, result.maximum_stretch);
     overall_edges_over_150 += result.edges_over_150;
-    std::cout << "profile=" << profile
+    std::cout << "profile_ordinal=" << profile
               << " triangles=" << mesh.indices.size() / 3u
               << " mixed_region_triangles=" << result.mixed_region_triangles
               << " max_rest_edge_m=" << result.maximum_rest_edge_m
@@ -143,7 +161,7 @@ int main(int argc, char** argv) {
 
   if (!std::isfinite(overall_max_stretch) || overall_max_stretch > 1.50f || overall_edges_over_150 != 0u) {
     std::cerr << "LSG MESH CONTINUITY FAIL: catastrophic deformation stretch detected\n";
-    return 6;
+    return 7;
   }
 
   std::cout << "LSG MESH CONTINUITY PASS: max_stretch=" << overall_max_stretch

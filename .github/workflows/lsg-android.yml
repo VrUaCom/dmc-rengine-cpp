@@ -83,6 +83,8 @@ jobs:
         run: |
           cmake -S labs/lsg -B build-lsg-host -G Ninja -DRENGINE_LSG_BUILD_VIEWER=OFF -DRENGINE_LSG_BUILD_TESTS=OFF
           cmake --build build-lsg-host --target lsg_extract_obj_group lsg_apply_makehuman_targets lsg_fit_mhclo lsg_prepare_mesh lsg_merge_debug_mesh lsg_mesh_audit lsg_compile lsg_report --parallel 2
+          build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_0.lsg.json /tmp/audit_character_0.lsg
+          build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_1.lsg.json /tmp/audit_character_1.lsg
           curl --fail --location --retry 3 "$LSG_BASE_HUMAN_URL" -o /tmp/lsg-base-human.obj
           test "$(git hash-object /tmp/lsg-base-human.obj)" = "$LSG_BASE_HUMAN_GIT_BLOB"
 
