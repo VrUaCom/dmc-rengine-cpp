@@ -737,8 +737,8 @@ void main() {
             vec2 uv = surface_position_m.xy;
             if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) discard;
             float edge = min(min(uv.x, 1.0 - uv.x), min(uv.y, 1.0 - uv.y));
-            bool active = profile_index == option;
-            vec3 panel = active ? vec3(0.12, 0.46, 0.78) : vec3(0.055, 0.075, 0.11);
+            bool is_active = profile_index == option;
+            vec3 panel = is_active ? vec3(0.12, 0.46, 0.78) : vec3(0.055, 0.075, 0.11);
             if (edge < 0.035) panel = min(panel + vec3(0.20), vec3(1.0));
             if (character_menu_text_pixel(option, uv)) panel = vec3(0.97, 0.985, 1.0);
             out_colour = vec4(panel, 1.0);
