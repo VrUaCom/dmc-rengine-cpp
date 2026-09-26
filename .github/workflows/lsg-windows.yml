@@ -163,9 +163,11 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "profile $profile debug merge failed" }
           }
 
-          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\character_0.lsg
-          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\character_1.lsg
-          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_2_ada.lsg.json build-lsg-win\Release\character_2.lsg
+          New-Item -ItemType Directory -Force build-lsg-win\Release\profiles | Out-Null
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\profiles\character_0.lsg
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\profiles\character_1.lsg
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_2_ada.lsg.json build-lsg-win\Release\profiles\character_2.lsg
+          Copy-Item labs\lsg\assets\registry.lsgr build-lsg-win\Release\registry.lsgr -Force
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_male.rmesh')) { throw 'Male carrier RMS0 missing' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_carrier_female.rmesh')) { throw 'Female carrier RMS0 missing' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_male.rmesh')) { throw 'Male eye carrier RMS0 missing' }
@@ -173,9 +175,9 @@ jobs:
           if ((Get-FileHash build-lsg-win\Release\meshes\human_carrier_male.rmesh).Hash -eq (Get-FileHash build-lsg-win\Release\meshes\human_carrier_female.rmesh).Hash) {
             throw 'macro profile meshes are unexpectedly identical'
           }
-          if (!(Test-Path 'build-lsg-win\Release\character_0.lsg')) { throw 'Character 0 genome missing' }
-          if (!(Test-Path 'build-lsg-win\Release\character_1.lsg')) { throw 'Character 1 genome missing' }
-          if (!(Test-Path 'build-lsg-win\Release\character_2.lsg')) { throw 'Character 2 / Ada genome missing' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_0.lsg')) { throw 'Character 0 genome missing' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_1.lsg')) { throw 'Character 1 genome missing' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_2.lsg')) { throw 'Character 2 / Ada genome missing' }
 
       - name: Build tests and viewer
         run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests lsg_shadow_filter_tests rengine_lsg_viewer --parallel 2
@@ -186,9 +188,9 @@ jobs:
         run: |
           & build-lsg-win\Release\lsg_report.exe `
             build-lsg-win\Release `
-            build-lsg-win\Release\character_0.lsg `
-            build-lsg-win\Release\character_1.lsg `
-            build-lsg-win\Release\character_2.lsg `
+            build-lsg-win\Release\profiles\character_0.lsg `
+            build-lsg-win\Release\profiles\character_1.lsg `
+            build-lsg-win\Release\profiles\character_2.lsg `
             | Tee-Object -FilePath build-lsg-win\Release\lsg-acceptance-report.txt
           if ($LASTEXITCODE -ne 0) { throw 'LSG storage contract failed' }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'LSG STORAGE CONTRACT PASS' -Quiet)) {
@@ -220,6 +222,10 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_male.rmesh')) { throw 'Male eye carrier RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\eye_carrier_female.rmesh')) { throw 'Female eye carrier RMS0 missing beside EXE' }
           if (Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh') { throw 'Unexpected Character 2 eye carrier duplicate beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\registry.lsgr')) { throw 'runtime registry missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_0.lsg')) { throw 'runtime profile 0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_1.lsg')) { throw 'runtime profile 1 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\profiles\character_2.lsg')) { throw 'runtime profile 2 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-0.txt')) { throw 'Character 0 mesh continuity report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-1.txt')) { throw 'Character 1 mesh continuity report missing' }
@@ -230,6 +236,8 @@ jobs:
             build-lsg-win/Release/rengine_lsg_viewer.exe
             build-lsg-win/Release/shaders
             build-lsg-win/Release/meshes
+            build-lsg-win/Release/profiles
+            build-lsg-win/Release/registry.lsgr
             build-lsg-win/Release/lsg-acceptance-report.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-0.txt
             build-lsg-win/Release/lsg-mesh-audit-profile-1.txt

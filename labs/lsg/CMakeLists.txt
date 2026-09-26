@@ -150,7 +150,8 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_VERTEX_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.vert.spv"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/human.frag.spv"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_EYE_VERTEX_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/eye.vert.spv"
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_EYE_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/eye.frag.spv")
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LSG_EYE_FRAGMENT_SPV} "$<TARGET_FILE_DIR:rengine_lsg_viewer>/shaders/eye.frag.spv"
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/assets/registry.lsgr "$<TARGET_FILE_DIR:rengine_lsg_viewer>/registry.lsgr")
 elseif(RENGINE_LSG_BUILD_VIEWER)
   message(STATUS "LSG desktop viewer currently targets Win32; non-Windows viewer skipped")
 endif()

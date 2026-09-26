@@ -190,9 +190,14 @@ jobs:
             grep 'RMS0 DEBUG MERGE PASS' labs/lsg/viewer/android/app/build/outputs/lsg-debug-merge-profile-$PROFILE.txt
           done
 
+          mkdir -p labs/lsg/viewer/android/app/src/main/assets/profiles
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_0.lsg.json /tmp/character_0.lsg
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_1.lsg.json /tmp/character_1.lsg
           build-lsg-host/lsg_compile labs/lsg/assets/profiles/character_2_ada.lsg.json /tmp/character_2.lsg
+          cp /tmp/character_0.lsg labs/lsg/viewer/android/app/src/main/assets/profiles/character_0.lsg
+          cp /tmp/character_1.lsg labs/lsg/viewer/android/app/src/main/assets/profiles/character_1.lsg
+          cp /tmp/character_2.lsg labs/lsg/viewer/android/app/src/main/assets/profiles/character_2.lsg
+          cp labs/lsg/assets/registry.lsgr labs/lsg/viewer/android/app/src/main/assets/registry.lsgr
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_carrier_male.rmesh
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/human_carrier_female.rmesh
           test -s labs/lsg/viewer/android/app/src/main/assets/meshes/eye_carrier_male.rmesh
@@ -250,6 +255,10 @@ jobs:
           grep 'assets/shaders/eye.frag.spv' /tmp/apk-files.txt
           grep 'assets/meshes/eye_carrier_male.rmesh' /tmp/apk-files.txt
           grep 'assets/meshes/eye_carrier_female.rmesh' /tmp/apk-files.txt
+          grep 'assets/registry.lsgr' /tmp/apk-files.txt
+          grep 'assets/profiles/character_0.lsg' /tmp/apk-files.txt
+          grep 'assets/profiles/character_1.lsg' /tmp/apk-files.txt
+          grep 'assets/profiles/character_2.lsg' /tmp/apk-files.txt
           if grep -Eq 'assets/meshes/(human|eye)_profile_2\.rmesh' /tmp/apk-files.txt; then
             echo 'unexpected Character 2 carrier duplicate found in APK'
             exit 1
