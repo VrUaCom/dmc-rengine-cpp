@@ -9,7 +9,7 @@ The prototype now establishes the deterministic LSG contract and one shared Wind
 - `LSG0` little-endian binary genome with version, generator revision, size and CRC32.
 - generator revision `2` is the first revision for the stable cell-based pore field. Pre-v0 revision `1` files are rejected explicitly instead of silently producing a different surface; a future migration layer can convert archived revisions when real persisted profile assets exist.
 - strict `lsg_compile <profile.lsg.json> <profile.lsg>` authoring path with range checking, unknown-field rejection, uint64 seed parsing and post-encode binary self-verification.
-- two checked-in development JSON profiles compile to compact canonical binary genomes; generated microdetail remains zero bytes on disk.
+- three checked-in development JSON profiles compile to compact canonical binary genomes; generated microdetail remains zero bytes on disk. Character 2 is the provisional **Ada / Human DNA reference** profile with distinct genome/seeds. Its macro body and eye RMS0 currently alias the female development base until measured Face DNA / 3D fitting exists; this is explicitly not an ADA_CANONICAL claim.
 - shared PCG-style integer hash contract in C++ and GLSL. The 64-bit genome seed is folded deterministically into the 32-bit Vulkan seed key so the high half is not silently discarded.
 - body-region aware procedural surface reference sampler and matching shader logic.
 - stable object-space cell/Worley-like pore field with deterministic position, radius, depth and orientation bias; no pore texture is stored on disk.
