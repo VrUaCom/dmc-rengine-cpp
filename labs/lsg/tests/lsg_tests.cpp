@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 using namespace rengine::lsg;
 
@@ -102,6 +103,35 @@ int main() {
   const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face);
   assert(std::isfinite(eye_left.x) && std::isfinite(eye_right.x));
   assert(std::abs(eye_left.x + eye_right.x) < 1e-5f);
+
+  FaceGenomeV0 extreme_face{};
+  std::int16_t* extreme_values = reinterpret_cast<std::int16_t*>(&extreme_face);
+  static_assert(sizeof(FaceGenomeV0) == 20u * sizeof(std::int16_t));
+  for (std::size_t i = 0; i < 20u; ++i)
+    extreme_values[i] = (i & 1u) == 0u ? std::numeric_limits<std::int16_t>::max()
+                                       : std::numeric_limits<std::int16_t>::min();
+  const auto extreme = derive_face_field_parameters(extreme_face);
+  float previous_activation_x = raw_face.x;
+  for (int step = 0; step <= 25; ++step) {
+    const float head_weight = static_cast<float>(step) / 100.0f;
+    const auto point = deform_face_field(shaped_face, raw_face, head_weight, extreme);
+    assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
+    assert(std::abs(point.x - shaped_face.x) < 0.20f);
+    assert(std::abs(point.y - shaped_face.y) < 0.20f);
+    assert(std::abs(point.z - shaped_face.z) < 0.20f);
+    if (step > 0) assert(std::abs(point.x - previous_activation_x) < 0.02f);
+    previous_activation_x = point.x;
+  }
+
+  for (float x : {-0.09f, -0.045f, 0.0f, 0.045f, 0.09f}) {
+    for (float y : {0.53f, 0.60f, 0.69f, 0.76f, 0.86f}) {
+      for (float z : {0.0f, 0.04f, 0.08f, 0.12f}) {
+        const FacePoint raw{x, y, z};
+        const auto point = deform_face_field(raw, raw, 1.0f, extreme);
+        assert(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z));
+      }
+    }
+  }
 
   auto corrupt = bytes; corrupt.back() ^= std::byte{1}; assert(!decode_genome(corrupt, d, err));
   const auto legacy_v2 = encode_genome(g0, kLegacyGeneratorRevision); assert(!legacy_v2.empty());

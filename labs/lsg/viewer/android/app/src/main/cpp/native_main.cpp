@@ -125,14 +125,14 @@ void set_character_menu_open(AppState& state, bool open) {
 }
 
 void select_character(AppState& state, std::uint32_t index) {
-  state.character_index = index % rengine::lsg::kBuiltinProfileCount;
+  state.character_index = rengine::lsg::normalize_character_profile_index(index);
   state.character = std::make_unique<rengine::lsg::CharacterRuntime>(rengine::lsg::builtin_profile(state.character_index));
-  switch (state.character_index) {
-    case 0u: log_info("Character 0 selected"); break;
-    case 1u: log_info("Character 1 selected"); break;
-    case rengine::lsg::kAdaProfileIndex: log_info("Character 2 / Ada reference selected"); break;
-    default: break;
-  }
+  const auto& profile = rengine::lsg::character_profile_definition(state.character_index);
+  char message[128]{};
+  std::snprintf(message, sizeof(message), "Character %u / %.*s selected",
+                state.character_index,
+                static_cast<int>(profile.display_name.size()), profile.display_name.data());
+  log_info(message);
 }
 
 void toggle_detail(AppState& state) {

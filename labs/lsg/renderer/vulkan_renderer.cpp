@@ -1153,7 +1153,7 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.effective_eye_luminance = state.lighting.effective_eye_luminance;
   out.filter_transmission = state.lighting.filter_transmission;
   out.polarization_strength = state.lighting.polarization_strength;
-  const auto profile = state.last_profile_index % kBuiltinProfileCount;
+  const auto profile = normalize_character_profile_index(state.last_profile_index);
   out.pupil_target_radius = state.eye_runtime[profile].target_pupil_radius;
   out.pupil_current_radius = state.eye_runtime[profile].pupil_radius;
   return out;
@@ -1186,7 +1186,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   auto& state = *impl_;
   if (vkWaitForFences(state.device, 1, &state.in_flight, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
   if (state.shadow_probe.active() &&
-      ((character_index % kBuiltinProfileCount) != state.probe_profile || detail_enabled != state.probe_detail))
+      (normalize_character_profile_index(character_index) != state.probe_profile || detail_enabled != state.probe_detail))
     cancel_shadow_probe();
   state.shadow_probe.advance(time_seconds);
   if (state.probe_snapshot && !state.shadow_probe.active()) cancel_shadow_probe();
