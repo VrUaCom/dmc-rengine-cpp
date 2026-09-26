@@ -36,6 +36,7 @@ struct AppState {
   bool hud_candidate{};
   bool moved{};
   bool tooltip_visible{};
+  bool character_menu_open{};
   int pressed_ui_row{-1};
   std::int64_t press_start_ms{};
   float down_x{};
@@ -112,6 +113,15 @@ void log_renderer_diagnostics(AppState& state, const char* reason, float fps = 0
       d.near_plane_m, d.far_plane_m,
       static_cast<unsigned long long>(d.estimated_gpu_bytes), fps, cpu_ms);
   log_info(message);
+}
+
+void set_character_menu_open(AppState& state, bool open) {
+  state.character_menu_open = open;
+  state.renderer.set_character_menu_open(open);
+  if (open) {
+    state.tooltip_visible = false;
+    state.renderer.set_ui_tooltip_row(-1);
+  }
 }
 
 void select_character(AppState& state, std::uint32_t index) {
@@ -236,9 +246,26 @@ void clear_tooltip(AppState& state) {
   state.renderer.set_ui_tooltip_row(-1);
 }
 
+int character_menu_row_from_point(float x, float y, float width, float height) {
+  if (width <= 0.0f || height <= 0.0f) return -1;
+  const float nx = x / width;
+  const float ny = y / height;
+  if (nx < 0.20f || nx > 0.41f) return -1;
+  for (int row = 0; row < 3; ++row) {
+    const float center_y = 0.07f + static_cast<float>(row) * 0.07f;
+    if (std::abs(ny - center_y) <= 0.030f) return row;
+  }
+  return -1;
+}
+
 void update_long_press(AppState& state) {
   if (!state.hud_candidate || state.moved || state.tooltip_visible || state.pressed_ui_row < 0) return;
   if (monotonic_ms() - state.press_start_ms < kLongPressMs) return;
+  if (state.pressed_ui_row == 0 || state.pressed_ui_row == 1) {
+    set_character_menu_open(state, true);
+    log_info("Character selector opened");
+    return;
+  }
   state.tooltip_visible = true;
   state.renderer.set_ui_tooltip_row(state.pressed_ui_row);
   log_info("R&D tooltip shown");
@@ -301,6 +328,7 @@ void cycle_optical_filter(AppState& state) {
 }
 
 void handle_ui_row(AppState& state, int row) {
+  set_character_menu_open(state, false);
   if (row != 11) state.renderer.cancel_shadow_probe();
   switch (row) {
     case 0: select_character(state, 0); break;
@@ -352,6 +380,16 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_DOWN) {
     state->down_x = state->last_x = AMotionEvent_getX(event, 0);
     state->down_y = state->last_y = AMotionEvent_getY(event, 0);
+    if (state->character_menu_open) {
+      state->pressed_ui_row = 100 + character_menu_row_from_point(state->down_x, state->down_y, width, height);
+      state->hud_candidate = true;
+      state->dragging = false;
+      state->moved = false;
+      state->tooltip_visible = false;
+      state->press_start_ms = 0;
+      state->last_pinch_distance = 0.0f;
+      return 1;
+    }
     state->pressed_ui_row = ui_row_from_point(state->down_x, state->down_y, width, height);
     state->hud_candidate = state->pressed_ui_row >= 0;
     state->dragging = !state->hud_candidate;
@@ -407,9 +445,16 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
   if (masked == AMOTION_EVENT_ACTION_UP || masked == AMOTION_EVENT_ACTION_CANCEL) {
     const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
     if (masked == AMOTION_EVENT_ACTION_UP) {
-      if (state->hud_candidate) {
+      if (state->character_menu_open && state->pressed_ui_row >= 100) {
+        const int menu_row = character_menu_row_from_point(x, y, width, height);
+        if (menu_row >= 0 && state->pressed_ui_row == 100 + menu_row) {
+          select_character(*state, static_cast<std::uint32_t>(menu_row));
+        }
+        set_character_menu_open(*state, false);
+      } else if (state->hud_candidate) {
         const int row = ui_row_from_point(x, y, width, height);
-        if (!state->tooltip_visible && row >= 0 && row == state->pressed_ui_row) {
+        if (!state->tooltip_visible && !state->character_menu_open &&
+            row >= 0 && row == state->pressed_ui_row) {
           handle_ui_row(*state, row);
         }
       } else if (!state->moved) {
@@ -422,15 +467,16 @@ std::int32_t on_input(android_app* app, AInputEvent* event) {
         }
       }
     }
-    clear_tooltip(*state);
-    state->dragging = false; state->hud_candidate = false; state->moved = false; state->last_pinch_distance = 0.0f; return 1;
+    if (!state->character_menu_open) clear_tooltip(*state);
+    state->dragging = false; state->hud_candidate = false; state->moved = false;
+    state->pressed_ui_row = -1; state->last_pinch_distance = 0.0f; return 1;
   }
   return 0;
 }
 } // namespace
 
 void android_main(android_app* app) {
-  AppState state{}; state.app = app; select_character(state, rengine::lsg::kAdaProfileIndex);
+  AppState state{}; state.app = app; select_character(state, 0);
   app->userData = &state; app->onAppCmd = on_command; app->onInputEvent = on_input;
   const auto start = std::chrono::steady_clock::now();
   auto telemetry_start = start;
