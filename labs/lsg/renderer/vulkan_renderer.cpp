@@ -1366,7 +1366,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto character_menu_bits = state.character_menu_open ? (1u << 26u) : 0u;
   const auto tooltip_bits=static_cast<std::uint32_t>(state.shadow_probe.active() ? 11 :
       (state.ui_tooltip_row>=0?state.ui_tooltip_row:15))<<5u;
-  const auto physiology_bits=static_cast<std::uint32_t>(state.physiology_preset)<<9u;
+  const auto physiology_bits=static_cast<std::uint32_t>(state.character.physiology)<<9u;
   const auto eye_mode_bits=static_cast<std::uint32_t>(state.eye_diagnostic_mode)<<11u;
   const auto lighting_bits=static_cast<std::uint32_t>(state.lighting.preset)<<13u;
   const auto filter_bits=static_cast<std::uint32_t>(state.lighting.filter)<<15u;
