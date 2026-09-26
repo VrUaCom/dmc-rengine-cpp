@@ -77,5 +77,4 @@ CharacterGenomeV0 builtin_profile(std::uint32_t i){
   }
   return g;
 }
-}
 } // namespace rengine::lsg
