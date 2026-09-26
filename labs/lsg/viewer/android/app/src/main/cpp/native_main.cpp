@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
+#include <string>
 
 namespace {
 constexpr const char* kTag = "RengineLSG";

@@ -395,7 +395,7 @@ int main(int argc, char** argv) {
   constexpr DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
   AdjustWindowRect(&rectangle, style, FALSE);
   HWND window = CreateWindowExW(0, kClassName,
-      L"Rengine LSG - hold Character button for Base/Female/Ada menu; drag orbit; wheel zoom",
+      L"Rengine LSG - hold Character button for registry profiles; drag orbit; wheel zoom",
       style, CW_USEDEFAULT, CW_USEDEFAULT, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
       nullptr, nullptr, instance, &state);
   if (window == nullptr) { std::cerr << "CreateWindowExW failed\n"; return 4; }
