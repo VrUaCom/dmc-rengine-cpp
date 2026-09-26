@@ -95,6 +95,9 @@ if(RENGINE_LSG_BUILD_PROFILE_TOOL AND NOT ANDROID)
     add_test(NAME lsg_compile_character_1
       COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_1.lsg.json
                           ${CMAKE_CURRENT_BINARY_DIR}/character_1.lsg)
+    add_test(NAME lsg_compile_character_2_ada
+      COMMAND lsg_compile ${CMAKE_CURRENT_SOURCE_DIR}/assets/profiles/character_2_ada.lsg.json
+                          ${CMAKE_CURRENT_BINARY_DIR}/character_2.lsg)
   endif()
 endif()
 
