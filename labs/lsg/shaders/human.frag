@@ -664,7 +664,7 @@ vec3 sky_irradiance(vec3 n) {
 }
 
 void main() {
-    uint profile_index = pc.flags.x & 1u;
+    uint profile_index = pc.flags.x % 3u;
     bool detail_enabled = pc.flags.y != 0u;
     uint mode = diagnostic_mode();
     uint tooltip = (pc.flags.w >> 5u) & 15u;
