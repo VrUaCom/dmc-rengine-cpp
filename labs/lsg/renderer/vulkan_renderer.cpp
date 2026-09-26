@@ -1,5 +1,6 @@
 #include "vulkan_renderer.hpp"
 #include "rengine/lsg/character_profile.hpp"
+#include "rengine/lsg/character_registry.hpp"
 #include "rengine/lsg/character_instance.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
@@ -106,8 +107,10 @@ struct VulkanRenderer::Impl {
     std::array<float, 3> mesh_center{};
     float meters_per_unit{1.0f};
   };
-  std::array<CarrierMeshGpu, kBuiltinCarrierCount> carrier_meshes{};
-  std::array<CarrierMeshGpu, kBuiltinCarrierCount> carrier_eye_meshes{};
+  std::vector<CarrierMeshGpu> carrier_meshes;
+  std::vector<CarrierMeshGpu> carrier_eye_meshes;
+  CharacterRegistry registry{};
+  void* asset_manager{};
   CameraController camera{};
   DiagnosticRenderMode diagnostic_mode{DiagnosticRenderMode::genome_perspective};
   SurfaceDiagnosticMode surface_diagnostic_mode{SurfaceDiagnosticMode::none};
@@ -349,6 +352,29 @@ std::vector<std::byte> load_asset_bytes(void* asset_manager, std::string_view re
 #else
   (void)asset_manager; (void)relative_path; return {};
 #endif
+}
+
+bool load_character_registry(VulkanRenderer::Impl& state, void* asset_manager) {
+  const auto manifest_bytes = load_asset_bytes(asset_manager, "registry.lsgr");
+  if (manifest_bytes.empty()) return false;
+  const std::string_view manifest{
+      reinterpret_cast<const char*>(manifest_bytes.data()), manifest_bytes.size()};
+  std::string error;
+  if (!state.registry.parse_manifest(manifest, error)) return false;
+  for (std::size_t ordinal = 0; ordinal < state.registry.profile_count(); ++ordinal) {
+    const auto* profile = state.registry.profile_by_ordinal(ordinal);
+    if (profile == nullptr) return false;
+    const auto genome_bytes =
+        load_asset_bytes(asset_manager, profile->definition.genome_asset_path);
+    if (genome_bytes.empty() ||
+        !state.registry.attach_genome(profile->definition.id, genome_bytes, error)) {
+      return false;
+    }
+  }
+  state.carrier_meshes.resize(state.registry.carrier_count());
+  state.carrier_eye_meshes.resize(state.registry.carrier_count());
+  state.asset_manager = asset_manager;
+  return state.registry.complete();
 }
 
 std::vector<std::uint32_t> load_spirv(void* asset_manager, const char* name) {
@@ -718,12 +744,16 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
   writes[4].dstBinding=4; writes[4].descriptorCount=1; writes[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[4].pBufferInfo=&identity_db;
   vkUpdateDescriptorSets(state.device,5,writes,0,nullptr);
 
-  const auto initial_genome=builtin_profile(0);
+  const auto* initial_profile = state.registry.profile_by_ordinal(0);
+  if (initial_profile == nullptr || !initial_profile->genome_loaded) return false;
+  const auto* initial_carrier =
+      state.registry.carrier_by_id(initial_profile->definition.carrier_id);
+  if (initial_carrier == nullptr) return false;
   const auto initial_lighting=make_frame_lighting_gpu(state.lighting);
   const auto initial_skin=pack_skin_material_gpu(
-      derive_skin_phenotype(initial_genome, physiology_for(PhysiologyPreset::normal)));
+      derive_skin_phenotype(initial_profile->genome, physiology_for(PhysiologyPreset::normal)));
   const auto initial_identity=make_character_identity_gpu(
-      initial_genome.face, carrier_definition(CarrierId::male_base).face_field);
+      initial_profile->genome.face, initial_carrier->face_field);
   std::memcpy(state.frame_lighting_mapped,&initial_lighting,sizeof(initial_lighting));
   std::memcpy(state.skin_material_mapped,&initial_skin,sizeof(initial_skin));
   std::memcpy(state.character_identity_mapped,&initial_identity,sizeof(initial_identity));
@@ -790,11 +820,12 @@ bool create_carrier_mesh(VulkanRenderer::Impl& state, void* asset_manager,
 }
 
 bool create_mesh_buffers(VulkanRenderer::Impl& state, void* asset_manager) {
-  for (const auto& carrier : builtin_carriers()) {
-    const auto slot = carrier_slot(carrier.id);
-    if (!create_carrier_mesh(state, asset_manager, carrier.body_asset_path,
+  for (std::size_t slot = 0; slot < state.registry.carrier_count(); ++slot) {
+    const auto* carrier = state.registry.carrier_by_ordinal(slot);
+    if (carrier == nullptr) return false;
+    if (!create_carrier_mesh(state, asset_manager, carrier->body_asset_path,
                              state.carrier_meshes[slot])) return false;
-    if (!create_carrier_mesh(state, asset_manager, carrier.eye_asset_path,
+    if (!create_carrier_mesh(state, asset_manager, carrier->eye_asset_path,
                              state.carrier_eye_meshes[slot])) return false;
   }
   state.camera.set_subject_height(1.75f);
@@ -1183,6 +1214,25 @@ LightingRuntimeState VulkanRenderer::lighting_state() const noexcept {
                : lighting_for(LightingPreset::noon, OpticalFilterPreset::clear);
 }
 
+std::uint32_t VulkanRenderer::character_profile_count() const noexcept {
+  return impl_ ? static_cast<std::uint32_t>(impl_->registry.profile_count()) : 0u;
+}
+
+bool VulkanRenderer::character_profile_id_at(std::uint32_t ordinal,
+                                             std::uint32_t& out_id) const noexcept {
+  if (!impl_) return false;
+  const auto* profile = impl_->registry.profile_by_ordinal(ordinal);
+  if (profile == nullptr) return false;
+  out_id = profile->definition.id;
+  return true;
+}
+
+std::string VulkanRenderer::character_profile_name(std::uint32_t id) const {
+  if (!impl_) return {};
+  const auto* profile = impl_->registry.profile_by_id(id);
+  return profile ? profile->definition.display_name : std::string{};
+}
+
 RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   RendererDiagnostics out{};
   if (!impl_) return out;
@@ -1199,8 +1249,8 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.fov_y_radians = camera.fov_y_radians;
   out.camera_distance_m = camera.distance_m;
   out.estimated_gpu_bytes = state.estimated_bytes;
-  out.resident_carrier_count = static_cast<std::uint32_t>(kBuiltinCarrierCount);
-  out.character_profile_count = kBuiltinProfileCount;
+  out.resident_carrier_count = static_cast<std::uint32_t>(state.registry.carrier_count());
+  out.character_profile_count = static_cast<std::uint32_t>(state.registry.profile_count());
   out.shadow_map_size = kShadowMapSize;
   const auto close_shadow =
       close_shadow_config(camera.preset, camera.distance_m, kShadowMapSize);
@@ -1222,6 +1272,7 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
 
 bool VulkanRenderer::initialize(void* native_window, void* asset_manager) {
   shutdown(); impl_ = std::make_unique<Impl>(); auto& state = *impl_;
+  if (!load_character_registry(state, asset_manager)) { shutdown(); return false; }
   const char* platform_extension = platform_surface_extension(); if (platform_extension == nullptr) return false;
   const char* instance_extensions[] = {VK_KHR_SURFACE_EXTENSION_NAME, platform_extension};
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -1246,8 +1297,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   if (!ready()) return false;
   auto& state = *impl_;
   if (vkWaitForFences(state.device, 1, &state.in_flight, VK_TRUE, UINT64_MAX) != VK_SUCCESS) return false;
+  const auto* requested_profile = state.registry.profile_by_id(character_index);
+  if (requested_profile == nullptr || !requested_profile->genome_loaded) return false;
   if (state.shadow_probe.active() &&
-      (normalize_character_profile_index(character_index) != state.probe_profile || detail_enabled != state.probe_detail))
+      (character_index != state.probe_profile || detail_enabled != state.probe_detail))
     cancel_shadow_probe();
   state.shadow_probe.advance(time_seconds);
   if (state.probe_snapshot && !state.shadow_probe.active()) cancel_shadow_probe();
@@ -1259,14 +1312,15 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   }
   const float pose_time = state.shadow_probe.active() ? state.shadow_probe.pose_time() : time_seconds;
   state.last_detail = detail_enabled;
-  state.last_profile_index = normalize_character_profile_index(character_index);
+  state.last_profile_index = character_index;
   set_instance_profile(state.character, state.last_profile_index);
-  const CharacterGenomeV0 frame_genome = builtin_profile(state.last_profile_index);
-  const auto& frame_profile = character_profile_definition(state.last_profile_index);
-  const auto& frame_carrier = carrier_definition(frame_profile.carrier);
+  const auto& frame_genome = requested_profile->genome;
+  const auto* frame_carrier =
+      state.registry.carrier_by_id(requested_profile->definition.carrier_id);
+  if (frame_carrier == nullptr) return false;
   update_frame_lighting_buffer(state);
   update_skin_material_buffer(state, frame_genome);
-  update_character_identity_buffer(state, frame_genome, frame_carrier.face_field);
+  update_character_identity_buffer(state, frame_genome, frame_carrier->face_field);
   std::uint32_t image_index{};
   const auto acquire = vkAcquireNextImageKHR(state.device, state.swapchain, UINT64_MAX, state.image_available, VK_NULL_HANDLE, &image_index);
   if (acquire == VK_ERROR_OUT_OF_DATE_KHR || (acquire != VK_SUCCESS && acquire != VK_SUBOPTIMAL_KHR)) return false;
@@ -1276,12 +1330,14 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   VkCommandBufferBeginInfo begin{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
   if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) return false;
 
-  const auto profile_index = normalize_character_profile_index(character_index);
-  const auto& profile_definition = character_profile_definition(profile_index);
-  const auto carrier_index = carrier_slot(profile_definition.carrier);
+  const auto profile_index = state.registry.profile_ordinal(character_index);
+  if (profile_index >= state.registry.profile_count()) return false;
+  const auto carrier_index =
+      state.registry.carrier_ordinal(requested_profile->definition.carrier_id);
+  if (carrier_index >= state.registry.carrier_count()) return false;
   const auto& profile_mesh = state.carrier_meshes[carrier_index];
   const VkDeviceSize offset = 0;
-  const CharacterGenomeV0 genome = builtin_profile(profile_index);
+  const auto& genome = requested_profile->genome;
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
   const DerivedEyeParameters derived_eye = derive_eye_parameters(genome);
   const CameraState camera = state.camera.state();

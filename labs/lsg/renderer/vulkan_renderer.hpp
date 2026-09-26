@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace rengine::lsg {
 
@@ -82,6 +83,10 @@ public:
                                 bool detail_enabled = true) noexcept;
   [[nodiscard]] bool ready() const noexcept;
   [[nodiscard]] std::uint64_t estimated_gpu_bytes() const noexcept;
+  [[nodiscard]] std::uint32_t character_profile_count() const noexcept;
+  [[nodiscard]] bool character_profile_id_at(std::uint32_t ordinal,
+                                             std::uint32_t& out_id) const noexcept;
+  [[nodiscard]] std::string character_profile_name(std::uint32_t id) const;
 
   void orbit_camera(float normalized_dx, float normalized_dy) noexcept;
   void zoom_camera(float scale) noexcept;
