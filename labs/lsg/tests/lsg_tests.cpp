@@ -173,7 +173,7 @@ int main() {
   const float cell_m = 0.00052f + (0.00024f - 0.00052f) * (128.0f / 255.0f);
   bool found_active_cell = false;
   for (std::int32_t x = 0; x < 64 && !found_active_cell; ++x) {
-    const std::uint32_t h = hash5(dense.surface_seed ^ 0xB5297A4Dull, static_cast<std::uint32_t>(BodyRegion::head), x, 0, 0);
+    const std::uint32_t h = hash_cell3(dense.surface_seed ^ 0xB5297A4Dull, x, 0, 0);
     if (hash01(pcg_hash(h ^ 0xD1B54A35u)) >= 0.95f) continue;
     const float jx = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0x68E31DA4u));
     const float jy = 0.15f + 0.70f * hash01(pcg_hash(h ^ 0xB5297A4Du));
