@@ -1215,7 +1215,6 @@ RendererDiagnostics VulkanRenderer::diagnostics() const noexcept {
   out.effective_eye_luminance = state.lighting.effective_eye_luminance;
   out.filter_transmission = state.lighting.filter_transmission;
   out.polarization_strength = state.lighting.polarization_strength;
-  const auto profile = normalize_character_profile_index(state.last_profile_index);
   out.pupil_target_radius = state.character.eye.target_pupil_radius;
   out.pupil_current_radius = state.character.eye.pupil_radius;
   return out;

@@ -4,11 +4,11 @@
 #include "../include/rengine/lsg/face_field_contract.inc"
 
 layout(set = 0, binding = 4, std140) uniform CharacterIdentity {
-    vec4 identity.face0;
-    vec4 identity.face1;
-    vec4 identity.face2;
-    vec4 identity.face3;
-    vec4 identity.face4;
+    vec4 face0;
+    vec4 face1;
+    vec4 face2;
+    vec4 face3;
+    vec4 face4;
     vec4 basis0; // head pivot, half width, half height, depth
     vec4 basis1; // eye half spacing, eye Y, field version, reserved
 } identity;
