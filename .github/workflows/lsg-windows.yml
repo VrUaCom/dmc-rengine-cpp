@@ -161,15 +161,24 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "profile $profile debug merge failed" }
           }
 
+          # Character 2 / Ada currently reuses the female development RMS0 carrier.
+          # Identity differences are genome/procedural until Face DNA and measured 3D fitting land.
+          Copy-Item build-lsg-win\Release\meshes\human_profile_1.rmesh build-lsg-win\Release\meshes\human_profile_2.rmesh -Force
+          Copy-Item build-lsg-win\Release\meshes\eye_profile_1.rmesh build-lsg-win\Release\meshes\eye_profile_2.rmesh -Force
+
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_0.lsg.json build-lsg-win\Release\character_0.lsg
           & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_1.lsg.json build-lsg-win\Release\character_1.lsg
+          & build-lsg-win\Release\lsg_compile.exe labs\lsg\assets\profiles\character_2_ada.lsg.json build-lsg-win\Release\character_2.lsg
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_2.rmesh')) { throw 'Character 2 / Ada macro RMS0 carrier missing' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh')) { throw 'Character 2 / Ada eye RMS0 carrier missing' }
           if ((Get-FileHash build-lsg-win\Release\meshes\human_profile_0.rmesh).Hash -eq (Get-FileHash build-lsg-win\Release\meshes\human_profile_1.rmesh).Hash) {
             throw 'macro profile meshes are unexpectedly identical'
           }
           if (!(Test-Path 'build-lsg-win\Release\character_0.lsg')) { throw 'Character 0 genome missing' }
           if (!(Test-Path 'build-lsg-win\Release\character_1.lsg')) { throw 'Character 1 genome missing' }
+          if (!(Test-Path 'build-lsg-win\Release\character_2.lsg')) { throw 'Character 2 / Ada genome missing' }
 
       - name: Build tests and viewer
         run: cmake --build build-lsg-win --config Release --target rengine_lsg_tests lsg_shadow_filter_tests rengine_lsg_viewer --parallel 2
@@ -202,10 +211,12 @@ jobs:
           if (!(Test-Path 'build-lsg-win\Release\shaders\human.frag.spv')) { throw 'fragment SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_0.rmesh')) { throw 'Character 0 macro RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_1.rmesh')) { throw 'Character 1 macro RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\human_profile_2.rmesh')) { throw 'Character 2 / Ada macro RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\eye.vert.spv')) { throw 'eye vertex SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\shaders\eye.frag.spv')) { throw 'eye fragment SPIR-V missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_0.rmesh')) { throw 'Character 0 eye RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_1.rmesh')) { throw 'Character 1 eye RMS0 missing beside EXE' }
+          if (!(Test-Path 'build-lsg-win\Release\meshes\eye_profile_2.rmesh')) { throw 'Character 2 / Ada eye RMS0 missing beside EXE' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-acceptance-report.txt')) { throw 'storage report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-0.txt')) { throw 'Character 0 mesh continuity report missing' }
           if (!(Test-Path 'build-lsg-win\Release\lsg-mesh-audit-profile-1.txt')) { throw 'Character 1 mesh continuity report missing' }
