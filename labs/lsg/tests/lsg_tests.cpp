@@ -1,6 +1,7 @@
 #include "rengine/lsg/anatomical_field.hpp"
 #include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/character_registry.hpp"
+#include "rengine/lsg/character_gpu_state.hpp"
 #include "profile_fixtures.hpp"
 #include "rengine/lsg/camera.hpp"
 #include "rengine/lsg/derived_character.hpp"
@@ -346,6 +347,8 @@ int main() {
   const auto skin1 = derive_skin_phenotype(g1, physiology_for(PhysiologyPreset::normal));
   const auto skin2 = derive_skin_phenotype(g2, physiology_for(PhysiologyPreset::normal));
   static_assert(sizeof(SkinMaterialGpuV0) == 80u);
+  static_assert(sizeof(CharacterIdentityGpuV0) == 112u);
+  static_assert(sizeof(CharacterGpuStateV0) == 192u);
   for (const auto* skin : {&skin0, &skin1, &skin2}) {
     assert(skin->melanin >= 0.0f && skin->melanin <= 1.0f);
     assert(skin->carotene >= 0.0f && skin->carotene <= 1.0f);

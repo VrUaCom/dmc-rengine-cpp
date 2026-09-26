@@ -9,6 +9,7 @@ struct CharacterInstanceState {
   std::uint32_t profile_index{};
   EyeRuntimeState eye{};
   PhysiologyPreset physiology{PhysiologyPreset::normal};
+  std::uint32_t gpu_slot{};
 };
 
 inline void set_instance_profile(CharacterInstanceState& instance,

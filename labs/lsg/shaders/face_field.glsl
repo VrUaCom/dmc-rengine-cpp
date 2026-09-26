@@ -3,15 +3,7 @@
 
 #include "../include/rengine/lsg/face_field_contract.inc"
 
-layout(set = 0, binding = 4, std140) uniform CharacterIdentity {
-    vec4 face0;
-    vec4 face1;
-    vec4 face2;
-    vec4 face3;
-    vec4 face4;
-    vec4 basis0; // head pivot, half width, half height, depth
-    vec4 basis1; // eye half spacing, eye Y, field version, reserved
-} identity;
+#include "character_gpu_state.glsl"
 
 float lsg_face_smooth01(float x) {
     x = clamp(x, 0.0, 1.0);
@@ -32,9 +24,9 @@ float lsg_face_activation(float head_weight) {
 }
 
 vec3 lsg_face_canonical(vec3 raw_p) {
-    return vec3(raw_p.x / identity.basis0.y,
-                (raw_p.y - identity.basis0.x) / identity.basis0.z,
-                raw_p.z / identity.basis0.w);
+    return vec3(raw_p.x / character_state.basis0.y,
+                (raw_p.y - character_state.basis0.x) / character_state.basis0.z,
+                raw_p.z / character_state.basis0.w);
 }
 
 vec3 lsg_apply_face_field(vec3 p, vec3 raw_p, float head_weight) {
@@ -55,31 +47,31 @@ vec3 lsg_apply_face_field(vec3 p, vec3 raw_p, float head_weight) {
     float upper_lip = lsg_face_smooth_band(q.y, RENGINE_FACE_UPPER_LIP_R0, RENGINE_FACE_UPPER_LIP_R1, RENGINE_FACE_UPPER_LIP_F0, RENGINE_FACE_UPPER_LIP_F1) * front * center;
     float lower_lip = lsg_face_smooth_band(q.y, RENGINE_FACE_LOWER_LIP_R0, RENGINE_FACE_LOWER_LIP_R1, RENGINE_FACE_LOWER_LIP_F0, RENGINE_FACE_LOWER_LIP_F1) * front * center;
 
-    p.x *= 1.0 + RENGINE_FACE_SKULL_WIDTH_COEFF * identity.face0.x * activation;
-    p.y = identity.basis0.x +
-          (p.y - identity.basis0.x) * (1.0 + RENGINE_FACE_SKULL_HEIGHT_COEFF * identity.face0.y * activation);
-    p.y += RENGINE_FACE_LENGTH_COEFF * identity.face0.z * (jaw + chin) * activation;
-    p.y += RENGINE_FACE_FOREHEAD_HEIGHT_COEFF * identity.face0.w * forehead * activation;
+    p.x *= 1.0 + RENGINE_FACE_SKULL_WIDTH_COEFF * character_state.face0.x * activation;
+    p.y = character_state.basis0.x +
+          (p.y - character_state.basis0.x) * (1.0 + RENGINE_FACE_SKULL_HEIGHT_COEFF * character_state.face0.y * activation);
+    p.y += RENGINE_FACE_LENGTH_COEFF * character_state.face0.z * (jaw + chin) * activation;
+    p.y += RENGINE_FACE_FOREHEAD_HEIGHT_COEFF * character_state.face0.w * forehead * activation;
 
-    p.z += RENGINE_FACE_BROW_DEPTH_COEFF * identity.face1.x * brow * activation;
-    p.x += sign(raw_p.x) * RENGINE_FACE_EYE_SPACING_COEFF * identity.face1.y * eyes * activation;
-    p.x *= 1.0 + RENGINE_FACE_EYE_SIZE_SURFACE_COEFF * identity.face1.z * eyes * activation;
-    p.y += sign(raw_p.x) * RENGINE_FACE_EYE_TILT_COEFF * identity.face1.w * eyes * activation;
+    p.z += RENGINE_FACE_BROW_DEPTH_COEFF * character_state.face1.x * brow * activation;
+    p.x += sign(raw_p.x) * RENGINE_FACE_EYE_SPACING_COEFF * character_state.face1.y * eyes * activation;
+    p.x *= 1.0 + RENGINE_FACE_EYE_SIZE_SURFACE_COEFF * character_state.face1.z * eyes * activation;
+    p.y += sign(raw_p.x) * RENGINE_FACE_EYE_TILT_COEFF * character_state.face1.w * eyes * activation;
 
-    p.y -= RENGINE_FACE_NOSE_LENGTH_COEFF * identity.face2.x * nose * activation;
-    p.x *= 1.0 + RENGINE_FACE_NOSE_WIDTH_COEFF * identity.face2.y * nose * activation;
-    p.z += RENGINE_FACE_NOSE_PROJECTION_COEFF * identity.face2.z * nose * activation;
-    p.x *= 1.0 + RENGINE_FACE_CHEEKBONE_WIDTH_COEFF * identity.face2.w * cheek * activation;
+    p.y -= RENGINE_FACE_NOSE_LENGTH_COEFF * character_state.face2.x * nose * activation;
+    p.x *= 1.0 + RENGINE_FACE_NOSE_WIDTH_COEFF * character_state.face2.y * nose * activation;
+    p.z += RENGINE_FACE_NOSE_PROJECTION_COEFF * character_state.face2.z * nose * activation;
+    p.x *= 1.0 + RENGINE_FACE_CHEEKBONE_WIDTH_COEFF * character_state.face2.w * cheek * activation;
 
-    p.z += RENGINE_FACE_CHEEK_FULLNESS_COEFF * identity.face3.x * cheek * activation;
-    p.x *= 1.0 + RENGINE_FACE_JAW_WIDTH_COEFF * identity.face3.y * jaw * activation;
-    p.x *= 1.0 + RENGINE_FACE_CHIN_WIDTH_COEFF * identity.face3.z * chin * activation;
-    p.z += RENGINE_FACE_CHIN_PROJECTION_COEFF * identity.face3.w * chin * activation;
+    p.z += RENGINE_FACE_CHEEK_FULLNESS_COEFF * character_state.face3.x * cheek * activation;
+    p.x *= 1.0 + RENGINE_FACE_JAW_WIDTH_COEFF * character_state.face3.y * jaw * activation;
+    p.x *= 1.0 + RENGINE_FACE_CHIN_WIDTH_COEFF * character_state.face3.z * chin * activation;
+    p.z += RENGINE_FACE_CHIN_PROJECTION_COEFF * character_state.face3.w * chin * activation;
 
-    p.x *= 1.0 + RENGINE_FACE_MOUTH_WIDTH_COEFF * identity.face4.x * mouth * activation;
-    p.z += RENGINE_FACE_UPPER_LIP_COEFF * identity.face4.y * upper_lip * activation;
-    p.z += RENGINE_FACE_LOWER_LIP_COEFF * identity.face4.z * lower_lip * activation;
-    p.z += RENGINE_FACE_LIP_PROJECTION_COEFF * identity.face4.w * mouth * center * activation;
+    p.x *= 1.0 + RENGINE_FACE_MOUTH_WIDTH_COEFF * character_state.face4.x * mouth * activation;
+    p.z += RENGINE_FACE_UPPER_LIP_COEFF * character_state.face4.y * upper_lip * activation;
+    p.z += RENGINE_FACE_LOWER_LIP_COEFF * character_state.face4.z * lower_lip * activation;
+    p.z += RENGINE_FACE_LIP_PROJECTION_COEFF * character_state.face4.w * mouth * center * activation;
     return p;
 }
 
@@ -87,17 +79,17 @@ vec3 lsg_apply_eye_socket_field(vec3 p, vec3 raw_p, float head_weight) {
     float activation = lsg_face_activation(head_weight);
     if (activation <= 0.0) return p;
 
-    p.x *= 1.0 + RENGINE_FACE_SKULL_WIDTH_COEFF * identity.face0.x * activation;
-    p.y = identity.basis0.x +
-          (p.y - identity.basis0.x) * (1.0 + RENGINE_FACE_SKULL_HEIGHT_COEFF * identity.face0.y * activation);
+    p.x *= 1.0 + RENGINE_FACE_SKULL_WIDTH_COEFF * character_state.face0.x * activation;
+    p.y = character_state.basis0.x +
+          (p.y - character_state.basis0.x) * (1.0 + RENGINE_FACE_SKULL_HEIGHT_COEFF * character_state.face0.y * activation);
 
     float side = raw_p.x < 0.0 ? -1.0 : 1.0;
-    p.x += side * RENGINE_FACE_EYE_SPACING_COEFF * identity.face1.y * activation;
-    float eye_center_x = side * identity.basis1.x;
-    float eye_center_y = identity.basis1.y;
-    p.x = eye_center_x + (p.x - eye_center_x) * (1.0 + RENGINE_FACE_EYE_SIZE_X_COEFF * identity.face1.z * activation);
-    p.y = eye_center_y + (p.y - eye_center_y) * (1.0 + RENGINE_FACE_EYE_SIZE_Y_COEFF * identity.face1.z * activation);
-    p.y += side * RENGINE_FACE_EYE_TILT_COEFF * identity.face1.w * activation;
+    p.x += side * RENGINE_FACE_EYE_SPACING_COEFF * character_state.face1.y * activation;
+    float eye_center_x = side * character_state.basis1.x;
+    float eye_center_y = character_state.basis1.y;
+    p.x = eye_center_x + (p.x - eye_center_x) * (1.0 + RENGINE_FACE_EYE_SIZE_X_COEFF * character_state.face1.z * activation);
+    p.y = eye_center_y + (p.y - eye_center_y) * (1.0 + RENGINE_FACE_EYE_SIZE_Y_COEFF * character_state.face1.z * activation);
+    p.y += side * RENGINE_FACE_EYE_TILT_COEFF * character_state.face1.w * activation;
     return p;
 }
 

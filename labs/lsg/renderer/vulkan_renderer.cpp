@@ -2,6 +2,7 @@
 #include "rengine/lsg/character_profile.hpp"
 #include "rengine/lsg/character_registry.hpp"
 #include "rengine/lsg/character_instance.hpp"
+#include "rengine/lsg/character_gpu_state.hpp"
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/genome.hpp"
@@ -92,12 +93,11 @@ struct VulkanRenderer::Impl {
   VkBuffer frame_lighting_buffer{VK_NULL_HANDLE};
   VkDeviceMemory frame_lighting_memory{VK_NULL_HANDLE};
   void* frame_lighting_mapped{};
-  VkBuffer skin_material_buffer{VK_NULL_HANDLE};
-  VkDeviceMemory skin_material_memory{VK_NULL_HANDLE};
-  void* skin_material_mapped{};
-  VkBuffer character_identity_buffer{VK_NULL_HANDLE};
-  VkDeviceMemory character_identity_memory{VK_NULL_HANDLE};
-  void* character_identity_mapped{};
+  VkBuffer character_gpu_buffer{VK_NULL_HANDLE};
+  VkDeviceMemory character_gpu_memory{VK_NULL_HANDLE};
+  void* character_gpu_mapped{};
+  VkDeviceSize character_gpu_stride{};
+  std::uint32_t character_gpu_capacity{8u};
   struct CarrierMeshGpu {
     VkBuffer vertex_buffer{VK_NULL_HANDLE};
     VkDeviceMemory vertex_memory{VK_NULL_HANDLE};
@@ -208,17 +208,6 @@ static_assert(alignof(FrameLightingGpu) == 16);
 static_assert(sizeof(FrameLightingGpu) == 112);
 static_assert(offsetof(FrameLightingGpu, modes) == 96);
 
-struct alignas(16) CharacterIdentityGpuV0 {
-  float face0[4]{};
-  float face1[4]{};
-  float face2[4]{};
-  float face3[4]{};
-  float face4[4]{};
-  float basis0[4]{}; // head pivot, half width, half height, depth
-  float basis1[4]{}; // eye half spacing, eye Y, field version, reserved
-};
-static_assert(sizeof(CharacterIdentityGpuV0) == 112);
-
 FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting) noexcept {
   FrameLightingGpu gpu{};
   gpu.sun_direction_intensity[0] = lighting.sun_direction[0];
@@ -251,29 +240,6 @@ FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting) n
   gpu.modes[0] = static_cast<std::uint32_t>(lighting.preset);
   gpu.modes[1] = static_cast<std::uint32_t>(lighting.filter);
 
-  return gpu;
-}
-
-CharacterIdentityGpuV0 make_character_identity_gpu(
-    const FaceGenomeV0& face, const CarrierFaceFieldMetadataV0& metadata) noexcept {
-  CharacterIdentityGpuV0 gpu{};
-  const std::int16_t raw[20] = {
-    face.skull_width, face.skull_height, face.face_length, face.forehead_height,
-    face.brow_depth, face.eye_spacing, face.eye_size, face.eye_tilt,
-    face.nose_length, face.nose_width, face.nose_projection, face.cheekbone_width,
-    face.cheek_fullness, face.jaw_width, face.chin_width, face.chin_projection,
-    face.mouth_width, face.upper_lip_fullness, face.lower_lip_fullness, face.lip_projection
-  };
-  float* face_vectors[5] = {gpu.face0, gpu.face1, gpu.face2, gpu.face3, gpu.face4};
-  for (std::size_t i = 0; i < 20; ++i)
-    face_vectors[i / 4][i % 4] = decode_snorm16(raw[i]);
-  gpu.basis0[0] = metadata.head_pivot_y;
-  gpu.basis0[1] = metadata.face_half_width_m;
-  gpu.basis0[2] = metadata.face_half_height_m;
-  gpu.basis0[3] = metadata.face_depth_m;
-  gpu.basis1[0] = metadata.eye_center_x_abs_m;
-  gpu.basis1[1] = metadata.eye_center_y_m;
-  gpu.basis1[2] = static_cast<float>(metadata.version);
   return gpu;
 }
 
@@ -699,21 +665,24 @@ bool create_buffer_allocation(VulkanRenderer::Impl& state,
   return true;
 }
 
+VkDeviceSize align_uniform_stride(VkDeviceSize size, VkDeviceSize alignment) noexcept {
+  if (alignment <= 1u) return size;
+  return (size + alignment - 1u) & ~(alignment - 1u);
+}
+
 bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
-  VkDescriptorSetLayoutBinding bindings[5]{};
+  VkDescriptorSetLayoutBinding bindings[4]{};
   bindings[0].binding=0; bindings[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
   bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT;
   for(std::uint32_t i=1;i<=2;++i){
     bindings[i].binding=i; bindings[i].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     bindings[i].descriptorCount=1; bindings[i].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
   }
-  bindings[3].binding=3; bindings[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[3].descriptorCount=1; bindings[3].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
-  bindings[4].binding=4; bindings[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[4].descriptorCount=1; bindings[4].stageFlags=VK_SHADER_STAGE_VERTEX_BIT;
+  bindings[3].binding=3; bindings[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+  bindings[3].descriptorCount=1; bindings[3].stageFlags=VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT;
 
   VkDescriptorSetLayoutCreateInfo li{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-  li.bindingCount=5; li.pBindings=bindings;
+  li.bindingCount=4; li.pBindings=bindings;
   if(vkCreateDescriptorSetLayout(state.device,&li,nullptr,&state.frame_lighting_set_layout)!=VK_SUCCESS) return false;
 
   const auto create_uniform = [&](VkDeviceSize size, VkBuffer& buffer,
@@ -726,38 +695,41 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
     return vkMapMemory(state.device,memory,0,size,0,&mapped)==VK_SUCCESS;
   };
 
-  VkDeviceSize lighting_allocation{}, skin_allocation{}, identity_allocation{};
+  VkPhysicalDeviceProperties properties{};
+  vkGetPhysicalDeviceProperties(state.physical, &properties);
+  state.character_gpu_stride = align_uniform_stride(
+      sizeof(CharacterGpuStateV0), properties.limits.minUniformBufferOffsetAlignment);
+  const VkDeviceSize character_buffer_size =
+      state.character_gpu_stride * state.character_gpu_capacity;
+
+  VkDeviceSize lighting_allocation{}, character_allocation{};
   if(!create_uniform(sizeof(FrameLightingGpu), state.frame_lighting_buffer,
                      state.frame_lighting_memory, state.frame_lighting_mapped,
                      lighting_allocation)) return false;
-  if(!create_uniform(sizeof(SkinMaterialGpuV0), state.skin_material_buffer,
-                     state.skin_material_memory, state.skin_material_mapped,
-                     skin_allocation)) return false;
-  if(!create_uniform(sizeof(CharacterIdentityGpuV0), state.character_identity_buffer,
-                     state.character_identity_memory, state.character_identity_mapped,
-                     identity_allocation)) return false;
-  state.estimated_bytes += static_cast<std::uint64_t>(
-      lighting_allocation + skin_allocation + identity_allocation);
+  if(!create_uniform(character_buffer_size, state.character_gpu_buffer,
+                     state.character_gpu_memory, state.character_gpu_mapped,
+                     character_allocation)) return false;
+  state.estimated_bytes += static_cast<std::uint64_t>(lighting_allocation + character_allocation);
 
-  VkDescriptorPoolSize ps[2]{};
-  ps[0].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; ps[0].descriptorCount=3;
-  ps[1].type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; ps[1].descriptorCount=2;
+  VkDescriptorPoolSize ps[3]{};
+  ps[0].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; ps[0].descriptorCount=1;
+  ps[1].type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC; ps[1].descriptorCount=1;
+  ps[2].type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; ps[2].descriptorCount=2;
   VkDescriptorPoolCreateInfo pci{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-  pci.maxSets=1; pci.poolSizeCount=2; pci.pPoolSizes=ps;
+  pci.maxSets=1; pci.poolSizeCount=3; pci.pPoolSizes=ps;
   if(vkCreateDescriptorPool(state.device,&pci,nullptr,&state.frame_lighting_descriptor_pool)!=VK_SUCCESS) return false;
   VkDescriptorSetAllocateInfo si{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
   si.descriptorPool=state.frame_lighting_descriptor_pool; si.descriptorSetCount=1; si.pSetLayouts=&state.frame_lighting_set_layout;
   if(vkAllocateDescriptorSets(state.device,&si,&state.frame_lighting_descriptor_set)!=VK_SUCCESS) return false;
 
   VkDescriptorBufferInfo lighting_db{}; lighting_db.buffer=state.frame_lighting_buffer; lighting_db.range=sizeof(FrameLightingGpu);
-  VkDescriptorBufferInfo skin_db{}; skin_db.buffer=state.skin_material_buffer; skin_db.range=sizeof(SkinMaterialGpuV0);
-  VkDescriptorBufferInfo identity_db{}; identity_db.buffer=state.character_identity_buffer; identity_db.range=sizeof(CharacterIdentityGpuV0);
+  VkDescriptorBufferInfo character_db{}; character_db.buffer=state.character_gpu_buffer; character_db.range=sizeof(CharacterGpuStateV0);
   VkDescriptorImageInfo coarse{}; coarse.sampler=state.shadow_sampler; coarse.imageView=state.shadow_depth_view;
   coarse.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
   VkDescriptorImageInfo focused{}; focused.sampler=state.shadow_sampler; focused.imageView=state.self_shadow_depth_view;
   focused.imageLayout=VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-  VkWriteDescriptorSet writes[5]{};
+  VkWriteDescriptorSet writes[4]{};
   writes[0]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[0].dstSet=state.frame_lighting_descriptor_set;
   writes[0].dstBinding=0; writes[0].descriptorCount=1; writes[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[0].pBufferInfo=&lighting_db;
   writes[1]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[1].dstSet=state.frame_lighting_descriptor_set;
@@ -765,23 +737,19 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
   writes[2]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[2].dstSet=state.frame_lighting_descriptor_set;
   writes[2].dstBinding=2; writes[2].descriptorCount=1; writes[2].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[2].pImageInfo=&focused;
   writes[3]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[3].dstSet=state.frame_lighting_descriptor_set;
-  writes[3].dstBinding=3; writes[3].descriptorCount=1; writes[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[3].pBufferInfo=&skin_db;
-  writes[4]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[4].dstSet=state.frame_lighting_descriptor_set;
-  writes[4].dstBinding=4; writes[4].descriptorCount=1; writes[4].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; writes[4].pBufferInfo=&identity_db;
-  vkUpdateDescriptorSets(state.device,5,writes,0,nullptr);
+  writes[3].dstBinding=3; writes[3].descriptorCount=1; writes[3].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC; writes[3].pBufferInfo=&character_db;
+  vkUpdateDescriptorSets(state.device,4,writes,0,nullptr);
 
   const auto* initial_profile=state.registry.profile_by_ordinal(0);
   if(initial_profile==nullptr || !initial_profile->genome_loaded) return false;
   const auto* initial_carrier=state.registry.carrier_by_id(initial_profile->definition.carrier_id);
   if(initial_carrier==nullptr) return false;
   const auto initial_lighting=make_frame_lighting_gpu(state.lighting);
-  const auto initial_skin=pack_skin_material_gpu(
-      derive_skin_phenotype(initial_profile->genome, physiology_for(PhysiologyPreset::normal)));
-  const auto initial_identity=make_character_identity_gpu(
-      initial_profile->genome.face, initial_carrier->face_field);
+  const auto initial_character=pack_character_gpu_state(
+      initial_profile->genome, initial_carrier->face_field,
+      physiology_for(PhysiologyPreset::normal));
   std::memcpy(state.frame_lighting_mapped,&initial_lighting,sizeof(initial_lighting));
-  std::memcpy(state.skin_material_mapped,&initial_skin,sizeof(initial_skin));
-  std::memcpy(state.character_identity_mapped,&initial_identity,sizeof(initial_identity));
+  std::memcpy(state.character_gpu_mapped,&initial_character,sizeof(initial_character));
   return true;
 }
 
@@ -791,20 +759,17 @@ void update_frame_lighting_buffer(VulkanRenderer::Impl& state) noexcept {
   std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
 }
 
-void update_skin_material_buffer(VulkanRenderer::Impl& state,
-                                 const CharacterGenomeV0& genome) noexcept {
-  if (state.skin_material_mapped == nullptr) return;
-  const auto gpu = pack_skin_material_gpu(
-      derive_skin_phenotype(genome, physiology_for(state.character.physiology)));
-  std::memcpy(state.skin_material_mapped, &gpu, sizeof(gpu));
-}
-
-void update_character_identity_buffer(
-    VulkanRenderer::Impl& state, const CharacterGenomeV0& genome,
+bool update_character_gpu_slot(
+    VulkanRenderer::Impl& state, std::uint32_t slot,
+    const CharacterGenomeV0& genome,
     const CarrierFaceFieldMetadataV0& metadata) noexcept {
-  if (state.character_identity_mapped == nullptr) return;
-  const auto gpu = make_character_identity_gpu(genome.face, metadata);
-  std::memcpy(state.character_identity_mapped, &gpu, sizeof(gpu));
+  if (state.character_gpu_mapped == nullptr || slot >= state.character_gpu_capacity) return false;
+  const auto gpu = pack_character_gpu_state(
+      genome, metadata, physiology_for(state.character.physiology));
+  auto* destination = static_cast<std::byte*>(state.character_gpu_mapped) +
+                      state.character_gpu_stride * slot;
+  std::memcpy(destination, &gpu, sizeof(gpu));
+  return true;
 }
 
 bool upload_device_static_buffer(VulkanRenderer::Impl& state,
@@ -1492,8 +1457,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
       state.registry.carrier_by_id(requested_profile->definition.carrier_id);
   if (frame_carrier == nullptr) return false;
   update_frame_lighting_buffer(state);
-  update_skin_material_buffer(state, frame_genome);
-  update_character_identity_buffer(state, frame_genome, frame_carrier->face_field);
+  if (!update_character_gpu_slot(
+          state, state.character.gpu_slot, frame_genome, frame_carrier->face_field)) {
+    return false;
+  }
   std::uint32_t image_index{};
   const auto acquire = vkAcquireNextImageKHR(state.device, state.swapchain, UINT64_MAX, state.image_available, VK_NULL_HANDLE, &image_index);
   if (acquire == VK_ERROR_OUT_OF_DATE_KHR || (acquire != VK_SUCCESS && acquire != VK_SUBOPTIMAL_KHR)) return false;
@@ -1511,6 +1478,11 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   if (!ensure_carrier_resident(state, carrier_index)) return false;
   const auto& profile_mesh = state.carrier_meshes[carrier_index];
   const VkDeviceSize offset = 0;
+  const std::uint64_t dynamic_offset64 =
+      state.character_gpu_stride * state.character.gpu_slot;
+  if (dynamic_offset64 > std::numeric_limits<std::uint32_t>::max()) return false;
+  const std::uint32_t character_dynamic_offset =
+      static_cast<std::uint32_t>(dynamic_offset64);
   const auto& genome = requested_profile->genome;
   const DerivedCharacterParameters derived = derive_character_parameters(genome);
   const DerivedEyeParameters derived_eye = derive_eye_parameters(genome);
@@ -1561,7 +1533,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   spass.renderArea.extent={kShadowMapSize,kShadowMapSize}; spass.clearValueCount=1; spass.pClearValues=&shadow_clear;
   vkCmdBeginRenderPass(command,&spass,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.shadow_pipeline);
-  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,0,nullptr);
+  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,1,&character_dynamic_offset);
   vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
   vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
   PushConstants shadow_push=push;
@@ -1582,7 +1554,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   self_spass.pClearValues=&shadow_clear;
   vkCmdBeginRenderPass(command,&self_spass,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.shadow_pipeline);
-  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,0,nullptr);
+  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,1,&character_dynamic_offset);
   vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
   vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
   PushConstants self_shadow_push=shadow_push;
@@ -1600,7 +1572,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   rp.renderArea.extent=state.swapchain_extent; rp.clearValueCount=2; rp.pClearValues=clears;
   vkCmdBeginRenderPass(command,&rp,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline);
-  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,0,nullptr);
+  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,1,&character_dynamic_offset);
   vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
   vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
   PushConstants ground_push=push; ground_push.flags[3]|=(1u<<18u);
@@ -1656,7 +1628,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
     vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             state.eye_pipeline_layout, 0, 1,
-                            &state.frame_lighting_descriptor_set, 0, nullptr);
+                            &state.frame_lighting_descriptor_set, 1, &character_dynamic_offset);
     vkCmdPushConstants(command, state.eye_pipeline_layout,
                        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                        0, sizeof(eye_push), &eye_push);
@@ -1672,7 +1644,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
 
   vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline);
   vkCmdBindDescriptorSets(command, VK_PIPELINE_BIND_POINT_GRAPHICS, state.pipeline_layout,
-                          0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
+                          0, 1, &state.frame_lighting_descriptor_set, 1, &character_dynamic_offset);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
                   eye_mode_bits | lighting_bits | filter_bits |
                   surface_debug_bits | close_shadow_bits | probe_bits | character_menu_bits | 1u;
@@ -1712,13 +1684,9 @@ void VulkanRenderer::shutdown() noexcept {
       vkUnmapMemory(state.device, state.frame_lighting_memory);
       state.frame_lighting_mapped = nullptr;
     }
-    if (state.skin_material_mapped && state.skin_material_memory) {
-      vkUnmapMemory(state.device, state.skin_material_memory);
-      state.skin_material_mapped = nullptr;
-    }
-    if (state.character_identity_mapped && state.character_identity_memory) {
-      vkUnmapMemory(state.device, state.character_identity_memory);
-      state.character_identity_mapped = nullptr;
+    if (state.character_gpu_mapped && state.character_gpu_memory) {
+      vkUnmapMemory(state.device, state.character_gpu_memory);
+      state.character_gpu_mapped = nullptr;
     }
     if (state.frame_lighting_descriptor_pool) {
       vkDestroyDescriptorPool(state.device, state.frame_lighting_descriptor_pool, nullptr);
@@ -1738,10 +1706,8 @@ void VulkanRenderer::shutdown() noexcept {
     }
     if (state.frame_lighting_buffer) vkDestroyBuffer(state.device, state.frame_lighting_buffer, nullptr);
     if (state.frame_lighting_memory) vkFreeMemory(state.device, state.frame_lighting_memory, nullptr);
-    if (state.skin_material_buffer) vkDestroyBuffer(state.device, state.skin_material_buffer, nullptr);
-    if (state.skin_material_memory) vkFreeMemory(state.device, state.skin_material_memory, nullptr);
-    if (state.character_identity_buffer) vkDestroyBuffer(state.device, state.character_identity_buffer, nullptr);
-    if (state.character_identity_memory) vkFreeMemory(state.device, state.character_identity_memory, nullptr);
+    if (state.character_gpu_buffer) vkDestroyBuffer(state.device, state.character_gpu_buffer, nullptr);
+    if (state.character_gpu_memory) vkFreeMemory(state.device, state.character_gpu_memory, nullptr);
     if (state.pipeline) vkDestroyPipeline(state.device, state.pipeline, nullptr);
     if (state.pipeline_layout) vkDestroyPipelineLayout(state.device, state.pipeline_layout, nullptr);
     for (const auto framebuffer : state.framebuffers) vkDestroyFramebuffer(state.device, framebuffer, nullptr);
