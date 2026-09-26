@@ -16,7 +16,10 @@ struct GeometryGenome {
   std::int16_t height{}; std::int16_t shoulder_width{}; std::int16_t pelvis_width{};
   std::int16_t chest_volume{}; std::int16_t waist{}; std::int16_t limb_length{};
   std::int16_t muscle{}; std::int16_t body_fat{}; std::int16_t neck{};
-  std::int16_t head_scale{}; std::int16_t jaw{}; std::int16_t facial_softness{};
+  std::int16_t head_scale{};
+  // Revision-3 ownership: FaceGenomeV0 owns facial identity. These two slots remain only
+  // for revision-2 binary migration and MUST be zero in current authoring.
+  std::int16_t jaw{}; std::int16_t facial_softness{};
 };
 struct FaceGenomeV0 {
   std::int16_t skull_width{}, skull_height{}, face_length{}, forehead_height{};

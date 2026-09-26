@@ -194,6 +194,9 @@ jobs:
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'LSG STORAGE CONTRACT PASS' -Quiet)) {
             throw 'LSG storage PASS marker missing'
           }
+          if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Built-in profile source parity: PASS' -Quiet)) {
+            throw 'built-in/authoring profile parity marker missing'
+          }
           if (-not (Select-String -Path build-lsg-win\Release\lsg-acceptance-report.txt -Pattern 'Profile-specific carrier duplicate bytes: 0' -Quiet)) {
             throw 'shared-carrier deduplication marker missing'
           }

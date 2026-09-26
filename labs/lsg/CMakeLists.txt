@@ -16,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(rengine_lsg_core STATIC
   src/genome.cpp
   src/character_profile.cpp
+  src/face_field.cpp
   src/detail_scheduler.cpp
   src/physiology.cpp
   src/surface.cpp
@@ -134,7 +135,7 @@ elseif(WIN32 AND RENGINE_LSG_BUILD_VIEWER)
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/human.frag -o ${LSG_FRAGMENT_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.vert -o ${LSG_EYE_VERTEX_SPV}
       COMMAND ${Vulkan_GLSLC_EXECUTABLE} --target-env=vulkan1.2 ${CMAKE_CURRENT_SOURCE_DIR}/shaders/eye.frag -o ${LSG_EYE_FRAGMENT_SPV}
-      DEPENDS shaders/human.vert shaders/human.frag shaders/eye.vert shaders/eye.frag shaders/focused_shadow.glsl VERBATIM)
+      DEPENDS shaders/human.vert shaders/human.frag shaders/eye.vert shaders/eye.frag shaders/focused_shadow.glsl shaders/face_field.glsl VERBATIM)
   add_custom_target(rengine_lsg_shaders DEPENDS ${LSG_VERTEX_SPV} ${LSG_FRAGMENT_SPV} ${LSG_EYE_VERTEX_SPV} ${LSG_EYE_FRAGMENT_SPV})
   add_executable(rengine_lsg_viewer viewer/windows/main.cpp renderer/vulkan_renderer.cpp)
   add_dependencies(rengine_lsg_viewer rengine_lsg_shaders)

@@ -1,5 +1,7 @@
 #version 450
 
+#include "face_field.glsl"
+
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
@@ -138,17 +140,8 @@ void main() {
     object_m.y *= pc.geometry0.x;
     object_m.z *= xz_scale.y;
 
-    // Eye carrier follows Face DNA socket placement and scale.
-    const float head_pivot_y = 0.690;
-    object_m.x *= 1.0 + 0.060 * lighting.face0.x * weights.head;
-    object_m.y = head_pivot_y + (object_m.y - head_pivot_y) * (1.0 + 0.050 * lighting.face0.y * weights.head);
-    float side = raw_centered_m.x < 0.0 ? -1.0 : 1.0;
-    object_m.x += side * 0.008 * lighting.face1.y;
-    const float eye_center_x = side * 0.032;
-    const float eye_center_y = 0.752;
-    object_m.x = eye_center_x + (object_m.x - eye_center_x) * (1.0 + 0.070 * lighting.face1.z);
-    object_m.y = eye_center_y + (object_m.y - eye_center_y) * (1.0 + 0.055 * lighting.face1.z);
-    object_m.y += side * 0.006 * lighting.face1.w;
+    object_m = lsg_apply_eye_socket_field(object_m, raw_centered_m, weights.head,
+                                          lighting.face0, lighting.face1);
 
     float t = pc.render.z;
     object_m = apply_head_idle(object_m, weights.head, t);

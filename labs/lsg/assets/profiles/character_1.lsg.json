@@ -1,5 +1,5 @@
 {
-  "generator_revision": 2,
+  "generator_revision": 3,
   "flags": 0,
   "geometry": {
     "height": -1200,
@@ -12,8 +12,30 @@
     "body_fat": 4700,
     "neck": -900,
     "head_scale": -700,
-    "jaw": -2600,
-    "facial_softness": 14200
+    "jaw": 0,
+    "facial_softness": 0
+  },
+  "face": {
+    "skull_width": 0,
+    "skull_height": 0,
+    "face_length": 0,
+    "forehead_height": 0,
+    "brow_depth": 0,
+    "eye_spacing": 0,
+    "eye_size": 0,
+    "eye_tilt": 0,
+    "nose_length": 0,
+    "nose_width": 0,
+    "nose_projection": 0,
+    "cheekbone_width": 0,
+    "cheek_fullness": 0,
+    "jaw_width": 0,
+    "chin_width": 0,
+    "chin_projection": 0,
+    "mouth_width": 0,
+    "upper_lip_fullness": 0,
+    "lower_lip_fullness": 0,
+    "lip_projection": 0
   },
   "skin": {
     "melanin": 104,
@@ -41,8 +63,18 @@
     "vascularity": 52,
     "reserved": 0
   },
-  "micro": {"meso_strength": 132, "micro_strength": 148, "wrinkle_bias": 40, "reserved": 0},
-  "physiology": {"resting_pulse": 64, "perfusion": 122, "sweat_bias": 22, "temperature_bias": 128},
+  "micro": {
+    "meso_strength": 132,
+    "micro_strength": 148,
+    "wrinkle_bias": 40,
+    "reserved": 0
+  },
+  "physiology": {
+    "resting_pulse": 64,
+    "perfusion": 122,
+    "sweat_bias": 22,
+    "temperature_bias": 128
+  },
   "identity_seed": "0xB55D001234",
   "surface_seed": "0xDEADBEEF42",
   "eye_seed": "0xCAFEBABE77"

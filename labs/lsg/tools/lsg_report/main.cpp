@@ -75,6 +75,15 @@ int main(int argc, char** argv) {
     }
   }
 
+  for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
+    const auto canonical = encode_genome(builtin_profile(i));
+    if (canonical != genome_bytes[i]) {
+      std::cerr << "LSG storage contract FAIL: compiled authoring profile " << i
+                << " differs from built-in runtime profile\n";
+      return 5;
+    }
+  }
+
   std::uint64_t carrier_body_bytes = 0;
   std::uint64_t carrier_eye_bytes = 0;
   std::unordered_set<std::string> body_paths;
@@ -92,7 +101,7 @@ int main(int argc, char** argv) {
     const std::string eye_path{carrier.eye_asset_path};
     if (!body_paths.insert(body_path).second || !eye_paths.insert(eye_path).second) {
       std::cerr << "LSG storage contract FAIL: duplicate carrier asset path\n";
-      return 5;
+      return 6;
     }
     CarrierMeasured item{};
     item.definition = carrier;
@@ -100,7 +109,7 @@ int main(int argc, char** argv) {
     item.eye = read_binary(runtime_root / eye_path);
     if (item.body.empty() || item.eye.empty()) {
       std::cerr << "LSG storage contract FAIL: missing carrier assets for " << carrier.key << '\n';
-      return 6;
+      return 7;
     }
     carrier_body_bytes += static_cast<std::uint64_t>(item.body.size());
     carrier_eye_bytes += static_cast<std::uint64_t>(item.eye.size());
@@ -114,7 +123,7 @@ int main(int argc, char** argv) {
   const auto eye_frag = read_binary(shader_root / "eye.frag.spv");
   if (human_vert.empty() || human_frag.empty() || eye_vert.empty() || eye_frag.empty()) {
     std::cerr << "LSG storage contract FAIL: shared shader payload missing\n";
-    return 7;
+    return 8;
   }
   const std::uint64_t shader_bytes =
       static_cast<std::uint64_t>(human_vert.size()) +
@@ -126,7 +135,8 @@ int main(int argc, char** argv) {
             << "Built-in character profiles: " << kBuiltinProfileCount << '\n'
             << "Unique shared carriers: " << kBuiltinCarrierCount << '\n'
             << "Genome hard limit: " << kGenomeHardLimit << " bytes\n"
-            << "Generator revision: " << kGeneratorRevision << '\n';
+            << "Generator revision: " << kGeneratorRevision << '\n'
+            << "Built-in profile source parity: PASS\n";
 
   for (std::uint32_t i = 0; i < kBuiltinProfileCount; ++i) {
     const auto& profile = character_profile_definition(i);

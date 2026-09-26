@@ -98,6 +98,10 @@ CharacterGenomeV0 parse_profile(const json& root) {
   };
 
   rengine::lsg::FaceGenomeV0 face{};
+  if (revision == rengine::lsg::kGeneratorRevision && !root.contains("face"))
+    fail("root.face is mandatory for current generator revision");
+  if (revision == rengine::lsg::kLegacyGeneratorRevision && root.contains("face"))
+    fail("legacy generator revision must not define Face DNA");
   if (root.contains("face")) {
     const auto& face_json = root.at("face");
     require_keys_only(face_json,
@@ -143,6 +147,9 @@ CharacterGenomeV0 parse_profile(const json& root) {
   genome.geometry = {i16("height"), i16("shoulder_width"), i16("pelvis_width"), i16("chest_volume"),
                      i16("waist"), i16("limb_length"), i16("muscle"), i16("body_fat"), i16("neck"),
                      i16("head_scale"), i16("jaw"), i16("facial_softness")};
+  if (revision == rengine::lsg::kGeneratorRevision &&
+      (genome.geometry.jaw != 0 || genome.geometry.facial_softness != 0))
+    fail("geometry.jaw and geometry.facial_softness are legacy revision-2 slots; use Face DNA in revision 3");
   genome.face = face;
   genome.skin = {skin_u8("melanin"), skin_u8("haemoglobin"), skin_u8("carotene"), skin_u8("oiliness"),
                  skin_u8("hydration"), skin_u8("roughness_bias"), skin_u8("pore_density"),

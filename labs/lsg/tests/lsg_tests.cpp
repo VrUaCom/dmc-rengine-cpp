@@ -4,6 +4,7 @@
 #include "rengine/lsg/derived_character.hpp"
 #include "rengine/lsg/derived_eye.hpp"
 #include "rengine/lsg/eye_runtime.hpp"
+#include "rengine/lsg/face_field.hpp"
 #include "rengine/lsg/lighting_runtime.hpp"
 #include "rengine/lsg/polarization_approx.hpp"
 #include "rengine/lsg/deterministic_hash.hpp"
@@ -56,7 +57,52 @@ int main() {
   assert(ada_decoded.value.face.eye_tilt == g2.face.eye_tilt);
   assert(g2.face.cheekbone_width > 0 && g2.face.jaw_width < 0);
   assert(g2.face.upper_lip_fullness > 0 && g2.face.lower_lip_fullness > g2.face.upper_lip_fullness);
+  assert(g0.geometry.jaw == 0 && g0.geometry.facial_softness == 0);
+  assert(g1.geometry.jaw == 0 && g1.geometry.facial_softness == 0);
+  assert(g2.geometry.jaw == 0 && g2.geometry.facial_softness == 0);
   assert(g2.identity_seed != g1.identity_seed); assert(g2.surface_seed != g1.surface_seed); assert(g2.eye_seed != g1.eye_seed);
+
+  // Universal FaceField contract: all profiles use the same math. Neutral base profiles
+  // are identity transforms; Ada and synthetic profiles are parameter-only variations.
+  const auto neutral_face = derive_face_field_parameters(g0.face);
+  const FacePoint raw_face{0.035f, 0.735f, 0.080f};
+  const FacePoint shaped_face{0.035f, 0.735f, 0.080f};
+  const auto neutral_result = deform_face_field(shaped_face, raw_face, 1.0f, neutral_face);
+  assert(std::abs(neutral_result.x - shaped_face.x) < 1e-7f);
+  assert(std::abs(neutral_result.y - shaped_face.y) < 1e-7f);
+  assert(std::abs(neutral_result.z - shaped_face.z) < 1e-7f);
+
+  const auto ada_face = derive_face_field_parameters(g2.face);
+  const auto ada_result = deform_face_field(shaped_face, raw_face, 1.0f, ada_face);
+  assert(std::isfinite(ada_result.x) && std::isfinite(ada_result.y) && std::isfinite(ada_result.z));
+  const auto inactive = deform_face_field(shaped_face, raw_face, 0.0f, ada_face);
+  assert(inactive.x == shaped_face.x && inactive.y == shaped_face.y && inactive.z == shaped_face.z);
+
+  FaceGenomeV0 synthetic_face{};
+  synthetic_face.skull_width = 16000;
+  synthetic_face.skull_height = -12000;
+  synthetic_face.cheekbone_width = 20000;
+  synthetic_face.jaw_width = -18000;
+  synthetic_face.chin_width = 14000;
+  synthetic_face.nose_projection = 17000;
+  synthetic_face.mouth_width = 9000;
+  const auto synthetic = derive_face_field_parameters(synthetic_face);
+  const FacePoint left_raw{-0.040f, 0.680f, 0.085f};
+  const FacePoint right_raw{0.040f, 0.680f, 0.085f};
+  const auto left = deform_face_field(left_raw, left_raw, 1.0f, synthetic);
+  const auto right = deform_face_field(right_raw, right_raw, 1.0f, synthetic);
+  assert(std::isfinite(left.x) && std::isfinite(right.x));
+  assert(std::abs(left.x + right.x) < 1e-5f);
+  assert(std::abs(left.y - right.y) < 1e-5f);
+  assert(std::abs(left.z - right.z) < 1e-5f);
+
+  const FacePoint left_eye{-0.032f, 0.752f, 0.080f};
+  const FacePoint right_eye{0.032f, 0.752f, 0.080f};
+  const auto eye_left = deform_eye_socket_field(left_eye, left_eye, 1.0f, ada_face);
+  const auto eye_right = deform_eye_socket_field(right_eye, right_eye, 1.0f, ada_face);
+  assert(std::isfinite(eye_left.x) && std::isfinite(eye_right.x));
+  assert(std::abs(eye_left.x + eye_right.x) < 1e-5f);
+
   auto corrupt = bytes; corrupt.back() ^= std::byte{1}; assert(!decode_genome(corrupt, d, err));
   const auto legacy_v2 = encode_genome(g0, kLegacyGeneratorRevision); assert(!legacy_v2.empty());
   DecodedGenome migrated_v2{}; assert(decode_genome(legacy_v2, migrated_v2, err));
