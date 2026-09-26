@@ -110,6 +110,7 @@ struct VulkanRenderer::Impl {
   bool probe_snapshot{}, probe_detail{}, last_detail{true};
   std::uint32_t probe_profile{};
   int ui_tooltip_row{-1};
+  bool character_menu_open{};
   PhysiologyPreset physiology_preset{PhysiologyPreset::normal};
   EyeDiagnosticMode eye_diagnostic_mode{EyeDiagnosticMode::normal};
   LightingRuntimeState lighting{lighting_for(LightingPreset::noon, OpticalFilterPreset::clear)};
@@ -1052,6 +1053,16 @@ int VulkanRenderer::ui_tooltip_row() const noexcept {
   return impl_ ? impl_->ui_tooltip_row : -1;
 }
 
+void VulkanRenderer::set_character_menu_open(bool open) noexcept {
+  if (!impl_) return;
+  impl_->character_menu_open = open;
+  if (open) impl_->ui_tooltip_row = -1;
+}
+
+bool VulkanRenderer::character_menu_open() const noexcept {
+  return impl_ && impl_->character_menu_open;
+}
+
 void VulkanRenderer::set_physiology_preset(PhysiologyPreset preset) noexcept {
   cancel_shadow_probe();
   if (impl_) impl_->physiology_preset = preset;
@@ -1214,6 +1225,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto mode_bits=static_cast<std::uint32_t>(state.diagnostic_mode)<<1u;
   const auto camera_bits=static_cast<std::uint32_t>(camera.preset)<<3u;
   const auto probe_bits = state.shadow_probe.active() ? (1u << 25u) : 0u;
+  const auto character_menu_bits = state.character_menu_open ? (1u << 26u) : 0u;
   const auto tooltip_bits=static_cast<std::uint32_t>(state.shadow_probe.active() ? 11 :
       (state.ui_tooltip_row>=0?state.ui_tooltip_row:15))<<5u;
   const auto physiology_bits=static_cast<std::uint32_t>(state.physiology_preset)<<9u;
@@ -1225,7 +1237,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   const auto close_shadow_bits=
       static_cast<std::uint32_t>(close_shadow.level)<<23u;
   push.flags[3]=mode_bits|camera_bits|tooltip_bits|physiology_bits|eye_mode_bits|
-                lighting_bits|filter_bits|surface_debug_bits|close_shadow_bits|probe_bits;
+                lighting_bits|filter_bits|surface_debug_bits|close_shadow_bits|probe_bits|character_menu_bits;
 
   VkClearValue shadow_clear{}; shadow_clear.depthStencil={1.0f,0u};
   VkRenderPassBeginInfo spass{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -1345,10 +1357,10 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
                           0, 1, &state.frame_lighting_descriptor_set, 0, nullptr);
   push.flags[3] = mode_bits | camera_bits | tooltip_bits | physiology_bits |
                   eye_mode_bits | lighting_bits | filter_bits |
-                  surface_debug_bits | close_shadow_bits | probe_bits | 1u;
+                  surface_debug_bits | close_shadow_bits | probe_bits | character_menu_bits | 1u;
   vkCmdPushConstants(command, state.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                      0, sizeof(push), &push);
-  vkCmdDraw(command, 87u, 1u, 0u, 0u);
+  vkCmdDraw(command, 105u, 1u, 0u, 0u);
   vkCmdEndRenderPass(command);
   if (vkEndCommandBuffer(command) != VK_SUCCESS) return false;
 
