@@ -27,6 +27,11 @@ layout(set = 0, binding = 0, std140) uniform FrameLighting {
     vec4 filter_tint_transmission;
     vec4 eye_filter_misc;
     uvec4 modes;
+    vec4 face0;
+    vec4 face1;
+    vec4 face2;
+    vec4 face3;
+    vec4 face4;
 } lighting;
 
 layout(set = 0, binding = 1) uniform sampler2D shadow_depth;

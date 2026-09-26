@@ -21,6 +21,21 @@ layout(push_constant) uniform LsgPush {
     uvec4 flags;       // profile, detail, surface rotation, packed pass/mode
 } pc;
 
+layout(set = 0, binding = 0, std140) uniform FrameLighting {
+    vec4 sun_direction_intensity;
+    vec4 sun_tint_sky_intensity;
+    vec4 sky_zenith_exposure;
+    vec4 sky_horizon_scene_lum;
+    vec4 filter_tint_transmission;
+    vec4 eye_filter_misc;
+    uvec4 modes;
+    vec4 face0; // skull width/height, face length, forehead height
+    vec4 face1; // brow depth, eye spacing/size/tilt
+    vec4 face2; // nose length/width/projection, cheekbone width
+    vec4 face3; // cheek fullness, jaw width, chin width/projection
+    vec4 face4; // mouth width, upper/lower lip fullness, lip projection
+} lighting;
+
 // flags.w bit 0: UI/environment pass.
 // flags.w bits 1..2: diagnostic render mode.
 //   0 = genome + perspective
@@ -119,6 +134,50 @@ vec2 anatomy_xz_scales(AnatomyField w) {
     depth_scale += w.head * (pc.geometry1.w - 1.0);
 
     return clamp(vec2(width_scale, depth_scale), vec2(0.75), vec2(1.25));
+}
+
+vec3 apply_face_dna(vec3 p, vec3 raw_p, float head_weight) {
+    if (head_weight <= 0.0001) return p;
+    float y = raw_p.y;
+    float front = smooth_range(raw_p.z, 0.015, 0.090);
+    float center = 1.0 - smooth_range(abs(raw_p.x), 0.020, 0.075);
+    float cheek = smooth_band(y, 0.635, 0.670, 0.735, 0.775) * front;
+    float jaw = smooth_band(y, 0.555, 0.590, 0.665, 0.710) * front;
+    float chin = smooth_band(y, 0.535, 0.560, 0.610, 0.645) * front;
+    float eyes = smooth_band(y, 0.705, 0.730, 0.780, 0.810) * front;
+    float nose = smooth_band(y, 0.625, 0.660, 0.775, 0.805) * front * center;
+    float brow = smooth_band(y, 0.750, 0.770, 0.800, 0.825) * front;
+    float forehead = smooth_band(y, 0.775, 0.800, 0.850, 0.875) * front;
+    float mouth = smooth_band(y, 0.605, 0.630, 0.690, 0.715) * front;
+    float upper_lip = smooth_band(y, 0.642, 0.652, 0.668, 0.680) * front * center;
+    float lower_lip = smooth_band(y, 0.622, 0.636, 0.653, 0.665) * front * center;
+
+    const float head_pivot_y = 0.690;
+    p.x *= 1.0 + 0.060 * lighting.face0.x * head_weight;
+    p.y = head_pivot_y + (p.y - head_pivot_y) * (1.0 + 0.050 * lighting.face0.y * head_weight);
+    p.y += 0.014 * lighting.face0.z * (jaw + chin);
+    p.y += 0.010 * lighting.face0.w * forehead;
+
+    p.z += 0.010 * lighting.face1.x * brow;
+    p.x += sign(raw_p.x) * 0.008 * lighting.face1.y * eyes;
+    p.x *= 1.0 + 0.030 * lighting.face1.z * eyes;
+    p.y += sign(raw_p.x) * 0.006 * lighting.face1.w * eyes;
+
+    p.y -= 0.009 * lighting.face2.x * nose;
+    p.x *= 1.0 + 0.120 * lighting.face2.y * nose;
+    p.z += 0.020 * lighting.face2.z * nose;
+    p.x *= 1.0 + 0.080 * lighting.face2.w * cheek;
+
+    p.z += 0.012 * lighting.face3.x * cheek;
+    p.x *= 1.0 + 0.085 * lighting.face3.y * jaw;
+    p.x *= 1.0 + 0.100 * lighting.face3.z * chin;
+    p.z += 0.014 * lighting.face3.w * chin;
+
+    p.x *= 1.0 + 0.080 * lighting.face4.x * mouth;
+    p.z += 0.009 * lighting.face4.y * upper_lip;
+    p.z += 0.010 * lighting.face4.z * lower_lip;
+    p.z += 0.008 * lighting.face4.w * mouth * center;
+    return p;
 }
 
 vec3 apply_head_idle(vec3 p, float head_weight, float t) {
@@ -317,6 +376,7 @@ void main() {
         object_m.x *= xz_scale.x;
         object_m.y *= pc.geometry0.x;
         object_m.z *= xz_scale.y;
+        object_m = apply_face_dna(object_m, raw_centered_m, weights.head);
 
         float t = pc.render.z;
         float breath_phase = t * 1.18 + 0.16 * sin(t * 0.31);

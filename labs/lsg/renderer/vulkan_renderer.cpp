@@ -186,9 +186,14 @@ struct alignas(16) FrameLightingGpu {
   float filter_tint_transmission[4]{};
   float eye_filter_misc[4]{};
   std::uint32_t modes[4]{};
+  float face0[4]{};
+  float face1[4]{};
+  float face2[4]{};
+  float face3[4]{};
+  float face4[4]{};
 };
 static_assert(alignof(FrameLightingGpu) == 16);
-static_assert(sizeof(FrameLightingGpu) == 112);
+static_assert(sizeof(FrameLightingGpu) == 192);
 static_assert(offsetof(FrameLightingGpu, sun_direction_intensity) == 0);
 static_assert(offsetof(FrameLightingGpu, sun_tint_sky_intensity) == 16);
 static_assert(offsetof(FrameLightingGpu, sky_zenith_exposure) == 32);
@@ -196,8 +201,11 @@ static_assert(offsetof(FrameLightingGpu, sky_horizon_scene_lum) == 48);
 static_assert(offsetof(FrameLightingGpu, filter_tint_transmission) == 64);
 static_assert(offsetof(FrameLightingGpu, eye_filter_misc) == 80);
 static_assert(offsetof(FrameLightingGpu, modes) == 96);
+static_assert(offsetof(FrameLightingGpu, face0) == 112);
+static_assert(offsetof(FrameLightingGpu, face4) == 176);
 
-FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting) noexcept {
+FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting,
+                                         const FaceGenomeV0& face) noexcept {
   FrameLightingGpu gpu{};
   gpu.sun_direction_intensity[0] = lighting.sun_direction[0];
   gpu.sun_direction_intensity[1] = lighting.sun_direction[1];
@@ -228,6 +236,17 @@ FrameLightingGpu make_frame_lighting_gpu(const LightingRuntimeState& lighting) n
   gpu.eye_filter_misc[1] = lighting.polarization_strength;
   gpu.modes[0] = static_cast<std::uint32_t>(lighting.preset);
   gpu.modes[1] = static_cast<std::uint32_t>(lighting.filter);
+
+  const std::int16_t raw[20] = {
+    face.skull_width, face.skull_height, face.face_length, face.forehead_height,
+    face.brow_depth, face.eye_spacing, face.eye_size, face.eye_tilt,
+    face.nose_length, face.nose_width, face.nose_projection, face.cheekbone_width,
+    face.cheek_fullness, face.jaw_width, face.chin_width, face.chin_projection,
+    face.mouth_width, face.upper_lip_fullness, face.lower_lip_fullness, face.lip_projection
+  };
+  float* face_vectors[5] = {gpu.face0, gpu.face1, gpu.face2, gpu.face3, gpu.face4};
+  for (std::size_t i = 0; i < 20; ++i)
+    face_vectors[i / 4][i % 4] = decode_snorm16(raw[i]);
   return gpu;
 }
 
@@ -615,7 +634,7 @@ bool create_host_buffer(VulkanRenderer::Impl& state, const void* source, VkDevic
 bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
   VkDescriptorSetLayoutBinding bindings[3]{};
   bindings[0].binding=0; bindings[0].descriptorType=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
+  bindings[0].descriptorCount=1; bindings[0].stageFlags=VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT;
   for(std::uint32_t i=1;i<=2;++i){
     bindings[i].binding=i; bindings[i].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     bindings[i].descriptorCount=1; bindings[i].stageFlags=VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -658,15 +677,16 @@ bool create_frame_lighting_resources(VulkanRenderer::Impl& state) {
   writes[2]={VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; writes[2].dstSet=state.frame_lighting_descriptor_set;
   writes[2].dstBinding=2; writes[2].descriptorCount=1; writes[2].descriptorType=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; writes[2].pImageInfo=&focused;
   vkUpdateDescriptorSets(state.device,3,writes,0,nullptr);
-  const auto initial=make_frame_lighting_gpu(state.lighting);
+  const auto initial=make_frame_lighting_gpu(state.lighting, builtin_profile(0).face);
   std::memcpy(state.frame_lighting_mapped,&initial,sizeof(initial));
   state.estimated_bytes += sizeof(FrameLightingGpu);
   return true;
 }
 
-void update_frame_lighting_buffer(VulkanRenderer::Impl& state) noexcept {
+void update_frame_lighting_buffer(VulkanRenderer::Impl& state,
+                                  const FaceGenomeV0& face) noexcept {
   if (state.frame_lighting_mapped == nullptr) return;
-  const auto gpu = make_frame_lighting_gpu(state.lighting);
+  const auto gpu = make_frame_lighting_gpu(state.lighting, face);
   std::memcpy(state.frame_lighting_mapped, &gpu, sizeof(gpu));
 }
 
@@ -1181,8 +1201,9 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   }
   const float pose_time = state.shadow_probe.active() ? state.shadow_probe.pose_time() : time_seconds;
   state.last_detail = detail_enabled;
-  update_frame_lighting_buffer(state);
   state.last_profile_index = character_index % kBuiltinProfileCount;
+  const CharacterGenomeV0 frame_genome = builtin_profile(state.last_profile_index);
+  update_frame_lighting_buffer(state, frame_genome.face);
   std::uint32_t image_index{};
   const auto acquire = vkAcquireNextImageKHR(state.device, state.swapchain, UINT64_MAX, state.image_available, VK_NULL_HANDLE, &image_index);
   if (acquire == VK_ERROR_OUT_OF_DATE_KHR || (acquire != VK_SUCCESS && acquire != VK_SUBOPTIMAL_KHR)) return false;
@@ -1245,6 +1266,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   spass.renderArea.extent={kShadowMapSize,kShadowMapSize}; spass.clearValueCount=1; spass.pClearValues=&shadow_clear;
   vkCmdBeginRenderPass(command,&spass,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.shadow_pipeline);
+  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,0,nullptr);
   vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
   vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
   PushConstants shadow_push=push;
@@ -1265,6 +1287,7 @@ bool VulkanRenderer::draw_frame(float time_seconds, std::uint32_t character_inde
   self_spass.pClearValues=&shadow_clear;
   vkCmdBeginRenderPass(command,&self_spass,VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.shadow_pipeline);
+  vkCmdBindDescriptorSets(command,VK_PIPELINE_BIND_POINT_GRAPHICS,state.pipeline_layout,0,1,&state.frame_lighting_descriptor_set,0,nullptr);
   vkCmdBindVertexBuffers(command,0,1,&profile_mesh.vertex_buffer,&offset);
   vkCmdBindIndexBuffer(command,profile_mesh.index_buffer,0,VK_INDEX_TYPE_UINT32);
   PushConstants self_shadow_push=shadow_push;
