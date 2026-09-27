@@ -241,6 +241,40 @@ NOT:
 packed slot -> reconstructed original filename
 ```
 
+## 8.2 em034 contains one direct embedded original child name
+
+A known-resource-extension string census over the supplied em034 extraction
+(excluding generated audit files) found one child payload that states a filename
+about itself:
+
+```text
+em034_018.clt
+size      352 bytes
+SHA-256   96acfe6a0ddd4016269bddbcf8769c64f02cc8fcc594db1404e885b31dc584b0
++0x00     ;pl002_01.clt\r\n
+```
+
+This agrees with the existing CLT text-dialect reverse: the animation/resource
+registry at `0x1402E01A0` types CLT/TSC-family resources from the supplied
+resource name and has no content fallback. A nameless packed slot therefore does
+not acquire a CLT filename from the registry. For CLT, the payload itself carries
+the historical authoring filename as its opening comment.
+
+So for this specific child:
+
+```text
+synthetic extraction name: em034_018.clt
+embedded original name:    pl002_01.clt
+format extension:          .clt
+```
+
+The enclosing archive stem `em034` is not filename authority for this child.
+
+The same bounded string census found no other direct known-format filename token
+inside the supplied em034 payloads. That is not a universal absence proof for
+arbitrary encodings or unknown extensions, but it blocks deriving names for the
+remaining children from parent/slot arithmetic.
+
 ## 9. Export policy from this evidence
 
 Until a stronger naming authority is recovered:
@@ -265,6 +299,7 @@ Until a stronger naming authority is recovered:
 | Native Reader `%c%03u` names are original runtime names | REJECTED |
 | loose `.lst` line is literal child-path authority before synthesis | EXE_CONFIRMED |
 | synthesized packed payload retains loose child filename strings | REJECTED |
+| `em034_018.clt` embedded original name = `pl002_01.clt` | CORPUS_CONFIRMED / payload-self-identified |
 | exact historical extractor spelling for unnamed packed children | RESEARCH_REQUIRED |
 
 ## Next reverse gate
