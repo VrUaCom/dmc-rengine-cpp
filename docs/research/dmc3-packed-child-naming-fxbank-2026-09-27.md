@@ -194,6 +194,53 @@ Existing canonical reverse remains unchanged:
 
 Therefore extraction naming and runtime packed identity must remain separate.
 
+### 8.1 Loose `.lst` names are literal source paths, not packed child names
+
+Fresh disassembly of `0x1401B7D10`, `0x1401B7E60`, `0x1401B7FD0` and
+`0x1401B85C0` closes the loose-list side of the naming boundary.
+
+`0x1401B7D10` and `0x1401B7E60` copy one literal list line and construct a
+candidate path with the format string at `0x14036F4B0`:
+
+```text
+"%s%s"
+```
+
+The two inputs are the retained directory/base prefix and the exact list-line
+text. Therefore a loose child name comes from the `.lst` source text itself;
+it is not synthesized from a packed slot number, ordinal, format tag or FXBANK
+id.
+
+For a line ending in `.lst`, the planning/materialization code rewrites only
+that extension to `pac\0` (stores at `0x1401B81F9`, `0x1401B8972` and
+related paths), checks for a packed sibling first, and otherwise recursively
+synthesizes the nested list.
+
+Most importantly, `0x1401B85C0` builds the in-memory packed container by:
+
+1. writing the packed header/relative-offset table to the destination;
+2. resolving each list line in temporary stack buffers;
+3. loading the named child's bytes directly at the destination slot offset, or
+   recursively synthesizing a nested list there;
+4. writing zero offset for exact `dummy` entries.
+
+No list-line filename string is copied into the synthesized PAC/PNST payload.
+The loose filename is acquisition metadata that disappears at the packed
+materialization boundary.
+
+This proves a one-way authority transition:
+
+```text
+loose .lst line
+    -> literal filesystem child path
+    -> child bytes
+    -> synthesized packed slot
+    -> runtime packed traversal by pointer/offset/content
+
+NOT:
+packed slot -> reconstructed original filename
+```
+
 ## 9. Export policy from this evidence
 
 Until a stronger naming authority is recovered:
@@ -216,12 +263,13 @@ Until a stronger naming authority is recovered:
 | M companion receives independent manifest id/name | REJECTED |
 | packed PNST recursion passes child filename | REJECTED for `0x1401B9FA0` |
 | Native Reader `%c%03u` names are original runtime names | REJECTED |
-| exact historical extractor spelling for unnamed children | RESEARCH_REQUIRED |
+| loose `.lst` line is literal child-path authority before synthesis | EXE_CONFIRMED |
+| synthesized packed payload retains loose child filename strings | REJECTED |
+| exact historical extractor spelling for unnamed packed children | RESEARCH_REQUIRED |
 
 ## Next reverse gate
 
 Continue from three surfaces:
 
-1. `0x1401B7C70..0x1401B85C0` — loose `.lst` child-name acquisition and how those names are discarded/retained during synthesis;
-2. embedded slot-0 name-list cases (for example stage resources) — determine whether any original runtime consumer uses them as names or whether they are data/tool-side aliases only;
-3. every em034 nested PAC/PNST family — classify which descendants have a real stored/loose-list name and which are intrinsically ID/slot-addressed records.
+1. embedded slot-0 name-list cases (for example stage resources) — determine whether any original runtime consumer uses them as names or whether they are data/tool-side aliases only;
+2. every em034 nested PAC/PNST family — classify which descendants have a real stored/loose-list name and which are intrinsically ID/slot-addressed records.
