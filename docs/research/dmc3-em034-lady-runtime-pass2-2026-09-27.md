@@ -1543,3 +1543,119 @@ Still deliberately unresolved:
 
 These remaining naming details do not block the canonical
 EquipmentBinding/WeaponBinding structural model.
+
+
+## Pass 2I — complete CEm034 MotionScript entry dispatcher
+
+### Canonical state-entry map
+
+**EXE_CONFIRMED**
+
+Live disassembly of `0x14016A410` closes the complete CEm034 state-entry
+MotionScript start map for states `0x00..0x8F`. The function uses the
+switch byte map at `0x14016ACAC` and offset table at `0x14016AC48`.
+
+The important architectural result is that CEm034 does **not** always start
+one shared action on both body-script controllers.
+
+The two `em034_012` controllers are:
+
+```text
+lane0 = CEm034+0x5070
+lane1 = CEm034+0x5190
+```
+
+For ordinary both-lane entries, `0x140171AB0(..., selector=-1)` starts the
+same bank/action on both. States 55..82 instead use direct controller starts
+and can run different actions concurrently.
+
+### Full recovered body-script starts
+
+```text
+bank0
+ state 0..6   -> action 0..6   both lanes
+ state 7      -> no body script
+ state 8..14  -> action 8..14  both lanes
+
+bank1
+ state 15..20 -> action 0..5   both lanes
+ state 21     -> no body script
+ state 22     -> action 7      both lanes
+ state 23     -> no body script
+ state 24..26 -> action 9..11  both lanes
+ state 27..34 -> no body script
+ state 35     -> action 20     both lanes
+ state 36..37 -> no body script
+ state 38..41 -> action 23..26 both lanes
+
+bank2
+ state 42..45 -> action 0..3   both lanes
+
+bank3
+ state 46     -> action 0      both lanes
+ state 47     -> no body script
+ state 48..54 -> action 2..8   both lanes
+
+ state 55..61:
+   lane0 -> bank0/action1
+   lane1 -> bank3/action9..15
+
+ state 62..68:
+   lane0 -> bank3/action16
+   lane1 -> bank3/action16..22
+
+ state 69..75:
+   lane0 -> bank3/action23
+   lane1 -> bank3/action23..29
+
+ state 76..82:
+   lane0 -> bank3/action30
+   lane1 -> bank3/action30..36
+
+bank4
+ state 83..115 -> action 0..32 both lanes
+ state 116..122 -> no body script
+ state 123..130 -> action 40..47 both lanes
+ state 131..132 -> no body script
+ state 133 -> action 50 both lanes
+ state 134..142 -> no body script
+ state 143 -> action 60 both lanes
+```
+
+### Independent slot20 controller starts
+
+**EXE_CONFIRMED**
+
+The separate `em034_013` controller at `CEm034+0x52B0` is started in
+addition to the body controllers for these recovered state-entry ranges:
+
+```text
+states 90..93   -> bank4 actions 7..10
+states 100..115 -> bank4 actions 17..32
+state 123       -> bank4 action40
+state 124       -> bank4 action41
+state 125       -> bank4 action42
+```
+
+States 89 and 97 retain the already recovered delayed slot20-script start
+through lane0/channel0 rather than starting it at entry.
+
+### Runtime consequence
+
+The previous simplification
+
+```text
+one CEm034 state -> one MotionScript action -> duplicate signal stream on both lanes
+```
+
+is **REJECTED**.
+
+Canonical playback requires two independent lane timelines. This matters
+concretely for state `0x59`: lane1 runs bank3/action13 while lane0 runs
+bank0/action1; the lane0 signal is the trigger that hands slot20 to the
+independent `em034_013` controller.
+
+The Native Reader Script Play implementation now reconstructs both entry
+controllers separately and evaluates each lane's own opcode-3 timeline.
+
+Status: **EXE_CONFIRMED**.
