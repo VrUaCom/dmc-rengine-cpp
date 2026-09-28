@@ -1,0 +1,16 @@
+{
+  "schema":"dmc-rengine.em034-lady-runtime-pass2e.v1",
+  "date":"2026-09-28",
+  "canonical_exe_sha256":"e454272ed0fb0247fcbcf300e5d55d7a3e96d50b89b9ffaff81bb978dcbdd082",
+  "shared_actor_state":{"field":"+0x08","tick":"0x1403261B0","retire_path":"0x1403261E0","retire_state":3},
+  "classes":{
+    "CEm034Shl00":{"phase":"0x140172590","timer":"+0x52C","retire_condition":"timer < 0","child":"+0x520"},
+    "CEm034Shl01":{"phase":"0x140172B20","timer":"+0x538","timer_initial":1.0,"retire_condition":"timer < 0","children":["+0x520","+0x528"]},
+    "CEm034Shl02":{"phase":"0x140173800","timer":"+0xD68","timer_initial":3.0,"retire_condition":"timer < 0","child":"+0xD60"},
+    "CEm034Shl03":{"gate":"0x140174550","owner":"+0x1510","owner_action_virtual":"+0x250 vslot +0x08","retained_actions":[94,95,96,98,99,144],"retire_actions":"97, 100..143, or outside 94..144"},
+    "CEm034Shl04":{"state1":"0x1401756E0","state1_expiry":"transition to state2 and reset +0x09","state2":"0x1401753A0","state2_timer":"+0x530","state2_timer_initial":3.0,"state2_expiry":"state3","children":["+0x520","+0x528"]},
+    "CEm034Shl05":{"phase_a":"0x140175C50","timer_a":"+0x528","timer_a_initial":1.0,"phase_b":"0x140175ED0","timer_b":"+0x52C","retire_condition":"active phase timer < 0","child":"+0x520"}
+  },
+  "status":"EXE_CONFIRMED",
+  "remaining":["final actor-manager unlink/free internals","persistent slots20..24 visibility semantics"]
+}
