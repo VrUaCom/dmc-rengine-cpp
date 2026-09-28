@@ -739,3 +739,132 @@ Only Shl03 remains without a closed script/lifecycle trigger in this matrix.
 - recover semantic resource identities only from stronger executable/corpus
   evidence;
 - encode the completed runtime model in C++20 only after these gates close.
+
+
+## Pass 2C — Shl03 lifecycle phase machine
+
+### CEm034+0x5994 is a six-phase child-actor sequence
+
+**EXE_CONFIRMED**
+
+Function `0x14016CA30` dispatches on byte `CEm034+0x5994` with six phases
+(0..5). This phase machine is separate from the ordinary opcode3 channel
+consumer, but it drives the same CEm034 state setter through the `+0x250`
+state-machine vtable.
+
+The recovered state progression is:
+
+```text
+phase0
+  -> set CEm034 state93  (bank4 action10)
+  -> phase1
+
+phase1
+  wait for state144 + timing condition
+  -> set state94        (bank4 action11)
+  -> create CEm034Shl03
+  -> store actor at CEm034+0x5998
+  -> phase2
+
+phase2
+  wait for state144
+  -> state95 (action12) when internal selector +0x5A1C < 1
+     OR
+     state96 (action13) when selector +0x5A1C >= 1
+  -> phase3
+
+phase3
+  movement/runtime interaction stage
+  -> later set state98  (bank4 action15)
+  -> phase4
+
+phase4
+  movement/collision gate
+  -> set state97        (bank4 action14)
+  -> phase5
+
+phase5
+  wait for state144
+  -> return through the enclosing actor-state path
+```
+
+State144 itself is a real CEm034 completion state. At the tail of
+`0x140169060`, when the first slot12 controller reports completion through
+`0x140059590`, the state-machine vtable is called with state `0x90` (144).
+
+Because the normal switch table handles only states0..143, state144 acts as the
+completion rendezvous consumed by higher-level lifecycle code such as
+`0x14016CA30`.
+
+Status: **EXE_CONFIRMED**.
+
+### Shl03 creation is now closed
+
+**EXE_CONFIRMED**
+
+In phase1, after the state144/timing gate:
+
+1. `+0x5994` advances from phase1 to phase2;
+2. state94 / bank4 action11 is started;
+3. a child transform is built from CEm034 runtime transforms;
+4. factory `0x1401745F0` creates `CEm034Shl03`;
+5. the returned actor pointer is retained at `CEm034+0x5998`.
+
+Therefore Shl03 is not an always-visible attachment and does not require a
+direct opcode3 byte trigger. It belongs to this higher-level phase sequence.
+
+This closes the last Shl class that lacked a recovered creation trigger.
+
+### Shl04 has two distinct creation surfaces
+
+**EXE_CONFIRMED**
+
+The earlier direct script edge remains:
+
+```text
+state143 / bank4 action60
+controller1 byteIndex0 == 1
+-> CEm034Shl04 factory 0x140175210
+```
+
+A second Shl04 creation loop exists inside phase3 of the Shl03 lifecycle
+function. That loop derives positions from runtime/world state and calls the
+same `0x140175210` factory without using the action60 opcode3 trigger.
+
+Therefore:
+
+- Shl04 is a reusable dynamic child actor;
+- action60 is one canonical creation path;
+- the Shl03 phase sequence is another canonical creation surface.
+
+Any one-to-one semantic equation such as “Shl04 == weapon slot X” is
+**REJECTED**.
+
+### Updated Shl coverage
+
+| child actor | creation authority |
+|---|---|
+| Shl00 | script-driven paths in actions13/44/50 |
+| Shl01 | action31 script-driven path |
+| Shl02 | actions3/4/5 script-driven paths |
+| Shl03 | six-phase lifecycle, created between action10 completion and action11 |
+| Shl04 | action60 script path + Shl03 phase3 runtime loop |
+| Shl05 | action46 script-driven path |
+
+All six CEm034Shl classes now have a recovered creation/lifecycle surface.
+Their artistic/gameplay names remain **PRESERVED_UNDECODED**.
+
+## Pass 2C correction to the canonical component model
+
+The core equipment architecture is now more precise:
+
+- slots21,22,24 use body-attached placement records;
+- slot23 mode0 uses its body-node placement record, while mode1 uses the
+  CEm034-owned transform at `+0x43C0`;
+- slot20 can switch between body-placement control and its independent
+  `em034_013.bin` MotionScript controller;
+- slots25/26/30 belong to dynamic Shl actor resource paths and are not
+  persistent body attachments.
+
+This is the minimum topology the later Native Reader implementation must
+preserve.
