@@ -1,5 +1,5 @@
 {
-  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v2",
+  "schema": "dmc-rengine.em034-lady-runtime-pass2e.v3",
   "date": "2026-09-28",
   "branch": "reverse/em034-lady-runtime-20260927",
   "canonical_artifacts": {
@@ -24,46 +24,214 @@
     "helper": "0x1401713F0",
     "reset_helper": "0x140168B00",
     "preset0": "BodyStowed",
-    "preset1": "HandHeld",
+    "preset1": "ActiveDeployed",
     "preset0_table": "0x14057AFC0",
     "preset1_table": "0x14057B0B0",
     "components": [
-      {"component":0,"slot":20,"preset0_node":3,"preset1_node":9,"manager":"+0x8E8","runtime_block":"+0x4000","control_gate":"+0x4020"},
-      {"component":1,"slot":21,"preset0_node":14,"preset1_node":9,"manager":"+0x900","runtime_block":"+0x40C0"},
-      {"component":2,"slot":22,"preset0_node":16,"preset1_node":13,"manager":"+0x908","runtime_block":"+0x4180"},
-      {"component":3,"slot":23,"preset0_node":19,"preset1_node":13,"manager":"+0x910","runtime_block":"+0x4240","preset1_special_parent":"+0x43C0"},
-      {"component":4,"slot":24,"preset0_node":14,"preset1_node":13,"manager":"+0x930","runtime_block":"+0x4300"}
+      {
+        "component": 0,
+        "slot": 20,
+        "preset0_node": 3,
+        "preset1_node": 9,
+        "manager": "+0x8E8",
+        "runtime_block": "+0x4000",
+        "control_gate": "+0x4020"
+      },
+      {
+        "component": 1,
+        "slot": 21,
+        "preset0_node": 14,
+        "preset1_node": 9,
+        "manager": "+0x900",
+        "runtime_block": "+0x40C0"
+      },
+      {
+        "component": 2,
+        "slot": 22,
+        "preset0_node": 16,
+        "preset1_node": 13,
+        "manager": "+0x908",
+        "runtime_block": "+0x4180"
+      },
+      {
+        "component": 3,
+        "slot": 23,
+        "preset0_node": 19,
+        "preset1_node": 13,
+        "manager": "+0x910",
+        "runtime_block": "+0x4240",
+        "preset1_special_parent": {
+          "effective_runtime_parent": "CEm034+0x43C0",
+          "source_matrix": "[CEm034+0x850]+0x110",
+          "source_copy_site": "0x140171240..0x140171255",
+          "uniform_scale_source": "CEm034+0x4400",
+          "scale_apply": "0x1403304F0 at 0x1401712E1",
+          "raw_serialized_node": 13,
+          "raw_node_is_effective_parent": false,
+          "status": "EXE_CONFIRMED"
+        }
+      },
+      {
+        "component": 4,
+        "slot": 24,
+        "preset0_node": 14,
+        "preset1_node": 13,
+        "manager": "+0x930",
+        "runtime_block": "+0x4300"
+      }
     ],
     "body_skeleton": {
       "mod_slot": 1,
       "node_count": 23,
-      "hand_terminal_nodes": [9,13],
-      "stowed_body_nodes": [3,14,16,19],
+      "hand_terminal_nodes": [
+        9,
+        13
+      ],
+      "stowed_body_nodes": [
+        3,
+        14,
+        16,
+        19
+      ],
       "status": "EXE_AND_CORPUS_CONFIRMED"
     },
     "state_entry_groups": [
-      {"states":["0x2E","0x30..0x52"],"result":"component1 HandHeld via direct materialization of preset1 record"},
-      {"states":["0x53..0x59","0x5E","0x61"],"result":"component0 HandHeld attached"},
-      {"states":["0x5A..0x5D","0x64..0x73"],"result":"component0 BodyStowed + independent em034_013; +0x4020=0"},
-      {"states":["0x5F","0x62"],"result":"component0 HandHeld attached"},
-      {"states":["0x60","0x63"],"result":"component0 HandHeld attached + component4 HandHeld"},
-      {"states":["0x7B"],"result":"component0 BodyStowed + independent em034_013"},
-      {"states":["0x7C","0x7D"],"result":"component0 initialized at HandHeld transform + independent em034_013"},
-      {"states":["0x7F"],"result":"component1 HandHeld + component2 HandHeld"},
-      {"states":["0x81"],"result":"component3 HandHeld"},
-      {"states":["0x85","0x8F"],"result":"baseline core placement at entry"}
+      {
+        "states": [
+          "0x2E",
+          "0x30..0x52"
+        ],
+        "result": "component1 HandHeld via direct materialization of preset1 record"
+      },
+      {
+        "states": [
+          "0x53..0x59",
+          "0x5E",
+          "0x61"
+        ],
+        "result": "component0 HandHeld attached"
+      },
+      {
+        "states": [
+          "0x5A..0x5D",
+          "0x64..0x73"
+        ],
+        "result": "component0 BodyStowed + independent em034_013; +0x4020=0"
+      },
+      {
+        "states": [
+          "0x5F",
+          "0x62"
+        ],
+        "result": "component0 HandHeld attached"
+      },
+      {
+        "states": [
+          "0x60",
+          "0x63"
+        ],
+        "result": "component0 HandHeld attached + component4 HandHeld"
+      },
+      {
+        "states": [
+          "0x7B"
+        ],
+        "result": "component0 BodyStowed + independent em034_013"
+      },
+      {
+        "states": [
+          "0x7C",
+          "0x7D"
+        ],
+        "result": "component0 initialized at HandHeld transform + independent em034_013"
+      },
+      {
+        "states": [
+          "0x7F"
+        ],
+        "result": "component1 HandHeld + component2 HandHeld"
+      },
+      {
+        "states": [
+          "0x81"
+        ],
+        "result": "component3 HandHeld"
+      },
+      {
+        "states": [
+          "0x85",
+          "0x8F"
+        ],
+        "result": "baseline core placement at entry"
+      }
     ],
     "script_transitions": [
-      {"state":"0x5C","action":9,"lane":0,"channel":0,"value":1,"result":"component0 HandHeld attached; +0x4020=1"},
-      {"state":"0x5D","action":10,"lane":0,"channel":0,"value":1,"result":"component0 HandHeld attached; +0x4020=1"},
-      {"state":"0x59","action":6,"lane":0,"channel":0,"value":1,"result":"component0 BodyStowed; start em034_013 action6; +0x4020=0"},
-      {"state":"0x61","action":14,"lane":0,"channel":0,"value":1,"result":"component0 BodyStowed; start em034_013 action14; +0x4020=0"},
-      {"state":"0x81","action":46,"lane":1,"channel":2,"value":1,"result":"component3 BodyStowed"},
-      {"state":"0x85","action":50,"lane":1,"channel":1,"value":1,"result":"component4 HandHeld"},
-      {"state":"0x85","action":50,"lane":1,"channel":0,"value":2,"result":"component4 BodyStowed"}
+      {
+        "state": "0x5C",
+        "action": 9,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 HandHeld attached; +0x4020=1"
+      },
+      {
+        "state": "0x5D",
+        "action": 10,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 HandHeld attached; +0x4020=1"
+      },
+      {
+        "state": "0x59",
+        "action": 6,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 BodyStowed; start em034_013 action6; +0x4020=0"
+      },
+      {
+        "state": "0x61",
+        "action": 14,
+        "lane": 0,
+        "channel": 0,
+        "value": 1,
+        "result": "component0 BodyStowed; start em034_013 action14; +0x4020=0"
+      },
+      {
+        "state": "0x81",
+        "action": 46,
+        "lane": 1,
+        "channel": 2,
+        "value": 1,
+        "result": "component3 BodyStowed"
+      },
+      {
+        "state": "0x85",
+        "action": 50,
+        "lane": 1,
+        "channel": 1,
+        "value": 1,
+        "result": "component4 HandHeld"
+      },
+      {
+        "state": "0x85",
+        "action": 50,
+        "lane": 1,
+        "channel": 1,
+        "value": 2,
+        "result": "component4 BodyStowed; corrected authority: channel1 value2 (frame64), not channel0 value2"
+      }
     ],
     "lane_correction": "states0x59/0x61 delayed slot20 transition consumes lane0 +0x5070 channel0, not lane1",
-    "status": "EXE_CONFIRMED"
+    "status": "EXE_CONFIRMED",
+    "action50_correction": {
+      "frame10": "lane1 channel1=1 -> component4 ActiveDeployed",
+      "frame25": "lane1 channel0=1 -> runtime flag/timer on",
+      "frame39": "lane1 channel0=2 -> runtime flag/timer off; NO placement change",
+      "frame64": "lane1 channel1=2 -> component4 BodyStowed",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    }
   },
   "visibility": {
     "mode0_mode1_are_visibility": false,
@@ -115,25 +283,35 @@
       "0x140175F30"
     ],
     "CEm034Shl00": {
-      "hard_timeout_seconds": 120.0,
+      "hard_timeout_seconds": 120,
       "phase1_exit": "hard timeout OR collision/hit",
-      "phase2_linger_seconds": 1.0,
-      "phase3_write_sites": ["0x1401725F0","0x140175C8B"]
+      "phase2_linger_seconds": 1,
+      "phase3_write_sites": [
+        "0x1401725F0",
+        "0x140175C8B"
+      ]
     },
     "CEm034Shl01": {
       "phase1_exit": "collision/query",
-      "phase2_linger_seconds": 1.0,
+      "phase2_linger_seconds": 1,
       "phase3_write_site": "0x140172BCD"
     },
     "CEm034Shl02": {
       "phase1_exit": "collision +0x278 OR world/query 0x140244810",
-      "phase2_linger_seconds": 3.0,
+      "phase2_linger_seconds": 3,
       "phase3_write_site": "0x1401738D4"
     },
     "CEm034Shl03": {
       "owner_pointer": "+0x1510",
       "owner_state_guard": "0x140174550",
-      "allowed_owner_states": ["0x5E","0x5F","0x60","0x62","0x63","0x90"],
+      "allowed_owner_states": [
+        "0x5E",
+        "0x5F",
+        "0x60",
+        "0x62",
+        "0x63",
+        "0x90"
+      ],
       "retire_owner_states": "0x61, 0x64..0x8F, and states outside 0x5E..0x90",
       "phase3_write_site": "0x14017459C"
     },
@@ -141,36 +319,90 @@
       "factory_lifetime_argument": "XMM2 -> +0x530",
       "action60_phase1_lifetime_seconds": "120 + 30*i",
       "shl03_phase3_lifetime_seconds": "90 + 30*derived_index",
-      "phase2_linger_seconds": 3.0,
+      "phase2_linger_seconds": 3,
       "phase3_write_site": "0x1401753DB"
     },
     "CEm034Shl05": {
-      "hard_timeout_seconds": 120.0,
+      "hard_timeout_seconds": 120,
       "phase1_exit": "hard timeout OR collision/hit",
-      "phase2_linger_seconds": 1.0,
-      "phase3_write_sites": ["0x140175F30","0x140175C8B"]
+      "phase2_linger_seconds": 1,
+      "phase3_write_sites": [
+        "0x140175F30",
+        "0x140175C8B"
+      ]
     },
     "status": "EXE_CONFIRMED"
   },
   "slot_identity": {
-    "20": {"structural":"large primary launcher body; host for independent em034_013, Shl02 rocket domain and Shl03 grapple domain","human_candidate":"Kalina Ann","status":"SEMANTIC_CANDIDATE"},
-    "21": {"structural":"handgun A","status":"EXE_AND_CORPUS_CONFIRMED structural"},
-    "22": {"structural":"handgun B","status":"EXE_AND_CORPUS_CONFIRMED structural"},
-    "23": {"structural":"compact crossbow/dagger-launcher form; source domain for Shl05 projectile actor","status":"EXE_AND_CORPUS_CONFIRMED structural"},
-    "24": {"structural":"compact submachine-gun form with front blade; source domain for repeated Shl00 projectile creation","status":"EXE_AND_CORPUS_CONFIRMED structural"},
-    "25": {"structural":"rocket/missile projectile owned by Shl02 and sourced from slot20 domain","status":"EXE_AND_CORPUS_CONFIRMED"},
-    "26": {"structural":"grappling blade/hook head owned by Shl03","status":"EXE_AND_CORPUS_CONFIRMED structural"},
-    "30": {"structural":"articulated grappling chain/cable owned by Shl03","status":"EXE_AND_CORPUS_CONFIRMED structural"}
+    "20": {
+      "structural": "large primary launcher body; host for independent em034_013, Shl02 rocket domain and Shl03 grapple domain",
+      "human_candidate": "Kalina Ann",
+      "status": "SEMANTIC_CANDIDATE"
+    },
+    "21": {
+      "structural": "handgun A",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "22": {
+      "structural": "handgun B",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "23": {
+      "structural": "compact crossbow/dagger-launcher form; source domain for Shl05 projectile actor",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "24": {
+      "structural": "compact submachine-gun form with front blade; source domain for repeated Shl00 projectile creation",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "25": {
+      "structural": "rocket/missile projectile owned by Shl02 and sourced from slot20 domain",
+      "status": "EXE_AND_CORPUS_CONFIRMED"
+    },
+    "26": {
+      "structural": "grappling blade/hook head owned by Shl03",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    },
+    "30": {
+      "structural": "articulated grappling chain/cable owned by Shl03",
+      "status": "EXE_AND_CORPUS_CONFIRMED structural"
+    }
   },
   "reader_gate": {
     "canonical_equipment_binding_reverse_ready": true,
-    "reader_implementation_started": false,
+    "reader_implementation_started": true,
+    "reader_branch": "fix/em034-lady-assembly-info-export",
+    "implementation_commits": [
+      "354c96888fbfbbdbd385033f57e3b47dbe483744",
+      "47f5b04e7dacf376afc143b493232a03c5f1fd25",
+      "63191e2b6ac57c4ea3e839d0f6117770d361a9f5",
+      "708bc1974a2a000906e577459cadeca4f5bba776",
+      "1239c0628d356e3d018e35dce2f5575ba8edbfe9",
+      "30dfe87daa9085dacba293795272790d58f42db2",
+      "e239993982cd88f5f3cabccaae700997e9f627e4",
+      "cf368af9ceaa089366ae876ba9ba2b85db77a0eb",
+      "8ed5598b9a34dbc76f97e127c7a3e1fca01393ec",
+      "4a0021a875fdfb681897a60f117b9d7c6ef909f1",
+      "4666ed0c640971ce2daf31ff6eea060bb3ea3df9"
+    ],
+    "implemented": [
+      "five persistent CEm034 LadyComponentContract records with two presets",
+      "separate placement preset and slot20 control-domain state",
+      "dynamic slots25/26/30 excluded from persistent base composite",
+      "generic five-channel MotionScript opcode3 timeline",
+      "CEm034 state-entry bridge",
+      "CEm034 direct signal-consumer bridge",
+      "action50 corrected channel regression",
+      "RuntimeBodyRootScaled represented without joint13 fallback"
+    ],
+    "build_verification": "NOT_RUN: no automatic CI workflow is associated with the branch head in the connected repository",
     "apk_build_started": false,
     "rejected": [
       "all Lady equipment on joint9",
       "mode0/mode1 as hidden/visible",
       "dynamic Shl actors as persistent attachments",
-      "single scalar Lady weapon state"
+      "single scalar Lady weapon state",
+      "component3 ActiveDeployed approximated as body joint13"
     ]
   }
 }
