@@ -745,3 +745,122 @@ is now closed as:
 
 **EXE_CONFIRMED — no separate CEm034-local visibility toggle; placement and
 control-domain transitions are the canonical runtime state.**
+
+
+## Pass 2F — persistent slots20..24 presentation/visibility boundary
+
+### Scope
+
+This pass uses the re-verified canonical executable directly and performs a
+CEm034-side reference census for the five persistent runtime MOD managers:
+
+| component | PAC slot | CEm034 manager pointer |
+|---:|---:|---:|
+| 0 | 20 | +0x8E8 |
+| 1 | 21 | +0x900 |
+| 2 | 22 | +0x908 |
+| 3 | 23 | +0x910 |
+| 4 | 24 | +0x930 |
+
+No gameplay/artistic weapon names are assigned.
+
+### Persistent ownership
+
+**EXE_CONFIRMED**
+
+The five managers are allocated into persistent CEm034 fields by the common
+resource acquisition helper `0x140168150`. State/action transitions do not
+create or destroy these managers.
+
+The direct CEm034 references to these five pointers resolve to:
+
+- manager transform source/current transform at `+0x108/+0x110`;
+- manager host/control pointer at `+0x100`;
+- CEm034-owned component transform/control blocks;
+- placement rebinding through `0x1401713F0`;
+- slot20's independent MotionScript control gate `CEm034+0x4020`.
+
+### Placement helper is not a visibility helper
+
+**EXE_CONFIRMED**
+
+`0x1401713F0(CEm034*, componentIndex, mode)` selects one of two 0x30-byte
+placement records and rebuilds the component transform/host binding.
+
+For components 0..4 it writes the selected runtime MOD manager's `+0x100`
+host/control pointer and the CEm034 component binding fields `+0x28/+0x30`.
+
+For component 3 / mode1 it uses the already recovered special parent
+`CEm034+0x43C0`.
+
+For component 0 it additionally restores `CEm034+0x4020 = 1`, switching
+slot20 back to body-placement control.
+
+The helper contains no render-enable/render-disable operation.
+
+Therefore:
+
+```text
+mode0 != hidden
+mode1 != visible
+```
+
+and the old interpretation of the two records as visibility states is
+**REJECTED**.
+
+### Direct CEm034 render-state census
+
+**EXE_CONFIRMED for the CEm034 ownership/control surface**
+
+Across the CEm034 code surface, direct accesses rooted at the five persistent
+manager fields were classified. The observed operations are allocation,
+retention, transform reads/writes, host/control rebinding and transform-derived
+effect/spawn work.
+
+No CEm034-side direct write was found that independently toggles a render or
+visibility field on only slots20..24 during the recovered action transitions.
+
+This is a negative result with a precise boundary: it closes the need for a
+Lady-specific persistent-component `visible` boolean in the canonical binding
+model. It does not claim that the generic MOD renderer has no culling,
+object-level flags, alpha rules or global actor visibility machinery.
+
+### Canonical Reader model consequence
+
+The minimum persistent Lady component state is now:
+
+```text
+component 0 / slot20:
+    placement_mode = 0 | 1
+    control_domain = body-placement | independent em034_013 MotionScript
+
+components 1,2,3,4 / slots21..24:
+    placement_mode = 0 | 1
+
+component 3 / slot23:
+    mode1_parent = CEm034+0x43C0
+```
+
+There is no evidence-backed per-component Lady runtime field:
+
+```text
+visible = true | false
+```
+
+to reproduce for slots20..24.
+
+If a future whole-renderer trace finds a generic manager/object visibility
+mechanism, it belongs to the shared MOD/render contract and must not be
+retroactively conflated with Lady placement mode.
+
+### Status
+
+- slots20..24 persistent ownership: **EXE_CONFIRMED**
+- mode0/mode1 as placement states: **EXE_CONFIRMED**
+- slot20 control-domain gate: **EXE_CONFIRMED**
+- separate Lady-specific visibility toggle for slots20..24:
+  **REJECTED on the recovered CEm034 control surface**
+- generic renderer culling/visibility semantics: outside this Lady pass
+
+This closes the persistent-component visibility blocker for the canonical
+CEm034 binding model.
