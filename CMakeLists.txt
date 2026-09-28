@@ -143,6 +143,7 @@ if(BUILD_TESTING AND DMC_RENGINE_BUILD_TESTS)
         mod_writer
         mod_writer_corpus
         mod_authored_child_bridge
+        em034_lady_equipment_contract
         mod_skin
         scm_writer
         scm_reflow_authoring
