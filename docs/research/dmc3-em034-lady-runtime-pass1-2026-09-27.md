@@ -506,3 +506,236 @@ Still open:
 
 No Native Reader implementation is authorized from this section alone; the
 remaining visibility/lifecycle gates must be closed first.
+
+
+## Pass 2B — baseline placement reset, slot20 independent-script gate, and remaining Shl script edges
+
+### 0x140168B00 is the five-component baseline reset
+
+**EXE_CONFIRMED**
+
+`0x140168B00(CEm034*)` rebuilds the placement objects for all five core
+equipment components from the mode-0 table:
+
+```text
+slot20/component0 -> mode0 record
+slot21/component1 -> mode0 record
+slot22/component2 -> mode0 record
+slot23/component3 -> mode0 record
+slot24/component4 -> mode0 record
+```
+
+The bank-4 state-entry paths call this helper before applying any state-specific
+mode-1 overrides. Therefore the state-entry contract is:
+
+```text
+start script action
+-> reset components20..24 to canonical mode0 baseline
+-> apply state-specific mode1 overrides
+```
+
+This is stronger than treating each component's current placement as an
+independent sticky state.
+
+### Correction: slot23/component3 mode1 has a special parent path
+
+**EXE_CONFIRMED correction**
+
+The mode-1 record for component3/slot23 contains node byte 13 in the serialized
+placement table, but `0x1401713F0` does **not** use that body-node byte when
+`componentIndex == 3 && mode == 1`.
+
+Instead it sets the slot23 placement parent pointer directly to:
+
+```text
+CEm034 + 0x43C0
+```
+
+The `+0x43C0` transform is maintained by CEm034's runtime update path and is
+seeded from the runtime transform associated with `CEm034+0x850`.
+
+Therefore the earlier shorthand “slot23 mode1 -> body node13” is
+**REJECTED** as an effective-parent description.
+
+Correct interpretation:
+
+- slot23 mode0 -> body node19 from the mode0 record;
+- slot23 mode1 -> CEm034 internal transform `+0x43C0`;
+- the mode1 table's node-byte 13 is present in data but bypassed by this
+  component-specific code path.
+
+No gameplay label is assigned to `+0x43C0` yet.
+
+### Slot20 has two runtime control modes
+
+**EXE_CONFIRMED**
+
+Component0/slot20 is special because it has its own MotionScript controller
+(`CEm034+0x52B0`, sourced from `em034_013.bin`).
+
+The byte at `CEm034+0x4020` gates whether that controller is advanced by the
+main CEm034 update:
+
+```text
+if CEm034+0x4020 == 0:
+    update controller +0x52B0
+else:
+    skip controller +0x52B0
+```
+
+Every component0 path through `0x1401713F0` re-establishes a body-attached
+placement and writes:
+
+```text
+CEm034+0x4020 = 1
+```
+
+Several CEm034 state entries instead write `+0x4020 = 0` and explicitly start
+the slot13 MotionScript at the matching bank4 action.
+
+Thus slot20 has two confirmed control domains:
+
+1. body-placement domain through component0 / `0x1401713F0`;
+2. independent slot13 MotionScript domain through controller `+0x52B0`.
+
+Calling those modes “held/independent”, “launcher”, or similar remains
+**PRESERVED_UNDECODED** until semantic identity is separately proven.
+
+### Bank4 action40 / state123 closes the slot20 handoff
+
+**EXE_AND_CORPUS_CONFIRMED structural routing**
+
+CEm034 state123 maps to bank4/action40.
+
+At state entry:
+
+- both slot12 body-script lanes are started for action40;
+- slot13 controller `+0x52B0` is started at bank4/action40;
+- `CEm034+0x4020 = 0`, so the slot13 controller is advanced.
+
+Retail action40 contains:
+
+```text
+frame4 -> opcode3 [1,0,0,0,0]
+```
+
+State123 update target `0x140169147` reads the first slot12 controller
+(`+0x5070`) byteIndex0. When it sees value1 it:
+
+1. clears that signal;
+2. rebuilds slot20 using the exact component0 mode1 placement data:
+   - translation `(-8.4,-1.0,-1.3)`;
+   - rotation `(0,0,pi)`;
+   - body node9;
+3. rebinds/commits the slot20 runtime controller;
+4. writes `CEm034+0x4020 = 1`.
+
+This gives an exact script-driven handoff:
+
+```text
+state123/action40
+ -> slot20 independent slot13-script mode
+ -> frame4 body channel0=1
+ -> slot20 component0 mode1 body placement
+ -> stop advancing slot13 controller
+```
+
+No human weapon/hand semantic label is assigned.
+
+### Shl02 is driven by bank4 actions3/4/5
+
+**EXE_AND_CORPUS_CONFIRMED**
+
+CEm034 states86/87/88 map to bank4 actions3/4/5.
+
+Their common update target `0x140169901` reads controller1
+(`CEm034+0x5190`) byteIndex0.
+
+On value1 it:
+
+- clears the signal;
+- builds the child transform;
+- creates `CEm034Shl02` through factory `0x140173620`.
+
+Retail corpus:
+
+```text
+action3 frame4 -> [1,0,0,0,0]
+action4 frame4 -> [1,0,0,0,0]
+action5 frame4 -> [1,0,0,0,0]
+```
+
+Therefore all three actions have a canonical script-channel edge to Shl02
+creation. Shl02's gameplay name remains **PRESERVED_UNDECODED**.
+
+### Shl01 is concretely triggered by action31
+
+**EXE_AND_CORPUS_CONFIRMED**
+
+The shared update target `0x140169A9D` serves states:
+
+```text
+83,84,85,90,91,94,100..115
+```
+
+which correspond to bank4 actions:
+
+```text
+0,1,2,7,8,11,17..32
+```
+
+It reads controller1 byteIndex0. A value1 is cleared and enters a bounded loop
+that creates `CEm034Shl01` through factory `0x1401729D0`.
+
+In the retail slot12 corpus, among those mapped actions only action31 contains
+opcode3 byteIndex0 events:
+
+```text
+action31 frame1  -> [1,0,0,0,0]
+action31 frame13 -> [1,0,0,0,0]
+```
+
+So action31 has a direct canonical edge to the Shl01 creation path.
+
+### Shl04 is concretely triggered by action60/state143
+
+**EXE_AND_CORPUS_CONFIRMED**
+
+State143 maps to bank4/action60 and uses update target `0x14016A095`.
+
+That target reads controller1 byteIndex0. On value1 it clears the signal and
+enters a bounded spawn loop whose factory call is:
+
+```text
+0x140175210 -> CEm034Shl04
+```
+
+Retail action60 contains:
+
+```text
+frame18 -> [1,0,0,0,0]
+```
+
+Therefore action60 frame18 directly feeds the Shl04 creation path.
+
+### Shl actor script coverage after Pass 2B
+
+| child actor | canonical script/lifecycle evidence |
+|---|---|
+| Shl00 | actions13,44,50 structural creation paths confirmed |
+| Shl01 | action31 byteIndex0 creation path confirmed |
+| Shl02 | actions3/4/5 byteIndex0 creation paths confirmed |
+| Shl03 | separate lifecycle path recovered; script-channel trigger not yet established |
+| Shl04 | action60 byteIndex0 creation path confirmed |
+| Shl05 | action46 byteIndex0 creation path confirmed |
+
+Only Shl03 remains without a closed script/lifecycle trigger in this matrix.
+
+### Remaining reverse gates after Pass 2B
+
+- close the Shl03 lifecycle transition around the state144 path;
+- determine whether core slots20..24 use explicit render visibility toggles or
+  are represented canonically by placement/control-domain changes alone;
+- recover semantic resource identities only from stronger executable/corpus
+  evidence;
+- encode the completed runtime model in C++20 only after these gates close.
